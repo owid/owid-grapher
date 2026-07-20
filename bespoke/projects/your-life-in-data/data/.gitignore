@@ -1,0 +1,3 @@
+# dead hand-curated output of assets/build.py's write_curated() (superseded by
+# assets/ai_curate.py); regenerable, not used by the app
+curated.json

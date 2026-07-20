@@ -652,6 +652,1296 @@
                     }
                 ]
             }
+        },
+        "USA": {
+            "Health": {
+                "exclude": [
+                    {
+                        "slug": "incidence-of-tuberculosis-sdgs",
+                        "reason": "Tuberculosis has been at a very low, niche level in the US for decades."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "total-healthcare-expenditure-gdp",
+                        "valueColumn": "current_health_expenditure__che__as_percentage_of_gross_domestic_product__gdp__pct",
+                        "label": "Healthcare spending as a share of GDP",
+                        "subtopic": "Health",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "none",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "",
+                        "source": "World Health Organization - Global Health Observatory (2026) \u2013 with minor processing by Our World in Data",
+                        "reason": "The US spends an exceptionally large and rising share of its economy on healthcare."
+                    }
+                ]
+            },
+            "Environment": {
+                "exclude": [
+                    {
+                        "slug": "share-of-the-population-with-access-to-electricity",
+                        "reason": "Electricity access has been universal in the US for decades"
+                    },
+                    {
+                        "slug": "access-to-clean-fuels-and-technologies-for-cooking",
+                        "reason": "Access to clean cooking fuels has been universal in the US for decades"
+                    },
+                    {
+                        "slug": "proportion-using-safely-managed-drinking-water",
+                        "reason": "Access to safely managed drinking water is near-universal and stable"
+                    },
+                    {
+                        "slug": "share-using-safely-managed-sanitation",
+                        "reason": "Access to safely managed sanitation is near-universal and stable"
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "annual-co2-emissions-per-country",
+                        "valueColumn": "emissions_total",
+                        "label": "Annual CO\u2082 emissions",
+                        "subtopic": "Environment",
+                        "format": "tonnes",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "relative",
+                        "unit": "t",
+                        "desc": "Annual total emissions of carbon dioxide (CO\u2082), excluding land-use change, measured in tonnes.",
+                        "source": "Global Carbon Budget (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "The US is the world's largest cumulative emitter of greenhouse gases, making absolute emissions highly central"
+                    },
+                    {
+                        "slug": "oil-production-by-country",
+                        "valueColumn": "oil_production__twh",
+                        "label": "Oil production",
+                        "subtopic": "Environment",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "none",
+                        "framing": "relative",
+                        "unit": "TWh",
+                        "desc": "Measured in terawatt-hours.",
+                        "source": "Energy Institute - Statistical Review of World Energy (2025); The Shift Data Portal (2019) \u2013 with major processing by Our World in Data",
+                        "reason": "The US is the world's leading producer of crude oil, a critical driver of the energy and emissions landscape"
+                    },
+                    {
+                        "slug": "nuclear-energy-generation",
+                        "valueColumn": "nuclear_generation__twh",
+                        "label": "Nuclear power generation",
+                        "subtopic": "Environment",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "up",
+                        "framing": "relative",
+                        "unit": "TWh",
+                        "desc": "Measured in terawatt-hours.",
+                        "source": "Ember (2026); Energy Institute - Statistical Review of World Energy (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "The US is the world's largest producer of nuclear energy, which provides the bulk of its carbon-free power"
+                    }
+                ]
+            },
+            "Economy": {
+                "exclude": [
+                    {
+                        "slug": "share-of-population-in-extreme-poverty",
+                        "reason": "The $3/day international poverty line is too low to capture meaningful poverty dynamics in a high-income country."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "income-share-top-1-before-tax-wid",
+                        "valueColumn": "share_top_1__welfare_type_before_tax__extrapolated_no",
+                        "label": "Income share of the richest 1%",
+                        "subtopic": "Economy",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "none",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "The share of income received by the richest 1% of the population. Income here is measured before taxes and benefits.",
+                        "source": "World Inequality Database (WID.world) (2026) \u2013 with major processing by Our World in Data",
+                        "reason": "Income concentration at the top has returned to historic highs and is central to US economic debate."
+                    },
+                    {
+                        "slug": "total-healthcare-expenditure-gdp",
+                        "valueColumn": "current_health_expenditure__che__as_percentage_of_gross_domestic_product__gdp__pct",
+                        "label": "Healthcare spending as a share of GDP",
+                        "subtopic": "Economy",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "none",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "",
+                        "source": "World Health Organization - Global Health Observatory (2026) \u2013 with minor processing by Our World in Data",
+                        "reason": "Healthcare consumes an exceptionally large and growing share of the US economy compared to other peer nations."
+                    }
+                ]
+            },
+            "Food & Agriculture": {
+                "promote": [
+                    {
+                        "slug": "share-of-adults-defined-as-obese",
+                        "valueColumn": "obesity_among_adults__bmi__gt__30_kg_m2__crude_estimate__pct__sex_both_sexes__age_group_18plus__years_of_age",
+                        "label": "Share of adults who are obese",
+                        "subtopic": "Food & Agriculture",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "down",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "",
+                        "source": "World Health Organization - Global Health Observatory (2026) \u2013 with minor processing by Our World in Data",
+                        "reason": "Obesity rates have more than tripled since 1980, representing a major public health and food system challenge."
+                    },
+                    {
+                        "slug": "share-cereals-industrial-uses",
+                        "valueColumn": "share_of_cereals_allocated_to_other_uses",
+                        "label": "Share of cereals allocated to industrial uses",
+                        "subtopic": "Food & Agriculture",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "none",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "",
+                        "source": "Food and Agriculture Organization of the United Nations (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "A exceptionally large share of US crop production is now diverted to industrial uses, primarily corn-based ethanol."
+                    }
+                ]
+            },
+            "Living Conditions": {
+                "exclude": [
+                    {
+                        "slug": "share-of-the-population-with-access-to-electricity",
+                        "reason": "Pinned at 100% ceiling throughout the period"
+                    },
+                    {
+                        "slug": "access-to-clean-fuels-and-technologies-for-cooking",
+                        "reason": "Pinned near 100% ceiling throughout the period"
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "how-important-religion-is-in-your-life",
+                        "valueColumn": "very_important_in_life_religion",
+                        "label": "Share of people who say religion is very important in their life",
+                        "subtopic": "Living Conditions",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "none",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "% of respondents replying \"very important\" when asked \"For each of the following aspects, indicate how important it is in your life. Would you say it is very important, rather important, not very important or not important at all?\" in the item \"Religion\".",
+                        "source": "Integrated Values Surveys (2024) \u2013 with major processing by Our World in Data",
+                        "reason": "Captures a major long-term shift toward secularization in American society"
+                    }
+                ]
+            },
+            "Violence & War": {
+                "exclude": [
+                    {
+                        "slug": "deaths-in-armed-conflicts-by-country",
+                        "reason": "No domestic armed conflict has taken place on US territory during this period."
+                    },
+                    {
+                        "slug": "percentage-of-territory-controlled-by-government",
+                        "reason": "Government territorial control has remained complete and stable."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "military-spending-sipri",
+                        "valueColumn": "constant_usd",
+                        "label": "Military spending",
+                        "subtopic": "Violence & War",
+                        "format": "usd",
+                        "comparable": false,
+                        "goodDirection": "none",
+                        "framing": "relative",
+                        "unit": "$",
+                        "desc": "This data is expressed in US dollars. It is adjusted for inflation but does not account for differences in the cost of living between countries.",
+                        "source": "Stockholm International Peace Research Institute (2026) \u2013 with minor processing by Our World in Data",
+                        "reason": "The absolute scale of US defense spending is a major national and global talking point."
+                    }
+                ]
+            },
+            "Population & Demography": {
+                "exclude": [
+                    {
+                        "slug": "sex-ratio-at-birth",
+                        "reason": "remained stable within the natural biological range throughout the period"
+                    }
+                ]
+            },
+            "Technology": {
+                "promote": [
+                    {
+                        "slug": "yearly-number-of-objects-launched-into-outer-space",
+                        "valueColumn": "annual_launches",
+                        "label": "Annual objects launched into space",
+                        "subtopic": "Technology",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "up",
+                        "framing": "relative",
+                        "unit": "objects",
+                        "desc": "Annual number of satellites, probes, landers, crewed spacecrafts, and space station flight elements, launched into Earth orbit or beyond.",
+                        "source": "United Nations Office for Outer Space Affairs (2026) \u2013 with major processing by Our World in Data",
+                        "reason": "The US has driven a massive global surge in satellite and space launches, particularly through commercial aerospace development."
+                    }
+                ]
+            },
+            "Education": {
+                "exclude": [
+                    {
+                        "slug": "cross-country-literacy-rates",
+                        "reason": "Data ends in 1950 and has long been near-universal, making it uninformative for modern US educational trends."
+                    }
+                ]
+            }
+        },
+        "IND": {
+            "Health": {
+                "promote": [
+                    {
+                        "slug": "number-of-estimated-paralytic-polio-cases-by-world-region",
+                        "valueColumn": "estimated_cases",
+                        "label": "Estimated polio cases",
+                        "subtopic": "Health",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "relative",
+                        "unit": "cases",
+                        "desc": "The total estimated number of polio cases.",
+                        "source": "World Health Organization (2019); World Health Organization (2024) \u2013 processed by Our World in Data",
+                        "reason": "India was declared polio-free in 2014, a major milestone after once accounting for most of the world's cases."
+                    },
+                    {
+                        "slug": "access-to-clean-fuels-for-cooking-vs-gdp-per-capita",
+                        "valueColumn": "proportion_of_population_with_primary_reliance_on_clean_fuels_and_technologies_for_cooking__pct__residence_area_type_total",
+                        "label": "Access to clean cooking fuels",
+                        "subtopic": "Health",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "up",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "",
+                        "source": "World Health Organization - Global Health Observatory (2026) \u2013 with minor processing by Our World in Data",
+                        "reason": "Massive public campaigns have rapidly shifted hundreds of millions of households away from toxic solid fuels."
+                    }
+                ]
+            },
+            "Environment": {
+                "exclude": [
+                    {
+                        "slug": "ozone-depleting-substance-consumption",
+                        "reason": "Consumption is recorded as zero across the entire period."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "annual-co2-emissions-per-country",
+                        "valueColumn": "emissions_total",
+                        "label": "Annual CO\u2082 emissions",
+                        "subtopic": "Environment",
+                        "format": "tonnes",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "relative",
+                        "unit": "t",
+                        "desc": "Annual total emissions of carbon dioxide (CO\u2082), excluding land-use change, measured in tonnes.",
+                        "source": "Global Carbon Budget (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "India has emerged as one of the world's largest absolute emitters of greenhouse gases."
+                    },
+                    {
+                        "slug": "outdoor-air-pollution-exposure",
+                        "valueColumn": "population_weighted_pm25",
+                        "label": "Outdoor air pollution",
+                        "subtopic": "Environment",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "absolute",
+                        "unit": "\u00b5g/m\u00b3",
+                        "desc": "Annual population-weighted average concentration of fine particulate matter (PM2.5) in the air, measured in micrograms per cubic meter (\u00b5g/m\u00b3). Fine particulate matter (PM2.5) are particles with a diameter of 2.5 micrometers or less, which can pose significant health risks.",
+                        "source": "SatPM, Atmospheric Composition Analysis Group, Washington University in St. Louis (2026) \u2013 with minor processing by Our World in Data",
+                        "reason": "Fine particulate matter exposure is extremely high and represents a major public health challenge."
+                    },
+                    {
+                        "slug": "access-to-clean-fuels-and-technologies-for-cooking",
+                        "valueColumn": "proportion_of_population_with_primary_reliance_on_clean_fuels_and_technologies_for_cooking__pct__residence_area_type_total",
+                        "label": "Access to clean cooking fuels",
+                        "subtopic": "Environment",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "up",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "",
+                        "source": "World Health Organization - Global Health Observatory (2026) \u2013 with minor processing by Our World in Data",
+                        "reason": "The transition to clean cooking has dramatically reduced indoor air pollution exposure for hundreds of millions of people."
+                    }
+                ]
+            },
+            "Economy": {
+                "exclude": [
+                    {
+                        "slug": "economic-inequality-gini-index",
+                        "reason": "The consumption-based Gini index understates economic inequality in India, which has risen sharply in terms of income and wealth."
+                    },
+                    {
+                        "slug": "unemployment-rate",
+                        "reason": "Official unemployment figures are uninformative in India because most workers are underemployed or work informally."
+                    },
+                    {
+                        "slug": "annual-working-hours-per-worker",
+                        "reason": "This metric has remained relatively unchanged and is less central than structural shifts in employment."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "gdp-worldbank",
+                        "valueColumn": "ny_gdp_mktp_pp_kd",
+                        "label": "Gross domestic product (GDP)",
+                        "subtopic": "Economy",
+                        "format": "usd",
+                        "comparable": false,
+                        "goodDirection": "up",
+                        "framing": "relative",
+                        "unit": "$",
+                        "desc": "Total economic output of a country or region per year. This data is adjusted for inflation and differences in living costs between countries.",
+                        "source": "Eurostat, OECD, IMF, and World Bank (2026) \u2013 with minor processing by Our World in Data",
+                        "reason": "India's expansion into one of the world's largest economies is a defining global development story."
+                    },
+                    {
+                        "slug": "share-in-informal-employment",
+                        "valueColumn": "_8_3_1__sl_isv_ifem__no_breakdown__both_sexes",
+                        "label": "Share of workers in informal employment",
+                        "subtopic": "Economy",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "down",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "Share of employed people working in jobs that lack basic social or legal protection and employment benefits. Does not include illegal and illicit activities. Figures refer to national estimates and may not be fully comparable across countries.",
+                        "source": "International Labour Organization \u2013 with major processing by Our World in Data",
+                        "reason": "Informality remains the dominant reality for nearly 90% of the Indian workforce, which standard labor metrics miss."
+                    }
+                ]
+            },
+            "Food & Agriculture": {
+                "exclude": [
+                    {
+                        "slug": "meat-supply-per-person",
+                        "reason": "Meat consumption is exceptionally low in India due to widespread cultural vegetarianism"
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "agriculture-share-gdp",
+                        "valueColumn": "nv_agr_totl_zs",
+                        "label": "Share of GDP from agriculture",
+                        "subtopic": "Food & Agriculture",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "none",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "",
+                        "source": "National statistical organizations and central banks, OECD national accounts, and World Bank staff estimates (2026) \u2013 processed by Our World in Data",
+                        "reason": "Highlights the structural transition of India's economy alongside its agricultural labor shift"
+                    }
+                ]
+            },
+            "Living Conditions": {
+                "exclude": [
+                    {
+                        "slug": "one-person-households",
+                        "reason": "Remains stagnant at under 8% and lacks recent data since 2009"
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "number-without-clean-cooking-fuel",
+                        "valueColumn": "eg_cft_accs_zs_without_number",
+                        "label": "People without access to clean cooking fuels",
+                        "subtopic": "Living Conditions",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "relative",
+                        "unit": "people",
+                        "desc": "Access to clean fuels or technologies such as natural gas, electricity, and clean cookstoves reduces exposure to indoor air pollutants, a leading cause of death in low-income households.",
+                        "source": "World Health Organization (via World Bank) \u2013 with major processing by Our World in Data",
+                        "reason": "Shows the immense absolute scale of India's clean energy transition, with the population lacking access cut by more than half"
+                    }
+                ]
+            },
+            "Population & Demography": {
+                "exclude": [
+                    {
+                        "slug": "migrant-stock-share",
+                        "reason": "International migrants make up less than 1% of India's population across the entire period."
+                    }
+                ]
+            },
+            "Technology": {
+                "exclude": [
+                    {
+                        "slug": "ict-adoption-per-100-people",
+                        "reason": "India bypassed traditional fixed-line telecom, leapfrogging directly to mobile wireless networks."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "number-of-internet-users",
+                        "valueColumn": "num_internet_users",
+                        "label": "Number of people using the internet",
+                        "subtopic": "Technology",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "up",
+                        "framing": "absolute",
+                        "unit": "users",
+                        "desc": "The number of individuals using the Internet.",
+                        "source": "World Telecommunication/ICT Indicators Database - International Telecommunication Union (ITU), via World Bank (2026); Population based on various sources (2024)",
+                        "reason": "India has experienced a historic digital expansion, building one of the largest online populations in the world."
+                    }
+                ]
+            },
+            "Education": {
+                "promote": [
+                    {
+                        "slug": "out-of-school-children-of-primary-school-age-by-world-region",
+                        "valueColumn": "out_of_school_children_of_primary_school_age__both_sexes__number",
+                        "label": "Out-of-school primary-school-age children",
+                        "subtopic": "Education",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "relative",
+                        "unit": "children",
+                        "desc": "Children in the official primary school age range who are not enrolled in either primary or secondary education.",
+                        "source": "UNESCO Institute for Statistics (2025) \u2013 with minor processing by Our World in Data",
+                        "reason": "India has achieved an extraordinary reduction in its out-of-school population, cutting the figure by over 99% since 1990."
+                    }
+                ]
+            }
+        },
+        "DEU": {
+            "Health": {
+                "exclude": [
+                    {
+                        "slug": "share-of-the-population-infected-with-hiv",
+                        "reason": "HIV prevalence is extremely low in Germany, consistently well under 1%"
+                    },
+                    {
+                        "slug": "incidence-of-tuberculosis-sdgs",
+                        "reason": "Tuberculosis is a rare disease in Germany, with extremely low incidence"
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "annual-healthcare-expenditure-per-capita",
+                        "valueColumn": "sh_xpd_chex_pp_cd",
+                        "label": "Health spending per person",
+                        "subtopic": "Health",
+                        "format": "usd",
+                        "comparable": true,
+                        "goodDirection": "up",
+                        "framing": "absolute",
+                        "unit": "$",
+                        "desc": "",
+                        "source": "Global Health Expenditure Database, WHO, via World Bank (2026) \u2013 processed by Our World in Data",
+                        "reason": "Germany has one of the world's most well-funded health systems, with per-capita spending more than tripling since 2000."
+                    },
+                    {
+                        "slug": "physicians-per-1000-people",
+                        "valueColumn": "sh_med_phys_zs",
+                        "label": "Medical doctors per 1,000 people",
+                        "subtopic": "Health",
+                        "format": "number",
+                        "comparable": true,
+                        "goodDirection": "up",
+                        "framing": "absolute",
+                        "unit": "per 1,000 people",
+                        "desc": "",
+                        "source": "Global Health Workforce Statistics, WHO, via World Bank (2026) \u2013 processed by Our World in Data",
+                        "reason": "Germany has steadily increased its density of physicians to address the demands of an aging population."
+                    }
+                ]
+            },
+            "Environment": {
+                "exclude": [
+                    {
+                        "slug": "share-of-the-population-with-access-to-electricity",
+                        "reason": "Universal electricity access has been maintained throughout the period"
+                    },
+                    {
+                        "slug": "proportion-using-safely-managed-drinking-water",
+                        "reason": "Safely managed drinking water has been near-universal for decades"
+                    },
+                    {
+                        "slug": "share-using-safely-managed-sanitation",
+                        "reason": "Safely managed sanitation has been near-universal for decades"
+                    },
+                    {
+                        "slug": "access-to-clean-fuels-and-technologies-for-cooking",
+                        "reason": "Access to clean cooking fuels has been near-universal since 2000"
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "nuclear-energy-generation",
+                        "valueColumn": "nuclear_generation__twh",
+                        "label": "Nuclear power generation",
+                        "subtopic": "Environment",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "none",
+                        "framing": "absolute",
+                        "unit": "TWh",
+                        "desc": "Measured in terawatt-hours.",
+                        "source": "Ember (2026); Energy Institute - Statistical Review of World Energy (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "Reflects Germany's major and highly debated policy decision to completely phase out nuclear energy (Atomausstieg)"
+                    }
+                ]
+            },
+            "Economy": {
+                "exclude": [
+                    {
+                        "slug": "share-of-population-in-extreme-poverty",
+                        "reason": "Extreme poverty ($3/day) is virtually non-existent in Germany and does not reflect domestic poverty dynamics"
+                    },
+                    {
+                        "slug": "bribery-prevalence-un",
+                        "reason": "Bribery rates are extremely low and flat, making this indicator uninformative for Germany"
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "social-spending-oecd-longrun",
+                        "valueColumn": "share_gdp",
+                        "label": "Public social spending as a share of GDP",
+                        "subtopic": "Economy",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "none",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "Public social expenditure divided bt gross domestic product, expressed as a percentage.",
+                        "source": "OECD (2025); OECD (1985); Lindert (2004) \u2013 with major processing by Our World in Data",
+                        "reason": "Germany is a pioneer of the social market economy, and its social spending has grown to over a quarter of GDP."
+                    },
+                    {
+                        "slug": "migrant-stock-share",
+                        "valueColumn": "immigrant_share_of_dest_population_all",
+                        "label": "Share of the population born abroad",
+                        "subtopic": "Economy",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "none",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "Immigrants as a share of the total population.",
+                        "source": "United Nations Department of Economic and Social Affairs (2024) \u2013 with minor processing by Our World in Data",
+                        "reason": "Immigration has been a major economic and demographic driver in Germany, doubling its share of the population since 1990."
+                    }
+                ]
+            },
+            "Food & Agriculture": {
+                "exclude": [
+                    {
+                        "slug": "prevalence-of-anemia-in-women-of-reproductive-age-aged-15-29",
+                        "reason": "Nutritional issues in Germany are dominated by overnutrition rather than deficiency-related anemia"
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "laying-hens-cages-and-cage-free",
+                        "valueColumn": "number_of_hens_in_cages",
+                        "label": "Laying hens kept in cages",
+                        "subtopic": "Food & Agriculture",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "relative",
+                        "unit": "hens",
+                        "desc": "Includes battery and enriched cage systems.",
+                        "source": "European Commission (2026) and other sources \u2013 processed by Our World in Data",
+                        "reason": "Reflects Germany's strict animal welfare regulations and pioneering phase-out of caged poultry housing"
+                    }
+                ]
+            },
+            "Living Conditions": {
+                "exclude": [
+                    {
+                        "slug": "share-of-the-population-with-access-to-electricity",
+                        "reason": "Electricity access has been universal (100%) throughout the entire period."
+                    },
+                    {
+                        "slug": "proportion-using-safely-managed-drinking-water",
+                        "reason": "Drinking water access has been virtually universal (above 99.8%) since 2000."
+                    },
+                    {
+                        "slug": "access-to-clean-fuels-and-technologies-for-cooking",
+                        "reason": "Access to clean cooking fuels has been near-universal (98% or higher) since 2000."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "annual-working-hours-per-worker",
+                        "valueColumn": "working_hours_omm",
+                        "label": "Annual working hours per worker",
+                        "subtopic": "Living Conditions",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "relative",
+                        "unit": "h",
+                        "desc": "Average working hours per worker in a given year.",
+                        "source": "Feenstra et al. - Penn World Table (2025); Huberman and Minns (2005) \u2013 with major processing by Our World in Data",
+                        "reason": "Germany has achieved some of the shortest annual working hours in the world, having cut average work hours by over half since 1900."
+                    },
+                    {
+                        "slug": "labor-productivity-per-hour-pennworldtable",
+                        "valueColumn": "productivity",
+                        "label": "Productivity: output per hour worked",
+                        "subtopic": "Living Conditions",
+                        "format": "usd",
+                        "comparable": false,
+                        "goodDirection": "up",
+                        "framing": "relative",
+                        "unit": "$/h",
+                        "desc": "Productivity is calculated as GDP divided by the total number of hours worked in the economy. This data is adjusted for inflation and differences in living costs between countries.",
+                        "source": "Feenstra et al. - Penn World Table (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "Germany's modern economy is defined by extremely high and rising hourly output, increasing more than 15-fold since 1950."
+                    }
+                ]
+            },
+            "Violence & War": {
+                "exclude": [
+                    {
+                        "slug": "percentage-of-territory-controlled-by-government",
+                        "reason": "Government control of territory has been virtually complete and uncontested throughout Germany's modern history"
+                    }
+                ]
+            },
+            "Population & Demography": {
+                "exclude": [
+                    {
+                        "slug": "sex-ratio-at-birth",
+                        "reason": "The sex ratio at birth has remained stable and within the normal biological range."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "refugee-population-by-country-or-territory-of-asylum",
+                        "valueColumn": "refugees",
+                        "label": "Refugees hosted",
+                        "subtopic": "Population & Demography",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "none",
+                        "framing": "absolute",
+                        "unit": "people",
+                        "desc": "People who fled their country of origin because of serious threats against which the authorities of their home country cannot or will not protect them. This includes all refugees who live in this country, not just those who arrived that year.",
+                        "source": "UNHCR (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "Germany has become one of the world's leading host nations for refugees, with asylum numbers growing to over 2.7 million."
+                    }
+                ]
+            },
+            "Education": {
+                "exclude": [
+                    {
+                        "slug": "primary-secondary-enrollment-completion-rates",
+                        "reason": "Enrollment rates have been pinned near 100% throughout the entire period"
+                    }
+                ]
+            }
+        },
+        "JPN": {
+            "Health": {
+                "promote": [
+                    {
+                        "slug": "median-age",
+                        "valueColumn": "median_age__sex_all__age_all__variant_estimates",
+                        "label": "Median age",
+                        "subtopic": "Health",
+                        "format": "years",
+                        "comparable": true,
+                        "goodDirection": "up",
+                        "framing": "absolute",
+                        "unit": "years",
+                        "desc": "The age that divides the population into two halves of equal size \u2014 half are younger and half are older.",
+                        "source": "UN, World Population Prospects (2024) \u2013 processed by Our World in Data",
+                        "reason": "Japan has one of the oldest populations in the world, driven by its exceptional longevity and low birth rates."
+                    }
+                ]
+            },
+            "Environment": {
+                "exclude": [
+                    {
+                        "slug": "ozone-depleting-substance-consumption",
+                        "reason": "Consumption of ozone-depleting substances has been zero for decades."
+                    },
+                    {
+                        "slug": "share-of-the-population-with-access-to-electricity",
+                        "reason": "Access to electricity has been at 100% throughout the entire period."
+                    },
+                    {
+                        "slug": "access-to-clean-fuels-and-technologies-for-cooking",
+                        "reason": "Access to clean cooking fuels is virtually universal."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "nuclear-energy-generation",
+                        "valueColumn": "nuclear_generation__twh",
+                        "label": "Nuclear power generation",
+                        "subtopic": "Environment",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "up",
+                        "framing": "absolute",
+                        "unit": "TWh",
+                        "desc": "Measured in terawatt-hours.",
+                        "source": "Ember (2026); Energy Institute - Statistical Review of World Energy (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "Nuclear energy plays a historically critical and highly debated role in Japan's low-carbon power sector."
+                    }
+                ]
+            },
+            "Economy": {
+                "exclude": [
+                    {
+                        "slug": "share-of-population-in-extreme-poverty",
+                        "reason": "Extreme poverty is at a niche level in a high-income country like Japan, where relative poverty is the more relevant metric"
+                    },
+                    {
+                        "slug": "bribery-prevalence-un",
+                        "reason": "Bribery is virtually nonexistent in Japan, making this metric uninformative"
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "social-spending-oecd-longrun",
+                        "valueColumn": "share_gdp",
+                        "label": "Public social spending as a share of GDP",
+                        "subtopic": "Economy",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "none",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "Public social expenditure divided bt gross domestic product, expressed as a percentage.",
+                        "source": "OECD (2025); OECD (1985); Lindert (2004) \u2013 with major processing by Our World in Data",
+                        "reason": "Captures the massive fiscal expansion of welfare, pensions, and healthcare to support Japan's rapidly aging demographic."
+                    }
+                ]
+            },
+            "Food & Agriculture": {
+                "exclude": [
+                    {
+                        "slug": "prevalence-of-anemia-in-women-of-reproductive-age-aged-15-29",
+                        "reason": "Anemia is not a defining dietary or agricultural issue in Japan compared to its major shifts in food supply and modernization."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "fish-seafood-production",
+                        "valueColumn": "fish_and_seafood__00002960__production__005511__tonnes",
+                        "label": "Fish and seafood production",
+                        "subtopic": "Food & Agriculture",
+                        "format": "tonnes",
+                        "comparable": false,
+                        "goodDirection": "none",
+                        "framing": "relative",
+                        "unit": "t",
+                        "desc": "",
+                        "source": "Food and Agriculture Organization of the United Nations (2025) \u2013 processed by Our World in Data",
+                        "reason": "Seafood is historically cornerstone to the Japanese diet, but domestic production has declined significantly since its 1980s peak."
+                    }
+                ]
+            },
+            "Living Conditions": {
+                "exclude": [
+                    {
+                        "slug": "share-of-the-population-with-access-to-electricity",
+                        "reason": "Electricity access has been universal (100%) throughout the entire period."
+                    },
+                    {
+                        "slug": "access-to-clean-fuels-and-technologies-for-cooking",
+                        "reason": "Access to clean cooking fuels has been near-universal since 2000."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "annual-working-hours-per-worker",
+                        "valueColumn": "working_hours_omm",
+                        "label": "Annual working hours per worker",
+                        "subtopic": "Living Conditions",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "absolute",
+                        "unit": "h",
+                        "desc": "Average working hours per worker in a given year.",
+                        "source": "Feenstra et al. - Penn World Table (2025); Huberman and Minns (2005) \u2013 with major processing by Our World in Data",
+                        "reason": "Japan's historically long work hours have steadily declined, representing a major shift in labor culture and quality of life."
+                    },
+                    {
+                        "slug": "marriage-rate-per-1000-inhabitants",
+                        "valueColumn": "value__gender_both__indicator_marriage_rate",
+                        "label": "Marriage rate",
+                        "subtopic": "Living Conditions",
+                        "format": "number",
+                        "comparable": true,
+                        "goodDirection": "none",
+                        "framing": "relative",
+                        "unit": "per 1,000 people",
+                        "desc": "Number of marriages during a given year per 1,000 people.",
+                        "source": "OECD (2025) and other sources \u2013 with minor processing by Our World in Data",
+                        "reason": "Marriage rates have more than halved since 1960, a central element of Japan's changing social fabric and demographic profile."
+                    }
+                ]
+            },
+            "Violence & War": {
+                "exclude": [
+                    {
+                        "slug": "percentage-of-territory-controlled-by-government",
+                        "reason": "Coding artifact regarding maritime/island disputes; the government has complete domestic administrative control."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "military-spending-sipri",
+                        "valueColumn": "constant_usd",
+                        "label": "Military spending",
+                        "subtopic": "Violence & War",
+                        "format": "usd",
+                        "comparable": false,
+                        "goodDirection": "none",
+                        "framing": "relative",
+                        "unit": "$",
+                        "desc": "This data is expressed in US dollars. It is adjusted for inflation but does not account for differences in the cost of living between countries.",
+                        "source": "Stockholm International Peace Research Institute (2026) \u2013 with minor processing by Our World in Data",
+                        "reason": "Japan's defense budget has grown significantly in absolute terms, representing a major shift in its post-war security posture."
+                    }
+                ]
+            },
+            "Population & Demography": {
+                "exclude": [
+                    {
+                        "slug": "sex-ratio-at-birth",
+                        "reason": "Remained within the natural biological range with no history of sex-selective practices."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "population-by-age-group",
+                        "valueColumn": "population__sex_all__age_65plus__variant_estimates",
+                        "label": "Population aged 65 and older",
+                        "subtopic": "Population & Demography",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "none",
+                        "framing": "relative",
+                        "unit": "people",
+                        "desc": "The total population, measured on 1 July of the year shown. This only includes people aged 65+.",
+                        "source": "UN, World Population Prospects (2024) \u2013 processed by Our World in Data",
+                        "reason": "Reflects Japan's position as one of the world's most rapidly aging societies, with the senior population increasing nearly ninefold since 1950."
+                    }
+                ]
+            },
+            "Education": {
+                "exclude": [
+                    {
+                        "slug": "primary-secondary-enrollment-completion-rates",
+                        "reason": "School enrollment has been virtually universal (~100%) for over half a century"
+                    }
+                ]
+            }
+        },
+        "NGA": {
+            "Health": {
+                "exclude": [
+                    {
+                        "slug": "share-of-men-who-are-smoking",
+                        "reason": "Tobacco use in Nigeria is exceptionally low compared to global averages, making it a minor public health contributor."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "deaths-from-diarrheal-diseases-who",
+                        "valueColumn": "death_count__age_group_allages__sex_both_sexes__cause_diarrhoeal_diseases",
+                        "label": "Deaths from diarrheal disease",
+                        "subtopic": "Health",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "relative",
+                        "unit": "deaths",
+                        "desc": "Estimated number of deaths from diarrhoeal diseases in both sexes.",
+                        "source": "World Health Organization (2024) \u2013 with major processing by Our World in Data",
+                        "reason": "Diarrheal diseases remain one of Nigeria's most critical yet preventable causes of child mortality."
+                    }
+                ]
+            },
+            "Environment": {
+                "exclude": [
+                    {
+                        "slug": "ozone-depleting-substance-consumption",
+                        "reason": "Consumption has been recorded as zero across the tracking period."
+                    },
+                    {
+                        "slug": "natural-disasters-deaths",
+                        "reason": "Recorded deaths are registered as zero in both comparison years, failing to capture actual disaster impacts."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "access-to-clean-fuels-and-technologies-for-cooking",
+                        "valueColumn": "proportion_of_population_with_primary_reliance_on_clean_fuels_and_technologies_for_cooking__pct__residence_area_type_total",
+                        "label": "Access to clean cooking fuels",
+                        "subtopic": "Environment",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "up",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "",
+                        "source": "World Health Organization - Global Health Observatory (2026) \u2013 with minor processing by Our World in Data",
+                        "reason": "Widespread reliance on biomass fuels makes indoor air pollution a major environmental health hazard in Nigeria."
+                    },
+                    {
+                        "slug": "natural-disasters-people-affected",
+                        "valueColumn": "total_affected_drought_yearly",
+                        "label": "People affected by natural disasters",
+                        "subtopic": "Environment",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "relative",
+                        "unit": "people",
+                        "desc": "Total number of people affected by a natural disaster.",
+                        "source": "EM-DAT, CRED / UCLouvain (2026) \u2013 with major processing by Our World in Data",
+                        "reason": "Vulnerability to severe seasonal flooding has exposed millions more people to disaster impacts in recent decades."
+                    }
+                ]
+            },
+            "Economy": {
+                "exclude": [
+                    {
+                        "slug": "unemployment-rate",
+                        "reason": "With vast informality, official unemployment rates do not capture the true scale of underemployment."
+                    },
+                    {
+                        "slug": "annual-working-hours-per-worker",
+                        "reason": "Working hours are difficult to measure reliably in an economy dominated by informal labor."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "total-population-living-in-extreme-poverty-by-world-region",
+                        "valueColumn": "headcount__ppp_version_2021__poverty_line_300__welfare_type_income_or_consumption__table_income_or_consumption_consolidated__survey_comparability_no_spells",
+                        "label": "Number of people in extreme poverty",
+                        "subtopic": "Economy",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "relative",
+                        "unit": "people",
+                        "desc": "Number of people living in households with an income or consumption below $3 per day.",
+                        "source": "World Bank Poverty and Inequality Platform (2026) \u2013 with major processing by Our World in Data",
+                        "reason": "While the poverty rate fell slightly, rapid population growth caused the absolute headcount to more than double."
+                    },
+                    {
+                        "slug": "share-in-informal-employment",
+                        "valueColumn": "_8_3_1__sl_isv_ifem__no_breakdown__both_sexes",
+                        "label": "Share of workers in informal employment",
+                        "subtopic": "Economy",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "down",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "Share of employed people working in jobs that lack basic social or legal protection and employment benefits. Does not include illegal and illicit activities. Figures refer to national estimates and may not be fully comparable across countries.",
+                        "source": "International Labour Organization \u2013 with major processing by Our World in Data",
+                        "reason": "With over 90% of the workforce in the informal sector, this is central to understanding Nigeria's labor market."
+                    }
+                ]
+            },
+            "Food & Agriculture": {
+                "promote": [
+                    {
+                        "slug": "prevalence-of-anemia-in-children",
+                        "valueColumn": "sh_anm_chld_zs",
+                        "label": "Share of children with anemia",
+                        "subtopic": "Food & Agriculture",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "down",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "",
+                        "source": "Global Health Observatory / World Health Statistics - World Health Organization (WHO), via World Bank (2026) \u2013 processed by Our World in Data",
+                        "reason": "Nearly 70% of Nigerian children suffer from anemia, highlighting a severe and persistent crisis of micronutrient malnutrition."
+                    }
+                ]
+            },
+            "Living Conditions": {
+                "exclude": [
+                    {
+                        "slug": "one-person-households",
+                        "reason": "Household composition has remained virtually unchanged and is not a key development signal here"
+                    },
+                    {
+                        "slug": "annual-working-hours-per-worker",
+                        "reason": "Estimates of formal working hours are stable and do not capture Nigeria's dominant informal labor market"
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "number-without-clean-cooking-fuel",
+                        "valueColumn": "eg_cft_accs_zs_without_number",
+                        "label": "People without clean cooking fuels",
+                        "subtopic": "Living Conditions",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "absolute",
+                        "unit": "people",
+                        "desc": "Access to clean fuels or technologies such as natural gas, electricity, and clean cookstoves reduces exposure to indoor air pollutants, a leading cause of death in low-income households.",
+                        "source": "World Health Organization (via World Bank) \u2013 with major processing by Our World in Data",
+                        "reason": "Rapid population growth has outpaced access gains, leaving 42 million more people without clean cooking fuels since 2000"
+                    },
+                    {
+                        "slug": "drinking-water-service-coverage",
+                        "valueColumn": "wat_ns_pop__residence_total",
+                        "label": "People relying on surface water for drinking",
+                        "subtopic": "Living Conditions",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "relative",
+                        "unit": "people",
+                        "desc": "Number of people using drinking water directly collected from surface waters.",
+                        "source": "WHO/UNICEF Joint Monitoring Programme for Water Supply, Sanitation and Hygiene (2025) \u2013 processed by Our World in Data",
+                        "reason": "Nigeria has achieved a massive reduction in unsafe water reliance, cutting surface-water users by over two-thirds since 2000"
+                    }
+                ]
+            },
+            "Population & Demography": {
+                "exclude": [
+                    {
+                        "slug": "migrant-stock-share",
+                        "reason": "Immigrants make up less than 1% of the population across the entire period, making migration a negligible driver of Nigeria's demographic trends."
+                    }
+                ]
+            },
+            "Technology": {
+                "exclude": [
+                    {
+                        "slug": "ict-adoption-per-100-people",
+                        "reason": "Captures fixed telephone lines which are obsolete in Nigeria's mobile-first market, showing flat, near-zero adoption"
+                    },
+                    {
+                        "slug": "yearly-number-of-objects-launched-into-outer-space",
+                        "reason": "Space launches are a niche activity with negligible numbers for Nigeria across the period"
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "number-of-internet-users",
+                        "valueColumn": "num_internet_users",
+                        "label": "Number of internet users",
+                        "subtopic": "Technology",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "up",
+                        "framing": "absolute",
+                        "unit": "users",
+                        "desc": "The number of individuals using the Internet.",
+                        "source": "World Telecommunication/ICT Indicators Database - International Telecommunication Union (ITU), via World Bank (2026); Population based on various sources (2024)",
+                        "reason": "Nigeria has emerged as Africa's largest digital market, with internet users growing to over 77 million"
+                    }
+                ]
+            },
+            "Education": {
+                "promote": [
+                    {
+                        "slug": "out-of-school-children-of-primary-school-age-by-world-region",
+                        "valueColumn": "out_of_school_children_of_primary_school_age__both_sexes__number",
+                        "label": "Primary-school-age children out of school",
+                        "subtopic": "Education",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "absolute",
+                        "unit": "children",
+                        "desc": "Children in the official primary school age range who are not enrolled in either primary or secondary education.",
+                        "source": "UNESCO Institute for Statistics (2025) \u2013 with minor processing by Our World in Data",
+                        "reason": "Nigeria has one of the world's largest populations of out-of-school children, with the absolute number rising over the decade."
+                    }
+                ]
+            }
+        },
+        "BRA": {
+            "Health": {
+                "exclude": [
+                    {
+                        "slug": "incidence-of-tuberculosis-sdgs",
+                        "reason": "The estimated tuberculosis incidence rate remained completely unchanged at 49 cases per 100,000 people."
+                    },
+                    {
+                        "slug": "share-of-the-population-infected-with-hiv",
+                        "reason": "HIV prevalence has remained well below 1% of the population throughout the entire period."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "universal-health-coverage-index",
+                        "valueColumn": "uhc_service_coverage_index__sdg_3_8_1",
+                        "label": "Universal Health Coverage index",
+                        "subtopic": "Health",
+                        "format": "number",
+                        "comparable": true,
+                        "goodDirection": "up",
+                        "framing": "absolute",
+                        "unit": "",
+                        "desc": "",
+                        "source": "World Health Organization - Global Health Observatory (2026) \u2013 with minor processing by Our World in Data",
+                        "reason": "Reflects the steady expansion of healthcare services under Brazil's landmark free universal public health system (SUS)."
+                    }
+                ]
+            },
+            "Environment": {
+                "exclude": [
+                    {
+                        "slug": "ozone-depleting-substance-consumption",
+                        "reason": "The data points for the start and end years are registered as zero, making the trend uninformative."
+                    },
+                    {
+                        "slug": "natural-disasters-deaths",
+                        "reason": "The data points for the selected years are registered as zero, which does not informatively represent disaster impacts in Brazil."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "annual-deforestation",
+                        "valueColumn": "_1d_deforestation",
+                        "label": "Annual deforestation",
+                        "subtopic": "Environment",
+                        "format": "years",
+                        "comparable": true,
+                        "goodDirection": "down",
+                        "framing": "relative",
+                        "unit": "ha/year",
+                        "desc": "",
+                        "source": "Food and Agriculture Organization of the United Nations (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "Deforestation in the Amazon is Brazil's most critical environmental challenge and a focal point of national and global climate policy."
+                    }
+                ]
+            },
+            "Economy": {
+                "promote": [
+                    {
+                        "slug": "share-in-informal-employment",
+                        "valueColumn": "_8_3_1__sl_isv_ifem__no_breakdown__both_sexes",
+                        "label": "Share of workers in informal employment",
+                        "subtopic": "Economy",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "down",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "Share of employed people working in jobs that lack basic social or legal protection and employment benefits. Does not include illegal and illicit activities. Figures refer to national estimates and may not be fully comparable across countries.",
+                        "source": "International Labour Organization \u2013 with major processing by Our World in Data",
+                        "reason": "Informal labor has historically employed around half of Brazil's workforce, though formalization has improved over the last fifteen years."
+                    }
+                ]
+            },
+            "Food & Agriculture": {
+                "promote": [
+                    {
+                        "slug": "meat-production-tonnes",
+                        "valueColumn": "meat__total__00001765__production__005510__tonnes",
+                        "label": "Annual meat production",
+                        "subtopic": "Food & Agriculture",
+                        "format": "tonnes",
+                        "comparable": false,
+                        "goodDirection": "none",
+                        "framing": "relative",
+                        "unit": "t",
+                        "desc": "",
+                        "source": "Food and Agriculture Organization of the United Nations (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "Brazil has emerged as a global agricultural powerhouse, with meat production increasing nearly 14-fold since 1961."
+                    },
+                    {
+                        "slug": "pesticide-use-per-hectare-of-cropland",
+                        "valueColumn": "pesticides__total__00001357__use_per_area_of_cropland__005159__kilograms_per_hectare",
+                        "label": "Pesticide use per hectare of cropland",
+                        "subtopic": "Food & Agriculture",
+                        "format": "number",
+                        "comparable": true,
+                        "goodDirection": "none",
+                        "framing": "relative",
+                        "unit": "kg/ha",
+                        "desc": "",
+                        "source": "Food and Agriculture Organization of the United Nations (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "Brazil's intensive farming model relies on exceptionally high and rising rates of chemical application."
+                    }
+                ]
+            },
+            "Violence & War": {
+                "exclude": [
+                    {
+                        "slug": "terrorism-deaths",
+                        "reason": "Terrorism is a negligible phenomenon in Brazil, with virtually zero deaths recorded over the last several decades."
+                    },
+                    {
+                        "slug": "deaths-in-armed-conflicts-by-country",
+                        "reason": "Brazil has not experienced domestic armed conflict deaths during the modern period."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "homicides-unodc",
+                        "valueColumn": "value__category_total__sex_total__age_total__unit_of_measurement_counts",
+                        "label": "Homicides",
+                        "subtopic": "Violence & War",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "relative",
+                        "unit": "homicides",
+                        "desc": "Number of intentional homicides.",
+                        "source": "UN, World Population Prospects (2024); United Nations Office on Drugs and Crime (2025) \u2013 with minor processing by Our World in Data",
+                        "reason": "Brazil suffers from an exceptionally high absolute volume of violent crime, accounting for over 40,000 homicides annually."
+                    }
+                ]
+            },
+            "Population & Demography": {
+                "exclude": [
+                    {
+                        "slug": "migrant-stock-share",
+                        "reason": "The share of foreign-born residents in Brazil is extremely low (under 1%) and has remained virtually unchanged for decades."
+                    }
+                ]
+            },
+            "Technology": {
+                "exclude": [
+                    {
+                        "slug": "yearly-number-of-objects-launched-into-outer-space",
+                        "reason": "Extremely low absolute numbers of annual space launches (1\u20132 objects) make this metric uninformative for Brazil."
+                    }
+                ]
+            }
         }
     }
 }
