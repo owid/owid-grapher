@@ -1576,9 +1576,8 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
         // Never taller than the viewport minus top+bottom margins, so the whole
         // viz fits on screen with no clipping.
         max-height: calc(
-            100dvh - var(--bespoke-viz-modal-top) - var(
-                    --bespoke-viz-modal-bottom
-                )
+            100dvh - var(--bespoke-viz-modal-top) -
+                var(--bespoke-viz-modal-bottom)
         );
         background-color: $white;
         border-radius: 12px;
@@ -1631,9 +1630,9 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
         --bespoke-viz-chart-area-height: min(
             720px,
             calc(
-                100dvh - var(--bespoke-viz-modal-top) - var(
-                        --bespoke-viz-modal-bottom
-                    ) - var(--bespoke-viz-chrome-allowance)
+                100dvh - var(--bespoke-viz-modal-top) -
+                    var(--bespoke-viz-modal-bottom) -
+                    var(--bespoke-viz-chrome-allowance)
             )
         );
 
