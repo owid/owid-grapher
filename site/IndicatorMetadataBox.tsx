@@ -65,7 +65,12 @@ interface ExpandableSectionProps {
     title: IndicatorTitleWithFragments
     descriptionProcessing: string | undefined
     license?: LicenseOption
+    faqsSectionId: string
+    sourcesSectionId: string
+    processingContentId: string
 }
+
+const FAQS_SECTION_ID = "faqs"
 
 const KEY_DESCRIPTION_PREVIEW_COUNT = 3
 
@@ -108,6 +113,9 @@ function ExpandableSection({
     title,
     descriptionProcessing,
     license,
+    faqsSectionId,
+    sourcesSectionId,
+    processingContentId,
 }: ExpandableSectionProps) {
     const { origins, source } = datapageData
     const preview = datapageData.descriptionKey.slice(
@@ -183,6 +191,11 @@ function ExpandableSection({
                 // Guard to only react to this element's own toggle.
                 onToggle={(e) => {
                     if (e.target !== e.currentTarget) return
+                    // Skip hidden panes (display: none → offsetParent is
+                    // null): switching indicators programmatically closes
+                    // the previous pane's details, which shouldn't count
+                    // as a user collapse.
+                    if (!e.currentTarget.offsetParent) return
                     analytics.logSiteClick(
                         e.currentTarget.open
                             ? "expand_metadata_box"
@@ -221,7 +234,10 @@ function ExpandableSection({
                 )}
                 {
                     <section className="meta-expander__section meta-expander__section--faqs">
-                        <h2 className="meta-expander__section-title" id="faqs">
+                        <h2
+                            className="meta-expander__section-title"
+                            id={faqsSectionId}
+                        >
                             Frequently asked questions
                         </h2>
                         {faqQuestions.map((faq, i) => (
@@ -246,7 +262,7 @@ function ExpandableSection({
                         ))}
                         <ExpandableToggle
                             label="How did Our World in Data process this data?"
-                            contentId={INDICATOR_PROCESSING_SECTION_ID}
+                            contentId={processingContentId}
                             content={
                                 <IndicatorProcessing
                                     descriptionProcessing={
@@ -289,7 +305,7 @@ function ExpandableSection({
                 )}
                 <section className="meta-expander__section">
                     <h2
-                        id={DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}
+                        id={sourcesSectionId}
                         className="meta-expander__section-title"
                     >
                         Data sources
@@ -431,6 +447,7 @@ function IndicatorPaneContent({
     canonicalUrl,
     archiveContext,
     license,
+    idSuffix,
 }: {
     datapageData: DataPageDataV2
     faqEntries: FaqEntryData | undefined
@@ -438,6 +455,12 @@ function IndicatorPaneContent({
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
     license?: LicenseOption
+    // Disambiguates the section anchor ids (#faqs, #sources-and-processing,
+    // #indicator-processing) when several panes are in the DOM at once. The
+    // active pane always gets the canonical (un-suffixed) ids so in-page
+    // anchors and the grapher footer's jump-to-sources always resolve to
+    // the visible pane.
+    idSuffix: string
 }) {
     // Owners of the dataset backing this indicator. For now we show a single
     // indicator's owners (only loaded on the chart's primary indicator);
@@ -445,10 +468,11 @@ function IndicatorPaneContent({
     const owners = datapageData.owners?.[0]?.owners ?? []
 
     const attributionUnshortened = getAttributionUnshortened(datapageData)
+    const processingContentId = `${INDICATOR_PROCESSING_SECTION_ID}${idSuffix}`
     const sourceString = makeSource({
         attribution: attributionUnshortened,
         owidProcessingLevel: datapageData.owidProcessingLevel,
-        processingId: INDICATOR_PROCESSING_SECTION_ID,
+        processingId: processingContentId,
     })
 
     return (
@@ -539,6 +563,9 @@ function IndicatorPaneContent({
                 title={datapageData.title}
                 descriptionProcessing={datapageData.descriptionProcessing}
                 license={license}
+                faqsSectionId={`${FAQS_SECTION_ID}${idSuffix}`}
+                sourcesSectionId={`${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}${idSuffix}`}
+                processingContentId={processingContentId}
             />
         </>
     )
@@ -597,6 +624,13 @@ export default function IndicatorMetadataBox({
             isFirstActiveIndexRef.current = false
             return
         }
+        // Close the now-hidden panes' collapsibles — a hidden-but-open
+        // <details> would keep the box's "Show less" affordance visible
+        // (via the `:has([open])` rule) even when the active pane is
+        // collapsed.
+        detailsRefs.forEach((ref, i) => {
+            if (i !== safeIndex && ref.current) ref.current.open = false
+        })
         const details = detailsRefs[safeIndex]?.current
         if (details) details.open = true
     }, [safeIndex, detailsRefs])
@@ -621,6 +655,7 @@ export default function IndicatorMetadataBox({
                 canonicalUrl={canonicalUrl}
                 archiveContext={archiveContext}
                 license={license}
+                idSuffix={i === safeIndex ? "" : `--${i}`}
             />
         </div>
     ))
