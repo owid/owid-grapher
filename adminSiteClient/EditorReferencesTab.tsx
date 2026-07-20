@@ -183,6 +183,12 @@ export class EditorReferencesTabForChart extends Component<{
                                         >
                                             <strong>{redirect.slug}</strong>
                                         </a>
+                                        {redirect.targetQueryParam ? (
+                                            <span className="text-muted">
+                                                {" "}
+                                                ➡️ ?{redirect.targetQueryParam}
+                                            </span>
+                                        ) : null}
                                     </li>
                                 ))}
                             </ul>
@@ -261,6 +267,7 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
     declare context: AdminAppContextType
 
     slug: string | undefined = ""
+    targetQueryParam: string | undefined = ""
 
     isLoading: boolean = false
     errorMessage: string | undefined = undefined
@@ -270,13 +277,18 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
 
         makeObservable(this, {
             slug: observable,
+            targetQueryParam: observable,
             isLoading: observable,
             errorMessage: observable,
         })
     }
 
-    @action.bound onChange(slug: string) {
+    @action.bound onSlugChange(slug: string) {
         this.slug = slug
+    }
+
+    @action.bound onTargetQueryParamChange(targetQueryParam: string) {
+        this.targetQueryParam = targetQueryParam
     }
 
     @action.bound async onSubmit() {
@@ -286,7 +298,10 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
                 const chartId = this.props.editor.grapherState.id
                 const result = await this.context.admin.requestJSON(
                     `/api/charts/${chartId}/redirects/new`,
-                    { slug: this.slug },
+                    {
+                        slug: this.slug,
+                        targetQueryParam: this.targetQueryParam,
+                    },
                     "POST",
                     { onFailure: "continue" }
                 )
@@ -294,6 +309,7 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
                 runInAction(() => {
                     this.isLoading = false
                     this.slug = ""
+                    this.targetQueryParam = ""
                     this.errorMessage = undefined
                 })
                 this.props.onSuccess(redirect)
@@ -314,7 +330,7 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
                     void this.onSubmit()
                 }}
             >
-                <div className="input-group mb-3">
+                <div className="input-group mb-2">
                     <div className="input-group-prepend">
                         <span className="input-group-text" id="basic-addon3">
                             {BASE_URL}/
@@ -325,17 +341,35 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
                         className="form-control"
                         placeholder="URL"
                         value={this.slug}
-                        onChange={(event) => this.onChange(event.target.value)}
+                        onChange={(event) =>
+                            this.onSlugChange(event.target.value)
+                        }
                     />
-                    <div className="input-group-append">
-                        <button
-                            className="btn btn-primary"
-                            type="submit"
-                            disabled={!this.slug || this.isLoading}
-                        >
-                            Add
-                        </button>
+                </div>
+                <div className="input-group mb-2">
+                    <div className="input-group-prepend">
+                        <span className="input-group-text">
+                            Target query params (optional)
+                        </span>
                     </div>
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="e.g. 'tab=map'"
+                        value={this.targetQueryParam}
+                        onChange={(event) =>
+                            this.onTargetQueryParamChange(event.target.value)
+                        }
+                    />
+                </div>
+                <div className="text-right mb-3">
+                    <button
+                        className="btn btn-primary"
+                        type="submit"
+                        disabled={!this.slug || this.isLoading}
+                    >
+                        Add redirect
+                    </button>
                 </div>
                 {this.errorMessage && (
                     <div className="alert alert-danger">
@@ -572,14 +606,14 @@ const ReferencesDataInsights = (props: {
     const onImageUploadComplete = async (response: ImageUploadResponse) => {
         if (response.success) {
             notificationApi.info({
-                message: "Image replaced!",
+                title: "Image replaced!",
                 description:
                     "Make sure you update the alt text if your revision has substantive changes",
                 placement: "bottomRight",
             })
         } else {
             notificationApi.warning({
-                message: "Image upload failed",
+                title: "Image upload failed",
                 description: response?.errorMessage,
                 placement: "bottomRight",
             })

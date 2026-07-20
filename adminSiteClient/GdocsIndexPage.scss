@@ -22,6 +22,15 @@
     margin-right: 8px;
 }
 
+.gdoc-index-item__tagging-warning {
+    display: inline-block;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    color: #754500;
+    font-size: 0.85rem;
+    background-color: #fff8e1;
+}
+
 .gdoc-index-item__title {
     display: inline;
 }
@@ -70,6 +79,11 @@
 
 .gdoc-index__help-link {
     margin-right: 8px;
+}
+
+.gdoc-index__load-more {
+    padding: 24px 0;
+    text-align: center;
 }
 
 .gdoc-index-filter-checkbox {

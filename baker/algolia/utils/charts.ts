@@ -190,6 +190,17 @@ async function getRawChartsRecords(
                      INNER JOIN indexable_charts ic ON ic.id = ct.chartId
                      LEFT JOIN tags t on ct.tagId = t.id
             GROUP BY ct.chartId
+        ),
+        -- titleVariants of y-indicators, only for charts with exactly one y-dimension
+        title_variants AS (
+            SELECT cd.chartId,
+                   MAX(v.titleVariant) AS titleVariant
+            FROM chart_dimensions cd
+                     INNER JOIN indexable_charts ic ON ic.id = cd.chartId
+                     LEFT JOIN variables v ON cd.variableId = v.id
+            WHERE cd.property = 'y'
+            GROUP BY cd.chartId
+            HAVING COUNT(*) = 1
         )
         SELECT c.id,
                c.slug,
@@ -203,13 +214,15 @@ async function getRawChartsRecords(
                COALESCE(ddc.datasetProducts, '[]') AS datasetProducts,
                COALESCE(ddc.datasetProducers, '[]') AS datasetProducers,
                ctn.tags,
-               COALESCE(kct.keyChartForTags, '[]') AS keyChartForTags
+               COALESCE(kct.keyChartForTags, '[]') AS keyChartForTags,
+               tv.titleVariant AS titleVariant
         FROM indexable_charts c
                  LEFT JOIN entity_names en ON c.id = en.chartId
                  LEFT JOIN dataset_dimensions_by_chart ddc ON c.id = ddc.chartId
                  INNER JOIN chart_tag_counts tc ON c.id = tc.chartId
                  LEFT JOIN chart_tags_names ctn ON c.id = ctn.chartId
                  LEFT JOIN key_chart_tags kct ON c.id = kct.chartId
+                 LEFT JOIN title_variants tv ON c.id = tv.chartId
         WHERE tc.tagCount >= 1
     `
     )
@@ -257,6 +270,7 @@ async function buildChartRecord(
         slug: chart.slug,
         title,
         variantName: chart.config.variantName ?? "",
+        titleVariant: chart.titleVariant || undefined,
         subtitle: plaintextSubtitle,
         availableEntities: chart.entityNames,
         numDimensions: parseInt(chart.numDimensions),

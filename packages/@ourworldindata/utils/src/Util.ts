@@ -43,11 +43,15 @@ import {
     OwidGdocHomepageInterface,
     PrimitiveType,
     GrapherTrendArrowDirection,
-    TocHeadingWithTitleSupertitle,
+    TocHeadingWithSupertitle,
+    TocSidebarSection,
     ALL_CHARTS_ID,
     FEATURED_DATA_INSIGHTS_ID,
     EXPLORE_DATA_SECTION_DEFAULT_TITLE,
     EXPLORE_DATA_SECTION_ID,
+    FEATURED_METRICS_ID,
+    RESEARCH_AND_WRITING_ID,
+    RESEARCH_AND_WRITING_DEFAULT_HEADING,
     CHRONOLOGICAL_INDEX_TYPES,
     LATEST_FEED_TYPES,
 } from "@ourworldindata/types"
@@ -265,13 +269,13 @@ export const roundSigFig = (num: number, sigfigs: number = 1): number => {
 }
 
 export const excludeUndefined = <T>(arr: (T | undefined)[]): T[] =>
-    arr.filter((x) => x !== undefined) as T[]
+    arr.filter((x) => x !== undefined)
 
 export const excludeNull = <T>(arr: (T | null)[]): T[] =>
-    arr.filter((x) => x !== null) as T[]
+    arr.filter((x) => x !== null)
 
 export const excludeNullish = <T>(arr: (T | null | undefined | void)[]): T[] =>
-    arr.filter((x) => x !== null && x !== undefined) as T[]
+    arr.filter((x) => x !== null && x !== undefined)
 
 export const firstOfNonEmptyArray = <T>(arr: T[]): T => {
     if (arr.length < 1) throw new Error("array is empty")
@@ -1101,15 +1105,6 @@ export const findDOMParent = (
     return null
 }
 
-export const wrapInDiv = (el: Element, classes?: string[]): Element => {
-    if (!el.parentNode) return el
-    const wrapper = document.createElement("div")
-    if (classes) wrapper.classList.add(...classes)
-    el.parentNode.insertBefore(wrapper, el)
-    wrapper.appendChild(el)
-    return wrapper
-}
-
 export const textAnchorFromAlign = (
     align: HorizontalAlign
 ): "start" | "middle" | "end" => {
@@ -1810,7 +1805,6 @@ export function traverseEnrichedBlock(
                     "ltp-toc",
                     "topic-page-intro",
                     "all-charts",
-                    "entry-summary",
                     "explorer-tiles",
                     "pill-row",
                     "homepage-search",
@@ -1863,19 +1857,21 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
         .join("")
 }
 
+export function getResearchAndWritingId(heading?: string): string {
+    return heading ? slugify(heading) : RESEARCH_AND_WRITING_ID
+}
+
 export function generateToc(
     body: OwidEnrichedGdocBlock[] | undefined,
-    isTocForLinearTopicPage: boolean = false
-): TocHeadingWithTitleSupertitle[] {
+    isTocForSidebar: boolean = false
+): TocHeadingWithSupertitle[] {
     if (!body) return []
 
-    // For linear topic pages, we record only h1s
+    // For linear topic pages, we record h1s and h2s
     // For the sdg-toc, we record h2s & h3s (as it was developed before we decided to use h1s as our top level heading)
     // It would be nice to standardise this but it would require a migration, updating CSS, updating Gdocs, etc.
-    const [primary, secondary] = isTocForLinearTopicPage
-        ? [1, undefined]
-        : [2, 3]
-    const toc: TocHeadingWithTitleSupertitle[] = []
+    const [primary, secondary] = isTocForSidebar ? [1, 2] : [2, 3]
+    const toc: TocHeadingWithSupertitle[] = []
 
     body.forEach((block) =>
         traverseEnrichedBlock(block, (child) => {
@@ -1889,19 +1885,36 @@ export function generateToc(
                     toc.push({
                         title: titleString,
                         supertitle: supertitleString,
-                        text: titleString,
                         slug: urlSlug(`${supertitleString} ${titleString}`),
                         isSubheading: level === secondary,
                     })
                 }
             }
-            if (!isTocForLinearTopicPage) return
+            if (!isTocForSidebar) return
 
             if (child.type === "all-charts") {
                 toc.push({
-                    title: child.heading,
-                    text: child.heading,
+                    title: "Key charts",
                     slug: ALL_CHARTS_ID,
+                    isSubheading: false,
+                })
+                return
+            }
+
+            if (child.type === "featured-metrics") {
+                toc.push({
+                    title: "Featured data",
+                    slug: FEATURED_METRICS_ID,
+                    isSubheading: false,
+                })
+                return
+            }
+
+            if (child.type === "research-and-writing") {
+                const { heading } = child
+                toc.push({
+                    title: heading || RESEARCH_AND_WRITING_DEFAULT_HEADING,
+                    slug: getResearchAndWritingId(heading),
                     isSubheading: false,
                 })
                 return
@@ -1911,7 +1924,6 @@ export function generateToc(
                 const title = "Data insights"
                 toc.push({
                     title,
-                    text: title,
                     slug: FEATURED_DATA_INSIGHTS_ID,
                     isSubheading: false,
                 })
@@ -1922,7 +1934,6 @@ export function generateToc(
                 const title = child.title || EXPLORE_DATA_SECTION_DEFAULT_TITLE
                 toc.push({
                     title,
-                    text: title,
                     slug: EXPLORE_DATA_SECTION_ID,
                     isSubheading: false,
                 })
@@ -1932,6 +1943,27 @@ export function generateToc(
     )
 
     return toc
+}
+
+// The TOC arrives flat and document-ordered, with `isSubheading` marking the
+// h2s. Group it so each h1 carries its following h2s: every non-subheading
+// opens a new section, every subheading attaches to the enclosing h1's
+// section. Leading subheadings with no preceding h1 (editorially unusual)
+// each become their own section so none are dropped.
+export function groupTocIntoSections(
+    headings: TocHeadingWithSupertitle[]
+): TocSidebarSection[] {
+    const sections: TocSidebarSection[] = []
+    for (const heading of headings) {
+        const current = sections.at(-1)
+        const currentIsH1Section = current && !current.heading.isSubheading
+        if (heading.isSubheading && currentIsH1Section) {
+            current.subheadings.push(heading)
+        } else {
+            sections.push({ heading, subheadings: [] })
+        }
+    }
+    return sections
 }
 
 export function checkIsOwidGdocType(

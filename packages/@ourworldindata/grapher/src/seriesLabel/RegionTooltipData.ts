@@ -130,10 +130,10 @@ const customRegionDisplayOrder: Partial<Record<TooltipKey, string[]>> = {
         "Latin America (WID)",
         "Europe (WID)",
         "Russia and Central Asia (WID)",
-        "MENA (WID)",
+        "Middle East and North Africa (WID)",
         "Sub-Saharan Africa (WID)",
         "East Asia (WID)",
-        "South & South-East Asia (WID)",
+        "South and South-East Asia (WID)",
         "Oceania (WID)",
     ],
     ilo_1: [

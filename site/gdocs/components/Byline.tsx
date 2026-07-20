@@ -1,16 +1,18 @@
-import { Fragment } from "react"
+import { Fragment, type ReactNode } from "react"
 import LinkedAuthor from "./LinkedAuthor.js"
 
 export const Byline = ({
     names,
     authorRoles,
+    prefix = "By ",
 }: {
     names: string[]
     authorRoles?: Record<string, string>
+    prefix?: ReactNode
 }) => {
     return (
         <>
-            {"By "}
+            {prefix}
             {names.map((name, index) => {
                 const isLast = index === names.length - 1
                 const isSecondToLast = index === names.length - 2

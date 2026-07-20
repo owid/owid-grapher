@@ -1,10 +1,10 @@
 import {
     fetchInputTableForConfig,
     getEntityNamesParam,
-    GrapherProgrammaticInterface,
+    type GrapherProgrammaticInterface,
     prepareCalloutTable,
     constructGrapherValuesJsonFromTable,
-    PreparedCalloutTable,
+    type PreparedCalloutTable,
 } from "@ourworldindata/grapher"
 import { OwidTable } from "@ourworldindata/core-table"
 import {

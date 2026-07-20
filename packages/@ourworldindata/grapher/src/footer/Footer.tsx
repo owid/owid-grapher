@@ -10,12 +10,18 @@ import {
 } from "@ourworldindata/utils"
 import {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
+    DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     MarkdownTextWrap,
     MarkdownTextWrapHtml,
     MarkdownTextWrapSvg,
     TextWrap,
     TextWrapSvg,
 } from "@ourworldindata/components"
+import {
+    CHART_LICENSES,
+    DEFAULT_CHART_LICENSE,
+    LicenseOption,
+} from "@ourworldindata/types"
 import { Tooltip } from "../tooltip/Tooltip"
 import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"
@@ -111,7 +117,21 @@ abstract class AbstractFooter<
         return this.manager.sourcesLine?.replace(/\r\n|\n|\r/g, "") ?? ""
     }
 
+    // On data pages running the new metadata-layout experiment we turn the
+    // sources line itself into a link to the on-page metadata box (rather than
+    // appending a separate "Learn more about this data" link). Embeds/iframes
+    // don't have that box, so they keep the default behavior.
+    @computed protected get linkSourcesToDatapageMetadata(): boolean {
+        return (
+            !!this.manager.useNewDatapageMetadataLayout &&
+            !!this.manager.isEmbeddedInADataPage &&
+            !this.manager.isInIFrame
+        )
+    }
+
     @computed protected get sourcesText(): string {
+        if (this.linkSourcesToDatapageMetadata)
+            return `Data source: ${this.sourcesLine}`
         return `Data source: ${this.sourcesLine} - Learn more about this data`
     }
 
@@ -123,14 +143,26 @@ abstract class AbstractFooter<
         return this.manager.note ? `**Note:** ${this.manager.note}` : ""
     }
 
+    @computed protected get license(): LicenseOption {
+        return this.manager.license ?? DEFAULT_CHART_LICENSE
+    }
+
+    // Charts without the OWID logo show "Powered by ourworldindata.org"
+    // instead of a license, unless a non-default license is configured —
+    // provider-required license terms must always be shown.
+    @computed protected get showsCcLicense(): boolean {
+        return (
+            !!this.manager.hasOWIDLogo || this.license !== DEFAULT_CHART_LICENSE
+        )
+    }
+
     @computed protected get licenseText(): string {
-        if (this.manager.hasOWIDLogo) return "CC BY"
+        if (this.showsCcLicense) return CHART_LICENSES[this.license].name
         return "Powered by ourworldindata.org"
     }
 
     @computed protected get licenseUrl(): string {
-        if (this.manager.hasOWIDLogo)
-            return "https://creativecommons.org/licenses/by/4.0/"
+        if (this.showsCcLicense) return CHART_LICENSES[this.license].url
         return "https://ourworldindata.org"
     }
 
@@ -424,7 +456,7 @@ abstract class AbstractFooter<
                     </>
                 )}
                 <a
-                    className={this.manager.hasOWIDLogo ? "cclogo" : undefined}
+                    className={this.showsCcLicense ? "cclogo" : undefined}
                     href={this.licenseUrl}
                     style={{ textDecoration: "none" }}
                     {...(this.manager.isInIFrame && {
@@ -438,6 +470,26 @@ abstract class AbstractFooter<
         )
     }
 
+    // Open the metadata box's "Sources & processing" section and scroll to it.
+    // The section lives inside a collapsed <details>, so we open it explicitly:
+    // browsers won't reveal hidden <details> content for a programmatic
+    // scrollIntoView(), and fragment-navigation auto-expansion isn't supported
+    // across all the browsers we target.
+    @action.bound private scrollToDatapageMetadataSources(): void {
+        const sourcesElement = document.getElementById(
+            DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID
+        )
+        if (!sourcesElement) {
+            // No on-page metadata box (shouldn't happen given the gating) –
+            // fall back to the sources modal.
+            this.manager.activeModal = GrapherModal.Sources
+            return
+        }
+        sourcesElement.closest("details")?.setAttribute("open", "")
+        sourcesElement.scrollIntoView({ behavior: "smooth" })
+        this.manager.isInFullScreenMode = false
+    }
+
     private renderSources(): React.ReactElement | null {
         const sources = new MarkdownTextWrap({
             text: `**Data source:** ${this.sourcesLine}`,
@@ -445,6 +497,48 @@ abstract class AbstractFooter<
             fontSize: this.sourcesFontSize,
             lineHeight: this.lineHeight,
         })
+
+        // On new-datapage-design pages, the sources line itself links to the
+        // on-page metadata box instead of a trailing "Learn more" link. The
+        // bold "Data source:" label and the separating space are rendered
+        // outside the markdown so that only the source name is underlined (the
+        // markdown renderer merges the separator space into the source text, so
+        // it can't be excluded from the underline via CSS). We reserve the
+        // label's width in the source's wrap so long source names still wrap.
+        if (this.linkSourcesToDatapageMetadata) {
+            const label = "Data source: "
+            const labelWidth = Bounds.forText(label, {
+                fontSize: this.sourcesFontSize,
+                fontWeight: 700,
+            }).width
+            const sourceName = new MarkdownTextWrap({
+                text: this.sourcesLine,
+                // Reserving the label width on every line means a source name
+                // that wraps doesn't use the full width on its second line
+                // onwards (cosmetic), and its measured height can drift from
+                // the rendered height. The 10 experiment pages don't wrap here;
+                // a proper fix would be a first-line offset on MarkdownTextWrap.
+                maxWidth: this.sourcesMaxWidth - labelWidth,
+                fontSize: this.sourcesFontSize,
+                lineHeight: this.lineHeight,
+            })
+            return (
+                <p className="sources" style={sources.style}>
+                    <a
+                        className="sources-link"
+                        data-track-note="chart_click_sources"
+                        tabIndex={0}
+                        onClick={action((e) => {
+                            e.stopPropagation()
+                            this.scrollToDatapageMetadataSources()
+                        })}
+                    >
+                        <strong>Data source:</strong>{" "}
+                        <MarkdownTextWrapHtml textWrap={sourceName} />
+                    </a>
+                </p>
+            )
+        }
 
         return (
             <p className="sources" style={sources.style}>
@@ -638,12 +732,26 @@ abstract class AbstractFooter<
                         }}
                     >
                         <p>
-                            Our World in Data charts are licensed under Creative
-                            Commons; you are free to use, share, and adapt this
-                            material. Click through to the CC BY page for more
-                            information. Please bear in mind that the underlying
-                            source data for all our charts might be subject to
-                            different license terms from third-party authors.
+                            {this.license === DEFAULT_CHART_LICENSE ? (
+                                <>
+                                    Our World in Data charts are licensed under
+                                    Creative Commons; you are free to use,
+                                    share, and adapt this material. Click
+                                    through to the CC BY page for more
+                                    information.
+                                </>
+                            ) : (
+                                <>
+                                    This chart is licensed under Creative
+                                    Commons ({CHART_LICENSES[this.license].name}
+                                    ). Click through to the license page for
+                                    more information about how you may use,
+                                    share, and adapt this material.
+                                </>
+                            )}{" "}
+                            Please bear in mind that the underlying source data
+                            for all our charts might be subject to different
+                            license terms from third-party authors.
                         </p>
                     </Tooltip>
                 )}

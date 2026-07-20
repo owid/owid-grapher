@@ -12,6 +12,7 @@ import {
     GRAPHER_IMAGE_WIDTH_2X,
 } from "@ourworldindata/grapher"
 import path from "path"
+import { runInAction } from "mobx"
 import * as db from "../db/db.js"
 import { grapherSlugToExportFileKey } from "./GrapherBakingUtils.js"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
@@ -85,8 +86,10 @@ export function initGrapherForSvgExport(
             queryStr,
         }),
     })
-    grapher.grapherState.isExportingToSvgOrPng = true
-    grapher.grapherState.shouldIncludeDetailsInStaticExport = false
+    runInAction(() => {
+        grapher.grapherState.isExportingToSvgOrPng = true
+        grapher.grapherState.shouldIncludeDetailsInStaticExport = false
+    })
     return grapher
 }
 
@@ -126,8 +129,10 @@ export async function grapherToSVG(
             ...jsonConfig,
         }),
     })
-    grapher.grapherState.isExportingToSvgOrPng = true
-    grapher.grapherState.shouldIncludeDetailsInStaticExport = false
+    runInAction(() => {
+        grapher.grapherState.isExportingToSvgOrPng = true
+        grapher.grapherState.shouldIncludeDetailsInStaticExport = false
+    })
     // grapher.receiveOwidData(vardata)
     const inputTable = await fetchInputTableForConfig({
         dimensions: jsonConfig.dimensions ?? [],

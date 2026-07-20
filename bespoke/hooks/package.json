@@ -9,10 +9,10 @@
         "react": "^19.2.7"
     },
     "devDependencies": {
-        "@typescript/native-preview": "^7.0.0-dev.20260613.1"
+        "typescript": "^7.0.2"
     },
     "scripts": {
         "build": "",
-        "typecheck": "tsgo --noEmit"
+        "typecheck": "tsc --noEmit"
     }
 }

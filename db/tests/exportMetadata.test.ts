@@ -3,6 +3,8 @@ import { expect, beforeAll, test, afterAll } from "vitest"
 import knex, { Knex } from "knex"
 import { dbTestConfig } from "./dbTestConfig.js"
 import {
+    PUBLIC_DATA_TABLES,
+    PRIVATE_DATA_TABLES,
     findUnclassifiedTables,
     unclassifiedTablesErrorMessage,
 } from "../exportMetadataTables.js"
@@ -40,4 +42,13 @@ test("every table created by migrations is classified for the metadata export", 
     expect(unclassified, unclassifiedTablesErrorMessage(unclassified)).toEqual(
         []
     )
+})
+
+// admin_api_keys holds hashed authentication material. It must never ship in
+// the public owid_metadata dump — only in the private sidecar (see
+// db/exportPrivateData.ts). This guards against someone moving it back into
+// PUBLIC_DATA_TABLES.
+test("admin_api_keys data is private, never in the public dump", () => {
+    expect(PUBLIC_DATA_TABLES).not.toContain("admin_api_keys")
+    expect(PRIVATE_DATA_TABLES).toContain("admin_api_keys")
 })

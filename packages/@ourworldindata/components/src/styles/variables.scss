@@ -6,6 +6,10 @@ $padding-x-sm: 24px;
 $padding-x-md: 80px;
 $vertical-spacing: 16px;
 
+// Bottom margin of the topic / linear-topic page header. Shared so the sidebar
+// ToC can offset against it (see $sidebar-toc-header-gap).
+$topic-page-header-margin-bottom: 32px;
+
 :root {
     --grid-gap: 24px;
 
@@ -25,11 +29,6 @@ $header-height-sm: $header-bar-height-sm + $header-border-height;
 $header-height-md: $header-bar-height-md + $header-border-height;
 
 $content-max-width: 800px;
-$sidebar-content-width: 224px;
-$sidebar-width: #{$sidebar-content-width + 2 * $padding-x-md};
-$sidebar-padding-top: 32px;
-$sidebar-toggle-width: 32px;
-$sidebar-closed-drawer-width: 0;
 $text-min-content-width: 480px;
 $text-max-content-width: 640px;
 // NB: the side by side layout depends on
@@ -161,7 +160,6 @@ $zindex-deprecation-notice: 10;
 $zindex-global-entity-select: 11;
 $zindex-footnote: 15;
 $zindex-sidebar: 20;
-$zindex-sidebar-page-overlay: $zindex-sidebar - 1;
 $zindex-popover: 100;
 $zindex-search-overlay: 100;
 $zindex-site-header: 120;

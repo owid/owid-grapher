@@ -19,7 +19,6 @@ import {
     isInIFrame,
 } from "@ourworldindata/utils"
 import {
-    AdditionalGrapherDataFetchFn,
     ArchiveContext,
     DataPageRelatedResearch,
     FaqEntryKeyedByGdocIdAndFragmentId,
@@ -119,11 +118,11 @@ export function DataPageContent({
     const managerRef = useRef<GrapherManager>({ adminEditPath: "" })
     const grapherStateRef = useRef<GrapherState>(
         new GrapherState({
-            additionalDataLoaderFn: ((catalogKey) =>
+            additionalDataLoaderFn: (catalogKey) =>
                 loadCatalogData(catalogKey, {
                     baseUrl: CATALOG_URL,
                     assetMap,
-                })) as AdditionalGrapherDataFetchFn,
+                }),
             manager: managerRef.current,
             archiveContext,
             isConfigReady: false,
@@ -536,6 +535,7 @@ export function DataPageContent({
                             varDatapageData.descriptionProcessing
                         }
                         faqEntries={{ faqs: faqEntriesForView }}
+                        license={varDatapageData.license}
                         origins={varDatapageData.origins}
                         owidProcessingLevel={
                             varDatapageData.owidProcessingLevel

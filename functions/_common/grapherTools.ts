@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import { runInAction } from "mobx"
 import {
     CsvDownloadType,
     type DataDownloadContextBase,
@@ -320,10 +321,10 @@ export async function initGrapher(
         throw new StatusError(grapherConfigResponse.status)
     }
 
-    const additionalDataLoaderFn = ((catalogKey) =>
+    const additionalDataLoaderFn: AdditionalGrapherDataFetchFn = (catalogKey) =>
         loadCatalogData(catalogKey, {
             baseUrl: env.CATALOG_URL,
-        })) as AdditionalGrapherDataFetchFn
+        })
 
     const bounds = new Bounds(0, 0, options.svgWidth, options.svgHeight)
     const grapherState = new GrapherState({
@@ -341,8 +342,10 @@ export async function initGrapher(
         additionalDataLoaderFn,
         ...options.grapherProps,
     })
-    grapherState.isExportingToSvgOrPng = true
-    grapherState.shouldIncludeDetailsInStaticExport = options.details
+    runInAction(() => {
+        grapherState.isExportingToSvgOrPng = true
+        grapherState.shouldIncludeDetailsInStaticExport = options.details
+    })
     const grapher = new Grapher({ grapherState })
 
     return {

@@ -1,8 +1,4 @@
-import {
-    ExplorerGrammar,
-    ExplorerProgram,
-    CellPosition,
-} from "@ourworldindata/explorer"
+import { ExplorerGrammar, ExplorerProgram } from "@ourworldindata/explorer"
 import Handsontable from "handsontable"
 import { type MenuItemConfig } from "handsontable/plugins/contextMenu"
 
@@ -25,7 +21,7 @@ abstract class HotCommand {
     protected selectedPosition(hot: Handsontable) {
         const coords = hot.getSelectedLast()
         if (!coords) return undefined
-        return { row: coords[0], column: coords[1] } as CellPosition
+        return { row: coords[0], column: coords[1] }
     }
 
     protected cell(hot: Handsontable) {

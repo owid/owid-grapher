@@ -35,6 +35,8 @@ import {
     DbPlainChart,
     DbPlainMultiDimXChartConfig,
     Distribution,
+    DatasetOwners,
+    DbPlainDataset,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 import {
@@ -986,6 +988,36 @@ export async function getVariableDistribution(
             .map((row) => row.sourceLink)
             .filter((link): link is string => !!link),
     }
+}
+
+export async function getOwnersForVariables(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<DatasetOwners[]> {
+    if (!variableIds.length) return []
+
+    const rows = await knexRaw<Pick<DbPlainDataset, "id" | "name" | "owners">>(
+        knex,
+        `-- sql
+            SELECT DISTINCT
+                d.id AS id,
+                d.name AS name,
+                d.owners AS owners
+            FROM variables v
+            JOIN active_datasets d ON d.id = v.datasetId
+            WHERE v.id IN (?)
+              AND d.owners IS NOT NULL
+        `,
+        [variableIds]
+    )
+
+    return rows
+        .map((row) => ({
+            datasetId: row.id,
+            datasetName: row.name,
+            owners: row.owners ? (JSON.parse(row.owners) as string[]) : [],
+        }))
+        .filter((dataset) => dataset.owners.length > 0)
 }
 
 /**

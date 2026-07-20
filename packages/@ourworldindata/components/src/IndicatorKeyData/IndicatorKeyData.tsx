@@ -13,10 +13,12 @@ export const makeSource = ({
     attribution,
     owidProcessingLevel,
     isEmbeddedInADataPage,
+    processingId = DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
 }: {
     attribution?: string
     owidProcessingLevel?: OwidProcessingLevel
     isEmbeddedInADataPage?: boolean
+    processingId?: string
 }): React.ReactNode => {
     if (!attribution) return null
     const isEmbedded = isEmbeddedInADataPage ?? true
@@ -32,7 +34,8 @@ export const makeSource = ({
                     {" – "}
                     {isEmbedded ? (
                         <a
-                            href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
+                            href={`#${processingId}`}
+                            data-track-note="data_processing_level"
                         >
                             {processingLevelPhrase}
                         </a>

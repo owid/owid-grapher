@@ -4,6 +4,7 @@ export interface DbInsertChartSlugRedirect {
     createdAt?: Date
     id?: number
     slug: string
+    target_query_param?: string | null
     updatedAt?: Date
 }
 export type DbPlainChartSlugRedirect = Required<DbInsertChartSlugRedirect>

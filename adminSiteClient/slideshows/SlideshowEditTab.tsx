@@ -1,7 +1,7 @@
 import { useContext, useState } from "react"
 import * as React from "react"
 import { match } from "ts-pattern"
-import { Button, Upload } from "antd"
+import { Button, Segmented, Upload } from "antd"
 import { useQueryClient } from "@tanstack/react-query"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faImages, faUpload } from "@fortawesome/free-solid-svg-icons"
@@ -10,7 +10,6 @@ import {
     SlideTemplate,
     SLIDE_TEMPLATE_LABELS,
 } from "@ourworldindata/types"
-import { RcFile } from "antd/es/upload/interface.js"
 import { AdminAppContext } from "../AdminAppContext.js"
 import {
     ACCEPTED_IMG_TYPES,
@@ -72,7 +71,7 @@ function ImageEditor(props: {
                     accept={ACCEPTED_IMG_TYPES.join(",")}
                     showUploadList={false}
                     customRequest={async ({ file }) => {
-                        const payload = await fileToBase64(file as RcFile)
+                        const payload = await fileToBase64(file)
                         if (!payload) return
                         setIsUploading(true)
                         try {
@@ -219,6 +218,26 @@ function TemplateOptionsEditor(props: {
                     onChange={(filename) => onUpdate({ ...slide, filename })}
                 />
                 <label>
+                    Layout
+                    <Segmented
+                        block
+                        value={slide.variant ?? "imageText"}
+                        options={[
+                            { label: "Image + text", value: "imageText" },
+                            { label: "Text + image", value: "textImage" },
+                        ]}
+                        onChange={(value) =>
+                            onUpdate({
+                                ...slide,
+                                variant:
+                                    value === "textImage"
+                                        ? "textImage"
+                                        : undefined,
+                            })
+                        }
+                    />
+                </label>
+                <label>
                     Title
                     <InlineMarkdownEditor
                         value={slide.title ?? ""}
@@ -256,6 +275,19 @@ function TemplateOptionsEditor(props: {
                         }
                     />{" "}
                     Large text
+                </label>
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={!!slide.smallImage}
+                        onChange={(e) =>
+                            onUpdate({
+                                ...slide,
+                                smallImage: e.target.checked || undefined,
+                            })
+                        }
+                    />{" "}
+                    Small image
                 </label>
                 <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
                 <BlueBackgroundCheckbox slide={slide} onUpdate={onUpdate} />
@@ -378,6 +410,29 @@ function TemplateOptionsEditor(props: {
         ))
         .with({ template: SlideTemplate.Statement }, (slide) => (
             <>
+                <label>
+                    Layout
+                    <Segmented
+                        block
+                        value={slide.variant ?? "standard"}
+                        options={[
+                            { label: "Standard", value: "standard" },
+                            {
+                                label: "Section divider",
+                                value: "sectionDivider",
+                            },
+                        ]}
+                        onChange={(value) =>
+                            onUpdate({
+                                ...slide,
+                                variant:
+                                    value === "sectionDivider"
+                                        ? "sectionDivider"
+                                        : undefined,
+                            })
+                        }
+                    />
+                </label>
                 <label>
                     Statement
                     <MarkdownEditor

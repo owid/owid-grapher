@@ -17,17 +17,36 @@ ifneq (,$(wildcard ./.env))
 	include .env
 endif
 
-.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest svgtest.reset svgtest.graphers svgtest.grapher-views svgtest.mdims svgtest.explorers svgtest.thumbnails bdd bdd.ui check-not-prod
+# .env lines with inline comments (`FOO=bar  # baz`) keep the spaces before the
+# `#` in the value when included by make — strip the variables we interpolate
+# into container names, session names and URLs. The ifdef guards keep absent
+# variables undefined so the `?=` defaults on the targets still apply.
+ifdef COMPOSE_PROJECT_NAME
+COMPOSE_PROJECT_NAME := $(strip $(COMPOSE_PROJECT_NAME))
+endif
+ifdef TMUX_SESSION_NAME
+TMUX_SESSION_NAME := $(strip $(TMUX_SESSION_NAME))
+endif
+ifdef VITE_PORT
+VITE_PORT := $(strip $(VITE_PORT))
+endif
+ifdef WRANGLER_PORT
+WRANGLER_PORT := $(strip $(WRANGLER_PORT))
+endif
+
+.PHONY: help up up.headless up.full down down.headless refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.graphers svgtest.grapher-views svgtest.mdims svgtest.explorers svgtest.thumbnails bdd bdd.ui check-not-prod
 
 help:
 	@echo 'Available commands:'
 	@echo
 	@echo '  GRAPHER ONLY'
 	@echo '  make up                     start dev environment via docker-compose and tmux'
+	@echo '  make up.headless            start dev environment without tmux (AI agents, cloud sandboxes, CI)'
 	@echo '  make down                   stop any services still running'
+	@echo '  make down.headless          stop services started by make up.headless'
 	@echo '  make refresh                (while up) download a new grapher snapshot and update MySQL'
-	@echo '  make refresh.analytics      (while up) download and load the private analytics dump (needs access)'
-	@echo '  make refresh.full           (while up) run refresh and refresh.analytics'
+	@echo '  make refresh.private        (while up) download and load the private sidecar dump: admin keys + analytics (needs access)'
+	@echo '  make refresh.full           (while up) run refresh and refresh.private'
 	@echo '  make migrate                (while up) run any outstanding db migrations'
 	@echo '  make test                   run full suite (except db tests) of CI checks including unit tests'
 	@echo '  make dbtest                 run db test suite that needs a running mysql db'
@@ -102,6 +121,20 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.
 		bind X kill-pane \; \
 		bind Q kill-server
 
+# Headless variant of `make up` for environments without a terminal to attach
+# tmux to (AI agents, cloud sandboxes, CI) — see the script for details.
+up.headless: require.headless create-if-missing.env node_modules
+	@make validate.env
+	@./devTools/docker/up-headless.sh
+
+down.headless:
+	@./devTools/docker/down-headless.sh
+
+require.headless:
+	@echo '==> Checking your environment has the necessary commands...'
+	@which docker >/dev/null 2>&1 || (echo "ERROR: docker compose is required."; exit 1)
+	@which yarn >/dev/null 2>&1 || (echo "ERROR: yarn is required."; exit 1)
+
 up.full: export DEBUG = 'knex:query'
 up.full: export COMPOSE_PROJECT_NAME ?= owid-grapher
 up.full: export TMUX_SESSION_NAME ?= grapher
@@ -161,20 +194,23 @@ refresh.atomic:
 	@echo '==> Downloading chart data'
 	./devTools/docker/download-grapher-metadata-mysql.sh
 
+	@echo '==> Downloading private sidecar dump'
+	./devTools/docker/download-grapher-private-mysql.sh
+
 	@echo '==> Updating grapher database (atomic swap)'
 	DATA_FOLDER=tmp-downloads ./devTools/docker/atomic-grapher-data.sh
 
 	@echo '!!! If you use ETL, wipe indicators from your R2 staging with `rclone delete r2:owid-api-staging/[yourname]/ ' \
 	'--fast-list --transfers 32 --checkers 32  --verbose`'
 
-refresh.analytics:
+refresh.private:
 	@make check-not-prod
 
-	@echo '==> Downloading private analytics dump'
-	./devTools/docker/download-grapher-analytics-mysql.sh
+	@echo '==> Downloading private sidecar dump'
+	./devTools/docker/download-grapher-private-mysql.sh
 
-	@echo '==> Refreshing analytics tables'
-	DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-analytics-data.sh
+	@echo '==> Refreshing private tables'
+	DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-private-data.sh
 
 sync-images:
 	@echo 'Task has been deprecated.'
@@ -187,7 +223,7 @@ sync-cloudflare-images: node_modules
 	@echo '==> Syncing images table with Cloudflare Images'
 	@yarn syncCloudflareImages
 
-refresh.full: refresh refresh.analytics
+refresh.full: refresh refresh.private
 	@echo '==> Full refresh completed'
 
 down: export COMPOSE_PROJECT_NAME ?= owid-grapher

@@ -418,7 +418,6 @@ export function enumerateGdocComponentsWithoutChildren(
                         "ltp-toc",
                         "topic-page-intro",
                         "all-charts",
-                        "entry-summary",
                         "explorer-tiles",
                         "pill-row",
                         "homepage-search",
