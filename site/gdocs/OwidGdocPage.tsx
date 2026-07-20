@@ -71,7 +71,7 @@ function getPageDesc(gdoc: OwidGdocUnionType): string | undefined {
                 : undefined
         })
         .with({ content: { type: OwidGdocType.Homepage } }, () => {
-            return "Research and data to make progress against the world’s largest problems"
+            return "Research and data to make progress against the world’s largest problems."
         })
         .with({ content: { type: OwidGdocType.Author } }, (gdoc) => {
             return gdoc.content.bio

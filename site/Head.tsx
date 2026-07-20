@@ -58,7 +58,7 @@ export const Head = (props: {
         : `Our World in Data`
     const pageDesc =
         props.pageDesc ||
-        "Research and data to make progress against the world’s largest problems"
+        "Research and data to make progress against the world’s largest problems."
     const imageUrl =
         props.imageUrl || `${baseUrl}/${DEFAULT_THUMBNAIL_FILENAME}`
     const atom = props.atom ?? DEFAULT_ATOM_FEED_PROPS
