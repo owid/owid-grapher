@@ -4,8 +4,10 @@ import {
     getSelectedTopic,
     getPaginationOffsetAndLength,
     getNbPaginatedItemsRequested,
+    hasDatasetFilters,
 } from "./searchUtils.js"
 import { DEFAULT_SEARCH_STATE } from "./searchState.js"
+import { queryResultTypeCounts, searchQueryKeys } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
 import { fetchJson, flattenNonTopicNodes } from "@ourworldindata/utils"
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
@@ -24,6 +26,26 @@ export function useSelectedTopic() {
 export function useSelectedRegionNames() {
     const { state } = useSearchContext()
     return Array.from(getFilterNamesOfType(state.filters, FilterType.COUNTRY))
+}
+
+/**
+ * Fetches the total number of results for the "Data" and "Research &
+ * Writing" categories, used to annotate the result-type toggle.
+ */
+export function useResultTypeCounts() {
+    const { state, liteSearchClient } = useSearchContext()
+
+    const query = useQuery({
+        queryKey: searchQueryKeys.resultTypeCounts(state),
+        queryFn: () => queryResultTypeCounts(liteSearchClient, state),
+        enabled: !hasDatasetFilters(state.filters),
+    })
+
+    return {
+        dataCount: query.data?.dataCount,
+        writingCount: query.data?.writingCount,
+        isLoading: query.isLoading,
+    }
 }
 
 /**

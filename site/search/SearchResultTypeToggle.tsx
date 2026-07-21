@@ -1,6 +1,8 @@
 import { RadioButton } from "@ourworldindata/components"
+import { commafyNumber } from "@ourworldindata/utils"
 import { SearchResultType } from "@ourworldindata/types"
 import { useSearchContext } from "./SearchContext.js"
+import { useResultTypeCounts } from "./searchHooks.js"
 import {
     getEffectiveResultType,
     hasDatasetFilters,
@@ -20,6 +22,8 @@ export const SearchResultTypeToggle = () => {
     } = useSearchContext()
     const { resultType, filters, query } = state
 
+    const { dataCount, writingCount, isLoading } = useResultTypeCounts()
+
     if (hasDatasetFilters(filters)) return null
 
     const effectiveResultType = getEffectiveResultType(
@@ -32,6 +36,19 @@ export const SearchResultTypeToggle = () => {
         ? OPTIONS.filter((option) => option.value !== SearchResultType.ALL)
         : OPTIONS
 
+    const countForOption = (value: SearchResultType): number | undefined => {
+        if (dataCount === undefined || writingCount === undefined)
+            return undefined
+        switch (value) {
+            case SearchResultType.DATA:
+                return dataCount
+            case SearchResultType.WRITING:
+                return writingCount
+            case SearchResultType.ALL:
+                return dataCount + writingCount
+        }
+    }
+
     return (
         <fieldset
             className="search-result-type-toggle"
@@ -41,15 +58,22 @@ export const SearchResultTypeToggle = () => {
             <legend className="search-result-type-toggle__legend">
                 Filter by type of content:
             </legend>
-            {optionsToShow.map((option) => (
-                <RadioButton
-                    key={option.value}
-                    checked={effectiveResultType === option.value}
-                    onChange={() => setResultType(option.value)}
-                    label={option.label}
-                    group="search-result-type"
-                />
-            ))}
+            {optionsToShow.map((option) => {
+                const count = countForOption(option.value)
+                const label =
+                    isLoading || count === undefined
+                        ? option.label
+                        : `${option.label} (${commafyNumber(count)})`
+                return (
+                    <RadioButton
+                        key={option.value}
+                        checked={effectiveResultType === option.value}
+                        onChange={() => setResultType(option.value)}
+                        label={label}
+                        group="search-result-type"
+                    />
+                )
+            })}
         </fieldset>
     )
 }

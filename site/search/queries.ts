@@ -63,6 +63,13 @@ export const searchQueryKeys = {
         [PAGES_INDEX, "topics", makeStateForKey(state)] as const,
     profiles: (state: SearchState) =>
         [PAGES_INDEX, "profiles", makeStateForKey(state)] as const,
+    resultTypeCounts: (state: SearchState) =>
+        [
+            CHARTS_INDEX,
+            PAGES_INDEX,
+            "result-type-counts",
+            makeStateForKey(state),
+        ] as const,
 } as const
 
 export const latestPagesQueryKey = {
@@ -368,6 +375,115 @@ export async function queryProfiles(
     ]
 
     return searchSingleForHits<ProfileHit>(liteSearchClient, searchParams)
+}
+
+export interface ResultTypeCounts {
+    dataCount: number
+    writingCount: number
+}
+
+// Issues four searches in a single batched `liteSearchClient.searchForHits([...])`
+// call (one network round-trip) to get the total number of matches for each
+// result type category, without fetching any hits (`length: 0`). Used to
+// annotate the "All / Data / Research & Writing" toggle with result counts.
+export async function queryResultTypeCounts(
+    liteSearchClient: LiteClient,
+    state: SearchState
+): Promise<ResultTypeCounts> {
+    const selectedCountryNames = getFilterNamesOfType(
+        state.filters,
+        FilterType.COUNTRY
+    )
+    const hasCountry = selectedCountryNames.size > 0
+    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+    const countryFacetFilters = formatCountryFacetFilters(
+        selectedCountryNames,
+        state.requireAllCountries
+    )
+    const topicFacetFilters = formatTopicFacetFilters(selectedTopics)
+
+    // Using the selected countries as query search terms until articles,
+    // topic pages, and profiles are tagged with countries.
+    const pagesQuery = [
+        state.query,
+        ...selectedCountryNames.keys().map((c) => `"${c}"`),
+    ]
+        .filter(Boolean)
+        .join(" ")
+
+    const chartsFacetFilters = [
+        ...countryFacetFilters,
+        ...topicFacetFilters,
+        ...formatDisjunctiveFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCT),
+            "datasetProducts"
+        ),
+        ...formatDisjunctiveFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.DATASET_NAMESPACE),
+            "datasetNamespaces"
+        ),
+        ...formatDisjunctiveFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.DATASET_VERSION),
+            "datasetVersions"
+        ),
+        ...formatDisjunctiveFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCER),
+            "datasetProducers"
+        ),
+        ...formatFeaturedMetricFacetFilter(state.query),
+    ]
+
+    const searchParams = [
+        // 0: charts ("Data")
+        {
+            indexName: CHARTS_INDEX,
+            query: state.query,
+            facetFilters: chartsFacetFilters,
+            offset: 0,
+            length: 0,
+        },
+        // 1: articles ("Research & Writing")
+        {
+            indexName: PAGES_INDEX,
+            query: pagesQuery,
+            filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
+            facetFilters: topicFacetFilters,
+            ...(hasCountry && {
+                restrictSearchableAttributes: ["title", "tags", "authors"],
+            }),
+            offset: 0,
+            length: 0,
+        },
+        // 2: topic pages ("Research & Writing")
+        {
+            indexName: PAGES_INDEX,
+            query: state.query,
+            filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
+            facetFilters: topicFacetFilters,
+            offset: 0,
+            length: 0,
+        },
+        // 3: profiles ("Research & Writing")
+        {
+            indexName: PAGES_INDEX,
+            query: state.query,
+            filters: `type:${OwidGdocType.Profile}`,
+            facetFilters: [...countryFacetFilters, ...topicFacetFilters],
+            offset: 0,
+            length: 0,
+        },
+    ]
+
+    const response = await liteSearchClient.searchForHits<unknown>(searchParams)
+    const [charts, articles, topicPages, profiles] = response.results
+
+    return {
+        dataCount: charts.nbHits ?? 0,
+        writingCount:
+            (articles.nbHits ?? 0) +
+            (topicPages.nbHits ?? 0) +
+            (profiles.nbHits ?? 0),
+    }
 }
 
 export interface LatestPagesResult {
