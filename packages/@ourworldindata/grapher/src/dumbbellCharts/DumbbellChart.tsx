@@ -50,7 +50,6 @@ import {
     DumbbellValueLabel,
     TOP_LEGEND_BOTTOM_PADDING,
     LegendLabel,
-    PlacedDumbbellHead,
     MIN_LEGEND_LABEL_GAP,
 } from "./DumbbellChartConstants"
 import { DumbbellChartState } from "./DumbbellChartState"
@@ -62,6 +61,7 @@ import {
     AxisLayout,
     calculateAxisLayout,
     computePercentChange,
+    toLeftRight,
 } from "./DumbbellChartHelpers"
 import { AnimatedRows } from "../animation/AnimatedRows"
 import { roundFontSize, textWidth } from "../chart/ChartUtils.js"
@@ -503,14 +503,18 @@ export class DumbbellChart
 
         if (!topSeries) return undefined
 
-        const resolveTextAnchor = ({
-            head,
-            otherHead,
-        }: {
-            head: PlacedDumbbellHead
-            otherHead: PlacedDumbbellHead
-        }): HorizontalAlign =>
-            head.x <= otherHead.x ? HorizontalAlign.right : HorizontalAlign.left
+        // Order the heads like the value labels do (including the tie-break
+        // for equal endpoints) so legend and value labels stay in sync.
+        // Labels are anchored on their inner edges: the label over the left
+        // head is right-aligned, the one over the right head is left-aligned
+        const { left: leftHead } = toLeftRight(topSeries.start, topSeries.end)
+        const startIsLeft = leftHead === topSeries.start
+        const startAnchor = startIsLeft
+            ? HorizontalAlign.right
+            : HorizontalAlign.left
+        const endAnchor = startIsLeft
+            ? HorizontalAlign.left
+            : HorizontalAlign.right
 
         const offset = (textAnchor: HorizontalAlign): number =>
             match(this.chartState.mode)
@@ -534,15 +538,6 @@ export class DumbbellChart
                         : -magnitude
                 })
                 .exhaustive()
-
-        const startAnchor = resolveTextAnchor({
-            head: topSeries.start,
-            otherHead: topSeries.end,
-        })
-        const endAnchor = resolveTextAnchor({
-            head: topSeries.end,
-            otherHead: topSeries.start,
-        })
 
         return [
             {
