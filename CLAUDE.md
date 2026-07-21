@@ -60,6 +60,32 @@ Key facts that span multiple directories:
 - `yarn query 'SELECT ...'` — read-only SQL against the local dev DB. `yarn query -s "..."` queries the staging database for the current git branch (e.g. on branch `images-pageviews` it connects to `staging-site-images-pageviews`).
 - DB access convention in code: wrap queries in `knexReadonlyTransaction` / `knexReadWriteTransaction` from `db/db.ts` rather than using a raw knex instance.
 
+## Team
+
+Everything you post to GitHub or Slack goes out under a **human's identity**. Any text you author and post that a reader could take for the human's own words **must** carry the attribution line below. This is mandatory — not a judgment call about whether the comment is "worth it."
+
+1. **Attribute the work.** Put this blockquote as the _first line_ of the content:
+
+    ```
+    > _Written by <model provider> <model name> — @<handle> at the wheel._
+    ```
+
+    Replace `<model provider>` and `<model name>` with the human-readable provider and model actually generating the content (e.g. "Claude Sonnet 5", "GPT-5", "Gemini 3 Pro") — not a literal string like "Code" or a bare version number. Naming the provider keeps the attribution recognizable even to readers unfamiliar with individual model names.
+
+    It applies to **every** surface, **every** time you post:
+    - PR descriptions / bodies
+    - PR issue-level comments
+    - **Inline review comments _and_ replies to review comments** (e.g. answering Codex / Copilot / a reviewer)
+    - Standalone Slack messages or drafts
+
+    Use the handle of the human directing the work (usually the current git user; ask if ambiguous).
+
+    **The only exception** is a comment that is a bare mechanical token with _no prose_ — a lone `@codex review` ping or a 👍. The moment your comment contains a sentence of explanation, it needs the line. When in doubt, include it.
+
+2. **Use exact GitHub handles when tagging colleagues — don't guess.** A wrong tag pings a real person. If you don't have a confirmed handle for someone, write their plain name instead of `@`-tagging, and ask the user for the handle.
+
+3. **This repo is public — keep internal context out of it.** PR descriptions, commit messages, and issue/review comments must never identify people who contact us (no names, roles, or employers — say "a reader pointed out ..." instead), and must not reference internal discussions (Slack threads, Notion docs) or who suggested what internally. Motivate changes using public facts only; internal context stays internal.
+
 ## Code style
 
 - Double quotes for string literals.
