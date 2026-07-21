@@ -28,6 +28,17 @@ const SlideImageOnlySchema = z.object({
     largeText: z.optional(z.boolean()),
     hideLogo: z.optional(z.boolean()),
     blueBackground: z.optional(z.boolean()),
+    /**
+     * Layout variant. "imageText" (default, when absent) gives the image
+     * most of the space; "textImage" makes the text the dominant column with
+     * a smaller image as an accent on the right.
+     */
+    variant: z.optional(z.enum(["imageText", "textImage"])),
+    /**
+     * Shrink the image so the text column can take up more of the slide's
+     * width. Only has an effect when the slide also has text.
+     */
+    smallImage: z.optional(z.boolean()),
 })
 
 const SlideChartOnlySchema = z.object({
@@ -57,6 +68,12 @@ const SlideStatementSchema = z.object({
     attribution: z.optional(z.string()),
     hideLogo: z.optional(z.boolean()),
     blueBackground: z.optional(z.boolean()),
+    /**
+     * Layout variant. "standard" (default, when absent) keeps the text aligned
+     * to the top-left; "sectionDivider" centers the text both vertically and
+     * horizontally so the slide reads as a section break.
+     */
+    variant: z.optional(z.enum(["standard", "sectionDivider"])),
 })
 
 const SlideContentsSchema = z.object({

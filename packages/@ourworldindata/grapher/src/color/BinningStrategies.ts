@@ -136,7 +136,7 @@ export const runBinningStrategy = (
     if (conf.strategy === "auto") {
         resolvedStrategy = autoChooseBinningStrategy(conf)
     } else {
-        resolvedStrategy = conf.strategy as ResolvedBinningStrategy
+        resolvedStrategy = conf.strategy
     }
 
     const validationResult = hasValidConfigForBinningStrategy(

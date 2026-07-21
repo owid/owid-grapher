@@ -13,6 +13,7 @@ import {
     OwidChartDimensionInterfaceWithMandatorySlug,
     OwidChartDimensionInterface,
     EntityName,
+    TimeInterval,
 } from "@ourworldindata/types"
 import {
     OwidTable,
@@ -33,6 +34,9 @@ import {
     ColumnSlug,
     EPOCH_DATE,
     OwidVariableType,
+    getTimeInterval,
+    isSubYearly,
+    snapToIntervalStart,
 } from "@ourworldindata/utils"
 import { isContinentsVariableId } from "./GrapherConstants"
 import * as R from "remeda"
@@ -164,9 +168,9 @@ export const legacyToOwidTableAndDimensions = (
         }
 
         const columnStore: { [key: string]: any[] } = {
-            [OwidTableSlugs.entityId]: entityIds,
-            [OwidTableSlugs.entityCode]: entityCodes,
-            [OwidTableSlugs.entityName]: entityNames,
+            [OwidTableSlugs.EntityId]: entityIds,
+            [OwidTableSlugs.EntityCode]: entityCodes,
+            [OwidTableSlugs.EntityName]: entityNames,
             [timeColumnDef.slug]: times,
             [valueColumnDef.slug]: values,
         }
@@ -209,7 +213,7 @@ export const legacyToOwidTableAndDimensions = (
             // on entity only (disregarding the year since we already filtered all other years out for
             // those variables)
             variableTablesWithYearToJoinByEntityOnly.push(variableTable)
-        } else if (variable.metadata.display?.yearIsDay)
+        } else if (isSubYearly(getTimeInterval(variable.metadata.display)))
             variableTablesToJoinByDay.push(variableTable)
         else variableTablesToJoinByYear.push(variableTable)
     }
@@ -241,8 +245,8 @@ export const legacyToOwidTableAndDimensions = (
 
     // Merge all day based variables together (returns an empty table if there are none)
     const variablesJoinedByDay = fullJoinTables(variableTablesToJoinByDay, [
-        OwidTableSlugs.day,
-        OwidTableSlugs.entityId,
+        OwidTableSlugs.Day,
+        OwidTableSlugs.EntityId,
     ])
 
     let joinedVariablesTable: OwidTable
@@ -253,7 +257,7 @@ export const legacyToOwidTableAndDimensions = (
     ) {
         // Derive the year from the day column and add it to the joined days table
         const daysColumn = variablesJoinedByDay.getColumns([
-            OwidTableSlugs.day,
+            OwidTableSlugs.Day,
         ])[0]
         const getYearFromISOStringMemoized = _.memoize((dayValue: number) =>
             getYearFromISOStringAndDayOffset(EPOCH_DATE, dayValue)
@@ -264,8 +268,8 @@ export const legacyToOwidTableAndDimensions = (
 
         const newYearColumn = {
             ...daysColumn,
-            slug: OwidTableSlugs.year,
-            name: OwidTableSlugs.year,
+            slug: OwidTableSlugs.Year,
+            name: OwidTableSlugs.Year,
             values: yearsForDaysValues,
         } as OwidColumnDef
         const variablesJoinedByDayWithYearFilled =
@@ -278,10 +282,10 @@ export const legacyToOwidTableAndDimensions = (
         // trying to merge first by day+entity, then year+entity and finally entity only
         joinedVariablesTable = fullJoinTables(
             [variablesJoinedByDayWithYearFilled, ...variableTablesToJoinByYear],
-            [OwidTableSlugs.day, OwidTableSlugs.entityId],
+            [OwidTableSlugs.Day, OwidTableSlugs.EntityId],
             [
-                [OwidTableSlugs.year, OwidTableSlugs.entityId],
-                [OwidTableSlugs.entityId],
+                [OwidTableSlugs.Year, OwidTableSlugs.EntityId],
+                [OwidTableSlugs.EntityId],
             ]
         )
         // If we have scatter/marimekko variables that had a targetTime set
@@ -292,15 +296,15 @@ export const legacyToOwidTableAndDimensions = (
                     joinedVariablesTable,
                     ...variableTablesWithYearToJoinByEntityOnly,
                 ],
-                [OwidTableSlugs.day, OwidTableSlugs.entityId],
-                [[OwidTableSlugs.entityId]]
+                [OwidTableSlugs.Day, OwidTableSlugs.EntityId],
+                [[OwidTableSlugs.EntityId]]
             )
     } else if (variableTablesToJoinByYear.length > 0) {
         // If we only have year based variables then life is easy and we just join
         // those together without any special cases
         joinedVariablesTable = fullJoinTables(variableTablesToJoinByYear, [
-            OwidTableSlugs.year,
-            OwidTableSlugs.entityId,
+            OwidTableSlugs.Year,
+            OwidTableSlugs.EntityId,
         ])
 
         // If we have scatter/marimekko variables that had a targetTime set
@@ -311,8 +315,8 @@ export const legacyToOwidTableAndDimensions = (
                     joinedVariablesTable,
                     ...variableTablesWithYearToJoinByEntityOnly,
                 ],
-                [OwidTableSlugs.year, OwidTableSlugs.entityId],
-                [[OwidTableSlugs.entityId]]
+                [OwidTableSlugs.Year, OwidTableSlugs.EntityId],
+                [[OwidTableSlugs.EntityId]]
             )
     } else {
         // If we only have day variables life is also easy but this case is rare
@@ -326,18 +330,18 @@ export const legacyToOwidTableAndDimensions = (
                     joinedVariablesTable,
                     ...variableTablesWithYearToJoinByEntityOnly,
                 ],
-                [OwidTableSlugs.day, OwidTableSlugs.entityId],
-                [[OwidTableSlugs.entityId]]
+                [OwidTableSlugs.Day, OwidTableSlugs.EntityId],
+                [[OwidTableSlugs.EntityId]]
             )
     }
 
     // Inject a common "time" column that is used as the main time column for the table
     // e.g. for the timeline.
-    for (const dayOrYearSlug of [OwidTableSlugs.day, OwidTableSlugs.year]) {
+    for (const dayOrYearSlug of [OwidTableSlugs.Day, OwidTableSlugs.Year]) {
         if (joinedVariablesTable.columnSlugs.includes(dayOrYearSlug)) {
             joinedVariablesTable = joinedVariablesTable.duplicateColumn(
                 dayOrYearSlug,
-                { slug: OwidTableSlugs.time, name: OwidTableSlugs.time }
+                { slug: OwidTableSlugs.Time, name: OwidTableSlugs.Time }
             )
             // Do not inject multiple columns, terminate after one is successful
             break
@@ -346,7 +350,7 @@ export const legacyToOwidTableAndDimensions = (
 
     // Append the entity color column if we have selected entity colors
     if (!_.isEmpty(selectedEntityColors)) {
-        const entityColorColumnSlug = OwidTableSlugs.entityColor
+        const entityColorColumnSlug = OwidTableSlugs.EntityColor
 
         const valueFn = (
             entityName: EntityName | undefined
@@ -563,7 +567,7 @@ const fullJoinTables = (
                     // If none of the fallback values worked either we write ErrorValueTypes.NoMatchingValueAfterJoin into the cell
                     else
                         def.values?.push(
-                            ErrorValueTypes.NoMatchingValueAfterJoin as any
+                            ErrorValueTypes.NoMatchingValueAfterJoin
                         )
                 }
             }
@@ -654,7 +658,6 @@ const columnDefFromOwidVariable = (
     return {
         name,
         slug,
-        isDailyMeasurement: display?.yearIsDay,
         unit,
         shortUnit,
         description,
@@ -688,20 +691,47 @@ const columnDefFromOwidVariable = (
     }
 }
 
+// Maps each time interval to the time column it produces. Sub-yearly intervals
+// all share the `day` slug (days-since-epoch) so they join in the same bucket
+const TIME_COLUMN_DEF_BY_INTERVAL: Record<TimeInterval, OwidColumnDef> = {
+    [TimeInterval.Day]: {
+        slug: OwidTableSlugs.Day,
+        type: ColumnTypeNames.Day,
+        name: "Day",
+    },
+    [TimeInterval.Week]: {
+        slug: OwidTableSlugs.Day,
+        type: ColumnTypeNames.Week,
+        name: "Week",
+    },
+    [TimeInterval.Month]: {
+        slug: OwidTableSlugs.Day,
+        type: ColumnTypeNames.Month,
+        name: "Month",
+    },
+    [TimeInterval.Quarter]: {
+        slug: OwidTableSlugs.Day,
+        type: ColumnTypeNames.Quarter,
+        name: "Quarter",
+    },
+    [TimeInterval.Year]: {
+        slug: OwidTableSlugs.Year,
+        type: ColumnTypeNames.Year,
+        name: "Year",
+    },
+    [TimeInterval.Decade]: {
+        slug: OwidTableSlugs.Year,
+        type: ColumnTypeNames.Decade,
+        name: "Decade",
+    },
+}
+
 const timeColumnDefFromOwidVariable = (
     variableMetadata: OwidVariableWithSource
 ): OwidColumnDef => {
-    return variableMetadata.display?.yearIsDay
-        ? {
-              slug: OwidTableSlugs.day,
-              type: ColumnTypeNames.Day,
-              name: "Day",
-          }
-        : {
-              slug: OwidTableSlugs.year,
-              type: ColumnTypeNames.Year,
-              name: "Year",
-          }
+    return TIME_COLUMN_DEF_BY_INTERVAL[
+        getTimeInterval(variableMetadata.display)
+    ]
 }
 
 const timeColumnValuesFromOwidVariable = (
@@ -710,20 +740,32 @@ const timeColumnValuesFromOwidVariable = (
 ): number[] => {
     const { display } = variableMetadata
     const { years } = variableData
+
+    const interval = getTimeInterval(display)
+
+    // Shift day-encoded values expressed relative to a custom zeroDay onto the
+    // shared EPOCH_DATE, so variables with different zeroDays are comparable
     const yearsNeedTransform =
         display &&
-        display.yearIsDay &&
+        isSubYearly(interval) &&
         display.zeroDay !== undefined &&
         display.zeroDay !== EPOCH_DATE
-    const yearsRaw = years || []
-    return yearsNeedTransform
-        ? convertLegacyYears(yearsRaw, display.zeroDay!)
-        : yearsRaw
+    let times = yearsNeedTransform
+        ? convertLegacyYears(years || [], display.zeroDay!)
+        : years || []
+
+    // Snap sub-yearly values (except plain days) to the start of their period,
+    // so variables that pick different representative days for the same period
+    // still align
+    if (isSubYearly(interval) && interval !== TimeInterval.Day)
+        times = times.map((time) => snapToIntervalStart(time, interval))
+
+    return times
 }
 
 const convertLegacyYears = (years: number[], zeroDay: string): number[] => {
     // Only shift years if the variable zeroDay is different from EPOCH_DATE
-    // When the dataset uses days (`yearIsDay == true`), the days are expressed as integer
+    // When the dataset uses days, the days are expressed as integer
     // days since the specified `zeroDay`, which can be different for different variables.
     // In order to correctly join variables with different `zeroDay`s in a single chart, we
     // normalize all days to be in reference to a single epoch date.
@@ -827,9 +869,9 @@ export function buildVariableTable(
     }
 
     const columnStore: { [key: string]: any[] } = {
-        [OwidTableSlugs.entityId]: entityIds,
-        [OwidTableSlugs.entityCode]: entityCodes,
-        [OwidTableSlugs.entityName]: entityNames,
+        [OwidTableSlugs.EntityId]: entityIds,
+        [OwidTableSlugs.EntityCode]: entityCodes,
+        [OwidTableSlugs.EntityName]: entityNames,
         [timeColumnDef.slug]: times,
         [valueColumnDef.slug]: values,
     }

@@ -79,6 +79,10 @@ export interface PlacedPoint {
     time: number
 }
 
+export interface RenderPoint extends PlacedPoint {
+    emphasis: Emphasis
+}
+
 export interface LineChartSeries extends ChartSeries {
     displayName: string
     isProjection?: boolean

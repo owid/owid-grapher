@@ -1,15 +1,9 @@
 export const RedirectsTableName = "redirects"
 
-export enum RedirectCode {
-    MOVED_PERMANENTLY = 301,
-    FOUND = 302,
-}
-
 export interface DbInsertRedirect {
     id: number
     source: string
     target: string
-    code: RedirectCode
     createdAt?: Date
     updatedAt?: Date
     ttl?: Date | null

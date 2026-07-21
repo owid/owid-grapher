@@ -23,7 +23,7 @@ import {
     TagGraphRootName,
     FlatTagGraph,
     FlatTagGraphNode,
-    MinimalTagWithIsTopic,
+    MinimalTagWithMetadata,
     DbPlainPostGdocLink,
     ContentGraphLinkType,
     OwidGdoc,
@@ -809,20 +809,55 @@ export async function updateTagGraph(
     }
 }
 
-export function getMinimalTagsWithIsTopic(
+type RawMinimalTagWithMetadata = Omit<
+    MinimalTagWithMetadata,
+    "isTopic" | "isSearchable"
+> & {
+    isTopic: 0 | 1
+    isSearchable: 0 | 1
+}
+
+export function getMinimalTagsWithMetadata(
     knex: KnexReadonlyTransaction
-): Promise<MinimalTagWithIsTopic[]> {
-    return knexRaw<MinimalTagWithIsTopic>(
+): Promise<MinimalTagWithMetadata[]> {
+    return knexRaw<RawMinimalTagWithMetadata>(
         knex,
         `-- sql
+        WITH RECURSIVE tags_in_graph AS (
+            SELECT id
+            FROM tags
+            WHERE name = '${TagGraphRootName}'
+
+            UNION DISTINCT
+
+            SELECT tg.childId
+            FROM tag_graph tg
+            JOIN tags_in_graph parent ON tg.parentId = parent.id
+        )
         SELECT t.id,
         t.name,
         t.slug,
+        CASE
+            WHEN EXISTS (
+                SELECT 1
+                FROM tag_graph tg
+                JOIN tags root ON tg.parentId = root.id
+                WHERE tg.childId = t.id
+                    AND root.name = '${TagGraphRootName}'
+            ) THEN 'area'
+            WHEN NOT EXISTS (
+                SELECT 1
+                FROM tags_in_graph
+                WHERE tags_in_graph.id = t.id
+            ) THEN 'orphan'
+            ELSE 'descendant'
+        END AS tagGraphRole,
         t.slug IS NOT NULL AND MAX(IF(pg.type IN (:types), TRUE, FALSE)) AS isTopic,
         (t.slug IS NOT NULL AND MAX(IF(pg.type IN (:types), TRUE, FALSE))) OR t.searchableInAlgolia AS isSearchable
         FROM tags t
         LEFT JOIN posts_gdocs_x_tags gt ON t.id = gt.tagId
         LEFT JOIN posts_gdocs pg ON gt.gdocId = pg.id
+        WHERE t.name != '${TagGraphRootName}'
         GROUP BY t.id, t.name
         ORDER BY t.name ASC
     `,
@@ -833,6 +868,12 @@ export function getMinimalTagsWithIsTopic(
                 OwidGdocType.Article,
             ],
         }
+    ).then((tags) =>
+        tags.map((tag) => ({
+            ...tag,
+            isTopic: Boolean(tag.isTopic),
+            isSearchable: Boolean(tag.isSearchable),
+        }))
     )
 }
 

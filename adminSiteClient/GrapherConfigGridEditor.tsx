@@ -438,9 +438,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         )
         if (performCommit) {
             const grapherObject = { ...this.grapherState.object }
-            const newVal = currentColumnFieldDescription.getter(
-                grapherObject as Record<string, unknown>
-            )
+            const newVal = currentColumnFieldDescription.getter(grapherObject)
 
             const patch: GrapherConfigPatch = {
                 id: selectedRowContent.id,
@@ -898,7 +896,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             hiddenColumns: {
                 columns: hiddenColumnIndices,
                 copyPasteEnabled: false,
-            } as any,
+            },
             manualColumnResize: true,
             manualColumnFreeze: true,
             manualRowMove: false,
@@ -1089,9 +1087,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     row.config as Record<string, unknown>
                 )
                 const grapherObject = { ...this.grapherState.object }
-                newVal = fieldDesc.getter(
-                    grapherObject as Record<string, unknown>
-                )
+                newVal = fieldDesc.getter(grapherObject)
             }
 
             // Now construct the patch and store it
@@ -1769,7 +1765,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 cardinality: 0,
                 jsonLogic: "==",
             },
-        } as any
+        }
         config.types.number.widgets.number.operators!.push("is_latest")
         config.types.number.widgets.number.operators!.push("is_earliest")
 

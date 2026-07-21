@@ -43,6 +43,11 @@ export const Head = (props: {
     imageUrl?: string
     children?: any
     baseUrl: string
+    /**
+     * Ask search engines not to index the page. Also omits the canonical
+     * link, since a canonical on a noindexed page sends mixed signals.
+     */
+    noindex?: boolean
     atom?: {
         title: string
         href: string
@@ -58,7 +63,7 @@ export const Head = (props: {
         : `Our World in Data`
     const pageDesc =
         props.pageDesc ||
-        "Research and data to make progress against the world’s largest problems"
+        "Research and data to make progress against the world’s largest problems."
     const imageUrl =
         props.imageUrl || `${baseUrl}/${DEFAULT_THUMBNAIL_FILENAME}`
     const atom = props.atom ?? DEFAULT_ATOM_FEED_PROPS
@@ -82,7 +87,11 @@ export const Head = (props: {
             />
             <title>{fullPageTitle}</title>
             <meta name="description" content={pageDesc} />
-            <link rel="canonical" href={canonicalUrl} />
+            {props.noindex ? (
+                <meta name="robots" content="noindex" />
+            ) : (
+                <link rel="canonical" href={canonicalUrl} />
+            )}
             <link
                 rel="alternate"
                 type="application/atom+xml"
@@ -97,11 +106,8 @@ export const Head = (props: {
                     data-archival-date={props.archiveContext.archivalDate}
                 />
             )}
-            <link
-                rel="apple-touch-icon"
-                sizes="180x180"
-                href="/apple-touch-icon.png"
-            />
+            <link rel="icon" href="/favicon.ico" />
+            <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
             <link
                 rel="preload"
                 href="/fonts/LatoLatin-Regular.woff2"

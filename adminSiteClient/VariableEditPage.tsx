@@ -240,7 +240,11 @@ class VariableEditor extends Component<{
                             </FieldsRow>
                             <FieldsRow>
                                 <ReadOnlyField
-                                    label="Treat year column as day series"
+                                    label="Time interval"
+                                    value={variable.display?.timeInterval}
+                                />
+                                <ReadOnlyField
+                                    label="Treat year column as day series (deprecated)"
                                     value={
                                         variable.display?.yearIsDay
                                             ? "Yes"

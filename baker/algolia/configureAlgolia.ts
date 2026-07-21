@@ -82,9 +82,13 @@ export const configureAlgolia = async () => {
             ],
             customRanking: ["desc(score)", "desc(importance)"],
             attributesToSnippet: ["content:20"],
-            attributeForDistinct: "slug",
+            // `path` (the full page path, e.g. `/data-insights/foo` vs
+            // `/foo`) is used instead of the bare `slug`, since a data
+            // insight and an article (or other gdoc) can share the same
+            // slug while resolving to different pages - see #6591.
+            attributeForDistinct: "path",
             attributesForFaceting: [
-                "filterOnly(slug)",
+                "filterOnly(path)",
                 "afterDistinct(type)",
                 "afterDistinct(searchable(tags))",
                 "afterDistinct(searchable(authors))",
@@ -179,12 +183,12 @@ export const configureAlgolia = async () => {
         },
     })
 
-    const algoliaSynonyms = synonyms.map((s) => {
+    const algoliaSynonyms: SynonymHit[] = synonyms.map((s) => {
         return {
             objectID: s.join("-"),
             type: "synonym",
             synonyms: s,
-        } as SynonymHit
+        }
     })
 
     // Send all our country variant names to algolia as one-way synonyms

@@ -8,7 +8,7 @@ info:
     This API allows you to search through:
 
     - **Charts**: Interactive data visualizations with country-specific filtering
-    - **Pages**: Articles, research papers, and informational pages
+    - **Pages**: Articles, data insights, and other content pages (filter by type via `pageTypes`)
 
     !!! tip "Semantic Search"
 
@@ -111,6 +111,18 @@ paths:
             type: boolean
             default: false
           example: false
+
+        # Pages-specific parameters
+        - name: pageTypes
+          in: query
+          description: |
+            Comma-separated list of page content types to search. Only applicable
+            when `type=pages`. Defaults to `article,about-page` when omitted.
+          required: false
+          schema:
+            type: string
+            default: "article,about-page"
+          example: "data-insight"
 
       responses:
         "200":
@@ -387,7 +399,15 @@ components:
           type: string
           enum:
             - article
+            - topic-page
+            - fragment
+            - linear-topic-page
+            - data-insight
+            - homepage
             - about-page
+            - author
+            - announcement
+            - profile
           description: Type of page content
           example: "article"
         thumbnailUrl:

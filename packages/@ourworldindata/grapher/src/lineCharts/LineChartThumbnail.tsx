@@ -1,19 +1,30 @@
 import React from "react"
-import { computed, makeObservable } from "mobx"
+import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import * as _ from "lodash-es"
-import { Bounds, SeriesName } from "@ourworldindata/utils"
+import { scaleLinear } from "d3-scale"
+import {
+    Bounds,
+    SeriesName,
+    guid,
+    getRelativeMouse,
+} from "@ourworldindata/utils"
+import { SideWidths, Time } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { LineChartState } from "./LineChartState"
 import { LineChartProps } from "./LineChart.js"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import {
+    CATEGORICAL_LEGEND_STYLE,
+    LINE_STYLE,
+    LINE_CHART_CLASS_NAME,
     LineChartManager,
     LineChartSeries,
     LinePoint,
+    NUMERIC_LEGEND_STYLE,
     PlacedLineChartSeries,
-    PlacedPoint,
     RenderLineChartSeries,
+    RenderPoint,
 } from "./LineChartConstants"
 import {
     BASE_FONT_SIZE,
@@ -21,15 +32,19 @@ import {
     FontSettings,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
+import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"
+import { InteractionState } from "../interaction/InteractionState"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { Lines } from "./Lines"
 import {
+    findClosestTimeAtMouse,
     getYAxisConfigDefaults,
     toPlacedLineChartSeries,
     toRenderLineChartSeries,
 } from "./LineChartHelpers"
 import {
     HorizontalAxisComponent,
+    VerticalAxisDomainLine,
     VerticalAxisZeroLine,
 } from "../axis/AxisViews"
 import { InitialAnchoredLabelSeries } from "../anchoredLabels/AnchoredLabelsTypes"
@@ -37,20 +52,32 @@ import { AnchoredLabelsState } from "../anchoredLabels/AnchoredLabelsState"
 import { AnchoredLabels } from "../anchoredLabels/AnchoredLabels"
 import { darkenColorForLine } from "../color/ColorUtils.js"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
-
-const DOT_RADIUS = 4
-const SPACE_BETWEEN_DOT_AND_LABEL = 4
-const LABEL_PADDING = DOT_RADIUS + SPACE_BETWEEN_DOT_AND_LABEL
-const ZERO_LINE_STROKE_WIDTH = 1
+import { HorizontalColorLegendManager } from "../legend/HorizontalColorLegends.js"
+import { CategoricalBin } from "../color/ColorScaleBin.js"
+import {
+    getHoverStateForSeries,
+    isTargetOutsideElement,
+} from "../chart/ChartUtils"
+import { TooltipState } from "../tooltip/Tooltip"
+import { LineChartTooltip } from "./LineChartTooltip"
+import { LineChartActiveTimeMarkers } from "./LineChartActiveTimeMarkers"
 
 @observer
 export class LineChartThumbnail
     extends React.Component<LineChartProps>
     implements ChartInterface, AxisManager
 {
+    private readonly base = React.createRef<SVGGElement>()
+
+    private readonly tooltipState = new TooltipState<{ time: Time }>({
+        fade: "immediate",
+    })
+
     constructor(props: LineChartProps) {
         super(props)
-        makeObservable(this)
+        makeObservable<LineChartThumbnail, "tooltipState">(this, {
+            tooltipState: observable,
+        })
     }
 
     @computed get chartState(): LineChartState {
@@ -66,9 +93,10 @@ export class LineChartThumbnail
     }
 
     @computed private get innerBounds(): Bounds {
+        const { left, right } = this.effectiveLabelWidths
         return this.bounds
-            .padRight(this.estimatedLabelWidth.right)
-            .padLeft(this.estimatedLabelWidth.left)
+            .padRight(right > 0 ? right + this.labelPadding : 0)
+            .padLeft(left > 0 ? left + this.labelPadding : 0)
     }
 
     @computed get fontSize(): number {
@@ -84,7 +112,7 @@ export class LineChartThumbnail
 
     @computed private get xAxisConfig(): AxisConfig {
         const { xAxisConfig } = this.manager
-        const custom = { labelPadding: 0 }
+        const custom = { labelPadding: 0, tickPadding: 2 }
         return new AxisConfig({ ...custom, ...xAxisConfig }, this)
     }
 
@@ -119,15 +147,67 @@ export class LineChartThumbnail
         })
     }
 
+    // Series highlighted by hovering an item in the (external) categorical
+    // legend, which the FacetChart broadcasts to all facets via
+    // `externalLegendHoverBin`
+    @computed private get hoveredSeriesNames(): SeriesName[] {
+        const { externalLegendHoverBin } = this.manager
+        if (!externalLegendHoverBin) return []
+        return this.chartState.series
+            .map((series) => series.seriesName)
+            .filter((name) => externalLegendHoverBin.contains(name))
+    }
+
+    @computed private get isHoverModeActive(): boolean {
+        return (
+            this.hoveredSeriesNames.length > 0 ||
+            // If the external legend is hovered, we want to mute all
+            // non-hovered series even if this facet doesn't plot any of them
+            (!!this.manager.externalLegendHoverBin &&
+                !this.chartState.hasColorScale)
+        )
+    }
+
     @computed private get renderSeries(): RenderLineChartSeries[] {
         return toRenderLineChartSeries(this.placedSeries, {
             isFocusModeActive: this.chartState.isFocusModeActive,
+            isHoverModeActive: this.isHoverModeActive,
+            hoveredSeriesNames: this.hoveredSeriesNames,
             shouldElevateSingleSeries: false,
         })
     }
 
+    private hoverStateForSeries(series: LineChartSeries): InteractionState {
+        return getHoverStateForSeries(series, {
+            isHoverModeActive: this.isHoverModeActive,
+            hoveredSeriesNames: this.hoveredSeriesNames,
+        })
+    }
+
+    private emphasisForSeries(series: LineChartSeries): Emphasis {
+        return resolveEmphasis({
+            hover: this.hoverStateForSeries(series),
+            focus: series.focus,
+        })
+    }
+
+    @computed private get dotRadius(): number {
+        // Map font size to dot radius
+        const scale = scaleLinear().domain([11, 16]).range([2.5, 3.5])
+        // Round to nearest .5 number
+        return _.round(scale(this.fontSize) * 2) / 2
+    }
+
+    @computed private get spaceBetweenDotAndLabel(): number {
+        return this.dotRadius
+    }
+
+    @computed private get labelPadding(): number {
+        return this.dotRadius + this.spaceBetweenDotAndLabel
+    }
+
     /** Start points displayed as dots */
-    @computed private get visibleStartPoints(): PlacedPoint[] {
+    @computed private get visibleStartPoints(): RenderPoint[] {
         return this.renderSeries
             .filter(
                 (series) =>
@@ -135,14 +215,19 @@ export class LineChartThumbnail
                     // Only show start points for historical series, not projected ones
                     !series.isProjection
             )
-            .map((series) =>
-                _.minBy(series.placedPoints, (point) => point.time)
-            )
+            .map((series) => {
+                const point = _.minBy(
+                    series.placedPoints,
+                    (point) => point.time
+                )
+                if (!point) return undefined
+                return { ...point, emphasis: series.emphasis }
+            })
             .filter((point) => point !== undefined)
     }
 
     /** End points displayed as dots */
-    @computed private get visibleEndPoints(): PlacedPoint[] {
+    @computed private get visibleEndPoints(): RenderPoint[] {
         return this.renderSeries
             .filter(
                 (series) =>
@@ -151,9 +236,14 @@ export class LineChartThumbnail
                     // for the projected series. Otherwise, show end dots for all series
                     (!this.hasProjectedSeries || series.isProjection)
             )
-            .map((series) =>
-                _.maxBy(series.placedPoints, (point) => point.time)
-            )
+            .map((series) => {
+                const point = _.maxBy(
+                    series.placedPoints,
+                    (point) => point.time
+                )
+                if (!point) return undefined
+                return { ...point, emphasis: series.emphasis }
+            })
             .filter((point) => point !== undefined)
     }
 
@@ -244,7 +334,13 @@ export class LineChartThumbnail
                       )
                     : series.color
 
-                return { seriesName: series.seriesName, value, label, color }
+                return {
+                    seriesName: series.seriesName,
+                    value,
+                    label,
+                    color,
+                    emphasis: this.emphasisForSeries(series),
+                }
             })
             .filter((series) => series !== undefined)
     }
@@ -271,8 +367,8 @@ export class LineChartThumbnail
             ...this.labelFontSettings,
             textAnchor: "start",
             yRange: this.labelsRange,
-            labelPadding: LABEL_PADDING,
-            anchorCollisionRadius: DOT_RADIUS,
+            labelPadding: this.labelPadding,
+            anchorCollisionRadius: this.dotRadius,
             resolveCollision: (
                 s1: InitialAnchoredLabelSeries,
                 s2: InitialAnchoredLabelSeries
@@ -366,7 +462,13 @@ export class LineChartThumbnail
                       )
                     : series.color
 
-                return { seriesName: series.seriesName, value, label, color }
+                return {
+                    seriesName: series.seriesName,
+                    value,
+                    label,
+                    color,
+                    emphasis: this.emphasisForSeries(series),
+                }
             })
             .filter((series) => series !== undefined)
     }
@@ -378,7 +480,12 @@ export class LineChartThumbnail
         dualAxis: DualAxis
         visibleEndLabels: Set<SeriesName>
     }): AnchoredLabelsState | undefined {
-        if (!this.manager.showSeriesLabels) return undefined
+        if (!this.manager.showSeriesLabels || this.manager.hideStartValueLabel)
+            return undefined
+
+        // In relative mode, the start label is trivially 0%,
+        // so we skip showing start labels to reduce clutter
+        if (this.manager.isRelativeMode) return undefined
 
         const series = this.startLabelsSeries.map((series) => {
             const startPoint = this.startPointBySeriesName.get(
@@ -399,8 +506,8 @@ export class LineChartThumbnail
             ...this.labelFontSettings,
             maxWidth: this.startLabelsMaxWidth,
             textAnchor: "end",
-            labelPadding: LABEL_PADDING,
-            anchorCollisionRadius: DOT_RADIUS,
+            labelPadding: this.labelPadding,
+            anchorCollisionRadius: this.dotRadius,
             yRange: this.labelsRange,
             resolveCollision: (
                 s1: InitialAnchoredLabelSeries,
@@ -447,10 +554,7 @@ export class LineChartThumbnail
      * these widths. To break the cycle, we run a preliminary layout pass
      * using the full bounds (without label padding).
      */
-    @computed private get estimatedLabelWidth(): {
-        right: number
-        left: number
-    } {
+    @computed private get estimatedLabelWidths(): SideWidths {
         const approximateDualAxis = new DualAxis({
             bounds: this.bounds,
             verticalAxis: this.verticalAxisPart,
@@ -470,12 +574,33 @@ export class LineChartThumbnail
             visibleEndLabels,
         })
 
-        const rightWidth = endLabelsState?.width ?? 0
-        const leftWidth = startLabelsState?.width ?? 0
-
         return {
-            right: rightWidth > 0 ? rightWidth + LABEL_PADDING : 0,
-            left: leftWidth > 0 ? leftWidth + LABEL_PADDING : 0,
+            left: startLabelsState?.width ?? 0,
+            right: endLabelsState?.width ?? 0,
+        }
+    }
+
+    // Consumed by FacetChart to align chart content across facets
+    @computed get verticalLabelWidths(): SideWidths {
+        return this.estimatedLabelWidths
+    }
+
+    // Consumed by FacetChart to align the facet label with the plot content
+    // (here: the line chart's domain line)
+    @computed get contentInset(): SideWidths | undefined {
+        if (this.chartState.errorInfo.reason) return undefined
+        const { innerBounds, bounds } = this
+        return {
+            left: innerBounds.left - bounds.left,
+            right: bounds.right - innerBounds.right,
+        }
+    }
+
+    @computed private get effectiveLabelWidths(): SideWidths {
+        const shared = this.manager.sharedVerticalLabelWidths
+        return {
+            left: Math.max(shared?.left ?? 0, this.verticalLabelWidths.left),
+            right: Math.max(shared?.right ?? 0, this.verticalLabelWidths.right),
         }
     }
 
@@ -491,30 +616,154 @@ export class LineChartThumbnail
         )
     }
 
-    override render(): React.ReactElement {
-        if (this.chartState.errorInfo.reason)
-            return (
-                <NoDataMessage
-                    manager={this.manager}
-                    bounds={this.bounds}
-                    message={this.chartState.errorInfo.reason}
-                />
-            )
+    @computed get externalLegend(): HorizontalColorLegendManager {
+        const numericLegendData = this.chartState.hasColorScale
+            ? _.sortBy(
+                  this.chartState.colorScale.legendBins,
+                  (bin) => bin instanceof CategoricalBin
+              )
+            : []
 
+        const categoricalLegendData = this.chartState.hasColorScale
+            ? []
+            : this.chartState.series.map(
+                  (series, index) =>
+                      new CategoricalBin({
+                          index,
+                          value: series.seriesName,
+                          label: series.displayName,
+                          color: series.color,
+                      })
+              )
+
+        return {
+            categoricalLegendData,
+            numericLegendData,
+            legendTitle: this.chartState.hasColorScale
+                ? this.chartState.colorScale.legendDescription
+                : undefined,
+            legendTickSize: 1,
+            numericBinSize: 6,
+            categoricalLegendStyleConfig: CATEGORICAL_LEGEND_STYLE,
+            numericLegendStyleConfig: NUMERIC_LEGEND_STYLE,
+        }
+    }
+
+    @computed private get shouldShowZeroLine(): boolean {
+        const { verticalAxisPart } = this
+        if (verticalAxisPart.isLogScale) return false
+        // Only draw the zero line when 0 is actually within the axis domain
+        const [min, max] = verticalAxisPart.domain
+        return min <= 0 && max >= 0
+    }
+
+    @computed private get allValues(): LinePoint[] {
+        return this.placedSeries.flatMap((series) => series.points)
+    }
+
+    @computed get activeTimes(): Time[] {
+        const tooltipTime = this.tooltipState.target?.time
+        return tooltipTime !== undefined ? [tooltipTime] : []
+    }
+
+    @computed private get renderUid(): number {
+        return guid()
+    }
+
+    @computed private get tooltipId(): number {
+        return this.renderUid
+    }
+
+    @computed private get isTooltipActive(): boolean {
+        return this.manager.tooltip?.get()?.id === this.tooltipId
+    }
+
+    @action.bound private dismissTooltip(): void {
+        this.tooltipState.target = null
+    }
+
+    @action.bound private onCursorLeave(): void {
+        if (!this.manager.shouldPinTooltipToBottom) this.dismissTooltip()
+    }
+
+    @action.bound private onCursorMove(
+        ev: React.MouseEvent | React.TouchEvent
+    ): void {
+        const ref = this.base.current,
+            parentRef = this.manager.base?.current
+
+        // The tooltip's origin needs to be in the parent's coordinates
+        if (parentRef) {
+            this.tooltipState.position = getRelativeMouse(parentRef, ev)
+        }
+
+        if (!ref) return
+
+        const hoverTime = findClosestTimeAtMouse({
+            mouse: getRelativeMouse(ref, ev),
+            innerBounds: this.dualAxis.innerBounds,
+            horizontalAxis: this.dualAxis.horizontalAxis,
+            allValues: this.allValues,
+        })
+
+        this.tooltipState.target =
+            hoverTime === undefined ? null : { time: hoverTime }
+    }
+
+    @action.bound private onDocumentClick(e: MouseEvent): void {
+        // Only dismiss the tooltip if the click is outside of the chart area
+        // and outside of the chart areas of neighboring facets
+        const chartContainer = this.manager.base?.current
+        if (!chartContainer) return
+        const chartAreas = chartContainer.getElementsByClassName(
+            LINE_CHART_CLASS_NAME
+        )
+        const isTargetOutsideChartAreas = Array.from(chartAreas).every(
+            (chartArea) => isTargetOutsideElement(e.target!, chartArea)
+        )
+        if (isTargetOutsideChartAreas) {
+            this.dismissTooltip()
+        }
+    }
+
+    override componentDidMount(): void {
+        document.addEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
+    }
+
+    override componentWillUnmount(): void {
+        document.removeEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
+    }
+
+    private renderChartElements(): React.ReactElement {
         return (
             <>
-                {!this.dualAxis.verticalAxis.isLogScale && (
+                {this.shouldShowZeroLine ? (
                     <VerticalAxisZeroLine
                         axis={this.dualAxis.verticalAxis}
                         bounds={this.dualAxis.innerBounds}
-                        strokeWidth={ZERO_LINE_STROKE_WIDTH}
+                        strokeWidth={0.5}
+                    />
+                ) : (
+                    // The domain line is the baseline at the bottom of the plot.
+                    // When the zero line is shown it already serves as a baseline,
+                    // so we only draw the domain line in its absence
+                    <VerticalAxisDomainLine
+                        verticalAxis={this.dualAxis.verticalAxis}
+                        bounds={this.dualAxis.innerBounds}
+                        strokeWidth={0.5}
                     />
                 )}
-                <HorizontalAxisComponent
-                    axis={this.dualAxis.horizontalAxis}
-                    bounds={this.dualAxis.bounds}
-                    showEndpointsOnly
-                />
+                {!this.dualAxis.horizontalAxis.hideAxis && (
+                    <HorizontalAxisComponent
+                        axis={this.dualAxis.horizontalAxis}
+                        bounds={this.dualAxis.bounds}
+                        showEndpointsOnly
+                    />
+                )}
                 <Lines
                     series={this.renderSeries}
                     dualAxis={this.dualAxis}
@@ -525,10 +774,10 @@ export class LineChartThumbnail
                     isStatic={this.manager.isStatic}
                 />
                 {this.visibleStartPoints.map((point, index) => (
-                    <Dot key={index} point={point} />
+                    <Dot key={index} point={point} radius={this.dotRadius} />
                 ))}
                 {this.visibleEndPoints.map((point, index) => (
-                    <Dot key={index} point={point} />
+                    <Dot key={index} point={point} radius={this.dotRadius} />
                 ))}
                 {this.startLabelsState && (
                     <AnchoredLabels state={this.startLabelsState} />
@@ -539,10 +788,82 @@ export class LineChartThumbnail
             </>
         )
     }
+
+    private renderStatic(): React.ReactElement {
+        return this.renderChartElements()
+    }
+
+    private renderInteractive(): React.ReactElement {
+        return (
+            <g
+                ref={this.base}
+                className={LINE_CHART_CLASS_NAME}
+                onMouseLeave={this.onCursorLeave}
+                onTouchEnd={this.onCursorLeave}
+                onTouchCancel={this.onCursorLeave}
+                onMouseMove={this.onCursorMove}
+                onTouchStart={this.onCursorMove}
+                onTouchMove={this.onCursorMove}
+            >
+                <rect {...this.bounds.toProps()} fillOpacity="0">
+                    {/* This <rect> ensures that the parent <g> is big enough such that
+                        we get mouse hover events for the whole charting area, including
+                        the axis, the entity labels, and the whitespace next to them.
+                        We need these to be able to show the tooltip for the first/last
+                        year even if the mouse is outside the charting area. */}
+                </rect>
+                {this.renderChartElements()}
+                {this.isTooltipActive && (
+                    <LineChartActiveTimeMarkers
+                        times={this.activeTimes}
+                        renderSeries={this.renderSeries}
+                        dualAxis={this.dualAxis}
+                        chartState={this.chartState}
+                        dotRadius={4}
+                    />
+                )}
+                <LineChartTooltip
+                    id={this.tooltipId}
+                    chartState={this.chartState}
+                    tooltipState={this.tooltipState}
+                    series={this.renderSeries}
+                    xAxisLabel={this.xAxis.label}
+                    dismissTooltip={this.dismissTooltip}
+                />
+            </g>
+        )
+    }
+
+    override render(): React.ReactElement {
+        if (this.chartState.errorInfo.reason)
+            return (
+                <NoDataMessage
+                    manager={this.manager}
+                    bounds={this.bounds}
+                    message={this.chartState.errorInfo.reason}
+                />
+            )
+
+        return this.manager.isStatic
+            ? this.renderStatic()
+            : this.renderInteractive()
+    }
 }
 
-function Dot({ point }: { point: PlacedPoint }): React.ReactElement | null {
+function Dot({
+    point,
+    radius,
+}: {
+    point: RenderPoint
+    radius: number
+}): React.ReactElement | null {
     return (
-        <circle cx={point.x} cy={point.y} r={DOT_RADIUS} fill={point.color} />
+        <circle
+            cx={point.x}
+            cy={point.y}
+            r={radius}
+            fill={point.color}
+            opacity={LINE_STYLE[point.emphasis].opacity}
+        />
     )
 }

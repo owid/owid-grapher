@@ -54,6 +54,8 @@ import {
     RESEARCH_AND_WRITING_DEFAULT_HEADING,
     CHRONOLOGICAL_INDEX_TYPES,
     LATEST_FEED_TYPES,
+    TimeInterval,
+    type OwidVariableDisplayConfigInterface,
 } from "@ourworldindata/types"
 import { Point, PointVector } from "./PointVector.js"
 import * as React from "react"
@@ -213,12 +215,65 @@ export function convertDaysSinceEpochToDate(dayAsYear: number): dayjs.Dayjs {
     return dayjs.utc(EPOCH_DATE).add(dayAsYear, "days")
 }
 
+// Inverse of convertDaysSinceEpochToDate.
+export function convertDateToDaysSinceEpoch(date: dayjs.Dayjs): number {
+    return dateDiffInDays(date.toDate(), dayjs.utc(EPOCH_DATE).toDate())
+}
+
 export function formatDay(
     dayAsYear: number,
     options?: { format?: string }
 ): string {
     const format = options?.format ?? "MMM D, YYYY"
     return convertDaysSinceEpochToDate(dayAsYear).format(format)
+}
+
+/**
+ * Resolves the time interval of an indicator from its display config, falling
+ * back to the deprecated `yearIsDay` flag when `timeInterval` is not set.
+ */
+export function getTimeInterval(
+    display?: OwidVariableDisplayConfigInterface
+): TimeInterval {
+    return (
+        display?.timeInterval ??
+        (display?.yearIsDay ? TimeInterval.Day : TimeInterval.Year)
+    )
+}
+
+const SUB_YEARLY_INTERVALS = new Set<TimeInterval>([
+    TimeInterval.Day,
+    TimeInterval.Week,
+    TimeInterval.Month,
+    TimeInterval.Quarter,
+])
+
+/**
+ * Whether the interval is finer than a year and therefore encoded as
+ * days-since-epoch (day/week/month/quarter)
+ */
+export function isSubYearly(interval: TimeInterval): boolean {
+    return SUB_YEARLY_INTERVALS.has(interval)
+}
+
+/**
+ * Snap a time to the start of its interval, so indicators that pick different
+ * representative days for the same period still align: month → first of the
+ * month, quarter → first of the quarter, week → the ISO-week Monday. Day and
+ * year are their own start and are returned unchanged.
+ */
+export function snapToIntervalStart(
+    time: number,
+    interval: TimeInterval
+): number {
+    if (!Number.isFinite(time)) return time
+    const date = convertDaysSinceEpochToDate(time)
+    let start: dayjs.Dayjs
+    if (interval === TimeInterval.Month) start = date.startOf("month")
+    else if (interval === TimeInterval.Quarter) start = date.startOf("quarter")
+    else if (interval === TimeInterval.Week) start = date.startOf("isoWeek")
+    else return time
+    return convertDateToDaysSinceEpoch(start)
 }
 
 export const formatYear = (year: number): string => {
@@ -269,13 +324,13 @@ export const roundSigFig = (num: number, sigfigs: number = 1): number => {
 }
 
 export const excludeUndefined = <T>(arr: (T | undefined)[]): T[] =>
-    arr.filter((x) => x !== undefined) as T[]
+    arr.filter((x) => x !== undefined)
 
 export const excludeNull = <T>(arr: (T | null)[]): T[] =>
-    arr.filter((x) => x !== null) as T[]
+    arr.filter((x) => x !== null)
 
 export const excludeNullish = <T>(arr: (T | null | undefined | void)[]): T[] =>
-    arr.filter((x) => x !== null && x !== undefined) as T[]
+    arr.filter((x) => x !== null && x !== undefined)
 
 export const firstOfNonEmptyArray = <T>(arr: T[]): T => {
     if (arr.length < 1) throw new Error("array is empty")
@@ -1986,6 +2041,7 @@ export function findGreatestCommonDivisorOfArray(arr: number[]): number | null {
     if (arr.includes(1)) return 1
     return _.uniq(arr).reduce((acc, num) => greatestCommonDivisor(acc, num))
 }
+
 export function lowercaseObjectKeys(
     obj: Record<string, unknown>
 ): Record<string, unknown> {

@@ -37,13 +37,13 @@ export const getColumnsForMetadata = (grapherState: GrapherState) => {
 
     const columnsToIgnore = new Set(
         [
-            OwidTableSlugs.entityId,
-            OwidTableSlugs.time,
-            OwidTableSlugs.entityColor,
-            OwidTableSlugs.entityName,
-            OwidTableSlugs.entityCode,
-            OwidTableSlugs.year,
-            OwidTableSlugs.day,
+            OwidTableSlugs.EntityId,
+            OwidTableSlugs.Time,
+            OwidTableSlugs.EntityColor,
+            OwidTableSlugs.EntityName,
+            OwidTableSlugs.EntityCode,
+            OwidTableSlugs.Year,
+            OwidTableSlugs.Day,
         ].map((slug) => slug.toString())
     )
 
