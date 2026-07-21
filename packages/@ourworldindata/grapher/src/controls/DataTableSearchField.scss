@@ -1,3 +1,3 @@
 .data-table-search-field {
-    flex: 0 1 208px;
+    flex: 0 1 var(--data-table-search-field-width, 208px);
 }

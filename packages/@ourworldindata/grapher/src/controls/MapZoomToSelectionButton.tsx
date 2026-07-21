@@ -4,6 +4,12 @@ import { observer } from "mobx-react"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { GlobeController } from "../mapCharts/GlobeController"
 import { MapRegionName } from "@ourworldindata/types"
+import {
+    measureButtonWidth,
+    ZOOM_TO_SELECTION_ICON_WIDTH,
+} from "./controlsRow/ControlsRowConstants"
+
+const ZOOM_TO_SELECTION_LABEL = "Zoom to selection"
 
 export interface MapZoomToSelectionButtonManager {
     mapConfig?: MapConfig
@@ -25,21 +31,28 @@ export class MapZoomToSelectionButton extends React.Component<MapZoomToSelection
     }
 
     static shouldShow(manager: MapZoomToSelectionButtonManager): boolean {
-        const menu = new MapZoomToSelectionButton({ manager })
-        return menu.showMenu
-    }
-
-    @computed private get showMenu(): boolean {
-        const { isOnMapTab, mapConfig, isMapSelectionEnabled } =
-            this.props.manager
+        const { isOnMapTab, mapConfig, isFaceted, isMapSelectionEnabled } =
+            manager
         return !!(
             isOnMapTab &&
             mapConfig?.selection.hasSelection &&
             mapConfig?.region === MapRegionName.World &&
             !mapConfig?.globe.isActive &&
-            !this.manager.isFaceted &&
+            !isFaceted &&
             isMapSelectionEnabled
         )
+    }
+
+    static estimateWidth(manager: MapZoomToSelectionButtonManager): number {
+        if (!MapZoomToSelectionButton.shouldShow(manager)) return 0
+        return measureButtonWidth(
+            ZOOM_TO_SELECTION_LABEL,
+            ZOOM_TO_SELECTION_ICON_WIDTH
+        )
+    }
+
+    @computed private get shouldShow(): boolean {
+        return MapZoomToSelectionButton.shouldShow(this.props.manager)
     }
 
     @computed private get manager(): MapZoomToSelectionButtonManager {
@@ -53,15 +66,15 @@ export class MapZoomToSelectionButton extends React.Component<MapZoomToSelection
     }
 
     override render(): React.ReactElement | null {
-        return this.showMenu ? (
+        return this.shouldShow ? (
             <button
                 onClick={this.onClick}
                 type="button"
                 data-track-note="map_zoom_to_selection"
                 className="menu-toggle"
             >
-                <GlobeIcon size={16} />
-                <span className="label">Zoom to selection</span>
+                <GlobeIcon size={ZOOM_TO_SELECTION_ICON_WIDTH} />
+                <span className="label">{ZOOM_TO_SELECTION_LABEL}</span>
             </button>
         ) : null
     }
@@ -70,8 +83,8 @@ export class MapZoomToSelectionButton extends React.Component<MapZoomToSelection
 function GlobeIcon({ size }: { size: number }): React.ReactElement {
     return (
         <svg
-            width="16"
-            height="16"
+            width={size}
+            height={size}
             viewBox="0 0 16 16"
             fill="none"
             style={{ width: size, height: size }}

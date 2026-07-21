@@ -11,6 +11,7 @@ import { GlobeController } from "../mapCharts/GlobeController"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faRotateLeft } from "@fortawesome/free-solid-svg-icons"
 import { match } from "ts-pattern"
+import { measureButtonWidth } from "./controlsRow/ControlsRowConstants"
 
 interface MapResetButtonProps {
     manager: MapResetButtonManager
@@ -28,10 +29,7 @@ export interface MapResetButtonManager {
 }
 
 @observer
-export class MapResetButton extends React.Component<{
-    manager: MapResetButtonManager
-    action: "resetView" | "resetZoom"
-}> {
+export class MapResetButton extends React.Component<MapResetButtonProps> {
     constructor(props: MapResetButtonProps) {
         super(props)
         makeObservable(this)
@@ -39,18 +37,13 @@ export class MapResetButton extends React.Component<{
 
     static shouldShow(
         manager: MapResetButtonManager,
-        action: "resetView" | "resetZoom"
+        action: MapResetButtonProps["action"]
     ): boolean {
-        const menu = new MapResetButton({ manager, action })
-        return menu.showMenu
-    }
-
-    @computed private get showMenu(): boolean {
-        const { mapConfig } = this
-        const { isOnMapTab, isFaceted, shouldShowEntitySelectorAs } =
-            this.props.manager
+        const { isOnMapTab, isFaceted, shouldShowEntitySelectorAs } = manager
 
         if (!isOnMapTab) return false
+
+        const mapConfig = manager.mapConfig ?? new MapConfig()
 
         const shouldShowPanel =
             shouldShowEntitySelectorAs === GrapherWindowType.panel
@@ -61,10 +54,22 @@ export class MapResetButton extends React.Component<{
         const shouldShowResetZoomButton =
             mapConfig.globe.isActive && !shouldShowResetViewButton
 
-        return match(this.props.action)
+        return match(action)
             .with("resetView", () => shouldShowResetViewButton)
             .with("resetZoom", () => shouldShowResetZoomButton)
             .exhaustive()
+    }
+
+    static estimateWidth(
+        manager: MapResetButtonManager,
+        action: MapResetButtonProps["action"]
+    ): number {
+        if (!MapResetButton.shouldShow(manager, action)) return 0
+        return measureButtonWidth(makeResetButtonLabel(action))
+    }
+
+    @computed private get shouldShow(): boolean {
+        return MapResetButton.shouldShow(this.props.manager, this.props.action)
     }
 
     @computed private get manager(): MapResetButtonManager {
@@ -76,10 +81,7 @@ export class MapResetButton extends React.Component<{
     }
 
     @computed private get label(): string {
-        return match(this.props.action)
-            .with("resetView", () => "Reset view")
-            .with("resetZoom", () => "Reset zoom")
-            .exhaustive()
+        return makeResetButtonLabel(this.props.action)
     }
 
     @computed private get trackNote(): string {
@@ -100,7 +102,7 @@ export class MapResetButton extends React.Component<{
     }
 
     override render(): React.ReactElement | null {
-        return this.showMenu ? (
+        return this.shouldShow ? (
             <button
                 type="button"
                 data-track-note={this.trackNote}
@@ -112,4 +114,11 @@ export class MapResetButton extends React.Component<{
             </button>
         ) : null
     }
+}
+
+function makeResetButtonLabel(action: MapResetButtonProps["action"]): string {
+    return match(action)
+        .with("resetView", () => "Reset view")
+        .with("resetZoom", () => "Reset zoom")
+        .exhaustive()
 }

@@ -27,6 +27,7 @@ import {
 import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants"
 import { match } from "ts-pattern"
 import * as R from "remeda"
+import { MAP_ZOOM_DROPDOWN_WIDTH } from "./controlsRow/ControlsRowConstants"
 
 export interface MapZoomDropdownManager {
     mapConfig?: MapConfig
@@ -69,18 +70,20 @@ export class MapZoomDropdown extends React.Component<{
     }
 
     static shouldShow(manager: MapZoomDropdownManager): boolean {
-        const menu = new MapZoomDropdown({ manager })
-        return menu.showMenu
-    }
-
-    @computed private get showMenu(): boolean {
-        const { isMapSelectionEnabled, isOnMapTab, mapConfig } =
-            this.props.manager
+        const { isMapSelectionEnabled, isOnMapTab, mapConfig } = manager
         return !!(
             isOnMapTab &&
             !isMapSelectionEnabled &&
             !mapConfig?.globe.isActive
         )
+    }
+
+    static estimateWidth(manager: MapZoomDropdownManager): number {
+        return MapZoomDropdown.shouldShow(manager) ? MAP_ZOOM_DROPDOWN_WIDTH : 0
+    }
+
+    @computed private get shouldShow(): boolean {
+        return MapZoomDropdown.shouldShow(this.props.manager)
     }
 
     @computed private get manager(): MapZoomDropdownManager {
@@ -237,7 +240,7 @@ export class MapZoomDropdown extends React.Component<{
     }
 
     override render(): React.ReactElement | null {
-        return this.showMenu ? (
+        return this.shouldShow ? (
             <div className="map-zoom-dropdown">
                 <Dropdown
                     options={

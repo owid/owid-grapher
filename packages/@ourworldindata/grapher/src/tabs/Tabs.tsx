@@ -18,12 +18,14 @@ export const Tabs = <TabKey extends string = string>({
     selectedKey,
     onChange,
     className,
+    style,
     variant = "default",
 }: {
     items: TabItem<TabKey>[]
     selectedKey: TabKey
     onChange: (key: TabKey) => void
     className?: string
+    style?: React.CSSProperties
     variant?: "default" | "slim" | "stretch" | "scroll"
 }) => {
     return (
@@ -35,6 +37,7 @@ export const Tabs = <TabKey extends string = string>({
         >
             <TabList
                 className={cx("Tabs", "Tabs--variant-" + variant, className)}
+                style={style}
             >
                 {items.map((item) => (
                     <Tab

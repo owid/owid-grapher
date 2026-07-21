@@ -7,6 +7,7 @@ import { SearchField } from "./SearchField"
 import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
 import { isAnyRegionDataProviderKey } from "../core/RegionGroups"
 import { match } from "ts-pattern"
+import { DATA_TABLE_SEARCH_FIELD_WIDTH } from "./controlsRow/ControlsRowConstants"
 
 export interface DataTableSearchFieldManager {
     dataTableConfig: DataTableConfig
@@ -24,8 +25,13 @@ export class DataTableSearchField extends React.Component<{
     }
 
     static shouldShow(manager: DataTableSearchFieldManager): boolean {
-        const menu = new DataTableSearchField({ manager })
-        return menu.shouldShow
+        return !!manager.isOnTableTab
+    }
+
+    static estimateWidth(manager: DataTableSearchFieldManager): number {
+        return DataTableSearchField.shouldShow(manager)
+            ? DATA_TABLE_SEARCH_FIELD_WIDTH
+            : 0
     }
 
     @computed private get manager(): DataTableSearchFieldManager {
@@ -37,7 +43,7 @@ export class DataTableSearchField extends React.Component<{
     }
 
     @computed private get shouldShow(): boolean {
-        return !!this.manager.isOnTableTab
+        return DataTableSearchField.shouldShow(this.manager)
     }
 
     @computed private get entityType(): string {

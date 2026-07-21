@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEye, faRightLeft, faPen } from "@fortawesome/free-solid-svg-icons"
 import classnames from "clsx"
 import { GrapherWindowType } from "@ourworldindata/types"
+import { measureButtonWidth } from "./controlsRow/ControlsRowConstants"
 
 export interface EntitySelectionManager {
     canHighlightEntities?: boolean
@@ -26,28 +27,26 @@ interface EntitySelectionLabel {
     entity: string
 }
 
-@observer
-export class EntitySelectionToggle extends React.Component<{
+interface EntitySelectionToggleProps {
     manager: EntitySelectionManager
-}> {
-    constructor(props: { manager: EntitySelectionManager }) {
+    showEntityLabel?: boolean
+}
+
+@observer
+export class EntitySelectionToggle extends React.Component<EntitySelectionToggleProps> {
+    constructor(props: EntitySelectionToggleProps) {
         super(props)
         makeObservable(this)
     }
 
     static shouldShow(manager: EntitySelectionManager): boolean {
-        const toggle = new EntitySelectionToggle({ manager })
-        return toggle.showToggle
-    }
-
-    @computed get showToggle(): boolean {
         const {
             isOnChartTab,
             isOnMapTab,
             hideEntityControls,
             shouldShowEntitySelectorAs,
             canChangeAddOrHighlightEntities,
-        } = this.props.manager
+        } = manager
 
         if (hideEntityControls) return false
 
@@ -62,56 +61,39 @@ export class EntitySelectionToggle extends React.Component<{
             isOnChartTab &&
             canChangeAddOrHighlightEntities &&
             (shouldShowModal || shouldShowDrawer) &&
-            this.label
+            getEntitySelectionLabel(manager)
         )
     }
 
+    static estimateWidth(
+        manager: EntitySelectionManager,
+        {
+            showEntityLabel,
+        }: Required<Omit<EntitySelectionToggleProps, "manager">>
+    ): number {
+        if (!EntitySelectionToggle.shouldShow(manager)) return 0
+        const label = getEntitySelectionLabel(manager)
+        if (!label) return 0
+        const text = showEntityLabel
+            ? `${label.action} ${label.entity}`
+            : label.action
+        return measureButtonWidth(text)
+    }
+
+    @computed private get shouldShow(): boolean {
+        return EntitySelectionToggle.shouldShow(this.props.manager)
+    }
+
     @computed get label(): EntitySelectionLabel | null {
-        const {
-            entityType = "",
-            entityTypePlural = "",
-            canHighlightEntities,
-            canChangeEntity,
-            canAddEntities,
-            isOnMapTab,
-        } = this.props.manager
-
-        if (isOnMapTab)
-            return {
-                action: "Select",
-                entity: "countries",
-                icon: <FontAwesomeIcon icon={faPen} />,
-            }
-
-        if (canHighlightEntities)
-            return {
-                action: "Select",
-                entity: entityTypePlural,
-                icon: <FontAwesomeIcon icon={faEye} />,
-            }
-
-        if (canChangeEntity)
-            return {
-                action: "Change",
-                entity: entityType,
-                icon: <FontAwesomeIcon icon={faRightLeft} />,
-            }
-
-        if (canAddEntities)
-            return {
-                action: "Edit",
-                entity: entityTypePlural,
-                icon: <FontAwesomeIcon icon={faPen} />,
-            }
-
-        return null
+        return getEntitySelectionLabel(this.props.manager)
     }
 
     override render(): React.ReactElement | null {
-        const { showToggle, label } = this
+        const { shouldShow, label } = this
+        const { showEntityLabel = true } = this.props
         const { isEntitySelectorModalOrDrawerOpen: active } = this.props.manager
 
-        return showToggle && label ? (
+        return shouldShow && label ? (
             <div className="entity-selection-menu">
                 <button
                     className={classnames("menu-toggle", { active })}
@@ -126,10 +108,59 @@ export class EntitySelectionToggle extends React.Component<{
                 >
                     {label.icon}
                     <label className="label">
-                        {label.action} <span>{label.entity}</span>
+                        {showEntityLabel ? (
+                            <>
+                                {label.action} <span>{label.entity}</span>
+                            </>
+                        ) : (
+                            label.action
+                        )}
                     </label>
                 </button>
             </div>
         ) : null
     }
+}
+
+function getEntitySelectionLabel(
+    manager: EntitySelectionManager
+): EntitySelectionLabel | null {
+    const {
+        entityType = "",
+        entityTypePlural = "",
+        canHighlightEntities,
+        canChangeEntity,
+        canAddEntities,
+        isOnMapTab,
+    } = manager
+
+    if (isOnMapTab)
+        return {
+            action: "Select",
+            entity: "countries",
+            icon: <FontAwesomeIcon icon={faPen} />,
+        }
+
+    if (canHighlightEntities)
+        return {
+            action: "Select",
+            entity: entityTypePlural,
+            icon: <FontAwesomeIcon icon={faEye} />,
+        }
+
+    if (canChangeEntity)
+        return {
+            action: "Change",
+            entity: entityType,
+            icon: <FontAwesomeIcon icon={faRightLeft} />,
+        }
+
+    if (canAddEntities)
+        return {
+            action: "Edit",
+            entity: entityTypePlural,
+            icon: <FontAwesomeIcon icon={faPen} />,
+        }
+
+    return null
 }

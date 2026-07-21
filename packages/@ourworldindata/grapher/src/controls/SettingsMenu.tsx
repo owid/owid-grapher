@@ -40,6 +40,9 @@ import {
 } from "./settings/NoDataAreaToggle"
 import { GRAPHER_SETTINGS_CLASS } from "../core/GrapherConstants"
 import { LONG_CHART_TYPE_LABEL } from "../chart/ChartTabs"
+import { measureButtonWidth } from "./controlsRow/ControlsRowConstants"
+
+const SETTINGS_LABEL = "Settings"
 
 const {
     LineChart,
@@ -87,6 +90,7 @@ interface SettingsMenuProps {
     manager: SettingsMenuManager
     popoverMaxWidth?: number
     popoverMaxHeight?: number
+    showLabel?: boolean
 }
 
 @observer
@@ -102,6 +106,14 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
     static shouldShow(manager: SettingsMenuManager): boolean {
         const test = new SettingsMenu({ manager })
         return test.showSettingsMenuToggle
+    }
+
+    static estimateWidth(
+        manager: SettingsMenuManager,
+        { showLabel }: Required<Pick<SettingsMenuProps, "showLabel">>
+    ): number {
+        if (!SettingsMenu.shouldShow(manager)) return 0
+        return measureButtonWidth(showLabel ? SETTINGS_LABEL : undefined)
     }
 
     @computed get chartType(): GrapherChartType {
@@ -316,6 +328,7 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
 
     private renderSettingsButtonAndPopup(): React.ReactElement {
         const { active } = this
+        const { showLabel = true } = this.props
 
         return (
             <div className="settings-menu">
@@ -324,12 +337,17 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
                     onOpenChange={this.toggleVisibility}
                 >
                     <Button
-                        className={classnames("menu-toggle", { active })}
+                        className={classnames("menu-toggle", {
+                            active,
+                            "icon-only": !showLabel,
+                        })}
                         data-track-note="chart_settings_menu_toggle"
                         aria-label="Chart settings"
                     >
                         <FontAwesomeIcon icon={faGear} />
-                        <span className="label">Settings</span>
+                        {showLabel && (
+                            <span className="label">{SETTINGS_LABEL}</span>
+                        )}
                     </Button>
                     <Popover
                         className={GRAPHER_SETTINGS_CLASS}

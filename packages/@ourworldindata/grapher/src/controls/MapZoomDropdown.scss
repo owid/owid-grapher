@@ -1,5 +1,5 @@
 .map-zoom-dropdown {
-    flex: 0 1 202px;
+    flex: 0 1 var(--map-zoom-dropdown-width, 202px);
 }
 
 .map-zoom-dropdown-local-icon {

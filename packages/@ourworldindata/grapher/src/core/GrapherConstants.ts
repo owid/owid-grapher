@@ -178,4 +178,5 @@ export interface FontSettings {
     fontSize: number
     fontWeight: number
     lineHeight: number
+    letterSpacing?: number // in em, e.g. 0.01 for CSS `letter-spacing: 0.01em`
 }

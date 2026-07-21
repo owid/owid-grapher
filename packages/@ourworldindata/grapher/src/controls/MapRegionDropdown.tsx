@@ -6,6 +6,7 @@ import { MapRegionName } from "@ourworldindata/types"
 import { Dropdown } from "./Dropdown"
 import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants"
 import { GlobeController } from "../mapCharts/GlobeController"
+import { MAP_REGION_DROPDOWN_WIDTH } from "./controlsRow/ControlsRowConstants"
 
 export interface MapRegionDropdownManager {
     mapConfig?: MapConfig
@@ -30,8 +31,22 @@ export class MapRegionDropdown extends React.Component<{
     }
 
     static shouldShow(manager: MapRegionDropdownManager): boolean {
-        const menu = new MapRegionDropdown({ manager })
-        return menu.showMenu
+        const { isOnMapTab, isFaceted } = manager
+        const mapConfig = manager.mapConfig ?? new MapConfig()
+
+        return !!(
+            isOnMapTab &&
+            // Hide the dropdown when the globe is active
+            !mapConfig.globe.isActive &&
+            // Hide the dropdown when the map is not faceted unless a 2d continent is active
+            !(mapConfig.region === MapRegionName.World && !isFaceted)
+        )
+    }
+
+    static estimateWidth(manager: MapRegionDropdownManager): number {
+        return MapRegionDropdown.shouldShow(manager)
+            ? MAP_REGION_DROPDOWN_WIDTH
+            : 0
     }
 
     @computed private get manager(): MapRegionDropdownManager {
@@ -42,16 +57,8 @@ export class MapRegionDropdown extends React.Component<{
         return this.manager.mapConfig ?? new MapConfig()
     }
 
-    @computed private get showMenu(): boolean {
-        const { isOnMapTab, isFaceted, mapConfig } = this.manager
-
-        return !!(
-            isOnMapTab &&
-            // Hide the dropdown when the globe is active
-            !mapConfig?.globe.isActive &&
-            // Hide the dropdown when the map is not faceted unless a 2d continent is active
-            !(this.mapConfig.region === MapRegionName.World && !isFaceted)
-        )
+    @computed private get shouldShow(): boolean {
+        return MapRegionDropdown.shouldShow(this.manager)
     }
 
     @action.bound onChange(selected: MapRegionDropdownOption | null): void {
@@ -89,7 +96,7 @@ export class MapRegionDropdown extends React.Component<{
     }
 
     override render(): React.ReactElement | null {
-        if (!this.showMenu) return null
+        if (!this.shouldShow) return null
 
         return (
             <Dropdown

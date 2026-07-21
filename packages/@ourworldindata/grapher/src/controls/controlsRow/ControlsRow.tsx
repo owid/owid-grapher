@@ -14,7 +14,12 @@ import {
     MapRegionDropdownManager,
 } from "../MapRegionDropdown"
 import { SettingsMenu, SettingsMenuManager } from "../SettingsMenu"
-import { GRAPHER_FRAME_PADDING_HORIZONTAL } from "../../core/GrapherConstants"
+import {
+    DEFAULT_GRAPHER_BOUNDS,
+    GRAPHER_FRAME_PADDING_HORIZONTAL,
+} from "../../core/GrapherConstants"
+import { chooseControlsRowLayout, ControlsRowLayout } from "./ControlsRowLayout"
+import { CONTROLS_ROW_CSS_VARIABLES } from "./ControlsRowConstants"
 import { MapResetButton, MapResetButtonManager } from "../MapResetButton"
 import {
     DataTableFilterDropdown,
@@ -62,44 +67,53 @@ export class ControlsRow extends Component<ControlsRowProps> {
     }
 
     static shouldShow(manager: ControlsRowManager): boolean {
-        const test = new ControlsRow({ manager })
-        return test.showControlsRow
+        return (
+            ContentSwitchers.shouldShow(manager) ||
+            SettingsMenu.shouldShow(manager) ||
+            EntitySelectionToggle.shouldShow(manager) ||
+            // Map controls
+            MapRegionDropdown.shouldShow(manager) ||
+            MapZoomDropdown.shouldShow(manager) ||
+            MapZoomToSelectionButton.shouldShow(manager) ||
+            MapResetButton.shouldShow(manager, "resetZoom") ||
+            MapResetButton.shouldShow(manager, "resetView") ||
+            // Table controls
+            DataTableFilterDropdown.shouldShow(manager) ||
+            DataTableSearchField.shouldShow(manager)
+        )
     }
 
     @computed private get manager(): ControlsRowManager {
         return this.props.manager
     }
 
-    @computed private get showControlsRow(): boolean {
-        return (
-            ContentSwitchers.shouldShow(this.manager) ||
-            SettingsMenu.shouldShow(this.manager) ||
-            EntitySelectionToggle.shouldShow(this.manager) ||
-            // Map controls
-            MapRegionDropdown.shouldShow(this.manager) ||
-            MapZoomDropdown.shouldShow(this.manager) ||
-            MapZoomToSelectionButton.shouldShow(this.manager) ||
-            MapResetButton.shouldShow(this.manager, "resetZoom") ||
-            MapResetButton.shouldShow(this.manager, "resetView") ||
-            // Table controls
-            DataTableFilterDropdown.shouldShow(this.manager) ||
-            DataTableSearchField.shouldShow(this.manager)
-        )
+    @computed private get maxWidth(): number {
+        return this.props.maxWidth ?? DEFAULT_GRAPHER_BOUNDS.width
     }
 
+    @computed private get layout(): ControlsRowLayout {
+        return chooseControlsRowLayout(this.manager, this.maxWidth)
+    }
+
+    // mirrored by measureChartControlsWidth in ControlsRowLayout.ts
     private renderChartControls(): React.ReactElement {
         return (
             <div className="controls chart-controls">
-                <EntitySelectionToggle manager={this.manager} />
+                <EntitySelectionToggle
+                    manager={this.manager}
+                    showEntityLabel={this.layout.showEntityLabel}
+                />
                 <SettingsMenu
                     manager={this.manager}
                     popoverMaxWidth={this.props.popoverMaxWidth}
                     popoverMaxHeight={this.props.popoverMaxHeight}
+                    showLabel={this.layout.showSettingsLabel}
                 />
             </div>
         )
     }
 
+    // mirrored by measureTableControlsWidth in ControlsRowLayout.ts
     private renderTableControls(): React.ReactElement {
         return (
             <div className="controls table-controls">
@@ -109,6 +123,7 @@ export class ControlsRow extends Component<ControlsRowProps> {
         )
     }
 
+    // mirrored by measureMapControlsWidth in ControlsRowLayout.ts
     private renderMapControls(): React.ReactElement {
         return (
             <div className="controls map-controls">
@@ -126,7 +141,10 @@ export class ControlsRow extends Component<ControlsRowProps> {
                 <MapZoomToSelectionButton manager={this.manager} />
                 <MapResetButton manager={this.manager} action="resetView" />
                 <MapRegionDropdown manager={this.manager} />
-                <EntitySelectionToggle manager={this.manager} />
+                <EntitySelectionToggle
+                    manager={this.manager}
+                    showEntityLabel={this.layout.showEntityLabel}
+                />
             </>
         )
     }
@@ -151,10 +169,17 @@ export class ControlsRow extends Component<ControlsRowProps> {
         return (
             <nav
                 className="controlsRow"
-                style={{ padding: `0 ${this.framePaddingHorizontal}px` }}
+                style={{
+                    padding: `0 ${this.framePaddingHorizontal}px`,
+                    ...CONTROLS_ROW_CSS_VARIABLES,
+                }}
             >
                 <div>
-                    <ContentSwitchers manager={this.manager} />
+                    <ContentSwitchers
+                        manager={this.manager}
+                        showTabLabels={this.layout.showTabLabels}
+                        tabPadding={this.layout.tabPadding}
+                    />
                 </div>
                 <div className="controls">
                     {this.manager.isOnMapTab

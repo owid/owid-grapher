@@ -377,8 +377,15 @@ export function sortByConfig<T>(
     return sortOrder === SortOrder.desc ? sortedRows.toReversed() : sortedRows
 }
 
-export function textWidth(text: string, fontSettings: FontSettings): number {
-    return Bounds.forText(text, fontSettings).width
+export function textWidth(
+    text: string,
+    fontSettings: Omit<FontSettings, "lineHeight">
+): number {
+    const { fontSize, letterSpacing = 0 } = fontSettings
+    return (
+        Bounds.forText(text, fontSettings).width +
+        text.length * letterSpacing * fontSize
+    )
 }
 
 export function roundFontSize(fontSize: number): number {

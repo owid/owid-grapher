@@ -9,8 +9,6 @@ $selected-fill: #c7ced7;
 
 $active-switch: $blue-50;
 
-$medium: 400;
-$bold: 700;
 $lato: $sans-serif-font-stack;
 
 $indent: 15px;
@@ -20,17 +18,20 @@ $control-row-height: 32px;
 nav.controlsRow .controls {
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
+    gap: var(--controls-gap, 8px);
 
     button.menu-toggle {
-        font: $medium 13px/16px $lato;
-        letter-spacing: 0.01em;
+        font-family: $lato;
+        font-size: var(--button-font-size, 13px);
+        font-weight: var(--button-font-weight, 400);
+        line-height: 16px;
+        letter-spacing: var(--label-letter-spacing, 0.01em);
         display: flex;
         align-items: center;
-        border: 1px solid $light-stroke;
+        border: var(--button-border-width, 1px) solid $light-stroke;
         border-radius: 4px;
         height: $control-row-height;
-        padding: 7px;
+        padding: var(--button-padding, 7px);
         color: $dark-text;
         white-space: nowrap;
 
@@ -43,109 +44,27 @@ nav.controlsRow .controls {
         &:active {
             color: $active-text;
             background: $active-fill;
-            border: 1px solid $active-fill;
+            border: var(--button-border-width, 1px) solid $active-fill;
         }
 
         svg {
+            width: var(--button-icon-width, 13px);
             height: 12px;
-            margin-right: 5px;
+            margin-right: var(--button-icon-margin, 5px);
             vertical-align: bottom;
         }
 
         label:hover {
             cursor: pointer;
         }
-    }
-}
 
-//
-// Make buttons narrower by omitting their text labels as the viewport gets narrower
-// use the .GrapherComponentSemiNarrow if necessary but allow container queries to
-// collapse labels in two steps on browsers that support them
-//
-// TODO: the measurement and label-hiding logic will have to move to js anyway once the
-//       number of chart buttons becomes variable and the settings button can be replaced
-//       by a single control widget ‘promoted’ from within the drawer
-//
-@at-root {
-    // collapse both the settings and entity selector labels down at the semi-narrow breakpoint
-    .GrapherComponentSemiNarrow {
-        nav.controlsRow .settings-menu button.menu-toggle {
+        &.icon-only {
             min-height: $control-row-height;
+
             svg {
-                margin: 0 2px;
-            }
-            .label {
-                display: none;
+                margin: 0 var(--icon-only-button-icon-margin, 2px);
             }
         }
-        nav.controlsRow .entity-selection-menu button.menu-toggle {
-            label span {
-                display: none;
-            }
-        }
-    }
-}
-
-@container grapher (max-width:575px) {
-    // collapse the Settings toggle down to just an icon on small screens
-    nav.controlsRow .settings-menu button.menu-toggle {
-        min-height: $control-row-height;
-        svg {
-            margin: 0 2px;
-        }
-        .label {
-            display: none;
-        }
-    }
-
-    // undo the .GrapherComponentSemiNarrow hiding until next container query
-    nav.controlsRow .entity-selection-menu button.menu-toggle {
-        label span {
-            display: inline;
-        }
-    }
-}
-
-@container grapher (max-width:675px) {
-    // hide the entity name in the Edit/Select/Switch button
-    nav.controlsRow .chart-controls .entity-selection-menu button.menu-toggle {
-        label span {
-            display: none;
-        }
-    }
-}
-
-@container grapher (max-width:725px) {
-    // hide the entity name in the Edit/Select/Switch button
-    nav.controlsRow .map-controls .entity-selection-menu button.menu-toggle {
-        label span {
-            display: none;
-        }
-    }
-}
-
-@container grapher (max-width:500px) {
-    // hide labels on smaller screens
-    .ContentSwitchers .Tabs__Tab .label {
-        display: none;
-    }
-
-    // center the icon now that it's the only content in the tab
-    .ContentSwitchers .Tabs__Tab .ContentSwitchers__TabContent {
-        justify-content: center;
-    }
-}
-
-// reduce the horizontal padding of a content switcher tab based on grapher's size
-@container grapher (max-width:725px) {
-    .ContentSwitchers .Tabs__Tab {
-        --tab-padding: 12px;
-    }
-}
-@container grapher (max-width:335px) {
-    .ContentSwitchers .Tabs__Tab {
-        --tab-padding: 8px;
     }
 }
 

@@ -1,5 +1,5 @@
 .data-table-filter-dropdown {
-    width: 194px;
+    width: var(--data-table-filter-dropdown-width, 194px);
 }
 
 .data-table-filter-dropdown-menu {

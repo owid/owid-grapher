@@ -8,6 +8,7 @@ import { OwidTable } from "@ourworldindata/core-table"
 import { SelectionArray } from "../selection/SelectionArray"
 import { makeSelectionArray } from "../chart/ChartUtils"
 import { RegionGroup, regionGroupLabels } from "../core/RegionGroups"
+import { DATA_TABLE_FILTER_DROPDOWN_WIDTH } from "./controlsRow/ControlsRowConstants"
 
 export interface DataTableFilterDropdownManager {
     dataTableConfig: DataTableConfig
@@ -39,6 +40,12 @@ export class DataTableFilterDropdown extends React.Component<{
     static shouldShow(manager: DataTableFilterDropdownManager): boolean {
         const menu = new DataTableFilterDropdown({ manager })
         return menu.shouldShow
+    }
+
+    static estimateWidth(manager: DataTableFilterDropdownManager): number {
+        return DataTableFilterDropdown.shouldShow(manager)
+            ? DATA_TABLE_FILTER_DROPDOWN_WIDTH
+            : 0
     }
 
     @computed private get manager(): DataTableFilterDropdownManager {

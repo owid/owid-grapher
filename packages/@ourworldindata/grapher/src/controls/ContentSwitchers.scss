@@ -46,16 +46,15 @@ $active-icon: $blue-50;
 
     .Tabs.ContentSwitchers .Tabs__Tab,
     .ContentSwitchers__OverflowMenuItem {
-        $icon-padding: 6px;
-
         .ContentSwitchers__TabContent {
             display: flex;
             height: 100%;
             align-items: center;
-            gap: $icon-padding;
+            gap: var(--tab-icon-gap, 6px);
         }
 
         svg {
+            width: var(--tab-icon-width, 13px);
             color: $gray-60;
         }
 
@@ -79,6 +78,12 @@ $active-icon: $blue-50;
 
     .Tabs.ContentSwitchers {
         box-shadow: none; // Moved to the container
+        padding: var(--tabs-frame-padding, 2px);
+
+        .Tabs__Tab {
+            font-weight: var(--tab-font-weight, 500);
+            letter-spacing: var(--label-letter-spacing, 0.01em);
+        }
     }
 
     // The overflow menu button is styled as a slim variant tab
@@ -91,7 +96,10 @@ $active-icon: $blue-50;
         @include slim-tab-item;
         @include slim-tab-separator;
 
-        padding: 0 8px;
+        padding: 0 var(--overflow-button-padding, 8px);
+        font-weight: var(--tab-font-weight, 500);
+        letter-spacing: var(--label-letter-spacing, 0.01em);
+
         margin: $visual-gap;
         margin-left: -$visual-gap;
 
@@ -112,5 +120,16 @@ $active-icon: $blue-50;
     &:has(.Tabs__Tab:last-child[data-selected])
         > .ContentSwitchers__OverflowMenuButton::before {
         display: none;
+    }
+}
+
+.Tabs.ContentSwitchers.ContentSwitchers--icons-only {
+    .Tabs__Tab .label {
+        display: none;
+    }
+
+    // Center the icon now that it's the only content in the tab
+    .Tabs__Tab .ContentSwitchers__TabContent {
+        justify-content: center;
     }
 }

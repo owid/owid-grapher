@@ -17,7 +17,7 @@ $controlRowHeight: 32px; // keep in sync with CONTROLS_ROW_HEIGHT
     width: 100%;
     display: flex;
     justify-content: space-between;
-    gap: 16px;
+    gap: var(--controls-row-gap, 16px);
 
     .controls {
         width: 100%;
