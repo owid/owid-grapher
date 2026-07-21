@@ -1038,11 +1038,11 @@
                 "exclude": [
                     {
                         "slug": "share-of-the-population-infected-with-hiv",
-                        "reason": "HIV prevalence in Germany is extremely low, at under 0.2% of the population."
+                        "reason": "HIV prevalence is extremely low in Germany, remaining well below 0.2% of the population."
                     },
                     {
                         "slug": "incidence-of-tuberculosis-sdgs",
-                        "reason": "Tuberculosis is a rare disease in Germany, with incidence rates well below global averages."
+                        "reason": "Tuberculosis is a rare disease in Germany, with very low incidence across the period."
                     }
                 ],
                 "promote": [
@@ -1058,7 +1058,21 @@
                         "unit": "%",
                         "desc": "",
                         "source": "World Health Organization - Global Health Observatory (2026) \u2013 with minor processing by Our World in Data",
-                        "reason": "Germany has one of the world's highest levels of healthcare expenditure, reflecting its comprehensive universal health system."
+                        "reason": "Highlights Germany's highly funded social health insurance system, which ranks among the highest in spending."
+                    },
+                    {
+                        "slug": "physicians-per-1000-people",
+                        "valueColumn": "sh_med_phys_zs",
+                        "label": "Medical doctors per 1,000 people",
+                        "subtopic": "Health",
+                        "format": "number",
+                        "comparable": true,
+                        "goodDirection": "up",
+                        "framing": "absolute",
+                        "unit": "per 1,000 people",
+                        "desc": "",
+                        "source": "Global Health Workforce Statistics, WHO, via World Bank (2026) \u2013 processed by Our World in Data",
+                        "reason": "Reflects Germany's exceptionally strong healthcare capacity and high density of medical professionals."
                     }
                 ]
             },
@@ -1066,36 +1080,22 @@
                 "exclude": [
                     {
                         "slug": "share-of-the-population-with-access-to-electricity",
-                        "reason": "Universal access achieved decades ago"
-                    },
-                    {
-                        "slug": "proportion-using-safely-managed-drinking-water",
-                        "reason": "Universal access achieved decades ago"
-                    },
-                    {
-                        "slug": "share-using-safely-managed-sanitation",
-                        "reason": "Universal access achieved decades ago"
+                        "reason": "Access has been universal throughout the period"
                     },
                     {
                         "slug": "access-to-clean-fuels-and-technologies-for-cooking",
-                        "reason": "Universal access achieved decades ago"
+                        "reason": "Access is already universal"
+                    },
+                    {
+                        "slug": "proportion-using-safely-managed-drinking-water",
+                        "reason": "Access has been near-universal throughout the period"
+                    },
+                    {
+                        "slug": "share-using-safely-managed-sanitation",
+                        "reason": "Access is already near-universal"
                     }
                 ],
                 "promote": [
-                    {
-                        "slug": "share-electricity-renewables",
-                        "valueColumn": "renewable_share_of_electricity__pct",
-                        "label": "Share of electricity from renewables",
-                        "subtopic": "Environment",
-                        "format": "pct",
-                        "comparable": true,
-                        "goodDirection": "up",
-                        "framing": "absolute",
-                        "unit": "%",
-                        "desc": "Measured as a percentage of total electricity produced in the country or region.",
-                        "source": "Ember (2026); Energy Institute - Statistical Review of World Energy (2025) \u2013 with major processing by Our World in Data",
-                        "reason": "Germany's Energiewende transition has driven renewables to nearly 60% of total electricity production."
-                    },
                     {
                         "slug": "nuclear-energy-generation",
                         "valueColumn": "nuclear_generation__twh",
@@ -1108,7 +1108,7 @@
                         "unit": "TWh",
                         "desc": "Measured in terawatt-hours.",
                         "source": "Ember (2026); Energy Institute - Statistical Review of World Energy (2025) \u2013 with major processing by Our World in Data",
-                        "reason": "Germany completed its historic and highly debated phase-out of all nuclear energy in 2023."
+                        "reason": "Captures Germany's historic complete phase-out of nuclear energy"
                     }
                 ]
             },
@@ -1116,11 +1116,11 @@
                 "exclude": [
                     {
                         "slug": "share-of-population-in-extreme-poverty",
-                        "reason": "Extreme poverty is a niche issue in Germany, remaining below 1% of the population."
+                        "reason": "Extreme poverty is virtually non-existent in Germany."
                     },
                     {
                         "slug": "bribery-prevalence-un",
-                        "reason": "Bribery is a niche issue with low and stable prevalence."
+                        "reason": "Bribery is extremely rare in Germany."
                     }
                 ],
                 "promote": [
@@ -1136,21 +1136,7 @@
                         "unit": "%",
                         "desc": "Public social expenditure divided bt gross domestic product, expressed as a percentage.",
                         "source": "OECD (2025); OECD (1985); Lindert (2004) \u2013 with major processing by Our World in Data",
-                        "reason": "Reflects the rise and central role of Germany's signature social market economy."
-                    },
-                    {
-                        "slug": "migrant-stock-share",
-                        "valueColumn": "immigrant_share_of_dest_population_all",
-                        "label": "Share of the population born abroad",
-                        "subtopic": "Economy",
-                        "format": "pct",
-                        "comparable": true,
-                        "goodDirection": "none",
-                        "framing": "absolute",
-                        "unit": "%",
-                        "desc": "Immigrants as a share of the total population.",
-                        "source": "United Nations Department of Economic and Social Affairs (2024) \u2013 with minor processing by Our World in Data",
-                        "reason": "Highlights the major demographic transition underpinning Germany's modern labor force."
+                        "reason": "Germany's social market economy model is characterized by its pioneering and extensive welfare state."
                     }
                 ]
             },
@@ -1158,14 +1144,14 @@
                 "exclude": [
                     {
                         "slug": "prevalence-of-anemia-in-women-of-reproductive-age-aged-15-29",
-                        "reason": "Anemia is not a major nutritional or public health concern in Germany"
+                        "reason": "Anemia is not a central food security or public health concern in Germany"
                     }
                 ],
                 "promote": [
                     {
                         "slug": "laying-hens-cages-and-cage-free",
                         "valueColumn": "number_of_hens_in_cages",
-                        "label": "Laying hens kept in cages",
+                        "label": "Laying hens in cage housing",
                         "subtopic": "Food & Agriculture",
                         "format": "number",
                         "comparable": false,
@@ -1174,7 +1160,7 @@
                         "unit": "hens",
                         "desc": "Includes battery and enriched cage systems.",
                         "source": "European Commission (2026) and other sources \u2013 processed by Our World in Data",
-                        "reason": "Germany was an early pioneer in banning traditional battery cages, leading to a near-total transition to cage-free housing"
+                        "reason": "Germany banned conventional battery cages in 2010, driving a massive transition toward cage-free housing."
                     }
                 ]
             },
@@ -1182,31 +1168,19 @@
                 "exclude": [
                     {
                         "slug": "share-of-the-population-with-access-to-electricity",
-                        "reason": "Universal access was already achieved by 1990."
+                        "reason": "Electricity access has been at 100% throughout the entire period"
                     },
                     {
                         "slug": "proportion-using-safely-managed-drinking-water",
-                        "reason": "Safely managed drinking water has been virtually universal since 2000."
+                        "reason": "Safely managed drinking water has been near-universal since 2000"
                     },
                     {
                         "slug": "access-to-clean-fuels-and-technologies-for-cooking",
-                        "reason": "Universal access to clean cooking fuels was already achieved by 2000."
-                    }
-                ],
-                "promote": [
+                        "reason": "Access to clean cooking fuels has been near-universal since 2000"
+                    },
                     {
-                        "slug": "marriage-rate-per-1000-inhabitants",
-                        "valueColumn": "value__gender_both__indicator_marriage_rate",
-                        "label": "Marriage rate",
-                        "subtopic": "Living Conditions",
-                        "format": "number",
-                        "comparable": true,
-                        "goodDirection": "none",
-                        "framing": "relative",
-                        "unit": "per 1,000 people",
-                        "desc": "Number of marriages during a given year per 1,000 people.",
-                        "source": "OECD (2025) and other sources \u2013 with minor processing by Our World in Data",
-                        "reason": "The marriage rate has halved since 1960, reflecting major long-term shifts in family structures."
+                        "slug": "share-using-safely-managed-sanitation",
+                        "reason": "Safely managed sanitation access has been near-universal since 2000"
                     }
                 ]
             },
@@ -1214,11 +1188,11 @@
                 "exclude": [
                     {
                         "slug": "percentage-of-territory-controlled-by-government",
-                        "reason": "Germany has maintained full, stable territorial control throughout its modern history."
+                        "reason": "Germany has maintained full, stable control over its territory throughout its modern history."
                     },
                     {
                         "slug": "deaths-in-armed-conflicts-by-country",
-                        "reason": "Germany has experienced virtually no conflict deaths on its territory during this period."
+                        "reason": "Germany has had zero or near-zero conflict deaths within its borders during this period."
                     }
                 ]
             },
@@ -1226,10 +1200,24 @@
                 "exclude": [
                     {
                         "slug": "sex-ratio-at-birth",
-                        "reason": "The sex ratio at birth has remained stable near the natural baseline throughout the entire period."
+                        "reason": "The sex ratio at birth has remained stable within the natural biological range of 105\u2013106 males per 100 females."
                     }
                 ],
                 "promote": [
+                    {
+                        "slug": "migrant-stock-share",
+                        "valueColumn": "immigrant_share_of_dest_population_all",
+                        "label": "Share of the population born in another country",
+                        "subtopic": "Population & Demography",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "none",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "Immigrants as a share of the total population.",
+                        "source": "United Nations Department of Economic and Social Affairs (2024) \u2013 with minor processing by Our World in Data",
+                        "reason": "Immigration has been crucial to offsetting Germany's low fertility rate, with the foreign-born share of the population more than doubling since 1990."
+                    },
                     {
                         "slug": "refugee-population-by-country-or-territory-of-asylum",
                         "valueColumn": "refugees",
@@ -1242,25 +1230,7 @@
                         "unit": "people",
                         "desc": "People who fled their country of origin because of serious threats against which the authorities of their home country cannot or will not protect them. This includes all refugees who live in this country, not just those who arrived that year.",
                         "source": "UNHCR (2025) \u2013 with major processing by Our World in Data",
-                        "reason": "Germany has become one of the world's largest host countries for refugees, with populations increasing dramatically."
-                    }
-                ]
-            },
-            "Technology": {
-                "promote": [
-                    {
-                        "slug": "research-spending-gdp",
-                        "valueColumn": "gb_xpd_rsdv_gd_zs",
-                        "label": "R&D spending as a share of GDP",
-                        "subtopic": "Technology",
-                        "format": "pct",
-                        "comparable": true,
-                        "goodDirection": "up",
-                        "framing": "absolute",
-                        "unit": "%",
-                        "desc": "",
-                        "source": "UNESCO UIS Stat Bulk Data Download Service, via World Bank (2026) \u2013 processed by Our World in Data",
-                        "reason": "Germany is a leading global innovation hub, with research and development spending rising to over 3% of GDP."
+                        "reason": "Germany has become one of the world's largest host countries for refugees, with the total rising tenfold since the 1950s."
                     }
                 ]
             }
