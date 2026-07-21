@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { OwidGdocType, ArchiveContext } from "@ourworldindata/types"
-import { OwidGdocPageProps } from "@ourworldindata/utils"
+import { OwidGdocPageProps, formatDate } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import { useIsClient } from "usehooks-ts"
 import { GdocPost } from "./pages/GdocPost.js"
@@ -63,6 +63,38 @@ export function OwidGdoc({
     archiveContext,
     ...props
 }: OwidGdocProps): React.ReactElement {
+    // Whether this post uses the viz-forward `layout: bespoke-viz` variant.
+    // Only OwidGdocPostContent carries `layout`; other gdoc types won't have it.
+    const isBespokeViz =
+        "content" in props &&
+        (props.content as { layout?: string } | undefined)?.layout ===
+            "bespoke-viz"
+    // v2: metadata rendered at the top of the sticky-left right column (see
+    // ArticleBlock's sticky-left arm). Read from the post front-matter.
+    const bespokeVizContent = isBespokeViz
+        ? (props.content as {
+              title?: string
+              subtitle?: string
+              authors?: string[]
+              authorRoles?: Record<string, string>
+              dateline?: string
+          })
+        : undefined
+    // Standard OWID dateline: prefer the explicit `dateline` field, else the
+    // formatted publication date (same mechanism as OwidArticleHeader).
+    const bespokeVizDateline = bespokeVizContent
+        ? bespokeVizContent.dateline ||
+          (props.publishedAt ? formatDate(props.publishedAt) : undefined)
+        : undefined
+    const bespokeVizMeta = bespokeVizContent
+        ? {
+              title: bespokeVizContent.title,
+              subtitle: bespokeVizContent.subtitle,
+              authors: bespokeVizContent.authors,
+              authorRoles: bespokeVizContent.authorRoles,
+              dateline: bespokeVizDateline || undefined,
+          }
+        : undefined
     const content = match(props)
         .with(
             {
@@ -136,7 +168,14 @@ export function OwidGdoc({
                 tags: props.tags ?? [],
             }}
         >
-            <DocumentContext.Provider value={{ isPreviewing, archiveContext }}>
+            <DocumentContext.Provider
+                value={{
+                    isPreviewing,
+                    archiveContext,
+                    isBespokeViz,
+                    bespokeVizMeta,
+                }}
+            >
                 <SiteQueryClientProvider>
                     <AdminLinks id={props.id} />
                     {content}

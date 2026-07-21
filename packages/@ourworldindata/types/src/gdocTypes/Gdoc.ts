@@ -538,6 +538,11 @@ export interface OwidGdocPostContent {
     "sidebar-toc"?: boolean
     "sidebar-toc-h1-only"?: boolean
     "heading-variant"?: "heavy" | "light"
+    // Opt-in article layout variant. When set to "bespoke-viz", GdocPost
+    // switches into a viz-forward two-column chrome (commentary left, viz in a
+    // sticky right column) with a left-aligned banded header. Omitting the
+    // field renders the standard centred article layout, unchanged.
+    layout?: "bespoke-viz"
     "hide-subscribe-banner"?: boolean
     "cover-color"?:
         | "sdg-color-1"

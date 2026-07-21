@@ -1,7 +1,12 @@
 .migration-sankey {
     width: 100%;
     height: 100%;
-    max-width: 1000px;
+    // Allow the sankey to draw wider when given more room (e.g. inside the
+    // expanded bespoke-viz lightbox). The inline right-column width is well
+    // under 1000px, so this doesn't change the inline appearance — it only
+    // lets the viz fill a wide modal. Reflow is handled by the bundle's own
+    // ResizeObserver (observes clientWidth).
+    max-width: min(100%, 1300px);
     margin-inline: auto;
 }
 

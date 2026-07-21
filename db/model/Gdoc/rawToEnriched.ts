@@ -205,6 +205,36 @@ import * as R from "remeda"
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
 ): OwidEnrichedGdocBlock | null {
+    // Normalize ArchieML's "compact" block form to the canonical {type, value}
+    // shape before matching.
+    //
+    // Freeform arrays ([+body], etc.) wrap each block as { type, value }. But
+    // when a block that has its own nested sub-structure (e.g. a
+    // bespoke-component with a {.config}, or a callout with a [.+text]) sits
+    // inside another container's nested freeform array (e.g. a sticky-left's
+    // [.+left]/[.+right]), ArchieML can hand us the block keyed by its tag with
+    // no `type` field — the compact form { "bespoke-component": { ... } }. None
+    // of the { type: "..." } patterns below match that, so `.exhaustive()`
+    // would throw. Reconstruct { type, value } here.
+    //
+    // GdocAuthor._enrichSubclassContent does the same manual reconstruction for
+    // its out-of-freeform-array [socials] block; there's no shared helper to
+    // reuse, so we do a minimal, well-guarded normalization inline. We ONLY
+    // touch non-null objects that lack a `type` key and have exactly one own
+    // key, so already-typed { type, value } blocks are left untouched.
+    if (
+        block &&
+        typeof block === "object" &&
+        !("type" in block) &&
+        Object.keys(block).length === 1
+    ) {
+        const [key] = Object.keys(block)
+        block = {
+            type: key,
+            value: (block as Record<string, unknown>)[key],
+        } as OwidRawGdocBlock
+    }
+
     return match(block)
         .with({ type: "all-charts" }, parseAllCharts)
         .with({ type: "additional-charts" }, parseAdditionalCharts)

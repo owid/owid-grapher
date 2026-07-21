@@ -244,6 +244,11 @@ export function OwidGdocHeader(props: {
     breadcrumbs?: BreadcrumbItem[]
     isDeprecated?: boolean
 }) {
+    // v2 bespoke-viz: no full-width header band. The article metadata
+    // (title/subtitle/byline) is instead rendered at the top of the sticky-left
+    // right column, /latest-style (see BespokeVizMetadata, prepended in
+    // ArticleBlock's sticky-left arm). So render no header here.
+    if (props.content.layout === "bespoke-viz") return null
     if (props.content.type === OwidGdocType.Article)
         return <OwidArticleHeader {...props} />
     if (props.content.type === OwidGdocType.TopicPage)
