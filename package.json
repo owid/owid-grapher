@@ -223,7 +223,7 @@
         "typescript": "^7.0.2",
         "vite": "^8.1.0",
         "vitest": "^4.1.9",
-        "wrangler": "^4.105.0"
+        "wrangler": "^4.112.0"
     },
     "resolutions": {
         "@sentry/cli": "3.5.0",
