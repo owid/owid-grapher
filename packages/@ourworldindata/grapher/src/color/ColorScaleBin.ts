@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { Color, CoreValueType } from "@ourworldindata/types"
 import { NO_DATA_LABEL, PROJECTED_DATA_LABEL } from "./ColorScale"
 
@@ -22,10 +23,9 @@ interface CategoricalBinProps extends BinProps {
     value: string
     label: string
     isHidden?: boolean
-    // Additional values that this bin matches, on top of `value`. Set only for
-    // merged legend bins (see `mergeCategoricalBinsByLabelAndColor`); when
-    // omitted the bin matches its single `value`, as before.
-    values?: string[]
+    // Values this bin matches in addition to `value`. Set only for merged
+    // legend bins (see `mergeCategoricalBinsByLabelAndColor`).
+    additionalValues?: string[]
 }
 
 abstract class AbstractColorScaleBin<T extends BinProps> {
@@ -111,10 +111,9 @@ export class CategoricalBin extends AbstractColorScaleBin<CategoricalBinProps> {
         return this.props.label || this.props.value
     }
 
-    /** All values this bin matches. A single-value bin matches just `value`;
-     * a merged bin also matches the values it absorbed. */
+    /** All values this bin matches: `value` plus any values absorbed by merging */
     get values(): string[] {
-        return this.props.values ?? [this.props.value]
+        return [this.props.value, ...(this.props.additionalValues ?? [])]
     }
 
     contains(
@@ -147,18 +146,17 @@ export class CategoricalBin extends AbstractColorScaleBin<CategoricalBinProps> {
  * The merged bin keeps the first bin's props (index, color, label, pattern) and
  * additionally matches all the values of the bins it absorbs, so hovering it
  * still highlights every entity in any of the merged categories, and hovering
- * such an entity still resolves back to this one bin. Bins that differ in label
- * or color are left untouched (and single-member groups keep their original
- * object, so the default case is unchanged).
+ * such an entity still resolves back to this one bin.
+ *
+ * Unlike `dedupeRepeatedBins`, which drops repeated copies of the same bin,
+ * this merges distinct categories.
  */
 export function mergeCategoricalBinsByLabelAndColor(
     bins: CategoricalBin[]
 ): CategoricalBin[] {
     const binsByKey = new Map<string, CategoricalBin>()
-    const orderedKeys: string[] = []
     for (const bin of bins) {
-        // Key on the displayed label and color together; JSON.stringify
-        // keeps the two fields unambiguously separated.
+        // Key on the displayed label and color together
         const key = JSON.stringify([bin.text, bin.color])
         const existing = binsByKey.get(key)
         if (existing) {
@@ -166,15 +164,36 @@ export function mergeCategoricalBinsByLabelAndColor(
                 key,
                 new CategoricalBin({
                     ...existing.props,
-                    values: [...existing.values, ...bin.values],
+                    additionalValues: [
+                        ...(existing.props.additionalValues ?? []),
+                        ...bin.values,
+                    ],
                 })
             )
         } else {
             binsByKey.set(key, bin)
-            orderedKeys.push(key)
         }
     }
-    return orderedKeys.map((key) => binsByKey.get(key)!)
+    return [...binsByKey.values()]
+}
+
+/**
+ * Drop repeated occurrences of the same bin, e.g. the same category appearing
+ * once per facet, keeping the first occurrence unchanged.
+ */
+export function dedupeRepeatedBins<Bin extends ColorScaleBin>(
+    bins: Bin[]
+): Bin[] {
+    return _.uniqWith(bins, (binA, binB): boolean => {
+        // For categorical bins, the `.equals()` method isn't good enough,
+        // because it only compares `.index`, which in this case can be
+        // identical even when the bins are not, because they are coming
+        // from different charts (facets).
+        if (binA instanceof CategoricalBin) {
+            return binA.text === binB.text
+        }
+        return binA.equals(binB)
+    })
 }
 
 export function isCategoricalBin(bin: ColorScaleBin): bin is CategoricalBin {

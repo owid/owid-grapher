@@ -59,6 +59,7 @@ import {
 import {
     CategoricalBin,
     ColorScaleBin,
+    dedupeRepeatedBins,
     NumericBin,
 } from "../color/ColorScaleBin"
 import { FocusArray } from "../focus/FocusArray"
@@ -776,19 +777,6 @@ export class FacetChart
         return undefined
     }
 
-    private getUniqBins<Bin extends ColorScaleBin>(bins: Bin[]): Bin[] {
-        return _.uniqWith(bins, (binA, binB): boolean => {
-            // For categorical bins, the `.equals()` method isn't good enough,
-            // because it only compares `.index`, which in this case can be
-            // identical even when the bins are not, because they are coming
-            // from different charts (facets).
-            if (binA instanceof CategoricalBin) {
-                return binA.text === binB.text
-            }
-            return binA.equals(binB)
-        })
-    }
-
     // legend props
 
     @computed get legendX(): number {
@@ -857,7 +845,7 @@ export class FacetChart
                 ...(legend.categoricalLegendData ?? []),
             ]
         )
-        const uniqBins = this.getUniqBins(allBins)
+        const uniqBins = dedupeRepeatedBins(allBins)
         const sortedBins = _.sortBy(
             uniqBins,
             (bin) => bin instanceof CategoricalBin
@@ -875,7 +863,7 @@ export class FacetChart
             ])
             .filter((bin) => bin instanceof CategoricalBin)
 
-        const uniqBins = this.getUniqBins(allBins).map(
+        const uniqBins = dedupeRepeatedBins(allBins).map(
             // Remap index to ensure it's unique (the above procedure can lead to duplicates)
             (bin, index) => new CategoricalBin({ ...bin.props, index })
         )
