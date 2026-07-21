@@ -1,5 +1,5 @@
 import { algoliasearch, SearchClient } from "algoliasearch"
-import type { SynonymHit, IndexSettings } from "@algolia/client-search"
+import type { SynonymHit, IndexSettings, Rule } from "@algolia/client-search"
 import {
     ALGOLIA_ID,
     TOPICS_CONTENT_GRAPH,
@@ -212,6 +212,30 @@ export const configureAlgolia = async () => {
             indexName,
             synonymHit: algoliaSynonyms,
             replaceExistingSynonyms: true,
+        })
+    }
+
+    // "ai" is short enough that Algolia's default prefix search matches it
+    // against any word starting with "ai" (aid, air, aids, aviation...).
+    // Those prefix matches all tie on relevance, so ranking falls back to
+    // raw popularity and buries the actual AI content (see #6771). A
+    // synonym doesn't help here - it only adds more tied matches. Rewriting
+    // the query to the unambiguous "artificial intelligence" restores
+    // exact-match ranking. `anchoring: "is"` limits this to the bare query
+    // "ai", so longer queries that merely contain the word are unaffected.
+    const rules: Rule[] = [
+        {
+            objectID: "ai-query-replacement",
+            conditions: [{ pattern: "ai", anchoring: "is" }],
+            consequence: { params: { query: "artificial intelligence" } },
+        },
+    ]
+
+    for (const indexName of [pagesIndexName, explorerViewsAndChartsIndexName]) {
+        await client.saveRules({
+            indexName,
+            rules,
+            forwardToReplicas: true,
         })
     }
 
