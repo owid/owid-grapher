@@ -662,6 +662,31 @@ describe("urls", () => {
         expect(grapher.disablePlay).toBe(true)
         expect(grapher.isTimelineAnimationPlaying).toBe(false)
     })
+
+    it("keeps an authored entity selection when switching to Marimekko in the editor", () => {
+        // `isEditor` is read from `window.isEditor` at construction time,
+        // mirroring how the admin chart editor marks itself. This test file
+        // runs in a plain (non-jsdom) environment, so `window` doesn't
+        // otherwise exist here.
+        ;(globalThis as any).window = { isEditor: true }
+        try {
+            const grapher = new GrapherState({
+                chartTypes: [
+                    GRAPHER_CHART_TYPES.LineChart,
+                    GRAPHER_CHART_TYPES.Marimekko,
+                ],
+                selectedEntityNames: ["World"],
+            })
+
+            const previousTab = grapher.activeTab
+            grapher.setTab(GRAPHER_TAB_NAMES.Marimekko)
+            grapher.onTabChange(previousTab, GRAPHER_TAB_NAMES.Marimekko)
+
+            expect(grapher.selection.selectedEntityNames).toEqual(["World"])
+        } finally {
+            delete (globalThis as any).window
+        }
+    })
 })
 
 describe("time domain tests", () => {

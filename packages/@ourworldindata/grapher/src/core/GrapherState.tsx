@@ -2019,10 +2019,17 @@ export class GrapherState
 
         // If the chart show all entities (e.g. scatter plot or Marimekko chart),
         // then we typically prefer no selection unless the user has explicitly
-        // made changes to the default selection
+        // made changes to the default selection.
+        // In the editor, this clearing is skipped: it's meant to be a
+        // temporary, display-only adjustment that gets restored when
+        // switching back to a tab that shows a subset of entities, but the
+        // editor can persist the live selection as-is when saving, which
+        // would otherwise wipe out an authored selection just by previewing
+        // a different chart type.
         if (
             isChartTypeThatShowsAllEntities &&
-            !this.areSelectedEntitiesDifferentThanAuthors
+            !this.areSelectedEntitiesDifferentThanAuthors &&
+            !this.isEditor
         ) {
             this.selection.clearSelection()
         }
