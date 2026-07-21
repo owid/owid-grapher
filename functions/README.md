@@ -161,24 +161,24 @@ which is shared with the client.
 It does two things, depending on the request:
 
 1. If the request contains `notifications` preferences (topic tags, content
-   types, frequency), what happens depends on whether the address exists in
-   the `EMAIL_NOTIFICATIONS_DB` D1 database. A **never-seen address** is
-   subscribed immediately (single opt-in): the user is created as
-   `subscribed` with the chosen preferences and receives a welcome email. An
-   **existing address** (whatever its status) takes the confirm-to-apply
-   path: nothing is changed, the chosen preferences are held on a
-   single-use, expiring confirm token (`tokens` table), and a confirmation
-   email is sent via Postmark — the form is public and tokenless, so this is
-   what stops anyone who merely knows an address from rewriting its
-   preferences or re-subscribing it after an unsubscribe. Only the email
-   copy differs by state (preference change / re-subscription). The HTTP
+   types, frequency), the submission takes effect immediately (single
+   opt-in) and a welcome email is sent via Postmark. A **never-seen
+   address** is created as `subscribed` with the chosen preferences. For an
+   **existing address** (whatever its status), the chosen preferences are
+   **unioned** with the stored ones (`mergeEmailNotificationsPreferences`)
+   and the user is set back to `subscribed` — the form is public and
+   tokenless, so a submission may broaden what a subscription covers but
+   never narrow it (only the frequency follows the latest submission);
+   narrowing requires the magic-link preferences page. The welcome
+   email's footer links (update preferences / unsubscribe) are what let the
+   address's owner notice and undo a submission they didn't make. The HTTP
    response is identical in both branches, and both send exactly one email,
    so neither the response nor its timing reveals whether the address was
    already known. When the `POSTMARK_SERVER_TOKEN` environment
-   variable is not set, sending is skipped with a console warning that
-   includes the confirm URL, so the flow can be tested locally without
-   Postmark credentials. To inspect outgoing emails locally (and click the
-   links they contain), run `yarn postmarkCatcher` and set
+   variable is not set, sending is skipped with a console warning, so the
+   flow can be tested locally without Postmark credentials. To inspect
+   outgoing emails locally (and click the links they contain), run
+   `yarn postmarkCatcher` and set
    `POSTMARK_API_BASE_URL=http://localhost:8025` in `.dev.vars` along with
    any `POSTMARK_SERVER_TOKEN` value.
 2. If the request has `subscribeToOwidBrief: true`, it upserts the Mailchimp
@@ -189,26 +189,6 @@ It does two things, depending on the request:
    warning) when the `MAILCHIMP_API_KEY`, `MAILCHIMP_API_SERVER` or
    `MAILCHIMP_NEWSLETTER_LIST_ID` environment variables are not set, so the
    rest of the flow can be tested locally without Mailchimp credentials.
-
-## `/api/email-notifications/confirm`
-
-Confirm link target from the confirmation emails, with a `token` query
-parameter (a `confirm`-purpose row in the `tokens` table). GET only renders a
-page — mail security scanners prefetch links in emails, so state must never
-change on GET. The page's button POSTs the token back to the same route,
-which consumes it and applies the preferences it carries: an existing user's
-preferences are replaced, an unsubscribed user is reactivated (new addresses
-are subscribed directly by `subscribe` and never come through here). Expired
-tokens render a page whose button POSTs to `resend-confirmation`; consumed
-tokens render an "already confirmed" page.
-
-## `/api/email-notifications/resend-confirmation`
-
-POST target of the expired-confirmation page's resend button. Takes the
-expired confirm token (form field `token`), issues a fresh token carrying the
-same pending preferences, and re-sends the confirmation email. Safe to expose
-for expired tokens: the only thing an expired token can do is cause an email
-to be sent to its own address.
 
 ## `/api/email-notifications/request-link`
 
@@ -255,12 +235,52 @@ button POSTs back to the same route, which sets the user's status to
 `List-Unsubscribe-Post` one-click unsubscribe header: email clients POST
 directly to it with the token in the query string and no page shown.
 
+## `/api/email-notifications/postmark-webhook`
+
+Target of Postmark's [subscription-change webhook](https://postmarkapp.com/developer/webhooks/subscription-change-webhook),
+which fires when an address is added to or removed from a message stream's
+suppression list (hard bounce, spam complaint, manual suppression,
+reactivation). The handler mirrors that state into
+`users.suppressed_at`/`users.suppression_reason` — kept separate from
+`status`, which records user intent — so the send job skips undeliverable
+addresses and the suppression record survives independently of Postmark.
+Suppressions are per message stream in Postmark, but we keep a single flag: a
+suppression on either stream suppresses the user.
+
+Setup (at deploy time, per message stream — both `outbound` and `broadcast`):
+Postmark UI → Server → Message Stream → Webhooks → Add webhook → check
+"Subscription Change", with the URL in basic-auth form,
+`https://<any-username>:<POSTMARK_WEBHOOK_SECRET>@ourworldindata.org/api/email-notifications/postmark-webhook`.
+Postmark has no HMAC signatures; the endpoint checks the basic-auth password
+against the `POSTMARK_WEBHOOK_SECRET` environment variable and responds 403
+on a mismatch (which tells Postmark to stop retrying) and 503 when the secret
+is not configured. Payloads that will never parse are acknowledged with 200
+and reported to Sentry — Postmark only retries this webhook type 3 times over
+~21 minutes, so retries are reserved for transient errors (500).
+
+Follow-ups, deliberately not implemented yet:
+
+- **Reconciliation backstop**: with only 3 delivery attempts, an outage
+  longer than ~21 minutes loses events. The send job should periodically
+  diff Postmark's [Suppressions API](https://postmarkapp.com/developer/api/suppressions-api)
+  dump against our flags. Until then, the send job's handling of Postmark's
+  "inactive recipient" error (it marks the user as suppressed) catches
+  stragglers.
+- **Resubscribe after suppression**: when a suppressed user genuinely
+  resubscribes via our forms, clearing our flag isn't enough — the
+  suppression must also be deleted via the Suppressions API. That works for
+  `HardBounce` and `ManualSuppression`; `SpamComplaint` suppressions are
+  permanent (only Postmark support can lift them), so those users should
+  stay suppressed.
+
 ## Sending the notification emails
 
 The actual notification emails are sent by `yarn sendEmailNotifications
 <daily|weekly>`, a cron job that runs on our own infra (not on Cloudflare) —
 see `baker/emailNotifications/sendEmailNotifications.ts`. It reads
-subscribers from the D1 database remotely via the Cloudflare HTTP API,
+subscribers from the D1 database remotely via the Cloudflare HTTP API
+(skipping suppressed users, and marking users as suppressed when Postmark
+refuses a send with its "inactive recipient" error),
 collects the latest-feed content (articles, data insights, announcements)
 published since each subscriber's last email from MySQL, renders the
 hardcoded email template, sends via Postmark, and records the send back to
@@ -298,7 +318,10 @@ public API needs to be rate limited with a zone-level WAF rate limiting rule
 (Cloudflare dashboard → Security → WAF → Rate limiting rules) on
 `/api/email-notifications/*`. The function already honors an optional
 `EMAIL_NOTIFICATIONS_RATE_LIMITER` binding so that it keeps working after the
-migration.
+migration. The rule must exclude `/api/email-notifications/postmark-webhook`
+(or use a limit generous enough for webhook bursts) — throttling Postmark's
+deliveries would lose suppression events, since Postmark only retries this
+webhook type 3 times.
 
 ### Development
 

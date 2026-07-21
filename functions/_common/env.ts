@@ -20,6 +20,10 @@ export interface Env {
     // catcher (yarn postmarkCatcher) to inspect emails during development
     // without sending anything.
     POSTMARK_API_BASE_URL?: string
+    // Basic-auth password for the Postmark subscription-change webhook
+    // (Postmark has no HMAC signatures). If unset, the webhook endpoint
+    // responds 503.
+    POSTMARK_WEBHOOK_SECRET?: string
     EMAIL_NOTIFICATIONS_DB?: D1Database
     // Cloudflare rate limiting binding. Not configurable for Pages projects
     // (only Workers), so it's currently always undefined; until we migrate to
