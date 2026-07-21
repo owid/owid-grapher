@@ -138,10 +138,10 @@ export class CategoricalBin extends AbstractColorScaleBin<CategoricalBinProps> {
 }
 
 /**
- * Merge categorical bins that share the same displayed label *and* color into a
- * single bin, preserving the order of first appearance. This avoids showing
- * multiple visually indistinguishable swatches in a legend when several
- * categories are given the same custom label and color.
+ * Merge categorical bins that share the same displayed label, color *and*
+ * pattern into a single bin, preserving the order of first appearance. This
+ * avoids showing multiple visually indistinguishable swatches in a legend when
+ * several categories are given the same custom label and color.
  *
  * The merged bin keeps the first bin's props (index, color, label, pattern) and
  * additionally matches all the values of the bins it absorbs, so hovering it
@@ -156,8 +156,11 @@ export function mergeCategoricalBinsByLabelAndColor(
 ): CategoricalBin[] {
     const binsByKey = new Map<string, CategoricalBin>()
     for (const bin of bins) {
-        // Key on the displayed label and color together
-        const key = JSON.stringify([bin.text, bin.color])
+        // Key on the displayed label, color and pattern together, so a patterned
+        // bin (e.g. the hatched no-data bin) is never merged into a solid
+        // category that happens to share its label and color. JSON.stringify
+        // keeps the fields unambiguously separated.
+        const key = JSON.stringify([bin.text, bin.color, bin.patternRef])
         const existing = binsByKey.get(key)
         if (existing) {
             binsByKey.set(

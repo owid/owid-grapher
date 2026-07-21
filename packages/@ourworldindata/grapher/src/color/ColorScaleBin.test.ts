@@ -242,6 +242,28 @@ describe(mergeCategoricalBinsByLabelAndColor, () => {
         ).toHaveLength(2)
     })
 
+    it("does not merge bins that differ in pattern", () => {
+        // A patterned bin (e.g. the hatched no-data bin) must not merge into a
+        // solid category that happens to share its label and color, since they
+        // render differently and the patterned bin has distinct hover behavior.
+        const bins = [
+            new CategoricalBin({
+                index: 0,
+                value: "a",
+                label: "Same label",
+                color: "green",
+            }),
+            new CategoricalBin({
+                index: 1,
+                value: "b",
+                label: "Same label",
+                color: "green",
+                patternRef: "hatch",
+            }),
+        ]
+        expect(mergeCategoricalBinsByLabelAndColor(bins)).toHaveLength(2)
+    })
+
     it("leaves a single-member group's original bin untouched", () => {
         const bin = new CategoricalBin({
             index: 0,
