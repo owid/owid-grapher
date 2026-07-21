@@ -2019,17 +2019,10 @@ export class GrapherState
 
         // If the chart show all entities (e.g. scatter plot or Marimekko chart),
         // then we typically prefer no selection unless the user has explicitly
-        // made changes to the default selection.
-        // In the editor, this clearing is skipped: it's meant to be a
-        // temporary, display-only adjustment that gets restored when
-        // switching back to a tab that shows a subset of entities, but the
-        // editor can persist the live selection as-is when saving, which
-        // would otherwise wipe out an authored selection just by previewing
-        // a different chart type.
+        // made changes to the default selection
         if (
             isChartTypeThatShowsAllEntities &&
-            !this.areSelectedEntitiesDifferentThanAuthors &&
-            !this.isEditor
+            !this.areSelectedEntitiesDifferentThanAuthors
         ) {
             this.selection.clearSelection()
         }
@@ -2048,8 +2041,14 @@ export class GrapherState
                 "adjustStateForTab has been called before grapher has loaded its data, this is probably a mistake"
             )
 
-        this.ensureEntitySelectionIsSensibleForTab(tab)
-        this.ensureTimeHandlesAreSensibleForTab(tab)
+        // Skip in the editor: these adjustments mutate the entity selection
+        // and time handles as a side effect of switching tabs, and the editor
+        // persists the live state on save, which would silently alter the
+        // authored config (see #6794)
+        if (!this.isEditor) {
+            this.ensureEntitySelectionIsSensibleForTab(tab)
+            this.ensureTimeHandlesAreSensibleForTab(tab)
+        }
 
         // Stop animation when switching to a tab where playback is disabled
         if (this.disablePlay && this.isTimelineAnimationActive) {
