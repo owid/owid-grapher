@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-The Our World in Data monorepo: the Grapher charting library, the chart/data admin, the static-site baker, and the React code for ourworldindata.org. Everything is TypeScript; interactive UIs use React + MobX; all chart configs and data live in MySQL. Yarn 4 workspaces, Node ≥ 24.
+The Our World in Data monorepo: the Grapher charting library, the chart/data admin, the static-site baker, and the React code for ourworldindata.org. Everything is TypeScript; interactive UIs use React 19 + MobX; all chart configs and data live in MySQL 8. Yarn 4 workspaces, Node 24.
 
 ## Commands
 
@@ -67,7 +67,7 @@ Key facts that span multiple directories:
 - In Grapher and the admin (MobX 6) we use a nonstandard setup: class-based components with TC-39 stage 3 decorators, but only for `@computed` and `@action`. Observable props are NOT marked `@observable`; they are listed in a `makeObservable` call in the constructor. That call must mention all observable props, but none of the `@computed`/`@action` ones.
 - CSS: named style classes following BEM in separate `.scss` files; avoid inline styles unless the component already uses them for a similar case. Components usually have a companion scss file with the same name. Entry points: `site/owid.scss` for the site, `packages/@ourworldindata/grapher/src/core/grapher.scss` for grapher.
 - In SCSS, do NOT use the parent selector to concatenate BEM class names (`&__element`, `&--modifier`) — write out full class names (`.block__element`) so it's easy to grep between JSX and SCSS. `&` with pseudo-classes/elements or state attributes (`&:hover`, `&::before`, `&[data-selected]`) is fine.
-- Check [docs/browser-support.md](./docs/browser-support.md) before using modern JS or CSS features.
+- Check [docs/browser-support.md](./docs/browser-support.md) before using modern JS or CSS features. It lists our supported browsers, the "most breaking" features we rely on, and features we can't yet use.
 - package.json scripts are camelCase and descriptive: `startXXX` for long-lived processes, `buildXXX` for scripts that write output (`docs/coding-style.md`). Server-side scripts run via `tsx --tsconfig tsconfig.tsx.json`.
 
 ## Other conventions
@@ -82,9 +82,9 @@ Notes for sessions running in a Claude Code cloud sandbox (`CLAUDE_CODE_REMOTE=t
 
 - The sandbox pre-creates a session branch named `claude/<slug>-<random-suffix>`, which violates the branch-naming rules above. Rename it before the first push: `git branch -m <short-descriptive-name>`.
 - Use `make up.headless` for the site/database. If the sandbox snapshot has a pre-imported native MySQL (the usual case), it starts within minutes; only the docker fallback is slow (10–20 min download+import) and can outlive a command timeout — run it in the background, and if it gets killed, re-run it: every step is idempotent and resumes.
-- The snapshot's database can be up to a week older than the code. After `make up.headless`, run `make migrate`. If pages still 500 on missing tables/columns, `make refresh` re-imports a fresh dump.
+- The snapshot's database can be up to a week older than the code. After `make up.headless`, run `make migrate` to apply any migrations merged since — it's idempotent and takes seconds. If pages still 500 on missing tables/columns, `make refresh` re-imports a fresh dump (10–20 minutes).
 - `ALGOLIA_ID` and `ALGOLIA_SEARCH_KEY` are provided as env vars (public, search-only), so local site search works. Never scrape API keys out of deployed JS bundles.
 - Chart thumbnails are served by a Cloudflare function that doesn't run locally. `GRAPHER_DYNAMIC_THUMBNAIL_URL` and `EXPLORER_DYNAMIC_THUMBNAIL_URL` are usually provided; if absent and thumbnails are missing, set them in `.env` to `https://ourworldindata.org/grapher` and `https://ourworldindata.org/explorers`.
-- To screenshot a locally served page, use `node devTools/screenshot/screenshotPage.mjs <url> <out.png>` (it works around the sandbox's TLS-breaking egress proxy).
+- To screenshot a locally served page, use `node devTools/screenshot/screenshotPage.mjs <url> <out.png>`. The sandbox routes outbound HTTPS through an egress proxy that resets Chromium's TLS handshake; the script works around this by routing external requests through Playwright's Node-side request context.
 - Staging servers are on Tailscale and unreachable from the sandbox, and local ports can't be exposed to the user. Verify changes with typecheck, unit tests, and the local dev environment (plus screenshots).
 - After pushing a branch, tell the user where to review on the branch's staging server, deep-linked to the affected page — e.g. `http://staging-site-<name>/search?q=malaria`. Don't derive the staging name by hand; compute it with `node -e 'const b=process.argv[1].replace(/[/._]/g,"-");console.log(("staging-site-"+b.slice(0,28)).replace(/-+$/,""))' "$(git branch --show-current)"`. Mention that the staging server takes a while to build after a push, especially the first one.
