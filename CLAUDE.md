@@ -22,10 +22,10 @@ Everything you post to GitHub or Slack goes out under a **human's identity**. An
 1. **Attribute the work.** Put this blockquote as the _first line_ of the content:
 
     ```
-    > _Written by Claude <model name> — @<handle> at the wheel._
+    > _Written by <model provider> <model name> — @<handle> at the wheel._
     ```
 
-    Replace `<model name>` with the human-readable name of the model actually generating the content (e.g. "Sonnet 5", "Opus 4.8", "Fable 5", "Haiku 4.5") — not the literal string "Code". Keeping the "Claude" prefix makes the attribution recognizable even to readers unfamiliar with individual model names.
+    Replace `<model provider>` and `<model name>` with the human-readable provider and model actually generating the content (e.g. "Claude Sonnet 5", "GPT-5", "Gemini 3 Pro") — not a literal string like "Code" or a bare version number. Naming the provider keeps the attribution recognizable even to readers unfamiliar with individual model names.
 
     It applies to **every** surface, **every** time you post:
     - PR descriptions / bodies
