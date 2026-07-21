@@ -2041,8 +2041,14 @@ export class GrapherState
                 "adjustStateForTab has been called before grapher has loaded its data, this is probably a mistake"
             )
 
-        this.ensureEntitySelectionIsSensibleForTab(tab)
-        this.ensureTimeHandlesAreSensibleForTab(tab)
+        // Skip in the editor: these adjustments mutate the entity selection
+        // and time handles as a side effect of switching tabs, and the editor
+        // persists the live state on save, which would silently alter the
+        // authored config (see #6794)
+        if (!this.isEditor) {
+            this.ensureEntitySelectionIsSensibleForTab(tab)
+            this.ensureTimeHandlesAreSensibleForTab(tab)
+        }
 
         // Stop animation when switching to a tab where playback is disabled
         if (this.disablePlay && this.isTimelineAnimationActive) {
