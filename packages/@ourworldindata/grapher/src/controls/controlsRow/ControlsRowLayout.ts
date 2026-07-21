@@ -1,6 +1,9 @@
 import * as _ from "lodash-es"
 import { ContentSwitchers } from "../ContentSwitchers"
-import { EntitySelectionToggle } from "../EntitySelectionToggle"
+import {
+    EntitySelectionToggle,
+    EntityLabelMode,
+} from "../EntitySelectionToggle"
 import { SettingsMenu } from "../SettingsMenu"
 import { MapResetButton } from "../MapResetButton"
 import { MapZoomToSelectionButton } from "../MapZoomToSelectionButton"
@@ -18,7 +21,7 @@ import { CONTROLS_GAP, CONTROLS_ROW_GAP } from "./ControlsRowConstants"
 export interface ControlsRowLayout {
     tabPadding: number
     showTabLabels: boolean
-    showEntityLabel: boolean
+    entityLabelMode: EntityLabelMode
     showSettingsLabel: boolean
 }
 
@@ -26,17 +29,19 @@ export interface ControlsRowLayout {
 // prettier-ignore
 export const CONTROLS_ROW_LAYOUT_LADDER: ControlsRowLayout[] = [
     // Show all labels
-    { tabPadding: 16, showTabLabels: true, showEntityLabel: true, showSettingsLabel: true },
+    { tabPadding: 16, showTabLabels: true, entityLabelMode: "full", showSettingsLabel: true },
     // Reduce tab padding
-    { tabPadding: 12, showTabLabels: true, showEntityLabel: true, showSettingsLabel: true },
+    { tabPadding: 12, showTabLabels: true, entityLabelMode: "full", showSettingsLabel: true },
     // Hide settings label
-    { tabPadding: 12, showTabLabels: true, showEntityLabel: true, showSettingsLabel: false },
-    // Hide entity label
-    { tabPadding: 12, showTabLabels: true, showEntityLabel: false, showSettingsLabel: false },
+    { tabPadding: 12, showTabLabels: true, entityLabelMode: "full", showSettingsLabel: false },
+    // Shorten entity name ("Edit countries" for "Edit countries and regions")
+    { tabPadding: 12, showTabLabels: true, entityLabelMode: "short", showSettingsLabel: false },
     // Hide tab labels
-    { tabPadding: 12, showTabLabels: false, showEntityLabel: false, showSettingsLabel: false },
+    { tabPadding: 12, showTabLabels: false, entityLabelMode: "short", showSettingsLabel: false },
+    // Hide entity name ("Edit")
+    { tabPadding: 12, showTabLabels: false, entityLabelMode: "action-only", showSettingsLabel: false },
     // Reduce tab padding further
-    { tabPadding: 8, showTabLabels: false, showEntityLabel: false, showSettingsLabel: false },
+    { tabPadding: 8, showTabLabels: false, entityLabelMode: "action-only", showSettingsLabel: false },
 ]
 
 // Bounds.forText only approximates text widths, so leave a bit of headroom
@@ -56,7 +61,7 @@ function measureChartControlsWidth(
 ): number {
     return sumControlWidths([
         EntitySelectionToggle.estimateWidth(manager, {
-            showEntityLabel: layout.showEntityLabel,
+            entityLabelMode: layout.entityLabelMode,
         }),
         SettingsMenu.estimateWidth(manager, {
             showLabel: layout.showSettingsLabel,
@@ -88,7 +93,7 @@ function measureMapControlsWidth(
         MapResetButton.estimateWidth(manager, "resetView"),
         MapRegionDropdown.estimateWidth(manager),
         EntitySelectionToggle.estimateWidth(manager, {
-            showEntityLabel: layout.showEntityLabel,
+            entityLabelMode: layout.entityLabelMode,
         }),
     ])
 }

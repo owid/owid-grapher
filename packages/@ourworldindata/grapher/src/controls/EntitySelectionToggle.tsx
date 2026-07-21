@@ -4,7 +4,12 @@ import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEye, faRightLeft, faPen } from "@fortawesome/free-solid-svg-icons"
 import classnames from "clsx"
+import { match } from "ts-pattern"
 import { GrapherWindowType } from "@ourworldindata/types"
+import {
+    DEFAULT_GRAPHER_ENTITY_TYPE,
+    DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
+} from "../core/GrapherConstants"
 import { measureButtonWidth } from "./controlsRow/ControlsRowConstants"
 
 export interface EntitySelectionManager {
@@ -27,9 +32,16 @@ interface EntitySelectionLabel {
     entity: string
 }
 
+/**
+ * How verbose the button label is: the full entity name
+ * ("Edit countries and regions"), a shortened one ("Edit countries"),
+ * or the action alone ("Edit").
+ */
+export type EntityLabelMode = "full" | "short" | "action-only"
+
 interface EntitySelectionToggleProps {
     manager: EntitySelectionManager
-    showEntityLabel?: boolean
+    entityLabelMode?: EntityLabelMode
 }
 
 @observer
@@ -68,15 +80,14 @@ export class EntitySelectionToggle extends React.Component<EntitySelectionToggle
     static estimateWidth(
         manager: EntitySelectionManager,
         {
-            showEntityLabel,
+            entityLabelMode,
         }: Required<Omit<EntitySelectionToggleProps, "manager">>
     ): number {
         if (!EntitySelectionToggle.shouldShow(manager)) return 0
         const label = getEntitySelectionLabel(manager)
         if (!label) return 0
-        const text = showEntityLabel
-            ? `${label.action} ${label.entity}`
-            : label.action
+        const entityName = getEntityName(label, entityLabelMode)
+        const text = entityName ? `${label.action} ${entityName}` : label.action
         return measureButtonWidth(text)
     }
 
@@ -90,8 +101,12 @@ export class EntitySelectionToggle extends React.Component<EntitySelectionToggle
 
     override render(): React.ReactElement | null {
         const { shouldShow, label } = this
-        const { showEntityLabel = true } = this.props
+        const { entityLabelMode = "full" } = this.props
         const { isEntitySelectorModalOrDrawerOpen: active } = this.props.manager
+
+        const entityName = label
+            ? getEntityName(label, entityLabelMode)
+            : undefined
 
         return shouldShow && label ? (
             <div className="entity-selection-menu">
@@ -108,9 +123,9 @@ export class EntitySelectionToggle extends React.Component<EntitySelectionToggle
                 >
                     {label.icon}
                     <label className="label">
-                        {showEntityLabel ? (
+                        {entityName ? (
                             <>
-                                {label.action} <span>{label.entity}</span>
+                                {label.action} <span>{entityName}</span>
                             </>
                         ) : (
                             label.action
@@ -163,4 +178,26 @@ function getEntitySelectionLabel(
         }
 
     return null
+}
+
+/** The entity name rendered next to the action, undefined if action-only */
+function getEntityName(
+    label: EntitySelectionLabel,
+    mode: EntityLabelMode
+): string | undefined {
+    return match(mode)
+        .with("full", () => label.entity)
+        .with("short", () => getShortEntityName(label.entity))
+        .with("action-only", () => undefined)
+        .exhaustive()
+}
+
+// Only the default entity types have a short version
+const SHORT_ENTITY_NAMES: Record<string, string> = {
+    [DEFAULT_GRAPHER_ENTITY_TYPE]: "country",
+    [DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL]: "countries",
+}
+
+function getShortEntityName(entity: string): string {
+    return SHORT_ENTITY_NAMES[entity] ?? entity
 }

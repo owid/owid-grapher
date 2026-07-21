@@ -101,7 +101,7 @@ export class ControlsRow extends Component<ControlsRowProps> {
             <div className="controls chart-controls">
                 <EntitySelectionToggle
                     manager={this.manager}
-                    showEntityLabel={this.layout.showEntityLabel}
+                    entityLabelMode={this.layout.entityLabelMode}
                 />
                 <SettingsMenu
                     manager={this.manager}
@@ -143,7 +143,7 @@ export class ControlsRow extends Component<ControlsRowProps> {
                 <MapRegionDropdown manager={this.manager} />
                 <EntitySelectionToggle
                     manager={this.manager}
-                    showEntityLabel={this.layout.showEntityLabel}
+                    entityLabelMode={this.layout.entityLabelMode}
                 />
             </>
         )
