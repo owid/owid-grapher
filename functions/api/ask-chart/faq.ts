@@ -46,7 +46,7 @@ Cover, where relevant:
 - Data quality: how reliable the data is, what its main limitations are, and how much to trust comparisons across countries or over time
 - Methodology changes over time (e.g. changed definitions, revised collection methods, new data sources) and how they affect the series
 - How outliers — notable peaks and drops in the data — can be explained
-- Similar or related charts on Our World in Data and how they differ from this one (only mention charts that actually exist, e.g. from the documentation; skip this topic if you don't know any)
+- Similar or related charts on Our World in Data and how they differ from this one (draw on the related-search-results section below, if present, and the documentation; only mention charts that actually exist, and skip this topic if you don't know any), and related writing that gives context to the chart's subject matter
 - Definitions of key terms a non-expert might not know
 - How this chart may differ from other sources (e.g. UN, World Bank, IMF) or OWID charts on the same topic, and why.
 
@@ -56,6 +56,7 @@ Follow these rules:
 - When you draw on general knowledge beyond the provided material (e.g. historical events that might explain a spike), say so explicitly.
 - Never invent numbers. If you're unsure about something, leave it out rather than guessing.
 - Keep each answer concise: one or two short paragraphs or a short list, in plain language accessible to non-experts.
+- The csv data you get is not complete — it is a sample of the full dataset. If a question requires the raw data, say so and answer from the documentation instead. Don't assume that any missing rows mean missing data - the sample may skip rows.
 - Format answers as simple Markdown (paragraphs, lists, bold). No headings, no tables. Include links to documentation and other Our World in Data charts and articles only if they actually exist.
 
 ${describeAskChartContext(context)}`
