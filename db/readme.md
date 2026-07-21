@@ -39,6 +39,10 @@ Make sure you write a **down** migration in case there is any chance things can 
 
 You can find examples of older migrations here: https://github.com/owid/owid-grapher/tree/2dd7f0661ba6fe7fdfb1ad2a59b9ef7ed7a2ad9f/db/migration
 
+### After a schema change
+
+Adding, dropping, or renaming tables or columns has effects beyond this repo. Go through the [checklist in `db/migration/CLAUDE.md`](./migration/CLAUDE.md) before merging. In particular, review whether the change affects the **public data export** (`public.duckdb`, published openly on Datasette): unreviewed schema changes break the nightly analytics bake and can leak private data. When in doubt, keep it out and ask the analytics team (`#data-analytics`).
+
 ### Reverting a migration
 
 To revert the last migration on **your local development server**, use `yarn revertLastDbMigration`. Running that repeatedly will revert additional migrations. This is useful when working with migrations locally – when you make a change to an existing migration, you need to revert and re-run it.
