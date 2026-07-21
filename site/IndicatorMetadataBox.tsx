@@ -18,8 +18,7 @@ import {
     OwidEnrichedGdocBlock,
     PrimaryTopic,
 } from "@ourworldindata/types"
-import { RefObject, useRef, useState } from "react"
-import { useResizeObserver } from "usehooks-ts"
+import { useRef } from "react"
 import {
     prepareSourcesForDisplay,
     getCitationShort,
@@ -31,7 +30,10 @@ import { Byline } from "./gdocs/components/Byline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons"
-import { getAttributionUnshortened } from "./datapageUtils.js"
+import {
+    getAttributionUnshortened,
+    splitDescriptionKey,
+} from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
 
@@ -45,24 +47,6 @@ function logExpandableToggle(target: string, isOpen: boolean): void {
         isOpen ? "expand_expandable_toggle" : "collapse_expandable_toggle",
         target
     )
-}
-
-// Whether the element's content is currently clipped by its box (e.g. by a
-// CSS max-height). Used to only show a "fade out" hint when there's actually
-// more content hidden below the fold.
-function useIsOverflowing(ref: RefObject<HTMLElement | null>): boolean {
-    const [isOverflowing, setIsOverflowing] = useState(false)
-
-    useResizeObserver({
-        ref: ref as RefObject<HTMLElement>,
-        onResize: () => {
-            const element = ref.current
-            if (!element) return
-            setIsOverflowing(element.scrollHeight > element.clientHeight)
-        },
-    })
-
-    return isOverflowing
 }
 
 interface ExpandableSectionProps {
@@ -166,29 +150,17 @@ function ExpandableSection({
         window.scrollBy(0, after - before)
     }
 
-    // The descriptionKey preview is clamped to a fixed height so a long
-    // free-form description doesn't blow up the box; it's released once the
-    // box is expanded, since the full text isn't shown anywhere else.
-    const [isBoxOpen, setIsBoxOpen] = useState(false)
-    const proseRef = useRef<HTMLDivElement>(null)
-    const isProseOverflowing = useIsOverflowing(proseRef)
+    // Only the start of a long descriptionKey is shown above the fold; the
+    // rest goes inside the <details> so that it works without JavaScript and
+    // browsers auto-expand it when in-page search matches hidden text.
+    const { preview: descriptionKeyPreview, remainder: descriptionKeyRest } =
+        splitDescriptionKey(datapageData.descriptionKey ?? "")
 
     return (
         <div className={cx("meta-expander", className)}>
-            {datapageData.descriptionKey && (
-                <div
-                    className={cx(
-                        "meta-expander__preview",
-                        "meta-expander__prose",
-                        {
-                            "meta-expander__prose--expanded": isBoxOpen,
-                            "meta-expander__prose--clamped":
-                                !isBoxOpen && isProseOverflowing,
-                        }
-                    )}
-                    ref={proseRef}
-                >
-                    <SimpleMarkdownText text={datapageData.descriptionKey} />
+            {descriptionKeyPreview && (
+                <div className="meta-expander__preview meta-expander__prose">
+                    <SimpleMarkdownText text={descriptionKeyPreview} />
                 </div>
             )}
             <details
@@ -199,7 +171,6 @@ function ExpandableSection({
                 // Guard to only react to this element's own toggle.
                 onToggle={(e) => {
                     if (e.target !== e.currentTarget) return
-                    setIsBoxOpen(e.currentTarget.open)
                     analytics.logSiteClick(
                         e.currentTarget.open
                             ? "expand_metadata_box"
@@ -227,6 +198,11 @@ function ExpandableSection({
                         />
                     </span>
                 </summary>
+                {descriptionKeyRest && (
+                    <div className="meta-expander__remainder meta-expander__prose">
+                        <SimpleMarkdownText text={descriptionKeyRest} />
+                    </div>
+                )}
                 {
                     <section className="meta-expander__section meta-expander__section--faqs">
                         <h2 className="meta-expander__section-title" id="faqs">
