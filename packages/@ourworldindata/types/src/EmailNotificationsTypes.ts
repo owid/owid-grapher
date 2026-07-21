@@ -12,9 +12,8 @@ export const EMAIL_NOTIFICATIONS_FROM_ADDRESS =
 export type EmailNotificationsFrequency =
     (typeof EMAIL_NOTIFICATIONS_FREQUENCIES)[number]
 
-// Lifetimes of the purpose-scoped tokens (tokens table). Short expiries are
-// cheap because every expired-link page has a resend button.
-export const EMAIL_NOTIFICATIONS_CONFIRM_TOKEN_TTL_MS = 48 * 60 * 60 * 1000
+// Lifetime of the magic-link tokens (tokens table). The short expiry is
+// cheap because the expired-link page offers to email a fresh link.
 export const EMAIL_NOTIFICATIONS_MAGIC_LINK_TTL_MS = 30 * 60 * 1000
 
 // User-facing labels for the subscribe/preferences form and the welcome
@@ -54,6 +53,32 @@ export const EmailNotificationsPreferencesTypeObject = z.object({
 export type EmailNotificationsPreferences = z.infer<
     typeof EmailNotificationsPreferencesTypeObject
 >
+
+/**
+ * Union of two sets of preferences, used when the public subscribe form is
+ * submitted for an address that already exists: the form is tokenless, so it
+ * may only ever broaden a subscription, never narrow one — otherwise anyone
+ * who knows an address could silently strip its preferences.
+ * - topicTags: union; an empty array means "all topics", so it wins.
+ * - contentTypes: union.
+ * - frequency: the incoming one — cadence is a setting, not subscription
+ *   scope, so the form's explicit choice wins.
+ */
+export function mergeEmailNotificationsPreferences(
+    existing: EmailNotificationsPreferences,
+    incoming: EmailNotificationsPreferences
+): EmailNotificationsPreferences {
+    return {
+        topicTags:
+            existing.topicTags.length === 0 || incoming.topicTags.length === 0
+                ? []
+                : [...new Set([...existing.topicTags, ...incoming.topicTags])],
+        contentTypes: [
+            ...new Set([...existing.contentTypes, ...incoming.contentTypes]),
+        ],
+        frequency: incoming.frequency,
+    }
+}
 
 export const EmailNotificationsSubscribeRequestTypeObject = z
     .object({
@@ -129,7 +154,8 @@ export type EmailNotificationsUpdatePreferencesRequest = z.infer<
 
 export interface EmailNotificationsPreferencesResponse {
     email?: string
-    // null when the user exists but has no confirmed preferences yet.
+    // null when the user exists but has no preferences row (fail-safe; the
+    // page falls back to defaults).
     preferences?: EmailNotificationsPreferences | null
     // "expired" (HTTP 410) drives the expired-magic-link state of the
     // preferences page, which offers to email a new link.
