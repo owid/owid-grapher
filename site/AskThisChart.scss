@@ -29,6 +29,26 @@
     margin-bottom: 16px;
 }
 
+.ask-this-chart__ask-toggle {
+    @include body-3-medium;
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 12px 16px;
+    background-color: $white;
+    color: $blue-90;
+    border: 1px solid $blue-20;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $blue-10;
+    }
+}
+
+.ask-this-chart__ask-panel {
+    margin-top: 16px;
+}
+
 .ask-this-chart__faq-answer {
     @include body-3-medium;
     color: $blue-90;
