@@ -91,4 +91,10 @@ export interface ChartInterface {
      * plotting area.
      */
     verticalLabelWidths?: SideWidths
+
+    /**
+     * How far the chart's plotting area is inset from its bounds on each side.
+     * Consumed by FacetChart to align facet labels with the plot content.
+     */
+    contentInset?: SideWidths
 }

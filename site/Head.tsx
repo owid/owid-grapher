@@ -43,6 +43,11 @@ export const Head = (props: {
     imageUrl?: string
     children?: any
     baseUrl: string
+    /**
+     * Ask search engines not to index the page. Also omits the canonical
+     * link, since a canonical on a noindexed page sends mixed signals.
+     */
+    noindex?: boolean
     atom?: {
         title: string
         href: string
@@ -82,7 +87,11 @@ export const Head = (props: {
             />
             <title>{fullPageTitle}</title>
             <meta name="description" content={pageDesc} />
-            <link rel="canonical" href={canonicalUrl} />
+            {props.noindex ? (
+                <meta name="robots" content="noindex" />
+            ) : (
+                <link rel="canonical" href={canonicalUrl} />
+            )}
             <link
                 rel="alternate"
                 type="application/atom+xml"

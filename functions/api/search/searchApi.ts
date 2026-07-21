@@ -4,7 +4,9 @@ import {
     Filter,
     ChartRecordType,
     SearchChartHit,
+    OwidGdocType,
 } from "@ourworldindata/types"
+import { getCanonicalUrl } from "@ourworldindata/components"
 import { getIndexName, AlgoliaConfig } from "./algoliaClient.js"
 
 /**
@@ -393,8 +395,16 @@ export async function searchPages(
             ...cleanHit
         } = hit as any
 
-        // Construct URL based on slug
-        const url = `${baseUrl}/${cleanHit.slug}`
+        // Construct URL based on slug + type: different gdoc types bake to
+        // different path prefixes (e.g. data-insights -> /data-insights/,
+        // profiles -> /profile/) — getCanonicalUrl/getPrefixedGdocPath is the
+        // single source of truth the baker itself uses, so newly-exposed
+        // pageTypes (beyond the original article/about-page) resolve to
+        // working links instead of a bare `${baseUrl}/${slug}` guess.
+        const url = getCanonicalUrl(baseUrl, {
+            slug: cleanHit.slug,
+            content: { type: cleanHit.type as OwidGdocType },
+        })
 
         return {
             ...cleanHit,
