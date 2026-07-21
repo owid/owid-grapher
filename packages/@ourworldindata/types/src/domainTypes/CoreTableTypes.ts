@@ -115,14 +115,14 @@ type CoreVector = any[]
 export type CoreMatrix = CoreVector[]
 
 export enum OwidTableSlugs {
-    entityName = "entityName",
-    entityColor = "entityColor",
-    entityId = "entityId",
-    entityCode = "entityCode",
-    time = "time",
-    day = "day",
-    year = "year",
-    date = "date",
+    EntityName = "entityName",
+    EntityColor = "entityColor",
+    EntityId = "entityId",
+    EntityCode = "entityCode",
+    Time = "time",
+    Day = "day",
+    Year = "year",
+    Date = "date",
 }
 
 enum OwidTableNames {
@@ -270,18 +270,18 @@ export interface OwidColumnDef extends CoreColumnDef {
 
 export const OwidEntityNameColumnDef = {
     name: OwidTableNames.Entity,
-    slug: OwidTableSlugs.entityName,
+    slug: OwidTableSlugs.EntityName,
     type: ColumnTypeNames.EntityName,
 }
 
 export const OwidEntityIdColumnDef = {
-    slug: OwidTableSlugs.entityId,
+    slug: OwidTableSlugs.EntityId,
     type: ColumnTypeNames.EntityId,
 }
 
 export const OwidEntityCodeColumnDef = {
     name: OwidTableNames.Code,
-    slug: OwidTableSlugs.entityCode,
+    slug: OwidTableSlugs.EntityCode,
     type: ColumnTypeNames.EntityCode,
 }
 

@@ -134,9 +134,9 @@ export const guessColumnDefFromSlugAndRow = (
             name: "Year",
         }
 
-    if (slug === OwidTableSlugs.entityName) return OwidEntityNameColumnDef
-    if (slug === OwidTableSlugs.entityCode) return OwidEntityCodeColumnDef
-    if (slug === OwidTableSlugs.entityId) return OwidEntityIdColumnDef
+    if (slug === OwidTableSlugs.EntityName) return OwidEntityNameColumnDef
+    if (slug === OwidTableSlugs.EntityCode) return OwidEntityCodeColumnDef
+    if (slug === OwidTableSlugs.EntityId) return OwidEntityIdColumnDef
 
     if (slug === "date")
         return {

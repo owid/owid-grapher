@@ -715,7 +715,7 @@ export class DataTable extends React.Component<DataTableProps> {
                 })
                 .filter((col) => col)
 
-        const skips = new Set(Object.keys(OwidTableSlugs))
+        const skips = new Set<string>(Object.values(OwidTableSlugs))
         return this.table.columnsAsArray.filter(
             (column) =>
                 !skips.has(column.slug) &&
