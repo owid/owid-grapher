@@ -2017,19 +2017,17 @@ export class GrapherState
         const isChartTypeThatShowsAllEntities =
             this.isChartTypeThatShowsAllEntities(tab)
 
-        // On a scatter plot, a selection moves all other entities into a
-        // faded background layer, so a selection authored for another tab
-        // (e.g. a line chart) would visually filter the scatter. We therefore
-        // clear the selection unless the user has explicitly changed it.
-        // This intentionally does NOT apply to:
-        // - Marimekko charts, where a selection only bolds and prioritises
-        //   entity labels and hides nothing, and where most published charts
-        //   share their selection with sibling tabs like a line chart
-        // - the editor, which persists the live selection on save, so this
-        //   temporary display adjustment would permanently wipe an authored
-        //   selection (see #6794)
+        // If the chart show all entities (e.g. scatter plot or Marimekko chart),
+        // then we typically prefer no selection unless the user has explicitly
+        // made changes to the default selection.
+        // In the editor, this clearing is skipped: it's meant to be a
+        // temporary, display-only adjustment that gets restored when
+        // switching back to a tab that shows a subset of entities, but the
+        // editor can persist the live selection as-is when saving, which
+        // would otherwise wipe out an authored selection just by previewing
+        // a different chart type.
         if (
-            tab === GRAPHER_TAB_NAMES.ScatterPlot &&
+            isChartTypeThatShowsAllEntities &&
             !this.areSelectedEntitiesDifferentThanAuthors &&
             !this.isEditor
         ) {
