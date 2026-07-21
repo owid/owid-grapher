@@ -663,26 +663,81 @@ describe("urls", () => {
         expect(grapher.isTimelineAnimationPlaying).toBe(false)
     })
 
-    it("keeps an authored entity selection when switching to Marimekko in the editor", () => {
+    it("keeps an authored entity selection when switching to Marimekko", () => {
+        const grapher = new GrapherState({
+            chartTypes: [
+                GRAPHER_CHART_TYPES.LineChart,
+                GRAPHER_CHART_TYPES.Marimekko,
+            ],
+            selectedEntityNames: ["World"],
+        })
+
+        const previousTab = grapher.activeTab
+        grapher.setTab(GRAPHER_TAB_NAMES.Marimekko)
+        grapher.onTabChange(previousTab, GRAPHER_TAB_NAMES.Marimekko)
+
+        expect(grapher.selection.selectedEntityNames).toEqual(["World"])
+    })
+
+    // A scatter plot moves unselected entities into a faded background
+    // layer, so a selection authored for a sibling tab (e.g. a line chart)
+    // is cleared when switching to the scatter tab
+    const makeScatterGrapher = (): GrapherState => {
+        const table = SynthesizeGDPTable({
+            entityCount: 5,
+            timeRange: [2000, 2001],
+        })
+        return new GrapherState({
+            table,
+            chartTypes: [
+                GRAPHER_CHART_TYPES.LineChart,
+                GRAPHER_CHART_TYPES.ScatterPlot,
+            ],
+            selectedEntityNames: table.availableEntityNames.slice(0, 2),
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: SampleColumnSlugs.GDP as any,
+                },
+                {
+                    slug: SampleColumnSlugs.Population,
+                    property: DimensionProperty.x,
+                    variableId: SampleColumnSlugs.Population as any,
+                },
+            ],
+        })
+    }
+
+    it("clears an authored entity selection when switching to a scatter plot", () => {
+        const grapher = makeScatterGrapher()
+        expect(grapher.selection.hasSelection).toBe(true)
+
+        const previousTab = grapher.activeTab
+        grapher.setTab(GRAPHER_TAB_NAMES.ScatterPlot)
+        grapher.onTabChange(previousTab, GRAPHER_TAB_NAMES.ScatterPlot)
+
+        expect(grapher.selection.selectedEntityNames).toEqual([])
+    })
+
+    it("keeps an authored entity selection when switching to a scatter plot in the editor", () => {
         // `isEditor` is read from `window.isEditor` at construction time,
         // mirroring how the admin chart editor marks itself. This test file
         // runs in a plain (non-jsdom) environment, so `window` doesn't
         // otherwise exist here.
         ;(globalThis as any).window = { isEditor: true }
         try {
-            const grapher = new GrapherState({
-                chartTypes: [
-                    GRAPHER_CHART_TYPES.LineChart,
-                    GRAPHER_CHART_TYPES.Marimekko,
-                ],
-                selectedEntityNames: ["World"],
-            })
+            const grapher = makeScatterGrapher()
+            const selectedEntityNames = grapher.selection.selectedEntityNames
+            expect(selectedEntityNames).toHaveLength(2)
 
             const previousTab = grapher.activeTab
-            grapher.setTab(GRAPHER_TAB_NAMES.Marimekko)
-            grapher.onTabChange(previousTab, GRAPHER_TAB_NAMES.Marimekko)
+            grapher.setTab(GRAPHER_TAB_NAMES.ScatterPlot)
+            grapher.onTabChange(previousTab, GRAPHER_TAB_NAMES.ScatterPlot)
 
-            expect(grapher.selection.selectedEntityNames).toEqual(["World"])
+            expect(grapher.selection.selectedEntityNames).toEqual(
+                selectedEntityNames
+            )
         } finally {
             delete (globalThis as any).window
         }
