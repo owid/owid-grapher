@@ -2,14 +2,14 @@
 
 The plan for replacing the controls row's hardcoded responsive breakpoints
 with a layout system that _guarantees_ labels, buttons, and tabs never
-overlap — at any width, for any chart configuration. Phases 1–3 are
+overlap — at any width, for any chart configuration. Phases 1–4 are
 implemented (branch `controls-row-layout`); the rest are future steps.
 
 Relevant code lives in
 `packages/@ourworldindata/grapher/src/controls/controlsRow/`:
 
-- `controlsRowLayout.ts` — the layout ladder + per-tab width composition
-- `controlsRowConstants.ts` — sizing constants, `measureButtonWidth`, and
+- `ControlsRowLayout.ts` — the layout ladder + per-tab width composition
+- `ControlsRowConstants.ts` — sizing constants, `measureButtonWidth`, and
   the derived CSS custom properties; text is measured with the shared
   `textWidth` from `ChartUtils`, which honors `FontSettings.letterSpacing`
 - `ControlsRow.tsx` — computes the layout and passes it to the controls
@@ -70,27 +70,37 @@ The row renders the most verbose layout that satisfies it.
    `static estimateWidth(manager, props)` co-located with its render method
    (and its `shouldShow` — it returns 0 when the control is hidden). The
    options parameter is the component's own render props, so measure-inputs
-   equal render-inputs by construction. `controlsRowLayout.ts` only composes
+   equal render-inputs by construction. `ControlsRowLayout.ts` only composes
    these estimates per tab, mirroring `ControlsRow`'s render methods.
 2. **Pick a layout.** `CONTROLS_ROW_LAYOUT_LADDER` lists configurations
    from most to least verbose; each rung drops the least important
-   remaining piece, mirroring the order the old breakpoints implied:
+   remaining piece. The settings label goes before the entity label
+   (deliberately unlike the old breakpoints): the settings icon is a
+   recognizable affordance on its own, while the entity label is the
+   button's whole meaning ([#6399](https://github.com/owid/owid-grapher/issues/6399)).
 
-    | rung | change                             |
-    | ---- | ---------------------------------- |
-    | 0    | everything full, tab padding 16px  |
-    | 1    | tab padding 16 → 12px              |
-    | 2    | entity name dropped ("Edit")       |
-    | 3    | settings label dropped (icon only) |
-    | 4    | tab labels dropped (icons only)    |
-    | 5    | tab padding 12 → 8px               |
+    | rung | change                                   |
+    | ---- | ---------------------------------------- |
+    | 0    | everything full, tab padding 16px        |
+    | 1    | tab padding 16 → 12px                    |
+    | 2    | settings label dropped (icon only)       |
+    | 3    | entity name shortened ("Edit countries") |
+    | 4    | tab labels dropped (icons only)          |
+    | 5    | entity name dropped ("Edit")             |
+    | 6    | tab padding 12 → 8px                     |
+
+    Tab labels drop before the entity name collapses to its action:
+    the tab icons are self-explanatory, and this is what keeps
+    "Edit countries" alive at phone widths (~330–540px) — with the
+    reverse order, phones would land on the bare "Edit" that #6399
+    was filed about.
 
     `chooseControlsRowLayout` returns the first rung that fits the width
     budget (`maxWidth` from `CaptionedChart`) with a `SAFETY_MARGIN` for
     text-measurement error; if nothing fits, the last rung renders.
 
 3. **Render.** `ControlsRow` passes the chosen layout as props
-   (`showEntityLabel`, `showLabel`, `showTabLabels`, `tabPadding`); the
+   (`entityLabelMode`, `showLabel`, `showTabLabels`, `tabPadding`); the
    controls render exactly the chosen label — no hidden DOM variants, no
    CSS breakpoints.
 
@@ -99,7 +109,7 @@ paint and reacts to resizes, fullscreen, and map-state changes.
 
 ## Phase 1: pure refactor — ✅ done (`3f57814`)
 
-- New `controlsRowLayout.ts` with the measurement + ladder.
+- New `ControlsRowLayout.ts` with the measurement + ladder.
 - Label derivation extracted into pure functions shared by measurer and
   renderer.
 - Props plumbed from `ControlsRow` into `EntitySelectionToggle`,
@@ -111,8 +121,8 @@ paint and reacts to resizes, fullscreen, and map-state changes.
 - Unit tests for the ladder (monotonicity, chosen layout always fits,
   verbosity degrades with width, longer entity names collapse earlier);
   since removed.
-- Deliberately no new features: entity labels only know "full" and
-  "action only" (see future steps for #6399).
+- Deliberately no new features: entity labels only knew "full" and
+  "action only" (extended in phase 4 for #6399).
 
 Intended behavior shift: labels collapse when they actually stop fitting,
 which is later than the old conservative breakpoints (e.g. the default
@@ -122,7 +132,7 @@ of 675px).
 ## Phase 2: single-source constants via CSS custom properties — ✅ done (`11baa91`)
 
 The sizing constants started as TS copies of stylesheet values, synced by
-comment. Now `controlsRowConstants.ts` is the single source of truth:
+comment. Now `ControlsRowConstants.ts` is the single source of truth:
 `ControlsRow` injects every constant as a CSS custom property on
 `nav.controlsRow`, and the stylesheets consume them via `var(...)` with
 fallback values, so the styles degrade gracefully if a rule ever applies
@@ -151,7 +161,7 @@ Special cases to be aware of:
 ### Known limits
 
 - Injection synchronizes **values, not structure**. The composition
-  functions in `controlsRowLayout.ts` mirror `ControlsRow`'s `render*`
+  functions in `ControlsRowLayout.ts` mirror `ControlsRow`'s `render*`
   methods (which controls render on which tab, gaps between them,
   single-line row) — when adding a control, give it an `estimateWidth`
   static and add it to the matching `measure*ControlsWidth` function.
@@ -175,14 +185,14 @@ beside its `shouldShow` and render:
   `ControlsRowLayout` — that would create an import cycle.
 - Labels used by both render and measure ("Settings", "Reset zoom",
   "Zoom to selection") are defined once per component.
-- `measureButtonWidth` lives in `controlsRowConstants.ts` — it interprets
+- `measureButtonWidth` lives in `ControlsRowConstants.ts` — it interprets
   the shared button style, not any single component, and it can't live in
-  `controlsRowLayout.ts` because the components that call it are imported
+  `ControlsRowLayout.ts` because the components that call it are imported
   there (cycle). Text is measured with `textWidth` from `ChartUtils`,
   extended to honor an optional `FontSettings.letterSpacing` (in em);
   `BUTTON_FONT` / `TAB_FONT` carry it so call sites can't forget the
   spacing.
-- `controlsRowLayout.ts` shrank to the layout policy: the ladder, the
+- `ControlsRowLayout.ts` shrank to the layout policy: the ladder, the
   chooser, and the per-tab composition functions that mirror `ControlsRow`'s
   render methods (cross-referenced by comments in both directions).
 
@@ -191,6 +201,25 @@ estimate on screen); _composition_ drift (adding a control to a tab without
 adding it to that tab's `measure*` function) still relies on the mirror
 comments — a dev-mode estimated-vs-actual width assertion would be the
 structural guard, see future steps.
+
+## Phase 4: short entity names ([#6399](https://github.com/owid/owid-grapher/issues/6399)) — ✅ done
+
+The `showEntityLabel` boolean became a three-state
+`entityLabelMode: "full" | "short" | "action-only"` (`EntityLabelMode` in
+`EntitySelectionToggle`), with one new ladder rung between "full" and
+"action-only". Only the _default_ entity types have a short version
+("countries and regions" → "countries", "country or region" → "country");
+shortening custom entity types automatically would be unpredictable, so
+for them the short rung is a no-op (equal width, falls through). That also
+means the map tab's already-short "Select countries" survives one rung
+longer, as intended.
+
+For the short label to actually appear on phones, the "hide tab labels"
+rung had to move _above_ "hide entity name": with the old order, a 375px
+frame skips the short rung (tabs with labels ≈ 231px + "Edit countries"
+≈ 122px + settings icon don't fit) and lands on icon tabs + bare "Edit" —
+the exact state the issue was filed about. With the swap, phones get icon
+tabs + "Edit countries".
 
 ## Future steps
 
@@ -201,29 +230,22 @@ Roughly in priority order:
    320–730px and charts with custom entity types); confirm nothing overlaps
    and the collapse order feels right. Tune `SAFETY_MARGIN` if labels sit
    too tight or collapse too eagerly.
-2. **Short entity names ([#6399](https://github.com/owid/owid-grapher/issues/6399)).**
-   Add a rung between "full entity label" and "action only" that renders
-   "Edit countries" for the default "Edit countries and regions" (and
-   "Change country" for "country or region"). With the ladder in place this
-   is an `entityShort` derivation, one extra ladder rung, and a render
-   branch in `EntitySelectionToggle`. The map tab's "Select countries" is
-   already short and could stay visible on narrow screens the same way.
-3. **Fold the table tab's filter dropdown into the ladder.** It currently
+2. **Fold the table tab's filter dropdown into the ladder.** It currently
    hides via the unrelated `isSemiNarrow` flag (≤550px frame width) in
    `DataTableFilterDropdown.shouldShow`; a ladder rung ("drop the filter
    dropdown when the row doesn't fit") would replace the last magic
    breakpoint in the row. Careful: `shouldShow` feeds the measurement, so
    the visibility decision must move out of `shouldShow` to avoid a
    circular dependency.
-4. **Map buttons at narrow widths.** "Zoom to selection" / "Reset view" /
+3. **Map buttons at narrow widths.** "Zoom to selection" / "Reset view" /
    "Reset zoom" never collapse today. If the map controls row gets crowded,
    an icon-only rung for them is cheap — needs a design decision first.
-5. **Overflow ("priority+") menu.** If the number of chart controls keeps
+4. **Overflow ("priority+") menu.** If the number of chart controls keeps
    growing, dropping controls into a `⋯` menu is the natural final rung —
    the measurement infrastructure to decide what overflows already exists
    (this was option D, and the old `Controls.scss` TODO about a variable
    number of buttons).
-6. **Metric upgrades if estimates prove too rough** (option B′): derive
+5. **Metric upgrades if estimates prove too rough** (option B′): derive
    per-icon widths from the FontAwesome icon definitions
    (`icon.icon[0]/[1]`) instead of one pinned width, and/or replace
    `Bounds.forText` with canvas `measureText` at runtime — grapher's
