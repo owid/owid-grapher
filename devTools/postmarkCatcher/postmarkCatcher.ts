@@ -10,7 +10,7 @@
  *
  * Accepts POST /email (and /email/batch), stores the payloads in memory, and
  * serves an index at http://localhost:8025 with each email's HTML body
- * viewable, so confirmation/magic links can be clicked.
+ * viewable, so magic links can be clicked.
  */
 import http from "node:http"
 import crypto from "node:crypto"
