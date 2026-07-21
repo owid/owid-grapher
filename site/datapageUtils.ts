@@ -98,6 +98,14 @@ function joinMarkdownBlocks(blocks: MarkdownBlock[]): string {
 // Roughly the amount of text that fit the previously used 220px-tall clamp.
 const PREVIEW_CHARACTER_BUDGET = 1000
 
+const MARKDOWN_LINK = /\[([^\]]*)\]\([^)]*\)/g
+
+// Measure a block by its visible text — link targets take up no preview
+// space, so `[text](url)` counts as just `text`.
+function visibleLength(block: MarkdownBlock): number {
+    return block.lines.join("\n").replace(MARKDOWN_LINK, "$1").length
+}
+
 // How many blocks of the descriptionKey to show in the preview:
 // - if it has headings, the first heading's section (up to the next heading)
 // - if it's a bulleted list, the first three bullets (plus any intro text)
@@ -125,7 +133,7 @@ function findPreviewEnd(blocks: MarkdownBlock[]): number {
 
     let budgetLeft = PREVIEW_CHARACTER_BUDGET
     for (let i = 0; i < previewEnd; i++) {
-        budgetLeft -= blocks[i].lines.join("\n").length
+        budgetLeft -= visibleLength(blocks[i])
         if (budgetLeft < 0 && i > 0) return i
     }
     return previewEnd

@@ -140,6 +140,18 @@ describe(splitDescriptionKey, () => {
         expect(remainder).toBe([bullet, bullet].join("\n"))
     })
 
+    it("doesn't count link URLs toward the preview budget", () => {
+        // three bullets of ~330 visible chars each, plus a long link URL in
+        // every bullet — visible text fits the budget, raw markdown wouldn't
+        const url = `https://example.org/${"very-long-path/".repeat(10)}`
+        const bullet = `- ${"lorem ipsum ".repeat(26)}[read more](${url})`
+        const text = [bullet, bullet, bullet].join("\n")
+        expect(splitDescriptionKey(text)).toEqual({
+            preview: text,
+            remainder: "",
+        })
+    })
+
     it("keeps a single over-budget block intact in the preview", () => {
         const long = "word ".repeat(500).trim()
         expect(splitDescriptionKey(long)).toEqual({
