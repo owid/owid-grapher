@@ -37,7 +37,9 @@ export default function AskThisChart({ slug }: { slug: string }) {
     const [input, setInput] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | undefined>(undefined)
+    const [isQuestionBarExpanded, setIsQuestionBarExpanded] = useState(false)
     const abortControllerRef = useRef<AbortController | undefined>(undefined)
+    const inputRef = useRef<HTMLInputElement>(null)
 
     // Load the pre-generated, chart-specific FAQ entries
     useEffect(() => {
@@ -62,6 +64,11 @@ export default function AskThisChart({ slug }: { slug: string }) {
         void loadFaqs()
         return () => abortController.abort()
     }, [slug])
+
+    // Focus the input when the visitor expands the question bar
+    useEffect(() => {
+        if (isQuestionBarExpanded) inputRef.current?.focus()
+    }, [isQuestionBarExpanded])
 
     const askQuestion = useCallback(
         async (question: string): Promise<void> => {
@@ -145,18 +152,23 @@ export default function AskThisChart({ slug }: { slug: string }) {
         [messages, slug]
     )
 
-    const showFallbackQuestions =
-        !isLoadingFaqs && !faqs && messages.length === 0
+    const faqsUnavailable = !isLoadingFaqs && !faqs
+    const showFallbackQuestions = faqsUnavailable && messages.length === 0
+    // Keep the freeform question bar hidden by default; reveal it when the
+    // visitor asks for it, once a conversation is underway, or as the primary
+    // entry point when the generated FAQs couldn't be loaded.
+    const showQuestionBar =
+        isQuestionBarExpanded || messages.length > 0 || faqsUnavailable
 
     return (
         <div className="ask-this-chart-wrapper span-cols-14 grid grid-cols-12-full-width">
             <h2 className="h2-bold span-cols-9 col-start-2 col-md-start-2 span-md-cols-12 col-sm-start-2 span-sm-cols-12">
-                Ask this chart
+                Common questions about this chart
             </h2>
             <div className="ask-this-chart span-cols-9 col-start-2 col-md-start-2 span-md-cols-12 col-sm-start-2 span-sm-cols-12">
                 <p className="ask-this-chart__intro">
-                    Common questions about this chart, answered by an AI model
-                    based on the chart's data and source documentation.
+                    Answered by an AI model based on the chart's data and source
+                    documentation.
                 </p>
                 {isLoadingFaqs && (
                     <p className="ask-this-chart__faqs-loading">
@@ -194,60 +206,78 @@ export default function AskThisChart({ slug }: { slug: string }) {
                         ))}
                     </div>
                 )}
-                {messages.length > 0 && (
-                    <div className="ask-this-chart__conversation">
-                        {messages.map((message, messageIndex) =>
-                            message.role === "user" ? (
-                                <p
-                                    key={messageIndex}
-                                    className="ask-this-chart__question"
-                                >
-                                    {message.content}
-                                </p>
-                            ) : (
-                                <div
-                                    key={messageIndex}
-                                    className="ask-this-chart__answer"
-                                >
-                                    {message.content ? (
-                                        <SimpleMarkdownText
-                                            text={message.content}
-                                        />
-                                    ) : (
-                                        <p className="ask-this-chart__thinking">
-                                            Thinking…
+                {!showQuestionBar && !isLoadingFaqs && (
+                    <button
+                        type="button"
+                        className="ask-this-chart__ask-toggle"
+                        onClick={() => setIsQuestionBarExpanded(true)}
+                    >
+                        Have a different question? Ask this chart
+                    </button>
+                )}
+                {showQuestionBar && (
+                    <div className="ask-this-chart__ask-panel">
+                        {messages.length > 0 && (
+                            <div className="ask-this-chart__conversation">
+                                {messages.map((message, messageIndex) =>
+                                    message.role === "user" ? (
+                                        <p
+                                            key={messageIndex}
+                                            className="ask-this-chart__question"
+                                        >
+                                            {message.content}
                                         </p>
-                                    )}
-                                </div>
-                            )
+                                    ) : (
+                                        <div
+                                            key={messageIndex}
+                                            className="ask-this-chart__answer"
+                                        >
+                                            {message.content ? (
+                                                <SimpleMarkdownText
+                                                    text={message.content}
+                                                />
+                                            ) : (
+                                                <p className="ask-this-chart__thinking">
+                                                    Thinking…
+                                                </p>
+                                            )}
+                                        </div>
+                                    )
+                                )}
+                            </div>
                         )}
+                        {error && (
+                            <p className="ask-this-chart__error">{error}</p>
+                        )}
+                        <form
+                            className="ask-this-chart__form"
+                            onSubmit={(event) => {
+                                event.preventDefault()
+                                void askQuestion(input)
+                            }}
+                        >
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                className="ask-this-chart__input"
+                                value={input}
+                                maxLength={MAX_QUESTION_LENGTH}
+                                placeholder="Ask your own question about this chart"
+                                aria-label="Ask your own question about this chart"
+                                onChange={(event) =>
+                                    setInput(event.target.value)
+                                }
+                            />
+                            <button
+                                type="submit"
+                                className="ask-this-chart__submit"
+                                disabled={isLoading || !input.trim()}
+                            >
+                                Ask
+                            </button>
+                        </form>
                     </div>
                 )}
-                {error && <p className="ask-this-chart__error">{error}</p>}
-                <form
-                    className="ask-this-chart__form"
-                    onSubmit={(event) => {
-                        event.preventDefault()
-                        void askQuestion(input)
-                    }}
-                >
-                    <input
-                        type="text"
-                        className="ask-this-chart__input"
-                        value={input}
-                        maxLength={MAX_QUESTION_LENGTH}
-                        placeholder="Ask your own question about this chart"
-                        aria-label="Ask your own question about this chart"
-                        onChange={(event) => setInput(event.target.value)}
-                    />
-                    <button
-                        type="submit"
-                        className="ask-this-chart__submit"
-                        disabled={isLoading || !input.trim()}
-                    >
-                        Ask
-                    </button>
-                </form>
                 <p className="ask-this-chart__disclaimer">
                     Answers are generated by an AI model and may contain
                     mistakes. Please check them against the sources documented
