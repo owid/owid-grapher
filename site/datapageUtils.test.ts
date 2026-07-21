@@ -49,8 +49,14 @@ describe(splitDescriptionKey, () => {
     })
 
     it("includes intro paragraphs before a list in the preview", () => {
-        const text = ["Some intro.", "", "- one", "- two", "- three", "- four"]
-            .join("\n")
+        const text = [
+            "Some intro.",
+            "",
+            "- one",
+            "- two",
+            "- three",
+            "- four",
+        ].join("\n")
         expect(splitDescriptionKey(text)).toEqual({
             preview: "Some intro.\n\n- one\n- two\n- three",
             remainder: "- four",
@@ -68,8 +74,14 @@ describe(splitDescriptionKey, () => {
     })
 
     it("keeps multi-line paragraphs together", () => {
-        const text = ["First line", "continues here.", "", "Second.", "", "Third."]
-            .join("\n")
+        const text = [
+            "First line",
+            "continues here.",
+            "",
+            "Second.",
+            "",
+            "Third.",
+        ].join("\n")
         expect(splitDescriptionKey(text)).toEqual({
             preview: "First line\ncontinues here.\n\nSecond.",
             remainder: "Third.",
