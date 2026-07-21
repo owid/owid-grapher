@@ -411,12 +411,10 @@ export class DumbbellChart
                         start: {
                             text: formatColumn.formatTime(startTime),
                             color: GRAPHER_LIGHT_TEXT,
-                            textAnchor: "center",
                         } satisfies LegendLabel,
                         end: {
                             text: formatColumn.formatTime(endTime),
                             color: GRAPHER_LIGHT_TEXT,
-                            textAnchor: "center",
                         } satisfies LegendLabel,
                     }
                 })
@@ -429,12 +427,10 @@ export class DumbbellChart
                         start: {
                             text: startColumn.nonEmptyDisplayName,
                             color: darkenColorForText(columnColors.start),
-                            textAnchor: "outward",
                         } satisfies LegendLabel,
                         end: {
                             text: endColumn.nonEmptyDisplayName,
                             color: darkenColorForText(columnColors.end),
-                            textAnchor: "outward",
                         } satisfies LegendLabel,
                     }
                 })
@@ -491,49 +487,59 @@ export class DumbbellChart
 
         const sortedSeries = _.sortBy(this.placedSeries, (series) => series.y)
 
-        // Find the top-most series that has a visible change
-        const topSeries =
-            sortedSeries.find((s) => s.start.x !== s.end.x) ?? sortedSeries[0]
+        const topSeries = match(this.chartState.mode)
+            // In time-range mode, anchor to the top-most series so the
+            // legend labels align with its value labels
+            .with(DumbbellMode.TimeRange, () => sortedSeries[0])
+            // In two-column mode, anchor to the top-most series that has a
+            // visible change
+            .with(
+                DumbbellMode.TwoColumn,
+                () =>
+                    sortedSeries.find((s) => s.start.x !== s.end.x) ??
+                    sortedSeries[0]
+            )
+            .exhaustive()
 
         if (!topSeries) return undefined
 
         const resolveTextAnchor = ({
-            label,
             head,
             otherHead,
         }: {
-            label: LegendLabel
             head: PlacedDumbbellHead
             otherHead: PlacedDumbbellHead
         }): HorizontalAlign =>
-            match(label.textAnchor)
-                .with("center", () => HorizontalAlign.center)
-                .with("outward", () =>
-                    head.x <= otherHead.x
-                        ? HorizontalAlign.right
-                        : HorizontalAlign.left
-                )
-                .exhaustive()
+            head.x <= otherHead.x ? HorizontalAlign.right : HorizontalAlign.left
 
-        // Shift outward-anchored labels inward by a bit
-        const offsetMagnitude = Math.min(
-            20,
-            Math.floor(Math.abs(topSeries.end.x - topSeries.start.x) / 4)
-        )
-        const inwardOffset = (textAnchor: HorizontalAlign): number =>
-            match(textAnchor)
-                .with(HorizontalAlign.right, () => offsetMagnitude)
-                .with(HorizontalAlign.left, () => -offsetMagnitude)
-                .with(HorizontalAlign.center, () => 0)
+        const offset = (textAnchor: HorizontalAlign): number =>
+            match(this.chartState.mode)
+                // In time-range mode, shift labels outward by the same gap
+                // as the value labels so both align perfectly
+                .with(DumbbellMode.TimeRange, () =>
+                    textAnchor === HorizontalAlign.right
+                        ? -VALUE_LABEL_DOT_GAP
+                        : VALUE_LABEL_DOT_GAP
+                )
+                // In two-column mode, shift labels inward by a bit
+                .with(DumbbellMode.TwoColumn, () => {
+                    const magnitude = Math.min(
+                        20,
+                        Math.floor(
+                            Math.abs(topSeries.end.x - topSeries.start.x) / 4
+                        )
+                    )
+                    return textAnchor === HorizontalAlign.right
+                        ? magnitude
+                        : -magnitude
+                })
                 .exhaustive()
 
         const startAnchor = resolveTextAnchor({
-            label: legendLabels.start,
             head: topSeries.start,
             otherHead: topSeries.end,
         })
         const endAnchor = resolveTextAnchor({
-            label: legendLabels.end,
             head: topSeries.end,
             otherHead: topSeries.start,
         })
@@ -541,13 +547,13 @@ export class DumbbellChart
         return [
             {
                 text: legendLabels.start.text,
-                x: topSeries.start.x + inwardOffset(startAnchor),
+                x: topSeries.start.x + offset(startAnchor),
                 color: legendLabels.start.color,
                 textAnchor: startAnchor,
             },
             {
                 text: legendLabels.end.text,
-                x: topSeries.end.x + inwardOffset(endAnchor),
+                x: topSeries.end.x + offset(endAnchor),
                 color: legendLabels.end.color,
                 textAnchor: endAnchor,
             },
