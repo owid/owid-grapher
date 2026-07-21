@@ -28,6 +28,7 @@ function ChartRow({ row }: { row: EnrichedChartRowItem }) {
     if (onGuidedChartLinkClick) {
         return (
             <div className="chart-rows__row">
+                {content}
                 <button
                     className="chart-thumbnail"
                     onClick={() => onGuidedChartLinkClick(row.url)}
@@ -36,13 +37,13 @@ function ChartRow({ row }: { row: EnrichedChartRowItem }) {
                 >
                     {thumbnail}
                 </button>
-                {content}
             </div>
         )
     }
 
     return (
         <div className="chart-rows__row">
+            {content}
             <a
                 href={row.url}
                 className="chart-thumbnail"
@@ -51,7 +52,6 @@ function ChartRow({ row }: { row: EnrichedChartRowItem }) {
             >
                 {thumbnail}
             </a>
-            {content}
         </div>
     )
 }

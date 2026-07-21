@@ -62,6 +62,9 @@
 
     @include sm-only {
         width: calc(10 / 12 * 100%); // emulating 10 columns without grid
+        // Keep the chart above the text when stacked on mobile, even though
+        // the text now comes first in source order for the left/right layout.
+        order: -1;
     }
 }
 
