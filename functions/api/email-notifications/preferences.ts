@@ -41,7 +41,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
         const token = new URL(request.url).searchParams.get("token")
         if (!token || !db) return tokenErrorResponse({ state: "invalid" })
 
-        const lookup = await lookupEmailToken(db, token, "magic-link")
+        const lookup = await lookupEmailToken(db, token)
         if (lookup.state !== "valid") return tokenErrorResponse(lookup)
 
         const user = await db
@@ -115,7 +115,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             )
         }
 
-        const lookup = await lookupEmailToken(db, data.token, "magic-link")
+        const lookup = await lookupEmailToken(db, data.token)
         if (lookup.state !== "valid") return tokenErrorResponse(lookup)
         const userId = lookup.row.user_id
 
