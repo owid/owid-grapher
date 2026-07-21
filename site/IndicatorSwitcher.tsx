@@ -1,11 +1,16 @@
-import { useEffect, useRef, useState } from "react"
-import { createPortal } from "react-dom"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons"
-import { DataPageDataV2 } from "@ourworldindata/types"
-
-type IndicatorEntry = { datapageData: DataPageDataV2 }
+import {
+    Select,
+    Button,
+    Popover,
+    ListBox,
+    ListBoxItem,
+} from "react-aria-components"
+import { useMediaQuery } from "usehooks-ts"
+import { AdditionalIndicator, DataPageDataV2 } from "@ourworldindata/types"
+import { SMALL_BREAKPOINT_MEDIA_QUERY } from "./SiteConstants.js"
 
 const labelForIndicator = (datapageData: DataPageDataV2): string => {
     const title = datapageData.title.title
@@ -41,29 +46,12 @@ export const IndicatorAboutLabel = ({
 const MAX_VISIBLE_TABS_DESKTOP = 5
 const MAX_VISIBLE_TABS_MOBILE = 3
 
-// Matches the SCSS `@media (max-width: 767px)` breakpoint used for the
-// v-tabs responsive stack in IndicatorSwitcher.scss.
-const MOBILE_MEDIA_QUERY = "(max-width: 767px)"
-
-const useIsMobile = (): boolean => {
-    const [isMobile, setIsMobile] = useState(false)
-    useEffect(() => {
-        if (typeof window === "undefined" || !window.matchMedia) return
-        const mq = window.matchMedia(MOBILE_MEDIA_QUERY)
-        const update = () => setIsMobile(mq.matches)
-        update()
-        mq.addEventListener("change", update)
-        return () => mq.removeEventListener("change", update)
-    }, [])
-    return isMobile
-}
-
 const splitForOverflow = (
-    indicators: IndicatorEntry[],
+    indicators: AdditionalIndicator[],
     max: number
 ): {
-    visible: IndicatorEntry[]
-    overflow: IndicatorEntry[]
+    visible: AdditionalIndicator[]
+    overflow: AdditionalIndicator[]
     overflowStartIndex: number
 } => {
     if (indicators.length <= max) {
@@ -81,155 +69,70 @@ const splitForOverflow = (
     }
 }
 
-// Position a fixed popover anchored to a trigger button, with outside-click
-// + Esc dismissal and reflow on scroll/resize. Shared by the dropdown
-// variant and the tabs' overflow "More" menu.
-const usePopoverAnchor = (
-    triggerRef: React.RefObject<HTMLElement | null>,
-    popoverRef: React.RefObject<HTMLElement | null>,
-    open: boolean,
-    setOpen: (o: boolean) => void,
-    { matchTriggerWidth = false }: { matchTriggerWidth?: boolean } = {}
-): React.CSSProperties => {
-    const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({})
-    useEffect(() => {
-        if (!open) return
-        const updatePos = () => {
-            if (!triggerRef.current) return
-            const r = triggerRef.current.getBoundingClientRect()
-            // Keep the popover inside the viewport: flip above the trigger
-            // when there isn't enough room below (common when the "More"
-            // trigger sits low on the page), and clamp as a last resort.
-            const popoverHeight = popoverRef.current?.offsetHeight ?? 0
-            const popoverWidth = popoverRef.current?.offsetWidth ?? 0
-            let top = r.bottom + 4
-            if (popoverHeight && top + popoverHeight > window.innerHeight - 8) {
-                const above = r.top - 4 - popoverHeight
-                top =
-                    above >= 8
-                        ? above
-                        : Math.max(8, window.innerHeight - 8 - popoverHeight)
-            }
-            const left = popoverWidth
-                ? Math.max(
-                      8,
-                      Math.min(r.left, window.innerWidth - 8 - popoverWidth)
-                  )
-                : r.left
-            setPopoverStyle({
-                position: "fixed",
-                top,
-                left,
-                ...(matchTriggerWidth ? { minWidth: r.width } : {}),
-            })
-        }
-        updatePos()
-        const onDocMouseDown = (e: MouseEvent) => {
-            const target = e.target as Node
-            if (
-                popoverRef.current?.contains(target) ||
-                triggerRef.current?.contains(target)
-            )
-                return
-            setOpen(false)
-        }
-        const onKey = (e: KeyboardEvent) => {
-            if (e.key === "Escape") {
-                setOpen(false)
-                // Return focus to the trigger so keyboard users don't lose
-                // their place when the (portaled) popover unmounts.
-                triggerRef.current?.focus()
-            }
-        }
-        document.addEventListener("mousedown", onDocMouseDown)
-        document.addEventListener("keydown", onKey)
-        window.addEventListener("scroll", updatePos, true)
-        window.addEventListener("resize", updatePos)
-        return () => {
-            document.removeEventListener("mousedown", onDocMouseDown)
-            document.removeEventListener("keydown", onKey)
-            window.removeEventListener("scroll", updatePos, true)
-            window.removeEventListener("resize", updatePos)
-        }
-    }, [open, triggerRef, popoverRef, setOpen, matchTriggerWidth])
-    return popoverStyle
-}
-
-const IndicatorOptionsPopover = ({
-    popoverRef,
-    popoverStyle,
+// A react-aria Select over (a subset of) the chart's indicators, shared by
+// the dropdown variant and the tabs' overflow "More" menu. Follows the same
+// pattern as site/multiDim/DimensionDropdown.tsx — react-aria provides the
+// popover anchoring/flipping, dismissal, focus management, and listbox
+// keyboard semantics.
+const IndicatorSelect = ({
     indicators,
     startIndex,
     activeIndex,
-    onSelect,
+    onIndicatorChange,
+    buttonClassName,
+    buttonContent,
+    matchTriggerWidth,
 }: {
-    popoverRef: React.RefObject<HTMLDivElement | null>
-    popoverStyle: React.CSSProperties
-    indicators: IndicatorEntry[]
+    indicators: AdditionalIndicator[]
+    // Index (into the full indicator list) of the first entry in `indicators`.
     startIndex: number
     activeIndex: number
-    onSelect: (i: number) => void
+    onIndicatorChange: (i: number) => void
+    buttonClassName: string
+    buttonContent: React.ReactNode
+    matchTriggerWidth?: boolean
 }) => {
-    // Move focus into the popover when it opens (it's portaled to
-    // document.body, so it isn't next in tab order after the trigger), and
-    // let ArrowUp/ArrowDown walk the options. preventScroll matters: this
-    // effect runs before the anchor-positioning effect in the parent, so a
-    // scrolling focus would jump the page to the popover's unpositioned
-    // location at the end of <body>.
-    useEffect(() => {
-        const popover = popoverRef.current
-        if (!popover) return
-        const target =
-            popover.querySelector<HTMLButtonElement>(
-                '[aria-selected="true"]'
-            ) ?? popover.querySelector<HTMLButtonElement>("button")
-        target?.focus({ preventScroll: true })
-    }, [popoverRef])
-    const onKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return
-        e.preventDefault()
-        const options = Array.from(
-            popoverRef.current?.querySelectorAll<HTMLButtonElement>("button") ??
-                []
-        )
-        const current = options.indexOf(
-            document.activeElement as HTMLButtonElement
-        )
-        const next =
-            e.key === "ArrowDown"
-                ? Math.min(current + 1, options.length - 1)
-                : Math.max(current - 1, 0)
-        options[next]?.focus()
-    }
-    if (typeof document === "undefined") return null
-    return createPortal(
-        <div
-            ref={popoverRef}
-            className="indicator-switcher__popover"
-            style={popoverStyle}
-            role="listbox"
-            onKeyDown={onKeyDown}
+    const isActiveInList =
+        activeIndex >= startIndex &&
+        activeIndex < startIndex + indicators.length
+    return (
+        <Select
+            className="indicator-switcher__select"
+            value={isActiveInList ? String(activeIndex) : null}
+            onChange={(key) => {
+                if (typeof key === "string") onIndicatorChange(Number(key))
+            }}
+            aria-label="Indicator"
         >
-            {indicators.map((ind, i) => {
-                const idx = startIndex + i
-                return (
-                    <button
-                        type="button"
-                        key={idx}
-                        role="option"
-                        aria-selected={idx === activeIndex}
-                        className={cx("indicator-switcher__option", {
-                            "indicator-switcher__option--active":
-                                idx === activeIndex,
-                        })}
-                        onClick={() => onSelect(idx)}
-                    >
-                        {labelForIndicator(ind.datapageData)}
-                    </button>
-                )
-            })}
-        </div>,
-        document.body
+            <Button
+                className={buttonClassName}
+                data-track-note="metadata_box_indicator_switch"
+            >
+                {buttonContent}
+            </Button>
+            <Popover
+                className={cx("indicator-switcher__popover", {
+                    "indicator-switcher__popover--match-trigger":
+                        matchTriggerWidth,
+                })}
+                maxHeight={360}
+                placement="bottom start"
+                offset={4}
+            >
+                <ListBox>
+                    {indicators.map((ind, i) => (
+                        <ListBoxItem
+                            key={startIndex + i}
+                            id={String(startIndex + i)}
+                            className="indicator-switcher__option"
+                            textValue={labelForIndicator(ind.datapageData)}
+                        >
+                            {labelForIndicator(ind.datapageData)}
+                        </ListBoxItem>
+                    ))}
+                </ListBox>
+            </Popover>
+        </Select>
     )
 }
 
@@ -243,21 +146,10 @@ export const IndicatorDropdown = ({
     onIndicatorChange,
 }: {
     activeDatapageData: DataPageDataV2
-    indicators: IndicatorEntry[]
+    indicators: AdditionalIndicator[]
     activeIndex: number
     onIndicatorChange: (i: number) => void
 }) => {
-    const [open, setOpen] = useState(false)
-    const triggerRef = useRef<HTMLButtonElement>(null)
-    const popoverRef = useRef<HTMLDivElement>(null)
-    const popoverStyle = usePopoverAnchor(
-        triggerRef,
-        popoverRef,
-        open,
-        setOpen,
-        { matchTriggerWidth: true }
-    )
-
     const indicatorTitle = activeDatapageData.title.title
     if (!indicatorTitle) return null
     const titleVariant = activeDatapageData.titleVariant?.trim()
@@ -265,48 +157,37 @@ export const IndicatorDropdown = ({
     return (
         <>
             <IndicatorAboutLabel indicatorCount={indicators.length} />
-            <button
-                type="button"
-                ref={triggerRef}
-                className="indicator-switcher__dropdown-trigger"
-                aria-expanded={open}
-                aria-haspopup="listbox"
-                data-track-note="metadata_box_indicator_switch"
-                onClick={() => setOpen((o) => !o)}
-            >
-                <span className="indicator-switcher__dropdown-title">
-                    {indicatorTitle}
-                </span>
-                <FontAwesomeIcon
-                    icon={faCaretDown}
-                    className="indicator-switcher__caret"
-                />
-            </button>
+            <IndicatorSelect
+                indicators={indicators}
+                startIndex={0}
+                activeIndex={activeIndex}
+                onIndicatorChange={onIndicatorChange}
+                buttonClassName="indicator-switcher__dropdown-trigger"
+                matchTriggerWidth
+                buttonContent={
+                    <>
+                        <span className="indicator-switcher__dropdown-title">
+                            {indicatorTitle}
+                        </span>
+                        <FontAwesomeIcon
+                            icon={faCaretDown}
+                            className="indicator-switcher__caret"
+                        />
+                    </>
+                }
+            />
             {titleVariant && (
                 <span className="indicator-switcher__title-variant">
                     {titleVariant}
                 </span>
             )}
-            {open && (
-                <IndicatorOptionsPopover
-                    popoverRef={popoverRef}
-                    popoverStyle={popoverStyle}
-                    indicators={indicators}
-                    startIndex={0}
-                    activeIndex={activeIndex}
-                    onSelect={(i) => {
-                        onIndicatorChange(i)
-                        setOpen(false)
-                    }}
-                />
-            )}
         </>
     )
 }
 
-// Renders the overflow "More ▾" trigger + its popover. The trigger reads
-// as a normal tab button (so it sits inline with the rest of the tab row)
-// and inherits its baseClassName + activeClassName from the parent variant.
+// The overflow "More ▾" trigger + its menu. The trigger reads as a normal
+// tab button (so it sits inline with the rest of the tab row) and inherits
+// its baseClassName + activeClassName from the parent variant.
 const IndicatorMoreDropdown = ({
     overflow,
     overflowStartIndex,
@@ -315,17 +196,13 @@ const IndicatorMoreDropdown = ({
     baseClassName,
     activeClassName,
 }: {
-    overflow: IndicatorEntry[]
+    overflow: AdditionalIndicator[]
     overflowStartIndex: number
     activeIndex: number
     onIndicatorChange: (i: number) => void
     baseClassName: string
     activeClassName: string
 }) => {
-    const [open, setOpen] = useState(false)
-    const triggerRef = useRef<HTMLButtonElement>(null)
-    const popoverRef = useRef<HTMLDivElement>(null)
-    const popoverStyle = usePopoverAnchor(triggerRef, popoverRef, open, setOpen)
     const isActiveInOverflow = activeIndex >= overflowStartIndex
     const label = isActiveInOverflow
         ? labelForIndicator(
@@ -333,38 +210,24 @@ const IndicatorMoreDropdown = ({
           )
         : "More"
     return (
-        <>
-            <button
-                ref={triggerRef}
-                type="button"
-                aria-expanded={open}
-                aria-haspopup="listbox"
-                className={cx(baseClassName, `${baseClassName}--more`, {
-                    [activeClassName]: isActiveInOverflow,
-                })}
-                onClick={() => setOpen((o) => !o)}
-                data-track-note="metadata_box_indicator_switch"
-            >
-                {label}
-                <FontAwesomeIcon
-                    icon={faCaretDown}
-                    className="indicator-switcher__caret"
-                />
-            </button>
-            {open && (
-                <IndicatorOptionsPopover
-                    popoverRef={popoverRef}
-                    popoverStyle={popoverStyle}
-                    indicators={overflow}
-                    startIndex={overflowStartIndex}
-                    activeIndex={activeIndex}
-                    onSelect={(i) => {
-                        onIndicatorChange(i)
-                        setOpen(false)
-                    }}
-                />
-            )}
-        </>
+        <IndicatorSelect
+            indicators={overflow}
+            startIndex={overflowStartIndex}
+            activeIndex={activeIndex}
+            onIndicatorChange={onIndicatorChange}
+            buttonClassName={cx(baseClassName, `${baseClassName}--more`, {
+                [activeClassName]: isActiveInOverflow,
+            })}
+            buttonContent={
+                <>
+                    {label}
+                    <FontAwesomeIcon
+                        icon={faCaretDown}
+                        className="indicator-switcher__caret"
+                    />
+                </>
+            }
+        />
     )
 }
 
@@ -378,15 +241,15 @@ export const IndicatorTabsHorizontal = ({
     onIndicatorChange,
     variant = "tabs",
 }: {
-    indicators: IndicatorEntry[]
+    indicators: AdditionalIndicator[]
     activeIndex: number
     onIndicatorChange: (i: number) => void
     variant?: "tabs" | "pills"
 }) => {
-    const isMobile = useIsMobile()
+    const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const { visible, overflow, overflowStartIndex } = splitForOverflow(
         indicators,
-        isMobile ? MAX_VISIBLE_TABS_MOBILE : MAX_VISIBLE_TABS_DESKTOP
+        isSmallScreen ? MAX_VISIBLE_TABS_MOBILE : MAX_VISIBLE_TABS_DESKTOP
     )
     const containerClass =
         variant === "pills"
@@ -440,7 +303,7 @@ export const IndicatorTabsVertical = ({
     activeIndex,
     onIndicatorChange,
 }: {
-    indicators: IndicatorEntry[]
+    indicators: AdditionalIndicator[]
     activeIndex: number
     onIndicatorChange: (i: number) => void
 }) => {

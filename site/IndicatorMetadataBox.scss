@@ -228,3 +228,85 @@
         margin-bottom: 16px;
     }
 }
+
+// --- Multi-indicator wrapper -----------------------------------------------
+// When a chart has multiple Y-indicators the metadata box is wrapped so an
+// indicator switcher (header row or v-tabs aside; see IndicatorSwitcher.scss)
+// can sit outside the box itself. The wrapper takes over the box's grid
+// placement + margins; the box inside is reset to a plain block.
+
+.indicator-metadata-box-wrap {
+    position: relative;
+    grid-column-start: 2;
+    grid-column-end: span 12;
+    // Compensate for neighbour element padding from V1 datapage (same
+    // treatment as the plain .indicator-metadata-box).
+    margin-top: -104px;
+    margin-right: -6px;
+    margin-bottom: 48px;
+    @include sm-only {
+        margin-top: -56px;
+        margin-right: -8px;
+        margin-left: -8px;
+        margin-bottom: 32px;
+    }
+}
+
+@include md-up {
+    .indicator-metadata-box-wrap {
+        grid-column-start: 2;
+        grid-column-end: span 9;
+    }
+}
+
+.indicator-metadata-box-wrap .indicator-metadata-box {
+    margin: 0;
+    grid-column: auto;
+}
+
+.indicator-metadata-box-wrap__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-bottom: 8px;
+}
+
+// h-tabs: the tab row sits flush with the box top so the active tab can
+// visually fuse into the box below.
+.indicator-metadata-box-wrap--h-tabs .indicator-metadata-box-wrap__header {
+    margin-bottom: 0;
+    align-items: flex-end;
+}
+
+// Single column by default; flex row for the v-tabs variant (the aside
+// stacks above the box on small screens).
+.indicator-metadata-box-wrap--v-tabs .indicator-metadata-box-wrap__main {
+    display: flex;
+    align-items: stretch;
+
+    @include sm-only {
+        flex-direction: column;
+    }
+}
+
+// --- Per-indicator panes ----------------------------------------------------
+// All indicators' metadata sit in the rendered HTML at the same time — only
+// the active one is visible to the user, while the others are available to
+// AI agents / unmodified-HTML consumers on a plain GET.
+
+.indicator-metadata-box__pane {
+    display: none;
+}
+
+.indicator-metadata-box__pane--active {
+    display: contents;
+}
+
+// Dropdown variant: the active indicator's title already renders inside the
+// dropdown trigger, so hide the in-box title line (it stays in the DOM for
+// raw-HTML consumers).
+.indicator-metadata-box-wrap--dropdown
+    .indicator-metadata-box__indicator-title {
+    display: none;
+}

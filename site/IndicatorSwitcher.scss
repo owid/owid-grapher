@@ -1,84 +1,18 @@
 // Indicator switcher for multi-indicator data pages (data-page-metadata-v1
 // experiment). Four design variants, selectable via `?switcher=`:
 // dropdown | h-tabs | v-tabs | h-pills (default h-pills). Companion to
-// site/IndicatorSwitcher.tsx and the multi-indicator wrapper rendered by
-// site/IndicatorMetadataBox.tsx.
+// site/IndicatorSwitcher.tsx; the multi-indicator wrapper around the
+// metadata box itself is styled in site/IndicatorMetadataBox.scss.
 
-// --- Multi-indicator wrapper -----------------------------------------------
-// When a chart has multiple Y-indicators the metadata box is wrapped so a
-// switcher (header row or v-tabs aside) can sit outside the box itself. The
-// wrapper takes over the box's grid placement + margins; the box inside is
-// reset to a plain block.
+// Hover surface shared with the metadata box (matches the box's own hover
+// treatment so hovered controls read as part of the same surface).
+$hover-fill: #e3ebf5;
 
-.indicator-metadata-box-wrap {
-    position: relative;
-    grid-column-start: 2;
-    grid-column-end: span 12;
-    // Compensate for neighbour element padding from V1 datapage (same
-    // treatment as the plain .indicator-metadata-box).
-    margin-top: -104px;
-    margin-right: -6px;
-    margin-bottom: 48px;
-    @include sm-only {
-        margin-top: -56px;
-        margin-right: -8px;
-        margin-left: -8px;
-        margin-bottom: 32px;
-    }
-}
-
-@include md-up {
-    .indicator-metadata-box-wrap {
-        grid-column-start: 2;
-        grid-column-end: span 9;
-    }
-}
-
-.indicator-metadata-box-wrap .indicator-metadata-box {
-    margin: 0;
-    grid-column: auto;
-}
-
-.indicator-metadata-box-wrap__header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px 12px;
-    margin-bottom: 8px;
-}
-
-// h-tabs: the tab row sits flush with the box top so the active tab can
-// visually fuse into the box below.
-.indicator-metadata-box-wrap--h-tabs .indicator-metadata-box-wrap__header {
-    margin-bottom: 0;
-    align-items: flex-end;
-}
-
-// Single column by default; flex row for the v-tabs variant.
-.indicator-metadata-box-wrap--v-tabs .indicator-metadata-box-wrap__main {
-    display: flex;
-    align-items: stretch;
-}
-
-// --- Per-indicator panes ----------------------------------------------------
-// All indicators' metadata sit in the rendered HTML at the same time — only
-// the active one is visible to the user, while the others are available to
-// AI agents / unmodified-HTML consumers on a plain GET.
-
-.indicator-metadata-box__pane {
-    display: none;
-}
-
-.indicator-metadata-box__pane--active {
+// The react-aria <Select> wrapper around each trigger button; flattened so
+// the button participates directly in the surrounding flex row (tab strip /
+// header) as if unwrapped.
+.indicator-switcher__select {
     display: contents;
-}
-
-// Dropdown variant: the active indicator's title already renders inside the
-// dropdown trigger, so hide the in-box title line (it stays in the DOM for
-// raw-HTML consumers).
-.indicator-metadata-box-wrap--dropdown
-    .indicator-metadata-box__indicator-title {
-    display: none;
 }
 
 // --- "About this data (N indicators)" label ---------------------------------
@@ -90,11 +24,8 @@
 }
 
 .indicator-switcher__label {
+    @include overline-black-caps;
     color: $blue-50;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    font-size: 0.75rem;
-    font-weight: 700;
     white-space: nowrap;
 }
 
@@ -144,8 +75,8 @@
     // Open state — matches MDIM's pressed look so the pill reads as
     // "active control" while the popover is showing.
     &[aria-expanded="true"] {
-        background: #dbe5f0;
-        border-color: #dbe5f0;
+        background: $blue-20;
+        border-color: $blue-20;
         color: $blue-90;
         cursor: default;
     }
@@ -176,8 +107,8 @@
     color: $blue-70;
 }
 
-// Rendered via React Portal to document.body so it can extend past the
-// metadata box without being clipped. Styling mirrors .md-menu for visual
+// The react-aria popover (portaled to an overlay container, positioned and
+// viewport-clamped by react-aria). Styling mirrors .md-menu for visual
 // consistency with the multi-dim dimension dropdown.
 .indicator-switcher__popover {
     background: $white;
@@ -185,45 +116,41 @@
     box-shadow: 0 4px 23px 4px rgba($oxford-blue, 0.06);
     padding: 8px 16px;
     max-width: min(480px, calc(100vw - 24px));
-    max-height: 360px;
     overflow-y: auto;
     overscroll-behavior: contain;
     z-index: $zindex-popover;
-    display: flex;
-    flex-direction: column;
+}
+
+// The dropdown variant's popover matches the trigger pill's width
+// (react-aria exposes it as --trigger-width).
+.indicator-switcher__popover--match-trigger {
+    min-width: var(--trigger-width);
 }
 
 .indicator-switcher__option {
     @include body-3-medium;
-    appearance: none;
-    background: transparent;
-    border: 0;
     color: $blue-90;
     cursor: pointer;
     text-align: left;
     padding: 12px 0;
     line-height: 1.4;
-    border-radius: 0;
     transition: color 120ms ease;
 
-    & + & {
-        border-top: 1px solid $gray-20;
-    }
-
-    &:hover {
+    &[data-hovered],
+    &[data-focused] {
         color: $blue-50;
-    }
-
-    &:focus-visible {
         outline: none;
-        color: $blue-50;
+    }
+
+    &[data-selected] {
+        color: $blue-90;
+        font-weight: 700;
+        cursor: default;
     }
 }
 
-.indicator-switcher__option--active {
-    color: $blue-90;
-    font-weight: 700;
-    cursor: default;
+.indicator-switcher__option + .indicator-switcher__option {
+    border-top: 1px solid $gray-20;
 }
 
 // --- Horizontal tabs (h-tabs) -------------------------------------------------
@@ -238,6 +165,7 @@
 }
 
 .indicator-switcher__h-tab {
+    @include label-2-medium;
     appearance: none;
     background: transparent;
     // Idle tabs get a 1px $blue-20 ring on top/left/right — the open
@@ -248,9 +176,6 @@
     color: $blue-50;
     cursor: pointer;
     padding: 8px 14px;
-    font-family: $sans-serif-font-stack;
-    font-size: 0.8125rem;
-    font-weight: 500;
     line-height: 1.4;
     border-radius: 6px 6px 0 0;
     transition:
@@ -260,13 +185,13 @@
 
     &:hover {
         color: $blue-90;
-        background: #e3ebf5;
+        background: $hover-fill;
         border-color: $blue-30;
     }
 
     &:focus-visible {
         outline: none;
-        background: #e3ebf5;
+        background: $hover-fill;
         border-color: $blue-30;
     }
 }
@@ -299,6 +224,7 @@
 }
 
 .indicator-switcher__h-pill {
+    @include label-2-medium;
     appearance: none;
     background: $blue-5;
     border: 1px solid $blue-20;
@@ -315,9 +241,6 @@
     justify-content: center;
     text-align: center;
     border-radius: 999px;
-    font-family: $sans-serif-font-stack;
-    font-size: 0.8125rem;
-    font-weight: 500;
     line-height: 1.2;
     transition:
         background-color 120ms ease,
@@ -325,7 +248,7 @@
         color 120ms ease;
 
     &:hover {
-        background: #e3ebf5;
+        background: $hover-fill;
         border-color: $blue-30;
         color: $blue-90;
     }
@@ -444,13 +367,9 @@
     cursor: pointer;
 }
 
-// On narrow viewports collapse the v-tabs aside above the box instead of
-// next to it, so it doesn't squeeze the content.
-@media (max-width: 767px) {
-    .indicator-metadata-box-wrap--v-tabs .indicator-metadata-box-wrap__main {
-        flex-direction: column;
-    }
-
+// On narrow viewports the aside collapses above the box (see the wrapper
+// rules in IndicatorMetadataBox.scss) — swap the seam border accordingly.
+@include sm-only {
     .indicator-switcher__v-tabs {
         flex: 1 1 auto;
         border-right: 0;

@@ -602,10 +602,10 @@ export default function IndicatorMetadataBox({
     archiveContext: ArchiveContext | undefined
     license?: LicenseOption
 }) {
-    const indicators: {
-        datapageData: DataPageDataV2
-        faqEntries?: FaqEntryData
-    }[] = [{ datapageData, faqEntries }, ...(additionalIndicators ?? [])]
+    const indicators: AdditionalIndicator[] = [
+        { datapageData, faqEntries },
+        ...(additionalIndicators ?? []),
+    ]
     const isMulti = indicators.length > 1
 
     const [activeIndex, setActiveIndex] = useState(0)
