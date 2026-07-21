@@ -56,7 +56,7 @@ export function getDatapageDataV2(
         titleVariant: variableMetadata.presentation?.titleVariant,
         topicTagsLinks: variableMetadata.presentation?.topicTagsLinks ?? [],
         attributions: getAttributionFragmentsFromVariable(variableMetadata),
-        descriptionKey: variableMetadata.descriptionKey ?? [],
+        descriptionKey: variableMetadata.descriptionKey,
         descriptionProcessing: variableMetadata.descriptionProcessing,
         owidProcessingLevel: variableMetadata.processingLevel,
         dateRange: variableMetadata.timespan ?? "",

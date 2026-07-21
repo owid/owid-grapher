@@ -321,10 +321,7 @@ class VariableEditor extends Component<{
                             <FieldsRow>
                                 <ReadOnlyField
                                     label="Description key"
-                                    value={
-                                        variable.descriptionKey?.join("\n") ??
-                                        ""
-                                    }
+                                    value={variable.descriptionKey ?? ""}
                                     textarea
                                     rows={8}
                                 />

@@ -311,6 +311,7 @@ export {
     type OwidProcessingLevel,
     type IndicatorTitleWithFragments,
     joinTitleFragments,
+    normalizeDescriptionKey,
     type OwidVariableType,
 } from "./OwidVariable.js"
 

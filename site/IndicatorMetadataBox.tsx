@@ -30,7 +30,10 @@ import { Byline } from "./gdocs/components/Byline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons"
-import { getAttributionUnshortened } from "./datapageUtils.js"
+import {
+    getAttributionUnshortened,
+    splitDescriptionKey,
+} from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
 
@@ -58,8 +61,6 @@ interface ExpandableSectionProps {
     descriptionProcessing: string | undefined
     license?: LicenseOption
 }
-
-const KEY_DESCRIPTION_PREVIEW_COUNT = 3
 
 // FAQs arrive as a flat block list — each question is a heading followed by its
 // answer blocks. Split on headings so each question can render as its own toggle.
@@ -102,13 +103,6 @@ function ExpandableSection({
     license,
 }: ExpandableSectionProps) {
     const { origins, source } = datapageData
-    const preview = datapageData.descriptionKey.slice(
-        0,
-        KEY_DESCRIPTION_PREVIEW_COUNT
-    )
-    const remainder = datapageData.descriptionKey.slice(
-        KEY_DESCRIPTION_PREVIEW_COUNT
-    )
     const sourcesForDisplay = prepareSourcesForDisplay({
         origins,
         source,
@@ -156,16 +150,18 @@ function ExpandableSection({
         window.scrollBy(0, after - before)
     }
 
+    // Only the start of a long descriptionKey is shown above the fold; the
+    // rest goes inside the <details> so that it works without JavaScript and
+    // browsers auto-expand it when in-page search matches hidden text.
+    const { preview: descriptionKeyPreview, remainder: descriptionKeyRest } =
+        splitDescriptionKey(datapageData.descriptionKey ?? "")
+
     return (
         <div className={cx("meta-expander", className)}>
-            {preview.length > 0 && (
-                <ul className="meta-expander__list meta-expander__preview">
-                    {preview.map((p) => (
-                        <li className="meta-expander__list-item" key={p}>
-                            <SimpleMarkdownText text={p} />
-                        </li>
-                    ))}
-                </ul>
+            {descriptionKeyPreview && (
+                <div className="meta-expander__preview meta-expander__prose">
+                    <SimpleMarkdownText text={descriptionKeyPreview} />
+                </div>
             )}
             <details
                 className="meta-expander__details"
@@ -202,14 +198,10 @@ function ExpandableSection({
                         />
                     </span>
                 </summary>
-                {remainder.length > 0 && (
-                    <ul className="meta-expander__list">
-                        {remainder.map((p) => (
-                            <li className="meta-expander__list-item" key={p}>
-                                <SimpleMarkdownText text={p} />
-                            </li>
-                        ))}
-                    </ul>
+                {descriptionKeyRest && (
+                    <div className="meta-expander__remainder meta-expander__prose">
+                        <SimpleMarkdownText text={descriptionKeyRest} />
+                    </div>
                 )}
                 {
                     <section className="meta-expander__section meta-expander__section--faqs">
