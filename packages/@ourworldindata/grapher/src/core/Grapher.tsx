@@ -58,6 +58,8 @@ import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidT
 import classnames from "clsx"
 import { SidePanel } from "../sidePanel/SidePanel"
 import { EntitySelector } from "../entitySelector/EntitySelector"
+import { AssistantPanel } from "../assistant/AssistantPanel"
+import { ManualControlArea } from "../assistant/ControlArea"
 import { SlideInDrawer } from "../slideInDrawer/SlideInDrawer"
 import { FocusArray } from "../focus/FocusArray"
 import { Chart } from "../chart/Chart.js"
@@ -107,6 +109,8 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     isEmbeddedInAnOwidPage?: boolean
     isEmbeddedInADataPage?: boolean
     useNewDatapageMetadataLayout?: boolean
+    /** Prototype: show the "AI assistant (BETA)" panel in the side panel */
+    enableAssistantPanel?: boolean
     isConfigReady?: boolean
     isDataReady?: boolean
     canHideExternalControlsInEmbed?: boolean
@@ -543,10 +547,32 @@ export class Grapher extends React.Component<GrapherProps> {
 
                     {this.grapherState.sidePanelBounds && (
                         <SidePanel bounds={this.grapherState.sidePanelBounds}>
-                            <EntitySelector
-                                manager={this.grapherState}
-                                selection={entitySelectorArray}
-                            />
+                            {this.grapherState.enableAssistantPanel ? (
+                                <div className="side-panel__split">
+                                    <AssistantPanel
+                                        manager={this.grapherState}
+                                    />
+                                    <div className="side-panel__manual-zone">
+                                        <h2 className="side-panel__manual-zone-header">
+                                            Manual controls
+                                        </h2>
+                                        <ManualControlArea
+                                            manager={this.grapherState}
+                                        />
+                                        <div className="side-panel__entity-selector-slot">
+                                            <EntitySelector
+                                                manager={this.grapherState}
+                                                selection={entitySelectorArray}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <EntitySelector
+                                    manager={this.grapherState}
+                                    selection={entitySelectorArray}
+                                />
+                            )}
                         </SidePanel>
                     )}
                 </div>

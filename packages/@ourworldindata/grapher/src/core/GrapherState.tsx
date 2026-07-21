@@ -145,6 +145,7 @@ import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
 import {
     DataTableConfig,
+    DataTableFilter,
     DataTableManager,
 } from "../dataTable/DataTableConstants.js"
 import {
@@ -515,6 +516,8 @@ export class GrapherState
     isEmbeddedInAnOwidPage?: boolean = false
     isEmbeddedInADataPage?: boolean = false
     useNewDatapageMetadataLayout?: boolean = false
+    /** Prototype: show the "AI assistant (BETA)" panel in the side panel */
+    enableAssistantPanel?: boolean = false
 
     archiveContext?: ArchiveContext
     narrativeChartInfo?: MinimalNarrativeChartInfo = undefined
@@ -764,6 +767,7 @@ export class GrapherState
         this.isEmbeddedInADataPage = options.isEmbeddedInADataPage ?? false
         this.useNewDatapageMetadataLayout =
             options.useNewDatapageMetadataLayout ?? false
+        this.enableAssistantPanel = options.enableAssistantPanel ?? false
 
         this._inputTable =
             options.table ?? BlankOwidTable(`initialGrapherTable`)
@@ -1089,10 +1093,36 @@ export class GrapherState
         return table
     }
 
+    /**
+     * Prototype: when the AI assistant is enabled and the sidebar control
+     * area is visible, the in-chart controls row (tab switcher, map and table
+     * controls) is hidden and its functions move into the sidebar.
+     */
+    @computed get isAssistantControlAreaActive(): boolean {
+        return !!this.enableAssistantPanel && this.sidePanelBounds !== undefined
+    }
+
+    /**
+     * Prototype: with the assistant control area active, the data table's own
+     * "filter by" dropdown and search field are hidden and the entity
+     * selector drives the table instead: the table shows the selected
+     * entities when there is a selection (all rows otherwise), narrowed by
+     * the entity selector's region-group filter when one is active.
+     */
+    @computed private get assistantDataTableFilter(): DataTableFilter {
+        if (this.selection.hasSelection) return "selection"
+        const { entityFilter } = this.entitySelectorState
+        if (entityFilter && isEntityRegionGroupKey(entityFilter))
+            return entityFilter
+        return "all"
+    }
+
     /** Table for display in the data table tab */
     @computed get tableForDisplay(): OwidTable {
         let table = this.tableForDisplayBeforeEntityFilter
-        const { filter } = this.dataTableConfig
+        const filter = this.isAssistantControlAreaActive
+            ? this.assistantDataTableFilter
+            : this.dataTableConfig.filter
 
         const availableEntities = table.availableEntityNames
 
@@ -4151,6 +4181,12 @@ export class GrapherState
             this.shouldShowEntitySelectorAs === GrapherWindowType.panel
 
         if (this.isOnMapTab && this.isMapSelectionEnabled && shouldShowPanel)
+            return true
+
+        // Prototype: keep the side panel (with the AI assistant) visible on
+        // the table tab so the assistant doesn't disappear when it applies a
+        // data table view
+        if (this.enableAssistantPanel && this.isOnTableTab && shouldShowPanel)
             return true
 
         return (
