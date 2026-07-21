@@ -29,7 +29,7 @@ The Our World in Data monorepo: the Grapher charting library, the chart/data adm
 
 ### Git
 
-- When you want to create a commit, follow `docs/agent-guidelines/commit-messages.md`: run `yarn fixFormatChanged`, `yarn typecheck`, and `yarn testLintChanged` first. Messages start with a gitmoji (🎉 feature, 🐛 fix, ✨ improvement, 🔨 refactor, ✅ tests, 🐝 deps, 📜 docs) followed by 🤖 to mark AI-written code.
+- When you want to create a commit, follow `docs/agent-guidelines/commit-messages.md` — it covers the pre-commit checks and the gitmoji + 🤖 message format.
 - Branch names: short and descriptive, no prefix (in particular no `claude/` prefix and no random suffix). Every branch gets a staging server named `staging-site-<branch>` with slashes turned into hyphens and the name truncated to 28 characters, so long or prefixed branch names produce unusable staging names.
 
 ## Architecture
@@ -58,7 +58,6 @@ Key facts that span multiple directories:
 - Table documentation lives in `db/docs/` — a `README.md` overview plus one `TABLE-NAME.yml` per table. ALWAYS list `db/docs/` and read the relevant table files before constructing a query or writing a migration.
 - `yarn query 'SELECT ...'` — read-only SQL against the local dev DB. `yarn query -s "..."` queries the staging database for the current git branch (e.g. on branch `images-pageviews` it connects to `staging-site-images-pageviews`).
 - DB access convention in code: wrap queries in `knexReadonlyTransaction` / `knexReadWriteTransaction` from `db/db.ts` rather than using a raw knex instance.
-- New migrations: use the `create-migration` skill (`.claude/skills/create-migration`) and read `db/readme.md` first.
 
 ## Code style
 
