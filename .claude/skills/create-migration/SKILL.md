@@ -18,3 +18,7 @@ Create a new database migration file for the OWID MySQL 8 database.
 ## Naming Guidelines
 
 Choose a descriptive name for the migration that clearly indicates what schema change is being made (e.g., `AddUserEmailIndex`, `CreateAuditLogTable`, `RemoveDeprecatedColumns`).
+
+## Writing the Migration
+
+Read [db/readme.md](../../../db/readme.md) before populating the file. In particular: use past migrations in `db/migration/` as reference, and always write a **down** migration in case the change needs to be reverted.
