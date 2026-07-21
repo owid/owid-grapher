@@ -732,11 +732,11 @@ export class LineChart
                           })
                   )
             return {
+                numericLegendData,
+                categoricalLegendData,
                 legendTitle: this.legendTitle,
                 legendTickSize: this.legendTickSize,
                 numericBinSize: this.numericBinSize,
-                numericLegendData,
-                categoricalLegendData,
                 categoricalLegendStyleConfig: this.categoricalLegendStyleConfig,
                 numericLegendStyleConfig: this.numericLegendStyleConfig,
             }
