@@ -43,6 +43,11 @@ export class AddMetadataReviewTables1784648997956 implements MigrationInterface 
                 resolvedAt datetime DEFAULT NULL,
                 createdAt datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updatedAt datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                -- One OPEN thread per field, enforced at the database level:
+                -- NULL for resolved rows (NULLs never collide in a unique index).
+                openKeyHash char(32) GENERATED ALWAYS AS (
+                    IF(status = 'open', MD5(CONCAT_WS('|', targetType, targetPath, IFNULL(viewId, ''), fieldPath)), NULL)
+                ) STORED,
 
                 PRIMARY KEY (id),
 
@@ -51,7 +56,8 @@ export class AddMetadataReviewTables1784648997956 implements MigrationInterface 
 
                 INDEX idx_mrs_target (targetType, targetPath(191)),
                 INDEX idx_mrs_field (targetPath(191), viewId(191), fieldPath(64)),
-                INDEX idx_mrs_status (status)
+                INDEX idx_mrs_status (status),
+                UNIQUE INDEX idx_mrs_open_unique (openKeyHash)
             )
         `)
         await queryRunner.query(`-- sql
