@@ -5,12 +5,17 @@ import {
     OwidColumnDef,
     OwidTableSlugs,
 } from "@ourworldindata/types"
+import { getTimeInterval, isSubYearly } from "@ourworldindata/utils"
 import { CoreTable } from "./CoreTable.js"
 
 export function timeColumnSlugFromColumnDef(
     def: OwidColumnDef
 ): OwidTableSlugs.day | OwidTableSlugs.year {
-    return def.isDailyMeasurement ? OwidTableSlugs.day : OwidTableSlugs.year
+    // Day-encoded (sub-yearly) time lands in the day bucket,
+    // everything else in the year bucket
+    return isSubYearly(getTimeInterval(def.display))
+        ? OwidTableSlugs.day
+        : OwidTableSlugs.year
 }
 
 export function makeOriginalTimeSlugFromColumnSlug(slug: ColumnSlug): string {

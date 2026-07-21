@@ -215,6 +215,11 @@ export function convertDaysSinceEpochToDate(dayAsYear: number): dayjs.Dayjs {
     return dayjs.utc(EPOCH_DATE).add(dayAsYear, "days")
 }
 
+// Inverse of convertDaysSinceEpochToDate.
+export function convertDateToDaysSinceEpoch(date: dayjs.Dayjs): number {
+    return dateDiffInDays(date.toDate(), dayjs.utc(EPOCH_DATE).toDate())
+}
+
 export function formatDay(
     dayAsYear: number,
     options?: { format?: string }
@@ -234,6 +239,41 @@ export function getTimeInterval(
         display?.timeInterval ??
         (display?.yearIsDay ? TimeInterval.Day : TimeInterval.Year)
     )
+}
+
+const SUB_YEARLY_INTERVALS = new Set<TimeInterval>([
+    TimeInterval.Day,
+    TimeInterval.Week,
+    TimeInterval.Month,
+    TimeInterval.Quarter,
+])
+
+/**
+ * Whether the interval is finer than a year and therefore encoded as
+ * days-since-epoch (day/week/month/quarter)
+ */
+export function isSubYearly(interval: TimeInterval): boolean {
+    return SUB_YEARLY_INTERVALS.has(interval)
+}
+
+/**
+ * Snap a time to the start of its interval, so indicators that pick different
+ * representative days for the same period still align: month → first of the
+ * month, quarter → first of the quarter, week → the ISO-week Monday. Day and
+ * year are their own start and are returned unchanged.
+ */
+export function snapToIntervalStart(
+    time: number,
+    interval: TimeInterval
+): number {
+    if (!Number.isFinite(time)) return time
+    const date = convertDaysSinceEpochToDate(time)
+    let start: dayjs.Dayjs
+    if (interval === TimeInterval.Month) start = date.startOf("month")
+    else if (interval === TimeInterval.Quarter) start = date.startOf("quarter")
+    else if (interval === TimeInterval.Week) start = date.startOf("isoWeek")
+    else return time
+    return convertDateToDaysSinceEpoch(start)
 }
 
 export const formatYear = (year: number): string => {
@@ -2001,6 +2041,7 @@ export function findGreatestCommonDivisorOfArray(arr: number[]): number | null {
     if (arr.includes(1)) return 1
     return _.uniq(arr).reduce((acc, num) => greatestCommonDivisor(acc, num))
 }
+
 export function lowercaseObjectKeys(
     obj: Record<string, unknown>
 ): Record<string, unknown> {

@@ -1040,11 +1040,15 @@ components:
           type: string
           enum:
             - day
+            - week
+            - month
+            - quarter
             - year
+            - decade
           description: >-
             Resolution at which the time values should be interpreted and
-            formatted. "day" means the time values are days since a reference
-            date; "year" means they are literal years.
+            formatted. Sub-yearly values (day/week/month/quarter) are days since
+            a reference date; "year" and "decade" values are literal years.
 
     GrapherValuesJsonDataPoints:
       type: object

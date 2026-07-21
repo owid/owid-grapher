@@ -30,6 +30,7 @@ import {
     getRegionByName,
     makeSafeForCSS,
     convertDaysSinceEpochToDate,
+    isSubYearly,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -73,7 +74,6 @@ import {
     OwidTableSlugs,
     ProjectionColumnInfo,
     Time,
-    TimeInterval,
     ToleranceStrategy,
     type EntitySelectorEvent,
 } from "@ourworldindata/types"
@@ -515,9 +515,9 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         })
     }
 
-    @computed private get chartHasDailyData(): boolean {
-        return this.numericalChartColumns.some(
-            (column) => column.timeInterval === TimeInterval.Day
+    @computed private get chartHasSubYearlyData(): boolean {
+        return this.numericalChartColumns.some((column) =>
+            isSubYearly(column.timeInterval)
         )
     }
 
@@ -549,12 +549,9 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         const isExternal = this.isExternalIndicator(column.slug)
         if (isExternal) return lookupTime
 
-        // When the chart uses daily dates but this column is yearly, convert
-        // the lookup time back to a year before formatting the label
-        if (
-            this.chartHasDailyData &&
-            column.timeInterval === TimeInterval.Year
-        ) {
+        // When the chart uses day-encoded times but this column is yearly,
+        // convert the lookup time back to a year before formatting the label
+        if (this.chartHasSubYearlyData && !isSubYearly(column.timeInterval)) {
             return convertDaysSinceEpochToDate(lookupTime).year()
         }
 

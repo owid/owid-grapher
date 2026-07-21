@@ -425,6 +425,101 @@ describe(legacyToOwidTableAndDimensions, () => {
                 table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Day
             ).toBeTruthy()
         })
+
+        it("routes sub-yearly intervals to the day bucket with their own column type", () => {
+            const cases = [
+                [TimeInterval.Week, ColumnTypeMap.Week],
+                [TimeInterval.Month, ColumnTypeMap.Month],
+                [TimeInterval.Quarter, ColumnTypeMap.Quarter],
+            ] as const
+            for (const [interval, ColumnType] of cases) {
+                const table = buildTable({ timeInterval: interval })
+                expect(table.columnSlugs).toContain(OwidTableSlugs.day)
+                expect(table.columnSlugs).not.toContain(OwidTableSlugs.year)
+                const timeColumn = table.get(OwidTableSlugs.time)
+                expect(timeColumn instanceof ColumnType).toBeTruthy()
+                // Sub-yearly columns are day-encoded
+                expect(timeColumn instanceof ColumnTypeMap.Day).toBeTruthy()
+            }
+        })
+
+        it("routes timeInterval 'decade' to the year bucket with a Decade column type", () => {
+            const table = buildTable({ timeInterval: TimeInterval.Decade })
+            expect(table.columnSlugs).toContain(OwidTableSlugs.year)
+            expect(table.columnSlugs).not.toContain(OwidTableSlugs.day)
+            const timeColumn = table.get(OwidTableSlugs.time)
+            expect(timeColumn instanceof ColumnTypeMap.Decade).toBeTruthy()
+            // Decade columns are year-encoded
+            expect(timeColumn instanceof ColumnTypeMap.Year).toBeTruthy()
+        })
+    })
+
+    describe("monthly variables with different representative days", () => {
+        // Two monthly variables covering the same month (January 2020) but using
+        // different representative days (day 0 = 2020-01-21, day 10 = 2020-01-31).
+        // Normalization must align them onto a single time point so they join
+        // into one row rather than being treated as separate months.
+        const config: MultipleOwidVariableDataDimensionsMap = new Map([
+            [
+                2,
+                {
+                    data: { entities: [1], values: [8], years: [0] },
+                    metadata: {
+                        id: 2,
+                        display: { timeInterval: TimeInterval.Month },
+                        dimensions: {
+                            entities: {
+                                values: [
+                                    { name: "World", code: "OWID_WRL", id: 1 },
+                                ],
+                            },
+                            years: { values: [{ id: 0 }] },
+                        },
+                    },
+                },
+            ],
+            [
+                3,
+                {
+                    data: { entities: [1], values: [9], years: [10] },
+                    metadata: {
+                        id: 3,
+                        display: { timeInterval: TimeInterval.Month },
+                        dimensions: {
+                            entities: {
+                                values: [
+                                    { name: "World", code: "OWID_WRL", id: 1 },
+                                ],
+                            },
+                            years: { values: [{ id: 10 }] },
+                        },
+                    },
+                },
+            ],
+        ])
+
+        const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
+            config,
+            [
+                { variableId: 2, property: DimensionProperty.y },
+                { variableId: 3, property: DimensionProperty.y },
+            ],
+            {}
+        )
+
+        it("aligns both indicators on a single monthly time point", () => {
+            expect(table.get("2").uniqTimesAsc).toEqual(
+                table.get("3").uniqTimesAsc
+            )
+            expect(table.get("2").uniqTimesAsc.length).toEqual(1)
+        })
+
+        it("keeps both values on the same row (neither is dropped)", () => {
+            const worldRows = table.rows.filter((r) => r.entityName === "World")
+            expect(worldRows.length).toEqual(1)
+            expect(worldRows[0]["2"]).toEqual(8)
+            expect(worldRows[0]["3"]).toEqual(9)
+        })
     })
 
     describe("variables with mixed days & years", () => {
