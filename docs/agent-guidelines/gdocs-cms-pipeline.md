@@ -117,11 +117,13 @@ After enrichment and validation, `upsertGdoc` serialises the enriched content to
 
 ## Extending the Pipeline
 
-1. Add or update type definitions in `packages/@ourworldindata/types/src/gdocTypes/ArchieMlComponents.ts` and `types/src/gdocTypes/Gdoc.ts`.
-2. Teach `gdocToArchie` how to serialise any new Google Docs constructs (if required) by producing appropriate `OwidRawGdocBlock` objects.
-3. Implement a parser in `rawToEnriched.ts` with strict validation and targeted `parseErrors`.
-4. Update `htmlToEnriched.ts` if the block carries inline HTML that needs bespoke handling.
-5. Cover the new behaviour with unit tests in `db/gdocTests.test.ts`.
-6. Consider whether subclasses need additional enrichment, validation, or derived metadata.
+1. **Check for name collisions first.** Grep the existing block types (one file per component under `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/`) before choosing a tag — names you might reach for (`pull-quote`, `blockquote`, `callout`, …) often already exist with specific semantics.
+2. **Add type definitions** in a new file under `archieMLComponents/` and register them in the `OwidRawGdocBlock` / `OwidEnrichedGdocBlock` unions in `ArchieMlComponents.ts` (plus `types/src/gdocTypes/Gdoc.ts` where relevant). For rich-text fields, pick the right shape: `Span[]` (parsed via `htmlToSpans`) for a single inline value, `EnrichedBlockText[]` (via `parseText`) for multi-paragraph content — compare `Aside.caption` vs `Blockquote.text`.
+3. **Then follow the compiler.** The unions drive exhaustive `ts-pattern` matches throughout the codebase, so once step 2 lands, `yarn typecheck` enumerates every remaining site to fill in. Expect at least: `rawToEnriched.ts` (the parser — strict validation with targeted `parseErrors`), `enrichedToRaw.ts`, `rawToArchie.ts`, `enrichedToMarkdown.ts`, `enrichedToIndexableText.ts`, `extractGdocComponentInfo.ts`, `gdocUtils.ts` (`extractFilenamesFromBlock`), `traverseEnrichedBlock` in `packages/@ourworldindata/utils/src/Util.ts`, the `enrichedBlockExamples` record in `db/model/Gdoc/exampleEnrichedBlocks.ts`, and the render match in `site/gdocs/components/ArticleBlock.tsx`.
+4. **Add the site component** (`site/gdocs/components/<Name>.tsx` plus companion `.scss`) referenced from `ArticleBlock.tsx`.
+5. Teach `gdocToArchie` to serialise new **Google Docs AST** constructs only if needed — blocks that authors type directly as `{.my-block}` in the doc need no changes there.
+6. Update `htmlToEnriched.ts` if the block carries inline HTML that needs bespoke handling.
+7. Cover the new behaviour with unit tests in `db/gdocTests.test.ts`. Optionally add an author-facing text-expansion snippet to `types/src/gdocTypes/raycastSnippets.json`.
+8. Consider whether Gdoc subclasses need additional enrichment, validation, or derived metadata.
 
 By following these steps we keep the ingestion pipeline deterministic while preserving the rich authoring experience our authors expect inside Google Docs.
