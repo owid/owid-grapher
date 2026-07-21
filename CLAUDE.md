@@ -62,29 +62,19 @@ Key facts that span multiple directories:
 
 ## Team
 
-Everything you post to GitHub or Slack goes out under a **human's identity**. Any text you author and post that a reader could take for the human's own words **must** carry the attribution line below. This is mandatory — not a judgment call about whether the comment is "worth it."
+Everything you post to GitHub or Slack goes out under a **human's identity**.
 
-1. **Attribute the work.** Put this blockquote as the _first line_ of the content:
+1. **Attribute the work.** Any prose you author for GitHub or Slack — PR bodies, issue and review comments (including replies to Codex/Copilot/reviewers), Slack messages or drafts — must start with this blockquote:
 
     ```
     > _Written by <model provider> <model name> — @<handle> at the wheel._
     ```
 
-    Replace `<model provider>` and `<model name>` with the human-readable provider and model actually generating the content (e.g. "Claude Sonnet 5", "GPT-5", "Gemini 3 Pro") — not a literal string like "Code" or a bare version number. Naming the provider keeps the attribution recognizable even to readers unfamiliar with individual model names.
+    Use the actual provider and model (e.g. "Claude Sonnet 5", never "Code" or a bare version number) and the handle of the human directing the work (usually the current git user; ask if ambiguous). The only exemption is a bare mechanical token with no prose (a lone `@codex review`, a 👍); when in doubt, include the line.
 
-    It applies to **every** surface, **every** time you post:
-    - PR descriptions / bodies
-    - PR issue-level comments
-    - **Inline review comments _and_ replies to review comments** (e.g. answering Codex / Copilot / a reviewer)
-    - Standalone Slack messages or drafts
+2. **Never guess GitHub handles** — a wrong `@`-tag pings a real person. Without a confirmed handle, write the plain name and ask the user for the handle.
 
-    Use the handle of the human directing the work (usually the current git user; ask if ambiguous).
-
-    **The only exception** is a comment that is a bare mechanical token with _no prose_ — a lone `@codex review` ping or a 👍. The moment your comment contains a sentence of explanation, it needs the line. When in doubt, include it.
-
-2. **Use exact GitHub handles when tagging colleagues — don't guess.** A wrong tag pings a real person. If you don't have a confirmed handle for someone, write their plain name instead of `@`-tagging, and ask the user for the handle.
-
-3. **This repo is public — keep internal context out of it.** PR descriptions, commit messages, and issue/review comments must never identify people who contact us (no names, roles, or employers — say "a reader pointed out ..." instead), and must not reference internal discussions (Slack threads, Notion docs) or who suggested what internally. Motivate changes using public facts only; internal context stays internal.
+3. **This repo is public — keep internal context out of it.** PR descriptions, commit messages, and comments must not identify people who contact us (say "a reader pointed out …" instead of names/roles/employers) and must not reference internal discussions (Slack, Notion) or who suggested what internally. Motivate changes using public facts only.
 
 ## Code style
 
