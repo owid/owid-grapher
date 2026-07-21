@@ -42,6 +42,12 @@ export const asnDataLayerMiddleware: PagesFunction<Env> = async (context) => {
     if (!script) return context.next()
 
     const response = await context.next()
+    // Known tradeoff: on a conditional request the asset server returns a 304
+    // and the browser reuses its stored body, i.e. the ASN injected on an
+    // earlier visit — stale if the visitor changed networks since. Accepted:
+    // it's the visitor's own previous ASN, the window is bounded by our bake
+    // frequency (ETag churn), and the alternative (stripping validators) would
+    // force full re-downloads of every repeat HTML view site-wide.
     if (
         response.status !== 200 ||
         !response.headers.get("content-type")?.includes("text/html")
