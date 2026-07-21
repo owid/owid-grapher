@@ -1,8 +1,6 @@
 -- Migration number: 0001 	 2026-06-11T00:00:00.000Z
 -- Users of the email notifications system. The email is the identifier users
--- enter in the subscribe form; everything else hangs off the user id so we
--- can later add magic links, confirmation tokens, etc. without touching this
--- table.
+-- enter in the subscribe form; everything else hangs off the user id.
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT NOT NULL UNIQUE,
@@ -12,6 +10,17 @@ CREATE TABLE users (
         CHECK (status IN ('subscribed', 'unsubscribed')),
     -- Secret token identifying the user in unsubscribe/manage links.
     token TEXT NOT NULL UNIQUE,
+    -- Mirror of Postmark's suppression state, maintained by the Postmark
+    -- subscription-change webhook and the send job. Kept separate from
+    -- status: status records user intent, suppression is provider-imposed
+    -- deliverability (hard bounce, spam complaint, manual suppression). The
+    -- send job skips users with suppressed_at set.
+    suppressed_at TEXT,
+    -- 'HardBounce', 'SpamComplaint' or 'ManualSuppression' as reported by
+    -- Postmark. NULL when unknown, e.g. when marked from a send-time
+    -- "inactive recipient" error. Deliberately without a CHECK so a new
+    -- Postmark reason can't make us drop the event.
+    suppression_reason TEXT,
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
     updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
@@ -34,6 +43,21 @@ CREATE TABLE notification_preferences (
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
     updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
+
+-- Short-lived magic-link tokens for the update-preferences page. Unlike the
+-- permanent users.token (the low-privilege identifier in email footer links,
+-- which can only unsubscribe or request a magic link), these prove recent
+-- control of the inbox and allow viewing and editing preferences, so they
+-- expire.
+CREATE TABLE tokens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    token TEXT NOT NULL UNIQUE,
+    expires_at TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+CREATE INDEX tokens_user_id ON tokens (user_id);
 
 -- Log of sent notification emails, for debugging and analytics (Postmark
 -- tracks opens/clicks; this records what each email contained).

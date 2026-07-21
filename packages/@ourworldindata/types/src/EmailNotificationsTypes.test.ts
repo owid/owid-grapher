@@ -1,5 +1,9 @@
 import { expect, it, describe } from "vitest"
-import { EmailNotificationsSubscribeRequestTypeObject } from "./EmailNotificationsTypes.js"
+import {
+    EmailNotificationsPreferences,
+    EmailNotificationsSubscribeRequestTypeObject,
+    mergeEmailNotificationsPreferences,
+} from "./EmailNotificationsTypes.js"
 import { OwidGdocType } from "./gdocTypes/Gdoc.js"
 
 describe("EmailNotificationsSubscribeRequestTypeObject validation", () => {
@@ -93,5 +97,55 @@ describe("EmailNotificationsSubscribeRequestTypeObject validation", () => {
             },
         })
         expect(result.success).toBe(false)
+    })
+})
+
+describe(mergeEmailNotificationsPreferences, () => {
+    const existing: EmailNotificationsPreferences = {
+        topicTags: ["Energy"],
+        contentTypes: [OwidGdocType.Article],
+        frequency: "weekly",
+    }
+
+    it("unions topic tags and content types without duplicates", () => {
+        const merged = mergeEmailNotificationsPreferences(existing, {
+            topicTags: ["Energy", "Climate Change"],
+            contentTypes: [OwidGdocType.Article, OwidGdocType.DataInsight],
+            frequency: "weekly",
+        })
+        expect(merged).toEqual({
+            topicTags: ["Energy", "Climate Change"],
+            contentTypes: [OwidGdocType.Article, OwidGdocType.DataInsight],
+            frequency: "weekly",
+        })
+    })
+
+    it("treats an empty topic tags array (all topics) as winning the union", () => {
+        const allTopics = mergeEmailNotificationsPreferences(existing, {
+            ...existing,
+            topicTags: [],
+        })
+        expect(allTopics.topicTags).toEqual([])
+
+        const existingAllTopics = mergeEmailNotificationsPreferences(
+            { ...existing, topicTags: [] },
+            existing
+        )
+        expect(existingAllTopics.topicTags).toEqual([])
+    })
+
+    it("takes the incoming frequency", () => {
+        expect(
+            mergeEmailNotificationsPreferences(existing, {
+                ...existing,
+                frequency: "daily",
+            }).frequency
+        ).toBe("daily")
+        expect(
+            mergeEmailNotificationsPreferences(
+                { ...existing, frequency: "daily" },
+                existing
+            ).frequency
+        ).toBe("weekly")
     })
 })

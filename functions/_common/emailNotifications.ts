@@ -22,32 +22,6 @@ export function escapeHtml(text: string): string {
         .replaceAll('"', "&quot;")
 }
 
-/** Which state the subscriber's email address was in when they submitted the
- * subscribe form. Only the email copy differs; the flow is the same. (New
- * addresses don't get a confirmation email at all — signup is single opt-in,
- * they get the welcome email.) */
-export type ConfirmationEmailVariant = "update" | "reactivate"
-
-export function confirmationVariantForStatus(
-    status: string
-): ConfirmationEmailVariant {
-    return status === "unsubscribed" ? "reactivate" : "update"
-}
-
-const CONFIRMATION_EMAIL_COPY: Record<
-    ConfirmationEmailVariant,
-    { subject: string; intro: string }
-> = {
-    update: {
-        subject: "Confirm your new notification preferences",
-        intro: "You (or someone entering your address) asked to change your Our World in Data notification preferences. Your current preferences stay unchanged until you confirm.",
-    },
-    reactivate: {
-        subject: "Confirm your re-subscription to Our World in Data updates",
-        intro: "You (or someone entering your address) asked to re-subscribe this address to Our World in Data updates. You won't receive anything until you confirm.",
-    },
-}
-
 function renderPreferencesListHtml(
     preferences: EmailNotificationsPreferences
 ): string {
@@ -73,33 +47,13 @@ function renderPreferencesListHtml(
 </ul>`
 }
 
-function makeConfirmationEmail(props: {
-    to: string
-    preferences: EmailNotificationsPreferences
-    confirmUrl: string
-    variant: ConfirmationEmailVariant
-}): PostmarkEmail {
-    const { preferences, confirmUrl, variant } = props
-    const copy = CONFIRMATION_EMAIL_COPY[variant]
-    return {
-        to: props.to,
-        subject: copy.subject,
-        tag: "email-notifications-confirmation",
-        htmlBody: `<p>${copy.intro}</p>
-<p>These are the preferences you chose:</p>
-${renderPreferencesListHtml(preferences)}
-<p><a href="${confirmUrl}">Confirm</a></p>
-<p>If you didn't request this, you can safely ignore this email — nothing will change.</p>`,
-    }
-}
-
 /**
- * Welcome email for a brand-new address: signup is single opt-in, so the
- * subscription is already active when this is sent. Carries the permanent
- * per-user token's footer links (update preferences / unsubscribe), and its
- * send closes the timing side-channel: both subscribe branches make exactly
- * one Postmark call, so response timing doesn't reveal whether the address
- * was already known.
+ * Welcome email sent on every subscribe-form submission: signup is single
+ * opt-in, so the subscription is already active when this is sent. For an
+ * existing address the preferences shown are the merged result. Carries the
+ * permanent per-user token's footer links (update preferences / unsubscribe)
+ * — for an address submitted by someone else, this email is also what lets
+ * the owner notice and undo the change.
  */
 export async function sendWelcomeEmail(
     env: Env,
@@ -118,38 +72,10 @@ export async function sendWelcomeEmail(
         subject: "You're subscribed to Our World in Data updates",
         tag: "email-notifications-welcome",
         htmlBody: `<p>Thanks for subscribing to email updates from Our World in Data! You're all set — you'll receive an email when we publish new work matching your preferences.</p>
-<p>These are the preferences you chose:</p>
+<p>These are your notification preferences:</p>
 ${renderPreferencesListHtml(props.preferences)}
 <p>You can <a href="${updatePreferencesUrl}">update your preferences</a> or <a href="${unsubscribeUrl}">unsubscribe</a> at any time — these links are also in the footer of every email we send.</p>`,
     })
-}
-
-/**
- * Build the confirm URL for a confirm token, log it (so the flow can be
- * tested locally without Postmark credentials) and send the confirmation
- * email.
- */
-export async function sendConfirmationEmail(
-    env: Env,
-    origin: string,
-    props: {
-        to: string
-        token: string
-        preferences: EmailNotificationsPreferences
-        variant: ConfirmationEmailVariant
-    }
-): Promise<void> {
-    const confirmUrl = `${origin}/api/email-notifications/confirm?token=${props.token}`
-    console.log(`Confirmation email for ${props.to}, URL: ${confirmUrl}`)
-    await sendPostmarkEmail(
-        env,
-        makeConfirmationEmail({
-            to: props.to,
-            preferences: props.preferences,
-            confirmUrl,
-            variant: props.variant,
-        })
-    )
 }
 
 /**
@@ -216,83 +142,52 @@ export async function sendPostmarkEmail(
     }
 }
 
-// --- Purpose-scoped tokens (tokens table) ---
-
-export type EmailTokenPurpose = "confirm" | "magic-link"
+// --- Magic-link tokens (tokens table) ---
 
 export interface EmailTokenRow {
     id: number
     user_id: number
     token: string
-    purpose: EmailTokenPurpose
-    payload: string | null
     expires_at: string
-    consumed_at: string | null
 }
 
 export type EmailTokenLookup =
     | { state: "valid"; row: EmailTokenRow }
     | { state: "expired"; row: EmailTokenRow }
-    | { state: "consumed" }
     | { state: "invalid" }
 
 export async function createEmailToken(
     db: D1Database,
     userId: number,
-    purpose: EmailTokenPurpose,
-    ttlMs: number,
-    payload: string | null = null
+    ttlMs: number
 ): Promise<string> {
     const token = crypto.randomUUID()
     const expiresAt = new Date(Date.now() + ttlMs).toISOString()
     await db
         .prepare(
-            `INSERT INTO tokens (user_id, token, purpose, payload, expires_at)
-             VALUES (?1, ?2, ?3, ?4, ?5)`
+            `INSERT INTO tokens (user_id, token, expires_at)
+             VALUES (?1, ?2, ?3)`
         )
-        .bind(userId, token, purpose, payload, expiresAt)
+        .bind(userId, token, expiresAt)
         .run()
     return token
 }
 
 export async function lookupEmailToken(
     db: D1Database,
-    token: string,
-    purpose: EmailTokenPurpose
+    token: string
 ): Promise<EmailTokenLookup> {
     const row = await db
         .prepare(
-            `SELECT id, user_id, token, purpose, payload, expires_at, consumed_at
-             FROM tokens WHERE token = ?1 AND purpose = ?2`
+            `SELECT id, user_id, token, expires_at
+             FROM tokens WHERE token = ?1`
         )
-        .bind(token, purpose)
+        .bind(token)
         .first<EmailTokenRow>()
     if (!row) return { state: "invalid" }
-    if (row.consumed_at) return { state: "consumed" }
     if (row.expires_at <= new Date().toISOString())
         return { state: "expired", row }
     return { state: "valid", row }
-}
-
-/**
- * Claim a single-use token. Returns false if it was already consumed (e.g. a
- * double-submitted form), in which case the caller must not apply its effect
- * again.
- */
-export async function consumeEmailToken(
-    db: D1Database,
-    tokenId: number
-): Promise<boolean> {
-    const claimed = await db
-        .prepare(
-            `UPDATE tokens
-             SET consumed_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
-             WHERE id = ?1 AND consumed_at IS NULL
-             RETURNING id`
-        )
-        .bind(tokenId)
-        .first()
-    return claimed !== null
 }
 
 // --- Standalone HTML pages ---
@@ -347,7 +242,7 @@ ${props.bodyHtml}
 }
 
 /**
- * Minimal standalone HTML page for confirm/unsubscribe responses. These
+ * Minimal standalone HTML page for unsubscribe/request-link responses. These
  * endpoints are opened by clicking links in emails, so they need to render a
  * human-readable page rather than JSON.
  */

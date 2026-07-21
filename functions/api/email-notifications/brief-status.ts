@@ -32,7 +32,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
         const token = new URL(request.url).searchParams.get("token")
         if (!token || !db) return jsonResponse({ error: "invalid" }, 404)
 
-        const lookup = await lookupEmailToken(db, token, "magic-link")
+        const lookup = await lookupEmailToken(db, token)
         if (lookup.state !== "valid") {
             return jsonResponse(
                 { error: lookup.state },
