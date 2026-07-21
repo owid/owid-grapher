@@ -76,6 +76,7 @@ async function fetchSubscribers(
          JOIN notification_preferences
              ON notification_preferences.user_id = users.id
          WHERE users.status = 'subscribed'
+             AND users.suppressed_at IS NULL
              AND notification_preferences.frequency = ?1`,
         [frequency]
     )
@@ -199,6 +200,13 @@ async function buildNotificationItems(
         .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
 }
 
+// Postmark's API error code for sending to an address it has suppressed
+// (hard bounce, spam complaint, manual suppression).
+// https://postmarkapp.com/developer/api/overview#error-codes
+const POSTMARK_INACTIVE_RECIPIENT_ERROR_CODE = 406
+
+class PostmarkInactiveRecipientError extends Error {}
+
 /** Send an email via Postmark. Returns the Postmark message id. */
 async function sendViaPostmark(email: {
     to: string
@@ -242,13 +250,39 @@ async function sendViaPostmark(email: {
     const data = (await response.json()) as {
         MessageID?: string
         Message?: string
+        ErrorCode?: number
     }
     if (!response.ok) {
+        if (data.ErrorCode === POSTMARK_INACTIVE_RECIPIENT_ERROR_CODE) {
+            throw new PostmarkInactiveRecipientError(
+                `Postmark refused to send to ${email.to}: ${data.Message}`
+            )
+        }
         throw new Error(
             `Failed to send email via Postmark (${response.status}): ${data.Message}`
         )
     }
     return data.MessageID ?? null
+}
+
+/**
+ * Mark a user as suppressed after Postmark refused a send to them. Normally
+ * the subscription-change webhook keeps the suppression mirror current and
+ * this never runs; it catches addresses the webhook missed. The reason is
+ * left NULL — the send-time error doesn't say whether it was a hard bounce
+ * or a spam complaint.
+ */
+async function markUserSuppressed(
+    d1: D1Client,
+    userId: number,
+    at: Date
+): Promise<void> {
+    await d1.query(
+        `UPDATE users
+         SET suppressed_at = ?1, updated_at = ?1
+         WHERE id = ?2 AND suppressed_at IS NULL`,
+        [at.toISOString(), userId]
+    )
 }
 
 async function recordSentEmail(
@@ -396,8 +430,24 @@ async function sendEmailNotifications(options: {
                 `${subscriber.email}: sent ${subscriberItems.length} items (${slugs})`
             )
         } catch (error) {
-            console.error(`${subscriber.email}: failed`, error)
-            Sentry.captureException(error)
+            if (error instanceof PostmarkInactiveRecipientError) {
+                // Expected and self-healing (future runs skip the address),
+                // so it doesn't count as a run failure.
+                console.warn(`${subscriber.email}: ${error.message}`)
+                try {
+                    await markUserSuppressed(d1, subscriber.userId, now)
+                    continue
+                } catch (markError) {
+                    console.error(
+                        `${subscriber.email}: marking as suppressed failed`,
+                        markError
+                    )
+                    Sentry.captureException(markError)
+                }
+            } else {
+                console.error(`${subscriber.email}: failed`, error)
+                Sentry.captureException(error)
+            }
             failedEmails.push(subscriber.email)
         }
     }
