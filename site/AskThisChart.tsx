@@ -1,12 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useId, useRef, useState } from "react"
 import {
     ExpandableToggle,
     SimpleMarkdownText,
 } from "@ourworldindata/components"
+import { faThumbsDown, faThumbsUp } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 const ASK_CHART_API_ENDPOINT = "/api/ask-chart"
 const ASK_CHART_FAQ_API_ENDPOINT = "/api/ask-chart/faq"
 const MAX_QUESTION_LENGTH = 500
+const MAX_FEEDBACK_REASON_LENGTH = 2000
 const MAX_HISTORY_MESSAGES = 8
 
 // Shown as clickable prompts if the generated FAQs are unavailable
@@ -28,6 +31,117 @@ interface AskThisChartMessage {
 interface AskThisChartFaq {
     question: string
     answer: string
+}
+
+// Thumbs up/down rating for a single answer. On thumbs-down, reveals an
+// optional free-text field to say what was wrong. The rating is recorded as
+// soon as it's clicked, so a thumbs-down still counts even if no reason is
+// given; submitting a reason overwrites that record (same responseId).
+function AnswerFeedback({
+    slug,
+    source,
+    question,
+    answer,
+}: {
+    slug: string
+    source: "faq" | "chat"
+    question: string
+    answer: string
+}) {
+    const [rating, setRating] = useState<"up" | "down" | undefined>(undefined)
+    const [reason, setReason] = useState("")
+    const [isDone, setIsDone] = useState(false)
+    const reasonFieldId = useId()
+
+    // Prototype: feedback is only logged client-side for now. To persist it,
+    // POST this payload to a backend endpoint (e.g. /api/ask-chart/feedback).
+    const recordFeedback = (
+        ratingValue: "up" | "down",
+        reasonValue?: string
+    ): void => {
+        // eslint-disable-next-line no-console
+        console.log("ask-this-chart feedback", {
+            slug,
+            source,
+            rating: ratingValue,
+            question,
+            answer,
+            reason: reasonValue,
+        })
+    }
+
+    const handleRate = (ratingValue: "up" | "down"): void => {
+        setRating(ratingValue)
+        recordFeedback(ratingValue)
+        if (ratingValue === "up") setIsDone(true)
+    }
+
+    if (isDone)
+        return (
+            <p className="ask-this-chart__feedback-thanks">
+                Thanks for your feedback.
+            </p>
+        )
+
+    return (
+        <div className="ask-this-chart__feedback">
+            {!rating && (
+                <div className="ask-this-chart__feedback-rate">
+                    <span className="ask-this-chart__feedback-label">
+                        Was this helpful?
+                    </span>
+                    <button
+                        type="button"
+                        className="ask-this-chart__feedback-button"
+                        aria-label="Yes, this answer was helpful"
+                        onClick={() => handleRate("up")}
+                    >
+                        <FontAwesomeIcon icon={faThumbsUp} />
+                    </button>
+                    <button
+                        type="button"
+                        className="ask-this-chart__feedback-button"
+                        aria-label="No, this answer was not helpful"
+                        onClick={() => handleRate("down")}
+                    >
+                        <FontAwesomeIcon icon={faThumbsDown} />
+                    </button>
+                </div>
+            )}
+            {rating === "down" && (
+                <form
+                    className="ask-this-chart__feedback-reason"
+                    onSubmit={(event) => {
+                        event.preventDefault()
+                        const trimmedReason = reason.trim()
+                        if (trimmedReason) recordFeedback("down", trimmedReason)
+                        setIsDone(true)
+                    }}
+                >
+                    <label
+                        className="ask-this-chart__feedback-reason-label"
+                        htmlFor={reasonFieldId}
+                    >
+                        What was wrong with this answer? (optional)
+                    </label>
+                    <textarea
+                        id={reasonFieldId}
+                        className="ask-this-chart__feedback-reason-input"
+                        value={reason}
+                        maxLength={MAX_FEEDBACK_REASON_LENGTH}
+                        rows={3}
+                        onChange={(event) => setReason(event.target.value)}
+                    />
+                    <button
+                        type="submit"
+                        className="ask-this-chart__feedback-reason-submit"
+                    >
+                        Send
+                    </button>
+                </form>
+            )}
+        </div>
+    )
 }
 
 export default function AskThisChart({ slug }: { slug: string }) {
@@ -185,6 +299,12 @@ export default function AskThisChart({ slug }: { slug: string }) {
                                 content={
                                     <div className="ask-this-chart__faq-answer">
                                         <SimpleMarkdownText text={faq.answer} />
+                                        <AnswerFeedback
+                                            slug={slug}
+                                            source="faq"
+                                            question={faq.question}
+                                            answer={faq.answer}
+                                        />
                                     </div>
                                 }
                             />
@@ -212,7 +332,7 @@ export default function AskThisChart({ slug }: { slug: string }) {
                         className="ask-this-chart__ask-toggle"
                         onClick={() => setIsQuestionBarExpanded(true)}
                     >
-                        Have a different question? Ask this chart
+                        Have a different question? Ask about this chart
                     </button>
                 )}
                 {showQuestionBar && (
@@ -241,6 +361,23 @@ export default function AskThisChart({ slug }: { slug: string }) {
                                                     Thinking…
                                                 </p>
                                             )}
+                                            {message.content &&
+                                                !(
+                                                    isLoading &&
+                                                    messageIndex ===
+                                                        messages.length - 1
+                                                ) && (
+                                                    <AnswerFeedback
+                                                        slug={slug}
+                                                        source="chat"
+                                                        question={
+                                                            messages[
+                                                                messageIndex - 1
+                                                            ]?.content ?? ""
+                                                        }
+                                                        answer={message.content}
+                                                    />
+                                                )}
                                         </div>
                                     )
                                 )}

@@ -70,6 +70,88 @@
     }
 }
 
+.ask-this-chart__feedback {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid $blue-20;
+}
+
+.ask-this-chart__feedback-rate {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ask-this-chart__feedback-label {
+    @include note-13-medium;
+    color: $blue-60;
+}
+
+.ask-this-chart__feedback-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background-color: $white;
+    color: $blue-60;
+    border: 1px solid $blue-20;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $blue-10;
+        color: $blue-90;
+    }
+}
+
+.ask-this-chart__feedback-reason {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.ask-this-chart__feedback-reason-label {
+    @include note-13-medium;
+    color: $blue-60;
+}
+
+.ask-this-chart__feedback-reason-input {
+    @include body-3-medium;
+    width: 100%;
+    padding: 8px 12px;
+    background-color: $white;
+    border: 1px solid $blue-20;
+    color: $blue-90;
+    resize: vertical;
+
+    &:focus {
+        outline: 2px solid $blue-40;
+        outline-offset: -2px;
+    }
+}
+
+.ask-this-chart__feedback-reason-submit {
+    @include body-3-medium;
+    padding: 8px 24px;
+    background-color: $blue-90;
+    color: $white;
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $blue-60;
+    }
+}
+
+.ask-this-chart__feedback-thanks {
+    @include note-13-medium;
+    color: $blue-60;
+    margin: 16px 0 0;
+    padding-top: 12px;
+    border-top: 1px solid $blue-20;
+}
+
 .ask-this-chart__suggestions {
     display: flex;
     flex-wrap: wrap;
