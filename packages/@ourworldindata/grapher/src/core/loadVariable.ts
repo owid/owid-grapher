@@ -75,8 +75,12 @@ export async function loadVariableDataAndMetadata(
     if (options?.loadMetadataOnly) {
         const metadataResponse = await metadataPromise
         if (!metadataResponse.ok) throw new Error(metadataResponse.statusText)
-        const metadata = normalizeVariableMetadata(
+        const metadata: OwidVariableWithSourceAndDimension =
             await metadataResponse.json()
+        // Metadata files written before the descriptionKey string migration
+        // hold arrays — normalize at the fetch boundary.
+        metadata.descriptionKey = normalizeDescriptionKey(
+            metadata.descriptionKey
         )
         // Return empty data when only metadata is requested
         return { data: { values: [], entities: [], years: [] }, metadata }
@@ -93,17 +97,10 @@ export async function loadVariableDataAndMetadata(
     if (!dataResponse.ok) throw new Error(dataResponse.statusText)
     if (!metadataResponse.ok) throw new Error(metadataResponse.statusText)
     const data = await dataResponse.json()
-    const metadata = normalizeVariableMetadata(await metadataResponse.json())
-    return { data, metadata }
-}
-
-// Metadata files written before the descriptionKey string migration hold
-// arrays — normalize at the fetch boundary.
-function normalizeVariableMetadata(
-    metadata: OwidVariableWithSourceAndDimension
-): OwidVariableWithSourceAndDimension {
+    const metadata: OwidVariableWithSourceAndDimension =
+        await metadataResponse.json()
     metadata.descriptionKey = normalizeDescriptionKey(metadata.descriptionKey)
-    return metadata
+    return { data, metadata }
 }
 
 export async function loadVariablesDataSite(
