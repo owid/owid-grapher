@@ -1,11 +1,16 @@
-import { useCallback, useRef, useState } from "react"
-import { SimpleMarkdownText } from "@ourworldindata/components"
+import { useCallback, useEffect, useRef, useState } from "react"
+import {
+    ExpandableToggle,
+    SimpleMarkdownText,
+} from "@ourworldindata/components"
 
 const ASK_CHART_API_ENDPOINT = "/api/ask-chart"
+const ASK_CHART_FAQ_API_ENDPOINT = "/api/ask-chart/faq"
 const MAX_QUESTION_LENGTH = 500
 const MAX_HISTORY_MESSAGES = 8
 
-const SUGGESTED_QUESTIONS = [
+// Shown as clickable prompts if the generated FAQs are unavailable
+const FALLBACK_QUESTIONS = [
     "What does this chart show?",
     "Where does this data come from?",
     "How reliable is this data?",
@@ -20,12 +25,43 @@ interface AskThisChartMessage {
     content: string
 }
 
+interface AskThisChartFaq {
+    question: string
+    answer: string
+}
+
 export default function AskThisChart({ slug }: { slug: string }) {
+    const [faqs, setFaqs] = useState<AskThisChartFaq[] | undefined>(undefined)
+    const [isLoadingFaqs, setIsLoadingFaqs] = useState(true)
     const [messages, setMessages] = useState<AskThisChartMessage[]>([])
     const [input, setInput] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | undefined>(undefined)
     const abortControllerRef = useRef<AbortController | undefined>(undefined)
+
+    // Load the pre-generated, chart-specific FAQ entries
+    useEffect(() => {
+        const abortController = new AbortController()
+        const loadFaqs = async (): Promise<void> => {
+            try {
+                const response = await fetch(
+                    `${ASK_CHART_FAQ_API_ENDPOINT}?slug=${encodeURIComponent(slug)}`,
+                    { signal: abortController.signal }
+                )
+                if (!response.ok) return
+                const parsed = (await response.json()) as {
+                    faqs?: AskThisChartFaq[]
+                }
+                if (parsed.faqs?.length) setFaqs(parsed.faqs)
+            } catch {
+                // The FAQ section is optional — fall back to generic questions
+            } finally {
+                if (!abortController.signal.aborted) setIsLoadingFaqs(false)
+            }
+        }
+        void loadFaqs()
+        return () => abortController.abort()
+    }, [slug])
 
     const askQuestion = useCallback(
         async (question: string): Promise<void> => {
@@ -109,6 +145,9 @@ export default function AskThisChart({ slug }: { slug: string }) {
         [messages, slug]
     )
 
+    const showFallbackQuestions =
+        !isLoadingFaqs && !faqs && messages.length === 0
+
     return (
         <div className="ask-this-chart-wrapper span-cols-14 grid grid-cols-12-full-width">
             <h2 className="h2-bold span-cols-9 col-start-2 col-md-start-2 span-md-cols-12 col-sm-start-2 span-sm-cols-12">
@@ -116,12 +155,33 @@ export default function AskThisChart({ slug }: { slug: string }) {
             </h2>
             <div className="ask-this-chart span-cols-9 col-start-2 col-md-start-2 span-md-cols-12 col-sm-start-2 span-sm-cols-12">
                 <p className="ask-this-chart__intro">
-                    Ask a question about this chart — what it shows, where the
-                    data comes from, or what might explain a pattern you see.
+                    Common questions about this chart, answered by an AI model
+                    based on the chart's data and source documentation.
                 </p>
-                {messages.length === 0 && (
+                {isLoadingFaqs && (
+                    <p className="ask-this-chart__faqs-loading">
+                        Loading questions about this chart…
+                    </p>
+                )}
+                {faqs && (
+                    <div className="ask-this-chart__faqs">
+                        {faqs.map((faq) => (
+                            <ExpandableToggle
+                                key={faq.question}
+                                label={faq.question}
+                                isStacked
+                                content={
+                                    <div className="ask-this-chart__faq-answer">
+                                        <SimpleMarkdownText text={faq.answer} />
+                                    </div>
+                                }
+                            />
+                        ))}
+                    </div>
+                )}
+                {showFallbackQuestions && (
                     <div className="ask-this-chart__suggestions">
-                        {SUGGESTED_QUESTIONS.map((question) => (
+                        {FALLBACK_QUESTIONS.map((question) => (
                             <button
                                 key={question}
                                 type="button"
@@ -176,8 +236,8 @@ export default function AskThisChart({ slug }: { slug: string }) {
                         className="ask-this-chart__input"
                         value={input}
                         maxLength={MAX_QUESTION_LENGTH}
-                        placeholder="Ask a question about this chart"
-                        aria-label="Ask a question about this chart"
+                        placeholder="Ask your own question about this chart"
+                        aria-label="Ask your own question about this chart"
                         onChange={(event) => setInput(event.target.value)}
                     />
                     <button
