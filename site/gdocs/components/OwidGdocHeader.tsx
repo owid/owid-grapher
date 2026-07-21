@@ -9,7 +9,11 @@ import {
     formatDate,
 } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faBook, faClockRotateLeft } from "@fortawesome/free-solid-svg-icons"
+import {
+    faBook,
+    faClockRotateLeft,
+    faWandMagicSparkles,
+} from "@fortawesome/free-solid-svg-icons"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
 import Image from "./Image.js"
 import { Breadcrumbs } from "../../Breadcrumb/Breadcrumb.js"
@@ -238,12 +242,82 @@ function OwidLinearTopicPageHeader({
     )
 }
 
+/**
+ * Header for the `layout: bespoke-viz` article variant.
+ *
+ * Sits on plain white (no band/border) and is laid out on the SAME two-column
+ * grid as the body: the LEFT (wider) column holds the eyebrow, title and
+ * subtitle — so the title wraps at the viz column's width, not full-page width
+ * — and the RIGHT (narrower) column holds the byline, vertically aligned with
+ * the subtitle. All styling is scoped under the
+ * `.centered-article-container--bespoke-viz` modifier in centered-article.scss.
+ */
+function OwidBespokeVizHeader({
+    content,
+    publishedAt,
+}: {
+    content: OwidGdocPostContent
+    publishedAt: Date | null
+}) {
+    // Standard OWID dateline mechanism: prefer the explicit `dateline` field,
+    // else the formatted publication date (same as OwidArticleHeader).
+    const dateline =
+        content.dateline || (publishedAt && formatDate(publishedAt))
+    return (
+        // Full-bleed beige band (spans the whole viewport width). The content
+        // is placed on the centred content grid inside it.
+        <header className="bespoke-viz-header span-cols-14 grid grid-cols-12-full-width">
+            <div className="bespoke-viz-header__inner col-start-2 span-cols-12">
+                {/* Everything stacks vertically, left-aligned in the left
+                    (viz-width) column: eyebrow -> title -> subtitle -> byline
+                    -> dateline. */}
+                <p className="bespoke-viz-header__eyebrow">
+                    {/* Placeholder eyebrow + icon — clearly swappable. */}
+                    <FontAwesomeIcon
+                        className="bespoke-viz-header__eyebrow-icon"
+                        icon={faWandMagicSparkles}
+                    />
+                    Featured Visualization
+                </p>
+                <h1 className="bespoke-viz-header__title">{content.title}</h1>
+                {content.subtitle && (
+                    <p className="bespoke-viz-header__subtitle">
+                        {content.subtitle}
+                    </p>
+                )}
+                {content.authors.length > 0 && (
+                    <p className="bespoke-viz-header__byline">
+                        <Byline names={content.authors} />
+                    </p>
+                )}
+                {dateline && (
+                    <p
+                        className="bespoke-viz-header__dateline"
+                        suppressHydrationWarning={true}
+                    >
+                        {dateline}
+                    </p>
+                )}
+            </div>
+        </header>
+    )
+}
+
 export function OwidGdocHeader(props: {
     content: OwidGdocPostContent
     publishedAt: Date | null
     breadcrumbs?: BreadcrumbItem[]
     isDeprecated?: boolean
 }) {
+    // The viz-forward layout flag takes precedence over the content type so
+    // that a regular Article (the usual type for these) gets the banded header.
+    if (props.content.layout === "bespoke-viz")
+        return (
+            <OwidBespokeVizHeader
+                content={props.content}
+                publishedAt={props.publishedAt}
+            />
+        )
     if (props.content.type === OwidGdocType.Article)
         return <OwidArticleHeader {...props} />
     if (props.content.type === OwidGdocType.TopicPage)

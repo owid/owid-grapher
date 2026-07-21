@@ -80,6 +80,7 @@ export const checkIsLightningUpdate = (
         "sidebar-toc": true,
         "sidebar-toc-h1-only": true,
         "heading-variant": true,
+        layout: true,
         "hide-subscribe-banner": true,
         body: true,
         dateline: true,

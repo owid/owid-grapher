@@ -573,3 +573,55 @@ level: 2
         }
     )
 })
+
+describe("parseRawBlocksToEnrichedBlocks compact-form normalization", () => {
+    // Blocks nested inside a container's freeform array (e.g. a sticky-left's
+    // [.+left]/[.+right]) can arrive from ArchieML in the "compact" form —
+    // keyed by tag with no `type` field — when they have their own nested
+    // sub-structure. The parser must reconstruct { type, value } rather than
+    // throwing on `.exhaustive()`. See the normalization at the top of
+    // parseRawBlocksToEnrichedBlocks.
+    it("parses a compact bespoke-component block", () => {
+        const compact = {
+            "bespoke-component": {
+                bundle: "migration",
+                size: "wide",
+                variant: "sankey",
+                config: { country: "Malaysia" },
+            },
+        } as unknown as OwidRawGdocBlock
+
+        const enriched = parseRawBlocksToEnrichedBlocks(compact)
+        expect(enriched).not.toBeNull()
+        expect(enriched?.type).toEqual("bespoke-component")
+    })
+
+    it("parses a compact callout block", () => {
+        const compact = {
+            callout: {
+                text: [
+                    {
+                        type: "text",
+                        value: [
+                            { text: "Hello", spanType: "span-simple-text" },
+                        ],
+                    },
+                ],
+            },
+        } as unknown as OwidRawGdocBlock
+
+        const enriched = parseRawBlocksToEnrichedBlocks(compact)
+        expect(enriched).not.toBeNull()
+        expect(enriched?.type).toEqual("callout")
+    })
+
+    it("leaves an already-typed { type, value } block untouched", () => {
+        const typed = {
+            type: "text",
+            value: "Hello",
+        } as unknown as OwidRawGdocBlock
+
+        const enriched = parseRawBlocksToEnrichedBlocks(typed)
+        expect(enriched?.type).toEqual("text")
+    })
+})
