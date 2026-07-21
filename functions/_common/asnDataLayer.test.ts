@@ -5,7 +5,8 @@ describe(buildDataLayerScript, () => {
     it("builds a script tag pushing asn and as_org onto the dataLayer", () => {
         const script = buildDataLayerScript({
             asn: 680,
-            asOrganization: "Verein zur Foerderung eines Deutschen Forschungsnetzes e.V.",
+            asOrganization:
+                "Verein zur Foerderung eines Deutschen Forschungsnetzes e.V.",
         })
         expect(script).toBe(
             `<script>window.dataLayer=window.dataLayer||[];window.dataLayer.push({"asn":680,"as_org":"Verein zur Foerderung eines Deutschen Forschungsnetzes e.V."});</script>`
