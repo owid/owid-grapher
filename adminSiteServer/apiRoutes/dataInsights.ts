@@ -295,11 +295,18 @@ export async function refreshDataInsights(
     if (gdocIds.length === 0)
         return { success: true, updated: 0, errored: 0, errors: [] }
 
-    // Fetch the requested data insights from the database
+    // Fetch the requested data insights from the database. Refresh drafts
+    // and scheduled data insights (published, but with a publish date in the
+    // future) from Google Docs. Skip data insights that are already live, to
+    // avoid accidentally re-publishing content that isn't ready to go out.
     const rows = await trx
         .table<DbRawPostGdoc>(PostsGdocsTableName)
         .where("type", "data-insight")
-        .where("published", 0) // Only refresh unpublished data insights
+        .where((builder) =>
+            builder
+                .where("published", 0)
+                .orWhere("publishedAt", ">", trx.fn.now())
+        )
         .whereIn("id", gdocIds)
 
     const records: OwidGdocBaseInterface[] = rows.map((row) =>
