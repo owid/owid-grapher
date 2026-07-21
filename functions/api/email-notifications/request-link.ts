@@ -136,7 +136,6 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             const magicToken = await createEmailToken(
                 db,
                 user.id,
-                "magic-link",
                 EMAIL_NOTIFICATIONS_MAGIC_LINK_TTL_MS
             )
             await sendMagicLinkEmail(env, new URL(request.url).origin, {
@@ -228,7 +227,7 @@ async function findUserByAnyToken(
             `SELECT users.id, users.email
              FROM tokens
              JOIN users ON users.id = tokens.user_id
-             WHERE tokens.token = ?1 AND tokens.purpose = 'magic-link'`
+             WHERE tokens.token = ?1`
         )
         .bind(token)
         .first<UserIdEmail>()
