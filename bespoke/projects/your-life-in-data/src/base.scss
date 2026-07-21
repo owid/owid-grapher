@@ -1,0 +1,16 @@
+@use "../../../../packages/@ourworldindata/components/src/styles/typography-constants"
+    as typography;
+
+:host {
+    font-family: typography.$sans-serif-font-stack;
+
+    --ylid-ink: #1b1f24;
+    --ylid-muted: #6b7480;
+    --ylid-line: #e7e9ec;
+    --ylid-accent: #2f6fed;
+    --ylid-good: #2f9e7f;
+    --ylid-warn: #d9803a;
+    --ylid-ghost: #cdd2da;
+    --ylid-neutral: #8a929c;
+    --ylid-serif: #{typography.$serif-font-stack};
+}

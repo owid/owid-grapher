@@ -29,4 +29,7 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     migration: {
         scriptUrl: "/migration/index.js",
     },
+    "your-life-in-data": {
+        scriptUrl: "/your-life-in-data/index.js",
+    },
 }

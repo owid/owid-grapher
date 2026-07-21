@@ -1,0 +1,2 @@
+# build cache: grapher CSVs/metadata, regenerable via assets/build.py
+cache/
