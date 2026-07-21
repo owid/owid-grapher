@@ -54,6 +54,16 @@ export function changePhrase(
             return sign + "$" + Math.round(abs).toLocaleString("en-US")
         return sign + formatValue(abs, format)
     }
+    // Bounded 0-1ish composite scores (V-Dem indices, HDI-style metrics) land in
+    // format "number" rather than a %/rate. Near their floor or ceiling, a tiny
+    // absolute move (0.01 -> 0.02) produces a mathematically correct but
+    // misleading ratio ("≈ doubled") — a rate/count metric moving the same
+    // ratio off a small base (e.g. a mortality rate) is a genuine story, but a
+    // fractional-point score isn't. Report the point difference instead.
+    const NEGLIGIBLE_SCORE_DELTA = 0.1
+    if (format === "number" && abs < NEGLIGIBLE_SCORE_DELTA) {
+        return sign + formatValue(abs, format)
+    }
     // relative: the multiple / ratio is the story (GDP, income, mortality rates, counts)
     if (then > 0 && now > 0) {
         const r = now / then

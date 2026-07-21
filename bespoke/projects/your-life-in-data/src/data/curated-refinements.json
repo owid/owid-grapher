@@ -27090,46 +27090,82 @@
                 "exclude": [
                     {
                         "slug": "share-of-the-population-infected-with-hiv",
-                        "reason": "HIV prevalence is extremely low (under 0.1%) and is not a major national health burden."
+                        "reason": "HIV prevalence is extremely low in New Zealand, remaining well under 0.1% of the population."
+                    },
+                    {
+                        "slug": "incidence-of-tuberculosis-sdgs",
+                        "reason": "Tuberculosis is a niche issue with very low incidence in New Zealand."
                     }
                 ],
                 "promote": [
                     {
-                        "slug": "share-of-adults-defined-as-obese",
-                        "valueColumn": "obesity_among_adults__bmi__gt__30_kg_m2__crude_estimate__pct__sex_both_sexes__age_group_18plus__years_of_age",
-                        "label": "Share of adults who are obese",
+                        "slug": "annual-healthcare-expenditure-per-capita",
+                        "valueColumn": "sh_xpd_chex_pp_cd",
+                        "label": "Total health spending per person",
                         "subtopic": "Health",
-                        "format": "pct",
+                        "format": "usd",
                         "comparable": true,
-                        "goodDirection": "down",
-                        "framing": "absolute",
-                        "unit": "%",
+                        "goodDirection": "up",
+                        "framing": "relative",
+                        "unit": "$",
                         "desc": "",
-                        "source": "World Health Organization - Global Health Observatory (2026) \u2013 with minor processing by Our World in Data",
-                        "reason": "Obesity rates have more than quadrupled since 1980, making it a major national health challenge."
+                        "source": "Global Health Expenditure Database, WHO, via World Bank (2026) \u2013 processed by Our World in Data",
+                        "reason": "Highlights the massive long-term expansion of funding and resources in New Zealand's healthcare system."
                     }
                 ]
             },
             "Environment": {
                 "exclude": [
                     {
-                        "slug": "share-of-the-population-with-access-to-electricity",
-                        "reason": "Access has been universal at 100% throughout the entire period."
+                        "slug": "ozone-depleting-substance-consumption",
+                        "reason": "Pinned at zero throughout the period"
                     },
                     {
                         "slug": "natural-disasters-deaths",
-                        "reason": "Recorded deaths from natural disasters were zero in both comparison years."
+                        "reason": "Zero recorded deaths during these years"
                     },
                     {
-                        "slug": "ozone-depleting-substance-consumption",
-                        "reason": "Consumption was already zero at the baseline."
+                        "slug": "share-of-the-population-with-access-to-electricity",
+                        "reason": "Maintained at 100% throughout the entire period"
                     },
                     {
                         "slug": "access-to-clean-fuels-and-technologies-for-cooking",
-                        "reason": "Access has remained near 100% throughout the period."
+                        "reason": "Near-universal access throughout the period"
+                    },
+                    {
+                        "slug": "freshwater-withdrawals-as-a-share-of-internal-resources",
+                        "reason": "Replaced by absolute freshwater withdrawals to better show the scale of change"
                     }
                 ],
                 "promote": [
+                    {
+                        "slug": "annual-freshwater-withdrawals",
+                        "valueColumn": "er_h2o_fwtl_k3",
+                        "label": "Annual freshwater withdrawals",
+                        "subtopic": "Environment",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "relative",
+                        "unit": "billion cubic meters",
+                        "desc": "",
+                        "source": "AQUASTAT - FAO's Global Information System on Water and Agriculture, FAO, via World Bank (2026) \u2013 processed by Our World in Data",
+                        "reason": "Highlights the massive eight-fold increase in water extraction, driven largely by dairy farming intensification."
+                    },
+                    {
+                        "slug": "share-electricity-renewables",
+                        "valueColumn": "renewable_share_of_electricity__pct",
+                        "label": "Share of electricity from renewables",
+                        "subtopic": "Environment",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "up",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "Measured as a percentage of total electricity produced in the country or region.",
+                        "source": "Ember (2026); Energy Institute - Statistical Review of World Energy (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "Highlights New Zealand's exceptionally high and growing clean electricity grid."
+                    },
                     {
                         "slug": "red-list-index",
                         "valueColumn": "_15_5_1__er_rsk_lst",
@@ -27142,21 +27178,7 @@
                         "unit": "index",
                         "desc": "Red List Index",
                         "source": "BirdLife International and IUCN \u2013 processed by Our World in Data",
-                        "reason": "New Zealand's isolated, endemic wildlife faces exceptional pressure from invasive species and habitat loss."
-                    },
-                    {
-                        "slug": "water-withdrawals-per-capita",
-                        "valueColumn": "total_water_withdrawal_per_capita",
-                        "label": "Water withdrawals per capita",
-                        "subtopic": "Environment",
-                        "format": "number",
-                        "comparable": true,
-                        "goodDirection": "down",
-                        "framing": "relative",
-                        "unit": "m\u00b3",
-                        "desc": "",
-                        "source": "FAO (2017) \u2013 processed by Our World in Data",
-                        "reason": "Per capita water use has tripled, driven by the intensification of dairy farming and agricultural irrigation."
+                        "reason": "Underlines the severe conservation challenges facing New Zealand's unique endemic species."
                     }
                 ]
             },
@@ -27165,7 +27187,7 @@
                     {
                         "slug": "migrant-stock-share",
                         "valueColumn": "immigrant_share_of_dest_population_all",
-                        "label": "Share of the population born in another country",
+                        "label": "Share of population born abroad",
                         "subtopic": "Economy",
                         "format": "pct",
                         "comparable": true,
@@ -27174,31 +27196,25 @@
                         "unit": "%",
                         "desc": "Immigrants as a share of the total population.",
                         "source": "United Nations Department of Economic and Social Affairs (2024) \u2013 with minor processing by Our World in Data",
-                        "reason": "An exceptionally high and rapidly growing share of New Zealand's population is foreign-born, heavily shaping its labor supply and economy."
+                        "reason": "With over 28% of the population born overseas, immigration is a exceptionally central driver of New Zealand's labor force and economic growth."
                     }
                 ]
             },
             "Food & Agriculture": {
-                "exclude": [
-                    {
-                        "slug": "prevalence-of-anemia-in-women-of-reproductive-age-aged-15-29",
-                        "reason": "Anemia is a minor public health concern in New Zealand compared to food-abundance challenges like obesity."
-                    }
-                ],
                 "promote": [
                     {
-                        "slug": "land-animals-slaughtered-for-meat",
-                        "valueColumn": "n_animals_killed__animal_chickens",
-                        "label": "Land animals slaughtered for meat",
+                        "slug": "meat-production-tonnes",
+                        "valueColumn": "meat__total__00001765__production__005510__tonnes",
+                        "label": "Meat production",
                         "subtopic": "Food & Agriculture",
-                        "format": "number",
+                        "format": "tonnes",
                         "comparable": false,
                         "goodDirection": "none",
                         "framing": "relative",
-                        "unit": "animals",
-                        "desc": "This data is based on the country of production, not consumption.",
-                        "source": "Food and Agriculture Organization of the United Nations (2025) \u2013 processed by Our World in Data",
-                        "reason": "Highlights the massive scale and expansion of New Zealand's livestock and poultry sectors."
+                        "unit": "t",
+                        "desc": "",
+                        "source": "Food and Agriculture Organization of the United Nations (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "Reflects New Zealand's status as a major global exporter, with total meat output doubling since 1961."
                     }
                 ]
             },
@@ -27206,18 +27222,18 @@
                 "exclude": [
                     {
                         "slug": "share-of-the-population-with-access-to-electricity",
-                        "reason": "Electricity access has been universal throughout the entire period."
+                        "reason": "Access has been at 100% throughout the entire period"
                     },
                     {
                         "slug": "access-to-clean-fuels-and-technologies-for-cooking",
-                        "reason": "Access to clean cooking fuels has remained near-universal since 2000."
+                        "reason": "Access has been near 100% throughout the entire period"
                     }
                 ],
                 "promote": [
                     {
                         "slug": "trust-state-institutions-wvs",
                         "valueColumn": "confidence_justice_system_courts",
-                        "label": "Trust in institutions",
+                        "label": "Trust in state institutions",
                         "subtopic": "Living Conditions",
                         "format": "pct",
                         "comparable": true,
@@ -27226,7 +27242,7 @@
                         "unit": "%",
                         "desc": "% of respondents replying that they \"trust completely\" or \"trust somewhat\" when asked \"I am going to name a number of organizations. For each one, could you tell me how much confidence you have in them: is it a great deal of confidence, quite a lot of confidence, not very much confidence or none at all?\" in the organization \"The justice system (courts)\".",
                         "source": "Integrated Values Surveys (2024) \u2013 with major processing by Our World in Data",
-                        "reason": "Unlike many peer nations, New Zealanders' trust in state institutions rose substantially between 1998 and 2022."
+                        "reason": "New Zealand has seen a substantial rise in institutional trust, bucking the downward trend seen in many peer nations"
                     }
                 ]
             },
@@ -27234,11 +27250,7 @@
                 "exclude": [
                     {
                         "slug": "percentage-of-territory-controlled-by-government",
-                        "reason": "Government control has been complete and stable at nearly 100% for over a century."
-                    },
-                    {
-                        "slug": "deaths-in-armed-conflicts-by-country",
-                        "reason": "No active armed conflict has occurred on New Zealand territory during the modern era."
+                        "reason": "Government territory control has been stable at nearly 100% for over a century"
                     }
                 ]
             },
@@ -27246,7 +27258,7 @@
                 "exclude": [
                     {
                         "slug": "sex-ratio-at-birth",
-                        "reason": "Remained stable around the natural biological ratio throughout the period."
+                        "reason": "The sex ratio at birth has remained stable at the natural biological baseline."
                     }
                 ],
                 "promote": [
@@ -27262,7 +27274,7 @@
                         "unit": "%",
                         "desc": "Immigrants as a share of the total population.",
                         "source": "United Nations Department of Economic and Social Affairs (2024) \u2013 with minor processing by Our World in Data",
-                        "reason": "New Zealand has an exceptionally high share of foreign-born residents, nearly doubling since 1990 to over 28%."
+                        "reason": "New Zealand has one of the highest shares of foreign-born residents in the OECD, making immigration central to its demographic story."
                     }
                 ]
             },
@@ -27270,7 +27282,7 @@
                 "exclude": [
                     {
                         "slug": "yearly-number-of-objects-launched-into-outer-space",
-                        "reason": "Extremely low and flat count (1 object per year in both 2018 and 2025) that does not represent a significant domestic space program."
+                        "reason": "Extremely low and flat registration count does not reflect NZ's actual commercial space launch activity"
                     }
                 ]
             }
