@@ -10,9 +10,7 @@ import { MigrationInterface, QueryRunner } from "typeorm"
  * than numeric chart/variable ids), so rows written on a staging server stay
  * meaningful when read against production and vice versa.
  */
-export class AddMetadataReviewTables1784648997956
-    implements MigrationInterface
-{
+export class AddMetadataReviewTables1784648997956 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             CREATE TABLE metadata_review_suggestions (
