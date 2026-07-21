@@ -26,6 +26,7 @@ The Our World in Data monorepo: the Grapher charting library, the chart/data adm
 - `make test` — the CI bundle: lint + format check + unit tests.
 - `make svgtest` — SVG regression tests for chart rendering; uses a sibling `../owid-grapher-svgs` checkout and opens an HTML diff report on failure. Run when touching grapher rendering code.
 - `yarn testBdd` / `make bdd` — Playwright BDD tests driven by `features/*.feature` (requires the dev stack running).
+- `yarn testBundlemon` — builds the site bundle and checks it against the size budgets in `.bundlemonrc.json`; CI blocks PRs that exceed them. Relevant when adding dependencies or imports to site code.
 
 ### Git
 
@@ -77,13 +78,4 @@ Key facts that span multiple directories:
 
 ## Cloud sandbox sessions (claude.ai/code)
 
-Notes for sessions running in a Claude Code cloud sandbox (`CLAUDE_CODE_REMOTE=true`):
-
-- The sandbox pre-creates a session branch named `claude/<slug>-<random-suffix>`, which violates the branch-naming rules above. Rename it before the first push: `git branch -m <short-descriptive-name>`.
-- Use `make up.headless` for the site/database. If the sandbox snapshot has a pre-imported native MySQL (the usual case), it starts within minutes; only the docker fallback is slow (10–20 min download+import) and can outlive a command timeout — run it in the background, and if it gets killed, re-run it: every step is idempotent and resumes.
-- The snapshot's database can be up to a week older than the code. After `make up.headless`, run `make migrate` to apply any migrations merged since — it's idempotent and takes seconds. If pages still 500 on missing tables/columns, `make refresh` re-imports a fresh dump (10–20 minutes).
-- `ALGOLIA_ID` and `ALGOLIA_SEARCH_KEY` are provided as env vars (public, search-only), so local site search works. Never scrape API keys out of deployed JS bundles.
-- Chart thumbnails are served by a Cloudflare function that doesn't run locally. `GRAPHER_DYNAMIC_THUMBNAIL_URL` and `EXPLORER_DYNAMIC_THUMBNAIL_URL` are usually provided; if absent and thumbnails are missing, set them in `.env` to `https://ourworldindata.org/grapher` and `https://ourworldindata.org/explorers`.
-- To screenshot a locally served page, use `node devTools/screenshot/screenshotPage.mjs <url> <out.png>`. The sandbox routes outbound HTTPS through an egress proxy that resets Chromium's TLS handshake; the script works around this by routing external requests through Playwright's Node-side request context.
-- Staging servers are on Tailscale and unreachable from the sandbox, and local ports can't be exposed to the user. Verify changes with typecheck, unit tests, and the local dev environment (plus screenshots).
-- After pushing a branch, tell the user where to review on the branch's staging server, deep-linked to the affected page — e.g. `http://staging-site-<name>/search?q=malaria`. Don't derive the staging name by hand; compute it with `node -e 'const b=process.argv[1].replace(/[/._]/g,"-");console.log(("staging-site-"+b.slice(0,28)).replace(/-+$/,""))' "$(git branch --show-current)"`. Mention that the staging server takes a while to build after a push, especially the first one.
+If you are running in a Claude Code cloud sandbox (`CLAUDE_CODE_REMOTE=true`), read `docs/agent-guidelines/cloud-sandbox.md` BEFORE starting work — it covers renaming the pre-created `claude/` branch, database freshness, thumbnails, screenshots, and how to hand the user a staging link.
