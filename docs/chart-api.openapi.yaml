@@ -265,7 +265,8 @@ paths:
                         titleLong: Life expectancy at birth - Various sources – period tables
                         descriptionShort: The period life expectancy at birth, in a given year.
                         descriptionKey: |-
-                          Period life expectancy is a metric that summarizes death rates across all age groups in one particular year. ...
+                          - Across the world, people are living longer. In 1900, the global average life expectancy was 32 years. By 2023, this had more than doubled to 73 years.
+                          - Period life expectancy is an indicator that summarizes death rates across all age groups in one particular year. ...
                         shortUnit: years
                         unit: years
                         timespan: 1543-2021
