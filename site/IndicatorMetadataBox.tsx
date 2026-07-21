@@ -474,9 +474,8 @@ function IndicatorPaneContent({
     // the visible pane.
     idSuffix: string
 }) {
-    // Owners of the dataset backing this indicator. For now we show a single
-    // indicator's owners (only loaded on the chart's primary indicator);
-    // we don't merge owners across datasets here.
+    // Owners of the dataset backing this indicator — the baker loads each
+    // pane's datapageData.owners from its own indicator's dataset.
     const owners = datapageData.owners?.[0]?.owners ?? []
 
     const attributionUnshortened = getAttributionUnshortened(datapageData)

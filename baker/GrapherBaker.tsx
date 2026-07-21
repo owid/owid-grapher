@@ -330,13 +330,25 @@ export async function renderDataPageV2(
                     const metadata = await getVariableMetadata(id, {
                         noCache: true,
                     })
-                    return {
-                        datapageData: getDatapageDataV2(metadata, grapher, {
+                    const indicatorDatapageData = getDatapageDataV2(
+                        metadata,
+                        grapher,
+                        {
                             indicatorTitleOverride: indicatorTitleOverrideFor(
                                 id,
                                 metadata
                             ),
-                        }),
+                        }
+                    )
+                    // "Managed by" is a dataset-level field (datasets.owners);
+                    // each pane shows the owners of its own indicator's
+                    // dataset.
+                    indicatorDatapageData.owners = await getOwnersForVariables(
+                        knex,
+                        [id]
+                    )
+                    return {
+                        datapageData: indicatorDatapageData,
                         faqEntries: await resolveFaqsForOneVariable(
                             metadata,
                             id
@@ -368,24 +380,24 @@ export async function renderDataPageV2(
     let imageMetadata: Record<string, ImageMetadata> = {}
 
     if (datapageMetadataExperimentActive) {
-        // Only show owners for the y-plotted variable(s). The x-dimension is
-        // usually GDP per capita or population (scatterplots/Marimekkos), and
-        // since we only surface the first dataset's owners, including it risks
-        // showing the owners of the wrong dataset.
-        const ownerVariableIds = _.uniq(
-            _.compact(
-                grapher.dimensions
-                    .filter(({ property }) => property === DimensionProperty.y)
-                    .map(({ variableId }) => variableId)
-            )
-        )
-        datapageData.owners = await getOwnersForVariables(
-            knex,
-            ownerVariableIds
-        )
+        // "Managed by" is a dataset-level field (datasets.owners). Each pane
+        // shows the owners of its own indicator's dataset: the primary
+        // indicator's owners here, the additional indicators' owners set in
+        // the loop above. Deliberately y-indicators only — the x-dimension
+        // (usually GDP per capita or population on scatterplots/Marimekkos)
+        // never gets a pane.
+        datapageData.owners = await getOwnersForVariables(knex, [variableId])
 
+        // Author links for the Byline are resolved once, across every pane's
+        // owners, and attached to the primary datapageData (that's what the
+        // page's AttachmentsContext reads).
         const ownerNames = _.uniq(
-            (datapageData.owners ?? []).flatMap((dataset) => dataset.owners)
+            [
+                ...(datapageData.owners ?? []),
+                ...(additionalIndicators ?? []).flatMap(
+                    (ind) => ind.datapageData.owners ?? []
+                ),
+            ].flatMap((dataset) => dataset.owners)
         )
         datapageData.linkedAuthors = await getMinimalAuthorsByNames(
             knex,
