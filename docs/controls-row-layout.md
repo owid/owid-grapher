@@ -2,15 +2,21 @@
 
 The plan for replacing the controls row's hardcoded responsive breakpoints
 with a layout system that _guarantees_ labels, buttons, and tabs never
-overlap — at any width, for any chart configuration. Phases 1 and 2 are
+overlap — at any width, for any chart configuration. Phases 1–3 are
 implemented (branch `controls-row-layout`); the rest are future steps.
 
 Relevant code lives in
 `packages/@ourworldindata/grapher/src/controls/controlsRow/`:
 
-- `controlsRowLayout.ts` — width estimation and the layout ladder
-- `controlsRowConstants.ts` — sizing constants + derived CSS custom properties
+- `controlsRowLayout.ts` — the layout ladder + per-tab width composition
+- `controlsRowConstants.ts` — sizing constants, `measureButtonWidth`, and
+  the derived CSS custom properties; text is measured with the shared
+  `textWidth` from `ChartUtils`, which honors `FontSettings.letterSpacing`
 - `ControlsRow.tsx` — computes the layout and passes it to the controls
+
+Each control estimates its own width in a `static estimateWidth(...)` next
+to its `static shouldShow(...)` (returns 0 when hidden, takes the
+component's own render props).
 
 ## Motivation
 
@@ -60,26 +66,28 @@ The row renders the most verbose layout that satisfies it.
 
 ## The design
 
-1. **Measure.** `controlsRowLayout.ts` estimates the width of every control
-   that would currently render — reusing the components' `shouldShow` logic
-   and shared pure label helpers (`getEntitySelectionLabel`,
-   `getVisibleTabs`) so the measurement can't diverge from the render path.
+1. **Measure.** Every control estimates its own width in a
+   `static estimateWidth(manager, props)` co-located with its render method
+   (and its `shouldShow` — it returns 0 when the control is hidden). The
+   options parameter is the component's own render props, so measure-inputs
+   equal render-inputs by construction. `controlsRowLayout.ts` only composes
+   these estimates per tab, mirroring `ControlsRow`'s render methods.
 2. **Pick a layout.** `CONTROLS_ROW_LAYOUT_LADDER` lists configurations
    from most to least verbose; each rung drops the least important
    remaining piece, mirroring the order the old breakpoints implied:
 
-   | rung | change |
-   | ---- | ------------------------------------ |
-   | 0    | everything full, tab padding 16px    |
-   | 1    | tab padding 16 → 12px                |
-   | 2    | entity name dropped ("Edit")         |
-   | 3    | settings label dropped (icon only)   |
-   | 4    | tab labels dropped (icons only)      |
-   | 5    | tab padding 12 → 8px                 |
+    | rung | change                             |
+    | ---- | ---------------------------------- |
+    | 0    | everything full, tab padding 16px  |
+    | 1    | tab padding 16 → 12px              |
+    | 2    | entity name dropped ("Edit")       |
+    | 3    | settings label dropped (icon only) |
+    | 4    | tab labels dropped (icons only)    |
+    | 5    | tab padding 12 → 8px               |
 
-   `chooseControlsRowLayout` returns the first rung that fits the width
-   budget (`maxWidth` from `CaptionedChart`) with a `SAFETY_MARGIN` for
-   text-measurement error; if nothing fits, the last rung renders.
+    `chooseControlsRowLayout` returns the first rung that fits the width
+    budget (`maxWidth` from `CaptionedChart`) with a `SAFETY_MARGIN` for
+    text-measurement error; if nothing fits, the last rung renders.
 
 3. **Render.** `ControlsRow` passes the chosen layout as props
    (`showEntityLabel`, `showLabel`, `showTabLabels`, `tabPadding`); the
@@ -101,7 +109,8 @@ paint and reacts to resizes, fullscreen, and map-state changes.
   replaced by an `.icon-only` button modifier and a
   `ContentSwitchers--icons-only` class.
 - Unit tests for the ladder (monotonicity, chosen layout always fits,
-  verbosity degrades with width, longer entity names collapse earlier).
+  verbosity degrades with width, longer entity names collapse earlier);
+  since removed.
 - Deliberately no new features: entity labels only know "full" and
   "action only" (see future steps for #6399).
 
@@ -115,9 +124,11 @@ of 675px).
 The sizing constants started as TS copies of stylesheet values, synced by
 comment. Now `controlsRowConstants.ts` is the single source of truth:
 `ControlsRow` injects every constant as a CSS custom property on
-`nav.controlsRow`, and the stylesheets consume them via `var(...)`
-**without fallbacks** — a fallback would be a second, possibly-diverging
-copy, so a missing variable is a bug that should break visibly.
+`nav.controlsRow`, and the stylesheets consume them via `var(...)` with
+fallback values, so the styles degrade gracefully if a rule ever applies
+outside the injection scope. The fallbacks duplicate the constants and are
+kept in sync by hand — when changing a constant, update the corresponding
+fallback(s).
 
 Special cases to be aware of:
 
@@ -139,22 +150,54 @@ Special cases to be aware of:
 
 ### Known limits
 
-- Injection synchronizes **values, not structure**. The `measure*` functions
-  mirror `ControlsRow`'s `render*` methods (which controls render on which
-  tab, gaps between them, single-line row) — when adding or removing a
-  control, update the corresponding `measure*` function.
+- Injection synchronizes **values, not structure**. The composition
+  functions in `controlsRowLayout.ts` mirror `ControlsRow`'s `render*`
+  methods (which controls render on which tab, gaps between them,
+  single-line row) — when adding a control, give it an `estimateWidth`
+  static and add it to the matching `measure*ControlsWidth` function.
 - Dropdowns are measured at their flex-basis although `flex: 0 1 <basis>`
   lets them shrink; the estimate is conservative (labels collapse slightly
   before they strictly must, never too late).
 - `Bounds.forText` approximates Lato metrics and treats weight 500 like 400
   (its bold threshold is 600) — hence the safety margin.
 
+## Phase 3: co-locate per-control measurement — ✅ done
+
+Phase 1 put all width estimation in one central file, which required
+exporting pure label helpers (`getEntitySelectionLabel`, `getVisibleTabs`)
+solely for the measurer and left each control's estimate far from the
+render it mirrors. Now each control owns a `static estimateWidth(...)`
+beside its `shouldShow` and render:
+
+- Convention: returns 0 when the control wouldn't render; the options
+  parameter is typed against the component's own props (e.g.
+  `Required<Pick<SettingsMenuProps, "showLabel">>`), never against
+  `ControlsRowLayout` — that would create an import cycle.
+- Labels used by both render and measure ("Settings", "Reset zoom",
+  "Zoom to selection") are defined once per component.
+- `measureButtonWidth` lives in `controlsRowConstants.ts` — it interprets
+  the shared button style, not any single component, and it can't live in
+  `controlsRowLayout.ts` because the components that call it are imported
+  there (cycle). Text is measured with `textWidth` from `ChartUtils`,
+  extended to honor an optional `FontSettings.letterSpacing` (in em);
+  `BUTTON_FONT` / `TAB_FONT` carry it so call sites can't forget the
+  spacing.
+- `controlsRowLayout.ts` shrank to the layout policy: the ladder, the
+  chooser, and the per-tab composition functions that mirror `ControlsRow`'s
+  render methods (cross-referenced by comments in both directions).
+
+This fixes _per-control_ drift (editing a control's render puts its
+estimate on screen); _composition_ drift (adding a control to a tab without
+adding it to that tab's `measure*` function) still relies on the mirror
+comments — a dev-mode estimated-vs-actual width assertion would be the
+structural guard, see future steps.
+
 ## Future steps
 
 Roughly in priority order:
 
-1. **Verify on staging.** So far only verified with typecheck, lint, and
-   unit tests. Check chart/map/table tabs across widths (especially
+1. **Verify on staging.** So far only verified with typecheck and lint.
+   Check chart/map/table tabs across widths (especially
    320–730px and charts with custom entity types); confirm nothing overlaps
    and the collapse order feels right. Tune `SAFETY_MARGIN` if labels sit
    too tight or collapse too eagerly.
