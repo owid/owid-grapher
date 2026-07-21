@@ -111,4 +111,40 @@ describe(splitDescriptionKey, () => {
             remainder: "",
         })
     })
+
+    it("never splits inside a fenced code block", () => {
+        const text = [
+            "# Heading one",
+            "body one",
+            "",
+            "```",
+            "# fake heading in code",
+            "more code",
+            "```",
+            "",
+            "# Heading two",
+            "body two",
+        ].join("\n")
+        const { preview, remainder } = splitDescriptionKey(text)
+        expect(preview).toContain("# fake heading in code")
+        expect(preview).toMatch(/```[\s\S]*```/)
+        expect(remainder).toBe("# Heading two\n\nbody two")
+    })
+
+    it("cuts a preview of few but very long bullets down to the budget", () => {
+        // three bullets à ~700 chars — block-count rules alone would show all
+        const bullet = `- Rationale: ${"lorem ipsum ".repeat(60)}`
+        const text = [bullet, bullet, bullet].join("\n")
+        const { preview, remainder } = splitDescriptionKey(text)
+        expect(preview).toBe(bullet)
+        expect(remainder).toBe([bullet, bullet].join("\n"))
+    })
+
+    it("keeps a single over-budget block intact in the preview", () => {
+        const long = "word ".repeat(500).trim()
+        expect(splitDescriptionKey(long)).toEqual({
+            preview: long,
+            remainder: "",
+        })
+    })
 })
