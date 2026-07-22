@@ -53,6 +53,7 @@ export const PUBLIC_DATA_TABLES = [
     "multi_dim_x_chart_configs",
     "namespaces",
     "narrative_charts",
+    "newsletters",
     "origins_variables",
     "origins",
     "post_tags",
