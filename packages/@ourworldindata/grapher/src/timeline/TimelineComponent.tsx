@@ -416,11 +416,9 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     private formatTime(time: number): string {
-        const { timeColumn, isSemiNarrow } = this.manager
+        const { timeColumn } = this.manager
         if (!timeColumn) return time.toString()
-        return isSemiNarrow
-            ? timeColumn.formatTimeShort(time)
-            : timeColumn.formatTime(time)
+        return timeColumn.formatTime(time)
     }
 
     @action.bound private togglePlay(): void {

@@ -145,11 +145,6 @@ export abstract class AbstractCoreColumn<
         return this.originalTimeColumn.formatValue(time)
     }
 
-    // For space-constrained contexts like the timeline slider
-    formatTimeShort(time: number): string {
-        return this.originalTimeColumn.formatValueShort(time)
-    }
-
     @imemo get roundingMode(): OwidVariableRoundingMode {
         return (
             this.display?.roundingMode ?? OwidVariableRoundingMode.decimalPlaces
@@ -930,10 +925,6 @@ export abstract class TimeColumn<
         return this.formatValue(time)
     }
 
-    override formatTimeShort(time: number): string {
-        return this.formatValueShort(time)
-    }
-
     override parse(val: unknown): number | ErrorValue {
         return parseInt(String(val))
     }
@@ -971,19 +962,10 @@ const memoFormatMonth = _.memoize(
 const memoFormatMonthCsv = _.memoize(
     (value: number): string => formatDay(value, { format: "YYYY-MM" }) // "2023-01"
 )
-// The week as a Monday–Sunday date range. Snaps to the ISO-week Monday
-// so indicators that pick a different representative day for the same
-// week still show the same label
+// The ISO week number and week-year. Because the ISO week is the same for
+// every day of the week, indicators that pick a different representative
+// day for the same week still show the same label
 const memoFormatWeek = _.memoize((value: number): string => {
-    const monday = convertDaysSinceEpochToDate(value).startOf("isoWeek")
-    const sunday = monday.add(6, "days")
-    if (monday.year() !== sunday.year())
-        return `${monday.format("MMM D, YYYY")} – ${sunday.format("MMM D, YYYY")}` // "Dec 30, 2019 – Jan 5, 2020"
-    return monday.month() === sunday.month()
-        ? `${monday.format("MMM D")}–${sunday.format("D, YYYY")}` // "Jan 16–22, 2023"
-        : `${monday.format("MMM D")} – ${sunday.format("MMM D, YYYY")}` // "Jan 30 – Feb 5, 2023"
-})
-const memoFormatWeekShort = _.memoize((value: number): string => {
     const date = convertDaysSinceEpochToDate(value)
     return `W${date.isoWeek()} ${date.isoWeekYear()}` // "W3 2023"
 })
@@ -1071,11 +1053,7 @@ class WeekColumn<
     }
 
     override formatValue(value: number): string {
-        return memoFormatWeek(value) // "Jan 16–22, 2023"
-    }
-
-    override formatTimeShort(time: number): string {
-        return memoFormatWeekShort(time) // "W3 2023"
+        return memoFormatWeek(value) // "W3 2023"
     }
 
     override formatForCsv(value: number): string {
