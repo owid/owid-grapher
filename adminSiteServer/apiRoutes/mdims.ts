@@ -14,7 +14,10 @@ import {
     queryParamsToStr,
     Url,
 } from "@ourworldindata/utils"
-import { getMultiDimDataPageById } from "../../db/model/MultiDimDataPage.js"
+import {
+    getMultiDimDataPageById,
+    getMultiDimDataPageByCatalogPath,
+} from "../../db/model/MultiDimDataPage.js"
 import { redirectWithSourceExists } from "../../db/model/Redirect.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
@@ -443,31 +446,24 @@ const postMultiDimRedirectSchema = z.object({
         .optional(),
 })
 
-export async function handlePostMultiDimRedirect(
-    req: Request,
-    res: HandlerResponse,
-    trx: db.KnexReadWriteTransaction
-) {
-    const multiDimId = expectInt(req.params.id)
-    const parseResult = postMultiDimRedirectSchema.safeParse(req.body)
-    if (!parseResult.success) {
-        throw new JsonError(
-            `Invalid request: ${parseResult.error.message}`,
-            400
-        )
-    }
-    const { source, viewConfigId } = parseResult.data
-    // Normalize an empty object to null so "no condition" is stored consistently.
-    const sourceQueryParams =
-        parseResult.data.sourceQueryParams &&
-        Object.keys(parseResult.data.sourceQueryParams).length > 0
-            ? parseResult.data.sourceQueryParams
-            : null
+// Normalizes an empty object to null so "no condition" is stored consistently.
+function normalizeSourceQueryParams(
+    sourceQueryParams: Record<string, string | null> | null | undefined
+): Record<string, string | null> | null {
+    return sourceQueryParams && Object.keys(sourceQueryParams).length > 0
+        ? sourceQueryParams
+        : null
+}
 
-    const multiDim = await getMultiDimDataPageById(trx, multiDimId)
-    if (!multiDim) {
-        throw new JsonError("Multi-dimensional data page not found", 404)
-    }
+// Validates and inserts a single multi-dim redirect. Does NOT trigger a static
+// build — the caller is responsible for that (so bulk operations can build once).
+async function createMultiDimRedirect(
+    trx: db.KnexReadWriteTransaction,
+    multiDim: DbEnrichedMultiDimDataPage,
+    source: string,
+    viewConfigId: string | null,
+    sourceQueryParams: Record<string, string | null> | null
+): Promise<{ id: number; targetDescription: string }> {
     if (!multiDim.slug) {
         throw new JsonError(
             "Target multi-dim must have a slug before adding redirects",
@@ -513,13 +509,47 @@ export async function handlePostMultiDimRedirect(
         sourceQueryParams: sourceQueryParams
             ? JSON.stringify(sourceQueryParams)
             : null,
-        multiDimId,
+        multiDimId: multiDim.id,
         viewConfigId,
     })
 
     const targetDescription = buildRedirectTargetDescription(
         multiDim,
-        viewConfigId ?? null
+        viewConfigId
+    )
+
+    return { id: insertId, targetDescription }
+}
+
+export async function handlePostMultiDimRedirect(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+) {
+    const multiDimId = expectInt(req.params.id)
+    const parseResult = postMultiDimRedirectSchema.safeParse(req.body)
+    if (!parseResult.success) {
+        throw new JsonError(
+            `Invalid request: ${parseResult.error.message}`,
+            400
+        )
+    }
+    const { source, viewConfigId } = parseResult.data
+    const sourceQueryParams = normalizeSourceQueryParams(
+        parseResult.data.sourceQueryParams
+    )
+
+    const multiDim = await getMultiDimDataPageById(trx, multiDimId)
+    if (!multiDim) {
+        throw new JsonError("Multi-dimensional data page not found", 404)
+    }
+
+    const { id, targetDescription } = await createMultiDimRedirect(
+        trx,
+        multiDim,
+        source,
+        viewConfigId ?? null,
+        sourceQueryParams
     )
 
     await triggerStaticBuild(
@@ -530,12 +560,154 @@ export async function handlePostMultiDimRedirect(
     return {
         success: true,
         redirect: {
-            id: insertId,
+            id,
             source,
             sourceQueryParams,
             viewConfigId: viewConfigId ?? null,
         },
     }
+}
+
+// Schema for the bulk-redirect input. It intentionally mirrors the structure of
+// the mapping files produced by the ETL (see the `redirects` array), so such a
+// file can be posted (mostly) as-is. Unknown fields (e.g. `sourceViewId`,
+// `viewId`, `stats`) are ignored by Zod.
+//
+// - `source` describes an explorer view. Explorer URLs encode dimension choices
+//   directly as query params (the dimension title is the param name and the
+//   choice label the value), so `source.dimensions` maps 1:1 to the redirect's
+//   `sourceQueryParams`.
+// - `target` describes the multi-dim view to redirect to, identified by its
+//   catalog path and the dimension choices that uniquely select a view. A `null`
+//   target marks an entry the ETL couldn't resolve; we skip those.
+const bulkMultiDimRedirectsSchema = z.object({
+    redirects: z.array(
+        z.object({
+            source: z.object({
+                explorerSlug: z.string(),
+                dimensions: z.record(z.string(), z.string()),
+            }),
+            target: z
+                .object({
+                    catalogPath: z.string(),
+                    dimensions: z.record(z.string(), z.string()),
+                })
+                .nullable(),
+            unresolvedReason: z.string().optional(),
+        })
+    ),
+})
+
+interface BulkMultiDimRedirectResult {
+    source: string
+    status: "created" | "skipped" | "error"
+    message?: string
+    redirectId?: number
+}
+
+export async function handleBulkCreateMultiDimRedirects(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+) {
+    const parseResult = bulkMultiDimRedirectsSchema.safeParse(req.body)
+    if (!parseResult.success) {
+        throw new JsonError(
+            `Invalid request: ${parseResult.error.message}`,
+            400
+        )
+    }
+    const { redirects } = parseResult.data
+
+    // Cache resolved multi-dims by catalog path so we don't hit the DB once per
+    // entry. `null` records a catalog path we already know doesn't resolve.
+    const multiDimByCatalogPath = new Map<
+        string,
+        DbEnrichedMultiDimDataPage | null
+    >()
+    const results: BulkMultiDimRedirectResult[] = []
+    const targetSlugs = new Set<string>()
+
+    // Best-effort: process each entry independently and record its outcome
+    // rather than aborting the whole batch on the first failure. Successful
+    // inserts all commit together when the surrounding transaction commits.
+    for (const entry of redirects) {
+        const source = `/explorers/${entry.source.explorerSlug}`
+
+        if (!entry.target) {
+            results.push({
+                source,
+                status: "skipped",
+                message: entry.unresolvedReason ?? "No target to redirect to",
+            })
+            continue
+        }
+
+        try {
+            const { catalogPath, dimensions: targetDimensions } = entry.target
+
+            let multiDim = multiDimByCatalogPath.get(catalogPath)
+            if (multiDim === undefined) {
+                multiDim =
+                    (await getMultiDimDataPageByCatalogPath(
+                        trx,
+                        catalogPath
+                    )) ?? null
+                multiDimByCatalogPath.set(catalogPath, multiDim)
+            }
+            if (!multiDim) {
+                throw new JsonError(
+                    `No multi-dim found for catalog path '${catalogPath}'`,
+                    404
+                )
+            }
+
+            const mdimConfig = MultiDimDataPageConfig.fromObject(
+                multiDim.config
+            )
+            const view = mdimConfig.findViewByDimensions(targetDimensions)
+            if (!view) {
+                throw new JsonError(
+                    `No view in multi-dim '${catalogPath}' matches dimensions ${JSON.stringify(
+                        targetDimensions
+                    )}`,
+                    404
+                )
+            }
+
+            const sourceQueryParams = normalizeSourceQueryParams(
+                entry.source.dimensions
+            )
+            const { id } = await createMultiDimRedirect(
+                trx,
+                multiDim,
+                source,
+                view.fullConfigId,
+                sourceQueryParams
+            )
+            if (multiDim.slug) targetSlugs.add(multiDim.slug)
+            results.push({ source, status: "created", redirectId: id })
+        } catch (error) {
+            const message =
+                error instanceof Error ? error.message : String(error)
+            results.push({ source, status: "error", message })
+        }
+    }
+
+    const created = results.filter((r) => r.status === "created").length
+    const skipped = results.filter((r) => r.status === "skipped").length
+    const errors = results.filter((r) => r.status === "error").length
+
+    if (created > 0) {
+        await triggerStaticBuild(
+            res.locals.user,
+            `Bulk-creating ${created} multi-dim redirect(s) to ${[
+                ...targetSlugs,
+            ].join(", ")}`
+        )
+    }
+
+    return { success: true, created, skipped, errors, results }
 }
 
 export async function handleDeleteMultiDimRedirect(
