@@ -111,11 +111,12 @@ interface CaptionedChartProps {
 export const CONTROLS_ROW_HEIGHT = 32
 
 // keep in sync with sass variables in CaptionedChart.scss
-const DEPRECATION_NOTICE_PADDING_VERTICAL = 8
-const DEPRECATION_NOTICE_PADDING_HORIZONTAL = 12
-const DEPRECATION_NOTICE_ICON_WIDTH = 21 // 13px icon + 8px gap
-const DEPRECATION_NOTICE_FONT_SIZE = 13
-const DEPRECATION_NOTICE_LINE_HEIGHT = 1.3846 // grapher_body-3-regular
+const DEPRECATION_NOTICE_PADDING_VERTICAL = 16
+const DEPRECATION_NOTICE_PADDING_HORIZONTAL = 20
+const DEPRECATION_NOTICE_GAP = 14
+const DEPRECATION_NOTICE_ICON_BADGE_SIZE = 32
+const DEPRECATION_NOTICE_FONT_SIZE = 15
+const DEPRECATION_NOTICE_LINE_HEIGHT = 1.5
 
 abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProps> {
     protected framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
@@ -206,7 +207,8 @@ export class CaptionedChart extends AbstractCaptionedChart {
             maxWidth:
                 this.maxWidth -
                 2 * DEPRECATION_NOTICE_PADDING_HORIZONTAL -
-                DEPRECATION_NOTICE_ICON_WIDTH,
+                DEPRECATION_NOTICE_ICON_BADGE_SIZE -
+                DEPRECATION_NOTICE_GAP,
             fontSize: DEPRECATION_NOTICE_FONT_SIZE,
             lineHeight: DEPRECATION_NOTICE_LINE_HEIGHT,
             detailsOrderedByReference: this.manager.detailsOrderedByReference,
@@ -216,14 +218,17 @@ export class CaptionedChart extends AbstractCaptionedChart {
     @computed private get deprecationNoticeHeight(): number {
         if (!this.deprecationNoticeTextWrap) return 0
         return (
-            this.deprecationNoticeTextWrap.height +
+            Math.max(
+                DEPRECATION_NOTICE_ICON_BADGE_SIZE,
+                this.deprecationNoticeTextWrap.height
+            ) +
             2 * DEPRECATION_NOTICE_PADDING_VERTICAL
         )
     }
 
     @computed private get deprecationNoticeHeightWithPadding(): number {
         if (!this.showDeprecationNotice) return 0
-        return this.deprecationNoticeHeight + this.verticalPaddingSmall
+        return this.deprecationNoticeHeight + this.verticalPadding
     }
 
     @computed private get showControlsRow(): boolean {
@@ -296,10 +301,22 @@ export class CaptionedChart extends AbstractCaptionedChart {
                     className="DeprecationNotice__box"
                     style={{
                         padding: `${DEPRECATION_NOTICE_PADDING_VERTICAL}px ${DEPRECATION_NOTICE_PADDING_HORIZONTAL}px`,
+                        gap: DEPRECATION_NOTICE_GAP,
                     }}
                 >
-                    <FontAwesomeIcon icon={faBoxArchive} />
-                    <div style={this.deprecationNoticeTextWrap!.style}>
+                    <div
+                        className="DeprecationNotice__icon"
+                        style={{
+                            width: DEPRECATION_NOTICE_ICON_BADGE_SIZE,
+                            height: DEPRECATION_NOTICE_ICON_BADGE_SIZE,
+                        }}
+                    >
+                        <FontAwesomeIcon icon={faBoxArchive} />
+                    </div>
+                    <div
+                        className="DeprecationNotice__text"
+                        style={this.deprecationNoticeTextWrap!.style}
+                    >
                         <MarkdownTextWrapHtml
                             textWrap={this.deprecationNoticeTextWrap!}
                         />
@@ -417,7 +434,7 @@ export class CaptionedChart extends AbstractCaptionedChart {
                 {/* #2 [Deprecation notice] */}
                 {this.showDeprecationNotice && this.renderDeprecationNotice()}
                 {this.showDeprecationNotice && (
-                    <VerticalSpace height={this.verticalPaddingSmall} />
+                    <VerticalSpace height={this.verticalPadding} />
                 )}
 
                 {this.manager.isReady ? (
