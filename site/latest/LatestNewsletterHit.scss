@@ -21,6 +21,28 @@
     flex-shrink: 0;
 }
 
+// With a featured image the card mirrors the article card's proportions:
+// thumbnail on the left, content beside it.
+.latest-newsletter-hit__card--with-image {
+    align-items: flex-start;
+
+    @include sm-only {
+        flex-direction: column;
+    }
+}
+
+.latest-newsletter-hit__image {
+    flex-shrink: 0;
+    width: 188px;
+    max-width: 100%;
+    height: auto;
+    display: block;
+
+    @include sm-only {
+        width: 100%;
+    }
+}
+
 .latest-newsletter-hit__title {
     @include h3-bold;
     margin: 0 0 4px;

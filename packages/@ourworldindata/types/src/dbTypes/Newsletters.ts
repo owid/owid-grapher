@@ -14,6 +14,13 @@ export type DbInsertNewsletter = {
     title: string
     /** Public Mailchimp campaign-archive URL the /latest tile links out to */
     url: string
+    /**
+     * First content image of the campaign, hotlinked from Mailchimp's CDN
+     * (mcusercontent.com). NULL = not yet checked; "" = checked, no suitable
+     * image found. If we ever want to stop depending on Mailchimp's CDN,
+     * the sync should re-upload these to Cloudflare Images instead.
+     */
+    imageUrl?: string | null
     publishedAt: Date
     createdAt?: Date
     updatedAt?: Date

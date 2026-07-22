@@ -61,6 +61,9 @@ export interface LatestNewsletter {
     url: string
     /** ISO timestamp of when the campaign was sent */
     date: string
+    /** First content image of the edition, hotlinked from Mailchimp's CDN
+     * (mcusercontent.com) — see the `newsletters` table docs. */
+    imageUrl?: string
 }
 
 export const NEWSLETTERS_WINDOW_PROP = "_OWID_NEWSLETTERS"

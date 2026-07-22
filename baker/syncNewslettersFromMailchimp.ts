@@ -9,7 +9,11 @@ import {
     MAILCHIMP_API_SERVER,
 } from "../settings/serverSettings.js"
 import { DbInsertNewsletter, NewsletterType } from "@ourworldindata/types"
-import { upsertNewsletters } from "../db/model/Newsletter.js"
+import {
+    getBriefNewsletterIdsMissingImage,
+    setNewsletterImageUrl,
+    upsertNewsletters,
+} from "../db/model/Newsletter.js"
 
 /**
  * Syncs sent Mailchimp campaigns into the `newsletters` DB table, from which
@@ -41,6 +45,19 @@ const INTEREST_ID_TO_TYPE: Record<string, NewsletterType> = {
 
 const PAGE_SIZE = 1000
 
+// The Brief's template chrome (header banner etc.) is rendered as full-width
+// images; edition-specific content images are narrower (inset by the content
+// block padding). Used to pick the first *content* image of an edition as
+// its /latest tile image.
+const TEMPLATE_IMAGE_MIN_WIDTH = 600
+
+function mailchimpAuthHeader(): string {
+    const auth = Buffer.from(`anystring:${MAILCHIMP_API_KEY}`).toString(
+        "base64"
+    )
+    return `Basic ${auth}`
+}
+
 interface MailchimpCampaign {
     id: string
     send_time?: string
@@ -65,9 +82,6 @@ interface MailchimpCampaignsResponse {
 }
 
 async function fetchAllSentCampaigns(): Promise<MailchimpCampaign[]> {
-    const auth = Buffer.from(`anystring:${MAILCHIMP_API_KEY}`).toString(
-        "base64"
-    )
     const fields = [
         "total_items",
         "campaigns.id",
@@ -83,7 +97,7 @@ async function fetchAllSentCampaigns(): Promise<MailchimpCampaign[]> {
     while (true) {
         const url = `https://${MAILCHIMP_API_SERVER}.api.mailchimp.com/3.0/campaigns?status=sent&count=${PAGE_SIZE}&offset=${offset}&fields=${fields}`
         const response = await fetch(url, {
-            headers: { Authorization: `Basic ${auth}` },
+            headers: { Authorization: mailchimpAuthHeader() },
         })
         if (!response.ok) {
             throw new Error(
@@ -136,6 +150,62 @@ function campaignToNewsletter(
     }
 }
 
+/**
+ * Extract the first edition-specific content image from a campaign's HTML,
+ * or "" if none qualifies. Template chrome (the Brief's header banner) is
+ * skipped via the full-width heuristic — see TEMPLATE_IMAGE_MIN_WIDTH.
+ *
+ * The returned URL points at Mailchimp's public CDN (mcusercontent.com) and
+ * is hotlinked as-is on /latest tiles. If we ever want to drop that external
+ * dependency, this is the place to re-upload to Cloudflare Images instead.
+ */
+async function fetchFirstContentImage(campaignId: string): Promise<string> {
+    const url = `https://${MAILCHIMP_API_SERVER}.api.mailchimp.com/3.0/campaigns/${campaignId}/content?fields=html`
+    const response = await fetch(url, {
+        headers: { Authorization: mailchimpAuthHeader() },
+    })
+    if (!response.ok) {
+        throw new Error(
+            `Mailchimp content request for campaign ${campaignId} failed: ${response.status} ${response.statusText}`
+        )
+    }
+    const { html } = (await response.json()) as { html?: string }
+    if (!html) return ""
+
+    for (const tag of html.match(/<img[^>]*>/g) ?? []) {
+        const src = tag.match(/src="([^"]+)"/)?.[1]
+        if (!src || !src.startsWith("https://")) continue
+        const width = parseInt(tag.match(/width="(\d+)"/)?.[1] ?? "", 10)
+        if (width >= TEMPLATE_IMAGE_MIN_WIDTH) continue
+        return src
+    }
+    return ""
+}
+
+/** Fill in tile images for OWID Brief newsletters that haven't been checked
+ * yet. One content request per campaign, so the backfill is a one-off burst
+ * and steady-state runs only fetch newly synced editions. */
+async function syncNewsletterImages(): Promise<void> {
+    const missingIds = await db.knexReadonlyTransaction(
+        getBriefNewsletterIdsMissingImage,
+        db.TransactionCloseMode.KeepOpen
+    )
+    if (!missingIds.length) return
+
+    let found = 0
+    for (const mailchimpId of missingIds) {
+        const imageUrl = await fetchFirstContentImage(mailchimpId)
+        if (imageUrl) found++
+        await db.knexReadWriteTransaction(
+            (trx) => setNewsletterImageUrl(trx, mailchimpId, imageUrl),
+            db.TransactionCloseMode.KeepOpen
+        )
+    }
+    console.log(
+        `Checked ${missingIds.length} newsletters for tile images, found ${found}`
+    )
+}
+
 const syncNewslettersFromMailchimp = async (): Promise<void> => {
     if (!MAILCHIMP_API_KEY) {
         console.error("MAILCHIMP_API_KEY is not set. Exiting.")
@@ -149,7 +219,7 @@ const syncNewslettersFromMailchimp = async (): Promise<void> => {
 
     await db.knexReadWriteTransaction(
         (trx) => upsertNewsletters(trx, newsletters),
-        db.TransactionCloseMode.Close
+        db.TransactionCloseMode.KeepOpen
     )
 
     const counts = newsletters.reduce<Record<string, number>>((acc, n) => {
@@ -160,6 +230,10 @@ const syncNewslettersFromMailchimp = async (): Promise<void> => {
         `Synced ${newsletters.length} newsletters from ${campaigns.length} sent campaigns:`,
         counts
     )
+
+    await syncNewsletterImages()
+
+    await db.closeTypeOrmAndKnexConnections()
     process.exit(0)
 }
 

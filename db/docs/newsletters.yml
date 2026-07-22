@@ -11,6 +11,8 @@ fields:
     description: Subject line of the newsletter campaign
   url:
     description: Public Mailchimp campaign-archive URL for reading the newsletter in the browser
+  imageUrl:
+    description: First content image of the campaign, hotlinked from Mailchimp's CDN (mcusercontent.com) and shown on the /latest tile. NULL means not yet checked; empty string means checked but no suitable image found. Re-upload to Cloudflare Images if we ever want to drop the Mailchimp CDN dependency.
   publishedAt:
     description: When the campaign was sent, from the Marketing API's send_time
   createdAt:

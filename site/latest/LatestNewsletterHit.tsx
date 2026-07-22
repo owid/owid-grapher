@@ -32,8 +32,23 @@ export const LatestNewsletterHit = ({
             className={cx("latest-newsletter-hit", LATEST_HIT_GRID_CLASSES)}
         >
             <LatestHitMetadata latestType="newsletter" publishedAt={hit.date} />
-            <div className="latest-newsletter-hit__card">
-                <NewsletterIcon className="latest-newsletter-hit__icon" />
+            <div
+                className={cx("latest-newsletter-hit__card", {
+                    "latest-newsletter-hit__card--with-image": hit.imageUrl,
+                })}
+            >
+                {hit.imageUrl ? (
+                    // Hotlinked from Mailchimp's CDN — see LatestNewsletter.
+                    <img
+                        className="latest-newsletter-hit__image"
+                        src={hit.imageUrl}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                    />
+                ) : (
+                    <NewsletterIcon className="latest-newsletter-hit__icon" />
+                )}
                 <div className="latest-newsletter-hit__content">
                     <h2 id={titleId} className="latest-newsletter-hit__title">
                         <a
