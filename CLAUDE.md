@@ -15,6 +15,11 @@ When creating a git branch, use a short descriptive name without any prefix (in 
 
 When creating new skills in `.claude/skills/`, always include `metadata: { internal: true }` in the SKILL.md frontmatter unless explicitly asked for the skill to be public. This prevents external skill indexes from crawling and listing our internal skills.
 
+## Testing on staging
+
+- `yarn tsx devTools/callAdminApi.ts get <chartId> --branch <branch>` / `set <chartId> '<jsonPatch>' --branch <branch>` / `unset <chartId> <field> --branch <branch>`: inspect or change a chart's config on any `staging-site-<branch>` (or `--host` for local/prod) without the browser.
+- Auth is `ADMIN_API_KEY` in `.env` — one shared key works against **every** staging server (not per-branch), since `admin_api_keys` ships in the private data dump every staging build restores from (see `db/exportMetadataTables.ts`). It's the same key etl already uses; no need to mint a new one.
+
 ## Team
 
 Everything you post to GitHub or Slack goes out under a **human's identity**. Any text you author and post that a reader could take for the human's own words **must** carry the attribution line below. This is mandatory — not a judgment call about whether the comment is "worth it."
