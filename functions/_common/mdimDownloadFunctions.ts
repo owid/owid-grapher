@@ -204,6 +204,28 @@ export async function fetchCompleteDatasetZipForGrapher(
     identifier: GrapherIdentifier,
     env: Env
 ): Promise<Response> {
+    try {
+        return await fetchCompleteDatasetZipForGrapherInner(identifier, env)
+    } catch (e) {
+        if (e instanceof StatusError) throw e
+        // TEMPORARY debug surface -- itty-router's own catch-all swallows
+        // non-StatusError details, so this is the only way to see a real
+        // stack trace out of a deployed preview. Remove once this route is
+        // verified working.
+        return new Response(
+            JSON.stringify({
+                debugError: String(e),
+                stack: e instanceof Error ? e.stack : undefined,
+            }),
+            { status: 500, headers: { "Content-Type": "application/json" } }
+        )
+    }
+}
+
+async function fetchCompleteDatasetZipForGrapherInner(
+    identifier: GrapherIdentifier,
+    env: Env
+): Promise<Response> {
     // Complete-dataset packages only exist for MDIMs -- charts already have
     // their own `.zip` route (fetchZipForGrapher) and don't need this one.
     const multiDimId: GrapherIdentifier = {
