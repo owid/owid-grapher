@@ -25,7 +25,7 @@ import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
 import {
     faExternalLinkAlt,
-    faTriangleExclamation,
+    faBoxArchive,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { FooterManager } from "../footer/FooterManager"
@@ -286,7 +286,7 @@ export class CaptionedChart extends AbstractCaptionedChart {
                 }}
                 data-track-note="chart_deprecation_notice"
             >
-                <FontAwesomeIcon icon={faTriangleExclamation} />
+                <FontAwesomeIcon icon={faBoxArchive} />
                 <div style={this.deprecationNoticeTextWrap!.style}>
                     <MarkdownTextWrapHtml
                         textWrap={this.deprecationNoticeTextWrap!}

@@ -25,19 +25,22 @@ $deprecationNoticePadding: 8px; // keep in sync with DEPRECATION_NOTICE_PADDING
     }
 }
 
+// Matches the "this article is outdated" notice used in gdoc articles
+// (site/gdocs/components/centered-article.scss's .deprecation-notice):
+// pale-yellow flat box, no border accent, vermillion icon, 4px radius.
 .DeprecationNotice {
     display: flex;
     align-items: flex-start;
     gap: 8px;
     padding: $deprecationNoticePadding;
-    background-color: $amber-10;
-    border-left: 4px solid $amber;
+    background-color: #fff5d8;
+    border-radius: 4px;
     color: $dark-text;
 
     svg {
         flex-shrink: 0;
         margin-top: 3px;
-        color: $amber;
+        color: $vermillion;
     }
 
     a {
