@@ -1,8 +1,8 @@
 # Rethinking `numberAbbreviation: "short"` (issue #5172)
 
-> **Status:** implemented on branch `short-number-abbreviation`, stacked on
-> `sig-fig-decimal-cap` (#6740) since the `formatValue.ts` changes build on
-> the sub-1 cap. Full unit suite, typecheck, lint pass. Outstanding:
+> **Status:** implemented on branch `sig-fig-decimal-cap` (PR #6740, which
+> also carries the sub-1 cap the changes build on); this doc lives on the
+> `docs` branch. Full unit suite, typecheck, lint pass. Outstanding:
 > visual check on staging and the SVG snapshot reference update
 > (deliberately deferred; SVG tester not run).
 
@@ -36,11 +36,11 @@ For short label contexts (`formatValueShortWithAbbreviations`: slope charts,
 map annotations, thumbnails, entity selector, tooltip fallback), three changes
 that compose into three clean bands:
 
-| band      | rule                                                | examples                          |
-| --------- | --------------------------------------------------- | --------------------------------- |
-| < 1k      | author's decimals, as today                          | $0.55 · $999.99                    |
-| 1k – 100k | exact integer, decimals dropped                      | $1,235 · $25,241 · $99,999         |
-| ≥ 100k    | abbreviate at 3 sig figs (hard-coded)                | $123k · $950k · $1.5M · $12.8M     |
+| band     | rule                                  | examples                         |
+| -------- | ------------------------------------- | -------------------------------- |
+| < 1k     | author's decimals, as today           | $0.55 · $999.99                  |
+| 1k – 1M  | exact integer, decimals dropped       | $1,235 · $25,241 · $999,999      |
+| ≥ 1M     | abbreviate at 3 sig figs (hard-coded) | $1.5M · $12.8M · $1.23B          |
 
 Before/after on a column showing 2 decimals:
 
@@ -48,7 +48,7 @@ Before/after on a column showing 2 decimals:
 | ------------- | -------- | -------------- |
 | 1,234.56      | $1.23k   | **$1,235**     |
 | 25,240.99     | $25.24k  | **$25,241**    |
-| 123,456.78    | $123.46k | **$123k**      |
+| 123,456.78    | $123.46k | **$123,457**   |
 | 12,840,000.75 | $12.84M  | **$12.8M**     |
 
 Tooltips and the data table keep full author-configured precision — labels are
@@ -62,15 +62,19 @@ used to be respected.
 
 ## Why, briefly
 
-- **3 sig figs instead of "+2"** makes abbreviations genuinely short (`$123k`
-  vs `$123.46k`) and, from 100k up, decimal-free below 1M (3-digit mantissa) —
-  the fussy `$25.2k`/`$1.23k` forms never appear.
-- **Threshold 100k, not 10k or 1M:** 10k fails the motivating case (GDP per
-  capita stays `$25.2k`) and only rescues the band where abbreviation was a
-  width-tie anyway; 1M produces `$999,999`-wide labels; 100k caps written-out
-  labels at `$99,999` — no wider than today's `$25.24k` forms. Accepted
-  trade-off: datasets straddling 100k mix notation (`$89,500` next to
-  `$128k`).
+- **3 sig figs instead of "+2"** makes abbreviations genuinely short
+  (`$12.8M` vs `$12.84M`, `847 million` vs `846.69 million`) and uniformly
+  informative — the old rule's precision varied 3–5 sig figs with the
+  mantissa width.
+- **Threshold 1M** (revised from an interim 100k): with the decimal-drop in
+  place, written-out labels are never wider than master's abbreviated forms
+  (`621,352` = `621.35k`, 7 chars each), so the width argument for a lower
+  threshold evaporated. 1M puts the notation seam on the natural linguistic
+  boundary (`$950,000` next to `$1.5M` reads as two kinds of number), avoids
+  within-chart mixes like `$89,500` next to `$128k` (GDP per capita straddles
+  100k), unifies the `short` and `long` thresholds (the modes now differ only
+  in suffix style), and matches the issue's original proposal. User-facing
+  rule: value labels never use `k`; millions and up get `M`/`B`.
 - **Drop decimals ≥ 1k** because keeping `$25,240.99` contradicts the premise:
   if two mantissa decimals on `$25.24k` are unread noise, cents on a
   five-digit number are too. The integer part stays exact, so the label
@@ -102,11 +106,11 @@ used to be respected.
 ## Implementation (done)
 
 1. **Types** (`GrapherTypes.ts`): added `abbreviationThreshold?: number` to
-   `TickFormattingOptions`; default derived from the mode (1e5 for `short`,
-   1e6 for `long`).
+   `TickFormattingOptions`; defaults to 1e6 for both modes, so the modes
+   differ only in suffix style.
 2. **`formatValue.ts`**:
-    - `getType`: abbreviates from `abbreviationThreshold ?? modeDefault`
-      instead of hard-coded 1e3/1e6.
+    - `getType`: abbreviates from `abbreviationThreshold ?? 1e6` instead of
+      hard-coded per-mode thresholds.
     - `getPrecision`: abbreviated (`s`-type) values round to a hard-coded 3
       significant figures in decimal-places mode; the `precisionPadding + 2`
       rule is deleted. Sig-fig columns keep using their
@@ -124,9 +128,9 @@ used to be respected.
    1/2/5-multiples, ≤3 significant digits — strings unchanged.) No other
    call-site changes.
 4. **Tests**: new "short abbreviation bands" describe in
-   `formatValue.test.ts` (bands, boundaries like 99,999.99 → `$100,000` and
-   100,000 → `$100k`, decimal-drop, threshold override, sig-fig columns,
-   negatives, percent `1,235%`) plus updated expectations there. Also
+   `formatValue.test.ts` (bands, boundaries like 999,999.99 → `$1,000,000`
+   and 1,000,000 → `$1M`, decimal-drop, threshold override, sig-fig columns,
+   negatives, percents) plus updated expectations there. Also
    updated: `Axis.test.ts` (setup only — now passes
    `abbreviationThreshold: 1e3` like the tick call sites),
    `GrapherValuesJson.test.ts` and
@@ -170,10 +174,14 @@ The rounding changes live in two stacked branches.
 
 ### From `short-number-abbreviation` (this branch)
 
-6. **`short` threshold raised 1,000 → 100,000**
-   (`getAbbreviationThreshold`): compact labels write out everything below
-   100k. _Why:_ `$25.24k` is exactly as wide as `$25,240` (the 2-decimal
-   mantissa replaces the comma group) but harder to parse (#5172).
+6. **`short` threshold raised 1,000 → 1,000,000** (matching `long`, so the
+   modes differ only in suffix style): compact labels write out everything
+   below 1M. _Why:_ `$25.24k` is exactly as wide as `$25,240` (the 2-decimal
+   mantissa replaces the comma group) but harder to parse (#5172), and with
+   the decimal-drop in place written-out labels never exceed master's
+   abbreviated widths, so nothing argued for a seam below the natural one at
+   "million". Avoids within-chart notation mixes (`$89,500` next to
+   `$128k`).
 7. **New `abbreviationThreshold` option, set to 1e3 by the tick call sites**
    (`FacetChart`, `MapSparkline`). _Why:_ ticks are round numbers, where `k`
    genuinely saves ~3 chars/tick and axis width eats plot area (× facets);
@@ -186,10 +194,10 @@ The rounding changes live in two stacked branches.
    sig-fig mode). _Why:_ abbreviation is inherently a sig-fig
    representation; the old rule predated sig-fig rounding, gave arbitrary
    magnitude-dependent 3–5 sf, and its extra decimals were what made `k`
-   pointless. _Effect:_ `$123.46k → $123k`, `12.84 million → 12.8 million`,
+   pointless. _Effect:_ `12.84 million → 12.8 million`,
    `$663.99 billion → $664 billion`; constant 3 meaningful digits (the
    escape hatch for an indicator needing more is switching it to sig-fig
-   mode); abbreviations below 1M are decimal-free.
+   mode).
 9. **Decimal-drop in `short` mode from 1,000 up**
    (`effectiveNumDecimalPlaces = 0`). _Why:_ once a value needs a thousands
    separator its fraction is noise (`.99` on 25,240 is 0.004%); the integer
@@ -203,11 +211,21 @@ The rounding changes live in two stacked branches.
    digit budget (adds a second constant), per-chart space-driven fallback
    (heavy, converges to the same output on tight surfaces; possible later
    complement). _Effect:_ `$25,240.99 → $25,241`; compact labels cap at
-   `$99,999`; `long` contexts (tooltips) keep full decimals. Percent values
+   `$999,999`; `long` contexts (tooltips) keep full decimals. Percent values
    are exempt — never abbreviated, so the drop would introduce a new
    override of `numDecimalPlaces` instead of replacing the old one
    (`1,234.56%` stays). Escape hatch: switch the column to sig-fig mode with
    a high `numSignificantFigures` (e.g. 7 renders `$25,240.99`).
+10. **Adaptive precision for abbreviated axis ticks**
+    (`abbreviationSignificantFigures`, set in `Axis.getTickFormattingOptions`).
+    _Why:_ with abbreviations at a fixed 3 sig figs, ticks on a narrow
+    domain at high magnitude (e.g. 10.02M–10.08M) would collide into
+    duplicate labels ("10 million, 10 million, 10.1 million"). The axis
+    mirrors its existing adaptive-decimals logic: when the tick spacing
+    needs more than 3 significant figures, it passes the required precision
+    (`sigFigs = magnitude(maxTick) − magnitude(minDist) + 1`). _Effect:_
+    narrow-domain ticks render distinct (`10.02M / 10.03M / …`), matching
+    master; ordinary axes compute ≤3 and are unaffected.
 
 Changes 1–5 fix spurious precision at the _bottom_ of the scale (sub-1
 values); 6–9 fix spurious precision and pointless abbreviation in the
@@ -226,8 +244,9 @@ named column methods:
    chart labels, map annotations, globe, line/slope thumbnails, entity
    selector & picker, scatter size legend, the tooltip's too-long fallback,
    the values API. Rounding is the three-band rule: author's decimals below
-   1k (`$0.55`), whole numbers to 100k (`$25,241`), 3-sig-fig abbreviations
-   above (`$123k`, `$12.8M`). Long units are dropped — space is the point.
+   1k (`$0.55`), whole numbers to 1M (`$25,241`, `$999,999`), 3-sig-fig
+   abbreviations above (`$12.8M`). Long units are dropped — space is the
+   point.
 2. **The everyday format** — `formatValueShort` with no overrides =
    defaults (`numberAbbreviation: "long"`) + short unit. Used by tooltips,
    discrete bar labels, map/scatter tooltips. Author's settings honored in
@@ -264,7 +283,7 @@ the record.
 
 Every test-suite expectation that changed, grouped by cause.
 
-**Group 1 — `short` no longer abbreviates thousands** (threshold 1k → 100k).
+**Group 1 — `short` no longer abbreviates below 1M** (threshold 1k → 1M).
 Strictly positive in decimal-places mode (more information, ~same width);
 in sig-fig mode up to 3 chars wider (`12,300` vs `12.3k`) — the accepted cost
 of the fixed rule, with trailing zeros honestly signalling the rounding:
@@ -284,6 +303,9 @@ of the fixed rule, with trailing zeros honestly signalling the rounding:
 | 1,499      | short, sig-fig mode    | 1.50k   | 1,500  |
 | 12,345     | short, sig-fig mode    | 12.3k   | 12,300 |
 | 1,234      | short, 2 sf            | 1.2k    | 1,200  |
+| 123,456    | short                  | 123.46k | 123,456 |
+| 950,000    | short                  | 950k    | 950,000 |
+| 999,999    | short                  | 1M      | 999,999 |
 
 **Group 2 — abbreviations rounded to 3 sig figs instead of "+2 mantissa
 decimals"** (`short` and `long`). Shorter and uniformly informative; the
@@ -295,7 +317,6 @@ needs more:
 
 | input           | options                    | before         | after       |
 | --------------- | -------------------------- | -------------- | ----------- |
-| 123,456         | short                      | 123.46k        | 123k        |
 | 12,345,678,901  | long (default)             | 12.35 billion  | 12.3 billion |
 | 846,691,846.8   | long                       | 846.69 million | 847 million |
 | 123,456,789,012 | long                       | 123.46 billion | 123 billion |
