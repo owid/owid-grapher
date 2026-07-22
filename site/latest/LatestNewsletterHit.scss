@@ -31,11 +31,15 @@
     }
 }
 
+// Substack-style uniform thumbnail: a fixed 1200:630 box showing the top
+// section of the image, so tiles stay the same size regardless of each
+// edition's chart proportions.
 .latest-newsletter-hit__image {
     flex-shrink: 0;
     width: 188px;
-    max-width: 100%;
-    height: auto;
+    aspect-ratio: 1200 / 630;
+    object-fit: cover;
+    object-position: top;
     display: block;
 
     @include sm-only {
