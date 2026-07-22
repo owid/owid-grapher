@@ -38,7 +38,16 @@ type Metadata = Omit<OwidVariableWithSource, "id">
 // opposed to the existing per-view download which only covers whichever
 // view is currently loaded.
 export interface DownloadPackage {
+    // Browser-facing download link. Filled in client-side from the page's
+    // own slug -- computed, not stored, so it always points at the dynamic
+    // build route rather than a URL that could go stale.
     url: string
+    // ETL-staged wide CSV + indicator index (R2) that the dynamic build
+    // route reads from on every request -- the "complete dataset" analogue
+    // of a chart's own data, fetched once at ETL publish time rather than
+    // per-view. Absent for the code-only prototype demo package.
+    csvUrl?: string
+    indicatorsUrl?: string
     fileCount?: number
     rowCount?: number
     sizeBytes?: number
