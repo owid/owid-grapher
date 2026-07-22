@@ -84,6 +84,10 @@ import {
 } from "../db/model/Gdoc/GdocFactory.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "../db/model/ExplorerCatalogResolver.js"
 import {
+    getLatestFeedNewsletters,
+    getLatestNewsletterByType,
+} from "../db/model/Newsletter.js"
+import {
     Attachments,
     AttachmentsContext,
 } from "../site/gdocs/AttachmentsContext.js"
@@ -221,10 +225,12 @@ export const renderThankYouPage = async () => {
 export const renderLatestPage = async (knex: KnexReadonlyTransaction) => {
     const topicTagGraph = await generateTopicTagGraph(knex)
     const flattenedTopicTagGraph = flattenNonTopicNodes(topicTagGraph)
+    const newsletters = await getLatestFeedNewsletters(knex)
     return renderToHtmlPage(
         <LatestPage
             baseUrl={BAKED_BASE_URL}
             topicTagGraph={flattenedTopicTagGraph}
+            newsletters={newsletters}
         />
     )
 }
@@ -537,8 +543,22 @@ export const renderExplorerIndexPage = async (
     )
 }
 
-export const renderSubscribePage = async (): Promise<string> => {
-    return renderToHtmlPage(<SubscribePage baseUrl={BAKED_BASE_URL} />)
+export const renderSubscribePage = async (
+    knex: KnexReadonlyTransaction
+): Promise<string> => {
+    const [latestBrief, latestDataInsight] = await Promise.all([
+        getLatestNewsletterByType(knex, "owid-brief"),
+        getLatestNewsletterByType(knex, "data-insight"),
+    ])
+    return renderToHtmlPage(
+        <SubscribePage
+            baseUrl={BAKED_BASE_URL}
+            newsletterExampleUrls={{
+                briefUrl: latestBrief?.url,
+                dataInsightsUrl: latestDataInsight?.url,
+            }}
+        />
+    )
 }
 
 interface ExplorerRenderOpts {

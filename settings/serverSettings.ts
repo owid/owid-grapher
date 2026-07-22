@@ -72,6 +72,13 @@ export const ALGOLIA_SECRET_KEY: string =
 export const ALGOLIA_INDEXING: boolean =
     serverSettings.ALGOLIA_INDEXING === "true"
 
+// Mailchimp Marketing API credentials, used by
+// baker/syncNewslettersFromMailchimp.ts to sync sent campaigns into the
+// newsletters table. Note: Mailchimp API keys expire one year after creation.
+export const MAILCHIMP_API_KEY: string = serverSettings.MAILCHIMP_API_KEY ?? ""
+export const MAILCHIMP_API_SERVER: string =
+    serverSettings.MAILCHIMP_API_SERVER ?? "us8"
+
 export const UNCATEGORIZED_TAG_ID: number =
     parseIntOrUndefined(serverSettings.UNCATEGORIZED_TAG_ID) ?? 375
 

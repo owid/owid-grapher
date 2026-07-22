@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "react-router-dom-v5-compat"
 import {
-    LATEST_TYPE_VALUES,
+    LATEST_PAGE_TYPE_VALUES,
+    LatestNewsletter,
     LatestState,
     LatestType,
     TagGraphRoot,
@@ -16,6 +17,8 @@ import {
     urlNeedsSanitization,
 } from "./latestState.js"
 import { LatestHit } from "./LatestHit.js"
+import { LatestNewsletterHit } from "./LatestNewsletterHit.js"
+import { LatestFeedItem, weaveNewslettersIntoFeed } from "./latestUtils.js"
 import { LatestSearchSkeleton } from "./LatestSearchSkeleton.js"
 import { LatestContext } from "./LatestContext.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
@@ -29,9 +32,14 @@ const analytics = new SiteAnalytics()
 
 export const LatestSearch = ({
     topicTagGraph,
+    newsletters,
     liteSearchClient,
 }: {
     topicTagGraph: TagGraphRoot
+    /** Injected at bake time (window._OWID_NEWSLETTERS), sorted by date
+     * descending. Newsletters live outside the Algolia index and are woven
+     * into the feed client-side. */
+    newsletters: LatestNewsletter[]
     liteSearchClient: LiteClient
 }) => {
     const [searchParams, setSearchParams] = useSearchParams()
@@ -93,12 +101,39 @@ export const LatestSearch = ({
     // topic selection. Never disable the currently active type.
     const disabledTypes = useMemo(() => {
         const disabled = new Set<LatestType>()
-        for (const value of LATEST_TYPE_VALUES) {
+        for (const value of LATEST_PAGE_TYPE_VALUES) {
             if (value === latestType) continue
+            if (value === "newsletter") {
+                // Newsletters live outside Algolia and carry no topic tags,
+                // so they're only available when no topic is selected.
+                if (topics.length > 0 || newsletters.length === 0)
+                    disabled.add(value)
+                continue
+            }
             if ((latestTypeFacetCounts[value] ?? 0) === 0) disabled.add(value)
         }
         return disabled
-    }, [latestType, latestTypeFacetCounts])
+    }, [latestType, latestTypeFacetCounts, topics.length, newsletters.length])
+
+    // Weave bake-time newsletters into the Algolia-backed record stream.
+    const feedItems: LatestFeedItem[] = useMemo(() => {
+        // Newsletters have no topic tags, so any topic selection excludes
+        // them; likewise any non-newsletter type filter.
+        const includeNewsletters = topics.length === 0
+        if (latestType === "newsletter")
+            return includeNewsletters
+                ? newsletters.map((newsletter) => ({
+                      kind: "newsletter" as const,
+                      newsletter,
+                  }))
+                : []
+        const recordItems = hits.map((record) => ({
+            kind: "record" as const,
+            record,
+        }))
+        if (!includeNewsletters || latestType) return recordItems
+        return weaveNewslettersIntoFeed(hits, newsletters, hasNextPage ?? false)
+    }, [hits, newsletters, topics.length, latestType, hasNextPage])
 
     // Disable topics that would yield 0 results given the current filters.
     // Never disable a topic that is already selected (so the user can deselect
@@ -113,6 +148,23 @@ export const LatestSearch = ({
         }
         return disabled
     }, [allAreas, tagFacetCounts, topics])
+
+    const renderFeedItem = (item: LatestFeedItem, position: number) =>
+        item.kind === "newsletter" ? (
+            <LatestNewsletterHit
+                key={`newsletter-${item.newsletter.mailchimpId}`}
+                hit={item.newsletter}
+                position={position}
+            />
+        ) : (
+            <LatestHit
+                key={item.record.objectID}
+                hit={item.record}
+                selectedTopic={topics[0]}
+                position={position}
+                shouldAutoExpand={item.record.slug === autoExpandedSlug}
+            />
+        )
 
     // After the first data load, scroll to the URL hash anchor (e.g.
     // /latest#some-slug) so that links from the homepage land on the
@@ -158,7 +210,7 @@ export const LatestSearch = ({
             <hr className="latest-search__filters-divider span-cols-12 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1" />
             {isLoading ? (
                 <LatestSearchSkeleton />
-            ) : hits.length === 0 ? (
+            ) : feedItems.length === 0 ? (
                 <SearchNoResults
                     subtitle={
                         <p className="body-3-medium">
@@ -175,15 +227,9 @@ export const LatestSearch = ({
                 />
             ) : (
                 <>
-                    {hits.slice(0, 2).map((hit, i) => (
-                        <LatestHit
-                            key={hit.objectID}
-                            hit={hit}
-                            selectedTopic={topics[0]}
-                            position={i + 1}
-                            shouldAutoExpand={hit.slug === autoExpandedSlug}
-                        />
-                    ))}
+                    {feedItems
+                        .slice(0, 2)
+                        .map((item, i) => renderFeedItem(item, i + 1))}
                     {/* Always render the signup block — with 0 or 1 hits it
                         falls below whatever cards exist, which is the
                         intended layout. */}
@@ -191,15 +237,9 @@ export const LatestSearch = ({
                         className="latest-page__newsletter-signup col-start-11 span-cols-3 col-lg-start-10 span-lg-cols-4 span-md-cols-14 col-md-start-1"
                         context={NewsletterSubscriptionContext.Latest}
                     />
-                    {hits.slice(2).map((hit, i) => (
-                        <LatestHit
-                            key={hit.objectID}
-                            hit={hit}
-                            selectedTopic={topics[0]}
-                            position={i + 3}
-                            shouldAutoExpand={hit.slug === autoExpandedSlug}
-                        />
-                    ))}
+                    {feedItems
+                        .slice(2)
+                        .map((item, i) => renderFeedItem(item, i + 3))}
                     {hasNextPage && (
                         <SearchHorizontalDivider
                             className="span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1"

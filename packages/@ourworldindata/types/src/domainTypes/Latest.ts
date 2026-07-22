@@ -11,13 +11,16 @@ import * as z from "zod/mini"
 /* Latest filter state */
 
 /**
- * The flat content-category dimension used by /latest. For articles and
- * data insights this mirrors the gdoc type; for announcements it reflects
+ * The flat content-category dimension of gdoc-backed content. For articles
+ * and data insights this mirrors the gdoc type; for announcements it reflects
  * the (slugified) kicker. Absent for gdoc types that are indexed but not
  * shown on /latest (topic pages, linear topic pages).
  *
- * Ordered as displayed in the /latest "Filter by type" dropdown so callers
- * can iterate this tuple directly to render the dropdown.
+ * Deliberately excludes "newsletter": the dynamic /atom.xml?type= Cloudflare
+ * Function validates its `type` param against this constant, and newsletters
+ * must never appear in our feeds — Mailchimp consumes those feeds to send
+ * newsletters in the first place. Use LATEST_PAGE_TYPE_VALUES for the
+ * /latest page UI instead.
  */
 export const LATEST_TYPE_VALUES = [
     "data-insight",
@@ -27,7 +30,52 @@ export const LATEST_TYPE_VALUES = [
     "website-upgrade",
     "announcement",
 ] as const
-export type LatestType = (typeof LATEST_TYPE_VALUES)[number]
+
+/**
+ * All type values filterable on the /latest page: the gdoc-backed
+ * LATEST_TYPE_VALUES plus newsletters (synced from the Mailchimp campaign
+ * archive — see the `newsletters` DB table).
+ *
+ * Ordered as displayed in the /latest "Filter by type" dropdown so callers
+ * can iterate this tuple directly to render the dropdown.
+ */
+export const LATEST_PAGE_TYPE_VALUES = [
+    ...LATEST_TYPE_VALUES,
+    "newsletter",
+] as const
+export type LatestType = (typeof LATEST_PAGE_TYPE_VALUES)[number]
+
+/**
+ * A newsletter shown as a tile on /latest, linking out to its Mailchimp
+ * campaign-archive page. Newsletters deliberately live outside the
+ * pages-chronological Algolia index (and therefore outside /search and the
+ * atom feeds, which Mailchimp itself consumes): the baker injects them into
+ * latest.html as `window._OWID_NEWSLETTERS` and the /latest SPA weaves them
+ * into the feed client-side. Synced from the Mailchimp Marketing API into the
+ * `newsletters` DB table by baker/syncNewslettersFromMailchimp.ts.
+ */
+export interface LatestNewsletter {
+    mailchimpId: string
+    title: string
+    /** External Mailchimp campaign-archive URL the tile links out to */
+    url: string
+    /** ISO timestamp of when the campaign was sent */
+    date: string
+}
+
+export const NEWSLETTERS_WINDOW_PROP = "_OWID_NEWSLETTERS"
+
+/**
+ * Archive URLs of the most recent edition of each newsletter, shown as the
+ * "see example" links on /subscribe. Baked into the page (and read back on
+ * hydration via window._OWID_NEWSLETTER_EXAMPLES so server and client render
+ * identically). Fields are optional so the page still renders from an empty
+ * newsletters table; the form falls back to static example links.
+ */
+export interface NewsletterExampleUrls {
+    briefUrl?: string
+    dataInsightsUrl?: string
+}
 
 // Subset of LATEST_TYPE_VALUES that announcement gdocs can map to via their
 // (slugified) kicker. Validated upstream in GdocAnnouncement._validateSubclass
@@ -40,8 +88,8 @@ export const ANNOUNCEMENT_LATEST_TYPES = [
 ] as const satisfies readonly LatestType[]
 export type AnnouncementLatestType = (typeof ANNOUNCEMENT_LATEST_TYPES)[number]
 
-/** Singular display labels for a LatestType. Iterate LATEST_TYPE_VALUES to
- * get the dropdown display order; append "s" for the plural form used as
+/** Singular display labels for a LatestType. Iterate LATEST_PAGE_TYPE_VALUES
+ * to get the dropdown display order; append "s" for the plural form used as
  * the dropdown label. Used wherever a per-item kicker is rendered
  * (announcement page, homepage announcement card, /latest hit metadata). */
 export const LATEST_TYPE_LABELS: Record<LatestType, string> = {
@@ -51,6 +99,7 @@ export const LATEST_TYPE_LABELS: Record<LatestType, string> = {
     "topic-update": "Topic update",
     "website-upgrade": "Website upgrade",
     announcement: "Announcement",
+    newsletter: "Newsletter",
 }
 
 export const LATEST_PATH = "/latest"

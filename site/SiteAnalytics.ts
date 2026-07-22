@@ -10,6 +10,7 @@ import {
     type DataInsightHit,
     type StackedArticleHit,
     FilterType,
+    type LatestNewsletter,
     type LatestState,
     type LatestPageChronologicalRecord,
     type UserSurveyExperimentArm,
@@ -62,6 +63,16 @@ export class SiteAnalytics extends GrapherAnalytics {
             eventAction: "filter",
             latestTopics: state.topics.join("~") || undefined,
             latestType: state.latestType ?? undefined,
+        })
+    }
+
+    logLatestNewsletterClick(newsletter: LatestNewsletter, position: number) {
+        this.logToGA({
+            event: EventCategory.SiteLatestResultClick,
+            eventAction: "click",
+            eventTarget: `newsletter-${newsletter.mailchimpId}`,
+            latestPosition: position,
+            latestType: "newsletter",
         })
     }
 
