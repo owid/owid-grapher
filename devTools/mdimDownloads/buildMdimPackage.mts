@@ -9,12 +9,17 @@
  * reimplementation -- to build the real metadata.json + readme.md, then
  * zips and uploads the finished package.
  *
+ * Output mirrors the single-chart download package (Entity/Code/Year CSV,
+ * same metadata.json shape, same readme skeleton) -- a chart is just a
+ * 0-dimensional MDIM, so its download format is the baseline here.
+ *
  * See mdim-downloads/solution-space/etl-feasibility.md for why this is
  * split this way instead of doing it all in either repo.
  *
- * Usage: npx tsx devTools/mdimDownloads/buildMdimPackage.mts <slug> "<title>"
+ * Usage: npx tsx devTools/mdimDownloads/buildMdimPackage.mts <slug>
  */
 
+import { csvParse, csvFormat } from "d3-dsv"
 import { createZip, UncompressedFile } from "littlezipper"
 import {
     getCitationShort,
@@ -53,6 +58,13 @@ interface IndicatorEntry {
     wideColumnName: string
     catalogPath: string
     owidVariableId: number
+}
+
+interface StagedIndex {
+    title: string
+    titleVariant?: string
+    defaultSelection?: string[]
+    indicators: IndicatorEntry[]
 }
 
 // Minimal shape covering every field the reused readmeTools.js functions
@@ -126,6 +138,36 @@ function computeLongColumnName(def: any): string {
     return title
 }
 
+// Mirrors variableTypeToColumnType in LegacyToOwidTable.ts (not exported) so
+// the metadata.json "type" field matches the single-chart download's values
+// ("Numeric", not the raw API's "float").
+function variableTypeToColumnType(type: string): string {
+    switch (type) {
+        case "ordinal":
+            return "Ordinal"
+        case "string":
+            return "String"
+        case "int":
+            return "Integer"
+        case "float":
+            return "Numeric"
+        default:
+            return "NumberOrString"
+    }
+}
+
+// Mirrors the titleLong construction in metadataTools.ts's assembleMetadata
+// (plain " - " before the modifier, en-dash inside it).
+function computeTitleLong(col: any): string {
+    const { title, attributionShort, titleVariant } =
+        col.titlePublicOrDisplayName
+    const attributionString =
+        attributionShort && titleVariant
+            ? `${attributionShort} – ${titleVariant}`
+            : attributionShort || titleVariant
+    return attributionString ? `${title} - ${attributionString}` : title
+}
+
 async function fetchIndicatorMetadata(id: number): Promise<any> {
     const res = await fetch(
         `https://api.ourworldindata.org/v1/indicators/${id}.metadata.json`
@@ -137,36 +179,65 @@ async function fetchIndicatorMetadata(id: number): Promise<any> {
     return res.json()
 }
 
-function renameCsvHeader(
+// Rebuild the CSV in the single-chart download's shape: Entity, Code,
+// Year/Day, then one column per indicator using its long display name.
+// Entity codes come from the indicator metadata's own entity dimension --
+// the same mapping the regular download uses, no extra data source.
+function toDownloadCsv(
     csvText: string,
-    columnNameMap: Record<string, string>
+    columnNameMap: Record<string, string>,
+    entityNameToCode: Map<string, string | null>
 ): string {
-    const newlineIndex = csvText.indexOf("\n")
-    const headerLine = csvText.slice(0, newlineIndex)
-    const rest = csvText.slice(newlineIndex + 1)
-    const newHeader = headerLine
-        .split(",")
-        .map((col) => columnNameMap[col] ?? col)
-    return [newHeader.join(","), rest].join("\n")
+    const rows = csvParse(csvText)
+    const cols = rows.columns
+    const timeCol = cols.find((c) => c === "year" || c === "date")
+    if (!timeCol) throw new Error("No year/date column in staged CSV")
+    const timeHeader = timeCol === "date" ? "Day" : "Year"
+    const dataCols = cols.filter((c) => c !== "country" && c !== timeCol)
+
+    const out = rows.map((row) => {
+        const rec: Record<string, any> = {
+            Entity: row.country,
+            Code: entityNameToCode.get(row.country ?? "") ?? "",
+            [timeHeader]: row[timeCol],
+        }
+        // Round-trip numeric values through Number so integers print without
+        // pandas' trailing ".0" ("11", not "11.0") -- matches how grapher's
+        // own CSV writer serializes them.
+        for (const c of dataCols) {
+            const v = row[c]
+            rec[columnNameMap[c] ?? c] = v && !isNaN(+v) ? String(+v) : v
+        }
+        return rec
+    })
+    return csvFormat(out, [
+        "Entity",
+        "Code",
+        timeHeader,
+        ...dataCols.map((c) => columnNameMap[c] ?? c),
+    ])
 }
 
 async function main() {
     const slug = process.argv[2]
-    const title = process.argv[3] ?? slug
     if (!slug) {
-        console.error('Usage: buildMdimPackage.mts <slug> "<title>"')
+        console.error("Usage: buildMdimPackage.mts <slug>")
         process.exit(1)
     }
 
     console.log(`Fetching staged data for ${slug}...`)
-    const indicators: IndicatorEntry[] = await fetch(
-        `${STAGING_BASE}/${slug}/indicators.json`
+    // Cache-buster: the staging files sit behind Cloudflare's CDN cache, and
+    // this script must always see the latest ETL-staged version.
+    const cb = `?cb=${Date.now()}`
+    const index: StagedIndex = await fetch(
+        `${STAGING_BASE}/${slug}/indicators.json${cb}`
     ).then((r) => r.json())
-    const csvText = await fetch(`${STAGING_BASE}/${slug}/wide.csv`).then((r) =>
-        r.text()
+    const { title, indicators } = index
+    const csvText = await fetch(`${STAGING_BASE}/${slug}/wide.csv${cb}`).then(
+        (r) => r.text()
     )
     console.log(
-        `Got ${indicators.length} indicators, CSV ${(csvText.length / 1e6).toFixed(1)} MB`
+        `"${title}": ${indicators.length} indicators, CSV ${(csvText.length / 1e6).toFixed(1)} MB`
     )
 
     console.log(
@@ -176,9 +247,18 @@ async function main() {
         indicators.map((ind) => fetchIndicatorMetadata(ind.owidVariableId))
     )
 
+    const entityNameToCode = new Map<string, string | null>()
+    for (const meta of rawMetas) {
+        for (const ent of meta.dimensions?.entities?.values ?? []) {
+            if (!entityNameToCode.has(ent.name))
+                entityNameToCode.set(ent.name, ent.code)
+        }
+    }
+
     const columnNameMap: Record<string, string> = {}
     const metadataColumns: Record<string, any> = {}
     const readmeColumnSections: string[] = []
+    const attributions = new Set<string>()
     const seenLongNames = new Map<string, string>()
 
     for (let i = 0; i < indicators.length; i++) {
@@ -195,6 +275,8 @@ async function main() {
         }
         seenLongNames.set(longName, ind.wideColumnName)
         columnNameMap[ind.wideColumnName] = longName
+
+        attributions.add(getAttribution(def))
 
         const attributionFragments = getAttributionFragmentsFromVariable(def)
         const citationShort = getCitationShort(
@@ -216,14 +298,14 @@ async function main() {
 
         metadataColumns[longName] = {
             titleShort: col.titlePublicOrDisplayName.title,
-            titleLong: longName,
+            titleLong: computeTitleLong(col),
             descriptionShort: def.descriptionShort,
             descriptionKey: def.descriptionKey,
             descriptionProcessing: def.descriptionProcessing,
             unit: def.unit,
             shortUnit: def.shortUnit,
             timespan: def.timespan,
-            type: def.type,
+            type: variableTypeToColumnType(def.type),
             owidVariableId: ind.owidVariableId,
             shortName: def.shortName,
             lastUpdated: getLastUpdatedFromVariable(def),
@@ -236,31 +318,53 @@ async function main() {
         readmeColumnSections.push(columnReadmeText(col).join("\n"))
     }
 
-    const newCsv = renameCsvHeader(csvText, columnNameMap)
+    const newCsv = toDownloadCsv(csvText, columnNameMap, entityNameToCode)
+
+    const pageUrl = `https://ourworldindata.org/grapher/${slug.replace(/_/g, "-")}`
 
     const metadataJson = {
         chart: {
             title,
-            originalChartUrl: `https://ourworldindata.org/grapher/${slug.replace(/_/g, "-")}`,
+            citation: [...attributions].sort().join("; "),
+            originalChartUrl: pageUrl,
+            selection: index.defaultSelection ?? [],
         },
         columns: metadataColumns,
         dateDownloaded: new Date().toISOString().slice(0, 10),
         activeFilters: {},
     }
 
-    const readme = `# ${title} — complete dataset
+    // Same skeleton as constructReadme()'s multi-column branch in
+    // readmeTools.ts (that function needs a live GrapherState, so it can't be
+    // called directly) -- one sentence added to say the package covers every
+    // dimension combination, no tolerance columns in this data.
+    const readme = `# ${title} - Data package
 
-This package contains **all dimension combinations** of the OWID multidimensional
-dataset "${title}" — every metric/breakdown choice, not just whichever view was
-selected when you clicked download. Downloaded on ${metadataJson.dateDownloaded}.
+This data package contains the data that powers the chart ["${title}"](${pageUrl}) on the Our World in Data website. It includes every dimension combination of this multidimensional dataset -- all metric/breakdown choices, not just the view selected on the chart.
 
-## Files
+## CSV Structure
 
-- \`${slug}.csv\` — one row per country/year (or country/date), one column per
-  indicator × dimension combination, using each indicator's real display name.
-- \`${slug}.metadata.json\` — per-column metadata: descriptions, units, and
-  citations, sourced from the same Data API as any other OWID chart download.
-- This README, with per-column source/citation details below.
+The high level structure of the CSV file is that each row is an observation for an entity (usually a country or region) and a timepoint (usually a year).
+
+The first two columns in the CSV file are "Entity" and "Code". "Entity" is the name of the entity (e.g. "United States"). "Code" is the OWID internal entity code that we use if the entity is a country or region. For most countries, this is the same as the [iso alpha-3](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3) code of the entity (e.g. "USA") - for non-standard countries like historical countries these are custom codes.
+
+The third column is either "Year" or "Day". If the data is annual, this is "Year" and contains only the year as an integer. If the column is "Day", the column contains a date string in the form "YYYY-MM-DD".
+
+The remaining columns are the data columns, each of which is a time series corresponding to one dimension combination of this dataset.
+
+## Metadata.json structure
+
+The .metadata.json file contains metadata about the data package. The "chart" key contains information to recreate the chart, like the title, subtitle etc.. The "columns" key contains information about each of the columns in the csv, like the unit, timespan covered, citation for the data etc..
+
+## About the data
+
+Our World in Data is almost never the original producer of the data - almost all of the data we use has been compiled by others. If you want to re-use data, it is your responsibility to ensure that you adhere to the sources' license and to credit them correctly. Please note that a single time series may have more than one source - e.g. when we stich together data from different time periods by different producers or when we calculate per capita metrics using population data from a second source.
+
+### How we process data at Our World In Data
+All data and visualizations on Our World in Data rely on data sourced from one or several original data providers. Preparing this original data involves several processing steps. Depending on the data, this can include standardizing country names and world region definitions, converting units, calculating derived indicators such as per capita measures, as well as adding or adapting metadata such as the name or the description given to an indicator.
+[Read about our data pipeline](https://docs.owid.io/projects/etl/)
+
+## Detailed information about each time series
 
 ${readmeColumnSections.join("\n")}
 `
