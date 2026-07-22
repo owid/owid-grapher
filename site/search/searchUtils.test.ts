@@ -8,6 +8,7 @@ import {
     createTopicFilter,
     extractFiltersFromQuery,
     createCountryFilter,
+    resolveSearchQuery,
 } from "./searchUtils"
 
 import { FilterType, SynonymMap } from "@ourworldindata/types"
@@ -737,6 +738,28 @@ describe("Fuzzy search in search autocomplete", () => {
             expect(result.suggestions[0].type).toBe(FilterType.QUERY)
             expect(result.unmatchedQuery).toBe("nonexistenttopic")
         })
+    })
+})
+
+describe(resolveSearchQuery, () => {
+    it("rewrites the bare query 'ai' to 'artificial intelligence'", () => {
+        expect(resolveSearchQuery("ai")).toEqual("artificial intelligence")
+    })
+
+    it("is case-insensitive and trims whitespace", () => {
+        expect(resolveSearchQuery("AI")).toEqual("artificial intelligence")
+        expect(resolveSearchQuery("  ai  ")).toEqual("artificial intelligence")
+    })
+
+    it("leaves longer queries containing 'ai' unchanged", () => {
+        expect(resolveSearchQuery("chatgpt and ai regulation")).toEqual(
+            "chatgpt and ai regulation"
+        )
+        expect(resolveSearchQuery("air pollution")).toEqual("air pollution")
+    })
+
+    it("leaves unrelated queries unchanged", () => {
+        expect(resolveSearchQuery("population")).toEqual("population")
     })
 })
 
