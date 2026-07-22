@@ -207,8 +207,23 @@ export const SearchWritingResults = ({
     })
 
     const hasLargeTopic = topicsQuery.totalResults === 1
+    // Article-level closest matches are only a genuine rescue if the section
+    // as a whole found nothing exact. Topic pages and profiles never go
+    // through the closest-matches fallback (see queryTopicPages/queryProfiles
+    // in queries.ts), so any of their hits are exact — mixing in "did you
+    // mean" articles and the closest-matches notice alongside those would
+    // misrepresent an already-successful search as an empty one.
+    const sectionHasExactHitsElsewhere =
+        topicsQuery.totalResults > 0 || profilesQuery.totalResults > 0
+    const suppressArticlesRescue =
+        articlesQuery.isClosestMatches && sectionHasExactHitsElsewhere
+    const showArticlesClosestMatches =
+        articlesQuery.isClosestMatches && !sectionHasExactHitsElsewhere
+    const visibleArticlesTotal = suppressArticlesRescue
+        ? 0
+        : articlesQuery.totalResults
     const totalCount =
-        articlesQuery.totalResults +
+        visibleArticlesTotal +
         topicsQuery.totalResults +
         profilesQuery.totalResults
     const hasNextPage =
@@ -235,8 +250,11 @@ export const SearchWritingResults = ({
                 : undefined,
         ])
 
-    const articlePages = articlesQuery.data?.pages || []
+    const articlePages = suppressArticlesRescue
+        ? []
+        : articlesQuery.data?.pages || []
     const topicPages = topicsQuery.data?.pages || []
+    const visibleArticleHits = suppressArticlesRescue ? [] : articlesQuery.hits
     const orderedHits: WritingHit[] = [
         ...profilesQuery.hits,
         ..._.zip(articlePages, topicPages).flatMap(
@@ -259,7 +277,7 @@ export const SearchWritingResults = ({
                         <SearchResultHeader count={totalCount}>
                             Research & Writing
                         </SearchResultHeader>
-                        {articlesQuery.isClosestMatches && (
+                        {showArticlesClosestMatches && (
                             <SearchClosestMatchesNotice />
                         )}
                         {isSmallScreen ? (
@@ -269,7 +287,7 @@ export const SearchWritingResults = ({
                             />
                         ) : (
                             <MultiColumnResults
-                                articles={articlesQuery.hits}
+                                articles={visibleArticleHits}
                                 topics={topicsQuery.hits}
                                 profiles={profilesQuery.hits}
                                 orderedHits={orderedHits}

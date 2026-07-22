@@ -111,14 +111,18 @@ async function searchSingleForHitsWithClosestMatches<T>(
         return primary
 
     // Algolia ranks relaxed hits by matched words, so the best tier is a
-    // prefix. For a one-word tier, EVERY match shares that word, so the full
-    // count is the tier size; multi-word tiers may extend past the fetched
-    // page, where the page length is a (honest) undercount.
+    // prefix of the fetched page. nbPages is always 1 below — closest matches
+    // are a single, non-paginated tier — so nbHits must equal tier.length,
+    // never the full relaxed.nbHits: offset/length consumers
+    // (useInfiniteSearchOffset) keep requesting further pages while
+    // nbHits > items loaded so far, and the next request's offset > 0 skips
+    // this fallback entirely and returns the original empty exact page,
+    // producing a "load more" that can never load anything.
     const tier = relaxed.hits.filter((hit) => words(hit) === topWords)
     return {
         ...relaxed,
         hits: tier,
-        nbHits: topWords === 1 ? relaxed.nbHits : tier.length,
+        nbHits: tier.length,
         nbPages: 1,
         page: 0,
         closestMatches: true,
