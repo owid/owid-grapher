@@ -17,7 +17,7 @@
  * See mdim-downloads/solution-space/etl-feasibility.md (owid-projects repo)
  * for why the join lives in ETL while formatting lives here.
  */
-import { csvParse, csvFormat } from "d3-dsv"
+import { parseDelimited, matrixToDelimited } from "@ourworldindata/core-table"
 import { createZip, UncompressedFile } from "littlezipper"
 import {
     getCitationShort,
@@ -170,34 +170,38 @@ function toDownloadCsv(
     columnNameMap: Record<string, string>,
     entityNameToCode: Map<string, string | null>
 ): string {
-    const rows = csvParse(csvText)
+    const rows = parseDelimited(csvText, ",")
     const cols = rows.columns
     const timeCol = cols.find((c) => c === "year" || c === "date")
     if (!timeCol) throw new Error("No year/date column in staged CSV")
     const timeHeader = timeCol === "date" ? "Day" : "Year"
     const dataCols = cols.filter((c) => c !== "country" && c !== timeCol)
-
-    const out = rows.map((row) => {
-        const rec: Record<string, any> = {
-            Entity: row.country,
-            Code: entityNameToCode.get(row.country ?? "") ?? "",
-            [timeHeader]: row[timeCol],
-        }
-        // Round-trip numeric values through Number so integers print without
-        // pandas' trailing ".0" ("11", not "11.0") -- matches how grapher's
-        // own CSV writer serializes them.
-        for (const c of dataCols) {
-            const v = row[c]
-            rec[columnNameMap[c] ?? c] = v && !isNaN(+v) ? String(+v) : v
-        }
-        return rec
-    })
-    return csvFormat(out, [
+    const header = [
         "Entity",
         "Code",
         timeHeader,
         ...dataCols.map((c) => columnNameMap[c] ?? c),
-    ])
+    ]
+
+    const matrix = [
+        header,
+        ...rows.map((row) => {
+            const values = dataCols.map((c) => {
+                const v = row[c]
+                // Round-trip numeric values through Number so integers print
+                // without pandas' trailing ".0" ("11", not "11.0") --
+                // matches how grapher's own CSV writer serializes them.
+                return v && !isNaN(+v) ? String(+v) : v
+            })
+            return [
+                row.country,
+                entityNameToCode.get(row.country ?? "") ?? "",
+                row[timeCol],
+                ...values,
+            ]
+        }),
+    ]
+    return matrixToDelimited(matrix, ",")
 }
 
 export async function fetchCompleteDatasetZipForGrapher(
