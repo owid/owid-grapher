@@ -62,4 +62,40 @@ describe("search endpoint inside a real Workers runtime", () => {
         )
         expect(response.status).toBe(400)
     })
+
+    // "malaria worldwide" has no exact match ("worldwide" doesn't appear on
+    // any malaria chart) but shares the distinctive word "malaria" with many
+    // charts — this is the site's own example of a query the closest-matches
+    // fallback should rescue instead of returning nbHits: 0.
+    it("rescues a query with no exact match via closest matches", async () => {
+        const response = await workerFetch(
+            "/api/search?type=charts&q=malaria%20worldwide"
+        )
+        expect(response.status).toBe(200)
+
+        const body = (await response.json()) as {
+            results: unknown[]
+            nbHits: number
+            closestMatches?: boolean
+        }
+        expect(body.closestMatches).toBe(true)
+        expect(body.results.length).toBeGreaterThan(0)
+        expect(body.nbHits).toBeGreaterThan(0)
+    })
+
+    it('stays honestly empty for a non-distinctive query ("world cup")', async () => {
+        const response = await workerFetch(
+            "/api/search?type=charts&q=world%20cup"
+        )
+        expect(response.status).toBe(200)
+
+        const body = (await response.json()) as {
+            results: unknown[]
+            nbHits: number
+            closestMatches?: boolean
+        }
+        expect(body.closestMatches).toBeUndefined()
+        expect(body.results).toEqual([])
+        expect(body.nbHits).toBe(0)
+    })
 })

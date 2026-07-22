@@ -10,6 +10,7 @@ import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     getFilterNamesOfType,
     buildChartsFacetFilters,
+    searchSingleForHitsWithClosestMatches,
 } from "@ourworldindata/utils"
 import {
     getIndexName,
@@ -78,6 +79,9 @@ export interface SearchApiResponse {
     page: number
     nbPages: number
     hitsPerPage: number
+    // True when the exact query returned nothing and these are relaxed
+    // "closest matches" instead (see searchSingleForHitsWithClosestMatches).
+    closestMatches?: boolean
 }
 
 export interface SearchPagesApiResponse {
@@ -86,6 +90,9 @@ export interface SearchPagesApiResponse {
     nbHits: number
     offset: number
     length: number
+    // True when the exact query returned nothing and these are relaxed
+    // "closest matches" instead (see searchSingleForHitsWithClosestMatches).
+    closestMatches?: boolean
 }
 
 // Minimal set of attributes needed by the MCP server and other API consumers
@@ -128,16 +135,6 @@ async function getAvailableTopics(config: AlgoliaConfig): Promise<string[]> {
     return Object.keys(response.results[0].facets?.tags ?? {}).sort()
 }
 
-// Note: neither searchCharts nor searchPages below has the "closest matches"
-// fallback that site/search/queries.ts added for zero-result queries
-// (retrying with Algolia's removeWordsIfNoResults, then keeping only the
-// best-matched-words tier). A genuinely empty query here just returns
-// nbHits: 0. There's also no equivalent of the site's "No exact matches —
-// showing the closest matches instead" notice: SearchApiResponse /
-// SearchPagesApiResponse have no field to tell a caller "these are relaxed,
-// not exact" results, so even a ported fallback would need a new response
-// field (and an OpenAPI doc update) for consumers to distinguish the two.
-// Not at parity with the site search yet; see PR #6715.
 export async function searchCharts(
     config: AlgoliaConfig,
     state: SearchState,
@@ -158,8 +155,9 @@ export async function searchCharts(
 
     const client = createSearchClient(config)
 
-    const response = await client.searchForHits<SearchChartHit>({
-        requests: [
+    const result = await searchSingleForHitsWithClosestMatches<SearchChartHit>(
+        client,
+        [
             {
                 indexName,
                 query: state.query,
@@ -170,9 +168,8 @@ export async function searchCharts(
                 page,
                 ...(facetFilters.length > 0 && { facetFilters }),
             },
-        ],
-    })
-    const result = response.results[0]
+        ]
+    )
 
     // If we got zero results and user is filtering by topic, check if the topic exists
     const requestedTopics = getFilterNamesOfType(
@@ -229,6 +226,7 @@ export async function searchCharts(
         page: result.page ?? page,
         nbPages: result.nbPages ?? 0,
         hitsPerPage: result.hitsPerPage ?? hitsPerPage,
+        ...(result.closestMatches && { closestMatches: true as const }),
     }
 }
 
@@ -259,8 +257,9 @@ export async function searchPages(
 
     const client = createSearchClient(config)
 
-    const response = await client.searchForHits<SearchPageHit>({
-        requests: [
+    const result = await searchSingleForHitsWithClosestMatches<SearchPageHit>(
+        client,
+        [
             {
                 indexName,
                 query,
@@ -272,9 +271,8 @@ export async function searchPages(
                 offset,
                 length,
             },
-        ],
-    })
-    const result = response.results[0]
+        ]
+    )
 
     // Clean up the hits and add URL
     const cleanedHits = result.hits.map((hit): EnrichedSearchPageHit => {
@@ -308,5 +306,6 @@ export async function searchPages(
         nbHits: result.nbHits ?? 0,
         offset,
         length,
+        ...(result.closestMatches && { closestMatches: true as const }),
     }
 }
