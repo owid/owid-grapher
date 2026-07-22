@@ -546,15 +546,14 @@ export const renderExplorerIndexPage = async (
 export const renderSubscribePage = async (
     knex: KnexReadonlyTransaction
 ): Promise<string> => {
-    const [latestBrief, latestDataInsight] = await Promise.all([
-        getLatestNewsletterByType(knex, "owid-brief"),
-        getLatestNewsletterByType(knex, "data-insight"),
-    ])
+    const latestDataInsight = await getLatestNewsletterByType(
+        knex,
+        "data-insight"
+    )
     return renderToHtmlPage(
         <SubscribePage
             baseUrl={BAKED_BASE_URL}
             newsletterExampleUrls={{
-                briefUrl: latestBrief?.url,
                 dataInsightsUrl: latestDataInsight?.url,
             }}
         />

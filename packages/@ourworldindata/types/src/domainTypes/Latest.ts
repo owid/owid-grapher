@@ -66,14 +66,14 @@ export interface LatestNewsletter {
 export const NEWSLETTERS_WINDOW_PROP = "_OWID_NEWSLETTERS"
 
 /**
- * Archive URLs of the most recent edition of each newsletter, shown as the
- * "see example" links on /subscribe. Baked into the page (and read back on
+ * Archive URL of the most recent Data Insights edition, shown as the
+ * "see example" link on /subscribe. Baked into the page (and read back on
  * hydration via window._OWID_NEWSLETTER_EXAMPLES so server and client render
- * identically). Fields are optional so the page still renders from an empty
- * newsletters table; the form falls back to static example links.
+ * identically). Optional so the page still renders from an empty newsletters
+ * table; the form falls back to a static example link. The OWID Brief link
+ * needs no baked data — it points to /latest?type=newsletter.
  */
 export interface NewsletterExampleUrls {
-    briefUrl?: string
     dataInsightsUrl?: string
 }
 

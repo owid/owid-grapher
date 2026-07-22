@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { TextInput } from "@ourworldindata/components"
 import { NewsletterExampleUrls } from "@ourworldindata/types"
+import { buildLatestPagePath } from "./latest/latestUtils.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { NewsletterIcon } from "./gdocs/components/NewsletterIcon.js"
 
@@ -83,11 +84,10 @@ export const NewsletterSubscriptionHeader = ({
     )
 }
 
-// Static fallbacks for the "see example" links, used in render contexts that
+// Static fallback for the "see example" link, used in render contexts that
 // have no access to the newsletters table (e.g. the floating subscribe
-// dialog). The baked /subscribe page passes the latest editions instead.
+// dialog). The baked /subscribe page passes the latest edition instead.
 const DEFAULT_EXAMPLE_URLS: NewsletterExampleUrls = {
-    briefUrl: "https://mailchi.mp/ourworldindata/owid-brief-2025-11-14",
     dataInsightsUrl:
         "https://us8.campaign-archive.com/?u=18058af086319ba6afad752ec&id=fdf16136e1",
 }
@@ -165,12 +165,10 @@ export const NewsletterSubscriptionForm = ({
                 </label>
                 <a
                     className="newsletter-subscription-form__example-link note-12-medium"
-                    data-track-note="subscribe_example_owid_brief"
-                    href={
-                        exampleUrls?.briefUrl ?? DEFAULT_EXAMPLE_URLS.briefUrl
-                    }
+                    data-track-note="subscribe_recent_owid_briefs"
+                    href={buildLatestPagePath("newsletter")}
                 >
-                    See example OWID Brief newsletter
+                    See recent OWID Brief newsletters
                 </a>
             </div>
             <img
