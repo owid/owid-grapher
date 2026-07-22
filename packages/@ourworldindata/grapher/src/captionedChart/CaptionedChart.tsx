@@ -111,8 +111,11 @@ interface CaptionedChartProps {
 export const CONTROLS_ROW_HEIGHT = 32
 
 // keep in sync with sass variables in CaptionedChart.scss
-const DEPRECATION_NOTICE_PADDING = 8
+const DEPRECATION_NOTICE_PADDING_VERTICAL = 8
+const DEPRECATION_NOTICE_PADDING_HORIZONTAL = 12
+const DEPRECATION_NOTICE_ICON_WIDTH = 21 // 13px icon + 8px gap
 const DEPRECATION_NOTICE_FONT_SIZE = 13
+const DEPRECATION_NOTICE_LINE_HEIGHT = 1.3846 // grapher_body-3-regular
 
 abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProps> {
     protected framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
@@ -200,9 +203,12 @@ export class CaptionedChart extends AbstractCaptionedChart {
         if (!this.showDeprecationNotice) return undefined
         return new MarkdownTextWrap({
             text: this.manager.deprecationNotice!,
-            maxWidth: this.maxWidth - 2 * DEPRECATION_NOTICE_PADDING - 20,
+            maxWidth:
+                this.maxWidth -
+                2 * DEPRECATION_NOTICE_PADDING_HORIZONTAL -
+                DEPRECATION_NOTICE_ICON_WIDTH,
             fontSize: DEPRECATION_NOTICE_FONT_SIZE,
-            lineHeight: 1.25,
+            lineHeight: DEPRECATION_NOTICE_LINE_HEIGHT,
             detailsOrderedByReference: this.manager.detailsOrderedByReference,
         })
     }
@@ -211,7 +217,7 @@ export class CaptionedChart extends AbstractCaptionedChart {
         if (!this.deprecationNoticeTextWrap) return 0
         return (
             this.deprecationNoticeTextWrap.height +
-            2 * DEPRECATION_NOTICE_PADDING
+            2 * DEPRECATION_NOTICE_PADDING_VERTICAL
         )
     }
 
@@ -282,15 +288,22 @@ export class CaptionedChart extends AbstractCaptionedChart {
                 className="DeprecationNotice"
                 style={{
                     width: this.bounds.width,
-                    padding: `${DEPRECATION_NOTICE_PADDING}px ${this.framePaddingHorizontal}px`,
+                    padding: `0 ${this.framePaddingHorizontal}px`,
                 }}
                 data-track-note="chart_deprecation_notice"
             >
-                <FontAwesomeIcon icon={faBoxArchive} />
-                <div style={this.deprecationNoticeTextWrap!.style}>
-                    <MarkdownTextWrapHtml
-                        textWrap={this.deprecationNoticeTextWrap!}
-                    />
+                <div
+                    className="DeprecationNotice__box"
+                    style={{
+                        padding: `${DEPRECATION_NOTICE_PADDING_VERTICAL}px ${DEPRECATION_NOTICE_PADDING_HORIZONTAL}px`,
+                    }}
+                >
+                    <FontAwesomeIcon icon={faBoxArchive} />
+                    <div style={this.deprecationNoticeTextWrap!.style}>
+                        <MarkdownTextWrapHtml
+                            textWrap={this.deprecationNoticeTextWrap!}
+                        />
+                    </div>
                 </div>
             </div>
         )

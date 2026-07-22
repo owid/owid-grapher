@@ -1,6 +1,5 @@
 // keep in sync with constant values in CaptionedChart.tsx
 $controlRowHeight: 32px; // keep in sync with CONTROLS_ROW_HEIGHT
-$deprecationNoticePadding: 8px; // keep in sync with DEPRECATION_NOTICE_PADDING
 
 .CaptionedChart {
     width: 100%;
@@ -25,29 +24,30 @@ $deprecationNoticePadding: 8px; // keep in sync with DEPRECATION_NOTICE_PADDING
     }
 }
 
-// Matches the "this article is outdated" notice used in gdoc articles
-// (site/gdocs/components/centered-article.scss's .deprecation-notice):
-// pale-yellow flat box, no border accent, vermillion icon, 4px radius.
-.DeprecationNotice {
+// Styled in the vocabulary of grapher's own chrome (hairline stroke,
+// 4px radius, muted grey text and icon — like the tab controls below it)
+// rather than as a colored callout box, which would compete with the
+// chart itself for attention. The bold markdown lead-in and the archive
+// icon carry the message.
+.DeprecationNotice__box {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
-    padding: $deprecationNoticePadding;
-    background-color: #fff5d8;
+    gap: 8px; // keep in sync with DEPRECATION_NOTICE_ICON_WIDTH
     border-radius: 4px;
+    box-shadow: inset 0 0 0 1px $gray-20;
     color: $dark-text;
 
     svg {
         flex-shrink: 0;
-        margin-top: 3px;
-        color: $vermillion;
+        font-size: 13px; // keep in sync with DEPRECATION_NOTICE_ICON_WIDTH
+        margin-top: 2px;
+        color: $gray-60;
     }
 
     a {
-        font-weight: 700;
+        color: inherit;
         text-decoration-line: underline;
         text-underline-offset: auto;
-        color: inherit;
 
         &:hover {
             text-decoration-line: none;
