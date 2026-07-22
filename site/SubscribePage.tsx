@@ -7,6 +7,7 @@ import {
     SiteFooterContext,
     SUBSCRIBE_PAGE_FORM_CONTAINER_ID,
 } from "@ourworldindata/types"
+import { serializeJSONForHTML } from "@ourworldindata/utils"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { OwidSocials } from "./OwidSocials.js"
@@ -41,7 +42,7 @@ export const SubscribePage = ({
             >
                 <script
                     dangerouslySetInnerHTML={{
-                        __html: `window._OWID_NEWSLETTER_EXAMPLES = ${JSON.stringify(newsletterExampleUrls)}`,
+                        __html: `window._OWID_NEWSLETTER_EXAMPLES = ${serializeJSONForHTML(newsletterExampleUrls)}`,
                     }}
                 ></script>
             </Head>
