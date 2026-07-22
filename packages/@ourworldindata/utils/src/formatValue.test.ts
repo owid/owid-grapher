@@ -39,9 +39,9 @@ describe("rounding to a fixed number of decimals", () => {
         ["1001 short written out", 1001, "1,001", { numberAbbreviation: "short" }],
         ["1009 short written out", 1009, "1,009", { numberAbbreviation: "short" }],
         ["12345 short written out", 12_345, "12,345", { numberAbbreviation: "short" }],
-        ["123456 short prefix", 123_456, "123k", { numberAbbreviation: "short" }],
+        ["123456 short written out", 123_456, "123,456", { numberAbbreviation: "short" }],
         ["98712 decimal short drops decimals", 98_712.78901, "98,713", { numberAbbreviation: "short", numDecimalPlaces: 10 }],
-        ["hundred thousand short prefix decimal", 100_000.44, "100k", { numberAbbreviation: "short" }],
+        ["hundred thousand short decimal written out", 100_000.44, "100,000", { numberAbbreviation: "short" }],
         ["1000 long prefix", 1000, "1,000", { numberAbbreviation: "long" }],
         ["1499 long prefix", 1499, "1,499", { numberAbbreviation: "long" }],
         ["1001 long prefix", 1001, "1,001", { numberAbbreviation: "long" }],
@@ -57,7 +57,7 @@ describe("rounding to a fixed number of decimals", () => {
         ["2 decimals with float", 1.123, "1.12", { numDecimalPlaces: 2 }],
         ["4 decimals with float", 1.123, "1.123", { numDecimalPlaces: 4 }],
         ["numSignificantFigures has no effect on long abbreviations", 12_840_000, "12.8 million", { numSignificantFigures: 5, numberAbbreviation: "long" }],
-        ["numSignificantFigures has no effect on short abbreviations", 123_456, "123k", { numSignificantFigures: 5, numberAbbreviation: "short" }],
+        ["numSignificantFigures has no effect on short abbreviations", 12_840_000, "12.8M", { numSignificantFigures: 5, numberAbbreviation: "short" }],
         ["abbreviated values default to 3 significant figures", 10_020_000, "10 million", { numberAbbreviation: "long" }],
         ["abbreviationSignificantFigures widens abbreviated precision", 10_020_000, "10.02 million", { numberAbbreviation: "long", abbreviationSignificantFigures: 4 }],
         ["abbreviationSignificantFigures keeps trailing-zero trim", 10_000_000, "10 million", { numberAbbreviation: "long", abbreviationSignificantFigures: 4 }],
@@ -136,8 +136,8 @@ describe("rounding to significant figures", () => {
         ["1001 short written out", 1001, "1,000", { numberAbbreviation: "short" }],
         ["1009 short written out", 1009, "1,010", { numberAbbreviation: "short" }],
         ["12345 short written out", 12_345, "12,300", { numberAbbreviation: "short" }],
-        ["123456 short prefix", 123_456, "123k", { numberAbbreviation: "short" }],
-        ["hundred thousand short prefix decimal", 100_000.44, "100k", { numberAbbreviation: "short" }],
+        ["123456 short written out", 123_456, "123,000", { numberAbbreviation: "short" }],
+        ["hundred thousand short decimal written out", 100_000.44, "100,000", { numberAbbreviation: "short" }],
         ["1000 long prefix", 1000, "1,000", { numberAbbreviation: "long" }],
         ["1499 long prefix", 1499, "1,500", { numberAbbreviation: "long" }],
         ["1001 long prefix", 1001, "1,000", { numberAbbreviation: "long" }],
@@ -213,32 +213,28 @@ describe("rounding to significant figures", () => {
 })
 
 describe("the 'short' abbreviation bands", () => {
-    // "short" is used for space-constrained value labels (slope charts, map
-    // annotations, thumbnails). Values below 1k keep the configured decimals,
-    // values between 1k and 100k are written out as whole numbers, and values
-    // of 100k or more are abbreviated to significant figures (see #5172).
-    // Axis ticks opt back into abbreviating from 1k via abbreviationThreshold
     // oxfmt-ignore
     const cases: [string, number, string, TickFormattingOptions][] = [
         ["author decimals below 1k", 999.99, "999.99", {}],
         ["decimals dropped from 1k", 1234.56, "1,235", {}],
         ["decimals dropped in the ten thousands", 25_240.99, "25,241", {}],
         ["negative value with decimals dropped", -25_240.99, "-25,241", {}],
-        ["written out just below 100k", 99_999, "99,999", {}],
-        ["rounds across the threshold but stays written out", 99_999.99, "100,000", {}],
-        ["abbreviated from 100k", 100_000, "100k", {}],
-        ["abbreviations rounded to 3 significant figures", 123_456.78, "123k", {}],
-        ["round abbreviation", 950_000, "950k", {}],
-        ["abbreviates up just below 1M", 999_999, "1M", {}],
+        ["written out in the hundred thousands", 123_456.78, "123,457", {}],
+        ["round value written out", 950_000, "950,000", {}],
+        ["written out just below 1M", 999_999, "999,999", {}],
+        ["rounds across the threshold but stays written out", 999_999.99, "1,000,000", {}],
+        ["abbreviated from 1M", 1_000_000, "1M", {}],
         ["millions", 1_500_000, "1.5M", {}],
         ["two-digit millions", 12_840_000, "12.8M", {}],
+        ["abbreviations rounded to 3 significant figures", 12_345_678, "12.3M", {}],
         ["currency drops decimals", 25_240.99, "$25,241", { unit: "$" }],
         ["percent never abbreviates and keeps author decimals", 1_234.56, "1,234.56%", { unit: "%" }],
         ["tick-like threshold of 1k keeps abbreviating", 25_000, "25k", { abbreviationThreshold: 1e3 }],
         ["1k threshold abbreviates messy values too", 25_240, "25.2k", { abbreviationThreshold: 1e3 }],
         ["axis-requested precision keeps narrow-domain ticks apart", 10_020_000, "10.02M", { abbreviationSignificantFigures: 4 }],
         ["sig-fig column below the threshold", 25_240, "25,200", { roundingMode: OwidVariableRoundingMode.significantFigures }],
-        ["sig-fig column above the threshold keeps trailing zeroes", 999_999, "1.00M", { roundingMode: OwidVariableRoundingMode.significantFigures }],
+        ["sig-fig column written out just below 1M", 999_999, "1,000,000", { roundingMode: OwidVariableRoundingMode.significantFigures }],
+        ["sig-fig column above the threshold keeps trailing zeroes", 1_500_000, "1.50M", { roundingMode: OwidVariableRoundingMode.significantFigures }],
     ]
     cases.forEach(([description, input, output, options]) => {
         it(description, () => {

@@ -274,16 +274,9 @@ export interface TickFormattingOptions {
     useNoBreakSpace?: boolean
     showPlus?: boolean
     numberAbbreviation?: "short" | "long" | false
-    /**
-     * The magnitude at which abbreviation starts. Defaults to 100,000 for
-     * "short" and 1 million for "long"; axis ticks pass 1,000 since ticks
-     * are round numbers where abbreviation genuinely saves space
-     */
+    /** The magnitude at which abbreviation starts (defaults to 1 million) */
     abbreviationThreshold?: number
-    /**
-     * Precision of abbreviated values in decimal-places mode, which is
-     * otherwise a hard-coded 3 significant figures
-     */
+    /** Precision of abbreviated values in decimal-places mode (defaults to 3) */
     abbreviationSignificantFigures?: number
 }
 // Represents the actual entered configuration state in the editor

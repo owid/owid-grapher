@@ -5,6 +5,8 @@ import {
     TickFormattingOptions,
 } from "@ourworldindata/types"
 
+const DEFAULT_ABBREVIATION_THRESHOLD = 1e6
+
 // Used outside this module to figure out if the unit will be joined with the number.
 export function checkIsVeryShortUnit(unit: string): unit is "$" | "£" | "%" {
     return ["%", "$", "£"].includes(unit)
@@ -41,20 +43,6 @@ function getSymbol({ unit }: { unit: string }): "$" | "" {
     return checkIsUnitCurrency(unit) ? "$" : ""
 }
 
-function getAbbreviationThreshold({
-    numberAbbreviation,
-    abbreviationThreshold,
-}: {
-    numberAbbreviation: "long" | "short" | false
-    abbreviationThreshold?: number
-}): number {
-    if (abbreviationThreshold !== undefined) return abbreviationThreshold
-    // "short" doesn't abbreviate thousands since e.g. 25.24k is no shorter
-    // than 25,240; it only makes sense for round numbers like axis ticks,
-    // which pass an explicit threshold of 1,000
-    return numberAbbreviation === "short" ? 1e5 : 1e6
-}
-
 function getType({
     roundingMode,
     numberAbbreviation,
@@ -82,10 +70,8 @@ function getType({
         return type
     }
     if (numberAbbreviation) {
-        const threshold = getAbbreviationThreshold({
-            numberAbbreviation,
-            abbreviationThreshold,
-        })
+        const threshold =
+            abbreviationThreshold ?? DEFAULT_ABBREVIATION_THRESHOLD
         return Math.abs(value) < threshold ? type : "s"
     }
 
