@@ -1,6 +1,7 @@
 import { expect, it, describe, vi } from "vitest"
 
 import timezoneMock from "timezone-mock"
+import dayjs from "./dayjs.js"
 import {
     findClosestTime,
     formatDay,
@@ -35,11 +36,11 @@ import {
     stripOuterParentheses,
     groupTocIntoSections,
     snapToIntervalStart,
-    diffDateISOStringInDays,
+    diffDatesInDays,
+    epochDate,
 } from "./Util.js"
 import {
     BlockSize,
-    EPOCH_DATE,
     OwidEnrichedGdocBlock,
     SortOrder,
     TagGraphRoot,
@@ -617,7 +618,7 @@ describe(findGreatestCommonDivisorOfArray, () => {
 
 describe(snapToIntervalStart, () => {
     const day = (iso: string): number =>
-        diffDateISOStringInDays(iso, EPOCH_DATE)
+        diffDatesInDays(dayjs.utc(iso), epochDate())
 
     it("snaps month values to the first of the month", () => {
         expect(

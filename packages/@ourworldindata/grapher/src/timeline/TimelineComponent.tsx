@@ -10,8 +10,8 @@ import {
     parseIntOrUndefined,
     isTouchDevice,
     convertDaysSinceEpochToDate,
-    diffDateISOStringInDays,
-    EPOCH_DATE,
+    convertDateToDaysSinceEpoch,
+    dayjs,
 } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable, reaction } from "mobx"
 import { ColumnTypeMap } from "@ourworldindata/core-table"
@@ -1227,11 +1227,9 @@ export function daysSinceEpochToCalendarDate(
 
 /** Convert CalendarDate to days-since-epoch integer */
 export function calendarDateToDaysSinceEpoch(date: CalendarDate): number {
-    const year = date.year
-    const month = date.month.toString().padStart(2, "0")
-    const day = date.day.toString().padStart(2, "0")
-    const isoString = `${year}-${month}-${day}`
-    return diffDateISOStringInDays(isoString, EPOCH_DATE)
+    // CalendarDate is 1-indexed, Date.UTC expects a 0-indexed month.
+    const utcMs = Date.UTC(date.year, date.month - 1, date.day)
+    return convertDateToDaysSinceEpoch(dayjs.utc(utcMs))
 }
 
 function isRelevantNavigationKey(key: string): key is NavigationKey {
