@@ -64,54 +64,32 @@ function sourceQueryParamsEqual(
     return aKeys.every((key) => Object.hasOwn(b, key) && a[key] === b[key])
 }
 
-async function validatePathIsNotRedirectSource(
+// The following checks each cover one conflict a new redirect could introduce.
+// They're kept as separate functions (rather than one monolithic validator) so
+// the bulk endpoint can run the batch-invariant ones (everything except the
+// source-query-params duplicate check) once per distinct source/target instead
+// of once per entry. `validateMultiDimRedirect` composes them in the original
+// order, so the single-redirect and slug-change paths are unaffected.
+
+// Source must not already be the source of a site redirect.
+async function checkSourceNotSiteRedirectSource(
     trx: db.KnexReadonlyTransaction,
-    path: string,
-    // When provided (multi-dim redirect creation), the source path may repeat as
-    // long as the source query params differ; only an exact duplicate is
-    // rejected. When omitted (e.g. slug-change validation), any existing
-    // multi-dim redirect with this source path is treated as a conflict.
-    multiDimSourceQueryParams?: Record<string, string | null> | null
+    source: string
 ): Promise<void> {
-    if (await redirectWithSourceExists(trx, path)) {
+    if (await redirectWithSourceExists(trx, source)) {
         throw new JsonError(
-            `'${path}' is already a source of an existing site redirect`,
+            `'${source}' is already a source of an existing site redirect`,
             400
         )
     }
-    if (multiDimSourceQueryParams === undefined) {
-        const existingMultiDimRedirect = await trx<{ id: number }>(
-            MultiDimRedirectsTableName
-        )
-            .select("id")
-            .where("source", path)
-            .first()
-        if (existingMultiDimRedirect) {
-            throw new JsonError(
-                `'${path}' is already a source of an existing multi-dim redirect`,
-                400
-            )
-        }
-    } else {
-        const existingRows = await trx<{ sourceQueryParams: string | null }>(
-            MultiDimRedirectsTableName
-        )
-            .select("sourceQueryParams")
-            .where("source", path)
-        const isExactDuplicate = existingRows.some((row) =>
-            sourceQueryParamsEqual(
-                parseSourceQueryParamsColumn(row.sourceQueryParams),
-                multiDimSourceQueryParams
-            )
-        )
-        if (isExactDuplicate) {
-            throw new JsonError(
-                `'${path}' is already a source of an existing multi-dim redirect with the same source query params`,
-                400
-            )
-        }
-    }
-    const slug = Url.fromURL(path).slug
+}
+
+// Source must not already be the source of a chart slug redirect.
+async function checkSourceNotChartSlugRedirectSource(
+    trx: db.KnexReadonlyTransaction,
+    source: string
+): Promise<void> {
+    const slug = Url.fromURL(source).slug
     const existingChartSlugRedirect = await trx<{ id: number }>(
         ChartSlugRedirectsTableName
     )
@@ -120,24 +98,64 @@ async function validatePathIsNotRedirectSource(
         .first()
     if (existingChartSlugRedirect) {
         throw new JsonError(
-            `'${path}' is already a source of an existing chart slug redirect`,
+            `'${source}' is already a source of an existing chart slug redirect`,
             400
         )
     }
 }
 
-async function validateMultiDimRedirect(
+// Source must not already be the source of a multi-dim redirect. When
+// `sourceQueryParams` is provided, the source may repeat as long as the query
+// params differ; only an exact duplicate is rejected. When omitted (e.g.
+// slug-change validation), any existing multi-dim redirect with this source is a
+// conflict. This is the only source-side check that isn't batch-invariant: it
+// must observe rows inserted earlier in the same bulk transaction, so it stays
+// per-entry.
+async function checkSourceNotDuplicateMultiDimRedirect(
     trx: db.KnexReadonlyTransaction,
     source: string,
-    targetSlug: string,
-    sourceQueryParams: Record<string, string | null> | null
+    sourceQueryParams?: Record<string, string | null> | null
 ): Promise<void> {
-    const targetPath = `/grapher/${targetSlug}`
+    if (sourceQueryParams === undefined) {
+        const existingMultiDimRedirect = await trx<{ id: number }>(
+            MultiDimRedirectsTableName
+        )
+            .select("id")
+            .where("source", source)
+            .first()
+        if (existingMultiDimRedirect) {
+            throw new JsonError(
+                `'${source}' is already a source of an existing multi-dim redirect`,
+                400
+            )
+        }
+        return
+    }
+    const existingRows = await trx<{ sourceQueryParams: string | null }>(
+        MultiDimRedirectsTableName
+    )
+        .select("sourceQueryParams")
+        .where("source", source)
+    const isExactDuplicate = existingRows.some((row) =>
+        sourceQueryParamsEqual(
+            parseSourceQueryParamsColumn(row.sourceQueryParams),
+            sourceQueryParams
+        )
+    )
+    if (isExactDuplicate) {
+        throw new JsonError(
+            `'${source}' is already a source of an existing multi-dim redirect with the same source query params`,
+            400
+        )
+    }
+}
 
-    // Check source is not already a redirect source with the same query params
-    await validatePathIsNotRedirectSource(trx, source, sourceQueryParams)
-
-    // Check source is not already a redirect target (would create chain: X -> source -> target)
+// Source must not already be a redirect *target* (would create chain:
+// X -> source -> target).
+async function checkSourceNotRedirectTarget(
+    trx: db.KnexReadonlyTransaction,
+    source: string
+): Promise<void> {
     const sourceIsTargetOfSiteRedirect = await trx<{ id: number }>("redirects")
         .select("id")
         .where("target", source)
@@ -186,8 +204,15 @@ async function validateMultiDimRedirect(
             400
         )
     }
+}
 
-    // Check target is not already a redirect source (would create chain: source -> target -> Y)
+// Target (a /grapher/<slug> path) must not already be a redirect source (would
+// create chain: source -> target -> Y).
+async function checkTargetNotRedirectSource(
+    trx: db.KnexReadonlyTransaction,
+    targetSlug: string
+): Promise<void> {
+    const targetPath = `/grapher/${targetSlug}`
     if (await redirectWithSourceExists(trx, targetPath)) {
         throw new JsonError(
             `Creating this redirect would form a redirect chain: target '${targetPath}' is already a source of an existing site redirect`,
@@ -218,6 +243,35 @@ async function validateMultiDimRedirect(
             400
         )
     }
+}
+
+async function validatePathIsNotRedirectSource(
+    trx: db.KnexReadonlyTransaction,
+    path: string,
+    // When provided (multi-dim redirect creation), the source path may repeat as
+    // long as the source query params differ; only an exact duplicate is
+    // rejected. When omitted (e.g. slug-change validation), any existing
+    // multi-dim redirect with this source path is treated as a conflict.
+    multiDimSourceQueryParams?: Record<string, string | null> | null
+): Promise<void> {
+    await checkSourceNotSiteRedirectSource(trx, path)
+    await checkSourceNotDuplicateMultiDimRedirect(
+        trx,
+        path,
+        multiDimSourceQueryParams
+    )
+    await checkSourceNotChartSlugRedirectSource(trx, path)
+}
+
+async function validateMultiDimRedirect(
+    trx: db.KnexReadonlyTransaction,
+    source: string,
+    targetSlug: string,
+    sourceQueryParams: Record<string, string | null> | null
+): Promise<void> {
+    await validatePathIsNotRedirectSource(trx, source, sourceQueryParams)
+    await checkSourceNotRedirectTarget(trx, source)
+    await checkTargetNotRedirectSource(trx, targetSlug)
 }
 
 async function createSlugChangeRedirect(
@@ -457,13 +511,17 @@ function normalizeSourceQueryParams(
 
 // Validates and inserts a single multi-dim redirect. Does NOT trigger a static
 // build — the caller is responsible for that (so bulk operations can build once).
+// `validateConflicts` runs the DB-level conflict checks against the confirmed
+// (non-null) target slug; it's injected so the bulk path can hoist its
+// batch-invariant checks out of the per-entry loop.
 async function createMultiDimRedirect(
     trx: db.KnexReadWriteTransaction,
     multiDim: DbEnrichedMultiDimDataPage,
     source: string,
     viewConfigId: string | null,
-    sourceQueryParams: Record<string, string | null> | null
-): Promise<{ id: number; targetDescription: string }> {
+    sourceQueryParams: Record<string, string | null> | null,
+    validateConflicts: (targetSlug: string) => Promise<void>
+): Promise<{ id: number }> {
     if (!multiDim.slug) {
         throw new JsonError(
             "Target multi-dim must have a slug before adding redirects",
@@ -495,12 +553,7 @@ async function createMultiDimRedirect(
         )
     }
 
-    await validateMultiDimRedirect(
-        trx,
-        source,
-        multiDim.slug,
-        sourceQueryParams
-    )
+    await validateConflicts(multiDim.slug)
 
     const [insertId] = await trx<DbInsertMultiDimRedirect>(
         MultiDimRedirectsTableName
@@ -513,12 +566,7 @@ async function createMultiDimRedirect(
         viewConfigId,
     })
 
-    const targetDescription = buildRedirectTargetDescription(
-        multiDim,
-        viewConfigId
-    )
-
-    return { id: insertId, targetDescription }
+    return { id: insertId }
 }
 
 export async function handlePostMultiDimRedirect(
@@ -544,14 +592,20 @@ export async function handlePostMultiDimRedirect(
         throw new JsonError("Multi-dimensional data page not found", 404)
     }
 
-    const { id, targetDescription } = await createMultiDimRedirect(
+    const { id } = await createMultiDimRedirect(
         trx,
         multiDim,
         source,
         viewConfigId ?? null,
-        sourceQueryParams
+        sourceQueryParams,
+        (targetSlug) =>
+            validateMultiDimRedirect(trx, source, targetSlug, sourceQueryParams)
     )
 
+    const targetDescription = buildRedirectTargetDescription(
+        multiDim,
+        viewConfigId ?? null
+    )
     await triggerStaticBuild(
         res.locals.user,
         `Creating multi-dim redirect from '${source}' to '${targetDescription}'`
@@ -663,31 +717,56 @@ export async function handleBulkCreateMultiDimRedirects(
     const { redirects, catchAll } = parseResult.data
 
     // Cache resolved multi-dims by catalog path so we don't hit the DB once per
-    // entry. `null` records a catalog path we already know doesn't resolve.
-    const multiDimByCatalogPath = new Map<
-        string,
-        DbEnrichedMultiDimDataPage | null
-    >()
+    // entry (a mapping file typically targets a single multi-dim).
+    const multiDimByCatalogPath = new Map<string, DbEnrichedMultiDimDataPage>()
     const results: BulkMultiDimRedirectResult[] = []
     const targetSlugs = new Set<string>()
 
     const resolveMultiDim = async (
         catalogPath: string
     ): Promise<DbEnrichedMultiDimDataPage> => {
-        let multiDim = multiDimByCatalogPath.get(catalogPath)
-        if (multiDim === undefined) {
-            multiDim =
-                (await getMultiDimDataPageByCatalogPath(trx, catalogPath)) ??
-                null
-            multiDimByCatalogPath.set(catalogPath, multiDim)
-        }
+        const cached = multiDimByCatalogPath.get(catalogPath)
+        if (cached) return cached
+        const multiDim = await getMultiDimDataPageByCatalogPath(
+            trx,
+            catalogPath
+        )
         if (!multiDim) {
             throw new JsonError(
                 `No multi-dim found for catalog path '${catalogPath}'`,
                 404
             )
         }
+        multiDimByCatalogPath.set(catalogPath, multiDim)
         return multiDim
+    }
+
+    // The redirect-chain checks that depend only on the source (resp. target)
+    // are invariant across a batch — a mapping file typically has one source and
+    // one target multi-dim shared by every entry. Memoize them per distinct
+    // source/target so they run once instead of once per entry (a cached
+    // rejected promise re-throws the same error for every affected entry). Only
+    // the source-query-params duplicate check stays per-entry, since it must
+    // observe rows inserted earlier in this transaction.
+    const sourceChecks = new Map<string, Promise<void>>()
+    const validateSourceOnce = (source: string): Promise<void> => {
+        let check = sourceChecks.get(source)
+        if (!check) {
+            check = checkSourceNotSiteRedirectSource(trx, source)
+                .then(() => checkSourceNotChartSlugRedirectSource(trx, source))
+                .then(() => checkSourceNotRedirectTarget(trx, source))
+            sourceChecks.set(source, check)
+        }
+        return check
+    }
+    const targetChecks = new Map<string, Promise<void>>()
+    const validateTargetOnce = (targetSlug: string): Promise<void> => {
+        let check = targetChecks.get(targetSlug)
+        if (!check) {
+            check = checkTargetNotRedirectSource(trx, targetSlug)
+            targetChecks.set(targetSlug, check)
+        }
+        return check
     }
 
     // Process the catch-all fallback (if any) alongside the specific redirects.
@@ -729,7 +808,16 @@ export async function handleBulkCreateMultiDimRedirects(
                 multiDim,
                 source,
                 viewConfigId,
-                sourceQueryParams
+                sourceQueryParams,
+                async (targetSlug) => {
+                    await validateSourceOnce(source)
+                    await validateTargetOnce(targetSlug)
+                    await checkSourceNotDuplicateMultiDimRedirect(
+                        trx,
+                        source,
+                        sourceQueryParams
+                    )
+                }
             )
             if (multiDim.slug) targetSlugs.add(multiDim.slug)
             results.push({ source, status: "created", redirectId: id })

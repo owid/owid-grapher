@@ -276,4 +276,40 @@ describe("Bulk multi-dim redirects API", { timeout: 30000 }, () => {
         expect(response.errors).toBe(1)
         expect(response.results[1].message).toMatch(/same source query params/)
     })
+
+    it("errors every entry when the source is already a redirect target (batch-invariant chain check)", async () => {
+        await createPublishedMultiDim()
+        // A site redirect already points AT the explorer source, so turning it
+        // into a redirect source would form a chain. This check depends only on
+        // the source, so it must fail for every entry in the batch.
+        await env.testKnex("redirects").insert({
+            source: "/energy-launch",
+            target: "/explorers/energy",
+        })
+        const makeEntry = (metricName: string, metricSlug: string) => ({
+            source: {
+                explorerSlug: "energy",
+                dimensions: { Metric: metricName },
+            },
+            target: {
+                catalogPath,
+                dimensions: { source: "all", metric: metricSlug },
+            },
+        })
+        const response = await env.request({
+            method: "POST",
+            path: "/multi-dim-redirects/bulk",
+            body: JSON.stringify({
+                redirects: [
+                    makeEntry("Total consumption", "total"),
+                    makeEntry("Consumption per capita", "per_capita"),
+                ],
+            }),
+        })
+        expect(response.created).toBe(0)
+        expect(response.errors).toBe(2)
+        for (const result of response.results) {
+            expect(result.message).toMatch(/already a target/)
+        }
+    })
 })
