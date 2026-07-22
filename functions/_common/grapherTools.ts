@@ -210,7 +210,7 @@ export async function fetchGrapherConfig({
     if (fetchResponse.status === 404) {
         // we throw 404 errors instead of returning a 404 response so that the router
         // catch handler can do a lookup in the redirects file and maybe send
-        // a 302 redirect response
+        // a 301 redirect response
         throw new StatusError(404)
     }
 
@@ -317,7 +317,7 @@ export async function initGrapher(
     if (grapherConfigResponse.status === 404) {
         // we throw 404 errors instad of returning a 404 response so that the router
         // catch handler can do a lookup in the redirects file and maybe send
-        // a 302 redirect response
+        // a 301 redirect response
         throw new StatusError(grapherConfigResponse.status)
     }
 

@@ -89,7 +89,7 @@ up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz node_module
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
-			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) yarn startAdminDevServer' \; \
+			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) yarn startAdminDevServer' \; \
 			set remain-on-exit on \; \
 		new-window -n vite 'VITE_PORT=$(VITE_PORT) yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
@@ -112,7 +112,7 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.
 	@mkdir -p logs
 	tmux new-session -s $(TMUX_SESSION_NAME) \
 		-n admin \
-			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) yarn startAdminDevServer' \; \
+			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) yarn startAdminDevServer' \; \
 			set remain-on-exit on \; \
 		new-window -n vite 'VITE_PORT=$(VITE_PORT) yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
@@ -157,7 +157,7 @@ up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz n
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
-			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) yarn startAdminDevServer' \; \
+			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) yarn startAdminDevServer' \; \
 			set remain-on-exit on \; \
 		new-window -n vite 'VITE_PORT=$(VITE_PORT) yarn run startSiteFront' \; \
 			set remain-on-exit on \; \

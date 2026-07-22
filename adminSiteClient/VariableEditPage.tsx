@@ -240,7 +240,11 @@ class VariableEditor extends Component<{
                             </FieldsRow>
                             <FieldsRow>
                                 <ReadOnlyField
-                                    label="Treat year column as day series"
+                                    label="Time interval"
+                                    value={variable.display?.timeInterval}
+                                />
+                                <ReadOnlyField
+                                    label="Treat year column as day series (deprecated)"
                                     value={
                                         variable.display?.yearIsDay
                                             ? "Yes"
@@ -317,10 +321,7 @@ class VariableEditor extends Component<{
                             <FieldsRow>
                                 <ReadOnlyField
                                     label="Description key"
-                                    value={
-                                        variable.descriptionKey?.join("\n") ??
-                                        ""
-                                    }
+                                    value={variable.descriptionKey ?? ""}
                                     textarea
                                     rows={8}
                                 />

@@ -15,6 +15,8 @@ export interface OwidVariableDisplayConfigInterface {
     numDecimalPlaces?: number
     numSignificantFigures?: number
     tolerance?: number
+    timeInterval?: TimeInterval
+    /** Deprecated: Use `timeInterval: "day"` instead. */
     yearIsDay?: boolean
     zeroDay?: string
     entityAnnotationsMap?: string
@@ -33,6 +35,20 @@ export interface OwidVariableDataTableConfigInterface {
 export enum OwidVariableRoundingMode {
     decimalPlaces = "decimalPlaces",
     significantFigures = "significantFigures",
+}
+
+/**
+ * Time resolution at which an indicator's time values should be interpreted and
+ * formatted. Sub-yearly intervals (day/week/month/quarter) are encoded as
+ * days-since-epoch; `year` and `decade` values are literal years.
+ */
+export enum TimeInterval {
+    Day = "day",
+    Week = "week",
+    Month = "month",
+    Quarter = "quarter",
+    Year = "year",
+    Decade = "decade",
 }
 
 export interface OwidChartDimensionInterface {

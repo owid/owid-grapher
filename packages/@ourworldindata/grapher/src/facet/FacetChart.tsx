@@ -21,6 +21,7 @@ import { action, computed, makeObservable, observable } from "mobx"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
+    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import {
     GRAPHER_CHART_TYPES,
@@ -32,15 +33,12 @@ import {
     SideWidths,
     AxisConfigInterface,
     ChartErrorInfo,
+    GrapherVariant,
 } from "@ourworldindata/types"
 import { ChartComponent, makeChartInstance } from "../chart/ChartTypeMap"
 import { ChartManager } from "../chart/ChartManager"
 import { ChartInterface, ChartState } from "../chart/ChartInterface"
-import {
-    calculateAspectRatio,
-    getFacetGridPadding,
-    getFacetLabelFontSize,
-} from "./FacetChartUtils"
+import { calculateAspectRatio, getFacetLabelFontSize } from "./FacetChartUtils"
 import {
     FacetSeries,
     FacetChartProps,
@@ -61,6 +59,7 @@ import {
 import {
     CategoricalBin,
     ColorScaleBin,
+    dedupeRepeatedBins,
     NumericBin,
 } from "../color/ColorScaleBin"
 import { FocusArray } from "../focus/FocusArray"
@@ -72,7 +71,9 @@ import {
     SeriesLabelStateOptions,
 } from "../seriesLabel/SeriesLabelState.js"
 
-const SHARED_X_AXIS_MIN_FACET_COUNT = 12
+const SHARED_X_AXIS_MAX_CELL_HEIGHT = 175
+const THUMBNAIL_MAX_CELL_LENGTH = 150
+const FACET_LABEL_FONT_WEIGHT = 700
 
 const facetBackgroundColor = "none" // we don't use color yet but may use it for background later
 
@@ -182,8 +183,7 @@ export class FacetChart
             this.showLegend && this.legend.height > 0
                 ? this.legend.height + this.legendPadding
                 : 0
-        const labelSpace = this.facetLabelFontSize + this.labelPadding
-        return this.bounds.padTop(legendHeightWithPadding + labelSpace)
+        return this.bounds.padTop(legendHeightWithPadding)
     }
 
     @computed get fontSize(): number {
@@ -191,15 +191,24 @@ export class FacetChart
     }
 
     @computed private get facetLabelFontSize(): number {
+        const { rows, columns } = this.gridParams
+
+        const cellWidth = this.bounds.width / columns
+        const cellHeight = this.bounds.height / rows
+
         return getFacetLabelFontSize({
-            containerWidth: this.bounds.width,
-            count: this.series.length,
+            cellWidth,
+            cellHeight,
             baseFontSize: this.fontSize,
         })
     }
 
     @computed private get facetBaseFontSize(): number {
-        return this.facetLabelFontSize
+        // Facets scale internal font sizes like axis ticks and labels from
+        // this base size, with the largest of them using GRAPHER_FONT_SCALE_12.
+        // Dividing by that factor keeps the biggest internal font at the label
+        // size; the extra 0.9 keeps it slightly smaller.
+        return (this.facetLabelFontSize / GRAPHER_FONT_SCALE_12) * 0.9
     }
 
     @computed private get yAxisConfig(): AxisConfig {
@@ -238,11 +247,11 @@ export class FacetChart
     }
 
     @computed private get facetGridPadding(): SplitBoundsPadding {
-        const { facetLabelFontSize, labelPadding } = this
-        return getFacetGridPadding({
-            labelFontSize: facetLabelFontSize,
-            labelPadding,
-        })
+        return {
+            rowPadding: Math.round(this.facetLabelFontSize),
+            columnPadding: Math.round(this.facetLabelFontSize),
+            outerPadding: 0,
+        }
     }
 
     @computed private get hideFacetLegends(): boolean {
@@ -321,11 +330,23 @@ export class FacetChart
         // all possible color values from `inputTable`.
         const colorScaleColumnOverride = this.inputTable.get(colorColumnSlug)
 
+        // Hide the legends in all facets
+        const showLegend = !this.hideFacetLegends
+
+        // Show start and end value labels for line chart thumbnails
+        const useMinimalLabeling = this.variant === GrapherVariant.Thumbnail
+        // Hide the start value label only when facets are auto-switched to
+        // thumbnail mode because they are small (not when the whole chart
+        // is explicitly rendered as a thumbnail).
+        const hideStartValueLabel =
+            this.variant === GrapherVariant.Thumbnail &&
+            this.manager.variant !== GrapherVariant.Thumbnail
+        const showSeriesLabels = useMinimalLabeling
+            ? true
+            : !this.hideFacetLegends
+
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]
-
-            const showLegend = !this.hideFacetLegends
-            const showSeriesLabels = !this.hideFacetLegends
 
             const hidePoints = true
             const hideNoDataSection = true
@@ -359,6 +380,10 @@ export class FacetChart
                 tooltip,
                 shouldPinTooltipToBottom,
                 externalLegendHoverBin: legendHoverBin,
+                useMinimalLabeling,
+                hideStartValueLabel,
+                // Allow labels in line chart thumbnails to overflow facet bounds
+                chartAreaPadding: Infinity,
                 ...series.manager,
                 xAxisConfig: {
                     ...globalXAxisConfig,
@@ -387,9 +412,57 @@ export class FacetChart
                 manager,
                 bounds,
                 chartType: this.chartTypeName,
-                variant: this.manager.variant,
+                variant: this.variant,
             })
         })
+    }
+
+    @computed private get shouldUseThumbnailForSmallFacets(): boolean {
+        return this.chartTypeName === GRAPHER_CHART_TYPES.LineChart
+    }
+
+    @computed private get facetBounds(): Bounds | undefined {
+        return this.bounds.grid(this.gridParams, this.facetGridPadding)[0]
+            ?.bounds
+    }
+
+    @computed private get sharedContentInset(): SideWidths {
+        const insets = excludeUndefined(
+            this.intermediateChartInstances.map((c) => c.contentInset)
+        )
+        return {
+            left: _.max(insets.map((inset) => inset.left)) ?? 0,
+            right: _.max(insets.map((inset) => inset.right)) ?? 0,
+        }
+    }
+
+    @computed private get hasSmallFacets(): boolean {
+        const { facetBounds } = this
+        if (!facetBounds) return false
+
+        // Characteristic length in "width units": the cell's width, but no
+        // larger than it would be at the ideal plot aspect ratio, so that
+        // short-and-wide cells are judged by their (limited) height
+        const length = Math.min(
+            facetBounds.width,
+            facetBounds.height * IDEAL_PLOT_ASPECT_RATIO
+        )
+
+        return length < THUMBNAIL_MAX_CELL_LENGTH
+    }
+
+    @computed private get variant(): GrapherVariant {
+        // When the whole chart is exported as a thumbnail,
+        // always render the facets as thumbnails
+        if (this.manager.variant === GrapherVariant.Thumbnail)
+            return GrapherVariant.Thumbnail
+
+        if (!this.shouldUseThumbnailForSmallFacets)
+            return GrapherVariant.Default
+
+        return this.hasSmallFacets
+            ? GrapherVariant.Thumbnail
+            : GrapherVariant.Default
     }
 
     @computed private get isSharedYAxis(): boolean {
@@ -413,9 +486,13 @@ export class FacetChart
             GRAPHER_CHART_TYPES.SlopeChart,
         ]
 
+        const { facetBounds } = this
+        const hasShortFacets =
+            !!facetBounds && facetBounds.height < SHARED_X_AXIS_MAX_CELL_HEIGHT
+
         return (
             this.uniformXAxis &&
-            this.facetCount >= SHARED_X_AXIS_MIN_FACET_COUNT &&
+            (this.hasSmallFacets || hasShortFacets) &&
             supportedChartTypes.includes(this.chartTypeName as any)
         )
     }
@@ -494,17 +571,22 @@ export class FacetChart
             }
         })
 
-        // Make sure that all slope facets use the same start and end point
-        let sharedVerticalLabelWidths: SideWidths | undefined
-        if (this.chartTypeName === GRAPHER_CHART_TYPES.SlopeChart) {
-            const widths = excludeUndefined(
-                intermediateChartInstances.map((c) => c.verticalLabelWidths)
-            )
-            sharedVerticalLabelWidths = {
-                left: _.max(widths.map((w) => w.left)) ?? 0,
-                right: _.max(widths.map((w) => w.right)) ?? 0,
-            }
-        }
+        // Some chart types render vertical series labels to the left and/or
+        // right of the plot area (e.g. slope charts show start/end labels).
+        // When each facet independently sizes these labels, the plot areas
+        // end up with different widths, making it hard to compare across facets.
+        // To fix this, we find the maximum label width on each side across
+        // all facets and pass it down so every facet reserves the same space.
+        const labelWidths = excludeUndefined(
+            intermediateChartInstances.map((c) => c.verticalLabelWidths)
+        )
+        const sharedVerticalLabelWidths: SideWidths | undefined =
+            labelWidths.length > 0
+                ? {
+                      left: _.max(labelWidths.map((w) => w.left)) ?? 0,
+                      right: _.max(labelWidths.map((w) => w.right)) ?? 0,
+                  }
+                : undefined
 
         // Allocate space for shared axes, so that the content areas of charts are all equal.
         // If the axes are "shared", then an axis will only plotted on the facets that are on the
@@ -526,6 +608,8 @@ export class FacetChart
                     [edge]: sharedAxesSizes[edge],
                 })
             }
+            // Reserve space for the facet label at the top of the cell
+            bounds = bounds.padTop(this.facetLabelFontSize + this.labelPadding)
             // NOTE: The order of overrides is important!
             // We need to preserve most config coming in.
             const manager = {
@@ -693,19 +777,6 @@ export class FacetChart
         return undefined
     }
 
-    private getUniqBins<Bin extends ColorScaleBin>(bins: Bin[]): Bin[] {
-        return _.uniqWith(bins, (binA, binB): boolean => {
-            // For categorical bins, the `.equals()` method isn't good enough,
-            // because it only compares `.index`, which in this case can be
-            // identical even when the bins are not, because they are coming
-            // from different charts (facets).
-            if (binA instanceof CategoricalBin) {
-                return binA.text === binB.text
-            }
-            return binA.equals(binB)
-        })
-    }
-
     // legend props
 
     @computed get legendX(): number {
@@ -774,7 +845,7 @@ export class FacetChart
                 ...(legend.categoricalLegendData ?? []),
             ]
         )
-        const uniqBins = this.getUniqBins(allBins)
+        const uniqBins = dedupeRepeatedBins(allBins)
         const sortedBins = _.sortBy(
             uniqBins,
             (bin) => bin instanceof CategoricalBin
@@ -792,7 +863,7 @@ export class FacetChart
             ])
             .filter((bin) => bin instanceof CategoricalBin)
 
-        const uniqBins = this.getUniqBins(allBins).map(
+        const uniqBins = dedupeRepeatedBins(allBins).map(
             // Remap index to ensure it's unique (the above procedure can lead to duplicates)
             (bin, index) => new CategoricalBin({ ...bin.props, index })
         )
@@ -852,47 +923,11 @@ export class FacetChart
         return new this.LegendClass({ manager: this })
     }
 
-    /**
-     * In order to display a potentially long facet label in the potentially tight space, we
-     * shrink and shorten the label as follows to prevent overlap between neighbouring labels:
-     * - If the label already fits, we're happy :)
-     * - Otherwise, we calculate the ideal font size where it would fit perfectly.
-     *   However, in order to not make the label tiny, we cap the font size at 0.7 * baseFontSize
-     * - If the label still doesn't fit, we shorten it to the number of characters that fit and append an ellispsis (…)
-     * -@MarcelGerber, 2021-10-28
-     */
-    private shrinkAndShortenFacetLabel(
-        label: string,
-        availableWidth: number
-    ): { fontSize: number; shortenedLabel: string } {
-        const { fontSize: baseFontSize, fontWeight } = this.facetLabelSettings
-
-        // How much width would we need if we were to render the text at font size 1?
-        // We calculate this to compute the ideal font size from the available width.
-        const textBounds = Bounds.forText(label, { fontSize: 1, fontWeight })
-        const idealFontSize = availableWidth / textBounds.width
-
-        // Clamp the ideal font size: 0.7 * baseFontSize <= fontSize <= baseFontSize
-        const fontSize = Math.min(
-            baseFontSize,
-            Math.max(0.7 * baseFontSize, idealFontSize)
-        )
-
-        if (fontSize > idealFontSize) {
-            label = shortenWithEllipsis(label, availableWidth, {
-                fontSize,
-                fontWeight,
-            })
-        }
-
-        return { fontSize, shortenedLabel: label }
-    }
-
     @computed
     private get facetLabelSettings(): Omit<SeriesLabelStateOptions, "text"> {
         return {
             maxWidth: Infinity, // Facet labels never wrap
-            fontWeight: 700,
+            fontWeight: FACET_LABEL_FONT_WEIGHT,
             fontSize: this.facetLabelFontSize,
             showRegionTooltip: !this.manager.isStatic,
         }
@@ -911,33 +946,26 @@ export class FacetChart
                 {this.placedSeries.map((facetChart, index: number) => {
                     const { bounds, contentBounds, seriesName } = facetChart
 
-                    let { fontSize: shrunkFontSize, shortenedLabel } =
-                        this.shrinkAndShortenFacetLabel(
-                            seriesName,
-                            contentBounds.width
-                        )
+                    const contentLeftOffset = this.sharedContentInset.left
+                    const availableLabelWidth =
+                        contentBounds.width - contentLeftOffset
 
                     let seriesLabelState = new SeriesLabelState({
-                        text: shortenedLabel,
+                        text: seriesName,
                         ...facetLabelSettings,
-                        fontSize: shrunkFontSize,
                     })
 
-                    // If the info icon causes overflow, shorten the label
-                    // (which also removes the icon because the suffix gets truncated)
-                    if (seriesLabelState.width > contentBounds.width) {
-                        shortenedLabel = shortenWithEllipsis(
+                    // Truncate labels that don't fit with an ellipsis
+                    if (seriesLabelState.width > availableLabelWidth) {
+                        const { fontSize, fontWeight } = facetLabelSettings
+                        const shortenedLabel = shortenWithEllipsis(
                             seriesName,
-                            contentBounds.width,
-                            {
-                                fontSize: shrunkFontSize,
-                                fontWeight: facetLabelSettings.fontWeight,
-                            }
+                            availableLabelWidth,
+                            { fontSize, fontWeight }
                         )
                         seriesLabelState = new SeriesLabelState({
                             text: shortenedLabel,
                             ...facetLabelSettings,
-                            fontSize: shrunkFontSize,
                         })
                     }
 
@@ -945,7 +973,7 @@ export class FacetChart
                         <React.Fragment key={index}>
                             <SeriesLabel
                                 state={seriesLabelState}
-                                x={contentBounds.x}
+                                x={contentBounds.x + contentLeftOffset}
                                 y={
                                     contentBounds.top -
                                     seriesLabelState.height -
@@ -956,7 +984,7 @@ export class FacetChart
                                 <ChartComponent
                                     manager={facetChart.manager}
                                     chartType={this.chartTypeName}
-                                    variant={this.manager.variant}
+                                    variant={this.variant}
                                     bounds={bounds}
                                 />
                             </g>

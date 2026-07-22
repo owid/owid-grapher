@@ -2,7 +2,6 @@ import { expect, it, describe } from "vitest"
 
 import { ColumnTypeNames } from "@ourworldindata/types"
 import { ColumnTypeMap } from "./CoreTableColumns.js"
-import { ErrorValueTypes } from "./ErrorValues.js"
 import { OwidTable } from "./OwidTable.js"
 
 describe(ColumnTypeNames.Quarter, () => {
@@ -19,33 +18,78 @@ describe(ColumnTypeNames.Quarter, () => {
 describe(ColumnTypeNames.Quarter, () => {
     const col = new ColumnTypeMap.Quarter(new OwidTable(), { slug: "test" })
 
-    it("should parse and format values correctly", () => {
-        const testValues = [
-            // Input string, parsed value, formatted output string
-            ["2020-Q3", 8082, "Q3/2020"],
-            ["2000-Q1", 8000, "Q1/2000"],
-            ["02000-Q1", 8000, "Q1/2000"],
-            ["1999-Q0", ErrorValueTypes.InvalidQuarterValue],
-            ["2018-Q5", ErrorValueTypes.InvalidQuarterValue],
-            ["2018-Q-1", ErrorValueTypes.InvalidQuarterValue],
-            ["0-Q1", 0, "Q1/0"],
-            ["-1-Q3", -2, "Q3/-1"],
-        ]
+    it("formats days-since-epoch as quarters", () => {
+        // day 0 = EPOCH_DATE = 2020-01-21 (Q1 2020)
+        expect(col.formatValue(0)).toEqual("Q1 2020")
+        expect(col.formatForCsv(0)).toEqual("2020-Q1")
+        // 200 days later = 2020-08-08 (Q3 2020)
+        expect(col.formatValue(200)).toEqual("Q3 2020")
+        expect(col.formatForCsv(200)).toEqual("2020-Q3")
+        // 400 days later = 2021-02-24 (Q1 2021)
+        expect(col.formatValue(400)).toEqual("Q1 2021")
+        expect(col.formatForCsv(400)).toEqual("2021-Q1")
+    })
+})
 
-        for (const [inStr, expected, formattedStr] of testValues) {
-            const parsed = col.parse(inStr)
-            expect(parsed).toEqual(expected)
+describe(ColumnTypeNames.Decade, () => {
+    const col = new ColumnTypeMap.Decade(new OwidTable(), { slug: "test" })
 
-            if (formattedStr !== undefined && typeof parsed === "number")
-                expect(col.formatValue(parsed)).toEqual(formattedStr)
-        }
+    it("formats representative years as decades", () => {
+        expect(col.formatValue(2020)).toEqual("2020s")
+        expect(col.formatValue(2025)).toEqual("2020s")
+        expect(col.formatForCsv(2025)).toEqual("2020s")
+        expect(col.formatValue(-500)).toEqual("500s BCE")
+        expect(col.formatValue(-505)).toEqual("510s BCE")
+    })
+})
+
+describe(ColumnTypeNames.Month, () => {
+    const col = new ColumnTypeMap.Month(new OwidTable(), { slug: "test" })
+
+    it("formats days-since-epoch as months", () => {
+        // day 0 = EPOCH_DATE = 2020-01-21
+        expect(col.formatValue(0)).toEqual("Jan 2020")
+        expect(col.formatForCsv(0)).toEqual("2020-01")
+        // 400 days later = 2021-02-24
+        expect(col.formatValue(400)).toEqual("Feb 2021")
+        expect(col.formatForCsv(400)).toEqual("2021-02")
+    })
+})
+
+describe(ColumnTypeNames.Day, () => {
+    const col = new ColumnTypeMap.Day(new OwidTable(), { slug: "test" })
+
+    it("formats days-since-epoch as days", () => {
+        // day 0 = EPOCH_DATE = 2020-01-21
+        expect(col.formatValue(0)).toEqual("Jan 21, 2020")
+        expect(col.formatForCsv(0)).toEqual("2020-01-21")
+        // 400 days later = 2021-02-24
+        expect(col.formatValue(400)).toEqual("Feb 24, 2021")
+        expect(col.formatForCsv(400)).toEqual("2021-02-24")
+    })
+})
+
+describe(ColumnTypeNames.Week, () => {
+    const col = new ColumnTypeMap.Week(new OwidTable(), { slug: "test" })
+
+    it("formats days-since-epoch as weeks", () => {
+        // day 0 = EPOCH_DATE = 2020-01-21, a Tuesday in ISO week 4 of 2020,
+        // which starts on Monday 2020-01-20
+        expect(col.formatValue(0)).toEqual("Jan 20–26, 2020")
+        expect(col.formatTimeShort(0)).toEqual("W4 2020")
+        expect(col.formatForCsv(0)).toEqual("2020-W04")
     })
 
-    it("should format correctly for csv", () => {
-        const inStr = "2020-Q1"
-        const parsed = col.parse(inStr) as number
-        const csvFormatted = col.formatForCsv(parsed)
-        expect(csvFormatted).toEqual("2020-Q1")
+    it("formats weeks across month and year boundaries", () => {
+        // day 6 = 2020-01-27, a Monday; the week ends in February
+        expect(col.formatValue(6)).toEqual("Jan 27 – Feb 2, 2020")
+        // day -22 = Monday 2019-12-30, ISO week 1 of 2020: the range shows
+        // both years, the compact format the ISO week year
+        expect(col.formatValue(-22)).toEqual("Dec 30, 2019 – Jan 5, 2020")
+        expect(col.formatTimeShort(-22)).toEqual("W1 2020")
+        // day -20 = 2020-01-01 falls into the same week starting in 2019
+        expect(col.formatValue(-20)).toEqual("Dec 30, 2019 – Jan 5, 2020")
+        expect(col.formatTimeShort(-20)).toEqual("W1 2020")
     })
 })
 

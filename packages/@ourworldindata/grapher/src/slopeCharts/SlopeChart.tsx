@@ -452,9 +452,25 @@ export class SlopeChart
             : this.rightLabelsState.stableWidth
     }
 
-    // Consumed by FacetChart to align gridlines across facets
+    // Consumed by FacetChart to align chart content across facets
     @computed get verticalLabelWidths(): SideWidths {
         return { left: this.leftLabelsWidth, right: this.rightLabelsWidth }
+    }
+
+    // Consumed by FacetChart to align the facet label with the plot content
+    // (here: the slope chart's start-time label)
+    @computed get contentInset(): SideWidths | undefined {
+        if (this.chartState.errorInfo.reason) return undefined
+        const hideTimeLabels = this.xAxis.config.hideTickLabels
+        const [startLabel, endLabel] = this.xAxis.tickLabels
+        const startOverflow = hideTimeLabels
+            ? 0
+            : 0.5 * (startLabel?.width ?? 0)
+        const endOverflow = hideTimeLabels ? 0 : 0.5 * (endLabel?.width ?? 0)
+        return {
+            left: this.startX - startOverflow - this.bounds.left,
+            right: this.bounds.right - (this.endX + endOverflow),
+        }
     }
 
     @computed

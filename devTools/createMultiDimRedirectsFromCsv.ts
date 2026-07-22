@@ -206,7 +206,7 @@ async function replaceSiteRedirects(
     targetFullPath: string
 ): Promise<void> {
     const siteRedirects = await trx<DbPlainRedirect>("redirects")
-        .select("id", "source", "target", "code", "ttl")
+        .select("id", "source", "target", "ttl")
         .where("target", source)
 
     for (const redirect of siteRedirects) {
@@ -224,7 +224,6 @@ async function replaceSiteRedirects(
         await trx("redirects").insert({
             source: redirect.source,
             target: targetFullPath,
-            code: redirect.code,
             ttl: redirect.ttl ?? null,
         })
     }

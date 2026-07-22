@@ -30,6 +30,7 @@ import {
     getRegionByName,
     makeSafeForCSS,
     convertDaysSinceEpochToDate,
+    isSubYearly,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -514,9 +515,9 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         })
     }
 
-    @computed private get chartHasDailyData(): boolean {
-        return this.numericalChartColumns.some(
-            (column) => column.display?.yearIsDay
+    @computed private get chartHasSubYearlyData(): boolean {
+        return this.numericalChartColumns.some((column) =>
+            isSubYearly(column.timeInterval)
         )
     }
 
@@ -548,9 +549,9 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         const isExternal = this.isExternalIndicator(column.slug)
         if (isExternal) return lookupTime
 
-        // When the chart uses daily dates but this column is yearly, convert
-        // the lookup time back to a year before formatting the label
-        if (this.chartHasDailyData && !column.display?.yearIsDay) {
+        // When the chart uses day-encoded times but this column is yearly,
+        // convert the lookup time back to a year before formatting the label
+        if (this.chartHasSubYearlyData && !isSubYearly(column.timeInterval)) {
             return convertDaysSinceEpochToDate(lookupTime).year()
         }
 
@@ -1857,16 +1858,16 @@ function buildOwidTableForCatalogData(
     const originalTimeSlug = makeOriginalTimeSlugFromColumnSlug(slug)
 
     const rows = data.map((row) => ({
-        [OwidTableSlugs.entityName]: row.entity,
+        [OwidTableSlugs.EntityName]: row.entity,
         // The catalog data's max year is used as the time for all rows
-        [OwidTableSlugs.year]: maxYear,
+        [OwidTableSlugs.Year]: maxYear,
         [columnDef.slug]: row.value,
         [originalTimeSlug]: row.year,
     }))
 
     // Necessary to ensure correct formatting of the year values
     const yearColumnDef: OwidColumnDef = {
-        slug: OwidTableSlugs.year,
+        slug: OwidTableSlugs.Year,
         type: ColumnTypeNames.Year,
     }
     const originalTimeColumnDef: OwidColumnDef = {

@@ -264,9 +264,9 @@ paths:
                         titleShort: Life expectancy at birth
                         titleLong: Life expectancy at birth - Various sources – period tables
                         descriptionShort: The period life expectancy at birth, in a given year.
-                        descriptionKey:
-                          - Period life expectancy is a metric that summarizes death rates across all age groups in one particular year.
-                          - "..."
+                        descriptionKey: |-
+                          - Across the world, people are living longer. In 1900, the global average life expectancy was 32 years. By 2023, this had more than doubled to 73 years.
+                          - Period life expectancy is an indicator that summarizes death rates across all age groups in one particular year. ...
                         shortUnit: years
                         unit: years
                         timespan: 1543-2021
@@ -931,10 +931,8 @@ components:
           type: string
           description: Brief description of the data.
         descriptionKey:
-          type: array
-          description: Key points about the data methodology.
-          items:
-            type: string
+          type: string
+          description: Key information about the data as markdown text.
         descriptionProcessing:
           type: string
           description: Description of any processing applied to the data.
@@ -1036,9 +1034,19 @@ components:
         isProjection:
           type: boolean
           description: Whether this column contains projected data.
-        yearIsDay:
-          type: boolean
-          description: Whether the time column represents days instead of years.
+        timeInterval:
+          type: string
+          enum:
+            - day
+            - week
+            - month
+            - quarter
+            - year
+            - decade
+          description: >-
+            Resolution at which the time values should be interpreted and
+            formatted. Sub-yearly values (day/week/month/quarter) are days since
+            a reference date; "year" and "decade" values are literal years.
 
     GrapherValuesJsonDataPoints:
       type: object
