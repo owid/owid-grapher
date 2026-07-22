@@ -5,8 +5,8 @@ export class AddQueryParamsToMultiDimRedirects1783083128496 implements Migration
         await queryRunner.query(`-- sql
             ALTER TABLE multi_dim_redirects
                 ADD COLUMN sourceQueryParams JSON NULL AFTER source,
-                DROP INDEX source,
-                ADD INDEX source (source)
+                DROP INDEX source, -- changing from unique index...
+                ADD INDEX source (source) -- ... to non-unique index
         `)
     }
 
