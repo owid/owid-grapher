@@ -58,6 +58,9 @@ describe("rounding to a fixed number of decimals", () => {
         ["4 decimals with float", 1.123, "1.123", { numDecimalPlaces: 4 }],
         ["numSignificantFigures has no effect on long abbreviations", 12_840_000, "12.8 million", { numSignificantFigures: 5, numberAbbreviation: "long" }],
         ["numSignificantFigures has no effect on short abbreviations", 123_456, "123k", { numSignificantFigures: 5, numberAbbreviation: "short" }],
+        ["abbreviated values default to 3 significant figures", 10_020_000, "10 million", { numberAbbreviation: "long" }],
+        ["abbreviationSignificantFigures widens abbreviated precision", 10_020_000, "10.02 million", { numberAbbreviation: "long", abbreviationSignificantFigures: 4 }],
+        ["abbreviationSignificantFigures keeps trailing-zero trim", 10_000_000, "10 million", { numberAbbreviation: "long", abbreviationSignificantFigures: 4 }],
         ["0 decimals with abbreviation", 1_234_567, "1.23 million", { numDecimalPlaces: 0, numberAbbreviation: "long" }],
         ["1 decimal with abbreviation", 1_234_567, "1.23 million", { numDecimalPlaces: 1, numberAbbreviation: "long" }],
         ["1 decimal with short abbreviation", 1234, "1,234", { numDecimalPlaces: 1, numberAbbreviation: "short" }],
@@ -190,6 +193,7 @@ describe("rounding to significant figures", () => {
         ["numberAbbreviation %", 20_000, "20,000%", { numberAbbreviation: "short", unit: "%" }],
         ["numberAbbreviation false", 1_000_000_000, "1,000,000,000", { numberAbbreviation: false }],
         ["numberAbbreviation false very small", 0.000000001, "<0.01", { numberAbbreviation: false, numSignificantFigures: 1 }], // capped at the default of 2 decimal places
+        ["abbreviationSignificantFigures has no effect in sig-fig mode", 1_234_567, "1.23 million", { numberAbbreviation: "long", abbreviationSignificantFigures: 5 }],
         ["showPlus true", 1, "+1.00", { showPlus: true }],
         ["showPlus false", 1, "1.00", { showPlus: false }],
         ["showPlus false with negative number", -1, "-1.00", { showPlus: false }],
@@ -232,6 +236,7 @@ describe("the 'short' abbreviation bands", () => {
         ["percent never abbreviates and keeps author decimals", 1_234.56, "1,234.56%", { unit: "%" }],
         ["tick-like threshold of 1k keeps abbreviating", 25_000, "25k", { abbreviationThreshold: 1e3 }],
         ["1k threshold abbreviates messy values too", 25_240, "25.2k", { abbreviationThreshold: 1e3 }],
+        ["axis-requested precision keeps narrow-domain ticks apart", 10_020_000, "10.02M", { abbreviationSignificantFigures: 4 }],
         ["sig-fig column below the threshold", 25_240, "25,200", { roundingMode: OwidVariableRoundingMode.significantFigures }],
         ["sig-fig column above the threshold keeps trailing zeroes", 999_999, "1.00M", { roundingMode: OwidVariableRoundingMode.significantFigures }],
     ]

@@ -280,6 +280,11 @@ export interface TickFormattingOptions {
      * are round numbers where abbreviation genuinely saves space
      */
     abbreviationThreshold?: number
+    /**
+     * Precision of abbreviated values in decimal-places mode, which is
+     * otherwise a hard-coded 3 significant figures
+     */
+    abbreviationSignificantFigures?: number
 }
 // Represents the actual entered configuration state in the editor
 export interface AxisConfigInterface {
