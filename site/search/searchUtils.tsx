@@ -434,6 +434,24 @@ export function formatFeaturedMetricFacetFilter(
     return query.trim() ? ["isFM:false"] : []
 }
 
+// Algolia's prefix search treats short queries like "ai" as matching any
+// word starting with those letters (aid, air, aids, aviation...). All of
+// those prefix matches tie on relevance, so ranking falls back to raw
+// popularity and buries the actual AI content (see #6771). A synonym
+// doesn't fix this - it only adds more tied matches. Rewriting the query to
+// the unambiguous "artificial intelligence" restores exact-match ranking.
+// Our Algolia plan doesn't support Query Rules (which would do this
+// server-side), so the rewrite happens here instead. Scoped to the exact
+// (trimmed, case-insensitive) query so longer queries that merely contain
+// "ai" are unaffected.
+const SHORT_QUERY_REWRITES: Record<string, string> = {
+    ai: "artificial intelligence",
+}
+
+export function resolveSearchQuery(query: string): string {
+    return SHORT_QUERY_REWRITES[query.trim().toLowerCase()] ?? query
+}
+
 export function formatCountryFacetFilters(
     countries: Set<string>,
     requireAllCountries: boolean

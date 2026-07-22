@@ -28,6 +28,7 @@ import {
     PAGES_CHRONOLOGICAL_INDEX,
     DATA_CATALOG_ATTRIBUTES,
     formatDisjunctiveFacetFilters,
+    resolveSearchQuery,
 } from "./searchUtils.js"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 
@@ -115,7 +116,7 @@ export async function queryDataTopics(
         return {
             indexName: CHARTS_INDEX,
             attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            query: state.query,
+            query: resolveSearchQuery(state.query),
             facetFilters: facetFilters,
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
@@ -174,7 +175,7 @@ export async function queryCharts(
         {
             indexName: CHARTS_INDEX,
             attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            query: state.query,
+            query: resolveSearchQuery(state.query),
             facetFilters,
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
@@ -201,7 +202,7 @@ export async function queryDataInsights(
     // Using the selected countries as query search terms until data insights
     // are tagged with countries.
     const query = [
-        state.query,
+        resolveSearchQuery(state.query),
         // Use advanced syntax to search for countries as exact phrases
         ...selectedCountryNames.keys().map((c) => `"${c}"`),
     ]
@@ -255,7 +256,7 @@ export async function queryArticles(
     // Using the selected countries as query search terms until articles
     // are tagged with countries.
     const query = [
-        state.query,
+        resolveSearchQuery(state.query),
         // Use advanced syntax to search for countries as exact phrases
         ...selectedCountryNames.keys().map((c) => `"${c}"`),
     ]
@@ -306,7 +307,7 @@ export async function queryTopicPages(
     const searchParams = [
         {
             indexName: PAGES_INDEX,
-            query: state.query,
+            query: resolveSearchQuery(state.query),
             filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
             facetFilters: formatTopicFacetFilters(selectedTopics),
             attributesToRetrieve: [
@@ -349,7 +350,7 @@ export async function queryProfiles(
     const searchParams = [
         {
             indexName: PAGES_INDEX,
-            query: state.query,
+            query: resolveSearchQuery(state.query),
             filters: `type:${OwidGdocType.Profile}`,
             facetFilters,
             attributesToRetrieve: [
