@@ -129,11 +129,13 @@ function getPrecision({
     roundingMode,
     numDecimalPlaces,
     numSignificantFigures,
+    abbreviationSignificantFigures,
     type,
 }: {
     roundingMode: OwidVariableRoundingMode
     numDecimalPlaces: number
     numSignificantFigures: number
+    abbreviationSignificantFigures?: number
     type: "f" | "s" | "r"
 }): string {
     if (type === "f") {
@@ -148,8 +150,9 @@ function getPrecision({
     // abbreviated numbers ("s") in decimal-places mode: fixed decimal places
     // aren't meaningful for an abbreviated mantissa, so round to a hard-coded
     // 3 significant figures — numSignificantFigures deliberately has no
-    // effect outside sig-fig mode
-    return "3"
+    // effect outside sig-fig mode. The axis may request more precision via
+    // abbreviationSignificantFigures to keep neighbouring ticks apart
+    return `${abbreviationSignificantFigures ?? 3}`
 }
 
 function replaceSIPrefixes({
@@ -257,6 +260,7 @@ export function formatValue(
         numSignificantFigures = 3, // only applies to sig fig rounding
         numberAbbreviation = "long",
         abbreviationThreshold,
+        abbreviationSignificantFigures,
     }: TickFormattingOptions
 ): string {
     const formatter = createFormatter(unit)
@@ -304,6 +308,7 @@ export function formatValue(
             roundingMode,
             numDecimalPlaces: effectiveNumDecimalPlaces,
             numSignificantFigures,
+            abbreviationSignificantFigures,
             type,
         }),
         type,
