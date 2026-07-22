@@ -1,0 +1,156 @@
+// Small CLI for calling any owid-grapher admin API (local dev, staging, or
+// production) from the command line, e.g. for manually testing a chart
+// config change on a staging server without going through the browser.
+//
+// Auth: reads ADMIN_API_KEY from .env. The same key works against every
+// staging server, since `admin_api_keys` ships in the private data dump that
+// every staging build restores from (see db/exportMetadataTables.ts).
+//
+// Examples:
+//   yarn tsx devTools/callAdminApi.ts get 123 --branch archiving-charts
+//   yarn tsx devTools/callAdminApi.ts set 123 '{"deprecationNotice":"test"}' --branch archiving-charts
+//   yarn tsx devTools/callAdminApi.ts get 123 --host http://localhost:3030/admin/api
+
+import "../settings/loadDotenv.js"
+import yargs from "yargs"
+import { hideBin } from "yargs/helpers"
+
+interface HostArgs {
+    branch?: string
+    host?: string
+}
+
+function resolveBaseUrl(args: HostArgs): string {
+    if (args.host) return args.host.replace(/\/$/, "")
+    if (args.branch)
+        return `http://staging-site-${args.branch}.tail6e23.ts.net/admin/api`
+    return "http://localhost:3030/admin/api"
+}
+
+function getApiKey(): string {
+    const key = process.env.ADMIN_API_KEY
+    if (!key)
+        throw new Error(
+            "ADMIN_API_KEY is not set. Add it to .env (see devTools/createAdminApiKey.ts to mint one, " +
+                "or reuse the shared key already used by etl)."
+        )
+    return key
+}
+
+async function getChartConfig(
+    baseUrl: string,
+    chartId: number
+): Promise<Record<string, unknown>> {
+    const res = await fetch(`${baseUrl}/charts/${chartId}.config.json`, {
+        headers: { Authorization: `Bearer ${getApiKey()}` },
+    })
+    if (!res.ok)
+        throw new Error(`GET failed: ${res.status} ${await res.text()}`)
+    return res.json()
+}
+
+async function putChartConfig(
+    baseUrl: string,
+    chartId: number,
+    config: Record<string, unknown>
+): Promise<void> {
+    const res = await fetch(`${baseUrl}/charts/${chartId}`, {
+        method: "PUT",
+        headers: {
+            Authorization: `Bearer ${getApiKey()}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(config),
+    })
+    const json = await res.json()
+    if (!res.ok || json.success === false)
+        throw new Error(`PUT failed: ${res.status} ${JSON.stringify(json)}`)
+}
+
+async function main() {
+    await yargs(hideBin(process.argv))
+        .option("branch", {
+            type: "string",
+            describe:
+                "Staging branch name, e.g. archiving-charts (resolves to staging-site-<branch>)",
+        })
+        .option("host", {
+            type: "string",
+            describe:
+                "Override base URL, e.g. http://localhost:3030/admin/api. Takes precedence over --branch.",
+        })
+        .command(
+            "get <chartId>",
+            "Fetch a chart's full config as JSON",
+            (y) =>
+                y.positional("chartId", {
+                    type: "number",
+                    demandOption: true,
+                }),
+            async (argv) => {
+                const baseUrl = resolveBaseUrl(argv)
+                const config = await getChartConfig(
+                    baseUrl,
+                    argv.chartId as number
+                )
+                console.log(JSON.stringify(config, null, 2))
+            }
+        )
+        .command(
+            "set <chartId> <patchJson>",
+            "Shallow-merge a JSON object into a chart's config and save it",
+            (y) =>
+                y
+                    .positional("chartId", {
+                        type: "number",
+                        demandOption: true,
+                    })
+                    .positional("patchJson", {
+                        type: "string",
+                        demandOption: true,
+                        describe: "JSON object to merge into the config",
+                    }),
+            async (argv) => {
+                const baseUrl = resolveBaseUrl(argv)
+                const chartId = argv.chartId as number
+                const patch = JSON.parse(argv.patchJson as string)
+                const current = await getChartConfig(baseUrl, chartId)
+                const merged = { ...current, ...patch }
+                await putChartConfig(baseUrl, chartId, merged)
+                console.log("Saved. New config:")
+                console.log(JSON.stringify(merged, null, 2))
+            }
+        )
+        .command(
+            "unset <chartId> <field>",
+            "Remove a top-level field from a chart's config and save it",
+            (y) =>
+                y
+                    .positional("chartId", {
+                        type: "number",
+                        demandOption: true,
+                    })
+                    .positional("field", {
+                        type: "string",
+                        demandOption: true,
+                        describe: "Top-level config key to remove",
+                    }),
+            async (argv) => {
+                const baseUrl = resolveBaseUrl(argv)
+                const chartId = argv.chartId as number
+                const current = await getChartConfig(baseUrl, chartId)
+                delete current[argv.field as string]
+                await putChartConfig(baseUrl, chartId, current)
+                console.log("Saved. New config:")
+                console.log(JSON.stringify(current, null, 2))
+            }
+        )
+        .demandCommand(1)
+        .strict()
+        .help().argv
+}
+
+void main().catch((error) => {
+    console.error("Encountered an error:", error)
+    process.exit(-1)
+})
