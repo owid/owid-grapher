@@ -9,6 +9,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
+    MarkdownTextWrapHtml,
     MarkdownTextWrapSvg,
     LoadingIndicator,
 } from "@ourworldindata/components"
@@ -22,7 +23,10 @@ import {
 } from "../core/GrapherConstants"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
-import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons"
+import {
+    faExternalLinkAlt,
+    faTriangleExclamation,
+} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { FooterManager } from "../footer/FooterManager"
 import { HeaderManager } from "../header/HeaderManager"
@@ -93,6 +97,10 @@ export interface CaptionedChartManager
     // related question
     relatedQuestions?: RelatedQuestionsConfig[]
     showRelatedQuestion?: boolean
+
+    // deprecation notice
+    deprecationNotice?: string
+    showDeprecationNotice?: boolean
 }
 
 interface CaptionedChartProps {
@@ -101,6 +109,10 @@ interface CaptionedChartProps {
 
 // keep in sync with sass variables in CaptionedChart.scss
 export const CONTROLS_ROW_HEIGHT = 32
+
+// keep in sync with sass variables in CaptionedChart.scss
+const DEPRECATION_NOTICE_PADDING = 8
+const DEPRECATION_NOTICE_FONT_SIZE = 13
 
 abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProps> {
     protected framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
@@ -178,6 +190,36 @@ export class CaptionedChart extends AbstractCaptionedChart {
         return this.manager.isMedium ? 24 : 28
     }
 
+    @computed private get showDeprecationNotice(): boolean {
+        return !!this.manager.showDeprecationNotice
+    }
+
+    @computed private get deprecationNoticeTextWrap():
+        | MarkdownTextWrap
+        | undefined {
+        if (!this.showDeprecationNotice) return undefined
+        return new MarkdownTextWrap({
+            text: this.manager.deprecationNotice!,
+            maxWidth: this.maxWidth - 2 * DEPRECATION_NOTICE_PADDING - 20,
+            fontSize: DEPRECATION_NOTICE_FONT_SIZE,
+            lineHeight: 1.25,
+            detailsOrderedByReference: this.manager.detailsOrderedByReference,
+        })
+    }
+
+    @computed private get deprecationNoticeHeight(): number {
+        if (!this.deprecationNoticeTextWrap) return 0
+        return (
+            this.deprecationNoticeTextWrap.height +
+            2 * DEPRECATION_NOTICE_PADDING
+        )
+    }
+
+    @computed private get deprecationNoticeHeightWithPadding(): number {
+        if (!this.showDeprecationNotice) return 0
+        return this.deprecationNoticeHeight + this.verticalPaddingSmall
+    }
+
     @computed private get showControlsRow(): boolean {
         if (this.manager.hideControlsRow) return false
         return ControlsRow.shouldShow(this.manager)
@@ -230,6 +272,26 @@ export class CaptionedChart extends AbstractCaptionedChart {
                     {relatedQuestions![0].text}
                 </a>
                 <FontAwesomeIcon icon={faExternalLinkAlt} />
+            </div>
+        )
+    }
+
+    private renderDeprecationNotice(): React.ReactElement {
+        return (
+            <div
+                className="DeprecationNotice"
+                style={{
+                    width: this.bounds.width,
+                    padding: `${DEPRECATION_NOTICE_PADDING}px ${this.framePaddingHorizontal}px`,
+                }}
+                data-track-note="chart_deprecation_notice"
+            >
+                <FontAwesomeIcon icon={faTriangleExclamation} />
+                <div style={this.deprecationNoticeTextWrap!.style}>
+                    <MarkdownTextWrapHtml
+                        textWrap={this.deprecationNoticeTextWrap!}
+                    />
+                </div>
             </div>
         )
     }
@@ -292,6 +354,7 @@ export class CaptionedChart extends AbstractCaptionedChart {
             this.bounds.height -
                 2 * this.framePaddingVertical -
                 this.headerHeightWithPadding -
+                this.deprecationNoticeHeightWithPadding -
                 this.controlsRowHeightWithPadding -
                 this.timelineHeightWithPadding -
                 this.footerHeightWithPadding -
@@ -312,14 +375,16 @@ export class CaptionedChart extends AbstractCaptionedChart {
         // A CaptionedChart looks like this (components in [brackets] are optional):
         //    #1 Header
         //            ---- vertical space
-        //    #2 [Controls]
+        //    #2 [Deprecation notice]
         //            ---- vertical space (small)
-        //    #3 Chart/Map/Table
+        //    #3 [Controls]
         //            ---- vertical space (small)
-        //    #4 [Timeline]
+        //    #4 Chart/Map/Table
+        //            ---- vertical space (small)
+        //    #5 [Timeline]
         //            ---- vertical space
-        //    #5 Footer
-        //    #6 [Related question]
+        //    #6 Footer
+        //    #7 [Related question]
         return (
             <div
                 className="CaptionedChart"
@@ -336,35 +401,41 @@ export class CaptionedChart extends AbstractCaptionedChart {
                     </>
                 )}
 
+                {/* #2 [Deprecation notice] */}
+                {this.showDeprecationNotice && this.renderDeprecationNotice()}
+                {this.showDeprecationNotice && (
+                    <VerticalSpace height={this.verticalPaddingSmall} />
+                )}
+
                 {this.manager.isReady ? (
                     <>
-                        {/* #2 [Controls] */}
+                        {/* #3 [Controls] */}
                         {this.showControlsRow && this.renderControlsRow()}
                         {this.showControlsRow && (
                             <VerticalSpace height={this.verticalPaddingSmall} />
                         )}
 
-                        {/* #3 Chart/Map/Table */}
+                        {/* #4 Chart/Map/Table */}
                         <ChartAreaContent
                             manager={this.manager}
                             bounds={this.boundsForChartArea}
                             padWidth={GRAPHER_FRAME_PADDING_HORIZONTAL}
                         />
 
-                        {/* #4 [Timeline] */}
+                        {/* #5 [Timeline] */}
                         {this.manager.hasTimeline && (
                             <VerticalSpace height={this.verticalPaddingSmall} />
                         )}
                         {this.manager.hasTimeline && this.renderTimeline()}
 
-                        {/* #5 Footer */}
+                        {/* #6 Footer */}
                         <VerticalSpace height={this.verticalPadding} />
                         <Footer
                             manager={this.manager}
                             maxWidth={this.maxWidth}
                         />
 
-                        {/* #6 [Related question] */}
+                        {/* #7 [Related question] */}
                         {this.showRelatedQuestion &&
                             this.renderRelatedQuestion()}
                     </>
