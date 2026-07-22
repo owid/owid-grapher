@@ -212,6 +212,45 @@ describe("Bulk multi-dim redirects API", { timeout: 30000 }, () => {
         })
     })
 
+    it("creates a catch-all fallback redirect (default view, no source params)", async () => {
+        const { id: multiDimId } = await createPublishedMultiDim()
+
+        const response = await env.request({
+            method: "POST",
+            path: "/multi-dim-redirects/bulk",
+            body: JSON.stringify({
+                catchAll: {
+                    source: { explorerSlug: "energy" },
+                    target: { catalogPath, dimensions: {} },
+                },
+                redirects: [
+                    {
+                        source: {
+                            explorerSlug: "energy",
+                            dimensions: { Metric: "Total consumption" },
+                        },
+                        target: {
+                            catalogPath,
+                            dimensions: { source: "all", metric: "total" },
+                        },
+                    },
+                ],
+            }),
+        })
+
+        expect(response.created).toBe(2)
+        expect(response.errors).toBe(0)
+
+        const rows = await env
+            .testKnex(MultiDimRedirectsTableName)
+            .where("multiDimId", multiDimId)
+        // The catch-all row: no source query params, default view.
+        const catchAllRow = rows.find((r) => r.sourceQueryParams === null)
+        expect(catchAllRow).toBeDefined()
+        expect(catchAllRow!.source).toBe("/explorers/energy")
+        expect(catchAllRow!.viewConfigId).toBeNull()
+    })
+
     it("errors on entries duplicating an existing redirect's source query params", async () => {
         await createPublishedMultiDim()
         const entry = {

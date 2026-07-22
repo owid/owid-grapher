@@ -569,30 +569,49 @@ export async function handlePostMultiDimRedirect(
 }
 
 // Schema for the bulk-redirect input. It intentionally mirrors the structure of
-// the mapping files produced by the ETL (see the `redirects` array), so such a
-// file can be posted (mostly) as-is. Unknown fields (e.g. `sourceViewId`,
-// `viewId`, `stats`) are ignored by Zod.
+// the mapping files produced by the ETL (the `catchAll` + `redirects` fields),
+// so such a file can be posted (mostly) as-is. Unknown fields (e.g.
+// `sourceViewId`, `viewId`, `stats`) are ignored by Zod.
 //
 // - `source` describes an explorer view. Explorer URLs encode dimension choices
 //   directly as query params (the dimension title is the param name and the
 //   choice label the value), so `source.dimensions` maps 1:1 to the redirect's
-//   `sourceQueryParams`.
+//   `sourceQueryParams`. Empty/absent dimensions mean "match any query params".
 // - `target` describes the multi-dim view to redirect to, identified by its
-//   catalog path and the dimension choices that uniquely select a view. A `null`
-//   target marks an entry the ETL couldn't resolve; we skip those.
+//   catalog path and the dimension choices that uniquely select a view. Empty/
+//   absent target dimensions mean the multi-dim's default view. In `redirects`,
+//   a `null` target marks an entry the ETL couldn't resolve; we skip those.
+// - `catchAll` is the unconditional fallback (no source dimensions), applied
+//   when no specific `redirects` entry matches the incoming query params.
+const bulkRedirectSourceSchema = z.object({
+    explorerSlug: z.string(),
+    // The explorer dimension choices to match on. Omitted/empty means the
+    // redirect matches regardless of query params (the catch-all fallback).
+    dimensions: z.record(z.string(), z.string()).optional(),
+})
+
+const bulkRedirectTargetSchema = z.object({
+    catalogPath: z.string(),
+    // The dimension choices that uniquely select the target view. Omitted/empty
+    // means the multi-dim's default view (viewConfigId = null).
+    dimensions: z.record(z.string(), z.string()).optional(),
+})
+
 const bulkMultiDimRedirectsSchema = z.object({
+    // Unconditional fallback redirect: applies when no specific `redirects`
+    // entry matches the incoming query params. Typically points at the
+    // multi-dim's default view.
+    catchAll: z
+        .object({
+            source: bulkRedirectSourceSchema,
+            target: bulkRedirectTargetSchema,
+        })
+        .nullable()
+        .optional(),
     redirects: z.array(
         z.object({
-            source: z.object({
-                explorerSlug: z.string(),
-                dimensions: z.record(z.string(), z.string()),
-            }),
-            target: z
-                .object({
-                    catalogPath: z.string(),
-                    dimensions: z.record(z.string(), z.string()),
-                })
-                .nullable(),
+            source: bulkRedirectSourceSchema,
+            target: bulkRedirectTargetSchema.nullable(),
             unresolvedReason: z.string().optional(),
         })
     ),
@@ -603,6 +622,30 @@ interface BulkMultiDimRedirectResult {
     status: "created" | "skipped" | "error"
     message?: string
     redirectId?: number
+}
+
+// Resolves the target view config id for a set of target dimensions. Empty (or
+// absent) dimensions map to the multi-dim's default view (null viewConfigId);
+// otherwise the dimensions must uniquely identify a view.
+function resolveTargetViewConfigId(
+    multiDim: DbEnrichedMultiDimDataPage,
+    catalogPath: string,
+    targetDimensions: Record<string, string> | undefined
+): string | null {
+    if (!targetDimensions || Object.keys(targetDimensions).length === 0) {
+        return null
+    }
+    const mdimConfig = MultiDimDataPageConfig.fromObject(multiDim.config)
+    const view = mdimConfig.findViewByDimensions(targetDimensions)
+    if (!view) {
+        throw new JsonError(
+            `No view in multi-dim '${catalogPath}' matches dimensions ${JSON.stringify(
+                targetDimensions
+            )}`,
+            404
+        )
+    }
+    return view.fullConfigId
 }
 
 export async function handleBulkCreateMultiDimRedirects(
@@ -617,7 +660,7 @@ export async function handleBulkCreateMultiDimRedirects(
             400
         )
     }
-    const { redirects } = parseResult.data
+    const { redirects, catchAll } = parseResult.data
 
     // Cache resolved multi-dims by catalog path so we don't hit the DB once per
     // entry. `null` records a catalog path we already know doesn't resolve.
@@ -628,10 +671,37 @@ export async function handleBulkCreateMultiDimRedirects(
     const results: BulkMultiDimRedirectResult[] = []
     const targetSlugs = new Set<string>()
 
+    const resolveMultiDim = async (
+        catalogPath: string
+    ): Promise<DbEnrichedMultiDimDataPage> => {
+        let multiDim = multiDimByCatalogPath.get(catalogPath)
+        if (multiDim === undefined) {
+            multiDim =
+                (await getMultiDimDataPageByCatalogPath(trx, catalogPath)) ??
+                null
+            multiDimByCatalogPath.set(catalogPath, multiDim)
+        }
+        if (!multiDim) {
+            throw new JsonError(
+                `No multi-dim found for catalog path '${catalogPath}'`,
+                404
+            )
+        }
+        return multiDim
+    }
+
+    // Process the catch-all fallback (if any) alongside the specific redirects.
+    // Its empty source dimensions mean a null sourceQueryParams (matches any
+    // query params), and its empty target dimensions mean the default view.
+    const entries = [
+        ...(catchAll ? [{ ...catchAll, unresolvedReason: undefined }] : []),
+        ...redirects,
+    ]
+
     // Best-effort: process each entry independently and record its outcome
     // rather than aborting the whole batch on the first failure. Successful
     // inserts all commit together when the surrounding transaction commits.
-    for (const entry of redirects) {
+    for (const entry of entries) {
         const source = `/explorers/${entry.source.explorerSlug}`
 
         if (!entry.target) {
@@ -645,36 +715,12 @@ export async function handleBulkCreateMultiDimRedirects(
 
         try {
             const { catalogPath, dimensions: targetDimensions } = entry.target
-
-            let multiDim = multiDimByCatalogPath.get(catalogPath)
-            if (multiDim === undefined) {
-                multiDim =
-                    (await getMultiDimDataPageByCatalogPath(
-                        trx,
-                        catalogPath
-                    )) ?? null
-                multiDimByCatalogPath.set(catalogPath, multiDim)
-            }
-            if (!multiDim) {
-                throw new JsonError(
-                    `No multi-dim found for catalog path '${catalogPath}'`,
-                    404
-                )
-            }
-
-            const mdimConfig = MultiDimDataPageConfig.fromObject(
-                multiDim.config
+            const multiDim = await resolveMultiDim(catalogPath)
+            const viewConfigId = resolveTargetViewConfigId(
+                multiDim,
+                catalogPath,
+                targetDimensions
             )
-            const view = mdimConfig.findViewByDimensions(targetDimensions)
-            if (!view) {
-                throw new JsonError(
-                    `No view in multi-dim '${catalogPath}' matches dimensions ${JSON.stringify(
-                        targetDimensions
-                    )}`,
-                    404
-                )
-            }
-
             const sourceQueryParams = normalizeSourceQueryParams(
                 entry.source.dimensions
             )
@@ -682,7 +728,7 @@ export async function handleBulkCreateMultiDimRedirects(
                 trx,
                 multiDim,
                 source,
-                view.fullConfigId,
+                viewConfigId,
                 sourceQueryParams
             )
             if (multiDim.slug) targetSlugs.add(multiDim.slug)
