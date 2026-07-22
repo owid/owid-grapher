@@ -1,14 +1,14 @@
 export const NewslettersTableName = "newsletters"
 
 /** The Mailchimp campaign types we sync from the Mailchimp Marketing API,
- * distinguished by their subject line prefix ("The OWID Brief: …" vs
- * "Data Insight: …"). Only "owid-brief" newsletters are indexed for /latest;
- * both types feed the "see example" links on /subscribe. */
+ * distinguished by the audience interest group they were sent to (see
+ * baker/syncNewslettersFromMailchimp.ts). Only "owid-brief" newsletters are
+ * shown on /latest; both types feed the "see example" links on /subscribe. */
 export const NEWSLETTER_TYPES = ["owid-brief", "data-insight"] as const
 export type NewsletterType = (typeof NEWSLETTER_TYPES)[number]
 
 export type DbInsertNewsletter = {
-    /** Mailchimp campaign id, extracted from the archive URL's `id` param */
+    /** Mailchimp campaign id as returned by the Marketing API */
     mailchimpId: string
     type: NewsletterType
     title: string

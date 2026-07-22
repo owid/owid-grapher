@@ -1,12 +1,12 @@
 metadata:
-  description: Archive of newsletters sent via Mailchimp ("The OWID Brief" and Data Insight emails). Synced from the Mailchimp Marketing API by baker/syncNewslettersFromMailchimp.ts. OWID Brief newsletters are indexed into the pages-chronological Algolia index so each appears as a tile on /latest linking out to its Mailchimp archive page; the most recent newsletter of each type feeds the "see example" links on the baked /subscribe page.
+  description: Archive of newsletters sent via Mailchimp ("The OWID Brief" and Data Insight emails). Synced from the Mailchimp Marketing API by baker/syncNewslettersFromMailchimp.ts. OWID Brief newsletters are injected into latest.html at bake time so each appears as a tile on /latest linking out to its Mailchimp archive page (deliberately not via Algolia, to keep newsletters out of /search and the atom feeds); the most recent newsletter of each type feeds the "see example" links on the baked /subscribe page.
 fields:
   id:
     description: Unique identifier for the newsletter
   mailchimpId:
     description: Mailchimp campaign id as returned by the Marketing API (unique constraint)
   type:
-    description: Campaign type derived from the subject line prefix — "owid-brief" ("The OWID Brief:" prefix) or "data-insight" ("Data Insight:" prefix)
+    description: Campaign type — "owid-brief" or "data-insight" — derived from the Mailchimp audience interest-group id the campaign was sent to (stable across historical subject line renames like "Biweekly Digest" → "The OWID Brief")
   title:
     description: Subject line of the newsletter campaign
   url:
