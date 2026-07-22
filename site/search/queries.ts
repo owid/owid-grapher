@@ -21,7 +21,6 @@ import {
     getFilterNamesOfType,
     formatCountryFacetFilters,
     formatTopicFacetFilters,
-    formatFeaturedMetricFacetFilter,
     getSelectableTopics,
     CHARTS_INDEX,
     PAGES_INDEX,
@@ -29,6 +28,7 @@ import {
     DATA_CATALOG_ATTRIBUTES,
     formatDisjunctiveFacetFilters,
 } from "./searchUtils.js"
+import { buildChartsFacetFilters } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 
 // Above this many index-wide hits, a single shared word is treated as too
@@ -218,39 +218,30 @@ export async function queryCharts(
     state: SearchState,
     page: number = 0
 ) {
-    const countryFacetFilters = formatCountryFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        state.requireAllCountries
-    )
-    const topicFacetFilters = formatTopicFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.TOPIC)
-    )
-    const datasetProductFacetFilters = formatDisjunctiveFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCT),
-        "datasetProducts"
-    )
-    const datasetNamespaceFacetFilters = formatDisjunctiveFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.DATASET_NAMESPACE),
-        "datasetNamespaces"
-    )
-    const datasetVersionFacetFilters = formatDisjunctiveFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.DATASET_VERSION),
-        "datasetVersions"
-    )
-    const datasetProducerFacetFilters = formatDisjunctiveFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCER),
-        "datasetProducers"
-    )
-    const fmFacetFilter = formatFeaturedMetricFacetFilter(state.query)
-    const facetFilters = [
-        ...countryFacetFilters,
-        ...topicFacetFilters,
-        ...datasetProductFacetFilters,
-        ...datasetNamespaceFacetFilters,
-        ...datasetVersionFacetFilters,
-        ...datasetProducerFacetFilters,
-        ...fmFacetFilter,
+    const datasetFacetFilters = [
+        ...formatDisjunctiveFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCT),
+            "datasetProducts"
+        ),
+        ...formatDisjunctiveFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.DATASET_NAMESPACE),
+            "datasetNamespaces"
+        ),
+        ...formatDisjunctiveFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.DATASET_VERSION),
+            "datasetVersions"
+        ),
+        ...formatDisjunctiveFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCER),
+            "datasetProducers"
+        ),
     ]
+    const facetFilters = buildChartsFacetFilters({
+        query: state.query,
+        filters: state.filters,
+        requireAllCountries: state.requireAllCountries,
+        datasetFacetFilters,
+    })
 
     const searchParams = [
         {

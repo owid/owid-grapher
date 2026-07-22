@@ -4,8 +4,18 @@ import {
     Filter,
     ChartRecordType,
     SearchChartHit,
+    OwidGdocType,
 } from "@ourworldindata/types"
-import { getIndexName, AlgoliaConfig } from "./algoliaClient.js"
+import { getCanonicalUrl } from "@ourworldindata/components"
+import {
+    getFilterNamesOfType,
+    buildChartsFacetFilters,
+} from "@ourworldindata/utils"
+import {
+    getIndexName,
+    createSearchClient,
+    AlgoliaConfig,
+} from "./algoliaClient.js"
 
 /**
  * Error thrown when the client provides invalid search parameters (e.g. a
@@ -78,14 +88,6 @@ export interface SearchPagesApiResponse {
     length: number
 }
 
-interface AlgoliaSearchResponse {
-    hits: SearchChartHit[]
-    nbHits: number
-    page: number
-    nbPages: number
-    hitsPerPage: number
-}
-
 // Minimal set of attributes needed by the MCP server and other API consumers
 const DATA_CATALOG_ATTRIBUTES = [
     "title",
@@ -102,54 +104,6 @@ const DATA_CATALOG_ATTRIBUTES = [
     "updatedAt",
 ]
 
-function getFilterNamesOfType(
-    filters: Filter[],
-    type: FilterType
-): Set<string> {
-    return new Set(filters.filter((f) => f.type === type).map((f) => f.name))
-}
-
-export function formatCountryFacetFilters(
-    countries: Set<string>,
-    requireAll: boolean
-): (string | string[])[] {
-    // Always filter out income-group-specific featured metrics
-    // These are designed for specific use cases and shouldn't appear in general searches
-    const excludeIncomeGroupFM = ["isIncomeGroupSpecificFM:false"]
-
-    if (countries.size === 0) return [excludeIncomeGroupFM]
-
-    const filters = Array.from(countries).map(
-        (country) => `availableEntities:${country}`
-    )
-    // If requireAll is true, charts must have ALL countries (AND logic)
-    // Otherwise, any country can match (OR logic)
-    return requireAll
-        ? [...filters.map((f) => [f]), excludeIncomeGroupFM]
-        : [filters, excludeIncomeGroupFM]
-}
-
-/**
- * Returns a facet filter that excludes Featured Metric records when a
- * free-text query is present. When there is no query (e.g. browsing by
- * topic), FMs are kept so they can surface at the top of topic pages.
- */
-export function formatFeaturedMetricFacetFilter(
-    query: string
-): (string | string[])[] {
-    return query.trim() ? ["isFM:false"] : []
-}
-
-export function formatTopicFacetFilters(
-    topics: Set<string>
-): (string | string[])[] {
-    if (topics.size === 0) return []
-
-    const filters = Array.from(topics).map((topic) => `tags:${topic}`)
-    // Topics use OR logic (any topic can match)
-    return [filters]
-}
-
 /**
  * Fetches available topics from Algolia
  */
@@ -158,41 +112,20 @@ async function getAvailableTopics(config: AlgoliaConfig): Promise<string[]> {
         SearchIndexName.ExplorerViewsMdimViewsAndCharts,
         config.indexPrefix
     )
+    const client = createSearchClient(config)
 
-    const searchParams = {
+    const response = await client.searchForHits<SearchChartHit>({
         requests: [
             {
                 indexName,
-                params: new URLSearchParams({
-                    query: "",
-                    hitsPerPage: "0",
-                    facets: JSON.stringify(["tags"]),
-                }).toString(),
+                query: "",
+                hitsPerPage: 0,
+                facets: ["tags"],
             },
         ],
-    }
-
-    const url = `https://${config.appId}-dsn.algolia.net/1/indexes/*/queries`
-
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            "X-Algolia-Application-Id": config.appId,
-            "X-Algolia-API-Key": config.apiKey,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(searchParams),
     })
 
-    if (!response.ok) {
-        throw new Error(`Algolia search failed: ${response.statusText}`)
-    }
-
-    const data: {
-        results: [{ facets?: { tags?: Record<string, number> } }]
-    } = await response.json()
-
-    return Object.keys(data.results[0].facets?.tags || {}).sort()
+    return Object.keys(response.results[0].facets?.tags ?? {}).sort()
 }
 
 // Note: neither searchCharts nor searchPages below has the "closest matches"
@@ -212,67 +145,34 @@ export async function searchCharts(
     hitsPerPage: number = 20,
     baseUrl: string = "https://ourworldindata.org"
 ): Promise<SearchApiResponse> {
-    const countryFacetFilters = formatCountryFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        state.requireAllCountries
-    )
-    const topicFacetFilters = formatTopicFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.TOPIC)
-    )
-    const fmFacetFilter = formatFeaturedMetricFacetFilter(state.query)
-    const facetFilters = [
-        ...countryFacetFilters,
-        ...topicFacetFilters,
-        ...fmFacetFilter,
-    ]
+    const facetFilters = buildChartsFacetFilters({
+        query: state.query,
+        filters: state.filters,
+        requireAllCountries: state.requireAllCountries,
+    })
 
     const indexName = getIndexName(
         SearchIndexName.ExplorerViewsMdimViewsAndCharts,
         config.indexPrefix
     )
 
-    const searchParams = {
+    const client = createSearchClient(config)
+
+    const response = await client.searchForHits<SearchChartHit>({
         requests: [
             {
                 indexName,
-                params: new URLSearchParams({
-                    query: state.query,
-                    attributesToRetrieve: DATA_CATALOG_ATTRIBUTES.join(","),
-                    highlightPreTag: "<mark>",
-                    highlightPostTag: "</mark>",
-                    hitsPerPage: hitsPerPage.toString(),
-                    page: page.toString(),
-                    ...(facetFilters.length > 0 && {
-                        facetFilters: JSON.stringify(facetFilters),
-                    }),
-                }).toString(),
+                query: state.query,
+                attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
+                highlightPreTag: "<mark>",
+                highlightPostTag: "</mark>",
+                hitsPerPage,
+                page,
+                ...(facetFilters.length > 0 && { facetFilters }),
             },
         ],
-    }
-
-    // Use Algolia's REST API directly with fetch()
-    // Note: We can't use the algoliasearch npm package because it requires
-    // XMLHttpRequest which is not available in CloudFlare Workers
-    const url = `https://${config.appId}-dsn.algolia.net/1/indexes/*/queries`
-
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            "X-Algolia-Application-Id": config.appId,
-            "X-Algolia-API-Key": config.apiKey,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(searchParams),
     })
-
-    if (!response.ok) {
-        throw new Error(`Algolia search failed: ${response.statusText}`)
-    }
-
-    const data: {
-        results: AlgoliaSearchResponse[]
-    } = await response.json()
-    const result = data.results[0]
+    const result = response.results[0]
 
     // If we got zero results and user is filtering by topic, check if the topic exists
     const requestedTopics = getFilterNamesOfType(
@@ -325,10 +225,10 @@ export async function searchCharts(
     return {
         query: state.query,
         results: cleanedHits,
-        nbHits: result.nbHits,
-        page: result.page,
-        nbPages: result.nbPages,
-        hitsPerPage: result.hitsPerPage,
+        nbHits: result.nbHits ?? 0,
+        page: result.page ?? page,
+        nbPages: result.nbPages ?? 0,
+        hitsPerPage: result.hitsPerPage ?? hitsPerPage,
     }
 }
 
@@ -357,7 +257,9 @@ export async function searchPages(
     // Build filters string for page types
     const filters = pageTypes.map((type) => `type:${type}`).join(" OR ")
 
-    const searchParams = {
+    const client = createSearchClient(config)
+
+    const response = await client.searchForHits<SearchPageHit>({
         requests: [
             {
                 indexName,
@@ -371,28 +273,8 @@ export async function searchPages(
                 length,
             },
         ],
-    }
-
-    const url = `https://${config.appId}-dsn.algolia.net/1/indexes/*/queries`
-
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            "X-Algolia-Application-Id": config.appId,
-            "X-Algolia-API-Key": config.apiKey,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(searchParams),
     })
-
-    if (!response.ok) {
-        throw new Error(`Algolia search failed: ${response.statusText}`)
-    }
-
-    const data: {
-        results: [{ hits: SearchPageHit[]; nbHits: number }]
-    } = await response.json()
-    const result = data.results[0]
+    const result = response.results[0]
 
     // Clean up the hits and add URL
     const cleanedHits = result.hits.map((hit): EnrichedSearchPageHit => {
@@ -403,8 +285,16 @@ export async function searchPages(
             ...cleanHit
         } = hit as any
 
-        // Construct URL based on slug
-        const url = `${baseUrl}/${cleanHit.slug}`
+        // Construct URL based on slug + type: different gdoc types bake to
+        // different path prefixes (e.g. data-insights -> /data-insights/,
+        // profiles -> /profile/) — getCanonicalUrl/getPrefixedGdocPath is the
+        // single source of truth the baker itself uses, so newly-exposed
+        // pageTypes (beyond the original article/about-page) resolve to
+        // working links instead of a bare `${baseUrl}/${slug}` guess.
+        const url = getCanonicalUrl(baseUrl, {
+            slug: cleanHit.slug,
+            content: { type: cleanHit.type as OwidGdocType },
+        })
 
         return {
             ...cleanHit,
@@ -415,7 +305,7 @@ export async function searchPages(
     return {
         query,
         results: cleanedHits,
-        nbHits: result.nbHits,
+        nbHits: result.nbHits ?? 0,
         offset,
         length,
     }

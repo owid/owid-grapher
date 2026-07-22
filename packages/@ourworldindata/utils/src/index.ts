@@ -383,5 +383,17 @@ export {
     getTableColumnCountForGridSlotKey,
 } from "./search/SearchHelpers.js"
 
+export {
+    type SearchFacetAttribute,
+    getFilterNamesOfType,
+    setToFacetFilters,
+    formatDisjunctiveFacetFilters,
+    formatConjunctiveFacetFilters,
+    formatFeaturedMetricFacetFilter,
+    formatCountryFacetFilters,
+    formatTopicFacetFilters,
+    buildChartsFacetFilters,
+} from "./search/searchFacetFilters.js"
+
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
 export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"
