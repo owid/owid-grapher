@@ -7,6 +7,7 @@ import {
     fetchSearchResultDataForGrapher,
     fetchZipForGrapher,
 } from "../_common/downloadFunctions.js"
+import { fetchCompleteDatasetZipForGrapher } from "../_common/mdimDownloadFunctions.js"
 import { handleThumbnailRequest } from "../_common/reusableHandlers.js"
 import {
     handlePageNotFound,
@@ -77,6 +78,15 @@ router
         `/grapher/:slug${extensions.readme}`,
         async ({ params: { slug } }, { searchParams }, env) =>
             fetchReadmeForGrapher({ type: "slug", id: slug }, env, searchParams)
+    )
+    .get(
+        // Must be registered before the plain `.zip` route below: its regex
+        // greedily matches any `:slug` ending in literal ".zip", which
+        // ".complete-dataset.zip" also does -- first match wins in
+        // itty-router, so the more specific extension has to come first.
+        `/grapher/:slug${extensions.completeDatasetZip}`,
+        async ({ params: { slug } }, _url, env) =>
+            fetchCompleteDatasetZipForGrapher({ type: "slug", id: slug }, env)
     )
     .get(
         `/grapher/:slug${extensions.zip}`,

@@ -1,24 +1,22 @@
 /**
- * PROTOTYPE (mdim-downloads project). Grapher-side half of the ETL/grapher
- * hybrid package builder: ETL builds the wide table (it has the data
- * locally, no per-view HTTP fetch needed -- validated across 12 real MDIMs)
- * and stages it + an indicator index to R2. This script picks that up,
- * fetches each distinct indicator's real metadata from the public Data API
- * (cheap -- one call per indicator, deduped, not per view), and reuses
- * grapher's own citation/readme-formatting functions -- not a Python
- * reimplementation -- to build the real metadata.json + readme.md, then
- * zips and uploads the finished package.
+ * PROTOTYPE (mdim-downloads project). Dynamic "complete dataset" zip for
+ * MDIMs, on the same footing as a regular chart's own `.zip` route
+ * (fetchZipForGrapher in downloadFunctions.ts): built fresh per request,
+ * not a pre-baked artifact sitting at a fixed URL.
  *
- * Output mirrors the single-chart download package (Entity/Code/Year CSV,
- * same metadata.json shape, same readme skeleton) -- a chart is just a
- * 0-dimensional MDIM, so its download format is the baseline here.
+ * ETL does the one thing that genuinely benefits from build-time work --
+ * joining every view's indicator into one wide table, so this function
+ * never has to fetch per-view data on each request -- and stages the
+ * result (wide.csv + an indicator index) to R2. This function picks that
+ * up, fetches each distinct indicator's real metadata from the Data API
+ * (cheap: one call per indicator, deduped, not per view), and reuses
+ * grapher's own citation/readme-formatting functions to build the zip,
+ * returning it directly -- no intermediate artifact, no separate build
+ * step to trigger.
  *
- * See mdim-downloads/solution-space/etl-feasibility.md for why this is
- * split this way instead of doing it all in either repo.
- *
- * Usage: npx tsx devTools/mdimDownloads/buildMdimPackage.mts <slug>
+ * See mdim-downloads/solution-space/etl-feasibility.md (owid-projects repo)
+ * for why the join lives in ETL while formatting lives here.
  */
-
 import { csvParse, csvFormat } from "d3-dsv"
 import { createZip, UncompressedFile } from "littlezipper"
 import {
@@ -28,6 +26,9 @@ import {
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
 } from "@ourworldindata/utils"
+import { getVariableMetadataRoute } from "@ourworldindata/grapher"
+import { MultiDimDataPageConfigEnriched } from "@ourworldindata/types"
+import { StatusError } from "itty-router"
 import {
     getTitle,
     getDescription,
@@ -38,21 +39,13 @@ import {
     getDescriptionLines,
     getSources,
     getDataProcessingLines,
-} from "../../functions/_common/readmeTools.js"
+} from "./readmeTools.js"
 import {
-    createS3Client,
-    saveObjectToR2,
-} from "../../serverUtils/r2/R2Helpers.js"
-import {
-    R2_ENDPOINT,
-    R2_ACCESS_KEY_ID,
-    R2_SECRET_ACCESS_KEY,
-    R2_REGION,
-} from "../../settings/serverSettings.js"
-
-const STAGING_BASE = "https://owid-public.owid.io/data/mdim-downloads-staging"
-const FINAL_BUCKET = "owid-public"
-const FINAL_BASE_PATH = "data/mdim-downloads"
+    fetchUnparsedGrapherConfig,
+    getDataApiUrl,
+    GrapherIdentifier,
+} from "./grapherTools.js"
+import { Env } from "./env.js"
 
 interface IndicatorEntry {
     wideColumnName: string
@@ -168,17 +161,6 @@ function computeTitleLong(col: any): string {
     return attributionString ? `${title} - ${attributionString}` : title
 }
 
-async function fetchIndicatorMetadata(id: number): Promise<any> {
-    const res = await fetch(
-        `https://api.ourworldindata.org/v1/indicators/${id}.metadata.json`
-    )
-    if (!res.ok)
-        throw new Error(
-            `Failed to fetch metadata for indicator ${id}: ${res.status}`
-        )
-    return res.json()
-}
-
 // Rebuild the CSV in the single-chart download's shape: Entity, Code,
 // Year/Day, then one column per indicator using its long display name.
 // Entity codes come from the indicator metadata's own entity dimension --
@@ -218,37 +200,50 @@ function toDownloadCsv(
     ])
 }
 
-async function main() {
-    const slug = process.argv[2]
-    if (!slug) {
-        console.error("Usage: buildMdimPackage.mts <slug>")
-        process.exit(1)
+export async function fetchCompleteDatasetZipForGrapher(
+    identifier: GrapherIdentifier,
+    env: Env
+): Promise<Response> {
+    // Complete-dataset packages only exist for MDIMs -- charts already have
+    // their own `.zip` route (fetchZipForGrapher) and don't need this one.
+    const multiDimId: GrapherIdentifier = {
+        type: "multi-dim-slug",
+        id: identifier.id,
     }
+    const configResponse = await fetchUnparsedGrapherConfig(
+        multiDimId,
+        env,
+        undefined
+    )
+    if (configResponse.status !== 200) throw new StatusError(404)
+    const multiDimConfig =
+        (await configResponse.json()) as MultiDimDataPageConfigEnriched
+    const pkg = multiDimConfig.downloadPackage
+    if (!pkg?.csvUrl || !pkg.indicatorsUrl) throw new StatusError(404)
 
-    console.log(`Fetching staged data for ${slug}...`)
-    // Cache-buster: the staging files sit behind Cloudflare's CDN cache, and
-    // this script must always see the latest ETL-staged version.
-    const cb = `?cb=${Date.now()}`
-    const index: StagedIndex = await fetch(
-        `${STAGING_BASE}/${slug}/indicators.json${cb}`
-    ).then((r) => r.json())
+    const [csvText, index] = await Promise.all([
+        fetch(pkg.csvUrl).then((r) => r.text()),
+        fetch(pkg.indicatorsUrl).then((r): Promise<StagedIndex> => r.json()),
+    ])
     const { title, indicators } = index
-    const csvText = await fetch(`${STAGING_BASE}/${slug}/wide.csv${cb}`).then(
-        (r) => r.text()
-    )
-    console.log(
-        `"${title}": ${indicators.length} indicators, CSV ${(csvText.length / 1e6).toFixed(1)} MB`
-    )
 
-    console.log(
-        `Fetching real metadata for ${indicators.length} indicators from the Data API...`
-    )
+    const dataApiUrl = getDataApiUrl(env)
     const rawMetas = await Promise.all(
-        indicators.map((ind) => fetchIndicatorMetadata(ind.owidVariableId))
+        indicators.map(async (ind) => {
+            const res = await fetch(
+                getVariableMetadataRoute(dataApiUrl, ind.owidVariableId)
+            )
+            if (!res.ok)
+                throw new StatusError(
+                    500,
+                    `Failed to fetch metadata for indicator ${ind.owidVariableId}: ${res.status}`
+                )
+            return res.json()
+        })
     )
 
     const entityNameToCode = new Map<string, string | null>()
-    for (const meta of rawMetas) {
+    for (const meta of rawMetas as any[]) {
         for (const ent of meta.dimensions?.entities?.values ?? []) {
             if (!entityNameToCode.has(ent.name))
                 entityNameToCode.set(ent.name, ent.code)
@@ -267,12 +262,6 @@ async function main() {
         const col = toColumnShim(def)
 
         const longName = computeLongColumnName(def)
-        const existing = seenLongNames.get(longName)
-        if (existing && existing !== ind.wideColumnName) {
-            console.warn(
-                `Column name collision: "${longName}" used by both ${existing} and ${ind.wideColumnName}`
-            )
-        }
         seenLongNames.set(longName, ind.wideColumnName)
         columnNameMap[ind.wideColumnName] = longName
 
@@ -312,15 +301,17 @@ async function main() {
             nextUpdate: getNextUpdateFromVariable(def),
             citationShort,
             citationLong,
-            fullMetadata: `https://api.ourworldindata.org/v1/indicators/${ind.owidVariableId}.metadata.json`,
+            fullMetadata: getVariableMetadataRoute(
+                dataApiUrl,
+                ind.owidVariableId
+            ),
         }
 
         readmeColumnSections.push(columnReadmeText(col).join("\n"))
     }
 
     const newCsv = toDownloadCsv(csvText, columnNameMap, entityNameToCode)
-
-    const pageUrl = `https://ourworldindata.org/grapher/${slug.replace(/_/g, "-")}`
+    const pageUrl = `https://ourworldindata.org/grapher/${identifier.id}`
 
     const metadataJson = {
         chart: {
@@ -371,36 +362,18 @@ ${readmeColumnSections.join("\n")}
 
     const zipContent: UncompressedFile[] = [
         {
-            path: `${slug}.metadata.json`,
+            path: `${identifier.id}.metadata.json`,
             data: JSON.stringify(metadataJson, undefined, 2),
         },
-        { path: `${slug}.csv`, data: newCsv },
+        { path: `${identifier.id}.csv`, data: newCsv },
         { path: "readme.md", data: readme },
     ]
-    const zipBuffer = await createZip(zipContent)
-    console.log(`Built zip: ${(zipBuffer.length / 1e6).toFixed(2)} MB`)
+    const content = await createZip(zipContent)
 
-    const s3Client = createS3Client({
-        endpoint: R2_ENDPOINT,
-        region: R2_REGION,
-        accessKeyId: R2_ACCESS_KEY_ID,
-        secretAccessKey: R2_SECRET_ACCESS_KEY,
+    return new Response(content, {
+        headers: {
+            "Content-Type": "application/zip",
+            "Content-Disposition": `attachment; filename="${identifier.id}.zip"`,
+        },
     })
-    const key = `${FINAL_BASE_PATH}/${slug}/${slug}.zip`
-    await saveObjectToR2(
-        Buffer.from(zipBuffer),
-        FINAL_BUCKET,
-        key,
-        "application/zip",
-        undefined,
-        s3Client
-    )
-
-    const finalUrl = `https://owid-public.owid.io/${key}`
-    console.log(`Uploaded: ${finalUrl}`)
 }
-
-main().catch((err) => {
-    console.error(err)
-    process.exit(1)
-})

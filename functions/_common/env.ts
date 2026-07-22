@@ -42,6 +42,7 @@ export const extensions = {
     metadata: ".metadata.json",
     readme: ".readme.md",
     zip: ".zip",
+    completeDatasetZip: ".complete-dataset.zip",
     values: ".values.json",
     searchResult: ".search-result.json",
 }
