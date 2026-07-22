@@ -19,6 +19,3 @@ export class AddQueryParamsToMultiDimRedirects1783083128496 implements Migration
         `)
     }
 }
-
-
-
