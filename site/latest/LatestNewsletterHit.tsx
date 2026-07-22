@@ -52,8 +52,8 @@ export const LatestNewsletterHit = ({
                         </a>
                     </h2>
                     <p className="latest-newsletter-hit__description">
-                        Our email digest of new charts, articles, and data —
-                        read this edition in your browser.
+                        A twice-monthly digest of our latest work plus curated
+                        highlights from across Our World in Data.
                     </p>
                 </div>
             </div>
