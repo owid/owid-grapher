@@ -165,6 +165,7 @@ export const NewsletterSubscriptionForm = ({
                 </label>
                 <a
                     className="newsletter-subscription-form__example-link note-12-medium"
+                    data-track-note="subscribe_example_owid_brief"
                     href={
                         exampleUrls?.briefUrl ?? DEFAULT_EXAMPLE_URLS.briefUrl
                     }
@@ -202,6 +203,7 @@ export const NewsletterSubscriptionForm = ({
                 </label>
                 <a
                     className="newsletter-subscription-form__example-link note-12-medium"
+                    data-track-note="subscribe_example_data_insights"
                     href={
                         exampleUrls?.dataInsightsUrl ??
                         DEFAULT_EXAMPLE_URLS.dataInsightsUrl
