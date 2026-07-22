@@ -68,6 +68,11 @@ async function putChartConfig(
 }
 
 async function main() {
+    // Fail fast with a clean message instead of a stack trace buried under
+    // yargs' usage output, which is what a lazy check inside a command
+    // handler would otherwise produce.
+    getApiKey()
+
     await yargs(hideBin(process.argv))
         .option("branch", {
             type: "string",
@@ -89,10 +94,7 @@ async function main() {
                 }),
             async (argv) => {
                 const baseUrl = resolveBaseUrl(argv)
-                const config = await getChartConfig(
-                    baseUrl,
-                    argv.chartId as number
-                )
+                const config = await getChartConfig(baseUrl, argv.chartId)
                 console.log(JSON.stringify(config, null, 2))
             }
         )
@@ -112,8 +114,8 @@ async function main() {
                     }),
             async (argv) => {
                 const baseUrl = resolveBaseUrl(argv)
-                const chartId = argv.chartId as number
-                const patch = JSON.parse(argv.patchJson as string)
+                const { chartId } = argv
+                const patch = JSON.parse(argv.patchJson)
                 const current = await getChartConfig(baseUrl, chartId)
                 const merged = { ...current, ...patch }
                 await putChartConfig(baseUrl, chartId, merged)
@@ -137,9 +139,9 @@ async function main() {
                     }),
             async (argv) => {
                 const baseUrl = resolveBaseUrl(argv)
-                const chartId = argv.chartId as number
+                const { chartId } = argv
                 const current = await getChartConfig(baseUrl, chartId)
-                delete current[argv.field as string]
+                delete current[argv.field]
                 await putChartConfig(baseUrl, chartId, current)
                 console.log("Saved. New config:")
                 console.log(JSON.stringify(current, null, 2))
@@ -151,6 +153,6 @@ async function main() {
 }
 
 void main().catch((error) => {
-    console.error("Encountered an error:", error)
+    console.error(error instanceof Error ? error.message : error)
     process.exit(-1)
 })
