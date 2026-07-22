@@ -51,6 +51,12 @@
     margin-left: 8px;
 }
 
+.latest-newsletter-hit__byline {
+    @include body-3-medium-italic;
+    color: $blue-50;
+    margin: 0 0 4px;
+}
+
 .latest-newsletter-hit__description {
     @include body-3-medium;
     color: $blue-60;
