@@ -2,6 +2,7 @@ import express, { NextFunction } from "express"
 import * as Sentry from "@sentry/node"
 import cookieParser from "cookie-parser"
 import http from "http"
+import type { AddressInfo } from "net"
 import { BAKED_BASE_URL, ENV } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 import { IndexPage } from "./IndexPage.js"
@@ -217,24 +218,56 @@ export class OwidAdminApp {
         )
         this.server.timeout = 8 * 60 * 1000 // Increase server timeout for long-running uploads
 
-        if (!this.options.quiet)
+        if (!this.options.quiet) {
+            const actualPort = (this.server.address() as AddressInfo).port
             console.log(
-                `owid-admin server started on http://${adminServerHost}:${adminServerPort}`
+                `owid-admin server started on http://${adminServerHost}:${actualPort}`
             )
+        }
     }
 
     // Server.listen does not seem to have an async/await form yet.
     // https://github.com/expressjs/express/pull/3675
     // https://github.com/nodejs/node/issues/21482
+    // In dev, several worktrees' dev servers run side by side on the same
+    // machine, so a configured port is often already taken by another one -
+    // fall back to the next port instead of crashing. Staging/production sit
+    // behind a reverse proxy that expects the configured port exactly, so
+    // there we still fail hard on a conflict.
     private listenPromise(
         app: express.Express,
         adminServerPort: number,
         adminServerHost: string
     ): Promise<http.Server> {
-        return new Promise((resolve) => {
-            const server = app.listen(adminServerPort, adminServerHost, () => {
-                resolve(server)
-            })
+        const { isDev } = this.options
+        const maxAttempts = isDev ? 20 : 1
+        return new Promise((resolve, reject) => {
+            const tryListen = (port: number, attempt: number): void => {
+                const server: http.Server = app
+                    .listen(port, adminServerHost, () => {
+                        // Node can invoke this callback even when the bind
+                        // ultimately fails (the 'error' handler below then
+                        // fires right after) - only resolve once the server
+                        // is actually bound, or the broken server can win the
+                        // promise before the real retry below completes.
+                        if (server.listening && server.address())
+                            resolve(server)
+                    })
+                    .on("error", (err: NodeJS.ErrnoException) => {
+                        if (
+                            err.code === "EADDRINUSE" &&
+                            attempt < maxAttempts
+                        ) {
+                            console.log(
+                                `Port ${port} is already in use, trying ${port + 1}...`
+                            )
+                            tryListen(port + 1, attempt + 1)
+                        } else {
+                            reject(err)
+                        }
+                    })
+            }
+            tryListen(adminServerPort, 1)
         })
     }
 
