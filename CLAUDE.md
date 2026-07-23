@@ -19,7 +19,7 @@ When creating new skills in `.claude/skills/`, always include `metadata: { inter
 
 - `yarn tsx devTools/callAdminApi.ts get <chartId> --branch <branch>` / `set <chartId> '<jsonPatch>' --branch <branch>` / `unset <chartId> <field> --branch <branch>`: inspect or change a chart's config on any `staging-site-<branch>` (or `--host` for local/prod) without the browser.
 - Auth is `ADMIN_API_KEY` in `.env` — one shared key works against **every** staging server (not per-branch), since `admin_api_keys` ships in the private data dump every staging build restores from (see `db/exportMetadataTables.ts`). It's the same key etl already uses; no need to mint a new one.
-- For UI/CSS changes (not just chart-config edits), don't wait for the full static-site rebake (~10-13 min) — `http://staging-site-<branch>/admin/charts/<id>/edit` (or `/preview`) reflects a pushed code change within ~1-3 min, since the admin client bundle deploys faster than the full site bake.
+- Don't wait for the static-site rebake (~10-13 min) to check or share a chart — `http://staging-site-<branch>/admin/charts/<id>/preview` reflects both chart-config edits and pushed code changes within ~1-3 min. Default to this link (not the public `/grapher/<slug>` page) whenever pointing someone at a chart on staging.
 
 ## Team
 
