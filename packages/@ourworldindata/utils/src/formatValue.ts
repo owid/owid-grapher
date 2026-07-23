@@ -23,16 +23,20 @@ function checkIsUnitPercent(unit: string): unit is "%" {
 function getTrim({
     roundingMode,
     trailingZeroes,
+    numberAbbreviation,
+    type,
 }: {
     roundingMode: OwidVariableRoundingMode
     trailingZeroes: boolean
+    numberAbbreviation: "long" | "short" | false
+    type: "f" | "s" | "r"
 }): "~" | "" {
-    // always show trailing zeroes when rounding to significant figures
-    return roundingMode === OwidVariableRoundingMode.significantFigures
-        ? ""
-        : trailingZeroes
-          ? ""
-          : "~"
+    if (roundingMode === OwidVariableRoundingMode.significantFigures) {
+        // sig-fig columns keep trailing zeroes ("1.50") but not abbreviated
+        // values ("1k" instead of "1.00k")
+        return type === "s" && numberAbbreviation === "short" ? "~" : ""
+    }
+    return trailingZeroes ? "" : "~"
 }
 
 function getSign({ showPlus }: { showPlus: boolean }): "+" | "" {
@@ -47,12 +51,14 @@ function getType({
     roundingMode,
     numberAbbreviation,
     abbreviationThreshold,
+    numSignificantFigures,
     value,
     unit,
 }: {
     roundingMode: OwidVariableRoundingMode
     numberAbbreviation: "long" | "short" | false
     abbreviationThreshold?: number
+    numSignificantFigures: number
     value: number
     unit: string
 }): "f" | "s" | "r" {
@@ -70,8 +76,19 @@ function getType({
         return type
     }
     if (numberAbbreviation) {
-        const threshold =
-            abbreviationThreshold ?? DEFAULT_ABBREVIATION_THRESHOLD
+        // Compact labels of sig-fig columns abbreviate from 10^(sf + 2) —
+        // the magnitude from which abbreviations carry no decimals. At
+        // 3 sig figs that's 100k: 123,456 renders as "123k", while 25,240
+        // stays written out as "25,200" since "25.2k" would need a decimal
+        const defaultThreshold =
+            numberAbbreviation === "short" &&
+            roundingMode === OwidVariableRoundingMode.significantFigures
+                ? Math.min(
+                      10 ** (numSignificantFigures + 2),
+                      DEFAULT_ABBREVIATION_THRESHOLD
+                  )
+                : DEFAULT_ABBREVIATION_THRESHOLD
+        const threshold = abbreviationThreshold ?? defaultThreshold
         return Math.abs(value) < threshold ? type : "s"
     }
 
@@ -276,6 +293,7 @@ export function formatValue(
         roundingMode: effectiveRoundingMode,
         numberAbbreviation,
         abbreviationThreshold,
+        numSignificantFigures,
         value,
         unit,
     })
@@ -284,9 +302,12 @@ export function formatValue(
     // https://observablehq.com/@ikesau/d3-format-interactive-demo
     const specifier = new FormatSpecifier({
         zero: "0",
-        // trim is based on the configured rounding mode so that all values of
-        // a sig-fig column share the same trailing-zero convention
-        trim: getTrim({ roundingMode, trailingZeroes }),
+        trim: getTrim({
+            roundingMode,
+            trailingZeroes,
+            numberAbbreviation,
+            type,
+        }),
         sign: getSign({ showPlus }),
         symbol: getSymbol({ unit }),
         comma: ",",
