@@ -1952,4 +1952,20 @@ describe("ETL config upsert by config UUID", { timeout: 15000 }, () => {
         })
         expect(response.status).toBe(400)
     })
+
+    it("creates a chart with a caller-supplied config UUID via POST /charts", async () => {
+        const chartConfigId = uuidv7()
+        const response = await env.request({
+            method: "POST",
+            path: `/charts?configId=${chartConfigId}`,
+            body: JSON.stringify(testChartConfig),
+        })
+        expect(response.success).toBe(true)
+
+        const chartRow = await env
+            .testKnex(ChartsTableName)
+            .where("id", response.chartId)
+            .first()
+        expect(chartRow.configId).toBe(chartConfigId)
+    })
 })

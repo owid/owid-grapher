@@ -889,6 +889,10 @@ export async function createChart(
     if (req.query.forceDatapage) {
         forceDatapage = req.query.forceDatapage === "true"
     }
+    // optional caller-supplied config UUID, e.g. chart-sync carrying a chart's
+    // identity from staging to production; validated in saveNewChart
+    const chartConfigId =
+        (req.query.configId as string | undefined) || undefined
 
     try {
         const { chartId } = await saveGrapher(trx, {
@@ -896,6 +900,7 @@ export async function createChart(
             newConfig: req.body,
             forceDatapage,
             shouldInherit,
+            chartConfigId,
         })
 
         return { success: true, chartId: chartId }
