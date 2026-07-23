@@ -4,20 +4,23 @@
  * (fetchZipForGrapher in downloadFunctions.ts): built fresh per request,
  * not a pre-baked artifact sitting at a fixed URL.
  *
- * ETL does the one thing that genuinely benefits from build-time work --
- * joining every view's indicator into one wide table, so this function
- * never has to fetch per-view data on each request -- and stages the
- * result (wide.csv + an indicator index) to R2. This function picks that
- * up, fetches each distinct indicator's real metadata from the Data API
- * (cheap: one call per indicator, deduped, not per view), and reuses
- * grapher's own citation/readme-formatting functions to build the zip,
- * returning it directly -- no intermediate artifact, no separate build
- * step to trigger.
+ * ETL does everything that genuinely benefits from running once at build
+ * time rather than per-request: joining every view's indicator into one
+ * wide table (no per-view HTTP fetch), AND writing that CSV in its final
+ * downloadable shape (Entity/Code/Year columns, long display-name headers,
+ * numbers formatted) -- see etl/collection/download_package.py. That matters
+ * here, not just there: a real covid-scale MDIM's wide table is ~590k rows,
+ * and parsing/rebuilding a CSV that size into JS row objects on every
+ * request risked this Worker's 128MB memory limit. Because ETL already
+ * hands back a finished CSV, this function never parses a single row --
+ * it fetches the bytes and passes them straight into the zip. What's left
+ * to do live is O(distinct indicators), not O(rows): fetch each indicator's
+ * real metadata from the Data API and reuse grapher's own citation/readme-
+ * formatting functions to build metadata.json + readme.md.
  *
  * See mdim-downloads/solution-space/etl-feasibility.md (owid-projects repo)
- * for why the join lives in ETL while formatting lives here.
+ * for why the join lives in ETL while metadata formatting lives here.
  */
-import { parseDelimited, matrixToDelimited } from "@ourworldindata/core-table"
 import { createZip, UncompressedFile } from "littlezipper"
 import {
     getCitationShort,
@@ -51,6 +54,10 @@ interface IndicatorEntry {
     wideColumnName: string
     catalogPath: string
     owidVariableId: number
+    // Long display name ETL already computed for this column -- it's the
+    // CSV's actual header (ETL writes the final CSV, not this function), and
+    // is reused as-is for metadata.json's column key so the two can't drift.
+    longName: string
 }
 
 interface StagedIndex {
@@ -112,25 +119,6 @@ function columnReadmeText(col: any): string[] {
     return lines
 }
 
-function computeLongColumnName(def: any): string {
-    const titlePublic =
-        def.presentation?.titlePublic || def.display?.name || def.name
-    const { attributionShort, titleVariant } = def.presentation ?? {}
-    let title = titlePublic
-    if (attributionShort && titleVariant)
-        title = `${title} – ${titleVariant} – ${attributionShort}`
-    else if (titleVariant) title = `${title} – ${titleVariant}`
-    else if (attributionShort) title = `${title} – ${attributionShort}`
-    // Disambiguate dimension choices that share the same base title (e.g.
-    // "Average years of schooling" for both the "girls" and "boys" views) --
-    // display.name already carries the disambiguating value ("Girls", "Both
-    // genders") for exactly this reason.
-    if (def.display?.name && def.display.name !== titlePublic) {
-        title = `${title} (${def.display.name})`
-    }
-    return title
-}
-
 // Mirrors variableTypeToColumnType in LegacyToOwidTable.ts (not exported) so
 // the metadata.json "type" field matches the single-chart download's values
 // ("Numeric", not the raw API's "float").
@@ -161,49 +149,6 @@ function computeTitleLong(col: any): string {
     return attributionString ? `${title} - ${attributionString}` : title
 }
 
-// Rebuild the CSV in the single-chart download's shape: Entity, Code,
-// Year/Day, then one column per indicator using its long display name.
-// Entity codes come from the indicator metadata's own entity dimension --
-// the same mapping the regular download uses, no extra data source.
-function toDownloadCsv(
-    csvText: string,
-    columnNameMap: Record<string, string>,
-    entityNameToCode: Map<string, string | null>
-): string {
-    const rows = parseDelimited(csvText, ",")
-    const cols = rows.columns
-    const timeCol = cols.find((c) => c === "year" || c === "date")
-    if (!timeCol) throw new Error("No year/date column in staged CSV")
-    const timeHeader = timeCol === "date" ? "Day" : "Year"
-    const dataCols = cols.filter((c) => c !== "country" && c !== timeCol)
-    const header = [
-        "Entity",
-        "Code",
-        timeHeader,
-        ...dataCols.map((c) => columnNameMap[c] ?? c),
-    ]
-
-    const matrix = [
-        header,
-        ...rows.map((row) => {
-            const values = dataCols.map((c) => {
-                const v = row[c]
-                // Round-trip numeric values through Number so integers print
-                // without pandas' trailing ".0" ("11", not "11.0") --
-                // matches how grapher's own CSV writer serializes them.
-                return v && !isNaN(+v) ? String(+v) : v
-            })
-            return [
-                row.country,
-                entityNameToCode.get(row.country ?? "") ?? "",
-                row[timeCol],
-                ...values,
-            ]
-        }),
-    ]
-    return matrixToDelimited(matrix, ",")
-}
-
 export async function fetchCompleteDatasetZipForGrapher(
     identifier: GrapherIdentifier,
     env: Env
@@ -225,8 +170,10 @@ export async function fetchCompleteDatasetZipForGrapher(
     const pkg = multiDimConfig.downloadPackage
     if (!pkg?.csvUrl || !pkg.indicatorsUrl) throw new StatusError(404)
 
-    const [csvText, index] = await Promise.all([
-        fetch(pkg.csvUrl).then((r) => r.text()),
+    // csvBuffer is fetched as bytes and never parsed -- ETL already wrote it
+    // in its final downloadable shape (see the module doc comment above).
+    const [csvBuffer, index] = await Promise.all([
+        fetch(pkg.csvUrl).then((r) => r.arrayBuffer()),
         fetch(pkg.indicatorsUrl).then((r): Promise<StagedIndex> => r.json()),
     ])
     const { title, indicators } = index
@@ -246,28 +193,15 @@ export async function fetchCompleteDatasetZipForGrapher(
         })
     )
 
-    const entityNameToCode = new Map<string, string | null>()
-    for (const meta of rawMetas as any[]) {
-        for (const ent of meta.dimensions?.entities?.values ?? []) {
-            if (!entityNameToCode.has(ent.name))
-                entityNameToCode.set(ent.name, ent.code)
-        }
-    }
-
-    const columnNameMap: Record<string, string> = {}
     const metadataColumns: Record<string, any> = {}
     const readmeColumnSections: string[] = []
     const attributions = new Set<string>()
-    const seenLongNames = new Map<string, string>()
 
     for (let i = 0; i < indicators.length; i++) {
         const ind = indicators[i]
         const def = toColumnDef(rawMetas[i])
         const col = toColumnShim(def)
-
-        const longName = computeLongColumnName(def)
-        seenLongNames.set(longName, ind.wideColumnName)
-        columnNameMap[ind.wideColumnName] = longName
+        const longName = ind.longName
 
         attributions.add(getAttribution(def))
 
@@ -314,7 +248,6 @@ export async function fetchCompleteDatasetZipForGrapher(
         readmeColumnSections.push(columnReadmeText(col).join("\n"))
     }
 
-    const newCsv = toDownloadCsv(csvText, columnNameMap, entityNameToCode)
     const pageUrl = `https://ourworldindata.org/grapher/${identifier.id}`
 
     const metadataJson = {
@@ -369,7 +302,7 @@ ${readmeColumnSections.join("\n")}
             path: `${identifier.id}.metadata.json`,
             data: JSON.stringify(metadataJson, undefined, 2),
         },
-        { path: `${identifier.id}.csv`, data: newCsv },
+        { path: `${identifier.id}.csv`, data: csvBuffer },
         { path: "readme.md", data: readme },
     ]
     const content = await createZip(zipContent)
