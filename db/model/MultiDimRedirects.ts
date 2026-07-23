@@ -149,6 +149,11 @@ export async function getMultiDimRedirectRulesBySource(
         WHERE mddp.published = TRUE
             AND mddp.slug IS NOT NULL
             AND mdr.source LIKE ?
+        -- Deterministic order so that, when two same-specificity rules overlap
+        -- for a source, buildQueryParamDecisionTree breaks the tie the same way
+        -- on every bake (it uses input order). Without this, MySQL's row order
+        -- is unspecified and the target could flip between bakes.
+        ORDER BY mdr.id
         `,
         [sourcePrefix, `${sourcePrefix}%`]
     )
@@ -187,9 +192,20 @@ export async function getMultiDimRedirectRulesBySource(
 function parseSourceQueryParams(
     raw: string | null
 ): Record<string, string | null> {
-    if (!raw) return {}
-    const parsed = JSON.parse(raw) as Record<string, unknown>
-    const condition: Record<string, string | null> = {}
+    // Null-prototype object so param names coming from stored JSON (e.g.
+    // "__proto__") can't pollute the prototype chain.
+    const condition: Record<string, string | null> = Object.create(null)
+    if (!raw) return condition
+    const parsed: unknown = JSON.parse(raw)
+    // Guard against JSON that isn't a plain object (null, arrays, primitives),
+    // which would make Object.entries throw or produce nonsense keys.
+    if (
+        typeof parsed !== "object" ||
+        parsed === null ||
+        Array.isArray(parsed)
+    ) {
+        return condition
+    }
     for (const [key, value] of Object.entries(parsed)) {
         condition[key] = value === null ? null : String(value)
     }
@@ -206,7 +222,9 @@ function buildTargetQueryParams(
     sourceQueryParams: Record<string, string | null>,
     viewParams: MultiDimDimensionChoices
 ): Record<string, string | null> {
-    const targetQueryParams: Record<string, string | null> = {}
+    // Null-prototype object: keys can originate from user-controlled source
+    // query params, so avoid any "__proto__"-style prototype pollution.
+    const targetQueryParams: Record<string, string | null> = Object.create(null)
     for (const key of Object.keys(viewParams).sort()) {
         targetQueryParams[key] = viewParams[key]
     }

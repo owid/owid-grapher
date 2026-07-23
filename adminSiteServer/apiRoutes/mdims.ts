@@ -483,22 +483,40 @@ function parseSourceQueryParamsColumn(
     return JSON.parse(raw) as Record<string, string | null>
 }
 
-const postMultiDimRedirectSchema = z.object({
-    source: z
-        .string()
-        .regex(
-            /^\/(grapher|explorers)\/.*[^/]$/,
-            "Source must start with either /grapher/ or /explorers/ and cannot end with a slash"
-        ),
-    viewConfigId: z.string().nullable().optional(),
-    // Optional source query params the redirect is conditioned on. A `null`
-    // value acts as a wildcard for that param. When omitted/empty, the redirect
-    // matches regardless of query params.
-    sourceQueryParams: z
-        .record(z.string(), z.string().nullable())
-        .nullable()
-        .optional(),
-})
+const postMultiDimRedirectSchema = z
+    .object({
+        source: z
+            .string()
+            .regex(
+                /^\/(grapher|explorers)\/.*[^/]$/,
+                "Source must start with either /grapher/ or /explorers/ and cannot end with a slash"
+            ),
+        viewConfigId: z.string().nullable().optional(),
+        // Optional source query params the redirect is conditioned on. A `null`
+        // value acts as a wildcard for that param. When omitted/empty, the
+        // redirect matches regardless of query params.
+        sourceQueryParams: z
+            .record(z.string(), z.string().nullable())
+            .nullable()
+            .optional(),
+    })
+    // Query-param conditions are only honored for /explorers/ sources, which are
+    // baked into per-source decision trees. The /grapher/ redirect path is a
+    // plain slug->target map (getGrapherToMultiDimRedirects) that ignores query
+    // params, so a conditioned /grapher/ redirect would silently apply to every
+    // query string and multiple conditions for one slug would clobber each other.
+    // Reject them here rather than store a rule that can't be honored.
+    .refine(
+        (data) =>
+            !data.source.startsWith("/grapher/") ||
+            !data.sourceQueryParams ||
+            Object.keys(data.sourceQueryParams).length === 0,
+        {
+            message:
+                "Source query params are only supported for /explorers/ redirects, not /grapher/ sources",
+            path: ["sourceQueryParams"],
+        }
+    )
 
 // Normalizes an empty object to null so "no condition" is stored consistently.
 function normalizeSourceQueryParams(
