@@ -60,9 +60,18 @@ export function makeNumberOfRowsSnippet(numRows: number | undefined): string {
 }
 
 export function makeFullDownloadDescription(
-    numRows: number | undefined
+    numRows: number | undefined,
+    {
+        hasCompleteDatasetSibling = false,
+    }: { hasCompleteDatasetSibling?: boolean } = {}
 ): string {
-    return `Includes all entities and time points${makeNumberOfRowsSnippet(
+    // "for this view" only makes sense to say when a complete-dataset download
+    // (covering every view) sits alongside this one and needs distinguishing
+    // from it -- on a page without one (e.g. non-MDIM charts, or the chart
+    // modal's own download options), there's only one view, so the phrase
+    // would just be confusing.
+    const viewSnippet = hasCompleteDatasetSibling ? " for this view" : ""
+    return `Includes all entities and time points${viewSnippet}${makeNumberOfRowsSnippet(
         numRows
     )}`
 }
