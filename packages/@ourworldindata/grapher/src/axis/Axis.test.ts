@@ -288,7 +288,7 @@ describe("for months", () => {
     it("drops repeated years on a sub-year monthly axis, keeping months and Januaries", () => {
         const labels = makeMonthlyTimeAxis(
             "2020-03-01",
-            "2022-11-01",
+            "2021-11-01",
             8
         ).tickLabels.map((tick) => tick.formattedValue)
 
@@ -297,9 +297,22 @@ describe("for months", () => {
             expect(label).toMatch(/^[A-Z][a-z]{2}( \d{4})?$/)
         // the year rides along on each January
         expect(labels).toContain("Jan 2021")
-        expect(labels).toContain("Jan 2022")
         // ...but not on the intervening months
         expect(labels).toContain("Jul")
+    })
+
+    it("keeps the year on every tick of a half-yearly axis", () => {
+        // At a 6-month step, half the ticks are Januaries carrying the year
+        // anyway, so all ticks get it for consistency
+        const labels = makeMonthlyTimeAxis(
+            "2020-03-01",
+            "2022-11-01",
+            8
+        ).tickLabels.map((tick) => tick.formattedValue)
+
+        for (const label of labels)
+            expect(label).toMatch(/^[A-Z][a-z]{2} \d{4}$/)
+        expect(labels).toContain("Jul 2021")
     })
 
     it("labels a yearly-cadence monthly axis with bare years only", () => {
