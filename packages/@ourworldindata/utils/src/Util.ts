@@ -252,7 +252,9 @@ const SUB_YEARLY_INTERVALS = new Set<TimeInterval>([
  * Whether the interval is finer than a year and therefore encoded as
  * days-since-epoch (day/week/month/quarter)
  */
-export function isSubYearly(interval: TimeInterval): boolean {
+export function isSubYearly(
+    interval: TimeInterval
+): interval is Exclude<TimeInterval, TimeInterval.Year | TimeInterval.Decade> {
     return SUB_YEARLY_INTERVALS.has(interval)
 }
 

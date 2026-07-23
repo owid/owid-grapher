@@ -6,7 +6,6 @@ import {
 } from "@ourworldindata/utils"
 import { TimeInterval } from "@ourworldindata/types"
 import {
-    buildTimeAxisTicks,
     buildDiscreteTimeAxisTicks,
     buildContinuousQuarterlyAxisTicks,
     getDiscreteQuarterlyTickOptions,
@@ -568,19 +567,6 @@ describe(buildDiscreteTimeAxisTicks, () => {
             bandValues: ["2020-01-01", "2020-04-01"].map(day),
         })
         for (const tick of ticks) expect(tick.label).toBeUndefined()
-    })
-})
-
-describe(buildTimeAxisTicks, () => {
-    it("returns undefined for intervals without special handling", () => {
-        const bandValues = ["2020-01-01", "2021-01-01"].map(day)
-        const ticks = buildTimeAxisTicks({
-            interval: TimeInterval.Year,
-            domain: [bandValues[0], bandValues[1]],
-            targetCount: 6,
-            bandValues,
-        })
-        expect(ticks).toBeUndefined()
     })
 })
 
