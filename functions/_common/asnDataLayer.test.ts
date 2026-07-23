@@ -30,13 +30,11 @@ describe(buildDataLayerScript, () => {
         expect(script).toContain(`"as_org":"${"x".repeat(100)}"`)
     })
 
-    it("fills in missing fields when only one of asn/asOrganization is present", () => {
-        expect(buildDataLayerScript({ asn: 13335 })).toContain(
-            `{"asn":13335,"as_org":""}`
-        )
+    it("omits the missing field when only one of asn/asOrganization is present", () => {
+        expect(buildDataLayerScript({ asn: 13335 })).toContain(`{"asn":13335}`)
         expect(
             buildDataLayerScript({ asOrganization: "Cloudflare" })
-        ).toContain(`{"asn":0,"as_org":"Cloudflare"}`)
+        ).toContain(`{"as_org":"Cloudflare"}`)
     })
 
     it("returns undefined when cf info is absent (e.g. local dev)", () => {

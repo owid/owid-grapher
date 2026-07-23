@@ -1,3 +1,4 @@
+import { escapeJSONStringForInlineScript } from "@ourworldindata/utils"
 import { Env } from "./env.js"
 
 // Forwards the visitor's network operator (ASN + owning organization, resolved
@@ -25,12 +26,13 @@ export function buildDataLayerScript(
     if (!cf) return undefined
     if (!cf.asn && !cf.asOrganization) return undefined
     const params = {
-        asn: cf.asn ?? 0,
+        ...(cf.asn ? { asn: cf.asn } : {}),
         // GA4 param values must be 100 characters or less
-        as_org: (cf.asOrganization ?? "").slice(0, 100),
+        ...(cf.asOrganization
+            ? { as_org: cf.asOrganization.slice(0, 100) }
+            : {}),
     }
-    // Escape "<" so an org name can't close the script tag or open a comment
-    const json = JSON.stringify(params).replace(/</g, "\\u003c")
+    const json = escapeJSONStringForInlineScript(JSON.stringify(params))
     return `<script>window.dataLayer=window.dataLayer||[];window.dataLayer.push(${json});</script>`
 }
 
@@ -45,9 +47,10 @@ export const asnDataLayerMiddleware: PagesFunction<Env> = async (context) => {
     // Known tradeoff: on a conditional request the asset server returns a 304
     // and the browser reuses its stored body, i.e. the ASN injected on an
     // earlier visit — stale if the visitor changed networks since. Accepted:
-    // it's the visitor's own previous ASN, the window is bounded by our bake
-    // frequency (ETag churn), and the alternative (stripping validators) would
-    // force full re-downloads of every repeat HTML view site-wide.
+    // it's the visitor's own previous ASN, and the staleness window closes
+    // whenever that page's ETag next changes (which varies by page — not
+    // every bake touches every page). The alternative (stripping validators)
+    // would force full re-downloads of every repeat HTML view site-wide.
     if (
         response.status !== 200 ||
         !response.headers.get("content-type")?.includes("text/html")
