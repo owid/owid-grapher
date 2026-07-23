@@ -217,7 +217,12 @@ export function makeFigmaId(...unsafeKeys: (string | undefined)[]): string {
 // isn't created before the `timezone-mock` used in tests is registered (a dayjs
 // object backed by a native Date created outside the mock can't be cloned once
 // the mock is active).
+
 export const epochDate = lazy(() => dayjs.utc(EPOCH_DATE))
+
+const MS_PER_DAY = 86_400_000
+export const toStartOfDayUtc = (date: dayjs.Dayjs): dayjs.Dayjs =>
+    date.valueOf() % MS_PER_DAY === 0 ? date : date.utc().startOf("day")
 
 export function convertDaysSinceEpochToDate(dayAsYear: number): dayjs.Dayjs {
     return epochDate().add(dayAsYear, "days")
@@ -225,7 +230,7 @@ export function convertDaysSinceEpochToDate(dayAsYear: number): dayjs.Dayjs {
 
 // Inverse of convertDaysSinceEpochToDate.
 export function convertDateToDaysSinceEpoch(date: dayjs.Dayjs): number {
-    return date.diff(epochDate(), "day")
+    return diffDatesInDays(date, epochDate())
 }
 
 export function formatDay(
@@ -771,8 +776,11 @@ export const valuesByEntityAtTimes = (
         valuesAtTimes(valueByTime, targetTimes, tolerance)
     )
 
-export const diffDatesInDays = (a: dayjs.Dayjs, b: dayjs.Dayjs): number =>
-    a.diff(b, "day")
+export const diffDatesInDays = (a: dayjs.Dayjs, b: dayjs.Dayjs): number => {
+    const aUtc = toStartOfDayUtc(a)
+    const bUtc = toStartOfDayUtc(b)
+    return Math.trunc((aUtc.valueOf() - bUtc.valueOf()) / MS_PER_DAY)
+}
 
 export const getYearFromISOStringAndDayOffset = (
     epoch: string,
