@@ -111,11 +111,11 @@ interface CaptionedChartProps {
 export const CONTROLS_ROW_HEIGHT = 32
 
 // keep in sync with sass variables in CaptionedChart.scss
-const DEPRECATION_NOTICE_PADDING_VERTICAL = 16
-const DEPRECATION_NOTICE_PADDING_HORIZONTAL = 20
-const DEPRECATION_NOTICE_GAP = 14
-const DEPRECATION_NOTICE_ICON_BADGE_SIZE = 32
-const DEPRECATION_NOTICE_FONT_SIZE = 15
+const DEPRECATION_NOTICE_PADDING_VERTICAL = 12
+const DEPRECATION_NOTICE_PADDING_HORIZONTAL = 16
+const DEPRECATION_NOTICE_GAP = 10
+const DEPRECATION_NOTICE_ICON_WIDTH = 16
+const DEPRECATION_NOTICE_FONT_SIZE = 14
 const DEPRECATION_NOTICE_LINE_HEIGHT = 1.5
 
 abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProps> {
@@ -207,7 +207,7 @@ export class CaptionedChart extends AbstractCaptionedChart {
             maxWidth:
                 this.maxWidth -
                 2 * DEPRECATION_NOTICE_PADDING_HORIZONTAL -
-                DEPRECATION_NOTICE_ICON_BADGE_SIZE -
+                DEPRECATION_NOTICE_ICON_WIDTH -
                 DEPRECATION_NOTICE_GAP,
             fontSize: DEPRECATION_NOTICE_FONT_SIZE,
             lineHeight: DEPRECATION_NOTICE_LINE_HEIGHT,
@@ -218,10 +218,7 @@ export class CaptionedChart extends AbstractCaptionedChart {
     @computed private get deprecationNoticeHeight(): number {
         if (!this.deprecationNoticeTextWrap) return 0
         return (
-            Math.max(
-                DEPRECATION_NOTICE_ICON_BADGE_SIZE,
-                this.deprecationNoticeTextWrap.height
-            ) +
+            this.deprecationNoticeTextWrap.height +
             2 * DEPRECATION_NOTICE_PADDING_VERTICAL
         )
     }
@@ -304,15 +301,7 @@ export class CaptionedChart extends AbstractCaptionedChart {
                         gap: DEPRECATION_NOTICE_GAP,
                     }}
                 >
-                    <div
-                        className="DeprecationNotice__icon"
-                        style={{
-                            width: DEPRECATION_NOTICE_ICON_BADGE_SIZE,
-                            height: DEPRECATION_NOTICE_ICON_BADGE_SIZE,
-                        }}
-                    >
-                        <FontAwesomeIcon icon={faBoxArchive} />
-                    </div>
+                    <FontAwesomeIcon icon={faBoxArchive} />
                     <div
                         className="DeprecationNotice__text"
                         style={this.deprecationNoticeTextWrap!.style}

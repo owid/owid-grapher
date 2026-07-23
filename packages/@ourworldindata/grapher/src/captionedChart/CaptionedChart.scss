@@ -24,38 +24,38 @@ $controlRowHeight: 32px; // keep in sync with CONTROLS_ROW_HEIGHT
     }
 }
 
+// Custom muted-amber palette from the "2a" option of the Claude Design
+// mockup (not in colors.scss — deliberately softer than $amber/$amber-10,
+// chosen so the notice reads as a warning without the brand amber's punch)
+$deprecation-notice-bg: #fbf6e8;
+$deprecation-notice-border: #f0e2b8;
+$deprecation-notice-icon: #a3861f;
+$deprecation-notice-heading: #5c4a10;
+$deprecation-notice-text: #6b5a1f;
+
 // keep in sync with constant values in CaptionedChart.tsx
 .DeprecationNotice__box {
     display: flex;
     align-items: flex-start;
-    border-radius: 8px;
-    background: $blue-5;
-    border: 1px solid $blue-20;
+    border-radius: 6px;
+    background: $deprecation-notice-bg;
+    border: 1px solid $deprecation-notice-border;
+
+    svg {
+        flex-shrink: 0;
+        margin-top: 3px;
+        font-size: 13px;
+        color: $deprecation-notice-icon;
+    }
 
     strong {
         font-weight: 600;
-        color: $blue-95;
-    }
-}
-
-.DeprecationNotice__icon {
-    flex: 0 0 auto;
-    margin-top: 1px;
-    border-radius: 6px;
-    background: $blue-20;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    svg {
-        font-size: 14px;
-        color: $blue-60;
+        color: $deprecation-notice-heading;
     }
 }
 
 .DeprecationNotice__text {
-    padding-top: 2px;
-    color: $blue-60;
+    color: $deprecation-notice-text;
 
     a {
         color: $vermillion;
