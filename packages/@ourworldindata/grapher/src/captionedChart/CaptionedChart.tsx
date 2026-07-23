@@ -284,6 +284,21 @@ export class CaptionedChart extends AbstractCaptionedChart {
         )
     }
 
+    // Markdown links render as plain <a href>, with no way to pass per-link
+    // target/rel props. Inside an iframe embed, opening the successor link
+    // in the iframe itself would be a poor escape hatch, so intercept clicks
+    // there and open in a new tab instead (same as the hand-authored links
+    // in Header/Footer already do for isInIFrame).
+    private readonly onDeprecationNoticeClick = (
+        event: React.MouseEvent<HTMLDivElement>
+    ): void => {
+        if (!this.manager.isInIFrame) return
+        const anchor = (event.target as HTMLElement).closest("a")
+        if (!anchor) return
+        event.preventDefault()
+        window.open(anchor.href, "_blank", "noopener")
+    }
+
     private renderDeprecationNotice(): React.ReactElement {
         return (
             <div
@@ -300,6 +315,7 @@ export class CaptionedChart extends AbstractCaptionedChart {
                         padding: `${DEPRECATION_NOTICE_PADDING_VERTICAL}px ${DEPRECATION_NOTICE_PADDING_HORIZONTAL}px`,
                         gap: DEPRECATION_NOTICE_GAP,
                     }}
+                    onClick={this.onDeprecationNoticeClick}
                 >
                     <FontAwesomeIcon icon={faBoxArchive} />
                     <div
