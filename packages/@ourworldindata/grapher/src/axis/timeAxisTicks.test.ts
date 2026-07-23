@@ -155,6 +155,16 @@ describe(buildContinuousMonthlyAxisTicks, () => {
             "Oct",
         ])
     })
+
+    it("keeps the year on every tick when at least half would carry it anyway", () => {
+        // Two of the three ticks (the first and the January) carry the year,
+        // so a lone year-less "Apr" would just look inconsistent
+        expect(labels("2020-09-15", "2021-05-01", 3)).toEqual([
+            "Oct 2020",
+            "Jan 2021",
+            "Apr 2021",
+        ])
+    })
 })
 
 describe(buildContinuousDailyAxisTicks, () => {
@@ -318,18 +328,20 @@ describe(buildContinuousQuarterlyAxisTicks, () => {
         ])
     })
 
-    it("steps by half-years for ~3-year spans, keeping the year on each January", () => {
+    it("steps by half-years for ~3-year spans, keeping the year on every tick", () => {
+        // Half the ticks are Januaries that carry the year anyway, so the
+        // alternation "Jan 2020 · Jul · Jan 2021" would just look inconsistent
         const ticks = buildContinuousQuarterlyAxisTicks({
             domain: [day("2020-01-01"), day("2022-07-01")],
             targetCount: 6,
         })!
         expect(ticks.map((t) => t.label)).toEqual([
             "Jan 2020",
-            "Jul",
+            "Jul 2020",
             "Jan 2021",
-            "Jul",
+            "Jul 2021",
             "Jan 2022",
-            "Jul",
+            "Jul 2022",
         ])
     })
 

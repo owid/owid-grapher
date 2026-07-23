@@ -127,10 +127,19 @@ function labelGridWithYearOnChange(
     { format, formatWithYear }: { format: string; formatWithYear: string }
 ): Tickmark[] {
     const years = grid.map((value) => convertDaysSinceEpochToDate(value).year())
-    return grid.map((value, i) => {
-        const isNewYear = i === 0 || years[i] !== years[i - 1]
-        return makeDayTick(value, isNewYear ? formatWithYear : format)
-    })
+    const isNewYear = (i: number): boolean =>
+        i === 0 || years[i] !== years[i - 1]
+
+    // When at least half the ticks carry the year anyway, an alternation of
+    // wide and narrow labels (e.g. "Jan 2020 · Jul · Jan 2021") saves no
+    // meaningful space and just looks inconsistent, so all ticks get the year
+    const newYearCount = grid.filter((_, i) => isNewYear(i)).length
+    if (newYearCount >= grid.length / 2)
+        return grid.map((value) => makeDayTick(value, formatWithYear))
+
+    return grid.map((value, i) =>
+        makeDayTick(value, isNewYear(i) ? formatWithYear : format)
+    )
 }
 
 /** Calendar-aware ticks for a time axis */
