@@ -23,7 +23,7 @@ import {
     parseIntOrUndefined,
     omitUndefinedValues,
 } from "@ourworldindata/utils"
-import { v7 as uuidv7 } from "uuid"
+import { v7 as uuidv7, validate as uuidValidate } from "uuid"
 import {
     References,
     StaticVizReference,
@@ -31,6 +31,7 @@ import {
 import { NarrativeChartMinimalInformation } from "../../adminSiteClient/ChartEditor.js"
 import {
     getChartConfigById,
+    getChartIdByConfigId,
     getForceDatapageByChartId,
     getPatchConfigByChartId,
     getParentByChartConfig,
@@ -212,21 +213,57 @@ export const getReferencesByChartId = async (
     }
 }
 
+/**
+ * Resolves a value that is either a numeric chart id or a chart's config UUID
+ * (`charts.configId`) to the numeric chart id. Route handlers use this so that
+ * `:chartId` params accept both forms of addressing a chart.
+ */
+export const expectChartId = async (
+    knex: db.KnexReadonlyTransaction,
+    chartIdOrConfigId: string | number | undefined
+): Promise<number> => {
+    if (
+        typeof chartIdOrConfigId === "number" ||
+        (typeof chartIdOrConfigId === "string" &&
+            /^\d+$/.test(chartIdOrConfigId))
+    )
+        return expectInt(chartIdOrConfigId)
+
+    if (
+        typeof chartIdOrConfigId === "string" &&
+        uuidValidate(chartIdOrConfigId)
+    ) {
+        const chartId = await getChartIdByConfigId(knex, chartIdOrConfigId)
+        if (chartId === undefined)
+            throw new JsonError(
+                `No chart found for config id ${chartIdOrConfigId}`,
+                404
+            )
+        return chartId
+    }
+
+    throw new JsonError(
+        `Expected integer chart id or config UUID, got '${chartIdOrConfigId}'`,
+        400
+    )
+}
+
 export const expectChartById = async (
     knex: db.KnexReadonlyTransaction,
-    chartId: any
+    chartIdOrConfigId: string | number | undefined
 ): Promise<GrapherInterface> => {
-    const chart = await getChartConfigById(knex, expectInt(chartId))
+    const chartId = await expectChartId(knex, chartIdOrConfigId)
+    const chart = await getChartConfigById(knex, chartId)
     if (chart) return chart.config
 
-    throw new JsonError(`No chart found for id ${chartId}`, 404)
+    throw new JsonError(`No chart found for id ${chartIdOrConfigId}`, 404)
 }
 
 const expectPatchConfigByChartId = async (
     knex: db.KnexReadonlyTransaction,
-    chartId: any
+    chartId: number
 ): Promise<GrapherInterface> => {
-    const patchConfig = await getPatchConfigByChartId(knex, expectInt(chartId))
+    const patchConfig = await getPatchConfigByChartId(knex, chartId)
     if (!patchConfig) {
         throw new JsonError(`No chart found for id ${chartId}`, 404)
     }
@@ -241,17 +278,39 @@ const saveNewChart = async (
         forceDatapage = false,
         // new charts inherit by default
         shouldInherit = true,
+        chartConfigId: providedChartConfigId,
     }: {
         config: GrapherInterface
         user: DbPlainUser
         forceDatapage?: boolean
         shouldInherit?: boolean
+        // callers may supply the new chart's config UUID (e.g. the ETL, which
+        // generates the chart's identity client-side); otherwise one is generated
+        chartConfigId?: string
     }
 ): Promise<{
     chartConfigId: Base64String
     patchConfig: GrapherInterface
     fullConfig: GrapherInterface
 }> => {
+    if (providedChartConfigId) {
+        if (!uuidValidate(providedChartConfigId))
+            throw new JsonError(
+                `Invalid config UUID '${providedChartConfigId}'`,
+                400
+            )
+        const existingRow = await db.knexRawFirst<Pick<DbRawChartConfig, "id">>(
+            knex,
+            `SELECT id FROM chart_configs WHERE id = ?`,
+            [providedChartConfigId]
+        )
+        if (existingRow)
+            throw new JsonError(
+                `A chart config with id ${providedChartConfigId} already exists`,
+                409
+            )
+    }
+
     // grab the parent of the chart if inheritance should be enabled
     const parent = shouldInherit
         ? await getParentByChartConfig(knex, config)
@@ -266,7 +325,7 @@ const saveNewChart = async (
     // insert patch & full configs into the chart_configs table
     // We can't quite use `saveNewChartConfigInDbAndR2` here, because
     // we need to update the chart id in the config after inserting it.
-    const chartConfigId = uuidv7() as Base64String
+    const chartConfigId = (providedChartConfigId ?? uuidv7()) as Base64String
     await db.knexRaw(
         knex,
         `-- sql
@@ -397,6 +456,7 @@ export const saveGrapher = async (
         existingConfig,
         forceDatapage,
         shouldInherit,
+        chartConfigId: providedChartConfigId,
     }: {
         user: DbPlainUser
         newConfig: GrapherInterface
@@ -405,6 +465,8 @@ export const saveGrapher = async (
         // if undefined, keep inheritance as is.
         // if true or false, enable or disable inheritance
         shouldInherit?: boolean
+        // only used when creating a new chart, see `saveNewChart`
+        chartConfigId?: string
     }
 ) => {
     // Try to migrate the new config to the latest version
@@ -480,6 +542,7 @@ export const saveGrapher = async (
             user,
             forceDatapage,
             shouldInherit,
+            chartConfigId: providedChartConfigId,
         })
         chartConfigId = configs.chartConfigId
         patchConfig = configs.patchConfig
@@ -625,7 +688,7 @@ export async function getChartParentJson(
     res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = await expectChartId(trx, req.params.chartId)
     const parent = await getParentByChartId(trx, chartId)
     const isInheritanceEnabled = await isInheritanceEnabledForChart(
         trx,
@@ -643,7 +706,7 @@ export async function getChartSettingsJson(
     res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = await expectChartId(trx, req.params.chartId)
     const forceDatapage = await getForceDatapageByChartId(trx, chartId)
     return { forceDatapage }
 }
@@ -653,7 +716,7 @@ export async function getChartPatchConfigJson(
     res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = await expectChartId(trx, req.params.chartId)
     const config = await expectPatchConfigByChartId(trx, chartId)
     return config
 }
@@ -664,7 +727,10 @@ export async function getChartLogsJson(
     trx: db.KnexReadonlyTransaction
 ) {
     return {
-        logs: await getLogsByChartId(trx, parseInt(req.params.chartId)),
+        logs: await getLogsByChartId(
+            trx,
+            await expectChartId(trx, req.params.chartId)
+        ),
     }
 }
 
@@ -675,7 +741,7 @@ export async function getChartReferencesJson(
 ) {
     const references = {
         references: await getReferencesByChartId(
-            parseInt(req.params.chartId),
+            await expectChartId(trx, req.params.chartId),
             trx
         ),
     }
@@ -690,7 +756,7 @@ export async function getChartRedirectsJson(
     return {
         redirects: await getRedirectsByChartId(
             trx,
-            parseInt(req.params.chartId)
+            await expectChartId(trx, req.params.chartId)
         ),
     }
 }
@@ -700,7 +766,10 @@ export async function getChartViewsJson(
     res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    const slug = await getChartSlugById(trx, parseInt(req.params.chartId))
+    const slug = await getChartSlugById(
+        trx,
+        await expectChartId(trx, req.params.chartId)
+    )
     if (!slug) return {}
 
     const viewsBySlug = await db.knexRawFirst<
@@ -751,7 +820,7 @@ export async function getChartTagsJson(
     res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = await expectChartId(trx, req.params.chartId)
     const chartTags = await db.knexRaw<DbChartTagJoin>(
         trx,
         `-- sql
@@ -799,7 +868,7 @@ export async function setChartTagsHandler(
     res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = await expectChartId(trx, req.params.chartId)
 
     await setChartTags(trx, chartId, req.body.tags, res.locals.user.id)
 
@@ -910,7 +979,7 @@ export async function getChartRecordsJson(
     _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = await expectChartId(trx, req.params.chartId)
     const records = await getChartsRecords(trx, { chartIds: [chartId] })
     return { records }
 }

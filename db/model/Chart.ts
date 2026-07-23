@@ -273,6 +273,18 @@ export const getChartConfigById = async (
     }
 }
 
+export async function getChartIdByConfigId(
+    knex: db.KnexReadonlyTransaction,
+    configId: string
+): Promise<number | undefined> {
+    const row = await db.knexRawFirst<Pick<DbPlainChart, "id">>(
+        knex,
+        `SELECT id FROM charts WHERE configId = ?`,
+        [configId]
+    )
+    return row?.id
+}
+
 export async function getChartConfigBySlug(
     knex: db.KnexReadonlyTransaction,
     slug: string
