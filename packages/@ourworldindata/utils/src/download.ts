@@ -75,11 +75,11 @@ export function makeCompleteDatasetDescription({
     indicatorCount: number | undefined
 }): string {
     const rowsSnippet = makeNumberOfRowsSnippet(rowCount)
-    const indicatorsSnippet =
-        indicatorCount !== undefined
-            ? ` across ${indicatorCount} indicator${indicatorCount === 1 ? "" : "s"}`
-            : ""
-    return `Includes all dimension combinations of this dataset, not just the current view${indicatorsSnippet}${rowsSnippet}`
+    if (indicatorCount === undefined) {
+        return `Includes all dimension combinations of this dataset, not just the current view${rowsSnippet}`
+    }
+    const indicatorWord = indicatorCount === 1 ? "indicator" : "indicators"
+    return `Includes all ${indicatorCount} ${indicatorWord} and every dimension combination${rowsSnippet}, not just the current view`
 }
 
 export function makeFilteredDownloadDescription({
