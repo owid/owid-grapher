@@ -115,31 +115,47 @@ export const getGrapherToMultiDimRedirects = async (
     return redirects
 }
 
-// Builds one query-param decision tree per source explorer slug, so that the
-// Cloudflare Pages Function can resolve which target a given explorer URL (slug +
-// query params) should redirect to. The tree leaves hold the target multi-dim
-// slug and the query params to apply (see ExplorerRedirectTarget). Keyed by
-// source slug (with `urlPrefix` prepended).
-export async function getExplorerRedirectDecisionTrees(
+// The value baked into explorers/_explorerRedirects.json for each source slug:
+// either a plain target slug (the trivial unconditional case) or a query-param
+// decision tree resolved at request time (see functions/_common/redirectTools.ts).
+export type ExplorerRedirect = string | DecisionTreeNode<ExplorerRedirectTarget>
+
+// Builds the explorer redirect map baked to explorers/_explorerRedirects.json,
+// keyed by source slug (with `urlPrefix` prepended). A source whose single rule
+// is unconditional (no source query params) and lands on a bare target slug (no
+// query params to apply) is stored as a plain target-slug string; everything
+// that actually depends on the incoming query params is stored as a decision tree.
+export async function getExplorerRedirects(
     knex: db.KnexReadonlyTransaction,
     urlPrefix: string = "/explorers/"
-): Promise<Map<string, DecisionTreeNode<ExplorerRedirectTarget>>> {
+): Promise<Map<string, ExplorerRedirect>> {
     const rulesBySource = await getMultiDimRedirectRulesBySource(
         knex,
         "/explorers/"
     )
 
-    const trees = new Map<string, DecisionTreeNode<ExplorerRedirectTarget>>()
+    const redirects = new Map<string, ExplorerRedirect>()
     for (const [sourceSlug, rules] of rulesBySource) {
+        const key = `${urlPrefix}${sourceSlug}`
+        // A lone unconditional rule that lands on a bare target slug (no query
+        // params to match on, none to apply) needs no decision tree — store the
+        // target slug directly as a plain string.
+        if (rules.length === 1) {
+            const [rule] = rules
+            if (
+                Object.keys(rule.sourceQueryParams).length === 0 &&
+                Object.keys(rule.target.targetQueryParams).length === 0
+            ) {
+                redirects.set(key, rule.target.targetSlug)
+                continue
+            }
+        }
         const matchRules: QueryParamMatchRule<ExplorerRedirectTarget>[] =
             rules.map((rule) => ({
                 condition: rule.sourceQueryParams,
                 target: rule.target,
             }))
-        trees.set(
-            `${urlPrefix}${sourceSlug}`,
-            buildQueryParamDecisionTree(matchRules)
-        )
+        redirects.set(key, buildQueryParamDecisionTree(matchRules))
     }
-    return trees
+    return redirects
 }
