@@ -10,10 +10,15 @@
 //   yarn tsx devTools/callAdminApi.ts get 123 --branch archiving-charts
 //   yarn tsx devTools/callAdminApi.ts set 123 '{"deprecationNotice":"test"}' --branch archiving-charts
 //   yarn tsx devTools/callAdminApi.ts get 123 --host http://localhost:3030/admin/api
+//
+// set/unset attribute writes to the ADMIN_API_KEY's own owner (e.g. the etl
+// service account) unless you pass --userId <id>, which requires that owner
+// to be a superuser.
 
 import "../settings/loadDotenv.js"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
+import { getContainerName } from "./stagingHostname.js"
 
 interface HostArgs {
     branch?: string
@@ -23,7 +28,7 @@ interface HostArgs {
 function resolveBaseUrl(args: HostArgs): string {
     if (args.host) return args.host.replace(/\/$/, "")
     if (args.branch)
-        return `http://staging-site-${args.branch}.tail6e23.ts.net/admin/api`
+        return `http://${getContainerName(args.branch)}.tail6e23.ts.net/admin/api`
     return "http://localhost:3030/admin/api"
 }
 
@@ -52,13 +57,15 @@ async function getChartConfig(
 async function putChartConfig(
     baseUrl: string,
     chartId: number,
-    config: Record<string, unknown>
+    config: Record<string, unknown>,
+    userId: number | undefined
 ): Promise<void> {
     const res = await fetch(`${baseUrl}/charts/${chartId}`, {
         method: "PUT",
         headers: {
             Authorization: `Bearer ${getApiKey()}`,
             "Content-Type": "application/json",
+            ...(userId !== undefined && { "x-act-as-user": String(userId) }),
         },
         body: JSON.stringify(config),
     })
@@ -83,6 +90,12 @@ async function main() {
             type: "string",
             describe:
                 "Override base URL, e.g. http://localhost:3030/admin/api. Takes precedence over --branch.",
+        })
+        .option("userId", {
+            type: "number",
+            describe:
+                "Attribute set/unset writes to this user id instead of ADMIN_API_KEY's own owner " +
+                "(sends x-act-as-user; the key's user must be a superuser).",
         })
         .command(
             "get <chartId>",
@@ -118,7 +131,7 @@ async function main() {
                 const patch = JSON.parse(argv.patchJson)
                 const current = await getChartConfig(baseUrl, chartId)
                 const merged = { ...current, ...patch }
-                await putChartConfig(baseUrl, chartId, merged)
+                await putChartConfig(baseUrl, chartId, merged, argv.userId)
                 console.log("Saved. New config:")
                 console.log(JSON.stringify(merged, null, 2))
             }
@@ -142,7 +155,7 @@ async function main() {
                 const { chartId } = argv
                 const current = await getChartConfig(baseUrl, chartId)
                 delete current[argv.field]
-                await putChartConfig(baseUrl, chartId, current)
+                await putChartConfig(baseUrl, chartId, current, argv.userId)
                 console.log("Saved. New config:")
                 console.log(JSON.stringify(current, null, 2))
             }
