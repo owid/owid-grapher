@@ -20,6 +20,27 @@
  *
  * See mdim-downloads/solution-space/etl-feasibility.md (owid-projects repo)
  * for why the join lives in ETL while metadata formatting lives here.
+ *
+ * KNOWN LIMITATION -- there is still a size ceiling, just a much higher one.
+ * `csvBuffer` below is held in memory whole, and littlezipper buffers its
+ * zip output too -- roughly 2x the CSV's own size, all within this Worker's
+ * 128MB isolate limit. Measured 2026-07-23 against the largest real table in
+ * the codebase (covid/latest/cases_deaths, 589,632 rows): the resulting wide
+ * CSV was 34.8MB, and this route returned 200 in ~2s on staging for the
+ * covid-deaths MDIM built from it -- comfortably fine, and the actual
+ * biggest case in the current MDIM set, but not an unlimited guarantee for
+ * whatever comes next (a much wider table, many more indicators than
+ * covid_deaths' 6, could eventually cross the line).
+ *
+ * Fallback if that happens (considered and deliberately not built, because
+ * nothing needs it yet): split into two downloads instead of one zip --
+ * link directly to ETL's already-final-format CSV in R2 (zero Cloudflare
+ * Function cost, the file needs no further processing) plus a separate,
+ * small, dynamically-built zip containing just metadata.json + readme.md
+ * (cheap regardless of row count -- O(indicators), not O(rows), so it's
+ * exactly this function's existing metadata-building code with the CSV
+ * step removed). The cost is UX, not implementation: two links/files
+ * instead of one zip shaped like a chart's own download.
  */
 import { createZip, UncompressedFile } from "littlezipper"
 import {
