@@ -69,18 +69,21 @@ async function putChartConfig(
         },
         body: JSON.stringify(config),
     })
-    const json = await res.json()
-    if (!res.ok || json.success === false)
-        throw new Error(`PUT failed: ${res.status} ${JSON.stringify(json)}`)
+    // Read as text before parsing: error responses (e.g. a 502 from a proxy)
+    // aren't always JSON, and the raw body is the best error message we have.
+    const body = await res.text()
+    if (!res.ok) throw new Error(`PUT failed: ${res.status} ${body}`)
+    const json = JSON.parse(body) as { success?: boolean }
+    if (json.success === false) throw new Error(`PUT failed: ${body}`)
 }
 
 async function main() {
-    // Fail fast with a clean message instead of a stack trace buried under
-    // yargs' usage output, which is what a lazy check inside a command
-    // handler would otherwise produce.
-    getApiKey()
-
     await yargs(hideBin(process.argv))
+        // Fail fast with a clean message instead of a stack trace buried
+        // under yargs' usage output, which is what a lazy check inside a
+        // command handler would otherwise produce. As middleware it doesn't
+        // run for --help, so usage stays viewable without a key.
+        .middleware(() => void getApiKey())
         .option("branch", {
             type: "string",
             describe:
