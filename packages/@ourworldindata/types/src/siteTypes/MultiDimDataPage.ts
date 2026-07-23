@@ -48,7 +48,7 @@ export interface DownloadPackage {
     // per-view. Absent for the code-only prototype demo package.
     csvUrl?: string
     indicatorsUrl?: string
-    fileCount?: number
+    indicatorCount?: number
     rowCount?: number
     sizeBytes?: number
     lastUpdated?: string
