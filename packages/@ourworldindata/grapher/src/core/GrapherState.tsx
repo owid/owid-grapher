@@ -2715,9 +2715,7 @@ export class GrapherState
         const timeColumn = this.table.timeColumn
         if (timeColumn.isMissing) return undefined // Do not show year until data is loaded
 
-        // Use the compact time format in the title
-        const formatTime = (time: Time): string =>
-            timeColumn.formatTimeShort(time)
+        const formatTime = (time: Time): string => timeColumn.formatTime(time)
 
         // Add 'Time vs. Time' suffix for scatter plots with time override
         if (
