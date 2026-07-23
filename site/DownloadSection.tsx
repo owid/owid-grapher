@@ -159,7 +159,7 @@ function CompleteDatasetSection({
     downloadPackage,
 }: {
     slug: string
-    downloadPackage: DownloadPackage
+    downloadPackage: DownloadPackage & { url: string }
 }) {
     const description = makeCompleteDatasetDescription({
         rowCount: downloadPackage.rowCount,
@@ -229,7 +229,7 @@ export type DownloadSectionProps = {
     archivedChartInfo?: ArchiveContext
     distribution?: Distribution
     hideRowCounts?: boolean
-    downloadPackage?: DownloadPackage
+    downloadPackage?: DownloadPackage & { url: string }
 }
 
 export default function DownloadSection({

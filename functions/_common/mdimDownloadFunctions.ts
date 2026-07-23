@@ -53,17 +53,7 @@ import {
 import { getVariableMetadataRoute } from "@ourworldindata/grapher"
 import { MultiDimDataPageConfigEnriched } from "@ourworldindata/types"
 import { StatusError } from "itty-router"
-import {
-    getTitle,
-    getDescription,
-    getKeyDataLines,
-    getAttribution,
-    getSource,
-    getCitationLines,
-    getDescriptionLines,
-    getSources,
-    getDataProcessingLines,
-} from "./readmeTools.js"
+import { getAttribution, columnReadmeText } from "./readmeTools.js"
 import {
     fetchUnparsedGrapherConfig,
     getDataApiUrl,
@@ -119,27 +109,6 @@ function toColumnShim(def: any): any {
     }
 }
 
-// Mirrors columnReadmeText() in readmeTools.ts exactly (that function isn't
-// exported) using the exported sub-functions it's built from -- same output,
-// no change to the real download path's code.
-function columnReadmeText(col: any): string[] {
-    const def = col.def
-    const lines: string[] = []
-    lines.push("", `## ${getTitle(col)}`)
-    lines.push(...getDescription(def))
-    lines.push(...getKeyDataLines(def, col))
-    lines.push("")
-    const attribution = getAttribution(def)
-    const source = getSource(attribution, def)
-    lines.push(...getCitationLines(def, col))
-    lines.push(`Source: ${source}`)
-    lines.push(...getDescriptionLines(def, attribution))
-    lines.push(...getSources(def))
-    lines.push(...getDataProcessingLines(def))
-    lines.push("")
-    return lines
-}
-
 // Mirrors variableTypeToColumnType in LegacyToOwidTable.ts (not exported) so
 // the metadata.json "type" field matches the single-chart download's values
 // ("Numeric", not the raw API's "float").
@@ -193,9 +162,27 @@ export async function fetchCompleteDatasetZipForGrapher(
 
     // csvBuffer is fetched as bytes and never parsed -- ETL already wrote it
     // in its final downloadable shape (see the module doc comment above).
+    // Both staged files must be checked for res.ok: an R2 miss (stale path,
+    // deleted object) returns a 200-looking body from this Worker's own
+    // fetch() but with an XML error payload as its content -- without this
+    // check that XML would silently end up inside the zip as `.csv`/JSON.
     const [csvBuffer, index] = await Promise.all([
-        fetch(pkg.csvUrl).then((r) => r.arrayBuffer()),
-        fetch(pkg.indicatorsUrl).then((r): Promise<StagedIndex> => r.json()),
+        fetch(pkg.csvUrl).then((r) => {
+            if (!r.ok)
+                throw new StatusError(
+                    500,
+                    `Failed to fetch staged CSV: ${r.status}`
+                )
+            return r.arrayBuffer()
+        }),
+        fetch(pkg.indicatorsUrl).then((r): Promise<StagedIndex> => {
+            if (!r.ok)
+                throw new StatusError(
+                    500,
+                    `Failed to fetch staged indicator index: ${r.status}`
+                )
+            return r.json()
+        }),
     ])
     const { title, indicators } = index
 
@@ -266,7 +253,7 @@ export async function fetchCompleteDatasetZipForGrapher(
             ),
         }
 
-        readmeColumnSections.push(columnReadmeText(col).join("\n"))
+        readmeColumnSections.push([...columnReadmeText(col)].join("\n"))
     }
 
     const pageUrl = `https://ourworldindata.org/grapher/${identifier.id}`
