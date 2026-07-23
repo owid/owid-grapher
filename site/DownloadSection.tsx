@@ -24,7 +24,6 @@ import {
     type DownloadRewriteTarget,
 } from "@ourworldindata/types"
 import {
-    formatValue,
     makeCompleteDatasetDescription,
     makeDownloadCodeExamples,
     SERVER_SIDE_DOWNLOAD_HELP_TEXT,
@@ -154,70 +153,6 @@ function ApiAndCodeExamplesSection({
     )
 }
 
-function CompleteDatasetSection({
-    slug,
-    downloadPackage,
-}: {
-    slug: string
-    downloadPackage: DownloadPackage & { url: string }
-}) {
-    const description = makeCompleteDatasetDescription({
-        rowCount: downloadPackage.rowCount,
-        indicatorCount: downloadPackage.indicatorCount,
-    })
-    return (
-        <div className="downloads-section" id="download-complete-dataset">
-            <h4 className="citation__how-to-header">Complete dataset</h4>
-            <p className="citation__paragraph">
-                The quick downloads below only cover the view you're currently
-                looking at. This package bundles every dimension combination of
-                this dataset into one download.
-            </p>
-            <div className="downloads__download-buttons">
-                <DownloadButtonLink
-                    title="Download complete dataset (ZIP)"
-                    description={description}
-                    icon="full"
-                    trackingNote="datapage_download_complete_dataset"
-                    href={downloadPackage.url}
-                    download={`${slug}.complete-dataset.zip`}
-                />
-            </div>
-            <ExpandableToggle
-                label="What's inside this package?"
-                content={
-                    <div className="citation__paragraph">
-                        <p>
-                            A wide-format CSV with one column per indicator and
-                            dimension combination, a metadata file describing
-                            sources and licenses, and a README explaining the
-                            file structure.
-                        </p>
-                        <ul className="metadata-list">
-                            {downloadPackage.indicatorCount !== undefined && (
-                                <li>
-                                    {downloadPackage.indicatorCount} indicator
-                                    {downloadPackage.indicatorCount === 1
-                                        ? ""
-                                        : "s"}
-                                </li>
-                            )}
-                            {downloadPackage.rowCount !== undefined && (
-                                <li>
-                                    {formatValue(downloadPackage.rowCount, {
-                                        numDecimalPlaces: 0,
-                                    })}{" "}
-                                    rows
-                                </li>
-                            )}
-                        </ul>
-                    </div>
-                }
-            />
-        </div>
-    )
-}
-
 export type DownloadSectionProps = {
     slug: string
     baseUrl?: string
@@ -314,7 +249,8 @@ export default function DownloadSection({
         (!tableForDownload && distribution?.allowed === false)
 
     const fullDownloadDescription = makeFullDownloadDescription(
-        hideRowCounts ? undefined : tableForDownload?.numRows
+        hideRowCounts ? undefined : tableForDownload?.numRows,
+        { hasCompleteDatasetSibling: !!downloadPackage }
     )
     const filteredDownloadDescription = makeFilteredDownloadDescription({
         numRows: hideRowCounts ? undefined : filteredTableForDownload?.numRows,
@@ -387,12 +323,6 @@ export default function DownloadSection({
                     </div>
                 ) : (
                     <>
-                        {downloadPackage && (
-                            <CompleteDatasetSection
-                                slug={slug}
-                                downloadPackage={downloadPackage}
-                            />
-                        )}
                         <div className="downloads-section">
                             <h4 className="citation__how-to-header">
                                 Quick download
@@ -423,6 +353,23 @@ export default function DownloadSection({
                                         "download-filtered-data"
                                     )}
                                 />
+                                {downloadPackage && (
+                                    <DownloadButtonLink
+                                        title="Download complete dataset"
+                                        description={makeCompleteDatasetDescription(
+                                            {
+                                                rowCount:
+                                                    downloadPackage.rowCount,
+                                                indicatorCount:
+                                                    downloadPackage.indicatorCount,
+                                            }
+                                        )}
+                                        icon="complete"
+                                        trackingNote="datapage_download_complete_dataset"
+                                        href={downloadPackage.url}
+                                        download={`${slug}.complete-dataset.zip`}
+                                    />
+                                )}
                             </div>
                         </div>
                         <ApiAndCodeExamplesSection
