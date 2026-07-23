@@ -37,11 +37,15 @@ type Metadata = Omit<OwidVariableWithSource, "id">
 // the complete dataset" package (all views/dimension combinations), as
 // opposed to the existing per-view download which only covers whichever
 // view is currently loaded.
+//
+// This is the stored/DB shape -- ETL writes csvUrl/indicatorsUrl/counts only.
+// `url` is never stored; it's computed client-side from the page's own slug
+// (see MultiDimDataPageContent.tsx), so it always points at the dynamic
+// build route rather than a URL that could go stale. Consumers that need
+// the resolved link (e.g. DownloadSection's button) should type their prop
+// as `DownloadPackage & { url: string }`.
 export interface DownloadPackage {
-    // Browser-facing download link. Filled in client-side from the page's
-    // own slug -- computed, not stored, so it always points at the dynamic
-    // build route rather than a URL that could go stale.
-    url: string
+    url?: string
     // ETL-staged wide CSV + indicator index (R2) that the dynamic build
     // route reads from on every request -- the "complete dataset" analogue
     // of a chart's own data, fetched once at ETL publish time rather than
