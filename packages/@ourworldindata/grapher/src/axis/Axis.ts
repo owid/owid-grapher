@@ -14,13 +14,13 @@ import {
     Tickmark,
     ValueRange,
     OwidVariableRoundingMode,
+    isSubYearly,
 } from "@ourworldindata/utils"
 import { ComparisonLineConfig } from "@ourworldindata/types"
 import { AxisConfig, AxisManager } from "./AxisConfig"
 import {
     buildTimeAxisTicks,
     getDiscreteTimeTickOptions,
-    isCalendarTickInterval,
     type CalendarTickInterval,
 } from "./timeAxisTicks.js"
 import { MarkdownTextWrap } from "@ourworldindata/components"
@@ -342,7 +342,7 @@ abstract class AbstractAxis {
         | undefined {
         const column = this.formatColumn
         if (this.config.ticks || !column?.isTimeColumn) return undefined
-        return isCalendarTickInterval(column.timeInterval)
+        return isSubYearly(column.timeInterval)
             ? column.timeInterval
             : undefined
     }

@@ -57,24 +57,10 @@ const WEEK_STEPS = [
 // A fixed Monday (in days since epoch) that anchors weekly grids
 const MONDAY_REFERENCE = snapToIntervalStart(0, TimeInterval.Week)
 
-// Time intervals with calendar-aware axis ticks; all other intervals
-// fall back to the generic d3 ticks
-const CALENDAR_TICK_INTERVALS = [
-    TimeInterval.Quarter,
-    TimeInterval.Month,
-    TimeInterval.Week,
-    TimeInterval.Day,
-] as const
-
-export type CalendarTickInterval = (typeof CALENDAR_TICK_INTERVALS)[number]
-
-export function isCalendarTickInterval(
-    interval: TimeInterval
-): interval is CalendarTickInterval {
-    return (CALENDAR_TICK_INTERVALS as readonly TimeInterval[]).includes(
-        interval
-    )
-}
+export type CalendarTickInterval = Exclude<
+    TimeInterval,
+    TimeInterval.Year | TimeInterval.Decade
+>
 
 /** A tickmark for a day-since-epoch `value`, labeled with the given dayjs format. */
 function makeDayTick(value: number, format: string): Tickmark {
@@ -144,23 +130,19 @@ function labelGridWithYearOnChange(
     })
 }
 
-/**
- * Calendar-aware ticks for a time axis, or `undefined` if the interval has no
- * special handling (the caller then falls back to the generic d3 ticks).
- */
+/** Calendar-aware ticks for a time axis */
 export function buildTimeAxisTicks({
     interval,
     domain,
     targetCount,
     bandValues,
 }: {
-    interval: TimeInterval
+    interval: CalendarTickInterval
     domain: [number, number]
     targetCount: number
     bandValues?: number[]
 }): Tickmark[] | undefined {
-    if (!isCalendarTickInterval(interval)) return undefined
-
+    // Discrete time axes place one tick per provided band value
     if (bandValues?.length) return buildDiscreteTimeAxisTicks({ bandValues })
 
     return match(interval)
