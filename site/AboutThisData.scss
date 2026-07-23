@@ -37,6 +37,20 @@
     }
 }
 
+.key-info__key-description {
+    p {
+        margin: 8px 0;
+
+        &:first-of-type {
+            margin-top: 0;
+        }
+
+        &:last-of-type {
+            margin-bottom: 0;
+        }
+    }
+}
+
 .key-info__expandable-descriptions {
     p {
         margin: 8px 0;
