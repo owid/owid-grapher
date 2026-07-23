@@ -36,20 +36,20 @@ For short label contexts (`formatValueShortWithAbbreviations`: slope charts,
 map annotations, thumbnails, entity selector, tooltip fallback), three changes
 that compose into three clean bands:
 
-| band     | rule                                  | examples                         |
-| -------- | ------------------------------------- | -------------------------------- |
-| < 1k     | author's decimals, as today           | $0.55 · $999.99                  |
-| 1k – 1M  | exact integer, decimals dropped       | $1,235 · $25,241 · $999,999      |
-| ≥ 1M     | abbreviate at 3 sig figs (hard-coded) | $1.5M · $12.8M · $1.23B          |
+| band    | rule                                  | examples                    |
+| ------- | ------------------------------------- | --------------------------- |
+| < 1k    | author's decimals, as today           | $0.55 · $999.99             |
+| 1k – 1M | exact integer, decimals dropped       | $1,235 · $25,241 · $999,999 |
+| ≥ 1M    | abbreviate at 3 sig figs (hard-coded) | $1.5M · $12.8M · $1.23B     |
 
 Before/after on a column showing 2 decimals:
 
-| value         | current  | final          |
-| ------------- | -------- | -------------- |
-| 1,234.56      | $1.23k   | **$1,235**     |
-| 25,240.99     | $25.24k  | **$25,241**    |
-| 123,456.78    | $123.46k | **$123,457**   |
-| 12,840,000.75 | $12.84M  | **$12.8M**     |
+| value         | current  | final        |
+| ------------- | -------- | ------------ |
+| 1,234.56      | $1.23k   | **$1,235**   |
+| 25,240.99     | $25.24k  | **$25,241**  |
+| 123,456.78    | $123.46k | **$123,457** |
+| 12,840,000.75 | $12.84M  | **$12.8M**   |
 
 Tooltips and the data table keep full author-configured precision — labels are
 compression, not the record.
@@ -100,8 +100,14 @@ used to be respected.
   `12.8 million` in tooltips, bar labels, default axis ticks ≥1M) — one
   consistent precision rule for all abbreviations. The decimal-drop rule does
   NOT apply to `long`: tooltips remain the full-precision record.
-- Sig-fig columns are only affected by the threshold change (`$25,200`
-  instead of `$25.2k`).
+- **Sig-fig columns derive their threshold from `numSignificantFigures`:**
+  they abbreviate from `10^(sf + 2)` (capped at 1M) — the magnitude where
+  the sig-fig budget fits into the mantissa's integer digits, so sub-1M
+  abbreviations are decimal-free by construction (`123k` at 3 sf, never
+  `25.2k`). Their short-mode abbreviations trim trailing zeroes (`1M`,
+  `1.5M`) so round-ups sit naturally next to the k forms. A per-value
+  "abbreviate only clean values" rule (`26k` next to `25,200`) was
+  considered and rejected for mixing notation within a chart.
 
 ## Implementation (done)
 
@@ -226,6 +232,18 @@ The rounding changes live in two stacked branches.
     (`sigFigs = magnitude(maxTick) − magnitude(minDist) + 1`). _Effect:_
     narrow-domain ticks render distinct (`10.02M / 10.03M / …`), matching
     master; ordinary axes compute ≤3 and are unaffected.
+11. **Sig-fig columns abbreviate from `10^(sf + 2)`** (capped at 1M), with
+    short-mode abbreviations trimmed. _Why:_ sig-fig rounding manufactures
+    round values where `k` genuinely pays, but a blanket 1k threshold
+    yields fussy forms (`3.00k`, `1.234k` at sf 4) and a per-value
+    clean-only rule mixes notation within a chart; `10^(sf + 2)` is exactly
+    where abbreviations become decimal-free for every value, giving one
+    consistent, sf-derived seam per column. _Effect (sf 3):_ `123,456 →
+123k` (matches master), `950,000 → 950k`, `999,999 → 1M` (was the
+    clunky `1,000,000`), `1.50M → 1.5M`; values below 100k stay written out
+    (`25,200`, `26,000`). sf 1 abbreviates from 1k (`3k`), sf 2 from 10k
+    (`26k`), sf ≥ 4 only from 1M. `long`/tooltips unchanged (`1.00
+million`).
 
 Changes 1–5 fix spurious precision at the _bottom_ of the scale (sub-1
 values); 6–9 fix spurious precision and pointless abbreviation in the
@@ -288,24 +306,24 @@ Strictly positive in decimal-places mode (more information, ~same width);
 in sig-fig mode up to 3 chars wider (`12,300` vs `12.3k`) — the accepted cost
 of the fixed rule, with trailing zeros honestly signalling the rounding:
 
-| input      | options                | before  | after  |
-| ---------- | ---------------------- | ------- | ------ |
-| 1,000      | short                  | 1k      | 1,000  |
-| 1,001      | short                  | 1k      | 1,001  |
-| 1,009      | short                  | 1.01k   | 1,009  |
-| 1,499      | short                  | 1.5k    | 1,499  |
-| 12,345     | short                  | 12.35k  | 12,345 |
-| 1,234      | short, 1 dp            | 1.23k   | 1,234  |
-| 98,712.789 | short, 10 dp           | 98.71k  | 98,713 |
-| 1,000      | short, sig-fig mode    | 1.00k   | 1,000  |
-| 1,001      | short, sig-fig mode    | 1.00k   | 1,000  |
-| 1,009      | short, sig-fig mode    | 1.01k   | 1,010  |
-| 1,499      | short, sig-fig mode    | 1.50k   | 1,500  |
-| 12,345     | short, sig-fig mode    | 12.3k   | 12,300 |
-| 1,234      | short, 2 sf            | 1.2k    | 1,200  |
-| 123,456    | short                  | 123.46k | 123,456 |
-| 950,000    | short                  | 950k    | 950,000 |
-| 999,999    | short                  | 1M      | 999,999 |
+| input      | options             | before  | after   |
+| ---------- | ------------------- | ------- | ------- |
+| 1,000      | short               | 1k      | 1,000   |
+| 1,001      | short               | 1k      | 1,001   |
+| 1,009      | short               | 1.01k   | 1,009   |
+| 1,499      | short               | 1.5k    | 1,499   |
+| 12,345     | short               | 12.35k  | 12,345  |
+| 1,234      | short, 1 dp         | 1.23k   | 1,234   |
+| 98,712.789 | short, 10 dp        | 98.71k  | 98,713  |
+| 1,000      | short, sig-fig mode | 1.00k   | 1,000   |
+| 1,001      | short, sig-fig mode | 1.00k   | 1,000   |
+| 1,009      | short, sig-fig mode | 1.01k   | 1,010   |
+| 1,499      | short, sig-fig mode | 1.50k   | 1,500   |
+| 12,345     | short, sig-fig mode | 12.3k   | 12,300  |
+| 1,234      | short, 2 sf         | 1.2k    | 1,200   |
+| 123,456    | short               | 123.46k | 123,456 |
+| 950,000    | short               | 950k    | 950,000 |
+| 999,999    | short               | 1M      | 999,999 |
 
 **Group 2 — abbreviations rounded to 3 sig figs instead of "+2 mantissa
 decimals"** (`short` and `long`). Shorter and uniformly informative; the
@@ -315,15 +333,15 @@ downloads still carry exact values, and switching a column to sig-fig mode
 with a higher `numSignificantFigures` is the escape hatch if an indicator
 needs more:
 
-| input           | options                    | before         | after       |
-| --------------- | -------------------------- | -------------- | ----------- |
-| 12,345,678,901  | long (default)             | 12.35 billion  | 12.3 billion |
-| 846,691,846.8   | long                       | 846.69 million | 847 million |
-| 123,456,789,012 | long                       | 123.46 billion | 123 billion |
-| 663,992,401,664 | values API / search tables | $663.99 billion | $664 billion |
-| 682,030,000,000 | ditto                      | $682.03 billion | $682 billion |
-| 233,420,000,000 | ditto                      | $233.42 billion | $233 billion |
-| 252,540,000,000 | ditto                      | $252.54 billion | $253 billion |
+| input           | options                    | before          | after         |
+| --------------- | -------------------------- | --------------- | ------------- |
+| 12,345,678,901  | long (default)             | 12.35 billion   | 12.3 billion  |
+| 846,691,846.8   | long                       | 846.69 million  | 847 million   |
+| 123,456,789,012 | long                       | 123.46 billion  | 123 billion   |
+| 663,992,401,664 | values API / search tables | $663.99 billion | $664 billion  |
+| 682,030,000,000 | ditto                      | $682.03 billion | $682 billion  |
+| 233,420,000,000 | ditto                      | $233.42 billion | $233 billion  |
+| 252,540,000,000 | ditto                      | $252.54 billion | $253 billion  |
 | 69,270,000,000  | ditto                      | $69.27 billion  | $69.3 billion |
 
 Note on decimals: within Group 2 the number of decimals now varies with the
