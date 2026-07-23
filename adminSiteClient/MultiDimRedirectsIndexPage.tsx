@@ -16,6 +16,7 @@ import {
 import * as R from "remeda"
 import urljoin from "url-join"
 import { Json } from "@ourworldindata/utils"
+import { BulkMultiDimRedirectResponse } from "@ourworldindata/types"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
@@ -66,23 +67,8 @@ async function deleteMultiDimRedirect(
     )
 }
 
-type BulkRedirectResult = {
-    source: string
-    status: "created" | "skipped" | "error"
-    message?: string
-    redirectId?: number
-}
-
-type BulkRedirectResponse = {
-    success: boolean
-    created: number
-    skipped: number
-    errors: number
-    results: BulkRedirectResult[]
-}
-
 async function bulkCreateMultiDimRedirects(admin: Admin, payload: Json) {
-    return await admin.requestJSON<BulkRedirectResponse>(
+    return await admin.requestJSON<BulkMultiDimRedirectResponse>(
         "/api/multi-dim-redirects/bulk",
         payload,
         "POST",
@@ -239,9 +225,8 @@ export default function MultiDimRedirectsIndexPage() {
     const [search, setSearch] = useState("")
     const [bulkModalOpen, setBulkModalOpen] = useState(false)
     const [bulkJson, setBulkJson] = useState("")
-    const [bulkResult, setBulkResult] = useState<BulkRedirectResponse | null>(
-        null
-    )
+    const [bulkResult, setBulkResult] =
+        useState<BulkMultiDimRedirectResponse | null>(null)
     const [bulkError, setBulkError] = useState<string | null>(null)
 
     useEffect(() => {

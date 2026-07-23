@@ -1,4 +1,6 @@
 import {
+    BulkMultiDimRedirectResponse,
+    BulkMultiDimRedirectResult,
     ChartSlugRedirectsTableName,
     DbEnrichedMultiDimDataPage,
     DbPlainMultiDimDataPage,
@@ -689,13 +691,6 @@ const bulkMultiDimRedirectsSchema = z.object({
     ),
 })
 
-interface BulkMultiDimRedirectResult {
-    source: string
-    status: "created" | "skipped" | "error"
-    message?: string
-    redirectId?: number
-}
-
 // Resolves the target view config id for a set of target dimensions. Empty (or
 // absent) dimensions map to the multi-dim's default view (null viewConfigId);
 // otherwise the dimensions must uniquely identify a view.
@@ -724,7 +719,7 @@ export async function handleBulkCreateMultiDimRedirects(
     req: Request,
     res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
-) {
+): Promise<BulkMultiDimRedirectResponse> {
     const parseResult = bulkMultiDimRedirectsSchema.safeParse(req.body)
     if (!parseResult.success) {
         throw new JsonError(

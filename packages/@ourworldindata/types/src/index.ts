@@ -853,6 +853,11 @@ export {
 } from "./endpointTypes/GrapherValuesJson.js"
 
 export {
+    type BulkMultiDimRedirectResult,
+    type BulkMultiDimRedirectResponse,
+} from "./endpointTypes/MultiDimRedirects.js"
+
+export {
     type SearchChartHitDataTableProps,
     type GrapherSearchResultJson,
     type SearchChartHitDataDisplayProps,
