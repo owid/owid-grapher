@@ -381,6 +381,12 @@ export default function MultiDimRedirectsIndexPage() {
                     skill here. Each resolvable entry becomes a redirect; the
                     response is shown below.
                 </Typography.Paragraph>
+                <Alert
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: 12 }}
+                    title="For these redirects to take effect, each target multi-dim must be published and the source charts or explorers must be deleted afterwards, if it hasn't already."
+                />
                 <Input.TextArea
                     value={bulkJson}
                     onChange={(e) => setBulkJson(e.target.value)}

@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query"
 import { useContext, useEffect, useState, useMemo } from "react"
 import {
+    Alert,
     Col,
     Row,
     Space,
@@ -515,6 +516,13 @@ export function MultiDimDetailPage({ id }: { id: number }) {
                         <Typography.Title level={5}>
                             Create a redirect
                         </Typography.Title>
+
+                        <Alert
+                            type="info"
+                            showIcon
+                            style={{ marginBottom: 16 }}
+                            title="For a redirect to take effect, the target multi-dim must be published and the source chart or explorer must be deleted afterwards, if it hasn't already."
+                        />
 
                         <Form
                             form={redirectForm}
