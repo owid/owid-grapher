@@ -10,6 +10,11 @@ import {
 import { OwidAdminApp } from "./appClass.js"
 
 if (require.main === module)
-    void new OwidAdminApp({
+    new OwidAdminApp({
         isDev: ENV === "development",
-    }).startListening(ADMIN_SERVER_PORT, ADMIN_SERVER_HOST)
+    })
+        .startListening(ADMIN_SERVER_PORT, ADMIN_SERVER_HOST)
+        .catch((err: Error) => {
+            console.error(err.message)
+            process.exit(1)
+        })
