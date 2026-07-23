@@ -6,7 +6,6 @@ import {
     MultiDimRedirectsTableName,
 } from "@ourworldindata/types"
 import { MultiDimDataPageConfig } from "@ourworldindata/utils"
-import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 
 export type MultiDimRedirectSourcePrefix = "/grapher/" | "/explorers/"
 
@@ -110,19 +109,7 @@ export async function getMultiDimRedirectTargets(
         [sourcePrefix, ...params]
     )
 
-    // Distinct target multi-dims seen per source, to flag fan-out (a source
-    // that resolves to different multi-dims depending on query params). We only
-    // keep one representative target, so such a source mis-resolves at this
-    // (CMS link) layer — report it rather than silently pick one.
-    const targetsBySource = new Map<string, Set<string>>()
     for (const redirect of redirects) {
-        let targets = targetsBySource.get(redirect.sourceSlug)
-        if (!targets) {
-            targets = new Set()
-            targetsBySource.set(redirect.sourceSlug, targets)
-        }
-        targets.add(redirect.multiDimSlug)
-
         // First row wins (rows are ordered most-preferred first).
         if (redirectMap.has(redirect.sourceSlug)) continue
         const queryStr = buildQueryStrFromConfig(
@@ -136,21 +123,43 @@ export async function getMultiDimRedirectTargets(
         })
     }
 
-    for (const [sourceSlug, targets] of targetsBySource) {
-        if (targets.size > 1) {
-            await logErrorAndMaybeCaptureInSentry(
-                new Error(
-                    `Multi-dim redirect source '${sourcePrefix}${sourceSlug}' resolves to multiple target multi-dims (${[
-                        ...targets,
-                    ].join(", ")}). Only '${
-                        redirectMap.get(sourceSlug)?.targetSlug
-                    }' is used when resolving links here; query-param-conditioned targets aren't applied at this layer.`
-                )
-            )
-        }
-    }
-
     return redirectMap
+}
+
+// Returns, for the given source slugs, those that resolve to more than one
+// distinct target multi-dim depending on their source query params, mapped to
+// the sorted list of target slugs. getMultiDimRedirectTargets collapses each
+// source to a single representative target, so callers that resolve by slug
+// alone (without query-param matching, e.g. the gdoc link layer) use this to
+// detect the sources they would mis-resolve.
+export async function getMultiDimRedirectSourcesWithMultipleTargets(
+    knex: db.KnexReadonlyTransaction,
+    slugs: string[],
+    sourcePrefix: MultiDimRedirectSourcePrefix
+): Promise<Map<string, string[]>> {
+    const result = new Map<string, string[]>()
+    if (slugs.length === 0) return result
+
+    const rows = await db.knexRaw<{ sourceSlug: string; targetSlugs: string }>(
+        knex,
+        `-- sql
+        SELECT
+            REPLACE(mdr.source, ?, '') AS sourceSlug,
+            GROUP_CONCAT(DISTINCT mddp.slug ORDER BY mddp.slug) AS targetSlugs
+        FROM ${MultiDimRedirectsTableName} mdr
+        JOIN multi_dim_data_pages mddp ON mddp.id = mdr.multiDimId
+        WHERE mddp.published = TRUE
+            AND mddp.slug IS NOT NULL
+            AND mdr.source IN (${slugs.map(() => "?").join(",")})
+        GROUP BY mdr.source
+        HAVING COUNT(DISTINCT mdr.multiDimId) > 1
+        `,
+        [sourcePrefix, ...slugs.map((slug) => `${sourcePrefix}${slug}`)]
+    )
+    for (const row of rows) {
+        result.set(row.sourceSlug, row.targetSlugs.split(","))
+    }
+    return result
 }
 
 // Like getMultiDimRedirectTargets, but returns every matching row grouped by
