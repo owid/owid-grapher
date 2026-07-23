@@ -1760,3 +1760,196 @@ describe("Chart addressing by config UUID", { timeout: 15000 }, () => {
         ).rejects.toThrow(/already exists/)
     })
 })
+
+describe("ETL config upsert by config UUID", { timeout: 15000 }, () => {
+    const variableId = 1
+
+    const dummyDataset = {
+        id: 1,
+        name: "Dummy dataset",
+        description: "Dataset description",
+        namespace: "owid",
+        createdByUserId: 1,
+        metadataEditedAt: new Date(),
+        metadataEditedByUserId: 1,
+        dataEditedAt: new Date(),
+        dataEditedByUserId: 1,
+    }
+
+    const dummyVariable = {
+        id: variableId,
+        unit: "kg",
+        coverage: "Global by country",
+        timespan: "2000-2020",
+        datasetId: 1,
+        display: '{ "unit": "kg", "shortUnit": "kg" }',
+    }
+
+    const testChartConfig = {
+        $schema: latestGrapherConfigSchema,
+        slug: "test-chart-etl-upsert",
+        title: "Title set on chart create",
+        chartTypes: ["LineChart"],
+        dimensions: [{ variableId, property: "y" }],
+    }
+
+    const testEtlConfig = {
+        $schema: latestGrapherConfigSchema,
+        slug: "etl-authored-chart",
+        title: "Title from the ETL config",
+        chartTypes: ["LineChart"],
+        dimensions: [{ variableId, property: "y" }],
+    }
+
+    beforeEach(async () => {
+        await env.testKnex(DatasetsTableName).insert([dummyDataset])
+        await env.testKnex(VariablesTableName).insert([dummyVariable])
+    })
+
+    function rawRequest(arg: {
+        method: "PUT" | "DELETE"
+        path: string
+        body?: string
+    }): Promise<Response> {
+        return fetch(env.baseUrl + arg.path, {
+            method: arg.method,
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${env.apiKey}`,
+            },
+            body: arg.body,
+        })
+    }
+
+    it("creates a chart when the config UUID doesn't exist yet", async () => {
+        const chartConfigId = uuidv7()
+
+        const response = await env.request({
+            method: "PUT",
+            path: `/charts/by-config/${chartConfigId}/etlConfig?catalogPath=grapher/dummy/latest/dummy%23chart`,
+            body: JSON.stringify(testEtlConfig),
+        })
+        expect(response.success).toBe(true)
+        expect(response.created).toBe(true)
+        const chartId = response.chartId
+        expect(typeof chartId).toBe("number")
+
+        // the new chart carries the caller-supplied UUID as its identity
+        const chartRow = await env
+            .testKnex(ChartsTableName)
+            .where("id", chartId)
+            .first()
+        expect(chartRow.configId).toBe(chartConfigId)
+        expect(chartRow.configIdETL).not.toBeNull()
+        expect(chartRow.catalogPath).toBe("grapher/dummy/latest/dummy#chart")
+
+        // the admin patch starts out almost empty — the ETL layer owns all
+        // fields except the non-inheritable slug, which is copied into the
+        // patch at creation
+        const patchConfig = await env.fetchJson(
+            `/charts/${chartId}.patchConfig.json`
+        )
+        expect(omitUndefinedValues(patchConfig)).toEqual({
+            $schema: latestGrapherConfigSchema,
+            id: chartId,
+            version: patchConfig.version,
+            isPublished: false,
+            slug: "etl-authored-chart",
+        })
+
+        // the rendered full config comes from the ETL layer; the chart is a draft
+        const fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig).toMatchObject({
+            slug: "etl-authored-chart",
+            title: "Title from the ETL config",
+            isPublished: false,
+        })
+        expect(fullConfig.dimensions).toEqual([{ variableId, property: "y" }])
+
+        // the chart is also addressable by its config UUID now
+        const byConfigId = await env.fetchJson(
+            `/charts/${chartConfigId}.config.json`
+        )
+        expect(byConfigId).toEqual(fullConfig)
+    })
+
+    it("updates the ETL layer when called again with the same UUID", async () => {
+        const chartConfigId = uuidv7()
+
+        const first = await env.request({
+            method: "PUT",
+            path: `/charts/by-config/${chartConfigId}/etlConfig`,
+            body: JSON.stringify(testEtlConfig),
+        })
+        expect(first.created).toBe(true)
+
+        const second = await env.request({
+            method: "PUT",
+            path: `/charts/by-config/${chartConfigId}/etlConfig`,
+            body: JSON.stringify({
+                ...testEtlConfig,
+                subtitle: "Subtitle from the second push",
+            }),
+        })
+        expect(second.success).toBe(true)
+        expect(second.created).toBe(false)
+        expect(second.chartId).toBe(first.chartId)
+
+        // still only one chart
+        expect(await env.getCount(ChartsTableName)).toBe(1)
+
+        const fullConfig = await env.fetchJson(
+            `/charts/${first.chartId}.config.json`
+        )
+        expect(fullConfig.subtitle).toBe("Subtitle from the second push")
+    })
+
+    it("attaches an ETL layer to an existing admin-created chart", async () => {
+        // create a chart via the regular admin API
+        const createResponse = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+        const chartId = createResponse.chartId
+        const chartRowBefore = await env
+            .testKnex(ChartsTableName)
+            .where("id", chartId)
+            .first()
+        expect(chartRowBefore.configIdETL).toBeNull()
+
+        // push an ETL config addressed by the chart's config UUID
+        const response = await env.request({
+            method: "PUT",
+            path: `/charts/by-config/${chartRowBefore.configId}/etlConfig`,
+            body: JSON.stringify({
+                ...testEtlConfig,
+                slug: undefined,
+                subtitle: "Subtitle from the ETL config",
+            }),
+        })
+        expect(response.success).toBe(true)
+        expect(response.created).toBe(false)
+        expect(response.chartId).toBe(chartId)
+
+        const chartRowAfter = await env
+            .testKnex(ChartsTableName)
+            .where("id", chartId)
+            .first()
+        expect(chartRowAfter.configIdETL).not.toBeNull()
+
+        // the admin's title (in the patch) still wins over the ETL config
+        const fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig.title).toBe("Title set on chart create")
+        expect(fullConfig.subtitle).toBe("Subtitle from the ETL config")
+    })
+
+    it("rejects malformed config UUIDs", async () => {
+        const response = await rawRequest({
+            method: "PUT",
+            path: `/charts/by-config/not-a-uuid/etlConfig`,
+            body: JSON.stringify(testEtlConfig),
+        })
+        expect(response.status).toBe(400)
+    })
+})
