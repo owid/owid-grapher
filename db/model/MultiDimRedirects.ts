@@ -6,6 +6,7 @@ import {
     MultiDimRedirectsTableName,
 } from "@ourworldindata/types"
 import { MultiDimDataPageConfig } from "@ourworldindata/utils"
+import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 
 export type MultiDimRedirectSourcePrefix = "/grapher/" | "/explorers/"
 
@@ -100,11 +101,30 @@ export async function getMultiDimRedirectTargets(
         WHERE mddp.published = TRUE
             AND mddp.slug IS NOT NULL
             AND ${whereClause}
+        -- We keep only one target per source (the actual query-param matching
+        -- happens at request time in the Cloudflare function). Prefer the
+        -- unconditional (catch-all) rule so the representative view is the
+        -- default, then order by id so the pick is deterministic across bakes.
+        ORDER BY (mdr.sourceQueryParams IS NOT NULL), mdr.id
         `,
         [sourcePrefix, ...params]
     )
 
+    // Distinct target multi-dims seen per source, to flag fan-out (a source
+    // that resolves to different multi-dims depending on query params). We only
+    // keep one representative target, so such a source mis-resolves at this
+    // (CMS link) layer — report it rather than silently pick one.
+    const targetsBySource = new Map<string, Set<string>>()
     for (const redirect of redirects) {
+        let targets = targetsBySource.get(redirect.sourceSlug)
+        if (!targets) {
+            targets = new Set()
+            targetsBySource.set(redirect.sourceSlug, targets)
+        }
+        targets.add(redirect.multiDimSlug)
+
+        // First row wins (rows are ordered most-preferred first).
+        if (redirectMap.has(redirect.sourceSlug)) continue
         const queryStr = buildQueryStrFromConfig(
             redirect.viewConfigId,
             redirect.config,
@@ -114,6 +134,20 @@ export async function getMultiDimRedirectTargets(
             targetSlug: redirect.multiDimSlug,
             queryStr,
         })
+    }
+
+    for (const [sourceSlug, targets] of targetsBySource) {
+        if (targets.size > 1) {
+            await logErrorAndMaybeCaptureInSentry(
+                new Error(
+                    `Multi-dim redirect source '${sourcePrefix}${sourceSlug}' resolves to multiple target multi-dims (${[
+                        ...targets,
+                    ].join(", ")}). Only '${
+                        redirectMap.get(sourceSlug)?.targetSlug
+                    }' is used when resolving links here; query-param-conditioned targets aren't applied at this layer.`
+                )
+            )
+        }
     }
 
     return redirectMap
