@@ -160,13 +160,15 @@ function formatBytes(bytes: number): string {
 }
 
 function CompleteDatasetSection({
+    slug,
     downloadPackage,
 }: {
+    slug: string
     downloadPackage: DownloadPackage
 }) {
     const description = makeCompleteDatasetDescription({
         rowCount: downloadPackage.rowCount,
-        fileCount: downloadPackage.fileCount,
+        indicatorCount: downloadPackage.indicatorCount,
     })
     return (
         <div className="downloads-section" id="download-complete-dataset">
@@ -183,6 +185,7 @@ function CompleteDatasetSection({
                     icon="full"
                     trackingNote="datapage_download_complete_dataset"
                     href={downloadPackage.url}
+                    download={`${slug}-complete-dataset.zip`}
                 />
             </div>
             <ExpandableToggle
@@ -196,10 +199,12 @@ function CompleteDatasetSection({
                             file structure.
                         </p>
                         <ul className="metadata-list">
-                            {downloadPackage.fileCount !== undefined && (
+                            {downloadPackage.indicatorCount !== undefined && (
                                 <li>
-                                    {downloadPackage.fileCount} indicator
-                                    {downloadPackage.fileCount === 1 ? "" : "s"}
+                                    {downloadPackage.indicatorCount} indicator
+                                    {downloadPackage.indicatorCount === 1
+                                        ? ""
+                                        : "s"}
                                 </li>
                             )}
                             {downloadPackage.rowCount !== undefined && (
@@ -400,6 +405,7 @@ export default function DownloadSection({
                     <>
                         {downloadPackage && (
                             <CompleteDatasetSection
+                                slug={slug}
                                 downloadPackage={downloadPackage}
                             />
                         )}

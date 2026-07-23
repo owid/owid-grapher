@@ -75,7 +75,7 @@ function getPrototypeDemoDownloadPackage(
     if (slug !== "years-of-schooling") return undefined
     return {
         url: PROTOTYPE_DEMO_ZIP_DATA_URI,
-        fileCount: 4,
+        indicatorCount: 4,
         rowCount: 6,
         sizeBytes: 1506,
         lastUpdated: "2026-07-20",

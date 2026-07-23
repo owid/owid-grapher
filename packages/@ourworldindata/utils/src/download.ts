@@ -69,17 +69,17 @@ export function makeFullDownloadDescription(
 
 export function makeCompleteDatasetDescription({
     rowCount,
-    fileCount,
+    indicatorCount,
 }: {
     rowCount: number | undefined
-    fileCount: number | undefined
+    indicatorCount: number | undefined
 }): string {
     const rowsSnippet = makeNumberOfRowsSnippet(rowCount)
-    const filesSnippet =
-        fileCount !== undefined
-            ? ` across ${fileCount} indicator${fileCount === 1 ? "" : "s"}`
+    const indicatorsSnippet =
+        indicatorCount !== undefined
+            ? ` across ${indicatorCount} indicator${indicatorCount === 1 ? "" : "s"}`
             : ""
-    return `Includes all dimension combinations of this dataset, not just the current view${filesSnippet}${rowsSnippet}`
+    return `Includes all dimension combinations of this dataset, not just the current view${indicatorsSnippet}${rowsSnippet}`
 }
 
 export function makeFilteredDownloadDescription({
