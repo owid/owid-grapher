@@ -195,33 +195,48 @@ function buildContinuousMonthGridTicks({
         .diff(minDate.startOf("month"), "month")
     if (spanMonths <= 0) return undefined
 
-    // Pick the smallest step that keeps the tick count at or below the target
-    const step =
-        steps.find((s) => spanMonths / s <= targetCount) ??
-        steps[steps.length - 1]
+    const gridForStep = (step: number): number[] => {
+        // Start from January of a "nice" anchor year. For year-based steps
+        // (12+ months), round the year down to the nearest multiple of the
+        // step in years, e.g. step=5y and min year=2023 -> anchor year=2020.
+        let anchorYear = minDate.year()
+        if (step >= 12) {
+            const yearsStep = step / 12
+            anchorYear = Math.floor(anchorYear / yearsStep) * yearsStep
+        }
 
-    // Start from January of a "nice" anchor year. For year-based steps
-    // (12+ months), round the year down to the nearest multiple of the step in
-    // years, e.g. step=5y and min year=2023 -> anchor year=2020.
-    let anchorYear = minDate.year()
-    if (step >= 12) {
-        const yearsStep = step / 12
-        anchorYear = Math.floor(anchorYear / yearsStep) * yearsStep
+        const anchor = dayjs.utc(`${anchorYear}-01-01`)
+        const monthsFromAnchor = (date: dayjs.Dayjs): number =>
+            date.startOf("month").diff(anchor, "month")
+
+        // The first and last grid indices that stay within the domain
+        const firstGridIndex = Math.ceil(monthsFromAnchor(minDate) / step)
+        const lastGridIndex = Math.floor(monthsFromAnchor(maxDate) / step)
+
+        return (
+            _.range(firstGridIndex, lastGridIndex + 1)
+                .map((k) =>
+                    convertDateToDaysSinceEpoch(anchor.add(k * step, "month"))
+                )
+                // The first index is rounded from the domain's start month, so
+                // a mid-month domain start can produce a tick just before it -
+                // drop those
+                .filter((value) => value >= domain[0] && value <= domain[1])
+        )
     }
 
-    const anchor = dayjs.utc(`${anchorYear}-01-01`)
-    const monthsFromAnchor = (date: dayjs.Dayjs): number =>
-        date.startOf("month").diff(anchor, "month")
+    // Pick the smallest step that keeps the tick count at or below the
+    // target. The span/step estimate can count a tick the domain clips off
+    // (e.g. a mid-month January start drops the anchor tick), so also accept
+    // a step whose exact in-domain tick count fits.
+    const step =
+        steps.find(
+            (s) =>
+                spanMonths / s <= targetCount ||
+                gridForStep(s).length <= targetCount
+        ) ?? steps[steps.length - 1]
 
-    // The first and last grid indices that stay within the domain
-    const firstGridIndex = Math.ceil(monthsFromAnchor(minDate) / step)
-    const lastGridIndex = Math.floor(monthsFromAnchor(maxDate) / step)
-
-    const grid = _.range(firstGridIndex, lastGridIndex + 1)
-        .map((k) => convertDateToDaysSinceEpoch(anchor.add(k * step, "month")))
-        // The first index is rounded from the domain's start month, so a
-        // mid-month domain start can produce a tick just before it - drop those
-        .filter((value) => value >= domain[0] && value <= domain[1])
+    const grid = gridForStep(step)
     if (!grid.length) return undefined
 
     // When every tick is a January, drop the redundant month and label only the year

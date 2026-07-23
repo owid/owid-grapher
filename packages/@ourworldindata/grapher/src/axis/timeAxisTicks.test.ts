@@ -89,6 +89,20 @@ describe(buildContinuousMonthlyAxisTicks, () => {
         expect(gridDates("2020-05-03", "2020-05-28", 6)).toBeUndefined()
     })
 
+    it("keeps a month step whose in-domain ticks meet a target the raw span/step estimate exceeds", () => {
+        // 77 months / 12 is just over the target of 6, but the mid-month
+        // domain start clips off the anchor January, so exactly six yearly
+        // ticks land in the domain — prefer them over three 2-yearly ticks
+        expect(gridDates("2020-01-09", "2026-06-28", 6)).toEqual([
+            "2021-01-01",
+            "2022-01-01",
+            "2023-01-01",
+            "2024-01-01",
+            "2025-01-01",
+            "2026-01-01",
+        ])
+    })
+
     it("drops grid ticks before a mid-month domain start", () => {
         // The 2-month grid is anchored to January, but the domain only
         // starts on Jan 5, so the Jan 1 tick is dropped
