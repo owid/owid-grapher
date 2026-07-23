@@ -1,6 +1,9 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
-import { migrateGrapherConfigToLatestVersionAndFailOnError } from "@ourworldindata/grapher"
+import {
+    defaultGrapherConfig,
+    migrateGrapherConfigToLatestVersionAndFailOnError,
+} from "@ourworldindata/grapher"
 import {
     GrapherInterface,
     JsonError,
@@ -1034,7 +1037,7 @@ export async function putChartsChartIdEtlConfig(
     res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = await expectChartId(trx, req.params.chartId)
 
     // ETL's stable identity for this chart (mirrors `multi_dim_data_pages.catalogPath`).
     // Optional so other callers don't clobber it; persisted via COALESCE below.
@@ -1047,6 +1050,77 @@ export async function putChartsChartIdEtlConfig(
         return { success: false, error: String(err) }
     }
 
+    return upsertEtlConfigForChart(
+        trx,
+        res.locals.user,
+        chartId,
+        etlConfig,
+        catalogPath
+    )
+}
+
+/**
+ * Like `putChartsChartIdEtlConfig`, but addressed by the chart's config UUID
+ * (`charts.configId`) and with upsert semantics: if no chart with the given
+ * config UUID exists yet, a minimal draft chart is created that carries the
+ * caller-supplied UUID as its identity, and the ETL config layer is attached
+ * to it. The new chart's admin patch starts out (almost) empty, so the ETL
+ * layer owns all rendered fields from birth and only genuine admin edits ever
+ * end up in the patch. The one exception is `slug`: identity/publishing keys
+ * are deliberately excluded from inheritance, so the slug is copied into the
+ * patch at creation (matching admin-created charts). Created charts are
+ * drafts — publishing stays an admin act via the regular chart API.
+ */
+export async function putChartsByConfigIdEtlConfig(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+) {
+    const chartConfigId = req.params.chartConfigId
+    if (!uuidValidate(chartConfigId))
+        throw new JsonError(`Invalid config UUID '${chartConfigId}'`, 400)
+
+    const catalogPath = (req.query.catalogPath as string | undefined) ?? null
+
+    let etlConfig: GrapherInterface
+    try {
+        etlConfig = migrateGrapherConfigToLatestVersionAndFailOnError(req.body)
+    } catch (err) {
+        return { success: false, error: String(err) }
+    }
+
+    let chartId = await getChartIdByConfigId(trx, chartConfigId)
+    const created = chartId === undefined
+
+    if (chartId === undefined) {
+        const { chartId: newChartId } = await saveGrapher(trx, {
+            user: res.locals.user,
+            newConfig: {
+                $schema: defaultGrapherConfig.$schema,
+                slug: etlConfig.slug,
+            },
+            chartConfigId,
+        })
+        chartId = newChartId
+    }
+
+    const result = await upsertEtlConfigForChart(
+        trx,
+        res.locals.user,
+        chartId,
+        etlConfig,
+        catalogPath
+    )
+    return { ...result, chartId, created }
+}
+
+async function upsertEtlConfigForChart(
+    trx: db.KnexReadWriteTransaction,
+    user: DbPlainUser,
+    chartId: number,
+    etlConfig: GrapherInterface,
+    catalogPath: string | null
+) {
     const row = await db.knexRawFirst<
         Pick<
             DbPlainChart,
@@ -1214,13 +1288,13 @@ export async function putChartsChartIdEtlConfig(
             now,
             now,
             now,
-            res.locals.user.id,
+            user.id,
             catalogPath,
             chartId,
         ]
     )
 
-    await insertChartRevision(trx, chartId, res.locals.user.id, newPatch, now)
+    await insertChartRevision(trx, chartId, user.id, newPatch, now)
 
     await refreshChartDimensionsAndR2(
         trx,
@@ -1231,7 +1305,7 @@ export async function putChartsChartIdEtlConfig(
 
     if (newFullConfig.isPublished) {
         await triggerStaticBuild(
-            res.locals.user,
+            user,
             `Updating ETL config for chart ${chartId}`
         )
     }
@@ -1256,7 +1330,7 @@ export async function deleteChartsChartIdEtlConfig(
     res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = await expectChartId(trx, req.params.chartId)
 
     const row = await db.knexRawFirst<
         Pick<

@@ -157,6 +157,7 @@ import {
     getChartTagsJson,
     getChartRecordsJson,
     putChartsChartIdEtlConfig,
+    putChartsByConfigIdEtlConfig,
     deleteChartsChartIdEtlConfig,
 } from "./apiRoutes/charts.js"
 import { getChartConfig } from "./apiRoutes/chartConfigs.js"
@@ -279,6 +280,13 @@ deleteRouteWithRWTransaction(
     apiRouter,
     "/charts/:chartId/etlConfig",
     deleteChartsChartIdEtlConfig
+)
+// Same as PUT /charts/:chartId/etlConfig, but addressed by the chart's config
+// UUID and with upsert semantics: creates the chart if it doesn't exist yet
+putRouteWithRWTransaction(
+    apiRouter,
+    "/charts/by-config/:chartConfigId/etlConfig",
+    putChartsByConfigIdEtlConfig
 )
 
 // Chart config routes
