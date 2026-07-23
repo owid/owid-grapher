@@ -21,6 +21,7 @@ import { AdminAppContext } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
 import { Admin } from "./Admin.js"
+import { formatSourceQueryParams } from "./multiDimRedirectHelpers.js"
 
 type MultiDimRedirect = {
     id: number
@@ -37,18 +38,6 @@ type RedirectInGroup = {
     source: string
     sourceQueryParams: Record<string, string | null> | null
     targetQueryStr: string | null
-}
-
-// Formats source query params for display (a `null` value denotes a wildcard).
-function formatSourceQueryParams(
-    params: Record<string, string | null> | null
-): string | null {
-    if (!params || Object.keys(params).length === 0) return null
-    return Object.entries(params)
-        .map(([key, value]) =>
-            value === null ? `${key}=*` : `${key}=${value}`
-        )
-        .join("&")
 }
 
 type GroupedRedirects = {

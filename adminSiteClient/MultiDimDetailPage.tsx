@@ -37,6 +37,7 @@ import {
     MultiDimDataPageConfigEnriched,
 } from "@ourworldindata/types"
 import { LoadingBlocker } from "./Forms.js"
+import { formatSourceQueryParams } from "./multiDimRedirectHelpers.js"
 
 // Source path must start with /grapher/ or /explorers/ and cannot end with a slash.
 const SOURCE_PATH_PATTERN = /^\/(grapher|explorers)\/.*[^/]$/
@@ -60,18 +61,6 @@ function parseSourceQueryParamsInput(
         result[key] = value
     }
     return Object.keys(result).length > 0 ? result : null
-}
-
-// Formats source query params for display (a `null` value denotes a wildcard).
-function formatSourceQueryParams(
-    params: Record<string, string | null> | null
-): string | null {
-    if (!params || Object.keys(params).length === 0) return null
-    return Object.entries(params)
-        .map(([key, value]) =>
-            value === null ? `${key}=*` : `${key}=${value}`
-        )
-        .join("&")
 }
 
 type ApiMultiDimDetail = {
