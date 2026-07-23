@@ -389,3 +389,12 @@ export {
 
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
 export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"
+
+export {
+    type DecisionTreeNode,
+    type QueryParamMatchRule,
+    buildQueryParamDecisionTree,
+    matchQueryParamDecisionTree,
+    serializeDecisionTree,
+    deserializeDecisionTree,
+} from "./QueryParamDecisionTree.js"

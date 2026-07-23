@@ -1,3 +1,8 @@
+import {
+    type DecisionTreeNode,
+    type ExplorerRedirectTarget,
+    matchQueryParamDecisionTree,
+} from "@ourworldindata/utils"
 import { Env, extensions } from "./env.js"
 
 export function createRedirectResponse(
@@ -118,20 +123,24 @@ export async function getRedirectForExplorerUrl(
         extension,
     })
 
-    // Explorer redirects contain full target paths (e.g. /grapher/slug?params)
     const target = await getOptionalExplorerRedirectForSlug(slug, url, env)
     console.log("Explorer redirect target", target)
     if (target) {
-        const [targetPath, targetParams] = target.split("?", 2)
-        // Append extension to the target path if present
-        const targetPathWithExtension = extension
-            ? `${targetPath}${extension}`
-            : targetPath
-        return createRedirectResponse(
-            url,
-            targetPathWithExtension,
-            targetParams ? new URLSearchParams(targetParams) : undefined
-        )
+        const targetPath = `/grapher/${target.targetSlug}${extension}`
+        // Forward the incoming query params, then apply the target's params: a
+        // string value overrides/adds the param, a null value removes it.
+        const params = new URLSearchParams(url.searchParams)
+        for (const [key, value] of Object.entries(target.targetQueryParams)) {
+            if (value === null) params.delete(key)
+            else params.set(key, value)
+        }
+        const search = params.toString()
+        return new Response(null, {
+            status: 302,
+            headers: {
+                Location: `${targetPath}${search ? `?${search}` : ""}`,
+            },
+        })
     }
     return undefined
 }
@@ -140,18 +149,28 @@ async function getOptionalExplorerRedirectForSlug(
     slug: string | undefined,
     baseUrl: URL,
     env: Env
-): Promise<string | undefined> {
+): Promise<ExplorerRedirectTarget | undefined> {
     if (!slug) return undefined
-    const redirects: Record<string, string> = await env.ASSETS.fetch(
+    // Each source slug maps to either a plain target slug (a trivial
+    // unconditional redirect) or a decision tree that resolves the target based
+    // on the incoming query params (see baker/redirectsFromDb.ts).
+    type ExplorerRedirect = string | DecisionTreeNode<ExplorerRedirectTarget>
+    const redirects: Record<string, ExplorerRedirect> = await env.ASSETS.fetch(
         new URL("/explorers/_explorerRedirects.json", baseUrl),
         { cf: { cacheTtl: 2 * 60 } }
     )
-        .then((r): Promise<Record<string, string>> => r.json())
+        .then((r): Promise<Record<string, ExplorerRedirect>> => r.json())
         .catch((e) => {
             console.error("Error fetching explorer redirects", e)
             return {}
         })
-    return redirects[slug]
+    const redirect = redirects[slug]
+    if (!redirect) return undefined
+    // A plain string is a bare target slug with no query params to apply.
+    if (typeof redirect === "string")
+        return { targetSlug: redirect, targetQueryParams: {} }
+    const queryParams = Object.fromEntries(baseUrl.searchParams)
+    return matchQueryParamDecisionTree(redirect, queryParams)
 }
 
 export async function handleExplorerPageNotFound(

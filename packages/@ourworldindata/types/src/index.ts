@@ -783,6 +783,7 @@ export type {
     ChoicesEnriched,
     DimensionEnriched,
     MultiDimDimensionChoices,
+    ExplorerRedirectTarget,
     View,
     ViewEnriched,
 } from "./siteTypes/MultiDimDataPage.js"
@@ -850,6 +851,11 @@ export {
     type GrapherValuesJsonDataPoint,
     type GrapherValuesJsonDimension,
 } from "./endpointTypes/GrapherValuesJson.js"
+
+export {
+    type BulkMultiDimRedirectResult,
+    type BulkMultiDimRedirectResponse,
+} from "./endpointTypes/MultiDimRedirects.js"
 
 export {
     type SearchChartHitDataTableProps,
