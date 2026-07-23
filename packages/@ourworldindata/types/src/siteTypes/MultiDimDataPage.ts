@@ -45,13 +45,11 @@ export interface DownloadPackage {
     // ETL-staged wide CSV + indicator index (R2) that the dynamic build
     // route reads from on every request -- the "complete dataset" analogue
     // of a chart's own data, fetched once at ETL publish time rather than
-    // per-view. Absent for the code-only prototype demo package.
+    // per-view.
     csvUrl?: string
     indicatorsUrl?: string
     indicatorCount?: number
     rowCount?: number
-    sizeBytes?: number
-    lastUpdated?: string
 }
 
 interface MultiDimDataPageConfigType<

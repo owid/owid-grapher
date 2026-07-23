@@ -331,7 +331,10 @@ ${readmeColumnSections.join("\n")}
     return new Response(content, {
         headers: {
             "Content-Type": "application/zip",
-            "Content-Disposition": `attachment; filename="${identifier.id}.zip"`,
+            // Distinct from the per-view `.zip` route's filename -- otherwise
+            // a user downloading both ends up with "slug.zip" and
+            // "slug(1).zip" and no way to tell them apart.
+            "Content-Disposition": `attachment; filename="${identifier.id}.complete-dataset.zip"`,
         },
     })
 }

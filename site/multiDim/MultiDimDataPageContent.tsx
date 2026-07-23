@@ -23,7 +23,6 @@ import {
 import {
     ArchiveContext,
     DataPageRelatedResearch,
-    DownloadPackage,
     FaqEntryKeyedByGdocIdAndFragmentId,
     GRAPHER_TAB_QUERY_PARAMS,
     GrapherQueryParams,
@@ -60,27 +59,6 @@ import {
 
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
 const isIframe = isInIFrame()
-
-// PROTOTYPE DEMO ONLY (mdim-downloads project). Real MDM download packages
-// don't exist yet — this is a self-contained mock zip (data URI, no
-// server/DB dependency) so reviewers can see the end-to-end UI on the
-// "years-of-schooling" MDM. Remove once ETL produces real packages and
-// config.config.downloadPackage is set from real data.
-const PROTOTYPE_DEMO_ZIP_DATA_URI =
-    "data:application/zip;base64,UEsDBBQAAAAIANp69FyoAgHqywAAAJ4BAAAWABwAeWVhcnMtb2Ytc2Nob29saW5nLmNzdlVUCQADKyFeaj0hXmp1eAsAAQT1AQAABAAAAACNjD0PgjAQhnd+y6Wh5UtGP4iDiYOJg1NzwgmYUgygEX+917Cog2G45q7v8z6ZHephhHVbEJwIO8AHdViSHvnodZ9XbWtqW2rd01Of26HS2tCDjEZj/sMXatDQJ07PG+UDFfPkhiHrUiyu935uzVt1+KoNrA5LUL6MIBExTwQyFCkshPoGlM9/kscHGQnFS+JtqWvQjrDJjpOCqxJkwH2ZTGDwA7GGocA9ykHSQbG3Izsi7LL95ImFG86UCHlJv3JWOHksEpenfITeG1BLAwQUAAAACADcevRc5JaTwggBAAB8AQAADQAcAG1hbmlmZXN0Lmpzb25VVAkAAzAhXmo9IV5qdXgLAAEE9QEAAAQAAAAAbZBBTsMwEEX3PcXI6zoKESoSO1R10QVNhcICoaoy8SQx2J7IdlIihMQhOCEnwW5EV6zG+t/67898LADY/qGsyuppvznuymq73rBbYPdUv4ERVjXoAzTkIHQIRirDJZ2sJiE9PG6hdxQoTD1msKMADoWGfnjRyncoQYog4OfrG5TWgw9OBDUixMdQh8EhkNVTxpaphNdDm8ATCuc5NdzXHZFWtp39EZ1XZNOXC5NfzV6LFmM2yruQ/CIvVjy/4UU+243S6KPx/E94VvuRLYEZDCK1zV59hEQhbiINZkaywyVkTYNNhOuz4uj0J6zOQjwO2lRyhsVIp+pjKpoCPb6noXFEzQ6Lz8UvUEsDBBQAAAAIAOJ69FxeaWtquQEAAMgCAAAJABwAcmVhZG1lLm1kVVQJAAM4IV5qPSFeanV4CwABBPUBAAAEAAAAAHWSTY7UMBCF9zlFadh0t5IcgB2CXiCBZtQEpNmN26503F1xRf5JyI5DIHEgbsJJKDsNG4SUTcquqve951fwjMoH4B6CHpjJugv8+vYdNI8TYUQwKqqAEXZPp8fusXt+Ou6r6nDoBhtAPgUj6xtMSt/UBaFnD3FAGI0dG8OLI1YmwOf3MHmOHNcJ28MBOrni0nhGWX1G4gWUR7BEKUSvop0R2NFag+MIHhXBlM5kw4CmCGrhVIpla5a8W6zB5u2nL3BBh3kEu3rrHDGq3HP/PR3fvPt4hIjCpyLuM0RWHHBS0odw7D4IBomoJk1Z9hV1bKuqEPeWEBZOZESaHxXRKla5qKx7XVUNvKzZzob75q+drQ7zS/G0aOxzW4QsdbFxEE6UCZRGBxN6sM5YraLY+PMHiInogqDkOM7WFSzYCZG3GrKZNaBJeqsTzkh1NsCg39fSM6PP5kjdr/8ZJsFn+od/n8EDjImilbYthqtkU+7OFhdYOcGCEhox3/ISJR4J/x+322tgt2ELVnMnDJy8FtHaxntEyhkgq0WZ5O82c+QgzyqGb3EJ5leJy7q8KWsoOchbSTomj231G1BLAQIeAxQAAAAIANp69FyoAgHqywAAAJ4BAAAWABgAAAAAAAEAAACkgQAAAAB5ZWFycy1vZi1zY2hvb2xpbmcuY3N2VVQFAAMrIV5qdXgLAAEE9QEAAAQAAAAAUEsBAh4DFAAAAAgA3Hr0XOSWk8IIAQAAfAEAAA0AGAAAAAAAAQAAAKSBGwEAAG1hbmlmZXN0Lmpzb25VVAUAAzAhXmp1eAsAAQT1AQAABAAAAABQSwECHgMUAAAACADievRcXmlrarkBAADIAgAACQAYAAAAAAABAAAApIFqAgAAcmVhZG1lLm1kVVQFAAM4IV5qdXgLAAEE9QEAAAQAAAAAUEsFBgAAAAADAAMA/gAAAGYEAAAAAA=="
-
-function getPrototypeDemoDownloadPackage(
-    slug: string | null
-): DownloadPackage | undefined {
-    if (slug !== "years-of-schooling") return undefined
-    return {
-        url: PROTOTYPE_DEMO_ZIP_DATA_URI,
-        indicatorCount: 4,
-        rowCount: 6,
-        sizeBytes: 1506,
-        lastUpdated: "2026-07-20",
-    }
-}
 
 const useTitleFragments = (config: MultiDimDataPageConfig) => {
     const title = config.config.title
@@ -458,7 +436,7 @@ export function DataPageContent({
               ...config.config.downloadPackage,
               url: `${BAKED_GRAPHER_URL}/${slug}.complete-dataset.zip`,
           }
-        : getPrototypeDemoDownloadPackage(slug)
+        : undefined
 
     const downloadSection = slug ? (
         <DownloadSection

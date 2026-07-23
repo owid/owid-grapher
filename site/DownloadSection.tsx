@@ -154,11 +154,6 @@ function ApiAndCodeExamplesSection({
     )
 }
 
-function formatBytes(bytes: number): string {
-    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
-    return `${formatValue(bytes / (1024 * 1024), { numDecimalPlaces: 1 })} MB`
-}
-
 function CompleteDatasetSection({
     slug,
     downloadPackage,
@@ -185,7 +180,7 @@ function CompleteDatasetSection({
                     icon="full"
                     trackingNote="datapage_download_complete_dataset"
                     href={downloadPackage.url}
-                    download={`${slug}-complete-dataset.zip`}
+                    download={`${slug}.complete-dataset.zip`}
                 />
             </div>
             <ExpandableToggle
@@ -213,17 +208,6 @@ function CompleteDatasetSection({
                                         numDecimalPlaces: 0,
                                     })}{" "}
                                     rows
-                                </li>
-                            )}
-                            {downloadPackage.sizeBytes !== undefined && (
-                                <li>
-                                    {formatBytes(downloadPackage.sizeBytes)}{" "}
-                                    zipped
-                                </li>
-                            )}
-                            {downloadPackage.lastUpdated && (
-                                <li>
-                                    Last updated {downloadPackage.lastUpdated}
                                 </li>
                             )}
                         </ul>
