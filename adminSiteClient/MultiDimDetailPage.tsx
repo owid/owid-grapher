@@ -56,10 +56,7 @@ function parseSourceQueryParamsInput(
 ): Record<string, string> | null {
     const trimmed = input.trim().replace(/^\?/, "")
     if (!trimmed) return null
-    const result: Record<string, string> = {}
-    for (const [key, value] of new URLSearchParams(trimmed)) {
-        result[key] = value
-    }
+    const result = Object.fromEntries(new URLSearchParams(trimmed))
     return Object.keys(result).length > 0 ? result : null
 }
 
