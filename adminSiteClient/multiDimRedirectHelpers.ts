@@ -4,6 +4,8 @@ export function formatSourceQueryParams(
 ): string | null {
     if (!params || Object.keys(params).length === 0) return null
     return Object.entries(params)
-        .map(([key, value]) => (value === null ? `${key}=*` : `${key}=${value}`))
+        .map(([key, value]) =>
+            value === null ? `${key}=*` : `${key}=${value}`
+        )
         .join("&")
 }
