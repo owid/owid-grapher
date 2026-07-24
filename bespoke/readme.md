@@ -51,11 +51,13 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     BespokeComponentDefinition
 > = {
     "income-plots": {
-        scriptUrl: "/assets/bespoke/income-plots.mjs",
-        cssUrl: "/assets/bespoke/income-plots.css", // optional
+        scriptUrl: "/income-plots/index.js",
+        cssUrl: "/income-plots/index.css", // optional
     },
 }
 ```
+
+The URLs are resolved against `BESPOKE_BASE_URL` (defaults to the local dev server, `http://localhost:8089`).
 
 The `cssUrl` is optional — if your component manages its own styles (e.g. via `vite-plugin-css-position` injecting CSS into the Shadow DOM from JS), you can omit it.
 
@@ -137,12 +139,12 @@ root.render(
 
 ## Projects
 
-Each project under `bespoke/projects/` is fully self-contained. A project has its own `package.json`, its own dependencies, and its own build step — there is no shared build pipeline.
+Each project under `bespoke/projects/` is fully self-contained. A project has its own `package.json`, its own dependencies, and its own build step. For deployment, [buildBespokeProjects.sh](buildBespokeProjects.sh) runs every project's build and collects the outputs into `dist/assets-bespoke/<name>/` at the repo root.
 
 This means each project is responsible for:
 
-- Managing its own dependencies (`npm install` / `yarn install` inside the project directory)
-- Defining its own build command that produces the `.mjs` and `.css` output files
+- Managing its own dependencies (projects are yarn workspaces of `bespoke/` — run `yarn install` from there)
+- Defining its own build command that produces the ES-module output (and optionally a CSS file)
 - Bundling everything it needs — shared site styles, fonts, etc. are not available inside the Shadow DOM
 
 Projects can import shared code from `bespoke/components/` if needed, but must bundle it into their output.
@@ -272,5 +274,4 @@ The dev server will inject this stylesheet into the demo page's `<head>` (outsid
 2. Set up your project with its own `package.json` and build tooling to output an ESM module (`.mjs`) and optionally a CSS file
 3. Export a `mount` function from the entry point
 4. Register the bundle in [site/bespokeComponentRegistry.ts](../site/bespokeComponentRegistry.ts)
-5. Deploy the built assets to the expected URL path
-6. Add the `{.bespoke-component}` block in your Google Doc
+5. Add the `{.bespoke-component}` block in your Google Doc
