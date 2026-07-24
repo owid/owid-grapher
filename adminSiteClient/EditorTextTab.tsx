@@ -507,6 +507,17 @@ export class EditorTextTab<
                         </Button>
                     )}
                 </Section>
+                <Section name="Deprecation">
+                    <BindString
+                        label="Deprecation notice"
+                        field="deprecationNotice"
+                        store={grapherState}
+                        textarea
+                        softCharacterLimit={280}
+                        placeholder="e.g. This chart is no longer updated because … See [our updated charts](https://ourworldindata.org/...) instead."
+                        helpText="Shown as a banner on the chart, including embeds. Supports markdown links. Point readers to a successor chart if one exists. Leave empty for charts that are still maintained."
+                    />
+                </Section>
                 <Section name="Misc">
                     <BindString
                         label="Internal author notes"

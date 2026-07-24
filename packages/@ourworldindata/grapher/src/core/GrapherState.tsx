@@ -472,6 +472,9 @@ export class GrapherState
     /** Links to related questions */
     relatedQuestions: RelatedQuestionsConfig[] | undefined = undefined
 
+    /** Markdown notice shown as a banner when the chart is no longer maintained */
+    deprecationNotice: string | undefined = undefined
+
     //
     // Internal state not persisted in the config
     //
@@ -588,6 +591,7 @@ export class GrapherState
     hideExploreTheDataButton = true
     hideControlsRow = false
     hideRelatedQuestion = false
+    hideDeprecationNotice = false
     canHideExternalControlsInEmbed: boolean = false
     recommendedIframeEmbedHeight?: number
     hideExternalControlsInEmbedUrl: boolean =
@@ -702,6 +706,8 @@ export class GrapherState
             includedEntityNames: observable,
             comparisonLines: observable,
             relatedQuestions: observable,
+            deprecationNotice: observable.ref,
+            hideDeprecationNotice: observable,
             dataTableConfig: observable,
             highlightedTimesInLineChart: observable.ref,
             hideFacetControl: observable.ref,
@@ -3702,6 +3708,14 @@ export class GrapherState
             !!this.relatedQuestions &&
             !!this.hasRelatedQuestion &&
             !!this.isRelatedQuestionTargetDifferentFromCurrentPage
+        )
+    }
+
+    @computed get showDeprecationNotice(): boolean {
+        return (
+            !this.hideDeprecationNotice &&
+            !!this.deprecationNotice?.trim() &&
+            this.variant !== GrapherVariant.Thumbnail
         )
     }
 

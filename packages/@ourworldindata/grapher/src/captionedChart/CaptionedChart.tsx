@@ -9,6 +9,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
+    MarkdownTextWrapHtml,
     MarkdownTextWrapSvg,
     LoadingIndicator,
 } from "@ourworldindata/components"
@@ -22,7 +23,10 @@ import {
 } from "../core/GrapherConstants"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
-import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons"
+import {
+    faExternalLinkAlt,
+    faBoxArchive,
+} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { FooterManager } from "../footer/FooterManager"
 import { HeaderManager } from "../header/HeaderManager"
@@ -93,6 +97,10 @@ export interface CaptionedChartManager
     // related question
     relatedQuestions?: RelatedQuestionsConfig[]
     showRelatedQuestion?: boolean
+
+    // deprecation notice
+    deprecationNotice?: string
+    showDeprecationNotice?: boolean
 }
 
 interface CaptionedChartProps {
@@ -101,6 +109,14 @@ interface CaptionedChartProps {
 
 // keep in sync with sass variables in CaptionedChart.scss
 export const CONTROLS_ROW_HEIGHT = 32
+
+// keep in sync with sass variables in CaptionedChart.scss
+const DEPRECATION_NOTICE_PADDING_VERTICAL = 12
+const DEPRECATION_NOTICE_PADDING_HORIZONTAL = 16
+const DEPRECATION_NOTICE_GAP = 10
+const DEPRECATION_NOTICE_ICON_WIDTH = 16
+const DEPRECATION_NOTICE_FONT_SIZE = 14
+const DEPRECATION_NOTICE_LINE_HEIGHT = 1.5
 
 abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProps> {
     protected framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
@@ -178,6 +194,40 @@ export class CaptionedChart extends AbstractCaptionedChart {
         return this.manager.isMedium ? 24 : 28
     }
 
+    @computed private get showDeprecationNotice(): boolean {
+        return !!this.manager.showDeprecationNotice
+    }
+
+    @computed private get deprecationNoticeTextWrap():
+        | MarkdownTextWrap
+        | undefined {
+        if (!this.showDeprecationNotice) return undefined
+        return new MarkdownTextWrap({
+            text: this.manager.deprecationNotice!,
+            maxWidth:
+                this.maxWidth -
+                2 * DEPRECATION_NOTICE_PADDING_HORIZONTAL -
+                DEPRECATION_NOTICE_ICON_WIDTH -
+                DEPRECATION_NOTICE_GAP,
+            fontSize: DEPRECATION_NOTICE_FONT_SIZE,
+            lineHeight: DEPRECATION_NOTICE_LINE_HEIGHT,
+            detailsOrderedByReference: this.manager.detailsOrderedByReference,
+        })
+    }
+
+    @computed private get deprecationNoticeHeight(): number {
+        if (!this.deprecationNoticeTextWrap) return 0
+        return (
+            this.deprecationNoticeTextWrap.height +
+            2 * DEPRECATION_NOTICE_PADDING_VERTICAL
+        )
+    }
+
+    @computed private get deprecationNoticeHeightWithPadding(): number {
+        if (!this.showDeprecationNotice) return 0
+        return this.deprecationNoticeHeight + this.verticalPadding
+    }
+
     @computed private get showControlsRow(): boolean {
         if (this.manager.hideControlsRow) return false
         return ControlsRow.shouldShow(this.manager)
@@ -230,6 +280,53 @@ export class CaptionedChart extends AbstractCaptionedChart {
                     {relatedQuestions![0].text}
                 </a>
                 <FontAwesomeIcon icon={faExternalLinkAlt} />
+            </div>
+        )
+    }
+
+    // Markdown links render as plain <a href>, with no way to pass per-link
+    // target/rel props. Inside an iframe embed, opening the successor link
+    // in the iframe itself would be a poor escape hatch, so intercept clicks
+    // there and open in a new tab instead (same as the hand-authored links
+    // in Header/Footer already do for isInIFrame).
+    private readonly onDeprecationNoticeClick = (
+        event: React.MouseEvent<HTMLDivElement>
+    ): void => {
+        if (!this.manager.isInIFrame) return
+        const anchor = (event.target as HTMLElement).closest("a")
+        if (!anchor) return
+        event.preventDefault()
+        window.open(anchor.href, "_blank", "noopener")
+    }
+
+    private renderDeprecationNotice(): React.ReactElement {
+        return (
+            <div
+                className="DeprecationNotice"
+                style={{
+                    width: this.bounds.width,
+                    padding: `0 ${this.framePaddingHorizontal}px`,
+                }}
+                data-track-note="chart_deprecation_notice"
+            >
+                <div
+                    className="DeprecationNotice__box"
+                    style={{
+                        padding: `${DEPRECATION_NOTICE_PADDING_VERTICAL}px ${DEPRECATION_NOTICE_PADDING_HORIZONTAL}px`,
+                        gap: DEPRECATION_NOTICE_GAP,
+                    }}
+                    onClick={this.onDeprecationNoticeClick}
+                >
+                    <FontAwesomeIcon icon={faBoxArchive} />
+                    <div
+                        className="DeprecationNotice__text"
+                        style={this.deprecationNoticeTextWrap!.style}
+                    >
+                        <MarkdownTextWrapHtml
+                            textWrap={this.deprecationNoticeTextWrap!}
+                        />
+                    </div>
+                </div>
             </div>
         )
     }
@@ -292,6 +389,7 @@ export class CaptionedChart extends AbstractCaptionedChart {
             this.bounds.height -
                 2 * this.framePaddingVertical -
                 this.headerHeightWithPadding -
+                this.deprecationNoticeHeightWithPadding -
                 this.controlsRowHeightWithPadding -
                 this.timelineHeightWithPadding -
                 this.footerHeightWithPadding -
@@ -312,14 +410,16 @@ export class CaptionedChart extends AbstractCaptionedChart {
         // A CaptionedChart looks like this (components in [brackets] are optional):
         //    #1 Header
         //            ---- vertical space
-        //    #2 [Controls]
+        //    #2 [Deprecation notice]
         //            ---- vertical space (small)
-        //    #3 Chart/Map/Table
+        //    #3 [Controls]
         //            ---- vertical space (small)
-        //    #4 [Timeline]
+        //    #4 Chart/Map/Table
+        //            ---- vertical space (small)
+        //    #5 [Timeline]
         //            ---- vertical space
-        //    #5 Footer
-        //    #6 [Related question]
+        //    #6 Footer
+        //    #7 [Related question]
         return (
             <div
                 className="CaptionedChart"
@@ -336,35 +436,41 @@ export class CaptionedChart extends AbstractCaptionedChart {
                     </>
                 )}
 
+                {/* #2 [Deprecation notice] */}
+                {this.showDeprecationNotice && this.renderDeprecationNotice()}
+                {this.showDeprecationNotice && (
+                    <VerticalSpace height={this.verticalPadding} />
+                )}
+
                 {this.manager.isReady ? (
                     <>
-                        {/* #2 [Controls] */}
+                        {/* #3 [Controls] */}
                         {this.showControlsRow && this.renderControlsRow()}
                         {this.showControlsRow && (
                             <VerticalSpace height={this.verticalPaddingSmall} />
                         )}
 
-                        {/* #3 Chart/Map/Table */}
+                        {/* #4 Chart/Map/Table */}
                         <ChartAreaContent
                             manager={this.manager}
                             bounds={this.boundsForChartArea}
                             padWidth={GRAPHER_FRAME_PADDING_HORIZONTAL}
                         />
 
-                        {/* #4 [Timeline] */}
+                        {/* #5 [Timeline] */}
                         {this.manager.hasTimeline && (
                             <VerticalSpace height={this.verticalPaddingSmall} />
                         )}
                         {this.manager.hasTimeline && this.renderTimeline()}
 
-                        {/* #5 Footer */}
+                        {/* #6 Footer */}
                         <VerticalSpace height={this.verticalPadding} />
                         <Footer
                             manager={this.manager}
                             maxWidth={this.maxWidth}
                         />
 
-                        {/* #6 [Related question] */}
+                        {/* #7 [Related question] */}
                         {this.showRelatedQuestion &&
                             this.renderRelatedQuestion()}
                     </>

@@ -61,6 +61,12 @@ properties:
   note:
     type: string
     description: Note displayed in the footer of the chart
+  deprecationNotice:
+    type: string
+    description: |
+      Markdown text displayed as a prominent banner on the chart when it is no
+      longer updated. Should explain why and link to a successor chart where
+      one exists.
   internalNotes:
     type: string
     description: Additional text used internally to differentiate charts with the same title

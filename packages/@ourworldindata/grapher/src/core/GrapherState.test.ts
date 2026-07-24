@@ -102,6 +102,51 @@ describe("toObject", () => {
             chartTypes: ["LineChart", "SlopeChart"],
         })
     })
+
+    it("round-trips deprecationNotice", () => {
+        const grapher = new GrapherState({
+            deprecationNotice:
+                "**No longer updated.** See [successor](/grapher/foo).",
+        })
+        expect(grapher.toObject()).toEqual({
+            $schema: latestGrapherConfigSchema,
+            deprecationNotice:
+                "**No longer updated.** See [successor](/grapher/foo).",
+        })
+    })
+
+    it("an empty Grapher does not serialise deprecationNotice", () => {
+        expect(new GrapherState({}).toObject().deprecationNotice).toBe(
+            undefined
+        )
+    })
+})
+
+describe("showDeprecationNotice", () => {
+    it("is false when deprecationNotice is unset", () => {
+        expect(new GrapherState({}).showDeprecationNotice).toBe(false)
+    })
+
+    it("is false when deprecationNotice is blank", () => {
+        expect(
+            new GrapherState({ deprecationNotice: "   " }).showDeprecationNotice
+        ).toBe(false)
+    })
+
+    it("is true when deprecationNotice is set", () => {
+        expect(
+            new GrapherState({ deprecationNotice: "No longer updated." })
+                .showDeprecationNotice
+        ).toBe(true)
+    })
+
+    it("is false when hideDeprecationNotice is set", () => {
+        const grapher = new GrapherState({
+            deprecationNotice: "No longer updated.",
+        })
+        grapher.hideDeprecationNotice = true
+        expect(grapher.showDeprecationNotice).toBe(false)
+    })
 })
 
 describe("hideFullScreenButton", () => {
