@@ -149,6 +149,12 @@ __metadata:
   languageName: node
   linkType: soft
 
+"@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-migrant-demographics%40workspace%3Aprojects%2Fmigrant-demographics":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-migrant-demographics%40workspace%3Aprojects%2Fmigrant-demographics"
+  languageName: node
+  linkType: soft
+
 "@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-migration%40workspace%3Aprojects%2Fmigration":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-migration%40workspace%3Aprojects%2Fmigration"
@@ -197,6 +203,12 @@ __metadata:
   languageName: node
   linkType: soft
 
+"@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-migrant-demographics%40workspace%3Aprojects%2Fmigrant-demographics":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-migrant-demographics%40workspace%3Aprojects%2Fmigrant-demographics"
+  languageName: node
+  linkType: soft
+
 "@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-migration%40workspace%3Aprojects%2Fmigration":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-migration%40workspace%3Aprojects%2Fmigration"
@@ -224,6 +236,12 @@ __metadata:
 "@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-food-trade%40workspace%3Aprojects%2Ffood-trade":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-food-trade%40workspace%3Aprojects%2Ffood-trade"
+  languageName: node
+  linkType: soft
+
+"@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-migrant-demographics%40workspace%3Aprojects%2Fmigrant-demographics":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-migrant-demographics%40workspace%3Aprojects%2Fmigrant-demographics"
   languageName: node
   linkType: soft
 
@@ -260,6 +278,12 @@ __metadata:
 "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-food-trade%40workspace%3Aprojects%2Ffood-trade":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-food-trade%40workspace%3Aprojects%2Ffood-trade"
+  languageName: node
+  linkType: soft
+
+"@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-migrant-demographics%40workspace%3Aprojects%2Fmigrant-demographics":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-migrant-demographics%40workspace%3Aprojects%2Fmigrant-demographics"
   languageName: node
   linkType: soft
 
@@ -463,6 +487,41 @@ __metadata:
     nuqs: "npm:^2.8.9"
     react: "npm:^19.2.7"
     typescript: "npm:^7.0.2"
+  languageName: unknown
+  linkType: soft
+
+"@owid/bespoke-migrant-demographics@workspace:projects/migrant-demographics":
+  version: 0.0.0-use.local
+  resolution: "@owid/bespoke-migrant-demographics@workspace:projects/migrant-demographics"
+  dependencies:
+    "@fortawesome/fontawesome-svg-core": "npm:^6.7.2"
+    "@fortawesome/free-solid-svg-icons": "npm:^6.7.2"
+    "@fortawesome/react-fontawesome": "npm:^0.2.2"
+    "@ourworldindata/components": "link:../../../packages/@ourworldindata/components"
+    "@ourworldindata/grapher": "link:../../../packages/@ourworldindata/grapher"
+    "@ourworldindata/types": "link:../../../packages/@ourworldindata/types"
+    "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
+    "@react-stately/flags": "npm:^3.2.1"
+    "@rollup/plugin-swc": "npm:^0.4.1"
+    "@tanstack/react-query": "npm:^5.101.0"
+    "@types/d3": "npm:^7.4.3"
+    "@types/react": "npm:^19.2.17"
+    "@types/react-dom": "npm:^19.2.3"
+    "@vitejs/plugin-react": "npm:^6.0.2"
+    clsx: "npm:^2.1.1"
+    d3: "npm:^7.9.0"
+    normalize.css: "npm:^8.0.1"
+    nuqs: "npm:^2.8.9"
+    react: "npm:^19.2.7"
+    react-aria-components: "npm:^1.18.0"
+    react-dom: "npm:^19.2.7"
+    remeda: "npm:^2.39.0"
+    sass: "npm:^1.101.0"
+    tippy.js: "npm:^6.3.7"
+    typescript: "npm:^7.0.2"
+    vite: "npm:^8.0.16"
+    vite-plugin-css-position: "npm:^2.0.9"
+    vitest: "npm:^4.1.8"
   languageName: unknown
   linkType: soft
 

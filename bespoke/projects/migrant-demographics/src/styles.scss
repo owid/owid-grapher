@@ -1,0 +1,238 @@
+.migrant-demographics-chart {
+    color: $dark-text;
+    font-family: $sans-serif-font-stack;
+}
+
+// ------- Controls -------
+
+.migrant-demographics-controls {
+    .migrant-demographics-controls__row {
+        display: flex;
+        column-gap: 24px;
+        row-gap: 16px;
+        align-items: flex-end;
+
+        @include sm-only {
+            flex-direction: column;
+            align-items: stretch;
+            row-gap: 12px;
+        }
+    }
+
+    .migrant-demographics-controls__row + .migrant-demographics-controls__row {
+        margin-top: 16px;
+    }
+
+    .migrant-demographics-controls__row--toggles {
+        align-items: flex-end;
+
+        @include sm-only {
+            align-items: stretch;
+        }
+    }
+
+    .migrant-demographics-controls__field {
+        display: flex;
+        flex-direction: column;
+        row-gap: 6px;
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .migrant-demographics-controls__field--year {
+        flex: 1 1 0;
+    }
+
+    .migrant-demographics-controls__field--metric {
+        flex: 0 0 auto;
+    }
+
+    .migrant-demographics-controls__label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        color: $light-text;
+        text-transform: uppercase;
+
+        strong {
+            color: $dark-text;
+        }
+    }
+}
+
+.migrant-demographics-time-slider {
+    width: 100%;
+}
+
+.migrant-demographics-metric-switcher {
+    width: fit-content;
+}
+
+// ------- Compare checkbox -------
+
+.migrant-demographics-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    height: 30px;
+    user-select: none;
+
+    // Visually hidden but still accessible and focusable.
+    .migrant-demographics-checkbox__input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: 0;
+        padding: 0;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .migrant-demographics-checkbox__box {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 3px;
+        box-shadow: inset 0 0 0 1px $gray-50;
+        background: white;
+        color: white;
+        font-size: 11px;
+
+        svg {
+            opacity: 0;
+        }
+    }
+
+    .migrant-demographics-checkbox__input:checked
+        + .migrant-demographics-checkbox__box {
+        background: $active-text;
+        box-shadow: inset 0 0 0 1px $active-text;
+
+        svg {
+            opacity: 1;
+        }
+    }
+
+    .migrant-demographics-checkbox__input:focus-visible
+        + .migrant-demographics-checkbox__box {
+        outline: 2px solid $blue-40;
+        outline-offset: 1px;
+    }
+
+    .migrant-demographics-checkbox__label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: $light-text;
+    }
+}
+
+// ------- Captioned chart -------
+
+.migrant-demographics-captioned-chart {
+    .migrant-demographics-captioned-chart__chart-area {
+        position: relative;
+        margin-top: 8px;
+    }
+}
+
+.migrant-demographics-header {
+    &.chart-header .chart-header__title {
+        @include sm-only {
+            font-size: 1.25rem;
+        }
+    }
+
+    &.chart-header .chart-header__subtitle {
+        @include sm-only {
+            font-size: 0.9375rem;
+        }
+    }
+}
+
+.migrant-demographics-footer {
+    font-size: 0.875rem;
+
+    @include sm-only {
+        font-size: 0.75rem;
+    }
+}
+
+.migrant-demographics-legend {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    font-size: 0.8125rem;
+    color: $dark-text;
+
+    .migrant-demographics-legend__swatch {
+        width: 20px;
+        height: 3px;
+        flex-shrink: 0;
+    }
+
+    .migrant-demographics-legend__label {
+        font-weight: 700;
+    }
+}
+
+// ------- Pyramid -------
+
+.population-pyramid {
+    width: 100%;
+}
+
+.population-pyramid__svg {
+    display: block;
+    width: 100%;
+    height: auto;
+
+    .population-pyramid__panel-header {
+        fill: $dark-text;
+        font-weight: 700;
+    }
+
+    .population-pyramid__age-label {
+        fill: $dark-text;
+        font-weight: 700;
+    }
+
+    .population-pyramid__axis-title {
+        fill: $dark-text;
+        font-weight: 700;
+    }
+
+    .population-pyramid__value-label {
+        font-weight: 700;
+    }
+
+    .population-pyramid__native-outline {
+        pointer-events: none;
+    }
+}
+
+// ------- Loading / error -------
+
+.migrant-demographics-skeleton {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 600px;
+    border: 1px solid $frame-color;
+
+    .spinner {
+        color: $gray-60;
+    }
+}
+
+.migrant-demographics-error {
+    padding: 24px;
+    color: $light-text;
+}
