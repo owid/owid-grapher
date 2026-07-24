@@ -40,9 +40,15 @@ import {
 import { BrowserRouter } from "react-router-dom-v5-compat"
 import { REDUCED_TRACKING } from "../settings/clientSettings.js"
 import { SiteHeaderNavigation } from "./SiteHeader.js"
+import {
+    OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID,
+    PREFERENCES_PAGE_FORM_CONTAINER_ID,
+    SUBSCRIBE_PAGE_NOTIFICATIONS_FORM_CONTAINER_ID,
+} from "@ourworldindata/types"
+import { EmailNotificationsSubscribeForm } from "./EmailNotificationsSubscribeForm.js"
+import { EmailNotificationsPreferencesForm } from "./EmailNotificationsPreferencesForm.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
-import { SUBSCRIBE_PAGE_FORM_CONTAINER_ID } from "@ourworldindata/types"
 import UserSurvey from "./gdocs/components/UserSurvey.js"
 import {
     SlideshowPresentation,
@@ -62,13 +68,40 @@ function runSearchPage() {
 }
 
 function hydrateSubscribePage() {
-    const newsletterContainer = document.getElementById(
-        SUBSCRIBE_PAGE_FORM_CONTAINER_ID
+    const notificationsContainer = document.getElementById(
+        SUBSCRIBE_PAGE_NOTIFICATIONS_FORM_CONTAINER_ID
+    )
+    const topicTagGraph = window._OWID_TOPIC_TAG_GRAPH
+
+    if (notificationsContainer && topicTagGraph) {
+        hydrateRoot(
+            notificationsContainer,
+            <EmailNotificationsSubscribeForm topicTagGraph={topicTagGraph} />
+        )
+    }
+
+    // The magic-link preferences page bakes an empty container: the form is
+    // entirely client-driven (its mode depends on the token in the URL
+    // fragment), so it is rendered rather than hydrated.
+    const preferencesContainer = document.getElementById(
+        PREFERENCES_PAGE_FORM_CONTAINER_ID
     )
 
-    if (newsletterContainer) {
+    if (preferencesContainer && topicTagGraph) {
+        createRoot(preferencesContainer).render(
+            <EmailNotificationsPreferencesForm topicTagGraph={topicTagGraph} />
+        )
+    }
+
+    // Baked instead of the new form when the EmailNotifications feature flag
+    // is off.
+    const oldFormContainer = document.getElementById(
+        OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID
+    )
+
+    if (oldFormContainer) {
         hydrateRoot(
-            newsletterContainer,
+            oldFormContainer,
             <NewsletterSubscriptionForm
                 context={NewsletterSubscriptionContext.SubscribePage}
             />

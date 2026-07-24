@@ -151,6 +151,196 @@ This route provides a search API for both charts and pages (articles, about page
 
 For detailed API documentation, including all parameters, response schemas, and examples, see [search-api.openapi.yaml](../docs/search-api.openapi.yaml).
 
+## `/api/email-notifications/subscribe`
+
+Handles submissions of the email notifications subscribe form on `/subscribe`
+(prototype). The request body is validated against
+`EmailNotificationsSubscribeRequestTypeObject` from `@ourworldindata/types`,
+which is shared with the client.
+
+It does two things, depending on the request:
+
+1. If the request contains `notifications` preferences (topic tags, content
+   types, frequency), the submission takes effect immediately (single
+   opt-in) and a welcome email is sent via Postmark. A **never-seen
+   address** is created as `subscribed` with the chosen preferences. For an
+   **existing address** (whatever its status), the chosen preferences are
+   **unioned** with the stored ones (`mergeEmailNotificationsPreferences`)
+   and the user is set back to `subscribed` — the form is public and
+   tokenless, so a submission may broaden what a subscription covers but
+   never narrow it (only the frequency follows the latest submission);
+   narrowing requires the magic-link preferences page. The welcome
+   email's footer links (update preferences / unsubscribe) are what let the
+   address's owner notice and undo a submission they didn't make. The HTTP
+   response is identical in both branches, and both send exactly one email,
+   so neither the response nor its timing reveals whether the address was
+   already known. When the `POSTMARK_SERVER_TOKEN` environment
+   variable is not set, sending is skipped with a console warning, so the
+   flow can be tested locally without Postmark credentials. To inspect
+   outgoing emails locally (and click the links they contain), run
+   `yarn postmarkCatcher` and set
+   `POSTMARK_API_BASE_URL=http://localhost:8025` in `.dev.vars` along with
+   any `POSTMARK_SERVER_TOKEN` value.
+2. If the request has `subscribeToOwidBrief: true`, it upserts the Mailchimp
+   newsletter list member with the OWID Brief interest (group) checked. The
+   OWID Brief newsletter stays in Mailchimp. New Mailchimp list members are
+   created with `status_if_new: "pending"`, so Mailchimp sends them its own
+   double-opt-in confirmation email. The call is skipped (with a console
+   warning) when the `MAILCHIMP_API_KEY`, `MAILCHIMP_API_SERVER` or
+   `MAILCHIMP_NEWSLETTER_LIST_ID` environment variables are not set, so the
+   rest of the flow can be tested locally without Mailchimp credentials.
+
+## `/api/email-notifications/request-link`
+
+Requests a magic link for viewing/updating preferences. GET with a `token`
+query parameter (the permanent per-user token, from the "update your
+preferences" link in email footers) renders an "Email me a link" page whose
+button POSTs back — the in-email token can only _request_ a link; editing
+preferences requires proving control of the inbox right now via the
+short-lived link (Mailchimp's pattern). POST accepts either a form `token`
+(responds with a "Check your inbox" page) or JSON `{ email }` / `{ token }`
+from the preferences page (responds with JSON). **Unknown emails get the
+identical response and no email is sent** — a courtesy "you're not
+subscribed" email would turn the endpoint into a tool for mailing arbitrary
+addresses. Expired magic-link tokens are accepted (their resend button):
+their only remaining power is causing an email to their own address.
+
+## `/api/email-notifications/preferences`
+
+Data source and save target of the magic-link preferences page
+(`/subscribe/preferences`, token in the URL fragment). GET with a `token`
+query parameter (a valid magic-link token) returns the user's email and
+current preferences as JSON; 410 for expired tokens drives the page's
+expired state. POST with JSON `{ token, preferences }` applies changes
+immediately — the magic link itself was the proof of inbox control, so
+there is no second confirmation (this also reactivates an unsubscribed
+user); `{ token, unsubscribe: true }` unsubscribes. An optional
+`subscribeToOwidBrief` updates the Mailchimp Brief interest **fail-soft**: a
+Mailchimp failure never blocks the D1 save.
+
+## `/api/email-notifications/brief-status`
+
+Whether the magic-link token's user is subscribed to the OWID Brief in
+Mailchimp. Powers the preferences page's fail-soft Brief toggle: any non-200
+(invalid/expired token, Mailchimp unavailable or unconfigured) makes the
+page hide the toggle.
+
+## `/api/email-notifications/unsubscribe`
+
+Link target from the notification email footers, with a `token` query
+parameter — the per-user permanent secret stored in the `users` table. GET
+renders a confirm page (no state change, same scanner rule as above) whose
+button POSTs back to the same route, which sets the user's status to
+`unsubscribed`. The POST route is also the target of the
+`List-Unsubscribe-Post` one-click unsubscribe header: email clients POST
+directly to it with the token in the query string and no page shown.
+
+## `/api/email-notifications/postmark-webhook`
+
+Target of Postmark's [subscription-change webhook](https://postmarkapp.com/developer/webhooks/subscription-change-webhook),
+which fires when an address is added to or removed from a message stream's
+suppression list (hard bounce, spam complaint, manual suppression,
+reactivation). The handler mirrors that state into
+`users.suppressed_at`/`users.suppression_reason` — kept separate from
+`status`, which records user intent — so the send job skips undeliverable
+addresses and the suppression record survives independently of Postmark.
+Suppressions are per message stream in Postmark, but we keep a single flag: a
+suppression on either stream suppresses the user.
+
+Setup (at deploy time, per message stream — both `outbound` and `broadcast`):
+Postmark UI → Server → Message Stream → Webhooks → Add webhook → check
+"Subscription Change", with the URL in basic-auth form,
+`https://<any-username>:<POSTMARK_WEBHOOK_SECRET>@ourworldindata.org/api/email-notifications/postmark-webhook`.
+Postmark has no HMAC signatures; the endpoint checks the basic-auth password
+against the `POSTMARK_WEBHOOK_SECRET` environment variable and responds 403
+on a mismatch (which tells Postmark to stop retrying) and 503 when the secret
+is not configured. Payloads that will never parse are acknowledged with 200
+and reported to Sentry — Postmark only retries this webhook type 3 times over
+~21 minutes, so retries are reserved for transient errors (500).
+
+Follow-ups, deliberately not implemented yet:
+
+- **Reconciliation backstop**: with only 3 delivery attempts, an outage
+  longer than ~21 minutes loses events. The send job should periodically
+  diff Postmark's [Suppressions API](https://postmarkapp.com/developer/api/suppressions-api)
+  dump against our flags. Until then, the send job's handling of Postmark's
+  "inactive recipient" error (it marks the user as suppressed) catches
+  stragglers.
+- **Resubscribe after suppression**: when a suppressed user genuinely
+  resubscribes via our forms, clearing our flag isn't enough — the
+  suppression must also be deleted via the Suppressions API. That works for
+  `HardBounce` and `ManualSuppression`; `SpamComplaint` suppressions are
+  permanent (only Postmark support can lift them), so those users should
+  stay suppressed.
+
+## Sending the notification emails
+
+The actual notification emails are sent by `yarn sendEmailNotifications
+<daily|weekly>`, a cron job that runs on our own infra (not on Cloudflare) —
+see `baker/emailNotifications/sendEmailNotifications.ts`. It reads
+subscribers from the D1 database remotely via the Cloudflare HTTP API
+(skipping suppressed users, and marking users as suppressed when Postmark
+refuses a send with its "inactive recipient" error),
+collects the latest-feed content (articles, data insights, announcements)
+published since each subscriber's last email from MySQL, renders the
+hardcoded email template, sends via Postmark, and records the send back to
+D1 (`notification_preferences.last_sent_at` + a `sent_emails` row).
+
+Useful flags for local development:
+
+- `--local` reads/writes the local wrangler D1 database (the same one the
+  functions dev server uses) instead of the remote one.
+- `--dry-run` renders the emails to `.email-notifications-preview/` instead
+  of sending them.
+
+### D1 database
+
+The D1 database is configured in `wrangler.jsonc` (binding
+`EMAIL_NOTIFICATIONS_DB`), with migrations in
+`d1/email-notifications/migrations`.
+
+For local development, create and migrate the local database with:
+
+```bash
+npx wrangler d1 migrations apply owid-email-notifications-staging --local
+```
+
+The staging and production databases don't exist yet. Before deploying, create
+them with `npx wrangler d1 create owid-email-notifications-staging` (and
+`owid-email-notifications` for production), fill in the real `database_id`
+values in `wrangler.jsonc`, and apply the migrations with `--remote`.
+
+### Rate limiting
+
+Cloudflare's [rate limiting binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/)
+is only available to Workers, not Pages, so until we migrate to Workers this
+public API needs to be rate limited with a zone-level WAF rate limiting rule
+(Cloudflare dashboard → Security → WAF → Rate limiting rules) on
+`/api/email-notifications/*`. The function already honors an optional
+`EMAIL_NOTIFICATIONS_RATE_LIMITER` binding so that it keeps working after the
+migration. The rule must exclude `/api/email-notifications/postmark-webhook`
+(or use a limit generous enough for webhook bursts) — throttling Postmark's
+deliveries would lose suppression events, since Postmark only retries this
+webhook type 3 times.
+
+### Development
+
+The subscribe form on `http://localhost:3030/subscribe` posts to
+`http://localhost:8788/api/email-notifications/subscribe` by default (see
+`EMAIL_NOTIFICATIONS_API_BASE_URL` in `settings/clientSettings.ts`), so run the
+functions dev server alongside the site:
+
+```bash
+yarn startLocalCloudflareFunctions
+```
+
+Inspect the stored subscriptions with:
+
+```bash
+npx wrangler d1 execute owid-email-notifications-staging --local \
+    --command "SELECT * FROM users JOIN notification_preferences ON notification_preferences.user_id = users.id"
+```
+
 ## `/deleted/:slug`
 
 This route is used to handle deleted pages. They are fully baked we just want them to return a 404 status code instead of a 200.

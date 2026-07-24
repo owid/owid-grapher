@@ -47,6 +47,7 @@
 @import "./NewsletterSignupBlock.scss";
 @import "./ExplorerIndexPage.scss";
 @import "./SubscribePage.scss";
+@import "./OldSubscribePage.scss";
 @import "./LatestPage.scss";
 @import "./latest/LatestSearch.scss";
 @import "./latest/LatestTopicFacets.scss";
@@ -117,6 +118,8 @@
 @import "css/cookie-notice.scss";
 @import "css/site-tools.scss";
 @import "css/newsletter-subscription.scss";
+@import "css/email-notifications-subscribe-form.scss";
+@import "css/email-notifications-preferences-form.scss";
 @import "css/lightbox.scss";
 
 @import "./blocks/front-matter.scss";
