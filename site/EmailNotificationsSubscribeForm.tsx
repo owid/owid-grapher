@@ -1,22 +1,125 @@
 import { useState } from "react"
 import * as React from "react"
+import cx from "clsx"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import {
+    faBook,
+    faChartLine,
+    faCheck,
+    faMinus,
+    faLightbulb,
+    faPlus,
+    IconDefinition,
+} from "@fortawesome/free-solid-svg-icons"
 import {
     EMAIL_NOTIFICATIONS_CONTENT_TYPE_LABELS,
     EMAIL_NOTIFICATIONS_FREQUENCIES,
     EMAIL_NOTIFICATIONS_FREQUENCY_LABELS,
+    EmailNotificationsContentType,
     EmailNotificationsFrequency,
     EmailNotificationsSubscribeRequest,
     EmailNotificationsSubscribeResponse,
-    LATEST_FEED_TYPE_VALUES,
     TagGraphRoot,
 } from "@ourworldindata/types"
 import { Checkbox, TextInput } from "@ourworldindata/components"
 import { EMAIL_NOTIFICATIONS_API_BASE_URL } from "../settings/clientSettings.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
+import {
+    getPreferencesValidationErrors,
+    PreferencesValidationErrors,
+} from "./emailNotificationsValidation.js"
 
 const analytics = new SiteAnalytics()
 
-type LatestFeedType = (typeof LATEST_FEED_TYPE_VALUES)[number]
+// The "announcement" content type is rendered as a pill alongside the topics
+// ("I want updates about"), not as a content-type card: OWID news is a thing
+// you follow like a topic, even though it's stored as a content type.
+const OWID_ANNOUNCEMENTS_PILL_LABEL =
+    "Our World in Data (announcements and website upgrades)"
+
+// The content types offered as "Show me" cards. "announcement" is deliberately
+// absent — see OWID_ANNOUNCEMENTS_PILL_LABEL.
+const CONTENT_TYPE_CARDS: {
+    contentType: EmailNotificationsContentType
+    icon: IconDefinition
+    description: string
+}[] = [
+    {
+        contentType: "article",
+        icon: faBook,
+        description:
+            "Longer-form narrative pieces. Published twice a month approximately.",
+    },
+    {
+        contentType: "data-insight",
+        icon: faLightbulb,
+        description:
+            "Bite-sized insights on how the world is changing. Published every few days.",
+    },
+    {
+        contentType: "data-update",
+        icon: faChartLine,
+        // TODO: provisional copy — the design has a placeholder here.
+        description:
+            "Major updates to the datasets behind our work. Published once or twice a week.",
+    },
+]
+
+const TogglePill = ({
+    label,
+    selected,
+    onToggle,
+}: {
+    label: string
+    selected: boolean
+    onToggle: () => void
+}) => (
+    <button
+        type="button"
+        className={cx("email-notifications-subscribe-form__pill", {
+            "email-notifications-subscribe-form__pill--selected": selected,
+        })}
+        aria-pressed={selected}
+        onClick={onToggle}
+    >
+        <FontAwesomeIcon icon={selected ? faCheck : faPlus} />
+        {label}
+    </button>
+)
+
+const ContentTypeCard = ({
+    icon,
+    title,
+    description,
+    selected,
+    onToggle,
+}: {
+    icon: IconDefinition
+    title: string
+    description: string
+    selected: boolean
+    onToggle: () => void
+}) => (
+    <button
+        type="button"
+        className={cx("email-notifications-subscribe-form__card", {
+            "email-notifications-subscribe-form__card--selected": selected,
+        })}
+        aria-pressed={selected}
+        onClick={onToggle}
+    >
+        <span className="email-notifications-subscribe-form__card-icons">
+            <FontAwesomeIcon icon={icon} />
+            <FontAwesomeIcon icon={selected ? faCheck : faPlus} />
+        </span>
+        <span className="email-notifications-subscribe-form__card-title">
+            {title}
+        </span>
+        <span className="email-notifications-subscribe-form__card-description">
+            {description}
+        </span>
+    </button>
+)
 
 /**
  * The topics / content types / frequency fieldsets, shared between the
@@ -30,83 +133,184 @@ export const EmailNotificationsPreferenceFields = ({
     onToggleTopicTag,
     onToggleContentType,
     onSetFrequency,
+    validationErrors,
 }: {
     topicTagGraph: TagGraphRoot
     topicTags: string[]
-    contentTypes: LatestFeedType[]
+    contentTypes: EmailNotificationsContentType[]
     frequency: EmailNotificationsFrequency
     onToggleTopicTag: (tagName: string) => void
-    onToggleContentType: (contentType: LatestFeedType) => void
+    onToggleContentType: (contentType: EmailNotificationsContentType) => void
     onSetFrequency: (frequency: EmailNotificationsFrequency) => void
+    validationErrors?: PreferencesValidationErrors | null
 }) => {
-    const wantsNotifications = contentTypes.length > 0
+    const allTopicsSelected =
+        topicTagGraph.children.every((area) => topicTags.includes(area.name)) &&
+        contentTypes.includes("announcement")
+
+    // The toggle callbacks use functional state updates, so toggling every
+    // affected pill in sequence composes correctly.
+    const toggleAllTopics = () => {
+        for (const area of topicTagGraph.children) {
+            if (topicTags.includes(area.name) === allTopicsSelected)
+                onToggleTopicTag(area.name)
+        }
+        if (contentTypes.includes("announcement") === allTopicsSelected)
+            onToggleContentType("announcement")
+    }
+
     return (
         <>
             <fieldset className="email-notifications-subscribe-form__fieldset">
-                <legend className="h5-black-caps">Topics</legend>
-                <p className="email-notifications-subscribe-form__hint note-12-medium">
-                    Leave all unchecked to receive updates on all topics.
-                </p>
-                {topicTagGraph.children.map((area) => (
-                    <Checkbox
-                        key={area.name}
-                        id={`email-notifications-topic-${area.id}`}
-                        label={area.name}
-                        checked={topicTags.includes(area.name)}
-                        onChange={() => onToggleTopicTag(area.name)}
+                <legend className="h6-black-caps">I want updates about</legend>
+                <div className="email-notifications-subscribe-form__pills">
+                    {topicTagGraph.children.map((area) => (
+                        <TogglePill
+                            key={area.name}
+                            label={area.name}
+                            selected={topicTags.includes(area.name)}
+                            onToggle={() => onToggleTopicTag(area.name)}
+                        />
+                    ))}
+                    <TogglePill
+                        label={OWID_ANNOUNCEMENTS_PILL_LABEL}
+                        selected={contentTypes.includes("announcement")}
+                        onToggle={() => onToggleContentType("announcement")}
                     />
-                ))}
-            </fieldset>
-            <fieldset className="email-notifications-subscribe-form__fieldset">
-                <legend className="h5-black-caps">Content types</legend>
-                {LATEST_FEED_TYPE_VALUES.map((contentType) => (
-                    <Checkbox
-                        key={contentType}
-                        id={`email-notifications-content-type-${contentType}`}
-                        label={
-                            EMAIL_NOTIFICATIONS_CONTENT_TYPE_LABELS[contentType]
-                        }
-                        checked={contentTypes.includes(contentType)}
-                        onChange={() => onToggleContentType(contentType)}
+                </div>
+                <button
+                    type="button"
+                    className="email-notifications-subscribe-form__select-all"
+                    onClick={toggleAllTopics}
+                >
+                    <FontAwesomeIcon
+                        icon={allTopicsSelected ? faMinus : faPlus}
                     />
-                ))}
-                {!wantsNotifications && (
-                    <p className="email-notifications-subscribe-form__hint note-12-medium">
-                        No content types selected: you won't receive email
-                        notifications.
-                    </p>
+                    <span>
+                        {allTopicsSelected
+                            ? "Deselect all topics"
+                            : "Select all topics"}
+                    </span>
+                </button>
+                {validationErrors?.topicTagsError && (
+                    <div className="email-notifications-subscribe-form__alert">
+                        {validationErrors.topicTagsError}
+                    </div>
                 )}
             </fieldset>
             <fieldset className="email-notifications-subscribe-form__fieldset">
-                <legend className="h5-black-caps">Send me at most</legend>
-                {EMAIL_NOTIFICATIONS_FREQUENCIES.map((frequencyOption) => (
-                    <div
-                        key={frequencyOption}
-                        className="email-notifications-subscribe-form__radio"
-                    >
-                        <input
-                            type="radio"
-                            id={`email-notifications-frequency-${frequencyOption}`}
-                            name="email-notifications-frequency"
-                            value={frequencyOption}
-                            checked={frequency === frequencyOption}
-                            onChange={() => onSetFrequency(frequencyOption)}
-                        />
+                <legend className="h6-black-caps">Show me</legend>
+                <div className="email-notifications-subscribe-form__cards">
+                    {CONTENT_TYPE_CARDS.map(
+                        ({ contentType, icon, description }) => (
+                            <ContentTypeCard
+                                key={contentType}
+                                icon={icon}
+                                title={
+                                    EMAIL_NOTIFICATIONS_CONTENT_TYPE_LABELS[
+                                        contentType
+                                    ]
+                                }
+                                description={description}
+                                selected={contentTypes.includes(contentType)}
+                                onToggle={() =>
+                                    onToggleContentType(contentType)
+                                }
+                            />
+                        )
+                    )}
+                </div>
+                {validationErrors?.contentTypesError && (
+                    <div className="email-notifications-subscribe-form__alert">
+                        {validationErrors.contentTypesError}
+                    </div>
+                )}
+            </fieldset>
+            <fieldset className="email-notifications-subscribe-form__fieldset">
+                <legend className="h6-black-caps">Send me, at most</legend>
+                <div className="email-notifications-subscribe-form__frequency-options">
+                    {EMAIL_NOTIFICATIONS_FREQUENCIES.map((frequencyOption) => (
                         <label
-                            htmlFor={`email-notifications-frequency-${frequencyOption}`}
+                            key={frequencyOption}
+                            className={cx(
+                                "email-notifications-subscribe-form__frequency-option",
+                                {
+                                    "email-notifications-subscribe-form__frequency-option--selected":
+                                        frequency === frequencyOption,
+                                }
+                            )}
                         >
+                            <input
+                                type="radio"
+                                name="email-notifications-frequency"
+                                value={frequencyOption}
+                                checked={frequency === frequencyOption}
+                                onChange={() => onSetFrequency(frequencyOption)}
+                            />
                             {
                                 EMAIL_NOTIFICATIONS_FREQUENCY_LABELS[
                                     frequencyOption
                                 ]
                             }
                         </label>
-                    </div>
-                ))}
+                    ))}
+                </div>
+                <p className="email-notifications-subscribe-form__hint note-12-medium">
+                    If we haven't published anything matching your preferences,
+                    you won't hear from us.
+                </p>
             </fieldset>
         </>
     )
 }
+
+const NewsletterOption = ({
+    id,
+    imageSrc,
+    title,
+    cadence,
+    description,
+    checked,
+    onChange,
+}: {
+    id: string
+    imageSrc: string
+    title: string
+    cadence: string
+    description: string
+    checked: boolean
+    onChange: () => void
+}) => (
+    <div className="email-notifications-subscribe-form__newsletter">
+        <img
+            className="email-notifications-subscribe-form__newsletter-image"
+            src={imageSrc}
+            width={85}
+            height={46}
+            alt=""
+        />
+        <div className="email-notifications-subscribe-form__newsletter-content">
+            <Checkbox
+                id={id}
+                checked={checked}
+                onChange={onChange}
+                label={
+                    <>
+                        <span className="email-notifications-subscribe-form__newsletter-title">
+                            {title}
+                        </span>{" "}
+                        <span className="email-notifications-subscribe-form__newsletter-cadence">
+                            {cadence}
+                        </span>
+                    </>
+                }
+            />
+            <p className="email-notifications-subscribe-form__newsletter-description">
+                {description}
+            </p>
+        </div>
+    </div>
+)
 
 export const EmailNotificationsSubscribeForm = ({
     topicTagGraph,
@@ -114,18 +318,21 @@ export const EmailNotificationsSubscribeForm = ({
     topicTagGraph: TagGraphRoot
 }) => {
     const [email, setEmail] = useState("")
-    const [contentTypes, setContentTypes] = useState<LatestFeedType[]>([
-        ...LATEST_FEED_TYPE_VALUES,
-    ])
+    const [subscribeToOwidBrief, setSubscribeToOwidBrief] = useState(true)
+    const [followTopics, setFollowTopics] = useState(true)
     const [topicTags, setTopicTags] = useState<string[]>([])
+    const [contentTypes, setContentTypes] = useState<
+        EmailNotificationsContentType[]
+    >(CONTENT_TYPE_CARDS.map((card) => card.contentType))
     const [frequency, setFrequency] =
         useState<EmailNotificationsFrequency>("weekly")
-    const [subscribeToOwidBrief, setSubscribeToOwidBrief] = useState(true)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isSuccess, setIsSuccess] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
+    const [validationErrors, setValidationErrors] =
+        useState<PreferencesValidationErrors | null>(null)
 
-    const toggleContentType = (contentType: LatestFeedType) => {
+    const toggleContentType = (contentType: EmailNotificationsContentType) => {
         setContentTypes((current) =>
             current.includes(contentType)
                 ? current.filter((type) => type !== contentType)
@@ -141,27 +348,34 @@ export const EmailNotificationsSubscribeForm = ({
         )
     }
 
-    const wantsNotifications = contentTypes.length > 0
-
     const onSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
         setErrorMessage(null)
+        setValidationErrors(null)
 
         const trimmedEmail = email.trim()
         if (!trimmedEmail) {
             setErrorMessage("Please enter your email address.")
             return
         }
-        if (!wantsNotifications && !subscribeToOwidBrief) {
-            setErrorMessage(
-                "Please select at least one content type or the OWID Brief newsletter."
-            )
+        if (!followTopics && !subscribeToOwidBrief) {
+            setErrorMessage("Please select at least one newsletter.")
             return
+        }
+        if (followTopics) {
+            const errors = getPreferencesValidationErrors(
+                topicTags,
+                contentTypes
+            )
+            if (errors) {
+                setValidationErrors(errors)
+                return
+            }
         }
 
         const request: EmailNotificationsSubscribeRequest = {
             email: trimmedEmail,
-            notifications: wantsNotifications
+            notifications: followTopics
                 ? { topicTags, contentTypes, frequency }
                 : undefined,
             subscribeToOwidBrief,
@@ -222,22 +436,26 @@ export const EmailNotificationsSubscribeForm = ({
             className="email-notifications-subscribe-form"
             onSubmit={onSubmit}
         >
-            <fieldset className="email-notifications-subscribe-form__fieldset">
-                <legend className="h5-black-caps">Newsletter</legend>
-                <Checkbox
-                    id="email-notifications-owid-brief"
-                    label="The OWID Brief — stay up to date with our latest work plus curated highlights from across Our World in Data, twice a month."
-                    checked={subscribeToOwidBrief}
-                    onChange={() =>
-                        setSubscribeToOwidBrief(!subscribeToOwidBrief)
-                    }
-                />
-            </fieldset>
-            <div className="email-notifications-subscribe-form__topic-notifications">
-                <p>
-                    Get an email when we publish new work on the topics you care
-                    about, at the frequency of your choosing.
-                </p>
+            <NewsletterOption
+                id="email-notifications-owid-brief"
+                imageSrc="/images/biweekly-newsletter.webp"
+                title="The OWID Brief"
+                cadence="Twice a month"
+                description="Stay up to date with our latest work plus curated highlights from across Our World in Data, twice a month."
+                checked={subscribeToOwidBrief}
+                onChange={() => setSubscribeToOwidBrief(!subscribeToOwidBrief)}
+            />
+            <hr className="email-notifications-subscribe-form__divider" />
+            <NewsletterOption
+                id="email-notifications-follow-topics"
+                imageSrc="/images/data-insights.webp"
+                title="Follow Topics"
+                cadence="Pick your cadence"
+                description="Receive updates on the topics you follow as we publish them."
+                checked={followTopics}
+                onChange={() => setFollowTopics(!followTopics)}
+            />
+            {followTopics && (
                 <EmailNotificationsPreferenceFields
                     topicTagGraph={topicTagGraph}
                     topicTags={topicTags}
@@ -246,8 +464,9 @@ export const EmailNotificationsSubscribeForm = ({
                     onToggleTopicTag={toggleTopicTag}
                     onToggleContentType={toggleContentType}
                     onSetFrequency={setFrequency}
+                    validationErrors={validationErrors}
                 />
-            </div>
+            )}
             {errorMessage && (
                 <div className="email-notifications-subscribe-form__alert">
                     {errorMessage}

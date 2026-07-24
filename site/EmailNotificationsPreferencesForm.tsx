@@ -1,20 +1,23 @@
 import { useEffect, useState } from "react"
 import * as React from "react"
 import {
+    EMAIL_NOTIFICATIONS_CONTENT_TYPES,
     EmailNotificationsBriefStatusResponse,
+    EmailNotificationsContentType,
     EmailNotificationsFrequency,
     EmailNotificationsPreferencesResponse,
     EmailNotificationsRequestLinkRequest,
     EmailNotificationsSubscribeResponse,
     EmailNotificationsUpdatePreferencesRequest,
-    LATEST_FEED_TYPE_VALUES,
     TagGraphRoot,
 } from "@ourworldindata/types"
 import { Checkbox, TextInput } from "@ourworldindata/components"
 import { EMAIL_NOTIFICATIONS_API_BASE_URL } from "../settings/clientSettings.js"
 import { EmailNotificationsPreferenceFields } from "./EmailNotificationsSubscribeForm.js"
-
-type LatestFeedType = (typeof LATEST_FEED_TYPE_VALUES)[number]
+import {
+    getPreferencesValidationErrors,
+    PreferencesValidationErrors,
+} from "./emailNotificationsValidation.js"
 
 /**
  * The magic-link preferences page. Its mode is driven by the token in the URL
@@ -49,9 +52,9 @@ export const EmailNotificationsPreferencesForm = ({
     const [mode, setMode] = useState<Mode>({ name: "loading" })
     const [token, setToken] = useState<string | null>(null)
     const [enteredEmail, setEnteredEmail] = useState("")
-    const [contentTypes, setContentTypes] = useState<LatestFeedType[]>([
-        ...LATEST_FEED_TYPE_VALUES,
-    ])
+    const [contentTypes, setContentTypes] = useState<
+        EmailNotificationsContentType[]
+    >([...EMAIL_NOTIFICATIONS_CONTENT_TYPES])
     const [topicTags, setTopicTags] = useState<string[]>([])
     const [frequency, setFrequency] =
         useState<EmailNotificationsFrequency>("weekly")
@@ -64,6 +67,8 @@ export const EmailNotificationsPreferencesForm = ({
     >(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
+    const [validationErrors, setValidationErrors] =
+        useState<PreferencesValidationErrors | null>(null)
 
     useEffect(() => {
         const urlToken = getTokenFromLocation()
@@ -156,6 +161,17 @@ export const EmailNotificationsPreferencesForm = ({
     const save = async (unsubscribe: boolean) => {
         if (!token) return
         setErrorMessage(null)
+        setValidationErrors(null)
+        if (!unsubscribe) {
+            const errors = getPreferencesValidationErrors(
+                topicTags,
+                contentTypes
+            )
+            if (errors) {
+                setValidationErrors(errors)
+                return
+            }
+        }
         const request: EmailNotificationsUpdatePreferencesRequest = unsubscribe
             ? { token, unsubscribe: true }
             : {
@@ -348,6 +364,7 @@ export const EmailNotificationsPreferencesForm = ({
                             )
                         }
                         onSetFrequency={setFrequency}
+                        validationErrors={validationErrors}
                     />
                     {subscribedToOwidBrief !== null && (
                         <fieldset className="email-notifications-subscribe-form__fieldset">

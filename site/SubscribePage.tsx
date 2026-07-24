@@ -1,3 +1,5 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { Head } from "./Head.js"
 import { Html } from "./Html.js"
 import { SiteHeader } from "./SiteHeader.js"
@@ -16,6 +18,9 @@ export interface SubscribePageProps {
     baseUrl: string
     topicTagGraph: TagGraphRoot
 }
+
+const CONTENT_GRID_CLASSES =
+    "span-cols-6 col-start-4 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"
 
 export const SubscribePage = ({
     baseUrl,
@@ -39,10 +44,19 @@ export const SubscribePage = ({
             <body>
                 <SiteHeader />
                 <main className="subscribe-page grid grid-cols-12-full-width">
-                    <h1 className="subscribe-page__heading display-2-semibold span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
-                        Subscribe to our newsletters
-                    </h1>
-                    <div className="span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
+                    <header className="subscribe-page__hero grid grid-cols-12-full-width span-cols-14 col-start-1">
+                        <div className={CONTENT_GRID_CLASSES}>
+                            <h1 className="subscribe-page__heading">
+                                Subscribe to our newsletters
+                            </h1>
+                            <p className="subscribe-page__subheading">
+                                Receive our latest work by email.
+                            </p>
+                        </div>
+                    </header>
+                    <div
+                        className={`subscribe-page__content ${CONTENT_GRID_CLASSES}`}
+                    >
                         <div
                             id={SUBSCRIBE_PAGE_NOTIFICATIONS_FORM_CONTAINER_ID}
                         >
@@ -50,12 +64,23 @@ export const SubscribePage = ({
                                 topicTagGraph={topicTagGraph}
                             />
                         </div>
-                        <p className="subscribe-page__manage-link">
-                            Already subscribed?{" "}
-                            <a href="/subscribe/preferences">
-                                Update your preferences
-                            </a>
+                    </div>
+                    <aside className="subscribe-page__aside span-cols-3 col-start-11 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
+                        <p className="subscribe-page__aside-heading h6-black-caps">
+                            Already subscribed?
                         </p>
+                        <a
+                            className="subscribe-page__manage-link"
+                            href="/subscribe/preferences"
+                        >
+                            Update your preferences{" "}
+                            <FontAwesomeIcon icon={faArrowRight} />
+                        </a>
+                    </aside>
+                    <hr className="subscribe-page__divider span-cols-12 col-start-2" />
+                    <div
+                        className={`subscribe-page__socials ${CONTENT_GRID_CLASSES}`}
+                    >
                         <OwidSocials
                             includeRss
                             context={

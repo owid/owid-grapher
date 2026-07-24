@@ -1,79 +1,84 @@
 .subscribe-page {
-    --row-gap: 32px;
+    background-color: $white;
+    padding-bottom: 64px;
 
-    background-color: $gray-5;
-    padding-top: 48px;
-
-    @include sm-only {
-        padding-top: 24px;
-        --row-gap: 16px;
+    .subscribe-page__hero {
+        background-color: $gray-5;
+        padding: 32px 0;
+        margin-bottom: 32px;
     }
 
     .subscribe-page__heading {
-        margin-top: 0;
-        margin-bottom: 4px;
+        // h1-semibold, but without the mixin's built-in margins (the mixin's
+        // nested media query would make later margin overrides a fatal
+        // mixed-decls Sass error)
+        font-family: $serif-font-stack;
+        font-size: 2rem;
+        line-height: 1.25;
+        font-weight: 600;
+        letter-spacing: 0;
+        margin: 0;
+        color: $blue-90;
+
         @include sm-only {
-            font-size: 2rem;
+            font-size: 1.5rem;
         }
     }
 
-    .newsletter-subscription-form {
-        padding-bottom: 24px;
-        border-bottom: 1px solid $blue-20;
-        margin-top: 24px;
-
-        row-gap: var(--row-gap);
-
-        @include sm-only {
-            margin-top: 8px;
-            border-bottom: none;
-        }
-    }
-
-    .newsletter-subscription-form__checkbox-image {
-        display: block;
-        width: 84px;
-        align-self: start;
-        margin-right: 16px;
-        @include sm-only {
-            display: none;
-        }
-    }
-
-    .newsletter-subscription-form__checkbox {
-        flex: 1 1 calc(100% - 84px - 16px);
-    }
-
-    .newsletter-subscription-form__label-frequency {
-        display: inline;
-    }
-
-    .newsletter-subscription-form__example-link {
-        display: inline;
-    }
-
-    .newsletter-subscription-form__email-submit {
-        margin-top: 8px;
-
-        margin-bottom: calc(var(--row-gap) * -1 + 8px);
-    }
-
-    .newsletter-subscription-form__privacy-notice {
-        @include note-12-medium;
+    .subscribe-page__subheading {
+        @include body-1-regular;
+        margin: 0;
         color: $blue-60;
     }
 
-    .owid-socials {
-        margin-top: 24px;
-        margin-bottom: 64px;
+    .subscribe-page__aside {
         @include sm-only {
-            display: none;
+            margin-top: 24px;
         }
+    }
+
+    .subscribe-page__aside-heading {
+        margin: 0 0 6px;
+        color: $blue-60;
+    }
+
+    .subscribe-page__manage-link {
+        @include body-3-medium;
+        color: $blue-90;
+
+        svg {
+            font-size: 0.625rem;
+            margin-left: 2px;
+        }
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    .subscribe-page__divider {
+        width: 100%;
+        margin: 40px 0 24px;
+        border: none;
+        border-top: 1px solid $blue-20;
+    }
+
+    .owid-socials__heading {
+        font-family: $serif-font-stack;
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: $blue-90;
+        margin: 0 0 16px;
     }
 
     .owid-socials__list {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
+        row-gap: 16px;
+
+        @include sm-only {
+            grid-template-columns: repeat(2, 1fr);
+        }
     }
 
     .owid-socials__link {

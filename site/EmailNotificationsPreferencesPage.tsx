@@ -40,10 +40,12 @@ export const EmailNotificationsPreferencesPage = ({
             <body>
                 <SiteHeader />
                 <main className="subscribe-page grid grid-cols-12-full-width">
-                    <h1 className="subscribe-page__heading display-2-semibold span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
-                        Update your email preferences
-                    </h1>
-                    <div className="span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
+                    <header className="subscribe-page__hero grid grid-cols-12-full-width span-cols-14 col-start-1">
+                        <h1 className="subscribe-page__heading span-cols-6 col-start-4 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
+                            Update your email preferences
+                        </h1>
+                    </header>
+                    <div className="span-cols-6 col-start-4 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
                         <div id={PREFERENCES_PAGE_FORM_CONTAINER_ID}></div>
                     </div>
                 </main>

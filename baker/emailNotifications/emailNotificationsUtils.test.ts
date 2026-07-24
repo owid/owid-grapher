@@ -1,5 +1,4 @@
 import { expect, it, describe } from "vitest"
-import { OwidGdocType } from "@ourworldindata/types"
 import {
     EmailNotificationsSubscriber,
     NotificationEmailItem,
@@ -16,12 +15,8 @@ const makeSubscriber = (
     userId: 1,
     email: "user@example.com",
     token: "token",
-    topicTags: [],
-    contentTypes: [
-        OwidGdocType.Article,
-        OwidGdocType.DataInsight,
-        OwidGdocType.Announcement,
-    ],
+    topicTags: ["Health"],
+    contentTypes: ["article", "data-insight", "data-update", "announcement"],
     frequency: "weekly",
     lastSentAt: null,
     ...overrides,
@@ -30,7 +25,7 @@ const makeSubscriber = (
 const makeItem = (
     overrides: Partial<NotificationEmailItem> = {}
 ): NotificationEmailItem => ({
-    type: OwidGdocType.Article,
+    type: "article",
     slug: "test-article",
     title: "Test article",
     url: "https://ourworldindata.org/test-article",
@@ -48,7 +43,7 @@ describe(parseSubscriberRow, () => {
                 email: "user@example.com",
                 token: "token",
                 topic_tags: '["Health"]',
-                content_types: '["article"]',
+                content_types: '["article", "data-update"]',
                 frequency: "daily",
                 last_sent_at: "2026-06-30T06:00:00.000Z",
             })
@@ -57,7 +52,7 @@ describe(parseSubscriberRow, () => {
             email: "user@example.com",
             token: "token",
             topicTags: ["Health"],
-            contentTypes: [OwidGdocType.Article],
+            contentTypes: ["article", "data-update"],
             frequency: "daily",
             lastSentAt: new Date("2026-06-30T06:00:00.000Z"),
         })
@@ -98,14 +93,14 @@ describe(filterItemsForSubscriber, () => {
 
     it("excludes items outside the subscribed content types", () => {
         const subscriber = makeSubscriber({
-            contentTypes: [OwidGdocType.DataInsight],
+            contentTypes: ["data-insight"],
         })
         expect(filterItemsForSubscriber([makeItem()], subscriber, NOW)).toEqual(
             []
         )
         expect(
             filterItemsForSubscriber(
-                [makeItem({ type: OwidGdocType.DataInsight })],
+                [makeItem({ type: "data-insight" })],
                 subscriber,
                 NOW
             )
@@ -130,10 +125,56 @@ describe(filterItemsForSubscriber, () => {
         ).toEqual([])
     })
 
-    it("treats an empty topic list as all topics", () => {
+    it("filters data updates by topic like other tagged content", () => {
+        const item = makeItem({
+            type: "data-update",
+            topicNames: ["Energy and Environment"],
+        })
+        expect(
+            filterItemsForSubscriber(
+                [item],
+                makeSubscriber({ topicTags: ["Health"] }),
+                NOW
+            )
+        ).toEqual([])
+        expect(
+            filterItemsForSubscriber(
+                [item],
+                makeSubscriber({ topicTags: ["Energy and Environment"] }),
+                NOW
+            )
+        ).toEqual([item])
+    })
+
+    it("does not topic-filter announcements", () => {
+        const item = makeItem({ type: "announcement", topicNames: [] })
+        expect(
+            filterItemsForSubscriber(
+                [item],
+                makeSubscriber({ topicTags: ["Health"] }),
+                NOW
+            )
+        ).toEqual([item])
+        expect(
+            filterItemsForSubscriber(
+                [item],
+                makeSubscriber({
+                    topicTags: ["Health"],
+                    contentTypes: ["article"],
+                }),
+                NOW
+            )
+        ).toEqual([])
+    })
+
+    it("excludes tagged items when none of the subscriber's topics match", () => {
         const item = makeItem({ topicNames: [] })
-        expect(filterItemsForSubscriber([item], makeSubscriber(), NOW)).toEqual(
-            [item]
-        )
+        expect(
+            filterItemsForSubscriber(
+                [item],
+                makeSubscriber({ topicTags: ["Health"] }),
+                NOW
+            )
+        ).toEqual([])
     })
 })
