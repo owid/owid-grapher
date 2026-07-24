@@ -156,7 +156,7 @@
         "simple-git": "^3.36.0",
         "tinyexec": "^1.1.1",
         "ts-pattern": "^5.8.0",
-        "typeorm": "^1.0.0",
+        "typeorm": "^1.1.0",
         "url-join": "^5.0.0",
         "url-slug": "^4.0.1",
         "usehooks-ts": "^3.1.1",
