@@ -56,6 +56,7 @@ Everything you post to GitHub or Slack goes out under a **human's identity**. An
 - For CSS, we mostly use named style classes following the BEM conventions in separate .scss files. We usually avoid inline styles - only use those if the component you are working on already makes use of them for a similar use case. Components usually have a companion scss file with the same name. The entry point for our site styles is /site/owid.scss, the entry point for grapher styles is /packages/@ourworldindata/grapher/src/core/grapher.scss
 - In SCSS files, do NOT use the parent selector to concatenate BEM class names (`&__element`, `&--modifier`). Write out full class names (`.block__element`) so it's easy to search/navigate between JSX and SCSS. Using `&` with pseudo-classes, pseudo-elements, or state attributes (e.g. `&:last-child`, `&:hover`, `&::before`, `&[data-selected]`) is fine — those don't form a class name you'd want to grep for.
 - Check [docs/browser-support.md](./docs/browser-support.md) before using modern JS or CSS features. It lists our supported browsers, the "most breaking" features we rely on, and features we can't yet use.
+- For inline `<script>` JSON, use `escapeJSONStringForInlineScript` from `@ourworldindata/utils` — it also escapes U+2028/U+2029.
 
 # Cloud sandbox sessions (claude.ai/code)
 
