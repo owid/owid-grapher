@@ -108,8 +108,34 @@ nav.controlsRow .controls {
 }
 
 @container grapher (max-width:675px) {
-    // hide the entity name in the Edit/Select/Switch button
-    nav.controlsRow .chart-controls .entity-selection-menu button.menu-toggle {
+    // default entity type: shorten the entity name in the Edit/Select/Change
+    // button ("Edit countries and regions" -> "Edit countries")
+    nav.controlsRow
+        .chart-controls
+        .entity-selection-menu--shortenable
+        button.menu-toggle {
+        label span .entity-suffix {
+            display: none;
+        }
+    }
+
+    // custom entity types can't be shortened; hide the entity name entirely
+    nav.controlsRow
+        .chart-controls
+        .entity-selection-menu:not(.entity-selection-menu--shortenable)
+        button.menu-toggle {
+        label span {
+            display: none;
+        }
+    }
+}
+
+// now also drop the shortened entity name ("Edit countries" -> "Edit")
+@container grapher (max-width:350px) {
+    nav.controlsRow
+        .chart-controls
+        .entity-selection-menu--shortenable
+        button.menu-toggle {
         label span {
             display: none;
         }
@@ -117,7 +143,7 @@ nav.controlsRow .controls {
 }
 
 @container grapher (max-width:725px) {
-    // hide the entity name in the Edit/Select/Switch button
+    // hide the entity name in the Edit/Select/Change button
     nav.controlsRow .map-controls .entity-selection-menu button.menu-toggle {
         label span {
             display: none;
