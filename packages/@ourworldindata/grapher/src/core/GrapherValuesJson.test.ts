@@ -173,12 +173,12 @@ describe(constructGrapherValuesJson, () => {
         expect(result.startValues?.y[0]).toMatchObject({
             columnSlug: SampleColumnSlugs.GDP,
             time: 2000,
-            formattedValueShort: "$663.99 billion",
+            formattedValueShort: "$664 billion",
         })
         expect(result.endValues?.y[0]).toMatchObject({
             columnSlug: SampleColumnSlugs.GDP,
             time: 2009,
-            formattedValueShort: "$682.03 billion",
+            formattedValueShort: "$682 billion",
         })
     })
 

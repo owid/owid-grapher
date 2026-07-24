@@ -110,7 +110,8 @@ export const ColumnGrammar: Grammar<ColumnCellDef> = {
     numDecimalPlaces: {
         ...PositiveIntegerCellDef,
         keyword: "numDecimalPlaces",
-        description: "Number of decimal places to display",
+        description:
+            "Number of decimal places to display. Also caps the number of decimal places for values below 1 when rounding to significant figures",
         isDisplayProperty: true,
     },
     numSignificantFigures: {

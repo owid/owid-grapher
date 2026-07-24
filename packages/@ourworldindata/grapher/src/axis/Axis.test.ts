@@ -111,7 +111,10 @@ it("creates compact labels", () => {
         min: 1000,
         max: 4000,
         maxTicks: 3,
-        tickFormattingOptions: { numberAbbreviation: "short" },
+        tickFormattingOptions: {
+            numberAbbreviation: "short",
+            abbreviationThreshold: 1e3,
+        },
     }
     const axis = new AxisConfig(config).toVerticalAxis()
     axis.range = [0, 500]
@@ -121,6 +124,47 @@ it("creates compact labels", () => {
     expect(
         tickLabels.every((tickLabel) => tickLabel.formattedValue.endsWith("k"))
     ).toBeTruthy()
+})
+
+it("keeps abbreviated labels distinguishable on narrow high-magnitude domains", () => {
+    // ticks like 10.02M/10.04M need more than the default 3 significant
+    // figures, otherwise they'd all render as "10M"
+    const config: AxisConfigInterface = {
+        min: 10_020_000,
+        max: 10_080_000,
+        tickFormattingOptions: {
+            numberAbbreviation: "short",
+            abbreviationThreshold: 1e3,
+        },
+    }
+    const axis = new AxisConfig(config).toVerticalAxis()
+    axis.range = [0, 500]
+    axis.formatColumn = SynthesizeGDPTable().get("GDP")
+    const labels = axis.tickLabels.map((tickLabel) => tickLabel.formattedValue)
+    expect(labels).toEqual([
+        "$10.02M",
+        "$10.03M",
+        "$10.04M",
+        "$10.05M",
+        "$10.06M",
+        "$10.07M",
+        "$10.08M",
+    ])
+})
+
+it("keeps log-axis labels at default precision", () => {
+    const config: AxisConfigInterface = {
+        min: 1e10,
+        max: 1e30,
+        scaleType: ScaleType.log,
+    }
+    const axis = new AxisConfig(config).toVerticalAxis()
+    axis.range = [0, 400]
+    axis.formatColumn = SynthesizeGDPTable().get("GDP")
+    const labels = axis.tickLabels.map((tickLabel) => tickLabel.formattedValue)
+    expect(labels.length).toBeGreaterThan(1)
+    expect(labels).toContain("$1,000,000 septillion")
+    expect(labels.every((label) => !label.includes("."))).toBeTruthy()
 })
 
 it("shows labelled ticks even when the domain doesn't span nice log values", () => {

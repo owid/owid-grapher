@@ -478,6 +478,24 @@ abstract class AbstractAxis {
             if (dp >= 0) {
                 options.numDecimalPlaces = dp
             }
+
+            // The same requirement expressed in significant figures, for
+            // abbreviated ticks (e.g. 10.02M) whose precision counts from the
+            // value's leading digit rather than from the decimal point. Only
+            // set when it exceeds the formatter's default of 3, e.g. for a
+            // narrow domain at a high magnitude like [10.02M, 10.08M]
+            if (!this.isLogScale) {
+                const maxAbs = _.max(
+                    this.baseTicks.map((tick) => Math.abs(tick.value))
+                )
+                if (maxAbs) {
+                    const sigFigs =
+                        numberMagnitude(maxAbs) - numberMagnitude(minDist) + 1
+                    if (sigFigs > 3) {
+                        options.abbreviationSignificantFigures = sigFigs
+                    }
+                }
+            }
         }
         return options
     }

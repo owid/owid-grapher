@@ -134,6 +134,7 @@ export class MapSparkline extends React.Component<MapSparklineProps> {
                 tickFormattingOptions: {
                     unit: yAxisUnit,
                     numberAbbreviation: "short",
+                    abbreviationThreshold: 1e3,
                 },
                 // Copy min/max from top-level Grapher config if Y column == Map column
                 min: this.manager.mapAndYColumnAreTheSame
