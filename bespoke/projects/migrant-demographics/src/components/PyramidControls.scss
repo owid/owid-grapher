@@ -1,0 +1,68 @@
+.migrant-pyramid-controls__title {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    color: $light-text;
+    text-transform: uppercase;
+    margin: 0;
+    margin-bottom: 16px;
+}
+
+.migrant-pyramid-controls__content {
+    display: flex;
+    flex-direction: column;
+    row-gap: 16px;
+}
+
+// The switcher and checkbox size to their content; the country dropdown
+// takes the remaining row width
+.migrant-pyramid-controls__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 16px;
+    row-gap: 16px;
+
+    > .grapher-dropdown {
+        flex: 1 1 0;
+        min-width: 220px;
+    }
+}
+
+.migrant-pyramid-controls__show {
+    display: flex;
+
+    .switcher {
+        flex: 1 1 0;
+    }
+
+    .switcher__button {
+        padding: 0 16px;
+    }
+}
+
+// Center the label text vertically against the checkbox: border-box so the
+// box is really 16px (the shadow DOM has no global border-box like the
+// site), and a matching line height on the single-line label
+.migrant-pyramid-controls__compare .custom {
+    box-sizing: border-box;
+}
+
+.migrant-pyramid-controls__compare .label {
+    line-height: 16px;
+}
+
+.migrant-pyramid--narrow .migrant-pyramid-controls__content {
+    row-gap: 12px;
+}
+
+.migrant-pyramid--narrow .migrant-pyramid-controls__row {
+    flex-direction: column;
+    align-items: stretch;
+    row-gap: 12px;
+}
+
+.migrant-pyramid--narrow .migrant-pyramid-controls__row > * {
+    flex: 0 0 auto;
+    width: 100%;
+}
