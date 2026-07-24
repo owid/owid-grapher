@@ -251,10 +251,13 @@
     .markdown-text-wrap__line:last-child {
         margin-bottom: 2px;
     }
+}
 
-    .dod-span {
-        @include dod-span;
-    }
+// Not scoped to .markdown-text-wrap: DoD terms are also rendered as plain
+// .dod-span elements by SimpleMarkdownText (e.g. in the "Learn more about
+// this data" / sources modal), which isn't wrapped in .markdown-text-wrap.
+.dod-span {
+    @include dod-span;
 }
 
 .dod-container {
