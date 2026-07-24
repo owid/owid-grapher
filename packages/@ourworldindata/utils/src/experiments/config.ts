@@ -106,16 +106,7 @@ export const experiments: Experiment[] = [
         ],
         paths: [
             // single indicator data pages (multi-indicator data pages aren't supported yet)
-            "/grapher/gdp-per-capita-maddison-project-database",
-            "/grapher/co-emissions-per-capita",
-            "/grapher/democracy-index-eiu",
-            "/grapher/life-expectancy",
-            "/grapher/cross-country-literacy-rates",
-            "/grapher/human-development-index",
-            "/grapher/share-of-population-in-extreme-poverty",
-            "/grapher/human-rights-index-vdem",
-            "/grapher/daily-per-capita-caloric-supply",
-            "/grapher/per-capita-energy-use",
+            "/grapher/",
         ],
     }),
 ]

@@ -8883,7 +8883,7 @@ __metadata:
     mysql2: "npm:^3.18.2"
     nodejs-polars: "npm:^0.7.2"
     normalize.css: "npm:^8.0.1"
-    openai: "npm:^6.38.0"
+    openai: "npm:^6.47.0"
     oxfmt: "npm:^0.58.0"
     oxlint: "npm:^1.73.0"
     oxlint-tsgolint: "npm:^0.24.0"
@@ -11071,20 +11071,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openai@npm:^6.38.0":
-  version: 6.38.0
-  resolution: "openai@npm:6.38.0"
+"openai@npm:^6.47.0":
+  version: 6.47.0
+  resolution: "openai@npm:6.47.0"
   peerDependencies:
+    "@aws-sdk/credential-provider-node": ">=3.972.0 <4"
+    "@smithy/hash-node": ">=4.3.0 <5"
+    "@smithy/signature-v4": ">=5.4.0 <6"
     ws: ^8.18.0
     zod: ^3.25 || ^4.0
   peerDependenciesMeta:
+    "@aws-sdk/credential-provider-node":
+      optional: true
+    "@smithy/hash-node":
+      optional: true
+    "@smithy/signature-v4":
+      optional: true
     ws:
       optional: true
     zod:
       optional: true
-  bin:
-    openai: bin/cli
-  checksum: 10/d2c2bd9fb14304c103e8ccb7c2eede09bc1512ca28bebf3bc5c349b5f0382ae3d346880510110c3b22105628518a858dfe1c96c5dd9819aaaaccb121c4a1c596
+  checksum: 10/09cfccd0285d43468b2aa7350d9ee281bfc0640a544d54cc8cd5c4174cf27b2ebf7a3b305aafedf555fed6734204574ba11a5c1bd010e1b0f11244a2103d2a13
   languageName: node
   linkType: hard
 
@@ -11132,6 +11139,7 @@ __metadata:
     littlezipper: "npm:^0.1.5"
     lodash-es: "npm:^4.18.1"
     mobx: "npm:^6.15.4"
+    openai: "npm:^6.47.0"
     react: "npm:^19.2.4"
     react-dom: "npm:^19.2.4"
     remeda: "npm:^2.32.0"
