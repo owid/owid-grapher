@@ -1,0 +1,11 @@
+.search-closest-matches-notice {
+    @include body-3-medium;
+    background: $blue-5;
+    padding: 12px 16px;
+    color: $blue-60;
+    margin: 0 0 16px;
+
+    strong {
+        color: $blue-90;
+    }
+}

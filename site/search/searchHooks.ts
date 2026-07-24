@@ -163,11 +163,18 @@ export function useInfiniteSearchOffset<THit>({
 
     const hits = query.data?.pages.flatMap((page) => page.hits) || []
     const totalResults = query.data?.pages[0]?.nbHits || 0
+    // Set by the closest-matches fallback in queries.ts: the section shows
+    // relaxed ("did you mean"-style) results because the exact search was empty.
+    const isClosestMatches = Boolean(
+        (query.data?.pages[0] as { closestMatches?: boolean } | undefined)
+            ?.closestMatches
+    )
 
     return {
         ...query,
         hits,
         totalResults,
+        isClosestMatches,
     }
 }
 
@@ -205,11 +212,18 @@ export function useInfiniteSearch<THit>({
 
     const hits = query.data?.pages.flatMap((page) => page.hits) || []
     const totalResults = query.data?.pages[0]?.nbHits || 0
+    // Set by the closest-matches fallback in queries.ts: the section shows
+    // relaxed ("did you mean"-style) results because the exact search was empty.
+    const isClosestMatches = Boolean(
+        (query.data?.pages[0] as { closestMatches?: boolean } | undefined)
+            ?.closestMatches
+    )
 
     return {
         ...query,
         hits,
         totalResults,
+        isClosestMatches,
     }
 }
 
