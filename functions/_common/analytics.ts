@@ -50,7 +50,11 @@ export async function sendEventToGA4(
 
 export function getCommonEventParams(
     request: Request<unknown, IncomingRequestCfProperties>,
-    env: Pick<Env, "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE">
+    env: Pick<
+        Env,
+        | "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE"
+        | "CLOUDFLARE_GOOGLE_ANALYTICS_ASN_SAMPLING_RATES"
+    >
 ) {
     const url = new URL(request.url)
 
@@ -101,7 +105,7 @@ export function getCommonEventParams(
         // Stamp the sampling rate that was active when this event fired, so periods
         // with different rates can be combined correctly downstream
         // (events / sampling ≈ unbiased request count).
-        sampling: getSamplingRate(env),
+        sampling: getSamplingRate(request, env),
     }
 
     // If user-agent is longer than 100 chars, capture the next 100 chars
@@ -131,7 +135,7 @@ export const analyticsMiddleware: PagesFunction<Env> = async (context) => {
     if (!validateAnalyticsEnvVariables(env)) {
         return context.next()
     }
-    if (shouldSample(env)) {
+    if (shouldSample(request, env)) {
         // Get the response first to capture status code
         const response = await context.next()
 
@@ -152,14 +156,55 @@ export const analyticsMiddleware: PagesFunction<Env> = async (context) => {
     return context.next()
 }
 
-function shouldSample(env: Env): boolean {
-    return Math.random() < getSamplingRate(env)
+function shouldSample(
+    request: Request<unknown, IncomingRequestCfProperties>,
+    env: Env
+): boolean {
+    return Math.random() < getSamplingRate(request, env)
 }
 
-function getSamplingRate(
-    env: Pick<Env, "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE">
+export function getSamplingRate(
+    request: Request<unknown, IncomingRequestCfProperties>,
+    env: Pick<
+        Env,
+        | "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE"
+        | "CLOUDFLARE_GOOGLE_ANALYTICS_ASN_SAMPLING_RATES"
+    >
 ): number {
-    return parseFloat(env.CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE)
+    const defaultSamplingRate = parseFloat(
+        env.CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE
+    )
+    const asn = request.cf?.asn
+    if (!asn) return defaultSamplingRate
+
+    const asnSamplingRates = parseAsnSamplingRates(
+        env.CLOUDFLARE_GOOGLE_ANALYTICS_ASN_SAMPLING_RATES
+    )
+
+    return Math.max(asnSamplingRates.get(asn) ?? 0, defaultSamplingRate)
+}
+
+export function parseAsnSamplingRates(
+    rawSamplingRates?: string
+): Map<number, number> {
+    const samplingRates = new Map<number, number>()
+    if (!rawSamplingRates) return samplingRates
+
+    for (const entry of rawSamplingRates.split(",")) {
+        const [rawAsn, rawSamplingRate] = entry.split(":")
+        const asn = Number(rawAsn)
+        const samplingRate = Number(rawSamplingRate)
+        if (
+            Number.isInteger(asn) &&
+            asn > 0 &&
+            samplingRate >= 0 &&
+            samplingRate <= 1
+        ) {
+            samplingRates.set(asn, samplingRate)
+        }
+    }
+
+    return samplingRates
 }
 
 // e.g. GA1.1.156980023.1749503476 -> 156980023.1749503476
