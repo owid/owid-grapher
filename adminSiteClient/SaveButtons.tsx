@@ -347,10 +347,10 @@ class SaveButtonsForNarrativeChart extends Component<
                         narrativeChart={{
                             name: editor.manager.name!,
                             configId: editor.manager.configId!,
-                            title: grapherState.currentTitle,
+                            title: grapherState.fullTitle,
                         }}
                         initialValues={{
-                            title: grapherState.currentTitle,
+                            title: grapherState.fullTitle,
                             imageFilename: editor.manager.name
                                 ? `${editor.manager.name}.png`
                                 : undefined,

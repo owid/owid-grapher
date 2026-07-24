@@ -987,7 +987,7 @@ export class BindAutoString<
     ```tsx
     <BindAutoStringExt
         label={"Subtitle"}
-        readFn={(g) => g.currentSubtitle}
+        readFn={(g) => g.effectiveSubtitle}
         writeFn={(g, newVal) => (g.subtitle = newVal)}
         isAuto={grapher.subtitle === undefined}
         store={grapher}

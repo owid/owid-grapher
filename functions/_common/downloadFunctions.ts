@@ -96,7 +96,7 @@ export async function fetchZipForGrapher(
     // Use the slugified display title as filename for multi-dims
     let filename = identifier.id
     if (effectiveIdentifierType === "multi-dim-slug") {
-        filename = slugify(grapher.grapherState.displayTitle)
+        filename = slugify(grapher.grapherState.effectiveTitle)
     }
 
     const zipContent: UncompressedFile[] = [

@@ -2261,7 +2261,7 @@ export class GrapherState
     }
 
     @computed get defaultSlug(): string {
-        return slugify(this.displayTitle)
+        return slugify(this.effectiveTitle)
     }
 
     @computed get displaySlug(): string {
@@ -2274,7 +2274,7 @@ export class GrapherState
 
         // Extract details from supporting text
         const subtitleDetails = !this.hideSubtitle
-            ? extractDetailsFromSyntax(this.currentSubtitle)
+            ? extractDetailsFromSyntax(this.effectiveSubtitle)
             : []
         const noteDetails = !this.hideNote
             ? extractDetailsFromSyntax(this.note ?? "")
@@ -2439,7 +2439,8 @@ export class GrapherState
         return this.validChartTypes.length > 1
     }
 
-    @computed get currentSubtitle(): string {
+    /** Effective subtitle resolved from authored subtitle or fallback description. */
+    @computed get effectiveSubtitle(): string {
         const subtitle = this.subtitle
         if (subtitle !== undefined) return subtitle
         const yColumns = this.yColumnsFromDimensions
@@ -2511,19 +2512,21 @@ export class GrapherState
         )
     }
 
-    @computed get currentTitle(): string {
-        let text = this.displayTitle.trim()
-        if (text.length === 0) return text
+    /** Effective title resolved from authored title or default title. */
+    @computed get effectiveTitle(): string {
+        if (this.title) return this.title
+        if (this.isReady) return this.defaultTitle
+        return ""
+    }
 
-        // Helper function to add an annotation fragment to the title;
-        // only adds a comma if the text does not end with a question mark
-        const appendAnnotationField = (
-            text: string,
-            annotation: string
-        ): string => {
-            const separator = text.endsWith("?") ? "" : ","
-            return `${text}${separator} ${annotation}`
-        }
+    /**
+     * The main line of the chart title, without the entity/time annotation,
+     * but including the "Change in" prefix and the x-indicator label where
+     * applicable.
+     */
+    @computed get mainTitle(): string {
+        let text = this.effectiveTitle.trim()
+        if (text.length === 0) return text
 
         // Add the x-axis label to the title for secondary scatter plots
         if (this.shouldAddXIndicatorLabelToTitle) {
@@ -2534,19 +2537,36 @@ export class GrapherState
             if (xAxisLabel) text += ` vs. ${xAxisLabel}`
         }
 
-        if (this.shouldAddEntitySuffixToTitle) {
-            const selectedEntityNames = this.selection.selectedEntityNames
-            const entityStr = selectedEntityNames[0]
-            if (entityStr?.length) text = appendAnnotationField(text, entityStr)
-        }
-
         if (this.shouldAddChangeInPrefixToTitle)
             text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
 
-        if (this.shouldAddTimeSuffixToTitle && this.timeTitleSuffix)
-            text = appendAnnotationField(text, this.timeTitleSuffix)
-
         return text.trim()
+    }
+
+    /** The entity/time annotation of the chart title, e.g. "World, 2020" */
+    @computed get titleAnnotation(): string | undefined {
+        if (!this.mainTitle) return undefined
+
+        const parts: string[] = []
+
+        if (this.shouldAddEntitySuffixToTitle) {
+            const entityStr = this.selection.selectedEntityNames[0]
+            if (entityStr?.length) parts.push(entityStr)
+        }
+
+        if (this.shouldAddTimeSuffixToTitle && this.timeTitleSuffix)
+            parts.push(this.timeTitleSuffix)
+
+        return parts.length > 0 ? parts.join(", ") : undefined
+    }
+
+    /** The complete chart title: the main title plus the entity/time annotation. */
+    @computed get fullTitle(): string {
+        if (!this.mainTitle || !this.titleAnnotation) return this.mainTitle
+
+        // Only add a comma if the title does not end with a question mark
+        const separator = this.mainTitle.endsWith("?") ? " " : ", "
+        return `${this.mainTitle}${separator}${this.titleAnnotation}`
     }
 
     /**
@@ -2826,12 +2846,6 @@ export class GrapherState
         return yColumns
             .map((col) => col.titlePublicOrDisplayName.title)
             .join(", ")
-    }
-
-    @computed get displayTitle(): string {
-        if (this.title) return this.title
-        if (this.isReady) return this.defaultTitle
-        return ""
     }
 
     @computed get isLineChart(): boolean {

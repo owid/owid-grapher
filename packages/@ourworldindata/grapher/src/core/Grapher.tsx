@@ -688,7 +688,7 @@ export class Grapher extends React.Component<GrapherProps> {
             () => (this.debounceMode ? debouncedPushParams() : pushParams())
         )
 
-        autorun(() => (document.title = this.grapherState.currentTitle))
+        autorun(() => (document.title = this.grapherState.fullTitle))
     }
 
     @action.bound private setUpWindowResizeEventHandler(): void {

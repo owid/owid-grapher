@@ -223,7 +223,7 @@ export class ChartEditorView<
     get currentDetailReferences(): DetailReferences {
         const { grapherState } = this.manager.editor
         return {
-            subtitle: extractDetailsFromSyntax(grapherState.currentSubtitle),
+            subtitle: extractDetailsFromSyntax(grapherState.effectiveSubtitle),
             note: extractDetailsFromSyntax(grapherState.note ?? ""),
             axisLabelX: extractDetailsFromSyntax(
                 grapherState.xAxisConfig.label ?? ""
