@@ -159,6 +159,7 @@ import {
     MAP_REGION_NAMES,
     MapChartManager,
 } from "../mapCharts/MapChartConstants.js"
+import { MapChartState } from "../mapCharts/MapChartState.js"
 import { MapConfig } from "../mapCharts/MapConfig.js"
 import { DumbbellChartConfig } from "../dumbbellCharts/DumbbellChartConfig.js"
 import { getCountriesByRegion } from "../mapCharts/MapHelpers.js"
@@ -173,6 +174,7 @@ import {
     TimelineController,
     TimelineManager,
 } from "../timeline/TimelineController.js"
+import { makeTitleToleranceNotice } from "../tooltip/TooltipContents.js"
 import { TooltipManager } from "../tooltip/TooltipProps.js"
 import {
     RegionGroup,
@@ -2558,6 +2560,67 @@ export class GrapherState
             parts.push(this.timeTitleSuffix)
 
         return parts.length > 0 ? parts.join(", ") : undefined
+    }
+
+    /**
+     * Explanation shown behind an info icon next to the title's time
+     * annotation (map tab, interactive only): if tolerance was applied for
+     * a currently selected time, how many countries lack data for it and
+     * the range of times their displayed values are actually from.
+     */
+    @computed get titleAnnotationTooltip(): string | undefined {
+        if (!this.isOnMapTab || this.isStatic) return undefined
+        if (!this.shouldAddTimeSuffixToTitle || !this.timeTitleSuffix)
+            return undefined
+
+        const timeColumn = this.table.timeColumn
+        if (timeColumn.isMissing) return undefined
+
+        // The map column is filtered to the target times: both start and end
+        // time for faceted maps, the end time only for a single map
+        const { mapColumn } = this.chartState as MapChartState
+        let rows = mapColumn.owidRows
+
+        // When zoomed into a continent on the 2D map, only count the
+        // countries within that continent
+        if (this.map.is2dContinentActive()) {
+            const countriesInRegion = getCountriesByRegion(
+                MAP_REGION_LABELS[this.map.region]
+            )
+            if (countriesInRegion)
+                rows = rows.filter((row) =>
+                    countriesInRegion.has(row.entityName)
+                )
+        }
+
+        // Group the countries with tolerance applied, i.e. those whose value
+        // is from a different time than the target time, by target time.
+        // A single map has one target time (the end time); a faceted map
+        // renders one map per timeline handle, so both the start and end
+        // time can be affected
+        const groupedRowsWithTolerance = _.groupBy(
+            rows.filter((row) => row.time !== row.originalTime),
+            (row) => row.time
+        )
+        const targetTimes = _.sortBy(Object.keys(groupedRowsWithTolerance))
+        if (targetTimes.length === 0) return undefined
+
+        // Summarize, per affected target time, how many countries lack data
+        // and the range of times their displayed values are from
+        const notices = targetTimes.map((targetTime) => {
+            const affectedRows = groupedRowsWithTolerance[targetTime]
+            const originalTimes = affectedRows.map((row) => row.originalTime)
+            const minTime = timeColumn.formatValue(_.min(originalTimes))
+            const maxTime = timeColumn.formatValue(_.max(originalTimes))
+            return {
+                formattedTargetTime: timeColumn.formatValue(targetTime),
+                formattedTimeRange:
+                    minTime === maxTime ? minTime : `${minTime}–${maxTime}`,
+                numCountries: affectedRows.length,
+            }
+        })
+
+        return makeTitleToleranceNotice(notices)
     }
 
     /** The complete chart title: the main title plus the entity/time annotation. */

@@ -267,7 +267,7 @@ export {
     Bounds,
 } from "./Bounds.js"
 
-export { FontFamily, cssFontFamily } from "./fonts.js"
+export { FontFamily, cssFontFamily, fontCapHeight } from "./fonts.js"
 
 export {
     type Persistable,

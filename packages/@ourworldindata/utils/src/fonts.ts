@@ -20,3 +20,15 @@ export function cssFontFamily(fontFamily: FontFamily): string {
         )
         .exhaustive()
 }
+
+/**
+ * The font's cap height as a fraction of the font size. Lining digits are
+ * cap height tall, too. Taken from the font files' metrics
+ * (Lato: 1433/2000 units, Playfair Display: 700/1000 units).
+ */
+export function fontCapHeight(fontFamily: FontFamily): number {
+    return match(fontFamily)
+        .with(FontFamily.Lato, () => 0.72)
+        .with(FontFamily.PlayfairDisplay, () => 0.7)
+        .exhaustive()
+}

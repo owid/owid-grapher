@@ -5,14 +5,19 @@ import {
     makeFigmaId,
     Bounds,
     FontFamily,
+    fontCapHeight,
+    Tippy,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
     MarkdownTextWrapHtml,
     MarkdownTextWrapSvg,
     TextWrapGroup,
+    type IRTrailingElementProps,
     type TextWrapFragment,
 } from "@ourworldindata/components"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Logo } from "../captionedChart/Logos"
@@ -119,6 +124,38 @@ abstract class AbstractHeader<
         return this.manager.isSmall ? 1.1 : 1.2
     }
 
+    /**
+     * An info icon rendered after the title annotation, explaining the
+     * annotation on hover (interactive mode only)
+     */
+    private makeAnnotationInfoIcon(
+        annotationFontSize: number
+    ): IRTrailingElementProps | undefined {
+        const tooltip = this.manager.titleAnnotationTooltip
+        if (!tooltip) return undefined
+
+        const iconSize = _.clamp(0.6 * annotationFontSize, 9, 12)
+        const iconGap = 4
+
+        // Center the icon on the annotation's digits: the icon's bottom
+        // sits on the text baseline and the digits are one cap height
+        // tall, so raise the icon by half the height difference
+        const capHeight = fontCapHeight(FontFamily.Lato) * annotationFontSize
+        const iconVerticalAlign = (capHeight - iconSize) / 2
+
+        return {
+            width: iconGap + iconSize,
+            render: () => (
+                <TitleAnnotationInfoIcon
+                    tooltip={tooltip}
+                    size={iconSize}
+                    gap={iconGap}
+                    verticalAlign={iconVerticalAlign}
+                />
+            ),
+        }
+    }
+
     @computed get title(): TextWrapGroup {
         const logoPadding = this.manager.isNarrow
             ? 12
@@ -131,19 +168,23 @@ abstract class AbstractHeader<
                 text: this.titleText,
             }
 
+            const annotationFontSize = _.clamp(
+                roundFontSize(0.72 * fontSize),
+                this.subtitleFontSize,
+                18
+            )
+
             const annotationFragment: TextWrapFragment = {
                 text: this.titleAnnotationText,
                 fontFamily: FontFamily.Lato,
                 fontWeight: 700,
-                fontSize: _.clamp(
-                    roundFontSize(0.72 * fontSize),
-                    this.subtitleFontSize,
-                    18
-                ),
+                fontSize: annotationFontSize,
                 color: GRAPHER_LIGHT_TEXT,
                 inlineGap: Math.min(6, Math.round(0.4 * fontSize)),
                 newLineGap: this.verticalPadding,
                 newLine: "avoid-wrap",
+                trailingElement:
+                    this.makeAnnotationInfoIcon(annotationFontSize),
             }
 
             return new TextWrapGroup({
@@ -376,6 +417,44 @@ abstract class AbstractHeader<
             </div>
         )
     }
+}
+
+function TitleAnnotationInfoIcon({
+    tooltip,
+    size,
+    gap,
+    verticalAlign,
+}: {
+    tooltip: string
+    size: number
+    gap: number
+    /** Distance between the icon's bottom edge and the text baseline */
+    verticalAlign: number
+}): React.ReactElement {
+    return (
+        <Tippy
+            content={tooltip}
+            theme="grapher-explanation--short"
+            placement="top"
+            maxWidth={260}
+            appendTo={() => document.body}
+        >
+            <span
+                className="title-annotation-info-icon"
+                style={{ marginLeft: gap, fontSize: size, verticalAlign }}
+                tabIndex={0}
+                aria-label={tooltip}
+                onClick={(event): void => {
+                    // The title is often wrapped in a link; don't navigate
+                    // when the icon is clicked
+                    event.preventDefault()
+                    event.stopPropagation()
+                }}
+            >
+                <FontAwesomeIcon icon={faCircleInfo} />
+            </span>
+        </Tippy>
+    )
 }
 
 interface StaticHeaderProps extends HeaderProps {
