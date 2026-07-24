@@ -23,9 +23,13 @@ metadata:
       column: relatedChartId
 fields:
   id:
-    description: Unique identifier for the chart
+    description: |
+      Internal auto-increment identifier for the chart. Note that these ids are minted independently per environment (production, staging servers, dev machines), so the same numeric id can refer to different charts on different servers. For referencing charts from external systems, prefer the chart's config UUID (see configId).
   configId:
-    description: Foreign key to chart_configs table. Charts store their configuration separately to enable inheritance and efficient updates. The chart_configs table contains the actual config, the slug of the chart etc., so in many queries, these two tables have to be joined.
+    description: |
+      Foreign key to chart_configs table. Charts store their configuration separately to enable inheritance and efficient updates. The chart_configs table contains the actual config, the slug of the chart etc., so in many queries, these two tables have to be joined.
+
+      This column is also the chart's stable external identity, and for many applications the preferred identifier for referencing a chart. It is a client-generated UUIDv7, unique per chart, assigned once at creation and — by invariant — never changed over the chart's lifetime (chart updates modify the chart_configs row in place, they never swap it). Unlike the numeric id it does not collide across environments (copies of the production database keep the same UUIDs, and chart-sync carries it along when syncing staging charts to production), and unlike the slug it exists for unpublished charts and never changes. The admin API accepts this UUID wherever a :chartId route param is expected, and the ETL uses it to reference charts. Code that replaces a chart's config row instead of updating it in place would break this invariant and must not be written.
   isInheritanceEnabled:
     description: When true, chart inherits configuration from parent variable's grapherConfigIdAdmin or grapherConfigIdETL. This allows variables to define default chart settings that are automatically applied to all inheriting charts.
   forceDatapage:

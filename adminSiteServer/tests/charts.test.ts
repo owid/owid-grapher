@@ -4,12 +4,17 @@ import {
     ChartConfigsTableName,
     ChartsTableName,
     DatasetsTableName,
+    GrapherInterface,
+    UsersTableName,
     VariablesTableName,
     MultiDimDataPagesTableName,
     MultiDimXChartConfigsTableName,
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import { omitUndefinedValues } from "@ourworldindata/utils"
+import { v7 as uuidv7 } from "uuid"
+import { saveGrapher } from "../apiRoutes/charts.js"
+import { knexReadWriteTransaction, TransactionCloseMode } from "../../db/db.js"
 
 const env = getAdminTestEnv()
 
@@ -971,5 +976,131 @@ describe("Chart slug validation", { timeout: 15000 }, () => {
             `/charts/${chartId2}.config.json`
         )
         expect(fullConfig.title).toBe("Chart 2 Updated")
+    })
+})
+
+describe("Chart addressing by config UUID", { timeout: 15000 }, () => {
+    const testChartConfig: GrapherInterface = {
+        $schema: latestGrapherConfigSchema,
+        slug: "uuid-test-chart",
+        title: "UUID test chart",
+        chartTypes: ["LineChart"],
+    }
+
+    async function createTestChart(): Promise<{
+        chartId: number
+        configId: string
+    }> {
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+        const chartId = response.chartId as number
+        const row = await env
+            .testKnex(ChartsTableName)
+            .select("configId")
+            .where({ id: chartId })
+            .first()
+        return { chartId, configId: row.configId as string }
+    }
+
+    function rawFetch(path: string): Promise<Response> {
+        return fetch(env.baseUrl + path, {
+            headers: { Authorization: `Bearer ${env.apiKey}` },
+        })
+    }
+
+    it("serves chart endpoints addressed by config UUID", async () => {
+        const { chartId, configId } = await createTestChart()
+
+        const configById = await env.fetchJson(`/charts/${chartId}.config.json`)
+        const configByConfigId = await env.fetchJson(
+            `/charts/${configId}.config.json`
+        )
+        expect(configByConfigId).toEqual(configById)
+
+        const patchByConfigId = await env.fetchJson(
+            `/charts/${configId}.patchConfig.json`
+        )
+        expect(patchByConfigId).toEqual(configById)
+
+        const referencesByConfigId = await env.fetchJson(
+            `/charts/${configId}.references.json`
+        )
+        expect(referencesByConfigId.references).toBeDefined()
+    })
+
+    it("updates a chart addressed by config UUID", async () => {
+        const { chartId, configId } = await createTestChart()
+
+        const response = await env.request({
+            method: "PUT",
+            path: `/charts/${configId}`,
+            body: JSON.stringify({
+                ...testChartConfig,
+                title: "Updated title",
+            }),
+        })
+        expect(response.success).toBe(true)
+        expect(response.chartId).toBe(chartId)
+
+        const fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig.title).toBe("Updated title")
+    })
+
+    it("rejects unknown config UUIDs and malformed chart ids", async () => {
+        await createTestChart()
+
+        const unknownUuid = await rawFetch(
+            `/charts/0198c0e8-0000-7000-8000-000000000000.config.json`
+        )
+        expect(unknownUuid.status).toBe(404)
+
+        const malformed = await rawFetch(`/charts/not-a-chart-id.config.json`)
+        expect(malformed.status).toBe(400)
+    })
+
+    it("creates a chart with a caller-supplied config UUID", async () => {
+        const user = await env.testKnex(UsersTableName).first()
+        const chartConfigId = uuidv7()
+
+        await knexReadWriteTransaction(
+            async (trx) => {
+                await saveGrapher(trx, {
+                    user,
+                    newConfig: testChartConfig,
+                    chartConfigId,
+                })
+            },
+            TransactionCloseMode.KeepOpen,
+            env.testKnex
+        )
+
+        const chartRow = await env
+            .testKnex(ChartsTableName)
+            .select("id", "configId")
+            .first()
+        expect(chartRow.configId).toBe(chartConfigId)
+
+        const fullConfig = await env.fetchJson(
+            `/charts/${chartConfigId}.config.json`
+        )
+        expect(fullConfig.id).toBe(chartRow.id)
+
+        // reusing an existing config UUID must fail
+        await expect(
+            knexReadWriteTransaction(
+                async (trx) => {
+                    await saveGrapher(trx, {
+                        user,
+                        newConfig: { ...testChartConfig, slug: "other-slug" },
+                        chartConfigId,
+                    })
+                },
+                TransactionCloseMode.KeepOpen,
+                env.testKnex
+            )
+        ).rejects.toThrow(/already exists/)
     })
 })
