@@ -142,6 +142,29 @@ function labelGridWithYearOnChange(
     )
 }
 
+/**
+ * The grid of the smallest step that keeps the tick count at or below the
+ * target, or `undefined` when even the coarsest step produces too many ticks.
+ */
+function findGridForTarget({
+    steps,
+    targetCount,
+    span,
+    gridForStep,
+}: {
+    steps: readonly number[]
+    targetCount: number
+    span: number
+    gridForStep: (step: number) => number[]
+}): number[] | undefined {
+    for (const step of steps) {
+        const grid = gridForStep(step)
+        if (span / step <= targetCount || grid.length <= targetCount)
+            return grid
+    }
+    return undefined
+}
+
 /** Calendar-aware ticks for a time axis */
 export function buildTimeAxisTicks({
     interval,
@@ -225,18 +248,15 @@ function buildContinuousMonthGridTicks({
         )
     }
 
-    // Pick the smallest step that keeps the tick count at or below the
-    // target. The span/step estimate can count a tick the domain clips off
-    // (e.g. a mid-month January start drops the anchor tick), so also accept
-    // a step whose exact in-domain tick count fits.
-    const step =
-        steps.find(
-            (s) =>
-                spanMonths / s <= targetCount ||
-                gridForStep(s).length <= targetCount
-        ) ?? steps[steps.length - 1]
-
-    const grid = gridForStep(step)
+    const grid =
+        findGridForTarget({
+            steps,
+            targetCount,
+            span: spanMonths,
+            gridForStep,
+        }) ??
+        // Even the coarsest step produces too many ticks; use it anyway
+        gridForStep(steps[steps.length - 1])
     if (!grid.length) return undefined
 
     // When every tick is a January, drop the redundant month and label only the year
@@ -306,27 +326,25 @@ function buildContinuousDayGridTicks({
     const spanDays = domain[1] - domain[0]
     if (spanDays <= 0) return undefined
 
-    // The first and last grid indices that stay within the domain
-    const gridIndexRange = (step: number): [number, number] => {
+    const gridForStep = (step: number): number[] => {
         const reference = dayGridReference(step)
-        return [
-            Math.ceil((domain[0] - reference) / step),
-            Math.floor((domain[1] - reference) / step),
-        ]
-    }
-    const inDomainTickCount = (step: number): number => {
-        const [first, last] = gridIndexRange(step)
-        return last - first + 1
+        // The first and last grid indices that stay within the domain
+        const firstGridIndex = Math.ceil((domain[0] - reference) / step)
+        const lastGridIndex = Math.floor((domain[1] - reference) / step)
+        return _.range(firstGridIndex, lastGridIndex + 1).map(
+            (k) => reference + k * step
+        )
     }
 
-    // Pick the smallest step whose exact in-domain tick count fits the target;
-    // if even the coarsest step is too dense, fall through to the monthly
-    // (and yearly) grid.
-    let step = steps.find(
-        (s) =>
-            spanDays / s <= targetCount || inDomainTickCount(s) <= targetCount
-    )
-    if (step === undefined) {
+    // If even the coarsest step is too dense, fall through to the monthly
+    // (and yearly) grid
+    let grid = findGridForTarget({
+        steps,
+        targetCount,
+        span: spanDays,
+        gridForStep,
+    })
+    if (grid === undefined) {
         const monthlyTicks = buildContinuousMonthlyAxisTicks({
             domain,
             targetCount,
@@ -335,14 +353,8 @@ function buildContinuousDayGridTicks({
 
         // A span within a single calendar month has no monthly grid to
         // continue on; fallback to the coarsest step in that case
-        step = steps[steps.length - 1]
+        grid = gridForStep(steps[steps.length - 1])
     }
-
-    const reference = dayGridReference(step)
-    const [firstGridIndex, lastGridIndex] = gridIndexRange(step)
-    const grid = _.range(firstGridIndex, lastGridIndex + 1).map(
-        (k) => reference + k * step
-    )
     if (!grid.length) return undefined
 
     // Label the day and month, keeping the year on the first tick
