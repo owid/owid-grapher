@@ -1,0 +1,24 @@
+@import "normalize.css";
+
+@import "@fortawesome/fontawesome-svg-core/styles.css";
+
+@import "tippy.js/dist/tippy.css";
+@import "tippy.js/themes/light.css";
+
+@import "./grapher.scss";
+@import "../../../../packages/@ourworldindata/components/src/Checkbox.scss";
+@import "./base.scss";
+
+// Shared components
+@import "../../../components/Frame/Frame.scss";
+@import "../../../components/ChartHeader/ChartHeader.scss";
+@import "../../../components/ChartFooter/ChartFooter.scss";
+@import "../../../components/Switcher/Switcher.scss";
+@import "../../../components/TimeSlider/TimeSlider.scss";
+@import "../../../components/Spinner/Spinner.scss";
+
+// Project components
+@import "./components/PyramidControls.scss";
+
+// Variants
+@import "./variants/PyramidVariant.scss";
