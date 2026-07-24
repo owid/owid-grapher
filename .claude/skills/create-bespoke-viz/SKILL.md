@@ -86,7 +86,7 @@ For the composition, the standard is two stacked `Frame` cards — a controls ca
 </div>
 ```
 
-The captioned-chart Frame (header → chart area → footer) is universal; the controls card is the part to adapt when the content calls for it — e.g. unframed controls under a page-level heading, or no controls block at all with the entity selector embedded inline in the title.
+The captioned-chart Frame (header → chart area → footer) is universal, and the controls block is **wrapped in `<Frame>` by default too**. Diverge only when the content calls for it — e.g. migration's unframed controls under a page-level heading, or no controls block at all with the entity selector embedded inline in the title.
 
 Conventions that go with this:
 
@@ -100,6 +100,8 @@ Conventions that go with this:
 Before building a control, tooltip helper, or sizing hook, check what already exists: **list `bespoke/components/` and `bespoke/hooks/` for the current inventory** — the names are self-explanatory — and read the prop types / signatures of whatever looks relevant. Every project uses the chart chrome (`Frame`, `ChartHeader`, `ChartFooter`, `Spinner`); beyond that expect controls (dropdowns including a geolocation-aware `EntityDropdown`, a `Switcher`, a `TimeSlider`), a full Sankey toolkit (bilateral and split-flow layouts — don't build a second Sankey), and hooks for container sizing, URL state, delayed loading, geolocation, and touch/Shadow-DOM-aware tooltips.
 
 Entity dropdowns across projects share a **relevance ordering**: pinned aggregates (e.g. World) → current selection → the user's own country/continent marked with a location icon (via `useUserCountryInformation`) → the rest alphabetically. Reuse that pattern (and the `"userLocation"` config sentinel) rather than a flat alphabetical list.
+
+Form controls that `bespoke/components/` lacks often already exist in **`@ourworldindata/components`** (e.g. `Checkbox`, `RadioButton`, `LabeledSwitch`), styled the Grapher way and following the same opt-in convention — import the matching `.scss` partial.
 
 Non-obvious facts about consuming them:
 
@@ -172,6 +174,7 @@ Bespoke data is **fetched at runtime, never bundled**. The established pattern a
 - Pre-processed JSON hosted on the public bucket `https://owid-public.owid.io` — one small `*.metadata.json` plus per-key data files (per entity, product, or whatever the primary selector is), so changing the selection fetches only one small file. The exact path and file naming vary per project — pick something sensible under a project-named directory.
 - `@tanstack/react-query` with `fetchJson` from `@ourworldindata/utils`. Namespaced query keys (`["my-viz", "data", entityId]`), `placeholderData: (prev) => prev` so the old chart stays visible while switching entities (drive the spinner from `isPlaceholderData` + `useDelayedLoading`), and `staleTime: Infinity` — the files are immutable within a session.
 - Data files are usually column-oriented parallel arrays; reshape into rows/Maps client-side, resolving IDs through the metadata. A small metadata class with lazily-built lookup maps (see `CausesOfDeathMetadata.ts`) keeps this tidy.
+- **Record data anomalies in a `data-issues.md` at the project root as you find them** — what the issue is, its impact on the viz, how the code handles it, and the recommended fix. Defensive code (clamps, dedupes, guards) hides issues from the screen but not from readers of this file — it's what makes upstream fixes actionable later. See `migrant-demographics/data-issues.md` for an example.
 
 ## 9. State management — decision guide
 
