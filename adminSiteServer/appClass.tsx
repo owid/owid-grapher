@@ -105,11 +105,18 @@ export class OwidAdminApp {
         app.get("/gdocs/:id/preview", async (req, res) => {
             try {
                 const acceptSuggestions = req.query.acceptSuggestions === "true"
+                // contentSource=internal previews the version stored in the
+                // database without re-fetching from Google, so drafts that
+                // aren't backed by a real Google Doc can be previewed too
+                const contentSource =
+                    req.query.contentSource === GdocsContentSource.Internal
+                        ? GdocsContentSource.Internal
+                        : GdocsContentSource.Gdocs
                 await db.knexReadonlyTransaction(async (knex) => {
                     const gdoc = await getAndLoadGdocById(
                         knex,
                         req.params.id,
-                        GdocsContentSource.Gdocs,
+                        contentSource,
                         acceptSuggestions
                     )
 

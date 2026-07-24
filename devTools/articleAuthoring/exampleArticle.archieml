@@ -1,0 +1,30 @@
+title: Example programmatic article
+subtitle: A minimal ArchieML article used to demonstrate the programmatic authoring scripts in this directory.
+excerpt: A minimal ArchieML article used to demonstrate the programmatic authoring scripts.
+type: article
+authors: Our World in Data team
+
+[+body]
+Articles can be drafted as plain-text ArchieML like this file — no Google Docs formatting is required. Inline formatting such as <b>bold</b>, <i>italics</i>, and <a href="https://ourworldindata.org">links</a> is written as literal HTML and parsed into spans by the regular ingestion pipeline.
+
+{.heading}
+text: Embedding a chart
+level: 2
+{}
+
+A standard Grapher chart embed references a published chart by URL, using the same syntax authors use in Google Docs.
+
+{.chart}
+url: https://ourworldindata.org/grapher/life-expectancy
+{}
+
+{.horizontal-rule}
+{}
+
+{.heading}
+text: Headings and other blocks
+level: 2
+{}
+
+Headings are written as literal ArchieML blocks instead of Google Docs paragraph styles. Any other block type ({.prominent-link}, {.callout}, tables, ...) works the same way — see an existing article gdoc exported as plain text for the full vocabulary.
+[]

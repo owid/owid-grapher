@@ -67,8 +67,19 @@ interface GdocsMatchParams {
 
 export type GdocsMatchProps = RouteComponentProps<GdocsMatchParams>
 
-export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
+export const GdocsPreviewPage = ({
+    match,
+    history,
+    location,
+}: GdocsMatchProps) => {
     const { id } = match.params
+    // With ?contentSource=internal, the page previews the version stored in
+    // the database instead of re-fetching from Google. This makes it possible
+    // to preview drafts that only exist in posts_gdocs and aren't backed by a
+    // real Google Doc (e.g. created by devTools/articleAuthoring scripts).
+    const isInternalDraft =
+        new URLSearchParams(location.search).get("contentSource") ===
+        GdocsContentSource.Internal
     const [gdoc, setGdoc] = useState<{
         original?: OwidGdoc
         current?: OwidGdoc
@@ -116,6 +127,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 ? selectedEntity
                 : undefined,
         acceptSuggestions: acceptSuggestions ? "true" : "false",
+        contentSource: isInternalDraft
+            ? GdocsContentSource.Internal
+            : undefined,
     })
 
     const fetchGdoc = useCallback(
@@ -171,7 +185,12 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 admin.loadingIndicatorSetting = "loading"
                 const [original, current] = await Promise.all([
                     originalGdoc ?? fetchGdoc(GdocsContentSource.Internal),
-                    fetchGdoc(GdocsContentSource.Gdocs, acceptSuggestions),
+                    fetchGdoc(
+                        isInternalDraft
+                            ? GdocsContentSource.Internal
+                            : GdocsContentSource.Gdocs,
+                        acceptSuggestions
+                    ),
                 ])
                 if (!isMounted || !original || !current) return
                 if (!current.slug && current.content.title) {
@@ -205,7 +224,14 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         return () => {
             isMounted = false
         }
-    }, [admin, acceptSuggestions, fetchGdoc, handleError, originalGdoc])
+    }, [
+        admin,
+        acceptSuggestions,
+        fetchGdoc,
+        handleError,
+        originalGdoc,
+        isInternalDraft,
+    ])
 
     const isLightningUpdate = useLightningUpdate(
         originalGdoc,
