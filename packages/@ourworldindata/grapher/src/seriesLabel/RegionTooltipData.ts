@@ -48,6 +48,7 @@ const descriptions: Record<TooltipKey, string> = {
     continents:
         "Our team defines [six world regions](https://ourworldindata.org/world-region-map-definitions#our-world-in-data):",
     iea: "The **International Energy Agency (IEA)** defines seven world regions:",
+    ei: "The **Energy Institute (EI)** defines [seven world regions](https://ourworldindata.org/world-region-map-definitions#energy-institute-ei):",
     maddison:
         "The **Maddison Project Database** groups countries into [eight world regions](https://ourworldindata.org/world-region-map-definitions#maddison-project-database-maddison):",
     wid: "The **World Inequality Database (WID)** groups countries into [nine world regions](https://ourworldindata.org/world-region-map-definitions#world-inequality-database-wid):",
@@ -118,6 +119,15 @@ const customRegionDisplayOrder: Partial<Record<TooltipKey, string[]>> = {
         "Lower-middle-income countries",
         "Upper-middle-income countries",
         "High-income countries",
+    ],
+    ei: [
+        "North America (EI)",
+        "South and Central America (EI)",
+        "Europe (EI)",
+        "CIS (EI)",
+        "Middle East (EI)",
+        "Africa (EI)",
+        "Asia Pacific (EI)",
     ],
     maddison: [
         "Western offshoots (Maddison)",
