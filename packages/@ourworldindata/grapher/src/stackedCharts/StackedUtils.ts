@@ -3,8 +3,6 @@ import * as _ from "lodash-es"
 import {
     sortNumeric,
     isArrayOfNumbers,
-    findGreatestCommonDivisorOfArray,
-    rollingMap,
     omitUndefinedValues,
     AxisConfigInterface,
     lastOfNonEmptyArray,
@@ -19,6 +17,7 @@ import {
 } from "./StackedConstants"
 import { DualAxis } from "../axis/Axis"
 import { Time } from "@ourworldindata/types"
+import { TimeColumn } from "@ourworldindata/core-table"
 import { StackedBarChartState } from "./StackedBarChartState.js"
 
 // This method shift up the Y Values of a Series with Points in place.
@@ -61,20 +60,19 @@ export const stackSeriesInBothDirections = <
     return seriesArr
 }
 
-// Makes sure that values are evenly spaced
-export function withUniformSpacing(values: number[]): number[] {
-    const deltas = rollingMap(values, (a, b) => b - a)
-    const gcd = findGreatestCommonDivisorOfArray(deltas)
-    if (gcd === null) return values
-    return _.range(values[0], values[values.length - 1] + gcd, gcd)
-}
+// When enforcing uniform spacing, a `timeColumn` is required: its
+// `getUniformlySpacedTimes` fills gaps so positions are evenly spaced (e.g. one
+// position per missing month).
+type WithMissingValuesAsZeroesOptions =
+    | { enforceUniformSpacing: true; timeColumn: TimeColumn }
+    | { enforceUniformSpacing?: false }
 
 // Adds a Y = 0 value for each missing x value (where X is usually Time)
 export const withMissingValuesAsZeroes = <
     PositionType extends StackedPointPositionType,
 >(
     seriesArr: readonly StackedSeries<PositionType>[],
-    { enforceUniformSpacing = false }: { enforceUniformSpacing?: boolean } = {}
+    options: WithMissingValuesAsZeroesOptions = {}
 ): StackedSeries<PositionType>[] => {
     let allXValuesSorted = sortNumeric(
         _.uniq(
@@ -84,8 +82,8 @@ export const withMissingValuesAsZeroes = <
         )
     )
 
-    if (enforceUniformSpacing && isArrayOfNumbers(allXValuesSorted)) {
-        allXValuesSorted = withUniformSpacing(
+    if (options.enforceUniformSpacing && isArrayOfNumbers(allXValuesSorted)) {
+        allXValuesSorted = options.timeColumn.getUniformlySpacedTimes(
             allXValuesSorted
         ) as PositionType[]
     }

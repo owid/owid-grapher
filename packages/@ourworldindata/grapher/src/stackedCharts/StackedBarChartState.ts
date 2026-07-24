@@ -3,7 +3,7 @@ import { computed, makeObservable } from "mobx"
 import { AbstractStackedChartState } from "./AbstractStackedChartState.js"
 import { ChartState } from "../chart/ChartInterface.js"
 import { StackedSeries } from "./StackedConstants.js"
-import { ColumnTypeMap } from "@ourworldindata/core-table"
+import { TimeColumn } from "@ourworldindata/core-table"
 import {
     stackSeriesInBothDirections,
     withMissingValuesAsZeroes,
@@ -12,8 +12,15 @@ import { ColorScaleManager } from "../color/ColorScale.js"
 import {
     ColorScaleConfigInterface,
     ColorSchemeName,
+    ColumnTypeNames,
 } from "@ourworldindata/types"
 import { ChartManager } from "../chart/ChartManager.js"
+
+// Whether daily data should get uniform spacing (one filler per missing day).
+// Disabled during the transition to explicit time intervals: weekly indicators
+// are currently still marked as daily, and spacing them at daily granularity
+// would be wrong. Flip to `true` once those indicators use timeInterval "week".
+const ENABLE_DAILY_UNIFORM_SPACING = false
 
 export class StackedBarChartState
     extends AbstractStackedChartState
@@ -30,14 +37,26 @@ export class StackedBarChartState
 
     @computed
     get unstackedSeriesWithMissingValuesAsZeroes(): StackedSeries<number>[] {
-        // TODO: remove once monthly data is supported (https://github.com/owid/owid-grapher/issues/2007)
-        const enforceUniformSpacing = !(
-            this.transformedTable.timeColumn instanceof ColumnTypeMap.Day
-        )
+        // Fill gaps with zeroes so bars are evenly spaced. Each time column
+        // knows how to space its own encoding. Daily data is skipped for
+        // now — see ENABLE_DAILY_UNIFORM_SPACING.
+        const { timeColumn } = this.transformedTable
+        const columnType = timeColumn.def.type
+        const isDayEncoded =
+            columnType === ColumnTypeNames.Day ||
+            columnType === ColumnTypeNames.Date
 
-        return withMissingValuesAsZeroes(this.unstackedSeries, {
-            enforceUniformSpacing,
-        })
+        if (
+            timeColumn instanceof TimeColumn &&
+            (ENABLE_DAILY_UNIFORM_SPACING || !isDayEncoded)
+        ) {
+            return withMissingValuesAsZeroes(this.unstackedSeries, {
+                enforceUniformSpacing: true,
+                timeColumn,
+            })
+        }
+
+        return withMissingValuesAsZeroes(this.unstackedSeries)
     }
 
     @computed get series(): readonly StackedSeries<number>[] {

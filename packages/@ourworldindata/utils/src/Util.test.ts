@@ -26,6 +26,7 @@ import {
     slugify,
     greatestCommonDivisor,
     findGreatestCommonDivisorOfArray,
+    withUniformSpacing,
     traverseEnrichedBlock,
     cartesian,
     formatInlineList,
@@ -683,6 +684,19 @@ describe(convertDateToDaysSinceEpoch, () => {
     })
 })
 
+describe(withUniformSpacing, () => {
+    it("can add values to make an array evenly spaced", () => {
+        expect(withUniformSpacing([])).toEqual([])
+        expect(withUniformSpacing([5])).toEqual([5])
+        expect(withUniformSpacing([5, 10])).toEqual([5, 10])
+        expect(withUniformSpacing([5, 10, 15])).toEqual([5, 10, 15])
+        expect(withUniformSpacing([2, 4, 8])).toEqual([2, 4, 6, 8])
+        expect(withUniformSpacing([1, 2, 4, 8])).toEqual([
+            1, 2, 3, 4, 5, 6, 7, 8,
+        ])
+        expect(withUniformSpacing([7, 12, 17])).toEqual([7, 12, 17])
+    })
+})
 describe(snapToIntervalStart, () => {
     const day = (iso: string): number =>
         diffDatesInDays(dayjs.utc(iso), epochDate())
