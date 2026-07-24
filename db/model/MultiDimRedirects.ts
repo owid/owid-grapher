@@ -87,6 +87,8 @@ export async function getMultiDimRedirectTargets(
         multiDimSlug: string
         viewConfigId: string | null
         config: string
+        id: number
+        hasSourceQueryParams: number
     }>(
         knex,
         `-- sql
@@ -94,23 +96,34 @@ export async function getMultiDimRedirectTargets(
             REPLACE(mdr.source, ?, '') as sourceSlug,
             mddp.slug as multiDimSlug,
             mdr.viewConfigId as viewConfigId,
-            mddp.config as config
+            mddp.config as config,
+            mdr.id as id,
+            (mdr.sourceQueryParams IS NOT NULL) as hasSourceQueryParams
         FROM ${MultiDimRedirectsTableName} mdr
         JOIN multi_dim_data_pages mddp ON mddp.id = mdr.multiDimId
         WHERE mddp.published = TRUE
             AND mddp.slug IS NOT NULL
             AND ${whereClause}
-        -- We keep only one target per source (the actual query-param matching
-        -- happens at request time in the Cloudflare function). Prefer the
-        -- unconditional (catch-all) rule so the representative view is the
-        -- default, then order by id so the pick is deterministic across bakes.
-        ORDER BY (mdr.sourceQueryParams IS NOT NULL), mdr.id
         `,
         [sourcePrefix, ...params]
     )
 
+    // We keep only one target per source (the actual query-param matching
+    // happens at request time in the Cloudflare function). Prefer the
+    // unconditional (catch-all) rule so the representative view is the
+    // default, then order by id so the pick is deterministic across bakes.
+    //
+    // This is sorted in JS rather than via a SQL ORDER BY: each row carries a
+    // full multi-dim `config` JSON blob, which can be large enough (several
+    // hundred KB) that a SQL-side filesort overflows the server's
+    // sort_buffer_size (ER_OUT_OF_SORTMEMORY). The result set here is small
+    // (one row per redirect rule), so sorting it in JS is cheap.
+    redirects.sort(
+        (a, b) => a.hasSourceQueryParams - b.hasSourceQueryParams || a.id - b.id
+    )
+
     for (const redirect of redirects) {
-        // First row wins (rows are ordered most-preferred first).
+        // First row wins (rows are sorted most-preferred first).
         if (redirectMap.has(redirect.sourceSlug)) continue
         const queryStr = buildQueryStrFromConfig(
             redirect.viewConfigId,
@@ -178,6 +191,7 @@ export async function getMultiDimRedirectRulesBySource(
         multiDimSlug: string
         viewConfigId: string | null
         config: string
+        id: number
     }>(
         knex,
         `-- sql
@@ -186,20 +200,24 @@ export async function getMultiDimRedirectRulesBySource(
             mdr.sourceQueryParams as sourceQueryParams,
             mddp.slug as multiDimSlug,
             mdr.viewConfigId as viewConfigId,
-            mddp.config as config
+            mddp.config as config,
+            mdr.id as id
         FROM ${MultiDimRedirectsTableName} mdr
         JOIN multi_dim_data_pages mddp ON mddp.id = mdr.multiDimId
         WHERE mddp.published = TRUE
             AND mddp.slug IS NOT NULL
             AND mdr.source LIKE ?
-        -- Deterministic order so that, when two same-specificity rules overlap
-        -- for a source, buildQueryParamDecisionTree breaks the tie the same way
-        -- on every bake (it uses input order). Without this, MySQL's row order
-        -- is unspecified and the target could flip between bakes.
-        ORDER BY mdr.id
         `,
         [sourcePrefix, `${sourcePrefix}%`]
     )
+
+    // Deterministic order so that, when two same-specificity rules overlap for
+    // a source, buildQueryParamDecisionTree breaks the tie the same way on
+    // every bake (it uses input order). Sorted in JS rather than via a SQL
+    // ORDER BY: each row carries a full multi-dim `config` JSON blob, which can
+    // be large enough (several hundred KB) that a SQL-side filesort overflows
+    // the server's sort_buffer_size (ER_OUT_OF_SORTMEMORY).
+    redirects.sort((a, b) => a.id - b.id)
 
     for (const redirect of redirects) {
         const sourceQueryParams = parseSourceQueryParams(
