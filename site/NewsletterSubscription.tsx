@@ -5,6 +5,8 @@ import { faTimes, faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { TextInput } from "@ourworldindata/components"
+import { NewsletterExampleUrls } from "@ourworldindata/types"
+import { buildLatestPagePath } from "./latest/latestUtils.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { NewsletterIcon } from "./gdocs/components/NewsletterIcon.js"
 
@@ -82,12 +84,22 @@ export const NewsletterSubscriptionHeader = ({
     )
 }
 
+// Static fallback for the "see example" link, used in render contexts that
+// have no access to the newsletters table (e.g. the floating subscribe
+// dialog). The baked /subscribe page passes the latest edition instead.
+const DEFAULT_EXAMPLE_URLS: NewsletterExampleUrls = {
+    dataInsightsUrl:
+        "https://us8.campaign-archive.com/?u=18058af086319ba6afad752ec&id=fdf16136e1",
+}
+
 export const NewsletterSubscriptionForm = ({
     context,
     className = "",
+    exampleUrls,
 }: {
     context: NewsletterSubscriptionContext
     className?: string
+    exampleUrls?: NewsletterExampleUrls
 }) => {
     const DATA_INSIGHTS = "16"
     const BIWEEKLY = "2"
@@ -153,9 +165,10 @@ export const NewsletterSubscriptionForm = ({
                 </label>
                 <a
                     className="newsletter-subscription-form__example-link note-12-medium"
-                    href="https://mailchi.mp/ourworldindata/owid-brief-2025-11-14"
+                    data-track-note="subscribe_recent_owid_briefs"
+                    href={buildLatestPagePath("newsletter")}
                 >
-                    See example OWID Brief newsletter
+                    See recent OWID Brief newsletters
                 </a>
             </div>
             <img
@@ -188,7 +201,11 @@ export const NewsletterSubscriptionForm = ({
                 </label>
                 <a
                     className="newsletter-subscription-form__example-link note-12-medium"
-                    href="https://us8.campaign-archive.com/?u=18058af086319ba6afad752ec&id=fdf16136e1"
+                    data-track-note="subscribe_example_data_insights"
+                    href={
+                        exampleUrls?.dataInsightsUrl ??
+                        DEFAULT_EXAMPLE_URLS.dataInsightsUrl
+                    }
                 >
                     See example Data Insights newsletter
                 </a>

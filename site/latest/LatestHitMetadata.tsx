@@ -6,6 +6,7 @@ import {
     faBook,
     faBookmark,
     faChartLine,
+    faEnvelope,
     faLightbulb,
     faNewspaper,
 } from "@fortawesome/free-solid-svg-icons"
@@ -21,6 +22,7 @@ const LATEST_TYPE_ICONS: Record<LatestType, IconDefinition> = {
     "topic-update": faBookmark,
     "website-upgrade": faArrowPointer,
     announcement: faNewspaper,
+    newsletter: faEnvelope,
 }
 
 /**

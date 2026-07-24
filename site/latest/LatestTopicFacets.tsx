@@ -18,7 +18,7 @@ import {
     ToggleButtonGroup,
     type Key,
 } from "react-aria-components"
-import { LATEST_TYPE_VALUES, LatestType } from "@ourworldindata/types"
+import { LATEST_PAGE_TYPE_VALUES, LatestType } from "@ourworldindata/types"
 import { latestTypeLabelPlural } from "./latestUtils.js"
 
 /**
@@ -244,7 +244,7 @@ export const LatestTopicFacets = ({
                                 label="All"
                                 ariaLabel="All types"
                             />
-                            {LATEST_TYPE_VALUES.map((value) => (
+                            {LATEST_PAGE_TYPE_VALUES.map((value) => (
                                 <ContentTypeListBoxItem
                                     key={value}
                                     id={value}

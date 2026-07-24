@@ -71,6 +71,8 @@ function hydrateSubscribePage() {
             newsletterContainer,
             <NewsletterSubscriptionForm
                 context={NewsletterSubscriptionContext.SubscribePage}
+                // Baked into the page so hydration matches the server render.
+                exampleUrls={window._OWID_NEWSLETTER_EXAMPLES}
             />
         )
     }
@@ -87,10 +89,14 @@ function hydrateSlideshowPage() {
 function runLatestPage() {
     const root = document.getElementById("latest-page-root")
     const topicTagGraph = window._OWID_TOPIC_TAG_GRAPH
+    const newsletters = window._OWID_NEWSLETTERS ?? []
     if (root) {
         createRoot(root).render(
             <BrowserRouter>
-                <LatestSearchWrapper topicTagGraph={topicTagGraph} />
+                <LatestSearchWrapper
+                    topicTagGraph={topicTagGraph}
+                    newsletters={newsletters}
+                />
             </BrowserRouter>
         )
     }

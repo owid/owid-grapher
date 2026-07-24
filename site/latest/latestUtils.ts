@@ -1,10 +1,11 @@
 import {
     ANNOUNCEMENT_LATEST_TYPES,
     AnnouncementLatestType,
+    LATEST_PAGE_TYPE_VALUES,
     LATEST_PATH,
     LATEST_TYPE_LABELS,
-    LATEST_TYPE_VALUES,
     LatestFeedGdoc,
+    LatestNewsletter,
     LatestType,
     LatestUrlParam,
     PageChronologicalRecord,
@@ -20,7 +21,7 @@ export function buildLatestPagePath(type?: LatestType): string {
 /** Decode the URL query `?type=` param back to a LatestType or null. */
 export function decodeLatestType(param: string | null): LatestType | null {
     if (!param) return null
-    return (LATEST_TYPE_VALUES as readonly string[]).includes(param)
+    return (LATEST_PAGE_TYPE_VALUES as readonly string[]).includes(param)
         ? (param as LatestType)
         : null
 }
@@ -65,6 +66,58 @@ export function deriveLatestType(gdoc: LatestFeedGdoc): LatestType {
  * /latest's "Filter by type" filter ("Articles", "Data Insights", …). */
 export const latestTypeLabelPlural = (type: LatestType): string =>
     `${LATEST_TYPE_LABELS[type]}s`
+
+/**
+ * A single item in the /latest feed: either an Algolia-backed chronological
+ * record or a newsletter injected into the page at bake time (newsletters
+ * deliberately live outside the Algolia index — see LatestNewsletter).
+ */
+export type LatestFeedItem =
+    | { kind: "record"; record: PageChronologicalRecord }
+    | { kind: "newsletter"; newsletter: LatestNewsletter }
+
+/**
+ * Merge newsletters into the date-sorted record stream, preserving reverse
+ * chronological order. Both inputs must be sorted by date descending.
+ *
+ * While more record pages remain to be fetched (`hasMoreRecords`), only
+ * newsletters that fall within the already-loaded date range are woven in —
+ * older ones join as later pages load, so items never appear out of order or
+ * jump around.
+ */
+export function weaveNewslettersIntoFeed(
+    records: PageChronologicalRecord[],
+    newsletters: LatestNewsletter[],
+    hasMoreRecords: boolean
+): LatestFeedItem[] {
+    const oldestLoadedDate = records[records.length - 1]?.date
+    const eligible =
+        hasMoreRecords && oldestLoadedDate
+            ? newsletters.filter((n) => n.date >= oldestLoadedDate)
+            : newsletters
+
+    const items: LatestFeedItem[] = []
+    let newsletterIndex = 0
+    for (const record of records) {
+        while (
+            newsletterIndex < eligible.length &&
+            eligible[newsletterIndex].date >= record.date
+        ) {
+            items.push({
+                kind: "newsletter",
+                newsletter: eligible[newsletterIndex++],
+            })
+        }
+        items.push({ kind: "record", record })
+    }
+    while (newsletterIndex < eligible.length) {
+        items.push({
+            kind: "newsletter",
+            newsletter: eligible[newsletterIndex++],
+        })
+    }
+    return items
+}
 
 /** Grid positioning applied to the root of every hit card. */
 export const LATEST_HIT_GRID_CLASSES =
