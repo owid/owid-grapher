@@ -214,7 +214,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     }
 
     @computed get showCopyPngButton(): boolean {
-        return this.state.canWriteToClipboard
+        return false // this.state.canWriteToClipboard
     }
 
     override render(): React.ReactElement {
