@@ -1,13 +1,5 @@
-import { CSSProperties } from "react"
 import * as R from "remeda"
-import {
-    Bounds,
-    FontFamily,
-    imemo,
-    omitUndefinedValues,
-    VerticalAlign,
-    type RequiredBy,
-} from "@ourworldindata/utils"
+import { Bounds, imemo, omitUndefinedValues } from "@ourworldindata/utils"
 import {
     convertPlaintextToIRTokens,
     getLineWidth,
@@ -21,7 +13,7 @@ import {
 } from "./IRTokens.js"
 import {
     AbstractTokenTextWrap,
-    TokenTextWrapOptions,
+    type TokenTextWrapProps,
 } from "./AbstractTokenTextWrap.js"
 import {
     convertMarkdownToIRTokens,
@@ -63,15 +55,7 @@ export interface TextWrapFragment extends IRFragmentStyle {
 
 type TextWrapGroupProps = {
     fragments: TextWrapFragment[]
-    fontSize: number
-    maxWidth?: number
-    lineHeight?: number
-    fontWeight?: number
-    fontFamily?: FontFamily
-    verticalAlign?: VerticalAlign
-    style?: CSSProperties
-    detailsOrderedByReference?: string[]
-}
+} & TokenTextWrapProps
 
 /**
  * Wraps a sequence of text fragments, each with its own font style, into
@@ -80,31 +64,7 @@ type TextWrapGroupProps = {
  * if it fits there in its entirety, and otherwise starts a new line, where
  * it may wrap internally if it is longer than a full line.
  */
-export class TextWrapGroup extends AbstractTokenTextWrap {
-    private static readonly defaultOptions = {
-        maxWidth: Infinity,
-        lineHeight: 1.1,
-        verticalAlign: VerticalAlign.bottom,
-        detailsOrderedByReference: [] as string[],
-    } as const satisfies Partial<TextWrapGroupProps>
-
-    private readonly initialProps: TextWrapGroupProps
-    constructor(props: TextWrapGroupProps) {
-        super()
-        this.initialProps = props
-    }
-
-    @imemo get props(): RequiredBy<
-        TextWrapGroupProps,
-        keyof typeof TextWrapGroup.defaultOptions
-    > {
-        return { ...TextWrapGroup.defaultOptions, ...this.initialProps }
-    }
-
-    protected get options(): TokenTextWrapOptions {
-        return this.props
-    }
-
+export class TextWrapGroup extends AbstractTokenTextWrap<TextWrapGroupProps> {
     @imemo get fragments(): TextWrapFragment[] {
         return this.props.fragments.filter(
             (fragment) => fragment.text.trim().length > 0

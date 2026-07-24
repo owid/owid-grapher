@@ -1,11 +1,4 @@
-import { CSSProperties } from "react"
-import {
-    imemo,
-    Bounds,
-    FontFamily,
-    VerticalAlign,
-    type RequiredBy,
-} from "@ourworldindata/utils"
+import { imemo, Bounds } from "@ourworldindata/utils"
 import { type ITextWrap } from "../TextWrap/TextWrap.js"
 import { fromMarkdown } from "mdast-util-from-markdown"
 import type { Root, RootContent } from "mdast"
@@ -25,47 +18,12 @@ import {
 } from "./IRTokens.js"
 import {
     AbstractTokenTextWrap,
-    type TokenTextWrapOptions,
+    type TokenTextWrapProps,
 } from "./AbstractTokenTextWrap.js"
 
-type MarkdownTextWrapOptions = {
-    maxWidth?: number
-    fontFamily?: FontFamily
-    fontSize: number
-    fontWeight?: number
-    lineHeight?: number
-    verticalAlign?: VerticalAlign
-    style?: CSSProperties
-    detailsOrderedByReference?: string[]
-}
+type MarkdownTextWrapProps = { text: string } & TokenTextWrapProps
 
-type MarkdownTextWrapProps = { text: string } & MarkdownTextWrapOptions
-
-export class MarkdownTextWrap extends AbstractTokenTextWrap {
-    private static readonly defaultOptions = {
-        maxWidth: Infinity,
-        lineHeight: 1.1,
-        verticalAlign: VerticalAlign.bottom,
-        detailsOrderedByReference: [] as string[],
-    } as const satisfies Partial<MarkdownTextWrapProps>
-
-    private readonly initialProps: MarkdownTextWrapProps
-    constructor(props: MarkdownTextWrapProps) {
-        super()
-        this.initialProps = props
-    }
-
-    @imemo get props(): RequiredBy<
-        MarkdownTextWrapProps,
-        keyof typeof MarkdownTextWrap.defaultOptions
-    > {
-        return { ...MarkdownTextWrap.defaultOptions, ...this.initialProps }
-    }
-
-    protected get options(): TokenTextWrapOptions {
-        return this.props
-    }
-
+export class MarkdownTextWrap extends AbstractTokenTextWrap<MarkdownTextWrapProps> {
     @imemo get text(): string {
         return normalizeMarkdownNewlines(this.props.text)
     }

@@ -5,6 +5,7 @@ import {
     imemo,
     FontFamily,
     VerticalAlign,
+    type RequiredBy,
 } from "@ourworldindata/utils"
 import * as R from "remeda"
 import {
@@ -33,19 +34,59 @@ export interface TokenTextWrapOptions {
     detailsOrderedByReference: string[]
 }
 
+export type TokenTextWrapProps = {
+    fontSize: number
+    maxWidth?: number
+    lineHeight?: number
+    fontWeight?: number
+    fontFamily?: FontFamily
+    verticalAlign?: VerticalAlign
+    style?: CSSProperties
+    detailsOrderedByReference?: string[]
+}
+
 /**
  * Base class for text wraps that lay out a stream of IR tokens.
  *
- * Subclasses only provide the token stream (via the abstract `text`, `tokens`
- * and `options` getters); this class implements everything downstream of it:
+ * Subclasses only provide the token stream (via the abstract `text` and
+ * `tokens` getters); this class implements everything downstream of it:
  * - line-splitting against `maxWidth` (`htmlLines`, `svgLines`)
  * - metrics (`width`, `height`, `lineCount`, per-line heights and gaps)
  *
  * Known subclasses: `MarkdownTextWrap` (tokens parsed from a markdown string)
  * and `TextWrapGroup` (tokens assembled from multiple fragments).
  */
-export abstract class AbstractTokenTextWrap implements ITextWrap {
-    protected abstract get options(): TokenTextWrapOptions
+export abstract class AbstractTokenTextWrap<
+    Props extends TokenTextWrapProps = TokenTextWrapProps,
+> implements ITextWrap {
+    private static readonly defaultOptions = {
+        maxWidth: Infinity,
+        lineHeight: 1.1,
+        verticalAlign: VerticalAlign.bottom,
+        detailsOrderedByReference: [] as string[],
+    } as const satisfies Partial<TokenTextWrapProps>
+
+    private readonly initialProps: Props
+    constructor(props: Props) {
+        this.initialProps = props
+    }
+
+    @imemo get props(): RequiredBy<
+        Props,
+        keyof typeof AbstractTokenTextWrap.defaultOptions
+    > {
+        return {
+            ...AbstractTokenTextWrap.defaultOptions,
+            ...this.initialProps,
+        }
+    }
+
+    protected get options(): TokenTextWrapOptions {
+        // The cast is safe since the defaults guarantee that all required
+        // options are set, but TS can't verify this for a generic Props
+        return this.props as TokenTextWrapOptions
+    }
+
     abstract get text(): string
     abstract get tokens(): IRToken[]
 
