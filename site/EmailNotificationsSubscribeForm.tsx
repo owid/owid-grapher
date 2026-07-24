@@ -4,6 +4,7 @@ import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faBook,
+    faBullhorn,
     faChartLine,
     faCheck,
     faMinus,
@@ -27,18 +28,12 @@ import { SiteAnalytics } from "./SiteAnalytics.js"
 import {
     getPreferencesValidationErrors,
     PreferencesValidationErrors,
+    topicTagsForStorage,
 } from "./emailNotificationsValidation.js"
 
 const analytics = new SiteAnalytics()
 
-// The "announcement" content type is rendered as a pill alongside the topics
-// ("I want updates about"), not as a content-type card: OWID news is a thing
-// you follow like a topic, even though it's stored as a content type.
-const OWID_ANNOUNCEMENTS_PILL_LABEL =
-    "Our World in Data (announcements and website upgrades)"
-
-// The content types offered as "Show me" cards. "announcement" is deliberately
-// absent — see OWID_ANNOUNCEMENTS_PILL_LABEL.
+// The content types offered as "Show me" cards.
 const CONTENT_TYPE_CARDS: {
     contentType: EmailNotificationsContentType
     icon: IconDefinition
@@ -62,6 +57,13 @@ const CONTENT_TYPE_CARDS: {
         // TODO: provisional copy — the design has a placeholder here.
         description:
             "Major updates to the datasets behind our work. Published once or twice a week.",
+    },
+    {
+        contentType: "announcement",
+        icon: faBullhorn,
+        // TODO: provisional copy — this card isn't in the design yet.
+        description:
+            "News about Our World in Data itself. Independent of the topics you follow.",
     },
 ]
 
@@ -108,7 +110,7 @@ const ContentTypeCard = ({
         aria-pressed={selected}
         onClick={onToggle}
     >
-        <span className="email-notifications-subscribe-form__card-icons">
+        <span className="email-notifications-subscribe-form__card-header">
             <FontAwesomeIcon icon={icon} />
             <FontAwesomeIcon icon={selected ? faCheck : faPlus} />
         </span>
@@ -144,9 +146,9 @@ export const EmailNotificationsPreferenceFields = ({
     onSetFrequency: (frequency: EmailNotificationsFrequency) => void
     validationErrors?: PreferencesValidationErrors | null
 }) => {
-    const allTopicsSelected =
-        topicTagGraph.children.every((area) => topicTags.includes(area.name)) &&
-        contentTypes.includes("announcement")
+    const allTopicsSelected = topicTagGraph.children.every((area) =>
+        topicTags.includes(area.name)
+    )
 
     // The toggle callbacks use functional state updates, so toggling every
     // affected pill in sequence composes correctly.
@@ -155,8 +157,6 @@ export const EmailNotificationsPreferenceFields = ({
             if (topicTags.includes(area.name) === allTopicsSelected)
                 onToggleTopicTag(area.name)
         }
-        if (contentTypes.includes("announcement") === allTopicsSelected)
-            onToggleContentType("announcement")
     }
 
     return (
@@ -172,11 +172,6 @@ export const EmailNotificationsPreferenceFields = ({
                             onToggle={() => onToggleTopicTag(area.name)}
                         />
                     ))}
-                    <TogglePill
-                        label={OWID_ANNOUNCEMENTS_PILL_LABEL}
-                        selected={contentTypes.includes("announcement")}
-                        onToggle={() => onToggleContentType("announcement")}
-                    />
                 </div>
                 <button
                     type="button"
@@ -320,10 +315,16 @@ export const EmailNotificationsSubscribeForm = ({
     const [email, setEmail] = useState("")
     const [subscribeToOwidBrief, setSubscribeToOwidBrief] = useState(true)
     const [followTopics, setFollowTopics] = useState(true)
-    const [topicTags, setTopicTags] = useState<string[]>([])
+    const [topicTags, setTopicTags] = useState<string[]>(() =>
+        topicTagGraph.children.map((area) => area.name)
+    )
     const [contentTypes, setContentTypes] = useState<
         EmailNotificationsContentType[]
-    >(CONTENT_TYPE_CARDS.map((card) => card.contentType))
+    >(
+        CONTENT_TYPE_CARDS.map((card) => card.contentType).filter(
+            (contentType) => contentType !== "announcement"
+        )
+    )
     const [frequency, setFrequency] =
         useState<EmailNotificationsFrequency>("weekly")
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -376,7 +377,11 @@ export const EmailNotificationsSubscribeForm = ({
         const request: EmailNotificationsSubscribeRequest = {
             email: trimmedEmail,
             notifications: followTopics
-                ? { topicTags, contentTypes, frequency }
+                ? {
+                      topicTags: topicTagsForStorage(topicTags, topicTagGraph),
+                      contentTypes,
+                      frequency,
+                  }
                 : undefined,
             subscribeToOwidBrief,
         }

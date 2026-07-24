@@ -1,4 +1,31 @@
-import { EmailNotificationsContentType } from "@ourworldindata/types"
+import {
+    EmailNotificationsContentType,
+    TagGraphRoot,
+} from "@ourworldindata/types"
+
+/**
+ * "All topics" is stored as an empty topicTags array, so that topic areas
+ * added later are automatically included. Translates between that storage
+ * shape and the form's pill selection (where every pill is selected).
+ */
+export function topicTagsForStorage(
+    topicTags: string[],
+    topicTagGraph: TagGraphRoot
+): string[] {
+    const allSelected = topicTagGraph.children.every((area) =>
+        topicTags.includes(area.name)
+    )
+    return allSelected ? [] : topicTags
+}
+
+export function topicTagsFromStorage(
+    topicTags: string[],
+    topicTagGraph: TagGraphRoot
+): string[] {
+    return topicTags.length === 0
+        ? topicTagGraph.children.map((area) => area.name)
+        : topicTags
+}
 
 export interface PreferencesValidationErrors {
     topicTagsError: string | null
@@ -6,10 +33,13 @@ export interface PreferencesValidationErrors {
 }
 
 /**
- * Client-side mirror of the preferences schema's refinement (the Cloudflare
- * Function is the authoritative validator): a preferences selection needs at
- * least one content type, and at least one pill — a topic, or the OWID
- * announcements pill, since announcements are not topic-filtered.
+ * Client-side UX validation of the preference fields (the Cloudflare Function
+ * is the authoritative validator, but it can't enforce these: an empty
+ * topicTags array is how "all topics" is stored, so the server can't tell
+ * "nothing selected" from "all topics"):
+ * - at least one content type
+ * - at least one topic whenever a topic-filtered content type is selected —
+ *   only announcements are topic-independent
  *
  * Returns null when the selection is valid, otherwise per-field messages so
  * each can be rendered next to the fieldset it refers to.
@@ -18,8 +48,11 @@ export function getPreferencesValidationErrors(
     topicTags: string[],
     contentTypes: EmailNotificationsContentType[]
 ): PreferencesValidationErrors | null {
+    const hasTopicDependentContentType = contentTypes.some(
+        (contentType) => contentType !== "announcement"
+    )
     const topicTagsError =
-        topicTags.length === 0 && !contentTypes.includes("announcement")
+        topicTags.length === 0 && hasTopicDependentContentType
             ? "Please select at least one topic to follow."
             : null
     const contentTypesError =

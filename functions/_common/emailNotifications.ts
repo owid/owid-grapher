@@ -25,13 +25,12 @@ export function escapeHtml(text: string): string {
 function renderPreferencesListHtml(
     preferences: EmailNotificationsPreferences
 ): string {
-    // Topic tags are user-submitted strings, so escape them. An empty list is
-    // only valid for announcement-only subscriptions (announcements are not
-    // topic-filtered).
+    // Topic tags are user-submitted strings, so escape them. An empty list
+    // means "all topics".
     const topics =
         preferences.topicTags.length > 0
             ? preferences.topicTags.map(escapeHtml).join(", ")
-            : "None"
+            : "All topics"
     const contentTypes = preferences.contentTypes
         .map(
             (contentType) =>

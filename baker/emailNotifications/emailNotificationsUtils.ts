@@ -9,7 +9,7 @@ export interface EmailNotificationsSubscriber {
     userId: number
     email: string
     token: string
-    // Topic tag names the user subscribed to.
+    // Topic tag names the user subscribed to; empty means all topics.
     topicTags: string[]
     contentTypes: EmailNotificationsContentType[]
     frequency: EmailNotificationsFrequency
@@ -103,6 +103,8 @@ export function filterItemsForSubscriber(
         // Announcements are news about Our World in Data itself and are
         // usually untagged, so they are not topic-filtered.
         if (item.type === "announcement") return true
+        // An empty topicTags array means "all topics".
+        if (subscriber.topicTags.length === 0) return true
         return item.topicNames.some((name) =>
             subscriber.topicTags.includes(name)
         )

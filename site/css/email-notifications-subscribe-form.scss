@@ -136,25 +136,26 @@
 }
 
 .email-notifications-subscribe-form__cards {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 8px;
+
+    @include md-up {
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
 }
 
 .email-notifications-subscribe-form__card {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    width: 193px;
+    width: 100%;
     padding: 12px;
     border: 1px solid $blue-20;
     background: none;
     text-align: left;
     cursor: pointer;
-
-    @include sm-only {
-        width: 100%;
-    }
 
     &:hover {
         background-color: $gray-5;
@@ -170,17 +171,18 @@
     }
 }
 
-.email-notifications-subscribe-form__card-icons {
+.email-notifications-subscribe-form__card-header {
     display: flex;
+    align-items: center;
     justify-content: space-between;
     width: 100%;
-    margin-bottom: 6px;
     color: $blue-60;
     font-size: 0.75rem;
 }
 
 .email-notifications-subscribe-form__card-title {
     @include body-3-medium;
+    margin-top: 6px;
     color: $blue-90;
 }
 

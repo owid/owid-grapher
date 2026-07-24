@@ -146,6 +146,17 @@ describe(filterItemsForSubscriber, () => {
         ).toEqual([item])
     })
 
+    it("treats empty topic tags as a subscription to all topics", () => {
+        const item = makeItem({ topicNames: ["Vaccination", "Health"] })
+        expect(
+            filterItemsForSubscriber(
+                [item],
+                makeSubscriber({ topicTags: [] }),
+                NOW
+            )
+        ).toEqual([item])
+    })
+
     it("does not topic-filter announcements", () => {
         const item = makeItem({ type: "announcement", topicNames: [] })
         expect(

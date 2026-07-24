@@ -17,6 +17,8 @@ import { EmailNotificationsPreferenceFields } from "./EmailNotificationsSubscrib
 import {
     getPreferencesValidationErrors,
     PreferencesValidationErrors,
+    topicTagsForStorage,
+    topicTagsFromStorage,
 } from "./emailNotificationsValidation.js"
 
 /**
@@ -54,8 +56,14 @@ export const EmailNotificationsPreferencesForm = ({
     const [enteredEmail, setEnteredEmail] = useState("")
     const [contentTypes, setContentTypes] = useState<
         EmailNotificationsContentType[]
-    >([...EMAIL_NOTIFICATIONS_CONTENT_TYPES])
-    const [topicTags, setTopicTags] = useState<string[]>([])
+    >(
+        EMAIL_NOTIFICATIONS_CONTENT_TYPES.filter(
+            (contentType) => contentType !== "announcement"
+        )
+    )
+    const [topicTags, setTopicTags] = useState<string[]>(() =>
+        topicTagGraph.children.map((area) => area.name)
+    )
     const [frequency, setFrequency] =
         useState<EmailNotificationsFrequency>("weekly")
     // null = toggle hidden (Mailchimp unavailable or not yet answered)
@@ -93,7 +101,12 @@ export const EmailNotificationsPreferencesForm = ({
                     return
                 }
                 if (json.preferences) {
-                    setTopicTags(json.preferences.topicTags)
+                    setTopicTags(
+                        topicTagsFromStorage(
+                            json.preferences.topicTags,
+                            topicTagGraph
+                        )
+                    )
                     setContentTypes([...json.preferences.contentTypes])
                     setFrequency(json.preferences.frequency)
                 }
@@ -120,7 +133,7 @@ export const EmailNotificationsPreferencesForm = ({
         }
         void loadPreferences()
         void loadBriefStatus()
-    }, [])
+    }, [topicTagGraph])
 
     const requestLink = async (
         request: EmailNotificationsRequestLinkRequest
@@ -176,7 +189,11 @@ export const EmailNotificationsPreferencesForm = ({
             ? { token, unsubscribe: true }
             : {
                   token,
-                  preferences: { topicTags, contentTypes, frequency },
+                  preferences: {
+                      topicTags: topicTagsForStorage(topicTags, topicTagGraph),
+                      contentTypes,
+                      frequency,
+                  },
                   // Only include the Brief when the toggle was shown and the
                   // user actually changed it.
                   subscribeToOwidBrief:

@@ -41,27 +41,15 @@ describe("EmailNotificationsSubscribeRequestTypeObject validation", () => {
         expect(result.success).toBe(true)
     })
 
-    it("rejects empty topic tags unless announcements are selected", () => {
-        const withoutAnnouncements =
-            EmailNotificationsSubscribeRequestTypeObject.safeParse({
-                ...validRequest,
-                notifications: {
-                    ...validRequest.notifications,
-                    topicTags: [],
-                },
-            })
-        expect(withoutAnnouncements.success).toBe(false)
-
-        const withAnnouncements =
-            EmailNotificationsSubscribeRequestTypeObject.safeParse({
-                ...validRequest,
-                notifications: {
-                    ...validRequest.notifications,
-                    topicTags: [],
-                    contentTypes: ["announcement"],
-                },
-            })
-        expect(withAnnouncements.success).toBe(true)
+    it("accepts empty topic tags (meaning all topics)", () => {
+        const result = EmailNotificationsSubscribeRequestTypeObject.safeParse({
+            ...validRequest,
+            notifications: {
+                ...validRequest.notifications,
+                topicTags: [],
+            },
+        })
+        expect(result.success).toBe(true)
     })
 
     it("rejects a request with neither notifications nor the OWID Brief", () => {
@@ -147,12 +135,31 @@ describe(mergeEmailNotificationsPreferences, () => {
 
     it("keeps existing topic tags when the incoming set is smaller", () => {
         const merged = mergeEmailNotificationsPreferences(existing, {
-            topicTags: [],
+            topicTags: ["Climate Change"],
             contentTypes: ["announcement"],
             frequency: "weekly",
         })
-        expect(merged.topicTags).toEqual(["Energy"])
+        expect(merged.topicTags).toEqual(["Energy", "Climate Change"])
         expect(merged.contentTypes).toEqual(["article", "announcement"])
+    })
+
+    it("treats empty topic tags as all topics, absorbing the other side", () => {
+        const incomingEmpty = mergeEmailNotificationsPreferences(existing, {
+            topicTags: [],
+            contentTypes: ["article"],
+            frequency: "weekly",
+        })
+        expect(incomingEmpty.topicTags).toEqual([])
+
+        const existingEmpty = mergeEmailNotificationsPreferences(
+            { ...existing, topicTags: [] },
+            {
+                topicTags: ["Climate Change"],
+                contentTypes: ["article"],
+                frequency: "weekly",
+            }
+        )
+        expect(existingEmpty.topicTags).toEqual([])
     })
 
     it("takes the incoming frequency", () => {
