@@ -10,6 +10,7 @@ import { useInfiniteSearch } from "./searchHooks.js"
 import { SearchDataInsightsResultsSkeleton } from "./SearchDataInsightsResultsSkeleton.js"
 import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
 import { useSearchContext } from "./SearchContext.js"
+import { SearchClosestMatchesNotice } from "./SearchClosestMatchesNotice.js"
 
 export function SearchDataInsightsResults() {
     const { analytics } = useSearchContext()
@@ -32,7 +33,7 @@ export function SearchDataInsightsResults() {
         },
     })
 
-    const { hits, totalResults, isLoading } = query
+    const { hits, totalResults, isLoading, isClosestMatches } = query
 
     function handleClick(hit: DataInsightHit, position: number) {
         analytics.logSearchResultClick(hit, {
@@ -53,6 +54,7 @@ export function SearchDataInsightsResults() {
                         <SearchResultHeader count={totalResults}>
                             Data Insights
                         </SearchResultHeader>
+                        {isClosestMatches && <SearchClosestMatchesNotice />}
                         <div
                             ref={container}
                             className="search-data-insights-results__hits"

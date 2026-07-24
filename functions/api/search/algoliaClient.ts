@@ -1,3 +1,5 @@
+import { liteClient, type LiteClient } from "algoliasearch/lite"
+import { createFetchRequester } from "@algolia/requester-fetch"
 import { Env } from "../../_common/env.js"
 
 export interface AlgoliaConfig {
@@ -29,4 +31,13 @@ export function getIndexName(
         return `${indexPrefix}-${index}`
     }
     return index
+}
+
+// The same algoliasearch client the site uses. It needs an explicit fetch()
+// requester here because its default requester selection (XHR in browsers,
+// http.Agent in Node) has no automatic Cloudflare Workers case.
+export function createSearchClient(config: AlgoliaConfig): LiteClient {
+    return liteClient(config.appId, config.apiKey, {
+        requester: createFetchRequester(),
+    })
 }

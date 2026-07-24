@@ -24,6 +24,7 @@ import { SearchTopicPageHit } from "./SearchTopicPageHit.js"
 import { SearchWritingResultsSkeleton } from "./SearchWritingResultsSkeleton.js"
 import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
 import { useSearchContext } from "./SearchContext.js"
+import { SearchClosestMatchesNotice } from "./SearchClosestMatchesNotice.js"
 
 type WritingHit = FlatArticleHit | TopicPageHit | ProfileHit
 
@@ -258,6 +259,9 @@ export const SearchWritingResults = ({
                         <SearchResultHeader count={totalCount}>
                             Research & Writing
                         </SearchResultHeader>
+                        {articlesQuery.isClosestMatches && (
+                            <SearchClosestMatchesNotice />
+                        )}
                         {isSmallScreen ? (
                             <SingleColumnResults
                                 hits={orderedHits}

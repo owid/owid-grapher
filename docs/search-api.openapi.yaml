@@ -250,6 +250,14 @@ components:
           type: integer
           description: Number of results per page
           example: 20
+        closestMatches:
+          type: boolean
+          description: |
+            Present and true when the query itself had no exact match and
+            these results were relaxed (Algolia's removeWordsIfNoResults),
+            keeping only the tier of hits that matched the most query words.
+            Absent for a normal exact-match response.
+          example: true
 
     ChartResult:
       type: object
@@ -377,6 +385,14 @@ components:
           type: integer
           description: Number of results returned
           example: 20
+        closestMatches:
+          type: boolean
+          description: |
+            Present and true when the query itself had no exact match and
+            these results were relaxed (Algolia's removeWordsIfNoResults),
+            keeping only the tier of hits that matched the most query words.
+            Absent for a normal exact-match response.
+          example: true
 
     PageResult:
       type: object
