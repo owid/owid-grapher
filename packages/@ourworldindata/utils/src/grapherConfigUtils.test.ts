@@ -10,6 +10,7 @@ import {
 import {
     mergeGrapherConfigs,
     diffGrapherConfigs,
+    rediffPatchAgainstNewParentStack,
 } from "./grapherConfigUtils.js"
 
 describe(mergeGrapherConfigs, () => {
@@ -409,5 +410,45 @@ describe("diff+merge", () => {
         )
         const onlyMerged = mergeGrapherConfigs(reference, config)
         expect(diffedAndMerged).toEqual(onlyMerged)
+    })
+})
+
+describe(rediffPatchAgainstNewParentStack, () => {
+    it("removes patch values that match the new parent stack", () => {
+        const existingPatch: GrapherInterface = {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.004.json",
+            title: "Parent title",
+            dimensions: [{ property: DimensionProperty.y, variableId: 123 }],
+        }
+        const newParentStack: GrapherInterface = {
+            title: "Parent title",
+            dimensions: [{ property: DimensionProperty.y, variableId: 123 }],
+        }
+
+        expect(
+            rediffPatchAgainstNewParentStack(existingPatch, newParentStack)
+        ).toEqual({
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.004.json",
+        })
+    })
+
+    it("keeps non-inheritable keys and real admin overrides", () => {
+        const existingPatch: GrapherInterface = {
+            id: 123,
+            slug: "admin-chart",
+            isPublished: false,
+            title: "Admin title",
+            dimensions: [{ property: DimensionProperty.y, variableId: 456 }],
+        }
+        const newParentStack: GrapherInterface = {
+            title: "Parent title",
+            dimensions: [{ property: DimensionProperty.y, variableId: 123 }],
+        }
+
+        expect(
+            rediffPatchAgainstNewParentStack(existingPatch, newParentStack)
+        ).toEqual(existingPatch)
     })
 })
