@@ -214,7 +214,7 @@ export function getTitle(col: CoreColumn): string {
     return title
 }
 
-function* columnReadmeText(col: CoreColumn) {
+export function* columnReadmeText(col: CoreColumn) {
     const def = col.def as OwidColumnDef
 
     const title = getTitle(col)

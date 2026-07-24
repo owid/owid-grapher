@@ -19,10 +19,12 @@ import {
 import {
     Distribution,
     ArchiveContext,
+    DownloadPackage,
     OwidColumnDef,
     type DownloadRewriteTarget,
 } from "@ourworldindata/types"
 import {
+    makeCompleteDatasetDescription,
     makeDownloadCodeExamples,
     SERVER_SIDE_DOWNLOAD_HELP_TEXT,
 } from "@ourworldindata/utils"
@@ -162,6 +164,7 @@ export type DownloadSectionProps = {
     archivedChartInfo?: ArchiveContext
     distribution?: Distribution
     hideRowCounts?: boolean
+    downloadPackage?: DownloadPackage & { url: string }
 }
 
 export default function DownloadSection({
@@ -175,6 +178,7 @@ export default function DownloadSection({
     archivedChartInfo,
     distribution,
     hideRowCounts,
+    downloadPackage,
 }: DownloadSectionProps) {
     const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
 
@@ -245,7 +249,8 @@ export default function DownloadSection({
         (!tableForDownload && distribution?.allowed === false)
 
     const fullDownloadDescription = makeFullDownloadDescription(
-        hideRowCounts ? undefined : tableForDownload?.numRows
+        hideRowCounts ? undefined : tableForDownload?.numRows,
+        { hasCompleteDatasetSibling: !!downloadPackage }
     )
     const filteredDownloadDescription = makeFilteredDownloadDescription({
         numRows: hideRowCounts ? undefined : filteredTableForDownload?.numRows,
@@ -348,6 +353,23 @@ export default function DownloadSection({
                                         "download-filtered-data"
                                     )}
                                 />
+                                {downloadPackage && (
+                                    <DownloadButtonLink
+                                        title="Download complete dataset"
+                                        description={makeCompleteDatasetDescription(
+                                            {
+                                                rowCount:
+                                                    downloadPackage.rowCount,
+                                                indicatorCount:
+                                                    downloadPackage.indicatorCount,
+                                            }
+                                        )}
+                                        icon="complete"
+                                        trackingNote="datapage_download_complete_dataset"
+                                        href={downloadPackage.url}
+                                        download={`${slug}.complete-dataset.zip`}
+                                    />
+                                )}
                             </div>
                         </div>
                         <ApiAndCodeExamplesSection

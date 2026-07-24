@@ -4,6 +4,8 @@ import { unstable_batchedUpdates } from "react-dom"
 import { useSearchParams } from "react-router-dom-v5-compat"
 import * as Sentry from "@sentry/react"
 import { useIsClient } from "usehooks-ts"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import {
     Grapher,
     GrapherState,
@@ -424,6 +426,18 @@ export function DataPageContent({
         !!grapherStateRef.current
     )
 
+    // The download link is computed here, not stored -- same convention as
+    // a chart's own `.zip` link (getDownloadUrl: `${baseUrl}.${extension}`).
+    // ETL only needs to publish csvUrl/indicatorsUrl for the dynamic build
+    // route (functions/grapher/[slug].ts) to read from; it never has to
+    // know the site's own URL scheme, and the link can't go stale.
+    const downloadPackage = config.config.downloadPackage
+        ? {
+              ...config.config.downloadPackage,
+              url: `${BAKED_GRAPHER_URL}/${slug}.complete-dataset.zip`,
+          }
+        : undefined
+
     const downloadSection = slug ? (
         <DownloadSection
             slug={slug}
@@ -435,6 +449,7 @@ export function DataPageContent({
             yColumns={yColumns}
             hideRowCounts={!isClient}
             archivedChartInfo={archiveContext}
+            downloadPackage={downloadPackage}
         />
     ) : undefined
 
@@ -470,11 +485,22 @@ export function DataPageContent({
                         )}
                         <div className="settings-row__wrapper col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-12">
                             <MultiDimSettingsPanel
+                                className="settings-row__panel"
                                 config={config}
                                 settings={displayedSettings}
                                 onChange={handleSettingsChange}
                                 disabled={isLoadingView}
                             />
+                            {downloadPackage && (
+                                <a
+                                    className="header__download-link"
+                                    href="#download"
+                                    data-track-note="datapage_header_download_link"
+                                >
+                                    <FontAwesomeIcon icon={faDownload} />
+                                    Download complete dataset
+                                </a>
+                            )}
                         </div>
                     </div>
                 </div>

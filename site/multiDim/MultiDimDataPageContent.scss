@@ -38,10 +38,40 @@ $zindex-controls-popup: 140;
         }
     }
 
+    .header__download-link {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        gap: 8px;
+        width: fit-content;
+        padding: 6px 12px;
+        border: 1px solid $blue-30;
+        border-radius: 4px;
+        background: #fff;
+        color: $primary-text;
+        font-size: 0.875rem;
+        font-weight: $bold;
+        text-decoration: none;
+
+        &:hover {
+            background: $blue-10;
+            border-color: $blue-50;
+        }
+    }
+
     .settings-row__wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
         margin-bottom: 16px;
         padding-top: 16px;
         border-top: 1px solid $blue-20;
+    }
+
+    .settings-row__panel {
+        flex: 1 1 auto;
     }
 
     .topic-tag {
