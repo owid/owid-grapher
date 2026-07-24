@@ -31,6 +31,7 @@ const REGION_DATA_PROVIDER_LABELS: Record<RegionDataProvider, string> = {
     unsdg: "UN SDG regions",
     iea: "IEA regions",
     ei: "EI regions",
+    ember: "Ember regions",
     maddison: "Maddison regions",
     wid: "WID regions",
     ilo_1: "ILO (broad)",
@@ -46,7 +47,6 @@ const ADDITIONAL_REGION_DATA_PROVIDER_LABELS: Record<
 > = {
     fao: "FAO regions",
     pip: "PIP regions",
-    ember: "Ember regions",
     gcp: "GCP regions",
     niaid: "NIAID regions",
     unicef: "UNICEF regions",
