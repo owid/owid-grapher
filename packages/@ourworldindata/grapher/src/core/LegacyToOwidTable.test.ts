@@ -409,23 +409,6 @@ describe(legacyToOwidTableAndDimensions, () => {
             ).toBeTruthy()
         })
 
-        it("still treats legacy yearIsDay: true as daily", () => {
-            const table = buildTable({ yearIsDay: true })
-            expect(
-                table.get(OwidTableSlugs.Time) instanceof ColumnTypeMap.Day
-            ).toBeTruthy()
-        })
-
-        it("lets timeInterval win over a conflicting yearIsDay flag", () => {
-            const table = buildTable({
-                timeInterval: TimeInterval.Day,
-                yearIsDay: false,
-            })
-            expect(
-                table.get(OwidTableSlugs.Time) instanceof ColumnTypeMap.Day
-            ).toBeTruthy()
-        })
-
         it("routes sub-yearly intervals to the day bucket with their own column type", () => {
             const cases = [
                 [TimeInterval.Week, ColumnTypeMap.Week],

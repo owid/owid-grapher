@@ -16,8 +16,6 @@ export interface OwidVariableDisplayConfigInterface {
     numSignificantFigures?: number
     tolerance?: number
     timeInterval?: TimeInterval
-    /** Deprecated: Use `timeInterval: "day"` instead. */
-    yearIsDay?: boolean
     zeroDay?: string
     entityAnnotationsMap?: string
     includeInTable?: boolean
