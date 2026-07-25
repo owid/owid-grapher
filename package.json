@@ -155,6 +155,7 @@
         "sharp": "^0.34.5",
         "simple-git": "^3.36.0",
         "tinyexec": "^1.1.1",
+        "tippy.js": "^6.3.7",
         "ts-pattern": "^5.8.0",
         "typeorm": "^1.0.0",
         "url-join": "^5.0.0",
