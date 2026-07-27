@@ -16,7 +16,11 @@ import {
     FlatArticleHit,
 } from "@ourworldindata/types"
 import { type SearchResponse } from "algoliasearch"
-import { type LiteClient } from "algoliasearch/lite"
+import {
+    type LiteClient,
+    type SearchForHitsOptions,
+    type SearchParamsObject,
+} from "algoliasearch/lite"
 import {
     getFilterNamesOfType,
     formatCountryFacetFilters,
@@ -39,13 +43,18 @@ function makeStateForKey(state: SearchState) {
     return R.pick(state, ["query", "filters", "requireAllCountries"])
 }
 
+/** A single search request, as the underlying batch API describes one. */
+type SingleSearchRequest = SearchParamsObject & SearchForHitsOptions
+
 async function searchSingleForHits<T>(
     liteSearchClient: LiteClient,
-    searchParams: Parameters<LiteClient["searchForHits"]>[0]
+    searchParams: SingleSearchRequest
 ) {
-    const response = await liteSearchClient.searchForHits<T>(searchParams)
+    const response = await liteSearchClient.searchForHits<T>([searchParams])
     return response.results[0]
 }
+
+type RankedHit = { _rankingInfo?: { words?: number } }
 
 /**
  * "Closest matches" fallback: when a query returns nothing, retry it with
@@ -66,38 +75,23 @@ async function searchSingleForHits<T>(
  * section accordingly, and nbHits/nbPages describe the trimmed tier (the
  * result count and pagination stay truthful).
  */
-type SingleSearchRequest = Record<string, unknown> & {
-    query?: string
-    page?: number
-    offset?: number
-}
-
-type RankedHit = { _rankingInfo?: { words?: number } }
-
 async function searchSingleForHitsWithClosestMatches<T>(
     liteSearchClient: LiteClient,
-    searchParams: SingleSearchRequest[]
+    searchParams: SingleSearchRequest
 ) {
-    const primary = await searchSingleForHits<T>(
-        liteSearchClient,
-        searchParams as Parameters<LiteClient["searchForHits"]>[0]
-    )
-    const request = searchParams[0]
-    const isFirstPage = !request.page && !request.offset
-    const hasQuery = Boolean(request.query?.trim())
+    const primary = await searchSingleForHits<T>(liteSearchClient, searchParams)
+    const isFirstPage = !searchParams.page && !searchParams.offset
+    const hasQuery = Boolean(searchParams.query?.trim())
     if (primary.hits.length > 0 || !isFirstPage || !hasQuery) return primary
 
-    const relaxedRequest: SingleSearchRequest = {
-        ...request,
+    const relaxed = await searchSingleForHits<T>(liteSearchClient, {
+        ...searchParams,
         removeWordsIfNoResults: "allOptional",
         getRankingInfo: true,
-    }
-    const relaxed = await searchSingleForHits<T>(liteSearchClient, [
-        relaxedRequest,
-    ] as Parameters<LiteClient["searchForHits"]>[0])
+    })
 
-    const words = (hit: T) => (hit as RankedHit)._rankingInfo?.words ?? 0
-    const topWords = relaxed.hits.length ? words(relaxed.hits[0]) : 0
+    const getWords = (hit: T) => (hit as RankedHit)._rankingInfo?.words ?? 0
+    const topWords = relaxed.hits.length ? getWords(relaxed.hits[0]) : 0
     // A single shared word is usually noise ("world cup" matching everything
     // that mentions "world") — but a distinctive word is a real signal
     // ("malaria worldwide": "worldwide" matches nothing, yet the "malaria"
@@ -110,15 +104,20 @@ async function searchSingleForHitsWithClosestMatches<T>(
     )
         return primary
 
-    // Algolia ranks relaxed hits by matched words, so the best tier is a
-    // prefix of the fetched page. nbPages is always 1 below — closest matches
-    // are a single, non-paginated tier — so nbHits must equal tier.length,
-    // never the full relaxed.nbHits: offset/length consumers
-    // (useInfiniteSearchOffset) keep requesting further pages while
-    // nbHits > items loaded so far, and the next request's offset > 0 skips
-    // this fallback entirely and returns the original empty exact page,
-    // producing a "load more" that can never load anything.
-    const tier = relaxed.hits.filter((hit) => words(hit) === topWords)
+    // Algolia ranks relaxed hits by number of matched words, so the hits that
+    // matched as many words as the best hit are a prefix of the page we
+    // fetched: keeping only them cuts the list where match quality drops.
+    const tier = relaxed.hits.filter((hit) => getWords(hit) === topWords)
+
+    // Closest matches are returned as one complete, non-paginated page: the
+    // counts below describe the trimmed tier (nbHits) and say there is nothing
+    // after it (nbPages: 1, page: 0).
+    //
+    // Reporting the untrimmed relaxed.nbHits instead would break the UI: the
+    // pagination hooks ask for another page while fewer items are loaded than
+    // nbHits, but any follow-up request carries page/offset > 0, which the
+    // guard above treats as "not the first page" and so returns the original
+    // empty exact result — a "load more" button that can never load anything.
     return {
         ...relaxed,
         hits: tier,
@@ -256,18 +255,16 @@ export async function queryCharts(
         ...fmFacetFilter,
     ]
 
-    const searchParams = [
-        {
-            indexName: CHARTS_INDEX,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            query: state.query,
-            facetFilters,
-            highlightPreTag: "<mark>",
-            highlightPostTag: "</mark>",
-            hitsPerPage: 9,
-            page,
-        },
-    ]
+    const searchParams = {
+        indexName: CHARTS_INDEX,
+        attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
+        query: state.query,
+        facetFilters,
+        highlightPreTag: "<mark>",
+        highlightPostTag: "</mark>",
+        hitsPerPage: 9,
+        page,
+    }
 
     return searchSingleForHitsWithClosestMatches<SearchChartHit>(
         liteSearchClient,
@@ -297,33 +294,25 @@ export async function queryDataInsights(
         .filter(Boolean)
         .join(" ")
 
-    const searchParams = [
-        {
-            indexName: PAGES_INDEX,
-            query,
-            filters: `type:${OwidGdocType.DataInsight}`,
-            facetFilters: formatTopicFacetFilters(selectedTopics),
-            // Do not search through the content of data insights in case there
-            // is a country filter present. This is to avoid returning data
-            // insights that might mention a country, but are not *about* that
-            // country (e.g. "Unlike Germany...").
-            ...(hasCountry && {
-                // a subset of searchableAttributes on the Pages index
-                restrictSearchableAttributes: ["title", "tags", "authors"],
-            }),
-            attributesToRetrieve: [
-                "title",
-                "thumbnailUrl",
-                "date",
-                "slug",
-                "type",
-            ],
-            highlightPreTag: "<mark>",
-            highlightPostTag: "</mark>",
-            hitsPerPage,
-            page,
-        },
-    ]
+    const searchParams = {
+        indexName: PAGES_INDEX,
+        query,
+        filters: `type:${OwidGdocType.DataInsight}`,
+        facetFilters: formatTopicFacetFilters(selectedTopics),
+        // Do not search through the content of data insights in case there
+        // is a country filter present. This is to avoid returning data
+        // insights that might mention a country, but are not *about* that
+        // country (e.g. "Unlike Germany...").
+        ...(hasCountry && {
+            // a subset of searchableAttributes on the Pages index
+            restrictSearchableAttributes: ["title", "tags", "authors"],
+        }),
+        attributesToRetrieve: ["title", "thumbnailUrl", "date", "slug", "type"],
+        highlightPreTag: "<mark>",
+        highlightPostTag: "</mark>",
+        hitsPerPage,
+        page,
+    }
 
     return searchSingleForHitsWithClosestMatches<DataInsightHit>(
         liteSearchClient,
@@ -354,35 +343,33 @@ export async function queryArticles(
         .filter(Boolean)
         .join(" ")
 
-    const searchParams = [
-        {
-            indexName: PAGES_INDEX,
-            query,
-            filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
-            facetFilters: formatTopicFacetFilters(selectedTopics),
-            // Do not search through the content of articles in case there is a
-            // country filter present. This is to avoid returning articles that
-            // might mention a country, but are not *about* that country (e.g.
-            // "Unlike Germany...").
-            ...(hasCountry && {
-                // a subset of searchableAttributes on the Pages index
-                restrictSearchableAttributes: ["title", "tags", "authors"],
-            }),
-            attributesToRetrieve: [
-                "title",
-                "thumbnailUrl",
-                "date",
-                "slug",
-                "type",
-                isFilterOnly ? "excerpt" : "content",
-                "authors",
-            ],
-            highlightPreTag: "<mark>",
-            highlightPostTag: "</mark>",
-            offset,
-            length,
-        },
-    ]
+    const searchParams = {
+        indexName: PAGES_INDEX,
+        query,
+        filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
+        facetFilters: formatTopicFacetFilters(selectedTopics),
+        // Do not search through the content of articles in case there is a
+        // country filter present. This is to avoid returning articles that
+        // might mention a country, but are not *about* that country (e.g.
+        // "Unlike Germany...").
+        ...(hasCountry && {
+            // a subset of searchableAttributes on the Pages index
+            restrictSearchableAttributes: ["title", "tags", "authors"],
+        }),
+        attributesToRetrieve: [
+            "title",
+            "thumbnailUrl",
+            "date",
+            "slug",
+            "type",
+            isFilterOnly ? "excerpt" : "content",
+            "authors",
+        ],
+        highlightPreTag: "<mark>",
+        highlightPostTag: "</mark>",
+        offset,
+        length,
+    }
 
     return searchSingleForHitsWithClosestMatches<FlatArticleHit>(
         liteSearchClient,
@@ -398,25 +385,23 @@ export async function queryTopicPages(
 ) {
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
 
-    const searchParams = [
-        {
-            indexName: PAGES_INDEX,
-            query: state.query,
-            filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
-            facetFilters: formatTopicFacetFilters(selectedTopics),
-            attributesToRetrieve: [
-                "title",
-                "type",
-                "slug",
-                "excerpt",
-                "excerptLong",
-            ],
-            highlightPreTag: "<mark>",
-            highlightPostTag: "</mark>",
-            offset,
-            length,
-        },
-    ]
+    const searchParams = {
+        indexName: PAGES_INDEX,
+        query: state.query,
+        filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
+        facetFilters: formatTopicFacetFilters(selectedTopics),
+        attributesToRetrieve: [
+            "title",
+            "type",
+            "slug",
+            "excerpt",
+            "excerptLong",
+        ],
+        highlightPreTag: "<mark>",
+        highlightPostTag: "</mark>",
+        offset,
+        length,
+    }
 
     return searchSingleForHits<TopicPageHit>(liteSearchClient, searchParams)
 }
@@ -441,26 +426,24 @@ export async function queryProfiles(
         ...formatTopicFacetFilters(selectedTopics),
     ]
 
-    const searchParams = [
-        {
-            indexName: PAGES_INDEX,
-            query: state.query,
-            filters: `type:${OwidGdocType.Profile}`,
-            facetFilters,
-            attributesToRetrieve: [
-                "title",
-                "thumbnailUrl",
-                "slug",
-                "excerpt",
-                "type",
-                "availableEntities",
-            ],
-            highlightPreTag: "<mark>",
-            highlightPostTag: "</mark>",
-            offset,
-            length,
-        },
-    ]
+    const searchParams = {
+        indexName: PAGES_INDEX,
+        query: state.query,
+        filters: `type:${OwidGdocType.Profile}`,
+        facetFilters,
+        attributesToRetrieve: [
+            "title",
+            "thumbnailUrl",
+            "slug",
+            "excerpt",
+            "type",
+            "availableEntities",
+        ],
+        highlightPreTag: "<mark>",
+        highlightPostTag: "</mark>",
+        offset,
+        length,
+    }
 
     return searchSingleForHits<ProfileHit>(liteSearchClient, searchParams)
 }
