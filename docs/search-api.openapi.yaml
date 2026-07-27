@@ -236,7 +236,11 @@ components:
             $ref: "#/components/schemas/ChartResult"
         nbHits:
           type: integer
-          description: Total number of results found
+          description: |
+            Total number of results found. Exception: when `closestMatches` is
+            true this is the number of closest matches actually returned, not
+            the number that exist — relaxed results come back as one
+            non-paginated page (see `closestMatches`).
           example: 125
         page:
           type: integer
@@ -257,6 +261,13 @@ components:
             these results were relaxed (Algolia's removeWordsIfNoResults),
             keeping only the tier of hits that matched the most query words.
             Absent for a normal exact-match response.
+
+            A relaxed response is deliberately a single page: `nbPages` is 1
+            and `nbHits` counts only the hits returned, so requesting a small
+            `hitsPerPage`/`length` yields a correspondingly small `nbHits`
+            even when more equally-ranked matches exist. Ask for a larger page
+            if you want more of them; do not treat `nbHits` as a total or page
+            past the first page.
           example: true
 
     ChartResult:
@@ -375,7 +386,11 @@ components:
             $ref: "#/components/schemas/PageResult"
         nbHits:
           type: integer
-          description: Total number of results found
+          description: |
+            Total number of results found. Exception: when `closestMatches` is
+            true this is the number of closest matches actually returned, not
+            the number that exist — relaxed results come back as one
+            non-paginated page (see `closestMatches`).
           example: 42
         offset:
           type: integer
@@ -392,6 +407,13 @@ components:
             these results were relaxed (Algolia's removeWordsIfNoResults),
             keeping only the tier of hits that matched the most query words.
             Absent for a normal exact-match response.
+
+            A relaxed response is deliberately a single page: `nbPages` is 1
+            and `nbHits` counts only the hits returned, so requesting a small
+            `hitsPerPage`/`length` yields a correspondingly small `nbHits`
+            even when more equally-ranked matches exist. Ask for a larger page
+            if you want more of them; do not treat `nbHits` as a total or page
+            past the first page.
           example: true
 
     PageResult:
