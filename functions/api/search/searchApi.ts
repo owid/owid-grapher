@@ -197,6 +197,16 @@ async function getAvailableTopics(config: AlgoliaConfig): Promise<string[]> {
     return Object.keys(data.results[0].facets?.tags || {}).sort()
 }
 
+// Note: neither searchCharts nor searchPages below has the "closest matches"
+// fallback that site/search/queries.ts added for zero-result queries
+// (retrying with Algolia's removeWordsIfNoResults, then keeping only the
+// best-matched-words tier). A genuinely empty query here just returns
+// nbHits: 0. There's also no equivalent of the site's "No exact matches —
+// showing the closest matches instead" notice: SearchApiResponse /
+// SearchPagesApiResponse have no field to tell a caller "these are relaxed,
+// not exact" results, so even a ported fallback would need a new response
+// field (and an OpenAPI doc update) for consumers to distinguish the two.
+// Not at parity with the site search yet; see PR #6715.
 export async function searchCharts(
     config: AlgoliaConfig,
     state: SearchState,
