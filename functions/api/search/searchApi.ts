@@ -7,7 +7,11 @@ import {
     OwidGdocType,
 } from "@ourworldindata/types"
 import { getCanonicalUrl } from "@ourworldindata/components"
-import { getIndexName, AlgoliaConfig } from "./algoliaClient.js"
+import {
+    getIndexName,
+    createSearchClient,
+    AlgoliaConfig,
+} from "./algoliaClient.js"
 
 /**
  * Error thrown when the client provides invalid search parameters (e.g. a
@@ -78,14 +82,6 @@ export interface SearchPagesApiResponse {
     nbHits: number
     offset: number
     length: number
-}
-
-interface AlgoliaSearchResponse {
-    hits: SearchChartHit[]
-    nbHits: number
-    page: number
-    nbPages: number
-    hitsPerPage: number
 }
 
 // Minimal set of attributes needed by the MCP server and other API consumers
@@ -161,40 +157,20 @@ async function getAvailableTopics(config: AlgoliaConfig): Promise<string[]> {
         config.indexPrefix
     )
 
-    const searchParams = {
+    const client = createSearchClient(config)
+
+    const response = await client.searchForHits<SearchChartHit>({
         requests: [
             {
                 indexName,
-                params: new URLSearchParams({
-                    query: "",
-                    hitsPerPage: "0",
-                    facets: JSON.stringify(["tags"]),
-                }).toString(),
+                query: "",
+                hitsPerPage: 0,
+                facets: ["tags"],
             },
         ],
-    }
-
-    const url = `https://${config.appId}-dsn.algolia.net/1/indexes/*/queries`
-
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            "X-Algolia-Application-Id": config.appId,
-            "X-Algolia-API-Key": config.apiKey,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(searchParams),
     })
 
-    if (!response.ok) {
-        throw new Error(`Algolia search failed: ${response.statusText}`)
-    }
-
-    const data: {
-        results: [{ facets?: { tags?: Record<string, number> } }]
-    } = await response.json()
-
-    return Object.keys(data.results[0].facets?.tags || {}).sort()
+    return Object.keys(response.results[0].facets?.tags ?? {}).sort()
 }
 
 // Note: neither searchCharts nor searchPages below has the "closest matches"
@@ -233,48 +209,23 @@ export async function searchCharts(
         config.indexPrefix
     )
 
-    const searchParams = {
+    const client = createSearchClient(config)
+
+    const response = await client.searchForHits<SearchChartHit>({
         requests: [
             {
                 indexName,
-                params: new URLSearchParams({
-                    query: state.query,
-                    attributesToRetrieve: DATA_CATALOG_ATTRIBUTES.join(","),
-                    highlightPreTag: "<mark>",
-                    highlightPostTag: "</mark>",
-                    hitsPerPage: hitsPerPage.toString(),
-                    page: page.toString(),
-                    ...(facetFilters.length > 0 && {
-                        facetFilters: JSON.stringify(facetFilters),
-                    }),
-                }).toString(),
+                query: state.query,
+                attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
+                highlightPreTag: "<mark>",
+                highlightPostTag: "</mark>",
+                hitsPerPage,
+                page,
+                ...(facetFilters.length > 0 && { facetFilters }),
             },
         ],
-    }
-
-    // Use Algolia's REST API directly with fetch()
-    // Note: We can't use the algoliasearch npm package because it requires
-    // XMLHttpRequest which is not available in CloudFlare Workers
-    const url = `https://${config.appId}-dsn.algolia.net/1/indexes/*/queries`
-
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            "X-Algolia-Application-Id": config.appId,
-            "X-Algolia-API-Key": config.apiKey,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(searchParams),
     })
-
-    if (!response.ok) {
-        throw new Error(`Algolia search failed: ${response.statusText}`)
-    }
-
-    const data: {
-        results: AlgoliaSearchResponse[]
-    } = await response.json()
-    const result = data.results[0]
+    const result = response.results[0]
 
     // If we got zero results and user is filtering by topic, check if the topic exists
     const requestedTopics = getFilterNamesOfType(
@@ -327,10 +278,10 @@ export async function searchCharts(
     return {
         query: state.query,
         results: cleanedHits,
-        nbHits: result.nbHits,
-        page: result.page,
-        nbPages: result.nbPages,
-        hitsPerPage: result.hitsPerPage,
+        nbHits: result.nbHits ?? 0,
+        page: result.page ?? page,
+        nbPages: result.nbPages ?? 0,
+        hitsPerPage: result.hitsPerPage ?? hitsPerPage,
     }
 }
 
@@ -359,7 +310,9 @@ export async function searchPages(
     // Build filters string for page types
     const filters = pageTypes.map((type) => `type:${type}`).join(" OR ")
 
-    const searchParams = {
+    const client = createSearchClient(config)
+
+    const response = await client.searchForHits<SearchPageHit>({
         requests: [
             {
                 indexName,
@@ -373,28 +326,8 @@ export async function searchPages(
                 length,
             },
         ],
-    }
-
-    const url = `https://${config.appId}-dsn.algolia.net/1/indexes/*/queries`
-
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            "X-Algolia-Application-Id": config.appId,
-            "X-Algolia-API-Key": config.apiKey,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(searchParams),
     })
-
-    if (!response.ok) {
-        throw new Error(`Algolia search failed: ${response.statusText}`)
-    }
-
-    const data: {
-        results: [{ hits: SearchPageHit[]; nbHits: number }]
-    } = await response.json()
-    const result = data.results[0]
+    const result = response.results[0]
 
     // Clean up the hits and add URL
     const cleanedHits = result.hits.map((hit): EnrichedSearchPageHit => {
@@ -425,7 +358,7 @@ export async function searchPages(
     return {
         query,
         results: cleanedHits,
-        nbHits: result.nbHits,
+        nbHits: result.nbHits ?? 0,
         offset,
         length,
     }
