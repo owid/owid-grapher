@@ -787,7 +787,7 @@ export const regionsData = [
         slug: "north-america-ei",
         regionType: "aggregate",
         definedBy: "ei",
-        members: ["CAN", "GRL", "MEX", "SPM", "USA"],
+        members: ["CAN", "MEX", "USA"],
     },
     {
         code: "EI_SCA",
