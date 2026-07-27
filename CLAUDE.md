@@ -43,7 +43,33 @@ Everything you post to GitHub or Slack goes out under a **human's identity**. An
 
     **The only exception** is a comment that is a bare mechanical token with _no prose_ — a lone `@codex review` ping or a 👍. The moment your comment contains a sentence of explanation, it needs the line. When in doubt, include it.
 
-2. **Use exact GitHub handles when tagging colleagues — don't guess.** A wrong tag pings a real person. If you don't have a confirmed handle for someone, write their plain name instead of `@`-tagging, and ask the user for the handle.
+2. **Use exact handles** from the list below when tagging colleagues. Don't guess — a wrong tag pings a real person. If a name isn't on this list, write the plain name (e.g. "Bastian") instead of `@`-tagging, and ask the user for the handle.
+
+Max Roser                @maxroser
+Esteban Ortiz-Ospina     @eoo-owid
+Edouard Mathieu          @edomt
+Joe Hasell               @JoeHasell
+Hannah Ritchie           @HannahRitchie
+Daniel Bachler           @danyx23
+Fiona Spooner            @spoonerf
+Tuna Acisu               @antea04
+Pablo Arriagada          @paarriagadap
+Bastian Herre            @bastianherre
+Bertha Rohenkohl         @bertharc
+Charlie Giattino         @CGiattino
+Pablo Rosado             @pabloarosado
+Lucas Rodés-Guirao       @lucasrodesi ask
+Matthieu Bergel          @mlbrgl
+Marcel Gerber            @marcelgerber
+Sophia Mersmann          @sophiamersmann
+Martin Račák             @rakyi
+Ike Saunders             @ikesau
+Mojmír Vinkler           @Marigold
+Bobbie Macdonald         @bnjmacdonald
+Marwa Boukarim           @mrwbkrm
+Natalie Reynolds-Garcia  @natreygar
+Angela Wenham            @angelawenham
+Valerie Rogers Muigai    @ValRMuigai
 
 3. **This repo is public — keep internal context out of it.** PR descriptions, commit messages, and issue/review comments must never identify people who contact us (no names, roles, or employers — say "a reader pointed out ..." instead), and must not reference internal discussions (Slack threads, Notion docs) or who suggested what internally. Motivate changes using public facts only; internal context stays internal.
 
