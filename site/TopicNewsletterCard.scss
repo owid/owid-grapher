@@ -56,9 +56,10 @@
     }
 }
 
-// Below the key data table in the right column of a data page.
-.topic-newsletter-card--key-info {
-    margin-top: 24px;
+// Own grid row below the main content of a data page's "About this data"
+// section, at that content's width. Used by both variants of the section.
+.topic-newsletter-card--about-this-data {
+    margin-top: 32px;
 }
 
 // To the right of the (roughly two-thirds width) indicator metadata box on
@@ -74,6 +75,11 @@
     }
 
     @include sm-only {
-        margin-bottom: 24px;
+        // The card stacks below the box here, so it bleeds out of the grid by
+        // as much as the box does, and its bottom margin matches the 32px the
+        // box's own bottom margin leaves above it.
+        margin-bottom: 32px;
+        margin-left: -$indicator-metadata-box-bleed-sm;
+        margin-right: -$indicator-metadata-box-bleed-sm;
     }
 }

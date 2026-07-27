@@ -20,10 +20,15 @@ const BASE_URL = IS_ARCHIVE ? PROD_URL : ""
 export default function TopicNewsletterCard({
     topicArea,
     pageType = "topic",
+    variant = "wide",
     className,
 }: {
     topicArea?: string
     pageType?: "topic" | "chart"
+    // Slots around 300px wide pass "narrow" to get shorter body copy, which
+    // keeps it to two lines. Nothing is lost by dropping "Subscribe to": the
+    // button right below the copy says it.
+    variant?: "wide" | "narrow"
     className?: string
 }) {
     if (!topicArea) return null
@@ -42,7 +47,9 @@ export default function TopicNewsletterCard({
                 </h3>
             </div>
             <p className="topic-newsletter-card__p body-3-medium">
-                Subscribe to get email updates on all our work about{" "}
+                {variant === "narrow"
+                    ? "Get email updates on all our work about"
+                    : "Subscribe to get email updates on all our work about"}{" "}
                 <strong>{topicArea}</strong>.
             </p>
             <Button

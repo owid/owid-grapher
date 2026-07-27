@@ -149,6 +149,7 @@ export function GdocPost({
                         postType === OwidGdocType.LinearTopicPage ? (
                             <TopicNewsletterCard
                                 topicArea={topicArea}
+                                variant="narrow"
                                 className="topic-newsletter-card--gdoc-aside col-start-11 span-cols-3 span-rows-3 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2"
                             />
                         ) : null

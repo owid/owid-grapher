@@ -112,12 +112,15 @@ export default function AboutThisData({
                             datapageData={datapageData}
                             attribution={attributionUnshortened}
                         />
-                        <TopicNewsletterCard
-                            pageType="chart"
-                            topicArea={topicArea}
-                            className="topic-newsletter-card--key-info"
-                        />
                     </div>
+                    {/* Own grid row below the description column, matching its
+                        columns, so that the border-left of .key-info__right
+                        stops at the key data table. */}
+                    <TopicNewsletterCard
+                        pageType="chart"
+                        topicArea={topicArea}
+                        className="topic-newsletter-card--about-this-data col-start-1 span-cols-8 span-lg-cols-7 span-sm-cols-12"
+                    />
                 </>
             ) : (
                 <>
@@ -127,31 +130,20 @@ export default function AboutThisData({
                     >
                         About this data
                     </h2>
-                    {/* Without a topic area there is no right rail, so the key
-                        data table keeps the whole width remaining after the
-                        heading. With one it is narrowed so that the newsletter
-                        card lands in the same right rail it occupies in the
-                        branch above. */}
-                    <div
-                        className={
-                            topicArea
-                                ? "col-start-4 span-cols-5 col-lg-start-4 span-lg-cols-4 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                                : "col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                        }
-                    >
+                    <div className="col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                         <KeyDataTable
                             datapageData={datapageData}
                             attribution={attributionUnshortened}
                         />
                     </div>
-                    {topicArea ? (
-                        <div className="about-this-data__aside span-cols-4 span-lg-cols-5 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                            <TopicNewsletterCard
-                                pageType="chart"
-                                topicArea={topicArea}
-                            />
-                        </div>
-                    ) : null}
+                    {/* Own grid row below the key data table, matching its
+                        columns, so the table keeps the full width it has
+                        without a topic area. */}
+                    <TopicNewsletterCard
+                        pageType="chart"
+                        topicArea={topicArea}
+                        className="topic-newsletter-card--about-this-data col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                    />
                 </>
             )}
         </div>

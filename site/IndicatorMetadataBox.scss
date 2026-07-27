@@ -11,8 +11,8 @@
     margin-bottom: 48px;
     @include sm-only {
         margin-top: -56px;
-        margin-right: -8px;
-        margin-left: -8px;
+        margin-right: -$indicator-metadata-box-bleed-sm;
+        margin-left: -$indicator-metadata-box-bleed-sm;
         margin-bottom: 32px;
     }
 }

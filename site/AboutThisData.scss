@@ -95,18 +95,6 @@
     }
 }
 
-// Right rail of the sparse "About this data" variant, which holds the topic
-// newsletter card. No border, unlike .key-info__right, because it drops onto
-// its own full-width row below the key data table on smaller screens.
-.about-this-data__aside {
-    padding-left: 24px;
-
-    @include md-down {
-        padding-left: 0;
-        margin-top: 32px;
-    }
-}
-
 .about-this-data__title {
     @include datapage-section-title;
 
