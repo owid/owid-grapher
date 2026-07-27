@@ -26,7 +26,9 @@ population in any year/sex.
   falsely reads as "no native-born residents".
 - **Current handling**: native-born values are clamped at zero and shares
   guard against division by zero — i.e. the wrong outline renders without
-  crashing. Not properly addressed.
+  crashing. Not properly addressed. The hover tooltip's "Native-born" column
+  now spells this out as a column of `0.0%`, which at least makes the gap
+  legible rather than just visually implausible.
 - **Recommended fix**: disable the compare checkbox (with a tooltip) when
   the native-born total is zero; upstream, write `pm`/`pf` as absent rather
   than zero so missing data is explicit.

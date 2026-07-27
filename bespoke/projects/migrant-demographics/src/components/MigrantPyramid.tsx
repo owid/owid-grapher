@@ -5,23 +5,19 @@ import { AxisBottom } from "@visx/axis"
 import { Group } from "@visx/group"
 import type { ScaleBand, ScaleLinear } from "d3-scale"
 
-import { Bounds } from "@ourworldindata/utils"
-import { TextWrap } from "@ourworldindata/components"
+import { Bounds, getRelativeMouse } from "@ourworldindata/utils"
 import {
-    GRAPHER_DARK_TEXT,
+    GRAPHER_BACKGROUND,
     GRAPHER_LIGHT_TEXT,
+    GRAY_100,
 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { darkenColorForText } from "@ourworldindata/grapher/src/color/ColorUtils.js"
 
-import { useDismissOnTouchOutside } from "../../../../hooks/useDismissOnTouchOutside.js"
-import { formatAxisTick, formatBarValue, PyramidView } from "../helpers.js"
+import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
+import { formatAxisTick, PyramidView } from "../helpers.js"
 import { ShowMode } from "../types.js"
-import {
-    COMPARE_BAR_OPACITY,
-    MEN_COLOR,
-    NATIVE_LINE_COLOR,
-    WOMEN_COLOR,
-} from "../constants.js"
+import { MEN_COLOR, NATIVE_LINE_COLOR, WOMEN_COLOR } from "../constants.js"
+import { MigrantPyramidTooltip } from "./MigrantPyramidTooltip.js"
 
 export interface SexHeaderLabel {
     name: string
@@ -32,6 +28,7 @@ export interface SexHeaderLabel {
 export interface MigrantPyramidProps {
     /** Age bands youngest-first, as in the data file */
     ageBands: string[]
+    /** The values the bars encode */
     view: PyramidView
     /** Upper bound of the mirrored x-axes (pre-niced by the scale) */
     xMax: number
@@ -44,6 +41,15 @@ export interface MigrantPyramidProps {
 
 const CENTER_GAP_PADDING = 10
 const GRID_LINE_COLOR = "#ddd"
+
+const NATIVE_LINE_WIDTH = 1.5
+/**
+ * The outline is drawn twice: a wider stroke in the chart background colour
+ * underneath, then the line itself. Over a bar that reads as a channel cut
+ * through it; over the background the casing is invisible. This is what lets
+ * the bars stay at full strength — they carry the primary values.
+ */
+const NATIVE_LINE_CASING_WIDTH = 4
 
 export function MigrantPyramid(props: MigrantPyramidProps): React.ReactElement {
     const { parentRef, width, height } = useParentSize()
@@ -79,7 +85,6 @@ function MigrantPyramidContent({
         tick: isNarrow ? 10 : 11,
         ageBandLabel: isNarrow ? 10 : 11,
         sexLabel: isNarrow ? 10 : 11,
-        hoverLabel: isNarrow ? 10 : 11,
         axisLabel: isNarrow ? 11 : 12,
     }
     // Top fits the sex header labels; bottom fits the tick labels plus the
@@ -128,26 +133,37 @@ function MigrantPyramidContent({
 
     const numTicks = isNarrow ? 3 : 4
 
-    const [hoveredBand, setHoveredBand] = useState<string | null>(null)
-    const svgRef = useRef<SVGSVGElement>(null)
-    const dismissHover = useCallback(() => setHoveredBand(null), [])
-    useDismissOnTouchOutside(svgRef, hoveredBand !== null, dismissHover)
+    const [hover, setHover] = useState<HoverTarget | null>(null)
+    const hoveredBand = hover?.band ?? null
 
-    const handlePointerEnter = useCallback(
+    const svgRef = useRef<SVGSVGElement>(null)
+    const dismissHover = useCallback(() => setHover(null), [])
+    // On touch devices this pins the tooltip to the bottom of the viewport
+    // and owns dismissal (tap outside, chart scrolled out of view)
+    const { ref: chartRef, isPinned } = usePinnedTooltip<HTMLDivElement>(
+        hover !== null,
+        dismissHover
+    )
+
+    // Bound to both enter and move so the tooltip follows the cursor
+    const handlePointerMove = useCallback(
         (e: React.PointerEvent, band: string) => {
-            if (e.pointerType === "mouse") setHoveredBand(band)
+            if (e.pointerType !== "mouse" || !svgRef.current) return
+            const position = getRelativeMouse(svgRef.current, e.nativeEvent)
+            setHover({ band, position })
         },
         []
     )
     const handlePointerLeave = useCallback((e: React.PointerEvent) => {
-        if (e.pointerType === "mouse") setHoveredBand(null)
+        if (e.pointerType === "mouse") setHover(null)
     }, [])
     const handlePointerDown = useCallback(
         (e: React.PointerEvent, band: string) => {
-            if (e.pointerType === "touch") {
-                e.stopPropagation()
-                setHoveredBand((prev) => (prev === band ? null : band))
-            }
+            if (e.pointerType !== "touch" || !svgRef.current) return
+            const position = getRelativeMouse(svgRef.current, e.nativeEvent)
+            setHover((prev) =>
+                prev?.band === band ? null : { band, position }
+            )
         },
         []
     )
@@ -179,126 +195,154 @@ function MigrantPyramidContent({
     ]
 
     return (
-        <svg ref={svgRef} width={width} height={height} overflow="visible">
-            <Group top={margin.top}>
-                {halves.map((half) => (
-                    <PyramidHalf
-                        key={half.side}
-                        {...half}
-                        ageBands={ageBands}
-                        bandsTopDown={bandsTopDown}
-                        yScale={yScale}
-                        innerHeight={innerHeight}
-                        numTicks={numTicks}
-                        mode={mode}
-                        fonts={fonts}
-                        hoveredBand={hoveredBand}
-                        hasComparison={!!view.natives}
-                    />
-                ))}
-
-                {/* Age band labels in the center gap */}
-                {bandsTopDown.map((band) => (
-                    <text
-                        key={band}
-                        x={centerX}
-                        y={(yScale(band) ?? 0) + yScale.bandwidth() / 2}
-                        textAnchor="middle"
-                        dominantBaseline="central"
-                        fontSize={fonts.ageBandLabel}
-                        fill={
-                            band === hoveredBand
-                                ? GRAPHER_DARK_TEXT
-                                : GRAPHER_LIGHT_TEXT
-                        }
-                    >
-                        {band}
-                    </text>
-                ))}
-
-                {/* Sex column headers */}
-                {(
-                    [
-                        {
-                            label: menLabel,
-                            x: centerX - centerGap / 2 - 4,
-                            textAnchor: "end" as const,
-                            color: MEN_COLOR,
-                        },
-                        {
-                            label: womenLabel,
-                            x: centerX + centerGap / 2 + 4,
-                            textAnchor: "start" as const,
-                            color: WOMEN_COLOR,
-                        },
-                    ] as const
-                ).map(({ label, x, textAnchor, color }) => (
-                    <text
-                        key={label.name}
-                        x={x}
-                        y={-8}
-                        textAnchor={textAnchor}
-                        fontSize={fonts.sexLabel}
-                    >
-                        <tspan
-                            fontWeight={700}
-                            fill={darkenColorForText(color)}
-                        >
-                            {label.name}
-                        </tspan>
-                        {label.annotation && (
-                            <tspan fill={GRAPHER_LIGHT_TEXT}>
-                                {" "}
-                                {label.annotation}
-                            </tspan>
-                        )}
-                    </text>
-                ))}
-
-                {/* X-axis label */}
-                <text
-                    x={centerX}
-                    y={innerHeight + axisLabelOffset}
-                    textAnchor="middle"
-                    fontSize={fonts.axisLabel}
-                    fill={GRAPHER_LIGHT_TEXT}
-                >
-                    {axisLabel}
-                </text>
-
-                {/* Full-width hit rects for hover — one per age band */}
-                {bandsTopDown.map((band, i) => {
-                    const bounds = bandHitBounds(
-                        band,
-                        i,
-                        bandsTopDown.length,
-                        yScale,
-                        innerHeight
-                    )
-                    return (
-                        <rect
-                            key={`hit-${band}`}
-                            x={0}
-                            y={bounds.y}
-                            width={innerWidth}
-                            height={bounds.height}
-                            fill="transparent"
-                            onPointerEnter={(e) => handlePointerEnter(e, band)}
-                            onPointerLeave={handlePointerLeave}
-                            onPointerDown={(e) => handlePointerDown(e, band)}
+        <div ref={chartRef} className="migrant-pyramid__chart">
+            <svg ref={svgRef} width={width} height={height} overflow="visible">
+                <Group top={margin.top}>
+                    {halves.map((half) => (
+                        <PyramidHalf
+                            key={half.side}
+                            {...half}
+                            ageBands={ageBands}
+                            bandsTopDown={bandsTopDown}
+                            yScale={yScale}
+                            innerHeight={innerHeight}
+                            numTicks={numTicks}
+                            mode={mode}
+                            fonts={fonts}
+                            hoveredBand={hoveredBand}
                         />
-                    )
-                })}
-            </Group>
-        </svg>
+                    ))}
+
+                    {/* Age band labels in the center gap */}
+                    {bandsTopDown.map((band) => {
+                        // A step in gray alone is imperceptible at this size,
+                        // and the surrounding bars dim at the same moment —
+                        // so the hovered label goes bold as well
+                        const isHovered = band === hoveredBand
+                        return (
+                            <text
+                                key={band}
+                                x={centerX}
+                                y={(yScale(band) ?? 0) + yScale.bandwidth() / 2}
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                                fontSize={fonts.ageBandLabel}
+                                fontWeight={isHovered ? 700 : 400}
+                                fill={isHovered ? GRAY_100 : GRAPHER_LIGHT_TEXT}
+                            >
+                                {band}
+                            </text>
+                        )
+                    })}
+
+                    {/* Sex column headers */}
+                    {(
+                        [
+                            {
+                                label: menLabel,
+                                x: centerX - centerGap / 2 - 4,
+                                textAnchor: "end" as const,
+                                color: MEN_COLOR,
+                            },
+                            {
+                                label: womenLabel,
+                                x: centerX + centerGap / 2 + 4,
+                                textAnchor: "start" as const,
+                                color: WOMEN_COLOR,
+                            },
+                        ] as const
+                    ).map(({ label, x, textAnchor, color }) => (
+                        <text
+                            key={label.name}
+                            x={x}
+                            y={-8}
+                            textAnchor={textAnchor}
+                            fontSize={fonts.sexLabel}
+                        >
+                            <tspan
+                                fontWeight={700}
+                                fill={darkenColorForText(color)}
+                            >
+                                {label.name}
+                            </tspan>
+                            {label.annotation && (
+                                <tspan fill={GRAPHER_LIGHT_TEXT}>
+                                    {" "}
+                                    {label.annotation}
+                                </tspan>
+                            )}
+                        </text>
+                    ))}
+
+                    {/* X-axis label */}
+                    <text
+                        x={centerX}
+                        y={innerHeight + axisLabelOffset}
+                        textAnchor="middle"
+                        fontSize={fonts.axisLabel}
+                        fill={GRAPHER_LIGHT_TEXT}
+                    >
+                        {axisLabel}
+                    </text>
+
+                    {/* Full-width hit rects for hover — one per age band */}
+                    {bandsTopDown.map((band, i) => {
+                        const bounds = bandRowBounds(
+                            band,
+                            i,
+                            bandsTopDown.length,
+                            yScale,
+                            innerHeight
+                        )
+                        return (
+                            <rect
+                                key={`hit-${band}`}
+                                x={0}
+                                y={bounds.y}
+                                width={innerWidth}
+                                height={bounds.height}
+                                fill="transparent"
+                                onPointerEnter={(e) =>
+                                    handlePointerMove(e, band)
+                                }
+                                onPointerMove={(e) =>
+                                    handlePointerMove(e, band)
+                                }
+                                onPointerLeave={handlePointerLeave}
+                                onPointerDown={(e) =>
+                                    handlePointerDown(e, band)
+                                }
+                            />
+                        )
+                    })}
+                </Group>
+            </svg>
+
+            {hover && (
+                <MigrantPyramidTooltip
+                    band={hover.band}
+                    bandIndex={ageBands.indexOf(hover.band)}
+                    view={view}
+                    mode={mode}
+                    position={hover.position}
+                    containerBounds={new Bounds(0, 0, width, height)}
+                    isPinned={isPinned}
+                />
+            )}
+        </div>
     )
+}
+
+interface HoverTarget {
+    band: string
+    /** Pointer position relative to the SVG */
+    position: { x: number; y: number }
 }
 
 interface PyramidFonts {
     tick: number
     ageBandLabel: number
     sexLabel: number
-    hoverLabel: number
     axisLabel: number
 }
 
@@ -317,7 +361,6 @@ function PyramidHalf({
     mode,
     fonts,
     hoveredBand,
-    hasComparison,
 }: {
     side: "men" | "women"
     left: number
@@ -333,12 +376,26 @@ function PyramidHalf({
     mode: ShowMode
     fonts: PyramidFonts
     hoveredBand: string | null
-    hasComparison: boolean
 }): React.ReactElement {
     const zeroX = scale(0)
     const bandwidth = yScale.bandwidth()
     const valueOf = (band: string): number =>
         values[ageBands.indexOf(band)] ?? 0
+
+    // The stretch of the comparison outline that crosses the hovered row,
+    // redrawn on top so it stays legible while the rest of it dims
+    const hoveredOutlineSegment =
+        comparisonValues && hoveredBand !== null
+            ? outlineSegment(
+                  hoveredBand,
+                  comparisonValues,
+                  ageBands,
+                  bandsTopDown,
+                  scale,
+                  yScale,
+                  innerHeight
+              )
+            : undefined
 
     return (
         <Group left={left}>
@@ -397,7 +454,6 @@ function PyramidHalf({
                         width={barWidth}
                         height={bandwidth}
                         fill={color}
-                        fillOpacity={hasComparison ? COMPARE_BAR_OPACITY : 1}
                         opacity={dimmed ? 0.4 : 1}
                     />
                 )
@@ -405,7 +461,7 @@ function PyramidHalf({
 
             {/* Native-born comparison outline */}
             {comparisonValues && (
-                <path
+                <CasedLine
                     d={stepOutlinePath(
                         comparisonValues,
                         ageBands,
@@ -414,107 +470,45 @@ function PyramidHalf({
                         yScale,
                         innerHeight
                     )}
-                    fill="none"
-                    stroke={NATIVE_LINE_COLOR}
-                    strokeWidth={1.5}
-                    strokeLinejoin="round"
-                    style={{ pointerEvents: "none" }}
+                    opacity={hoveredBand !== null ? 0.4 : 1}
                 />
             )}
 
-            {/* Value label for the hovered bar */}
-            {hoveredBand !== null && (
-                <BarValueLabel
-                    value={valueOf(hoveredBand)}
-                    barY={yScale(hoveredBand) ?? 0}
-                    barHeight={bandwidth}
-                    scale={scale}
-                    zeroX={zeroX}
-                    direction={side === "men" ? "left" : "right"}
-                    fontSize={fonts.hoverLabel}
-                    color={color}
-                    mode={mode}
-                />
+            {hoveredOutlineSegment && (
+                <CasedLine d={hoveredOutlineSegment} opacity={1} />
             )}
         </Group>
     )
 }
 
-const BAR_LABEL_PADDING = 5
-
-function BarValueLabel({
-    value,
-    barY,
-    barHeight,
-    scale,
-    zeroX,
-    direction,
-    fontSize,
-    color,
-    mode,
+/** The native-born outline: the line itself over a background-coloured casing */
+function CasedLine({
+    d,
+    opacity,
 }: {
-    value: number
-    barY: number
-    barHeight: number
-    scale: ScaleLinear<number, number>
-    zeroX: number
-    direction: "left" | "right"
-    fontSize: number
-    color: string
-    mode: ShowMode
+    d: string
+    opacity: number
 }): React.ReactElement {
-    const scaledValue = scale(value)
-    const barWidth = Math.abs(scaledValue - zeroX)
-    const barX = Math.min(scaledValue, zeroX)
-    const halfWidth = Math.abs(scale(0) - scale(scale.domain()[1]))
-
-    const text = formatBarValue(value, mode)
-    const textWrap = new TextWrap({ text, maxWidth: Infinity, fontSize })
-    const labelWidth = textWrap.width + BAR_LABEL_PADDING * 2
-
-    // Prefer the space outside the bar (away from the center)
-    const spaceOutside =
-        direction === "left" ? barX : halfWidth - (barX + barWidth)
-    const fitsOutside = labelWidth < spaceOutside
-
-    let x: number
-    let textAnchor: "start" | "end"
-    let fill: string
-    if (direction === "left") {
-        if (fitsOutside) {
-            x = barX - BAR_LABEL_PADDING
-            textAnchor = "end"
-            fill = darkenColorForText(color)
-        } else {
-            x = barX + BAR_LABEL_PADDING
-            textAnchor = "start"
-            fill = "white"
-        }
-    } else {
-        if (fitsOutside) {
-            x = barX + barWidth + BAR_LABEL_PADDING
-            textAnchor = "start"
-            fill = darkenColorForText(color)
-        } else {
-            x = barX + barWidth - BAR_LABEL_PADDING
-            textAnchor = "end"
-            fill = "white"
-        }
+    const shared = {
+        d,
+        fill: "none",
+        strokeLinejoin: "round" as const,
+        opacity,
+        style: { pointerEvents: "none" as const },
     }
-
     return (
-        <text
-            x={x}
-            y={barY + barHeight / 2}
-            textAnchor={textAnchor}
-            dominantBaseline="central"
-            fontSize={fontSize}
-            fontWeight={700}
-            fill={fill}
-            style={{ pointerEvents: "none" }}
-        >
-            {text}
-        </text>
+        <>
+            <path
+                {...shared}
+                stroke={GRAPHER_BACKGROUND}
+                strokeWidth={NATIVE_LINE_CASING_WIDTH}
+            />
+            <path
+                {...shared}
+                stroke={NATIVE_LINE_COLOR}
+                strokeWidth={NATIVE_LINE_WIDTH}
+            />
+        </>
     )
 }
 
@@ -530,29 +524,54 @@ function stepOutlinePath(
     yScale: ScaleBand<string>,
     innerHeight: number
 ): string {
-    const step = yScale.step()
-    const bandwidth = yScale.bandwidth()
-    const halfGap = (step - bandwidth) / 2
-
     const segments: string[] = []
     for (let i = 0; i < bandsTopDown.length; i++) {
         const band = bandsTopDown[i]
         const x = scale(values[ageBands.indexOf(band)] ?? 0)
-        const yTop = i === 0 ? 0 : (yScale(band) ?? 0) - halfGap
-        const yBottom =
-            i === bandsTopDown.length - 1
-                ? innerHeight
-                : (yScale(band) ?? 0) + bandwidth + halfGap
+        const { y, height } = bandRowBounds(
+            band,
+            i,
+            bandsTopDown.length,
+            yScale,
+            innerHeight
+        )
         segments.push(
-            i === 0 ? `M ${x} ${yTop}` : `L ${x} ${yTop}`,
-            `L ${x} ${yBottom}`
+            i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`,
+            `L ${x} ${y + height}`
         )
     }
     return segments.join(" ")
 }
 
-/** The full-width hover region of an age band, extended to cover the gaps */
-function bandHitBounds(
+/**
+ * The vertical stretch of the step outline that crosses one age band — the
+ * same segment `stepOutlinePath` draws there, so highlighting it lines up
+ * exactly with the dimmed outline underneath.
+ */
+function outlineSegment(
+    band: string,
+    values: number[],
+    ageBands: string[],
+    bandsTopDown: string[],
+    scale: ScaleLinear<number, number>,
+    yScale: ScaleBand<string>,
+    innerHeight: number
+): string | undefined {
+    const index = bandsTopDown.indexOf(band)
+    if (index === -1) return undefined
+    const { y, height } = bandRowBounds(
+        band,
+        index,
+        bandsTopDown.length,
+        yScale,
+        innerHeight
+    )
+    const x = scale(values[ageBands.indexOf(band)] ?? 0)
+    return `M ${x} ${y} L ${x} ${y + height}`
+}
+
+/** The full row of an age band, extended to cover the gaps around its bars */
+function bandRowBounds(
     band: string,
     index: number,
     numBands: number,
