@@ -85,7 +85,8 @@ export function formatAxisTick(value: number, mode: ShowMode): string {
     return formatValue(value, {
         numDecimalPlaces: 0,
         numberAbbreviation: "short",
-        abbreviationThreshold: 1e3,
+        // TODO: re-enable
+        // abbreviationThreshold: 1e3,
     })
 }
 
