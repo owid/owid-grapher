@@ -13,9 +13,12 @@ export interface RawYearRecord {
     /** Migrant stock by age band: men / women */
     m: number[]
     f: number[]
-    /** Total resident population by age band: men / women */
-    pm: number[]
-    pf: number[]
+    /**
+     * Total resident population by age band: men / women. Missing for
+     * territories the UN population estimates don't cover.
+     */
+    pm?: number[]
+    pf?: number[]
 }
 
 export interface RawEntity {
@@ -52,7 +55,8 @@ export interface PopulationTotals {
 /** Migrant and native-born populations of one entity in one year */
 export interface PyramidData {
     migrants: SexValues
-    natives: SexValues
     migrantsTotal: PopulationTotals
-    nativesTotal: PopulationTotals
+    /** Only set where the entity has total-population data */
+    natives?: SexValues
+    nativesTotal?: PopulationTotals
 }

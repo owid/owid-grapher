@@ -31,7 +31,9 @@ population in any year/sex.
   legible rather than just visually implausible.
 - **Recommended fix**: disable the compare checkbox (with a tooltip) when
   the native-born total is zero; upstream, write `pm`/`pf` as absent rather
-  than zero so missing data is explicit.
+  than zero so missing data is explicit. The code is ready for that: a record
+  without `pm`/`pf` keeps its migrant pyramid and simply has no native-born
+  population to compare against, so no outline is drawn.
 
 ## 2. Six entities have zero migrant stock in every year
 

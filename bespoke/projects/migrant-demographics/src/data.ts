@@ -4,10 +4,12 @@ import { fetchJson } from "@ourworldindata/utils"
 
 import { toDisplayName } from "./entityNames.js"
 import {
+    PopulationTotals,
     PyramidData,
     RawEntity,
     RawMigrantDemographics,
     RawYearRecord,
+    SexValues,
 } from "./types.js"
 
 const DATA_URL =
@@ -87,33 +89,37 @@ export class MigrantDemographics {
 /**
  * Derive the migrant and native-born populations from a raw year record.
  * Native-born = total resident population minus migrant stock, clamped at
- * zero (a few small territories report more migrants than residents).
+ * zero (a few small territories report more migrants than residents), and
+ * absent entirely where the record carries no total-population data.
  */
 export function computePyramidData(record: RawYearRecord): PyramidData {
-    const nativeMen = record.pm.map((p, i) => Math.max(0, p - record.m[i]))
-    const nativeWomen = record.pf.map((p, i) => Math.max(0, p - record.f[i]))
+    const migrants = { men: record.m, women: record.f }
+    const migrantsTotal = totalsOf(migrants)
 
-    const migrantMenTotal = sum(record.m)
-    const migrantWomenTotal = sum(record.f)
-    const nativeMenTotal = sum(nativeMen)
-    const nativeWomenTotal = sum(nativeWomen)
+    const numAgeBands = record.m.length
+    if (
+        !isBandAligned(record.pm, numAgeBands) ||
+        !isBandAligned(record.pf, numAgeBands)
+    )
+        return { migrants, migrantsTotal }
 
+    const natives = {
+        men: record.pm.map((p, i) => Math.max(0, p - record.m[i])),
+        women: record.pf.map((p, i) => Math.max(0, p - record.f[i])),
+    }
     return {
-        migrants: { men: record.m, women: record.f },
-        natives: { men: nativeMen, women: nativeWomen },
-        migrantsTotal: {
-            men: migrantMenTotal,
-            women: migrantWomenTotal,
-            total: migrantMenTotal + migrantWomenTotal,
-        },
-        nativesTotal: {
-            men: nativeMenTotal,
-            women: nativeWomenTotal,
-            total: nativeMenTotal + nativeWomenTotal,
-        },
+        migrants,
+        migrantsTotal,
+        natives,
+        nativesTotal: totalsOf(natives),
     }
 }
 
+/**
+ * Only the migrant stock is required — an entity without total-population
+ * data still has a pyramid to draw, it just can't be compared with the
+ * native-born population.
+ */
 function isValidEntity(
     entity: RawEntity,
     years: number[],
@@ -123,13 +129,28 @@ function isValidEntity(
     return years.every((year) => {
         const record = entity.data[String(year)]
         if (!record) return false
-        return ([record.m, record.f, record.pm, record.pf] as const).every(
-            (values) =>
-                Array.isArray(values) &&
-                values.length === numAgeBands &&
-                values.every((v) => Number.isFinite(v))
+        return (
+            isBandAligned(record.m, numAgeBands) &&
+            isBandAligned(record.f, numAgeBands)
         )
     })
+}
+
+function isBandAligned(
+    values: number[] | undefined,
+    numAgeBands: number
+): values is number[] {
+    return (
+        Array.isArray(values) &&
+        values.length === numAgeBands &&
+        values.every((v) => Number.isFinite(v))
+    )
+}
+
+function totalsOf(values: SexValues): PopulationTotals {
+    const men = sum(values.men)
+    const women = sum(values.women)
+    return { men, women, total: men + women }
 }
 
 function sum(values: number[]): number {

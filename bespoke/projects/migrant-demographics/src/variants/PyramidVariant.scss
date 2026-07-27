@@ -46,10 +46,12 @@
     visibility: hidden;
 }
 
+// Matches NATIVE_LINE_COLOR, the stroke of the outline this swatch stands for
 .migrant-pyramid-legend__line {
     display: inline-block;
     width: 16px;
     height: 2px;
+    background-color: $gray-100;
 }
 
 .migrant-pyramid-skeleton {

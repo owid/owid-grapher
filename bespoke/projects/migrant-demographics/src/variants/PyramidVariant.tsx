@@ -37,7 +37,6 @@ import { entityNameForSentence } from "../entityNames.js"
 import {
     DEFAULT_COUNTRY,
     NARROW_BREAKPOINT,
-    NATIVE_LINE_COLOR,
     WORLD_ENTITY_NAME,
 } from "../constants.js"
 import { MigrantPyramid } from "../components/MigrantPyramid.js"
@@ -204,8 +203,12 @@ function CaptionedPyramidVariant({
             ? chartSubtitle(country, pyramidData.migrantsTotal.total)
             : undefined)
 
+    // The outline is absent for entities without total-population data, even
+    // when the comparison is switched on
+    const isShowingNatives = !!view?.natives
+
     return (
-        <div className="migrant-pyramid-chart">
+        <>
             {!config.hideControls && (
                 <PyramidControls
                     data={data}
@@ -226,14 +229,11 @@ function CaptionedPyramidVariant({
                     shift the chart below */}
                 <div
                     className={cx("migrant-pyramid-legend", {
-                        "migrant-pyramid-legend--hidden": !compare,
+                        "migrant-pyramid-legend--hidden": !isShowingNatives,
                     })}
-                    aria-hidden={!compare}
+                    aria-hidden={!isShowingNatives}
                 >
-                    <span
-                        className="migrant-pyramid-legend__line"
-                        style={{ backgroundColor: NATIVE_LINE_COLOR }}
-                    />
+                    <span className="migrant-pyramid-legend__line" />
                     Native-born residents
                 </div>
                 <div className="migrant-pyramid-captioned-chart__chart-area">
@@ -245,7 +245,7 @@ function CaptionedPyramidVariant({
                             mode={mode}
                             axisLabel={
                                 mode === "share"
-                                    ? compare
+                                    ? isShowingNatives
                                         ? "Share of each population"
                                         : "Share of all immigrants"
                                     : "Number of immigrants"
@@ -279,7 +279,7 @@ function CaptionedPyramidVariant({
                     note="Immigrants are people living in a country or area other than the one where they were born. Native-born residents are calculated as the total resident population minus the international migrant stock."
                 />
             </Frame>
-        </div>
+        </>
     )
 }
 
