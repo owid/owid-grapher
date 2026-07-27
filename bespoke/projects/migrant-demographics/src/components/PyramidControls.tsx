@@ -112,7 +112,7 @@ function CountryDropdown({
             pinnedToTop: [WORLD_ENTITY_NAME],
             selectedValue: country,
         })
-    }, [data.entityNames, userCountryInfo, country])
+    }, [data, userCountryInfo, country])
 
     return (
         <InlineLabeledDropdown
