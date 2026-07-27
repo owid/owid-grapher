@@ -454,6 +454,24 @@ export const ContinentColors = {
     "South and South-East Asia (WID)": OwidMapColors.SkyTurquoise,
     "Oceania (WID)": OwidMapColors.Lavendar,
 
+    // Energy Institute regions — Marwa's curated palette (semantic OWID map colors).
+    "North America (EI)": OwidMapColors.SoftOrange,
+    "South and Central America (EI)": OwidMapColors.MutedCherry,
+    "Europe (EI)": OwidMapColors.MutedDenim,
+    "CIS (EI)": OwidMapColors.LightDenim,
+    "Middle East (EI)": OwidMapColors.Sand,
+    "Africa (EI)": OwidMapColors.LightPurple,
+    "Asia Pacific (EI)": OwidMapColors.LeafGreen,
+
+    // Ember regions — Marwa's curated palette (UN colors plus Sand for the Middle East).
+    "North America (Ember)": OwidMapColors.SoftOrange,
+    "Latin America and Caribbean (Ember)": OwidMapColors.MutedCherry,
+    "Europe (Ember)": OwidMapColors.MutedDenim,
+    "Africa (Ember)": OwidMapColors.LightPurple,
+    "Middle East (Ember)": OwidMapColors.Sand,
+    "Asia (Ember)": OwidMapColors.MutedTeal,
+    "Oceania (Ember)": OwidMapColors.SkyTurquoise,
+
     // ILO regions are intentionally NOT pinned: "Arab States (ILO)" is shared by both ILO
     // tiers and sits at a different palette position in each, so one name-keyed color can't
     // match both charts without a clash. ILO stays on the position-based palette fallback.
