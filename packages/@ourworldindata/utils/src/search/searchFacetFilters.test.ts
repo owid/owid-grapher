@@ -1,8 +1,10 @@
 import { expect, it, describe } from "vitest"
+import { FilterType } from "@ourworldindata/types"
 import {
     formatCountryFacetFilters,
     formatFeaturedMetricFacetFilter,
     formatTopicFacetFilters,
+    buildChartsFacetFilters,
 } from "./searchFacetFilters.js"
 
 // Used by both site/search/queries.ts and functions/api/search/searchApi.ts —
@@ -100,6 +102,75 @@ describe(formatTopicFacetFilters, () => {
         )
         expect(result).toEqual([
             ["tags:Health", "tags:Education", "tags:Climate"],
+        ])
+    })
+})
+
+describe(buildChartsFacetFilters, () => {
+    // The site's queryCharts (site/search/queries.ts) and the public
+    // /api/search's searchCharts (functions/api/search/searchApi.ts) both
+    // call this directly, so this corpus is what actually guarantees they
+    // build identical Algolia facetFilters for the same query + filters.
+    it("browsing with no query and no filters", () => {
+        const result = buildChartsFacetFilters({
+            query: "",
+            filters: [],
+            requireAllCountries: false,
+        })
+        // The trailing [] is formatTopicFacetFilters's empty OR-group for "no
+        // topic selected" — a no-op for Algolia, not a meaningful filter.
+        expect(result).toEqual([[], "isIncomeGroupSpecificFM:false", []])
+    })
+
+    it("free-text query with no filters excludes FMs", () => {
+        const result = buildChartsFacetFilters({
+            query: "population",
+            filters: [],
+            requireAllCountries: false,
+        })
+        expect(result).toEqual([
+            [],
+            "isIncomeGroupSpecificFM:false",
+            [],
+            "isFM:false",
+        ])
+    })
+
+    it("country + topic filters combine in country, topic order", () => {
+        const result = buildChartsFacetFilters({
+            query: "",
+            filters: [
+                { type: FilterType.COUNTRY, name: "France" },
+                { type: FilterType.TOPIC, name: "Health" },
+            ],
+            requireAllCountries: false,
+        })
+        expect(result).toEqual([["availableEntities:France"], ["tags:Health"]])
+    })
+
+    it("keeps income-group FMs once a country is selected, even with a query", () => {
+        const result = buildChartsFacetFilters({
+            query: "gdp",
+            filters: [{ type: FilterType.COUNTRY, name: "Germany" }],
+            requireAllCountries: true,
+        })
+        expect(result).toEqual(["availableEntities:Germany", [], "isFM:false"])
+        expect(result).not.toContain("isIncomeGroupSpecificFM:false")
+    })
+
+    it("appends caller-provided dataset facet filters between topic and FM", () => {
+        const result = buildChartsFacetFilters({
+            query: "population",
+            filters: [{ type: FilterType.TOPIC, name: "Health" }],
+            requireAllCountries: false,
+            datasetFacetFilters: ["datasetProducers:UN"],
+        })
+        expect(result).toEqual([
+            [],
+            "isIncomeGroupSpecificFM:false",
+            ["tags:Health"],
+            "datasetProducers:UN",
+            "isFM:false",
         ])
     })
 })

@@ -397,6 +397,7 @@ export {
     formatFeaturedMetricFacetFilter,
     formatCountryFacetFilters,
     formatTopicFacetFilters,
+    buildChartsFacetFilters,
 } from "./search/searchFacetFilters.js"
 
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"

@@ -84,3 +84,32 @@ export const formatTopicFacetFilters = (
 ): SearchFacetFilters => {
     return formatDisjunctiveFacetFilters(topics, "tags")
 }
+
+/**
+ * Builds the full facetFilters array for a charts-index search: country,
+ * topic, dataset facets (site-only for now — the public API doesn't expose
+ * dataset filters), then the Featured Metric exclusion, in that fixed order.
+ * Both the site's queryCharts and /api/search's searchCharts call this, so
+ * they can't silently drift apart on filter composition.
+ */
+export function buildChartsFacetFilters(params: {
+    query: string
+    filters: Filter[]
+    requireAllCountries: boolean
+    datasetFacetFilters?: SearchFacetFilters
+}): SearchFacetFilters {
+    const countryFacetFilters = formatCountryFacetFilters(
+        getFilterNamesOfType(params.filters, FilterType.COUNTRY),
+        params.requireAllCountries
+    )
+    const topicFacetFilters = formatTopicFacetFilters(
+        getFilterNamesOfType(params.filters, FilterType.TOPIC)
+    )
+    const fmFacetFilter = formatFeaturedMetricFacetFilter(params.query)
+    return [
+        ...countryFacetFilters,
+        ...topicFacetFilters,
+        ...(params.datasetFacetFilters ?? []),
+        ...fmFacetFilter,
+    ]
+}
