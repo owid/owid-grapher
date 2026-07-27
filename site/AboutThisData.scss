@@ -92,6 +92,10 @@
     @include sm-up {
         padding-left: 24px;
         border-left: 1px solid $blue-20;
+        // Without this the column stretches to the height of the taller
+        // description column beside it and the border runs on past the key
+        // data table into blank space.
+        align-self: start;
     }
 }
 
