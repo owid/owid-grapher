@@ -102,6 +102,7 @@ export {
     isArrayOfNumbers,
     greatestCommonDivisor,
     findGreatestCommonDivisorOfArray,
+    withUniformSpacing,
     type NodeWithUrl,
     traverseEnrichedSpan,
     copyToClipboard,
