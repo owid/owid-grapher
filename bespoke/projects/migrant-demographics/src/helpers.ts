@@ -55,15 +55,27 @@ export function computeAxisMax(
     return max
 }
 
-/** Hovered bar label: "2.7M" / "3.2%" */
-export function formatBarValue(value: number, mode: ShowMode): string {
-    if (mode === "share")
-        return formatValue(value, { unit: "%", numDecimalPlaces: 1 })
+/** Tooltip count: "2,703,412" — unabbreviated, as Grapher tooltips do */
+export function formatTooltipCount(value: number): string {
     return formatValue(value, {
-        roundingMode: OwidVariableRoundingMode.significantFigures,
-        numSignificantFigures: 2,
-        numberAbbreviation: "short",
+        numDecimalPlaces: 0,
+        numberAbbreviation: false,
     })
+}
+
+/** Tooltip share: "3.2%" — trailing zeroes kept so a column of them lines up */
+export function formatTooltipShare(value: number): string {
+    return formatValue(value, {
+        unit: "%",
+        numDecimalPlaces: 1,
+        trailingZeroes: true,
+    })
+}
+
+/** Tooltip title: "Ages 25–29" / "Ages 75 and older" */
+export function formatAgeBand(band: string): string {
+    if (band.endsWith("+")) return `Ages ${band.slice(0, -1)} and older`
+    return `Ages ${band.replace("-", "–")}`
 }
 
 /** Axis tick label: "500k" / "1.5M" / "2%" */

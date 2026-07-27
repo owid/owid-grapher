@@ -4,7 +4,11 @@ import { computePyramidData, MigrantDemographics } from "./data.js"
 import {
     computeAxisMax,
     computePyramidView,
+    formatAgeBand,
+    formatCountLong,
     formatSexShare,
+    formatTooltipCount,
+    formatTooltipShare,
 } from "./helpers.js"
 import { entityNameForSentence, toDisplayName } from "./entityNames.js"
 import { RawMigrantDemographics, RawYearRecord } from "./types.js"
@@ -171,5 +175,38 @@ describe(formatSexShare, () => {
     it("formats the share of a sex", () => {
         expect(formatSexShare(48, 100)).toBe("(48%)")
         expect(formatSexShare(1, 0)).toBe("")
+    })
+})
+
+describe(formatAgeBand, () => {
+    it.each([
+        ["25-29", "Ages 25–29"],
+        ["0-4", "Ages 0–4"],
+        ["75+", "Ages 75 and older"],
+    ])("%s → %s", (band, expected) => {
+        expect(formatAgeBand(band)).toBe(expected)
+    })
+})
+
+describe(formatTooltipCount, () => {
+    it("spells counts out in full, unlike the axis ticks", () => {
+        expect(formatTooltipCount(2703412)).toBe("2,703,412")
+        expect(formatTooltipCount(0)).toBe("0")
+    })
+})
+
+describe(formatCountLong, () => {
+    it("keeps three significant figures so totals don't look pre-rounded", () => {
+        expect(formatCountLong(50632836)).toBe("50.6 million")
+        expect(formatCountLong(280598105)).toBe("281 million")
+        expect(formatCountLong(65424)).toBe("65,400")
+    })
+})
+
+describe(formatTooltipShare, () => {
+    it("formats shares to one decimal, keeping trailing zeroes", () => {
+        expect(formatTooltipShare(3.24)).toBe("3.2%")
+        expect(formatTooltipShare(2)).toBe("2.0%")
+        expect(formatTooltipShare(0)).toBe("0.0%")
     })
 })
