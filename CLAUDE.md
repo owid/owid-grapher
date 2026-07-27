@@ -110,6 +110,7 @@ Everything you post to GitHub or Slack goes out under a **human's identity**.
 
 ## Code style
 
+- Formatting is **oxfmt**, not prettier — prettier isn't installed. Run `yarn fixFormatChanged` instead of reaching for a formatter yourself.
 - Double quotes for string literals.
 - Type function params and return values; reuse existing shared type definitions. Avoid `any` — only use it if you have to, and ask for permission.
 - In Grapher and the admin (MobX 6) we use a nonstandard setup: class-based components with TC-39 stage 3 decorators, but only for `@computed` and `@action`. Observable props are NOT marked `@observable`; they are listed in a `makeObservable` call in the constructor. That call must mention all observable props, but none of the `@computed`/`@action` ones.
