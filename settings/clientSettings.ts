@@ -76,8 +76,11 @@ export const TURNSTILE_SITE_KEY: string =
         : "0x4AAAAAADh7N4W5ajeRXkYb")
 
 // e.g. "GTM-N2D4V8S" (our production GTM container)
+// TEMP, remove before merge: fall back to the production container so the
+// staging bake includes the GTM snippet, enabling Tag Assistant preview of the
+// asn/as_org dataLayer push on https://asn-in-ga.owid.pages.dev/
 export const GOOGLE_TAG_MANAGER_ID: string =
-    process.env.GOOGLE_TAG_MANAGER_ID ?? ""
+    process.env.GOOGLE_TAG_MANAGER_ID ?? "GTM-N2D4V8S"
 
 export const TOPICS_CONTENT_GRAPH: boolean =
     process.env.TOPICS_CONTENT_GRAPH === "true"

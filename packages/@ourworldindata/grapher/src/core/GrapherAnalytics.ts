@@ -188,11 +188,17 @@ export class GrapherAnalytics {
             return
         }
         if (typeof window !== "undefined") {
-            // It's very important that we clear (_clear) the data layer whenever we push an event,
-            // otherwise it will retain all properties from previous events which can lead to
-            // confusing and incorrect events data being sent.
-            // See https://www.simoahava.com/analytics/two-simple-data-model-tricks/.
-            // see also https://github.com/google/data-layer-helper/blob/4a65b385db1fac710d33bf5d1345e598e3d117fc/README.md#preventing-default-recursive-merge
+            // _clear only prevents GTM's recursive merge FOR THE KEYS IN THIS
+            // PUSH: they overwrite the data model's values instead of
+            // deep-merging into them. It does NOT remove other keys from the
+            // model — values pushed earlier (e.g. the per-request asn/as_org
+            // push) survive, and so does a stale key from a previous event if
+            // this event omits it. Since GAEvent fields are flat scalars
+            // (which always overwrite), the flag only matters if event fields
+            // ever become objects/arrays. Verified against the live container:
+            // https://github.com/owid/owid-grapher/pull/6791#discussion_r3620246248
+            // See also https://www.simoahava.com/analytics/two-simple-data-model-tricks/
+            // and docs/google-tag-manager.md.
             window.dataLayer?.push({ ...event, _clear: true })
         }
     }
