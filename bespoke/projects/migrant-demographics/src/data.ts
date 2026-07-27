@@ -37,6 +37,8 @@ export class MigrantDemographics {
     readonly ageBands: string[]
     readonly years: number[]
     readonly source: string
+    /** Stable array so consumers can use it as a memo dependency */
+    readonly entityNames: string[]
     private readonly entitiesByName: Map<string, MigrantEntity>
 
     constructor(raw: RawMigrantDemographics) {
@@ -67,10 +69,8 @@ export class MigrantDemographics {
                 data: rawEntity.data,
             })
         }
-    }
 
-    get entityNames(): string[] {
-        return [...this.entitiesByName.keys()]
+        this.entityNames = [...this.entitiesByName.keys()]
     }
 
     hasEntity(name: string): boolean {
