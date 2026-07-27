@@ -116,6 +116,35 @@ abstract class AbstractHeader<
         return this.manager.isSmall ? 1.1 : 1.2
     }
 
+    // The annotation is sized relative to the title. Smaller charts use a
+    // larger scale factor to keep the annotation legible
+    @computed private get titleAnnotationFontScale(): number {
+        if (this.manager.isMedium) return 0.8
+        return 0.72 // per design
+    }
+
+    @computed private get initialTitleFontSize(): number {
+        return this.manager.isStaticAndSmall
+            ? 25
+            : this.useBaseFontSize
+              ? (25 / BASE_FONT_SIZE) * this.baseFontSize
+              : this.manager.isNarrow
+                ? 18
+                : this.manager.isMedium
+                  ? 20
+                  : 25
+    }
+
+    @computed private get titleAnnotationFontSize(): number {
+        return _.clamp(
+            roundFontSize(
+                this.titleAnnotationFontScale * this.initialTitleFontSize
+            ),
+            this.subtitleFontSize, // Never smaller than the subtitle
+            18
+        )
+    }
+
     @computed get title(): TextWrapGroup {
         const logoPadding = this.manager.isNarrow
             ? 12
@@ -132,11 +161,9 @@ abstract class AbstractHeader<
                 text: this.titleAnnotationText,
                 fontFamily: FontFamily.Lato,
                 fontWeight: 700,
-                fontSize: _.clamp(
-                    roundFontSize(0.75 * fontSize),
-                    this.subtitleFontSize,
-                    18
-                ),
+                // Make sure the annotation is never bigger than the title,
+                // (relevant if the title has been downsized to fit)
+                fontSize: Math.min(this.titleAnnotationFontSize, fontSize),
                 color: GRAPHER_LIGHT_TEXT,
                 inlineGap: Math.min(6, Math.round(0.4 * fontSize)),
                 newLineGap: this.verticalPadding,
@@ -153,25 +180,17 @@ abstract class AbstractHeader<
             })
         }
 
-        const initialFontSize = this.manager.isStaticAndSmall
-            ? 25
-            : this.useBaseFontSize
-              ? (25 / BASE_FONT_SIZE) * this.baseFontSize
-              : this.manager.isNarrow
-                ? 18
-                : this.manager.isMedium
-                  ? 20
-                  : 25
+        const { initialTitleFontSize } = this
 
-        const title = makeTitle(Math.round(initialFontSize))
+        const title = makeTitle(Math.round(initialTitleFontSize))
 
         // If the title is already a single line, no need to decrease font size
         if (title.lineCount <= 1) return title
 
         // Decrease the initial font size by no more than 15% using 0.5px steps
         const potentialFontSizes = _.range(
-            initialFontSize,
-            initialFontSize * 0.85,
+            initialTitleFontSize,
+            initialTitleFontSize * 0.85,
             -0.5
         )
 
