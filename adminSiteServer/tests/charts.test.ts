@@ -1999,6 +1999,37 @@ describe("ETL config upsert by config UUID", { timeout: 15000 }, () => {
         expect(response.status).toBe(409)
     })
 
+    it("leaves no orphan chart behind when a mistakenly re-generated config UUID collides on catalogPath", async () => {
+        // Simulates the ETL forgetting the config UUID it already minted for a
+        // chart (e.g. a caching bug) and generating a fresh one on a re-run
+        // that should have updated the same chart. The push still carries the
+        // correct (matching) catalogPath, which is what the guard catches.
+        const sharedCatalogPath = "grapher/reused/latest/reused%23chart"
+
+        const first = await env.request({
+            method: "PUT",
+            path: `/charts/by-config/${uuidv7()}/etlConfig?catalogPath=${sharedCatalogPath}`,
+            body: JSON.stringify(testEtlConfig),
+        })
+        expect(first.success).toBe(true)
+        const chartCountAfterFirst = await env.getCount(ChartsTableName)
+
+        const response = await rawRequest({
+            method: "PUT",
+            path: `/charts/by-config/${uuidv7()}/etlConfig?catalogPath=${sharedCatalogPath}`,
+            body: JSON.stringify({
+                ...testEtlConfig,
+                slug: "another-etl-chart",
+            }),
+        })
+        expect(response.status).toBe(409)
+
+        // The draft chart created for the fresh (wrong) UUID before the guard
+        // fired must not survive — the whole request is one transaction.
+        const chartCountAfterRejection = await env.getCount(ChartsTableName)
+        expect(chartCountAfterRejection).toBe(chartCountAfterFirst)
+    })
+
     it("creates a chart with a caller-supplied config UUID via POST /charts", async () => {
         const chartConfigId = uuidv7()
         const response = await env.request({
