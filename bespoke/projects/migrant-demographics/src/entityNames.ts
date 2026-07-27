@@ -75,9 +75,15 @@ function titleCaseAggregate(name: string): string {
         .toLowerCase()
         .split(" ")
         .map((word, i) =>
-            i > 0 && minorWords.has(word)
-                ? word
-                : word.charAt(0).toUpperCase() + word.slice(1)
+            i > 0 && minorWords.has(word) ? word : capitalizeParts(word)
         )
         .join(" ")
+}
+
+/** Capitalizes each hyphenated part, so "sub-saharan" → "Sub-Saharan" */
+function capitalizeParts(word: string): string {
+    return word
+        .split("-")
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join("-")
 }
