@@ -12,9 +12,11 @@ import {
     convertDaysSinceEpochToDate,
     convertDateToDaysSinceEpoch,
     dayjs,
+    TimeInterval,
+    isSubYearly,
+    snapToIntervalStart,
 } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable, reaction } from "mobx"
-import { ColumnTypeMap } from "@ourworldindata/core-table"
 import { observer } from "mobx-react"
 import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -28,7 +30,13 @@ import {
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_TIMELINE_CLASS,
 } from "../core/GrapherConstants.js"
-import { DateField, DateInput, DateSegment } from "react-aria-components"
+import {
+    DateField,
+    DateInput,
+    DateSegment,
+    I18nProvider,
+    type DateInputProps,
+} from "react-aria-components"
 import { CalendarDate } from "@internationalized/date"
 
 export const TIMELINE_HEIGHT = 32 // Keep in sync with $timelineHeight in TimelineComponent.scss
@@ -131,11 +139,15 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         return !this.isTouchDevice
     }
 
-    @computed private get isDailyData(): boolean {
-        const { timeColumn } = this.manager
-        return (
-            timeColumn !== undefined && timeColumn instanceof ColumnTypeMap.Day
-        )
+    @computed private get timeInterval(): TimeInterval {
+        return this.manager.timeColumn?.timeInterval ?? TimeInterval.Year
+    }
+
+    @computed private get dateInputGranularity(): "day" | "month" {
+        return this.timeInterval === TimeInterval.Month ||
+            this.timeInterval === TimeInterval.Quarter
+            ? "month"
+            : "day"
     }
 
     private get sliderBounds(): Bounds {
@@ -481,6 +493,13 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         }
     }
 
+    private calendarDateToSnappedDaysSinceEpoch(date: CalendarDate): number {
+        return snapToIntervalStart(
+            calendarDateToDaysSinceEpoch(date),
+            this.timeInterval
+        )
+    }
+
     @action.bound private onCompleteDate(date?: CalendarDate): void {
         // Only apply when the user has finished typing
         if (date && this.editHandle !== undefined) this.onChangeDate(date)
@@ -488,7 +507,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     @action.bound private onChangeDate(date: CalendarDate): void {
-        const daysSinceEpoch = calendarDateToDaysSinceEpoch(date)
+        const daysSinceEpoch = this.calendarDateToSnappedDaysSinceEpoch(date)
         if (!this.areBothHandlesVisible) {
             this.controller.setStartAndEndTimeFromInput(daysSinceEpoch)
         } else if (this.editHandle === MarkerType.Start) {
@@ -602,18 +621,19 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
         const isDateValid = (date: CalendarDate): boolean => {
             const { minTime, endTime, allowHandlesOnSameTime } = this.controller
-            const time = calendarDateToDaysSinceEpoch(date)
+            const time = this.calendarDateToSnappedDaysSinceEpoch(date)
             if (time < minTime) return false
             return allowHandlesOnSameTime ? time <= endTime : time < endTime
         }
 
-        return this.isDailyData ? (
+        return isSubYearly(this.timeInterval) ? (
             <EditableDateTooltip
                 position="left"
                 isEditing={isEditing}
                 formattedTime={formattedStartTime}
                 currentTime={startTime}
                 isDateValid={isDateValid}
+                granularity={this.dateInputGranularity}
                 onStartEditing={() => this.onStartEditing(MarkerType.Start)}
                 onComplete={this.onCompleteDate}
                 onChange={this.onChangeDate}
@@ -663,18 +683,19 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         const isDateValid = (date: CalendarDate): boolean => {
             const { maxTime, startTime, allowHandlesOnSameTime } =
                 this.controller
-            const time = calendarDateToDaysSinceEpoch(date)
+            const time = this.calendarDateToSnappedDaysSinceEpoch(date)
             if (time > maxTime) return false
             return allowHandlesOnSameTime ? time >= startTime : time > startTime
         }
 
-        return this.isDailyData ? (
+        return isSubYearly(this.timeInterval) ? (
             <EditableDateTooltip
                 position={position}
                 isEditing={isEditing}
                 formattedTime={formattedEndTime}
                 currentTime={endTime}
                 isDateValid={isDateValid}
+                granularity={this.dateInputGranularity}
                 onStartEditing={() => this.onStartEditing(MarkerType.End)}
                 onComplete={this.onCompleteDate}
                 onChange={this.onChangeDate}
@@ -1067,6 +1088,7 @@ function EditableDateTooltip({
     currentTime,
     formattedTime,
     isDateValid = (): boolean => true,
+    granularity = "day",
     onStartEditing,
     onMouseEnter,
     onMouseLeave,
@@ -1078,6 +1100,7 @@ function EditableDateTooltip({
     currentTime: number
     formattedTime: string
     isDateValid?: (date: CalendarDate) => boolean
+    granularity?: "day" | "month"
     onStartEditing?: () => void
     onMouseEnter?: () => void
     onMouseLeave?: () => void
@@ -1098,6 +1121,7 @@ function EditableDateTooltip({
                 <TimelineDateInput
                     value={daysSinceEpochToCalendarDate(currentTime)}
                     isDateValid={isDateValid}
+                    granularity={granularity}
                     onComplete={onComplete}
                     onChange={onChange}
                 />
@@ -1118,11 +1142,13 @@ function EditableDateTooltip({
 const TimelineDateInput = ({
     value,
     isDateValid,
+    granularity = "day",
     onComplete,
     onChange,
 }: {
     value: CalendarDate
     isDateValid: (date: CalendarDate) => boolean
+    granularity?: "day" | "month"
     onComplete: (date?: CalendarDate) => void
     onChange?: (date: CalendarDate) => void
 }): React.ReactElement => {
@@ -1159,24 +1185,76 @@ const TimelineDateInput = ({
         }
     }
 
-    return (
+    const dateField = (
         <DateField
             value={currentValue}
             onChange={handleChange}
             onBlur={() => onComplete(currentValue)}
             onKeyDown={handleKeyDown}
-            className="GrapherTimeline__DateInput"
+            className={cx("GrapherTimeline__DateInput", {
+                "GrapherTimeline__DateInput--month": granularity === "month",
+            })}
             aria-label="Edit date"
         >
             <DateInput className="GrapherTimeline__DateInputField">
-                {(segment) => (
-                    <DateSegment
-                        segment={segment}
-                        className="GrapherTimeline__DateInputSegment"
-                    />
-                )}
+                {(segment) =>
+                    match(granularity)
+                        .with("month", () => (
+                            <MonthYearSegment
+                                segment={segment}
+                                className="GrapherTimeline__DateInputSegment"
+                            />
+                        ))
+                        .with("day", () => (
+                            <DateSegment
+                                segment={segment}
+                                className="GrapherTimeline__DateInputSegment"
+                            />
+                        ))
+                        .exhaustive()
+                }
             </DateInput>
         </DateField>
+    )
+
+    // MonthYearSegment renders its own "/" separator before the year segment,
+    // which assumes month-before-year segment order. Pin the locale so this
+    // holds even for users whose locale puts the year first (e.g. ja, zh, hu).
+    // The day-granularity field keeps the browser locale.
+    return granularity === "month" ? (
+        <I18nProvider locale="en-US">{dateField}</I18nProvider>
+    ) : (
+        dateField
+    )
+}
+
+// Renders a segment for the month-granularity date field as "MM / YYYY": keep
+// only the month and year segments and put our own separator between them,
+// dropping the day segment and the locale separators react-aria places around
+// it. Placing the separator before the year assumes month-before-year segment
+// order, which TimelineDateInput guarantees by pinning the locale.
+function MonthYearSegment({
+    segment,
+    className,
+}: {
+    segment: Parameters<DateInputProps["children"]>[0]
+    className?: string
+}): React.ReactElement {
+    // Don't render anything for segments that aren't month or year (e.g. day)
+    if (segment.type !== "month" && segment.type !== "year")
+        return <React.Fragment />
+
+    const separator = (
+        <span aria-hidden className="GrapherTimeline__DateInputSeparator">
+            /
+        </span>
+    )
+
+    return (
+        <>
+            {segment.type === "year" && separator}
+            <DateSegment segment={segment} className={className} />
+        </>
     )
 }
 
