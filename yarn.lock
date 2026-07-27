@@ -2388,6 +2388,7 @@ __metadata:
     "@ourworldindata/types": "workspace:^"
     "@sentry/browser": "npm:^10.62.0"
     "@tippyjs/react": "npm:^4.2.6"
+    algoliasearch: "npm:^5.53.0"
     "@types/d3-array": "npm:^3.2.1"
     "@types/d3-format": "npm:^3.0.4"
     "@types/js-cookie": "npm:^3.0.6"

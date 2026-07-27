@@ -400,6 +400,11 @@ export {
     buildChartsFacetFilters,
 } from "./search/searchFacetFilters.js"
 
+export {
+    searchSingleForHits,
+    searchSingleForHitsWithClosestMatches,
+} from "./search/searchClosestMatches.js"
+
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
 export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"
 
