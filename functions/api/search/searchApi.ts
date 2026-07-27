@@ -8,6 +8,10 @@ import {
 } from "@ourworldindata/types"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
+    getFilterNamesOfType,
+    buildChartsFacetFilters,
+} from "@ourworldindata/utils"
+import {
     getIndexName,
     createSearchClient,
     AlgoliaConfig,
@@ -100,54 +104,6 @@ const DATA_CATALOG_ATTRIBUTES = [
     "updatedAt",
 ]
 
-function getFilterNamesOfType(
-    filters: Filter[],
-    type: FilterType
-): Set<string> {
-    return new Set(filters.filter((f) => f.type === type).map((f) => f.name))
-}
-
-export function formatCountryFacetFilters(
-    countries: Set<string>,
-    requireAll: boolean
-): (string | string[])[] {
-    // Always filter out income-group-specific featured metrics
-    // These are designed for specific use cases and shouldn't appear in general searches
-    const excludeIncomeGroupFM = ["isIncomeGroupSpecificFM:false"]
-
-    if (countries.size === 0) return [excludeIncomeGroupFM]
-
-    const filters = Array.from(countries).map(
-        (country) => `availableEntities:${country}`
-    )
-    // If requireAll is true, charts must have ALL countries (AND logic)
-    // Otherwise, any country can match (OR logic)
-    return requireAll
-        ? [...filters.map((f) => [f]), excludeIncomeGroupFM]
-        : [filters, excludeIncomeGroupFM]
-}
-
-/**
- * Returns a facet filter that excludes Featured Metric records when a
- * free-text query is present. When there is no query (e.g. browsing by
- * topic), FMs are kept so they can surface at the top of topic pages.
- */
-export function formatFeaturedMetricFacetFilter(
-    query: string
-): (string | string[])[] {
-    return query.trim() ? ["isFM:false"] : []
-}
-
-export function formatTopicFacetFilters(
-    topics: Set<string>
-): (string | string[])[] {
-    if (topics.size === 0) return []
-
-    const filters = Array.from(topics).map((topic) => `tags:${topic}`)
-    // Topics use OR logic (any topic can match)
-    return [filters]
-}
-
 /**
  * Fetches available topics from Algolia
  */
@@ -190,19 +146,11 @@ export async function searchCharts(
     hitsPerPage: number = 20,
     baseUrl: string = "https://ourworldindata.org"
 ): Promise<SearchApiResponse> {
-    const countryFacetFilters = formatCountryFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        state.requireAllCountries
-    )
-    const topicFacetFilters = formatTopicFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.TOPIC)
-    )
-    const fmFacetFilter = formatFeaturedMetricFacetFilter(state.query)
-    const facetFilters = [
-        ...countryFacetFilters,
-        ...topicFacetFilters,
-        ...fmFacetFilter,
-    ]
+    const facetFilters = buildChartsFacetFilters({
+        query: state.query,
+        filters: state.filters,
+        requireAllCountries: state.requireAllCountries,
+    })
 
     const indexName = getIndexName(
         SearchIndexName.ExplorerViewsMdimViewsAndCharts,
