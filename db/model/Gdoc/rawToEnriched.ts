@@ -2258,7 +2258,7 @@ function parseTopicPageIntro(
             }
 
             const url = extractUrl(relatedTopic.url)
-            const { isGoogleDoc } = Url.fromURL(relatedTopic.url)
+            const { isGoogleDoc } = Url.fromURL(url)
             if (!isGoogleDoc && !relatedTopic.text) {
                 return createError({
                     message:
