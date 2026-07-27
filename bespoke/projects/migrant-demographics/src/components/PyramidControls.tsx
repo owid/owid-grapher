@@ -27,6 +27,13 @@ const SHOW_MODE_ITEMS: SwitcherItem<ShowMode>[] = [
     { key: "share", element: "Share of immigrants" },
 ]
 
+// The switcher buttons don't wrap, so below a certain width the full labels
+// push the control out past the frame rather than compressing
+const SHOW_MODE_ITEMS_SHORT: SwitcherItem<ShowMode>[] = [
+    { key: "number", element: "Number" },
+    { key: "share", element: "Share" },
+]
+
 const SHOW_MODE_DISABLED_REASON =
     "When comparing with native-born residents, values are always shown as a share of each population — there are far more native-born residents than immigrants."
 
@@ -36,6 +43,7 @@ export function PyramidControls({
     year,
     show,
     compare,
+    isNarrow,
     setCountry,
     setYear,
     setShow,
@@ -46,6 +54,7 @@ export function PyramidControls({
     year: number
     show: ShowMode
     compare: boolean
+    isNarrow: boolean
     setCountry: (name: string) => void
     setYear: (year: number) => void
     setShow: (show: ShowMode) => void
@@ -66,6 +75,7 @@ export function PyramidControls({
                     <ShowModeSwitcher
                         show={show}
                         compare={compare}
+                        isNarrow={isNarrow}
                         setShow={setShow}
                     />
                     <CompareCheckbox
@@ -120,10 +130,12 @@ function CountryDropdown({
 function ShowModeSwitcher({
     show,
     compare,
+    isNarrow,
     setShow,
 }: {
     show: ShowMode
     compare: boolean
+    isNarrow: boolean
     setShow: (show: ShowMode) => void
 }): React.ReactElement {
     const { ref: wrapperRef, getTippyContainer } =
@@ -138,7 +150,7 @@ function ShowModeSwitcher({
         >
             <div ref={wrapperRef} className="migrant-pyramid-controls__show">
                 <Switcher
-                    items={SHOW_MODE_ITEMS}
+                    items={isNarrow ? SHOW_MODE_ITEMS_SHORT : SHOW_MODE_ITEMS}
                     selectedKey={compare ? "share" : show}
                     onChange={setShow}
                     isDisabled={compare}

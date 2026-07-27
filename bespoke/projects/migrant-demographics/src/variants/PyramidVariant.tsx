@@ -213,6 +213,7 @@ function CaptionedPyramidVariant({
                     year={year}
                     show={show}
                     compare={compare}
+                    isNarrow={isNarrow}
                     setCountry={setCountry}
                     setYear={setYear}
                     setShow={setShow}
