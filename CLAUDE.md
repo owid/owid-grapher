@@ -93,7 +93,7 @@ Everything you post to GitHub or Slack goes out under a **human's identity**.
     Bertha Rohenkohl @bertharc
     Charlie Giattino @CGiattino
     Pablo Rosado @pabloarosado
-    Lucas Rodés-Guirao @lucasrodesi ask
+    Lucas Rodés-Guirao @lucasrodes
     Matthieu Bergel @mlbrgl
     Marcel Gerber @marcelgerber
     Sophia Mersmann @sophiamersmann
