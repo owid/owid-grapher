@@ -127,22 +127,31 @@ export default function AboutThisData({
                     >
                         About this data
                     </h2>
-                    {/* This branch used to give the key data table the whole
-                        width remaining after the heading. It is narrowed so
-                        that the topic newsletter card lands in the same right
-                        rail it occupies in the branch above. */}
-                    <div className="col-start-4 span-cols-5 col-lg-start-4 span-lg-cols-4 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                    {/* Without a topic area there is no right rail, so the key
+                        data table keeps the whole width remaining after the
+                        heading. With one it is narrowed so that the newsletter
+                        card lands in the same right rail it occupies in the
+                        branch above. */}
+                    <div
+                        className={
+                            topicArea
+                                ? "col-start-4 span-cols-5 col-lg-start-4 span-lg-cols-4 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                                : "col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                        }
+                    >
                         <KeyDataTable
                             datapageData={datapageData}
                             attribution={attributionUnshortened}
                         />
                     </div>
-                    <div className="about-this-data__aside span-cols-4 span-lg-cols-5 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                        <TopicNewsletterCard
-                            pageType="chart"
-                            topicArea={topicArea}
-                        />
-                    </div>
+                    {topicArea ? (
+                        <div className="about-this-data__aside span-cols-4 span-lg-cols-5 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                            <TopicNewsletterCard
+                                pageType="chart"
+                                topicArea={topicArea}
+                            />
+                        </div>
+                    ) : null}
                 </>
             )}
         </div>

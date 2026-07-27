@@ -512,7 +512,19 @@ export const getPublishedGdocsWithTags = async (
     ORDER BY g.publishedAt DESC`
     return knexRaw<DBRawPostGdocWithTags>(knex, query, {
         gdocTypes,
-    }).then((rows) => rows.map(parsePostsGdocsWithTagsRow))
+    }).then((rows) =>
+        rows.map((row) => {
+            const gdoc = parsePostsGdocsWithTagsRow(row)
+            // MySQL leaves the element order of JSON_ARRAYAGG unspecified, and
+            // it can't be given an ORDER BY the way GROUP_CONCAT can. Callers
+            // treat tags[0] as the page's primary tag (the atom feed link, the
+            // topic area of the newsletter card), so sort by name here to match
+            // the `ORDER BY tags.name ASC` of the queries that load a single
+            // gdoc's tags (GdocFactory's getGdocBaseObjectById and
+            // getPublishedGdocBaseObjectBySlug).
+            return { ...gdoc, tags: _.sortBy(gdoc.tags, "name") }
+        })
+    )
 }
 
 // Ids of published gdocs of the given types that went live in the last
@@ -734,6 +746,12 @@ export async function getTopicAreaNamesByTagName(
  * `ResourcePanel` and the linear-topic-page table of contents. Deliberately
  * NOT `getBestBreadcrumbs`' longest-path rule, which optimises for a different
  * thing (deepest clickable breadcrumb trail).
+ *
+ * For datapages `tagNames` is the authored `presentation.topicTagsLinks` array,
+ * which is already ordered. For gdocs it comes from a many-to-many table with
+ * no ordering column, so the queries that load a gdoc's tags sort them by name
+ * — otherwise the same page could resolve to a different area between two
+ * bakes, or between a bake and an admin preview.
  */
 export function getTopicAreaNameForTagNames(
     tagNames: string[],

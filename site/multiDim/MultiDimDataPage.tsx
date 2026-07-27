@@ -142,6 +142,7 @@ export function MultiDimDataPage({
                                     isPreviewing={isPreviewing}
                                     faqEntries={faqEntries}
                                     primaryTopic={primaryTopic}
+                                    topicArea={topicArea}
                                     relatedResearchCandidates={
                                         relatedResearchCandidates
                                     }
