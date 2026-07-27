@@ -115,17 +115,6 @@
             margin-top: 32px;
         }
     }
-
-    .topic-page-intro__related-topics {
-        border-left: 1px solid $blue-10;
-        padding-left: 24px;
-        margin-top: 48px;
-        @include md-down {
-            display: none;
-        }
-
-        @include related-topics;
-    }
 }
 
 .article-block__key-insights {
