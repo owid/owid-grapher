@@ -33,10 +33,9 @@ describe(computePyramidView, () => {
         expect(view.natives?.men[0]).toBeCloseTo((90 / 390) * 100)
     })
 
-    it("has nothing to compare without population data", () => {
-        const withoutPopulation = computePyramidData({ m: [10], f: [30] })
-        const view = computePyramidView(withoutPopulation, "share", true)
-        expect(view.migrants.men).toEqual([25])
+    it("has nothing to compare while the comparison is off", () => {
+        const view = computePyramidView(data, "share", false)
+        expect(view.migrants.men).toEqual([10, 20])
         expect(view.natives).toBeUndefined()
     })
 })

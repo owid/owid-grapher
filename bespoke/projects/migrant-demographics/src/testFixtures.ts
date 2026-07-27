@@ -1,4 +1,4 @@
-import { RawMigrantDemographics, RawYearRecord } from "./types.js"
+import { RawEntity, RawMigrantDemographics, RawYearRecord } from "./types.js"
 
 export const RECORD: RawYearRecord = {
     m: [10, 20],
@@ -7,20 +7,32 @@ export const RECORD: RawYearRecord = {
     pf: [130, 140],
 }
 
+/**
+ * A migrant stock with no total population, as the UN used to report for small
+ * territories. Asserted rather than typed, because the point of the fixture is
+ * a file that violates the shape we now require.
+ */
+const RECORD_WITHOUT_POPULATION = { m: [1, 2], f: [3, 4] } as RawYearRecord
+
+const WITHOUT_POPULATION_DATA: RawEntity = {
+    name: "Monaco",
+    data: {
+        "2010": RECORD_WITHOUT_POPULATION,
+        "2020": RECORD_WITHOUT_POPULATION,
+    },
+}
+
 export const RAW: RawMigrantDemographics = {
     meta: { title: "t", source: "s", unit: "persons" },
     ageBands: ["0-4", "5+"],
     years: [2010, 2020],
     entities: [
         {
-            code: 900,
-            name: "WORLD",
-            isAggregate: true,
+            name: "World",
             data: { "2010": RECORD, "2020": RECORD },
         },
         {
-            code: 840,
-            name: "United States of America",
+            name: "United States",
             data: {
                 "2010": RECORD,
                 "2020": { m: [5, 10], f: [10, 25], pm: [50, 50], pf: [50, 50] },
@@ -29,7 +41,6 @@ export const RAW: RawMigrantDemographics = {
         // Natives heavily concentrated in one band (share 100% > any
         // migrant share)
         {
-            code: 404,
             name: "Kenya",
             data: {
                 "2010": {
@@ -46,16 +57,8 @@ export const RAW: RawMigrantDemographics = {
                 },
             },
         },
-        // No total-population data, as the UN reports for small territories
-        {
-            code: 492,
-            name: "Monaco",
-            data: {
-                "2010": { m: [1, 2], f: [3, 4] },
-                "2020": { m: [1, 2], f: [3, 4] },
-            },
-        },
+        WITHOUT_POPULATION_DATA,
         // Malformed: missing a year
-        { code: 1, name: "Broken", data: { "2010": RECORD } },
+        { name: "Broken", data: { "2010": RECORD } },
     ],
 }
