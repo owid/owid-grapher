@@ -77,11 +77,15 @@ export function formatAxisTick(value: number, mode: ShowMode): string {
     })
 }
 
-/** Written-out count for the subtitle: "51 million" */
+/**
+ * Written-out count for the subtitle: "50.6 million". Three significant
+ * figures rather than two — at two, most countries round to a suspiciously
+ * neat figure ("51 million" for 50,632,836).
+ */
 export function formatCountLong(value: number): string {
     return formatValue(value, {
         roundingMode: OwidVariableRoundingMode.significantFigures,
-        numSignificantFigures: 2,
+        numSignificantFigures: 3,
         numberAbbreviation: "long",
     })
 }
