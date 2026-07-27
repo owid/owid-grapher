@@ -551,7 +551,7 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
     if (typeof val === "string") {
         return {
             type: "chart",
-            url: val,
+            url: extractUrl(val),
             size: BlockSize.Wide,
             parseErrors: [],
         }
@@ -736,7 +736,7 @@ const parseChartStory = (raw: RawBlockChartStory): EnrichedBlockChartStory => {
                 narrative: htmlToEnrichedTextBlock(item.narrative),
                 chart: {
                     type: "chart",
-                    url: chart,
+                    url: extractUrl(chart),
                     size: BlockSize.Wide,
                     parseErrors: [],
                 },
@@ -1255,7 +1255,7 @@ function parseChartRows(raw: RawBlockChartRows): EnrichedBlockChartRows {
 
         enrichedRows.push({
             image: row.image,
-            url: row.url,
+            url: extractUrl(row.url),
             content: enrichedContent,
         })
     }
@@ -1329,7 +1329,7 @@ function parsePullChart(raw: RawBlockPullChart): EnrichedBlockPullChart {
         type: "pull-chart",
         align: validAlign,
         image,
-        url,
+        url: extractUrl(url),
         content: enrichedContent,
         parseErrors,
     }
@@ -1835,7 +1835,7 @@ const parseSdgGrid = (raw: RawBlockSDGGrid): EnrichedBlockSDGGrid => {
                 ]
             // TODO: make the type not just a string and then parse spans here
             const goal = item.goal
-            const link = item.link
+            const link = extractUrl(item.link)
 
             //const errors = goal.parseErrors.concat(link.parseErrors)
 
@@ -2242,6 +2242,7 @@ function parseTopicPageIntro(
         downloadButton
             ? {
                   ...downloadButton,
+                  url: extractUrl(downloadButton.url),
                   type: "topic-page-intro-download-button",
               }
             : undefined
