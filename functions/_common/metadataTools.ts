@@ -11,6 +11,10 @@ import {
 } from "@ourworldindata/utils"
 import { getGrapherFilters } from "./urlTools.js"
 
+// KEEP IN SYNC WITH ETL. This column shape and the `titleLong` construction in
+// `assembleMetadata` are ported to Python in the etl repo
+// (etl/collection/download_package_format.py), which builds the MDIM
+// "complete dataset" download package at publish time.
 type MetadataColumn = {
     titleShort: string
     titleLong: string

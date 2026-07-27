@@ -164,7 +164,7 @@ export type DownloadSectionProps = {
     archivedChartInfo?: ArchiveContext
     distribution?: Distribution
     hideRowCounts?: boolean
-    downloadPackage?: DownloadPackage & { url: string }
+    downloadPackage?: DownloadPackage
 }
 
 export default function DownloadSection({
@@ -369,7 +369,11 @@ export default function DownloadSection({
                                         icon="complete"
                                         trackingNote="datapage_download_complete_dataset"
                                         href={downloadPackage.url}
-                                        download={`${slug}.complete-dataset.zip`}
+                                        // No `download` attribute: the zip is
+                                        // served from R2, and the attribute is
+                                        // ignored cross-origin. ETL uploads it
+                                        // with a Content-Disposition filename
+                                        // instead.
                                     />
                                 )}
                             </div>

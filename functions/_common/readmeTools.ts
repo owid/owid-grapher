@@ -17,6 +17,14 @@ import type { CoreColumn } from "@ourworldindata/core-table"
 import { GrapherState } from "@ourworldindata/grapher"
 import { getGrapherFilters } from "./urlTools.js"
 
+// KEEP IN SYNC WITH ETL. `columnReadmeText` and its helpers below, and the
+// readme skeleton in `constructReadme`, are ported to Python in the etl repo
+// (etl/collection/download_package_format.py + download_package.py), which
+// builds the "complete dataset" package for MDIMs once at publish time rather
+// than per request. A chart download and an MDIM complete-dataset download are
+// meant to be the same format, and nothing automated notices if they drift --
+// so if you change the wording or the field set here, change it there too.
+
 const markdownNewlineEnding = "  "
 
 export function* getCitationLines(

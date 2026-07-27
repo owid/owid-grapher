@@ -440,17 +440,9 @@ export function DataPageContent({
         !!grapherStateRef.current
     )
 
-    // The download link is computed here, not stored -- same convention as
-    // a chart's own `.zip` link (getDownloadUrl: `${baseUrl}.${extension}`).
-    // ETL only needs to publish csvUrl/indicatorsUrl for the dynamic build
-    // route (functions/grapher/[slug].ts) to read from; it never has to
-    // know the site's own URL scheme, and the link can't go stale.
+    // Built and published to R2 by ETL, so there's nothing to compute here --
+    // `url` already points at the finished zip.
     const downloadPackage = config.config.downloadPackage
-        ? {
-              ...config.config.downloadPackage,
-              url: `${BAKED_GRAPHER_URL}/${slug}.complete-dataset.zip`,
-          }
-        : undefined
 
     const downloadSection = slug ? (
         <DownloadSection

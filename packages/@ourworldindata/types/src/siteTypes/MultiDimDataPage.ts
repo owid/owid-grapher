@@ -38,25 +38,15 @@ type Metadata = Omit<OwidVariableWithSource, "id">
 // opposed to the existing per-view download which only covers whichever
 // view is currently loaded.
 //
-// This is the stored/DB shape -- ETL writes csvUrl/indicatorsUrl/counts only.
-// `url` is never stored; it's computed client-side from the page's own slug
-// (see MultiDimDataPageContent.tsx), so it always points at the dynamic
-// build route rather than a URL that could go stale. Consumers that need
-// the resolved link (e.g. DownloadSection's button) should type their prop
-// as `DownloadPackage & { url: string }`.
+// Everything here is written by ETL, which builds the zip once at publish
+// time and uploads it to R2 (etl/collection/download_package.py). Unlike a
+// chart's own `.zip`, nothing is assembled per request and there is no
+// grapher route in front of it -- `url` points straight at the R2 object.
 export interface DownloadPackage {
-    url?: string
-    // ETL-staged wide CSV + indicator index (R2) that the dynamic build
-    // route reads from on every request -- the "complete dataset" analogue
-    // of a chart's own data, fetched once at ETL publish time rather than
-    // per-view.
-    csvUrl?: string
-    indicatorsUrl?: string
+    url: string
     indicatorCount?: number
     rowCount?: number
-    // Approximate size of the download, in bytes. Written by ETL alongside
-    // the counts (the zip itself is built dynamically, so the exact size
-    // isn't known upfront).
+    // Exact size of the zip, in bytes.
     sizeBytes?: number
 }
 
