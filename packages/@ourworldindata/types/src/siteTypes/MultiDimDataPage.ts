@@ -54,6 +54,10 @@ export interface DownloadPackage {
     indicatorsUrl?: string
     indicatorCount?: number
     rowCount?: number
+    // Approximate size of the download, in bytes. Written by ETL alongside
+    // the counts (the zip itself is built dynamically, so the exact size
+    // isn't known upfront).
+    sizeBytes?: number
 }
 
 interface MultiDimDataPageConfigType<

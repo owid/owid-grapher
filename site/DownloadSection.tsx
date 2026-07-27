@@ -249,8 +249,7 @@ export default function DownloadSection({
         (!tableForDownload && distribution?.allowed === false)
 
     const fullDownloadDescription = makeFullDownloadDescription(
-        hideRowCounts ? undefined : tableForDownload?.numRows,
-        { hasCompleteDatasetSibling: !!downloadPackage }
+        hideRowCounts ? undefined : tableForDownload?.numRows
     )
     const filteredDownloadDescription = makeFilteredDownloadDescription({
         numRows: hideRowCounts ? undefined : filteredTableForDownload?.numRows,
@@ -330,20 +329,10 @@ export default function DownloadSection({
                             <p className="citation__paragraph">
                                 {SERVER_SIDE_DOWNLOAD_HELP_TEXT}
                             </p>
+                            {/* Ordered from smallest to biggest download */}
                             <div className="downloads__download-buttons">
                                 <DownloadButtonLink
-                                    title="Download full data"
-                                    description={fullDownloadDescription}
-                                    icon="full"
-                                    trackingNote="datapage_download_full_data--server"
-                                    href={fullDownloadUrl}
-                                    download={fullDownloadFilename}
-                                    {...getDownloadRewriteAttrs(
-                                        "download-full-data"
-                                    )}
-                                />
-                                <DownloadButtonLink
-                                    title="Download displayed data"
+                                    title="Download only selected data"
                                     description={filteredDownloadDescription}
                                     icon="selected"
                                     trackingNote="datapage_download_filtered_data--server"
@@ -353,15 +342,28 @@ export default function DownloadSection({
                                         "download-filtered-data"
                                     )}
                                 />
+                                <DownloadButtonLink
+                                    title="Download chart data"
+                                    description={fullDownloadDescription}
+                                    icon="full"
+                                    trackingNote="datapage_download_full_data--server"
+                                    href={fullDownloadUrl}
+                                    download={fullDownloadFilename}
+                                    {...getDownloadRewriteAttrs(
+                                        "download-full-data"
+                                    )}
+                                />
                                 {downloadPackage && (
                                     <DownloadButtonLink
-                                        title="Download complete dataset"
+                                        title="Download full dataset"
                                         description={makeCompleteDatasetDescription(
                                             {
                                                 rowCount:
                                                     downloadPackage.rowCount,
                                                 indicatorCount:
                                                     downloadPackage.indicatorCount,
+                                                sizeBytes:
+                                                    downloadPackage.sizeBytes,
                                             }
                                         )}
                                         icon="complete"

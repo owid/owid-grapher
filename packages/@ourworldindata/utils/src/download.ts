@@ -59,36 +59,43 @@ export function makeNumberOfRowsSnippet(numRows: number | undefined): string {
     return ` (${formatValue(numRows, { numDecimalPlaces: 0 })} rows)`
 }
 
+export function formatFileSize(bytes: number): string {
+    const format = (value: number): string =>
+        value.toFixed(1).replace(/\.0$/, "")
+    if (bytes >= 1e9) return `${format(bytes / 1e9)} GB`
+    if (bytes >= 1e6) return `${format(bytes / 1e6)} MB`
+    if (bytes >= 1e3) return `${format(bytes / 1e3)} kB`
+    return `${bytes} B`
+}
+
 export function makeFullDownloadDescription(
-    numRows: number | undefined,
-    {
-        hasCompleteDatasetSibling = false,
-    }: { hasCompleteDatasetSibling?: boolean } = {}
+    numRows: number | undefined
 ): string {
-    // "for this view" only makes sense to say when a complete-dataset download
-    // (covering every view) sits alongside this one and needs distinguishing
-    // from it -- on a page without one (e.g. non-MDIM charts, or the chart
-    // modal's own download options), there's only one view, so the phrase
-    // would just be confusing.
-    const viewSnippet = hasCompleteDatasetSibling ? " for this view" : ""
-    return `Includes all entities and time points${viewSnippet}${makeNumberOfRowsSnippet(
-        numRows
-    )}`
+    return `Includes all data for this chart${makeNumberOfRowsSnippet(numRows)}`
 }
 
 export function makeCompleteDatasetDescription({
     rowCount,
     indicatorCount,
+    sizeBytes,
 }: {
     rowCount: number | undefined
     indicatorCount: number | undefined
+    sizeBytes: number | undefined
 }): string {
-    const rowsSnippet = makeNumberOfRowsSnippet(rowCount)
-    if (indicatorCount === undefined) {
-        return `Includes all dimension combinations of this dataset, not just the current view${rowsSnippet}`
-    }
-    const indicatorWord = indicatorCount === 1 ? "indicator" : "indicators"
-    return `Includes all ${indicatorCount} ${indicatorWord} and every dimension combination${rowsSnippet}, not just the current view`
+    const details = [
+        indicatorCount !== undefined
+            ? `${formatValue(indicatorCount, { numDecimalPlaces: 0 })} ${
+                  indicatorCount === 1 ? "indicator" : "indicators"
+              }`
+            : undefined,
+        rowCount !== undefined && rowCount > 0
+            ? `${formatValue(rowCount, { numDecimalPlaces: 0 })} rows`
+            : undefined,
+        sizeBytes !== undefined ? formatFileSize(sizeBytes) : undefined,
+    ].filter((snippet) => snippet !== undefined)
+    const detailsSnippet = details.length ? ` (${details.join(", ")})` : ""
+    return `Includes all data in this chart as well as related indicators${detailsSnippet}`
 }
 
 export function makeFilteredDownloadDescription({
@@ -98,7 +105,7 @@ export function makeFilteredDownloadDescription({
     visibleIn?: string
     numRows: number | undefined
 }): string {
-    return `Includes only the entities and time points currently visible in the ${visibleIn}${makeNumberOfRowsSnippet(
+    return `Includes only the data currently visible in the ${visibleIn}${makeNumberOfRowsSnippet(
         numRows
     )}`
 }

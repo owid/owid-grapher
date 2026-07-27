@@ -27,7 +27,6 @@ export function MultiDimDataPage({
     configObj,
     initialViewData,
     initialViewDimensions,
-    tagToSlugMap,
     faqEntries,
     primaryTopic,
     relatedResearchCandidates,
@@ -54,7 +53,6 @@ export function MultiDimDataPage({
         primaryTopic,
         relatedResearchCandidates,
         imageMetadata,
-        tagToSlugMap,
         isPreviewing,
     }
     const imageUrl: string = urljoin(
@@ -143,7 +141,6 @@ export function MultiDimDataPage({
                                     relatedResearchCandidates={
                                         relatedResearchCandidates
                                     }
-                                    tagToSlugMap={tagToSlugMap}
                                     imageMetadata={imageMetadata}
                                     archiveContext={archiveContext}
                                 />

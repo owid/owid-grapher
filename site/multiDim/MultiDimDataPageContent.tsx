@@ -4,8 +4,7 @@ import { unstable_batchedUpdates } from "react-dom"
 import { useSearchParams } from "react-router-dom-v5-compat"
 import * as Sentry from "@sentry/react"
 import { useIsClient } from "usehooks-ts"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faDownload } from "@fortawesome/free-solid-svg-icons"
+import { DownloadIconComplete } from "@ourworldindata/components"
 import {
     Grapher,
     GrapherState,
@@ -35,7 +34,6 @@ import {
     PrimaryTopic,
 } from "@ourworldindata/types"
 import AboutThisData from "../AboutThisData.js"
-import TopicTags from "../TopicTags.js"
 import MetadataSection from "../MetadataSection.js"
 import DownloadSection from "../DownloadSection.js"
 import GrapherImage from "../GrapherImage.js"
@@ -68,11 +66,30 @@ const useTitleFragments = (config: MultiDimDataPageConfig) => {
     )
 }
 
+// Scroll link to the Download section, in the design Marwa proposed for
+// explorer/mdim headers. Rendered twice: in the header settings row (desktop)
+// and below the chart (mobile) -- CSS shows exactly one of the two.
+function DownloadTheDataLink({
+    placement,
+}: {
+    placement: "header" | "mobile"
+}) {
+    return (
+        <a
+            className={`download-the-data-link download-the-data-link--${placement}`}
+            href="#download"
+            data-track-note={`datapage_download_the_data_link_${placement}`}
+        >
+            <DownloadIconComplete color="currentColor" />
+            Download the data
+        </a>
+    )
+}
+
 export type MultiDimDataPageContentProps = {
     canonicalUrl: string
     slug: string | null
     config: MultiDimDataPageConfig
-    tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic
     relatedResearchCandidates: DataPageRelatedResearch[]
@@ -104,7 +121,6 @@ export function DataPageContent({
     faqEntries,
     primaryTopic,
     relatedResearchCandidates,
-    tagToSlugMap,
     imageMetadata,
     archiveContext,
     initialViewData,
@@ -388,8 +404,6 @@ export function DataPageContent({
         }
     }, [bounds])
 
-    const hasTopicTags = !!config.config.topicTags?.length
-
     const relatedResearch = useMemo(
         () =>
             processRelatedResearch(
@@ -476,13 +490,6 @@ export function DataPageContent({
                                 {titleFragments}
                             </div>
                         </div>
-                        {hasTopicTags && tagToSlugMap && (
-                            <TopicTags
-                                className="header__right col-start-10 span-cols-4 col-sm-start-2 span-sm-cols-12"
-                                topicTagsLinks={config.config.topicTags ?? []}
-                                tagToSlugMap={tagToSlugMap}
-                            />
-                        )}
                         <div className="settings-row__wrapper col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-12">
                             <MultiDimSettingsPanel
                                 className="settings-row__panel"
@@ -491,15 +498,12 @@ export function DataPageContent({
                                 onChange={handleSettingsChange}
                                 disabled={isLoadingView}
                             />
+                            {/* On mobile a second instance renders below the
+                                chart instead -- offering the download before
+                                the user has even seen the data makes less
+                                sense there. Visibility is toggled in CSS. */}
                             {downloadPackage && (
-                                <a
-                                    className="header__download-link"
-                                    href="#download"
-                                    data-track-note="datapage_header_download_link"
-                                >
-                                    <FontAwesomeIcon icon={faDownload} />
-                                    Download complete dataset
-                                </a>
+                                <DownloadTheDataLink placement="header" />
                             )}
                         </div>
                     </div>
@@ -537,6 +541,9 @@ export function DataPageContent({
                                 </figure>
                             )}
                         </div>
+                        {downloadPackage && (
+                            <DownloadTheDataLink placement="mobile" />
+                        )}
                         {varDatapageData && (
                             <AboutThisData
                                 datapageData={varDatapageData}
@@ -587,7 +594,6 @@ export function MultiDimDataPageContent({
     faqEntries,
     primaryTopic,
     relatedResearchCandidates,
-    tagToSlugMap,
     imageMetadata,
     archiveContext,
     initialViewData,
@@ -610,7 +616,6 @@ export function MultiDimDataPageContent({
             faqEntries={faqEntries}
             primaryTopic={primaryTopic}
             relatedResearchCandidates={relatedResearchCandidates}
-            tagToSlugMap={tagToSlugMap}
             imageMetadata={imageMetadata}
             archiveContext={archiveContext}
             initialViewData={initialViewData}
