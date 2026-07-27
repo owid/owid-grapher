@@ -1953,6 +1953,52 @@ describe("ETL config upsert by config UUID", { timeout: 15000 }, () => {
         expect(response.status).toBe(400)
     })
 
+    it("rejects a push whose catalogPath doesn't match the chart's existing one", async () => {
+        const chartConfigId = uuidv7()
+        const first = await env.request({
+            method: "PUT",
+            path: `/charts/by-config/${chartConfigId}/etlConfig?catalogPath=grapher/first/latest/first%23chart`,
+            body: JSON.stringify(testEtlConfig),
+        })
+        expect(first.success).toBe(true)
+
+        const response = await rawRequest({
+            method: "PUT",
+            path: `/charts/by-config/${chartConfigId}/etlConfig?catalogPath=grapher/second/latest/second%23chart`,
+            body: JSON.stringify({
+                ...testEtlConfig,
+                subtitle: "Should not be written",
+            }),
+        })
+        expect(response.status).toBe(409)
+
+        const fullConfig = await env.fetchJson(
+            `/charts/${first.chartId}.config.json`
+        )
+        expect(fullConfig.subtitle).toBeUndefined()
+    })
+
+    it("rejects assigning a catalogPath that already belongs to a different chart", async () => {
+        const sharedCatalogPath = "grapher/shared/latest/shared%23chart"
+
+        const first = await env.request({
+            method: "PUT",
+            path: `/charts/by-config/${uuidv7()}/etlConfig?catalogPath=${sharedCatalogPath}`,
+            body: JSON.stringify(testEtlConfig),
+        })
+        expect(first.success).toBe(true)
+
+        const response = await rawRequest({
+            method: "PUT",
+            path: `/charts/by-config/${uuidv7()}/etlConfig?catalogPath=${sharedCatalogPath}`,
+            body: JSON.stringify({
+                ...testEtlConfig,
+                slug: "another-etl-chart",
+            }),
+        })
+        expect(response.status).toBe(409)
+    })
+
     it("creates a chart with a caller-supplied config UUID via POST /charts", async () => {
         const chartConfigId = uuidv7()
         const response = await env.request({

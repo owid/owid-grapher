@@ -1129,13 +1129,13 @@ async function upsertEtlConfigForChart(
     const row = await db.knexRawFirst<
         Pick<
             DbPlainChart,
-            "configId" | "configIdETL" | "isInheritanceEnabled"
+            "configId" | "configIdETL" | "isInheritanceEnabled" | "catalogPath"
         > &
             Pick<DbRawChartConfig, "patch" | "full">
     >(
         trx,
         `-- sql
-            SELECT c.configId, c.configIdETL, c.isInheritanceEnabled, cc.patch, cc.full
+            SELECT c.configId, c.configIdETL, c.isInheritanceEnabled, c.catalogPath, cc.patch, cc.full
             FROM charts c
             JOIN chart_configs cc ON cc.id = c.configId
             WHERE c.id = ?
@@ -1145,6 +1145,41 @@ async function upsertEtlConfigForChart(
 
     if (!row) {
         throw new JsonError(`Chart with id ${chartId} not found`, 404)
+    }
+
+    // Guard against pushing ETL content to the wrong chart. A chart's catalog
+    // path is its stable ETL identity; if the incoming push carries a
+    // different one than we've already recorded, that almost always means the
+    // config UUID used to address this chart is stale or wrong on the ETL
+    // side. Refuse rather than silently stamping unrelated content onto it —
+    // and while `charts.catalogPath` has a unique DB index, checking here
+    // first turns a raw duplicate-key failure into a clear, actionable error
+    // before any other writes happen. A chart with no catalog path yet is
+    // free to adopt one for the first time.
+    if (catalogPath && row.catalogPath !== catalogPath) {
+        if (row.catalogPath) {
+            throw new JsonError(
+                `Chart ${chartId} already belongs to catalog path '${row.catalogPath}'; ` +
+                    `refusing to overwrite it with '${catalogPath}'. If this chart's ` +
+                    `identity is stale or wrong, fix it on the ETL side rather than ` +
+                    `pushing over it.`,
+                409
+            )
+        }
+        const conflictingChart = await db.knexRawFirst<
+            Pick<DbPlainChart, "id">
+        >(
+            trx,
+            `-- sql SELECT id FROM charts WHERE catalogPath = ? AND id != ?`,
+            [catalogPath, chartId]
+        )
+        if (conflictingChart) {
+            throw new JsonError(
+                `Catalog path '${catalogPath}' is already used by chart ${conflictingChart.id}; ` +
+                    `refusing to assign it to chart ${chartId} too.`,
+                409
+            )
+        }
     }
 
     const existingPatch = parseChartConfig(row.patch)
