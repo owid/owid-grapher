@@ -104,20 +104,25 @@ async function searchSingleForHitsWithClosestMatches<T>(
     )
         return primary
 
-    // Algolia ranks relaxed hits by number of matched words, so the hits that
-    // matched as many words as the best hit are a prefix of the page we
-    // fetched: keeping only them cuts the list where match quality drops.
+    // Algolia ranks relaxed hits by how many query words they matched, so the
+    // best-matching hits come first. Keep that leading run and drop everything
+    // after it, which is where match quality falls off.
+    //
+    // Example — "child mortality forecast" has no exact results. The relaxed
+    // search reports 180 hits; of the 9 on the page we fetched, the first 5
+    // matched 2 of the 3 words ("child mortality") and the rest matched only 1.
+    // So topWords = 2 and tier = those 5 hits.
     const tier = relaxed.hits.filter((hit) => getWords(hit) === topWords)
 
-    // Closest matches are returned as one complete, non-paginated page: the
-    // counts below describe the trimmed tier (nbHits) and say there is nothing
-    // after it (nbPages: 1, page: 0).
+    // Report the tier as one complete page — in the example above: nbHits: 5,
+    // nbPages: 1, page: 0, i.e. "5 results, nothing after them".
     //
-    // Reporting the untrimmed relaxed.nbHits instead would break the UI: the
-    // pagination hooks ask for another page while fewer items are loaded than
-    // nbHits, but any follow-up request carries page/offset > 0, which the
-    // guard above treats as "not the first page" and so returns the original
-    // empty exact result — a "load more" button that can never load anything.
+    // Passing Algolia's 180 through as nbHits instead would give the user a
+    // "load more" button that can never load anything: the pagination hooks
+    // would keep asking for the next page (5 of 180 loaded), but every
+    // follow-up request has page/offset > 0, which the early return at the top
+    // of this function treats as "not the first page" — so it would re-run the
+    // exact search that already came back empty.
     return {
         ...relaxed,
         hits: tier,
