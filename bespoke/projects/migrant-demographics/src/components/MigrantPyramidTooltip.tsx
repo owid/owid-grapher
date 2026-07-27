@@ -32,10 +32,13 @@ export function MigrantPyramidTooltip({
     /** Pinned to the bottom of the viewport on touch devices */
     isPinned: boolean
 }): React.ReactElement {
-    const formatCell = (value: unknown): string =>
-        mode === "share"
-            ? formatTooltipShare(value as number)
-            : formatTooltipCount(value as number)
+    // `TooltipTable` hands cells over untyped; every row here supplies a number
+    const formatCell = (value: unknown): string => {
+        if (typeof value !== "number") return ""
+        return mode === "share"
+            ? formatTooltipShare(value)
+            : formatTooltipCount(value)
+    }
 
     // One column per population; the header row only appears when comparing
     const populations = view.natives

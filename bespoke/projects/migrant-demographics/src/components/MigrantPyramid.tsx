@@ -21,7 +21,7 @@ import { MigrantPyramidTooltip } from "./MigrantPyramidTooltip.js"
 
 export interface SexHeaderLabel {
     name: string
-    /** Grayed-out share annotation, e.g. "(48% of immigrants)" */
+    /** Grayed-out share of all immigrants, e.g. "(48%)" */
     annotation?: string
 }
 
@@ -98,8 +98,13 @@ function MigrantPyramidContent({
     const innerWidth = width - margin.left - margin.right
     const innerHeight = height - margin.top - margin.bottom
 
-    const centerGap =
-        maxTextWidth(ageBands, fonts.ageBandLabel) + 2 * CENTER_GAP_PADDING
+    // Text measurement is comparatively costly, and neither input changes
+    // when the pointer moves or the year does
+    const centerGap = useMemo(
+        () =>
+            maxTextWidth(ageBands, fonts.ageBandLabel) + 2 * CENTER_GAP_PADDING,
+        [ageBands, fonts.ageBandLabel]
+    )
     const halfWidth = Math.max((innerWidth - centerGap) / 2, 0)
     const centerX = margin.left + halfWidth + centerGap / 2
 
