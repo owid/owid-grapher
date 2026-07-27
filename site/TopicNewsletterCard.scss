@@ -60,6 +60,39 @@
 // section, at that content's width. Used by both variants of the section.
 .topic-newsletter-card--about-this-data {
     margin-top: 32px;
+
+    // This slot is wide, so the copy and the button sit side by side: text
+    // block on the left, button on the right. Only from md up — at md and
+    // below the section is 410-520px wide, which would leave the copy about
+    // 200px and three lines next to the button, so there the card keeps the
+    // stacked layout every other slot uses.
+    @include md-up {
+        display: grid;
+        // A max-content track keeps the button at its natural width however the
+        // copy behaves; the text block takes everything that's left.
+        grid-template-columns: minmax(0, 1fr) max-content;
+        column-gap: 32px;
+
+        .topic-newsletter-card__header {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .topic-newsletter-card__p {
+            grid-column: 1;
+            grid-row: 2;
+            // Nothing sits below the copy in this layout.
+            margin-bottom: 0;
+        }
+
+        .topic-newsletter-card__button {
+            grid-column: 2;
+            // Spanning both text rows centres the button against the text block
+            // as a whole rather than against the heading alone.
+            grid-row: 1 / span 2;
+            align-self: center;
+        }
+    }
 }
 
 // To the right of the (roughly two-thirds width) indicator metadata box on
