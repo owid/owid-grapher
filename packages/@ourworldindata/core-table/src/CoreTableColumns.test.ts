@@ -73,18 +73,36 @@ describe(ColumnTypeNames.Day, () => {
 describe(ColumnTypeNames.Week, () => {
     const col = new ColumnTypeMap.Week(new OwidTable(), { slug: "test" })
 
-    it("formats days-since-epoch as weeks", () => {
-        // day 0 = EPOCH_DATE = 2020-01-21, a Tuesday in ISO week 4 of 2020,
-        // which starts on Monday 2020-01-20
-        expect(col.formatValue(0)).toEqual("W4 2020")
+    it("formats a week as 'Week of <week-start Monday>'", () => {
+        // day 0 = EPOCH_DATE = 2020-01-21, a Tuesday in the ISO week
+        // that starts on Monday 2020-01-20
+        expect(col.formatValue(0)).toEqual("Week of Jan 20, 2020")
+        // CSV keeps the machine-readable ISO week
         expect(col.formatForCsv(0)).toEqual("2020-W04")
     })
 
-    it("formats weeks across year boundaries with the ISO week year", () => {
-        // day -22 = Monday 2019-12-30, ISO week 1 of 2020
-        expect(col.formatValue(-22)).toEqual("W1 2020")
-        // day -20 = 2020-01-01 falls into the same week starting in 2019
-        expect(col.formatValue(-20)).toEqual("W1 2020")
+    it("anchors 'Week of' on the Monday across a year boundary", () => {
+        // day -22 = Monday 2019-12-30 (ISO week 1 of 2020)
+        expect(col.formatValue(-22)).toEqual("Week of Dec 30, 2019")
+        // day -20 = 2020-01-01 falls into the same week
+        expect(col.formatValue(-20)).toEqual("Week of Dec 30, 2019")
+    })
+
+    it("formats a range as start-week Monday to end-week Sunday", () => {
+        const day = (iso: string): number =>
+            convertDateToDaysSinceEpoch(dayjs.utc(iso))
+        // 2026-06-03 (Wed) → week starts Mon 2026-06-01
+        // 2026-07-08 (Wed) → week ends Sun 2026-07-12
+        expect(
+            col.formatTimeRange(day("2026-06-03"), day("2026-07-08"))
+        ).toEqual("Jun 1, 2026 to Jul 12, 2026")
+    })
+
+    it("formats the short timeline label as the plain week-start date", () => {
+        const day = (iso: string): number =>
+            convertDateToDaysSinceEpoch(dayjs.utc(iso))
+        // 2026-06-03 (Wed) → week starts Mon 2026-06-01, no "Week of" prefix
+        expect(col.formatTimeShort(day("2026-06-03"))).toEqual("Jun 1, 2026")
     })
 })
 
