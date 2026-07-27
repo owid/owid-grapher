@@ -203,8 +203,7 @@ function CaptionedPyramidVariant({
             ? chartSubtitle(country, pyramidData.migrantsTotal.total)
             : undefined)
 
-    // The outline is absent for entities without total-population data, even
-    // when the comparison is switched on
+    // The outline only appears once the comparison is switched on
     const isShowingNatives = !!view?.natives
 
     return (
@@ -276,7 +275,7 @@ function CaptionedPyramidVariant({
                 </div>
                 <ChartFooter
                     source={data.source}
-                    note="Immigrants are people living in a country or area other than the one where they were born. Native-born residents are calculated as the total resident population minus the international migrant stock."
+                    note="Immigrants are people living in a country other than the one they were born in. Native-born residents are the total resident population minus the international migrant stock. The age and sex breakdown mostly comes from national censuses. For countries with only one census since 1990, that single profile is carried across all years and scaled to population totals."
                 />
             </Frame>
         </>

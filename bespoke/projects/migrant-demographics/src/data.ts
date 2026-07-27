@@ -2,7 +2,6 @@ import { QueryClient, useQuery } from "@tanstack/react-query"
 
 import { fetchJson } from "@ourworldindata/utils"
 
-import { toDisplayName } from "./entityNames.js"
 import {
     PopulationTotals,
     PyramidData,
@@ -27,60 +26,43 @@ export const useMigrantDemographics = () =>
         staleTime: Infinity, // The data file is immutable within a session
     })
 
-interface MigrantEntity {
-    name: string
-    unName: string
-    code: number
-    isAggregate: boolean
-    data: Record<string, RawYearRecord>
-}
-
 export class MigrantDemographics {
     readonly ageBands: string[]
     readonly years: number[]
     readonly source: string
     /** Stable array so consumers can use it as a memo dependency */
     readonly entityNames: string[]
-    private readonly entitiesByName: Map<string, MigrantEntity>
+    /** Entity name → year → record. Entity names are already OWID names. */
+    private readonly recordsByEntityName: Map<
+        string,
+        Record<string, RawYearRecord>
+    >
 
     constructor(raw: RawMigrantDemographics) {
         this.ageBands = raw.ageBands
         this.years = raw.years
         this.source = raw.meta.source
 
-        this.entitiesByName = new Map()
-        for (const rawEntity of raw.entities) {
-            if (!isValidEntity(rawEntity, raw.years, raw.ageBands.length)) {
+        this.recordsByEntityName = new Map()
+        for (const entity of raw.entities) {
+            if (!isValidEntity(entity, raw.years, raw.ageBands.length)) {
                 console.warn(
-                    `[migrant-demographics] Skipping entity with malformed data: ${rawEntity.name}`
+                    `[migrant-demographics] Skipping entity with malformed data: ${entity.name}`
                 )
                 continue
             }
-            const name = toDisplayName(rawEntity.name)
-            if (this.entitiesByName.has(name)) {
-                console.warn(
-                    `[migrant-demographics] Skipping duplicate entity name: ${rawEntity.name} → ${name}`
-                )
-                continue
-            }
-            this.entitiesByName.set(name, {
-                name,
-                unName: rawEntity.name,
-                code: rawEntity.code,
-                isAggregate: rawEntity.isAggregate ?? false,
-                data: rawEntity.data,
-            })
+            this.recordsByEntityName.set(entity.name, entity.data)
         }
 
-        this.entityNames = [...this.entitiesByName.keys()]
+        this.entityNames = [...this.recordsByEntityName.keys()]
     }
 
     hasEntity(name: string): boolean {
-        return this.entitiesByName.has(name)
+        return this.recordsByEntityName.has(name)
     }
 
     getPyramidData(entityName: string, year: number): PyramidData | undefined {
-        const record = this.entitiesByName.get(entityName)?.data[String(year)]
+        const record = this.recordsByEntityName.get(entityName)?.[String(year)]
         if (!record) return undefined
         return computePyramidData(record)
     }
@@ -88,37 +70,27 @@ export class MigrantDemographics {
 
 /**
  * Derive the migrant and native-born populations from a raw year record.
- * Native-born = total resident population minus migrant stock, clamped at
- * zero (a few small territories report more migrants than residents), and
- * absent entirely where the record carries no total-population data.
+ * Native-born = total resident population minus migrant stock, clamped at zero
+ * so a bar can never render backwards should the two ever disagree.
  */
 export function computePyramidData(record: RawYearRecord): PyramidData {
     const migrants = { men: record.m, women: record.f }
-    const migrantsTotal = totalsOf(migrants)
-
-    const numAgeBands = record.m.length
-    if (
-        !isBandAligned(record.pm, numAgeBands) ||
-        !isBandAligned(record.pf, numAgeBands)
-    )
-        return { migrants, migrantsTotal }
-
     const natives = {
         men: record.pm.map((p, i) => Math.max(0, p - record.m[i])),
         women: record.pf.map((p, i) => Math.max(0, p - record.f[i])),
     }
     return {
         migrants,
-        migrantsTotal,
+        migrantsTotal: totalsOf(migrants),
         natives,
         nativesTotal: totalsOf(natives),
     }
 }
 
 /**
- * Only the migrant stock is required — an entity without total-population
- * data still has a pyramid to draw, it just can't be compared with the
- * native-born population.
+ * An entity needs both a migrant stock and a total resident population in
+ * every year. Upstream excludes territories that lack UN/WPP population
+ * estimates, so this only fires if the file regresses.
  */
 function isValidEntity(
     entity: RawEntity,
@@ -131,11 +103,14 @@ function isValidEntity(
         if (!record) return false
         return (
             isBandAligned(record.m, numAgeBands) &&
-            isBandAligned(record.f, numAgeBands)
+            isBandAligned(record.f, numAgeBands) &&
+            isBandAligned(record.pm, numAgeBands) &&
+            isBandAligned(record.pf, numAgeBands)
         )
     })
 }
 
+/** Validates untrusted JSON, so the values may be absent at runtime */
 function isBandAligned(
     values: number[] | undefined,
     numAgeBands: number

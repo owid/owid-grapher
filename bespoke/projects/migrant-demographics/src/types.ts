@@ -14,17 +14,15 @@ export interface RawYearRecord {
     m: number[]
     f: number[]
     /**
-     * Total resident population by age band: men / women. Missing for
-     * territories the UN population estimates don't cover.
+     * Total resident population by age band: men / women. These are WPP
+     * interpolations, so don't read person-level precision into them.
      */
-    pm?: number[]
-    pf?: number[]
+    pm: number[]
+    pf: number[]
 }
 
 export interface RawEntity {
-    code: number
     name: string
-    isAggregate?: boolean
     data: Record<string, RawYearRecord>
 }
 
@@ -56,7 +54,6 @@ export interface PopulationTotals {
 export interface PyramidData {
     migrants: SexValues
     migrantsTotal: PopulationTotals
-    /** Only set where the entity has total-population data */
-    natives?: SexValues
-    nativesTotal?: PopulationTotals
+    natives: SexValues
+    nativesTotal: PopulationTotals
 }

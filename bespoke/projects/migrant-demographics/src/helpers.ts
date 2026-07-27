@@ -8,8 +8,8 @@ export interface PyramidView {
     /** Migrant values per age band — counts, or shares (%) of all migrants */
     migrants: SexValues
     /**
-     * Native-born shares (%) of all native-born; only set when comparing an
-     * entity that has total-population data
+     * Native-born shares (%) of all native-born; only set while the
+     * comparison is switched on
      */
     natives?: SexValues
 }
@@ -28,8 +28,7 @@ export function computePyramidView(
     if (mode === "number") return { migrants: data.migrants }
 
     const migrants = toShares(data.migrants, data.migrantsTotal.total)
-    if (!compareWithNatives || !data.natives || !data.nativesTotal)
-        return { migrants }
+    if (!compareWithNatives) return { migrants }
     return {
         migrants,
         natives: toShares(data.natives, data.nativesTotal.total),
