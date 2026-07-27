@@ -11,6 +11,7 @@ import {
 } from "@ourworldindata/components"
 import { DataPageDataV2 } from "@ourworldindata/types"
 import KeyDataTable from "./KeyDataTable.js"
+import TopicNewsletterCard from "./TopicNewsletterCard.js"
 import { getAttributionUnshortened } from "./datapageUtils.js"
 
 export default function AboutThisData({
@@ -18,11 +19,16 @@ export default function AboutThisData({
     hasFaq,
     className,
     id,
+    topicArea,
 }: {
     datapageData: DataPageDataV2
     hasFaq: boolean
     className?: string
     id?: string
+    // Passed separately rather than read off datapageData because multi-dim
+    // pages rebuild datapageData client-side on every view switch, which would
+    // drop it.
+    topicArea?: string
 }) {
     const hasDescriptionKey = !!datapageData.descriptionKey
     const attributionUnshortened = getAttributionUnshortened(datapageData)
@@ -106,6 +112,11 @@ export default function AboutThisData({
                             datapageData={datapageData}
                             attribution={attributionUnshortened}
                         />
+                        <TopicNewsletterCard
+                            pageType="chart"
+                            topicArea={topicArea}
+                            className="topic-newsletter-card--key-info"
+                        />
                     </div>
                 </>
             ) : (
@@ -116,10 +127,20 @@ export default function AboutThisData({
                     >
                         About this data
                     </h2>
-                    <div className="col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                    {/* This branch used to give the key data table the whole
+                        width remaining after the heading. It is narrowed so
+                        that the topic newsletter card lands in the same right
+                        rail it occupies in the branch above. */}
+                    <div className="col-start-4 span-cols-5 col-lg-start-4 span-lg-cols-4 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                         <KeyDataTable
                             datapageData={datapageData}
                             attribution={attributionUnshortened}
+                        />
+                    </div>
+                    <div className="about-this-data__aside span-cols-4 span-lg-cols-5 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                        <TopicNewsletterCard
+                            pageType="chart"
+                            topicArea={topicArea}
                         />
                     </div>
                 </>

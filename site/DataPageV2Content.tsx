@@ -30,6 +30,7 @@ import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { useWindowQueryParams } from "./hooks.js"
 import IndicatorMetadataBox from "./IndicatorMetadataBox.js"
 import AboutThisData from "./AboutThisData.js"
+import TopicNewsletterCard from "./TopicNewsletterCard.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
 import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
@@ -179,6 +180,7 @@ export const DataPageV2Content = ({
                                     datapageData={datapageData}
                                     hasFaq={!!faqEntries?.faqs.length}
                                     id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
+                                    topicArea={datapageData.topicArea}
                                 />
                             )}
                         </div>
@@ -190,6 +192,16 @@ export const DataPageV2Content = ({
                                 archiveContext={archiveContext}
                                 id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
                                 license={grapherConfig.license}
+                            />
+                        )}
+                        {useNewDatapageDesign && (
+                            // The metadata box only spans columns 2-10 on
+                            // md-up, so the card goes in the free right rail
+                            // beside it, without touching the box's own grid.
+                            <TopicNewsletterCard
+                                pageType="chart"
+                                topicArea={datapageData.topicArea}
+                                className="topic-newsletter-card--datapage-metadata col-start-11 span-cols-3 col-md-start-2 span-md-cols-12"
                             />
                         )}
                         {useNewDatapageDesign && (

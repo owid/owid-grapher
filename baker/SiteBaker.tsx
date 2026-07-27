@@ -656,6 +656,13 @@ export class SiteBaker {
         const tagHierarchiesByChildName =
             await db.getTagHierarchiesByChildName(knex)
 
+        // Every path in tagHierarchiesByChildName has the tag graph root
+        // stripped off, so path[0] is the top-level area whether or not the
+        // hierarchies were filtered down to areas and topics.
+        const topicAreaNamesByTagName = db.topicAreaNamesFromTagHierarchies(
+            tagHierarchiesByChildName
+        )
+
         const gdocsToBake =
             slugsToBake !== undefined
                 ? publishedGdocs.filter((gdoc) =>
@@ -720,6 +727,11 @@ export class SiteBaker {
                     tagHierarchiesByChildName
                 )
             }
+
+            publishedGdoc.topicArea = db.getTopicAreaNameForTagNames(
+                (publishedGdoc.tags ?? []).map((tag) => tag.name),
+                topicAreaNamesByTagName
+            )
 
             // this is a no-op if the gdoc doesn't have an all-chart block
             if ("loadRelatedCharts" in publishedGdoc) {

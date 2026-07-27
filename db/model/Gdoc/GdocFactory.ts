@@ -45,6 +45,8 @@ import {
     getPublishedGdocsWithTags,
     getTagHierarchiesByChildName,
     getBestBreadcrumbs,
+    getTopicAreaNameForTagNames,
+    topicAreaNamesFromTagHierarchies,
 } from "../../db.js"
 import { GdocAbout } from "./GdocAbout.js"
 import { GdocAuthor } from "./GdocAuthor.js"
@@ -230,6 +232,10 @@ export async function getGdocBaseObjectById(
                 gdoc.tags,
                 tagHierarchiesByChildName
             )
+            gdoc.topicArea = getTopicAreaNameForTagNames(
+                tags.map((tag) => tag.name),
+                topicAreaNamesFromTagHierarchies(tagHierarchiesByChildName)
+            )
         }
     }
 
@@ -340,6 +346,10 @@ export async function getPublishedGdocBaseObjectBySlug(
             gdoc.breadcrumbs = getBestBreadcrumbs(
                 gdoc.tags,
                 tagHierarchiesByChildName
+            )
+            gdoc.topicArea = getTopicAreaNameForTagNames(
+                tags.map((tag) => tag.name),
+                topicAreaNamesFromTagHierarchies(tagHierarchiesByChildName)
             )
         }
     }

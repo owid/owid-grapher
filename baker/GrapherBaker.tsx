@@ -71,10 +71,12 @@ const renderDatapageIfApplicable = async (
     {
         imageMetadataDictionary,
         archiveContextDictionary,
+        topicAreaNamesByTagName,
         forceDatapage,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
+        topicAreaNamesByTagName?: Record<string, string>
         forceDatapage?: boolean
     } = {}
 ) => {
@@ -102,6 +104,7 @@ const renderDatapageIfApplicable = async (
             pageGrapher: grapher,
             imageMetadataDictionary,
             archiveContextDictionary,
+            topicAreaNamesByTagName,
         },
         knex
     )
@@ -116,14 +119,17 @@ export const renderDataPageOrGrapherPage = async (
     {
         imageMetadataDictionary,
         archiveContextDictionary,
+        topicAreaNamesByTagName,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
+        topicAreaNamesByTagName?: Record<string, string>
     } = {}
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
         imageMetadataDictionary,
         archiveContextDictionary,
+        topicAreaNamesByTagName,
     })
     if (datapage) return datapage
     return renderGrapherPage(grapher, knex, {
@@ -143,6 +149,7 @@ export async function renderDataPageV2(
         pageGrapher,
         imageMetadataDictionary = {},
         archiveContextDictionary,
+        topicAreaNamesByTagName,
     }: {
         variableId: number
         variableMetadata: OwidVariableWithSource
@@ -151,6 +158,12 @@ export async function renderDataPageV2(
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
+        /**
+         * Tag name -> top-level topic area name, resolved once per bake. Falls
+         * back to resolving it here when a single page is rendered on its own
+         * (admin previews, the dev mock site router).
+         */
+        topicAreaNamesByTagName?: Record<string, string>
     },
     knex: db.KnexReadonlyTransaction
 ) {
@@ -220,6 +233,14 @@ export async function renderDataPageV2(
     datapageData.primaryTopic = await getPrimaryTopic(
         knex,
         datapageData.topicTagsLinks
+    )
+
+    // Topic area for the newsletter card. Uses the same "first tag wins" rule
+    // as getPrimaryTopic above; datapage tags come from variable metadata
+    // (presentation.topicTagsLinks), not chart_tags.
+    datapageData.topicArea = db.getTopicAreaNameForTagNames(
+        datapageData.topicTagsLinks ?? [],
+        topicAreaNamesByTagName ?? (await db.getTopicAreaNamesByTagName(knex))
     )
 
     let imageMetadata: Record<string, ImageMetadata> = {}
@@ -394,10 +415,12 @@ export const bakeSingleGrapherPageForArchival = async (
     knex: db.KnexReadonlyTransaction,
     {
         imageMetadataDictionary,
+        topicAreaNamesByTagName,
         archiveInfo,
         manifest,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
+        topicAreaNamesByTagName?: Record<string, string>
         archiveInfo: ArchiveMetaInformation
         manifest: GrapherArchivalManifest
     }
@@ -407,6 +430,7 @@ export const bakeSingleGrapherPageForArchival = async (
         outPathHtml,
         await renderDataPageOrGrapherPage(grapher, knex, {
             imageMetadataDictionary,
+            topicAreaNamesByTagName,
             archiveContextDictionary: {
                 [grapher.id as number]: archiveInfo,
             },
@@ -436,6 +460,7 @@ const bakeGrapherPage = async (
         await renderDataPageOrGrapherPage(grapher, knex, {
             imageMetadataDictionary: args.imageMetadataDictionary,
             archiveContextDictionary: args.archiveContextDictionary,
+            topicAreaNamesByTagName: args.topicAreaNamesByTagName,
         })
     )
 }
@@ -447,6 +472,7 @@ export interface BakeSingleGrapherChartArguments {
     slug: string
     imageMetadataDictionary: Record<string, DbEnrichedImage>
     archiveContextDictionary: Record<number, ArchiveContext | undefined>
+    topicAreaNamesByTagName: Record<string, string>
 }
 
 export const bakeSingleGrapherChart = async (
@@ -499,6 +525,9 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
     )
     const archiveContextDictionary =
         await getLatestArchivedChartPageVersionsIfEnabled(knex)
+    // Resolved once per bake rather than per page: walking the tag graph is
+    // cheap but not per-chart cheap. Precedent: baker/algolia/utils/context.ts.
+    const topicAreaNamesByTagName = await db.getTopicAreaNamesByTagName(knex)
 
     const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map((row) => ({
         id: row.id,
@@ -507,6 +536,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
         slug: row.slug,
         imageMetadataDictionary,
         archiveContextDictionary,
+        topicAreaNamesByTagName,
     }))
 
     const progressBar = new ProgressBar(

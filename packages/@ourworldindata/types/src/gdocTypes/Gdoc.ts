@@ -149,6 +149,12 @@ export interface OwidGdocBaseInterface {
     tags?: MinimalTag[] | null
     errors?: OwidGdocErrorMessage[]
     breadcrumbs?: BreadcrumbItem[] | null
+    /**
+     * Name of the single top-level topic area this page belongs to, e.g.
+     * "Population and Demographic Change". Resolved from `tags[0]` against the
+     * tag graph at bake time; undefined when the page doesn't resolve to one.
+     */
+    topicArea?: string
     markdown: string | null
 }
 

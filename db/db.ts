@@ -687,6 +687,63 @@ export const getTopicHierarchiesByChildName = (
     Record<DbPlainTag["name"], Pick<DbPlainTag, "id" | "name" | "slug">[][]>
 > => getTagHierarchiesByChildName(trx, true)
 
+/**
+ * Collapse the output of `getTagHierarchiesByChildName` into a plain
+ * `tag name -> top-level area name` lookup.
+ *
+ * "Areas" are the direct children of the tag graph root (there are ten of
+ * them, e.g. "Population and Demographic Change"). Every path returned by
+ * `getTagHierarchiesByChildName` has the root stripped off, so `path[0]` is
+ * always the area. Siblings are visited in `weight DESC, name ASC` order at
+ * every level, so `paths[0]` is the path through the highest-weight root
+ * edge — which is what we want for tags under more than one area (e.g.
+ * "Migration" is under both "Population and Demographic Change" and "Poverty
+ * and Economic Development").
+ *
+ * The result is small and serializable, so it can be handed to bake worker
+ * threads instead of recomputing the graph traversal per page.
+ */
+export function topicAreaNamesFromTagHierarchies(
+    tagHierarchiesByChildName: Record<
+        string,
+        Pick<DbPlainTag, "id" | "name" | "slug">[][]
+    >
+): Record<string, string> {
+    const areaNamesByTagName: Record<string, string> = {}
+    for (const [tagName, paths] of Object.entries(tagHierarchiesByChildName)) {
+        const areaName = paths[0]?.[0]?.name
+        if (areaName) areaNamesByTagName[tagName] = areaName
+    }
+    return areaNamesByTagName
+}
+
+export async function getTopicAreaNamesByTagName(
+    trx: KnexReadonlyTransaction
+): Promise<Record<string, string>> {
+    const hierarchies = await getTopicHierarchiesByChildName(trx)
+    return topicAreaNamesFromTagHierarchies(hierarchies)
+}
+
+/**
+ * The single top-level area a page belongs to, or undefined if it doesn't
+ * resolve to one (in which case callers should render nothing).
+ *
+ * Pages can carry several tags spanning several areas. We take the *first*
+ * tag and use its area, which matches `getPrimaryTopic` in
+ * `baker/DatapageHelpers.ts` and the `tags[0]` convention used by
+ * `ResourcePanel` and the linear-topic-page table of contents. Deliberately
+ * NOT `getBestBreadcrumbs`' longest-path rule, which optimises for a different
+ * thing (deepest clickable breadcrumb trail).
+ */
+export function getTopicAreaNameForTagNames(
+    tagNames: string[],
+    areaNamesByTagName: Record<string, string>
+): string | undefined {
+    const primaryTagName = tagNames[0]
+    if (!primaryTagName) return undefined
+    return areaNamesByTagName[primaryTagName]
+}
+
 export function getBestBreadcrumbs(
     tags: MinimalTag[],
     parentTagArraysByChildName: Record<

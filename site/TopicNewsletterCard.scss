@@ -1,0 +1,79 @@
+.topic-newsletter-card {
+    background-color: $gray-5;
+    padding: 24px;
+    border-radius: 8px;
+    align-self: start;
+}
+
+.topic-newsletter-card__header {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+
+    svg {
+        margin-right: 8px;
+        color: $blue-90;
+        height: 16px;
+        width: 16px;
+        padding: 4px;
+    }
+
+    // Nested so it wins over the margins the h4-semibold utility class ships.
+    .topic-newsletter-card__heading {
+        line-height: 24px;
+        color: $blue-90;
+        margin: 0;
+    }
+}
+
+.topic-newsletter-card .topic-newsletter-card__p {
+    color: $blue-70;
+    margin: 0 0 16px 0;
+}
+
+.topic-newsletter-card .topic-newsletter-card__button {
+    // .owid-btn is display: block, which would stretch the button across the
+    // full width of the card.
+    display: inline-block;
+}
+
+// Top of the right rail of a modular topic page, above the download button and
+// the "Related topics" aside.
+.topic-newsletter-card--topic-page-intro {
+    margin-bottom: 32px;
+
+    @include md-down {
+        margin-top: 32px;
+    }
+}
+
+// Right rail of a linear topic page, level with the intro paragraphs.
+.topic-newsletter-card--gdoc-aside {
+    margin-bottom: 24px;
+
+    @include md-down {
+        margin-top: 24px;
+    }
+}
+
+// Below the key data table in the right column of a data page.
+.topic-newsletter-card--key-info {
+    margin-top: 24px;
+}
+
+// To the right of the (roughly two-thirds width) indicator metadata box on
+// data pages in the data-page-metadata-v1 experiment. The box is pulled up over
+// the chart above it, so match its offsets to line the two tops up.
+.topic-newsletter-card--datapage-metadata {
+    margin-top: -104px;
+    margin-bottom: 48px;
+
+    @include md-down {
+        margin-top: 0;
+        margin-bottom: 32px;
+    }
+
+    @include sm-only {
+        margin-bottom: 24px;
+    }
+}
