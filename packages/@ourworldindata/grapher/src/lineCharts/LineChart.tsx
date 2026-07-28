@@ -338,6 +338,8 @@ export class LineChart
             fontWeight: this.fontWeight,
             verticalAlign: VerticalAlign.top,
             showRegionTooltip: !this.isStatic,
+            prioritizeHighlightedSeries:
+                this.hoveredLabelSeriesName === undefined,
         })
     }
 

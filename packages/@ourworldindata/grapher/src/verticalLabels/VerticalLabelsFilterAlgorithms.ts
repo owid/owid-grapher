@@ -18,8 +18,9 @@ import { Emphasis } from "../interaction/Emphasis.js"
  */
 export function findImportantSeriesThatFitIntoTheAvailableSpace(
     seriesSortedByImportance: PlacedLabelSeries[],
-    availableHeight: number
-) {
+    availableHeight: number,
+    prioritizeHighlightedSeries = true
+): PlacedLabelSeries[] {
     let context: VerticalLabelsFilterAlgorithmContext = {
         candidates: new Set(seriesSortedByImportance),
         availableHeight,
@@ -27,10 +28,13 @@ export function findImportantSeriesThatFitIntoTheAvailableSpace(
         keepSeriesHeight: 0,
     }
 
-    const [highlightedCandidates, nonHighlightedCandidates] = _.partition(
-        seriesSortedByImportance,
-        (series) => series.emphasis === Emphasis.Highlighted
-    )
+    const [highlightedCandidates, nonHighlightedCandidates] =
+        prioritizeHighlightedSeries
+            ? _.partition(
+                  seriesSortedByImportance,
+                  (series) => series.emphasis === Emphasis.Highlighted
+              )
+            : [[], seriesSortedByImportance]
 
     const importanceScore = new Map(
         seriesSortedByImportance.map((series, index) => [
@@ -73,7 +77,8 @@ export function findImportantSeriesThatFitIntoTheAvailableSpace(
  */
 export function findSeriesThatFitIntoTheAvailableSpace(
     series: PlacedLabelSeries[],
-    availableHeight: number
+    availableHeight: number,
+    prioritizeHighlightedSeries = true
 ): PlacedLabelSeries[] {
     let context: VerticalLabelsFilterAlgorithmContext = {
         candidates: new Set(series),
@@ -82,10 +87,13 @@ export function findSeriesThatFitIntoTheAvailableSpace(
         keepSeriesHeight: 0,
     }
 
-    const [highlightedCandidates, nonHighlightedCandidates] = _.partition(
-        series,
-        (series) => series.emphasis === Emphasis.Highlighted
-    )
+    const [highlightedCandidates, nonHighlightedCandidates] =
+        prioritizeHighlightedSeries
+            ? _.partition(
+                  series,
+                  (series) => series.emphasis === Emphasis.Highlighted
+              )
+            : [[], series]
 
     // highlighted series have priority
     context = pickAsManyAsPossibleWithRetry({

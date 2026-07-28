@@ -39,6 +39,7 @@ export interface VerticalLabelsStateOptions {
     textAnchor?: "start" | "end"
     showRegionTooltip?: boolean
     seriesNamesSortedByImportance?: SeriesName[]
+    prioritizeHighlightedSeries?: boolean
 }
 
 /**
@@ -56,6 +57,7 @@ export class VerticalLabelsState {
         verticalAlign: VerticalAlign.middle,
         textAnchor: "start",
         showRegionTooltip: true,
+        prioritizeHighlightedSeries: true,
     } as const satisfies Partial<VerticalLabelsStateOptions>
 
     constructor(series: LabelSeries[], options: VerticalLabelsStateOptions) {
@@ -313,6 +315,7 @@ export class VerticalLabelsState {
 
     @computed get visiblePlacedSeries(): PlacedLabelSeries[] {
         const { initialPlacedSeries, seriesSortedByImportance, legendY } = this
+        const { prioritizeHighlightedSeries } = this.options
         const availableHeight = Math.abs(legendY[1] - legendY[0])
         const totalHeight = this.computeHeight(initialPlacedSeries)
 
@@ -323,14 +326,16 @@ export class VerticalLabelsState {
         if (seriesSortedByImportance) {
             return findImportantSeriesThatFitIntoTheAvailableSpace(
                 seriesSortedByImportance,
-                availableHeight
+                availableHeight,
+                prioritizeHighlightedSeries
             )
         }
 
         // otherwise use the default filtering
         return findSeriesThatFitIntoTheAvailableSpace(
             initialPlacedSeries,
-            availableHeight
+            availableHeight,
+            prioritizeHighlightedSeries
         )
     }
 
