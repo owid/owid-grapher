@@ -9,12 +9,9 @@ import { OwidSocials } from "./OwidSocials.js"
 export const NewsletterSignupBlock = ({
     context,
     className,
-    topicArea,
 }: {
     context: NewsletterSubscriptionContext
     className?: string
-    /** Only used in the Latest context — see NewsletterSubscriptionForm. */
-    topicArea?: string
 }) => {
     const isLatest = context === NewsletterSubscriptionContext.Latest
     return (
@@ -26,10 +23,7 @@ export const NewsletterSignupBlock = ({
             )}
         >
             <NewsletterSubscriptionHeader />
-            <NewsletterSubscriptionForm
-                context={context}
-                topicArea={topicArea}
-            />
+            <NewsletterSubscriptionForm context={context} />
             <OwidSocials context={context} />
         </div>
     )

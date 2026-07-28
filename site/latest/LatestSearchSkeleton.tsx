@@ -1,9 +1,5 @@
-import { NewsletterSignupBlock } from "../NewsletterSignupBlock.js"
-import { NewsletterSubscriptionContext } from "../newsletter.js"
-import {
-    LATEST_HIT_GRID_CLASSES,
-    LATEST_NEWSLETTER_GRID_CLASSES,
-} from "./latestUtils.js"
+import { LatestNewsletterSlot } from "./LatestNewsletterSlot.js"
+import { LATEST_HIT_GRID_CLASSES } from "./latestUtils.js"
 
 const LatestHitSkeleton = () => (
     <div
@@ -26,19 +22,15 @@ const LatestHitSkeleton = () => (
     </div>
 )
 
-// The signup block is rendered for real (not as a pulsing placeholder) so it
+// The newsletter slot is rendered for real (not as a pulsing placeholder) so it
 // doesn't change identity between the skeleton and the loaded feed. `topicArea`
 // is threaded through for the same reason: with a topic filter in the URL the
-// card must already show that area while the first query is in flight.
+// slot must already show that area's card while the first query is in flight.
 export const LatestSearchSkeleton = ({ topicArea }: { topicArea?: string }) => (
     <>
         <LatestHitSkeleton />
         <LatestHitSkeleton />
-        <NewsletterSignupBlock
-            className={LATEST_NEWSLETTER_GRID_CLASSES}
-            context={NewsletterSubscriptionContext.Latest}
-            topicArea={topicArea}
-        />
+        <LatestNewsletterSlot topicArea={topicArea} />
         <LatestHitSkeleton />
     </>
 )

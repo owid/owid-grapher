@@ -61,8 +61,7 @@
 }
 
 // The /latest sidebar card. Same form, denser presentation: each option shows
-// its cadence inline next to the option name, and the followed topic area is
-// surfaced as a pill when the feed is filtered.
+// its cadence inline next to the option name.
 .newsletter-signup--latest {
     // The avatar sits to the left of the heading, which wraps onto two lines.
     // The default block puts the heading on its own full-width row below the
@@ -74,14 +73,6 @@
 
     .newsletter-subscription-form__label-frequency {
         display: inline;
-    }
-
-    .newsletter-subscription-form__followed-topic {
-        display: inline-block;
-        margin-top: 8px;
-        padding: 2px 8px;
-        background-color: $blue-20;
-        color: $blue-90;
     }
 
     .owid-socials__heading {

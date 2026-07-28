@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import * as React from "react"
 import cx from "clsx"
 import { faTimes, faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
@@ -91,16 +91,9 @@ export const NewsletterSubscriptionHeader = ({
 export const NewsletterSubscriptionForm = ({
     context,
     className = "",
-    topicArea,
 }: {
     context: NewsletterSubscriptionContext
     className?: string
-    /**
-     * Only read in the Latest context: the top-level topic area the visitor has
-     * filtered /latest to, if any. Surfaces the area name in the "Follow Topics"
-     * row and pre-checks it.
-     */
-    topicArea?: string
 }) => {
     // On /latest the second row is presented as "Follow Topics" instead of the
     // Data Insights newsletter, and only The OWID Brief is on by default.
@@ -124,9 +117,7 @@ export const NewsletterSubscriptionForm = ({
 
     // UI-only state for the inert "Follow Topics" control on /latest. It is
     // NOT part of `frequencies`, so it never contributes to the POST.
-    const [followsTopics, setFollowsTopics] = useState<boolean>(
-        () => isLatest && !!topicArea
-    )
+    const [followsTopics, setFollowsTopics] = useState(false)
 
     // Unchanged rule: at least one real interest group must be selected. We
     // don't depend on how Mailchimp treats a group-less POST (it may create a
@@ -136,15 +127,6 @@ export const NewsletterSubscriptionForm = ({
     // the honest outcome, and better than signing someone up to a list they
     // did not ask for.
     const isSubmittable = frequencies.length !== 0
-
-    // Filtering /latest to a topic area is a statement of interest in it, so
-    // pre-tick "Follow Topics". Deliberately one-way: we never untick it again
-    // (and never touch The OWID Brief), so a deliberate choice by the visitor
-    // survives later filter changes.
-    useEffect(() => {
-        if (!isLatest || !topicArea) return
-        setFollowsTopics(true)
-    }, [isLatest, topicArea])
 
     const secondGroup = isLatest
         ? {
@@ -269,11 +251,6 @@ export const NewsletterSubscriptionForm = ({
                     <div className="newsletter-subscription-form__label-text">
                         {secondGroup.text}
                     </div>
-                    {isLatest && topicArea && (
-                        <div className="newsletter-subscription-form__followed-topic note-12-medium">
-                            Following {topicArea}
-                        </div>
-                    )}
                 </label>
                 {/* No example issue exists for "Follow Topics", so the link is
                     only meaningful for the Data Insights framing. */}

@@ -16,14 +16,12 @@ import {
     urlNeedsSanitization,
 } from "./latestState.js"
 import { LatestHit } from "./LatestHit.js"
-import { LATEST_NEWSLETTER_GRID_CLASSES } from "./latestUtils.js"
+import { LatestNewsletterSlot } from "./LatestNewsletterSlot.js"
 import { LatestSearchSkeleton } from "./LatestSearchSkeleton.js"
 import { LatestContext } from "./LatestContext.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
-import { NewsletterSignupBlock } from "../NewsletterSignupBlock.js"
 import { SearchHorizontalDivider } from "../search/SearchHorizontalDivider.js"
 import { SearchNoResults } from "../search/SearchNoResults.js"
-import { NewsletterSubscriptionContext } from "../newsletter.js"
 import { PoweredBy } from "react-instantsearch"
 
 const analytics = new SiteAnalytics()
@@ -178,12 +176,9 @@ export const LatestSearch = ({
                     />
                     {/* Someone who has filtered the feed down to nothing is
                         exactly the person who might want to subscribe, so keep
-                        the signup block rather than hiding it with the feed. */}
-                    <NewsletterSignupBlock
-                        className={LATEST_NEWSLETTER_GRID_CLASSES}
-                        context={NewsletterSubscriptionContext.Latest}
-                        topicArea={topics[0]}
-                    />
+                        the newsletter slot rather than hiding it with the
+                        feed. */}
+                    <LatestNewsletterSlot topicArea={topics[0]} />
                 </>
             ) : (
                 <>
@@ -196,14 +191,10 @@ export const LatestSearch = ({
                             shouldAutoExpand={hit.slug === autoExpandedSlug}
                         />
                     ))}
-                    {/* Always render the signup block — with 0 or 1 hits it
+                    {/* Always render the newsletter slot — with 0 or 1 hits it
                         falls below whatever cards exist, which is the
                         intended layout. */}
-                    <NewsletterSignupBlock
-                        className={LATEST_NEWSLETTER_GRID_CLASSES}
-                        context={NewsletterSubscriptionContext.Latest}
-                        topicArea={topics[0]}
-                    />
+                    <LatestNewsletterSlot topicArea={topics[0]} />
                     {hits.slice(2).map((hit, i) => (
                         <LatestHit
                             key={hit.objectID}

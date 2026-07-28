@@ -76,6 +76,12 @@ export const LATEST_HIT_GRID_CLASSES =
 export const LATEST_NEWSLETTER_GRID_CLASSES =
     "latest-page__newsletter-signup col-start-11 span-cols-3 col-lg-start-10 span-lg-cols-4 span-md-cols-14 col-md-start-1"
 
+/** Same sidebar column, but for the much shorter TopicNewsletterCard that
+ * replaces the signup block once a topic area is selected — it needs no tall
+ * multi-row reservation. */
+export const LATEST_TOPIC_CARD_GRID_CLASSES =
+    "latest-page__topic-newsletter-card col-start-11 span-cols-3 col-lg-start-10 span-lg-cols-4 span-md-cols-14 col-md-start-1"
+
 /** Stable id for the announcement content heading, used by parent wrappers
  * (the feed's <article>) for aria-labelledby. */
 export const announcementContentTitleId = (slug: string) =>
