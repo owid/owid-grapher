@@ -116,13 +116,6 @@ abstract class AbstractHeader<
         return this.manager.isSmall ? 1.1 : 1.2
     }
 
-    // The annotation is sized relative to the title. Smaller charts use a
-    // larger scale factor to keep the annotation legible
-    @computed private get titleAnnotationFontScale(): number {
-        if (this.manager.isMedium) return 0.8
-        return 0.72 // per design
-    }
-
     @computed private get initialTitleFontSize(): number {
         return this.manager.isStaticAndSmall
             ? 25
@@ -137,9 +130,7 @@ abstract class AbstractHeader<
 
     @computed private get titleAnnotationFontSize(): number {
         return _.clamp(
-            roundFontSize(
-                this.titleAnnotationFontScale * this.initialTitleFontSize
-            ),
+            roundFontSize(0.72 * this.initialTitleFontSize),
             this.subtitleFontSize, // Never smaller than the subtitle
             18
         )
