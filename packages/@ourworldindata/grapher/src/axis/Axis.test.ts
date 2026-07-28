@@ -8,6 +8,7 @@ import {
     ColumnTypeNames,
 } from "@ourworldindata/types"
 import {
+    CoreColumn,
     OwidTable,
     SynthesizeFruitTable,
     SynthesizeGDPTable,
@@ -332,6 +333,138 @@ describe("manual ticks", () => {
             defaultAxis.tickLabels.map((label) => label.value)
         ).not.toContain(99)
     })
+})
+
+describe("axis height", () => {
+    const day = (date: string): number =>
+        convertDateToDaysSinceEpoch(dayjs.utc(date))
+
+    const timeColumn = (type: ColumnTypeNames, slug: string): CoreColumn =>
+        new OwidTable({ entityName: ["usa"], [slug]: [0] }, [
+            { slug, type },
+        ]).get(slug)
+
+    /**
+     * The height given by `HorizontalAxis.height` should match the height of the placed tick labels plus padding and label offset in all cases, or `minSize` if that is larger.
+     */
+    const heightFromPlacedTickLabels = (axis: HorizontalAxis): number => {
+        if (axis.hideAxis) return 0
+        const maxTickHeight = axis.tickLabels.length
+            ? Math.max(...axis.tickLabels.map((tick) => tick.height))
+            : undefined
+        const paddedTickHeight = maxTickHeight
+            ? maxTickHeight + axis.tickPadding
+            : 0
+        return Math.max(
+            paddedTickHeight + axis.labelOffset,
+            axis.config.minSize ?? 0
+        )
+    }
+
+    const cases: [string, () => HorizontalAxis][] = [
+        [
+            "a plain linear axis",
+            () => new AxisConfig({ min: 0, max: 100 }).toHorizontalAxis(),
+        ],
+        [
+            "a fractional domain, which has no whole-number start tick",
+            () => new AxisConfig({ min: 0.3, max: 0.9 }).toHorizontalAxis(),
+        ],
+        [
+            "a log axis",
+            () =>
+                new AxisConfig({
+                    min: 1,
+                    max: 10000,
+                    scaleType: ScaleType.log,
+                }).toHorizontalAxis(),
+        ],
+        [
+            "a degenerate domain, as used before any data has loaded",
+            () => new AxisConfig({}).toHorizontalAxis(),
+        ],
+        [
+            "an axis with a label",
+            () =>
+                new AxisConfig({
+                    min: 0,
+                    max: 100,
+                    label: "A rather long axis label that has to wrap",
+                }).toHorizontalAxis(),
+        ],
+        [
+            "a hidden axis with a minSize",
+            () =>
+                new AxisConfig({
+                    min: 0,
+                    max: 100,
+                    minSize: 200,
+                    hideAxis: true,
+                }).toHorizontalAxis(),
+        ],
+        [
+            "an axis with author-supplied ticks, all outside the domain",
+            () =>
+                new AxisConfig({
+                    min: 0.5,
+                    max: 10.5,
+                    ticks: [{ value: 1000, priority: 1 }],
+                }).toHorizontalAxis(),
+        ],
+        [
+            "a continuous monthly time axis",
+            () => {
+                const axis = new AxisConfig({
+                    min: day("2020-01-01"),
+                    max: day("2022-12-01"),
+                }).toHorizontalAxis()
+                axis.formatColumn = timeColumn(ColumnTypeNames.Month, "month")
+                return axis
+            },
+        ],
+        [
+            "a monthly time axis too short to span a month",
+            () => {
+                const axis = new AxisConfig({
+                    min: day("2020-01-01"),
+                    max: day("2020-01-08"),
+                }).toHorizontalAxis()
+                axis.formatColumn = timeColumn(ColumnTypeNames.Month, "month")
+                return axis
+            },
+        ],
+        [
+            "a discrete monthly band axis",
+            () => {
+                const bandValues = ["2020-01-01", "2020-04-01"].map(day)
+                const axis = new AxisConfig({
+                    min: bandValues[0],
+                    max: bandValues[1],
+                    bandValues,
+                }).toHorizontalAxis()
+                axis.formatColumn = timeColumn(ColumnTypeNames.Month, "month")
+                return axis
+            },
+        ],
+        [
+            "a discrete band axis with no bands, as used when there's no data",
+            () => {
+                const axis = new AxisConfig({
+                    bandValues: [],
+                }).toHorizontalAxis()
+                axis.formatColumn = timeColumn(ColumnTypeNames.Month, "month")
+                return axis
+            },
+        ],
+    ]
+
+    for (const [description, makeAxis] of cases) {
+        it(`matches the placed tick labels for ${description}`, () => {
+            const axis = makeAxis()
+            axis.range = [0, 800]
+            expect(axis.height).toEqual(heightFromPlacedTickLabels(axis))
+        })
+    }
 })
 
 describe("calendar-aware time ticks", () => {

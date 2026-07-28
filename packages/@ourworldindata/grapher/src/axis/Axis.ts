@@ -712,8 +712,9 @@ export class HorizontalAxis extends AbstractAxis {
 
         if (hideAxis) return 0
 
-        const maxTickHeight = _.max(this.tickLabels.map((tick) => tick.height))
-        const paddedTickHeight = maxTickHeight ? maxTickHeight + tickPadding : 0
+        const paddedTickHeight = this.hasTickLabels
+            ? this.tickFontSize + tickPadding
+            : 0
 
         return Math.max(paddedTickHeight + labelOffset, minSize)
     }
@@ -757,6 +758,24 @@ export class HorizontalAxis extends AbstractAxis {
             (t): number => t.priority,
         ])
         return _.sortedUniqBy(sortedTicks, (t) => t.value)
+    }
+
+    /**
+     * Whether the axis shows any tick labels. Mirrors the branches of
+     * `tickLabels` without placing them, so callers that only need to know
+     * whether there are labels don't pay for the layout.
+     */
+    @computed private get hasTickLabels(): boolean {
+        // A discrete time axis labels its band values and nothing else
+        if (this.calendarTickInterval !== undefined && this.config.bandValues)
+            return this.config.bandValues.length > 0
+
+        // Otherwise there is at least one tick whenever the domain is usable:
+        // `baseTicks` always keeps the domain start when it's a whole
+        // number. A degenerate (no-data) domain is neither, and falls through to computing `baseTicks`.
+        if (this.domain[0] % 1 === 0) return true
+
+        return this.baseTicks.length > 0
     }
 
     @computed get tickLabels(): TickLabelPlacement[] {
