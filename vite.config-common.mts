@@ -15,6 +15,23 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
     const isBundlemon = process.env.BUNDLEMON === "true"
     const vitePort = parseInt(process.env.VITE_PORT || "8090", 10)
 
+    // The site bundle is content-addressed: the filename changes whenever the
+    // bytes do, so a page can never silently load an older stylesheet or script
+    // than the HTML was built against (it 404s instead), and a given URL can be
+    // cached indefinitely. The filenames are resolved through .vite/manifest.json
+    // at render time (site/viteUtils.tsx), so nothing references them literally.
+    //
+    // The archive bundle has to keep stable names: the archival baker hashes
+    // those files itself on the way into the archive directory, and looks them
+    // up by name to do it (ASSET_FILES in baker/archival/ArchivalBaker.ts).
+    // The admin bundle is out of scope — it's served from dist/assets-admin by
+    // the admin server itself (adminSiteServer/appClass.tsx), so it is never
+    // stale in the way a baked asset can be.
+    const useHashedFileNames = entrypoint === ViteEntryPoint.Site
+    const outNameTemplate = useHashedFileNames
+        ? `${entrypointInfo.outName}.[hash]`
+        : entrypointInfo.outName
+
     return defineConfig({
         publicDir: false, // don't copy public folder to dist
         css: {
@@ -69,8 +86,8 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                     [entrypointInfo.outName]: entrypointInfo.entryPointFile,
                 },
                 output: {
-                    assetFileNames: `${entrypointInfo.outName}.css`,
-                    entryFileNames: `${entrypointInfo.outName}.mjs`,
+                    assetFileNames: `${outNameTemplate}.css`,
+                    entryFileNames: `${outNameTemplate}.mjs`,
                 },
             },
         },

@@ -1,14 +1,17 @@
 {
     "baseDir": "./dist/assets",
     "defaultCompression": "brotli",
+    "pathLabels": {
+        "hash": "[a-zA-Z0-9_-]+"
+    },
     "files": [
         {
-            "path": "owid.mjs",
+            "path": "owid.<hash>.mjs",
             "maxSize": "800kB",
             "maxPercentIncrease": 2
         },
         {
-            "path": "owid.css",
+            "path": "owid.<hash>.css",
             "maxSize": "61kB"
         }
     ],

@@ -183,7 +183,14 @@ export const viteAssetsForAdmin = () => viteAssets(ViteEntryPoint.Admin)
 export const viteAssetsForSite = ({
     staticAssetMap,
 }: { staticAssetMap?: AssetMap } = {}) =>
-    viteAssets(ViteEntryPoint.Site, { prodAssetMap: staticAssetMap })
+    // Archival pages load the archive bundle, so they have to be resolved
+    // through the archive build's manifest: `staticAssetMap` is keyed by the
+    // filenames in dist/assets-archive (see ASSET_FILES in ArchivalBaker), and
+    // the site build's filenames now carry a content hash, so the two no longer
+    // coincide the way they used to.
+    viteAssets(IS_ARCHIVE ? ViteEntryPoint.Archive : ViteEntryPoint.Site, {
+        prodAssetMap: staticAssetMap,
+    })
 
 export const generateEmbedSnippet = () => {
     // Make sure we're using an absolute URL here, since we don't know in what context the embed snippet is used.

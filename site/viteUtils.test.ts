@@ -71,4 +71,42 @@ describe(createTagsForManifestEntry, () => {
             '<script type="module" src="BASE/assets/owid.mjs" data-attach-owid-error-handler="true"></script>',
         ])
     })
+
+    // The site bundle's filenames carry a content hash, and nothing outside the
+    // manifest knows what it is: pages have to pick the hashed filenames up from
+    // the manifest entry, keyed by the (unhashed) entry point source path.
+    it("uses the hashed filenames from the manifest", () => {
+        const hashedManifest = {
+            "site/owid.entry.css": {
+                file: "assets/owid.DEg8Xc_1.css",
+                src: "site/owid.entry.css",
+            },
+            "site/owid.entry.ts": {
+                css: ["assets/owid.DEg8Xc_1.css"],
+                file: "assets/owid.B7uK2p-9.mjs",
+                isEntry: true,
+                src: "site/owid.entry.ts",
+            },
+        }
+
+        const assets = createTagsForManifestEntry(
+            hashedManifest,
+            "site/owid.entry.ts",
+            "BASE/"
+        )
+
+        const render = (asset: (typeof assets.forHeader)[number]) =>
+            ReactDOMServer.renderToStaticMarkup(asset)
+
+        expect(assets.forHeader.map(render)).toEqual(
+            expect.arrayContaining([
+                '<link rel="preload" href="BASE/assets/owid.DEg8Xc_1.css" as="style"/>',
+                '<link rel="stylesheet" href="BASE/assets/owid.DEg8Xc_1.css"/>',
+                '<link rel="modulepreload" href="BASE/assets/owid.B7uK2p-9.mjs"/>',
+            ])
+        )
+        expect(assets.forFooter.map(render)).toEqual([
+            '<script type="module" src="BASE/assets/owid.B7uK2p-9.mjs" data-attach-owid-error-handler="true"></script>',
+        ])
+    })
 })
