@@ -293,7 +293,7 @@ const saveNewChart = async (
     patchConfig: GrapherInterface
     fullConfig: GrapherInterface
 }> => {
-    if (providedChartConfigId) {
+    if (providedChartConfigId !== undefined) {
         if (!uuidValidate(providedChartConfigId))
             throw new JsonError(
                 `Invalid config UUID '${providedChartConfigId}'`,
