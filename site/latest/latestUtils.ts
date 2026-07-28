@@ -70,6 +70,12 @@ export const latestTypeLabelPlural = (type: LatestType): string =>
 export const LATEST_HIT_GRID_CLASSES =
     "span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1"
 
+/** Grid positioning of the newsletter signup card in the /latest sidebar.
+ * Shared so the loading skeleton, the feed and the no-results state all place
+ * it identically and it doesn't jump between states. */
+export const LATEST_NEWSLETTER_GRID_CLASSES =
+    "latest-page__newsletter-signup col-start-11 span-cols-3 col-lg-start-10 span-lg-cols-4 span-md-cols-14 col-md-start-1"
+
 /** Stable id for the announcement content heading, used by parent wrappers
  * (the feed's <article>) for aria-labelledby. */
 export const announcementContentTitleId = (slug: string) =>

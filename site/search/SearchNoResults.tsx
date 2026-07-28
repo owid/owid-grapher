@@ -9,12 +9,16 @@ export const SearchNoResults = ({
             Try searching for something else or removing some filters.
         </p>
     ),
+    // Grid placement, overridable so /latest can keep the message in the feed
+    // column and leave its sidebar free for the newsletter card.
+    className = "span-cols-12 col-start-2",
 }: {
     heading?: string
     subtitle?: React.ReactNode
+    className?: string
 } = {}) => {
     return (
-        <div className="search-no-results span-cols-12 col-start-2">
+        <div className={`search-no-results ${className}`}>
             <FontAwesomeIcon
                 className="search-no-results__icon"
                 icon={faSearch}

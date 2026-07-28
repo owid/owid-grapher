@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import * as React from "react"
 import cx from "clsx"
 import { faTimes, faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
@@ -9,6 +9,12 @@ import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { NewsletterIcon } from "./gdocs/components/NewsletterIcon.js"
 
 const analytics = new SiteAnalytics()
+
+// The only two Mailchimp interest-group ids we have. They are cadence options
+// within group category 85302 of a single audience; no per-topic-area group,
+// segment or tag exists, so nothing here can register a "follow this area".
+const DATA_INSIGHTS = "16"
+const BIWEEKLY = "2"
 
 export const NewsletterSubscription = ({
     context,
@@ -85,19 +91,59 @@ export const NewsletterSubscriptionHeader = ({
 export const NewsletterSubscriptionForm = ({
     context,
     className = "",
+    topicArea,
 }: {
     context: NewsletterSubscriptionContext
     className?: string
+    /**
+     * Only read in the Latest context: the top-level topic area the visitor has
+     * filtered /latest to, if any. Surfaces the area name in the "Follow Topics"
+     * row and pre-checks it.
+     */
+    topicArea?: string
 }) => {
-    const DATA_INSIGHTS = "16"
-    const BIWEEKLY = "2"
+    // /latest gets a reworked presentation of the same two interest groups: the
+    // second one is framed as "follow the topics you care about" rather than as
+    // the Data Insights newsletter, and only The OWID Brief is on by default.
+    const isLatest = context === NewsletterSubscriptionContext.Latest
+
     const idDataInsights = `mce-group[85302]-85302-0${
         context ? "-" + context : ""
     }`
     const idBiweekly = `mce-group[85302]-85302-1${context ? "-" + context : ""}`
 
-    const [frequencies, setFrequencies] = useState([DATA_INSIGHTS, BIWEEKLY])
+    const [frequencies, setFrequencies] = useState<string[]>(() => {
+        if (!isLatest) return [DATA_INSIGHTS, BIWEEKLY]
+        return topicArea ? [BIWEEKLY, DATA_INSIGHTS] : [BIWEEKLY]
+    })
     const isSubmittable = frequencies.length !== 0
+
+    // Filtering /latest to a topic area is a statement of interest in it, so
+    // opt the visitor into "Follow Topics". Deliberately one-way: we never
+    // uncheck it again (and never touch The OWID Brief), so a deliberate choice
+    // by the visitor survives later filter changes.
+    useEffect(() => {
+        if (!isLatest || !topicArea) return
+        setFrequencies((current) =>
+            current.includes(DATA_INSIGHTS)
+                ? current
+                : [...current, DATA_INSIGHTS]
+        )
+    }, [isLatest, topicArea])
+
+    const secondGroup = isLatest
+        ? {
+              title: "Follow Topics",
+              // TODO: static hint text for now — the actual cadence options are
+              // pending a product decision, so there is no selector yet.
+              frequency: "Pick your cadence",
+              text: "Receive updates on the topics you follow as we publish them, at your preferred frequency.",
+          }
+        : {
+              title: "Data Insights",
+              frequency: "Every few days",
+              text: "Receive our bite-sized insights on how the world is changing, every few days.",
+          }
 
     const updateFrequencies = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
@@ -166,6 +212,14 @@ export const NewsletterSubscriptionForm = ({
                 height={630}
             />
             <div className="newsletter-subscription-form__checkbox">
+                {/* On /latest this row reads "Follow Topics", but it still
+                    posts the existing DATA_INSIGHTS interest group — there is no
+                    per-topic-area group to post to, and inventing an id would
+                    silently drop the subscription. So a /latest visitor who
+                    checks "Follow Topics" is subscribed to the Data Insights
+                    cadence today; the topic area they picked is not sent to
+                    Mailchimp at all. Point this at a real per-area group once
+                    one exists. */}
                 <input
                     type="checkbox"
                     value={DATA_INSIGHTS}
@@ -176,22 +230,30 @@ export const NewsletterSubscriptionForm = ({
                 />
                 <label htmlFor={idDataInsights}>
                     <span className="newsletter-subscription-form__label-title">
-                        Data Insights
+                        {secondGroup.title}
                     </span>{" "}
                     <span className="newsletter-subscription-form__label-frequency note-12-medium">
-                        Every few days
+                        {secondGroup.frequency}
                     </span>
                     <div className="newsletter-subscription-form__label-text">
-                        Receive our bite-sized insights on how the world is
-                        changing, every few days.
+                        {secondGroup.text}
                     </div>
+                    {isLatest && topicArea && (
+                        <div className="newsletter-subscription-form__followed-topic note-12-medium">
+                            Following {topicArea}
+                        </div>
+                    )}
                 </label>
-                <a
-                    className="newsletter-subscription-form__example-link note-12-medium"
-                    href="https://us8.campaign-archive.com/?u=18058af086319ba6afad752ec&id=fdf16136e1"
-                >
-                    See example Data Insights newsletter
-                </a>
+                {/* No example issue exists for "Follow Topics", so the link is
+                    only meaningful for the Data Insights framing. */}
+                {!isLatest && (
+                    <a
+                        className="newsletter-subscription-form__example-link note-12-medium"
+                        href="https://us8.campaign-archive.com/?u=18058af086319ba6afad752ec&id=fdf16136e1"
+                    >
+                        See example Data Insights newsletter
+                    </a>
+                )}
             </div>
             {frequencies.length === 0 && (
                 <div className="newsletter-subscription-form__alert">

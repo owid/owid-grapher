@@ -16,6 +16,7 @@ import {
     urlNeedsSanitization,
 } from "./latestState.js"
 import { LatestHit } from "./LatestHit.js"
+import { LATEST_NEWSLETTER_GRID_CLASSES } from "./latestUtils.js"
 import { LatestSearchSkeleton } from "./LatestSearchSkeleton.js"
 import { LatestContext } from "./LatestContext.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
@@ -157,22 +158,33 @@ export const LatestSearch = ({
             </div>
             <hr className="latest-search__filters-divider span-cols-12 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1" />
             {isLoading ? (
-                <LatestSearchSkeleton />
+                <LatestSearchSkeleton topicArea={topics[0]} />
             ) : hits.length === 0 ? (
-                <SearchNoResults
-                    subtitle={
-                        <p className="body-3-medium">
-                            Try removing some filters or{" "}
-                            <button
-                                className="latest-search__reset-button"
-                                onClick={clearAllFilters}
-                            >
-                                reset filters
-                            </button>
-                            .
-                        </p>
-                    }
-                />
+                <>
+                    <SearchNoResults
+                        className="span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1"
+                        subtitle={
+                            <p className="body-3-medium">
+                                Try removing some filters or{" "}
+                                <button
+                                    className="latest-search__reset-button"
+                                    onClick={clearAllFilters}
+                                >
+                                    reset filters
+                                </button>
+                                .
+                            </p>
+                        }
+                    />
+                    {/* Someone who has filtered the feed down to nothing is
+                        exactly the person who might want to subscribe, so keep
+                        the signup block rather than hiding it with the feed. */}
+                    <NewsletterSignupBlock
+                        className={LATEST_NEWSLETTER_GRID_CLASSES}
+                        context={NewsletterSubscriptionContext.Latest}
+                        topicArea={topics[0]}
+                    />
+                </>
             ) : (
                 <>
                     {hits.slice(0, 2).map((hit, i) => (
@@ -188,8 +200,9 @@ export const LatestSearch = ({
                         falls below whatever cards exist, which is the
                         intended layout. */}
                     <NewsletterSignupBlock
-                        className="latest-page__newsletter-signup col-start-11 span-cols-3 col-lg-start-10 span-lg-cols-4 span-md-cols-14 col-md-start-1"
+                        className={LATEST_NEWSLETTER_GRID_CLASSES}
                         context={NewsletterSubscriptionContext.Latest}
+                        topicArea={topics[0]}
                     />
                     {hits.slice(2).map((hit, i) => (
                         <LatestHit
