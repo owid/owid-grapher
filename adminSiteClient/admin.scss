@@ -1044,6 +1044,25 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     margin-bottom: 1em;
 }
 
+.TestRegionMapsPage h2 {
+    text-align: center;
+    margin: 32px 0 24px;
+}
+
+.TestRegionMapsPage__row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.TestRegionMapsPage figure {
+    width: 48%;
+    max-width: 850px;
+    height: 600px;
+    margin: 0;
+}
+
 .TestEmbedsPage {
     figure,
     iframe {

@@ -100,6 +100,11 @@ export { getErrorMessageRelatedQuestionUrl } from "./core/relatedQuestion"
 export { MapChartState } from "./mapCharts/MapChartState"
 export { MapConfig } from "./mapCharts/MapConfig"
 export {
+    getRegionsForKey,
+    type TooltipKey,
+} from "./seriesLabel/RegionTooltipData"
+export { regionGroupLabels } from "./core/RegionGroups"
+export {
     MAP_REGION_LABELS,
     type GeoFeature,
     type Direction,
