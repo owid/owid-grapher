@@ -912,9 +912,11 @@ export async function createChart(
         forceDatapage = req.query.forceDatapage === "true"
     }
     // optional caller-supplied config UUID, e.g. chart-sync carrying a chart's
-    // identity from staging to production; validated in saveNewChart
+    // identity from staging to production
     const chartConfigId =
         (req.query.configId as string | undefined) || undefined
+    if (chartConfigId !== undefined && !uuidValidate(chartConfigId))
+        throw new JsonError(`Invalid config UUID '${chartConfigId}'`, 400)
 
     try {
         const { chartId } = await saveGrapher(trx, {
