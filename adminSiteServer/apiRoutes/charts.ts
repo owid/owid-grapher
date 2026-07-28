@@ -437,25 +437,34 @@ const updateExistingChart = async (
         : {}
     const existingFull = parseChartConfig(chartConfigIdRow.existingFull)
 
-    // Look up the chart's parent indicator (only if inheritance is enabled),
-    // resolving it from the dimensions the chart will plot *after* this save:
-    // the incoming admin patch's dimensions if it carries an override, else
-    // the chart's etlConfig, else the dimensions it already has. `config` here
-    // is the admin's patch, which for an ETL-managed chart usually has no
-    // `dimensions` at all (those live in etlConfig) — resolving the parent
-    // from `config` alone would then find no parent and silently drop the
-    // indicator's inherited fields (title, subtitle, map settings, ...).
+    // Look up the chart's parent indicator (only if inheritance is enabled).
+    // For a regular (non-ETL) chart, `dimensions` is a required key that's
+    // always retained in the admin patch (see `diffGrapherConfigs`), so an
+    // absent `config.dimensions` there is a deliberate admin choice to opt out
+    // of inheritance entirely — resolve the parent from `config` as-is. For an
+    // ETL-managed chart, the admin patch typically has no `dimensions` at all
+    // (those live in etlConfig instead), so resolve from the dimensions the
+    // chart will plot *after* this save: the admin patch's override if it has
+    // one, else the chart's etlConfig, else the dimensions it already has.
+    // Resolving from `config` alone in that case would find no parent and
+    // silently drop the indicator's inherited fields (title, subtitle, map
+    // settings, ...).
     const parent = shouldInherit
-        ? await getParentByChartConfig(knex, {
-              dimensions:
-                  config.dimensions ??
-                  etlConfig.dimensions ??
-                  existingFull.dimensions,
-              chartTypes:
-                  config.chartTypes ??
-                  etlConfig.chartTypes ??
-                  existingFull.chartTypes,
-          })
+        ? await getParentByChartConfig(
+              knex,
+              _.isEmpty(etlConfig)
+                  ? config
+                  : {
+                        dimensions:
+                            config.dimensions ??
+                            etlConfig.dimensions ??
+                            existingFull.dimensions,
+                        chartTypes:
+                            config.chartTypes ??
+                            etlConfig.chartTypes ??
+                            existingFull.chartTypes,
+                    }
+          )
         : undefined
 
     // compute patch and full configs.
