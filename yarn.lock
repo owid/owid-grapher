@@ -2394,6 +2394,7 @@ __metadata:
     "@types/lodash-es": "npm:^4.17.12"
     "@types/react": "npm:^19.2.14"
     "@types/url-parse": "npm:^1.4.11"
+    algoliasearch: "npm:^5.53.0"
     d3-array: "npm:^3.2.4"
     d3-format: "npm:^3.1.0"
     dayjs: "npm:^1.11.19"
@@ -11115,6 +11116,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "owid-functions@workspace:functions"
   dependencies:
+    "@algolia/requester-fetch": "npm:5.53.0"
     "@cloudflare/workers-types": "npm:^5.20260718.1"
     "@ourworldindata/components": "workspace:^"
     "@ourworldindata/core-table": "workspace:^"
@@ -11127,6 +11129,7 @@ __metadata:
     "@types/lodash-es": "npm:^4.17.12"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
+    algoliasearch: "npm:^5.53.0"
     cookie: "npm:^1.1.1"
     itty-router: "npm:^5.0.23"
     littlezipper: "npm:^0.1.5"

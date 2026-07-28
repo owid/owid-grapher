@@ -6,13 +6,13 @@ import {
     SearchIndexName,
 } from "@ourworldindata/types"
 import { getCanonicalUrl } from "@ourworldindata/components"
+import { formatTopicFacetFilters } from "@ourworldindata/utils"
 import { Env } from "./_common/env.js"
 import {
     getAlgoliaConfig,
     AlgoliaConfig,
     getIndexName,
 } from "./api/search/algoliaClient.js"
-import { formatTopicFacetFilters } from "./api/search/searchApi.js"
 
 const HITS_PER_FEED = 50
 
