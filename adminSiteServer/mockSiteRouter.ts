@@ -335,8 +335,10 @@ mockSiteRouter.get("/thank-you", async (req, res) =>
     res.send(await renderThankYouPage())
 )
 
-mockSiteRouter.get("/subscribe", async (req, res) =>
-    res.send(await renderSubscribePage())
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/subscribe",
+    async (_, res, trx) => res.send(await renderSubscribePage(trx))
 )
 
 getPlainRouteWithROTransaction(

@@ -3,19 +3,34 @@ import { Html } from "./Html.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import {
+    NewsletterExampleUrls,
     SiteFooterContext,
     SUBSCRIBE_PAGE_FORM_CONTAINER_ID,
 } from "@ourworldindata/types"
+import { serializeJSONForHTML } from "@ourworldindata/utils"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { OwidSocials } from "./OwidSocials.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
-export interface SubscribePageProps {
-    baseUrl: string
+declare global {
+    interface Window {
+        _OWID_NEWSLETTER_EXAMPLES?: NewsletterExampleUrls
+    }
 }
 
-export const SubscribePage = ({ baseUrl }: SubscribePageProps) => {
+export interface SubscribePageProps {
+    baseUrl: string
+    /** Latest edition of each newsletter, for the "see example" links. Also
+     * injected as window._OWID_NEWSLETTER_EXAMPLES so client-side hydration
+     * renders the same URLs as the bake. */
+    newsletterExampleUrls: NewsletterExampleUrls
+}
+
+export const SubscribePage = ({
+    baseUrl,
+    newsletterExampleUrls,
+}: SubscribePageProps) => {
     return (
         <Html>
             <Head
@@ -24,7 +39,13 @@ export const SubscribePage = ({ baseUrl }: SubscribePageProps) => {
                 pageDesc="Stay up to date with our latest research and data insights by subscribing to our newsletter."
                 baseUrl={baseUrl}
                 imageUrl={`${BAKED_BASE_URL}/images/biweekly-newsletter.webp`}
-            />
+            >
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `window._OWID_NEWSLETTER_EXAMPLES = ${serializeJSONForHTML(newsletterExampleUrls)}`,
+                    }}
+                ></script>
+            </Head>
             <body>
                 <SiteHeader />
                 <main className="subscribe-page grid grid-cols-12-full-width">
@@ -37,6 +58,7 @@ export const SubscribePage = ({ baseUrl }: SubscribePageProps) => {
                                 context={
                                     NewsletterSubscriptionContext.SubscribePage
                                 }
+                                exampleUrls={newsletterExampleUrls}
                             />
                         </div>
                         <OwidSocials

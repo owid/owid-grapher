@@ -510,6 +510,13 @@ export {
     JobsTableName,
 } from "./dbTypes/Jobs.js"
 export {
+    type DbInsertNewsletter,
+    type DbPlainNewsletter,
+    NEWSLETTER_TYPES,
+    type NewsletterType,
+    NewslettersTableName,
+} from "./dbTypes/Newsletters.js"
+export {
     type DbRawImage,
     type DbEnrichedImage,
     type DbEnrichedImageWithUserId,

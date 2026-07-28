@@ -466,6 +466,10 @@ index-scheduled: node_modules
 	@echo '==> Indexing scheduled (newly-live) gdocs into the pages-chronological Algolia index'
 	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexScheduledPagesChronologicalToAlgolia.js
 
+sync-newsletters: node_modules
+	@echo '==> Syncing sent Mailchimp campaigns into the newsletters table'
+	yarn tsx --tsconfig tsconfig.tsx.json baker/syncNewslettersFromMailchimp.js
+
 delete-algolia-index: node_modules
 	@echo '==> Deleting Algolia index'
 	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/deleteAlgoliaIndex.js
