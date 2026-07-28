@@ -30,6 +30,23 @@ describe(ColumnTypeNames.Quarter, () => {
         expect(col.formatValue(400)).toEqual("Q1 2021")
         expect(col.formatForCsv(400)).toEqual("2021-Q1")
     })
+
+    it("formats the short timeline label as the quarter's start month", () => {
+        // day 0 = 2020-01-21 (Q1 2020) → start month Jan 2020
+        expect(col.formatTimeShort(0)).toEqual("Jan 2020")
+        // day 200 = 2020-08-08 (Q3 2020) → start month Jul 2020
+        expect(col.formatTimeShort(200)).toEqual("Jul 2020")
+    })
+
+    it("formats a range from start-quarter start month to end-quarter end month", () => {
+        const day = (iso: string): number =>
+            convertDateToDaysSinceEpoch(dayjs.utc(iso))
+        // 2025-02-15 → Q1 2025 (starts Jan)
+        // 2026-11-20 → Q4 2026 (ends Dec)
+        expect(
+            col.formatTimeRange(day("2025-02-15"), day("2026-11-20"))
+        ).toEqual("Jan 2025 to Dec 2026")
+    })
 })
 
 describe(ColumnTypeNames.Decade, () => {

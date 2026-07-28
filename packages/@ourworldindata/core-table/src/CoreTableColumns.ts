@@ -1146,6 +1146,21 @@ class QuarterColumn<
         return memoFormatQuarterCsv(value) // "2023-Q1"
     }
 
+    // The quarter's start month, e.g. "Jan 2026"
+    override formatTimeShort(time: number): string {
+        return convertDaysSinceEpochToDate(time)
+            .startOf("quarter")
+            .format("MMM YYYY")
+    }
+
+    // The span from the first month of the start quarter to the last month of
+    // the end quarter, e.g. "Jan 2025 to Dec 2026"
+    override formatTimeRange(startTime: number, endTime: number): string {
+        const start = convertDaysSinceEpochToDate(startTime).startOf("quarter")
+        const end = convertDaysSinceEpochToDate(endTime).endOf("quarter")
+        return `${start.format("MMM YYYY")} to ${end.format("MMM YYYY")}`
+    }
+
     // The first of the epoch's quarter, used as the anchor for counting quarters.
     private static readonly epochQuarterStart = dayjs
         .utc(EPOCH_DATE)
