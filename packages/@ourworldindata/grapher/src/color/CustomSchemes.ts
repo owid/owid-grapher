@@ -10,8 +10,6 @@ import * as R from "remeda"
 // TODO: Initialize CustomColorSchemes lazily
 export const CustomColorSchemes: ColorSchemeInterface[] = []
 
-// Create some of our own!
-
 export const OwidDistinctColors = {
     Purple: "#6d3e91",
     DarkOrange: "#c05917",
@@ -321,6 +319,10 @@ CustomColorSchemes.push({
     colorSets: [CategoricalColorsPaletteA, CategoricalColorsPaletteC],
 })
 
+/**
+ * The canonical colors for the four World Bank income groups, used on both
+ * charts and maps
+ */
 export const IncomeGroupColors = {
     HighIncome: "#0d8553",
     UpperMiddleIncome: "#a1cb81",
@@ -328,8 +330,10 @@ export const IncomeGroupColors = {
     LowIncome: "#974e94",
 } as const
 
-// Defined before ContinentColors so both ContinentColors and MapContinentColors can
-// reference it (the provider-region pins below use these map-palette colors).
+/**
+ * The muted color vocabulary designed for map fills (charts typically use
+ * stronger colors instead)
+ */
 export const OwidMapColors: Record<string, Color> = {
     // Main
     MutedDenim: "#526F9B",
@@ -358,6 +362,11 @@ export const OwidMapColors: Record<string, Color> = {
     Tomato: "#D94C3F",
 } as const
 
+/**
+ * Region name -> color dictionary for charts (not maps), used as the colorMap
+ * of the "Continents" scheme, so a series whose name matches a key always gets
+ * that color.
+ */
 export const ContinentColors = {
     // World
     World: OwidDistinctColors.DarkOliveGreen,
@@ -429,11 +438,7 @@ export const ContinentColors = {
     "Oceania (UN SDG)": OwidDistinctColors.Turquoise,
     "Sub-Saharan Africa (UN SDG)": OwidDistinctColors.DarkMauve,
 
-    // Maddison Project Database regions — pinned to the exact colors their map chart renders
-    // (the default categorical palette CategoricalMapPalette10, in legend/display order).
-    // Defined here (not only in MapContinentColors) so the admin "Continents" picker offers
-    // the same colors, letting a Maddison-region chart be colored to match the map. They flow
-    // into MapContinentColors via its spread, so the region hover matches too.
+    // Maddison Project Database regions
     "Western offshoots (Maddison)": OwidMapColors.MutedDenim,
     "Western Europe (Maddison)": OwidMapColors.SoftOrange,
     "Eastern Europe (Maddison)": OwidMapColors.MutedTeal,
@@ -443,7 +448,7 @@ export const ContinentColors = {
     "Middle East and North Africa (Maddison)": OwidMapColors.LeafGreen,
     "Sub Saharan Africa (Maddison)": OwidMapColors.SkyTurquoise,
 
-    // WID regions — same idea (see Maddison note above).
+    // WID regions
     "North America (WID)": OwidMapColors.MutedDenim,
     "Latin America (WID)": OwidMapColors.SoftOrange,
     "Europe (WID)": OwidMapColors.MutedTeal,
@@ -471,10 +476,6 @@ export const ContinentColors = {
     "Middle East (Ember)": OwidMapColors.Sand,
     "Asia (Ember)": OwidMapColors.MutedTeal,
     "Oceania (Ember)": OwidMapColors.SkyTurquoise,
-
-    // ILO regions are intentionally NOT pinned: "Arab States (ILO)" is shared by both ILO
-    // tiers and sits at a different palette position in each, so one name-keyed color can't
-    // match both charts without a clash. ILO stays on the position-based palette fallback.
 
     // Income groups
     "High-income countries": IncomeGroupColors.HighIncome,
@@ -507,6 +508,10 @@ const ContinentColorPalette = [
     ContinentColors.Antarctica,
 ]
 
+/**
+ * The "Continents" scheme for charts: colors regions by name via
+ * ContinentColors, other series positionally via ContinentColorPalette.
+ */
 export const ContinentColorsColorScheme = {
     name: ColorSchemeName.continents,
     displayName: "Continents",
@@ -793,16 +798,14 @@ export const CategoricalMapPalette17 = [
     OwidMapColors.LightGreen,
 ]
 
-export const OwidCategoricalMapScheme = {
-    name: ColorSchemeName.OwidCategoricalMap,
-    displayName: "OWID Categorical Map",
-    singleColorScale: false,
-    isDistinct: true,
-    colorSets: [CategoricalMapPalette10, CategoricalMapPalette17],
-}
-CustomColorSchemes.push(OwidCategoricalMapScheme)
-
-// Map-specific region colors
+/**
+ * Region name -> color dictionary for maps (not charts), used as the colorMap
+ * of OwidCategoricalMapScheme below, so categorical maps that color each country
+ * by its region pick the right color. Mostly muted map colors — maps look
+ * better with lighter colors, charts need stronger ones — with a few entries
+ * inherited unchanged from the ContinentColors spread.
+ * Also used by the map region hover tooltips.
+ */
 export const MapContinentColors = {
     ...ContinentColors,
 
@@ -872,11 +875,22 @@ export const MapContinentColors = {
     "Northern Africa and Western Asia (UN SDG)": OwidMapColors.Sand,
     "Oceania (UN SDG)": OwidMapColors.SkyTurquoise,
     "Sub-Saharan Africa (UN SDG)": OwidMapColors.LightPurple,
-
-    // Maddison/WID provider regions are inherited from the ContinentColors spread above
-    // (pinned to their map-chart colors there); ILO is intentionally left unpinned. See the
-    // ContinentColors block for the full explanation.
 } as const
+
+/**
+ * The preferred scheme for maps with categorical data: known regions are colored
+ * by name via MapContinentColors, all other categories positionally from the
+ * categorical map palettes.
+ */
+export const OwidCategoricalMapScheme = {
+    name: ColorSchemeName.OwidCategoricalMap,
+    displayName: "OWID Categorical Map",
+    singleColorScale: false,
+    isDistinct: true,
+    colorSets: [CategoricalMapPalette10, CategoricalMapPalette17],
+    colorMap: MapContinentColors,
+}
+CustomColorSchemes.push(OwidCategoricalMapScheme)
 
 export const DefaultColorScheme = OwidDistinctColorScheme
 
