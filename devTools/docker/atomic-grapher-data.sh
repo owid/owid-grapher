@@ -47,8 +47,25 @@ _mysql() {
     fi
 }
 
+# This loads hundreds of thousands of rows in one go, which can outpace InnoDB's
+# redo log checkpointer (especially with the small default innodb_redo_log_capacity)
+# and stall every other connection on the instance. Disabling redo logging for the
+# duration is safe here: $2 is always a throwaway database (NEW_DB, or
+# GRAPHER_DB_NAME on first-time setup before it holds anything) that gets dropped
+# and retried on failure, never the live, already-swapped-in database.
 import_db() {
+    _mysql -e "ALTER INSTANCE DISABLE INNODB REDO_LOG;"
+    # Covers both a failing import (errexit off below so we reach the re-enable)
+    # and the import being killed outright (CI timeout, operator abort): the trap
+    # fires on that exit/signal too, so redo logging never stays off instance-wide.
+    trap '_mysql -e "ALTER INSTANCE ENABLE INNODB REDO_LOG;" 2>/dev/null || true' EXIT INT TERM
+    set +o errexit
     cat $1 | gunzip | sed s/.\*DEFINER\=\`.\*// | grep -vF GLOBAL.GTID_PURGED | _mysql $2
+    local status=$?
+    set -o errexit
+    trap - EXIT INT TERM
+    _mysql -e "ALTER INSTANCE ENABLE INNODB REDO_LOG;"
+    return $status
 }
 
 # Import the private sidecar dump into the replacement DB *before* the atomic

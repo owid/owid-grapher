@@ -53,7 +53,11 @@ import {
     getMultiDimDataPageBySlug,
     multiDimDataPageExists,
 } from "../MultiDimDataPage.js"
-import { getMultiDimRedirectTargets } from "../MultiDimRedirects.js"
+import {
+    getMultiDimRedirectSourcesWithMultipleTargets,
+    getMultiDimRedirectTargets,
+} from "../MultiDimRedirects.js"
+import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import {
     ARCHIVED_THUMBNAIL_FILENAME,
     ChartConfigType,
@@ -150,6 +154,7 @@ export async function loadLinkedChartsForSlugs(
         archivedExplorerVersions,
         grapherMultiDimRedirects,
         explorerMultiDimRedirects,
+        explorerRedirectFanOut,
     ] = await Promise.all([
         getLatestArchivedChartPageVersionsIfEnabled(
             knex,
@@ -159,7 +164,26 @@ export async function loadLinkedChartsForSlugs(
         getLatestArchivedExplorerPageVersionsIfEnabled(knex, explorerSlugs),
         getMultiDimRedirectTargets(knex, grapherSlugs, "/grapher/"),
         getMultiDimRedirectTargets(knex, explorerSlugs, "/explorers/"),
+        // Fan-out redirects are fine to have, but the gdoc link layer resolves
+        // by slug only (query-param matching happens at request time), so a
+        // linked explorer that redirects to multiple multi-dims would resolve to
+        // a single, possibly-wrong target. Flag those to Sentry (see below).
+        getMultiDimRedirectSourcesWithMultipleTargets(
+            knex,
+            explorerSlugs,
+            "/explorers/"
+        ),
     ])
+
+    for (const [sourceSlug, targetSlugs] of explorerRedirectFanOut) {
+        await logErrorAndMaybeCaptureInSentry(
+            new Error(
+                `Explorer '/explorers/${sourceSlug}' is linked from a gdoc but redirects to multiple multi-dims (${targetSlugs.join(
+                    ", "
+                )}) depending on query params. The gdoc link resolves by slug alone and may point at the wrong multi-dim. Point the link directly at the intended multi-dim.`
+            )
+        )
+    }
 
     // TODO: rewrite this as a single query instead of N queries
     const linkedGrapherCharts = await Promise.all(

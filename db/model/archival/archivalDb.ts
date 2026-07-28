@@ -854,17 +854,22 @@ function collectVariableIdsFromIndicators(
 }
 
 export async function getPostChecksumsFromDb(
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    postSlugs?: string[]
 ): Promise<{
     postChecksums: PostChecksumsObjectWithHash[]
     imagesByPostId: Record<string, ArchivalImage[]>
 }> {
     // Phase 1: Fetch all posts and their linked content
-    const posts = await knex<DbRawPostGdoc>(PostsGdocsTableName)
+    let postsQuery = knex<DbRawPostGdoc>(PostsGdocsTableName)
         .select("id", "slug", "contentMd5")
         .where("published", true)
         .where("publishedAt", "<=", knex.fn.now())
         .where("type", OwidGdocType.Article)
+    if (postSlugs?.length) {
+        postsQuery = postsQuery.whereIn("slug", postSlugs)
+    }
+    const posts = await postsQuery
 
     if (posts.length === 0) return { postChecksums: [], imagesByPostId: {} }
 

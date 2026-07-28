@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import {
     QueryClient,
     QueryClientProvider,
@@ -21,6 +21,7 @@ import { CausesOfDeathCaptionedChart } from "./CausesOfDeathCaptionedChart.js"
 import { CausesOfDeathControls } from "./CausesOfDeathControls.js"
 
 import { useUrlState } from "../../../../hooks/useUrlState.js"
+import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 
@@ -191,32 +192,6 @@ function CausesOfDeathSkeleton() {
             <Spinner />
         </div>
     )
-}
-
-/**
- * Hook that only returns true after a loading state has persisted for a minimum duration.
- * This prevents loading indicators from flashing for quick operations.
- */
-function useDelayedLoading(isLoading: boolean, delay = 300): boolean {
-    const [showLoading, setShowLoading] = useState(false)
-
-    useEffect(() => {
-        let timeoutId: NodeJS.Timeout
-
-        if (isLoading) {
-            // Start a timer to show loading after delay
-            timeoutId = setTimeout(() => setShowLoading(true), delay)
-        } else {
-            // Immediately hide loading when not loading
-            setShowLoading(false)
-        }
-
-        return () => {
-            if (timeoutId) clearTimeout(timeoutId)
-        }
-    }, [isLoading, delay])
-
-    return showLoading
 }
 
 function combineStatuses(...statuses: QueryStatus[]): QueryStatus {

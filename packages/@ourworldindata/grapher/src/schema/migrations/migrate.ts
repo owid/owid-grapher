@@ -22,7 +22,7 @@ const recursivelyApplyMigrations = (
 }
 
 const migrate = (config: AnyConfigWithValidSchema): GrapherInterface =>
-    recursivelyApplyMigrations(config) as GrapherInterface
+    recursivelyApplyMigrations(config)
 
 /**
  * Attempts to migrate a config to the latest schema version.

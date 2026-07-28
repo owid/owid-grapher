@@ -20,7 +20,6 @@ export const VARIANTS = [
     {
         name: "treemap",
         component: CausesOfDeathChartWithProviders,
-        defaultConfig: {},
     },
 ] satisfies BespokeComponentVariantsList
 

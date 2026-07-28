@@ -4,7 +4,7 @@
 
 import { GrapherInterface } from "@ourworldindata/types"
 
-export const latestSchemaVersion = "010" as const
+export const latestSchemaVersion = "011" as const
 export const outdatedSchemaVersions = [
     "001",
     "002",
@@ -15,10 +15,11 @@ export const outdatedSchemaVersions = [
     "007",
     "008",
     "009",
+    "010",
 ] as const
 
 export const defaultGrapherConfig = {
-    $schema: "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+    $schema: "https://files.ourworldindata.org/schemas/grapher-schema.011.json",
     license: "cc-by",
     selectedEntityNames: [],
     focusedSeriesNames: [],

@@ -47,6 +47,7 @@ import {
     isNoDataBin,
     isNumericBin,
     isProjectedDataBin,
+    mergeCategoricalBinsByLabelAndColor,
     NumericBin,
 } from "../color/ColorScaleBin"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
@@ -417,7 +418,9 @@ export class MapChart
             })
         }
 
-        return categoricalLegendData
+        // Collapse bins that would render identical swatches (same label and
+        // color) into one, so the legend doesn't show visual duplicates
+        return mergeCategoricalBinsByLabelAndColor(categoricalLegendData)
     }
 
     @computed private get hasCategoricalLegendData(): boolean {

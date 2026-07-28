@@ -124,9 +124,7 @@ const population_regex =
  */
 export const ADDITIONAL_REGION_DATA_PROVIDERS = [
     "fao",
-    "ei",
     "pip",
-    "ember",
     "gcp",
     "niaid",
     "unicef",

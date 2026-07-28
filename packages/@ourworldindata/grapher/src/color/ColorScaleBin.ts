@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { Color, CoreValueType } from "@ourworldindata/types"
 import { NO_DATA_LABEL, PROJECTED_DATA_LABEL } from "./ColorScale"
 
@@ -22,6 +23,9 @@ interface CategoricalBinProps extends BinProps {
     value: string
     label: string
     isHidden?: boolean
+    // Values this bin matches in addition to `value`. Set only for merged
+    // legend bins (see `mergeCategoricalBinsByLabelAndColor`).
+    additionalValues?: string[]
 }
 
 abstract class AbstractColorScaleBin<T extends BinProps> {
@@ -107,6 +111,11 @@ export class CategoricalBin extends AbstractColorScaleBin<CategoricalBinProps> {
         return this.props.label || this.props.value
     }
 
+    /** All values this bin matches: `value` plus any values absorbed by merging */
+    get values(): string[] {
+        return [this.props.value, ...(this.props.additionalValues ?? [])]
+    }
+
     contains(
         value: CoreValueType | undefined,
         { isProjection = false } = {}
@@ -116,7 +125,7 @@ export class CategoricalBin extends AbstractColorScaleBin<CategoricalBinProps> {
             (value !== undefined &&
                 isProjection &&
                 this.props.value === PROJECTED_DATA_LABEL) ||
-            (value !== undefined && value === this.props.value)
+            (value !== undefined && this.values.some((v) => v === value))
         )
     }
 
@@ -126,6 +135,68 @@ export class CategoricalBin extends AbstractColorScaleBin<CategoricalBinProps> {
             this.props.index === other.props.index
         )
     }
+}
+
+/**
+ * Merge categorical bins that share the same displayed label, color *and*
+ * pattern into a single bin, preserving the order of first appearance. This
+ * avoids showing multiple visually indistinguishable swatches in a legend when
+ * several categories are given the same custom label and color.
+ *
+ * The merged bin keeps the first bin's props (index, color, label, pattern) and
+ * additionally matches all the values of the bins it absorbs, so hovering it
+ * still highlights every entity in any of the merged categories, and hovering
+ * such an entity still resolves back to this one bin.
+ *
+ * Unlike `dedupeRepeatedBins`, which drops repeated copies of the same bin,
+ * this merges distinct categories.
+ */
+export function mergeCategoricalBinsByLabelAndColor(
+    bins: CategoricalBin[]
+): CategoricalBin[] {
+    const binsByKey = new Map<string, CategoricalBin>()
+    for (const bin of bins) {
+        // Key on the displayed label, color and pattern together, so a patterned
+        // bin (e.g. the hatched no-data bin) is never merged into a solid
+        // category that happens to share its label and color. JSON.stringify
+        // keeps the fields unambiguously separated.
+        const key = JSON.stringify([bin.text, bin.color, bin.patternRef])
+        const existing = binsByKey.get(key)
+        if (existing) {
+            binsByKey.set(
+                key,
+                new CategoricalBin({
+                    ...existing.props,
+                    additionalValues: [
+                        ...(existing.props.additionalValues ?? []),
+                        ...bin.values,
+                    ],
+                })
+            )
+        } else {
+            binsByKey.set(key, bin)
+        }
+    }
+    return [...binsByKey.values()]
+}
+
+/**
+ * Drop repeated occurrences of the same bin, e.g. the same category appearing
+ * once per facet, keeping the first occurrence unchanged.
+ */
+export function dedupeRepeatedBins<Bin extends ColorScaleBin>(
+    bins: Bin[]
+): Bin[] {
+    return _.uniqWith(bins, (binA, binB): boolean => {
+        // For categorical bins, the `.equals()` method isn't good enough,
+        // because it only compares `.index`, which in this case can be
+        // identical even when the bins are not, because they are coming
+        // from different charts (facets).
+        if (binA instanceof CategoricalBin) {
+            return binA.text === binB.text
+        }
+        return binA.equals(binB)
+    })
 }
 
 export function isCategoricalBin(bin: ColorScaleBin): bin is CategoricalBin {

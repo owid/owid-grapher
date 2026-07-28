@@ -323,7 +323,7 @@ export function MultiDimIndexPage() {
             patchMultiDim(admin, id, { published }),
         onSuccess: async ({ published }) => {
             notificationApi.info({
-                message: published ? "Published" : "Unpublished",
+                title: published ? "Published" : "Unpublished",
                 description: <Link to="/deploys">Check deploy progress</Link>,
                 placement: "bottomRight",
             })
@@ -336,7 +336,7 @@ export function MultiDimIndexPage() {
             patchMultiDim(admin, id, { slug }),
         onSuccess: async ({ published }) => {
             notificationApi.info({
-                message: "Slug updated",
+                title: "Slug updated",
                 description: published ? (
                     <Link to="/deploys">Check deploy progress</Link>
                 ) : undefined,

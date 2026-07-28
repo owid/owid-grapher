@@ -70,7 +70,6 @@ import {
     getEnrichedChartById,
 } from "../db/model/Chart.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
-import { DEPRECATED_resolveInternalRedirectForWordpressProminentLinks } from "./redirects.js"
 import {
     getBlockContentFromSnapshot,
     getFullPostBySlugFromSnapshot,
@@ -436,13 +435,7 @@ export const renderProminentLinks = async (
         blocks.map(async (block) => {
             const $block = $(block)
             const formattedUrlString = $block.find("link-url").text() // never empty, see prominent-link.php
-            const formattedUrl = Url.fromURL(formattedUrlString)
-
-            const resolvedUrl =
-                await DEPRECATED_resolveInternalRedirectForWordpressProminentLinks(
-                    formattedUrl,
-                    knex
-                )
+            const resolvedUrl = Url.fromURL(formattedUrlString)
             const resolvedUrlString = resolvedUrl.fullUrl
 
             const style = $block.attr("style")

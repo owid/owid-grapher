@@ -38,7 +38,7 @@ export interface DataPageDataV2 {
     description?: string
     descriptionShort?: string
     descriptionFromProducer?: string
-    descriptionKey: string[]
+    descriptionKey?: string
     descriptionProcessing?: string
     owidProcessingLevel?: OwidProcessingLevel
     dateRange: string

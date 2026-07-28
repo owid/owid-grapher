@@ -523,7 +523,7 @@ describe("computeHalfHeights (font sensitivity)", () => {
                 fontSize: 8,
                 fontWeight: 400,
                 lineHeight: 1.2,
-            } as FontSettings,
+            },
         ]) {
             const chartHeight = 180
             const h = computeHalfHeights({

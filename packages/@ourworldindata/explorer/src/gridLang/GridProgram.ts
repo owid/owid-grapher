@@ -122,7 +122,7 @@ export class GridProgram {
                 yield {
                     row: pointer.row,
                     column: pointer.column,
-                } as CellPosition
+                }
                 pointer.column++
             }
         }

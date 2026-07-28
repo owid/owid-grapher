@@ -24,8 +24,8 @@ export const ExplorerIndexPage = ({
         <Html>
             <Head
                 canonicalUrl={`${baseUrl}/${EXPLORERS_ROUTE_FOLDER}`}
-                pageTitle={`Data Explorers`}
-                pageDesc={"An index of all Our World in Data data explorers"}
+                pageTitle="Data Explorers"
+                pageDesc="An index of all Our World in Data data explorers."
                 baseUrl={baseUrl}
             ></Head>
             <body>

@@ -6,7 +6,6 @@ import {
     getRelativeMouse,
     exposeInstanceOnWindow,
     excludeUndefined,
-    isMobile,
     Bounds,
     HorizontalAlign,
 } from "@ourworldindata/utils"
@@ -24,7 +23,6 @@ import { SeriesName, VerticalAlign, Time } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_OPACITY_MUTED,
 } from "../core/GrapherConstants"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
@@ -49,30 +47,29 @@ import {
 } from "./LineChartConstants"
 import {
     getHoverStateForSeries,
-    getSeriesKey,
     isTargetOutsideElement,
 } from "../chart/ChartUtils"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { ColorScale } from "../color/ColorScale"
-import { GRAPHER_BACKGROUND } from "../color/ColorConstants"
-import { darkenColorForLine } from "../color/ColorUtils"
 import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
 } from "../legend/HorizontalColorLegends"
 import {
+    findClosestTimeAtMouse,
     getAnnotationsForSeries,
     getYAxisConfigDefaults,
     toPlacedLineChartSeries,
     toRenderLineChartSeries,
 } from "./LineChartHelpers"
+import { LineChartActiveTimeMarkers } from "./LineChartActiveTimeMarkers"
 import { LabelSeries } from "../verticalLabels/VerticalLabelsTypes"
 import { Lines } from "./Lines"
 import { LineChartState } from "./LineChartState.js"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
-import { resolveEmphasis, Emphasis } from "../interaction/Emphasis"
+import { resolveEmphasis } from "../interaction/Emphasis"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
 
 export type LineChartProps = ChartComponentProps<LineChartState>
@@ -133,7 +130,7 @@ export class LineChart
         const ref = this.base.current,
             parentRef = this.manager.base?.current
 
-        // the tooltip's origin needs to be in the parent's coordinates
+        // The tooltip's origin needs to be in the parent's coordinates
         if (parentRef) {
             this.tooltipState.position = getRelativeMouse(parentRef, ev)
         }
@@ -141,25 +138,15 @@ export class LineChart
         if (!ref) return
 
         const mouse = getRelativeMouse(ref, ev)
-        const boxPadding = isMobile() ? 44 : 25
 
-        // expand the box width, so it's easier to see the tooltip for the first & last timepoints
-        const boundedBox = this.dualAxis.innerBounds.expand({
-            left: boxPadding,
-            right: boxPadding,
+        const hoverTime = findClosestTimeAtMouse({
+            mouse,
+            innerBounds: this.dualAxis.innerBounds,
+            horizontalAxis: this.dualAxis.horizontalAxis,
+            allValues: this.allValues,
         })
 
-        let hoverTime
-        if (boundedBox.contains(mouse)) {
-            const invertedX = this.dualAxis.horizontalAxis.invert(mouse.x)
-
-            const closestValue = _.minBy(this.allValues, (point) =>
-                Math.abs(invertedX - point.x)
-            )
-            hoverTime = closestValue?.x
-        }
-
-        // be sure all lines are un-dimmed if the cursor is above the graph itself
+        // Be sure all lines are un-dimmed if the cursor is above the graph itself
         if (this.dualAxis.innerBounds.contains(mouse)) {
             this.clearVerticalLabelHover()
         }
@@ -209,69 +196,17 @@ export class LineChart
     }
 
     @computed get activeTimes(): Time[] {
-        const { highlightedTimesInLineChart = [] } = this.manager
+        const tooltipTime = this.tooltipState.target?.time
+        const highlightedTimes = this.manager.highlightedTimesInLineChart ?? []
         return _.uniq(
-            this.tooltipState.target?.time
-                ? [
-                      this.tooltipState.target.time,
-                      ...highlightedTimesInLineChart,
-                  ]
-                : highlightedTimesInLineChart
+            tooltipTime !== undefined
+                ? [tooltipTime, ...highlightedTimes]
+                : highlightedTimes
         )
     }
 
-    @computed private get activeXVerticalLines(): React.ReactElement | null {
-        const { activeTimes, dualAxis } = this
-        const { horizontalAxis, verticalAxis } = dualAxis
-
-        if (!activeTimes) return null
-
-        return (
-            <>
-                {activeTimes.map((time) => (
-                    <g className="hoverIndicator" key={time}>
-                        <line
-                            x1={horizontalAxis.place(time)}
-                            y1={verticalAxis.range[0]}
-                            x2={horizontalAxis.place(time)}
-                            y2={verticalAxis.range[1]}
-                            stroke="rgba(180,180,180,.4)"
-                        />
-                        {this.renderSeries.map((series, index) => {
-                            const point = series.points.find(
-                                (point) => point.x === time
-                            )
-                            if (!point || series.hover.background) return null
-
-                            const valueColor = this.hasColorScale
-                                ? darkenColorForLine(
-                                      this.chartState.getColorScaleColor(
-                                          point.colorValue
-                                      )
-                                  )
-                                : series.color
-                            const opacity =
-                                series.emphasis === Emphasis.Muted
-                                    ? GRAPHER_OPACITY_MUTED
-                                    : 1
-
-                            return (
-                                <circle
-                                    key={getSeriesKey(series, index)}
-                                    cx={horizontalAxis.place(point.x)}
-                                    cy={verticalAxis.place(point.y)}
-                                    r={this.lineStrokeWidth / 2 + 3.5}
-                                    fill={valueColor}
-                                    fillOpacity={opacity}
-                                    stroke={GRAPHER_BACKGROUND}
-                                    strokeWidth={0.5}
-                                />
-                            )
-                        })}
-                    </g>
-                ))}
-            </>
-        )
+    @computed private get activeTimeCircleRadius(): number {
+        return this.lineStrokeWidth / 2 + 3.5
     }
 
     @computed private get tooltipId(): number {
@@ -339,8 +274,8 @@ export class LineChart
     }
 
     @action.bound private onDocumentClick(e: MouseEvent): void {
-        // only dismiss the tooltip if the click is outside of the chart area
-        // and outside of the chart areas of neighbouring facets
+        // Only dismiss the tooltip if the click is outside of the chart area
+        // and outside of the chart areas of neighboring facets
         const chartContainer = this.manager.base?.current
         if (!chartContainer) return
         const chartAreas = chartContainer.getElementsByClassName(
@@ -491,8 +426,15 @@ export class LineChart
                 {this.renderDualAxis()}
                 {this.renderChartElements()}
 
-                {(this.isTooltipActive || this.hasTimeHighlights) &&
-                    this.activeXVerticalLines}
+                {(this.isTooltipActive || this.hasTimeHighlights) && (
+                    <LineChartActiveTimeMarkers
+                        times={this.activeTimes}
+                        renderSeries={this.renderSeries}
+                        dualAxis={this.dualAxis}
+                        chartState={this.chartState}
+                        dotRadius={this.activeTimeCircleRadius}
+                    />
+                )}
                 <LineChartTooltip
                     id={this.tooltipId}
                     chartState={this.chartState}
@@ -732,11 +674,11 @@ export class LineChart
                           })
                   )
             return {
+                numericLegendData,
+                categoricalLegendData,
                 legendTitle: this.legendTitle,
                 legendTickSize: this.legendTickSize,
                 numericBinSize: this.numericBinSize,
-                numericLegendData,
-                categoricalLegendData,
                 categoricalLegendStyleConfig: this.categoricalLegendStyleConfig,
                 numericLegendStyleConfig: this.numericLegendStyleConfig,
             }

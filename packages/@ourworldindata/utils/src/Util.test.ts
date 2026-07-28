@@ -1,6 +1,7 @@
 import { expect, it, describe, vi } from "vitest"
 
 import timezoneMock from "timezone-mock"
+import dayjs from "./dayjs.js"
 import {
     findClosestTime,
     formatDay,
@@ -25,6 +26,7 @@ import {
     slugify,
     greatestCommonDivisor,
     findGreatestCommonDivisorOfArray,
+    withUniformSpacing,
     traverseEnrichedBlock,
     cartesian,
     formatInlineList,
@@ -34,6 +36,11 @@ import {
     getUniqueNamesFromTagHierarchies,
     stripOuterParentheses,
     groupTocIntoSections,
+    snapToIntervalStart,
+    diffDatesInDays,
+    convertDateToDaysSinceEpoch,
+    toStartOfDayUtc,
+    epochDate,
 } from "./Util.js"
 import {
     BlockSize,
@@ -41,6 +48,7 @@ import {
     SortOrder,
     TagGraphRoot,
     TocHeadingWithSupertitle,
+    TimeInterval,
 } from "@ourworldindata/types"
 
 describe(findClosestTime, () => {
@@ -608,6 +616,124 @@ describe(findGreatestCommonDivisorOfArray, () => {
         expect(findGreatestCommonDivisorOfArray([6, 8, 12])).toEqual(2)
         expect(findGreatestCommonDivisorOfArray([6, 6, 6])).toEqual(6)
         expect(findGreatestCommonDivisorOfArray([15])).toEqual(15)
+    })
+})
+
+describe(toStartOfDayUtc, () => {
+    it("returns the exact same instance for dates aligned to UTC midnight", () => {
+        const date = dayjs.utc("2020-01-21T00:00:00.000Z")
+        const result = toStartOfDayUtc(date)
+        expect(result).toBe(date)
+        expect(result.toISOString()).toEqual("2020-01-21T00:00:00.000Z")
+    })
+
+    it("normalizes unaligned datetimes with time-of-day to UTC midnight", () => {
+        const date = dayjs.utc("2020-01-21T14:30:45.123Z")
+        const result = toStartOfDayUtc(date)
+        expect(result).not.toBe(date)
+        expect(result.toISOString()).toEqual("2020-01-21T00:00:00.000Z")
+    })
+
+    it("normalizes datetimes in non-UTC timezone offsets to UTC midnight", () => {
+        const date = dayjs("2020-01-21T00:00:00+02:00")
+        const result = toStartOfDayUtc(date)
+        expect(result.toISOString()).toEqual("2020-01-20T00:00:00.000Z")
+    })
+})
+
+describe(diffDatesInDays, () => {
+    it("preserves calendar day for pre-epoch and post-epoch datetimes with time of day", () => {
+        const epoch = epochDate()
+        // 2020-01-20 is 1 day before epoch 2020-01-21
+        expect(
+            diffDatesInDays(dayjs.utc("2020-01-20T12:00:00Z"), epoch)
+        ).toEqual(-1)
+        expect(
+            diffDatesInDays(dayjs.utc("2020-01-20T00:00:00Z"), epoch)
+        ).toEqual(-1)
+        expect(
+            diffDatesInDays(dayjs.utc("2020-01-20T23:59:59Z"), epoch)
+        ).toEqual(-1)
+
+        // 2020-01-21 is epoch (0 days)
+        expect(
+            diffDatesInDays(dayjs.utc("2020-01-21T12:00:00Z"), epoch)
+        ).toEqual(0)
+
+        // 2020-01-22 is 1 day after epoch
+        expect(
+            diffDatesInDays(dayjs.utc("2020-01-22T12:00:00Z"), epoch)
+        ).toEqual(1)
+    })
+})
+
+describe(convertDateToDaysSinceEpoch, () => {
+    it("converts dayjs objects with time components to days since epoch preserving calendar day", () => {
+        // 2020-01-20T12:00:00Z -> day -1 (Jan 20, 2020)
+        expect(
+            convertDateToDaysSinceEpoch(dayjs.utc("2020-01-20T12:00:00Z"))
+        ).toEqual(-1)
+        // 2020-01-21T12:00:00Z -> day 0 (Jan 21, 2020)
+        expect(
+            convertDateToDaysSinceEpoch(dayjs.utc("2020-01-21T12:00:00Z"))
+        ).toEqual(0)
+        // 2020-01-22T12:00:00Z -> day 1 (Jan 22, 2020)
+        expect(
+            convertDateToDaysSinceEpoch(dayjs.utc("2020-01-22T12:00:00Z"))
+        ).toEqual(1)
+    })
+})
+
+describe(withUniformSpacing, () => {
+    it("can add values to make an array evenly spaced", () => {
+        expect(withUniformSpacing([])).toEqual([])
+        expect(withUniformSpacing([5])).toEqual([5])
+        expect(withUniformSpacing([5, 10])).toEqual([5, 10])
+        expect(withUniformSpacing([5, 10, 15])).toEqual([5, 10, 15])
+        expect(withUniformSpacing([2, 4, 8])).toEqual([2, 4, 6, 8])
+        expect(withUniformSpacing([1, 2, 4, 8])).toEqual([
+            1, 2, 3, 4, 5, 6, 7, 8,
+        ])
+        expect(withUniformSpacing([7, 12, 17])).toEqual([7, 12, 17])
+    })
+})
+describe(snapToIntervalStart, () => {
+    const day = (iso: string): number =>
+        diffDatesInDays(dayjs.utc(iso), epochDate())
+
+    it("snaps month values to the first of the month", () => {
+        expect(
+            snapToIntervalStart(day("2021-03-15"), TimeInterval.Month)
+        ).toEqual(day("2021-03-01"))
+        expect(
+            snapToIntervalStart(day("2021-03-31"), TimeInterval.Month)
+        ).toEqual(day("2021-03-01"))
+    })
+
+    it("snaps week values to the ISO-week Monday", () => {
+        // 2021-01-13 is a Wednesday; its ISO week starts Monday 2021-01-11
+        expect(
+            snapToIntervalStart(day("2021-01-13"), TimeInterval.Week)
+        ).toEqual(day("2021-01-11"))
+    })
+
+    it("snaps quarter values to the first of the quarter", () => {
+        // 2021-08-15 is in Q3, which starts 2021-07-01
+        expect(
+            snapToIntervalStart(day("2021-08-15"), TimeInterval.Quarter)
+        ).toEqual(day("2021-07-01"))
+        // 2021-03-31 is in Q1, which starts 2021-01-01
+        expect(
+            snapToIntervalStart(day("2021-03-31"), TimeInterval.Quarter)
+        ).toEqual(day("2021-01-01"))
+    })
+
+    it("leaves day, year and decade values unchanged", () => {
+        expect(
+            snapToIntervalStart(day("2021-03-15"), TimeInterval.Day)
+        ).toEqual(day("2021-03-15"))
+        expect(snapToIntervalStart(2021, TimeInterval.Year)).toEqual(2021)
+        expect(snapToIntervalStart(2025, TimeInterval.Decade)).toEqual(2025)
     })
 })
 

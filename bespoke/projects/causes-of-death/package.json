@@ -9,7 +9,7 @@
     "scripts": {
         "dev": "vite dev",
         "build": "vite build",
-        "typecheck": "tsgo"
+        "typecheck": "tsc"
     },
     "dependencies": {
         "@fortawesome/fontawesome-svg-core": "^6.7.2",
@@ -36,9 +36,9 @@
         "@types/d3": "^7.4.3",
         "@types/react": "^19.2.17",
         "@types/react-dom": "^19.2.3",
-        "@typescript/native-preview": "^7.0.0-dev.20260613.1",
         "@vitejs/plugin-react": "^6.0.2",
         "sass": "^1.101.0",
+        "typescript": "^7.0.2",
         "vite": "^8.0.16",
         "vitest": "^4.1.8"
     }

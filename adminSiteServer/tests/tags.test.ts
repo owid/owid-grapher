@@ -76,50 +76,71 @@ describe("Tag graph and breadcrumbs", { timeout: 15000 }, () => {
     })
 
     it("should be able to see all the tags", async () => {
+        await env.testKnex(TagsTableName).insert([
+            { id: 7, name: "Orphan parent" },
+            { id: 8, name: "Orphan child" },
+        ])
+        await env
+            .testKnex(TagGraphTableName)
+            .insert({ parentId: 7, childId: 8 })
         const tags = await env.fetchJson("/tags.json")
         expect(tags).toEqual({
             tags: [
                 {
                     id: 6,
-                    isTopic: 0,
+                    tagGraphRole: "descendant",
+                    isTopic: false,
                     name: "Climate & Air",
                     slug: null,
-                    isSearchable: 0,
+                    isSearchable: false,
                 },
                 {
                     id: 5,
-                    isTopic: 1,
+                    tagGraphRole: "descendant",
+                    isTopic: true,
                     name: "CO2 & Greenhouse Gas Emissions",
                     slug: "co2-and-greenhouse-gas-emissions",
-                    isSearchable: 1,
+                    isSearchable: true,
                 },
                 {
                     id: 3,
-                    isTopic: 1,
+                    tagGraphRole: "descendant",
+                    isTopic: true,
                     name: "Energy",
                     slug: "energy",
-                    isSearchable: 1,
+                    isSearchable: true,
                 },
                 {
                     id: 2,
-                    isTopic: 0,
+                    tagGraphRole: "area",
+                    isTopic: false,
                     name: "Energy and Environment",
                     slug: null,
-                    isSearchable: 0,
+                    isSearchable: false,
                 },
                 {
                     id: 4,
-                    isTopic: 1,
+                    tagGraphRole: "descendant",
+                    isTopic: true,
                     name: "Nuclear Energy",
                     slug: "nuclear-energy",
-                    isSearchable: 1,
+                    isSearchable: true,
                 },
                 {
-                    id: 1,
-                    isTopic: 0,
-                    name: "tag-graph-root",
+                    id: 8,
+                    tagGraphRole: "orphan",
+                    isTopic: false,
+                    name: "Orphan child",
                     slug: null,
-                    isSearchable: 0,
+                    isSearchable: false,
+                },
+                {
+                    id: 7,
+                    tagGraphRole: "orphan",
+                    isTopic: false,
+                    name: "Orphan parent",
+                    slug: null,
+                    isSearchable: false,
                 },
             ],
         })
