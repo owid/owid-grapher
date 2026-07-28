@@ -300,6 +300,7 @@ export {
 
 export {
     serializeJSONForHTML,
+    serializeJSONForInlineScript,
     deserializeJSONFromHTML,
     escapeJSONStringForInlineScript,
 } from "./serializers.js"
