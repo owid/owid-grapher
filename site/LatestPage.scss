@@ -50,7 +50,11 @@
 
 // The topic card that replaces the signup block once a topic area is selected.
 // Much shorter, so it only takes the one row it starts in.
-.latest-page__topic-newsletter-card {
+//
+// Scoped under .latest-page to outrank .topic-newsletter-card's own background:
+// both are single-class selectors and TopicNewsletterCard.scss is imported
+// later in owid.scss, so it would otherwise win on source order.
+.latest-page .latest-page__topic-newsletter-card {
     grid-row: 4;
 
     // The card's own background is $gray-5, which is also the /latest page
