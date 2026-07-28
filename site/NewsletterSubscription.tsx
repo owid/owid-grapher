@@ -102,33 +102,48 @@ export const NewsletterSubscriptionForm = ({
      */
     topicArea?: string
 }) => {
-    // /latest gets a reworked presentation of the same two interest groups: the
-    // second one is framed as "follow the topics you care about" rather than as
-    // the Data Insights newsletter, and only The OWID Brief is on by default.
+    // On /latest the second row is presented as "Follow Topics" instead of the
+    // Data Insights newsletter, and only The OWID Brief is on by default.
     const isLatest = context === NewsletterSubscriptionContext.Latest
 
     const idDataInsights = `mce-group[85302]-85302-0${
         context ? "-" + context : ""
     }`
     const idBiweekly = `mce-group[85302]-85302-1${context ? "-" + context : ""}`
+    // Deliberately not an `mce-group[…]` id: this control posts nothing.
+    const idFollowTopics = `newsletter-follow-topics${
+        context ? "-" + context : ""
+    }`
 
-    const [frequencies, setFrequencies] = useState<string[]>(() => {
-        if (!isLatest) return [DATA_INSIGHTS, BIWEEKLY]
-        return topicArea ? [BIWEEKLY, DATA_INSIGHTS] : [BIWEEKLY]
-    })
+    // Real Mailchimp interest groups that will be submitted. On /latest only
+    // The OWID Brief can ever be in here — "Follow Topics" is tracked
+    // separately because it maps to no group (see `followsTopics` below).
+    const [frequencies, setFrequencies] = useState<string[]>(() =>
+        isLatest ? [BIWEEKLY] : [DATA_INSIGHTS, BIWEEKLY]
+    )
+
+    // UI-only state for the inert "Follow Topics" control on /latest. It is
+    // NOT part of `frequencies`, so it never contributes to the POST.
+    const [followsTopics, setFollowsTopics] = useState<boolean>(
+        () => isLatest && !!topicArea
+    )
+
+    // Unchanged rule: at least one real interest group must be selected. We
+    // don't depend on how Mailchimp treats a group-less POST (it may create a
+    // bare subscriber who then receives nothing) — the form simply never sends
+    // one. On /latest that means The OWID Brief: ticking only the inert "Follow
+    // Topics" leaves nothing to submit and the button stays disabled, which is
+    // the honest outcome, and better than signing someone up to a list they
+    // did not ask for.
     const isSubmittable = frequencies.length !== 0
 
     // Filtering /latest to a topic area is a statement of interest in it, so
-    // opt the visitor into "Follow Topics". Deliberately one-way: we never
-    // uncheck it again (and never touch The OWID Brief), so a deliberate choice
-    // by the visitor survives later filter changes.
+    // pre-tick "Follow Topics". Deliberately one-way: we never untick it again
+    // (and never touch The OWID Brief), so a deliberate choice by the visitor
+    // survives later filter changes.
     useEffect(() => {
         if (!isLatest || !topicArea) return
-        setFrequencies((current) =>
-            current.includes(DATA_INSIGHTS)
-                ? current
-                : [...current, DATA_INSIGHTS]
-        )
+        setFollowsTopics(true)
     }, [isLatest, topicArea])
 
     const secondGroup = isLatest
@@ -212,23 +227,39 @@ export const NewsletterSubscriptionForm = ({
                 height={630}
             />
             <div className="newsletter-subscription-form__checkbox">
-                {/* On /latest this row reads "Follow Topics", but it still
-                    posts the existing DATA_INSIGHTS interest group — there is no
-                    per-topic-area group to post to, and inventing an id would
-                    silently drop the subscription. So a /latest visitor who
-                    checks "Follow Topics" is subscribed to the Data Insights
-                    cadence today; the topic area they picked is not sent to
-                    Mailchimp at all. Point this at a real per-area group once
-                    one exists. */}
-                <input
-                    type="checkbox"
-                    value={DATA_INSIGHTS}
-                    name={`group[85302][${DATA_INSIGHTS}]`}
-                    id={idDataInsights}
-                    checked={frequencies.includes(DATA_INSIGHTS)}
-                    onChange={updateFrequencies}
-                />
-                <label htmlFor={idDataInsights}>
+                {isLatest ? (
+                    /*
+                     * INTENTIONALLY INERT — do not give this a `name`.
+                     *
+                     * "Follow Topics" has no Mailchimp interest group: per-area
+                     * groups do not exist yet (see site/topicNewsletter.ts).
+                     * With no `name` the browser submits nothing for it, so
+                     * ticking it has no effect on the subscription.
+                     *
+                     * Do NOT "fix" this by pointing it at an existing group.
+                     * group[85302][16] is the Data Insights newsletter — wiring
+                     * it here would silently subscribe people to a different
+                     * newsletter from the one this label promises. Leave it
+                     * inert until a real per-area group exists, then wire it to
+                     * that.
+                     */
+                    <input
+                        type="checkbox"
+                        id={idFollowTopics}
+                        checked={followsTopics}
+                        onChange={(e) => setFollowsTopics(e.target.checked)}
+                    />
+                ) : (
+                    <input
+                        type="checkbox"
+                        value={DATA_INSIGHTS}
+                        name={`group[85302][${DATA_INSIGHTS}]`}
+                        id={idDataInsights}
+                        checked={frequencies.includes(DATA_INSIGHTS)}
+                        onChange={updateFrequencies}
+                    />
+                )}
+                <label htmlFor={isLatest ? idFollowTopics : idDataInsights}>
                     <span className="newsletter-subscription-form__label-title">
                         {secondGroup.title}
                     </span>{" "}
@@ -257,7 +288,12 @@ export const NewsletterSubscriptionForm = ({
             </div>
             {frequencies.length === 0 && (
                 <div className="newsletter-subscription-form__alert">
-                    Please select at least one option.
+                    {isLatest && followsTopics
+                        ? // Ticking only "Follow Topics" leaves nothing to
+                          // submit, so say why rather than asking for "at
+                          // least one option" when a box is visibly ticked.
+                          "Following topics is not available yet — select The OWID Brief to subscribe."
+                        : "Please select at least one option."}
                 </div>
             )}
             <div className="newsletter-subscription-form__email-submit">
