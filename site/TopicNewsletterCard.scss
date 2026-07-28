@@ -71,18 +71,11 @@
 }
 
 // Below the key data table, inside the right-hand metadata column of the "What
-// you should know about this indicator" section on data pages.
+// you should know about this indicator" section on data pages. The card fills
+// the column at every breakpoint, so its edges line up with the metadata rows
+// above it.
 .topic-newsletter-card--key-info {
     margin-top: 32px;
-
-    @include md-up {
-        // Three of the four columns the key data table above it is laid out on,
-        // which keeps the card at the ~300px of the site's other narrow slots
-        // rather than the full width of the metadata column. Only from md up:
-        // below that the column is barely 250px wide, so the card uses all of
-        // it.
-        width: calc(75% - var(--grid-gap) / 4);
-    }
 }
 
 // To the right of the (roughly two-thirds width) indicator metadata box on
