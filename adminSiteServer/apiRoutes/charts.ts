@@ -1194,7 +1194,9 @@ async function upsertEtlConfigForChart(
             Pick<DbPlainChart, "id">
         >(
             trx,
-            `-- sql SELECT id FROM charts WHERE catalogPath = ? AND id != ?`,
+            `-- sql
+                SELECT id FROM charts WHERE catalogPath = ? AND id != ?
+            `,
             [catalogPath, chartId]
         )
         if (conflictingChart) {
