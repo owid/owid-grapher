@@ -439,25 +439,25 @@ export const ContinentColors = {
     "Sub-Saharan Africa (UN SDG)": OwidDistinctColors.DarkMauve,
 
     // Maddison Project Database regions
-    "Western offshoots (Maddison)": OwidMapColors.MutedDenim,
-    "Western Europe (Maddison)": OwidMapColors.SoftOrange,
-    "Eastern Europe (Maddison)": OwidMapColors.MutedTeal,
-    "Latin America (Maddison)": OwidMapColors.SoftPurple,
-    "East Asia (Maddison)": OwidMapColors.Sand,
-    "South and South East Asia (Maddison)": OwidMapColors.MutedCherry,
-    "Middle East and North Africa (Maddison)": OwidMapColors.LeafGreen,
-    "Sub Saharan Africa (Maddison)": OwidMapColors.SkyTurquoise,
+    "Western offshoots (Maddison)": OwidDistinctColors.Peach,
+    "Western Europe (Maddison)": OwidDistinctColors.MidnightBlue,
+    "Eastern Europe (Maddison)": OwidDistinctColors.Blue,
+    "Latin America (Maddison)": OwidDistinctColors.Maroon,
+    "East Asia (Maddison)": OwidDistinctColors.TealishGreen,
+    "South and South East Asia (Maddison)": OwidDistinctColors.OliveGreen,
+    "Middle East and North Africa (Maddison)": OwidDistinctColors.Camel,
+    "Sub Saharan Africa (Maddison)": OwidDistinctColors.DarkMauve,
 
     // WID regions
-    "North America (WID)": OwidMapColors.MutedDenim,
-    "Latin America (WID)": OwidMapColors.SoftOrange,
-    "Europe (WID)": OwidMapColors.MutedTeal,
-    "Russia and Central Asia (WID)": OwidMapColors.SoftPurple,
-    "Middle East and North Africa (WID)": OwidMapColors.Sand,
-    "Sub-Saharan Africa (WID)": OwidMapColors.MutedCherry,
-    "East Asia (WID)": OwidMapColors.LeafGreen,
-    "South and South-East Asia (WID)": OwidMapColors.SkyTurquoise,
-    "Oceania (WID)": OwidMapColors.Lavendar,
+    "North America (WID)": OwidDistinctColors.Peach,
+    "Latin America (WID)": OwidDistinctColors.Maroon,
+    "Europe (WID)": OwidDistinctColors.Denim,
+    "Russia and Central Asia (WID)": OwidDistinctColors.LightTeal,
+    "Middle East and North Africa (WID)": OwidDistinctColors.Camel,
+    "Sub-Saharan Africa (WID)": OwidDistinctColors.DarkMauve,
+    "East Asia (WID)": OwidDistinctColors.TealishGreen,
+    "South and South-East Asia (WID)": OwidDistinctColors.OliveGreen,
+    "Oceania (WID)": OwidDistinctColors.Turquoise,
 
     // Energy Institute regions
     "North America (EI)": OwidMapColors.SoftOrange,
@@ -875,6 +875,27 @@ export const MapContinentColors = {
     "Northern Africa and Western Asia (UN SDG)": OwidMapColors.Sand,
     "Oceania (UN SDG)": OwidMapColors.SkyTurquoise,
     "Sub-Saharan Africa (UN SDG)": OwidMapColors.LightPurple,
+
+    // Maddison Project Database regions
+    "Western offshoots (Maddison)": OwidMapColors.MutedDenim,
+    "Western Europe (Maddison)": OwidMapColors.SoftOrange,
+    "Eastern Europe (Maddison)": OwidMapColors.MutedTeal,
+    "Latin America (Maddison)": OwidMapColors.SoftPurple,
+    "East Asia (Maddison)": OwidMapColors.Sand,
+    "South and South East Asia (Maddison)": OwidMapColors.MutedCherry,
+    "Middle East and North Africa (Maddison)": OwidMapColors.LeafGreen,
+    "Sub Saharan Africa (Maddison)": OwidMapColors.SkyTurquoise,
+
+    // WID regions
+    "North America (WID)": OwidMapColors.MutedDenim,
+    "Latin America (WID)": OwidMapColors.SoftOrange,
+    "Europe (WID)": OwidMapColors.MutedTeal,
+    "Russia and Central Asia (WID)": OwidMapColors.SoftPurple,
+    "Middle East and North Africa (WID)": OwidMapColors.Sand,
+    "Sub-Saharan Africa (WID)": OwidMapColors.MutedCherry,
+    "East Asia (WID)": OwidMapColors.LeafGreen,
+    "South and South-East Asia (WID)": OwidMapColors.SkyTurquoise,
+    "Oceania (WID)": OwidMapColors.Lavendar,
 } as const
 
 /**
