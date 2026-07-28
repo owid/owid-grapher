@@ -440,10 +440,10 @@ export const ContinentColors = {
 
     // Maddison Project Database regions
     "Western offshoots (Maddison)": OwidDistinctColors.Peach,
-    "Western Europe (Maddison)": OwidDistinctColors.MidnightBlue,
-    "Eastern Europe (Maddison)": OwidDistinctColors.Blue,
+    "Western Europe (Maddison)": OwidDistinctColors.Denim,
+    "Eastern Europe (Maddison)": OwidDistinctColors.MidnightBlue,
     "Latin America (Maddison)": OwidDistinctColors.Maroon,
-    "East Asia (Maddison)": OwidDistinctColors.TealishGreen,
+    "East Asia (Maddison)": OwidDistinctColors.Copper,
     "South and South East Asia (Maddison)": OwidDistinctColors.OliveGreen,
     "Middle East and North Africa (Maddison)": OwidDistinctColors.Camel,
     "Sub Saharan Africa (Maddison)": OwidDistinctColors.DarkMauve,
@@ -463,10 +463,10 @@ export const ContinentColors = {
     "North America (EI)": OwidDistinctColors.Peach,
     "South and Central America (EI)": OwidDistinctColors.Maroon,
     "Europe (EI)": OwidDistinctColors.Denim,
-    "CIS (EI)": OwidDistinctColors.LightTeal,
+    "CIS (EI)": OwidDistinctColors.MidnightBlue,
     "Middle East (EI)": OwidDistinctColors.Camel,
     "Africa (EI)": OwidDistinctColors.Mauve,
-    "Asia Pacific (EI)": OwidDistinctColors.Teal,
+    "Asia Pacific (EI)": OwidDistinctColors.Lime,
 
     // Ember regions
     "North America (Ember)": OwidDistinctColors.Peach,
@@ -878,10 +878,10 @@ export const MapContinentColors = {
 
     // Maddison Project Database regions
     "Western offshoots (Maddison)": OwidMapColors.SoftOrange,
-    "Western Europe (Maddison)": OwidMapColors.LightDenim,
-    "Eastern Europe (Maddison)": OwidMapColors.Lavendar,
+    "Western Europe (Maddison)": OwidMapColors.MutedDenim,
+    "Eastern Europe (Maddison)": OwidMapColors.LightDenim,
     "Latin America (Maddison)": OwidMapColors.MutedCherry,
-    "East Asia (Maddison)": OwidMapColors.LightGreen,
+    "East Asia (Maddison)": OwidMapColors.LightCherry,
     "South and South East Asia (Maddison)": OwidMapColors.Olive,
     "Middle East and North Africa (Maddison)": OwidMapColors.Sand,
     "Sub Saharan Africa (Maddison)": OwidMapColors.LightPurple,
@@ -901,10 +901,10 @@ export const MapContinentColors = {
     "North America (EI)": OwidMapColors.SoftOrange,
     "South and Central America (EI)": OwidMapColors.MutedCherry,
     "Europe (EI)": OwidMapColors.MutedDenim,
-    "CIS (EI)": OwidMapColors.LightTeal,
+    "CIS (EI)": OwidMapColors.LightDenim,
     "Middle East (EI)": OwidMapColors.Sand,
     "Africa (EI)": OwidMapColors.LightPurple,
-    "Asia Pacific (EI)": OwidMapColors.MutedTeal,
+    "Asia Pacific (EI)": OwidMapColors.LeafGreen,
 
     // Ember regions
     "North America (Ember)": OwidMapColors.SoftOrange,
