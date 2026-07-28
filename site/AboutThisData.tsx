@@ -33,17 +33,22 @@ export default function AboutThisData({
     const hasDescriptionKey = !!datapageData.descriptionKey
     const attributionUnshortened = getAttributionUnshortened(datapageData)
     const id_ = id ?? DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
+    const hasKeyInfo =
+        hasDescriptionKey ||
+        !!datapageData.descriptionFromProducer ||
+        !!datapageData.source?.additionalInfo
 
     return (
         <div
             className={cx(
                 "wrapper-about-this-data grid grid-cols-12",
+                // Without key information the heading and the newsletter card
+                // share a narrow label column, which needs its own grid rows.
+                { "wrapper-about-this-data--label-column": !hasKeyInfo },
                 className
             )}
         >
-            {hasDescriptionKey ||
-            datapageData.descriptionFromProducer ||
-            datapageData.source?.additionalInfo ? (
+            {hasKeyInfo ? (
                 <>
                     <h2 id={id_} className="key-info__title span-cols-12">
                         What you should know about this indicator
@@ -112,15 +117,16 @@ export default function AboutThisData({
                             datapageData={datapageData}
                             attribution={attributionUnshortened}
                         />
+                        {/* Inside the metadata column, below the key data
+                            table, so that it sits in the column that is usually
+                            the shorter of the two. */}
+                        <TopicNewsletterCard
+                            pageType="chart"
+                            topicArea={topicArea}
+                            variant="narrow"
+                            className="topic-newsletter-card--key-info"
+                        />
                     </div>
-                    {/* Own grid row below the description column, matching its
-                        columns, so that the border-left of .key-info__right
-                        stops at the key data table. */}
-                    <TopicNewsletterCard
-                        pageType="chart"
-                        topicArea={topicArea}
-                        className="topic-newsletter-card--about-this-data col-start-1 span-cols-8 span-lg-cols-7 span-sm-cols-12"
-                    />
                 </>
             ) : (
                 <>
@@ -130,19 +136,20 @@ export default function AboutThisData({
                     >
                         About this data
                     </h2>
-                    <div className="col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                    <div className="about-this-data__key-data col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                         <KeyDataTable
                             datapageData={datapageData}
                             attribution={attributionUnshortened}
                         />
                     </div>
-                    {/* Own grid row below the key data table, matching its
-                        columns, so the table keeps the full width it has
-                        without a topic area. */}
+                    {/* In the label column directly below the heading at md-up
+                        (the rows that put it there live in AboutThisData.scss),
+                        full width below the key data table below that. */}
                     <TopicNewsletterCard
                         pageType="chart"
                         topicArea={topicArea}
-                        className="topic-newsletter-card--about-this-data col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                        variant="narrow"
+                        className="topic-newsletter-card--about-this-data col-start-1 span-cols-3 col-lg-start-1 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
                     />
                 </>
             )}
