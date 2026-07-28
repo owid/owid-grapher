@@ -451,4 +451,20 @@ describe(rediffPatchAgainstNewParentStack, () => {
             rediffPatchAgainstNewParentStack(existingPatch, newParentStack)
         ).toEqual(existingPatch)
     })
+
+    it("drops only the nested fields that now match the new parent stack", () => {
+        const existingPatch: GrapherInterface = {
+            yAxis: { min: 0, max: 100 },
+        }
+        // ETL has adopted `min` but not `max`
+        const newParentStack: GrapherInterface = {
+            yAxis: { min: 0 },
+        }
+
+        expect(
+            rediffPatchAgainstNewParentStack(existingPatch, newParentStack)
+        ).toEqual({
+            yAxis: { max: 100 },
+        })
+    })
 })
