@@ -55,9 +55,10 @@ function isValidEditorTab(tab: string): tab is EditorTab {
 export interface AbstractChartEditorManager {
     admin: Admin
     patchConfig: GrapherInterface
-    // For the main chart editor, `parentConfig` is the indicator's grapher_config
-    // (variable.grapherConfigETL). For other editor variants (indicator/narrative)
-    // it is whatever their parent layer happens to be.
+    // For the main chart editor, `parentConfig` is the indicator's resolved
+    // grapher config: variable.grapherConfigAdmin if set, else
+    // variable.grapherConfigETL, else undefined. For other editor variants
+    // (indicator/narrative) it is whatever their parent layer happens to be.
     parentConfig?: GrapherInterface
     // For the main chart editor, the chart's own ETL-authored grapher config
     // (stored as a separate chart_configs row, via charts.configIdETL). Always
