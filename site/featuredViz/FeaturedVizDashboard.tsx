@@ -6,10 +6,7 @@ import {
     faUpRightFromSquare,
 } from "@fortawesome/free-solid-svg-icons"
 import { BespokeComponent } from "../gdocs/components/BespokeComponent.js"
-import {
-    FEATURED_VIZ_ITEMS,
-    FeaturedVizItem,
-} from "./featuredVizContent.js"
+import { FEATURED_VIZ_ITEMS, FeaturedVizItem } from "./featuredVizContent.js"
 
 export const FEATURED_VIZ_PAGE_ROOT_ID = "featured-viz-page-root"
 
@@ -108,10 +105,10 @@ export const FeaturedVizDashboard = () => {
                     <h1 className="h1-semibold">Featured visualizations</h1>
                     <p className="featured-viz-page__subtitle subtitle-1">
                         Some questions need more than a standard chart. These
-                        interactive visualizations were custom-built by our
-                        team to let you explore the data behind big global
-                        questions — every one of them is live on this page, so
-                        dive in and play.
+                        interactive visualizations were custom-built by our team
+                        to let you explore the data behind big global questions
+                        — every one of them is live on this page, so dive in and
+                        play.
                     </p>
                     <nav
                         className="featured-viz-page__jump-nav"
