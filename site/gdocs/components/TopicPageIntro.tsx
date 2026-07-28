@@ -1,11 +1,34 @@
 import { useContext } from "react"
-import { EnrichedBlockTopicPageIntro } from "@ourworldindata/utils"
+import {
+    EnrichedTopicPageIntroRelatedTopic,
+    EnrichedBlockTopicPageIntro,
+} from "@ourworldindata/utils"
+import { useLinkedDocument } from "../utils.js"
+import { useDocumentContext } from "../DocumentContext.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import Paragraph from "./Paragraph.js"
 import TopicNewsletterCard from "../../TopicNewsletterCard.js"
 
 type TopicPageIntroProps = EnrichedBlockTopicPageIntro & {
     className?: string
+}
+
+function TopicPageRelatedTopic({
+    text,
+    url,
+}: EnrichedTopicPageIntroRelatedTopic) {
+    const { linkedDocument, errorMessage } = useLinkedDocument(url)
+    const { isPreviewing } = useDocumentContext()
+    if (errorMessage && isPreviewing) {
+        return <li>{errorMessage}</li>
+    }
+    const topicText = linkedDocument?.title || text
+    const topicUrl = linkedDocument?.url ?? url
+    return (
+        <li>
+            <a href={topicUrl}>{topicText}</a>
+        </li>
+    )
 }
 
 export function TopicPageIntro(props: TopicPageIntroProps) {
@@ -28,6 +51,19 @@ export function TopicPageIntro(props: TopicPageIntroProps) {
                             {props.downloadButton.text}
                         </a>
                     </div>
+                ) : null}
+                {props.relatedTopics?.length ? (
+                    <aside className="topic-page-intro__related-topics">
+                        <h4 className="overline-black-caps">Related topics</h4>
+                        <ul>
+                            {props.relatedTopics.map((relatedTopic) => (
+                                <TopicPageRelatedTopic
+                                    key={relatedTopic.url}
+                                    {...relatedTopic}
+                                />
+                            ))}
+                        </ul>
+                    </aside>
                 ) : null}
             </div>
         </div>
