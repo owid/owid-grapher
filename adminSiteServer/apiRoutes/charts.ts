@@ -1374,6 +1374,10 @@ async function upsertEtlConfigForChart(
         )
     }
 
+    await enqueueExplorerRefreshJobsForDependencies(trx, {
+        chartIds: [chartId],
+    })
+
     return { success: true, etlConfig, patch: newPatch }
 }
 
