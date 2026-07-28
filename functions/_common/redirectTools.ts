@@ -172,13 +172,3 @@ async function getOptionalExplorerRedirectForSlug(
     const queryParams = Object.fromEntries(baseUrl.searchParams)
     return matchQueryParamDecisionTree(redirect, queryParams)
 }
-
-export async function handleExplorerPageNotFound(
-    env: Env,
-    response: Response
-): Promise<Response> {
-    const url = new URL(response.url)
-    console.log("Handling explorer 404 for", url.pathname)
-    const redirect = await getRedirectForExplorerUrl(env, url)
-    return redirect || response
-}
