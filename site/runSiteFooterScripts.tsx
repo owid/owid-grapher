@@ -48,6 +48,10 @@ import {
     SlideshowPresentation,
     _OWID_SLIDESHOW_PROPS,
 } from "./slideshows/SlideshowPresentation.js"
+import {
+    FEATURED_VIZ_PAGE_ROOT_ID,
+    FeaturedVizDashboard,
+} from "./featuredViz/FeaturedVizDashboard.js"
 
 function runSearchPage() {
     const root = document.getElementById("search-page-root")
@@ -73,6 +77,13 @@ function hydrateSubscribePage() {
                 context={NewsletterSubscriptionContext.SubscribePage}
             />
         )
+    }
+}
+
+function hydrateFeaturedVizPage() {
+    const root = document.getElementById(FEATURED_VIZ_PAGE_ROOT_ID)
+    if (root) {
+        hydrateRoot(root, <FeaturedVizDashboard />)
     }
 }
 
@@ -382,6 +393,12 @@ export const runSiteFooterScripts = async (
             runSiteTools()
             runCookiePreferencesManager()
             void runDetailsOnDemand()
+            break
+        case SiteFooterContext.featuredVizPage:
+            hydrateFeaturedVizPage()
+            runSiteNavigation({ hideDonationFlag, isPreviewing })
+            runSiteTools()
+            runCookiePreferencesManager()
             break
         case SiteFooterContext.dynamicCollectionPage:
             // Don't break, run default case too

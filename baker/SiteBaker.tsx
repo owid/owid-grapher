@@ -20,6 +20,7 @@ import {
     renderGdoc,
     makeAtomFeedNoTopicPages,
     renderDynamicCollectionPage,
+    renderFeaturedVizPage,
     renderTopChartsCollectionPage,
     renderThankYouPage,
     makeDataInsightsAtomFeed,
@@ -827,6 +828,10 @@ export class SiteBaker {
         await this.stageWrite(
             `${this.bakedSiteDir}/collection/custom.html`,
             renderDynamicCollectionPage()
+        )
+        await this.stageWrite(
+            `${this.bakedSiteDir}/featured-viz.html`,
+            renderFeaturedVizPage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/collection/top-charts.html`,

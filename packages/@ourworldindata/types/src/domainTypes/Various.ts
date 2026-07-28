@@ -40,6 +40,7 @@ export enum SiteFooterContext {
     searchPage = "search-page",
     subscribePage = "subscribe-page",
     slideshowPage = "slideshow-page",
+    featuredVizPage = "featured-viz-page",
 }
 
 export interface GitCommit {
