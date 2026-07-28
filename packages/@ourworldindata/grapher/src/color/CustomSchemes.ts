@@ -460,22 +460,22 @@ export const ContinentColors = {
     "Oceania (WID)": OwidDistinctColors.Turquoise,
 
     // Energy Institute regions
-    "North America (EI)": OwidMapColors.SoftOrange,
-    "South and Central America (EI)": OwidMapColors.MutedCherry,
-    "Europe (EI)": OwidMapColors.MutedDenim,
-    "CIS (EI)": OwidMapColors.LightDenim,
-    "Middle East (EI)": OwidMapColors.Sand,
-    "Africa (EI)": OwidMapColors.LightPurple,
-    "Asia Pacific (EI)": OwidMapColors.LeafGreen,
+    "North America (EI)": OwidDistinctColors.Peach,
+    "South and Central America (EI)": OwidDistinctColors.Maroon,
+    "Europe (EI)": OwidDistinctColors.Denim,
+    "CIS (EI)": OwidDistinctColors.LightTeal,
+    "Middle East (EI)": OwidDistinctColors.Camel,
+    "Africa (EI)": OwidDistinctColors.Mauve,
+    "Asia Pacific (EI)": OwidDistinctColors.Teal,
 
     // Ember regions
-    "North America (Ember)": OwidMapColors.SoftOrange,
-    "Latin America and Caribbean (Ember)": OwidMapColors.MutedCherry,
-    "Europe (Ember)": OwidMapColors.MutedDenim,
-    "Africa (Ember)": OwidMapColors.LightPurple,
-    "Middle East (Ember)": OwidMapColors.Sand,
-    "Asia (Ember)": OwidMapColors.MutedTeal,
-    "Oceania (Ember)": OwidMapColors.SkyTurquoise,
+    "North America (Ember)": OwidDistinctColors.Peach,
+    "Latin America and Caribbean (Ember)": OwidDistinctColors.Maroon,
+    "Europe (Ember)": OwidDistinctColors.Denim,
+    "Africa (Ember)": OwidDistinctColors.Mauve,
+    "Middle East (Ember)": OwidDistinctColors.Camel,
+    "Asia (Ember)": OwidDistinctColors.Teal,
+    "Oceania (Ember)": OwidDistinctColors.Turquoise,
 
     // Income groups
     "High-income countries": IncomeGroupColors.HighIncome,
@@ -896,6 +896,24 @@ export const MapContinentColors = {
     "East Asia (WID)": OwidMapColors.LeafGreen,
     "South and South-East Asia (WID)": OwidMapColors.SkyTurquoise,
     "Oceania (WID)": OwidMapColors.Lavendar,
+
+    // Energy Institute regions
+    "North America (EI)": OwidMapColors.SoftOrange,
+    "South and Central America (EI)": OwidMapColors.MutedCherry,
+    "Europe (EI)": OwidMapColors.MutedDenim,
+    "CIS (EI)": OwidMapColors.LightDenim,
+    "Middle East (EI)": OwidMapColors.Sand,
+    "Africa (EI)": OwidMapColors.LightPurple,
+    "Asia Pacific (EI)": OwidMapColors.LeafGreen,
+
+    // Ember regions
+    "North America (Ember)": OwidMapColors.SoftOrange,
+    "Latin America and Caribbean (Ember)": OwidMapColors.MutedCherry,
+    "Europe (Ember)": OwidMapColors.MutedDenim,
+    "Africa (Ember)": OwidMapColors.LightPurple,
+    "Middle East (Ember)": OwidMapColors.Sand,
+    "Asia (Ember)": OwidMapColors.MutedTeal,
+    "Oceania (Ember)": OwidMapColors.SkyTurquoise,
 } as const
 
 /**
