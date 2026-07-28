@@ -408,21 +408,21 @@ const updateExistingChart = async (
     // make sure that the id of the incoming config matches the chart id
     config.id = chartId
 
-    // if inheritance is enabled, grab the parent from its config
     const shouldInherit =
         params.shouldInherit ??
         (await isInheritanceEnabledForChart(knex, chartId))
-    const parent = shouldInherit
-        ? await getParentByChartConfig(knex, config)
-        : undefined
 
     const chartConfigIdRow = await db.knexRawFirst<
-        Pick<DbPlainChart, "configId"> & { etlConfig: string | null }
+        Pick<DbPlainChart, "configId"> & {
+            etlConfig: string | null
+            existingFull: string
+        }
     >(
         knex,
         `-- sql
-            SELECT c.configId, cc_etl.full AS etlConfig
+            SELECT c.configId, cc_etl.full AS etlConfig, cc.full AS existingFull
             FROM charts c
+            JOIN chart_configs cc ON cc.id = c.configId
             LEFT JOIN chart_configs cc_etl ON cc_etl.id = c.configIdETL
             WHERE c.id = ?
         `,
@@ -435,6 +435,28 @@ const updateExistingChart = async (
     const etlConfig = chartConfigIdRow.etlConfig
         ? parseChartConfig(chartConfigIdRow.etlConfig)
         : {}
+    const existingFull = parseChartConfig(chartConfigIdRow.existingFull)
+
+    // Look up the chart's parent indicator (only if inheritance is enabled),
+    // resolving it from the dimensions the chart will plot *after* this save:
+    // the incoming admin patch's dimensions if it carries an override, else
+    // the chart's etlConfig, else the dimensions it already has. `config` here
+    // is the admin's patch, which for an ETL-managed chart usually has no
+    // `dimensions` at all (those live in etlConfig) — resolving the parent
+    // from `config` alone would then find no parent and silently drop the
+    // indicator's inherited fields (title, subtitle, map settings, ...).
+    const parent = shouldInherit
+        ? await getParentByChartConfig(knex, {
+              dimensions:
+                  config.dimensions ??
+                  etlConfig.dimensions ??
+                  existingFull.dimensions,
+              chartTypes:
+                  config.chartTypes ??
+                  etlConfig.chartTypes ??
+                  existingFull.chartTypes,
+          })
+        : undefined
 
     // compute patch and full configs.
     // The "parent stack" against which we diff is the indicator's grapher
