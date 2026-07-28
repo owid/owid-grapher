@@ -454,7 +454,7 @@ export const ContinentColors = {
     "South and South-East Asia (WID)": OwidMapColors.SkyTurquoise,
     "Oceania (WID)": OwidMapColors.Lavendar,
 
-    // Energy Institute regions — Marwa's curated palette (semantic OWID map colors).
+    // Energy Institute regions
     "North America (EI)": OwidMapColors.SoftOrange,
     "South and Central America (EI)": OwidMapColors.MutedCherry,
     "Europe (EI)": OwidMapColors.MutedDenim,
@@ -463,7 +463,7 @@ export const ContinentColors = {
     "Africa (EI)": OwidMapColors.LightPurple,
     "Asia Pacific (EI)": OwidMapColors.LeafGreen,
 
-    // Ember regions — Marwa's curated palette (UN colors plus Sand for the Middle East).
+    // Ember regions
     "North America (Ember)": OwidMapColors.SoftOrange,
     "Latin America and Caribbean (Ember)": OwidMapColors.MutedCherry,
     "Europe (Ember)": OwidMapColors.MutedDenim,
