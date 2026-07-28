@@ -417,6 +417,11 @@ export const getHomepageAnnouncements = (
         AND pg.publishedAt <= NOW()
         AND pg.type = '${OwidGdocType.Announcement}'
         AND pg.publicationContext = 'listed'
+        -- Topic updates are surfaced as topic pages in the homepage's featured
+        -- work column, so listing them here too would show them twice.
+        -- COALESCE because a kicker-less announcement has a JSON NULL here,
+        -- which would otherwise make the comparison NULL and drop the row.
+        AND COALESCE(pg.content ->> '$.kicker', '') != 'topic-update'
         ORDER BY pg.publishedAt DESC
         LIMIT 3
         `
