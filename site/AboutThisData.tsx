@@ -20,12 +20,15 @@ import {
 // The number of descriptionKey bullets from which the description column of
 // the "What you should know about this indicator" section outgrows the metadata
 // column beside it. Measured across every data page that renders the section,
-// counting bullets with countDescriptionKeyBullets() below: with six bullets or
-// more the description column is the taller one on 195 of 203 pages (96%), and
-// with fewer the metadata column usually is — though the description column is
-// already the taller one on 77% of five-bullet pages. The sweep this comes from,
-// and the script that reproduces it, are in devTools/datapageColumnHeights.
-const LEFT_COLUMN_TALLER_BULLET_COUNT = 6
+// counting bullets with countDescriptionKeyBullets() below, then scoring each
+// candidate cut by whether the newsletter card ends up in the column that
+// actually measured shorter: a cut at five places the card correctly on 90.0%
+// of the 1,633 two-column pages against 86.5% at six, and leaves roughly half
+// as much blank space standing. Five-bullet pages are 77% description-taller,
+// so they belong above the cut; four-bullet pages are 47%, a coin flip, so they
+// stay below. The sweep this comes from, and the script that reproduces it, are
+// in devTools/datapageColumnHeights.
+const LEFT_COLUMN_TALLER_BULLET_COUNT = 5
 
 export default function AboutThisData({
     datapageData,

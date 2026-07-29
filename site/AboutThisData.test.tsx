@@ -50,13 +50,14 @@ function placement(bullets: number): "left" | "right" | "none" {
 }
 
 describe("AboutThisData newsletter card placement", () => {
-    it("puts the card on the left below the threshold", () => {
+    it("puts the card on the left below five bullets", () => {
         expect(placement(0)).toBe("left")
         expect(placement(3)).toBe("left")
-        expect(placement(5)).toBe("left")
+        expect(placement(4)).toBe("left")
     })
 
-    it("keeps the card on the right at or above the threshold", () => {
+    it("keeps the card on the right at five bullets or more", () => {
+        expect(placement(5)).toBe("right")
         expect(placement(6)).toBe("right")
         expect(placement(12)).toBe("right")
     })

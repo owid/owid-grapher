@@ -111,10 +111,12 @@ Per count, with the cumulative figures a threshold is actually read off:
 | 12+     | 6     | 6           | 100%  | 6          | 6           | 100%  |
 
 **At 6 or more bullets the left column is the taller one on 195 of 203 pages
-(96%)**, and below that the right column usually is. That crossover is where
-`LEFT_COLUMN_TALLER_BULLET_COUNT = 6` in `site/AboutThisData.tsx` comes from: it
-places the newsletter card in whichever column is expected to be the shorter
-one, so the card fills space that would otherwise be blank.
+(96%)**, and below that the right column usually is. That 96% is tempting to
+read as a threshold, but it only describes the pages such a rule would send the
+card right; scoring every page (next section) puts the cut one bullet lower.
+`LEFT_COLUMN_TALLER_BULLET_COUNT = 5` in `site/AboutThisData.tsx` is what the
+site uses: it places the newsletter card in whichever column is expected to be
+the shorter one, so the card fills space that would otherwise be blank.
 
 ## Scoring the threshold
 
@@ -135,11 +137,17 @@ high threshold on the other side of the cut:
 "Wasted px" is the sum of the height differences on the misplaced pages, which
 is roughly how much blank space the rule leaves standing.
 
+**5 is the cut the site uses**, because it is the most accurate of the
+candidates: 163 misplaced pages against 221 at 6 (90.0% against 86.5%), and it
+roughly halves the blank space the rule leaves standing, from 26k px to 14k.
+
 At 6, only 8 of the 221 misplacements are pages sent right that should have gone
 left; the other 213 are pages kept left that the description column outgrows
 anyway, and 166 of those sit at 4 or 5 bullets. The five-bullet band is the one
-that decides between 5 and 6: it is 77% left-taller, so it belongs above the cut,
-while the four-bullet band at 47% is a coin flip either way.
+that decides between 5 and 6: it is 77% left-taller, so it belongs above the cut.
+Dropping a further bullet to 4 does not help — it scores 89.5%, and its lower
+wasted-px figure comes from the four-bullet band being a 47% coin flip whose
+pages are near-ties either way, so that band adds noise rather than accuracy.
 
 If page content shifts enough that the crossover moves, re-running the sweep is
 what should decide the new threshold; the `.summary.json` it writes contains
