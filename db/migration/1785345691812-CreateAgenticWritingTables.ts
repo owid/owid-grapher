@@ -9,7 +9,7 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 // The first content type is "data_nugget" — short, link-backed views of OWID
 // chart data. Other content types can be added by extending the contentType
 // enum on the lineage row.
-export class CreateAgenticWritingTables1781550640956 implements MigrationInterface {
+export class CreateAgenticWritingTables1785345691812 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
             CREATE TABLE agentic_writing_lineages (
