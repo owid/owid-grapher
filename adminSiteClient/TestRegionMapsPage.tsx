@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import * as _ from "lodash-es"
 import {
     ContinentColors,
@@ -6,6 +6,7 @@ import {
     GrapherState,
     getRegionsForKey,
     regionGroupLabels,
+    useElementBounds,
     type TooltipKey,
 } from "@ourworldindata/grapher"
 import { getRegionDataProviders } from "@ourworldindata/utils"
@@ -133,6 +134,21 @@ function hasHardCodedColors(key: TooltipKey): boolean {
     )
 }
 
+// Grapher renders at fixed default bounds unless given external bounds, so
+// measure the figure and resize the chart with it (like GrapherFigureView)
+function RegionMapFigure({ grapherState }: { grapherState: GrapherState }) {
+    const base = useRef<HTMLDivElement>(null)
+    const bounds = useElementBounds(base, null)
+    useEffect(() => {
+        if (bounds) grapherState.externalBounds = bounds
+    }, [bounds, grapherState])
+    return (
+        <figure ref={base}>
+            {bounds && <Grapher grapherState={grapherState} />}
+        </figure>
+    )
+}
+
 export function TestRegionMapsPage() {
     const sections = useMemo(() => {
         const [pinnedKeys, unpinnedKeys] = _.partition(
@@ -171,16 +187,12 @@ export function TestRegionMapsPage() {
                                     key={key}
                                     className="TestRegionMapsPage__row"
                                 >
-                                    <figure>
-                                        <Grapher
-                                            grapherState={mapGrapherState}
-                                        />
-                                    </figure>
-                                    <figure>
-                                        <Grapher
-                                            grapherState={lineChartGrapherState}
-                                        />
-                                    </figure>
+                                    <RegionMapFigure
+                                        grapherState={mapGrapherState}
+                                    />
+                                    <RegionMapFigure
+                                        grapherState={lineChartGrapherState}
+                                    />
                                 </div>
                             )
                         )}

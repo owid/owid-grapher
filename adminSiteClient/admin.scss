@@ -1051,16 +1051,18 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
 
 .TestRegionMapsPage__row {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     gap: 16px;
     margin-bottom: 24px;
 }
 
 .TestRegionMapsPage figure {
-    width: 48%;
+    flex: 1 1 450px;
     max-width: 850px;
     height: 600px;
     margin: 0;
+    min-width: 0;
 }
 
 .TestEmbedsPage {
