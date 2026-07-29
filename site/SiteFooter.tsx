@@ -1,6 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInbox, faRss } from "@fortawesome/free-solid-svg-icons"
 import { ArchiveContext, SiteFooterContext } from "@ourworldindata/types"
+import { serializeJSONForInlineScript } from "@ourworldindata/utils"
 import { viteAssetsForSite } from "./viteUtils.js"
 import { ScriptLoadErrorDetector } from "./NoJSDetector.js"
 import { ABOUT_LINKS, PROD_URL, RSS_FEEDS, SOCIALS } from "./SiteConstants.js"
@@ -117,11 +118,13 @@ export const SiteFooter = (props: SiteFooterProps) => {
     const scripts: string[] = []
     if (archiveContext)
         scripts.push(
-            `window._OWID_ARCHIVE_CONTEXT = ${JSON.stringify(archiveContext)};`
+            `window._OWID_ARCHIVE_CONTEXT = ${serializeJSONForInlineScript(
+                archiveContext
+            )};`
         )
 
     scripts.push(
-        `window.runSiteFooterScripts(${JSON.stringify({
+        `window.runSiteFooterScripts(${serializeJSONForInlineScript({
             context: props.context,
             debug: props.debug,
             isPreviewing: props.isPreviewing,

@@ -15,6 +15,7 @@ import {
     extractGdocPageData,
     OwidGdocPageData,
     readFromAssetMap,
+    serializeJSONForInlineScript,
 } from "@ourworldindata/utils"
 import { getCanonicalUrl, getPageTitle } from "@ourworldindata/components"
 import { DebugProvider } from "./DebugProvider.js"
@@ -235,7 +236,7 @@ export default function OwidGdocPage({
                 )}
                 <script
                     dangerouslySetInnerHTML={{
-                        __html: `window._OWID_GDOC_PROPS = ${JSON.stringify(
+                        __html: `window._OWID_GDOC_PROPS = ${serializeJSONForInlineScript(
                             extractGdocPageData(gdoc)
                         )}`,
                     }}
