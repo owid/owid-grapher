@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
-import { useCallback, useEffect, useMemo, useRef } from "react"
+import { useCallback, useMemo } from "react"
 import * as React from "react"
-import { observable, computed, action, makeObservable, runInAction } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     Bounds,
@@ -88,7 +88,6 @@ export interface DownloadModalManager {
     inputColumnSlugs?: string[]
     isServerSideDownloadAvailable?: boolean
     downloadPackage?: DownloadPackage
-    shouldScrollToQuickDownload?: boolean
     logImageDownloadEvent?: (action: GrapherImageDownloadEvent) => void
     activeDownloadModalTab: DownloadModalTabName
     isOnMapTab?: boolean
@@ -727,39 +726,6 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
     const { yColumnsFromDimensionsOrSlugsOrAuto: yColumns, downloadPackage } =
         props.manager
 
-    // When the modal is opened from outside the chart -- the mdim header
-    // "Download the data" button -- the reader came for the download buttons,
-    // and the modal is no taller than the chart frame, so on a phone the last
-    // of them sits below the fold behind the citation block.
-    const downloadButtonsRef = useRef<HTMLDivElement>(null)
-    const { manager } = props
-    useEffect(() => {
-        if (!manager.shouldScrollToQuickDownload) return
-        const buttons = downloadButtonsRef.current
-        const panel = buttons?.closest<HTMLElement>(
-            ".download-modal__tab-panel"
-        )
-        if (!buttons || !panel) return
-        const buttonsRect = buttons.getBoundingClientRect()
-        const panelRect = panel.getBoundingClientRect()
-        // Scroll the least amount that brings the buttons fully into view, and
-        // no further than putting their top edge at the top of the panel (which
-        // is all we can do when they're taller than the panel). Desktop panels
-        // already show all of them, so this is a no-op there. Moving the panel's
-        // own scrollTop rather than calling scrollIntoView keeps the page behind
-        // the modal where it is.
-        const scrollBy = Math.min(
-            buttonsRect.bottom - panelRect.bottom,
-            buttonsRect.top - panelRect.top
-        )
-        if (scrollBy > 0) panel.scrollTop += scrollBy
-        // One-shot: reopening from the chart's own Download button should land
-        // at the top of the tab, the way it always has.
-        runInAction(() => {
-            manager.shouldScrollToQuickDownload = false
-        })
-    }, [manager])
-
     const { cols: nonRedistributableCols, sourceLinks } =
         getNonRedistributableInfo(props.manager.tableForDownload)
 
@@ -921,10 +887,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                 <div>
                     {/* Ordered from smallest to biggest download, and worded
                         to match the data page's own download section. */}
-                    <div
-                        className="download-modal__download-buttons"
-                        ref={downloadButtonsRef}
-                    >
+                    <div className="download-modal__download-buttons">
                         <DownloadButton
                             title="Download only selected data"
                             description={filteredDataDescription}

@@ -70,21 +70,16 @@ const useTitleFragments = (config: MultiDimDataPageConfig) => {
 }
 
 // Opens the chart's download modal on the Data tab, in the design Marwa
-// proposed for explorer/mdim headers. Rendered twice: in the header settings
-// row (desktop) and below the chart (mobile) -- CSS shows exactly one of the
-// two.
-function DownloadTheDataButton({
-    placement,
-    onClick,
-}: {
-    placement: "header" | "mobile"
-    onClick: () => void
-}) {
+// proposed for explorer/mdim headers. Desktop only, by Mojmír's call: the
+// package is a zip, which is an awkward thing to receive on a phone, so it
+// doesn't earn prominent placement there. Mobile readers can still reach the
+// same three options through the chart's own Download button.
+function DownloadTheDataButton({ onClick }: { onClick: () => void }) {
     return (
         <button
-            className={`download-the-data-button download-the-data-button--${placement}`}
+            className="download-the-data-button"
             onClick={onClick}
-            data-track-note={`datapage_download_the_data_button_${placement}`}
+            data-track-note="datapage_download_the_data_button"
         >
             <DownloadIconComplete color="currentColor" />
             Download the data
@@ -462,10 +457,6 @@ export function DataPageContent({
             grapherStateRef.current.activeModal = GrapherModal.Download
             grapherStateRef.current.activeDownloadModalTab =
                 DownloadModalTabName.Data
-            // Skip past the citation block to the download buttons: the modal
-            // is no taller than the chart frame, so on a phone they'd otherwise
-            // start below its fold.
-            grapherStateRef.current.shouldScrollToQuickDownload = true
         })
         // The modal is positioned within the chart's frame, so make sure the
         // chart is in view. A no-op when it already is.
@@ -518,13 +509,8 @@ export function DataPageContent({
                                 onChange={handleSettingsChange}
                                 disabled={isLoadingView}
                             />
-                            {/* On mobile a second instance renders below the
-                                chart instead -- offering the download before
-                                the user has even seen the data makes less
-                                sense there. Visibility is toggled in CSS. */}
                             {downloadPackage && (
                                 <DownloadTheDataButton
-                                    placement="header"
                                     onClick={openDownloadModal}
                                 />
                             )}
@@ -564,12 +550,6 @@ export function DataPageContent({
                                 </figure>
                             )}
                         </div>
-                        {downloadPackage && (
-                            <DownloadTheDataButton
-                                placement="mobile"
-                                onClick={openDownloadModal}
-                            />
-                        )}
                         {varDatapageData && (
                             <AboutThisData
                                 datapageData={varDatapageData}

@@ -38,8 +38,12 @@ $zindex-controls-popup: 140;
         }
     }
 
+    // Desktop only: a zip is an awkward thing to hand someone on a phone, so
+    // the download doesn't get a prominent button there. See the note on
+    // DownloadTheDataButton.
     .download-the-data-button {
         display: flex;
+        flex-shrink: 0;
         align-items: center;
         gap: 8px;
         width: fit-content;
@@ -61,20 +65,8 @@ $zindex-controls-popup: 140;
         &:hover {
             background: rgba($vermillion, 0.05);
         }
-    }
-
-    .download-the-data-button--header {
-        flex-shrink: 0;
 
         @include sm-only {
-            display: none;
-        }
-    }
-
-    .download-the-data-button--mobile {
-        margin-top: 24px;
-
-        @include sm-up {
             display: none;
         }
     }
