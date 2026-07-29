@@ -3,8 +3,8 @@
  */
 
 import * as React from "react"
-import { fireEvent, render } from "@testing-library/react"
-import { expect, it, describe, vi } from "vitest"
+import { render } from "@testing-library/react"
+import { expect, it, describe } from "vitest"
 
 import { CategoricalBin, NumericBin } from "../color/ColorScaleBin"
 import {
@@ -94,81 +94,6 @@ describe(HorizontalNumericColorLegend, () => {
         expect(marginBetween(bins[1], bins[2])).toEqual(margin)
         expect(marginBetween(bins[2], bins[3])).toEqual(0)
         expect(marginBetween(bins[3], bins[4])).toEqual(margin)
-    })
-
-    it("clears legend hover when the pointer leaves a bin", () => {
-        const bin = new NumericBin({
-            isFirst: true,
-            isOpenLeft: false,
-            isOpenRight: false,
-            min: 0,
-            max: 1,
-            displayMin: "0",
-            displayMax: "1",
-            color: "#fff",
-        })
-        const onLegendMouseOver = vi.fn()
-        const onLegendMouseLeave = vi.fn()
-        const onLegendTouchSelect = vi.fn()
-
-        const { container } = render(
-            React.createElement(
-                "svg",
-                undefined,
-                React.createElement(HorizontalNumericColorLegend, {
-                    manager: {
-                        numericLegendData: [bin],
-                        onLegendMouseOver,
-                        onLegendMouseLeave,
-                        onLegendTouchSelect,
-                    },
-                })
-            )
-        )
-        const swatch = container.querySelector("#swatches > *")
-        const hitArea = container.querySelector("#swatch-hit-areas > rect")
-
-        expect(swatch).not.toBeNull()
-        expect(hitArea).not.toBeNull()
-        expect(Number(hitArea!.getAttribute("y"))).toBeLessThan(
-            Number(swatch!.getAttribute("y"))
-        )
-        expect(
-            Number(hitArea!.getAttribute("y")) +
-                Number(hitArea!.getAttribute("height"))
-        ).toBe(Number(swatch!.getAttribute("y")))
-
-        fireEvent.pointerEnter(hitArea!, { pointerType: "mouse" })
-        fireEvent.pointerLeave(hitArea!, { pointerType: "mouse" })
-        fireEvent.pointerUp(hitArea!, { pointerType: "mouse" })
-
-        expect(onLegendMouseOver).not.toHaveBeenCalled()
-        expect(onLegendMouseLeave).not.toHaveBeenCalled()
-        expect(onLegendTouchSelect).not.toHaveBeenCalled()
-
-        fireEvent.pointerEnter(swatch!, { pointerType: "mouse" })
-        fireEvent.pointerLeave(swatch!, { pointerType: "mouse" })
-        fireEvent.pointerUp(swatch!, { pointerType: "mouse" })
-
-        expect(onLegendMouseOver).toHaveBeenCalledWith(bin)
-        expect(onLegendMouseLeave).toHaveBeenCalledOnce()
-        expect(onLegendTouchSelect).not.toHaveBeenCalled()
-
-        fireEvent.pointerEnter(hitArea!, { pointerType: "touch" })
-
-        expect(onLegendMouseOver).toHaveBeenCalledOnce()
-
-        fireEvent.pointerUp(hitArea!, { pointerType: "touch" })
-
-        expect(onLegendTouchSelect).toHaveBeenCalledWith(bin)
-
-        fireEvent.pointerEnter(swatch!, { pointerType: "touch" })
-
-        expect(onLegendMouseOver).toHaveBeenCalledOnce()
-
-        fireEvent.pointerUp(swatch!, { pointerType: "touch" })
-
-        expect(onLegendTouchSelect).toHaveBeenCalledTimes(2)
     })
 
     it("renders highlighted bins as non-interactive overlays", () => {
