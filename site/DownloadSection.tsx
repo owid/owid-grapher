@@ -102,9 +102,10 @@ function CompleteDatasetApiSection({
                 label="Code examples for the complete dataset"
                 alwaysVisibleDescription={
                     <p className="citation__paragraph">
-                        The Parquet file can be queried without downloading all
-                        of it — useful when you only need a few of the{" "}
-                        {downloadPackage.indicatorCount ?? "many"} indicators.
+                        Examples of how to load the complete dataset into
+                        different data analysis tools. Parquet keeps column
+                        types and missing values intact, and is a smaller
+                        download than the equivalent CSV.
                     </p>
                 }
                 content={
