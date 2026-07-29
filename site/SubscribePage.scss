@@ -56,6 +56,47 @@
         }
     }
 
+    // Terminal screens (subscribed, unsubscribed, preferences saved): no hero
+    // band above them, so they need their own top spacing.
+    .subscribe-page__confirmation {
+        margin-top: 48px;
+        color: $blue-90;
+    }
+
+    .subscribe-page__confirmation-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 85px;
+        height: 85px;
+        margin-bottom: 16px;
+        border-radius: 50%;
+        background-color: #dbf1ea;
+        color: #048055;
+        font-size: 2.125rem;
+    }
+
+    .subscribe-page__confirmation-text {
+        @include body-3-medium;
+        margin: 8px 0 0;
+    }
+
+    .subscribe-page__confirmation-action {
+        @include body-3-medium;
+        display: inline-flex;
+        align-items: center;
+        height: 40px;
+        margin-top: 32px;
+        padding: 8px 24px;
+        border: 1px solid $vermillion;
+        color: $vermillion;
+
+        &:hover {
+            background-color: $vermillion;
+            color: $white;
+        }
+    }
+
     .subscribe-page__divider {
         width: 100%;
         margin: 40px 0 24px;

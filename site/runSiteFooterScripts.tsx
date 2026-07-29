@@ -42,10 +42,10 @@ import { REDUCED_TRACKING } from "../settings/clientSettings.js"
 import { SiteHeaderNavigation } from "./SiteHeader.js"
 import {
     OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID,
-    PREFERENCES_PAGE_FORM_CONTAINER_ID,
-    SUBSCRIBE_PAGE_NOTIFICATIONS_FORM_CONTAINER_ID,
+    PREFERENCES_PAGE_ROOT_ID,
+    SUBSCRIBE_PAGE_ROOT_ID,
 } from "@ourworldindata/types"
-import { EmailNotificationsSubscribeForm } from "./EmailNotificationsSubscribeForm.js"
+import { SubscribeFlow } from "./SubscribeFlow.js"
 import { EmailNotificationsPreferencesForm } from "./EmailNotificationsPreferencesForm.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
@@ -68,27 +68,27 @@ function runSearchPage() {
 }
 
 function hydrateSubscribePage() {
-    const notificationsContainer = document.getElementById(
-        SUBSCRIBE_PAGE_NOTIFICATIONS_FORM_CONTAINER_ID
-    )
+    // The whole <main> is hydrated, not just the form: submitting it replaces
+    // the hero and aside with the confirmation screen.
+    const subscribePageRoot = document.getElementById(SUBSCRIBE_PAGE_ROOT_ID)
     const topicTagGraph = window._OWID_TOPIC_TAG_GRAPH
 
-    if (notificationsContainer && topicTagGraph) {
+    if (subscribePageRoot && topicTagGraph) {
         hydrateRoot(
-            notificationsContainer,
-            <EmailNotificationsSubscribeForm topicTagGraph={topicTagGraph} />
+            subscribePageRoot,
+            <SubscribeFlow topicTagGraph={topicTagGraph} />
         )
     }
 
-    // The magic-link preferences page bakes an empty container: the form is
-    // entirely client-driven (its mode depends on the token in the URL
-    // fragment), so it is rendered rather than hydrated.
-    const preferencesContainer = document.getElementById(
-        PREFERENCES_PAGE_FORM_CONTAINER_ID
+    // The magic-link preferences page bakes an empty <main>: every screen is
+    // client-driven (the mode depends on the token in the URL fragment), so it
+    // is rendered rather than hydrated.
+    const preferencesPageRoot = document.getElementById(
+        PREFERENCES_PAGE_ROOT_ID
     )
 
-    if (preferencesContainer && topicTagGraph) {
-        createRoot(preferencesContainer).render(
+    if (preferencesPageRoot && topicTagGraph) {
+        createRoot(preferencesPageRoot).render(
             <EmailNotificationsPreferencesForm topicTagGraph={topicTagGraph} />
         )
     }

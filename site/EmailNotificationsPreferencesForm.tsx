@@ -20,6 +20,11 @@ import {
     topicTagsForStorage,
     topicTagsFromStorage,
 } from "./emailNotificationsValidation.js"
+import {
+    SUBSCRIBE_PAGE_CONTENT_GRID_CLASSES,
+    SubscribePageConfirmation,
+    SubscribePageHero,
+} from "./SubscribePageLayout.js"
 
 /**
  * The magic-link preferences page. Its mode is driven by the token in the URL
@@ -45,6 +50,18 @@ function getTokenFromLocation(): string | null {
     const match = window.location.hash.match(/token=([^&]+)/)
     return match ? match[1] : null
 }
+
+/**
+ * The screens the reader can act on, under the page heading. The terminal
+ * screens (SubscribePageConfirmation) carry their own heading instead - which is
+ * why this component renders the heading, rather than the page baking it.
+ */
+const PreferencesScreen = ({ children }: { children: React.ReactNode }) => (
+    <>
+        <SubscribePageHero heading="Update your email preferences" />
+        <div className={SUBSCRIBE_PAGE_CONTENT_GRID_CLASSES}>{children}</div>
+    </>
+)
 
 export const EmailNotificationsPreferencesForm = ({
     topicTagGraph,
@@ -246,179 +263,197 @@ export const EmailNotificationsPreferencesForm = ({
 
     switch (mode.name) {
         case "loading":
-            return <p>Loading your preferences…</p>
+            return (
+                <PreferencesScreen>
+                    <p>Loading your preferences…</p>
+                </PreferencesScreen>
+            )
         case "link-sent":
             return (
-                <div className="email-notifications-subscribe-form__success">
-                    <h3 className="h3-bold">Check your inbox</h3>
-                    <p>
-                        If that address is subscribed to email notifications, a
-                        link to update its preferences is on its way. The link
-                        is valid for 30 minutes.
-                    </p>
-                </div>
+                <PreferencesScreen>
+                    <div className="email-notifications-subscribe-form__success">
+                        <h3 className="h3-bold">Check your inbox</h3>
+                        <p>
+                            If that address is subscribed to email
+                            notifications, a link to update its preferences is
+                            on its way. The link is valid for 30 minutes.
+                        </p>
+                    </div>
+                </PreferencesScreen>
             )
         case "saved":
             return (
-                <div className="email-notifications-subscribe-form__success">
-                    <h3 className="h3-bold">Preferences updated</h3>
-                    <p>
-                        Your email notification preferences have been saved.
-                        You'll receive an email when we publish new work
-                        matching them.
-                    </p>
-                </div>
+                <SubscribePageConfirmation heading="Preferences updated">
+                    Your email notification preferences have been saved. You'll
+                    receive an email when we publish new work matching them.
+                </SubscribePageConfirmation>
             )
         case "unsubscribed":
             return (
-                <div className="email-notifications-subscribe-form__success">
-                    <h3 className="h3-bold">You've been unsubscribed</h3>
-                    <p>
-                        You won't receive any more email notifications from us.
-                        You can <a href="/subscribe">re-subscribe</a> at any
-                        time.
-                    </p>
-                </div>
+                <SubscribePageConfirmation
+                    heading="You have been successfully unsubscribed"
+                    action={{ href: "/subscribe", label: "Resubscribe" }}
+                >
+                    You will no longer receive emails from us. You can
+                    resubscribe any time.
+                </SubscribePageConfirmation>
             )
         case "expired":
             return (
-                <div className="email-notifications-preferences-form">
-                    <h3 className="h3-bold">This link has expired</h3>
-                    <p>
-                        For your security, preference links are only valid for
-                        30 minutes. We can email you a new one.
-                    </p>
-                    {errorAlert}
-                    <button
-                        type="button"
-                        className="email-notifications-subscribe-form__submit"
-                        disabled={isSubmitting}
-                        onClick={() => requestLink({ token: mode.token })}
-                    >
-                        {isSubmitting ? "Sending…" : "Email me a new link"}
-                    </button>
-                </div>
+                <PreferencesScreen>
+                    <div className="email-notifications-preferences-form">
+                        <h3 className="h3-bold">This link has expired</h3>
+                        <p>
+                            For your security, preference links are only valid
+                            for 30 minutes. We can email you a new one.
+                        </p>
+                        {errorAlert}
+                        <button
+                            type="button"
+                            className="email-notifications-subscribe-form__submit"
+                            disabled={isSubmitting}
+                            onClick={() => requestLink({ token: mode.token })}
+                        >
+                            {isSubmitting ? "Sending…" : "Email me a new link"}
+                        </button>
+                    </div>
+                </PreferencesScreen>
             )
         case "invalid":
             return (
-                <div className="email-notifications-preferences-form">
-                    <h3 className="h3-bold">This link is not valid</h3>
-                    <p>
-                        Please use the link from our most recent email, or{" "}
-                        <a href="/subscribe/preferences">request a new one</a>.
-                    </p>
-                </div>
+                <PreferencesScreen>
+                    <div className="email-notifications-preferences-form">
+                        <h3 className="h3-bold">This link is not valid</h3>
+                        <p>
+                            Please use the link from our most recent email, or{" "}
+                            <a href="/subscribe/preferences">
+                                request a new one
+                            </a>
+                            .
+                        </p>
+                    </div>
+                </PreferencesScreen>
             )
         case "enter-email":
             return (
-                <form
-                    className="email-notifications-preferences-form"
-                    onSubmit={(event: React.SubmitEvent<HTMLFormElement>) => {
-                        event.preventDefault()
-                        if (enteredEmail.trim())
-                            void requestLink({ email: enteredEmail.trim() })
-                    }}
-                >
-                    <p>
-                        Enter your email address and we'll send you a link to
-                        view and update your notification preferences.
-                    </p>
-                    {errorAlert}
-                    <div className="email-notifications-subscribe-form__email-submit">
-                        <TextInput
-                            placeholder="Your email address"
-                            type="email"
-                            className="email-notifications-subscribe-form__email sentry-mask"
-                            name="email"
-                            value={enteredEmail}
-                            onChange={(event) =>
-                                setEnteredEmail(event.target.value)
-                            }
-                            required={true}
-                        />
-                        <button
-                            type="submit"
-                            className="email-notifications-subscribe-form__submit"
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? "Sending…" : "Email me a link"}
-                        </button>
-                    </div>
-                </form>
+                <PreferencesScreen>
+                    <form
+                        className="email-notifications-preferences-form"
+                        onSubmit={(
+                            event: React.SubmitEvent<HTMLFormElement>
+                        ) => {
+                            event.preventDefault()
+                            if (enteredEmail.trim())
+                                void requestLink({ email: enteredEmail.trim() })
+                        }}
+                    >
+                        <p>
+                            Enter your email address and we'll send you a link
+                            to view and update your notification preferences.
+                        </p>
+                        {errorAlert}
+                        <div className="email-notifications-subscribe-form__email-submit">
+                            <TextInput
+                                placeholder="Your email address"
+                                type="email"
+                                className="email-notifications-subscribe-form__email sentry-mask"
+                                name="email"
+                                value={enteredEmail}
+                                onChange={(event) =>
+                                    setEnteredEmail(event.target.value)
+                                }
+                                required={true}
+                            />
+                            <button
+                                type="submit"
+                                className="email-notifications-subscribe-form__submit"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? "Sending…" : "Email me a link"}
+                            </button>
+                        </div>
+                    </form>
+                </PreferencesScreen>
             )
         case "loaded":
             return (
-                <form
-                    className="email-notifications-preferences-form"
-                    onSubmit={(event: React.SubmitEvent<HTMLFormElement>) => {
-                        event.preventDefault()
-                        void save(false)
-                    }}
-                >
-                    <p>
-                        Updating the email notification preferences for{" "}
-                        <strong>{mode.email}</strong>.
-                    </p>
-                    <EmailNotificationsPreferenceFields
-                        topicTagGraph={topicTagGraph}
-                        topicTags={topicTags}
-                        contentTypes={contentTypes}
-                        frequency={frequency}
-                        onToggleTopicTag={(tagName) =>
-                            setTopicTags((current) =>
-                                current.includes(tagName)
-                                    ? current.filter((name) => name !== tagName)
-                                    : [...current, tagName]
-                            )
-                        }
-                        onToggleContentType={(contentType) =>
-                            setContentTypes((current) =>
-                                current.includes(contentType)
-                                    ? current.filter(
-                                          (type) => type !== contentType
-                                      )
-                                    : [...current, contentType]
-                            )
-                        }
-                        onSetFrequency={setFrequency}
-                        validationErrors={validationErrors}
-                    />
-                    {subscribedToOwidBrief !== null && (
-                        <fieldset className="email-notifications-subscribe-form__fieldset">
-                            <legend className="h5-black-caps">
-                                Newsletter
-                            </legend>
-                            <Checkbox
-                                id="email-notifications-preferences-owid-brief"
-                                label="The OWID Brief — stay up to date with our latest work plus curated highlights from across Our World in Data, twice a month."
-                                checked={subscribedToOwidBrief}
-                                onChange={() =>
-                                    setSubscribedToOwidBrief(
-                                        !subscribedToOwidBrief
-                                    )
-                                }
-                            />
-                        </fieldset>
-                    )}
-                    {errorAlert}
-                    <div className="email-notifications-preferences-form__actions">
-                        <button
-                            type="submit"
-                            className="email-notifications-subscribe-form__submit"
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? "Saving…" : "Save preferences"}
-                        </button>
-                        <button
-                            type="button"
-                            className="email-notifications-preferences-form__unsubscribe"
-                            disabled={isSubmitting}
-                            onClick={() => save(true)}
-                        >
-                            Unsubscribe from all email notifications
-                        </button>
-                    </div>
-                </form>
+                <PreferencesScreen>
+                    <form
+                        className="email-notifications-preferences-form"
+                        onSubmit={(
+                            event: React.SubmitEvent<HTMLFormElement>
+                        ) => {
+                            event.preventDefault()
+                            void save(false)
+                        }}
+                    >
+                        <p>
+                            Updating the email notification preferences for{" "}
+                            <strong>{mode.email}</strong>.
+                        </p>
+                        <EmailNotificationsPreferenceFields
+                            topicTagGraph={topicTagGraph}
+                            topicTags={topicTags}
+                            contentTypes={contentTypes}
+                            frequency={frequency}
+                            onToggleTopicTag={(tagName) =>
+                                setTopicTags((current) =>
+                                    current.includes(tagName)
+                                        ? current.filter(
+                                              (name) => name !== tagName
+                                          )
+                                        : [...current, tagName]
+                                )
+                            }
+                            onToggleContentType={(contentType) =>
+                                setContentTypes((current) =>
+                                    current.includes(contentType)
+                                        ? current.filter(
+                                              (type) => type !== contentType
+                                          )
+                                        : [...current, contentType]
+                                )
+                            }
+                            onSetFrequency={setFrequency}
+                            validationErrors={validationErrors}
+                        />
+                        {subscribedToOwidBrief !== null && (
+                            <fieldset className="email-notifications-subscribe-form__fieldset">
+                                <legend className="h5-black-caps">
+                                    Newsletter
+                                </legend>
+                                <Checkbox
+                                    id="email-notifications-preferences-owid-brief"
+                                    label="The OWID Brief — stay up to date with our latest work plus curated highlights from across Our World in Data, twice a month."
+                                    checked={subscribedToOwidBrief}
+                                    onChange={() =>
+                                        setSubscribedToOwidBrief(
+                                            !subscribedToOwidBrief
+                                        )
+                                    }
+                                />
+                            </fieldset>
+                        )}
+                        {errorAlert}
+                        <div className="email-notifications-preferences-form__actions">
+                            <button
+                                type="submit"
+                                className="email-notifications-subscribe-form__submit"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? "Saving…" : "Save preferences"}
+                            </button>
+                            <button
+                                type="button"
+                                className="email-notifications-preferences-form__unsubscribe"
+                                disabled={isSubmitting}
+                                onClick={() => save(true)}
+                            >
+                                Unsubscribe from all email notifications
+                            </button>
+                        </div>
+                    </form>
+                </PreferencesScreen>
             )
     }
 }

@@ -3,7 +3,7 @@ import { Html } from "./Html.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import {
-    PREFERENCES_PAGE_FORM_CONTAINER_ID,
+    PREFERENCES_PAGE_ROOT_ID,
     SiteFooterContext,
     TagGraphRoot,
 } from "@ourworldindata/types"
@@ -14,9 +14,10 @@ export interface EmailNotificationsPreferencesPageProps {
 }
 
 /**
- * The magic-link update-preferences page. Everything interesting happens
+ * The magic-link update-preferences page. Everything inside <main> is rendered
  * client-side (EmailNotificationsPreferencesForm), driven by the token in the
- * URL fragment; this shell just bakes the topic tag graph the form needs.
+ * URL fragment - including the page heading, which the terminal screens replace.
+ * This shell just bakes the topic tag graph the form needs.
  */
 export const EmailNotificationsPreferencesPage = ({
     baseUrl,
@@ -37,18 +38,12 @@ export const EmailNotificationsPreferencesPage = ({
                     }}
                 ></script>
             </Head>
-            <body>
+            <body className="sticky-footer-body">
                 <SiteHeader />
-                <main className="subscribe-page grid grid-cols-12-full-width">
-                    <header className="subscribe-page__hero grid grid-cols-12-full-width span-cols-14 col-start-1">
-                        <h1 className="subscribe-page__heading span-cols-6 col-start-4 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
-                            Update your email preferences
-                        </h1>
-                    </header>
-                    <div className="span-cols-6 col-start-4 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
-                        <div id={PREFERENCES_PAGE_FORM_CONTAINER_ID}></div>
-                    </div>
-                </main>
+                <main
+                    id={PREFERENCES_PAGE_ROOT_ID}
+                    className="subscribe-page grid grid-cols-12-full-width"
+                ></main>
                 <SiteFooter context={SiteFooterContext.subscribePage} />
             </body>
         </Html>

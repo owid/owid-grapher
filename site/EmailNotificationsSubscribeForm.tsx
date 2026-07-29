@@ -315,8 +315,10 @@ const NewsletterOption = ({
 
 export const EmailNotificationsSubscribeForm = ({
     topicTagGraph,
+    onSubscribed,
 }: {
     topicTagGraph: TagGraphRoot
+    onSubscribed: (email: string) => void
 }) => {
     const [email, setEmail] = useState("")
     const [subscribeToOwidBrief, setSubscribeToOwidBrief] = useState(true)
@@ -334,7 +336,6 @@ export const EmailNotificationsSubscribeForm = ({
     const [frequency, setFrequency] =
         useState<EmailNotificationsFrequency>("weekly")
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [isSuccess, setIsSuccess] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const [validationErrors, setValidationErrors] =
         useState<PreferencesValidationErrors | null>(null)
@@ -416,30 +417,13 @@ export const EmailNotificationsSubscribeForm = ({
                 "newsletter-subscribe",
                 "Subscribe [email-notifications]"
             )
-            setIsSuccess(true)
+            onSubscribed(trimmedEmail)
         } catch (error) {
-            setErrorMessage(
-                error instanceof Error
-                    ? error.message
-                    : "Something went wrong. Please try again."
-            )
+            console.error(error)
+            setErrorMessage("Something went wrong. Please try again.")
         } finally {
             setIsSubmitting(false)
         }
-    }
-
-    if (isSuccess) {
-        return (
-            <div className="email-notifications-subscribe-form__success">
-                <h3 className="h3-bold">Check your inbox</h3>
-                <p>
-                    We've sent an email to {email}. If you're new, it's a
-                    welcome email — you're all set. If this address already had
-                    a subscription, it contains a link to apply the preferences
-                    you just chose; until you click it, nothing changes.
-                </p>
-            </div>
-        )
     }
 
     return (
