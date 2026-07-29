@@ -68,7 +68,7 @@ Specifies the time range to display.
 
 Selects which view/tab to display.
 
-**Values:** `chart`, `map`, `table`, `line`, `scatter`, `stacked-area`, `discrete-bar`, `stacked-discrete-bar`, `slope`, `stacked-bar`, `marimekko`
+**Values:** `chart`, `map`, `table`, `line`, `scatter`, `stacked-area`, `discrete-bar`, `stacked-discrete-bar`, `slope`, `stacked-bar`, `marimekko`, `dumbbell`
 
 **Example:** `?tab=map`
 

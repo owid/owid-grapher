@@ -43,6 +43,7 @@ A path to a views file: `data-nuggets/views/{key}-{ts}.json` (typically `status:
     - **Every entity in `country=` must have data at the selected time — especially for single-year views (`time=latest`, `time=2024`).** An entity with no observation at that year silently drops out of the rendered chart; a title saying "Five countries…" over a chart rendering four is a **major** issue. Verify the count of entities that will actually render matches any count stated in the title or description.
     - **The rendered entities must exactly match the entities the text discusses.** Flag any extra entity in `country=` that the title/description never mentions (a stray comparison line), and any missing `country=` param on a `tab=discrete-bar` or `tab=line` view (the chart's default selection will render entities the text doesn't cover). Treat these as `corrected`-level fixes: adjust `country=` to exactly the entities the view is about.
     - The constructed `url` must be consistent with `queryParams` (no missing or extra params).
+    - **If the `description` contains an inline Markdown link** (`[text](url)`), verify the URL is a well-formed absolute `https://ourworldindata.org/...` link and that the linked text doesn't itself assert an unverified numeric claim. A malformed, non-OWID, or off-topic link is a `corrected` (fix or drop the link) or `flagged` issue.
 
 5. **Decide a status per view:**
     - `passed` — every claim and every URL detail checks out as-is.

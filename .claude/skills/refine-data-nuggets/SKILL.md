@@ -67,6 +67,7 @@ A path to a views file: `data-nuggets/views/{key}-{ts}.json` (typically `status:
 - **Don't rewrite for the sake of rewriting.** A view that's already clear and tight should pass through with `changes: []`.
 - **Don't introduce new numeric claims.** Refinement edits the framing of existing facts; it never adds new ones. If you find yourself wanting to add a number, send the file back through [[fact-check-data-nuggets]] instead.
 - **Don't change `grapherViews[]` URLs.** That's part of the data contract — the URL was validated upstream.
+- **Preserve inline description links.** Keep any `[text](url)` Markdown link the generator added; you may reword the link text for tone, but don't drop the link, repoint it elsewhere, or add a new link to a source you haven't verified.
 - **Don't reorder or drop views.** Stable `id`s and ordering matter for diffing across runs. Mark duplicates with `duplicateOf` rather than removing them — downstream surfaces decide what to suppress.
 - **Don't soften corrections** the fact-checker made. If a value was corrected from 92% to 91%, your refinement keeps 91%.
 - **Watch for repetitive sentence shapes.** A file where every description starts with "Between X and Y, ..." reads as machine output. Vary the openings.
