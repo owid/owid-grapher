@@ -52,12 +52,6 @@ metadata <- fromJSON("${metadataUrl}")`,
     }
 }
 
-export const COMPLETE_DATASET_API_HELP_TEXT =
-    "These URLs cover every dimension combination of this dataset in a single " +
-    "wide table — the same data as the full dataset download above. The files " +
-    "are built when the data is published, so the options above don't apply to " +
-    "them: they always contain all indicators, entities and time points."
-
 /**
  * Code examples for the complete-dataset Parquet. A different set of tools from
  * the chart-scoped CSV examples: Excel, Sheets and Stata are absent because

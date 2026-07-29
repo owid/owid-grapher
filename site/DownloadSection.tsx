@@ -1,3 +1,4 @@
+import { useState } from "react"
 import {
     DownloadApiOptions,
     DownloadButtonLink,
@@ -24,7 +25,6 @@ import {
     type DownloadRewriteTarget,
 } from "@ourworldindata/types"
 import {
-    COMPLETE_DATASET_API_HELP_TEXT,
     makeCompleteDatasetCodeExamples,
     makeCompleteDatasetDescription,
     makeDownloadCodeExamples,
@@ -52,49 +52,11 @@ function getCodeExampleRewriteTarget(name: string): DownloadRewriteTarget {
     }
 }
 
-/**
- * The complete-dataset equivalent of the Data API URLs above it: the same
- * table, but as static R2 objects covering every dimension combination.
- *
- * Rendered as its own block rather than folded into the options above, because
- * a scope toggle would keep these URLs out of the baked HTML until someone
- * clicked — and being findable in the static page is most of the point. The
- * options above genuinely don't apply here (the files are pre-built), which is
- * said in words rather than by disabling controls.
- */
-function CompleteDatasetApiUrls({
-    parquetUrl,
-    metadataUrl,
-}: {
-    parquetUrl: string
-    metadataUrl: string
-}) {
-    return (
-        <div className="downloads-section">
-            <h4 className="citation__how-to-header">Complete dataset</h4>
-            <p className="citation__paragraph">
-                {COMPLETE_DATASET_API_HELP_TEXT}
-            </p>
-            {/* No data-owid-download-url-target on these: that mechanism exists
-                so the edge rewriter can inject the current view's query params,
-                and these URLs are static and param-free. */}
-            <section className="downloads__api-urls">
-                <div>
-                    <h5 className="downloads__code-label">
-                        Data URL (Parquet format)
-                    </h5>
-                    <CodeSnippet code={parquetUrl} theme="light" />
-                </div>
-                <div>
-                    <h5 className="downloads__code-label">
-                        Metadata URL (JSON format)
-                    </h5>
-                    <CodeSnippet code={metadataUrl} theme="light" />
-                </div>
-            </section>
-        </div>
-    )
-}
+// Explains why the Excel, Sheets and Stata examples disappear once the
+// complete-dataset scope is selected.
+const CODE_EXAMPLES_PARQUET_NOTE =
+    " Excel, Google Sheets and Stata aren't listed here because none of them" +
+    " read Parquet."
 
 function ApiAndCodeExamplesSection({
     downloadCtxBase,
@@ -113,21 +75,33 @@ function ApiAndCodeExamplesSection({
         shortColNames,
         setShortColNames,
     } = useDataApiDownloadConfig({ downloadCtxBase, firstYColDef })
-    const codeExamples = makeDownloadCodeExamples(csvUrl, metadataUrl)
 
+    // The complete dataset is a third download scope rather than another set of
+    // options: it's the same wide table for every dimension combination, served
+    // from pre-built R2 objects, so the options above genuinely don't apply.
     const completeDatasetUrls =
         downloadPackage?.parquetUrl && downloadPackage.metadataUrl
             ? {
-                  parquetUrl: downloadPackage.parquetUrl,
+                  dataUrl: downloadPackage.parquetUrl,
                   metadataUrl: downloadPackage.metadataUrl,
               }
             : undefined
-    const completeDatasetCodeExamples = completeDatasetUrls
-        ? makeCompleteDatasetCodeExamples(
-              completeDatasetUrls.parquetUrl,
-              completeDatasetUrls.metadataUrl
-          )
+    const [showCompleteDataset, setShowCompleteDataset] = useState(false)
+    const completeDataset = showCompleteDataset
+        ? completeDatasetUrls
         : undefined
+
+    const activeDataUrl = completeDataset?.dataUrl ?? csvUrl
+    const activeMetadataUrl = completeDataset?.metadataUrl ?? metadataUrl
+    const dataUrlLabel = completeDataset
+        ? "Data URL (Parquet format)"
+        : "Data URL (CSV format)"
+    const codeExamples = completeDataset
+        ? makeCompleteDatasetCodeExamples(
+              completeDataset.dataUrl,
+              completeDataset.metadataUrl
+          )
+        : makeDownloadCodeExamples(csvUrl, metadataUrl)
 
     return (
         <>
@@ -152,16 +126,30 @@ function ApiAndCodeExamplesSection({
                     shortColNames={shortColNames}
                     onShortColNamesChange={setShortColNames}
                     firstYColDef={firstYColDef}
+                    completeDataset={
+                        completeDatasetUrls && {
+                            checked: showCompleteDataset,
+                            onChange: setShowCompleteDataset,
+                        }
+                    }
                 />
+                {/* No data-owid-download-url-target while the complete dataset
+                    is selected: that mechanism exists so the edge rewriter can
+                    inject the current view's query params into the baked HTML,
+                    and these URLs are static and param-free. */}
                 <section className="downloads__api-urls">
                     <div>
                         <h5 className="downloads__code-label">
-                            Data URL (CSV format)
+                            {dataUrlLabel}
                         </h5>
                         <CodeSnippet
-                            code={csvUrl}
+                            code={activeDataUrl}
                             theme="light"
-                            codeAttributes={getDownloadRewriteAttrs("api-csv")}
+                            codeAttributes={
+                                completeDataset
+                                    ? undefined
+                                    : getDownloadRewriteAttrs("api-csv")
+                            }
                         />
                     </div>
                     <div>
@@ -169,18 +157,17 @@ function ApiAndCodeExamplesSection({
                             Metadata URL (JSON format)
                         </h5>
                         <CodeSnippet
-                            code={metadataUrl}
+                            code={activeMetadataUrl}
                             theme="light"
-                            codeAttributes={getDownloadRewriteAttrs(
-                                "api-metadata"
-                            )}
+                            codeAttributes={
+                                completeDataset
+                                    ? undefined
+                                    : getDownloadRewriteAttrs("api-metadata")
+                            }
                         />
                     </div>
                 </section>
             </div>
-            {completeDatasetUrls && (
-                <CompleteDatasetApiUrls {...completeDatasetUrls} />
-            )}
             <div className="download-data-section downloads-section">
                 <ExpandableToggle
                     label="Code examples"
@@ -188,17 +175,11 @@ function ApiAndCodeExamplesSection({
                         <p className="citation__paragraph">
                             Examples of how to load this data into different
                             data analysis tools.
+                            {completeDataset && CODE_EXAMPLES_PARQUET_NOTE}
                         </p>
                     }
                     content={
                         <div className="downloads__code-blocks">
-                            {/* Only labelled as a group when there's a second
-                                group to tell it apart from. */}
-                            {completeDatasetCodeExamples && (
-                                <h5 className="downloads__code-group-label">
-                                    Chart data
-                                </h5>
-                            )}
                             {Object.entries(codeExamples).map(
                                 ([name, snippet]) => (
                                     <div key={name}>
@@ -208,39 +189,18 @@ function ApiAndCodeExamplesSection({
                                         <CodeSnippet
                                             code={snippet}
                                             theme="light"
-                                            codeAttributes={getDownloadRewriteAttrs(
-                                                getCodeExampleRewriteTarget(
-                                                    name
-                                                )
-                                            )}
+                                            codeAttributes={
+                                                completeDataset
+                                                    ? undefined
+                                                    : getDownloadRewriteAttrs(
+                                                          getCodeExampleRewriteTarget(
+                                                              name
+                                                          )
+                                                      )
+                                            }
                                         />
                                     </div>
                                 )
-                            )}
-                            {completeDatasetCodeExamples && (
-                                <>
-                                    <h5 className="downloads__code-group-label downloads__code-group-label--separated">
-                                        Complete dataset
-                                    </h5>
-                                    <p className="citation__paragraph">
-                                        Parquet keeps column types and missing
-                                        values intact, and is a smaller download
-                                        than the equivalent CSV.
-                                    </p>
-                                    {Object.entries(
-                                        completeDatasetCodeExamples
-                                    ).map(([name, snippet]) => (
-                                        <div key={name}>
-                                            <h5 className="downloads__code-label">
-                                                {name}
-                                            </h5>
-                                            <CodeSnippet
-                                                code={snippet}
-                                                theme="light"
-                                            />
-                                        </div>
-                                    ))}
-                                </>
                             )}
                         </div>
                     }
