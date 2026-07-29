@@ -525,7 +525,6 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
 
         const renderBin = (
             positionedBin: PositionedBin,
-            index: number,
             isHighlightOverlay = false
         ): React.ReactElement => {
             const bin = positionedBin.bin
@@ -534,12 +533,16 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
 
             return (
                 <NumericBinRect
-                    key={isHighlightOverlay ? `highlight-${index}` : index}
+                    key={
+                        isHighlightOverlay
+                            ? `highlight-${positionedBin.x}`
+                            : positionedBin.x
+                    }
                     x={positionedBin.x}
                     y={bottomY - numericBinSize}
                     width={positionedBin.width}
                     height={numericBinSize}
-                    fill={fill}
+                    fill={isHighlightOverlay ? "none" : fill}
                     stroke={style.stroke}
                     strokeWidth={style.strokeWidth}
                     opacity={style.opacity}
@@ -602,8 +605,8 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                     })}
                 </g>
                 <g id={makeFigmaId("swatches")}>
-                    {positionedBins.map((positionedBin, index) =>
-                        renderBin(positionedBin, index)
+                    {positionedBins.map((positionedBin) =>
+                        renderBin(positionedBin)
                     )}
                     {/*
                         Render highlighted bins last so their stroke is painted above adjacent bins.
@@ -617,9 +620,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                                 this.getBinState(positionedBin.bin) ===
                                 Emphasis.Highlighted
                         )
-                        .map((positionedBin, index) =>
-                            renderBin(positionedBin, index, true)
-                        )}
+                        .map((positionedBin) => renderBin(positionedBin, true))}
                 </g>
                 <g id={makeFigmaId("labels")}>
                     {numericLabels.map((label, index) => {
@@ -644,7 +645,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 {this.manager.onLegendTouchSelect && (
                     // Add invisible hit areas above each swatch for touch interaction.
                     // They are the height of the legend labels, and only handle touch events.
-                    <g id={makeFigmaId("swatch-hit-areas")}>
+                    <g id={makeFigmaId("swatch-hit-areas")} aria-hidden="true">
                         {positionedBins.map((positionedBin, index) => (
                             <rect
                                 key={index}

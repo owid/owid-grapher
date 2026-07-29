@@ -100,7 +100,11 @@ export class MapChart
      * Hovering a map bracket highlights all countries within that bracket on the map.
      */
     hoverBracket: MapBracket | undefined = undefined
-    private isLegendBracketPinned = false
+    /**
+     * For touch events, we "pin" the hover bracket into an active state until the user taps outside of the legend.
+     * This is to create a better touch device experience.
+     */
+    private isHoverBracketPinnedBecauseOfTouchEvent = false
 
     tooltipState = new TooltipState<{
         featureId: string
@@ -202,18 +206,18 @@ export class MapChart
     }
 
     @action.bound onLegendMouseOver(bracket: MapBracket): void {
-        if (this.isLegendBracketPinned) return
+        if (this.isHoverBracketPinnedBecauseOfTouchEvent) return
         this.hoverBracket = bracket
     }
 
     @action.bound onLegendMouseLeave(): void {
-        if (this.isLegendBracketPinned) return
+        if (this.isHoverBracketPinnedBecauseOfTouchEvent) return
         this.hoverBracket = undefined
     }
 
     @action.bound onLegendTouchSelect(bracket: MapBracket): void {
         this.hoverBracket = bracket
-        this.isLegendBracketPinned = true
+        this.isHoverBracketPinnedBecauseOfTouchEvent = true
     }
 
     @computed get mapConfig(): MapConfig {
@@ -237,11 +241,9 @@ export class MapChart
         }
     }
 
-    @action.bound onDocumentPointerDown(e: globalThis.PointerEvent): void {
-        if (e.pointerType !== "touch") return
-
+    @action.bound onDocumentPointerDown(): void {
         this.hoverBracket = undefined
-        this.isLegendBracketPinned = false
+        this.isHoverBracketPinnedBecauseOfTouchEvent = false
     }
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
