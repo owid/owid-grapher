@@ -24,14 +24,12 @@ const EMBED_LAYOUT_CLASSES: Record<string, string> = {
     widest: "span-cols-12 col-start-2",
 }
 
-const FEATURED_LINK_TYPE_LABELS: Record<
-    HomepageFeaturedLink["type"],
-    string
-> = {
-    article: "Article",
-    explorer: "Data Explorer",
-    chart: "Interactive Chart",
-}
+const FEATURED_LINK_TYPE_LABELS: Record<HomepageFeaturedLink["type"], string> =
+    {
+        article: "Article",
+        explorer: "Data Explorer",
+        chart: "Interactive Chart",
+    }
 
 const makeAreaId = (name: string): string =>
     name
@@ -183,8 +181,8 @@ export const HomepageTopicAreas = () => {
                 <h2 className="h1-semibold">Explore our world, area by area</h2>
                 <p className="subtitle-1">
                     All our data, research, and writing, organized by the big
-                    areas of work — with some of our interactive
-                    visualizations to explore along the way.
+                    areas of work — with some of our interactive visualizations
+                    to explore along the way.
                 </p>
             </header>
             {tagGraph.children.map((area) => (
