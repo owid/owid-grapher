@@ -9,7 +9,15 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 // The first content type is "data_nugget" — short, link-backed views of OWID
 // chart data. Other content types can be added by extending the contentType
 // enum on the lineage row.
-export class CreateAgenticWritingTables1785345691812 implements MigrationInterface {
+//
+// Do NOT retimestamp this migration when rebasing onto master, even though
+// master now has newer migrations. TypeORM decides what is pending by
+// migration *name*, not by timestamp order, and runs anything unrecognised —
+// so renaming the class makes it look brand new and it tries to CREATE TABLE
+// over the tables it already created, failing with ER_TABLE_EXISTS_ERROR on
+// every long-lived database (staging included). Running out of timestamp
+// order is harmless here: these tables depend only on `users`.
+export class CreateAgenticWritingTables1781550640956 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
             CREATE TABLE agentic_writing_lineages (
