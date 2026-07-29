@@ -495,6 +495,34 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
 
         const bottomY = this.numericLegendY + height
 
+        const onPointerEnter =
+            (bin: ColorScaleBin) =>
+            (event: React.PointerEvent): void => {
+                if (
+                    event.pointerType === "touch" &&
+                    this.manager.onLegendTouchSelect
+                )
+                    return
+
+                this.manager.onLegendMouseEnter?.(bin)
+                this.manager.onLegendMouseOver?.(bin)
+            }
+        const onPointerLeave = (event: React.PointerEvent): void => {
+            if (
+                event.pointerType === "touch" &&
+                this.manager.onLegendTouchSelect
+            )
+                return
+
+            this.manager.onLegendMouseLeave?.()
+        }
+        const onPointerUp =
+            (bin: ColorScaleBin) =>
+            (event: React.PointerEvent): void => {
+                if (event.pointerType === "touch")
+                    this.manager.onLegendTouchSelect?.(bin)
+            }
+
         const renderBin = (
             positionedBin: PositionedBin,
             index: number,
@@ -525,39 +553,13 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                     }
                     pointerEvents={isHighlightOverlay ? "none" : undefined}
                     onPointerEnter={
-                        isHighlightOverlay
-                            ? undefined
-                            : (event): void => {
-                                  if (
-                                      event.pointerType === "touch" &&
-                                      this.manager.onLegendTouchSelect
-                                  )
-                                      return
-
-                                  this.manager.onLegendMouseEnter?.(bin)
-                                  this.manager.onLegendMouseOver?.(bin)
-                              }
+                        isHighlightOverlay ? undefined : onPointerEnter(bin)
                     }
                     onPointerLeave={
-                        isHighlightOverlay
-                            ? undefined
-                            : (event): void => {
-                                  if (
-                                      event.pointerType === "touch" &&
-                                      this.manager.onLegendTouchSelect
-                                  )
-                                      return
-
-                                  this.manager.onLegendMouseLeave?.()
-                              }
+                        isHighlightOverlay ? undefined : onPointerLeave
                     }
                     onPointerUp={
-                        isHighlightOverlay
-                            ? undefined
-                            : (event): void => {
-                                  if (event.pointerType === "touch")
-                                      this.manager.onLegendTouchSelect?.(bin)
-                              }
+                        isHighlightOverlay ? undefined : onPointerUp(bin)
                     }
                 />
             )
@@ -639,6 +641,24 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                         )
                     })}
                 </g>
+                {this.manager.onLegendTouchSelect && (
+                    // Add invisible hit areas above each swatch for touch interaction.
+                    // They are the height of the legend labels, and only handle touch events.
+                    <g id={makeFigmaId("swatch-hit-areas")}>
+                        {positionedBins.map((positionedBin, index) => (
+                            <rect
+                                key={index}
+                                x={positionedBin.x}
+                                y={this.numericLegendY}
+                                width={positionedBin.width}
+                                height={Math.max(0, height - numericBinSize)}
+                                fill="transparent"
+                                pointerEvents="all"
+                                onPointerUp={onPointerUp(positionedBin.bin)}
+                            />
+                        ))}
+                    </g>
+                )}
                 {this.legendTitle && (
                     <TextWrapSvg
                         textWrap={this.legendTitle}

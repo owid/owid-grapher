@@ -126,12 +126,25 @@ describe(HorizontalNumericColorLegend, () => {
             )
         )
         const swatch = container.querySelector("#swatches > *")
+        const hitArea = container.querySelector("#swatch-hit-areas > rect")
 
         expect(swatch).not.toBeNull()
+        expect(hitArea).not.toBeNull()
+        expect(Number(hitArea!.getAttribute("y"))).toBeLessThan(
+            Number(swatch!.getAttribute("y"))
+        )
+        expect(
+            Number(hitArea!.getAttribute("y")) +
+                Number(hitArea!.getAttribute("height"))
+        ).toBe(Number(swatch!.getAttribute("y")))
 
-        fireEvent.pointerEnter(swatch!, { pointerType: "touch" })
+        fireEvent.pointerEnter(hitArea!, { pointerType: "mouse" })
+        fireEvent.pointerLeave(hitArea!, { pointerType: "mouse" })
+        fireEvent.pointerUp(hitArea!, { pointerType: "mouse" })
 
         expect(onLegendMouseOver).not.toHaveBeenCalled()
+        expect(onLegendMouseLeave).not.toHaveBeenCalled()
+        expect(onLegendTouchSelect).not.toHaveBeenCalled()
 
         fireEvent.pointerEnter(swatch!, { pointerType: "mouse" })
         fireEvent.pointerLeave(swatch!, { pointerType: "mouse" })
@@ -141,9 +154,21 @@ describe(HorizontalNumericColorLegend, () => {
         expect(onLegendMouseLeave).toHaveBeenCalledOnce()
         expect(onLegendTouchSelect).not.toHaveBeenCalled()
 
-        fireEvent.pointerUp(swatch!, { pointerType: "touch" })
+        fireEvent.pointerEnter(hitArea!, { pointerType: "touch" })
+
+        expect(onLegendMouseOver).toHaveBeenCalledOnce()
+
+        fireEvent.pointerUp(hitArea!, { pointerType: "touch" })
 
         expect(onLegendTouchSelect).toHaveBeenCalledWith(bin)
+
+        fireEvent.pointerEnter(swatch!, { pointerType: "touch" })
+
+        expect(onLegendMouseOver).toHaveBeenCalledOnce()
+
+        fireEvent.pointerUp(swatch!, { pointerType: "touch" })
+
+        expect(onLegendTouchSelect).toHaveBeenCalledTimes(2)
     })
 
     it("renders highlighted bins as non-interactive overlays", () => {
