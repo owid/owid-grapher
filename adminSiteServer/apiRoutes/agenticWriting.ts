@@ -16,7 +16,6 @@ import {
     submitLineage,
     publishLineage,
     Decision,
-    EditorialState,
 } from "../agenticWritingStore.js"
 
 // Admin API handlers for the "agentic-writing" playground. DB-backed; each
@@ -76,7 +75,7 @@ export async function getAgenticWritingList(
         editorialRaw === "private" ||
         editorialRaw === "submitted" ||
         editorialRaw === "published"
-            ? (editorialRaw as EditorialState)
+            ? editorialRaw
             : undefined
     const contentType = parseContentType(req.query.contentType)
 

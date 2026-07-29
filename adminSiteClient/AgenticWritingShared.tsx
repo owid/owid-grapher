@@ -441,7 +441,7 @@ export function useReviewActions({
     const onError = useCallback(
         (err: unknown) => {
             notification.error({
-                message: "Action failed",
+                title: "Action failed",
                 description: err instanceof Error ? err.message : String(err),
                 placement: "bottomRight",
             })
@@ -465,7 +465,7 @@ export function useReviewActions({
         },
         onSuccess: (_d, vars) => {
             notification.success({
-                message: vars.decision.replace("_", " "),
+                title: vars.decision.replace("_", " "),
                 placement: "bottomRight",
                 duration: 1.2,
             })
@@ -494,7 +494,7 @@ export function useReviewActions({
         },
         onSuccess: (_d, vars) => {
             notification.success({
-                message: vars.decision
+                title: vars.decision
                     ? `rewrite + ${vars.decision.replace("_", " ")}`
                     : "rewrite saved",
                 placement: "bottomRight",
@@ -515,7 +515,7 @@ export function useReviewActions({
         },
         onSuccess: (_d, action) => {
             notification.success({
-                message: action === "submit" ? "submitted" : "published",
+                title: action === "submit" ? "submitted" : "published",
                 placement: "bottomRight",
                 duration: 1.2,
             })
@@ -542,7 +542,7 @@ export function useReviewActions({
             if (!latest) return
             if (decision !== "approved" && !comment.trim()) {
                 notification.warning({
-                    message:
+                    title:
                         decision === "rejected"
                             ? "Reason required to reject"
                             : "Comment required to request revisions",
@@ -553,7 +553,7 @@ export function useReviewActions({
             if (editing && dirty) {
                 if (draft && !isDraftValid(draft)) {
                     notification.warning({
-                        message: INVALID_DRAFT_MESSAGE,
+                        title: INVALID_DRAFT_MESSAGE,
                         placement: "bottomRight",
                     })
                     return
@@ -570,7 +570,7 @@ export function useReviewActions({
         if (!latest || !draft) return
         if (!isDraftValid(draft)) {
             notification.warning({
-                message: INVALID_DRAFT_MESSAGE,
+                title: INVALID_DRAFT_MESSAGE,
                 placement: "bottomRight",
             })
             return
