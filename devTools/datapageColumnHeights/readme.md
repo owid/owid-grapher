@@ -57,11 +57,11 @@ which column ends in blank space doesn't arise.
 Across the **1,633** data pages that render the two-column section (gap below is
 left minus right, so negative means the right column is taller):
 
-| | pages | share |
-| --- | --- | --- |
-| right (metadata) column taller | 1,225 | 75% |
-| left (description) column taller | 408 | 25% |
-| ties | 0 | — |
+|                                  | pages | share |
+| -------------------------------- | ----- | ----- |
+| right (metadata) column taller   | 1,225 | 75%   |
+| left (description) column taller | 408   | 25%   |
+| ties                             | 0     | —     |
 
 Median gap **−137px**; p5 −264, p25 −206, p75 −0.2, p95 +266.
 
@@ -73,12 +73,12 @@ is taller on all 598 of them.
 The gap is monotone in bullet count, which makes bullet count a usable switch:
 
 | bullets | pages | left column taller | median gap |
-| --- | --- | --- | --- |
-| 0 | 598 | 0% | −206px |
-| 1–2 | 429 | 4% | −136px |
-| 3–5 | 387 | 47% | −7px |
-| 6–9 | 202 | 96% | +191px |
-| 10+ | 17 | 100% | +491px |
+| ------- | ----- | ------------------ | ---------- |
+| 0       | 598   | 0%                 | −206px     |
+| 1–2     | 429   | 4%                 | −136px     |
+| 3–5     | 387   | 47%                | −7px       |
+| 6–9     | 202   | 96%                | +191px     |
+| 10+     | 17    | 100%               | +491px     |
 
 **At 6 or more bullets the left column is the taller one on 211 of 219 pages
 (96%)**, and below that the right column usually is. That crossover is where
