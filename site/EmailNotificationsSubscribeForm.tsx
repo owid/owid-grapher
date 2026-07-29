@@ -54,14 +54,12 @@ const CONTENT_TYPE_CARDS: {
     {
         contentType: "data-update",
         icon: faChartLine,
-        // TODO: provisional copy — the design has a placeholder here.
         description:
             "Major updates to the datasets behind our work. Published once or twice a week.",
     },
     {
         contentType: "announcement",
         icon: faBullhorn,
-        // TODO: provisional copy — this card isn't in the design yet.
         description:
             "News about Our World in Data itself. Independent of the topics you follow.",
     },
