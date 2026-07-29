@@ -53,20 +53,12 @@ export function DownloadApiOptions({
                     onChange={() => selectChartScope(true)}
                 />
                 {completeDataset && (
-                    <div>
-                        <RadioButton
-                            label="Download the complete dataset, including related indicators"
-                            group={`${groupPrefix}-onlyVisible`}
-                            checked={completeDatasetChecked}
-                            onChange={() => completeDataset.onChange(true)}
-                        />
-                        <p>
-                            A single wide table in Parquet format, covering
-                            every dimension combination. It's built when the
-                            data is published, so it always contains all
-                            indicators, entities and time points.
-                        </p>
-                    </div>
+                    <RadioButton
+                        label="Download the complete dataset, including all indicators, entities and time points"
+                        group={`${groupPrefix}-onlyVisible`}
+                        checked={completeDatasetChecked}
+                        onChange={() => completeDataset.onChange(true)}
+                    />
                 )}
             </section>
             {shortNamesAvailable && (

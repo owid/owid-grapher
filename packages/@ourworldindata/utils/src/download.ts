@@ -124,7 +124,7 @@ export function makeCompleteDatasetDescription({
         sizeBytes !== undefined ? formatFileSize(sizeBytes) : undefined,
     ].filter((snippet) => snippet !== undefined)
     const detailsSnippet = details.length ? ` (${details.join(", ")})` : ""
-    return `Includes all data in this chart as well as related indicators${detailsSnippet}`
+    return `Includes every indicator in this dataset, not just this chart's${detailsSnippet}`
 }
 
 export function makeFilteredDownloadDescription({
