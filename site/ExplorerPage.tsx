@@ -2,6 +2,7 @@ import { GRAPHER_PAGE_BODY_CLASS } from "@ourworldindata/grapher"
 import { LoadingIndicator } from "@ourworldindata/components"
 import {
     serializeJSONForHTML,
+    serializeJSONForInlineScript,
     SiteFooterContext,
     GrapherInterface,
 } from "@ourworldindata/utils"
@@ -96,7 +97,9 @@ const chartConfigIdByViewId = ${serializeJSONForHTML(
         EMBEDDED_EXPLORER_VIEW_CONFIG_IDS
     )};
 const urlMigrationSpec = ${
-        urlMigrationSpec ? JSON.stringify(urlMigrationSpec) : "undefined"
+        urlMigrationSpec
+            ? serializeJSONForInlineScript(urlMigrationSpec)
+            : "undefined"
     };
 const explorerConstants = ${serializeJSONForHTML(
         {
