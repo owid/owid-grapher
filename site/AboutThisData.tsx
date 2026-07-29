@@ -12,17 +12,7 @@ import {
 import { DataPageDataV2 } from "@ourworldindata/types"
 import KeyDataTable from "./KeyDataTable.js"
 import TopicNewsletterCard from "./TopicNewsletterCard.js"
-import {
-    countDescriptionKeyBullets,
-    getAttributionUnshortened,
-} from "./datapageUtils.js"
-
-// The number of descriptionKey bullets from which the description column of
-// the "What you should know about this indicator" section outgrows the metadata
-// column beside it. Measured across every data page that renders the section:
-// with six bullets or more the description column is the taller one on 96% of
-// them, with fewer the metadata column usually is.
-const LEFT_COLUMN_TALLER_BULLET_COUNT = 6
+import { getAttributionUnshortened } from "./datapageUtils.js"
 
 export default function AboutThisData({
     datapageData,
@@ -47,13 +37,6 @@ export default function AboutThisData({
         hasDescriptionKey ||
         !!datapageData.descriptionFromProducer ||
         !!datapageData.source?.additionalInfo
-
-    // The newsletter card goes in whichever of the two columns is the shorter
-    // one, so that it fills space that would otherwise be blank.
-    const isNewsletterCardOnLeft =
-        (datapageData.descriptionKey
-            ? countDescriptionKeyBullets(datapageData.descriptionKey)
-            : 0) < LEFT_COLUMN_TALLER_BULLET_COUNT
 
     return (
         <div
@@ -128,31 +111,21 @@ export default function AboutThisData({
                                 )}
                             </div>
                         </div>
-                        {isNewsletterCardOnLeft && (
-                            /* Inside the description column rather than as a
-                               grid item of its own: a third row would sit below
-                               the taller of the two columns, which is the space
-                               we're trying to fill. */
-                            <TopicNewsletterCard
-                                pageType="chart"
-                                topicArea={topicArea}
-                                className="topic-newsletter-card--key-info-left"
-                            />
-                        )}
                     </div>
                     <div className="key-info__right span-cols-4 span-lg-cols-5 span-sm-cols-12">
                         <KeyDataTable
                             datapageData={datapageData}
                             attribution={attributionUnshortened}
                         />
-                        {!isNewsletterCardOnLeft && (
-                            <TopicNewsletterCard
-                                pageType="chart"
-                                topicArea={topicArea}
-                                variant="narrow"
-                                className="topic-newsletter-card--key-info"
-                            />
-                        )}
+                        {/* Inside the metadata column, below the key data
+                            table, so that it sits in the column that is usually
+                            the shorter of the two. */}
+                        <TopicNewsletterCard
+                            pageType="chart"
+                            topicArea={topicArea}
+                            variant="narrow"
+                            className="topic-newsletter-card--key-info"
+                        />
                     </div>
                 </>
             ) : (

@@ -76,17 +76,6 @@ function parseMarkdownBlocks(markdown: string): MarkdownBlock[] {
     return blocks
 }
 
-/**
- * How many top-level bullets a descriptionKey renders as. Nested bullets and
- * continuation lines belong to their parent item, so they don't add to the
- * count; a descriptionKey written as prose has none.
- */
-export function countDescriptionKeyBullets(markdown: string): number {
-    return parseMarkdownBlocks(markdown).filter(
-        (block) => block.type === "listItem"
-    ).length
-}
-
 // Adjacent list items are always rejoined tightly, so a "loose" list (bullets
 // separated by blank lines) comes out tight — a deliberate simplification.
 function joinMarkdownBlocks(blocks: MarkdownBlock[]): string {
