@@ -494,6 +494,52 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
 
         const bottomY = this.numericLegendY + height
 
+        const renderBin = (
+            positionedBin: PositionedBin,
+            index: number,
+            isHighlightOverlay = false
+        ): React.ReactElement => {
+            const bin = positionedBin.bin
+            const style = this.getMarkerStyleConfig(bin)
+            const fill = bin.patternRef ? `url(#${bin.patternRef})` : style.fill
+
+            return (
+                <NumericBinRect
+                    key={isHighlightOverlay ? `highlight-${index}` : index}
+                    x={positionedBin.x}
+                    y={bottomY - numericBinSize}
+                    width={positionedBin.width}
+                    height={numericBinSize}
+                    fill={fill}
+                    stroke={style.stroke}
+                    strokeWidth={style.strokeWidth}
+                    opacity={style.opacity}
+                    isOpenLeft={
+                        bin instanceof NumericBin ? bin.props.isOpenLeft : false
+                    }
+                    isOpenRight={
+                        bin instanceof NumericBin
+                            ? bin.props.isOpenRight
+                            : false
+                    }
+                    pointerEvents={isHighlightOverlay ? "none" : undefined}
+                    onPointerEnter={
+                        isHighlightOverlay
+                            ? undefined
+                            : (): void => {
+                                  this.manager.onLegendMouseEnter?.(bin)
+                                  this.manager.onLegendMouseOver?.(bin)
+                              }
+                    }
+                    onPointerLeave={
+                        isHighlightOverlay
+                            ? undefined
+                            : (): void => this.manager.onLegendMouseLeave?.()
+                    }
+                />
+            )
+        }
+
         const textColor =
             this.legendStyleConfig?.text?.default?.color ?? DEFAULT_TEXT_COLOR
 
@@ -531,48 +577,24 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                     })}
                 </g>
                 <g id={makeFigmaId("swatches")}>
-                    {_.sortBy(
-                        positionedBins.map((positionedBin, index) => {
-                            const bin = positionedBin.bin
-                            const style = this.getMarkerStyleConfig(bin)
-
-                            const fill = bin.patternRef
-                                ? `url(#${bin.patternRef})`
-                                : style.fill
-
-                            return (
-                                <NumericBinRect
-                                    key={index}
-                                    x={positionedBin.x}
-                                    y={bottomY - numericBinSize}
-                                    width={positionedBin.width}
-                                    height={numericBinSize}
-                                    fill={fill}
-                                    stroke={style.stroke}
-                                    strokeWidth={style.strokeWidth}
-                                    opacity={style.opacity}
-                                    isOpenLeft={
-                                        bin instanceof NumericBin
-                                            ? bin.props.isOpenLeft
-                                            : false
-                                    }
-                                    isOpenRight={
-                                        bin instanceof NumericBin
-                                            ? bin.props.isOpenRight
-                                            : false
-                                    }
-                                    onPointerEnter={() => {
-                                        this.manager.onLegendMouseEnter?.(bin)
-                                        this.manager.onLegendMouseOver?.(bin)
-                                    }}
-                                    onPointerLeave={() =>
-                                        this.manager.onLegendMouseLeave?.()
-                                    }
-                                />
-                            )
-                        }),
-                        (rect) => rect.props["strokeWidth"]
+                    {positionedBins.map((positionedBin, index) =>
+                        renderBin(positionedBin, index)
                     )}
+                    {/*
+                        Render highlighted bins last so their stroke is painted above adjacent bins.
+                        Note that this renders the highlighted bin twice, once in its normal place and once in the highlight layer here.
+
+                        Another option to solve the cosmetic stroke issue would be to sort their bins by their emphasis state, but that has caused issues with React event handlers becoming detached from the elements and `pointerleave` events not firing.
+                    */}
+                    {positionedBins
+                        .filter(
+                            (positionedBin) =>
+                                this.getBinState(positionedBin.bin) ===
+                                Emphasis.Highlighted
+                        )
+                        .map((positionedBin, index) =>
+                            renderBin(positionedBin, index, true)
+                        )}
                 </g>
                 <g id={makeFigmaId("labels")}>
                     {numericLabels.map((label, index) => {
