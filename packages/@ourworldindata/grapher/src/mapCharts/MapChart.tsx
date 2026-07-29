@@ -100,6 +100,7 @@ export class MapChart
      * Hovering a map bracket highlights all countries within that bracket on the map.
      */
     hoverBracket: MapBracket | undefined = undefined
+    private isLegendBracketPinned = false
 
     tooltipState = new TooltipState<{
         featureId: string
@@ -190,6 +191,7 @@ export class MapChart
         this.onMapMouseLeave()
         this.onLegendMouseLeave()
         document.removeEventListener("keydown", this.onDocumentKeyDown)
+        document.removeEventListener("pointerdown", this.onDocumentPointerDown)
     }
 
     @action.bound onLegendMouseEnter(bracket: MapBracket): void {
@@ -200,11 +202,18 @@ export class MapChart
     }
 
     @action.bound onLegendMouseOver(bracket: MapBracket): void {
+        if (this.isLegendBracketPinned) return
         this.hoverBracket = bracket
     }
 
     @action.bound onLegendMouseLeave(): void {
+        if (this.isLegendBracketPinned) return
         this.hoverBracket = undefined
+    }
+
+    @action.bound onLegendTouchSelect(bracket: MapBracket): void {
+        this.hoverBracket = bracket
+        this.isLegendBracketPinned = true
     }
 
     @computed get mapConfig(): MapConfig {
@@ -226,6 +235,13 @@ export class MapChart
             this.globeController.resetGlobe()
             this.mapConfig.region = MapRegionName.World
         }
+    }
+
+    @action.bound onDocumentPointerDown(e: globalThis.PointerEvent): void {
+        if (e.pointerType !== "touch") return
+
+        this.hoverBracket = undefined
+        this.isLegendBracketPinned = false
     }
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
@@ -250,6 +266,7 @@ export class MapChart
         exposeInstanceOnWindow(this)
 
         document.addEventListener("keydown", this.onDocumentKeyDown)
+        document.addEventListener("pointerdown", this.onDocumentPointerDown)
     }
 
     @computed private get legendData(): ColorScaleBin[] {

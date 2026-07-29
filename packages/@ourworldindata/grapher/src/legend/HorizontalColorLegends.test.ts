@@ -109,6 +109,7 @@ describe(HorizontalNumericColorLegend, () => {
         })
         const onLegendMouseOver = vi.fn()
         const onLegendMouseLeave = vi.fn()
+        const onLegendTouchSelect = vi.fn()
 
         const { container } = render(
             React.createElement(
@@ -119,6 +120,7 @@ describe(HorizontalNumericColorLegend, () => {
                         numericLegendData: [bin],
                         onLegendMouseOver,
                         onLegendMouseLeave,
+                        onLegendTouchSelect,
                     },
                 })
             )
@@ -127,11 +129,21 @@ describe(HorizontalNumericColorLegend, () => {
 
         expect(swatch).not.toBeNull()
 
-        fireEvent.pointerEnter(swatch!)
-        fireEvent.pointerLeave(swatch!)
+        fireEvent.pointerEnter(swatch!, { pointerType: "touch" })
+
+        expect(onLegendMouseOver).not.toHaveBeenCalled()
+
+        fireEvent.pointerEnter(swatch!, { pointerType: "mouse" })
+        fireEvent.pointerLeave(swatch!, { pointerType: "mouse" })
+        fireEvent.pointerUp(swatch!, { pointerType: "mouse" })
 
         expect(onLegendMouseOver).toHaveBeenCalledWith(bin)
         expect(onLegendMouseLeave).toHaveBeenCalledOnce()
+        expect(onLegendTouchSelect).not.toHaveBeenCalled()
+
+        fireEvent.pointerUp(swatch!, { pointerType: "touch" })
+
+        expect(onLegendTouchSelect).toHaveBeenCalledWith(bin)
     })
 
     it("renders highlighted bins as non-interactive overlays", () => {

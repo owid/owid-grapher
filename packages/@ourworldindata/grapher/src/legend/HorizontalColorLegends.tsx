@@ -87,6 +87,7 @@ export interface HorizontalColorLegendManager {
     onLegendMouseEnter?: (d: ColorScaleBin) => void
     onLegendMouseLeave?: () => void
     onLegendMouseOver?: (d: ColorScaleBin) => void
+    onLegendTouchSelect?: (d: ColorScaleBin) => void
     onLegendClick?: (d: ColorScaleBin) => void
     isStatic?: boolean
     resolveLegendBinEmphasis?: (bin: ColorScaleBin) => Emphasis
@@ -526,7 +527,13 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                     onPointerEnter={
                         isHighlightOverlay
                             ? undefined
-                            : (): void => {
+                            : (event): void => {
+                                  if (
+                                      event.pointerType === "touch" &&
+                                      this.manager.onLegendTouchSelect
+                                  )
+                                      return
+
                                   this.manager.onLegendMouseEnter?.(bin)
                                   this.manager.onLegendMouseOver?.(bin)
                               }
@@ -534,7 +541,23 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                     onPointerLeave={
                         isHighlightOverlay
                             ? undefined
-                            : (): void => this.manager.onLegendMouseLeave?.()
+                            : (event): void => {
+                                  if (
+                                      event.pointerType === "touch" &&
+                                      this.manager.onLegendTouchSelect
+                                  )
+                                      return
+
+                                  this.manager.onLegendMouseLeave?.()
+                              }
+                    }
+                    onPointerUp={
+                        isHighlightOverlay
+                            ? undefined
+                            : (event): void => {
+                                  if (event.pointerType === "touch")
+                                      this.manager.onLegendTouchSelect?.(bin)
+                              }
                     }
                 />
             )
@@ -885,11 +908,27 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         return (
             <g>
                 {marks.map((mark, index) => {
-                    const pointerEnter = () =>
-                        manager.onLegendMouseEnter?.(mark.bin)
-                    const pointerOver = () =>
-                        manager.onLegendMouseOver?.(mark.bin)
-                    const pointerLeave = () => manager.onLegendMouseLeave?.()
+                    const isTouchSelection = (
+                        event: React.PointerEvent
+                    ): boolean =>
+                        event.pointerType === "touch" &&
+                        !!manager.onLegendTouchSelect
+                    const pointerEnter = (event: React.PointerEvent): void => {
+                        if (!isTouchSelection(event))
+                            manager.onLegendMouseEnter?.(mark.bin)
+                    }
+                    const pointerOver = (event: React.PointerEvent): void => {
+                        if (!isTouchSelection(event))
+                            manager.onLegendMouseOver?.(mark.bin)
+                    }
+                    const pointerLeave = (event: React.PointerEvent): void => {
+                        if (!isTouchSelection(event))
+                            manager.onLegendMouseLeave?.()
+                    }
+                    const pointerUp = (event: React.PointerEvent): void => {
+                        if (event.pointerType === "touch")
+                            manager.onLegendTouchSelect?.(mark.bin)
+                    }
                     const click = () => manager.onLegendClick?.(mark.bin)
 
                     return (
@@ -898,6 +937,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                             onPointerEnter={pointerEnter}
                             onPointerOver={pointerOver}
                             onPointerLeave={pointerLeave}
+                            onPointerUp={pointerUp}
                             onClick={click}
                             style={{ cursor: manager.legendCursor }}
                         >
