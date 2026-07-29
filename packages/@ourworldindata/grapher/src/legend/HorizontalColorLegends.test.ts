@@ -1,4 +1,10 @@
-import { expect, it, describe } from "vitest"
+/**
+ * @vitest-environment happy-dom
+ */
+
+import * as React from "react"
+import { fireEvent, render } from "@testing-library/react"
+import { expect, it, describe, vi } from "vitest"
 
 import { CategoricalBin, NumericBin } from "../color/ColorScaleBin"
 import {
@@ -87,6 +93,44 @@ describe(HorizontalNumericColorLegend, () => {
         expect(marginBetween(bins[1], bins[2])).toEqual(margin)
         expect(marginBetween(bins[2], bins[3])).toEqual(0)
         expect(marginBetween(bins[3], bins[4])).toEqual(margin)
+    })
+
+    it("clears legend hover when the pointer leaves a bin", () => {
+        const bin = new NumericBin({
+            isFirst: true,
+            isOpenLeft: false,
+            isOpenRight: false,
+            min: 0,
+            max: 1,
+            displayMin: "0",
+            displayMax: "1",
+            color: "#fff",
+        })
+        const onLegendMouseOver = vi.fn()
+        const onLegendMouseLeave = vi.fn()
+
+        const { container } = render(
+            React.createElement(
+                "svg",
+                undefined,
+                React.createElement(HorizontalNumericColorLegend, {
+                    manager: {
+                        numericLegendData: [bin],
+                        onLegendMouseOver,
+                        onLegendMouseLeave,
+                    },
+                })
+            )
+        )
+        const swatch = container.querySelector("#swatches > *")
+
+        expect(swatch).not.toBeNull()
+
+        fireEvent.pointerEnter(swatch!)
+        fireEvent.pointerLeave(swatch!)
+
+        expect(onLegendMouseOver).toHaveBeenCalledWith(bin)
+        expect(onLegendMouseLeave).toHaveBeenCalledOnce()
     })
 })
 

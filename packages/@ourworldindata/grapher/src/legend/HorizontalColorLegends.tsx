@@ -561,11 +561,11 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                                             ? bin.props.isOpenRight
                                             : false
                                     }
-                                    onMouseEnter={() => {
+                                    onPointerEnter={() => {
                                         this.manager.onLegendMouseEnter?.(bin)
                                         this.manager.onLegendMouseOver?.(bin)
                                     }}
-                                    onMouseLeave={() =>
+                                    onPointerLeave={() =>
                                         this.manager.onLegendMouseLeave?.()
                                     }
                                 />
@@ -863,28 +863,19 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         return (
             <g>
                 {marks.map((mark, index) => {
-                    const mouseEnter = (): void =>
-                        manager.onLegendMouseEnter
-                            ? manager.onLegendMouseEnter(mark.bin)
-                            : undefined
-                    const mouseOver = (): void =>
-                        manager.onLegendMouseOver
-                            ? manager.onLegendMouseOver(mark.bin)
-                            : undefined
-                    const mouseLeave = (): void =>
-                        manager.onLegendMouseLeave
-                            ? manager.onLegendMouseLeave()
-                            : undefined
-                    const click = manager.onLegendClick
-                        ? (): void => manager.onLegendClick?.(mark.bin)
-                        : undefined
+                    const pointerEnter = () =>
+                        manager.onLegendMouseEnter?.(mark.bin)
+                    const pointerOver = () =>
+                        manager.onLegendMouseOver?.(mark.bin)
+                    const pointerLeave = () => manager.onLegendMouseLeave?.()
+                    const click = () => manager.onLegendClick?.(mark.bin)
 
                     return (
                         <g
                             key={`${mark.label}-${index}`}
-                            onMouseEnter={mouseEnter}
-                            onMouseOver={mouseOver}
-                            onMouseLeave={mouseLeave}
+                            onPointerEnter={pointerEnter}
+                            onPointerOver={pointerOver}
+                            onPointerLeave={pointerLeave}
                             onClick={click}
                             style={{ cursor: manager.legendCursor }}
                         >
