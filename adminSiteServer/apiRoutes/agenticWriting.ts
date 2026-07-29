@@ -80,6 +80,15 @@ export async function getAgenticWritingList(
             : undefined
     const contentType = parseContentType(req.query.contentType)
 
+    const sortRaw =
+        typeof req.query.sort === "string" ? req.query.sort : undefined
+    const sort =
+        sortRaw === "updatedAt" ||
+        sortRaw === "createdAt" ||
+        sortRaw === "createdAtAsc"
+            ? sortRaw
+            : undefined
+
     let ownerUserId: number | undefined
     let ownerEmail: string | undefined
     const ownerRaw =
@@ -97,6 +106,7 @@ export async function getAgenticWritingList(
         ownerUserId,
         ownerEmail,
         contentType,
+        sort,
     })
 }
 

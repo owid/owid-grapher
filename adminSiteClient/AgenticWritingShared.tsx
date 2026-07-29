@@ -6,7 +6,7 @@
 // other content types (when added) would extend the type union and the
 // renderer.
 
-import { useCallback, useContext, useMemo } from "react"
+import { useCallback, useContext, useMemo, type ReactNode } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Button, Input, Select, notification } from "antd"
 import {
@@ -142,6 +142,43 @@ function ChartTile({ gv }: { gv: GrapherView }) {
     )
 }
 
+// Renders text that may contain inline Markdown links — `[label](url)` — as
+// real anchors, leaving everything else as plain text. Built by construction
+// (text nodes + <a> elements, no dangerouslySetInnerHTML), and only http(s)
+// URLs are linked; anything else is rendered literally, so it's XSS-safe.
+const MARKDOWN_LINK_RE = /\[([^\]]+)\]\(([^)\s]+)\)/g
+
+export function RichText({ text }: { text: string }): ReactNode {
+    if (!text) return null
+    const nodes: ReactNode[] = []
+    const re = new RegExp(MARKDOWN_LINK_RE) // fresh lastIndex per render
+    let lastIndex = 0
+    let match: RegExpExecArray | null
+    while ((match = re.exec(text)) !== null) {
+        const [full, label, href] = match
+        if (match.index > lastIndex)
+            nodes.push(text.slice(lastIndex, match.index))
+        if (/^https?:\/\//i.test(href)) {
+            nodes.push(
+                <a
+                    key={match.index}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {label}
+                </a>
+            )
+        } else {
+            // Not a safe absolute URL — render the raw markdown verbatim.
+            nodes.push(full)
+        }
+        lastIndex = match.index + full.length
+    }
+    if (lastIndex < text.length) nodes.push(text.slice(lastIndex))
+    return <>{nodes}</>
+}
+
 // Renders the title / description / charts / metadata of a single version.
 // Used for the "current version" view on both review surfaces.
 export function ViewContent({
@@ -162,12 +199,19 @@ export function ViewContent({
     const lvl = version.metadata?.keyInsightLevel
     const entities = version.metadata?.entities ?? []
     const fc = version.metadata?.factCheck
+    // Chart slugs used by this nugget. Prefer the stored metadata list; fall
+    // back to deriving (deduplicated) from the chart views themselves.
+    const slugs =
+        version.metadata?.grapherSlugs &&
+        version.metadata.grapherSlugs.length > 0
+            ? version.metadata.grapherSlugs
+            : Array.from(new Set(charts.map((c) => c.slug)))
 
     const textBlock = (
         <div className="agentic-writing__text">
             <h2 className="agentic-writing__title">{version.title}</h2>
             <p className="agentic-writing__description">
-                {version.description}
+                <RichText text={version.description} />
             </p>
 
             <div className="agentic-writing__meta">
@@ -208,6 +252,14 @@ export function ViewContent({
                         {entities.join(" · ")}
                     </span>
                 )}
+                {slugs.map((s) => (
+                    <span
+                        key={s}
+                        className="agentic-writing__badge agentic-writing__badge--slug"
+                    >
+                        {s}
+                    </span>
+                ))}
                 <span>{version.lineageKey}</span>
             </div>
 

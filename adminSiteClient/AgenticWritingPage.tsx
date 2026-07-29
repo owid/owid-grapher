@@ -1,7 +1,7 @@
 import { useContext, useEffect, useMemo, useState, useCallback } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Link } from "react-router-dom"
-import { Button, Input, Select } from "antd"
+import { Button, Input, InputNumber, Select } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
@@ -39,23 +39,33 @@ const SCOPE_OPTIONS: { value: Scope; label: string }[] = [
     { value: "all", label: "All" },
 ]
 
+// Sort order for the queue. Values match the server's whitelisted sort keys.
+type SortOption = "createdAtAsc" | "createdAt" | "updatedAt"
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+    { value: "createdAtAsc", label: "oldest first" },
+    { value: "createdAt", label: "newest created" },
+    { value: "updatedAt", label: "recently updated" },
+]
+
 export function AgenticWritingPage() {
     const { admin } = useContext(AdminAppContext)
 
     const [scope, setScope] = useState<Scope>("mine")
     const [status, setStatus] = useState("")
     const [slug, setSlug] = useState("")
+    const [sort, setSort] = useState<SortOption>("createdAtAsc")
     const [idx, setIdx] = useState(0)
     const [comment, setComment] = useState("")
     const [editing, setEditing] = useState(false)
     const [draft, setDraft] = useState<ViewDraft | null>(null)
 
     const listQuery = useQuery({
-        queryKey: ["agenticWriting", scope, status, slug],
+        queryKey: ["agenticWriting", scope, status, slug, sort],
         queryFn: async () => {
             const params: Record<string, string> = {}
             if (status) params.status = status
             if (slug.trim()) params.slug = slug.trim()
+            params.sort = sort
             if (scope === "mine") {
                 params.owner = "me"
                 params.editorial = "private"
@@ -214,7 +224,27 @@ export function AgenticWritingPage() {
                     <span className="agentic-writing__progress">
                         {items.length > 0 ? (
                             <>
-                                <strong>{idx + 1}</strong> of {items.length}
+                                <InputNumber
+                                    className="agentic-writing__progress-input"
+                                    size="small"
+                                    controls={false}
+                                    min={1}
+                                    max={items.length}
+                                    value={idx + 1}
+                                    onChange={(v) => {
+                                        if (
+                                            typeof v === "number" &&
+                                            !Number.isNaN(v)
+                                        )
+                                            setIdx(
+                                                Math.min(
+                                                    Math.max(0, v - 1),
+                                                    items.length - 1
+                                                )
+                                            )
+                                    }}
+                                />{" "}
+                                of {items.length}
                             </>
                         ) : (
                             "0 in queue"
@@ -262,6 +292,19 @@ export function AgenticWritingPage() {
                             options={slugOptions}
                             showSearch
                             loading={slugsQuery.isLoading}
+                        />
+                    </span>
+                    <span>
+                        Sort:{" "}
+                        <Select
+                            size="small"
+                            value={sort}
+                            style={{ width: 160 }}
+                            onChange={(v) => {
+                                setSort(v)
+                                setIdx(0)
+                            }}
+                            options={SORT_OPTIONS}
                         />
                     </span>
                     <span style={{ marginLeft: "auto", color: "#6b7280" }}>

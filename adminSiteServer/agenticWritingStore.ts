@@ -238,6 +238,10 @@ async function readLatestVersion(
 // Public reads
 // ---------------------------------------------------------------------------
 
+// Sort options for the queue list. Whitelisted (mapped to fixed ORDER BY
+// clauses below) so the value can't be interpolated unsafely into SQL.
+export type AgenticWritingSort = "updatedAt" | "createdAt" | "createdAtAsc"
+
 export interface ListOpts {
     slug?: string
     status?: string
@@ -245,6 +249,22 @@ export interface ListOpts {
     ownerUserId?: number
     ownerEmail?: string
     contentType?: AgenticWritingContentType
+    sort?: AgenticWritingSort
+}
+
+// Maps each whitelisted sort to a fixed ORDER BY clause. `createdAtAsc` (the
+// default) is the historical ordering — lineage creation order, oldest first.
+// `id` is the tiebreaker so the order is stable across equal timestamps.
+//
+// `updatedAt` is "last activity". It can't just use l.updatedAt: revisions and
+// review decisions insert a new *version* row and never touch the lineage row,
+// so l.updatedAt only moves on create / submit / publish. The latest version's
+// createdAt (joined as `v`) advances on every revision/decision/edit, so we
+// take GREATEST of the two to capture all activity.
+const AGENTIC_WRITING_ORDER_BY: Record<AgenticWritingSort, string> = {
+    updatedAt: "GREATEST(l.updatedAt, v.createdAt) DESC, l.id DESC",
+    createdAt: "l.createdAt DESC, l.id DESC",
+    createdAtAsc: "l.id ASC",
 }
 
 interface ListRow extends VersionRowWithLineage {
@@ -310,7 +330,7 @@ export async function listLineages(
             GROUP BY lineageId
         ) vc ON vc.lineageId = l.id${VERSION_AUTHOR_JOIN}
         ${whereSql}
-        ORDER BY l.id ASC`,
+        ORDER BY ${AGENTIC_WRITING_ORDER_BY[opts.sort ?? "createdAtAsc"]}`,
         params
     )
 

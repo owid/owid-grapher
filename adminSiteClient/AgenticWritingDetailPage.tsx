@@ -6,6 +6,7 @@ import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
     HistoryResponse,
+    RichText,
     VersionRecord,
     ViewContent,
     ViewDraft,
@@ -290,7 +291,7 @@ function VersionHistory({
                             {ver.title}
                         </div>
                         <div className="agentic-writing__version-desc">
-                            {ver.description}
+                            <RichText text={ver.description} />
                         </div>
                         {ver.review?.comment && (
                             <div className="agentic-writing__version-comment">

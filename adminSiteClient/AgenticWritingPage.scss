@@ -27,6 +27,11 @@
     color: #111827;
 }
 
+// Editable "N of M" index: type a number to jump to that nugget.
+.agentic-writing__progress-input {
+    width: 64px;
+}
+
 // Single-chart view: small thumbnail beside the text.
 .agentic-writing__single {
     display: flex;
@@ -122,6 +127,11 @@
     margin: 0 0 12px;
 }
 
+.agentic-writing__description a {
+    color: #2563eb;
+    text-decoration: underline;
+}
+
 .agentic-writing__meta {
     display: flex;
     gap: 8px;
@@ -160,6 +170,16 @@
 .agentic-writing__badge--entities {
     background: #f3f4f6;
     color: #374151;
+}
+
+// Chart slugs used by the nugget — surfaced as metadata. Monospace and
+// lower-case to read as identifiers rather than prose.
+.agentic-writing__badge--slug {
+    background: #ecfeff;
+    color: #155e75;
+    text-transform: none;
+    letter-spacing: 0;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
 }
 
 .agentic-writing__badge--editorial-private {
