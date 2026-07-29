@@ -565,6 +565,14 @@ export class GrapherState
     isEntitySelectorModalOrDrawerOpen = false
     activeModal?: GrapherModal
     activeDownloadModalTab: DownloadModalTabName = DownloadModalTabName.Vis
+    /**
+     * Set alongside `activeModal` when the download modal is opened from
+     * outside the chart, where the reader's intent is the downloads rather than
+     * the citation block the Data tab starts on. The Data tab consumes it once
+     * and clears it, so opening the modal from the chart's own Download button
+     * behaves as it always has.
+     */
+    shouldScrollToQuickDownload = false
     isShareMenuActive = false
     isCommandPaletteOpen = false
 
@@ -736,6 +744,7 @@ export class GrapherState
             isEntitySelectorModalOrDrawerOpen: observable.ref,
             activeModal: observable.ref,
             activeDownloadModalTab: observable.ref,
+            shouldScrollToQuickDownload: observable.ref,
             shouldIncludeDetailsInStaticExport: observable,
             _externalBounds: observable,
             slideShow: observable,

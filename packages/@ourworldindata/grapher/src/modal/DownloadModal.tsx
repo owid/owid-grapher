@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
-import { useCallback, useMemo } from "react"
+import { useCallback, useEffect, useMemo, useRef } from "react"
 import * as React from "react"
-import { observable, computed, action, makeObservable } from "mobx"
+import { observable, computed, action, makeObservable, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import {
     Bounds,
@@ -88,6 +88,7 @@ export interface DownloadModalManager {
     inputColumnSlugs?: string[]
     isServerSideDownloadAvailable?: boolean
     downloadPackage?: DownloadPackage
+    shouldScrollToQuickDownload?: boolean
     logImageDownloadEvent?: (action: GrapherImageDownloadEvent) => void
     activeDownloadModalTab: DownloadModalTabName
     isOnMapTab?: boolean
@@ -726,6 +727,31 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
     const { yColumnsFromDimensionsOrSlugsOrAuto: yColumns, downloadPackage } =
         props.manager
 
+    // When the modal is opened from outside the chart -- the mdim header
+    // "Download the data" button -- the reader came for the downloads, not for
+    // the citation block this tab starts on. The modal can be no taller than
+    // the chart frame, so on a phone those buttons start below the fold.
+    const quickDownloadRef = useRef<HTMLDivElement>(null)
+    const { manager } = props
+    useEffect(() => {
+        if (!manager.shouldScrollToQuickDownload) return
+        const section = quickDownloadRef.current
+        const panel = section?.closest<HTMLElement>(
+            ".download-modal__tab-panel"
+        )
+        if (!section || !panel) return
+        // Move the panel's own scroll rather than scrollIntoView, which would
+        // also scroll the page behind the modal.
+        panel.scrollTop +=
+            section.getBoundingClientRect().top -
+            panel.getBoundingClientRect().top
+        // One-shot: reopening from the chart's own Download button should land
+        // at the top of the tab, the way it always has.
+        runInAction(() => {
+            manager.shouldScrollToQuickDownload = false
+        })
+    }, [manager])
+
     const { cols: nonRedistributableCols, sourceLinks } =
         getNonRedistributableInfo(props.manager.tableForDownload)
 
@@ -879,7 +905,10 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
     return (
         <>
             <SourceAndCitationSection table={props.manager.tableForDownload} />
-            <div className="download-modal__data-section">
+            <div
+                className="download-modal__data-section"
+                ref={quickDownloadRef}
+            >
                 <div className="download-modal__heading-with-caption">
                     <h3 className="grapher_h3-semibold">Quick download</h3>
                     {downloadHelpText}

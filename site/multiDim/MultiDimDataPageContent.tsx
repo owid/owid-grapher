@@ -462,6 +462,10 @@ export function DataPageContent({
             grapherStateRef.current.activeModal = GrapherModal.Download
             grapherStateRef.current.activeDownloadModalTab =
                 DownloadModalTabName.Data
+            // Skip past the citation block to the download buttons: the modal
+            // is no taller than the chart frame, so on a phone they'd otherwise
+            // start below its fold.
+            grapherStateRef.current.shouldScrollToQuickDownload = true
         })
         // The modal is positioned within the chart's frame, so make sure the
         // chart is in view. A no-op when it already is.
