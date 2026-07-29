@@ -62,19 +62,13 @@ function getCodeExampleRewriteTarget(name: string): DownloadRewriteTarget {
  * options above genuinely don't apply here (the files are pre-built), which is
  * said in words rather than by disabling controls.
  */
-function CompleteDatasetApiSection({
-    downloadPackage,
+function CompleteDatasetApiUrls({
+    parquetUrl,
+    metadataUrl,
 }: {
-    downloadPackage: DownloadPackage
+    parquetUrl: string
+    metadataUrl: string
 }) {
-    const { parquetUrl, metadataUrl } = downloadPackage
-    if (!parquetUrl || !metadataUrl) return undefined
-
-    const codeExamples = makeCompleteDatasetCodeExamples(
-        parquetUrl,
-        metadataUrl
-    )
-
     return (
         <div className="downloads-section">
             <h4 className="citation__how-to-header">Complete dataset</h4>
@@ -98,29 +92,6 @@ function CompleteDatasetApiSection({
                     <CodeSnippet code={metadataUrl} theme="light" />
                 </div>
             </section>
-            <ExpandableToggle
-                label="Code examples for the complete dataset"
-                alwaysVisibleDescription={
-                    <p className="citation__paragraph">
-                        Examples of how to load the complete dataset into
-                        different data analysis tools. Parquet keeps column
-                        types and missing values intact, and is a smaller
-                        download than the equivalent CSV.
-                    </p>
-                }
-                content={
-                    <div className="downloads__code-blocks">
-                        {Object.entries(codeExamples).map(([name, snippet]) => (
-                            <div key={name}>
-                                <h5 className="downloads__code-label">
-                                    {name}
-                                </h5>
-                                <CodeSnippet code={snippet} theme="light" />
-                            </div>
-                        ))}
-                    </div>
-                }
-            />
         </div>
     )
 }
@@ -143,6 +114,20 @@ function ApiAndCodeExamplesSection({
         setShortColNames,
     } = useDataApiDownloadConfig({ downloadCtxBase, firstYColDef })
     const codeExamples = makeDownloadCodeExamples(csvUrl, metadataUrl)
+
+    const completeDatasetUrls =
+        downloadPackage?.parquetUrl && downloadPackage.metadataUrl
+            ? {
+                  parquetUrl: downloadPackage.parquetUrl,
+                  metadataUrl: downloadPackage.metadataUrl,
+              }
+            : undefined
+    const completeDatasetCodeExamples = completeDatasetUrls
+        ? makeCompleteDatasetCodeExamples(
+              completeDatasetUrls.parquetUrl,
+              completeDatasetUrls.metadataUrl
+          )
+        : undefined
 
     return (
         <>
@@ -193,6 +178,9 @@ function ApiAndCodeExamplesSection({
                     </div>
                 </section>
             </div>
+            {completeDatasetUrls && (
+                <CompleteDatasetApiUrls {...completeDatasetUrls} />
+            )}
             <div className="download-data-section downloads-section">
                 <ExpandableToggle
                     label="Code examples"
@@ -204,6 +192,13 @@ function ApiAndCodeExamplesSection({
                     }
                     content={
                         <div className="downloads__code-blocks">
+                            {/* Only labelled as a group when there's a second
+                                group to tell it apart from. */}
+                            {completeDatasetCodeExamples && (
+                                <h5 className="downloads__code-group-label">
+                                    Chart data
+                                </h5>
+                            )}
                             {Object.entries(codeExamples).map(
                                 ([name, snippet]) => (
                                     <div key={name}>
@@ -222,13 +217,35 @@ function ApiAndCodeExamplesSection({
                                     </div>
                                 )
                             )}
+                            {completeDatasetCodeExamples && (
+                                <>
+                                    <h5 className="downloads__code-group-label downloads__code-group-label--separated">
+                                        Complete dataset
+                                    </h5>
+                                    <p className="citation__paragraph">
+                                        Parquet keeps column types and missing
+                                        values intact, and is a smaller download
+                                        than the equivalent CSV.
+                                    </p>
+                                    {Object.entries(
+                                        completeDatasetCodeExamples
+                                    ).map(([name, snippet]) => (
+                                        <div key={name}>
+                                            <h5 className="downloads__code-label">
+                                                {name}
+                                            </h5>
+                                            <CodeSnippet
+                                                code={snippet}
+                                                theme="light"
+                                            />
+                                        </div>
+                                    ))}
+                                </>
+                            )}
                         </div>
                     }
                 />
             </div>
-            {downloadPackage && (
-                <CompleteDatasetApiSection downloadPackage={downloadPackage} />
-            )}
         </>
     )
 }
