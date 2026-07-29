@@ -180,6 +180,25 @@
     font-size: 0.75rem;
 }
 
+.email-notifications-subscribe-form__checkbox {
+    border: 1px solid $blue-20;
+    border-radius: 3px;
+    background: #fff;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.email-notifications-subscribe-form__checkbox--selected {
+    border-color: $blue-60;
+    background: $blue-60;
+    svg {
+        color: #fff;
+    }
+}
+
 .email-notifications-subscribe-form__card-title {
     @include body-3-medium;
     margin-top: 6px;

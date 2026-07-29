@@ -112,7 +112,15 @@ const ContentTypeCard = ({
     >
         <span className="email-notifications-subscribe-form__card-header">
             <FontAwesomeIcon icon={icon} />
-            <FontAwesomeIcon icon={selected ? faCheck : faPlus} />
+            <div
+                className={cx({
+                    "email-notifications-subscribe-form__checkbox": true,
+                    "email-notifications-subscribe-form__checkbox--selected":
+                        selected,
+                })}
+            >
+                {selected && <FontAwesomeIcon icon={faCheck} />}
+            </div>
         </span>
         <span className="email-notifications-subscribe-form__card-title">
             {title}
