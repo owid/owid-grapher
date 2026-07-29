@@ -43,7 +43,14 @@ type Metadata = Omit<OwidVariableWithSource, "id">
 // chart's own `.zip`, nothing is assembled per request and there is no
 // grapher route in front of it -- `url` points straight at the R2 object.
 export interface DownloadPackage {
+    // The zip behind the download button: CSV, metadata and readme.
     url: string
+    // The same table as Parquet, plus the metadata on its own, as separate R2
+    // objects for programmatic use. Optional because a config written before
+    // ETL started publishing them has neither, in which case the Data API
+    // section just doesn't offer a complete-dataset block.
+    parquetUrl?: string
+    metadataUrl?: string
     indicatorCount?: number
     rowCount?: number
     // Exact size of the zip, in bytes.

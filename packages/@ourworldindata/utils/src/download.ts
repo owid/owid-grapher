@@ -52,6 +52,55 @@ metadata <- fromJSON("${metadataUrl}")`,
     }
 }
 
+export const COMPLETE_DATASET_API_HELP_TEXT =
+    "These URLs cover every dimension combination of this dataset in a single " +
+    "wide table — the same data as the full dataset download above. The files " +
+    "are built when the data is published, so the options above don't apply to " +
+    "them: they always contain all indicators, entities and time points."
+
+/**
+ * Code examples for the complete-dataset Parquet, which is a different set of
+ * tools from the chart-scoped CSV examples: DuckDB leads because it can query
+ * the file over HTTP without downloading it, and Excel/Sheets/Stata are absent
+ * because none of them read Parquet.
+ *
+ * Column names are the indicator's full name, so they contain spaces and
+ * punctuation and have to be quoted in SQL. That's also what makes DuckDB's
+ * `COLUMNS(...)` regex useful, so the example shows it.
+ */
+export function makeCompleteDatasetCodeExamples(
+    parquetUrl: string,
+    metadataUrl: string
+): Record<string, string> {
+    return {
+        DuckDB: `INSTALL httpfs; LOAD httpfs;
+
+-- Reads only the columns you select, not the whole file
+SELECT "Entity", "Year", COLUMNS('.*schooling.*')
+FROM read_parquet('${parquetUrl}')
+WHERE "Entity" = 'Czechia';
+
+-- List every available column
+DESCRIBE SELECT * FROM read_parquet('${parquetUrl}');`,
+        "Python with Pandas": `import pandas as pd
+import requests
+
+# Fetch the data (pip install pyarrow)
+df = pd.read_parquet("${parquetUrl}")
+
+# Fetch the metadata
+metadata = requests.get("${metadataUrl}").json()`,
+        R: `library(arrow)
+library(jsonlite)
+
+# Fetch the data
+df <- read_parquet("${parquetUrl}")
+
+# Fetch the metadata
+metadata <- fromJSON("${metadataUrl}")`,
+    }
+}
+
 export function makeNumberOfRowsSnippet(numRows: number | undefined): string {
     if (numRows === undefined) return ""
     if (numRows <= 0) return " (empty)"

@@ -175,7 +175,9 @@ export { getAllVariableIds } from "./multiDim.js"
 export { isPresent } from "./isPresent.js"
 
 export {
+    COMPLETE_DATASET_API_HELP_TEXT,
     downloadImage,
+    makeCompleteDatasetCodeExamples,
     makeCompleteDatasetDescription,
     makeDownloadCodeExamples,
     makeFilteredDownloadDescription,

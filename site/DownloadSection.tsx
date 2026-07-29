@@ -24,6 +24,8 @@ import {
     type DownloadRewriteTarget,
 } from "@ourworldindata/types"
 import {
+    COMPLETE_DATASET_API_HELP_TEXT,
+    makeCompleteDatasetCodeExamples,
     makeCompleteDatasetDescription,
     makeDownloadCodeExamples,
     SERVER_SIDE_DOWNLOAD_HELP_TEXT,
@@ -50,12 +52,86 @@ function getCodeExampleRewriteTarget(name: string): DownloadRewriteTarget {
     }
 }
 
+/**
+ * The complete-dataset equivalent of the Data API URLs above it: the same
+ * table, but as static R2 objects covering every dimension combination.
+ *
+ * Rendered as its own block rather than folded into the options above, because
+ * a scope toggle would keep these URLs out of the baked HTML until someone
+ * clicked — and being findable in the static page is most of the point. The
+ * options above genuinely don't apply here (the files are pre-built), which is
+ * said in words rather than by disabling controls.
+ */
+function CompleteDatasetApiSection({
+    downloadPackage,
+}: {
+    downloadPackage: DownloadPackage
+}) {
+    const { parquetUrl, metadataUrl } = downloadPackage
+    if (!parquetUrl || !metadataUrl) return undefined
+
+    const codeExamples = makeCompleteDatasetCodeExamples(
+        parquetUrl,
+        metadataUrl
+    )
+
+    return (
+        <div className="downloads-section">
+            <h4 className="citation__how-to-header">Complete dataset</h4>
+            <p className="citation__paragraph">
+                {COMPLETE_DATASET_API_HELP_TEXT}
+            </p>
+            {/* No data-owid-download-url-target on these: that mechanism exists
+                so the edge rewriter can inject the current view's query params,
+                and these URLs are static and param-free. */}
+            <section className="downloads__api-urls">
+                <div>
+                    <h5 className="downloads__code-label">
+                        Data URL (Parquet format)
+                    </h5>
+                    <CodeSnippet code={parquetUrl} theme="light" />
+                </div>
+                <div>
+                    <h5 className="downloads__code-label">
+                        Metadata URL (JSON format)
+                    </h5>
+                    <CodeSnippet code={metadataUrl} theme="light" />
+                </div>
+            </section>
+            <ExpandableToggle
+                label="Code examples for the complete dataset"
+                alwaysVisibleDescription={
+                    <p className="citation__paragraph">
+                        The Parquet file can be queried without downloading all
+                        of it — useful when you only need a few of the{" "}
+                        {downloadPackage.indicatorCount ?? "many"} indicators.
+                    </p>
+                }
+                content={
+                    <div className="downloads__code-blocks">
+                        {Object.entries(codeExamples).map(([name, snippet]) => (
+                            <div key={name}>
+                                <h5 className="downloads__code-label">
+                                    {name}
+                                </h5>
+                                <CodeSnippet code={snippet} theme="light" />
+                            </div>
+                        ))}
+                    </div>
+                }
+            />
+        </div>
+    )
+}
+
 function ApiAndCodeExamplesSection({
     downloadCtxBase,
     firstYColDef,
+    downloadPackage,
 }: {
     downloadCtxBase: DataDownloadContextBase
     firstYColDef?: OwidColumnDef
+    downloadPackage?: DownloadPackage
 }) {
     const {
         csvUrl,
@@ -149,6 +225,9 @@ function ApiAndCodeExamplesSection({
                     }
                 />
             </div>
+            {downloadPackage && (
+                <CompleteDatasetApiSection downloadPackage={downloadPackage} />
+            )}
         </>
     )
 }
@@ -374,6 +453,7 @@ export default function DownloadSection({
                         <ApiAndCodeExamplesSection
                             downloadCtxBase={downloadCtx}
                             firstYColDef={firstYColDef}
+                            downloadPackage={downloadPackage}
                         />
                     </>
                 )}
