@@ -1,6 +1,9 @@
 import { expect, it, describe } from "vitest"
 
-import { splitDescriptionKey } from "./datapageUtils.js"
+import {
+    countDescriptionKeyBullets,
+    splitDescriptionKey,
+} from "./datapageUtils.js"
 
 describe(splitDescriptionKey, () => {
     it("returns empty strings for empty input", () => {
@@ -158,5 +161,32 @@ describe(splitDescriptionKey, () => {
             preview: long,
             remainder: "",
         })
+    })
+})
+
+describe(countDescriptionKeyBullets, () => {
+    it("counts nothing in prose", () => {
+        expect(countDescriptionKeyBullets("A single paragraph.")).toEqual(0)
+        expect(countDescriptionKeyBullets("")).toEqual(0)
+    })
+
+    it("counts the bullets of a list", () => {
+        expect(countDescriptionKeyBullets("- one\n- two\n- three")).toEqual(3)
+    })
+
+    it("counts numbered and loose lists too", () => {
+        expect(countDescriptionKeyBullets("1. one\n\n2. two")).toEqual(2)
+    })
+
+    it("doesn't count nested bullets or intro paragraphs", () => {
+        const text = [
+            "Some intro.",
+            "",
+            "- one",
+            "  - one a",
+            "  - one b",
+            "- two",
+        ].join("\n")
+        expect(countDescriptionKeyBullets(text)).toEqual(2)
     })
 })
