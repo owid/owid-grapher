@@ -357,14 +357,7 @@ export default function DownloadSection({
                                     <DownloadButtonLink
                                         title="Download full dataset"
                                         description={makeCompleteDatasetDescription(
-                                            {
-                                                rowCount:
-                                                    downloadPackage.rowCount,
-                                                indicatorCount:
-                                                    downloadPackage.indicatorCount,
-                                                sizeBytes:
-                                                    downloadPackage.sizeBytes,
-                                            }
+                                            downloadPackage
                                         )}
                                         icon="complete"
                                         trackingNote="datapage_download_complete_dataset"

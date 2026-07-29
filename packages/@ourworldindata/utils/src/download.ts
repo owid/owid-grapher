@@ -79,9 +79,9 @@ export function makeCompleteDatasetDescription({
     indicatorCount,
     sizeBytes,
 }: {
-    rowCount: number | undefined
-    indicatorCount: number | undefined
-    sizeBytes: number | undefined
+    rowCount?: number
+    indicatorCount?: number
+    sizeBytes?: number
 }): string {
     const details = [
         indicatorCount !== undefined

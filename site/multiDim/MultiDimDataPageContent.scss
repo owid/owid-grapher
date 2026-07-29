@@ -38,7 +38,7 @@ $zindex-controls-popup: 140;
         }
     }
 
-    .download-the-data-link {
+    .download-the-data-button {
         display: flex;
         align-items: center;
         gap: 8px;
@@ -51,6 +51,7 @@ $zindex-controls-popup: 140;
         font-size: 0.875rem;
         font-weight: $bold;
         text-decoration: none;
+        cursor: pointer;
 
         svg {
             width: auto;
@@ -62,7 +63,7 @@ $zindex-controls-popup: 140;
         }
     }
 
-    .download-the-data-link--header {
+    .download-the-data-button--header {
         flex-shrink: 0;
 
         @include sm-only {
@@ -70,7 +71,7 @@ $zindex-controls-popup: 140;
         }
     }
 
-    .download-the-data-link--mobile {
+    .download-the-data-button--mobile {
         margin-top: 24px;
 
         @include sm-up {

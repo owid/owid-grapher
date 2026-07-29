@@ -25,9 +25,11 @@ import {
 } from "../download.js"
 import {
     DownloadApiOptions,
+    makeCompleteDatasetDescription,
     makeFilteredDownloadDescription,
     makeFullDownloadDescription,
     DownloadButton,
+    DownloadButtonLink,
     Checkbox,
     CodeSnippet,
     OverlayHeader,
@@ -41,6 +43,7 @@ import {
     faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons"
 import {
+    DownloadPackage,
     OwidColumnDef,
     OwidOrigin,
     QueryParams,
@@ -84,6 +87,7 @@ export interface DownloadModalManager {
     isPublished?: boolean
     inputColumnSlugs?: string[]
     isServerSideDownloadAvailable?: boolean
+    downloadPackage?: DownloadPackage
     logImageDownloadEvent?: (action: GrapherImageDownloadEvent) => void
     activeDownloadModalTab: DownloadModalTabName
     isOnMapTab?: boolean
@@ -719,7 +723,8 @@ const ApiAndCodeExamplesSection = (props: {
 }
 
 export const DownloadModalDataTab = (props: DownloadModalProps) => {
-    const { yColumnsFromDimensionsOrSlugsOrAuto: yColumns } = props.manager
+    const { yColumnsFromDimensionsOrSlugsOrAuto: yColumns, downloadPackage } =
+        props.manager
 
     const { cols: nonRedistributableCols, sourceLinks } =
         getNonRedistributableInfo(props.manager.tableForDownload)
@@ -880,22 +885,11 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                     {downloadHelpText}
                 </div>
                 <div>
+                    {/* Ordered from smallest to biggest download, and worded
+                        to match the data page's own download section. */}
                     <div className="download-modal__download-buttons">
                         <DownloadButton
-                            title="Download full data"
-                            description={fullDataDescription}
-                            icon="full"
-                            trackingNote={`chart_download_full_data${
-                                serverSideDownloadAvailable
-                                    ? "--server"
-                                    : "--client"
-                            }`}
-                            onClick={() =>
-                                onDownloadClick(CsvDownloadType.Full)
-                            }
-                        />
-                        <DownloadButton
-                            title="Download displayed data"
+                            title="Download only selected data"
                             description={filteredDataDescription}
                             icon="selected"
                             trackingNote={`chart_download_filtered_data${
@@ -909,6 +903,34 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                                 )
                             }
                         />
+                        <DownloadButton
+                            title="Download chart data"
+                            description={fullDataDescription}
+                            icon="full"
+                            trackingNote={`chart_download_full_data${
+                                serverSideDownloadAvailable
+                                    ? "--server"
+                                    : "--client"
+                            }`}
+                            onClick={() =>
+                                onDownloadClick(CsvDownloadType.Full)
+                            }
+                        />
+                        {downloadPackage && (
+                            <DownloadButtonLink
+                                title="Download full dataset"
+                                description={makeCompleteDatasetDescription(
+                                    downloadPackage
+                                )}
+                                icon="complete"
+                                trackingNote="chart_download_complete_dataset"
+                                href={downloadPackage.url}
+                                // No `download` attribute: the zip is served
+                                // from R2, and the attribute is ignored
+                                // cross-origin. ETL uploads it with a
+                                // Content-Disposition filename instead.
+                            />
+                        )}
                     </div>
                 </div>
             </div>

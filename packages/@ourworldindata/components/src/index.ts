@@ -66,6 +66,7 @@ export { DownloadButtonLink } from "./DownloadButton/DownloadButtonLink.js"
 export { DownloadIconComplete } from "./icons/DownloadIconComplete.js"
 export { DownloadApiOptions } from "./DownloadApiOptions/DownloadApiOptions.js"
 export {
+    makeCompleteDatasetDescription,
     makeFilteredDownloadDescription,
     makeFullDownloadDescription,
 } from "@ourworldindata/utils"

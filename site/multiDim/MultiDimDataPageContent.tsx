@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import { runInAction } from "mobx"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { unstable_batchedUpdates } from "react-dom"
 import { useSearchParams } from "react-router-dom-v5-compat"
@@ -6,10 +7,12 @@ import * as Sentry from "@sentry/react"
 import { useIsClient } from "usehooks-ts"
 import { DownloadIconComplete } from "@ourworldindata/components"
 import {
+    DownloadModalTabName,
     Grapher,
+    GrapherManager,
+    GrapherModal,
     GrapherState,
     getCachingInputTableFetcher,
-    GrapherManager,
     loadCatalogData,
     useElementBounds,
 } from "@ourworldindata/grapher"
@@ -66,23 +69,26 @@ const useTitleFragments = (config: MultiDimDataPageConfig) => {
     )
 }
 
-// Scroll link to the Download section, in the design Marwa proposed for
-// explorer/mdim headers. Rendered twice: in the header settings row (desktop)
-// and below the chart (mobile) -- CSS shows exactly one of the two.
-function DownloadTheDataLink({
+// Opens the chart's download modal on the Data tab, in the design Marwa
+// proposed for explorer/mdim headers. Rendered twice: in the header settings
+// row (desktop) and below the chart (mobile) -- CSS shows exactly one of the
+// two.
+function DownloadTheDataButton({
     placement,
+    onClick,
 }: {
     placement: "header" | "mobile"
+    onClick: () => void
 }) {
     return (
-        <a
-            className={`download-the-data-link download-the-data-link--${placement}`}
-            href="#download"
-            data-track-note={`datapage_download_the_data_link_${placement}`}
+        <button
+            className={`download-the-data-button download-the-data-button--${placement}`}
+            onClick={onClick}
+            data-track-note={`datapage_download_the_data_button_${placement}`}
         >
             <DownloadIconComplete color="currentColor" />
             Download the data
-        </a>
+        </button>
     )
 }
 
@@ -133,7 +139,14 @@ export function DataPageContent({
     // A non-empty manager is used in the size calculations
     // within grapher, so we have to initialize it early with
     // a truthy value
-    const managerRef = useRef<GrapherManager>({ adminEditPath: "" })
+    const managerRef = useRef<GrapherManager>({
+        adminEditPath: "",
+        // Built and published to R2 by ETL, so there's nothing to compute here
+        // -- `url` already points at the finished zip. The dimension controls
+        // are always visible on the data page itself, so unlike the embedded
+        // case (see MultiDim.tsx) it's always safe to offer.
+        downloadPackage: config.config.downloadPackage,
+    })
     const grapherStateRef = useRef<GrapherState>(
         new GrapherState({
             additionalDataLoaderFn: (catalogKey) =>
@@ -440,9 +453,20 @@ export function DataPageContent({
         !!grapherStateRef.current
     )
 
-    // Built and published to R2 by ETL, so there's nothing to compute here --
-    // `url` already points at the finished zip.
     const downloadPackage = config.config.downloadPackage
+
+    // The download section further down the page offers the same three options,
+    // but scrolling there is jarring -- open the modal over the chart instead.
+    const openDownloadModal = useCallback(() => {
+        runInAction(() => {
+            grapherStateRef.current.activeModal = GrapherModal.Download
+            grapherStateRef.current.activeDownloadModalTab =
+                DownloadModalTabName.Data
+        })
+        // The modal is positioned within the chart's frame, so make sure the
+        // chart is in view. A no-op when it already is.
+        grapherFigureRef.current?.scrollIntoView({ block: "nearest" })
+    }, [])
 
     const downloadSection = slug ? (
         <DownloadSection
@@ -495,7 +519,10 @@ export function DataPageContent({
                                 the user has even seen the data makes less
                                 sense there. Visibility is toggled in CSS. */}
                             {downloadPackage && (
-                                <DownloadTheDataLink placement="header" />
+                                <DownloadTheDataButton
+                                    placement="header"
+                                    onClick={openDownloadModal}
+                                />
                             )}
                         </div>
                     </div>
@@ -534,7 +561,10 @@ export function DataPageContent({
                             )}
                         </div>
                         {downloadPackage && (
-                            <DownloadTheDataLink placement="mobile" />
+                            <DownloadTheDataButton
+                                placement="mobile"
+                                onClick={openDownloadModal}
+                            />
                         )}
                         {varDatapageData && (
                             <AboutThisData

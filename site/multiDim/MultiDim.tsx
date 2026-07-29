@@ -169,6 +169,13 @@ export default function MultiDim({
         manager.current.analyticsContext = analyticsContext
         manager.current.adminCreateNarrativeChartPath = `narrative-charts/create?type=multiDim&chartConfigId=${newView.fullConfigId}`
         if (slug) manager.current.baseUrl = `${BAKED_GRAPHER_URL}/${slug}`
+        // Only offer the complete-dataset download where the dimension
+        // controls are visible. Pinned to a single view, a reader has no way to
+        // tell what "the full dataset" would cover, and could read it as all
+        // the data we have on the topic.
+        manager.current.downloadPackage = hasControls
+            ? config.config.downloadPackage
+            : undefined
 
         const isGuidedChartUpdate = guidedQueryParams !== null
         // Guided chart links should not inherit query params from the
@@ -257,6 +264,7 @@ export default function MultiDim({
     }, [
         assetMap,
         config,
+        hasControls,
         isPreviewing,
         localGrapherConfig,
         searchParams,
