@@ -16,11 +16,13 @@ import { getGrapherFilters } from "./urlTools.js"
 // (etl/collection/download_package_format.py), which builds the MDIM
 // "complete dataset" download package at publish time.
 //
-// That package's metadata.json intentionally carries two keys this one doesn't:
-// a top-level `dimensions` block, and a `views` key per column naming the
-// dimension combination(s) the column belongs to. A single chart has no
-// dimension structure to describe, so they only make sense there -- if you're
-// diffing the two formats, that difference is by design, not drift.
+// That package's metadata.json intentionally carries keys this one doesn't: a
+// top-level `dimensions` block, and per column a `dimensions` map naming the
+// combination of choices the column belongs to, a `url` that opens it, and
+// (only where a column belongs to several combinations) an `otherViews` list.
+// A single chart has no dimension structure to describe, so they only make
+// sense there -- if you're diffing the two formats, that difference is by
+// design, not drift.
 type MetadataColumn = {
     titleShort: string
     titleLong: string
