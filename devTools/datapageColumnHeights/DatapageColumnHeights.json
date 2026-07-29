@@ -6,6 +6,7 @@
     },
     "leftSelector": ".key-info__content",
     "rightSelector": ".key-data-block",
+    "bulletCountRule": "countDescriptionKeyBullets() from site/datapageUtils.ts, applied to the descriptionKey markdown baked into each page",
     "pages": [
         {
             "slug": "above-ground-biomass-in-forest-per-hectare",
@@ -23,7 +24,7 @@
             "slug": "academic-freedom-index",
             "leftPx": 158.8,
             "rightPx": 339.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "academic-performance",
@@ -143,25 +144,25 @@
             "slug": "age-of-electoral-democracy",
             "leftPx": 25.6,
             "rightPx": 243,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "age-of-electoral-democracy-lexical",
             "leftPx": 51.2,
             "rightPx": 243,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "age-of-full-democracy",
             "leftPx": 51.2,
             "rightPx": 243,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "age-of-liberal-democracy-row",
             "leftPx": 51.2,
             "rightPx": 243,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "agricultural-area-per-capita",
@@ -317,73 +318,73 @@
             "slug": "annual-carbon-dioxide-emissions",
             "leftPx": 25.6,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "annual-change-coal",
             "leftPx": 128,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "annual-change-fossil-fuels",
             "leftPx": 374.3,
             "rightPx": 195,
-            "nBullets": 3
+            "nBullets": 0
         },
         {
             "slug": "annual-change-gas",
             "leftPx": 102.4,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "annual-change-hydro",
             "leftPx": 204.8,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "annual-change-in-solar-and-wind-energy-generation",
             "leftPx": 204.8,
             "rightPx": 334.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "annual-change-low-carbon-energy",
             "leftPx": 204.8,
             "rightPx": 313.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "annual-change-nuclear",
             "leftPx": 204.8,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "annual-change-oil",
             "leftPx": 128,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "annual-change-renewables",
             "leftPx": 204.8,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "annual-change-solar",
             "leftPx": 204.8,
             "rightPx": 318.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "annual-change-wind",
             "leftPx": 204.8,
             "rightPx": 318.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "annual-co-emissions-by-region",
@@ -395,7 +396,7 @@
             "slug": "annual-co-emissions-from-aviation",
             "leftPx": 51.2,
             "rightPx": 306,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "annual-co2-cement",
@@ -515,25 +516,25 @@
             "slug": "annual-percentage-change-coal",
             "leftPx": 128,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "annual-percentage-change-fossil-fuels",
             "leftPx": 374.3,
             "rightPx": 195,
-            "nBullets": 3
+            "nBullets": 0
         },
         {
             "slug": "annual-percentage-change-gas",
             "leftPx": 102.4,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "annual-percentage-change-oil",
             "leftPx": 128,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "annual-pm25-emissions-from-wildfires",
@@ -677,7 +678,7 @@
             "slug": "availability-of-unemployment-estimates-by-source-ilo",
             "leftPx": 236.8,
             "rightPx": 343,
-            "nBullets": 2
+            "nBullets": 4
         },
         {
             "slug": "average-annual-surface-temperature",
@@ -689,7 +690,7 @@
             "slug": "average-battery-cell-price",
             "leftPx": 51.2,
             "rightPx": 369,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "average-cost-of-tuberculosis-treatment-multi-drug-resistant",
@@ -719,7 +720,7 @@
             "slug": "average-length-of-stay",
             "leftPx": 25.6,
             "rightPx": 280,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "average-monthly-surface-temperature",
@@ -899,19 +900,19 @@
             "slug": "bladder-cancer-death-rate",
             "leftPx": 25.6,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "brain-and-nervous-system-cancer-death-rate",
             "leftPx": 51.2,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "breast-cancer-death-rate-in-women",
             "leftPx": 25.6,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "breast-cancer-screening-coverage-in-europe",
@@ -959,7 +960,7 @@
             "slug": "cancer-death-rate-who-mdb",
             "leftPx": 107.6,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "capture-fishery-production",
@@ -977,7 +978,7 @@
             "slug": "carbon-price-vs-share-emissions",
             "leftPx": 527.9,
             "rightPx": 355.5,
-            "nBullets": 9
+            "nBullets": 7
         },
         {
             "slug": "carbon-tax-instruments",
@@ -989,13 +990,13 @@
             "slug": "cardiovascular-disease-death-crude-rate-who-mdb",
             "leftPx": 107.6,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "cardiovascular-disease-death-rate-who-mdb",
             "leftPx": 107.6,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "cashew-nut-production",
@@ -1043,13 +1044,13 @@
             "slug": "cereal-yield",
             "leftPx": 107.6,
             "rightPx": 276.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "cervical-cancer-death-rate-in-women",
             "leftPx": 25.6,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "cervical-cancer-screening-coverage-in-europe",
@@ -1073,25 +1074,25 @@
             "slug": "change-visitors-grocery-stores",
             "leftPx": 495.9,
             "rightPx": 251,
-            "nBullets": 7
+            "nBullets": 5
         },
         {
             "slug": "change-visitors-parks-covid",
             "leftPx": 495.9,
             "rightPx": 230,
-            "nBullets": 7
+            "nBullets": 5
         },
         {
             "slug": "change-visitors-retail-recreation",
             "leftPx": 495.9,
             "rightPx": 230,
-            "nBullets": 7
+            "nBullets": 5
         },
         {
             "slug": "changes-residential-duration-covid",
             "leftPx": 495.9,
             "rightPx": 193,
-            "nBullets": 7
+            "nBullets": 5
         },
         {
             "slug": "chicken-meat-production",
@@ -1127,13 +1128,13 @@
             "slug": "child-mortality-around-the-world",
             "leftPx": 51.2,
             "rightPx": 276.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "children-aged-5-17-engaged-in-labor",
             "leftPx": 158.8,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "children-born-per-woman",
@@ -1163,7 +1164,7 @@
             "slug": "children-per-woman-un",
             "leftPx": 102.4,
             "rightPx": 318.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "children-sleeping-under-treated-bednet",
@@ -1223,7 +1224,7 @@
             "slug": "chronic-respiratory-diseases-death-rate-who-mdb",
             "leftPx": 107.6,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "citizen-satisfaction-with-democracy",
@@ -1241,7 +1242,7 @@
             "slug": "civil-liberties-rating-fh",
             "leftPx": 25.6,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "civil-rights-score-bti",
@@ -1277,7 +1278,7 @@
             "slug": "co2-emissions-domestic-aviation",
             "leftPx": 51.2,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "co2-emissions-transport",
@@ -1301,7 +1302,7 @@
             "slug": "co2-international-aviation",
             "leftPx": 51.2,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "co2-land-use",
@@ -1325,7 +1326,7 @@
             "slug": "co2-long-term-concentration",
             "leftPx": 133.2,
             "rightPx": 301,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "co2-per-capita-marimekko",
@@ -1343,31 +1344,31 @@
             "slug": "coal-consumption-by-country-terawatt-hours-twh",
             "leftPx": 128,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "coal-consumption-by-region",
             "leftPx": 128,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "coal-consumption-per-capita",
             "leftPx": 128,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "coal-electricity-per-capita",
             "leftPx": 51.2,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "coal-energy-share",
             "leftPx": 510.3,
             "rightPx": 313.5,
-            "nBullets": 4
+            "nBullets": 0
         },
         {
             "slug": "coal-prod-per-capita",
@@ -1385,13 +1386,13 @@
             "slug": "coal-production-by-region",
             "leftPx": 76.8,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "coal-production-country",
             "leftPx": 76.8,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "coal-production-per-capita-over-the-long-term",
@@ -1403,7 +1404,7 @@
             "slug": "coal-proved-reserves",
             "leftPx": 179.2,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "cocoa-bean-production",
@@ -1451,7 +1452,7 @@
             "slug": "colon-and-rectum-cancer-death-rate",
             "leftPx": 25.6,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "colon-and-rectum-cancer-screening-coverage-in-europe",
@@ -1463,7 +1464,7 @@
             "slug": "common-good-justifications-score",
             "leftPx": 158.8,
             "rightPx": 339.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "community-health-workers",
@@ -1583,7 +1584,7 @@
             "slug": "corporate-investment-in-artificial-intelligence-by-type",
             "leftPx": 451.1,
             "rightPx": 364,
-            "nBullets": 9
+            "nBullets": 5
         },
         {
             "slug": "cost-calorie-sufficient-diet",
@@ -1595,7 +1596,7 @@
             "slug": "cost-calorie-sufficient-diet-share-food-expenditure",
             "leftPx": 51.2,
             "rightPx": 322,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "cost-drugs-extensive-resistant-tb",
@@ -1607,13 +1608,13 @@
             "slug": "cost-healthy-diet",
             "leftPx": 133.2,
             "rightPx": 390,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "cost-healthy-diet-share-food-expenditure",
             "leftPx": 51.2,
             "rightPx": 322,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "cost-nutritionally-adequate-diet",
@@ -1625,7 +1626,7 @@
             "slug": "cost-nutritious-diet-share-food-expenditure",
             "leftPx": 76.8,
             "rightPx": 322,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "cost-space-launches-low-earth-orbit",
@@ -1781,7 +1782,7 @@
             "slug": "covid-containment-and-health-index",
             "leftPx": 51.2,
             "rightPx": 219,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "covid-icu-patients-per-million",
@@ -1847,7 +1848,7 @@
             "slug": "crude-death-rate",
             "leftPx": 51.2,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "crude-death-rate-hmd",
@@ -2093,13 +2094,13 @@
             "slug": "death-rate-from-diabetes-who-mdb",
             "leftPx": 51.2,
             "rightPx": 318.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "death-rate-from-digestive-diseases-who-mdb",
             "leftPx": 107.6,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "death-rate-from-famines-by-decade",
@@ -2123,7 +2124,7 @@
             "slug": "death-rate-from-maternal-disorders",
             "leftPx": 107.6,
             "rightPx": 313.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "death-rate-from-poisonings",
@@ -2153,7 +2154,7 @@
             "slug": "death-rates-from-conflict-and-terrorism-gbd",
             "leftPx": 51.2,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "deaths-and-disappearances-during-migration",
@@ -2171,7 +2172,7 @@
             "slug": "deaths-conflict-terrorism-per-100000",
             "leftPx": 51.2,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "deaths-from-aids-un",
@@ -2183,7 +2184,7 @@
             "slug": "deaths-from-conflict-and-terrorism",
             "leftPx": 51.2,
             "rightPx": 276.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "deaths-from-famines-by-country-and-decade",
@@ -2219,7 +2220,7 @@
             "slug": "deaths-from-volcanic-eruptions",
             "leftPx": 76.8,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "deaths-in-armed-conflicts-by-country",
@@ -2273,7 +2274,7 @@
             "slug": "deaths-registered-with-an-ill-defined-cause-of-death",
             "leftPx": 107.6,
             "rightPx": 313.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "debt-relief-covid",
@@ -2303,19 +2304,19 @@
             "slug": "deliberative-democracy-index-vdem",
             "leftPx": 158.8,
             "rightPx": 360.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "deliberative-political-institutions-index",
             "leftPx": 158.8,
             "rightPx": 318.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "democracy-index-polity",
             "leftPx": 133.2,
             "rightPx": 348,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "democracy-lexical",
@@ -2393,7 +2394,7 @@
             "slug": "distribution-democracy-index-polity",
             "leftPx": 51.2,
             "rightPx": 327,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "divorces-per-1000-people",
@@ -2453,7 +2454,7 @@
             "slug": "earthquake-deaths",
             "leftPx": 76.8,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "economic-damage-from-natural-disasters",
@@ -2483,13 +2484,13 @@
             "slug": "egalitarian-democracy-index-vdem",
             "leftPx": 158.8,
             "rightPx": 318.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "egalitarian-political-institutions-index",
             "leftPx": 158.8,
             "rightPx": 276.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "egg-production-thousand-tonnes",
@@ -2549,7 +2550,7 @@
             "slug": "electricity-as-a-share-of-primary-energy",
             "leftPx": 374.3,
             "rightPx": 301,
-            "nBullets": 3
+            "nBullets": 0
         },
         {
             "slug": "electricity-source-scale-up",
@@ -2573,7 +2574,7 @@
             "slug": "emissions-weighted-carbon-price",
             "leftPx": 460.7,
             "rightPx": 355.5,
-            "nBullets": 8
+            "nBullets": 6
         },
         {
             "slug": "employment-discrimination-bans-lgbt",
@@ -2633,7 +2634,7 @@
             "slug": "equal-resource-distribution-index",
             "leftPx": 158.8,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "equal-rights-protection-index",
@@ -2837,7 +2838,7 @@
             "slug": "female-share-of-low-pay-earners",
             "leftPx": 107.6,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "female-teachers",
@@ -2975,7 +2976,7 @@
             "slug": "forest-area-as-share-of-land-area",
             "leftPx": 1350.2,
             "rightPx": 516,
-            "nBullets": 22
+            "nBullets": 6
         },
         {
             "slug": "forest-area-net-change-rate",
@@ -2993,13 +2994,13 @@
             "slug": "fossil-electricity-per-capita",
             "leftPx": 51.2,
             "rightPx": 334.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "fossil-fuel-primary-energy",
             "leftPx": 374.3,
             "rightPx": 264,
-            "nBullets": 3
+            "nBullets": 0
         },
         {
             "slug": "fossil-fuel-subsidies",
@@ -3011,19 +3012,19 @@
             "slug": "fossil-fuels-per-capita",
             "leftPx": 374.3,
             "rightPx": 285,
-            "nBullets": 3
+            "nBullets": 0
         },
         {
             "slug": "fossil-fuels-share-energy",
             "leftPx": 374.3,
             "rightPx": 313.5,
-            "nBullets": 3
+            "nBullets": 0
         },
         {
             "slug": "fraction-of-countries-with-available-data-on-deaths-from-suicides-by-income-group",
             "leftPx": 51.2,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "free-and-fair-elections-index",
@@ -3083,7 +3084,7 @@
             "slug": "funding-for-trachoma",
             "leftPx": 76.8,
             "rightPx": 313.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "future-life-expectancy-projections",
@@ -3095,25 +3096,25 @@
             "slug": "gap-to-reaching-the-target-of-art",
             "leftPx": 102.4,
             "rightPx": 318.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "gas-consumption-by-country",
             "leftPx": 102.4,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "gas-electricity-per-capita",
             "leftPx": 51.2,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "gas-share-energy",
             "leftPx": 484.7,
             "rightPx": 313.5,
-            "nBullets": 4
+            "nBullets": 0
         },
         {
             "slug": "gdp-maddison-project-database",
@@ -3209,7 +3210,7 @@
             "slug": "gender-development-index-groups",
             "leftPx": 460.7,
             "rightPx": 339.5,
-            "nBullets": 8
+            "nBullets": 3
         },
         {
             "slug": "gender-gap-in-average-wages-ilo",
@@ -3335,7 +3336,7 @@
             "slug": "global-hydro-consumption",
             "leftPx": 128,
             "rightPx": 264,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "global-investment-in-generative-ai",
@@ -3557,7 +3558,7 @@
             "slug": "hiv-expenditure",
             "leftPx": 133.2,
             "rightPx": 264,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "homicide-rate-unodc",
@@ -3611,7 +3612,7 @@
             "slug": "human-development-index-groups",
             "leftPx": 769.9,
             "rightPx": 339.5,
-            "nBullets": 11
+            "nBullets": 5
         },
         {
             "slug": "human-papillomavirus-vaccine-immunization-schedule",
@@ -3629,7 +3630,7 @@
             "slug": "hydro-electricity-per-capita",
             "leftPx": 51.2,
             "rightPx": 301,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "hydro-share-energy",
@@ -3653,7 +3654,7 @@
             "slug": "hypothetical-land-animals-slaughtered",
             "leftPx": 76.8,
             "rightPx": 334.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "ice-sheet-mass-balance",
@@ -3857,13 +3858,13 @@
             "slug": "infant-mortality-rates",
             "leftPx": 51.2,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "infectious-and-parasitic-diseases-death-rate-who-mdb",
             "leftPx": 133.2,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "inflation-of-consumer-prices",
@@ -4037,7 +4038,7 @@
             "slug": "justified-political-positions-score",
             "leftPx": 158.8,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "labor-force-participation-rate",
@@ -4103,13 +4104,13 @@
             "slug": "leading-broad-cause-of-death",
             "leftPx": 51.2,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "leading-cause-of-death",
             "leftPx": 51.2,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "learning-outcomes",
@@ -4181,13 +4182,13 @@
             "slug": "level-of-national-compliance-with-labor-rights",
             "leftPx": 210,
             "rightPx": 327,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "lgbt-legal-equality-index",
             "leftPx": 158.8,
             "rightPx": 339.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "lgbt-rights-index",
@@ -4271,7 +4272,7 @@
             "slug": "liver-cancer-death-rate",
             "leftPx": 25.6,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "living-languages",
@@ -4301,7 +4302,7 @@
             "slug": "long-run-birth-rate",
             "leftPx": 108.8,
             "rightPx": 276.5,
-            "nBullets": 2
+            "nBullets": 1
         },
         {
             "slug": "long-run-childhood-stunting-rates",
@@ -4313,19 +4314,19 @@
             "slug": "long-run-methane-concentration",
             "leftPx": 133.2,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "low-carbon-elec-per-capita",
             "leftPx": 51.2,
             "rightPx": 385,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "low-carbon-energy-consumption",
             "leftPx": 204.8,
             "rightPx": 292.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "low-carbon-share-energy",
@@ -4349,7 +4350,7 @@
             "slug": "lung-cancer-death-rates-males",
             "leftPx": 25.6,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "lymphatic-filariasis-treatment-coverage",
@@ -4403,7 +4404,7 @@
             "slug": "manufacturing-share-of-total-employment",
             "leftPx": 133.2,
             "rightPx": 301,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "manufacturing-value-added-to-gdp",
@@ -4463,13 +4464,13 @@
             "slug": "maternal-mortality",
             "leftPx": 76.8,
             "rightPx": 348,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "maternal-mortality-rate-who-mdb",
             "leftPx": 107.6,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "maternal-mortality-ratio-who-gho",
@@ -4541,7 +4542,7 @@
             "slug": "media-corruption-score",
             "leftPx": 158.8,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "median-income-after-tax-lis",
@@ -4625,7 +4626,7 @@
             "slug": "military-expenditure-as-a-share-of-government-spending",
             "leftPx": 133.2,
             "rightPx": 280,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "military-personnel",
@@ -4637,7 +4638,7 @@
             "slug": "military-personnel-as-a-share-of-total-population",
             "leftPx": 76.8,
             "rightPx": 301,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "military-spending-as-a-share-of-gdp-gmsd",
@@ -4649,7 +4650,7 @@
             "slug": "military-spending-as-a-share-of-gdp-sipri",
             "leftPx": 133.2,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "military-spending-gmsd",
@@ -4673,7 +4674,7 @@
             "slug": "military-spending-sipri",
             "leftPx": 133.2,
             "rightPx": 306,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "milk-production-tonnes",
@@ -4823,13 +4824,13 @@
             "slug": "national-strategy-for-youth-employment",
             "leftPx": 158.8,
             "rightPx": 343,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "national-system-to-monitor-spread-of-antimicrobial-resistance-in-humans",
             "leftPx": 76.8,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "natural-disasters-by-type",
@@ -4841,19 +4842,19 @@
             "slug": "natural-disasters-deaths",
             "leftPx": 89093.8,
             "rightPx": 297.5,
-            "nBullets": 2157
+            "nBullets": 2142
         },
         {
             "slug": "natural-disasters-economic-damages",
             "leftPx": 91506.3,
             "rightPx": 376.5,
-            "nBullets": 2214
+            "nBullets": 2200
         },
         {
             "slug": "natural-disasters-people-affected",
             "leftPx": 102861.3,
             "rightPx": 355.5,
-            "nBullets": 2492
+            "nBullets": 2473
         },
         {
             "slug": "natural-disasters-reported-by-deaths",
@@ -4865,13 +4866,13 @@
             "slug": "natural-gas-consumption-by-region",
             "leftPx": 102.4,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "natural-gas-proved-reserves",
             "leftPx": 230.3,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "natural-resource-rents",
@@ -4943,7 +4944,7 @@
             "slug": "new-drugs-approved-in-the-united-states",
             "leftPx": 51.2,
             "rightPx": 348,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "new-drugs-approved-in-the-united-states-by-designations",
@@ -4979,7 +4980,7 @@
             "slug": "nitrous-oxide-long",
             "leftPx": 133.2,
             "rightPx": 301,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "non-fatal-occupational-injuries-per-100000",
@@ -4991,7 +4992,7 @@
             "slug": "nuclear-electricity-per-capita",
             "leftPx": 51.2,
             "rightPx": 301,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "nuclear-non-proliferation-treaty",
@@ -5069,7 +5070,7 @@
             "slug": "number-of-children-orphaned-from-aids",
             "leftPx": 351.9,
             "rightPx": 318.5,
-            "nBullets": 6
+            "nBullets": 4
         },
         {
             "slug": "number-of-children-who-are-underweight",
@@ -5123,7 +5124,7 @@
             "slug": "number-of-countries-where-armed-conflicts-took-place",
             "leftPx": 76.8,
             "rightPx": 313.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "number-of-deaths-from-malaria-who",
@@ -5201,7 +5202,7 @@
             "slug": "number-of-people-employed-in-agriculture",
             "leftPx": 76.8,
             "rightPx": 327,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "number-of-people-living-in-extreme-poverty-by-region-cbn",
@@ -5237,7 +5238,7 @@
             "slug": "number-of-refugees-per-100000",
             "leftPx": 133.2,
             "rightPx": 348,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "number-of-reported-cholera-deaths",
@@ -5273,7 +5274,7 @@
             "slug": "number-of-tsunamis",
             "leftPx": 25.6,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "number-reported-cases-of-cholera",
@@ -5309,7 +5310,7 @@
             "slug": "number-without-basic-handwashing",
             "leftPx": 107.6,
             "rightPx": 306,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "number-without-clean-cooking-fuel",
@@ -5411,43 +5412,43 @@
             "slug": "oil-consumption-by-country",
             "leftPx": 128,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "oil-consumption-by-region-terawatt-hours-twh",
             "leftPx": 128,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "oil-electricity-per-capita",
             "leftPx": 51.2,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "oil-prod-per-capita",
             "leftPx": 102.4,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "oil-production-by-country",
             "leftPx": 102.4,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "oil-production-by-region",
             "leftPx": 102.4,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "oil-proved-reserves",
             "leftPx": 332.7,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "oil-rents-as-a-share-of-gdp",
@@ -5459,7 +5460,7 @@
             "slug": "oil-share-energy",
             "leftPx": 204.8,
             "rightPx": 313.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "orange-production",
@@ -5543,7 +5544,7 @@
             "slug": "pancreatic-cancer-death-rate",
             "leftPx": 25.6,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "parameters-in-notable-artificial-intelligence-systems",
@@ -5603,13 +5604,13 @@
             "slug": "patents-ccs",
             "leftPx": 51.2,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "patents-for-renewables-by-country",
             "leftPx": 51.2,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "pcv3-number-unvaccinated",
@@ -5657,13 +5658,13 @@
             "slug": "per-capita-co-emissions-from-international-flights-tourism-adjusted",
             "leftPx": 51.2,
             "rightPx": 338,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "per-capita-co2-aviation",
             "leftPx": 51.2,
             "rightPx": 327,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "per-capita-co2-cement",
@@ -5681,7 +5682,7 @@
             "slug": "per-capita-co2-emissions-from-domestic-aviation",
             "leftPx": 51.2,
             "rightPx": 322,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "per-capita-co2-flaring",
@@ -5705,13 +5706,13 @@
             "slug": "per-capita-co2-international-aviation",
             "leftPx": 51.2,
             "rightPx": 322,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "per-capita-co2-international-flights-adjusted",
             "leftPx": 51.2,
             "rightPx": 322,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "per-capita-co2-oil",
@@ -5747,43 +5748,43 @@
             "slug": "per-capita-electricity-demand",
             "leftPx": 51.2,
             "rightPx": 276.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "per-capita-electricity-generation",
             "leftPx": 51.2,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "per-capita-electricity-generation-from-solar-and-wind",
             "leftPx": 51.2,
             "rightPx": 301,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "per-capita-energy-consumption-from-solar-and-wind",
             "leftPx": 204.8,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "per-capita-gas",
             "leftPx": 102.4,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "per-capita-hydro",
             "leftPx": 204.8,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "per-capita-low-carbon-energy",
             "leftPx": 204.8,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "per-capita-milk-consumption",
@@ -5801,13 +5802,13 @@
             "slug": "per-capita-nuclear",
             "leftPx": 204.8,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "per-capita-oil",
             "leftPx": 128,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "per-capita-renewable-freshwater-resources",
@@ -5819,19 +5820,19 @@
             "slug": "per-capita-renewables",
             "leftPx": 204.8,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "per-capita-solar",
             "leftPx": 204.8,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "per-capita-wind",
             "leftPx": 204.8,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "perceived-justifiability-of-terrorism-as-a-political-ideological-or-religious-means",
@@ -5867,7 +5868,7 @@
             "slug": "period-average-age-of-mothers",
             "leftPx": 51.2,
             "rightPx": 306,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "period-total-fertility-rate",
@@ -6017,13 +6018,13 @@
             "slug": "political-participation-index-bti",
             "leftPx": 76.8,
             "rightPx": 327,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "political-polarization-score",
             "leftPx": 158.8,
             "rightPx": 318.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "political-regime",
@@ -6047,7 +6048,7 @@
             "slug": "political-regime-dem-fh",
             "leftPx": 51.2,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "political-regime-eiu",
@@ -6077,19 +6078,19 @@
             "slug": "political-rights-rating-fh",
             "leftPx": 25.6,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "political-social-integration-index-bti",
             "leftPx": 76.8,
             "rightPx": 327,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "population",
             "leftPx": 476.7,
             "rightPx": 297.5,
-            "nBullets": 9
+            "nBullets": 5
         },
         {
             "slug": "population-by-income-level",
@@ -6107,13 +6108,13 @@
             "slug": "population-growth-rate",
             "leftPx": 51.2,
             "rightPx": 327,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "population-marimekko",
             "leftPx": 476.7,
             "rightPx": 297.5,
-            "nBullets": 9
+            "nBullets": 5
         },
         {
             "slug": "population-of-the-worlds-largest-cities",
@@ -6125,7 +6126,7 @@
             "slug": "population-regions-with-projections",
             "leftPx": 476.7,
             "rightPx": 285,
-            "nBullets": 9
+            "nBullets": 5
         },
         {
             "slug": "population-register-implemented",
@@ -6413,7 +6414,7 @@
             "slug": "property-crime-rate-us",
             "leftPx": 102.4,
             "rightPx": 301,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "proportion-countries-migration-policies-criteria",
@@ -6479,13 +6480,13 @@
             "slug": "proportion-of-population-with-basic-handwashing-facilities-on-premises",
             "leftPx": 107.6,
             "rightPx": 322,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "proportion-of-women-in-senior-and-middle-management-positions",
             "leftPx": 158.8,
             "rightPx": 301,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "proportion-of-women-subjected-to-physical-or-sexual-violence",
@@ -6527,7 +6528,7 @@
             "slug": "prostate-cancer-death-rate-in-men",
             "leftPx": 25.6,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "protected-area-coverage-of-marine-key-biodiversity-areas",
@@ -6575,7 +6576,7 @@
             "slug": "public-health-expenditure-share-gdp",
             "leftPx": 76.8,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "public-healthcare-spending-share-gdp",
@@ -6737,19 +6738,19 @@
             "slug": "refugee-population-by-country-or-territory-of-asylum",
             "leftPx": 133.2,
             "rightPx": 306,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "refugee-population-by-country-or-territory-of-origin",
             "leftPx": 133.2,
             "rightPx": 306,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "registered-vehicles-per-1000-people",
             "leftPx": 158.8,
             "rightPx": 339.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "regulation-illegal-fishing",
@@ -6791,7 +6792,7 @@
             "slug": "renewable-electricity-per-capita",
             "leftPx": 51.2,
             "rightPx": 313.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "renewable-share-energy",
@@ -6887,13 +6888,13 @@
             "slug": "respect-for-counterarguments-score",
             "leftPx": 158.8,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "respiratory-infection-death-rate-who-mdb",
             "leftPx": 133.2,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "rice-production",
@@ -6977,7 +6978,7 @@
             "slug": "rule-of-law-index-bti",
             "leftPx": 76.8,
             "rightPx": 306,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "rural-population-with-improved-water",
@@ -6989,7 +6990,7 @@
             "slug": "rural-without-basic-handwashing",
             "leftPx": 107.6,
             "rightPx": 322,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "rural-without-improved-sanitation",
@@ -7025,13 +7026,13 @@
             "slug": "sales-of-cigarettes-per-adult-per-day",
             "leftPx": 51.2,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "same-sex-marriage-country-count",
             "leftPx": 25.6,
             "rightPx": 334.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "same-sex-sexual-acts-legal",
@@ -7043,7 +7044,7 @@
             "slug": "same-sex-sexual-acts-legal-mignot",
             "leftPx": 25.6,
             "rightPx": 276.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "same-sex-sexual-acts-punished-by-death",
@@ -7151,13 +7152,13 @@
             "slug": "sex-ratio-at-five-years-old",
             "leftPx": 51.2,
             "rightPx": 276.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "sex-ratio-at-sixty-years-old",
             "leftPx": 51.2,
             "rightPx": 276.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "share-artificial-intelligence-job-postings",
@@ -7175,7 +7176,7 @@
             "slug": "share-calorie-diet-unaffordable",
             "leftPx": 627.1,
             "rightPx": 364,
-            "nBullets": 12
+            "nBullets": 6
         },
         {
             "slug": "share-co2-embedded-in-trade",
@@ -7199,7 +7200,7 @@
             "slug": "share-covered-by-one-social-protection-benefit",
             "leftPx": 184.4,
             "rightPx": 301,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "share-cumulative-co2-oil",
@@ -7313,7 +7314,7 @@
             "slug": "share-healthy-diet-unaffordable",
             "leftPx": 627.1,
             "rightPx": 343,
-            "nBullets": 12
+            "nBullets": 6
         },
         {
             "slug": "share-in-extreme-poverty-including-and-excluding-china",
@@ -7385,7 +7386,7 @@
             "slug": "share-nutritional-diet-unaffordable",
             "leftPx": 652.7,
             "rightPx": 364,
-            "nBullets": 12
+            "nBullets": 6
         },
         {
             "slug": "share-of-adults-defined-as-obese",
@@ -7997,7 +7998,7 @@
             "slug": "share-of-the-population-infected-with-hiv",
             "leftPx": 51.2,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "share-of-the-population-reporting-having-felt-discriminated-against",
@@ -8057,7 +8058,7 @@
             "slug": "share-of-total-energy-used-in-agriculture-and-forestry",
             "leftPx": 51.2,
             "rightPx": 301,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "share-of-total-imports-of-goods-that-comes-from-china",
@@ -8183,7 +8184,7 @@
             "slug": "share-rural-basic-handwashing",
             "leftPx": 107.6,
             "rightPx": 322,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "share-social-protection-in-government-exp-oecd",
@@ -8243,13 +8244,13 @@
             "slug": "significant-earthquakes",
             "leftPx": 76.8,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "significant-volcanic-eruptions",
             "leftPx": 76.8,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "small-scale-industries-share",
@@ -8279,13 +8280,13 @@
             "slug": "social-spending-oecd-longrun",
             "leftPx": 76.8,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "solar-electricity-per-capita",
             "leftPx": 51.2,
             "rightPx": 301,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "solar-pv-prices",
@@ -8315,13 +8316,13 @@
             "slug": "sources-population-dataset",
             "leftPx": 476.7,
             "rightPx": 285,
-            "nBullets": 9
+            "nBullets": 5
         },
         {
             "slug": "sovereign-state-butcher-griffiths",
             "leftPx": 51.2,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "sovereign-state-cow",
@@ -8333,7 +8334,7 @@
             "slug": "sovereign-state-gleditsch-ward",
             "leftPx": 76.8,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "soybean-production",
@@ -8387,7 +8388,7 @@
             "slug": "stability-democratic-institutions-index-bti",
             "leftPx": 76.8,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "staff-compensation-as-share-of-total-expenditure-in-public-education-all-levels",
@@ -8411,25 +8412,25 @@
             "slug": "stateness-index-bti",
             "leftPx": 51.2,
             "rightPx": 327,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "states-involved-in-interstate-conflicts",
             "leftPx": 25.6,
             "rightPx": 219,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "states-involved-in-state-based-conflicts",
             "leftPx": 25.6,
             "rightPx": 297.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "states-involved-in-wars",
             "leftPx": 25.6,
             "rightPx": 219,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "statistical-performance-indicator",
@@ -8483,7 +8484,7 @@
             "slug": "stomach-cancer-death-rate",
             "leftPx": 25.6,
             "rightPx": 285,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "strong-civil-society-index",
@@ -8657,13 +8658,13 @@
             "slug": "terrorist-attacks",
             "leftPx": 691.1,
             "rightPx": 285,
-            "nBullets": 8
+            "nBullets": 2
         },
         {
             "slug": "terrorist-attacks-by-region",
             "leftPx": 691.1,
             "rightPx": 285,
-            "nBullets": 8
+            "nBullets": 2
         },
         {
             "slug": "tests-per-confirmed-case-daily-smoothed",
@@ -8735,13 +8736,13 @@
             "slug": "total-agricultural-area-over-the-long-term",
             "leftPx": 25.6,
             "rightPx": 243,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "total-agricultural-land-use-per-person",
             "leftPx": 25.6,
             "rightPx": 264,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "total-alcohol-consumption-per-capita-litres-of-pure-alcohol",
@@ -8813,7 +8814,7 @@
             "slug": "total-number-of-people-aged-15-with-no-education-in-millions-by-continent-1970-2050",
             "leftPx": 51.2,
             "rightPx": 280,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "total-oda-for-aid-for-trade-by-donor",
@@ -8927,7 +8928,7 @@
             "slug": "tsunami-deaths",
             "leftPx": 25.6,
             "rightPx": 195,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "tuberculosis-mortality-rates-excludes-people-who-are-also-infected-with-hiv",
@@ -8945,13 +8946,13 @@
             "slug": "uk-daily-covid-cases-7day-average",
             "leftPx": 76.8,
             "rightPx": 214,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "uk-daily-new-covid-cases",
             "leftPx": 25.6,
             "rightPx": 219,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "unemployment-rate",
@@ -9035,7 +9036,7 @@
             "slug": "urban-population-share-2050",
             "leftPx": 76.8,
             "rightPx": 318.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "urban-population-with-improved-water",
@@ -9047,7 +9048,7 @@
             "slug": "urban-vs-rural-majority",
             "leftPx": 76.8,
             "rightPx": 318.5,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "urbanization-vs-gdp",
@@ -9347,13 +9348,13 @@
             "slug": "violent-crime-rate-us",
             "leftPx": 102.4,
             "rightPx": 322,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "visitors-transit-covid",
             "leftPx": 495.9,
             "rightPx": 230,
-            "nBullets": 7
+            "nBullets": 5
         },
         {
             "slug": "vitamin-a-supplementation-coverage-rate-children-ages-6-59-months",
@@ -9485,7 +9486,7 @@
             "slug": "weighted-carbon-price-ets",
             "leftPx": 460.7,
             "rightPx": 355.5,
-            "nBullets": 8
+            "nBullets": 6
         },
         {
             "slug": "whales-killed-per-decade",
@@ -9515,7 +9516,7 @@
             "slug": "wind-electricity-per-capita",
             "leftPx": 51.2,
             "rightPx": 301,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "wind-share-energy",
@@ -9695,7 +9696,7 @@
             "slug": "workplace-visitors-covid",
             "leftPx": 495.9,
             "rightPx": 193,
-            "nBullets": 7
+            "nBullets": 5
         },
         {
             "slug": "world-bank-income-groups",
@@ -9791,13 +9792,13 @@
             "slug": "yield-gap-vs-nitrogen-pollution",
             "leftPx": 76.8,
             "rightPx": 301,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "young-people-with-knowledge-on-hiv-prevention",
             "leftPx": 133.2,
             "rightPx": 322,
-            "nBullets": 1
+            "nBullets": 0
         },
         {
             "slug": "youth-not-in-education-employment-training",

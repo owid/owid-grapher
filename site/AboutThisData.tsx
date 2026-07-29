@@ -19,9 +19,11 @@ import {
 
 // The number of descriptionKey bullets from which the description column of
 // the "What you should know about this indicator" section outgrows the metadata
-// column beside it. Measured across every data page that renders the section:
-// with six bullets or more the description column is the taller one on 96% of
-// them, with fewer the metadata column usually is. The sweep this comes from,
+// column beside it. Measured across every data page that renders the section,
+// counting bullets with countDescriptionKeyBullets() below: with six bullets or
+// more the description column is the taller one on 195 of 203 pages (96%), and
+// with fewer the metadata column usually is — though the description column is
+// already the taller one on 77% of five-bullet pages. The sweep this comes from,
 // and the script that reproduces it, are in devTools/datapageColumnHeights.
 const LEFT_COLUMN_TALLER_BULLET_COUNT = 6
 

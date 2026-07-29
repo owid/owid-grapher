@@ -2,7 +2,8 @@
 // about this indicator" section across every data page on the site.
 //
 // Usage:
-//   node devTools/datapageColumnHeights/measureColumnHeights.mjs [options]
+//   npx tsx --tsconfig tsconfig.tsx.json \
+//       devTools/datapageColumnHeights/measureColumnHeights.mjs [options]
 //
 //   --base <url>        site to sweep (default https://ourworldindata.org)
 //   --out <path>        JSONL output, one line per page
@@ -12,12 +13,17 @@
 //   --concurrency <n>   pages rendered in parallel (default 8)
 //   --limit <n>         stop after n /grapher/ URLs (for a smoke run)
 //
+// It is run through tsx because it counts bullets with the same function the
+// site does, which is TypeScript.
+//
 // See readme.md for what the numbers mean and why the two columns have to be
 // measured by their content rather than by their grid items.
 import { existsSync } from "node:fs"
 import { mkdir, open, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { chromium, request } from "@playwright/test"
+import { normalizeDescriptionKey } from "@ourworldindata/types"
+import { countDescriptionKeyBullets } from "../../site/datapageUtils.js"
 
 // Desktop width. The two columns only sit side by side at desktop widths; the
 // layout stacks on narrow screens, where the question this measures — which
@@ -30,6 +36,10 @@ const VIEWPORT = { width: 1440, height: 900 }
 // their own heights are useless and we measure these inner elements instead.
 const LEFT_CONTENT_SELECTOR = ".key-info__content"
 const RIGHT_CONTENT_SELECTOR = ".key-data-block"
+
+// Bullet counts above this are lumped into one bucket in the summary; a handful
+// of pages have runaway counts and no threshold would ever be set up there.
+const MAX_REPORTED_BULLETS = 12
 
 function parseArgs(argv) {
     const args = {
@@ -96,21 +106,31 @@ function measureInPage([leftSelector, rightSelector]) {
     const right = document.querySelector(rightSelector)
     if (!left || !right) return null
 
-    // Top-level bullets only: a nested <li> belongs to its parent bullet, which
-    // is the same rule countDescriptionKeyBullets() applies to the markdown.
-    const description = document.querySelector(".key-info__key-description")
-    const nBullets = description
-        ? [...description.querySelectorAll("li")].filter(
-              (li) => !li.parentElement?.closest("li")
-          ).length
-        : 0
+    // The props the page was rendered from, so bullets can be counted from the
+    // same markdown the site counts rather than from the rendered list. Plain
+    // data pages carry the datapage data directly; multi-dim pages carry the
+    // view that was server-rendered.
+    const descriptionKey =
+        window._OWID_DATAPAGEV2_PROPS?.datapageData?.descriptionKey ??
+        window._OWID_MULTI_DIM_PROPS?.initialViewData?.descriptionKey ??
+        null
 
     const round = (n) => Math.round(n * 10) / 10
     return {
         leftPx: round(left.getBoundingClientRect().height),
         rightPx: round(right.getBoundingClientRect().height),
-        nBullets,
+        descriptionKey,
     }
+}
+
+// Exactly the count the placement decision in site/AboutThisData.tsx makes, so
+// the sweep and the site can never drift apart: nested bullets belong to their
+// parent, a descriptionKey written as prose has none. Persisted metadata may
+// still hold the pre-migration array form, which normalizeDescriptionKey folds
+// into markdown the same way every other ingress point does.
+function countBullets(descriptionKey) {
+    const markdown = normalizeDescriptionKey(descriptionKey)
+    return markdown ? countDescriptionKeyBullets(markdown) : 0
 }
 
 async function measurePage(context, url) {
@@ -124,7 +144,9 @@ async function measurePage(context, url) {
             LEFT_CONTENT_SELECTOR,
             RIGHT_CONTENT_SELECTOR,
         ])
-        return measured && { slug, ...measured }
+        if (!measured) return null
+        const { descriptionKey, ...heights } = measured
+        return { slug, ...heights, nBullets: countBullets(descriptionKey) }
     } catch (error) {
         console.warn(`[warn] ${url}: ${error.message}`)
         return null
@@ -165,6 +187,47 @@ function summarize(rows) {
             "6-9": inBand((n) => n >= 6 && n <= 9),
             "10+": inBand((n) => n >= 10),
         },
+        // Per count and cumulative, which is what a threshold is read off.
+        perBulletCount: Object.fromEntries(
+            Array.from({ length: MAX_REPORTED_BULLETS + 1 }, (_, n) => [
+                n === MAX_REPORTED_BULLETS ? `${n}+` : `${n}`,
+                {
+                    ...inBand(
+                        n === MAX_REPORTED_BULLETS
+                            ? (count) => count >= n
+                            : (count) => count === n
+                    ),
+                    atLeast: inBand((count) => count >= n),
+                },
+            ])
+        ),
+        // How each candidate threshold would place the card, scored against
+        // the column that actually turned out taller. See readme.md.
+        thresholds: Object.fromEntries(
+            Array.from({ length: MAX_REPORTED_BULLETS - 1 }, (_, i) => {
+                const threshold = i + 2
+                const misplaced = rows.filter((row) =>
+                    row.nBullets < threshold
+                        ? row.leftPx > row.rightPx
+                        : row.leftPx <= row.rightPx
+                )
+                return [
+                    threshold,
+                    {
+                        misplaced: misplaced.length,
+                        accuracy:
+                            (rows.length - misplaced.length) / rows.length,
+                        wastedPx: Math.round(
+                            misplaced.reduce(
+                                (total, row) =>
+                                    total + Math.abs(row.leftPx - row.rightPx),
+                                0
+                            )
+                        ),
+                    },
+                ]
+            })
+        ),
     }
 }
 
