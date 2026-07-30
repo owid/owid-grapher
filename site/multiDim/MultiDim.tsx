@@ -49,10 +49,10 @@ export default function MultiDim({
     archiveContext?: ArchiveContext
     isPreviewing?: boolean
 }) {
-    const assetMap =
-        archiveContext?.type === "archive-page"
-            ? archiveContext.assets.runtime
-            : undefined
+    const isOnArchivalPage = archiveContext?.type === "archive-page"
+    const assetMap = isOnArchivalPage
+        ? archiveContext.assets.runtime
+        : undefined
     const manager = useRef(localGrapherConfig?.manager ?? {})
     const grapherStateRef = useMaybeGlobalGrapherStateRef({
         manager: manager.current,
@@ -172,10 +172,13 @@ export default function MultiDim({
         // Only offer the complete-dataset download where the dimension
         // controls are visible. Pinned to a single view, a reader has no way to
         // tell what "the full dataset" would cover, and could read it as all
-        // the data we have on the topic.
-        manager.current.downloadPackage = hasControls
-            ? config.config.downloadPackage
-            : undefined
+        // the data we have on the topic. Withheld on archival pages too: the
+        // zip isn't copied into the append-only archive, so a snapshot linking
+        // it would hand out data that has since moved on.
+        manager.current.downloadPackage =
+            hasControls && !isOnArchivalPage
+                ? config.config.downloadPackage
+                : undefined
 
         const isGuidedChartUpdate = guidedQueryParams !== null
         // Guided chart links should not inherit query params from the
@@ -265,6 +268,7 @@ export default function MultiDim({
         assetMap,
         config,
         hasControls,
+        isOnArchivalPage,
         isPreviewing,
         localGrapherConfig,
         searchParams,

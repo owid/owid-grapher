@@ -69,15 +69,18 @@ const useTitleFragments = (config: MultiDimDataPageConfig) => {
     )
 }
 
-// Opens the chart's download modal on the Data tab, in the design Marwa
-// proposed for explorer/mdim headers. Desktop only, by Mojmír's call: the
-// package is a zip, which is an awkward thing to receive on a phone, so it
-// doesn't earn prominent placement there. Mobile readers can still reach the
-// same three options through the chart's own Download button.
+// Opens the chart's download modal on the Data tab. Desktop only: the package
+// is a zip, which is an awkward thing to receive on a phone, so it doesn't earn
+// prominent placement there. Mobile readers can still reach the same three
+// options through the chart's own Download button.
+//
+// Its only behaviour is opening the modal, so it's hidden without JavaScript,
+// same as the interactive chart below it — the download section further down the
+// page works either way.
 function DownloadTheDataButton({ onClick }: { onClick: () => void }) {
     return (
         <button
-            className="download-the-data-button"
+            className={`download-the-data-button ${HIDE_IF_JS_DISABLED_CLASSNAME}`}
             onClick={onClick}
             data-track-note="datapage_download_the_data_button"
         >
@@ -127,20 +130,27 @@ export function DataPageContent({
     initialViewData,
     initialViewDimensions,
 }: MultiDimDataPageContentProps) {
-    const assetMap =
-        archiveContext?.type === "archive-page"
-            ? archiveContext.assets.runtime
-            : undefined
+    const isOnArchivalPage = archiveContext?.type === "archive-page"
+    const assetMap = isOnArchivalPage
+        ? archiveContext.assets.runtime
+        : undefined
+    // Built and published to R2 by ETL, so there's nothing to compute here --
+    // `url` already points at the finished zip. The dimension controls are
+    // always visible on the data page itself, so unlike the embedded case (see
+    // MultiDim.tsx) it's always safe to offer.
+    //
+    // Except on an archival page: the package lives in ETL's bucket and isn't
+    // copied into the append-only archive, so a snapshot linking it would hand
+    // out data that has since moved on, or 404 once the object is replaced.
+    const downloadPackage = isOnArchivalPage
+        ? undefined
+        : config.config.downloadPackage
     // A non-empty manager is used in the size calculations
     // within grapher, so we have to initialize it early with
     // a truthy value
     const managerRef = useRef<GrapherManager>({
         adminEditPath: "",
-        // Built and published to R2 by ETL, so there's nothing to compute here
-        // -- `url` already points at the finished zip. The dimension controls
-        // are always visible on the data page itself, so unlike the embedded
-        // case (see MultiDim.tsx) it's always safe to offer.
-        downloadPackage: config.config.downloadPackage,
+        downloadPackage,
     })
     const grapherStateRef = useRef<GrapherState>(
         new GrapherState({
@@ -447,8 +457,6 @@ export function DataPageContent({
         ),
         !!grapherStateRef.current
     )
-
-    const downloadPackage = config.config.downloadPackage
 
     // The download section further down the page offers the same three options,
     // but scrolling there is jarring -- open the modal over the chart instead.

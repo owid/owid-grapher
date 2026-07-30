@@ -70,11 +70,15 @@ df = pd.read_parquet("${parquetUrl}")
 
 # Fetch the metadata
 metadata = requests.get("${metadataUrl}").json()`,
+        // read_parquet() takes a local path, not an HTTP URL, so the file has
+        // to be downloaded first.
         R: `library(arrow)
 library(jsonlite)
 
 # Fetch the data
-df <- read_parquet("${parquetUrl}")
+path <- tempfile(fileext = ".parquet")
+download.file("${parquetUrl}", path, mode = "wb")
+df <- read_parquet(path)
 
 # Fetch the metadata
 metadata <- fromJSON("${metadataUrl}")`,
