@@ -740,36 +740,23 @@ const AllChartsTable = ({
     isRefreshing: boolean
 }) => {
     return (
-        <>
-            {/* Column labels, mirroring the row grid below. Hidden on narrow
-                viewports, where rows become an accordion instead of a table
-                with an aligned source column. */}
-            <div className="all-charts-block__table-header" aria-hidden="true">
-                <span className="all-charts-block__table-header-label">
-                    Indicator
-                </span>
-                <span className="all-charts-block__table-header-label all-charts-block__table-header-label--source">
-                    Source
-                </span>
-            </div>
-            <ul
-                className={cx("all-charts-block__table", {
-                    "all-charts-block__table--refreshing": isRefreshing,
-                })}
-                role="list"
-            >
-                {hits.map((hit, index) => (
-                    <AllChartsTableRow
-                        key={hit.objectID}
-                        hit={hit}
-                        isSelected={index === selectedIndex}
-                        isExpanded={index === expandedIndex}
-                        onSelect={() => onRowClick(index)}
-                        detectedCountries={detectedCountries}
-                    />
-                ))}
-            </ul>
-        </>
+        <ul
+            className={cx("all-charts-block__table", {
+                "all-charts-block__table--refreshing": isRefreshing,
+            })}
+            role="list"
+        >
+            {hits.map((hit, index) => (
+                <AllChartsTableRow
+                    key={hit.objectID}
+                    hit={hit}
+                    isSelected={index === selectedIndex}
+                    isExpanded={index === expandedIndex}
+                    onSelect={() => onRowClick(index)}
+                    detectedCountries={detectedCountries}
+                />
+            ))}
+        </ul>
     )
 }
 
@@ -791,12 +778,15 @@ const AllChartsTableRow = ({
     // Entities from the query that are actually available on this chart.
     const shownEntities = pickEntitiesForChartHit(hit, detectedCountries)
 
-    const producers = hit.datasetProducers ?? []
+    // Rendered as a single "Source: …" line under the subtitle (see below)
+    // rather than in a column of its own, so the row reads as one block of
+    // text instead of a table cell.
+    const source = (hit.datasetProducers ?? []).join(", ")
 
     // Enter/Space activate the row the same way a native <button> would —
-    // needed because the click target below is a div (it has to wrap the
-    // source column and arrow-link too, not just the title/subtitle), so we
-    // reimplement that bit of native button keyboard behavior ourselves.
+    // needed because the click target below is a div (it wraps a multi-line
+    // stack of title/subtitle/source spans rather than being a leaf control),
+    // so we reimplement that bit of native button keyboard behavior ourselves.
     const handleRowKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
         if (event.key === "Enter" || event.key === " ") {
             event.preventDefault()
@@ -810,19 +800,21 @@ const AllChartsTableRow = ({
                 "all-charts-block__row--selected": isSelected,
             })}
         >
-            {/* The whole row (title/subtitle, source column, and arrow-link
-                area) is a single click/keyboard target for selecting the row
-                on desktop or expanding/collapsing its mobile accordion. */}
-            <div
-                className="all-charts-block__row-main"
-                role="button"
-                tabIndex={0}
-                aria-pressed={isSelected}
-                aria-expanded={isExpanded}
-                onClick={onSelect}
-                onKeyDown={handleRowKeyDown}
-            >
-                <span className="all-charts-block__row-indicator">
+            <div className="all-charts-block__row-body">
+                {/* The row's text stack is a single click/keyboard target for
+                    selecting the row on desktop or expanding/collapsing its
+                    mobile accordion. The "Explore the data" link below is a
+                    sibling rather than a child so its own click never has to
+                    be stopped from bubbling into this handler. */}
+                <div
+                    className="all-charts-block__row-main"
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={isSelected}
+                    aria-expanded={isExpanded}
+                    onClick={onSelect}
+                    onKeyDown={handleRowKeyDown}
+                >
                     <span className="all-charts-block__row-title">
                         {hit.title}
                     </span>
@@ -831,31 +823,36 @@ const AllChartsTableRow = ({
                             {hit.subtitle}
                         </span>
                     )}
-                    {shownEntities.length > 0 && (
-                        <span className="all-charts-block__row-tag">
-                            Shown on chart: {shownEntities.join(", ")}
+                    {source && (
+                        <span className="all-charts-block__row-source">
+                            Source: {source}
                         </span>
                     )}
-                </span>
-                <span className="all-charts-block__row-source">
-                    <span className="all-charts-block__row-source-text">
-                        {producers.join(", ")}
-                    </span>
-                </span>
-                {/* Its own navigation action ("view chart"), distinct from
-                    selecting/expanding the row — stop the click from also
-                    bubbling to the row's onClick above so it doesn't
-                    additionally toggle selection/expansion on its way to
-                    navigating away. */}
-                <a
-                    className="all-charts-block__row-link"
-                    href={chartUrl}
-                    aria-label={`Open ${hit.title}`}
-                    data-track-note="all-charts-row-link"
-                    onClick={(event) => event.stopPropagation()}
-                >
-                    <FontAwesomeIcon icon={faArrowRight} />
-                </a>
+                    {shownEntities.length > 0 && (
+                        <span className="all-charts-block__row-tag">
+                            {shownEntities.join(", ")}
+                        </span>
+                    )}
+                </div>
+                {/* Shown on the selected row only: once a visitor has picked a
+                    row (and is looking at its chart, in the sidecar on desktop
+                    or the accordion below on mobile), this is the way on to
+                    the chart's own page. Its own navigation action, distinct
+                    from selecting/expanding the row. */}
+                {isSelected && (
+                    <div className="all-charts-block__row-action">
+                        <Button
+                            theme="solid-vermillion"
+                            className="all-charts-block__row-explore-button"
+                            text="Explore the data"
+                            href={chartUrl}
+                            ariaLabel={`Explore the data on ${hit.title}`}
+                            dataTrackNote="all-charts-row-explore"
+                            icon={faArrowRight}
+                            iconPosition="right"
+                        />
+                    </div>
+                )}
             </div>
             {/* Mobile/tablet accordion panel: the persistent sidecar
                 (all-charts-block__right) is hidden below that breakpoint, so

@@ -7,7 +7,14 @@
 
 .all-charts-block__panes {
     display: grid;
-    grid-template-columns: 5fr 7fr;
+    // The block itself already spans the full 12-column content grid (see the
+    // "featured-metrics" entry in site/gdocs/components/layout.ts), so the
+    // list can only be widened by taking width off the chart sidecar. An even
+    // 6/6 split gives the indicator list a good chunk more room than the 5/7
+    // it started with — needed now that each row's source sits underneath its
+    // subtitle rather than in a column of its own — while still leaving the
+    // sidecar wide enough to render a landscape chart at $grapher-height.
+    grid-template-columns: 6fr 6fr;
     gap: 24px;
     align-items: start;
 
@@ -171,32 +178,6 @@ $all-charts-block-sticky-top: 72px;
     }
 }
 
-// Shared by the header labels row and every table row so the "Source" label
-// and every row's source text land in the same visual column. The trailing
-// 44px column reserves space for the row's arrow-link (empty in the header).
-$all-charts-block-row-columns: minmax(0, 1fr) 140px 44px;
-$all-charts-block-row-column-gap: 16px;
-
-.all-charts-block__table-header {
-    display: grid;
-    grid-template-columns: $all-charts-block-row-columns;
-    column-gap: $all-charts-block-row-column-gap;
-    padding-left: 16px; // matches the row-left inset: 3px accent border + 13px button padding
-    padding-bottom: 8px;
-
-    @include md-down {
-        display: none;
-    }
-}
-
-.all-charts-block__table-header-label {
-    text-transform: uppercase;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    color: $gray-60;
-}
-
 .all-charts-block__table {
     // No inner scroll region here by design — the list grows to its full
     // height and scrolls with the rest of the page (see
@@ -223,45 +204,44 @@ $all-charts-block-row-column-gap: 16px;
     border-bottom: 1px solid $gray-20;
 }
 
-.all-charts-block__row--selected .all-charts-block__row-main {
+.all-charts-block__row--selected .all-charts-block__row-body {
     border-left-color: $vermillion;
     background-color: $blue-5;
 }
 
-// The clickable row content: a real two-column grid (indicator info, then
-// source) plus the trailing arrow-link column, so source text lines up into
-// a proper column across every row instead of floating at its own width.
-// The whole grid is the row's single click/keyboard target (role="button" in
-// the markup) — selecting/expanding the row works from anywhere in it,
-// including the source column and the arrow-link area.
-.all-charts-block__row-main {
-    display: grid;
-    grid-template-columns: $all-charts-block-row-columns;
-    column-gap: $all-charts-block-row-column-gap;
-    align-items: stretch;
+// A row has no column structure: its text is one block (title, then subtitle,
+// then a "Source: …" line), with the selected row's "Explore the data" link
+// sitting at the right-hand edge. This wrapper holds those two side by side
+// and carries the row's own hover/selected treatment, so the accent border and
+// background span the link too.
+.all-charts-block__row-body {
+    display: flex;
+    align-items: center;
     border-left: 3px solid transparent;
-    cursor: pointer;
 
     &:hover {
         background-color: $gray-5;
     }
 
-    // The source column is hidden on phones (see .all-charts-block__row-source
-    // below) — drop its track too, otherwise it'd leave a blank gap between
-    // the title and the arrow-link.
+    // Not enough width on a phone to fit the "Explore the data" link beside
+    // the row's text without squeezing the title, so the link wraps onto its
+    // own line underneath (see .all-charts-block__row-action below).
     @include sm-only {
-        grid-template-columns: minmax(0, 1fr) 44px;
+        flex-wrap: wrap;
     }
 }
 
-.all-charts-block__row-indicator {
+// The row's text stack, and its single click/keyboard target (role="button" in
+// the markup) for selecting the row on desktop or toggling its mobile
+// accordion.
+.all-charts-block__row-main {
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     gap: 2px;
     min-width: 0;
-    // Matches the old row-button's inset (3px accent border + 13px padding =
-    // 16px, matching .all-charts-block__table-header's padding-left).
-    padding: 12px 13px;
+    padding: 12px 13px; // 3px accent border + 13px = 16px of left inset
+    cursor: pointer;
 }
 
 .all-charts-block__row-title {
@@ -275,7 +255,7 @@ $all-charts-block-row-column-gap: 16px;
     // (1.6), which is too loose for a compact table row heading. Tighter
     // than the 1.5 used for 16px serif headings elsewhere (h4-semibold in
     // typography.scss) so the title sits snugly above the subtitle within
-    // the row's 2px indicator gap.
+    // the row's 2px stack gap.
     line-height: 1.25;
     color: $text-color;
 }
@@ -312,60 +292,45 @@ $all-charts-block-row-column-gap: 16px;
     align-self: flex-start;
 }
 
-// A plain (unclamped) grid item. Unlike .all-charts-block__row-indicator,
-// which wraps its own clamped .all-charts-block__row-subtitle in a flex
-// column, this used to put the -webkit-line-clamp rules directly on the
-// grid item itself — but a grid item stretches to the row's full height
-// (align-items: stretch on .all-charts-block__row-main, default and needed
-// so the row-link's border-left spans the whole row), and Chromium's
-// -webkit-line-clamp implementation doesn't reliably clamp to N lines once
-// its own box has been stretched taller than that content: extra lines
-// beyond 3 render and only get hard-clipped at the taller stretched edge,
-// so rows with a long source list ended up 5-6 lines tall instead of 3
-// (compounded by the padding living on the same clamped box, another
-// Chromium quirk). Splitting the clamp onto an inner, non-stretched
-// .all-charts-block__row-source-text span — the same pattern
-// .all-charts-block__row-subtitle already relies on via its
-// .all-charts-block__row-indicator wrapper — fixes both.
+// The "Source: …" line, sitting directly beneath the subtitle rather than in
+// a column of its own. Styled to match .all-charts-block__row-subtitle above
+// so the two read as one continuous block of supporting text.
 .all-charts-block__row-source {
-    min-width: 0;
-    padding: 12px 0;
-    text-align: left;
     color: $blue-50;
     font-size: 12px;
     font-weight: 400;
-
-    @include sm-only {
-        display: none;
-    }
-}
-
-.all-charts-block__row-source-text {
-    // Matches .all-charts-block__row-subtitle above.
     line-height: 1.5;
-    // Long source lists are clamped to 3 lines with an ellipsis, same as
+    // Long producer lists are clamped, same as
     // .all-charts-block__row-subtitle above, so a single row can't grow
-    // unboundedly tall.
+    // unboundedly tall. Two lines is ample now that the line spans the row's
+    // full width rather than a narrow column.
     overflow-wrap: break-word;
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.all-charts-block__row-link {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 0;
-    color: $blue-60;
-    border-left: 1px solid $gray-20;
+// Holds the selected row's "Explore the data" link at the right-hand edge of
+// the row.
+.all-charts-block__row-action {
+    flex: 0 0 auto;
+    padding: 12px 16px 12px 0;
 
-    &:hover {
-        color: $vermillion;
+    // Wrapped onto its own line under the row's text (see the flex-wrap on
+    // .all-charts-block__row-body above), so it needs its left inset back.
+    @include sm-only {
+        flex-basis: 100%;
+        padding: 0 16px 12px 13px;
     }
+}
+
+.all-charts-block__row-explore-button {
+    // The label reads as one unit with its arrow; wrapping it mid-phrase to
+    // fit a narrow row would look broken.
+    white-space: nowrap;
 }
 
 // Mobile/tablet accordion panel holding the inline chart for the currently
