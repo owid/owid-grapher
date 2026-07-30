@@ -161,7 +161,7 @@ export const LatestSearch = ({
             {isLoading ? (
                 <LatestSearchSkeleton />
             ) : isError ? (
-                <SearchError />
+                <SearchError heading="We couldn’t load the latest updates." />
             ) : hits.length === 0 ? (
                 <SearchNoResults
                     subtitle={

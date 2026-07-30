@@ -68,14 +68,14 @@ describe("Search empty states", () => {
         expect(
             await screen.findByText(/no results for this query/i)
         ).toBeTruthy()
-        expect(screen.queryByText(/temporarily unavailable/i)).toBeNull()
+        expect(screen.queryByText(/isn’t working right now/i)).toBeNull()
     })
 
     it("shows an error notice, not the no-results notice, when the search fails", async () => {
         renderSearch(failingClient)
 
         expect(
-            await screen.findByText(/search is temporarily unavailable/i)
+            await screen.findByText(/search isn’t working right now/i)
         ).toBeTruthy()
         expect(screen.queryByText(/no results for this query/i)).toBeNull()
     })
