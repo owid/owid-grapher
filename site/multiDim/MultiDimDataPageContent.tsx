@@ -5,7 +5,8 @@ import { unstable_batchedUpdates } from "react-dom"
 import { useSearchParams } from "react-router-dom-v5-compat"
 import * as Sentry from "@sentry/react"
 import { useIsClient } from "usehooks-ts"
-import { DownloadIconComplete } from "@ourworldindata/components"
+import { Button } from "@ourworldindata/components"
+import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import {
     DownloadModalTabName,
     Grapher,
@@ -79,14 +80,15 @@ const useTitleFragments = (config: MultiDimDataPageConfig) => {
 // page works either way.
 function DownloadTheDataButton({ onClick }: { onClick: () => void }) {
     return (
-        <button
-            className={`download-the-data-button ${HIDE_IF_JS_DISABLED_CLASSNAME}`}
+        <Button
+            theme="outline-vermillion"
+            className={HIDE_IF_JS_DISABLED_CLASSNAME}
+            text="Download the data"
+            icon={faDownload}
+            iconPosition="left"
             onClick={onClick}
-            data-track-note="datapage_download_the_data_button"
-        >
-            <DownloadIconComplete color="currentColor" />
-            Download the data
-        </button>
+            dataTrackNote="datapage_download_the_data_button"
+        />
     )
 }
 

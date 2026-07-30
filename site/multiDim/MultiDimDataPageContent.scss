@@ -56,32 +56,6 @@ $zindex-controls-popup: 140;
         }
     }
 
-    .download-the-data-button {
-        display: flex;
-        flex-shrink: 0;
-        align-items: center;
-        gap: 8px;
-        width: fit-content;
-        padding: 8px 16px;
-        border: 1px solid $vermillion;
-        border-radius: 4px;
-        background: #fff;
-        color: $vermillion;
-        font-size: 0.875rem;
-        font-weight: $bold;
-        text-decoration: none;
-        cursor: pointer;
-
-        svg {
-            width: auto;
-            height: 16px;
-        }
-
-        &:hover {
-            background: rgba($vermillion, 0.05);
-        }
-    }
-
     .settings-row__wrapper {
         display: flex;
         flex-wrap: wrap;
