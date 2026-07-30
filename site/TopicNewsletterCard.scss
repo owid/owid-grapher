@@ -56,17 +56,14 @@
     }
 }
 
-// Label column of the "About this data" section on data pages without key
-// information, directly below the section heading — see AboutThisData.scss for
-// the grid rows that put it there. Below md the section is a single column, so
-// the card stacks full width below the key data table instead.
+// Right rail of the "About this data" section on data pages without key
+// information: level with the indicator metadata beside it, filling the space
+// the short metadata values leave blank. Below md the section is a single
+// column, so the card stacks full width below the key data table instead and
+// needs a gap above it.
 .topic-newsletter-card--about-this-data {
-    margin-top: 32px;
-
-    @include md-up {
-        // The heading has no bottom margin at md-up, so this is the whole gap
-        // between the two.
-        margin-top: 24px;
+    @include md-down {
+        margin-top: 32px;
     }
 }
 

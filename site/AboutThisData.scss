@@ -107,31 +107,18 @@
     }
 }
 
-// Without key information the section is two columns at md-up: the heading with
-// the newsletter card below it in the narrow label column, and the key data
-// table beside them, spanning both of those rows. Below md the section is a
-// single column and its three parts stack in DOM order (heading, key data
-// table, card), so the rows stay automatic there.
-.wrapper-about-this-data--label-column {
+// Without key information the section is one row of three columns at md-up: the
+// heading in a narrow label column, the indicator metadata beside it, and the
+// newsletter card in the right rail level with the metadata fields. Automatic
+// placement puts all three in that row, because each one names its own starting
+// column. Below md the section is a single column and they stack in DOM order:
+// heading, key data table, card.
+//
+// Room for the right rail comes out of the metadata block, which otherwise runs
+// all the way to the section's right edge. Only the pages that actually render a
+// card give it up — see where the modifier is applied in AboutThisData.tsx.
+.about-this-data__key-data--with-newsletter-card {
     @include md-up {
-        // The first row is the heading's own height and the second takes
-        // whatever the table needs on top of that. Leaving both rows automatic
-        // instead would give each a share of the table's height, pushing the
-        // card away from the heading on pages with a tall table.
-        grid-template-rows: min-content 1fr;
-    }
-}
-
-@include md-up {
-    .about-this-data__title {
-        grid-row: 1;
-    }
-
-    .about-this-data__key-data {
-        grid-row: 1 / span 2;
-    }
-
-    .topic-newsletter-card--about-this-data {
-        grid-row: 2;
+        grid-column-end: 10;
     }
 }

@@ -65,9 +65,6 @@ export default function AboutThisData({
         <div
             className={cx(
                 "wrapper-about-this-data grid grid-cols-12",
-                // Without key information the heading and the newsletter card
-                // share a narrow label column, which needs its own grid rows.
-                { "wrapper-about-this-data--label-column": !hasKeyInfo },
                 className
             )}
         >
@@ -169,20 +166,34 @@ export default function AboutThisData({
                     >
                         About this data
                     </h2>
-                    <div className="about-this-data__key-data col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                    <div
+                        className={cx(
+                            "about-this-data__key-data col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12",
+                            // The card takes the last three columns beside the
+                            // metadata, so the metadata has to stop three
+                            // columns short of the section's right edge — but
+                            // only when there is a card to make room for. With
+                            // no topic area the card renders nothing and the
+                            // metadata keeps the full width it has always had.
+                            {
+                                "about-this-data__key-data--with-newsletter-card":
+                                    !!topicArea,
+                            }
+                        )}
+                    >
                         <KeyDataTable
                             datapageData={datapageData}
                             attribution={attributionUnshortened}
                         />
                     </div>
-                    {/* In the label column directly below the heading at md-up
-                        (the rows that put it there live in AboutThisData.scss),
-                        full width below the key data table below that. */}
+                    {/* Right rail beside the metadata fields at md-up, level
+                        with them and filling the space their short values leave
+                        blank; full width below the key data table below that. */}
                     <TopicNewsletterCard
                         pageType="chart"
                         topicArea={topicArea}
                         variant="narrow"
-                        className="topic-newsletter-card--about-this-data col-start-1 span-cols-3 col-lg-start-1 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                        className="topic-newsletter-card--about-this-data col-start-10 span-cols-3 col-lg-start-10 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
                     />
                 </>
             )}
