@@ -226,35 +226,33 @@ export const EmailNotificationsPreferencesForm = ({
             </SubscribePageConfirmation>
         ))
         .with({ name: "expired" }, ({ token: expiredToken }) => (
-            <PreferencesScreen>
-                <div className="email-notifications-preferences-form">
-                    <h3 className="h3-bold">This link has expired</h3>
-                    <p>
-                        For your security, preference links are only valid for
-                        30 minutes. We can email you a new one.
-                    </p>
-                    {errorAlert}
-                    <button
-                        type="button"
-                        className="newsletter-form__submit"
-                        disabled={isSubmitting}
-                        onClick={() => requestLink({ token: expiredToken })}
-                    >
-                        {isSubmitting ? "Sending…" : "Email me a new link"}
-                    </button>
-                </div>
-            </PreferencesScreen>
+            <SubscribePageConfirmation
+                variant="error"
+                heading="This link has expired"
+                action={{
+                    label: isSubmitting ? "Sending…" : "Email me a new link",
+                    onClick: () => void requestLink({ token: expiredToken }),
+                    disabled: isSubmitting,
+                }}
+            >
+                The link you followed is no longer valid. For your security,
+                preference links are only valid for 30 minutes. We can email you
+                a new one.
+                {errorAlert}
+            </SubscribePageConfirmation>
         ))
         .with({ name: "invalid" }, () => (
-            <PreferencesScreen>
-                <div className="email-notifications-preferences-form">
-                    <h3 className="h3-bold">This link is not valid</h3>
-                    <p>
-                        Please use the link from our most recent email, or{" "}
-                        <a href="/subscribe/preferences">request a new one</a>.
-                    </p>
-                </div>
-            </PreferencesScreen>
+            <SubscribePageConfirmation
+                variant="error"
+                heading="This link is not valid"
+                action={{
+                    href: "/subscribe/preferences",
+                    label: "Request a new link",
+                }}
+            >
+                The link you followed is not valid. Please use the link from our
+                most recent email, or request a new one.
+            </SubscribePageConfirmation>
         ))
         .with({ name: "enter-email" }, () => (
             <PreferencesScreen>

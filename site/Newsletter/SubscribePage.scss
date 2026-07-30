@@ -76,6 +76,11 @@
         font-size: 2.125rem;
     }
 
+    .subscribe-page__confirmation--error .subscribe-page__confirmation-icon {
+        background-color: #fde2e1;
+        color: $vermillion;
+    }
+
     .subscribe-page__confirmation-text {
         @include body-3-medium;
         margin: 8px 0 0;
@@ -88,12 +93,24 @@
         height: 40px;
         margin-top: 32px;
         padding: 8px 24px;
+        background: none;
         border: 1px solid $vermillion;
         color: $vermillion;
+        cursor: pointer;
 
         &:hover {
             background-color: $vermillion;
             color: $white;
+        }
+
+        &:disabled {
+            border-color: $gray-30;
+            color: $gray-30;
+            cursor: default;
+
+            &:hover {
+                background: none;
+            }
         }
     }
 
