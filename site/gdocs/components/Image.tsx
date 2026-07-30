@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react"
+import { lazy, Suspense, useCallback, useState } from "react"
 import {
     AssetMap,
     generateSourceProps,
@@ -14,8 +14,14 @@ import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
 import { useMediaQuery } from "usehooks-ts"
 import { Container } from "./layout.js"
-import { Lightbox } from "../../Lightbox.js"
 import { FloatingDownloadButton } from "./FloatingDownloadButton.js"
+
+// The Lightbox is only shown when a reader clicks an image to expand it, and it
+// pulls in react-zoom-pan-pinch. Load it lazily so it stays out of the initial
+// bundle.
+const Lightbox = lazy(() =>
+    import("../../Lightbox.js").then((m) => ({ default: m.Lightbox }))
+)
 
 // generates rules that tell the browser:
 // below the breakpoint (default 960px), the image will be 95vw wide
@@ -212,15 +218,17 @@ export default function Image(props: {
             </picture>
             {downloadButton}
             {isLightboxOpen && (
-                <Lightbox
-                    imgSrc={imageSrc}
-                    onClose={() => setIsLightboxOpen(false)}
-                    imgFilename={activeImage.filename}
-                    width={activeImage.originalWidth}
-                    height={activeImage.originalHeight}
-                    alt={alt}
-                    hideDownload={shouldHideDownloadButton}
-                />
+                <Suspense fallback={null}>
+                    <Lightbox
+                        imgSrc={imageSrc}
+                        onClose={() => setIsLightboxOpen(false)}
+                        imgFilename={activeImage.filename}
+                        width={activeImage.originalWidth}
+                        height={activeImage.originalHeight}
+                        alt={alt}
+                        hideDownload={shouldHideDownloadButton}
+                    />
+                </Suspense>
             )}
         </div>
     )
