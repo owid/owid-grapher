@@ -38,11 +38,13 @@ $zindex-controls-popup: 140;
         }
     }
 
-    // No rule above the settings, so the whole header stays compact.
+    // No rule above the settings, so the whole header stays compact. Children
+    // sit on the row's baseline, so the taller download button lines up with
+    // the bottom of the dropdowns rather than overhanging them.
     .settings-row__wrapper {
         display: flex;
         flex-wrap: wrap;
-        align-items: center;
+        align-items: flex-end;
         gap: 16px;
         margin-bottom: 16px;
     }
@@ -60,7 +62,6 @@ $zindex-controls-popup: 140;
     // DownloadTheDataButton.
     .settings-row__actions {
         display: flex;
-        align-self: flex-end;
 
         @include sm-only {
             display: none;
