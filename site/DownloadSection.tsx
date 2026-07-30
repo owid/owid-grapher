@@ -28,6 +28,7 @@ import {
     makeCompleteDatasetCodeExamples,
     makeCompleteDatasetDescription,
     makeDownloadCodeExamples,
+    COMPLETE_DATASET_SOURCES_HELP_TEXT,
     SERVER_SIDE_DOWNLOAD_HELP_TEXT,
 } from "@ourworldindata/utils"
 
@@ -379,6 +380,11 @@ export default function DownloadSection({
                             <p className="citation__paragraph">
                                 {SERVER_SIDE_DOWNLOAD_HELP_TEXT}
                             </p>
+                            {downloadPackage && (
+                                <p className="citation__paragraph">
+                                    {COMPLETE_DATASET_SOURCES_HELP_TEXT}
+                                </p>
+                            )}
                             {/* Ordered from smallest to biggest download */}
                             <div className="downloads__download-buttons">
                                 <DownloadButtonLink

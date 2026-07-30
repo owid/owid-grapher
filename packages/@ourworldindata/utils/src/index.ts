@@ -182,6 +182,7 @@ export {
     makeFilteredDownloadDescription,
     makeFullDownloadDescription,
     makeNumberOfRowsSnippet,
+    COMPLETE_DATASET_SOURCES_HELP_TEXT,
     SERVER_SIDE_DOWNLOAD_HELP_TEXT,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,

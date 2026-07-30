@@ -5,6 +5,14 @@ export const SERVER_SIDE_DOWNLOAD_HELP_TEXT =
     "file, metadata in JSON format, and a README. The CSV file can be opened " +
     "in Excel, Google Sheets, and other data analysis tools."
 
+// Shown only where a complete-dataset download is on offer. The sources named
+// elsewhere on the page describe the indicators behind the current view, but
+// the package spans every view, so it can draw on providers that aren't listed
+// there -- point at the file inside it that names all of them.
+export const COMPLETE_DATASET_SOURCES_HELP_TEXT =
+    "The complete dataset covers more indicators than this chart, and its " +
+    "README lists the sources for all of them."
+
 export const triggerDownloadFromBlob = (filename: string, blob: Blob): void => {
     const objectUrl = URL.createObjectURL(blob)
     triggerDownloadFromUrl(filename, objectUrl)

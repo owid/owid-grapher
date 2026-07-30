@@ -11,6 +11,7 @@ import {
     makeCompleteDatasetCodeExamples,
     makeDownloadCodeExamples,
     getPhraseForProcessingLevel,
+    COMPLETE_DATASET_SOURCES_HELP_TEXT,
     SERVER_SIDE_DOWNLOAD_HELP_TEXT,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
@@ -884,16 +885,25 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
         )
     }
 
-    const downloadHelpText = serverSideDownloadAvailable ? (
-        <p className="grapher_label-2-regular">
-            {SERVER_SIDE_DOWNLOAD_HELP_TEXT}
-        </p>
-    ) : (
-        <p className="grapher_label-2-regular">
-            Download the data used to create this chart. The data is provided in
-            CSV format, which can be opened in Excel, Google Sheets, and other
-            data analysis tools.
-        </p>
+    const downloadHelpText = (
+        <>
+            {serverSideDownloadAvailable ? (
+                <p className="grapher_label-2-regular">
+                    {SERVER_SIDE_DOWNLOAD_HELP_TEXT}
+                </p>
+            ) : (
+                <p className="grapher_label-2-regular">
+                    Download the data used to create this chart. The data is
+                    provided in CSV format, which can be opened in Excel, Google
+                    Sheets, and other data analysis tools.
+                </p>
+            )}
+            {downloadPackage && (
+                <p className="grapher_label-2-regular">
+                    {COMPLETE_DATASET_SOURCES_HELP_TEXT}
+                </p>
+            )}
+        </>
     )
 
     const firstYColDef = yColumns?.[0]?.def
