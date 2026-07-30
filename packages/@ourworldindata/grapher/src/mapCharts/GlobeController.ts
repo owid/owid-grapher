@@ -1,5 +1,4 @@
-import { FeatureCollection } from "geojson"
-import { geoInterpolate, geoOrthographic, geoPath } from "d3-geo"
+import { geoCentroid, geoInterpolate, geoOrthographic, geoPath } from "d3-geo"
 import { interpolateNumber } from "d3-interpolate"
 import { easeCubicOut } from "d3-ease"
 import * as R from "remeda"
@@ -20,7 +19,6 @@ import {
     DEFAULT_GLOBE_ROTATION,
     DEFAULT_GLOBE_ROTATIONS_FOR_TIME,
     DEFAULT_GLOBE_SIZE,
-    GeoFeature,
     GLOBE_COUNTRY_ZOOM,
     GLOBE_LATITUDE_MAX,
     GLOBE_LATITUDE_MIN,
@@ -33,7 +31,6 @@ import {
 import { isPointPlacedOnVisibleHemisphere } from "./MapHelpers"
 import { ckmeans } from "simple-statistics"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
-import { center } from "@turf/center"
 import { action } from "mobx"
 
 const geoFeaturesById = new Map<string, GlobeRenderFeature>(
@@ -224,26 +221,20 @@ function calculateTargetForCountry(
     const geoFeature = geoFeaturesById.get(country)
     if (!geoFeature) return
 
-    const coords: [number, number] = [
-        geoFeature.geoCentroid[0],
-        R.clamp(geoFeature.geoCentroid[1], {
-            min: GLOBE_LATITUDE_MIN,
-            max: GLOBE_LATITUDE_MAX,
-        }),
-    ]
+    const coords = clampLatitude(geoFeature.geoCentroid)
 
     // make sure the whole country is visible after zooming
-    const zoomToFit = calculateZoomToFitForGeoFeature(geoFeature.geo)
+    const zoomToFit = calculateZoomToFitForCountry(geoFeature)
     const targetZoom = Math.min(zoom ?? GLOBE_COUNTRY_ZOOM, zoomToFit)
 
     return { coords, zoom: targetZoom }
 }
 
-function calculateZoomToFitForGeoFeature(geoFeature: GeoFeature): number {
-    const centerPoint = getCenterPoint(geoFeature)
+function calculateZoomToFitForCountry(feature: GlobeRenderFeature): number {
+    const centerPoint = clampLatitude(feature.geoCentroid)
     const projection = geoOrthographic().rotate(negateCoords(centerPoint))
 
-    const corners = geoPath().projection(projection).bounds(geoFeature)
+    const corners = geoPath().projection(projection).bounds(feature.geo)
     const bounds = Bounds.fromCorners(
         new PointVector(...corners[0]),
         new PointVector(...corners[1])
@@ -357,18 +348,24 @@ function getCoordsBasedOnTime(): [number, number] {
 function getCenterForCountryCollection(
     countryNames: string[]
 ): [number, number] {
-    const featureCollection = makeFeatureCollectionForCountries(countryNames)
-    return getCenterPoint(featureCollection)
+    // the spherical centroid of the countries' centroids
+    const coordinates = excludeUndefined(
+        countryNames.map((name) => geoFeaturesById.get(name)?.geoCentroid)
+    )
+    const centerPoint = geoCentroid({ type: "MultiPoint", coordinates })
+
+    // the centroid isn't well-defined for all inputs, e.g. there is no single
+    // point closest to two exactly antipodal points. d3 returns NaN coords in such cases.
+    if (!Number.isFinite(centerPoint[0]) || !Number.isFinite(centerPoint[1]))
+        return DEFAULT_GLOBE_ROTATION
+
+    return clampLatitude(centerPoint)
 }
 
-function getCenterPoint(
-    geojson: GeoFeature | FeatureCollection
-): [number, number] {
-    const centerPoint = center(geojson)
-
+function clampLatitude([lon, lat]: [number, number]): [number, number] {
     return [
-        centerPoint.geometry.coordinates[0],
-        R.clamp(centerPoint.geometry.coordinates[1], {
+        lon,
+        R.clamp(lat, {
             min: GLOBE_LATITUDE_MIN,
             max: GLOBE_LATITUDE_MAX,
         }),
@@ -469,19 +466,6 @@ function clusterCountriesByCentroidLongitude(
     return clusters.map((cluster) =>
         cluster.map((centroidLon) => lonToName[centroidLon])
     )
-}
-
-function makeFeatureCollectionForCountries(
-    countryNames: string[]
-): FeatureCollection {
-    const features = excludeUndefined(
-        countryNames.map((name) => geoFeaturesById.get(name))
-    )
-
-    return {
-        type: "FeatureCollection",
-        features: features.map((feature) => feature.geo),
-    }
 }
 
 function addLongitudeOffset(

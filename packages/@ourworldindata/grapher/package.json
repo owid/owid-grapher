@@ -24,7 +24,6 @@
         "@sentry/react": "^10.62.0",
         "@tippyjs/react": "^4.2.6",
         "@turf/boolean-intersects": "^7.2.0",
-        "@turf/center": "^7.2.0",
         "clsx": "^2.1.1",
         "colorbrewer": "^1.3.0",
         "d3": "^7.9.0",
