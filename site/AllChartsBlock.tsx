@@ -323,9 +323,11 @@ function computeAutoSuggestedChips(
     // threshold applied above), then prefer specific title/subtitle keywords
     // for the remaining slots, falling back to producers only if there isn't
     // enough keyword variety to fill out the list.
-    const chips: SuggestedChipCandidate[] = [
-        ...topCountries.slice(0, MAX_SUGGESTED_COUNTRY_CHIPS),
-    ]
+    // `slice` already returns a fresh array, safe for the `push`es below.
+    const chips: SuggestedChipCandidate[] = topCountries.slice(
+        0,
+        MAX_SUGGESTED_COUNTRY_CHIPS
+    )
 
     for (const keyword of topKeywords) {
         if (chips.length >= MAX_SUGGESTED_CHIPS) break
