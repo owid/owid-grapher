@@ -38,9 +38,24 @@ $zindex-controls-popup: 140;
         }
     }
 
+    // Sits on the title's line, right-aligned, per Marwa's design. Centred
+    // against the whole title block, so it carries the same bottom margin as
+    // .header__left for the two boxes to line up.
+    //
     // Desktop only: a zip is an awkward thing to hand someone on a phone, so
     // the download doesn't get a prominent button there. See the note on
     // DownloadTheDataButton.
+    .header__actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        margin-bottom: 16px;
+
+        @include sm-only {
+            display: none;
+        }
+    }
+
     .download-the-data-button {
         display: flex;
         flex-shrink: 0;
@@ -65,17 +80,12 @@ $zindex-controls-popup: 140;
         &:hover {
             background: rgba($vermillion, 0.05);
         }
-
-        @include sm-only {
-            display: none;
-        }
     }
 
     .settings-row__wrapper {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        justify-content: space-between;
         gap: 16px;
         margin-bottom: 16px;
         padding-top: 16px;

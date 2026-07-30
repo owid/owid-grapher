@@ -509,6 +509,13 @@ export function DataPageContent({
                                 {titleFragments}
                             </div>
                         </div>
+                        {downloadPackage && (
+                            <div className="header__actions col-start-10 span-cols-4">
+                                <DownloadTheDataButton
+                                    onClick={openDownloadModal}
+                                />
+                            </div>
+                        )}
                         <div className="settings-row__wrapper col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-12">
                             <MultiDimSettingsPanel
                                 className="settings-row__panel"
@@ -517,11 +524,6 @@ export function DataPageContent({
                                 onChange={handleSettingsChange}
                                 disabled={isLoadingView}
                             />
-                            {downloadPackage && (
-                                <DownloadTheDataButton
-                                    onClick={openDownloadModal}
-                                />
-                            )}
                         </div>
                     </div>
                 </div>
