@@ -1,8 +1,5 @@
 import { Env, Etag, extensions } from "../_common/env.js"
-import {
-    handleExplorerPageNotFound,
-    getRedirectForExplorerUrl,
-} from "../_common/redirectTools.js"
+import { getRedirectForExplorerUrl } from "../_common/redirectTools.js"
 import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
 import { rewriteMetaTags } from "../_common/grapherTools.js"
 import {
@@ -20,11 +17,21 @@ const { preflight, corsify } = cors({
     allowMethods: ["GET", "OPTIONS", "HEAD"],
 })
 
+// An explorer redirect can be conditional on the incoming query params, AND we can't use the "put it into _redirects for one week" approach we do for other redirects, because we need to handle query params always.
+// So instead, we check for redirects _for every incoming request_, unlike what we do for charts where we only check when the initial request is 404-ing.
+async function checkForRedirect(
+    _request: IRequestStrict,
+    url: URL,
+    env: Env
+): Promise<Response | undefined> {
+    return getRedirectForExplorerUrl(env, url)
+}
+
 const router = Router<
     IRequestStrict,
     [URL, Env, Etag, EventContext<unknown, any, Record<string, unknown>>]
 >({
-    before: [preflight],
+    before: [preflight, checkForRedirect],
     finally: [corsify],
 })
 router
@@ -119,9 +126,9 @@ async function handleHtmlPageRequest(
         redirect: "manual",
     })
 
-    if (explorerPage.status === 404) {
-        return handleExplorerPageNotFound(env, explorerPage)
-    }
+    // Redirects have already been checked in `checkForRedirect`, so a 404 here
+    // is a genuine 404: pass the static 404 page through as-is.
+    if (explorerPage.status === 404) return explorerPage
 
     const openGraphThumbnailUrl = `/explorers/${slug}.png?imType=og${
         url.search ? "&" + url.search.slice(1) : ""
@@ -153,19 +160,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             request.headers.get("if-none-match"),
             context
         )
-        .catch(async (e) => {
-            // Only check _explorerRedirects.json for redirects if a 404 occurs.
-            // Otherwise, skip the extra fetch in the happy path.
+        .catch((e) => {
             console.log("Handling error", e)
-            if (e instanceof StatusError && e.status === 404) {
-                console.log("Handling 404 for", url.pathname)
-                const redirect = await getRedirectForExplorerUrl(
-                    { ...env, url },
-                    url
-                )
-                return redirect || error(404, "Not found")
-            } else if (e instanceof StatusError) {
-                return error(e.status, e.message)
-            } else return error(500, e)
+            if (e instanceof StatusError) return error(e.status, e.message)
+            return error(500, e)
         })
 }

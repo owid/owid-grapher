@@ -20,11 +20,11 @@
     },
     "devDependencies": {
         "@types/d3-sankey": "^0.12.5",
-        "@typescript/native-preview": "^7.0.0-dev.20260613.1",
+        "typescript": "^7.0.2",
         "vitest": "^4.1.8"
     },
     "scripts": {
         "build": "",
-        "typecheck": "tsgo --noEmit"
+        "typecheck": "tsc --noEmit"
     }
 }

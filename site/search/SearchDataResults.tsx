@@ -4,6 +4,7 @@ import { SearchResultHeader } from "./SearchResultHeader.js"
 import { SearchChartHit } from "@ourworldindata/types"
 import { SearchDataResultsSkeleton } from "./SearchDataResultsSkeleton.js"
 import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
+import { SearchClosestMatchesNotice } from "./SearchClosestMatchesNotice.js"
 import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
 import { useSearchContext } from "./SearchContext.js"
 
@@ -20,7 +21,7 @@ export const SearchDataResults = ({
         queryFn: queryCharts,
     })
 
-    const { hits, totalResults, isLoading } = query
+    const { hits, totalResults, isLoading, isClosestMatches } = query
 
     function handleClick(
         hit: SearchChartHit,
@@ -46,6 +47,7 @@ export const SearchDataResults = ({
                         <SearchResultHeader count={totalResults}>
                             Data
                         </SearchResultHeader>
+                        {isClosestMatches && <SearchClosestMatchesNotice />}
                         <ul className="search-data-results__list">
                             {hits.map((hit, hitIndex) => {
                                 const variant = isFirstChartLarge

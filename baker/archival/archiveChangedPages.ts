@@ -34,6 +34,7 @@ import {
     ArchivalTimestamp,
     OwidChartDimensionInterface,
     AssetMap,
+    excludeNullish,
 } from "@ourworldindata/utils"
 import { insertArchivedChartVersions } from "../../db/model/ArchivedChartVersion.js"
 import { insertArchivedExplorerVersions } from "../../db/model/ArchivedExplorerVersion.js"
@@ -199,7 +200,7 @@ const getPostsToArchive = async (
 
     if ((postSlugs && postSlugs.length > 0) || force) {
         const { postChecksums: allChecksums, imagesByPostId: allImages } =
-            await getPostChecksumsFromDb(trx)
+            await getPostChecksumsFromDb(trx, postSlugs)
 
         let postsToArchive = allChecksums
         if (postSlugs && postSlugs.length > 0) {
@@ -263,7 +264,12 @@ const getGraphersToArchive = async (
             opts.chartIds.join(", ")
         )
 
-        const allChecksums = await getGrapherChecksumsFromDb(trx)
+        const charts = await getEnrichedChartsByIds(trx, opts.chartIds)
+        const slugs = excludeNullish(
+            charts.map((chart) => chart.config.slug).filter((slug) => slug)
+        )
+
+        const allChecksums = await getGrapherChecksumsFromDb(trx, slugs)
         const graphersToArchive = allChecksums.filter((checksum) =>
             opts.chartIds?.includes(checksum.chartId)
         )

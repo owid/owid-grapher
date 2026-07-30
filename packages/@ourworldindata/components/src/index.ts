@@ -21,6 +21,12 @@ export {
     HtmlOrSimpleMarkdownText,
 } from "./SimpleMarkdownText.js"
 export {
+    DOD_TIPPY_PROPS,
+    initializeDetailsOnDemand,
+    renderDodContentHtml,
+    type InitializeDetailsOnDemandOptions,
+} from "./detailsOnDemand.js"
+export {
     getLinkType,
     getUrlTarget,
     checkIsInternalLink,

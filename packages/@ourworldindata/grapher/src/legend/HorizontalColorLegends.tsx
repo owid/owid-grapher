@@ -87,6 +87,7 @@ export interface HorizontalColorLegendManager {
     onLegendMouseEnter?: (d: ColorScaleBin) => void
     onLegendMouseLeave?: () => void
     onLegendMouseOver?: (d: ColorScaleBin) => void
+    onLegendTouchSelect?: (d: ColorScaleBin) => void
     onLegendClick?: (d: ColorScaleBin) => void
     isStatic?: boolean
     resolveLegendBinEmphasis?: (bin: ColorScaleBin) => Emphasis
@@ -104,6 +105,10 @@ const DEFAULT_TICK_SIZE = 3
 const CATEGORICAL_BIN_MIN_WIDTH = 20
 const SPACE_BETWEEN_CATEGORICAL_BINS = 7
 const MINIMUM_LABEL_DISTANCE = 5
+
+const stopPointerDownPropagation = (event: React.PointerEvent): void => {
+    event.stopPropagation()
+}
 
 export abstract class HorizontalColorLegend extends React.Component<{
     manager: HorizontalColorLegendManager
@@ -494,6 +499,79 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
 
         const bottomY = this.numericLegendY + height
 
+        const onPointerEnter =
+            (bin: ColorScaleBin) =>
+            (event: React.PointerEvent): void => {
+                if (
+                    event.pointerType === "touch" &&
+                    this.manager.onLegendTouchSelect
+                )
+                    return
+
+                this.manager.onLegendMouseEnter?.(bin)
+                this.manager.onLegendMouseOver?.(bin)
+            }
+        const onPointerLeave = (event: React.PointerEvent): void => {
+            if (
+                event.pointerType === "touch" &&
+                this.manager.onLegendTouchSelect
+            )
+                return
+
+            this.manager.onLegendMouseLeave?.()
+        }
+        const onPointerUp =
+            (bin: ColorScaleBin) =>
+            (event: React.PointerEvent): void => {
+                if (event.pointerType === "touch")
+                    this.manager.onLegendTouchSelect?.(bin)
+            }
+
+        const renderBin = (
+            positionedBin: PositionedBin,
+            isHighlightOverlay = false
+        ): React.ReactElement => {
+            const bin = positionedBin.bin
+            const style = this.getMarkerStyleConfig(bin)
+            const fill = bin.patternRef ? `url(#${bin.patternRef})` : style.fill
+
+            return (
+                <NumericBinRect
+                    key={
+                        isHighlightOverlay
+                            ? `highlight-${positionedBin.x}`
+                            : positionedBin.x
+                    }
+                    x={positionedBin.x}
+                    y={bottomY - numericBinSize}
+                    width={positionedBin.width}
+                    height={numericBinSize}
+                    fill={isHighlightOverlay ? "none" : fill}
+                    stroke={style.stroke}
+                    strokeWidth={style.strokeWidth}
+                    opacity={style.opacity}
+                    isOpenLeft={
+                        bin instanceof NumericBin ? bin.props.isOpenLeft : false
+                    }
+                    isOpenRight={
+                        bin instanceof NumericBin
+                            ? bin.props.isOpenRight
+                            : false
+                    }
+                    pointerEvents={isHighlightOverlay ? "none" : undefined}
+                    onPointerEnter={
+                        isHighlightOverlay ? undefined : onPointerEnter(bin)
+                    }
+                    onPointerLeave={
+                        isHighlightOverlay ? undefined : onPointerLeave
+                    }
+                    onPointerUp={
+                        isHighlightOverlay ? undefined : onPointerUp(bin)
+                    }
+                />
+            )
+        }
+
         const textColor =
             this.legendStyleConfig?.text?.default?.color ?? DEFAULT_TEXT_COLOR
 
@@ -502,6 +580,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 ref={this.base}
                 id={makeFigmaId("numeric-color-legend")}
                 className="numericColorLegend"
+                onPointerDown={stopPointerDownPropagation}
             >
                 <g id={makeFigmaId("lines")}>
                     {numericLabels.map((label, index) => {
@@ -531,48 +610,22 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                     })}
                 </g>
                 <g id={makeFigmaId("swatches")}>
-                    {_.sortBy(
-                        positionedBins.map((positionedBin, index) => {
-                            const bin = positionedBin.bin
-                            const style = this.getMarkerStyleConfig(bin)
-
-                            const fill = bin.patternRef
-                                ? `url(#${bin.patternRef})`
-                                : style.fill
-
-                            return (
-                                <NumericBinRect
-                                    key={index}
-                                    x={positionedBin.x}
-                                    y={bottomY - numericBinSize}
-                                    width={positionedBin.width}
-                                    height={numericBinSize}
-                                    fill={fill}
-                                    stroke={style.stroke}
-                                    strokeWidth={style.strokeWidth}
-                                    opacity={style.opacity}
-                                    isOpenLeft={
-                                        bin instanceof NumericBin
-                                            ? bin.props.isOpenLeft
-                                            : false
-                                    }
-                                    isOpenRight={
-                                        bin instanceof NumericBin
-                                            ? bin.props.isOpenRight
-                                            : false
-                                    }
-                                    onMouseEnter={() => {
-                                        this.manager.onLegendMouseEnter?.(bin)
-                                        this.manager.onLegendMouseOver?.(bin)
-                                    }}
-                                    onMouseLeave={() =>
-                                        this.manager.onLegendMouseLeave?.()
-                                    }
-                                />
-                            )
-                        }),
-                        (rect) => rect.props["strokeWidth"]
+                    {positionedBins.map((positionedBin) =>
+                        renderBin(positionedBin)
                     )}
+                    {/*
+                        Render highlighted bins last so their stroke is painted above adjacent bins.
+                        Note that this renders the highlighted bin twice, once in its normal place and once in the highlight layer here.
+
+                        Another option to solve the cosmetic stroke issue would be to sort their bins by their emphasis state, but that has caused issues with React event handlers becoming detached from the elements and `pointerleave` events not firing.
+                    */}
+                    {positionedBins
+                        .filter(
+                            (positionedBin) =>
+                                this.getBinState(positionedBin.bin) ===
+                                Emphasis.Highlighted
+                        )
+                        .map((positionedBin) => renderBin(positionedBin, true))}
                 </g>
                 <g id={makeFigmaId("labels")}>
                     {numericLabels.map((label, index) => {
@@ -594,6 +647,24 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                         )
                     })}
                 </g>
+                {this.manager.onLegendTouchSelect && (
+                    // Add invisible hit areas above each swatch for touch interaction.
+                    // They are the height of the legend labels, and only handle touch events.
+                    <g id={makeFigmaId("swatch-hit-areas")} aria-hidden="true">
+                        {positionedBins.map((positionedBin, index) => (
+                            <rect
+                                key={index}
+                                x={positionedBin.x}
+                                y={this.numericLegendY}
+                                width={positionedBin.width}
+                                height={Math.max(0, height - numericBinSize)}
+                                fill="transparent"
+                                pointerEvents="all"
+                                onPointerUp={onPointerUp(positionedBin.bin)}
+                            />
+                        ))}
+                    </g>
+                )}
                 {this.legendTitle && (
                     <TextWrapSvg
                         textWrap={this.legendTitle}
@@ -863,28 +934,36 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         return (
             <g>
                 {marks.map((mark, index) => {
-                    const mouseEnter = (): void =>
-                        manager.onLegendMouseEnter
-                            ? manager.onLegendMouseEnter(mark.bin)
-                            : undefined
-                    const mouseOver = (): void =>
-                        manager.onLegendMouseOver
-                            ? manager.onLegendMouseOver(mark.bin)
-                            : undefined
-                    const mouseLeave = (): void =>
-                        manager.onLegendMouseLeave
-                            ? manager.onLegendMouseLeave()
-                            : undefined
-                    const click = manager.onLegendClick
-                        ? (): void => manager.onLegendClick?.(mark.bin)
-                        : undefined
+                    const isTouchSelection = (
+                        event: React.PointerEvent
+                    ): boolean =>
+                        event.pointerType === "touch" &&
+                        !!manager.onLegendTouchSelect
+                    const pointerEnter = (event: React.PointerEvent): void => {
+                        if (!isTouchSelection(event))
+                            manager.onLegendMouseEnter?.(mark.bin)
+                    }
+                    const pointerOver = (event: React.PointerEvent): void => {
+                        if (!isTouchSelection(event))
+                            manager.onLegendMouseOver?.(mark.bin)
+                    }
+                    const pointerLeave = (event: React.PointerEvent): void => {
+                        if (!isTouchSelection(event))
+                            manager.onLegendMouseLeave?.()
+                    }
+                    const pointerUp = (event: React.PointerEvent): void => {
+                        if (event.pointerType === "touch")
+                            manager.onLegendTouchSelect?.(mark.bin)
+                    }
+                    const click = () => manager.onLegendClick?.(mark.bin)
 
                     return (
                         <g
                             key={`${mark.label}-${index}`}
-                            onMouseEnter={mouseEnter}
-                            onMouseOver={mouseOver}
-                            onMouseLeave={mouseLeave}
+                            onPointerEnter={pointerEnter}
+                            onPointerOver={pointerOver}
+                            onPointerLeave={pointerLeave}
+                            onPointerUp={pointerUp}
                             onClick={click}
                             style={{ cursor: manager.legendCursor }}
                         >
@@ -915,6 +994,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
             <g
                 id={makeFigmaId("categorical-color-legend")}
                 className="categoricalColorLegend"
+                onPointerDown={stopPointerDownPropagation}
             >
                 {this.renderSwatches()}
                 {this.renderLabels()}

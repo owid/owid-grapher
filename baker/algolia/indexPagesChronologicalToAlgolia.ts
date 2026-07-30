@@ -47,7 +47,7 @@ Gdoc IDs: ${unfittedRecords.map((r) => r.objectID).join(", ")}`
 
     await client.replaceAllObjects({
         indexName,
-        objects: fittedRecords as Array<Record<string, unknown>>,
+        objects: fittedRecords,
     })
 
     console.log(`Indexed ${records.length} records to ${indexName}`)

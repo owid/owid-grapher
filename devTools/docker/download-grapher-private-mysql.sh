@@ -7,10 +7,7 @@ set -o nounset
 # that the public owid_metadata.sql.gz ships schema-only (see
 # db/exportPrivateData.ts).
 #
-# Access options, in order of preference:
-#   - OWID_PRIVATE_DUMP_URL env var (e.g. a presigned URL)
-#   - rclone with access to r2:owid-private (staging servers have this)
-#
+# Requires rclone with access to r2:owid-private (staging servers have this).
 # Without access we skip gracefully — the private tables just stay empty,
 # which is the same experience external contributors get.
 
@@ -22,10 +19,7 @@ mkdir -p $FOLDER
 # by an earlier run — "no access" must really mean "tables stay empty".
 rm -f "$FOLDER/owid_private.sql.gz"
 
-if [[ -n "${OWID_PRIVATE_DUMP_URL:-}" ]]; then
-    echo "Downloading private dump (owid_private) from \$OWID_PRIVATE_DUMP_URL"
-    curl -fLo $FOLDER/owid_private.sql.gz "$OWID_PRIVATE_DUMP_URL"
-elif command -v rclone >/dev/null 2>&1 && rclone lsf r2:owid-private/owid_private.sql.gz >/dev/null 2>&1; then
+if command -v rclone >/dev/null 2>&1 && rclone lsf r2:owid-private/owid_private.sql.gz >/dev/null 2>&1; then
     echo "Downloading private dump (owid_private) from r2:owid-private"
     rclone copyto r2:owid-private/owid_private.sql.gz $FOLDER/owid_private.sql.gz
 else

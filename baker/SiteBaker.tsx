@@ -48,10 +48,7 @@ import {
     LinkedStaticViz,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
-import {
-    getCloudflarePagesRedirects,
-    flushCache as redirectsFlushCache,
-} from "./redirects.js"
+import { getCloudflarePagesRedirects } from "./redirects.js"
 import { bakeAllChangedGrapherPagesAndDeleteRemovedGraphers } from "./GrapherBaker.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import {
@@ -96,7 +93,7 @@ import { getPublicDonorNames } from "../db/model/Donor.js"
 import { getNarrativeChartsInfo } from "../db/model/NarrativeChart.js"
 import { getLinkedStaticVizByNames } from "../db/model/StaticViz.js"
 import {
-    getExplorerToMultiDimRedirects,
+    getExplorerRedirects,
     getGrapherToChartAndMultiDimRedirects,
 } from "./redirectsFromDb.js"
 import * as R from "remeda"
@@ -157,9 +154,7 @@ export type BakeStepConfig = Set<BakeStep>
 const defaultSteps = new Set(bakeSteps)
 
 function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
-    // There are 2 non-optional steps: flushCache at the beginning and flushCache at the end (again)
-    const minimum = 2
-    return minimum + bakeSteps.size
+    return bakeSteps.size
 }
 
 export class SiteBaker {
@@ -1160,7 +1155,10 @@ export class SiteBaker {
             JSON.stringify(Object.fromEntries(grapherRedirects), null, 2)
         )
 
-        const explorerRedirects = await getExplorerToMultiDimRedirects(knex, "")
+        // Per-slug explorer redirects, resolved by the explorers Cloudflare Pages
+        // Function (see functions/_common/redirectTools.ts). Each value is either
+        // a plain target slug or a query-param decision tree.
+        const explorerRedirects = await getExplorerRedirects(knex, "")
         await this.stageWrite(
             path.join(this.bakedSiteDir, `explorers/_explorerRedirects.json`),
             JSON.stringify(Object.fromEntries(explorerRedirects), null, 2)
@@ -1212,12 +1210,9 @@ export class SiteBaker {
     }
 
     async bakeAll(knex: db.KnexReadonlyTransaction) {
-        // Ensure caches are correctly initialized
-        this.flushCache()
         await this.removeDeletedPosts(knex)
         await this.bakeWordpressPages(knex)
         await this._bakeNonWordpressPages(knex)
-        this.flushCache()
     }
 
     async ensureDir(relPath: string) {
@@ -1243,12 +1238,6 @@ export class SiteBaker {
 
     async endDbConnections() {
         await db.closeTypeOrmAndKnexConnections()
-    }
-
-    private flushCache() {
-        this.progressBar.tick({ name: "Flushing cache" })
-        // Clear caches to allow garbage collection while waiting for next run
-        redirectsFlushCache()
     }
 }
 

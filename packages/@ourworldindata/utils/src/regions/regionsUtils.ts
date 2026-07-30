@@ -94,6 +94,8 @@ export const getRegionDataProviders = lazy(() =>
 const PROVIDER_REGION_BACKFILLS: Partial<Record<RegionDataProvider, string[]>> =
     {
         ilo_2: ["Arab States (ILO)"],
+        // Australia and New Zealand is a fao_2 subregion but also an FAO SDG region; back-fill it into fao_sdg.
+        fao_sdg: ["Australia and New Zealand (FAO)"],
     }
 
 export const getAggregatesByProvider = (

@@ -351,16 +351,7 @@ export async function getDataset(
     )
     dataset.tags = tags
 
-    const availableTags = await db.knexRaw<{
-        id: number
-        name: string
-    }>(
-        trx,
-        `-- sql
-        SELECT t.id, t.name
-        FROM tags t
-        `
-    )
+    const availableTags = await db.getMinimalTagsWithMetadata(trx)
     dataset.availableTags = availableTags
 
     // Fetch explorers that use variables or charts from this dataset
@@ -375,7 +366,24 @@ export async function getDataset(
     }>(
         trx,
         `-- sql
-            SELECT DISTINCT
+            -- Compute the set of explorer slugs that contain variables from this dataset
+            WITH explorer_slugs AS (
+                -- Indicator-based explorers
+                SELECT ev.explorerSlug AS slug
+                FROM explorer_variables ev
+                JOIN variables v ON v.id = ev.variableId
+                WHERE v.datasetId = ?
+
+                UNION
+
+                -- Chart-based explorers
+                SELECT ec.explorerSlug AS slug
+                FROM explorer_charts ec
+                JOIN chart_dimensions cd ON cd.chartId = ec.chartId
+                JOIN variables v ON v.id = cd.variableId
+                WHERE v.datasetId = ?
+            )
+            SELECT
                 e.slug,
                 e.config->>'$.explorerTitle' as title,
                 e.isPublished,
@@ -384,25 +392,13 @@ export async function getDataset(
                 u.fullName as lastEditedByUserName,
                 ROUND(COALESCE(ap.views_365d, 0) / 365, 1) as pageviewsPerDay
             FROM explorers e
+            JOIN explorer_slugs s ON e.slug = s.slug
             LEFT JOIN users u ON u.id = e.lastEditedByUserId
-            LEFT JOIN analytics_pageviews ap ON ap.url = CONCAT('https://ourworldindata.org/explorers/', e.slug)
-            WHERE e.slug IN (
-                -- Indicator-based explorers
-                SELECT DISTINCT ev.explorerSlug
-                FROM explorer_variables ev
-                JOIN variables v ON v.id = ev.variableId
-                WHERE v.datasetId = ?
-
-                UNION
-
-                -- Chart-based explorers
-                SELECT DISTINCT ec.explorerSlug
-                FROM explorer_charts ec
-                JOIN charts c ON c.id = ec.chartId
-                JOIN chart_dimensions cd ON cd.chartId = c.id
-                JOIN variables v ON v.id = cd.variableId
-                WHERE v.datasetId = ?
-            )
+            -- analytics_pageviews has one row per url per day, so restrict to
+            -- the latest day to avoid multiplying rows per explorer.
+            LEFT JOIN analytics_pageviews ap
+                ON ap.url = CONCAT('https://ourworldindata.org/explorers/', e.slug)
+                AND ap.day = (SELECT MAX(day) FROM analytics_pageviews)
             ORDER BY pageviewsPerDay DESC
         `,
         [datasetId, datasetId]

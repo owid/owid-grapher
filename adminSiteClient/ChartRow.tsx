@@ -19,11 +19,16 @@ import {
     excludeUndefined,
 } from "@ourworldindata/utils"
 import { Dropdown } from "antd"
+import {
+    getTagGraphRolesById,
+    MinimalTagWithMetadata,
+} from "./TagGraphMetadata.js"
 
 interface ChartRowProps {
     chart: ChartListItem
     searchHighlight?: (text: string) => string | React.ReactElement
-    availableTags: DbChartTagJoin[]
+    availableTags: MinimalTagWithMetadata[]
+    tagGraphRolesById: ReturnType<typeof getTagGraphRolesById>
     onDelete: (chart: ChartListItem) => void
     showInheritanceColumn?: boolean
 }
@@ -55,8 +60,13 @@ export class ChartRow extends React.Component<ChartRowProps> {
     }
 
     override render() {
-        const { chart, searchHighlight, availableTags, showInheritanceColumn } =
-            this.props
+        const {
+            chart,
+            searchHighlight,
+            availableTags,
+            tagGraphRolesById,
+            showInheritanceColumn,
+        } = this.props
 
         const highlight = searchHighlight || lodash.identity
 
@@ -123,6 +133,7 @@ export class ChartRow extends React.Component<ChartRowProps> {
                     <EditableTags
                         tags={chart.tags}
                         suggestions={availableTags}
+                        tagGraphRolesById={tagGraphRolesById}
                         onSave={this.onSaveTags}
                         hasKeyChartSupport
                         hasSuggestionsSupport
