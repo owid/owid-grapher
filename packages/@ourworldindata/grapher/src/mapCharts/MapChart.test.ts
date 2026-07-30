@@ -49,9 +49,7 @@ it("pins a map bracket selected by touch until the next touch", () => {
 
     expect(chart.hoverBracket).toBe(firstBracket)
 
-    chart.onDocumentPointerDown({
-        pointerType: "touch",
-    } as globalThis.PointerEvent)
+    chart.onDocumentPointerDown()
 
     expect(chart.hoverBracket).toBeUndefined()
 
