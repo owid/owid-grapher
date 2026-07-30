@@ -242,9 +242,9 @@ export class MapChart
     }
 
     // Clear the pinned hover bracket when the user taps outside of the legend.
-    // This only applies to when the hover bracket is pinned because of a touch event-
-    // But it doesn't check that the pointer event here is a touch event, because otherwise we would get into weird states
-    // with hybrid devices that have both touch and mouse input.
+    // This only applies to when the hover bracket is currently pinned because of a touch event.
+    // But it doesn't check that the pointer event here is a touch event, because otherwise we would
+    // get into weird states with hybrid devices that have both touch and mouse input.
     @action.bound onDocumentPointerDown(): void {
         if (!this.isHoverBracketPinnedBecauseOfTouchEvent) return
 
