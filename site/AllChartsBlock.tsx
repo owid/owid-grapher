@@ -437,15 +437,19 @@ export const AllChartsBlock = ({
         placeholderData: keepPreviousData,
     })
 
-    const hits = data ?? []
+    // Memoized so the `stableHits` sort below doesn't rerun on every render
+    // just because `data` is still undefined and `?? []` minted a fresh array.
+    const filteredHits = useMemo(() => data ?? [], [data])
 
-    // A second, stable "topic only" query (no text/country/producer filters)
-    // used purely to derive the suggested chips below the search box. Basing
-    // the chips on this baseline rather than the live, filtered `hits` above
-    // means they stay put as shortcuts back into the full list instead of
-    // shrinking or reordering as the visitor narrows their search. When no
-    // filters are active yet (the common initial state), this shares its
-    // cache entry — and network request — with the query above.
+    // A second, stable "topic only" query (no text/country/producer filters),
+    // used for two things: deriving the suggested chips below the search box,
+    // and fixing the canonical row order of the topic's chart list (see
+    // `stableHits` below). Basing the chips on this baseline rather than the
+    // live, filtered hits above means they stay put as shortcuts back into
+    // the full list instead of shrinking or reordering as the visitor narrows
+    // their search. When no filters are active yet (the common initial state),
+    // this shares its cache entry — and network request — with the query
+    // above.
     const baseSearchState = useMemo(
         () => ({
             query: "",
@@ -472,6 +476,49 @@ export const AllChartsBlock = ({
         () => computeAutoSuggestedChips(baseHits ?? [], regionNames, topicName),
         [baseHits, regionNames, topicName]
     )
+
+    // Position of each chart within the *unfiltered* topic list, i.e. the row
+    // order the visitor sees before they type anything.
+    const baselineOrder = useMemo(() => {
+        const order = new Map<string, number>()
+        ;(baseHits ?? []).forEach((hit, index) => {
+            order.set(hit.objectID, index)
+        })
+        return order
+    }, [baseHits])
+
+    // Algolia orders hits by textual relevance to the current query, so the
+    // moment the visitor types (a country, say) the surviving rows get
+    // re-ranked and the list visibly reshuffles — the same indicator jumps
+    // from row 8 to row 1 and back again as they keep typing. There's no
+    // server-side fix that keeps the block's default order intact: an Algolia
+    // replica sorted by some attribute would override the index's own custom
+    // ranking (which is what produces the sensible default order in the first
+    // place), and `relevancyStrictness` only prunes low-relevance hits, it
+    // doesn't stabilise the order of the ones that survive.
+    //
+    // Instead, treat the unfiltered topic list as the canonical order and
+    // re-impose it client-side: searching then only ever *removes* rows, and
+    // whatever remains keeps the relative order it had in the full list. This
+    // deliberately keeps the index's custom-ranking order as the default,
+    // rather than substituting a blunter deterministic sort (alphabetical by
+    // title), which would be stable but would also throw away the
+    // relevance/importance ordering of the unfiltered list.
+    //
+    // The baseline is a strict superset of the filtered result set in the
+    // normal case — it's the same topic facet with everything else relaxed —
+    // but it isn't guaranteed to be (e.g. the featured-metric facet the
+    // shared query adds only for non-empty search text, or the baseline
+    // simply not having resolved yet on a very fast first keystroke). Hits
+    // missing from it all rank equal-last, and `Array.prototype.sort` is
+    // stable, so they're appended in their original Algolia order rather than
+    // being dropped or shuffled.
+    const stableHits = useMemo(() => {
+        if (baselineOrder.size === 0) return filteredHits
+        const rank = (hit: SearchChartHit) =>
+            baselineOrder.get(hit.objectID) ?? Number.MAX_SAFE_INTEGER
+        return [...filteredHits].sort((a, b) => rank(a) - rank(b))
+    }, [filteredHits, baselineOrder])
 
     // Editorially curated suggestions (set on the gdoc block) take precedence
     // when present, preserving the pre-existing authoring workflow. Every
@@ -526,7 +573,7 @@ export const AllChartsBlock = ({
                     query={query}
                     onQueryChange={setQuery}
                     suggestedChips={suggestedChips}
-                    hits={hits}
+                    hits={stableHits}
                     isLoading={isLoading}
                     isFetching={isFetching}
                     detectedCountries={detectedCountries}
@@ -787,8 +834,6 @@ const AllChartsTableRow = ({
     onSelect: () => void
     detectedCountries: string[]
 }) => {
-    const chartUrl = constructChartUrl({ hit })
-
     // Entities from the query that are actually available on this chart.
     const shownEntities = pickEntitiesForChartHit(hit, detectedCountries)
 
@@ -796,7 +841,7 @@ const AllChartsTableRow = ({
 
     // Enter/Space activate the row the same way a native <button> would —
     // needed because the click target below is a div (it has to wrap the
-    // source column and arrow-link too, not just the title/subtitle), so we
+    // source column and arrow too, not just the title/subtitle), so we
     // reimplement that bit of native button keyboard behavior ourselves.
     const handleRowKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
         if (event.key === "Enter" || event.key === " ") {
@@ -811,9 +856,9 @@ const AllChartsTableRow = ({
                 "all-charts-block__row--selected": isSelected,
             })}
         >
-            {/* The whole row (title/subtitle, source column, and arrow-link
-                area) is a single click/keyboard target for selecting the row
-                on desktop or expanding/collapsing its mobile accordion. */}
+            {/* The whole row (title/subtitle, source column, and arrow) is a
+                single click/keyboard target for selecting the row on desktop
+                or expanding/collapsing its mobile accordion. */}
             <div
                 className="all-charts-block__row-main"
                 role="button"
@@ -843,20 +888,22 @@ const AllChartsTableRow = ({
                         {producers.join(", ")}
                     </span>
                 </span>
-                {/* Its own navigation action ("view chart"), distinct from
-                    selecting/expanding the row — stop the click from also
-                    bubbling to the row's onClick above so it doesn't
-                    additionally toggle selection/expansion on its way to
-                    navigating away. */}
-                <a
-                    className="all-charts-block__row-link"
-                    href={chartUrl}
-                    aria-label={`Open ${hit.title}`}
-                    data-track-note="all-charts-row-link"
-                    onClick={(event) => event.stopPropagation()}
+                {/* Purely decorative. This used to be a link to the chart's
+                    own page, which meant the row had two competing click
+                    targets — select/expand nearly everywhere, navigate away
+                    in the last 44px — and needed a stopPropagation to keep
+                    them apart. Navigating to the chart page is now the job of
+                    the "Explore this data" button under the chart itself (see
+                    AllChartsSidecar), so the arrow is just an affordance
+                    hinting that the row does something: no href, no handler
+                    of its own, hidden from assistive tech, and out of the tab
+                    order, leaving the whole row as one clean click target. */}
+                <span
+                    className="all-charts-block__row-arrow"
+                    aria-hidden="true"
                 >
                     <FontAwesomeIcon icon={faArrowRight} />
-                </a>
+                </span>
             </div>
             {/* Mobile/tablet accordion panel: the persistent sidecar
                 (all-charts-block__right) is hidden below that breakpoint, so
@@ -894,22 +941,45 @@ const AllChartsSidecar = ({
     const configUrl =
         hit.type === "chart" ? undefined : constructConfigUrl({ hit })
 
+    // The chart's own page (grapher page, or the explorer for explorer views),
+    // built exactly the way the row's arrow link used to build it — that
+    // navigation affordance moved down here (see AllChartsTableRow).
+    const chartUrl = constructChartUrl({ hit })
+
     return (
-        <GrapherWithFallback
-            // Remount when the selected indicator changes so Grapher fully
-            // re-initializes (config, tabs, entity selection).
-            key={`${hit.objectID}${queryStr}`}
-            slug={hit.type === "chart" ? hit.slug : undefined}
-            configUrl={configUrl}
-            className="all-charts-block__grapher"
-            id={`all-charts-grapher-${hit.objectID}`}
-            queryStr={queryStr}
-            enablePopulatingUrlParams={false}
-            isEmbeddedInAnOwidPage={true}
-            isEmbeddedInADataPage={false}
-            config={{ enableKeyboardShortcuts: false }}
-            isPreviewing={isPreviewing}
-        />
+        <>
+            <GrapherWithFallback
+                // Remount when the selected indicator changes so Grapher fully
+                // re-initializes (config, tabs, entity selection).
+                key={`${hit.objectID}${queryStr}`}
+                slug={hit.type === "chart" ? hit.slug : undefined}
+                configUrl={configUrl}
+                className="all-charts-block__grapher"
+                id={`all-charts-grapher-${hit.objectID}`}
+                queryStr={queryStr}
+                enablePopulatingUrlParams={false}
+                isEmbeddedInAnOwidPage={true}
+                isEmbeddedInADataPage={false}
+                config={{ enableKeyboardShortcuts: false }}
+                isPreviewing={isPreviewing}
+            />
+            {/* Lives inside the sidecar rather than alongside it so it follows
+                the chart into the mobile accordion too
+                (.all-charts-block__row-accordion), where the persistent
+                sidecar is hidden — otherwise narrow viewports would lose the
+                only remaining way into the chart's own page. */}
+            <div className="all-charts-block__sidecar-actions">
+                <Button
+                    className="all-charts-block__explore-button"
+                    theme="solid-light-blue"
+                    text="Explore this data"
+                    href={chartUrl}
+                    icon={faArrowRight}
+                    iconPosition="right"
+                    dataTrackNote="all-charts-explore-data"
+                />
+            </div>
+        </>
     )
 }
 
