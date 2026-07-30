@@ -245,9 +245,10 @@ export class MapChart
     // This only applies to when the hover bracket is currently pinned because of a touch event.
     // But it doesn't check that the pointer event here is a touch event, because otherwise we would
     // get into weird states with hybrid devices that have both touch and mouse input.
+    //
+    // Note that the legend itself stops propagation of pointer events, so this event handler will
+    // only be called when the user taps outside of the legend.
     @action.bound onDocumentPointerDown(): void {
-        if (!this.isHoverBracketPinnedBecauseOfTouchEvent) return
-
         this.hoverBracket = undefined
         this.isHoverBracketPinnedBecauseOfTouchEvent = false
     }

@@ -106,6 +106,10 @@ const CATEGORICAL_BIN_MIN_WIDTH = 20
 const SPACE_BETWEEN_CATEGORICAL_BINS = 7
 const MINIMUM_LABEL_DISTANCE = 5
 
+const stopPointerDownPropagation = (event: React.PointerEvent): void => {
+    event.stopPropagation()
+}
+
 export abstract class HorizontalColorLegend extends React.Component<{
     manager: HorizontalColorLegendManager
 }> {
@@ -576,6 +580,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 ref={this.base}
                 id={makeFigmaId("numeric-color-legend")}
                 className="numericColorLegend"
+                onPointerDown={stopPointerDownPropagation}
             >
                 <g id={makeFigmaId("lines")}>
                     {numericLabels.map((label, index) => {
@@ -989,6 +994,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
             <g
                 id={makeFigmaId("categorical-color-legend")}
                 className="categoricalColorLegend"
+                onPointerDown={stopPointerDownPropagation}
             >
                 {this.renderSwatches()}
                 {this.renderLabels()}
