@@ -173,9 +173,7 @@ export const useLinkedDocument = (
     }
 
     const urlTarget = getUrlTarget(url)
-    linkedDocument = linkedDocuments?.[urlTarget] as
-        | OwidGdocMinimalPostInterface
-        | undefined
+    linkedDocument = linkedDocuments?.[urlTarget]
 
     if (!linkedDocument) {
         errorMessage = `Google doc URL ${url} isn't registered.`

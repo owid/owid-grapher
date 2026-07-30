@@ -3,6 +3,7 @@ import fs from "fs-extra"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import pMap from "p-map"
+import * as R from "remeda"
 import { ARCHIVE_BASE_URL } from "../../settings/clientSettings.js"
 import { WIKIPEDIA_ARCHIVE_BASE_URL } from "../../settings/serverSettings.js"
 
@@ -104,8 +105,9 @@ async function createWikipediaArchive(opts: {
     if (dryRun) console.log("(dry run — no files will be written)")
 
     const files = await walkDir(inputDir)
-    const htmlFiles = files.filter((f) => f.endsWith(".html"))
-    const otherFiles = files.filter((f) => !f.endsWith(".html"))
+    const [htmlFiles, otherFiles] = R.partition(files, (f) =>
+        f.endsWith(".html")
+    )
 
     console.log(
         `Found ${files.length} files (${htmlFiles.length} HTML, ${otherFiles.length} other)`

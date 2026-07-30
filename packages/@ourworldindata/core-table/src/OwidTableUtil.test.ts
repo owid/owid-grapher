@@ -26,6 +26,5 @@ describe(toPercentageColumnDef, () => {
         const percentageColumn = newTable.get(SampleColumnSlugs.GDP)
 
         expect(percentageColumn.formatValue(10.12)).toEqual("10.1%")
-        expect(percentageColumn.formatValueForMobile(10.12)).toEqual("10.1%")
     })
 })

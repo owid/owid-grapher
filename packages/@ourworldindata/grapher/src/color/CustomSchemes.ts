@@ -448,11 +448,29 @@ export const ContinentColors = {
     "Latin America (WID)": OwidMapColors.SoftOrange,
     "Europe (WID)": OwidMapColors.MutedTeal,
     "Russia and Central Asia (WID)": OwidMapColors.SoftPurple,
-    "MENA (WID)": OwidMapColors.Sand,
+    "Middle East and North Africa (WID)": OwidMapColors.Sand,
     "Sub-Saharan Africa (WID)": OwidMapColors.MutedCherry,
     "East Asia (WID)": OwidMapColors.LeafGreen,
-    "South & South-East Asia (WID)": OwidMapColors.SkyTurquoise,
+    "South and South-East Asia (WID)": OwidMapColors.SkyTurquoise,
     "Oceania (WID)": OwidMapColors.Lavendar,
+
+    // Energy Institute regions
+    "North America (EI)": OwidMapColors.SoftOrange,
+    "South and Central America (EI)": OwidMapColors.MutedCherry,
+    "Europe (EI)": OwidMapColors.MutedDenim,
+    "CIS (EI)": OwidMapColors.LightDenim,
+    "Middle East (EI)": OwidMapColors.Sand,
+    "Africa (EI)": OwidMapColors.LightPurple,
+    "Asia Pacific (EI)": OwidMapColors.LeafGreen,
+
+    // Ember regions
+    "North America (Ember)": OwidMapColors.SoftOrange,
+    "Latin America and Caribbean (Ember)": OwidMapColors.MutedCherry,
+    "Europe (Ember)": OwidMapColors.MutedDenim,
+    "Africa (Ember)": OwidMapColors.LightPurple,
+    "Middle East (Ember)": OwidMapColors.Sand,
+    "Asia (Ember)": OwidMapColors.MutedTeal,
+    "Oceania (Ember)": OwidMapColors.SkyTurquoise,
 
     // ILO regions are intentionally NOT pinned: "Arab States (ILO)" is shared by both ILO
     // tiers and sits at a different palette position in each, so one name-keyed color can't

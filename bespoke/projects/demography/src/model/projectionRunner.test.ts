@@ -139,7 +139,7 @@ function makeMinimalCountryData(): CountryData {
             deaths: { female: {}, male: {} },
             migration: {},
         },
-    } as unknown as CountryData
+    }
 }
 
 // -- Tests --

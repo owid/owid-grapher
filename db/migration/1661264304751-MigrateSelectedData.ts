@@ -51,7 +51,7 @@ export class MigrateSelectedData1661264304751 implements MigrationInterface {
             return legacyConfig ?? {}
         }
 
-        const newConfig = { ...legacyConfig } as GrapherInterfaceBeforeMigration
+        const newConfig = { ...legacyConfig }
 
         // Migrate selected entities
         newConfig.selectedEntityIds = _.uniq(

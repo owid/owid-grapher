@@ -28,7 +28,7 @@ import { InitialAnchoredLabelSeries } from "../anchoredLabels/AnchoredLabelsType
 import { AnchoredLabelsState } from "../anchoredLabels/AnchoredLabelsState"
 import { AnchoredLabels } from "../anchoredLabels/AnchoredLabels"
 import { resolveCollision, toPlacedStackedAreaSeries } from "./StackedUtils"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { resolveEmphasis } from "../interaction/Emphasis.js"
 
 const LEGEND_PADDING = 4
@@ -233,7 +233,7 @@ export class StackedAreaChartThumbnail
     override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
-                <NoDataModal
+                <NoDataMessage
                     manager={this.manager}
                     bounds={this.props.bounds}
                     message={this.chartState.errorInfo.reason}

@@ -78,7 +78,7 @@ export function* getDescriptionLines(
     if (descriptionKey) {
         yield ""
         yield `### What you should know about this data`
-        for (const desc of descriptionKey) yield `* ${desc.trim()}`
+        yield descriptionKey.trim()
     }
 
     if (def.descriptionFromProducer) {

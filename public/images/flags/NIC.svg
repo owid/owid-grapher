@@ -10,8 +10,8 @@
       <stop offset="1" stop-color="red"/>
     </linearGradient>
     <linearGradient id="ni-b" x1="484.8" x2="484.8" y1="311.7" y2="317.6" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#F5F549"/>
-      <stop offset="1" stop-color="#97C924"/>
+      <stop offset="0" stop-color="#f5f549"/>
+      <stop offset="1" stop-color="#97c924"/>
     </linearGradient>
     <linearGradient id="ni-a">
       <stop offset="0" stop-color="#025"/>

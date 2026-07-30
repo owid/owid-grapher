@@ -5,7 +5,9 @@
 //
 // By default, only each table's structure is exported, with no rows.
 // For data to be exported, it must be explicitly included in the
-// INCLUDE_DATA_TABLES list in exportMetadataTables.ts.
+// PUBLIC_DATA_TABLES list in exportMetadataTables.ts. Sensitive/internal
+// tables (PRIVATE_DATA_TABLES) ship structure-only here; their data travels
+// in the private sidecar dump (exportPrivateData.ts).
 //
 // As a backstop, the script fails if it encounters a table that isn't
 // classified in any of those lists, forcing whoever added it to make a
@@ -26,7 +28,8 @@ import {
 } from "../settings/serverSettings.js"
 import { execWrapper } from "./execWrapper.js"
 import {
-    INCLUDE_DATA_TABLES,
+    PUBLIC_DATA_TABLES,
+    PRIVATE_DATA_TABLES,
     SCHEMA_ONLY_TABLES,
     findUnclassifiedTables,
     unclassifiedTablesErrorMessage,
@@ -53,9 +56,11 @@ async function assertAllTablesClassified(): Promise<void> {
     }
 
     const allTablesSet = new Set(allTables)
-    const stale = [...INCLUDE_DATA_TABLES, ...SCHEMA_ONLY_TABLES].filter(
-        (t) => !allTablesSet.has(t)
-    )
+    const stale = [
+        ...PUBLIC_DATA_TABLES,
+        ...PRIVATE_DATA_TABLES,
+        ...SCHEMA_ONLY_TABLES,
+    ].filter((t) => !allTablesSet.has(t))
     if (stale.length > 0) {
         console.warn(
             `exportMetadata: these listed tables no longer exist and can be ` +
@@ -133,7 +138,7 @@ async function dataExport(): Promise<void> {
 
     // 2. Append data only for the whitelisted tables.
     await execWrapper(
-        `mysqldump --no-defaults --default-character-set=utf8mb4 --no-tablespaces --column-statistics --no-create-info -u '${GRAPHER_DB_USER}' -h '${GRAPHER_DB_HOST}' -P ${GRAPHER_DB_PORT} ${GRAPHER_DB_NAME} ${INCLUDE_DATA_TABLES.join(
+        `mysqldump --no-defaults --default-character-set=utf8mb4 --no-tablespaces --column-statistics --no-create-info -u '${GRAPHER_DB_USER}' -h '${GRAPHER_DB_HOST}' -P ${GRAPHER_DB_PORT} ${GRAPHER_DB_NAME} ${PUBLIC_DATA_TABLES.join(
             " "
         )} >> ${filePath}`
     )

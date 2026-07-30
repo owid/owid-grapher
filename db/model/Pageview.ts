@@ -15,7 +15,7 @@ export async function assertAnalyticsPageviewsPopulated(
     )
     if (result[0].count === 0) {
         throw new Error(
-            `The ${AnalyticsPageviewsTableName} table is empty. Please populate it running make refresh.analytics`
+            `The ${AnalyticsPageviewsTableName} table is empty. Please populate it running make refresh.private`
         )
     }
 }

@@ -8,7 +8,7 @@ import {
 import { BasicDropdownOption } from "@ourworldindata/grapher"
 import { Tippy } from "@ourworldindata/utils"
 
-import { groupByUserLocation } from "../../../../components/EntityDropdown/EntityDropdown.js"
+import { orderOptionsByRelevance } from "../../../../components/EntityDropdown/EntityDropdown.js"
 import {
     type DropdownCollection,
     InlineLabeledDropdown,
@@ -131,8 +131,11 @@ function CountryDropdown({
             .filter((e) => e.name !== OTHERS_ENTITY_NAME)
             .map((e) => ({ value: e.name, label: e.name }))
             .sort((a, b) => a.label.localeCompare(b.label))
-        return groupByUserLocation(flat, userCountryInfo)
-    }, [metadata.entities, userCountryInfo])
+        return orderOptionsByRelevance(flat, {
+            userCountryInfo,
+            selectedValue: country,
+        })
+    }, [metadata.entities, userCountryInfo, country])
 
     return (
         <InlineLabeledDropdown

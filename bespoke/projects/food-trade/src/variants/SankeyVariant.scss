@@ -50,3 +50,7 @@
 .food-trade-chart--narrow .food-trade-captioned-chart__chart-area {
     height: 380px;
 }
+
+.food-trade-chart .tooltip-container.fixed-bottom .content-and-endmatter {
+    max-height: min(230px, 35vh);
+}

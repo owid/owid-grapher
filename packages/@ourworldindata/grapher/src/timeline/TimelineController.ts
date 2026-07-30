@@ -23,7 +23,6 @@ export enum TimelineDragTarget {
 
 export interface TimelineManager {
     disablePlay?: boolean
-    formatTimeFn?: (time: Time) => string
     timeColumn?: TimeColumn
     isTimelineAnimationPlaying?: boolean
     isTimelineAnimationActive?: boolean

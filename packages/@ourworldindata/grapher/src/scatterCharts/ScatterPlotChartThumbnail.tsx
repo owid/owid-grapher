@@ -17,7 +17,7 @@ import { ScatterPlotManager } from "./ScatterPlotChartConstants"
 import { toSizeRange } from "./ScatterUtils"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 
 @observer
 export class ScatterPlotChartThumbnail
@@ -94,7 +94,7 @@ export class ScatterPlotChartThumbnail
     override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
-                <NoDataModal
+                <NoDataMessage
                     manager={this.manager}
                     bounds={this.props.bounds}
                     message={this.chartState.errorInfo.reason}
@@ -109,7 +109,7 @@ export class ScatterPlotChartThumbnail
                     showEndpointsOnly={true}
                 />
                 <ScatterPointsWithLabels
-                    noDataModalManager={this.manager}
+                    noDataMessageManager={this.manager}
                     isConnected={this.chartState.isConnected}
                     hideConnectedScatterLines={
                         !!this.manager.hideConnectedScatterLines

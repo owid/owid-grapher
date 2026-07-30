@@ -1,6 +1,12 @@
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { LogoOption, RelatedQuestionsConfig } from "@ourworldindata/types"
+import {
+    CHART_LICENSES,
+    DEFAULT_CHART_LICENSE,
+    LicenseOption,
+    LogoOption,
+    RelatedQuestionsConfig,
+} from "@ourworldindata/types"
 import { getErrorMessageRelatedQuestionUrl } from "@ourworldindata/grapher"
 import { copyToClipboard, slugify } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable, runInAction } from "mobx"
@@ -14,6 +20,7 @@ import {
     Button,
     RadioGroup,
     Section,
+    SelectField,
     TextField,
     Toggle,
 } from "./Forms.js"
@@ -79,6 +86,13 @@ export class EditorTextTab<
             this.props.editor.grapherState.logo =
                 (value as LogoOption) || undefined
         }
+    }
+
+    @action.bound onChangeLicense(value: string) {
+        this.props.editor.grapherState.license =
+            value === DEFAULT_CHART_LICENSE
+                ? undefined
+                : (value as LicenseOption)
     }
 
     @action.bound onAddRelatedQuestion() {
@@ -434,6 +448,16 @@ export class EditorTextTab<
                         softCharacterLimit={140}
                         errorMessage={this.errorMessages.note}
                         textarea
+                    />
+                    <SelectField
+                        label="License"
+                        value={grapherState.license ?? DEFAULT_CHART_LICENSE}
+                        onValue={this.onChangeLicense}
+                        options={Object.values(LicenseOption).map((value) => ({
+                            value,
+                            label: CHART_LICENSES[value].name,
+                        }))}
+                        helpText="The Creative Commons license linked in the chart footer. Only change this if a data provider requires stricter terms."
                     />
                 </Section>
 

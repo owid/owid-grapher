@@ -19,6 +19,7 @@ export const SiteSearchNavigation = ({
                 onClose={onClose}
                 placeholder="Search for a topic, chart or article..."
                 isPreviewing={isPreviewing}
+                searchSource="topnav"
             />
         </div>
     )

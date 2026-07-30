@@ -10,6 +10,8 @@ export const ExpandableToggle = ({
     isExpandedDefault = false,
     isStacked = false,
     hasTeaser = false,
+    contentId,
+    onToggle,
 }: {
     label: string
     content?: ReactNode
@@ -17,6 +19,9 @@ export const ExpandableToggle = ({
     isExpandedDefault?: boolean
     isStacked?: boolean
     hasTeaser?: boolean
+    contentId?: string
+    /** Called with the new open state whenever the toggle expands or collapses. */
+    onToggle?: (isOpen: boolean) => void
 }) => (
     <details
         className={cx("ExpandableToggle", {
@@ -24,6 +29,12 @@ export const ExpandableToggle = ({
             "ExpandableToggle--teaser": hasTeaser,
         })}
         open={isExpandedDefault}
+        // React 19 simulates bubbling for `toggle`, so a nested <details>
+        // inside the content would otherwise fire this handler too. Guard to
+        // only react to this element's own toggle.
+        onToggle={(e) => {
+            if (e.target === e.currentTarget) onToggle?.(e.currentTarget.open)
+        }}
     >
         <summary className="ExpandableToggle__container">
             <div className="ExpandableToggle__button">
@@ -55,6 +66,8 @@ export const ExpandableToggle = ({
                 </div>
             )}
         </summary>
-        <div className="ExpandableToggle__content">{content}</div>
+        <div className="ExpandableToggle__content" id={contentId}>
+            {content}
+        </div>
     </details>
 )

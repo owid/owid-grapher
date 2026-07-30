@@ -32,7 +32,7 @@ import { StackedBars } from "./StackedBars"
 import { InitialAnchoredLabelSeries } from "../anchoredLabels/AnchoredLabelsTypes.js"
 import { AnchoredLabelsState } from "../anchoredLabels/AnchoredLabelsState"
 import { AnchoredLabels } from "../anchoredLabels/AnchoredLabels"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { resolveEmphasis } from "../interaction/Emphasis.js"
 
 const LEGEND_PADDING = 4
@@ -239,7 +239,7 @@ export class StackedBarChartThumbnail
     override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
-                <NoDataModal
+                <NoDataMessage
                     manager={this.manager}
                     bounds={this.props.bounds}
                     message={this.chartState.errorInfo.reason}

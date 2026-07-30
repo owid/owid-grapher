@@ -6,6 +6,7 @@ import {
     DisplaySource,
     IndicatorTitleWithFragments,
     OwidSource,
+    PrimaryTopic,
 } from "@ourworldindata/types"
 import * as _ from "lodash-es"
 import { excludeUndefined } from "./Util"
@@ -180,7 +181,7 @@ export const prepareSourcesForDisplay = (
     return sourcesForDisplay
 }
 
-const getYearSuffixFromOrigin = (o: OwidOrigin): string => {
+export const getYearSuffixFromOrigin = (o: OwidOrigin): string => {
     const year = o.dateAccessed
         ? dayjs(o.dateAccessed, ["YYYY-MM-DD", "YYYY"]).year()
         : o.datePublished
@@ -272,6 +273,38 @@ export const getCitationLong = (
         citationUrl
             ? `Retrieved ${today} from ${citationUrl}${archivalString ? ` ${archivalString}` : ""}`
             : undefined,
+    ]).join(" ")
+}
+
+// The "How to cite this page" citation, covering the OWID-authored data page as
+// a whole (descriptions, FAQs, etc.) rather than just the underlying data.
+export const getCitationDatapage = (
+    indicatorTitle: IndicatorTitleWithFragments,
+    origins: OwidOrigin[],
+    source: OwidSource | undefined,
+    primaryTopic: PrimaryTopic | undefined,
+    citationUrl: string | undefined,
+    archivalDate: string | undefined
+): string => {
+    const currentYear = dayjs().year()
+    const producers = _.uniq(origins.map((o) => `${o.producer}`))
+    const adaptedFrom =
+        producers.length > 0 ? producers.join(", ") : source?.name
+
+    // Add a period to the primary topic citation unless it already ends with a
+    // period or question mark.
+    const maybeAddPeriod = (s: string): string =>
+        s.endsWith("?") || s.endsWith(".") ? s : `${s}.`
+    const primaryTopicCitation = maybeAddPeriod(primaryTopic?.citation ?? "")
+    const archivalString = getPhraseForArchivalDate(archivalDate)
+    return excludeUndefined([
+        primaryTopic
+            ? `“Data Page: ${indicatorTitle.title}”, part of the following publication: ${primaryTopicCitation}`
+            : `“Data Page: ${indicatorTitle.title}”. Our World in Data (${currentYear}).`,
+        adaptedFrom ? `Data adapted from ${adaptedFrom}.` : undefined,
+        `Retrieved from ${citationUrl} [online resource]${
+            archivalString ? ` ${archivalString}` : ""
+        }`,
     ]).join(" ")
 }
 

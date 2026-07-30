@@ -29,11 +29,6 @@ npx tsx --tsconfig tsconfig.tsx.json devTools/worker/explorerJobsWorker.ts
 
 # Loop mode - continuous polling
 npx tsx --tsconfig tsconfig.tsx.json devTools/worker/explorerJobsWorker.ts --loop
-
-# Or compile and run
-yarn tsc --project devTools/worker/tsconfig.json
-node devTools/worker/dist/explorerJobsWorker.js
-node devTools/worker/dist/explorerJobsWorker.js --loop
 ```
 
 ### Production
@@ -52,13 +47,6 @@ pm2 start --interpreter="npx" --interpreter-args="tsx --tsconfig tsconfig.tsx.js
 ```bash
 # Long-running service with continuous polling
 pm2 start --interpreter="npx" --interpreter-args="tsx --tsconfig tsconfig.tsx.json" devTools/worker/explorerJobsWorker.ts --name "explorer-jobs-worker" -- --loop
-```
-
-#### Option 3: System Cron
-
-```bash
-# Add to crontab for periodic execution
-*/5 * * * * /usr/bin/node /path/to/explorerJobsWorker.js
 ```
 
 ## Configuration

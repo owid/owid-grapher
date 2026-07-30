@@ -9,6 +9,7 @@ interface RedirectListItem {
     slug: string
     chartId: number
     chartSlug: string
+    targetQueryParam: string | null
 }
 
 interface RedirectRowProps {
@@ -23,6 +24,9 @@ function RedirectRow({ redirect, onDelete }: RedirectRowProps) {
             <td>
                 <Link to={`/charts/${redirect.chartId}/edit`}>
                     {redirect.chartSlug}
+                    {redirect.targetQueryParam
+                        ? `?${redirect.targetQueryParam}`
+                        : ""}
                 </Link>
             </td>
             <td>

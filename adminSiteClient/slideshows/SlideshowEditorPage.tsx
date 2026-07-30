@@ -9,7 +9,7 @@ import {
 import * as React from "react"
 import { useHistory } from "react-router-dom"
 import cx from "clsx"
-import { Button, Dropdown, Popconfirm, Tabs, Tooltip } from "antd"
+import { Button, Dropdown, Modal, Popconfirm, Tabs, Tooltip } from "antd"
 import type { MenuProps } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -340,6 +340,18 @@ export function SlideshowEditorPage(props: {
         history.push("/slideshows")
     }, [admin, isCreate, props.slideshowId, history])
 
+    const confirmDeleteSlideshow = useCallback(() => {
+        Modal.confirm({
+            title: "Delete this entire slideshow?",
+            content:
+                "All slides in this deck will be permanently deleted. This cannot be undone.",
+            okText: "Delete slideshow",
+            okType: "danger",
+            cancelText: "Cancel",
+            onOk: deleteSlideshow,
+        })
+    }, [deleteSlideshow])
+
     const canSave = slug.trim().length > 0 && title.trim().length > 0
 
     const addSlideMenuItems: MenuProps["items"] = (
@@ -572,14 +584,9 @@ export function SlideshowEditorPage(props: {
                             </Popconfirm>
                         )}
                         {!isCreate && (
-                            <Popconfirm
-                                title="Are you sure you want to delete this slideshow? This cannot be undone."
-                                onConfirm={deleteSlideshow}
-                                okText="Yes"
-                                cancelText="No"
-                            >
-                                <Button danger>Delete</Button>
-                            </Popconfirm>
+                            <Button danger onClick={confirmDeleteSlideshow}>
+                                Delete slideshow
+                            </Button>
                         )}
                     </div>
 
@@ -638,18 +645,21 @@ export function SlideshowEditorPage(props: {
                             <FontAwesomeIcon icon={faClone} />
                         </Button>
                         <Popconfirm
-                            title="Are you sure you want to delete this slide?"
+                            title="Delete this slide?"
                             onConfirm={deleteSlide}
                             okText="Yes"
                             cancelText="No"
                         >
-                            <Button
-                                size="small"
-                                danger
-                                disabled={slides.length <= 1}
-                            >
-                                <FontAwesomeIcon icon={faTrash} />
-                            </Button>
+                            <Tooltip title="Delete slide">
+                                <Button
+                                    size="small"
+                                    danger
+                                    disabled={slides.length <= 1}
+                                    aria-label="Delete slide"
+                                >
+                                    <FontAwesomeIcon icon={faTrash} />
+                                </Button>
+                            </Tooltip>
                         </Popconfirm>
                         <Dropdown
                             menu={{ items: addSlideMenuItems }}

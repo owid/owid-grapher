@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' && github.event.action == 'opened' && github.actor == 'sophiamersmann'
     permissions:
-      issues: write
+      pull-requests: write
     steps:
       - uses: andymckay/labeler@e6c4322d0397f3240f0e7e30a33b5c5df2d39e90 # 1.0.4
         with:

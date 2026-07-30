@@ -23,7 +23,7 @@ import {
     TagGraphRootName,
     FlatTagGraph,
     FlatTagGraphNode,
-    MinimalTagWithIsTopic,
+    MinimalTagWithMetadata,
     DbPlainPostGdocLink,
     ContentGraphLinkType,
     OwidGdoc,
@@ -417,6 +417,11 @@ export const getHomepageAnnouncements = (
         AND pg.publishedAt <= NOW()
         AND pg.type = '${OwidGdocType.Announcement}'
         AND pg.publicationContext = 'listed'
+        -- Topic updates are surfaced as topic pages in the homepage's featured
+        -- work column, so listing them here too would show them twice.
+        -- COALESCE because a kicker-less announcement has a JSON NULL here,
+        -- which would otherwise make the comparison NULL and drop the row.
+        AND COALESCE(pg.content ->> '$.kicker', '') != 'topic-update'
         ORDER BY pg.publishedAt DESC
         LIMIT 3
         `
@@ -809,20 +814,55 @@ export async function updateTagGraph(
     }
 }
 
-export function getMinimalTagsWithIsTopic(
+type RawMinimalTagWithMetadata = Omit<
+    MinimalTagWithMetadata,
+    "isTopic" | "isSearchable"
+> & {
+    isTopic: 0 | 1
+    isSearchable: 0 | 1
+}
+
+export function getMinimalTagsWithMetadata(
     knex: KnexReadonlyTransaction
-): Promise<MinimalTagWithIsTopic[]> {
-    return knexRaw<MinimalTagWithIsTopic>(
+): Promise<MinimalTagWithMetadata[]> {
+    return knexRaw<RawMinimalTagWithMetadata>(
         knex,
         `-- sql
+        WITH RECURSIVE tags_in_graph AS (
+            SELECT id
+            FROM tags
+            WHERE name = '${TagGraphRootName}'
+
+            UNION DISTINCT
+
+            SELECT tg.childId
+            FROM tag_graph tg
+            JOIN tags_in_graph parent ON tg.parentId = parent.id
+        )
         SELECT t.id,
         t.name,
         t.slug,
+        CASE
+            WHEN EXISTS (
+                SELECT 1
+                FROM tag_graph tg
+                JOIN tags root ON tg.parentId = root.id
+                WHERE tg.childId = t.id
+                    AND root.name = '${TagGraphRootName}'
+            ) THEN 'area'
+            WHEN NOT EXISTS (
+                SELECT 1
+                FROM tags_in_graph
+                WHERE tags_in_graph.id = t.id
+            ) THEN 'orphan'
+            ELSE 'descendant'
+        END AS tagGraphRole,
         t.slug IS NOT NULL AND MAX(IF(pg.type IN (:types), TRUE, FALSE)) AS isTopic,
         (t.slug IS NOT NULL AND MAX(IF(pg.type IN (:types), TRUE, FALSE))) OR t.searchableInAlgolia AS isSearchable
         FROM tags t
         LEFT JOIN posts_gdocs_x_tags gt ON t.id = gt.tagId
         LEFT JOIN posts_gdocs pg ON gt.gdocId = pg.id
+        WHERE t.name != '${TagGraphRootName}'
         GROUP BY t.id, t.name
         ORDER BY t.name ASC
     `,
@@ -833,6 +873,12 @@ export function getMinimalTagsWithIsTopic(
                 OwidGdocType.Article,
             ],
         }
+    ).then((tags) =>
+        tags.map((tag) => ({
+            ...tag,
+            isTopic: Boolean(tag.isTopic),
+            isSearchable: Boolean(tag.isSearchable),
+        }))
     )
 }
 

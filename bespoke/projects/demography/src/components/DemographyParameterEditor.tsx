@@ -384,6 +384,7 @@ function DemographyParameterEditorContent({
                         minValue={minValue}
                         yScale={yScale}
                         axisUnit={config.axisUnit}
+                        displayScale={config.displayScale}
                         fontSize={fonts.yTick}
                     />
 
@@ -651,9 +652,18 @@ function DemographyParameterEditorContent({
                         <ControlPointEditor
                             value={controlPoints[editing.year]}
                             step={config.step}
-                            decimals={config.decimals}
+                            decimals={config.displayDecimals ?? config.decimals}
                             min={config.inputMin ?? yScale.domain()[0]}
                             max={config.inputMax ?? yScale.domain()[1]}
+                            displayScale={config.displayScale}
+                            // Pass the unit only for scaled params (e.g. ‰→%) so
+                            // the editor renders it (natively, for "%"); unscaled
+                            // params keep a bare number.
+                            unit={
+                                config.displayScale
+                                    ? config.axisUnit
+                                    : undefined
+                            }
                             modified={isModified}
                             onCommit={(value) =>
                                 handleChange({
@@ -878,6 +888,8 @@ function ControlPointEditor({
     decimals,
     min,
     max,
+    displayScale = 1,
+    unit,
     modified,
     onCommit,
     onClose,
@@ -887,6 +899,9 @@ function ControlPointEditor({
     decimals: number
     min: number
     max: number
+    // Factor to scale the internal value by for display; onCommit converts back.
+    displayScale?: number
+    unit?: string
     modified: boolean
     onCommit: (value: number) => void
     onClose: () => void
@@ -901,6 +916,31 @@ function ControlPointEditor({
         onInteractOutside: onClose,
     })
 
+    // Convert between the stored value and the value react-aria displays.
+    // For "%", Intl's "percent" style renders value×100 with a "%" suffix, so
+    // the display value is a fraction; otherwise it's the scaled value shown as
+    // a plain decimal. The transform is linear through the origin, so it applies
+    // to min/max/step too. clean() strips floating-point noise (e.g. 0.1×0.1 =
+    // 0.010000000000000002) that would otherwise corrupt react-aria's stepper,
+    // which counts a step's decimal places via step.toString().
+    const isPercent = unit === "%"
+    const clean = (n: number): number => Number(n.toPrecision(12))
+    const toDisplay = (v: number): number =>
+        clean(isPercent ? (v * displayScale) / 100 : v * displayScale)
+    const fromDisplay = (v: number): number =>
+        clean(isPercent ? (v * 100) / displayScale : v / displayScale)
+    const formatOptions: Intl.NumberFormatOptions = isPercent
+        ? {
+              style: "percent",
+              minimumFractionDigits: decimals,
+              maximumFractionDigits: decimals,
+          }
+        : {
+              minimumFractionDigits: decimals,
+              maximumFractionDigits: decimals,
+              useGrouping: false,
+          }
+
     return (
         <div
             ref={containerRef}
@@ -910,16 +950,12 @@ function ControlPointEditor({
             }
         >
             <NumberField
-                value={value}
-                onChange={onCommit}
-                minValue={min}
-                maxValue={max}
-                step={step}
-                formatOptions={{
-                    minimumFractionDigits: decimals,
-                    maximumFractionDigits: decimals,
-                    useGrouping: false,
-                }}
+                value={toDisplay(value)}
+                onChange={(v) => onCommit(fromDisplay(v))}
+                minValue={toDisplay(min)}
+                maxValue={toDisplay(max)}
+                step={toDisplay(step)}
+                formatOptions={formatOptions}
                 autoFocus
                 aria-label="Value"
                 onKeyDown={(e) => {
@@ -1143,6 +1179,7 @@ function YAxisGridLines({
     minValue,
     yScale,
     axisUnit,
+    displayScale = 1,
     fontSize,
 }: {
     maxGridLines: number | undefined
@@ -1151,6 +1188,7 @@ function YAxisGridLines({
     minValue: number
     yScale: ReturnType<typeof scaleLinear<number>>
     axisUnit: string
+    displayScale?: number
     fontSize: number
 }) {
     const defaultCount = innerHeight < 80 ? 2 : 3
@@ -1179,9 +1217,9 @@ function YAxisGridLines({
                             fontSize={fontSize}
                             fill={GRID_LABEL_COLOR}
                         >
-                            {Math.round(tick * 10) / 10}
-                            {axisUnit === "‰"
-                                ? "‰"
+                            {Math.round(tick * displayScale * 100) / 100}
+                            {axisUnit === "%"
+                                ? "%"
                                 : tick === topTick
                                   ? ` ${axisUnit}`
                                   : ""}

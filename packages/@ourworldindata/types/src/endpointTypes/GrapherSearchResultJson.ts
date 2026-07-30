@@ -16,6 +16,7 @@ export type GrapherSearchResultJson = {
     entityType: string
     entityTypePlural: string
     unit?: string
+    numAvailableEntities?: number
 }
 
 export interface SearchChartHitDataTableProps {

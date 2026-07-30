@@ -31,15 +31,19 @@ export class SiteAnalytics extends GrapherAnalytics {
         query,
         url,
         position,
+        source,
     }: {
         query: string
         url: string
         position: string
+        /** Where the autocomplete was rendered, e.g. "topnav", "homepage",
+         * "datapage". Lets us distinguish which search bar was used. */
+        source?: string
     }) {
         this.logToGA({
             event: EventCategory.SiteInstantSearchClick,
             eventAction: "click",
-            eventContext: JSON.stringify({ query, position }),
+            eventContext: JSON.stringify({ query, position, source }),
             eventTarget: url,
         })
     }

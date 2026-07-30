@@ -1,4 +1,5 @@
 import cx from "clsx"
+import * as _ from "lodash-es"
 import { Highlight } from "react-instantsearch"
 import { CHARTS_INDEX } from "./searchUtils.js"
 import { SearchChartHit } from "@ourworldindata/types"
@@ -54,20 +55,7 @@ export function SearchChartHitHeader({
                             </span>
                         )}
                     </div>
-                    {subtitle && subtitle !== hit.subtitle ? (
-                        <div className="search-chart-hit-header__subtitle">
-                            {subtitle}
-                        </div>
-                    ) : hit.subtitle ? (
-                        <Highlight
-                            hit={hit}
-                            attribute="subtitle"
-                            highlightedTagName="strong"
-                            classNames={{
-                                root: "search-chart-hit-header__subtitle",
-                            }}
-                        />
-                    ) : null}
+                    <SearchChartHitSubtitle hit={hit} subtitle={subtitle} />
                     {source && (
                         <span className="search-chart-hit-header__source search-chart-hit-header__source--mobile">
                             Source: {source}
@@ -76,5 +64,41 @@ export function SearchChartHitHeader({
                 </div>
             </div>
         </a>
+    )
+}
+
+function SearchChartHitSubtitle({
+    hit,
+    subtitle,
+}: {
+    hit: SearchChartHit
+    subtitle?: string // fresh subtitle from the live-fetched grapher
+}) {
+    const hasSubtitle = !!subtitle || !!hit.subtitle
+
+    if (!hit.titleVariant && !hasSubtitle) return null
+
+    // Prefer the fresh subtitle when it differs from the indexed one
+    const shouldUseFreshSubtitle = !!subtitle && subtitle !== hit.subtitle
+
+    return (
+        <div className="search-chart-hit-header__subtitle">
+            {hit.titleVariant && (
+                <span className="search-chart-hit-header__title-variant">
+                    {_.upperFirst(hit.titleVariant)}
+                </span>
+            )}
+            {/* Separator only when a subtitle follows the variant */}
+            {hit.titleVariant && hasSubtitle ? " – " : null}
+            {shouldUseFreshSubtitle ? (
+                subtitle
+            ) : hit.subtitle ? (
+                <Highlight
+                    hit={hit}
+                    attribute="subtitle"
+                    highlightedTagName="strong"
+                />
+            ) : null}
+        </div>
     )
 }

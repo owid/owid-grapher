@@ -10,7 +10,7 @@ import {
     ENV,
 } from "../settings/serverSettings.js"
 import { SiteBaker } from "../baker/SiteBaker.js"
-import { WebClient } from "@slack/web-api"
+import { WebAPIPlatformError, WebClient } from "@slack/web-api"
 import { DeployChange, DeployMetadata } from "@ourworldindata/utils"
 import { KnexReadonlyTransaction } from "../db/db.js"
 
@@ -143,9 +143,8 @@ const getSlackMentionByEmail = _.memoize(
             return response.user?.id ? `<@${response.user.id}>` : undefined
         } catch (error) {
             // Handle users_not_found gracefully - user might not be in Slack workspace
-            if (error && typeof error === "object" && "data" in error) {
-                const slackError = error as { data?: { error?: string } }
-                if (slackError.data?.error === "users_not_found") {
+            if (error instanceof WebAPIPlatformError) {
+                if (error.data?.error === "users_not_found") {
                     console.warn(`User not found in Slack workspace: ${email}`)
                     return undefined
                 }

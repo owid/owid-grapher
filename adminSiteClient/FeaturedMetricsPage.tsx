@@ -282,7 +282,7 @@ function FeaturedMetricSection({
                     onPressEnter={() => {
                         if (!newFeaturedMetricInputValue || !isValid) {
                             notification.error({
-                                message: "Please enter a valid URL",
+                                title: "Please enter a valid URL",
                             })
                             return
                         }

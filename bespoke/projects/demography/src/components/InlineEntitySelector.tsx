@@ -18,7 +18,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { EntityName } from "@ourworldindata/types"
 
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
-import { groupByUserLocation } from "../../../../components/EntityDropdown/EntityDropdown.js"
+import { orderOptionsByRelevance } from "../../../../components/EntityDropdown/EntityDropdown.js"
 
 import { DemographyMetadata } from "../helpers/types.js"
 import { displayEntityName, entityNameForSentence } from "../helpers/utils.js"
@@ -100,8 +100,11 @@ function EntityListBox({
             value: name,
             label: displayEntityName(name),
         }))
-        return groupByUserLocation(flat, userCountryInfo) as OptionCollection
-    }, [availableCountries, userCountryInfo])
+        return orderOptionsByRelevance(flat, {
+            userCountryInfo,
+            selectedValue: selectedEntityName,
+        }) as OptionCollection
+    }, [availableCountries, userCountryInfo, selectedEntityName])
 
     return (
         <Autocomplete filter={contains}>
@@ -147,7 +150,7 @@ function EntityListBox({
                                     className="option"
                                     key={option.value}
                                     id={option.value}
-                                    textValue={option.label}
+                                    textValue={displayEntityName(option.value)}
                                 >
                                     {option.label}
                                 </ListBoxItem>
@@ -158,7 +161,7 @@ function EntityListBox({
                             className="option"
                             key={item.value}
                             id={item.value}
-                            textValue={item.label}
+                            textValue={displayEntityName(item.value)}
                         >
                             {item.label}
                         </ListBoxItem>

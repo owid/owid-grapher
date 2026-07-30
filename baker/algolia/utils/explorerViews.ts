@@ -40,7 +40,6 @@ import {
     EnrichedExplorerRecord,
     EntitiesByColumnDictionary,
     ExplorerIndicatorMetadataDictionary,
-    ExplorerIndicatorMetadataFromDb,
     ExplorerViewBaseRecord,
     ExplorerViewGrapherInfo,
     GrapherEnrichedExplorerViewRecord,
@@ -184,16 +183,18 @@ async function fetchIndicatorMetadata(
         .whereIn("v.id", [...ids])
         .orWhereIn("v.catalogPath", [...etlPaths])
 
-    const metadataFromDB = rawMetadataFromDb.map((row) => ({
+    const metadataFromDB = rawMetadataFromDb.map<
+        ExplorerIndicatorMetadataDictionary[string]
+    >((row) => ({
         ...row,
         display: row.display ? JSON.parse(row.display) : {},
         datasetProducers: parseJsonStringArray(row.datasetProducers),
-    })) as ExplorerIndicatorMetadataFromDb[]
+    }))
 
     const indicatorMetadataByIdAndPath = {
         ..._.keyBy(metadataFromDB, "id"),
         ..._.keyBy(metadataFromDB, "catalogPath"),
-    } as ExplorerIndicatorMetadataDictionary
+    }
 
     async function fetchEntitiesForId(id: number) {
         const metadata = await fetchS3MetadataByPath(

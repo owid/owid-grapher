@@ -106,9 +106,6 @@ import {
     RawBlockLatestDataInsights,
     EnrichedBlockLatestDataInsights,
     EnrichedFaq,
-    RawBlockEntrySummary,
-    EnrichedBlockEntrySummary,
-    EnrichedBlockEntrySummaryItem,
     RawBlockTable,
     EnrichedBlockTable,
     EnrichedBlockTableRow,
@@ -288,7 +285,6 @@ export function parseRawBlocksToEnrichedBlocks(
         )
         .with({ type: "expandable-paragraph" }, parseExpandableParagraph)
         .with({ type: "align" }, parseAlign)
-        .with({ type: "entry-summary" }, parseEntrySummary)
         .with({ type: "explorer-tiles" }, parseExplorerTiles)
         .with({ type: "table" }, parseTable)
         .with({ type: "key-indicator" }, parseKeyIndicator)
@@ -569,7 +565,7 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
     if (typeof val === "string") {
         return {
             type: "chart",
-            url: val,
+            url: extractUrl(val),
             size: BlockSize.Wide,
             parseErrors: [],
         }
@@ -754,7 +750,7 @@ const parseChartStory = (raw: RawBlockChartStory): EnrichedBlockChartStory => {
                 narrative: htmlToEnrichedTextBlock(item.narrative),
                 chart: {
                     type: "chart",
-                    url: chart,
+                    url: extractUrl(chart),
                     size: BlockSize.Wide,
                     parseErrors: [],
                 },
@@ -1273,7 +1269,7 @@ function parseChartRows(raw: RawBlockChartRows): EnrichedBlockChartRows {
 
         enrichedRows.push({
             image: row.image,
-            url: row.url,
+            url: extractUrl(row.url),
             content: enrichedContent,
         })
     }
@@ -1347,7 +1343,7 @@ function parsePullChart(raw: RawBlockPullChart): EnrichedBlockPullChart {
         type: "pull-chart",
         align: validAlign,
         image,
-        url,
+        url: extractUrl(url),
         content: enrichedContent,
         parseErrors,
     }
@@ -1853,7 +1849,7 @@ const parseSdgGrid = (raw: RawBlockSDGGrid): EnrichedBlockSDGGrid => {
                 ]
             // TODO: make the type not just a string and then parse spans here
             const goal = item.goal
-            const link = item.link
+            const link = extractUrl(item.link)
 
             //const errors = goal.parseErrors.concat(link.parseErrors)
 
@@ -2260,6 +2256,7 @@ function parseTopicPageIntro(
         downloadButton
             ? {
                   ...downloadButton,
+                  url: extractUrl(downloadButton.url),
                   type: "topic-page-intro-download-button",
               }
             : undefined
@@ -2275,7 +2272,7 @@ function parseTopicPageIntro(
             }
 
             const url = extractUrl(relatedTopic.url)
-            const { isGoogleDoc } = Url.fromURL(relatedTopic.url)
+            const { isGoogleDoc } = Url.fromURL(url)
             if (!isGoogleDoc && !relatedTopic.text) {
                 return createError({
                     message:
@@ -2793,34 +2790,6 @@ function parseAlign(b: RawBlockAlign): EnrichedBlockAlign {
         alignment: b.value.alignment as HorizontalAlign,
         content: _.compact(b.value.content.map(parseRawBlocksToEnrichedBlocks)),
         parseErrors: [],
-    }
-}
-
-function parseEntrySummary(
-    raw: RawBlockEntrySummary
-): EnrichedBlockEntrySummary {
-    const parseErrors: ParseError[] = []
-    const items: EnrichedBlockEntrySummaryItem[] = []
-
-    if (raw.value.items) {
-        raw.value.items.forEach((item, i) => {
-            if (!item.text || !item.slug) {
-                parseErrors.push({
-                    message: `entry-summary item ${i} is not valid. It must have a text and a slug property`,
-                })
-            } else {
-                items.push({
-                    text: item.text,
-                    slug: item.slug,
-                })
-            }
-        })
-    }
-
-    return {
-        type: "entry-summary",
-        items,
-        parseErrors,
     }
 }
 

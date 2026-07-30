@@ -55,10 +55,22 @@ function isEmptyFieldValue(value: unknown): boolean {
 }
 
 /**
+ * Fields that are never carried across a slide conversion, even when both the
+ * source and target templates happen to share the name. `template` is the
+ * discriminant. `variant` is a template-specific layout setting whose allowed
+ * values differ per template (e.g. Image vs. Statement), so carrying it over
+ * could produce an invalid enum value; conversion always resets it to the
+ * target template's default.
+ */
+const NON_CARRIED_FIELDS = new Set(["template", "variant"])
+
+/**
  * Convert a slide to a different template, carrying over every field that also
  * exists on the target template. Required fields missing on the source are
  * backfilled from `makeDefaultSlideForTemplate` so the result is always valid.
  * Chart URLs are renamed when converting between Chart and Two Charts.
+ * Template-specific layout settings (see `NON_CARRIED_FIELDS`) are never carried
+ * and reset to the target template's default.
  */
 export function convertSlide(slide: Slide, target: SlideTemplate): Slide {
     const result: Record<string, unknown> = {
@@ -67,9 +79,10 @@ export function convertSlide(slide: Slide, target: SlideTemplate): Slide {
     const targetFields = new Set(SLIDE_TEMPLATE_FIELDS[target])
     const source = slide as Record<string, unknown>
 
-    // Copy over every shared field (except the discriminant), skipping undefined
+    // Copy over every shared field, skipping the discriminant, template-specific
+    // layout settings, and undefined values
     for (const [key, value] of Object.entries(source)) {
-        if (key === "template") continue
+        if (NON_CARRIED_FIELDS.has(key)) continue
         if (value === undefined) continue
         if (targetFields.has(key)) {
             result[key] = value
@@ -125,7 +138,10 @@ export function describeConversionLoss(
 
     const droppedFields: string[] = []
     for (const [key, value] of Object.entries(source)) {
-        if (key === "template") continue
+        // Skip the discriminant and template-specific layout settings: resetting
+        // `variant` is a layout change, not content loss, so it shouldn't be
+        // reported in the warning.
+        if (NON_CARRIED_FIELDS.has(key)) continue
         if (isEmptyFieldValue(value)) continue
         if (targetFields.has(key)) continue
         if (renamedFields.has(key)) continue

@@ -818,7 +818,7 @@ function makeLinkKey(source: string, target: string): string {
 }
 
 function toLinkData(link: LaidOutLink): SankeyLink {
-    const l = link as SankeyLink & LaidOutLink
+    const l = link
     return {
         source: makeNodeId(link.source),
         target: makeNodeId(link.target),

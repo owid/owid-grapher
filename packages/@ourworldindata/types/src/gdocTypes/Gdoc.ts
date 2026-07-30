@@ -4,7 +4,7 @@ import {
     RelatedChart,
 } from "../grapherTypes/GrapherTypes.js"
 import { BreadcrumbItem } from "../domainTypes/Site.js"
-import { TocHeadingWithTitleSupertitle } from "../domainTypes/Toc.js"
+import { TocHeadingWithSupertitle } from "../domainTypes/Toc.js"
 import { ImageMetadata } from "./Image.js"
 import {
     EnrichedBlockSocials,
@@ -14,7 +14,7 @@ import {
     OwidRawGdocBlock,
     RefDictionary,
 } from "./ArchieMlComponents.js"
-import { MinimalTag } from "../dbTypes/Tags.js"
+import { DbPlainTag, MinimalTag } from "../dbTypes/Tags.js"
 import { DbEnrichedLatestWork } from "../domainTypes/Author.js"
 import { QueryParams } from "../domainTypes/Various.js"
 import { TagGraphRoot } from "../domainTypes/ContentGraph.js"
@@ -122,9 +122,7 @@ export enum OwidGdocType {
     Profile = "profile",
 }
 
-export const ALL_GDOC_TYPES: OwidGdocType[] = Object.values(
-    OwidGdocType
-) as OwidGdocType[]
+export const ALL_GDOC_TYPES: OwidGdocType[] = Object.values(OwidGdocType)
 
 export interface OwidGdocBaseInterface {
     id: string
@@ -183,11 +181,17 @@ export type OwidGdocMinimalAnnouncementInterface =
         type: OwidGdocType.Announcement
     }
 
+export type OwidGdocIndexTag = Pick<DbPlainTag, "id" | "name"> &
+    Partial<Omit<DbPlainTag, "id" | "name">>
+
 export type OwidGdocIndexItem = Pick<
     OwidGdocBaseInterface,
-    "id" | "slug" | "tags" | "published" | "publishedAt"
+    "id" | "slug" | "published" | "publishedAt"
 > &
-    Pick<OwidGdocContent, "title" | "authors" | "type">
+    Pick<OwidGdocContent, "title" | "authors" | "type"> & {
+        subtitle?: string
+        tags: OwidGdocIndexTag[]
+    }
 
 export function extractGdocIndexItem(
     gdoc: OwidGdocBaseInterface
@@ -199,6 +203,8 @@ export function extractGdocIndexItem(
         published: gdoc.published,
         publishedAt: gdoc.publishedAt,
         title: gdoc.content.title ?? "",
+        subtitle:
+            "subtitle" in gdoc.content ? gdoc.content.subtitle : undefined,
         authors: gdoc.content.authors,
         type: gdoc.content.type,
     }
@@ -311,7 +317,8 @@ export interface OwidGdocProfileContent {
     excerpt?: string
     "featured-image"?: string
     "sidebar-toc"?: boolean
-    toc?: TocHeadingWithTitleSupertitle[]
+    "sidebar-toc-h1-only"?: boolean
+    toc?: TocHeadingWithSupertitle[]
     body: OwidEnrichedGdocBlock[]
     refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
     instantiatedEntity?: OwidGdocProfileEntitySummary
@@ -523,12 +530,13 @@ export interface OwidGdocPostContent {
     "latest-feed-featured-image"?: string
     "latest-feed-excerpt"?: EnrichedBlockText[]
     "hide-citation"?: boolean
-    toc?: TocHeadingWithTitleSupertitle[]
+    toc?: TocHeadingWithSupertitle[]
     "cover-image"?: string
     "featured-image"?: string
     "atom-title"?: string
     "atom-excerpt"?: string
     "sidebar-toc"?: boolean
+    "sidebar-toc-h1-only"?: boolean
     "heading-variant"?: "heavy" | "light"
     "hide-subscribe-banner"?: boolean
     "cover-color"?:

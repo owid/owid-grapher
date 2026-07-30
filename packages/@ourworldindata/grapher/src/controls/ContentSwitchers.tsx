@@ -1,11 +1,13 @@
 import * as React from "react"
-import { action, computed, observable, makeObservable } from "mobx"
+import { useCallback } from "react"
+import { action, computed } from "mobx"
 import cx from "clsx"
 import { observer } from "mobx-react"
 import { GrapherTabName } from "@ourworldindata/types"
 import { TabItem, Tabs } from "../tabs/Tabs.js"
 import { makeLabelForGrapherTab } from "../chart/ChartTabs"
 import {
+    Key,
     Button,
     Menu,
     MenuItem,
@@ -25,24 +27,17 @@ export interface ContentSwitchersManager {
 const MAX_VISIBLE_TABS = 4
 const MAX_VISIBLE_TABS_BEFORE_OVERFLOW = 3
 
+function shouldShowContentSwitchers(manager: ContentSwitchersManager): boolean {
+    return (manager.availableTabs ?? []).length > 1
+}
+
 @observer
 export class ContentSwitchers extends React.Component<{
     manager: ContentSwitchersManager
 }> {
-    constructor(props: { manager: ContentSwitchersManager }) {
-        super(props)
-
-        makeObservable<ContentSwitchers, "isOverflowMenuOpen">(this, {
-            isOverflowMenuOpen: observable,
-        })
-    }
-
     static shouldShow(manager: ContentSwitchersManager): boolean {
-        const test = new ContentSwitchers({ manager })
-        return test.shouldShow
+        return shouldShowContentSwitchers(manager)
     }
-
-    private isOverflowMenuOpen = false
 
     @computed private get manager(): ContentSwitchersManager {
         return this.props.manager
@@ -53,7 +48,7 @@ export class ContentSwitchers extends React.Component<{
     }
 
     @computed private get shouldShow(): boolean {
-        return this.availableTabs.length > 1
+        return shouldShowContentSwitchers(this.manager)
     }
 
     @computed private get visibleTabs(): GrapherTabName[] {
@@ -107,67 +102,6 @@ export class ContentSwitchers extends React.Component<{
         this.manager.onTabChange?.(oldTab!, newTab)
     }
 
-    @action.bound private showOverflowMenu(): void {
-        this.isOverflowMenuOpen = true
-    }
-
-    @action.bound private hideOverflowMenu(): void {
-        this.isOverflowMenuOpen = false
-    }
-
-    @action.bound private onTabChange(selectedKey: GrapherTabName): void {
-        this.setTab(selectedKey)
-    }
-
-    @action.bound private onOverflowMenuSelect(tab: GrapherTabName): void {
-        this.setTab(tab)
-    }
-
-    private renderOverflowMenu(): React.ReactElement {
-        return (
-            <MenuTrigger
-                isOpen={this.isOverflowMenuOpen}
-                onOpenChange={(isOpen) => {
-                    if (isOpen) this.showOverflowMenu()
-                    else this.hideOverflowMenu()
-                }}
-            >
-                <Button
-                    className={cx(
-                        "Tabs__Tab ContentSwitchers__OverflowMenuButton",
-                        { "is-open": this.isOverflowMenuOpen }
-                    )}
-                    aria-label="Show more chart types"
-                >
-                    <span className="label">
-                        +&#8202;{this.hiddenTabs.length}
-                    </span>
-                </Button>
-                <Popover
-                    className="ContentSwitchers__OverflowMenu"
-                    placement="bottom"
-                >
-                    <Menu
-                        className="ContentSwitchers__OverflowMenuList"
-                        onAction={(key) =>
-                            this.onOverflowMenuSelect(key as GrapherTabName)
-                        }
-                    >
-                        {this.hiddenTabs.map((tab) => (
-                            <MenuItem
-                                key={tab}
-                                id={tab}
-                                className="ContentSwitchers__OverflowMenuItem"
-                            >
-                                <TabContent tab={tab} />
-                            </MenuItem>
-                        ))}
-                    </Menu>
-                </Popover>
-            </MenuTrigger>
-        )
-    }
-
     override render(): React.ReactElement | null {
         if (!this.shouldShow) return null
 
@@ -178,12 +112,62 @@ export class ContentSwitchers extends React.Component<{
                     className="ContentSwitchers"
                     items={this.tabItems}
                     selectedKey={this.activeTab}
-                    onChange={this.onTabChange}
+                    onChange={this.setTab}
                 />
-                {this.hiddenTabs.length > 0 && this.renderOverflowMenu()}
+                {this.hiddenTabs.length > 0 && (
+                    <OverflowMenu
+                        hiddenTabs={this.hiddenTabs}
+                        onSelect={this.setTab}
+                    />
+                )}
             </div>
         )
     }
+}
+
+function OverflowMenu({
+    hiddenTabs,
+    onSelect,
+}: {
+    hiddenTabs: GrapherTabName[]
+    onSelect: (tab: GrapherTabName) => void
+}): React.ReactElement {
+    const handleAction = useCallback(
+        (key: Key) => {
+            onSelect(key as GrapherTabName)
+        },
+        [onSelect]
+    )
+
+    return (
+        <MenuTrigger>
+            <Button
+                className="Tabs__Tab ContentSwitchers__OverflowMenuButton"
+                aria-label="Show more chart types"
+            >
+                <span className="label">+&#8202;{hiddenTabs.length}</span>
+            </Button>
+            <Popover
+                className="ContentSwitchers__OverflowMenu"
+                placement="bottom"
+            >
+                <Menu
+                    className="ContentSwitchers__OverflowMenuList"
+                    onAction={handleAction}
+                >
+                    {hiddenTabs.map((tab) => (
+                        <MenuItem
+                            key={tab}
+                            id={tab}
+                            className="ContentSwitchers__OverflowMenuItem"
+                        >
+                            <TabContent tab={tab} />
+                        </MenuItem>
+                    ))}
+                </Menu>
+            </Popover>
+        </MenuTrigger>
+    )
 }
 
 function TabContent({ tab }: { tab: GrapherTabName }): React.ReactElement {

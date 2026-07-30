@@ -259,8 +259,6 @@ function CaptionedSankeyVariant({
                 />
                 <FoodTradeChartFooter
                     source={metadata.source}
-                    country={country}
-                    view={view}
                     tradedTotal={tradedTotal}
                     mode={mode}
                 />
@@ -330,25 +328,15 @@ function FoodTradeChartHeader({
 
 function FoodTradeChartFooter({
     source,
-    country,
-    view,
     mode,
     tradedTotal,
 }: {
     source: string
-    country: string
-    view: Flow
     mode: Mode
     tradedTotal: number
 }) {
     const topPartners =
-        'Only the largest partners are shown; the rest are grouped as "Other".'
-    const reporting =
-        view === "import"
-            ? `Figures reflect imports reported by ${articulateEntity(country)}; exporter records may differ.`
-            : view === "export"
-              ? "Figures reflect data reported by importing countries, which may differ from export records."
-              : "Figures reflect trade reported by importers, which may differ from export records."
+        'Only the largest partners are shown; the rest are grouped as "Other". Figures prioritize trade reported by importers, which may differ from export records.'
 
     const lowVolumeLinksTotal = tradedTotal * BILATERAL_LOW_VOLUME_THRESHOLD
     const smallFlowsNote =
@@ -356,9 +344,7 @@ function FoodTradeChartFooter({
             ? `Trade flows smaller than ${formatTrade(lowVolumeLinksTotal)} (${BILATERAL_LOW_VOLUME_THRESHOLD * 100}% of the total trade volume) are shown with reduced opacity.`
             : ""
 
-    const note = [topPartners, reporting, smallFlowsNote]
-        .filter(Boolean)
-        .join(" ")
+    const note = [topPartners, smallFlowsNote].filter(Boolean).join(" ")
 
     return <ChartFooter source={source} note={note} />
 }

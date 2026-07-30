@@ -1,5 +1,3 @@
-import * as _ from "lodash-es"
-import dayjs from "dayjs"
 import { type ReactNode } from "react"
 
 import {
@@ -11,6 +9,7 @@ import {
 } from "@ourworldindata/components"
 import {
     FaqEntryData,
+    LicenseOption,
     OwidOrigin,
     PrimaryTopic,
     OwidSource,
@@ -22,10 +21,10 @@ import {
     prepareSourcesForDisplay,
     getCitationShort,
     getCitationLong,
-    excludeUndefined,
-    getPhraseForArchivalDate,
+    getCitationDatapage,
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
+import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
 
 export default function MetadataSection({
     attributionShort,
@@ -33,6 +32,7 @@ export default function MetadataSection({
     canonicalUrl,
     descriptionProcessing,
     faqEntries,
+    license,
     origins,
     owidProcessingLevel,
     primaryTopic,
@@ -47,6 +47,7 @@ export default function MetadataSection({
     canonicalUrl: string
     descriptionProcessing?: string
     faqEntries?: FaqEntryData
+    license?: LicenseOption
     origins: OwidOrigin[]
     owidProcessingLevel?: OwidProcessingLevel
     primaryTopic?: PrimaryTopic
@@ -74,28 +75,14 @@ export default function MetadataSection({
         citationUrl,
         archiveContext?.archivalDate
     )
-    const currentYear = dayjs().year()
-    const producers = _.uniq(origins.map((o) => `${o.producer}`))
-    const adaptedFrom =
-        producers.length > 0 ? producers.join(", ") : source?.name
-
-    const maybeAddPeriod = (s: string) =>
-        s.endsWith("?") || s.endsWith(".") ? s : `${s}.`
-
-    // For the citation of the data page add a period it doesn't have that or a question mark
-    const primaryTopicCitation = maybeAddPeriod(primaryTopic?.citation ?? "")
-    const archivalString = getPhraseForArchivalDate(
+    const citationDatapage = getCitationDatapage(
+        title,
+        origins,
+        source,
+        primaryTopic,
+        citationUrl,
         archiveContext?.archivalDate
     )
-    const citationDatapage = excludeUndefined([
-        primaryTopic
-            ? `“Data Page: ${title.title}”, part of the following publication: ${primaryTopicCitation}`
-            : `“Data Page: ${title.title}”. Our World in Data (${currentYear}).`,
-        adaptedFrom ? `Data adapted from ${adaptedFrom}.` : undefined,
-        `Retrieved from ${citationUrl} [online resource]${
-            archivalString ? ` ${archivalString}` : ""
-        }`,
-    ]).join(" ")
     return (
         <div className="MetadataSection span-cols-14 grid grid-cols-12-full-width">
             <div className="col-start-2 span-cols-12">
@@ -162,15 +149,7 @@ export default function MetadataSection({
                                 maintaining and updating valuable data.
                             </li>
                             <li>
-                                All data, visualizations, and code produced by
-                                Our World in Data are completely open access
-                                under the{" "}
-                                <a href="https://creativecommons.org/licenses/by/4.0/">
-                                    Creative Commons BY license
-                                </a>
-                                . You have the permission to use, distribute,
-                                and reproduce these in any medium, provided the
-                                source and authors are credited.
+                                <ChartLicenseNotice license={license} />
                             </li>
                         </ul>
                     </div>

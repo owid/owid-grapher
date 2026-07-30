@@ -3,10 +3,9 @@ import cx from "clsx"
 import {
     EnrichedBlockResearchAndWriting,
     EnrichedBlockResearchAndWritingLink,
-    RESEARCH_AND_WRITING_ID,
     formatAuthors,
     formatDate,
-    slugify,
+    getResearchAndWritingId,
 } from "@ourworldindata/utils"
 import { useLinkedDocument } from "../utils.js"
 import Image, { ImageParentContainer } from "./Image.js"
@@ -191,7 +190,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
         className,
     } = props
 
-    const slug = heading ? slugify(heading) : RESEARCH_AND_WRITING_ID
+    const slug = getResearchAndWritingId(heading)
 
     // Get the URLs from the links of the featured work section. These will be
     // excluded from the latest work section below to avoid duplication.
