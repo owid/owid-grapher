@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest"
-import {
-    WORLD_CODE,
-    compareLabel,
-    isValidCompareCode,
-} from "./catalog.js"
+import { WORLD_CODE, compareLabel, isValidCompareCode } from "./catalog.js"
 
 describe("compareLabel", () => {
     it("names the prominent region entities", () => {
