@@ -5,24 +5,20 @@ type: article
 authors: Mojmir Vinkler
 
 [+body]
-Most statistics about progress describe the whole world over long stretches of history. That framing is powerful, but it is also easy to keep at arm’s length: nobody lives in “the world,” and nobody lives for two centuries.
+Ask people how much has changed in their lifetime and most reach for technology — the phones, the internet. But the deeper changes are the ones that are hard to see from the inside, because they happened to whole countries, one birth at a time.
 
-A single lifetime in a single country is a scale everyone knows from the inside — and within one lifetime, countries often change far more than we notice. Someone born in Ethiopia in 1975 has seen <a href="https://ourworldindata.org/grapher/life-expectancy?tab=line&time=1975..latest&country=ETH~OWID_WRL">life expectancy there rise from 39 to 67 years</a>. Someone born in Spain that same year arrived in the final months of a dictatorship; on the <a href="https://ourworldindata.org/grapher/electoral-democracy-index?tab=line&time=1975..latest&country=ESP">electoral democracy index</a>, Spain has moved from 0.12 to 0.82. And someone born in Czechia in 1993 has watched the internet go from <a href="https://ourworldindata.org/grapher/share-of-individuals-using-the-internet?tab=line&time=1993..latest&country=CZE~OWID_WRL">fewer than 1 in 100 people online to almost 9 in 10</a>.
+A woman born in <a href="https://ourworldindata.org/grapher/children-per-woman-un?tab=line&time=1960..latest&country=KOR~OWID_WRL">South Korea in 1960</a> grew up where mothers had six children on average; Korean women today have 0.7, the lowest rate ever recorded anywhere. Someone born in <a href="https://ourworldindata.org/grapher/child-mortality?tab=line&time=1971..latest&country=BGD~OWID_WRL">Bangladesh in 1971</a>, the year it became a country, arrived in a place where more than one child in three died before turning five — today it is closer to one in thirty. And almost everyone born in <a href="https://ourworldindata.org/grapher/share-of-population-in-extreme-poverty?tab=line&time=1981..latest&country=CHN~OWID_WRL">China in 1981</a> — 97% of the population — lived in extreme poverty. Barely anyone does now.
 
-The tool below shows this change for your own life. Enter your birth year and the country you know best, and it assembles a “then and now” card for it: health, income, education, energy, rights, and more, each shown as the value around the year you were born, the value today, and the path in between. The world’s trajectory runs alongside as a fainter line, so you can see your country’s story against the global one.
+None of these are famous the way a moon landing or a falling wall is famous. They unfolded slowly, with no single day to point to. But added up over one lifetime in one country, they are among the largest changes in the human condition ever recorded — and almost nobody can tell you the numbers for the place they grew up.
 
-Everything on the card is computed directly from the data behind our charts, fetched live from our catalog — nothing is typed in by hand. Every metric links to the full interactive chart, where you can find the sources and methodology.
+The tool below shows this change for your own life. Enter your birth year and the country you know best, and it builds a “then and now” card: health, income, education, rights, the environment, and more — each shown as the value around the year you were born, the value today, and the line in between. Your country’s path runs against a fainter world line, so you can see whether its story followed the global one or went its own way.
+
+Every number is computed live from the data behind our charts — nothing is typed in by hand — and every row links to the full chart, with its sources and methodology.
 
 {.horizontal-rule}
 {}
 
-Here’s how to use the tool below.
-
-<b>First</b>, enter the country you were born in and your birth year.
-
-<b>Second</b>, browse the topics: <b>Highlights</b> collects striking changes from across all areas, and the topic pills go deeper into health, the environment, the economy, and more. You can also switch the comparison line from the world to your continent or income group.
-
-<b>Finally</b>, hover over a metric’s name to see its definition, unit, and source — or select it to open the full chart. The address bar updates as you go, so you can share your card with a friend born in the same year and compare notes.
+Pick your country and birth year, then browse the topics: <b>Highlights</b> pulls the most striking changes from every area, and each topic pill goes deeper — you can also swap the comparison line from the world to your continent or income group. Hover a metric for its definition and source, or select it to open the full chart. The address bar updates as you go, so you can send someone born the same year their own card.
 
 {.bespoke-component}
 bundle: your-life-in-data
@@ -38,20 +34,20 @@ text: What to look for
 level: 2
 {}
 
-The most striking cards belong to countries that transformed within living memory. Look at <a href="?lifeCountry=ETH&amp;lifeYear=1975">Ethiopia for someone born in 1975</a>: life expectancy up by 28 years, child mortality down from 28% to under 5%, and literacy more than doubled — enormous change within one lifetime, and much of it faster than the world average. Or take <a href="?lifeCountry=ESP&amp;lifeYear=1975&amp;lifeTopic=Rights%20%26%20Democracy">Spain for the same birth year</a>, where the story is political: a country that became a democracy, and stayed one, within the lifetime of everyone middle-aged or older.
+The most dramatic cards belong to countries that remade themselves within living memory. Take <a href="?lifeCountry=ETH&amp;lifeYear=1975">Ethiopia for someone born in 1975</a>: life expectancy up by 28 years, child mortality down from nearly 30% to under 5%, literacy more than doubled — and much of it faster than the world average. Or <a href="?lifeCountry=CHN&amp;lifeYear=1981&amp;lifeTopic=Economy">China for someone born in 1981</a>, the fastest escape from mass poverty in history. These are whole societies transformed inside a single lifetime.
 
-Rich countries change too, just more quietly. For <a href="?lifeCountry=CZE&amp;lifeYear=1993&amp;lifeTopic=Technology">someone born in Czechia in 1993</a>, the internet went from a curiosity for less than 1% of the population to near-universal — a transformation of daily life that no single dramatic headline ever announced.
+Some of the biggest shifts aren’t about money at all. <a href="?lifeCountry=ESP&amp;lifeYear=1975&amp;lifeTopic=Rights%20%26%20Democracy">Spain for someone born in 1975</a> arrived in the final months of a dictatorship and grew up as the country became — and stayed — a democracy. <a href="?lifeCountry=KOR&amp;lifeYear=1960&amp;lifeTopic=Population%20%26%20Demography">South Korea for someone born in 1960</a> is a demographic story instead: a country that went from six children per woman to fewer than one, reshaping every generation that comes after.
 
-Not everything moves in the right direction, and the card doesn’t hide it. Rows that changed against progress — rising emissions, worsening obesity — are marked in orange. Metrics where “more” is neither good nor bad, like population, stay grey. This is deliberate: the point of the card is an honest summary of what happened, not a highlight reel.
+And the card doesn’t only show progress. Rows that moved against it — rising emissions, worsening obesity — are marked in orange; changes that are neither good nor bad, like a falling birth rate or a growing population, stay grey. The point is an honest summary of what happened where you’re from, not a highlight reel.
 
 {.heading}
 text: How the metrics are chosen
 level: 2
 {}
 
-The hardest question behind a card like this is which of our thousands of indicators deserve one of its few rows. We start from a curated spine of around a hundred key metrics spanning ten topic areas — the same metrics we feature across Our World in Data. The spine is the same for every country, and is then refined per country: metrics that are uninformative somewhere (tuberculosis incidence in Czechia, say, where it is vanishingly rare) are dropped, and metrics central to a country’s particular story are brought forward.
+The hardest question behind a card like this is which of our thousands of indicators earn one of its few rows. We start from a curated spine of around a hundred key metrics across ten topics — the same ones we feature across Our World in Data. That spine is identical for every country, then refined per country: metrics that say little somewhere (tuberculosis in Czechia, say, where it is vanishingly rare) are dropped, and metrics central to a country’s own story are brought forward.
 
-The numbers themselves are never edited. The “then” value is the earliest measurement within your lifetime — shown with its year, since not every series reaches all the way back to every birth year — and the “now” value is the latest published data point. The sparkline covers only the years for which data exists. The world line is context, not a ranking: it’s there so you can tell whether your country’s change was part of a global shift or a story of its own.
+The numbers themselves are never edited. The “then” value is the earliest measurement within your lifetime — shown with its year, since not every series reaches back to every birth year — and the “now” value is the latest published data point. The sparkline covers only the years with data. The world line is context, not a ranking: it’s there so you can tell whether your country’s change was part of a global shift or a story of its own.
 
 {.horizontal-rule}
 {}
