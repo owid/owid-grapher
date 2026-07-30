@@ -52,12 +52,6 @@ function getCodeExampleRewriteTarget(name: string): DownloadRewriteTarget {
     }
 }
 
-// Explains why the Excel, Sheets and Stata examples disappear once the
-// complete-dataset scope is selected.
-const CODE_EXAMPLES_PARQUET_NOTE =
-    " Excel, Google Sheets and Stata aren't listed here because none of them" +
-    " read Parquet."
-
 function ApiAndCodeExamplesSection({
     downloadCtxBase,
     firstYColDef,
@@ -175,7 +169,6 @@ function ApiAndCodeExamplesSection({
                         <p className="citation__paragraph">
                             Examples of how to load this data into different
                             data analysis tools.
-                            {completeDataset && CODE_EXAMPLES_PARQUET_NOTE}
                         </p>
                     }
                     content={

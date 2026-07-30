@@ -8,6 +8,7 @@ import {
     canWriteToClipboard,
     fetchWithTimeout,
     getOriginAttributionFragments,
+    makeCompleteDatasetCodeExamples,
     makeDownloadCodeExamples,
     getPhraseForProcessingLevel,
     SERVER_SIDE_DOWNLOAD_HELP_TEXT,
@@ -646,6 +647,7 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
 const ApiAndCodeExamplesSection = (props: {
     downloadCtxBase: DataDownloadContextBase
     firstYColDef?: OwidColumnDef
+    downloadPackage?: DownloadPackage
 }) => {
     const {
         csvUrl,
@@ -658,7 +660,33 @@ const ApiAndCodeExamplesSection = (props: {
         downloadCtxBase: props.downloadCtxBase,
         firstYColDef: props.firstYColDef,
     })
-    const codeExamples = makeDownloadCodeExamples(csvUrl, metadataUrl)
+
+    // Same third scope as the download section on the data page: pre-built
+    // files covering every dimension combination, so the options above don't
+    // apply to them. Only reachable where a package exists at all, which
+    // GrapherManager already limits to mdims with their dimensions on show.
+    const { parquetUrl, metadataUrl: packageMetadataUrl } =
+        props.downloadPackage ?? {}
+    const completeDatasetUrls =
+        parquetUrl && packageMetadataUrl
+            ? { dataUrl: parquetUrl, metadataUrl: packageMetadataUrl }
+            : undefined
+    const [showCompleteDataset, setShowCompleteDataset] = React.useState(false)
+    const completeDataset = showCompleteDataset
+        ? completeDatasetUrls
+        : undefined
+
+    const activeDataUrl = completeDataset?.dataUrl ?? csvUrl
+    const activeMetadataUrl = completeDataset?.metadataUrl ?? metadataUrl
+    const dataUrlLabel = completeDataset
+        ? "Data URL (Parquet format)"
+        : "Data URL (CSV format)"
+    const codeExamples = completeDataset
+        ? makeCompleteDatasetCodeExamples(
+              completeDataset.dataUrl,
+              completeDataset.metadataUrl
+          )
+        : makeDownloadCodeExamples(csvUrl, metadataUrl)
 
     return (
         <>
@@ -682,15 +710,15 @@ const ApiAndCodeExamplesSection = (props: {
                 <section className="download-modal__api-urls">
                     <div>
                         <h4 className="grapher_body-2-medium">
-                            Data URL (CSV format)
+                            {dataUrlLabel}
                         </h4>
-                        <CodeSnippet code={csvUrl} />
+                        <CodeSnippet code={activeDataUrl} />
                     </div>
                     <div>
                         <h4 className="grapher_body-2-medium">
                             Metadata URL (JSON format)
                         </h4>
-                        <CodeSnippet code={metadataUrl} />
+                        <CodeSnippet code={activeMetadataUrl} />
                     </div>
                 </section>
                 <DownloadApiOptions
@@ -699,6 +727,12 @@ const ApiAndCodeExamplesSection = (props: {
                     shortColNames={shortColNames}
                     onShortColNamesChange={setShortColNames}
                     firstYColDef={props.firstYColDef}
+                    completeDataset={
+                        completeDatasetUrls && {
+                            checked: showCompleteDataset,
+                            onChange: setShowCompleteDataset,
+                        }
+                    }
                 />
             </div>
             <div className="download-data-section download-modal__data-section">
@@ -938,6 +972,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                 <ApiAndCodeExamplesSection
                     downloadCtxBase={downloadCtx}
                     firstYColDef={firstYColDef}
+                    downloadPackage={downloadPackage}
                 />
             )}
         </>
