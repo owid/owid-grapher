@@ -1,22 +1,18 @@
 import { useState } from "react"
+import cx from "clsx"
+import { match } from "ts-pattern"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { TagGraphRoot } from "@ourworldindata/types"
 import { EmailNotificationsSubscribeForm } from "./EmailNotificationsSubscribeForm.js"
-import { OwidSocials } from "./OwidSocials.js"
-import { NewsletterSubscriptionContext } from "./newsletter.js"
+import { OwidSocials } from "../OwidSocials.js"
+import { NewsletterSubscriptionContext } from "../newsletter.js"
 import {
     SUBSCRIBE_PAGE_CONTENT_GRID_CLASSES,
     SubscribePageConfirmation,
     SubscribePageHero,
 } from "./SubscribePageLayout.js"
 
-/**
- * Which screen the subscribe page shows. Everything that differs between
- * screens - the hero, the aside, the socials - lives inside this component,
- * because it is the page's hydration root (SUBSCRIBE_PAGE_ROOT_ID); the rest of
- * the page stays baked.
- */
 type SubscribeFlowState = { name: "form" } | { name: "success"; email: string }
 
 export const SubscribeFlow = ({
@@ -26,31 +22,26 @@ export const SubscribeFlow = ({
 }) => {
     const [state, setState] = useState<SubscribeFlowState>({ name: "form" })
 
-    switch (state.name) {
-        case "form":
-            return (
-                <SubscribeFormScreen
-                    topicTagGraph={topicTagGraph}
-                    onSubscribed={(email) =>
-                        setState({ name: "success", email })
-                    }
-                />
-            )
-        case "success":
-            return (
-                <SubscribePageConfirmation
-                    heading="You are now subscribed"
-                    action={{
-                        href: "/subscribe/preferences",
-                        label: "Update your preferences",
-                    }}
-                >
-                    We have sent a confirmation email to{" "}
-                    <strong>{state.email}</strong> with a summary of your
-                    preferences.
-                </SubscribePageConfirmation>
-            )
-    }
+    return match(state)
+        .with({ name: "form" }, () => (
+            <SubscribeFormScreen
+                topicTagGraph={topicTagGraph}
+                onSubscribed={(email) => setState({ name: "success", email })}
+            />
+        ))
+        .with({ name: "success" }, ({ email }) => (
+            <SubscribePageConfirmation
+                heading="You are now subscribed"
+                action={{
+                    href: "/subscribe/preferences",
+                    label: "Update your preferences",
+                }}
+            >
+                We have sent a confirmation email to <strong>{email}</strong>{" "}
+                with a summary of your preferences.
+            </SubscribePageConfirmation>
+        ))
+        .exhaustive()
 }
 
 const SubscribeFormScreen = ({
@@ -67,7 +58,10 @@ const SubscribeFormScreen = ({
                 subheading="Receive our latest work by email."
             />
             <div
-                className={`subscribe-page__content ${SUBSCRIBE_PAGE_CONTENT_GRID_CLASSES}`}
+                className={cx(
+                    "subscribe-page__content",
+                    SUBSCRIBE_PAGE_CONTENT_GRID_CLASSES
+                )}
             >
                 <EmailNotificationsSubscribeForm
                     topicTagGraph={topicTagGraph}
@@ -88,7 +82,10 @@ const SubscribeFormScreen = ({
             </aside>
             <hr className="subscribe-page__divider span-cols-12 col-start-2" />
             <div
-                className={`subscribe-page__socials ${SUBSCRIBE_PAGE_CONTENT_GRID_CLASSES}`}
+                className={cx(
+                    "subscribe-page__socials",
+                    SUBSCRIBE_PAGE_CONTENT_GRID_CLASSES
+                )}
             >
                 <OwidSocials
                     includeRss

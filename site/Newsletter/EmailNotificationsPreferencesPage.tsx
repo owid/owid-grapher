@@ -1,7 +1,7 @@
-import { Head } from "./Head.js"
-import { Html } from "./Html.js"
-import { SiteHeader } from "./SiteHeader.js"
-import { SiteFooter } from "./SiteFooter.js"
+import { Head } from "../Head.js"
+import { Html } from "../Html.js"
+import { SiteHeader } from "../SiteHeader.js"
+import { SiteFooter } from "../SiteFooter.js"
 import {
     PREFERENCES_PAGE_ROOT_ID,
     SiteFooterContext,

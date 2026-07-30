@@ -1,9 +1,11 @@
+import * as Sentry from "@sentry/cloudflare"
 import {
     EMAIL_NOTIFICATIONS_CONTENT_TYPE_LABELS,
     EMAIL_NOTIFICATIONS_FREQUENCY_LABELS,
     EMAIL_NOTIFICATIONS_FROM_ADDRESS,
     EmailNotificationsPreferences,
 } from "@ourworldindata/types"
+import { JsonError } from "@ourworldindata/utils"
 import { Env } from "./env.js"
 
 interface PostmarkEmail {
@@ -285,6 +287,61 @@ export function makeHtmlResponse(html: string, status = 200): Response {
         headers: { "Content-Type": "text/html; charset=utf-8" },
         status,
     })
+}
+
+/**
+ * What every email-notifications endpoint answers with when something fails.
+ * The detail goes to Sentry: errors raised by D1, Mailchimp and Postmark quote
+ * query fragments, internal identifiers and account state.
+ */
+export const GENERIC_ERROR_MESSAGE =
+    "Something went wrong. Please try again later."
+
+// --- Shared endpoint plumbing ---
+
+const CORS_HEADERS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    // Content-Type must be explicitly allowed for requests to be sent with a
+    // Content-Type of "application/json", because "application/json" is not a
+    // CORS-safelisted value for it.
+    // - https://developer.mozilla.org/en-US/docs/Glossary/CORS-safelisted_request_header
+    "Access-Control-Allow-Headers": "Content-Type",
+}
+
+const JSON_HEADERS = {
+    ...CORS_HEADERS,
+    "Content-Type": "application/json",
+}
+
+/** Preflight handler, re-exported by every JSON endpoint. */
+export const onRequestOptions: PagesFunction = async () => {
+    return new Response(null, { headers: CORS_HEADERS, status: 200 })
+}
+
+export function makeJsonResponse(body: object, status: number): Response {
+    return new Response(JSON.stringify(body), {
+        headers: JSON_HEADERS,
+        status,
+    })
+}
+
+/** Catch-block handler for JSON endpoints: report to Sentry, answer generically. */
+export function handleJsonError(error: unknown): Response {
+    Sentry.captureException(error)
+    return makeJsonResponse(
+        { error: GENERIC_ERROR_MESSAGE },
+        error instanceof JsonError ? error.status : 500
+    )
+}
+
+/** Catch-block handler for HTML endpoints: report to Sentry, answer generically. */
+export function handleHtmlError(error: unknown, message: string): Response {
+    Sentry.captureException(error)
+    return makeHtmlResponse(
+        renderMessagePage({ title: "Something went wrong", message }),
+        500
+    )
 }
 
 /**

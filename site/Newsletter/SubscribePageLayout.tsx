@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useRef } from "react"
+import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheck } from "@fortawesome/free-solid-svg-icons"
 
@@ -46,12 +47,16 @@ export const SubscribePageConfirmation = ({
     useEffect(() => {
         // Replacing the page contents is silent to screen readers, and the
         // reader is likely scrolled down to the button they just used.
-        headingRef.current?.focus()
+        window.scrollTo(0, 0)
+        headingRef.current?.focus({ preventScroll: true })
     }, [])
 
     return (
         <div
-            className={`subscribe-page__confirmation ${SUBSCRIBE_PAGE_CONTENT_GRID_CLASSES}`}
+            className={cx(
+                "subscribe-page__confirmation",
+                SUBSCRIBE_PAGE_CONTENT_GRID_CLASSES
+            )}
         >
             <div className="subscribe-page__confirmation-icon">
                 <FontAwesomeIcon icon={faCheck} />

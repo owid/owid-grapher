@@ -3,6 +3,13 @@ import {
     TagGraphRoot,
 } from "@ourworldindata/types"
 
+export function areAllTopicsSelected(
+    topicTags: string[],
+    topicTagGraph: TagGraphRoot
+): boolean {
+    return topicTagGraph.children.every((area) => topicTags.includes(area.name))
+}
+
 /**
  * "All topics" is stored as an empty topicTags array, so that topic areas
  * added later are automatically included. Translates between that storage
@@ -12,10 +19,7 @@ export function topicTagsForStorage(
     topicTags: string[],
     topicTagGraph: TagGraphRoot
 ): string[] {
-    const allSelected = topicTagGraph.children.every((area) =>
-        topicTags.includes(area.name)
-    )
-    return allSelected ? [] : topicTags
+    return areAllTopicsSelected(topicTags, topicTagGraph) ? [] : topicTags
 }
 
 export function topicTagsFromStorage(

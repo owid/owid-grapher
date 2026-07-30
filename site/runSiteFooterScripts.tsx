@@ -45,8 +45,8 @@ import {
     PREFERENCES_PAGE_ROOT_ID,
     SUBSCRIBE_PAGE_ROOT_ID,
 } from "@ourworldindata/types"
-import { SubscribeFlow } from "./SubscribeFlow.js"
-import { EmailNotificationsPreferencesForm } from "./EmailNotificationsPreferencesForm.js"
+import { SubscribeFlow } from "./Newsletter/SubscribeFlow.js"
+import { EmailNotificationsPreferencesForm } from "./Newsletter/EmailNotificationsPreferencesForm.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import UserSurvey from "./gdocs/components/UserSurvey.js"

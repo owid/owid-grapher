@@ -1,14 +1,14 @@
-import { Head } from "./Head.js"
-import { Html } from "./Html.js"
-import { SiteHeader } from "./SiteHeader.js"
-import { SiteFooter } from "./SiteFooter.js"
+import { Head } from "../Head.js"
+import { Html } from "../Html.js"
+import { SiteHeader } from "../SiteHeader.js"
+import { SiteFooter } from "../SiteFooter.js"
 import {
     SiteFooterContext,
     SUBSCRIBE_PAGE_ROOT_ID,
     TagGraphRoot,
 } from "@ourworldindata/types"
 import { SubscribeFlow } from "./SubscribeFlow.js"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 
 export interface SubscribePageProps {
     baseUrl: string
