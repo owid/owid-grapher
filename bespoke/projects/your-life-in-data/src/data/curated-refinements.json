@@ -216,23 +216,7 @@
                 "exclude": [
                     {
                         "slug": "incidence-of-tuberculosis-sdgs",
-                        "reason": "Tuberculosis is at a very low, niche level in Czechia"
-                    }
-                ],
-                "promote": [
-                    {
-                        "slug": "share-of-adults-defined-as-obese",
-                        "valueColumn": "obesity_among_adults__bmi__gt__30_kg_m2__crude_estimate__pct__sex_both_sexes__age_group_18plus__years_of_age",
-                        "label": "Obesity rate",
-                        "subtopic": "Health",
-                        "format": "pct",
-                        "comparable": true,
-                        "goodDirection": "down",
-                        "framing": "absolute",
-                        "unit": "%",
-                        "desc": "",
-                        "source": "World Health Organization - Global Health Observatory (2026) \u2013 with minor processing by Our World in Data",
-                        "reason": "Obesity has risen significantly in recent decades, now affecting nearly a third of the adult population."
+                        "reason": "Tuberculosis incidence is at a very low level in Czechia (4.9 cases per 100,000 in 2024)"
                     }
                 ]
             },
@@ -240,11 +224,11 @@
                 "exclude": [
                     {
                         "slug": "share-of-the-population-with-access-to-electricity",
-                        "reason": "Access to electricity has been universal (100%) since 1990."
+                        "reason": "Universal access (100%) throughout the recorded period"
                     },
                     {
                         "slug": "access-to-clean-fuels-and-technologies-for-cooking",
-                        "reason": "Access to clean cooking fuels is near-universal and has seen little change."
+                        "reason": "Near-universal access in an advanced economy"
                     }
                 ],
                 "promote": [
@@ -260,7 +244,7 @@
                         "unit": "TWh",
                         "desc": "Measured in terawatt-hours.",
                         "source": "Ember (2026); Energy Institute - Statistical Review of World Energy (2025) \u2013 with major processing by Our World in Data",
-                        "reason": "Nuclear energy is a primary low-carbon power source and key to Czechia's transition away from coal."
+                        "reason": "Nuclear power generates over a third of Czechia's electricity and is key to its decarbonization strategy"
                     }
                 ]
             },
@@ -268,39 +252,7 @@
                 "exclude": [
                     {
                         "slug": "share-of-population-in-extreme-poverty",
-                        "reason": "Extreme poverty has been non-existent (0%) in the Czech Republic throughout this period"
-                    }
-                ]
-            },
-            "Food & Agriculture": {
-                "promote": [
-                    {
-                        "slug": "share-of-adults-defined-as-obese",
-                        "valueColumn": "obesity_among_adults__bmi__gt__30_kg_m2__crude_estimate__pct__sex_both_sexes__age_group_18plus__years_of_age",
-                        "label": "Share of adults who are obese",
-                        "subtopic": "Food & Agriculture",
-                        "format": "pct",
-                        "comparable": true,
-                        "goodDirection": "down",
-                        "framing": "absolute",
-                        "unit": "%",
-                        "desc": "",
-                        "source": "World Health Organization - Global Health Observatory (2026) \u2013 with minor processing by Our World in Data",
-                        "reason": "Obesity has risen significantly, showing a much steeper trend than the overall overweight rate and highlighting a key public health challenge."
-                    },
-                    {
-                        "slug": "meat-production-tonnes",
-                        "valueColumn": "meat__total__00001765__production__005510__tonnes",
-                        "label": "Meat production",
-                        "subtopic": "Food & Agriculture",
-                        "format": "tonnes",
-                        "comparable": false,
-                        "goodDirection": "none",
-                        "framing": "relative",
-                        "unit": "t",
-                        "desc": "",
-                        "source": "Food and Agriculture Organization of the United Nations (2025) \u2013 with major processing by Our World in Data",
-                        "reason": "Domestic meat production halved after 1993, reflecting the post-socialist restructuring and decline of large-scale state livestock collectives."
+                        "reason": "Extreme poverty has remained at 0% throughout the entire recorded period"
                     }
                 ]
             },
@@ -308,11 +260,7 @@
                 "exclude": [
                     {
                         "slug": "share-of-the-population-with-access-to-electricity",
-                        "reason": "Universal access throughout the period"
-                    },
-                    {
-                        "slug": "access-to-clean-fuels-and-technologies-for-cooking",
-                        "reason": "Near-universal access throughout the period"
+                        "reason": "Access remained at 100% throughout the entire period"
                     }
                 ]
             },
@@ -320,43 +268,33 @@
                 "exclude": [
                     {
                         "slug": "deaths-in-armed-conflicts-by-country",
-                        "reason": "Flat at zero throughout the entire period, reflecting a lack of active armed conflict."
+                        "reason": "Zero conflict deaths recorded throughout the period"
                     },
                     {
                         "slug": "terrorism-deaths",
-                        "reason": "Terrorism deaths have remained flat at zero throughout the timeframe."
+                        "reason": "Zero terrorism deaths recorded throughout the period"
+                    },
+                    {
+                        "slug": "percentage-of-territory-controlled-by-government",
+                        "reason": "Full territorial control maintained throughout the period"
                     }
                 ]
             },
             "Population & Demography": {
-                "exclude": [
-                    {
-                        "slug": "sex-ratio-at-birth",
-                        "reason": "Remained constant at the biological baseline of ~105 boys per 100 girls throughout the period."
-                    }
-                ],
                 "promote": [
                     {
                         "slug": "refugee-population-by-country-or-territory-of-asylum",
                         "valueColumn": "refugees",
-                        "label": "Refugees by country of asylum",
+                        "label": "Refugees hosted",
                         "subtopic": "Population & Demography",
                         "format": "number",
                         "comparable": false,
                         "goodDirection": "none",
-                        "framing": "absolute",
+                        "framing": "relative",
                         "unit": "people",
                         "desc": "People who fled their country of origin because of serious threats against which the authorities of their home country cannot or will not protect them. This includes all refugees who live in this country, not just those who arrived that year.",
                         "source": "UNHCR (2025) \u2013 with major processing by Our World in Data",
-                        "reason": "Czechia experienced a historic demographic influx by hosting one of the highest numbers of Ukrainian refugees per capita in Europe."
-                    }
-                ]
-            },
-            "Technology": {
-                "exclude": [
-                    {
-                        "slug": "yearly-number-of-objects-launched-into-outer-space",
-                        "reason": "Extremely low absolute number of space launches (1 to 3 annually) is not representative of the country's technology landscape"
+                        "reason": "Czechia hosts nearly 400,000 refugees (mostly from Ukraine), making it one of the largest host countries per capita in Europe."
                     }
                 ]
             }
