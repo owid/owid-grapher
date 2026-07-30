@@ -22,10 +22,7 @@ export const SearchEmptyState = ({
 }) => {
     return (
         <div className="search-empty-state span-cols-12 col-start-2">
-            <FontAwesomeIcon
-                className="search-empty-state__icon"
-                icon={icon}
-            />
+            <FontAwesomeIcon className="search-empty-state__icon" icon={icon} />
             <h2 className="body-1-regular">{heading}</h2>
             {subtitle}
         </div>
