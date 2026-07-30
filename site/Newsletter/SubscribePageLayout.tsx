@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useRef } from "react"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCheck } from "@fortawesome/free-solid-svg-icons"
+import { faCheck, faLinkSlash } from "@fortawesome/free-solid-svg-icons"
 
 /**
  * The pieces shared by the two email notification pages (/subscribe and
@@ -28,19 +28,26 @@ export const SubscribePageHero = ({
     </header>
 )
 
+type SubscribePageConfirmationAction =
+    | { href: string; label: string }
+    | { onClick: () => void; label: string; disabled?: boolean }
+
 /**
- * A terminal screen: subscribed, preferences saved, unsubscribed. It carries its
- * own heading and is rendered *instead of* the hero, so it must be rendered by
- * whichever component owns the page's screen state.
+ * A terminal screen: subscribed, preferences saved, unsubscribed, or (with the
+ * "error" variant) an expired/invalid link. It carries its own heading and is
+ * rendered *instead of* the hero, so it must be rendered by whichever component
+ * owns the page's screen state.
  */
 export const SubscribePageConfirmation = ({
     heading,
     children,
     action,
+    variant = "success",
 }: {
     heading: string
     children: ReactNode
-    action?: { href: string; label: string }
+    action?: SubscribePageConfirmationAction
+    variant?: "success" | "error"
 }) => {
     const headingRef = useRef<HTMLHeadingElement>(null)
 
@@ -55,11 +62,14 @@ export const SubscribePageConfirmation = ({
         <div
             className={cx(
                 "subscribe-page__confirmation",
+                variant === "error" && "subscribe-page__confirmation--error",
                 SUBSCRIBE_PAGE_CONTENT_GRID_CLASSES
             )}
         >
             <div className="subscribe-page__confirmation-icon">
-                <FontAwesomeIcon icon={faCheck} />
+                <FontAwesomeIcon
+                    icon={variant === "error" ? faLinkSlash : faCheck}
+                />
             </div>
             <h1
                 className="subscribe-page__heading subscribe-page__confirmation-heading"
@@ -68,15 +78,25 @@ export const SubscribePageConfirmation = ({
             >
                 {heading}
             </h1>
-            <p className="subscribe-page__confirmation-text">{children}</p>
-            {action && (
-                <a
-                    className="subscribe-page__confirmation-action"
-                    href={action.href}
-                >
-                    {action.label}
-                </a>
-            )}
+            <div className="subscribe-page__confirmation-text">{children}</div>
+            {action &&
+                ("href" in action ? (
+                    <a
+                        className="subscribe-page__confirmation-action"
+                        href={action.href}
+                    >
+                        {action.label}
+                    </a>
+                ) : (
+                    <button
+                        type="button"
+                        className="subscribe-page__confirmation-action"
+                        onClick={action.onClick}
+                        disabled={action.disabled}
+                    >
+                        {action.label}
+                    </button>
+                ))}
         </div>
     )
 }
