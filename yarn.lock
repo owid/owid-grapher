@@ -2361,7 +2361,6 @@ __metadata:
     react-dom: "npm:^19.2.4"
     react-flip-toolkit: "npm:^7.2.4"
     remeda: "npm:^2.32.0"
-    simple-statistics: "npm:^7.8.8"
     tippy.js: "npm:^6.3.7"
     topojson-client: "npm:^3.1.0"
     ts-pattern: "npm:^5.8.0"
@@ -12872,13 +12871,6 @@ __metadata:
     "@simple-git/argv-parser": "npm:^1.1.0"
     debug: "npm:^4.4.0"
   checksum: 10/79a745464798bce17fc5c286ff4a44ba07d368a745d03d31f3c3cef51bd63b98dc29e72f55dda087b64e5db90e5e9f91a7429543ddf08d105d9a069c525e6818
-  languageName: node
-  linkType: hard
-
-"simple-statistics@npm:^7.8.8":
-  version: 7.8.8
-  resolution: "simple-statistics@npm:7.8.8"
-  checksum: 10/48f519a1278e5d5e81ced21288b27929271fed8b7b9052392596cc131923f85b91ea0be4d68fded2d50ad8ca5388ff9313109b682728f9d509e71cb635475558
   languageName: node
   linkType: hard
 
