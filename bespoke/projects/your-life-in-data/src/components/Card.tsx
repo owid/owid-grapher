@@ -5,14 +5,14 @@ import cx from "clsx"
 import type { CardRow } from "../types.js"
 import {
     COUNTRIES_BY_CODE,
-    ENTITY_NAME,
     HIGHLIGHTS_LABEL,
     PROFILE_TOPICS,
     TOPICS,
     WORLD_CODE,
-    comparisonOptionsFor,
+    compareLabel,
     countryFlag,
     countryProfileSlug,
+    isValidCompareCode,
 } from "../helpers/catalog.js"
 import { buildCardRows } from "../helpers/data.js"
 import { writeStateToUrl } from "../helpers/urlSync.js"
@@ -96,8 +96,8 @@ export function Card() {
     const compareCode = useAtomValue(compareCodeAtom)
 
     const country = COUNTRIES_BY_CODE.get(code)
-    // fall back to World if the chosen comparison entity isn't available here
-    const compCode = comparisonOptionsFor(code).includes(compareCode)
+    // fall back to World if the chosen comparison entity isn't valid here
+    const compCode = isValidCompareCode(code, compareCode)
         ? compareCode
         : WORLD_CODE
     const { status, rows } = useCardRows(code, birthYear, topic, compCode)
@@ -122,7 +122,7 @@ export function Card() {
         )
     }
 
-    const compName = ENTITY_NAME[compCode] ?? "World"
+    const compName = compareLabel(compCode)
     // shared X-domain = the whole lifetime, so a metric covering only 2012–2021
     // occupies just that slice of the sparkline and all rows line up in time
     const domain: [number, number] = rows.length

@@ -46,13 +46,27 @@ export const ENTITY_NAME: Record<string, string> = {
     OWID_LIC: "Low-income countries",
 }
 
-/** The comparison entities available for a country: World + its continent + its income group */
+/** The prominent comparison entities for a country: World + its continent + its income group */
 export function comparisonOptionsFor(code: string): string[] {
     const country = COUNTRIES_BY_CODE.get(code)
     const options = [WORLD_CODE]
     if (country?.continent) options.push(country.continent)
     if (country?.income) options.push(country.income)
     return options
+}
+
+/** Display label for any comparison entity — a region/income group or a country */
+export function compareLabel(code: string): string {
+    return ENTITY_NAME[code] ?? COUNTRIES_BY_CODE.get(code)?.name ?? code
+}
+
+/**
+ * A comparison code is valid for a country if it's one of the prominent regions,
+ * or any other country — never the country compared against itself.
+ */
+export function isValidCompareCode(code: string, compareCode: string): boolean {
+    if (comparisonOptionsFor(code).includes(compareCode)) return true
+    return compareCode !== code && COUNTRIES_BY_CODE.has(compareCode)
 }
 
 /** Per-country edits to the spine for a topic: exclusions to hide, promotions to lead with */

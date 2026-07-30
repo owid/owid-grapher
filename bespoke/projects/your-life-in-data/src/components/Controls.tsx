@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react"
 import { useAtom, useAtomValue } from "jotai"
 
-import {
-    ENTITY_NAME,
-    WORLD_CODE,
-    comparisonOptionsFor,
-} from "../helpers/catalog.js"
+import { WORLD_CODE, isValidCompareCode } from "../helpers/catalog.js"
 import { birthYearAtom, compareCodeAtom, countryCodeAtom } from "../atoms.js"
 import { CountryCombobox } from "./CountryCombobox.js"
+import { ComparePicker } from "./ComparePicker.js"
 
 const CURRENT_YEAR = new Date().getFullYear()
 
@@ -17,11 +14,11 @@ export function Controls() {
     const [birthYear, setBirthYear] = useAtom(birthYearAtom)
     const [compareCode, setCompareCode] = useAtom(compareCodeAtom)
 
-    const compareOptions = comparisonOptionsFor(code)
-
-    // reset the comparison entity when it isn't available for the new country
+    // reset the comparison entity when it's no longer valid for the new country
+    // (e.g. the continent/income group changed, or you now compare against your
+    // own country). A comparison against another country carries over.
     useEffect(() => {
-        if (!compareOptions.includes(compareCode)) setCompareCode(WORLD_CODE)
+        if (!isValidCompareCode(code, compareCode)) setCompareCode(WORLD_CODE)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [code])
 
@@ -66,27 +63,7 @@ export function Controls() {
                 />
             </div>
             <div className="your-life-in-data__control your-life-in-data__control--grow">
-                <label
-                    className="your-life-in-data__control-label"
-                    htmlFor="your-life-in-data-compare"
-                >
-                    Compared with
-                </label>
-                <select
-                    id="your-life-in-data-compare"
-                    value={
-                        compareOptions.includes(compareCode)
-                            ? compareCode
-                            : WORLD_CODE
-                    }
-                    onChange={(e) => setCompareCode(e.target.value)}
-                >
-                    {compareOptions.map((c) => (
-                        <option key={c} value={c}>
-                            {ENTITY_NAME[c] ?? c}
-                        </option>
-                    ))}
-                </select>
+                <ComparePicker />
             </div>
         </div>
     )
