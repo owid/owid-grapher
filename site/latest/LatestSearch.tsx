@@ -22,6 +22,7 @@ import { SiteAnalytics } from "../SiteAnalytics.js"
 import { NewsletterSignupBlock } from "../NewsletterSignupBlock.js"
 import { SearchHorizontalDivider } from "../search/SearchHorizontalDivider.js"
 import { SearchNoResults } from "../search/SearchNoResults.js"
+import { SearchError } from "../search/SearchError.js"
 import { NewsletterSubscriptionContext } from "../newsletter.js"
 import { PoweredBy } from "react-instantsearch"
 
@@ -83,6 +84,7 @@ export const LatestSearch = ({
         hasNextPage,
         isFetchingNextPage,
         isLoading,
+        isError,
     } = useInfiniteLatestPages({
         topics,
         latestType,
@@ -158,6 +160,8 @@ export const LatestSearch = ({
             <hr className="latest-search__filters-divider span-cols-12 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1" />
             {isLoading ? (
                 <LatestSearchSkeleton />
+            ) : isError ? (
+                <SearchError />
             ) : hits.length === 0 ? (
                 <SearchNoResults
                     subtitle={

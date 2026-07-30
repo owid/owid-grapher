@@ -30,8 +30,8 @@
     }
 }
 
-// Override SearchNoResults — it's display:none by default for multi-query search
-.latest-page .search-no-results {
+// Override SearchEmptyState — it's display:none by default for multi-query search
+.latest-page .search-empty-state {
     display: block;
 }
 
