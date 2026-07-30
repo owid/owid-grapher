@@ -3,12 +3,13 @@
  */
 
 import { expect, it, describe } from "vitest"
-import { render, screen } from "@testing-library/react"
+import { fireEvent, render, screen } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { MemoryRouter } from "react-router-dom-v5-compat"
 import type { LiteClient } from "algoliasearch/lite"
 import { TagGraphRootName, type TagGraphRoot } from "@ourworldindata/types"
 import { Search } from "./Search.js"
+import { CHARTS_INDEX } from "./searchUtils.js"
 
 const topicTagGraph: TagGraphRoot = {
     children: [],
@@ -30,7 +31,7 @@ function makeSearchClient(
     return { searchForHits } as unknown as LiteClient
 }
 
-const emptyResultsClient = makeSearchClient((requests) =>
+const emptyResults = (requests: unknown[]) =>
     Promise.resolve({
         results: requests.map(() => ({
             hits: [],
@@ -39,18 +40,34 @@ const emptyResultsClient = makeSearchClient((requests) =>
             page: 0,
         })),
     })
-)
+
+const emptyResultsClient = makeSearchClient(emptyResults)
 
 const failingClient = makeSearchClient(() =>
     Promise.reject(new Error("This operation cannot be processed"))
 )
 
-function renderSearch(liteSearchClient: LiteClient) {
+// Fails only the charts index, so the Data template errors while the Writing
+// template searches successfully.
+const chartsOnlyFailingClient = makeSearchClient((requests) => {
+    const failsChartsIndex = requests.some(
+        (request) =>
+            (request as { indexName?: string }).indexName === CHARTS_INDEX
+    )
+    if (failsChartsIndex)
+        return Promise.reject(new Error("This operation cannot be processed"))
+    return emptyResults(requests)
+})
+
+function renderSearch(
+    liteSearchClient: LiteClient,
+    searchParams: string = "?q=gdp"
+) {
     const queryClient = new QueryClient({
         defaultOptions: { queries: { retry: false } },
     })
     render(
-        <MemoryRouter initialEntries={["/search?q=gdp"]}>
+        <MemoryRouter initialEntries={[`/search${searchParams}`]}>
             <QueryClientProvider client={queryClient}>
                 <Search
                     topicTagGraph={topicTagGraph}
@@ -78,5 +95,23 @@ describe("Search empty states", () => {
             await screen.findByText(/search isn’t working right now/i)
         ).toBeTruthy()
         expect(screen.queryByText(/no results for this query/i)).toBeNull()
+    })
+
+    it("drops the error notice once the failed query is no longer rendered", async () => {
+        // The charts query keeps its cache entry (and its error) after the
+        // toggle switches to Writing, because `resultType` is not part of the
+        // query key — only the observer check keeps the notice from sticking.
+        renderSearch(chartsOnlyFailingClient, "?q=gdp&resultType=data")
+
+        expect(
+            await screen.findByText(/search isn’t working right now/i)
+        ).toBeTruthy()
+
+        fireEvent.click(screen.getByLabelText("Writing"))
+
+        expect(
+            await screen.findByText(/no results for this query/i)
+        ).toBeTruthy()
+        expect(screen.queryByText(/isn’t working right now/i)).toBeNull()
     })
 })

@@ -245,9 +245,13 @@ export function useInfiniteSearch<THit>({
  * "no results for this query" notice, which misrepresents an outage as an
  * empty index — see `SearchError`.
  *
- * Scoped to the current state's query keys on purpose: the query cache is
- * shared site-wide and keeps failed queries from earlier searches around
- * until they are garbage collected.
+ * The query cache is shared site-wide and holds on to failed queries until
+ * they are garbage collected, so this only counts failures that are both
+ * keyed to the current search state and still observed by a mounted
+ * component. Without the observer check, a charts query that failed under
+ * the Data toggle would keep the notice up after a switch to Writing, whose
+ * template doesn't render charts at all — `resultType` is deliberately not
+ * part of the query keys.
  */
 export function useHasSearchError(state: SearchState): boolean {
     const queryCache = useQueryClient().getQueryCache()
@@ -261,11 +265,12 @@ export function useHasSearchError(state: SearchState): boolean {
             searchQueryKeys.topicPages(state),
             searchQueryKeys.writingTopics(state),
             searchQueryKeys.profiles(state),
-        ].some(
-            (queryKey) =>
-                queryCache.find({ queryKey, exact: true })?.state.status ===
-                "error"
-        )
+        ].some((queryKey) => {
+            const query = queryCache.find({ queryKey, exact: true })
+            return (
+                query?.state.status === "error" && query.getObserversCount() > 0
+            )
+        })
 
     return useSyncExternalStore(
         useCallback(

@@ -85,11 +85,20 @@ export const LatestSearch = ({
         isFetchingNextPage,
         isLoading,
         isError,
+        isPlaceholderData,
     } = useInfiniteLatestPages({
         topics,
         latestType,
         liteSearchClient,
     })
+
+    // Only replace the feed with the error notice when the failure left us
+    // with nothing worth showing. A failed "load more" or background refetch
+    // sets isError while the already-loaded cards are still in `data`, and
+    // those stay useful; placeholder hits, on the other hand, belong to the
+    // previous filter selection, so showing them under the current filters
+    // would be wrong.
+    const hasNothingToShow = isError && (hits.length === 0 || isPlaceholderData)
 
     // Disable type options that would yield 0 results given the current
     // topic selection. Never disable the currently active type.
@@ -160,7 +169,7 @@ export const LatestSearch = ({
             <hr className="latest-search__filters-divider span-cols-12 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1" />
             {isLoading ? (
                 <LatestSearchSkeleton />
-            ) : isError ? (
+            ) : hasNothingToShow ? (
                 <SearchError heading="We couldn’t load the latest updates." />
             ) : hits.length === 0 ? (
                 <SearchNoResults
