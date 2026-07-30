@@ -8,6 +8,23 @@ import { countryCodeAtom } from "../atoms.js"
 const NAME_TO_CODE = new Map(COUNTRIES_SORTED.map((c) => [c.name, c.code]))
 
 /**
+ * Resolve typed text to a country, case-insensitively — so committing "china"
+ * (via Enter or blur) still selects China rather than silently reverting.
+ * Prefers an exact case-insensitive name match; falls back to the sole option
+ * when the text unambiguously prefixes a single country.
+ */
+function resolveTypedName(text: string): string | undefined {
+    const q = text.trim().toLowerCase()
+    if (!q) return undefined
+    const exact = COUNTRIES_SORTED.find((c) => c.name.toLowerCase() === q)
+    if (exact) return exact.name
+    const prefixed = COUNTRIES_SORTED.filter((c) =>
+        c.name.toLowerCase().startsWith(q)
+    )
+    return prefixed.length === 1 ? prefixed[0].name : undefined
+}
+
+/**
  * A typeable country picker: type to filter, or click the arrow to browse the
  * full list. (A custom combobox, since a native <datalist> shows no arrow and
  * only surfaces options mid-type.)
@@ -78,8 +95,9 @@ export function CountryCombobox() {
             if (isOpen && activeIndex >= 0 && shown[activeIndex]) {
                 e.preventDefault()
                 pick(shown[activeIndex].name)
-            } else if (NAME_TO_CODE.has(text.trim())) {
-                pick(text.trim())
+            } else {
+                const resolved = resolveTypedName(text)
+                if (resolved) pick(resolved)
             }
         } else if (e.key === "Escape") {
             close()
@@ -116,7 +134,8 @@ export function CountryCombobox() {
                         setActiveIndex(-1)
                     }}
                     onBlur={() => {
-                        if (NAME_TO_CODE.has(text.trim())) pick(text.trim())
+                        const resolved = resolveTypedName(text)
+                        if (resolved) pick(resolved)
                         else setText(committedName)
                     }}
                     onKeyDown={onKeyDown}
