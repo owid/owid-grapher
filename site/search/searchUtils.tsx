@@ -142,18 +142,33 @@ const generateGrapherTimeQueryParam = ({
         .join("..")
 }
 
-export const getEntityQueryStr = (
+/**
+ * The Grapher query params that pre-select `entities` — just `country`,
+ * encoded with Grapher's own entity-param serializer, and left `undefined`
+ * when there's nothing to select so the params collapse to an empty query
+ * string (`queryParamsToStr` omits undefined values).
+ *
+ * Split out of `getEntityQueryStr` below so a caller that renders an entity
+ * pre-selected Grapher *and* links to that same chart's own page can feed the
+ * one from this and the other from `constructChartUrl`'s `grapherParams`,
+ * without the two drifting apart (see AllChartsBlock's sidecar).
+ */
+export const getEntityGrapherParams = (
     entities: EntityName[] | null | undefined
-): string => {
+): GrapherQueryParams => {
     const hasEntities = !!entities?.length
 
     const countryParam = hasEntities
         ? generateSelectedEntityNamesParam(entities)
         : undefined
 
-    const queryParams = { country: countryParam } satisfies GrapherQueryParams
+    return { country: countryParam } satisfies GrapherQueryParams
+}
 
-    const url = Url.fromQueryParams(queryParams)
+export const getEntityQueryStr = (
+    entities: EntityName[] | null | undefined
+): string => {
+    const url = Url.fromQueryParams(getEntityGrapherParams(entities))
 
     return url.queryStr
 }

@@ -27,6 +27,7 @@ import {
     constructConfigUrl,
     constructChartUrl,
     getEntityQueryStr,
+    getEntityGrapherParams,
     extractFiltersFromQuery,
     pickEntitiesForChartHit,
     getFilterIcon,
@@ -934,16 +935,31 @@ const AllChartsSidecar = ({
     // entity selector. A new search resets it (the queryStr changes), but we
     // don't track entity changes made inside Grapher back to the search bar.
     const selectedEntities = pickEntitiesForChartHit(hit, detectedCountries)
+    const entityGrapherParams = getEntityGrapherParams(selectedEntities)
     const queryStr = getEntityQueryStr(selectedEntities)
 
     // Plain charts can be loaded by slug; mdim/explorer views need a config URL.
     const configUrl =
         hit.type === "chart" ? undefined : constructConfigUrl({ hit })
 
-    // The chart's own page (grapher page, or the explorer for explorer views),
-    // built exactly the way the row's arrow link used to build it — that
-    // navigation affordance moved down here (see AllChartsTableRow).
-    const chartUrl = constructChartUrl({ hit })
+    // The chart's own page (grapher page, or the explorer for explorer views)
+    // for the "Explore this data" button below — this navigation affordance
+    // used to be the row's arrow link (see AllChartsTableRow).
+    //
+    // It carries the searched country through, so following it lands on the
+    // chart page showing the same entity selection the preview above it does
+    // rather than resetting to the chart's default entities. Both come from
+    // the same `getEntityGrapherParams` call, so they can't disagree; with no
+    // country in the search, `country` is undefined and drops out, leaving the
+    // plain chart URL. Note this deliberately passes only `country`, not
+    // `toGrapherQueryParams`' full set — that helper would also add
+    // `tab=chart`, which the preview doesn't get, so it would override the
+    // chart's default tab and land the visitor on a different view from the
+    // one they just clicked.
+    const chartUrl = constructChartUrl({
+        hit,
+        grapherParams: entityGrapherParams,
+    })
 
     return (
         <>
