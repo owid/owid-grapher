@@ -58,10 +58,10 @@ What still differs:
   that all query tokens come from the same field. Typo tolerance made this much
   worse until `num_typos` was set to 0 on the entity fields — see
   `CHARTS_FIELDS`. Watch for it when adding a field to `query_by`.
-- **No stemming.** Collection fields are indexed with `stem: false`, so "bans"
-  doesn't match "banned" and `drop_tokens_threshold: 0` then rejects the whole
-  query. Algolia resolves these. Enabling `stem` is a schema change and needs a
-  reindex; untested so far.
+- **Stemming is on for the chart text fields only** (`title`, `containerTitle`,
+  `subtitle`, `variantName`, `tags`), not the entity lists — those are proper
+  nouns where stemming invites false matches. The pages collection is still
+  unstemmed; it hasn't been evaluated.
 
 ### Evaluating changes here
 

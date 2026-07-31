@@ -50,11 +50,23 @@ export const chartsCollectionSchema: CollectionCreateSchema = {
         { name: "chartId", type: "int32", optional: true },
         { name: "chartConfigId", type: "string", optional: true },
         { name: "slug", type: "string" },
-        { name: "title", type: "string" },
-        { name: "containerTitle", type: "string", optional: true },
-        { name: "subtitle", type: "string", optional: true },
-        { name: "variantName", type: "string", optional: true },
-        { name: "tags", type: "string[]", optional: true, facet: true },
+        // `stem: true` on the human-language fields, so "bans" matches "banned"
+        // and "emissions" matches "emission". Without it, `drop_tokens_threshold:
+        // 0` rejects the whole query for one unmatched inflection — "bans on
+        // bullfightin" found nothing while Algolia returned the bullfighting
+        // chart. Deliberately NOT applied to the entity lists: those are proper
+        // nouns, where stemming only invites false matches.
+        { name: "title", type: "string", stem: true },
+        { name: "containerTitle", type: "string", optional: true, stem: true },
+        { name: "subtitle", type: "string", optional: true, stem: true },
+        { name: "variantName", type: "string", optional: true, stem: true },
+        {
+            name: "tags",
+            type: "string[]",
+            optional: true,
+            facet: true,
+            stem: true,
+        },
         { name: "availableEntities", type: "string[]", optional: true },
         {
             name: "originalAvailableEntities",
