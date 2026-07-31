@@ -57,7 +57,7 @@ describe("cached queries proxy endpoint", () => {
         )
         expect(response.headers.get("X-Cache")).toBe("MISS")
         expect(response.headers.get("Access-Control-Allow-Origin")).toBe("*")
-        expect(mockCache.put).toHaveBeenCalledTimes(1)
+        expect(mockCache.put).toHaveBeenCalledOnce()
     })
 
     it("serves a cached response without contacting Algolia", async () => {
