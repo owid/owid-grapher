@@ -11,6 +11,7 @@ import {
     OwidVariableDataTableConfigInterface,
     OwidVariableDisplayConfigInterface,
     OwidVariableRoundingMode,
+    TimeInterval,
 } from "@ourworldindata/types"
 
 class OwidVariableDisplayConfigDefaults {
@@ -23,7 +24,7 @@ class OwidVariableDisplayConfigDefaults {
     numDecimalPlaces: number | undefined = undefined
     numSignificantFigures: number | undefined = undefined
     tolerance: number | undefined = undefined
-    yearIsDay: boolean | undefined = undefined
+    timeInterval: TimeInterval | undefined = undefined
     zeroDay: string | undefined = undefined
     entityAnnotationsMap: string | undefined = undefined
     includeInTable: boolean | undefined = true
@@ -42,7 +43,7 @@ class OwidVariableDisplayConfigDefaults {
             numDecimalPlaces: observable,
             numSignificantFigures: observable,
             tolerance: observable,
-            yearIsDay: observable,
+            timeInterval: observable,
             zeroDay: observable,
             entityAnnotationsMap: observable,
             includeInTable: observable,

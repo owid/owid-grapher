@@ -13,6 +13,7 @@ import {
     GRAPHER_TAB_NAMES,
     OwidChartDimensionInterface,
     GRAPHER_TAB_QUERY_PARAMS,
+    TimeInterval,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -297,7 +298,10 @@ const getGrapher = (): GrapherState => {
                 },
                 metadata: {
                     id: 142609,
-                    display: { zeroDay: "2020-01-21", yearIsDay: true },
+                    display: {
+                        zeroDay: "2020-01-21",
+                        timeInterval: TimeInterval.Day,
+                    },
                     dimensions: {
                         entities: {
                             values: [
@@ -430,6 +434,46 @@ describe("currentTitle", () => {
         })
 
         expect(grapher.currentTitle).toContain("GDP")
+    })
+})
+
+describe("filteredTableForDownload", () => {
+    const makeGrapher = (): GrapherState => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        return new GrapherState({
+            table,
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+            ],
+        })
+    }
+
+    it("restricts the download to the selected time range on the table tab", () => {
+        const grapher = makeGrapher()
+        grapher.setTab(GRAPHER_TAB_NAMES.Table)
+        grapher.timelineHandleTimeBounds = [2003, 2005]
+
+        const times = _.uniq(grapher.filteredTableForDownload.timeColumn.values)
+        expect(_.min(times)).toBe(2003)
+        expect(_.max(times)).toBe(2005)
+    })
+
+    it("does not restrict the full download table by the selected time range", () => {
+        const grapher = makeGrapher()
+        grapher.setTab(GRAPHER_TAB_NAMES.Table)
+        grapher.timelineHandleTimeBounds = [2003, 2005]
+
+        const times = _.uniq(grapher.tableForDownload.timeColumn.values)
+        expect(_.min(times)).toBe(2000)
+        expect(_.max(times)).toBe(2009)
     })
 })
 
@@ -621,6 +665,54 @@ describe("urls", () => {
         // Animation should be stopped
         expect(grapher.disablePlay).toBe(true)
         expect(grapher.isTimelineAnimationPlaying).toBe(false)
+    })
+
+    it("keeps an authored entity selection when switching to Marimekko in the editor", () => {
+        // `isEditor` is read from `window.isEditor` at construction time,
+        // mirroring how the admin chart editor marks itself. This test file
+        // runs in a plain (non-jsdom) environment, so `window` doesn't
+        // otherwise exist here.
+        ;(globalThis as any).window = { isEditor: true }
+        try {
+            const table = SynthesizeGDPTable({
+                entityCount: 3,
+                timeRange: [2000, 2010],
+            })
+            const selectedEntityNames = table.availableEntityNames.slice(0, 2)
+            const grapher = new GrapherState({
+                table,
+                chartTypes: [
+                    GRAPHER_CHART_TYPES.LineChart,
+                    GRAPHER_CHART_TYPES.Marimekko,
+                ],
+                selectedEntityNames,
+                dimensions: [
+                    {
+                        slug: SampleColumnSlugs.GDP,
+                        property: DimensionProperty.y,
+                        variableId: SampleColumnSlugs.GDP as any,
+                    },
+                ],
+            })
+
+            const previousTab = grapher.activeTab
+            grapher.setTab(GRAPHER_TAB_NAMES.Marimekko)
+            grapher.onTabChange(previousTab, GRAPHER_TAB_NAMES.Marimekko)
+
+            expect(grapher.selection.selectedEntityNames).toEqual(
+                selectedEntityNames
+            )
+
+            // The time handles should also be left untouched in the editor
+            // (outside the editor, switching to a single-time chart type
+            // like Marimekko moves both handles to the same time)
+            expect(grapher.timelineHandleTimeBounds).toEqual([
+                -Infinity,
+                Infinity,
+            ])
+        } finally {
+            delete (globalThis as any).window
+        }
     })
 })
 

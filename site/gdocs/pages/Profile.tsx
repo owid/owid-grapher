@@ -15,7 +15,7 @@ import { Byline } from "../components/Byline.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBook } from "@fortawesome/free-solid-svg-icons"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
-import { TableOfContents } from "../../TableOfContents.js"
+import { SidebarTableOfContents } from "../../SidebarTableOfContents.js"
 
 type ProfileProps = Omit<
     OwidGdocProfileInterface,
@@ -24,8 +24,12 @@ type ProfileProps = Omit<
     isPreviewing?: boolean
 }
 
-export function Profile({ content, publishedAt, slug }: ProfileProps) {
+export function Profile({ content, publishedAt, slug, tags }: ProfileProps) {
     const hasSidebarToc = content["sidebar-toc"]
+    const sidebarHeadings =
+        content.toc && content["sidebar-toc-h1-only"]
+            ? content.toc.filter((heading) => !heading.isSubheading)
+            : content.toc
     const instantiatedEntity = content.instantiatedEntity
 
     const shortPageCitation = getShortPageCitation(
@@ -91,11 +95,10 @@ export function Profile({ content, publishedAt, slug }: ProfileProps) {
                     </a>
                 </div>
             </header>
-            {hasSidebarToc && content.toc ? (
-                <TableOfContents
-                    headings={content.toc}
-                    headingLevels={{ primary: 1, secondary: 2 }}
-                    pageTitle={content.title || ""}
+            {hasSidebarToc && sidebarHeadings ? (
+                <SidebarTableOfContents
+                    headings={sidebarHeadings}
+                    tagName={tags?.[0]?.name}
                 />
             ) : null}
             {content.body ? <ArticleBlocks blocks={content.body} /> : null}

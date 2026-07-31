@@ -677,6 +677,7 @@ export const getRelatedChartsForChart = async (
             JOIN charts ON charts.id = rc.relatedChartId
             JOIN chart_configs ON charts.configId = chart_configs.id
             WHERE rc.chartId = ?
+                AND rc.relatedChartId != rc.chartId
                 AND rc.reviewer = 'production'
                 AND rc.label = 'good'
                 AND chart_configs.full->>"$.isPublished" = "true"
@@ -699,7 +700,11 @@ export const getRedirectsByChartId = async (
     await db.knexRaw(
         knex,
         `-- sql
-        SELECT id, slug, chart_id as chartId
+        SELECT
+            id,
+            slug,
+            chart_id as chartId,
+            target_query_param as targetQueryParam
         FROM chart_slug_redirects
         WHERE chart_id = ?
         ORDER BY id ASC`,

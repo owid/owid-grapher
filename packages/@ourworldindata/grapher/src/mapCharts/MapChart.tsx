@@ -47,6 +47,7 @@ import {
     isNoDataBin,
     isNumericBin,
     isProjectedDataBin,
+    mergeCategoricalBinsByLabelAndColor,
     NumericBin,
 } from "../color/ColorScaleBin"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
@@ -57,7 +58,7 @@ import {
     MapRegionName,
 } from "@ourworldindata/types"
 import { ClipPath, makeClipPath } from "../chart/ChartUtils"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { Component, createRef, PointerEvent } from "react"
 import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
@@ -99,6 +100,11 @@ export class MapChart
      * Hovering a map bracket highlights all countries within that bracket on the map.
      */
     hoverBracket: MapBracket | undefined = undefined
+    /**
+     * For touch events, we "pin" the hover bracket into an active state until the user taps outside of the legend.
+     * This is to create a better touch device experience.
+     */
+    private isHoverBracketPinnedBecauseOfTouchEvent = false
 
     tooltipState = new TooltipState<{
         featureId: string
@@ -189,6 +195,7 @@ export class MapChart
         this.onMapMouseLeave()
         this.onLegendMouseLeave()
         document.removeEventListener("keydown", this.onDocumentKeyDown)
+        document.removeEventListener("pointerdown", this.onDocumentPointerDown)
     }
 
     @action.bound onLegendMouseEnter(bracket: MapBracket): void {
@@ -199,11 +206,18 @@ export class MapChart
     }
 
     @action.bound onLegendMouseOver(bracket: MapBracket): void {
+        if (this.isHoverBracketPinnedBecauseOfTouchEvent) return
         this.hoverBracket = bracket
     }
 
     @action.bound onLegendMouseLeave(): void {
+        if (this.isHoverBracketPinnedBecauseOfTouchEvent) return
         this.hoverBracket = undefined
+    }
+
+    @action.bound onLegendTouchSelect(bracket: MapBracket): void {
+        this.hoverBracket = bracket
+        this.isHoverBracketPinnedBecauseOfTouchEvent = true
     }
 
     @computed get mapConfig(): MapConfig {
@@ -225,6 +239,18 @@ export class MapChart
             this.globeController.resetGlobe()
             this.mapConfig.region = MapRegionName.World
         }
+    }
+
+    // Clear the pinned hover bracket when the user taps outside of the legend.
+    // This only applies to when the hover bracket is currently pinned because of a touch event.
+    // But it doesn't check that the pointer event here is a touch event, because otherwise we would
+    // get into weird states with hybrid devices that have both touch and mouse input.
+    //
+    // Note that the legend itself stops propagation of pointer events, so this event handler will
+    // only be called when the user taps outside of the legend.
+    @action.bound onDocumentPointerDown(): void {
+        this.hoverBracket = undefined
+        this.isHoverBracketPinnedBecauseOfTouchEvent = false
     }
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
@@ -249,6 +275,7 @@ export class MapChart
         exposeInstanceOnWindow(this)
 
         document.addEventListener("keydown", this.onDocumentKeyDown)
+        document.addEventListener("pointerdown", this.onDocumentPointerDown)
     }
 
     @computed private get legendData(): ColorScaleBin[] {
@@ -417,7 +444,9 @@ export class MapChart
             })
         }
 
-        return categoricalLegendData
+        // Collapse bins that would render identical swatches (same label and
+        // color) into one, so the legend doesn't show visual duplicates
+        return mergeCategoricalBinsByLabelAndColor(categoricalLegendData)
     }
 
     @computed private get hasCategoricalLegendData(): boolean {
@@ -675,7 +704,7 @@ export class MapChart
     override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
-                <NoDataModal
+                <NoDataMessage
                     manager={this.manager}
                     bounds={this.props.bounds}
                     message={this.chartState.errorInfo.reason}

@@ -1,5 +1,5 @@
 import { DimensionProperty } from "@ourworldindata/utils"
-import { GRAPHER_TAB_CONFIG_OPTIONS } from "@ourworldindata/types"
+import { GRAPHER_TAB_CONFIG_OPTIONS, TimeInterval } from "@ourworldindata/types"
 import {
     GrapherProgrammaticInterface,
     legacyToOwidTableAndDimensionsWithMandatorySlug,
@@ -56,7 +56,10 @@ export const SampleExplorerOfGraphers = (props?: Partial<ExplorerProps>) => {
                 },
                 metadata: {
                     id: 142609,
-                    display: { zeroDay: "2020-01-21", yearIsDay: true },
+                    display: {
+                        zeroDay: "2020-01-21",
+                        timeInterval: TimeInterval.Day,
+                    },
                     dimensions: {
                         entities: {
                             values: [

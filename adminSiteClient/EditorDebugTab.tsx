@@ -64,7 +64,7 @@ class EditorDebugTabForChart extends Component<{
         // Use the Clipboard API to copy the config into the users clipboard
         void copyToClipboard(chartConfigAsYaml)
         notification["success"]({
-            message: "Copied YAML to clipboard",
+            title: "Copied YAML to clipboard",
             description: "You can now paste this into the ETL",
             placement: "bottomRight",
             closeIcon: <></>,
@@ -230,7 +230,7 @@ class EditorDebugTabForNarrativeChart extends Component<{
         // Use the Clipboard API to copy the config into the users clipboard
         void copyToClipboard(chartConfigAsYaml)
         notification["success"]({
-            message: "Copied YAML to clipboard",
+            title: "Copied YAML to clipboard",
             description: "You can now paste this into the ETL",
             placement: "bottomRight",
             closeIcon: <></>,

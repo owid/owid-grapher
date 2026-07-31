@@ -28,6 +28,10 @@ Here you don't need Docker and you just set up node and yarn. This only gives yo
 
 Uses Docker to run the MySQL database alongside a local setup without MySQL. This setup the one used by a lot of the OWID staff and is recommended for bigger changes to Grapher.
 
+**[Claude Code on the web](claude-code-web.md)** (🚜.)
+
+A cloud sandbox that runs the full stack — MySQL with the production metadata database, admin and vite servers, working site search — with no local tools beyond a web browser. Sessions can take screenshots of the running site and push a branch with a staging server. One-time setup takes a couple of minutes of clicking plus a one-off automated build.
+
 **GitPod** (🚜.)
 
 This is a contributed web-based setup that needs no local tools whatsoever, just a [web browser pointed at GitPod](https://gitpod.io/#https://github.com/owid/owid-grapher). This is an easy way to get started, but it is not actively maintained by the OWID team so it might not be working as well as the other options. This method takes around 30 minutes to initialize.

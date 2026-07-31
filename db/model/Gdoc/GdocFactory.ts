@@ -24,9 +24,9 @@ import {
     PostsGdocsXImagesTableName,
     PostsGdocsXTagsTableName,
     checkIsOwidGdocType,
-    extractGdocIndexItem,
     formatDate,
     parsePostGdocContent,
+    parsePostGdocsAuthors,
     parsePostsGdocsRow,
     serializePostsGdocsRow,
     traverseEnrichedBlock,
@@ -758,25 +758,58 @@ export async function getTagsGroupedByGdocId(
     return Map.groupBy(tags, (tag) => tag.gdocId)
 }
 
+type GdocIndexDatabaseRow = Pick<
+    DbRawPostGdoc,
+    | "id"
+    | "slug"
+    | "type"
+    | "authors"
+    | "published"
+    | "publishedAt"
+    | "updatedAt"
+> & {
+    title: string | null
+    subtitle: string | null
+}
+
 export async function getAllGdocIndexItemsOrderedByUpdatedAt(
     knex: KnexReadonlyTransaction
 ): Promise<OwidGdocIndexItem[]> {
-    // Old note from Ike for somewhat different code that might still be relevant:
-    // orderBy was leading to a sort buffer overflow (ER_OUT_OF_SORTMEMORY) with MySQL's default sort_buffer_size
-    // when the posts_gdocs table got larger than 9MB, so we sort in memory
-    const gdocs: DbRawPostGdoc[] = await knex
-        .table<DbRawPostGdoc>(PostsGdocsTableName)
-        .orderBy("updatedAt", "desc")
+    // Sorting wide posts_gdocs rows in MySQL can exceed its default sort buffer.
+    // Select only the index fields and sort the small result set in memory.
+    const gdocs: GdocIndexDatabaseRow[] = await knex
+        .table<GdocIndexDatabaseRow>(PostsGdocsTableName)
+        .select(
+            "id",
+            "slug",
+            "type",
+            "authors",
+            "published",
+            "publishedAt",
+            "updatedAt"
+        )
+        .select(
+            knex.raw("content ->> '$.title' AS title"),
+            knex.raw("content ->> '$.subtitle' AS subtitle")
+        )
+
+    gdocs.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+
     const groupedTags = await getTagsGroupedByGdocId(
         knex,
         gdocs.map((gdoc) => gdoc.id)
     )
-    return gdocs.map((gdoc) =>
-        extractGdocIndexItem({
-            ...parsePostsGdocsRow(gdoc),
-            tags: groupedTags.get(gdoc.id) ?? null,
-        })
-    )
+    return gdocs.map((gdoc) => ({
+        id: gdoc.id,
+        slug: gdoc.slug,
+        tags: groupedTags.get(gdoc.id) ?? [],
+        published: !!gdoc.published,
+        publishedAt: gdoc.publishedAt,
+        title: gdoc.title ?? "",
+        subtitle: gdoc.subtitle ?? undefined,
+        authors: parsePostGdocsAuthors(gdoc.authors),
+        type: gdoc.type,
+    }))
 }
 
 export async function setImagesInContentGraph(

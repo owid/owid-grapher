@@ -1,0 +1,17 @@
+{
+    "$schema": "../../node_modules/wrangler/config-schema.json",
+    "name": "owid-functions-search-e2e-tests",
+    "main": "./search.e2e.worker.ts",
+    "compatibility_date": "2025-05-05",
+    "vars": {
+        // Local dev Typesense instance (docker-compose.grapher.yml). Unlike
+        // the old Algolia setup there is no public production search cluster
+        // to test against, so this e2e suite runs only when a local Typesense
+        // with indexed data is up — see TYPESENSE_INTEGRATION_TESTS gating in
+        // search.e2e.test.ts.
+        "TYPESENSE_HOST": "localhost",
+        "TYPESENSE_PORT": "8108",
+        "TYPESENSE_PROTOCOL": "http",
+        "TYPESENSE_SEARCH_KEY": "xyz"
+    }
+}

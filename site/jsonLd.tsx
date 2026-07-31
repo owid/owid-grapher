@@ -2,9 +2,12 @@ import {
     DataPageDataV2,
     GrapherInterface,
     OwidGdocType,
+    serializeJSONForInlineScript,
     spansToUnformattedPlainText,
 } from "@ourworldindata/utils"
 import {
+    CHART_LICENSES,
+    DEFAULT_CHART_LICENSE,
     OwidGdocAuthorInterface,
     OwidGdocDataInsightInterface,
     OwidGdocPostInterface,
@@ -22,7 +25,7 @@ import type {
     WithContext,
 } from "schema-dts"
 import {
-    makeJsonLdCreator,
+    makeJsonLdOwidOrganization,
     makeJsonLdGrapherCreditText,
 } from "./jsonLdHelpers.js"
 
@@ -31,7 +34,7 @@ function JsonLdScript({ data }: { data: WithContext<Thing> }) {
         <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{
-                __html: JSON.stringify(data),
+                __html: serializeJSONForInlineScript(data),
             }}
         />
     )
@@ -48,7 +51,7 @@ function makeJsonLdAuthors(
 ): JsonLdAuthor[] {
     return gdoc.content.authors.map((gdocAuthor) => {
         if (gdocAuthor.toLowerCase().includes("our world in data")) {
-            return makeJsonLdCreator(baseUrl)
+            return makeJsonLdOwidOrganization(baseUrl)
         }
         const author: Person = {
             "@type": "Person",
@@ -86,10 +89,11 @@ export function JsonLdDataPage({
         ? {
               "@type": "ImageObject",
               contentUrl: imageUrl,
-              creator: makeJsonLdCreator(baseUrl),
+              creator: makeJsonLdOwidOrganization(baseUrl),
               creditText: makeJsonLdGrapherCreditText(grapher, datapageData),
               copyrightNotice: "Our World in Data",
-              license: "https://creativecommons.org/licenses/by/4.0/",
+              license:
+                  CHART_LICENSES[grapher?.license ?? DEFAULT_CHART_LICENSE].url,
               acquireLicensePage: `${baseUrl}/faqs#can-i-reuse-or-republish-your-charts`,
           }
         : undefined
@@ -108,6 +112,8 @@ export function JsonLdArticle({
     gdoc,
     baseUrl,
     imageUrl,
+    description,
+    canonicalUrl,
 }: {
     gdoc:
         | OwidGdocPostInterface
@@ -115,20 +121,33 @@ export function JsonLdArticle({
         | OwidGdocDataInsightInterface
     baseUrl: string
     imageUrl?: string
+    description?: string
+    canonicalUrl: string
 }) {
     const data: WithContext<Article> = {
         "@context": "https://schema.org",
         "@type": "Article",
         headline: gdoc.content.title,
+        description,
         image: imageUrl ? [imageUrl] : [],
+        mainEntityOfPage: {
+            "@type": "WebPage",
+            "@id": canonicalUrl,
+        },
         // NOTE: We don't set dateModified. We have gdoc.updatedAt, but that's
         // not correct because the semantics of these fields is different.
         // gdoc.updatedAt is the time the gdoc row was updated in the database,
         // even if the content hasn't changed and can be even earlier than
         // gdoc.publishedAt for articles scheduled for publication into the
-        // future.
+        // future. Emitting unreliable dates is worse than emitting none: if
+        // Google notices they don't match actual content changes, it can
+        // start distrusting our dates altogether. If we ever want
+        // dateModified, the right fix is a contentUpdatedAt column on
+        // posts_gdocs that's only bumped on ingest when the content actually
+        // changed (e.g. when revisionId differs), backfilled to publishedAt.
         datePublished: gdoc.publishedAt?.toISOString(),
         author: makeJsonLdAuthors(baseUrl, gdoc),
+        publisher: makeJsonLdOwidOrganization(baseUrl),
     }
     return <JsonLdScript data={data} />
 }

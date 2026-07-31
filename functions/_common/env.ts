@@ -1,6 +1,7 @@
 export interface Env {
     ASSETS: Fetcher
     url: URL
+    BAKED_BASE_URL?: string
     GRAPHER_CONFIG_R2_BUCKET?: R2Bucket
     GRAPHER_CONFIG_R2_BUCKET_FALLBACK?: R2Bucket
     GRAPHER_CONFIG_R2_BUCKET_PATH?: string

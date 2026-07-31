@@ -10,6 +10,8 @@ fields:
     description: Old slug that should redirect to the new chart location (unique constraint)
   chart_id:
     description: Foreign key to charts table. Target chart ID for the redirect.
+  target_query_param:
+    description: Optional query string to append to the target chart URL, stored without the leading question mark.
   createdAt:
     description: Timestamp when the redirect was created
   updatedAt:

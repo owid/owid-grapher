@@ -140,6 +140,26 @@ it("filters non-numeric values", () => {
     ).toBeTruthy()
 })
 
+it("ignores the author-configured axis min but respects the max", () => {
+    const csv = `gdp,year,entityName
+102,2019,United States
+101,2019,Sweden`
+
+    const table = new OwidTable(csv)
+    const manager: DiscreteBarChartManager = {
+        table,
+        seriesStrategy: SeriesStrategy.entity,
+        selection: table.availableEntityNames,
+        yColumnSlugs: ["gdp"],
+        // The min is usually intended for the line chart and would push the
+        // zero line (where bars start) away from the left edge of the chart
+        yAxisConfig: { min: -50, max: 200 },
+    }
+    const chartState = new DiscreteBarChartState({ manager })
+    const chart = new DiscreteBarChart({ chartState })
+    expect(chart.yAxis.domain).toEqual([0, 200])
+})
+
 describe("sorting", () => {
     const csv = `gdp,year,entityName
 102,2019,United States

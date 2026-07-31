@@ -19,7 +19,7 @@ import {
     FontSettings,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { HorizontalAxisZeroLine } from "../axis/AxisViews"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
@@ -178,10 +178,15 @@ export class DiscreteBarChart
     @computed private get yAxisConfig(): AxisConfig {
         return new AxisConfig(
             {
-                // if we have a single-value x axis, we want to have the vertical axis
+                // If we have a single-value x axis, we want to have the vertical axis
                 // on the left of the chart
                 singleValueAxisPointAlign: AxisAlign.start,
                 ...this.manager.yAxisConfig,
+                // The author-configured minimum is usually intended for the
+                // line chart. Since the bar chart doesn't draw an axis, a min
+                // below the data would only insert empty space to the left of
+                // the zero line, so we ignore it
+                min: undefined,
             },
             this
         )
@@ -558,7 +563,7 @@ export class DiscreteBarChart
     override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
-                <NoDataModal
+                <NoDataMessage
                     manager={this.manager}
                     bounds={this.bounds}
                     message={this.chartState.errorInfo.reason}

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" id="flag-icons-au" viewBox="0 0 640 480">
-  <path fill="#00008B" d="M0 0h640v480H0z"/>
+  <path fill="#00008b" d="M0 0h640v480H0z"/>
   <path fill="#fff" d="m37.5 0 122 90.5L281 0h39v31l-120 89.5 120 89V240h-40l-120-89.5L40.5 240H0v-30l119.5-89L0 32V0z"/>
   <path fill="red" d="M212 140.5 320 220v20l-135.5-99.5zm-92 10 3 17.5-96 72H0zM320 0v1.5l-124.5 94 1-22L295 0zM0 0l119.5 88h-30L0 21z"/>
   <path fill="#fff" d="M120.5 0v240h80V0zM0 80v80h320V80z"/>

@@ -4,7 +4,9 @@ import {
     Filter,
     ChartRecordType,
     SearchChartHit,
+    OwidGdocType,
 } from "@ourworldindata/types"
+import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     TypesenseConfig,
     TypesenseHit,
@@ -69,6 +71,9 @@ export interface SearchApiResponse {
     page: number
     nbPages: number
     hitsPerPage: number
+    // True when the exact query returned nothing and these are relaxed
+    // "closest matches" instead (see searchSingleForHitsWithClosestMatches).
+    closestMatches?: boolean
 }
 
 export interface SearchPagesApiResponse {
@@ -77,6 +82,9 @@ export interface SearchPagesApiResponse {
     nbHits: number
     offset: number
     length: number
+    // True when the exact query returned nothing and these are relaxed
+    // "closest matches" instead (see searchChartsWithClosestMatches).
+    closestMatches?: boolean
 }
 
 // Minimal set of attributes needed by the API consumers
@@ -385,6 +393,16 @@ export async function searchPages(
 
     const cleanedHits = rawHits.map((hit): EnrichedSearchPageHit => {
         const doc = hit.document
+        // Construct URL based on slug + type: different gdoc types bake to
+        // different path prefixes (e.g. data-insights -> /data-insights/,
+        // profiles -> /profile/) — getCanonicalUrl/getPrefixedGdocPath is the
+        // single source of truth the baker itself uses, so newly-exposed
+        // pageTypes (beyond the original article/about-page) resolve to
+        // working links instead of a bare `${baseUrl}/${slug}` guess.
+        const url = getCanonicalUrl(baseUrl, {
+            slug: doc.slug as string,
+            content: { type: doc.type as OwidGdocType },
+        })
         return {
             title: doc.title as string,
             slug: doc.slug as string,
@@ -393,7 +411,7 @@ export async function searchPages(
             date: doc.date as string | undefined,
             content: doc.content as string | undefined,
             authors: doc.authors as string[] | undefined,
-            url: `${baseUrl}/${doc.slug}`,
+            url,
         }
     })
 

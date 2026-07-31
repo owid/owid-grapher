@@ -26,6 +26,22 @@
         }
     }
 
+    .sources a.sources-link {
+        cursor: pointer;
+
+        .markdown-text-wrap__line {
+            display: inline;
+        }
+
+        .markdown-text-wrap__line > span {
+            text-decoration: underline;
+        }
+
+        &:hover .markdown-text-wrap__line > span {
+            text-decoration: none;
+        }
+    }
+
     // show "Learn more about this data" link on the same line
     .sources .markdown-text-wrap__line:last-child {
         display: inline-block;

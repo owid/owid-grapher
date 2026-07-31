@@ -119,7 +119,7 @@ describe(runEqualSizeBinningStrategy, () => {
         it("should throw error for invalid strategy", () => {
             expect(() => {
                 runEqualSizeBinningStrategy({
-                    strategy: "log-auto" as any,
+                    strategy: "log-auto",
                     minValue: 0,
                     maxValue: 100,
                     sortedValues: [],

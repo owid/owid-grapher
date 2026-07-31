@@ -10,8 +10,6 @@ export type TradeRow = {
 export type ProductTradeData = {
     product: string
     flows: TradeRow[]
-    productionByCountry: Map<string, number>
-    supplyByCountry: Map<string, number>
     incomingFlowsByCountry: Map<string, TradeRow[]>
     outgoingFlowsByCountry: Map<string, TradeRow[]>
 }
@@ -33,8 +31,6 @@ export type MetadataJson = {
 
 export type ProductJson = {
     flows: { exporters: number[]; importers: number[]; values: number[] }
-    production: { entities: number[]; values: number[] }
-    supply: { entities: number[]; values: number[] }
 }
 
 export type FoodTradeMetadata = {

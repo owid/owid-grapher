@@ -78,6 +78,7 @@ export const checkIsLightningUpdate = (
         "cover-image": true,
         "hide-citation": true,
         "sidebar-toc": true,
+        "sidebar-toc-h1-only": true,
         "heading-variant": true,
         "hide-subscribe-banner": true,
         body: true,
@@ -174,6 +175,7 @@ export const checkIsLightningUpdate = (
         body: false,
         refs: false,
         "sidebar-toc": true,
+        "sidebar-toc-h1-only": true,
         toc: true,
         instantiatedEntity: false, // NA, derived field
     }

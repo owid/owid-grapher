@@ -111,11 +111,46 @@ const resultOk = (): VerifyResult => ({
     kind: "ok",
 })
 
-const resultError = (viewId: string, error: Error): VerifyResult => ({
+export const resultError = (viewId: string, error: Error): VerifyResult => ({
     kind: "error",
     viewId,
     error,
 })
+
+// A single chart/view should render in well under a second; this is a generous
+// safety margin so one stuck render can't hang the entire run indefinitely.
+export const JOB_TIMEOUT_MS = 2 * 60 * 1000
+
+// Each worker is a separate Node worker_thread with its own V8 isolate/heap -
+// heap is not shared, so peak memory scales close to linearly with worker count
+// regardless of how much of that concurrency is actually used. Swept 4/6/8/12 on
+// a 300-chart sample under two different host-contention levels (see the
+// verify-graphs PR description for both full tables) - 6 came out as the sweet
+// spot both times: meaningfully less memory than 8 or 12, and equal-or-better
+// wall-clock, not just a cheaper-but-slower tradeoff. Override via
+// SVG_TESTER_MAX_WORKERS on memory-constrained hosts.
+export const MAX_WORKERS = Number(process.env.SVG_TESTER_MAX_WORKERS) || 6
+
+// Rejects if the given promise doesn't settle within `timeoutMs`. Used to bound
+// a single render so one stuck view can't hang a whole worker job.
+async function withTimeout<T>(
+    promise: Promise<T>,
+    timeoutMs: number,
+    label: string
+): Promise<T> {
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const timeout = new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(
+            () => reject(new Error(`Timed out after ${timeoutMs}ms: ${label}`)),
+            timeoutMs
+        )
+    })
+    try {
+        return await Promise.race([promise, timeout])
+    } finally {
+        if (timer) clearTimeout(timer)
+    }
+}
 
 const resultDifference = (difference: SvgDifference): VerifyResult => ({
     kind: "difference",
@@ -174,7 +209,7 @@ function findFirstDiffIndex(a: string, b: string): number {
 }
 
 export async function verifySvg(
-    newSvg: string,
+    preparedNewSvg: string,
     newSvgRecord: SvgRecord,
     referenceSvgRecord: SvgRecord,
     referenceSvgsPath: string,
@@ -187,20 +222,41 @@ export async function verifySvg(
         return resultOk()
     }
 
-    const referenceSvg = await loadReferenceSvg(
+    // The stored reference .svg file is already in oxfmt-formatted canonical
+    // form - that's what wrote it in the first place (renderSvgAndSave /
+    // commit_differences), and formatting is idempotent (verified: reformatting
+    // an already-formatted reference file is a no-op). So compare the
+    // freshly-formatted new svg directly against the file's bytes first,
+    // without paying for a reformat on every single chart.
+    //
+    // Note results.csv's md5 column can go stale independently of the .svg
+    // file itself (commit_differences in svg-tester.sh updates the file but
+    // never the CSV), which is why the fast-path check above frequently
+    // misses even when there's no real difference - don't rely on md5 for
+    // anything beyond that optimistic early-exit.
+    const referenceSvgRaw = await loadReferenceSvg(
         referenceSvgsPath,
         referenceSvgRecord
     )
-    const preparedNewSvg = await prepareSvgForComparison(newSvg)
-    const preparedReferenceSvg = await prepareSvgForComparison(referenceSvg)
-    const firstDiffIndex = findFirstDiffIndex(
-        preparedNewSvg,
-        preparedReferenceSvg
-    )
-    // Sometimes the md5 hash comparison above indicated a difference
-    // but the character by character comparison gives -1 (no differences)
-    // Weird - maybe an artifact of a change in how the ids are stripped
-    // across version?
+    let preparedReferenceSvg = referenceSvgRaw
+    let firstDiffIndex = findFirstDiffIndex(preparedNewSvg, referenceSvgRaw)
+
+    if (firstDiffIndex !== -1) {
+        // Only reached if the direct comparison found a difference. The
+        // reference file is normally already canonical (see above), but if
+        // it was written by an older oxfmt version/config than what's
+        // running now, a fresh render can look "different" purely from
+        // formatting drift rather than an actual content change. Reformat
+        // and re-compare before concluding it's a real difference - this
+        // only costs an extra format() call on charts that didn't match on
+        // the first (cheap) try.
+        preparedReferenceSvg = await prepareSvgForComparison(referenceSvgRaw)
+        firstDiffIndex = findFirstDiffIndex(
+            preparedNewSvg,
+            preparedReferenceSvg
+        )
+    }
+
     if (firstDiffIndex === -1) {
         return resultOk()
     }
@@ -454,7 +510,7 @@ export async function renderSvg({
     dir: JobDirectory
     queryStr?: string
     variant?: "default" | "thumbnail"
-}): Promise<[string, SvgRecord]> {
+}): Promise<[string, SvgRecord, string]> {
     const configAndData = await loadGrapherConfigAndData(dir.pathToProcess)
 
     // Graphers sometimes need to generate ids (incrementing numbers). For this
@@ -527,12 +583,18 @@ export async function renderSvg({
     )
     const durationTotal = Date.now() - timeStart
 
+    // Formatting the SVG (to strip non-deterministic fragments before hashing)
+    // is the expensive part of this function. Compute it once here and hand it
+    // back to callers instead of letting them redundantly reformat the same
+    // raw svg again for comparison/output purposes.
+    const preparedSvg = await prepareSvgForComparison(svg)
+
     const svgRecord: SvgRecord = {
         viewId: dir.viewId,
         chartType: grapher.grapherState.activeTab,
         queryStr: queryStr ?? "",
         resolvedQueryStr,
-        md5: await processSvgAndCalculateHash(svg),
+        md5: hashMd5(preparedSvg),
         svgFilename: outFilename,
         performance: {
             durationReceiveData,
@@ -543,7 +605,7 @@ export async function renderSvg({
             totalDataFileSize: configAndData.totalDataFileSize,
         },
     }
-    return Promise.resolve([svg, svgRecord])
+    return Promise.resolve([svg, svgRecord, preparedSvg])
 }
 
 const replaceRegexes = [/id="react-select-\d+-.+"/g]
@@ -577,10 +639,13 @@ export async function renderSvgAndSave(
     jobDescription: RenderSvgAndSaveJobDescription
 ): Promise<SvgRecord> {
     const { dir, outDir, queryStr, variant = "default" } = jobDescription
-    const [svg, svgRecord] = await renderSvg({ dir, queryStr, variant })
+    const [, svgRecord, preparedSvg] = await renderSvg({
+        dir,
+        queryStr,
+        variant,
+    })
     const outPath = path.join(outDir, svgRecord.svgFilename)
-    const cleanedSvg = await prepareSvgForComparison(svg)
-    await fs.writeFile(outPath, cleanedSvg)
+    await fs.writeFile(outPath, preparedSvg)
     return Promise.resolve(svgRecord)
 }
 
@@ -618,7 +683,9 @@ export async function loadGrapherConfigAndData(
     const config = migrateGrapherConfigToLatestVersion(rawConfig) // ensure the config is migrated to the latest schema version
 
     // TODO: this bakes the same commonly used variables over and over again - deduplicate
-    // this on the variable level and bake those separately into a different directory
+    // this on the variable level and bake those separately into a different directory.
+    // Tried an in-process per-worker-thread cache here; measured no difference (see PR
+    // description) because data loading isn't the bottleneck, so leaving this as-is.
     const variableIds = config.dimensions?.map((d) => d.variableId) ?? []
     const loadDataPromises = variableIds.map(async (variableId) => {
         const dataPath = path.join(inputDir, `${variableId}.data.json`)
@@ -720,10 +787,14 @@ export async function renderAndVerifySvg({
         if (!referenceDir) throw "ReferenceDir was not defined"
         if (!outDir) throw "outdir was not defined"
 
-        const [svg, svgRecord] = await renderSvg({ dir, queryStr, variant })
+        const [, svgRecord, preparedSvg] = await renderSvg({
+            dir,
+            queryStr,
+            variant,
+        })
 
         const validationResult = await verifySvg(
-            svg,
+            preparedSvg,
             svgRecord,
             referenceEntry,
             referenceDir,
@@ -740,8 +811,7 @@ export async function renderAndVerifySvg({
                     outDir,
                     pathFragments.name + pathFragments.ext
                 )
-                const cleanedSvg = await prepareSvgForComparison(svg)
-                await fs.writeFile(outputPath, cleanedSvg)
+                await fs.writeFile(outputPath, preparedSvg)
                 break
             }
         }
@@ -1117,7 +1187,7 @@ export async function renderExplorerViewsToSVGsAndSave({
         const svg = await explorer.grapherState.generateStaticSvg(
             ReactDOMServer.renderToStaticMarkup
         )
-        const cleanedSvg = await prepareSvgForComparison(svg)
+        const preparedSvg = await prepareSvgForComparison(svg)
 
         const queryStr = queryParamsToStr(choiceParams).replace("?", "")
         const viewId = `${explorerSlug}?${queryStr}`
@@ -1133,12 +1203,12 @@ export async function renderExplorerViewsToSVGsAndSave({
             { shouldHashQueryStr: true }
         )
 
-        await fs.writeFile(path.join(outDir, outFilename), cleanedSvg)
+        await fs.writeFile(path.join(outDir, outFilename), preparedSvg)
 
         svgRecords.push({
             viewId,
             chartType: explorer.grapherState.activeTab,
-            md5: await processSvgAndCalculateHash(svg),
+            md5: hashMd5(preparedSvg),
             svgFilename: outFilename,
         })
     }
@@ -1250,53 +1320,65 @@ export async function renderAndVerifyExplorerViews({
                 continue
             }
 
-            // Update the explorer
-            await explorer.reactToUserChangingSelection(oldRow)
+            // Bound each view's render+verify so one stuck view can't hang the
+            // whole worker job. Scoping the timeout here (rather than around the
+            // entire multi-view worker call) means large explorers with many
+            // views aren't misreported as timeouts just for taking a while in
+            // aggregate.
+            const validationResult = await withTimeout(
+                (async (): Promise<VerifyResult> => {
+                    // Update the explorer
+                    await explorer.reactToUserChangingSelection(oldRow)
 
-            // Generate SVG for this view
-            const svg = await explorer.grapherState.generateStaticSvg(
-                ReactDOMServer.renderToStaticMarkup
+                    // Generate SVG for this view
+                    const svg = await explorer.grapherState.generateStaticSvg(
+                        ReactDOMServer.renderToStaticMarkup
+                    )
+
+                    const outFilename = buildSvgOutFilename(
+                        {
+                            slug: explorerSlug,
+                            version: 0, // Explorers don't have versions
+                            width,
+                            height,
+                            queryStr,
+                        },
+                        { shouldHashQueryStr: true }
+                    )
+
+                    const preparedSvg = await prepareSvgForComparison(svg)
+                    const svgRecord: SvgRecord = {
+                        viewId,
+                        chartType: explorer.grapherState.activeTab,
+                        md5: hashMd5(preparedSvg),
+                        svgFilename: outFilename,
+                    }
+
+                    // Verify against reference
+                    const result = await verifySvg(
+                        preparedSvg,
+                        svgRecord,
+                        referenceEntry,
+                        referencesDir,
+                        verbose
+                    )
+
+                    // If there was a difference, write the SVG
+                    if (result.kind === "difference") {
+                        if (verbose) logDifferencesToConsole(svgRecord, result)
+                        const pathFragments = path.parse(svgRecord.svgFilename)
+                        const outputPath = path.join(
+                            differencesDir,
+                            pathFragments.name + pathFragments.ext
+                        )
+                        await fs.writeFile(outputPath, preparedSvg)
+                    }
+
+                    return result
+                })(),
+                JOB_TIMEOUT_MS,
+                viewId
             )
-
-            const outFilename = buildSvgOutFilename(
-                {
-                    slug: explorerSlug,
-                    version: 0, // Explorers don't have versions
-                    width,
-                    height,
-                    queryStr,
-                },
-                { shouldHashQueryStr: true }
-            )
-
-            const svgRecord: SvgRecord = {
-                viewId,
-                chartType: explorer.grapherState.activeTab,
-                md5: await processSvgAndCalculateHash(svg),
-                svgFilename: outFilename,
-            }
-
-            // Verify against reference
-            const validationResult = await verifySvg(
-                svg,
-                svgRecord,
-                referenceEntry,
-                referencesDir,
-                verbose
-            )
-
-            // If there was a difference, write the SVG
-            if (validationResult.kind === "difference") {
-                if (verbose)
-                    logDifferencesToConsole(svgRecord, validationResult)
-                const pathFragments = path.parse(svgRecord.svgFilename)
-                const outputPath = path.join(
-                    differencesDir,
-                    pathFragments.name + pathFragments.ext
-                )
-                const cleanedSvg = await prepareSvgForComparison(svg)
-                await fs.writeFile(outputPath, cleanedSvg)
-            }
 
             results.push(validationResult)
         } catch (err) {

@@ -20,8 +20,12 @@ export class CausesOfDeathMetadata {
     private _entityNameToId?: Map<EntityName, number>
     private _variableById?: Map<number, VariableMetadata>
     private _variableByName?: Map<string, VariableMetadata>
+    private _ageGroupById?: Map<number, AgeGroupMetadata>
+    private _ageGroupByName?: Map<string, AgeGroupMetadata>
     private _categoryById?: Map<number, CategoryMetadata>
     private _categoryNameByVariableName?: Map<string, string>
+    private _sexById?: Map<number, BasicEntry>
+    private _sexByName?: Map<string, BasicEntry>
 
     constructor(metadata: MetadataJson) {
         this.metadata = metadata
@@ -72,18 +76,26 @@ export class CausesOfDeathMetadata {
     }
 
     get ageGroupById(): Map<number, AgeGroupMetadata> {
-        return new Map(
+        if (this._ageGroupById) return this._ageGroupById
+
+        this._ageGroupById = new Map(
             this.dimensions.ageGroups.map((ageGroup) => [ageGroup.id, ageGroup])
         )
+
+        return this._ageGroupById
     }
 
     get ageGroupByName(): Map<string, AgeGroupMetadata> {
-        return new Map(
+        if (this._ageGroupByName) return this._ageGroupByName
+
+        this._ageGroupByName = new Map(
             this.dimensions.ageGroups.map((ageGroup) => [
                 ageGroup.name,
                 ageGroup,
             ])
         )
+
+        return this._ageGroupByName
     }
 
     get categoryById(): Map<number, CategoryMetadata> {
@@ -152,11 +164,23 @@ export class CausesOfDeathMetadata {
     }
 
     get sexById(): Map<number, BasicEntry> {
-        return new Map(this.dimensions.sexes.map((sex) => [sex.id, sex]))
+        if (this._sexById) return this._sexById
+
+        this._sexById = new Map(
+            this.dimensions.sexes.map((sex) => [sex.id, sex])
+        )
+
+        return this._sexById
     }
 
     get sexByName(): Map<string, BasicEntry> {
-        return new Map(this.dimensions.sexes.map((sex) => [sex.name, sex]))
+        if (this._sexByName) return this._sexByName
+
+        this._sexByName = new Map(
+            this.dimensions.sexes.map((sex) => [sex.name, sex])
+        )
+
+        return this._sexByName
     }
 
     get availableSexes(): string[] {

@@ -127,21 +127,7 @@ function buildData(
     return {
         product,
         flows,
-        productionByCountry: indexByEntityName(raw.production, metadata),
-        supplyByCountry: indexByEntityName(raw.supply, metadata),
         incomingFlowsByCountry,
         outgoingFlowsByCountry,
     }
-}
-
-function indexByEntityName(
-    series: { entities: number[]; values: number[] },
-    metadata: FoodTradeMetadata
-): Map<string, number> {
-    const out = new Map<string, number>()
-    for (let i = 0; i < series.values.length; i++) {
-        const name = metadata.entityById.get(series.entities[i])?.name
-        if (name) out.set(name, series.values[i])
-    }
-    return out
 }
