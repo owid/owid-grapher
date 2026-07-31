@@ -4,7 +4,6 @@ import {
     TemplateConfig,
     SearchResultType,
 } from "@ourworldindata/types"
-import { LiteClient } from "algoliasearch/lite"
 import { useEffect, useMemo, useState } from "react"
 import { match } from "ts-pattern"
 import { useIsFetching } from "@tanstack/react-query"
@@ -32,17 +31,16 @@ import { SearchNoResults } from "./SearchNoResults.js"
 import { SearchDetectedFilters } from "./SearchDetectedFilters.js"
 import { buildSynonymMap } from "./synonymUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
-import { PoweredBy } from "react-instantsearch"
-import { listedRegionsNames } from "@ourworldindata/utils"
+import { listedRegionsNames, TypesenseConfig } from "@ourworldindata/utils"
 
 const analytics = new SiteAnalytics()
 
 export const Search = ({
     topicTagGraph,
-    liteSearchClient,
+    typesenseConfig,
 }: {
     topicTagGraph: TagGraphRoot
-    liteSearchClient: LiteClient
+    typesenseConfig: TypesenseConfig
 }) => {
     // Extract topic and area data from the graph
     const { allAreas: eligibleAreas, allTopics: eligibleTopics } =
@@ -97,7 +95,7 @@ export const Search = ({
             value={{
                 state,
                 actions,
-                liteSearchClient,
+                typesenseConfig,
                 templateConfig,
                 topicTagGraph,
                 synonymMap,
@@ -137,10 +135,6 @@ export const Search = ({
                     ))
                     .exhaustive()}
             </div>
-            <PoweredBy
-                className="col-start-2 span-cols-12"
-                style={{ width: "200px", marginTop: "32px" }}
-            />
         </SearchContext.Provider>
     )
 }

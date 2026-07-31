@@ -406,6 +406,52 @@ export {
     searchSingleForHitsWithClosestMatches,
 } from "./search/searchClosestMatches.js"
 
+export {
+    type TypesenseConfig,
+    type TypesenseSearchParams,
+    type TypesenseMultiSearchRequest,
+    type TypesenseHit,
+    type TypesenseGroupedHit,
+    type TypesenseSearchResponse,
+    type TypesenseFacetCounts,
+    typesenseSearch,
+    typesenseMultiSearch,
+    extractTypesenseHits,
+    getTypesenseFoundCount,
+} from "./search/typesenseClient.js"
+
+export {
+    type TypesenseFilterAttribute,
+    formatDisjunctiveFilterBy,
+    formatConjunctiveFilterBy,
+    formatCountryFilterBy,
+    formatTopicFilterBy,
+    formatFeaturedMetricFilterBy,
+    formatTypeFilterBy,
+    joinFilterBy,
+    buildChartsFilterBy,
+} from "./search/searchFilterBy.js"
+
+export {
+    type TypesenseSearchExecutor,
+    type TypesenseResponseWithClosestMatches,
+    STRICT_DROP_TOKENS_THRESHOLD,
+    typesenseSearchWithClosestMatches,
+} from "./search/typesenseClosestMatches.js"
+
+export {
+    CHARTS_QUERY_BY,
+    CHARTS_QUERY_BY_WEIGHTS,
+    CHARTS_SORT_BY,
+    PAGES_QUERY_BY,
+    PAGES_QUERY_BY_WEIGHTS,
+    PAGES_QUERY_BY_RESTRICTED,
+    PAGES_QUERY_BY_RESTRICTED_WEIGHTS,
+    PAGES_SORT_BY,
+    TYPESENSE_STOPWORDS_SET,
+    TYPESENSE_SYNONYM_SET,
+} from "./search/typesenseSearchParams.js"
+
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
 export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"
 

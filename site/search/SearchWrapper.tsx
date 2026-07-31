@@ -1,7 +1,7 @@
 import { TagGraphRoot } from "@ourworldindata/types"
 import { QueryClientProvider } from "@tanstack/react-query"
 import { Search } from "./Search.js"
-import { getLiteSearchClient } from "./searchClients.js"
+import { getTypesenseConfig } from "./typesense/typesenseClient.js"
 import { getSiteQueryClient } from "../queryClient.js"
 
 export const SearchWrapper = ({
@@ -10,13 +10,13 @@ export const SearchWrapper = ({
     topicTagGraph: TagGraphRoot
 }) => {
     const queryClient = getSiteQueryClient()
-    const liteSearchClient = getLiteSearchClient()
+    const typesenseConfig = getTypesenseConfig()
 
     return (
         <QueryClientProvider client={queryClient}>
             <Search
                 topicTagGraph={topicTagGraph}
-                liteSearchClient={liteSearchClient}
+                typesenseConfig={typesenseConfig}
             />
         </QueryClientProvider>
     )

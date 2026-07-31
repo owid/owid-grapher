@@ -64,6 +64,7 @@ help:
 	@echo '  make up.full                start dev environment via docker-compose and tmux'
 	@echo '  make update.chart-entities  update the charts_x_entities join table'
 	@echo '  make reindex                reindex (or initialise) search in Algolia'
+	@echo '  make reindex.typesense      reindex (or initialise) search in Typesense'
 	@echo '  make bench.search           run search benchmarks'
 	@echo '  make sync-cloudflare-images sync Cloudflare Images with local DB'
 
@@ -461,6 +462,15 @@ reindex: node_modules
 	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexPagesChronologicalToAlgolia.js
 	@echo '--- Running indexExplorerViewsMdimViewsAndChartsToAlgolia...'
 	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexExplorerViewsMdimViewsAndChartsToAlgolia.js
+
+reindex.typesense: node_modules
+	@echo '==> Reindexing search in Typesense'
+	@echo '--- Running configureTypesense...'
+	yarn tsx --tsconfig tsconfig.tsx.json baker/typesense/configureTypesense.ts
+	@echo '--- Running indexPagesToTypesense...'
+	yarn tsx --tsconfig tsconfig.tsx.json baker/typesense/indexPagesToTypeSense.tsx
+	@echo '--- Running indexExplorerViewsMdimViewsAndChartsToTypesense...'
+	yarn tsx --tsconfig tsconfig.tsx.json baker/typesense/indexExplorerViewsMdimViewsAndChartsToTypeSense.ts
 
 index-scheduled: node_modules
 	@echo '==> Indexing scheduled (newly-live) gdocs into the pages-chronological Algolia index'

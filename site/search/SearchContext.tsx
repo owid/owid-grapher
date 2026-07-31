@@ -6,13 +6,13 @@ import {
     TagGraphRoot,
     SearchActions,
 } from "@ourworldindata/types"
-import { LiteClient } from "algoliasearch/lite"
+import { TypesenseConfig } from "@ourworldindata/utils"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 
 interface SearchContextType {
     state: SearchState
     actions: SearchActions
-    liteSearchClient: LiteClient
+    typesenseConfig: TypesenseConfig
     templateConfig: TemplateConfig
     topicTagGraph: TagGraphRoot
     synonymMap: SynonymMap

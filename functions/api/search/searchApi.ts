@@ -9,14 +9,24 @@ import {
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     getFilterNamesOfType,
-    buildChartsFacetFilters,
-    searchSingleForHitsWithClosestMatches,
+    buildChartsFilterBy,
+    formatTypeFilterBy,
+    joinFilterBy,
+    typesenseSearch,
+    typesenseSearchWithClosestMatches,
+    extractTypesenseHits,
+    getTypesenseFoundCount,
+    type TypesenseConfig,
+    type TypesenseSearchParams,
+    CHARTS_QUERY_BY,
+    CHARTS_QUERY_BY_WEIGHTS,
+    CHARTS_SORT_BY,
+    PAGES_QUERY_BY,
+    PAGES_QUERY_BY_WEIGHTS,
+    PAGES_SORT_BY,
+    TYPESENSE_STOPWORDS_SET,
+    TYPESENSE_SYNONYM_SET,
 } from "@ourworldindata/utils"
-import {
-    getIndexName,
-    createSearchClient,
-    AlgoliaConfig,
-} from "./algoliaClient.js"
 
 /**
  * Error thrown when the client provides invalid search parameters (e.g. a
@@ -33,7 +43,7 @@ export class SearchValidationError extends Error {
 
 /**
  * Enriched search result with URL added
- * This is what we return from the API after processing Algolia results
+ * This is what we return from the API after processing Typesense results
  */
 export type EnrichedSearchChartHit = Omit<
     SearchChartHit,
@@ -43,7 +53,7 @@ export type EnrichedSearchChartHit = Omit<
 }
 
 /**
- * Page search hit from Algolia
+ * Page search hit from Typesense
  */
 export interface SearchPageHit {
     title: string
@@ -80,7 +90,7 @@ export interface SearchApiResponse {
     nbPages: number
     hitsPerPage: number
     // True when the exact query returned nothing and these are relaxed
-    // "closest matches" instead (see searchSingleForHitsWithClosestMatches).
+    // "closest matches" instead (see typesenseSearchWithClosestMatches).
     closestMatches?: boolean
 }
 
@@ -91,7 +101,7 @@ export interface SearchPagesApiResponse {
     offset: number
     length: number
     // True when the exact query returned nothing and these are relaxed
-    // "closest matches" instead (see searchSingleForHitsWithClosestMatches).
+    // "closest matches" instead (see typesenseSearchWithClosestMatches).
     closestMatches?: boolean
 }
 
@@ -112,69 +122,102 @@ const DATA_CATALOG_ATTRIBUTES = [
 ]
 
 /**
- * Fetches available topics from Algolia
+ * Typesense has no empty-query mode: `q: "*"` is the documented way to match
+ * everything, and it is what a blank Algolia query does.
  */
-async function getAvailableTopics(config: AlgoliaConfig): Promise<string[]> {
-    const indexName = getIndexName(
+function toTypesenseQuery(query: string): string {
+    return query.trim() || "*"
+}
+
+/**
+ * Timestamp fields are indexed as Unix seconds (Typesense has no date type) but
+ * the API has always returned ISO strings, so convert them back on the way out.
+ */
+function toIsoDate(value: unknown): string | undefined {
+    if (typeof value !== "number") return value as string | undefined
+    return new Date(value * 1000).toISOString()
+}
+
+/**
+ * Fetches available topics from Typesense
+ */
+async function getAvailableTopics(config: TypesenseConfig): Promise<string[]> {
+    const response = await typesenseSearch<Record<string, unknown>>(
+        config,
         SearchIndexName.ExplorerViewsMdimViewsAndCharts,
-        config.indexPrefix
+        {
+            q: "*",
+            query_by: CHARTS_QUERY_BY,
+            per_page: 0,
+            facet_by: "tags",
+            // Typesense caps facet values at 10 by default; the tag list is
+            // much longer than that and the error message enumerates it.
+            max_facet_values: 1000,
+        }
     )
-    const client = createSearchClient(config)
 
-    const response = await client.searchForHits<SearchChartHit>({
-        requests: [
-            {
-                indexName,
-                query: "",
-                hitsPerPage: 0,
-                facets: ["tags"],
-            },
-        ],
-    })
-
-    return Object.keys(response.results[0].facets?.tags ?? {}).sort()
+    const tagFacet = response.facet_counts?.find(
+        (facet) => facet.field_name === "tags"
+    )
+    return (tagFacet?.counts ?? []).map((count) => count.value).sort()
 }
 
 export async function searchCharts(
-    config: AlgoliaConfig,
+    config: TypesenseConfig,
     state: SearchState,
     page: number = 0,
     hitsPerPage: number = 20,
     baseUrl: string = "https://ourworldindata.org"
 ): Promise<SearchApiResponse> {
-    const facetFilters = buildChartsFacetFilters({
+    const filterBy = buildChartsFilterBy({
         query: state.query,
         filters: state.filters,
         requireAllCountries: state.requireAllCountries,
     })
 
-    const indexName = getIndexName(
-        SearchIndexName.ExplorerViewsMdimViewsAndCharts,
-        config.indexPrefix
+    const params: TypesenseSearchParams = {
+        q: toTypesenseQuery(state.query),
+        query_by: CHARTS_QUERY_BY,
+        query_by_weights: CHARTS_QUERY_BY_WEIGHTS,
+        sort_by: CHARTS_SORT_BY,
+        // Algolia's `attributeForDistinct: "id"` + `distinct: true`.
+        group_by: "deduplicationId",
+        group_limit: 1,
+        include_fields: DATA_CATALOG_ATTRIBUTES.join(","),
+        highlight_start_tag: "<mark>",
+        highlight_end_tag: "</mark>",
+        stopwords: TYPESENSE_STOPWORDS_SET,
+        synonym_sets: TYPESENSE_SYNONYM_SET,
+        // Algolia does prefix matching on the last query word by default, but
+        // its `disablePrefixOnAttributes` config plus our exact-match
+        // expectations make whole-word matching the closer behaviour here.
+        prefix: false,
+        filter_by: filterBy || undefined,
+        per_page: hitsPerPage,
+        page: page + 1, // Typesense pages are 1-indexed
+    }
+
+    const result = await typesenseSearchWithClosestMatches<
+        Record<string, unknown>
+    >(
+        (searchParams) =>
+            typesenseSearch(
+                config,
+                SearchIndexName.ExplorerViewsMdimViewsAndCharts,
+                searchParams
+            ),
+        params
     )
 
-    const client = createSearchClient(config)
-
-    const result = await searchSingleForHitsWithClosestMatches<SearchChartHit>(
-        client,
-        {
-            indexName,
-            query: state.query,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            highlightPreTag: "<mark>",
-            highlightPostTag: "</mark>",
-            hitsPerPage,
-            page,
-            ...(facetFilters.length > 0 && { facetFilters }),
-        }
-    )
+    const hits = extractTypesenseHits(result)
+    const nbHits = getTypesenseFoundCount(result)
 
     // If we got zero results and user is filtering by topic, check if the topic exists
     const requestedTopics = getFilterNamesOfType(
         state.filters,
         FilterType.TOPIC
     )
-    if (result.nbHits === 0 && requestedTopics.size > 0) {
+    if (nbHits === 0 && requestedTopics.size > 0) {
         const availableTopics = await getAvailableTopics(config)
         const invalidTopics = Array.from(requestedTopics).filter(
             (topic) => !availableTopics.includes(topic)
@@ -187,14 +230,17 @@ export async function searchCharts(
     }
 
     // Clean up the hits and add URL
-    const cleanedHits = result.hits.map((hit): EnrichedSearchChartHit => {
+    const cleanedHits = hits.map((hit): EnrichedSearchChartHit => {
+        const doc = hit.document
         // Pick only the attributes we want to return to avoid spurious properties
         const cleanHit: any = {}
         for (const attr of DATA_CATALOG_ATTRIBUTES) {
-            if (attr in hit) {
-                cleanHit[attr] = (hit as any)[attr]
+            if (attr in doc) {
+                cleanHit[attr] = doc[attr]
             }
         }
+        cleanHit.publishedAt = toIsoDate(cleanHit.publishedAt)
+        cleanHit.updatedAt = toIsoDate(cleanHit.updatedAt)
 
         // Construct URL based on type
         let url: string
@@ -220,10 +266,10 @@ export async function searchCharts(
     return {
         query: state.query,
         results: cleanedHits,
-        nbHits: result.nbHits ?? 0,
-        page: result.page ?? page,
-        nbPages: result.nbPages ?? 0,
-        hitsPerPage: result.hitsPerPage ?? hitsPerPage,
+        nbHits,
+        page,
+        nbPages: Math.ceil(nbHits / hitsPerPage),
+        hitsPerPage,
         ...(result.closestMatches && { closestMatches: true as const }),
     }
 }
@@ -241,43 +287,55 @@ const PAGE_ATTRIBUTES = [
 ]
 
 export async function searchPages(
-    config: AlgoliaConfig,
+    config: TypesenseConfig,
     query: string,
     offset: number = 0,
     length: number = 10,
     pageTypes: string[] = ["article", "about-page"],
     baseUrl: string = "https://ourworldindata.org"
 ): Promise<SearchPagesApiResponse> {
-    const indexName = getIndexName(SearchIndexName.Pages, config.indexPrefix)
+    const params: TypesenseSearchParams = {
+        q: toTypesenseQuery(query),
+        query_by: PAGES_QUERY_BY,
+        query_by_weights: PAGES_QUERY_BY_WEIGHTS,
+        sort_by: PAGES_SORT_BY,
+        // Algolia's `attributeForDistinct: "path"` — pages are indexed as
+        // several content chunks sharing one path, and a data insight can share
+        // a bare slug with an article, so `path` (not `slug`) is the identity.
+        group_by: "path",
+        group_limit: 1,
+        include_fields: PAGE_ATTRIBUTES.join(","),
+        highlight_start_tag: "<mark>",
+        highlight_end_tag: "</mark>",
+        stopwords: TYPESENSE_STOPWORDS_SET,
+        synonym_sets: TYPESENSE_SYNONYM_SET,
+        prefix: false,
+        filter_by: joinFilterBy(formatTypeFilterBy(...pageTypes)),
+        offset,
+        limit: length,
+    }
 
-    // Build filters string for page types
-    const filters = pageTypes.map((type) => `type:${type}`).join(" OR ")
-
-    const client = createSearchClient(config)
-
-    const result = await searchSingleForHitsWithClosestMatches<SearchPageHit>(
-        client,
-        {
-            indexName,
-            query,
-            filters,
-            facetFilters: [[]],
-            attributesToRetrieve: PAGE_ATTRIBUTES,
-            highlightPreTag: "<mark>",
-            highlightPostTag: "</mark>",
-            offset,
-            length,
-        }
+    const result = await typesenseSearchWithClosestMatches<
+        Record<string, unknown>
+    >(
+        (searchParams) =>
+            typesenseSearch(config, SearchIndexName.Pages, searchParams),
+        params
     )
 
+    const hits = extractTypesenseHits(result)
+
     // Clean up the hits and add URL
-    const cleanedHits = result.hits.map((hit): EnrichedSearchPageHit => {
-        const {
-            _highlightResult,
-            _snippetResult,
-            objectID: _objectID,
-            ...cleanHit
-        } = hit as any
+    const cleanedHits = hits.map((hit): EnrichedSearchPageHit => {
+        const doc = hit.document
+        const cleanHit: any = {}
+        for (const attr of PAGE_ATTRIBUTES) {
+            if (attr in doc) {
+                cleanHit[attr] = doc[attr]
+            }
+        }
+        cleanHit.date = toIsoDate(cleanHit.date)
+        cleanHit.modifiedDate = toIsoDate(cleanHit.modifiedDate)
 
         // Construct URL based on slug + type: different gdoc types bake to
         // different path prefixes (e.g. data-insights -> /data-insights/,
@@ -299,7 +357,7 @@ export async function searchPages(
     return {
         query,
         results: cleanedHits,
-        nbHits: result.nbHits ?? 0,
+        nbHits: getTypesenseFoundCount(result),
         offset,
         length,
         ...(result.closestMatches && { closestMatches: true as const }),

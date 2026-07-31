@@ -1,19 +1,29 @@
 import { describe, it, expect } from "vitest"
 import { searchCharts, searchPages } from "./searchApi.js"
 import { FilterType } from "@ourworldindata/types"
-import type { AlgoliaConfig } from "./algoliaClient.js"
+import type { TypesenseConfig } from "@ourworldindata/utils"
 
-describe("searchCharts with real Algolia", () => {
-    // Real Algolia credentials for testing
-    const algoliaConfig: AlgoliaConfig = {
-        appId: "ASCB5XMYF2",
-        apiKey: "bafe9c4659e5657bf750a38fbee5c269",
-        indexPrefix: undefined, // Production index (no prefix)
-    }
+// These tests need a Typesense instance with a populated index. Unlike the
+// Algolia version they replaced, there is no public read-only endpoint to point
+// at, so they are opt-in: run `make reindex.typesense` against a local
+// Typesense (see site/search/typesense/README.md), then
+//
+//     TYPESENSE_INTEGRATION_TESTS=1 yarn test run searchApi.integration.test.ts
+//
+// They are skipped everywhere else, including CI.
+const typesenseConfig: TypesenseConfig = {
+    host: process.env.TYPESENSE_HOST ?? "localhost",
+    port: parseInt(process.env.TYPESENSE_PORT ?? "8108"),
+    protocol: process.env.TYPESENSE_PROTOCOL ?? "http",
+    apiKey: process.env.TYPESENSE_SEARCH_KEY ?? "xyz",
+}
 
+const enabled = Boolean(process.env.TYPESENSE_INTEGRATION_TESTS)
+
+describe.skipIf(!enabled)("searchCharts against Typesense", () => {
     it("performs basic search with query", async () => {
         const result = await searchCharts(
-            algoliaConfig,
+            typesenseConfig,
             {
                 query: "population",
                 filters: [],
@@ -42,7 +52,7 @@ describe("searchCharts with real Algolia", () => {
 
     it("returns results with country filter", async () => {
         const result = await searchCharts(
-            algoliaConfig,
+            typesenseConfig,
             {
                 query: "gdp",
                 filters: [{ type: FilterType.COUNTRY, name: "United States" }],
@@ -58,7 +68,7 @@ describe("searchCharts with real Algolia", () => {
 
     it("returns results requiring all countries", async () => {
         const result = await searchCharts(
-            algoliaConfig,
+            typesenseConfig,
             {
                 query: "gdp",
                 filters: [
@@ -78,7 +88,7 @@ describe("searchCharts with real Algolia", () => {
 
     it("filters by topic", async () => {
         const result = await searchCharts(
-            algoliaConfig,
+            typesenseConfig,
             {
                 query: "",
                 filters: [{ type: FilterType.TOPIC, name: "Health" }],
@@ -94,7 +104,7 @@ describe("searchCharts with real Algolia", () => {
     it("throws helpful error for invalid topic when no results found", async () => {
         await expect(
             searchCharts(
-                algoliaConfig,
+                typesenseConfig,
                 {
                     query: "",
                     filters: [
@@ -110,7 +120,7 @@ describe("searchCharts with real Algolia", () => {
 
     it("handles pagination", async () => {
         const page0 = await searchCharts(
-            algoliaConfig,
+            typesenseConfig,
             {
                 query: "population",
                 filters: [],
@@ -121,7 +131,7 @@ describe("searchCharts with real Algolia", () => {
         )
 
         const page1 = await searchCharts(
-            algoliaConfig,
+            typesenseConfig,
             {
                 query: "population",
                 filters: [],
@@ -145,7 +155,7 @@ describe("searchCharts with real Algolia", () => {
 
     it("constructs correct URLs for different chart types", async () => {
         const result = await searchCharts(
-            algoliaConfig,
+            typesenseConfig,
             {
                 query: "covid",
                 filters: [],
@@ -176,9 +186,9 @@ describe("searchCharts with real Algolia", () => {
         }
     })
 
-    it("removes internal Algolia fields from results", async () => {
+    it("removes internal search-engine fields from results", async () => {
         const result = await searchCharts(
-            algoliaConfig,
+            typesenseConfig,
             {
                 query: "population",
                 filters: [],
@@ -190,7 +200,7 @@ describe("searchCharts with real Algolia", () => {
 
         expect(result.results.length).toBeGreaterThan(0)
 
-        // Internal Algolia fields should be removed
+        // Internal fields should be removed
         expect(result.results[0]).not.toHaveProperty("objectID")
         expect(result.results[0]).not.toHaveProperty("_highlightResult")
         expect(result.results[0]).not.toHaveProperty("_snippetResult")
@@ -204,7 +214,7 @@ describe("searchCharts with real Algolia", () => {
 
     it("returns empty results for nonsense query", async () => {
         const result = await searchCharts(
-            algoliaConfig,
+            typesenseConfig,
             {
                 query: "xyzabc123nonsense456",
                 filters: [],
@@ -222,7 +232,7 @@ describe("searchCharts with real Algolia", () => {
     it("uses custom base URL for staging deployments", async () => {
         const stagingUrl = "https://staging-pr-123.owid.io"
         const result = await searchCharts(
-            algoliaConfig,
+            typesenseConfig,
             {
                 query: "population",
                 filters: [],
@@ -242,16 +252,10 @@ describe("searchCharts with real Algolia", () => {
     })
 })
 
-describe("searchPages with real Algolia", () => {
-    const algoliaConfig: AlgoliaConfig = {
-        appId: "ASCB5XMYF2",
-        apiKey: "bafe9c4659e5657bf750a38fbee5c269",
-        indexPrefix: undefined,
-    }
-
+describe.skipIf(!enabled)("searchPages against Typesense", () => {
     it("searches for 'banana production' pages", async () => {
         const result = await searchPages(
-            algoliaConfig,
+            typesenseConfig,
             "banana production",
             0,
             5
@@ -280,7 +284,12 @@ describe("searchPages with real Algolia", () => {
     })
 
     it("performs basic page search", async () => {
-        const result = await searchPages(algoliaConfig, "climate change", 0, 5)
+        const result = await searchPages(
+            typesenseConfig,
+            "climate change",
+            0,
+            5
+        )
 
         expect(result.query).toBe("climate change")
         expect(result.results.length).toBeGreaterThan(0)
@@ -295,8 +304,8 @@ describe("searchPages with real Algolia", () => {
     })
 
     it("handles pagination with offset", async () => {
-        const page1 = await searchPages(algoliaConfig, "health", 0, 3)
-        const page2 = await searchPages(algoliaConfig, "health", 3, 3)
+        const page1 = await searchPages(typesenseConfig, "health", 0, 3)
+        const page2 = await searchPages(typesenseConfig, "health", 3, 3)
 
         expect(page1.offset).toBe(0)
         expect(page1.length).toBe(3)
@@ -311,7 +320,7 @@ describe("searchPages with real Algolia", () => {
     })
 
     it("filters by page types", async () => {
-        const result = await searchPages(algoliaConfig, "about", 0, 5, [
+        const result = await searchPages(typesenseConfig, "about", 0, 5, [
             "about-page",
         ])
 
@@ -326,7 +335,7 @@ describe("searchPages with real Algolia", () => {
         // data-insights bake to /data-insights/<slug> (see
         // getPrefixedGdocPath), different from the bare /<slug> used by
         // article/about-page.
-        const diResult = await searchPages(algoliaConfig, "co2", 0, 5, [
+        const diResult = await searchPages(typesenseConfig, "co2", 0, 5, [
             "data-insight",
         ])
         expect(diResult.results.length).toBeGreaterThan(0)
@@ -338,12 +347,12 @@ describe("searchPages with real Algolia", () => {
         })
     })
 
-    it("removes internal Algolia fields from results", async () => {
-        const result = await searchPages(algoliaConfig, "population", 0, 1)
+    it("removes internal search-engine fields from results", async () => {
+        const result = await searchPages(typesenseConfig, "population", 0, 1)
 
         expect(result.results.length).toBeGreaterThan(0)
 
-        // Internal Algolia fields should be removed
+        // Internal fields should be removed
         expect(result.results[0]).not.toHaveProperty("objectID")
         expect(result.results[0]).not.toHaveProperty("_highlightResult")
         expect(result.results[0]).not.toHaveProperty("_snippetResult")
@@ -357,7 +366,7 @@ describe("searchPages with real Algolia", () => {
 
     it("returns empty results for nonsense query", async () => {
         const result = await searchPages(
-            algoliaConfig,
+            typesenseConfig,
             "xyzabc123nonsense456",
             0,
             10
@@ -371,7 +380,7 @@ describe("searchPages with real Algolia", () => {
     it("uses custom base URL for staging deployments", async () => {
         const stagingUrl = "https://staging-pr-123.owid.io"
         const result = await searchPages(
-            algoliaConfig,
+            typesenseConfig,
             "climate change",
             0,
             3,

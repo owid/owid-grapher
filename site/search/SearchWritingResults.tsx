@@ -169,8 +169,8 @@ export const SearchWritingResults = ({
 
     const profilesQuery = useInfiniteSearchOffset({
         queryKey: (state) => searchQueryKeys.profiles(state),
-        queryFn: (liteSearchClient, state, offset, length) => {
-            return queryProfiles(liteSearchClient, state, offset, length)
+        queryFn: (typesenseConfig, state, offset, length) => {
+            return queryProfiles(typesenseConfig, state, offset, length)
         },
         firstPageSize: 2,
         laterPageSize: 4,
@@ -182,8 +182,8 @@ export const SearchWritingResults = ({
 
     const articlesQuery = useInfiniteSearchOffset({
         queryKey: (state) => searchQueryKeys.articles(state),
-        queryFn: (liteSearchClient, state, offset, length) => {
-            return queryArticles(liteSearchClient, state, offset, length)
+        queryFn: (typesenseConfig, state, offset, length) => {
+            return queryArticles(typesenseConfig, state, offset, length)
         },
         firstPageSize: 4 - profileSlots,
         laterPageSize: 6,
@@ -198,8 +198,8 @@ export const SearchWritingResults = ({
 
     const topicsQuery = useInfiniteSearchOffset({
         queryKey: (state) => searchQueryKeys.topicPages(state),
-        queryFn: (liteSearchClient, state, offset, length) => {
-            return queryTopicPages(liteSearchClient, state, offset, length)
+        queryFn: (typesenseConfig, state, offset, length) => {
+            return queryTopicPages(typesenseConfig, state, offset, length)
         },
         firstPageSize: topicFirstPageSize,
         laterPageSize: noArticles ? 6 : 4,
