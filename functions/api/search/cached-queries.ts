@@ -1,6 +1,8 @@
 import * as Sentry from "@sentry/cloudflare"
+import { SearchIndexName } from "@ourworldindata/types"
 import { isEmptyQuerySearchPayload } from "@ourworldindata/utils"
 import { Env } from "../../_common/env.js"
+import { getIndexName } from "./algoliaClient.js"
 
 /**
  * Caching proxy for empty-query Algolia searches.
@@ -20,6 +22,12 @@ import { Env } from "../../_common/env.js"
  */
 
 const CACHE_MAX_AGE_SECONDS = 60 * 60 * 24 // one day
+
+// The chronological pages index (which backs /latest) sorts by date, so a
+// newly published article ranks first the moment it's indexed. Cache it only
+// briefly: long enough to absorb the bulk of its traffic, short enough that
+// new content isn't held back noticeably.
+const CHRONOLOGICAL_CACHE_MAX_AGE_SECONDS = 60 * 15
 
 const MAX_BODY_BYTES = 256 * 1024
 const MAX_REQUESTS_PER_BATCH = 200
@@ -98,12 +106,21 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 "Only Algolia multi-query payloads where every query string is empty are served here; send other requests to Algolia directly"
             )
         }
-        if (
-            (payload as { requests: unknown[] }).requests.length >
-            MAX_REQUESTS_PER_BATCH
-        ) {
+        const { requests } = payload as { requests: { indexName?: unknown }[] }
+        if (requests.length > MAX_REQUESTS_PER_BATCH) {
             return errorResponse(400, "Too many queries in one request")
         }
+
+        const chronologicalIndexName = getIndexName(
+            SearchIndexName.PagesChronological,
+            env.ALGOLIA_INDEX_PREFIX
+        )
+        const maxAgeSeconds = requests.some(
+            (searchRequest) =>
+                searchRequest.indexName === chronologicalIndexName
+        )
+            ? CHRONOLOGICAL_CACHE_MAX_AGE_SECONDS
+            : CACHE_MAX_AGE_SECONDS
 
         const cache = caches.default
         const cacheKey = await makeCacheKey(request.url, body)
@@ -134,7 +151,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         if (algoliaResponse.ok) {
             response.headers.set(
                 "Cache-Control",
-                `public, max-age=${CACHE_MAX_AGE_SECONDS}`
+                `public, max-age=${maxAgeSeconds}`
             )
             response.headers.set("X-Cache", "MISS")
             context.waitUntil(

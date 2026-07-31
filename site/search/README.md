@@ -121,7 +121,7 @@ sequenceDiagram
 
 Requests with empty queries are routed through a caching Cloudflare function (`functions/api/search/cached-queries.ts`) which caches them for 24h.
 
-Queries on the chronological index aren't cached.
+Queries on the chronological index (which backs /latest and sorts by date) are only cached for 15 minutes, so newly published articles show up quickly.
 
 ### React Query Integration
 
