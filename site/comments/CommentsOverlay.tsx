@@ -6,7 +6,7 @@ import { findAnchorElement, anchorTextForClick } from "./commentAnchors.js"
 import {
     CommentPageContext,
     isSameViewState,
-    readViewStateFromUrl,
+    readCurrentViewState,
     subscribeToUrlChanges,
 } from "./commentContext.js"
 import { CommentsPanel } from "./CommentsPanel.js"
@@ -134,14 +134,14 @@ export function CommentsOverlay({
 
     // Re-read the view from the URL as the user changes multi-dim dimensions
     const [viewState, setViewState] = useState<CommentViewState | null>(() =>
-        readViewStateFromUrl(multiDimDimensionSlugs)
+        readCurrentViewState(context)
     )
     useEffect(() => {
         if (!isMultiDim) return undefined
         return subscribeToUrlChanges(() =>
-            setViewState(readViewStateFromUrl(multiDimDimensionSlugs))
+            setViewState(readCurrentViewState(context))
         )
-    }, [isMultiDim, multiDimDimensionSlugs])
+    }, [isMultiDim, context])
 
     const { threads } = useCommentThreadsForTargets(targets)
     const unresolvedCount = threads.filter(

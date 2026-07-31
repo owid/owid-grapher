@@ -208,7 +208,7 @@ const main = async (): Promise<void> => {
             browser,
             "data page",
             `${BASE}/admin/datapage-preview/1118466`,
-            ".key-info__key-description p, .key-data dd, .meta-description-table__value",
+            ".key-info__key-description li, .meta-description-table__value",
             false
         )
     )

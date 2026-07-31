@@ -27,6 +27,12 @@ export interface CommentPageContext {
      * URL. Absent on charts and data pages.
      */
     multiDimDimensionSlugs?: string[]
+    /**
+     * The view a multi-dim opens on. The page only writes dimensions into the
+     * URL once the reader changes one, so without this a comment left on the
+     * landing view would record no view at all and then show up on every view.
+     */
+    multiDimDefaultView?: CommentViewState
 }
 
 declare global {
@@ -47,7 +53,12 @@ export function buildCommentPageContext({
 }: {
     chartId?: number
     chartLabel?: string
-    multiDim?: { id: number; label: string; dimensionSlugs: string[] }
+    multiDim?: {
+        id: number
+        label: string
+        dimensionSlugs: string[]
+        defaultView?: CommentViewState
+    }
     variables?: { variableId: number; label: string }[]
 }): CommentPageContext | undefined {
     const targets: CommentPageTarget[] = []
@@ -75,6 +86,7 @@ export function buildCommentPageContext({
     return {
         targets,
         multiDimDimensionSlugs: multiDim?.dimensionSlugs,
+        multiDimDefaultView: multiDim?.defaultView,
     }
 }
 
@@ -88,17 +100,19 @@ export function isSameTarget(a: CommentTarget, b: CommentTarget): boolean {
 }
 
 /**
- * The multi-dim view currently on screen, read from the URL because that is
- * where MultiDimDataPageContent keeps the dimension choices in sync. Returns
- * null on pages that aren't multi-dims, so comments there are view-independent.
+ * The multi-dim view currently on screen: the page's default choices, with
+ * whatever the reader has since picked layered on top from the URL, which is
+ * where MultiDimDataPageContent keeps them in sync. Returns null on pages that
+ * aren't multi-dims, so comments there are view-independent.
  */
-export function readViewStateFromUrl(
-    dimensionSlugs: string[] | undefined
+export function readCurrentViewState(
+    context: CommentPageContext
 ): CommentViewState | null {
-    if (!dimensionSlugs?.length) return null
+    const { multiDimDimensionSlugs, multiDimDefaultView } = context
+    if (!multiDimDimensionSlugs?.length) return null
     const params = new URLSearchParams(window.location.search)
-    const viewState: CommentViewState = {}
-    for (const slug of dimensionSlugs) {
+    const viewState: CommentViewState = { ...multiDimDefaultView }
+    for (const slug of multiDimDimensionSlugs) {
         const value = params.get(slug)
         if (value !== null) viewState[slug] = value
     }

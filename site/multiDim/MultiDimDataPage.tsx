@@ -68,6 +68,7 @@ export function MultiDimDataPage({
                       id: multiDimId,
                       label: pageTitle,
                       dimensionSlugs: configObj.dimensions.map((d) => d.slug),
+                      defaultView: initialViewDimensions,
                   },
               })
             : undefined
