@@ -4,8 +4,9 @@ import * as Sentry from "@sentry/react"
 import { createRoot } from "react-dom/client"
 import { FetchingGrapher } from "./FetchingGrapher.js"
 import {
-    AdditionalGrapherDataFetchFn,
     ArchiveContext,
+    CatalogDataForKey,
+    CatalogKey,
 } from "@ourworldindata/types"
 import { Bounds } from "@ourworldindata/utils"
 
@@ -41,10 +42,12 @@ export function renderGrapherIntoContainer({
 
         const grapherConfigWithBounds = {
             ...config,
-            additionalDataLoaderFn: ((catalogKey) =>
+            additionalDataLoaderFn: <K extends CatalogKey>(
+                catalogKey: K
+            ): Promise<CatalogDataForKey<K>> =>
                 loadCatalogData(catalogKey, {
                     baseUrl: catalogUrl,
-                })) as AdditionalGrapherDataFetchFn,
+                }),
         }
 
         reactRoot.render(

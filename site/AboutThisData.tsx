@@ -25,8 +25,7 @@ export default function AboutThisData({
     className?: string
     id?: string
 }) {
-    const hasDescriptionKey =
-        datapageData.descriptionKey && datapageData.descriptionKey.length > 0
+    const hasDescriptionKey = !!datapageData.descriptionKey
     const attributionUnshortened = getAttributionUnshortened(datapageData)
     const id_ = id ?? DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
 
@@ -46,32 +45,15 @@ export default function AboutThisData({
                     </h2>
                     <div className="col-start-1 span-cols-8 span-lg-cols-7 span-sm-cols-12">
                         <div className="key-info__content">
-                            {hasDescriptionKey && (
+                            {datapageData.descriptionKey && (
                                 <div
                                     className="key-info__key-description"
                                     {...commentAnchorAttrs("descriptionKey")}
                                 >
-                                    {datapageData.descriptionKey.length ===
-                                    1 ? (
-                                        <SimpleMarkdownText
-                                            text={datapageData.descriptionKey[0].trim()}
-                                        />
-                                    ) : (
-                                        <ul>
-                                            {datapageData.descriptionKey.map(
-                                                (text, i) => (
-                                                    <li key={i}>
-                                                        <SimpleMarkdownText
-                                                            text={text.trim()}
-                                                            useParagraphs={
-                                                                false
-                                                            }
-                                                        />
-                                                    </li>
-                                                )
-                                            )}
-                                        </ul>
-                                    )}
+                                    <SimpleMarkdownText
+                                        text={datapageData.descriptionKey.trim()}
+                                    />
+
                                     {hasFaq && (
                                         <a
                                             className="key-info__learn-more"

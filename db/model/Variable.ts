@@ -37,6 +37,7 @@ import {
     Distribution,
     DatasetOwners,
     DbPlainDataset,
+    normalizeDescriptionKey,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 import {
@@ -900,7 +901,12 @@ export const fetchS3MetadataByPath = async (
         }
     )
     try {
-        return await resp.json()
+        const metadata = await resp.json()
+        // Metadata files written before the string migration hold arrays.
+        metadata.descriptionKey = normalizeDescriptionKey(
+            metadata.descriptionKey
+        )
+        return metadata
     } catch (error: any) {
         throw createS3JsonParseError(error, metadataPath, resp)
     }

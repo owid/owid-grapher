@@ -8,7 +8,7 @@ info:
     This API allows you to search through:
 
     - **Charts**: Interactive data visualizations with country-specific filtering
-    - **Pages**: Articles, research papers, and informational pages
+    - **Pages**: Articles, data insights, and other content pages (filter by type via `pageTypes`)
 
     !!! tip "Semantic Search"
 
@@ -111,6 +111,18 @@ paths:
             type: boolean
             default: false
           example: false
+
+        # Pages-specific parameters
+        - name: pageTypes
+          in: query
+          description: |
+            Comma-separated list of page content types to search. Only applicable
+            when `type=pages`. Defaults to `article,about-page` when omitted.
+          required: false
+          schema:
+            type: string
+            default: "article,about-page"
+          example: "data-insight"
 
       responses:
         "200":
@@ -224,7 +236,11 @@ components:
             $ref: "#/components/schemas/ChartResult"
         nbHits:
           type: integer
-          description: Total number of results found
+          description: |
+            Total number of results found. Exception: when `closestMatches` is
+            true this is the number of closest matches actually returned, not
+            the number that exist — relaxed results come back as one
+            non-paginated page (see `closestMatches`).
           example: 125
         page:
           type: integer
@@ -238,6 +254,21 @@ components:
           type: integer
           description: Number of results per page
           example: 20
+        closestMatches:
+          type: boolean
+          description: |
+            Present and true when the query itself had no exact match and
+            these results were relaxed (Algolia's removeWordsIfNoResults),
+            keeping only the tier of hits that matched the most query words.
+            Absent for a normal exact-match response.
+
+            A relaxed response is deliberately a single page: `nbPages` is 1
+            and `nbHits` counts only the hits returned, so requesting a small
+            `hitsPerPage`/`length` yields a correspondingly small `nbHits`
+            even when more equally-ranked matches exist. Ask for a larger page
+            if you want more of them; do not treat `nbHits` as a total or page
+            past the first page.
+          example: true
 
     ChartResult:
       type: object
@@ -355,7 +386,11 @@ components:
             $ref: "#/components/schemas/PageResult"
         nbHits:
           type: integer
-          description: Total number of results found
+          description: |
+            Total number of results found. Exception: when `closestMatches` is
+            true this is the number of closest matches actually returned, not
+            the number that exist — relaxed results come back as one
+            non-paginated page (see `closestMatches`).
           example: 42
         offset:
           type: integer
@@ -365,6 +400,21 @@ components:
           type: integer
           description: Number of results returned
           example: 20
+        closestMatches:
+          type: boolean
+          description: |
+            Present and true when the query itself had no exact match and
+            these results were relaxed (Algolia's removeWordsIfNoResults),
+            keeping only the tier of hits that matched the most query words.
+            Absent for a normal exact-match response.
+
+            A relaxed response is deliberately a single page: `nbPages` is 1
+            and `nbHits` counts only the hits returned, so requesting a small
+            `hitsPerPage`/`length` yields a correspondingly small `nbHits`
+            even when more equally-ranked matches exist. Ask for a larger page
+            if you want more of them; do not treat `nbHits` as a total or page
+            past the first page.
+          example: true
 
     PageResult:
       type: object
@@ -387,7 +437,15 @@ components:
           type: string
           enum:
             - article
+            - topic-page
+            - fragment
+            - linear-topic-page
+            - data-insight
+            - homepage
             - about-page
+            - author
+            - announcement
+            - profile
           description: Type of page content
           example: "article"
         thumbnailUrl:

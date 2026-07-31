@@ -18,7 +18,7 @@ import {
 import * as db from "../../db.js"
 import { GdocBase } from "./GdocBase.js"
 import { loadAndClearLinkedCallouts } from "./dataCallouts.js"
-import { PreparedCalloutTable } from "@ourworldindata/grapher"
+import type { PreparedCalloutTable } from "@ourworldindata/grapher"
 
 const GENERIC_PROFILE_SCOPES = new Set<OwidGdocProfileScope>([
     "countries",

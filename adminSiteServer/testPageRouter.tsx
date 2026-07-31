@@ -221,8 +221,8 @@ async function propsFromQueryParams(
             `
             (
                 SELECT COUNT(DISTINCT CASE
-                    WHEN variables.display->"$.yearIsDay" IS NULL
-                    THEN "year"
+                    WHEN COALESCE(variables.display->>"$.timeInterval", "year") IN ("year", "decade")
+                        THEN "year"
                     ELSE "day"
                 END) as timeTypeCount
                 FROM variables

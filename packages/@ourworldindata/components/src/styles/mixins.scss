@@ -51,43 +51,6 @@
     }
 }
 
-@mixin dod-container {
-    padding: 16px;
-    max-height: 300px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    @include body-3-regular;
-
-    > span.markdown-text-wrap {
-        > .markdown-text-wrap__line:first-child {
-            font-weight: bold;
-            font-size: 1rem;
-        }
-
-        > .markdown-text-wrap__line:not(:first-child) {
-            margin-top: 8px;
-            font-size: 0.875rem;
-        }
-
-        a {
-            @include owid-link-90;
-        }
-    }
-}
-
-@mixin dod-span {
-    text-decoration: underline;
-    text-decoration-style: dotted;
-    text-underline-offset: 2px;
-    cursor: help;
-
-    span,
-    strong,
-    em {
-        pointer-events: none;
-    }
-}
-
 @mixin info {
     font-size: 0.875rem;
 

@@ -50,8 +50,7 @@ export {
     es6mapValues,
     type DataValue,
     valuesByEntityAtTimes,
-    dateDiffInDays,
-    diffDateISOStringInDays,
+    diffDatesInDays,
     getYearFromISOStringAndDayOffset,
     parseIntOrUndefined,
     anyToString,
@@ -103,6 +102,7 @@ export {
     isArrayOfNumbers,
     greatestCommonDivisor,
     findGreatestCommonDivisorOfArray,
+    withUniformSpacing,
     type NodeWithUrl,
     traverseEnrichedSpan,
     copyToClipboard,
@@ -128,6 +128,11 @@ export {
     getUserNavigatorLanguages,
     getUserNavigatorLanguagesNonEnglish,
     convertDaysSinceEpochToDate,
+    convertDateToDaysSinceEpoch,
+    epochDate,
+    getTimeInterval,
+    isSubYearly,
+    snapToIntervalStart,
     logPerf,
     sleep,
     lowercaseObjectKeys,
@@ -295,6 +300,7 @@ export {
 
 export {
     serializeJSONForHTML,
+    serializeJSONForInlineScript,
     deserializeJSONFromHTML,
     escapeJSONStringForInlineScript,
 } from "./serializers.js"
@@ -383,5 +389,31 @@ export {
     getTableColumnCountForGridSlotKey,
 } from "./search/SearchHelpers.js"
 
+export {
+    type SearchFacetAttribute,
+    getFilterNamesOfType,
+    setToFacetFilters,
+    formatDisjunctiveFacetFilters,
+    formatConjunctiveFacetFilters,
+    formatFeaturedMetricFacetFilter,
+    formatCountryFacetFilters,
+    formatTopicFacetFilters,
+    buildChartsFacetFilters,
+} from "./search/searchFacetFilters.js"
+
+export {
+    searchSingleForHits,
+    searchSingleForHitsWithClosestMatches,
+} from "./search/searchClosestMatches.js"
+
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
 export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"
+
+export {
+    type DecisionTreeNode,
+    type QueryParamMatchRule,
+    buildQueryParamDecisionTree,
+    matchQueryParamDecisionTree,
+    serializeDecisionTree,
+    deserializeDecisionTree,
+} from "./QueryParamDecisionTree.js"

@@ -12,11 +12,9 @@
         "bakedSite": true,
         "yarn.lock": true
     },
-    "typescript.tsdk": "node_modules/typescript/lib",
-    "typescript.preferences.useAliasesForRenames": false,
+    "js/ts.preferences.useAliasesForRenames": false,
     "editor.formatOnSave": true,
-    "typescript.preferences.importModuleSpecifierEnding": "js",
-    "javascript.preferences.importModuleSpecifierEnding": "js",
+    "js/ts.preferences.importModuleSpecifierEnding": "js",
     "[sql]": {
         "editor.defaultFormatter": "ReneSaarsoo.sql-formatter-vsc"
     },

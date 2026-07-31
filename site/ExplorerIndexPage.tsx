@@ -4,6 +4,7 @@ import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { SiteFooterContext } from "@ourworldindata/types"
+import { serializeJSONForInlineScript } from "@ourworldindata/utils"
 import {
     __OWID_EXPLORER_INDEX_PAGE_PROPS,
     ExplorerIndex,
@@ -14,7 +15,7 @@ export const ExplorerIndexPage = ({
     baseUrl,
     explorers,
 }: ExplorerIndexPageProps) => {
-    const inlineJs = `window.${__OWID_EXPLORER_INDEX_PAGE_PROPS} = ${JSON.stringify(
+    const inlineJs = `window.${__OWID_EXPLORER_INDEX_PAGE_PROPS} = ${serializeJSONForInlineScript(
         {
             baseUrl,
             explorers,
@@ -24,8 +25,8 @@ export const ExplorerIndexPage = ({
         <Html>
             <Head
                 canonicalUrl={`${baseUrl}/${EXPLORERS_ROUTE_FOLDER}`}
-                pageTitle={`Data Explorers`}
-                pageDesc={"An index of all Our World in Data data explorers"}
+                pageTitle="Data Explorers"
+                pageDesc="An index of all Our World in Data data explorers."
                 baseUrl={baseUrl}
             ></Head>
             <body>

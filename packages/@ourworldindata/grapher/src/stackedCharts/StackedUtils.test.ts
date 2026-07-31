@@ -1,10 +1,10 @@
 import { expect, it, describe } from "vitest"
 
+import { ColumnTypeMap, OwidTable } from "@ourworldindata/core-table"
 import {
     stackSeries,
     stackSeriesInBothDirections,
     withMissingValuesAsZeroes,
-    withUniformSpacing,
 } from "./StackedUtils"
 
 const seriesArr = [
@@ -61,20 +61,6 @@ const seriesArrWithNegativeValues = [
     },
 ]
 
-describe(withUniformSpacing, () => {
-    it("can add values to make an array evenly spaced", () => {
-        expect(withUniformSpacing([])).toEqual([])
-        expect(withUniformSpacing([5])).toEqual([5])
-        expect(withUniformSpacing([5, 10])).toEqual([5, 10])
-        expect(withUniformSpacing([5, 10, 15])).toEqual([5, 10, 15])
-        expect(withUniformSpacing([2, 4, 8])).toEqual([2, 4, 6, 8])
-        expect(withUniformSpacing([1, 2, 4, 8])).toEqual([
-            1, 2, 3, 4, 5, 6, 7, 8,
-        ])
-        expect(withUniformSpacing([7, 12, 17])).toEqual([7, 12, 17])
-    })
-})
-
 describe(withMissingValuesAsZeroes, () => {
     it("can add fake points", () => {
         expect(seriesArr[1].points[1]).toEqual(undefined)
@@ -86,8 +72,12 @@ describe(withMissingValuesAsZeroes, () => {
         expect(seriesArr[1].points[1]).toEqual(undefined)
         expect(seriesArr[1].points[2]).toEqual(undefined)
         expect(seriesArr[1].points[3]).toEqual(undefined)
+        const timeColumn = new ColumnTypeMap.Year(new OwidTable(), {
+            slug: "year",
+        })
         const series = withMissingValuesAsZeroes(seriesArr, {
             enforceUniformSpacing: true,
+            timeColumn,
         })
         expect(series[1].points[1].position).toEqual(2001)
         expect(series[1].points[2].position).toEqual(2002)

@@ -24,10 +24,7 @@ import {
     MultiDimDataPageConfig,
     MultiDimDimensionChoices,
 } from "@ourworldindata/utils"
-import {
-    AdditionalGrapherDataFetchFn,
-    ArchiveContext,
-} from "@ourworldindata/types"
+import { ArchiveContext } from "@ourworldindata/types"
 import { cachedGetGrapherConfigByUuid } from "./api.js"
 import MultiDimEmbedSettingsPanel from "./MultiDimEmbedSettingsPanel.js"
 import { useBaseGrapherConfig, useMultiDimAnalytics } from "./hooks.js"
@@ -60,11 +57,11 @@ export default function MultiDim({
     const grapherStateRef = useMaybeGlobalGrapherStateRef({
         manager: manager.current,
         queryStr,
-        additionalDataLoaderFn: ((catalogKey) =>
+        additionalDataLoaderFn: (catalogKey) =>
             loadCatalogData(catalogKey, {
                 baseUrl: CATALOG_URL,
                 assetMap,
-            })) as AdditionalGrapherDataFetchFn,
+            }),
         archiveContext,
         isConfigReady: false,
     })

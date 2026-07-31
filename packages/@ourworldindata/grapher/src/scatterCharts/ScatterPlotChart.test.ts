@@ -373,7 +373,7 @@ it("assigns entity colors to series, overriding colorScale color", () => {
                 "y",
                 "color",
                 "size",
-                OwidTableSlugs.entityColor,
+                OwidTableSlugs.EntityColor,
             ],
             [1, "UK", "", 2000, 1, 2, "Europe", null, "#ccc"],
         ],

@@ -14,7 +14,63 @@ import {
     checkIsAuthor,
     OwidGdocAuthorInterface,
     getFilenameExtension,
+    OwidEnrichedGdocBlock,
 } from "@ourworldindata/utils"
+
+// Hostnames that are only reachable by OWID staff (e.g. because they sit
+// behind Cloudflare Access). Embedding content from one of these hosts
+// (e.g. via an <iframe>) breaks the embed for every reader without an
+// admin session, so we block publishing in that case.
+const INTERNAL_ADMIN_HOSTNAMES = new Set(["admin.owid.io", "owid.cloud"])
+const STAGING_SITE_HOSTNAME_REGEX = /^staging-site-/
+
+function getUrlHostname(url: string): string | undefined {
+    try {
+        return new URL(url).hostname
+    } catch {
+        return undefined
+    }
+}
+
+function isInternalAdminUrl(url: string): boolean {
+    const hostname = getUrlHostname(url)
+    if (!hostname) return false
+    return (
+        INTERNAL_ADMIN_HOSTNAMES.has(hostname) ||
+        STAGING_SITE_HOSTNAME_REGEX.test(hostname)
+    )
+}
+
+// Matches the src attribute of <iframe> tags embedded in raw "html" blocks,
+// e.g. the way a slideshow preview might get pasted in as an <iframe>.
+const IFRAME_SRC_REGEX = /<iframe\b[^>]*\ssrc=["']([^"']+)["'][^>]*>/gi
+
+function getEmbedUrlsFromBlock(block: OwidEnrichedGdocBlock): string[] {
+    if (block.type === "html") {
+        return [...block.value.matchAll(IFRAME_SRC_REGEX)].map(
+            (match) => match[1]
+        )
+    }
+    if ("url" in block) {
+        return block.url ? [block.url] : []
+    }
+    return []
+}
+
+function validateEmbedUrls(
+    block: OwidEnrichedGdocBlock,
+    errors: OwidGdocErrorMessage[]
+) {
+    for (const url of getEmbedUrlsFromBlock(block)) {
+        if (isInternalAdminUrl(url)) {
+            errors.push({
+                property: "body",
+                type: OwidGdocErrorMessageType.Error,
+                message: `This gdoc contains an embed pointing at an internal admin URL (${url}) — this will be blocked by Cloudflare Access for readers. Use the public URL instead.`,
+            })
+        }
+    }
+}
 
 function validateTitle(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
     if (!gdoc.content.title) {
@@ -85,6 +141,7 @@ function validateBody(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
                         property: "body" as const,
                     }))
                 )
+                validateEmbedUrls(block, errors)
             })
         }
     }

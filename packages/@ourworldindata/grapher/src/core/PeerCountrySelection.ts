@@ -21,7 +21,7 @@ import {
 import { CoreColumn } from "@ourworldindata/core-table"
 import { WORLD_ENTITY_NAME } from "./GrapherConstants.js"
 import { match } from "ts-pattern"
-import { GrapherState } from "./GrapherState.js"
+import type { GrapherState } from "./GrapherState.js"
 
 interface SelectDefaultEntitiesAsPeersParams {
     defaultSelection: EntityName[]

@@ -1105,6 +1105,27 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     border-color: #eb8038;
 }
 
+.TagBadge--is-area {
+    background-color: #e8f1ff;
+}
+
+.TagBadge--is-orphan {
+    background-color: #fff4df;
+}
+
+.TagBadge--is-area .TagBadge__name {
+    color: #1d5c96;
+}
+
+.TagBadge--is-orphan .TagBadge__name {
+    color: #8a5100;
+}
+
+.TagBadge__graph-icon {
+    display: inline-block;
+    margin-right: 4px;
+}
+
 .TagBadge__name {
     color: #333;
 }

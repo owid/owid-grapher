@@ -67,6 +67,7 @@ import {
     handlePatchMultiDim,
     handleGetMultiDimRedirects,
     handlePostMultiDimRedirect,
+    handleBulkCreateMultiDimRedirects,
     handleDeleteMultiDimRedirect,
     handleGetAllMultiDimRedirects,
     getMdimRecordsJson,
@@ -464,6 +465,11 @@ postRouteWithRWTransaction(
     apiRouter,
     "/multi-dims/:id/redirects",
     handlePostMultiDimRedirect
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/multi-dim-redirects/bulk",
+    handleBulkCreateMultiDimRedirects
 )
 deleteRouteWithRWTransaction(
     apiRouter,

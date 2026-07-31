@@ -231,6 +231,7 @@ export {
     DYNAMIC_COLLECTION_PAGE_CONTAINER_ID,
     type OwidGdocContent,
     type OwidGdocIndexItem,
+    type OwidGdocIndexTag,
     extractGdocIndexItem,
     type OrphanedTopicArticle,
     type TopicPageOrphanReport,
@@ -310,6 +311,7 @@ export {
     type OwidProcessingLevel,
     type IndicatorTitleWithFragments,
     joinTitleFragments,
+    normalizeDescriptionKey,
     type OwidVariableType,
 } from "./OwidVariable.js"
 
@@ -320,6 +322,7 @@ export {
     type OwidVariableDisplayConfigInterface,
     type OwidVariableDataTableConfigInterface,
     OwidVariableRoundingMode,
+    TimeInterval,
     type OwidChartDimensionInterface,
     type OwidChartDimensionInterfaceWithMandatorySlug,
 } from "./OwidVariableDisplayConfigInterface.js"
@@ -600,6 +603,7 @@ export {
     type DBEnrichedPostGdocWithTags,
     PostsGdocsTableName,
     parsePostGdocContent,
+    parsePostGdocsAuthors,
     serializePostGdocContent,
     parsePostsGdocsBreadcrumbs,
     serializePostsGdocsBreadcrumbs,
@@ -693,8 +697,9 @@ export {
 export {
     type DbInsertTag,
     type DbPlainTag,
-    type MinimalTagWithIsTopic,
+    type MinimalTagWithMetadata,
     type MinimalTag,
+    type TagGraphRole,
     TagsTableName,
 } from "./dbTypes/Tags.js"
 export {
@@ -732,7 +737,6 @@ export {
 
 export {
     RedirectsTableName,
-    RedirectCode,
     type DbPlainRedirect,
 } from "./dbTypes/Redirects.js"
 
@@ -793,6 +797,7 @@ export type {
     ChoicesEnriched,
     DimensionEnriched,
     MultiDimDimensionChoices,
+    ExplorerRedirectTarget,
     View,
     ViewEnriched,
 } from "./siteTypes/MultiDimDataPage.js"
@@ -860,6 +865,11 @@ export {
     type GrapherValuesJsonDataPoint,
     type GrapherValuesJsonDimension,
 } from "./endpointTypes/GrapherValuesJson.js"
+
+export {
+    type BulkMultiDimRedirectResult,
+    type BulkMultiDimRedirectResponse,
+} from "./endpointTypes/MultiDimRedirects.js"
 
 export {
     type SearchChartHitDataTableProps,

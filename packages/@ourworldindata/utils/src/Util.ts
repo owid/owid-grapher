@@ -54,6 +54,8 @@ import {
     RESEARCH_AND_WRITING_DEFAULT_HEADING,
     CHRONOLOGICAL_INDEX_TYPES,
     LATEST_FEED_TYPES,
+    TimeInterval,
+    type OwidVariableDisplayConfigInterface,
 } from "@ourworldindata/types"
 import { Point, PointVector } from "./PointVector.js"
 import * as React from "react"
@@ -206,11 +208,29 @@ export function makeFigmaId(...unsafeKeys: (string | undefined)[]): string {
     return makeSafeForFigma(unsafeKeys.filter((key) => key).join("__"))
 }
 
+// The epoch, parsed once (lazily) as a dayjs object and reused across the
+// codebase so we don't repeatedly re-parse the ISO string. Uses dayjs' UTC
+// mode, which forces dayjs to format in UTC time instead of local time, making
+// dates consistent no matter what timezone the user is in.
+//
+// Parsing is deferred via `lazy` rather than done at module load so the object
+// isn't created before the `timezone-mock` used in tests is registered (a dayjs
+// object backed by a native Date created outside the mock can't be cloned once
+// the mock is active).
+
+export const epochDate = lazy(() => dayjs.utc(EPOCH_DATE))
+
+const MS_PER_DAY = 86_400_000
+export const toStartOfDayUtc = (date: dayjs.Dayjs): dayjs.Dayjs =>
+    date.valueOf() % MS_PER_DAY === 0 ? date : date.utc().startOf("day")
+
 export function convertDaysSinceEpochToDate(dayAsYear: number): dayjs.Dayjs {
-    // Use dayjs' UTC mode
-    // This will force dayjs to format in UTC time instead of local time,
-    // making dates consistent no matter what timezone the user is in.
-    return dayjs.utc(EPOCH_DATE).add(dayAsYear, "days")
+    return epochDate().add(dayAsYear, "days")
+}
+
+// Inverse of convertDaysSinceEpochToDate.
+export function convertDateToDaysSinceEpoch(date: dayjs.Dayjs): number {
+    return diffDatesInDays(date, epochDate())
 }
 
 export function formatDay(
@@ -219,6 +239,51 @@ export function formatDay(
 ): string {
     const format = options?.format ?? "MMM D, YYYY"
     return convertDaysSinceEpochToDate(dayAsYear).format(format)
+}
+
+/**
+ * Resolves the time interval of an indicator from its display config,
+ * defaulting to `year` when not set.
+ */
+export function getTimeInterval(
+    display?: OwidVariableDisplayConfigInterface
+): TimeInterval {
+    return display?.timeInterval ?? TimeInterval.Year
+}
+
+const SUB_YEARLY_INTERVALS = new Set<TimeInterval>([
+    TimeInterval.Day,
+    TimeInterval.Week,
+    TimeInterval.Month,
+    TimeInterval.Quarter,
+])
+
+/**
+ * Whether the interval is finer than a year and therefore encoded as
+ * days-since-epoch (day/week/month/quarter)
+ */
+export function isSubYearly(interval: TimeInterval): boolean {
+    return SUB_YEARLY_INTERVALS.has(interval)
+}
+
+/**
+ * Snap a time to the start of its interval, so indicators that pick different
+ * representative days for the same period still align: month → first of the
+ * month, quarter → first of the quarter, week → the ISO-week Monday. Day and
+ * year are their own start and are returned unchanged.
+ */
+export function snapToIntervalStart(
+    time: number,
+    interval: TimeInterval
+): number {
+    if (!Number.isFinite(time)) return time
+    const date = convertDaysSinceEpochToDate(time)
+    let start: dayjs.Dayjs
+    if (interval === TimeInterval.Month) start = date.startOf("month")
+    else if (interval === TimeInterval.Quarter) start = date.startOf("quarter")
+    else if (interval === TimeInterval.Week) start = date.startOf("isoWeek")
+    else return time
+    return convertDateToDaysSinceEpoch(start)
 }
 
 export const formatYear = (year: number): string => {
@@ -269,13 +334,13 @@ export const roundSigFig = (num: number, sigfigs: number = 1): number => {
 }
 
 export const excludeUndefined = <T>(arr: (T | undefined)[]): T[] =>
-    arr.filter((x) => x !== undefined) as T[]
+    arr.filter((x) => x !== undefined)
 
 export const excludeNull = <T>(arr: (T | null)[]): T[] =>
-    arr.filter((x) => x !== null) as T[]
+    arr.filter((x) => x !== null)
 
 export const excludeNullish = <T>(arr: (T | null | undefined | void)[]): T[] =>
-    arr.filter((x) => x !== null && x !== undefined) as T[]
+    arr.filter((x) => x !== null && x !== undefined)
 
 export const firstOfNonEmptyArray = <T>(arr: T[]): T => {
     if (arr.length < 1) throw new Error("array is empty")
@@ -708,18 +773,11 @@ export const valuesByEntityAtTimes = (
         valuesAtTimes(valueByTime, targetTimes, tolerance)
     )
 
-const MS_PER_DAY = 1000 * 60 * 60 * 24
-
-// From https://stackoverflow.com/a/15289883
-export function dateDiffInDays(a: Date, b: Date): number {
-    // Discard the time and time-zone information.
-    const utca = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate())
-    const utcb = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate())
-    return Math.floor((utca - utcb) / MS_PER_DAY)
+export const diffDatesInDays = (a: dayjs.Dayjs, b: dayjs.Dayjs): number => {
+    const aUtc = toStartOfDayUtc(a)
+    const bUtc = toStartOfDayUtc(b)
+    return Math.trunc((aUtc.valueOf() - bUtc.valueOf()) / MS_PER_DAY)
 }
-
-export const diffDateISOStringInDays = (a: string, b: string): number =>
-    dayjs.utc(a).diff(dayjs.utc(b), "day")
 
 export const getYearFromISOStringAndDayOffset = (
     epoch: string,
@@ -1986,6 +2044,16 @@ export function findGreatestCommonDivisorOfArray(arr: number[]): number | null {
     if (arr.includes(1)) return 1
     return _.uniq(arr).reduce((acc, num) => greatestCommonDivisor(acc, num))
 }
+
+// Makes sure that values are evenly spaced by inserting values at the greatest
+// common divisor of the gaps between consecutive values.
+export function withUniformSpacing(values: number[]): number[] {
+    const deltas = rollingMap(values, (a, b) => b - a)
+    const gcd = findGreatestCommonDivisorOfArray(deltas)
+    if (gcd === null) return values
+    return _.range(values[0], values[values.length - 1] + gcd, gcd)
+}
+
 export function lowercaseObjectKeys(
     obj: Record<string, unknown>
 ): Record<string, unknown> {
