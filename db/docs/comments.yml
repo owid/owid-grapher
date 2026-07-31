@@ -16,6 +16,8 @@ fields:
     description: Type of entity the comment is attached to - 'chart', 'variable' or 'multiDim'
   targetId:
     description: ID of the target entity. References charts.id, variables.id or multi_dim_data_pages.id depending on targetType. No database foreign key is possible on a polymorphic column, so existence is validated by the admin API.
+  targetKey:
+    description: The target's identity outside this database, resolved when the comment is written - a chart's chart_configs.id (UUID), or an indicator's or multi-dim's catalogPath. Auto-increment ids only identify a row within the database that issued them, and staging is a clone of production that then diverges, so this is what makes a comment safe to move between environments. NULL when the target has no such key (some legacy indicators have no catalogPath).
   anchor:
     description: Optional identifier of the part of the target the comment is anchored to, e.g. a data page metadata field like 'descriptionShort' or 'source'. NULL for comments on the target as a whole.
   viewState:

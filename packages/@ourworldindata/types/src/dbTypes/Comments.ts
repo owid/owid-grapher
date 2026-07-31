@@ -24,6 +24,8 @@ export interface DbInsertComment {
     id?: number
     targetType: CommentTargetType
     targetId: number
+    /** Portable identity of the target, resolved when the comment is written */
+    targetKey?: string | null
     anchor?: string | null
     viewState?: JsonString | null
     parentId?: number | null

@@ -115,6 +115,26 @@ describe("Comments API", { timeout: 15000 }, () => {
         expect(comments[0].viewState).toEqual(viewState)
     })
 
+    it("records the target's portable key, not just its auto-increment id", async () => {
+        // Auto-increment ids only identify a row in the database that issued
+        // them, so a comment also stores the chart's config UUID, which is the
+        // same in every environment the chart exists in.
+        const { id } = await createComment({
+            targetType: CommentTargetType.Chart,
+            targetId: chartId,
+            content: "Should be portable",
+        })
+        const row = await env
+            .testKnex(CommentsTableName)
+            .where({ id })
+            .first<{ targetKey: string | null }>()
+        const chart = await env
+            .testKnex("charts")
+            .where({ id: chartId })
+            .first<{ configId: string }>()
+        expect(row?.targetKey).toBe(chart?.configId)
+    })
+
     it("supports one level of threaded replies", async () => {
         const { id: rootId } = await createComment({
             targetType: CommentTargetType.Chart,

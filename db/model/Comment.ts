@@ -27,6 +27,35 @@ export async function commentTargetExists(
     return Boolean(result)
 }
 
+/**
+ * The target's identity outside this database. Auto-increment ids only mean
+ * something in the database that issued them, and staging is a clone of
+ * production that then diverges, so a comment records a portable key too:
+ * a chart's config UUID, or an indicator's or multi-dim's catalog path.
+ *
+ * Null when the target has none - some legacy indicators have no catalogPath -
+ * which costs portability for that comment but never blocks writing it.
+ */
+export async function getCommentTargetKey(
+    knex: db.KnexReadonlyTransaction,
+    target: CommentTarget
+): Promise<string | null> {
+    const queryByType: Record<CommentTargetType, string> = {
+        [CommentTargetType.Chart]:
+            "SELECT configId AS `key` FROM charts WHERE id = ?",
+        [CommentTargetType.Variable]:
+            "SELECT catalogPath AS `key` FROM variables WHERE id = ?",
+        [CommentTargetType.MultiDim]:
+            "SELECT catalogPath AS `key` FROM multi_dim_data_pages WHERE id = ?",
+    }
+    const row = await db.knexRawFirst<{ key: string | null }>(
+        knex,
+        queryByType[target.targetType],
+        [target.targetId]
+    )
+    return row?.key ?? null
+}
+
 export async function getCommentsForTarget(
     knex: db.KnexReadonlyTransaction,
     target: CommentTarget,
@@ -87,15 +116,20 @@ export async function insertComment(
         parentId?: number | null
     }
 ): Promise<number> {
+    const targetKey = await getCommentTargetKey(knex, {
+        targetType: comment.targetType,
+        targetId: comment.targetId,
+    })
     const result = await db.knexRawInsert(
         knex,
         `-- sql
         INSERT INTO comments
-            (targetType, targetId, anchor, viewState, parentId, content, userId)
-        VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            (targetType, targetId, targetKey, anchor, viewState, parentId, content, userId)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
             comment.targetType,
             comment.targetId,
+            targetKey,
             comment.anchor ?? null,
             comment.viewState ?? null,
             comment.parentId ?? null,
