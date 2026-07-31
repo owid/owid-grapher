@@ -7,20 +7,23 @@ import {
     OwidGdocType,
 } from "@ourworldindata/types"
 import { getCanonicalUrl } from "@ourworldindata/components"
+import { areTypesenseHitsClosestMatches } from "@ourworldindata/utils"
 import {
-    getFilterNamesOfType,
-    buildChartsFacetFilters,
-    searchSingleForHitsWithClosestMatches,
-} from "@ourworldindata/utils"
-import {
-    getIndexName,
-    createSearchClient,
-    AlgoliaConfig,
-} from "./algoliaClient.js"
+    TypesenseConfig,
+    TypesenseHit,
+    TypesenseSearchResponse,
+    typesenseSearch,
+} from "./typesenseClient.js"
+
+/** Default hybrid search alpha: 70% keyword, 30% vector. */
+export const DEFAULT_ALPHA = 0.3
+
+/** Deduplication strategy. */
+export type DedupStrategy = "typesense" | "api"
 
 /**
  * Error thrown when the client provides invalid search parameters (e.g. a
- * non-existent topic name).  The API handler uses this to distinguish
+ * non-existent topic name). The API handler uses this to distinguish
  * user-facing validation errors (→ 400, no Sentry) from unexpected failures
  * (→ 500, report to Sentry).
  */
@@ -32,8 +35,8 @@ export class SearchValidationError extends Error {
 }
 
 /**
- * Enriched search result with URL added
- * This is what we return from the API after processing Algolia results
+ * Enriched search result with URL added.
+ * This is what we return from the API after processing Typesense results.
  */
 export type EnrichedSearchChartHit = Omit<
     SearchChartHit,
@@ -43,9 +46,9 @@ export type EnrichedSearchChartHit = Omit<
 }
 
 /**
- * Page search hit from Algolia
+ * Enriched page search result with URL added.
  */
-export interface SearchPageHit {
+export interface EnrichedSearchPageHit {
     title: string
     slug: string
     type: string
@@ -53,16 +56,6 @@ export interface SearchPageHit {
     date?: string
     content?: string
     authors?: string[]
-    objectID: string
-}
-
-/**
- * Enriched page search result with URL added
- */
-export type EnrichedSearchPageHit = Omit<
-    SearchPageHit,
-    "objectID" | "_highlightResult" | "_snippetResult"
-> & {
     url: string
 }
 
@@ -91,12 +84,12 @@ export interface SearchPagesApiResponse {
     offset: number
     length: number
     // True when the exact query returned nothing and these are relaxed
-    // "closest matches" instead (see searchSingleForHitsWithClosestMatches).
+    // "closest matches" instead (see searchChartsWithClosestMatches).
     closestMatches?: boolean
 }
 
-// Minimal set of attributes needed by the MCP server and other API consumers
-const DATA_CATALOG_ATTRIBUTES = [
+// Minimal set of attributes needed by the API consumers
+const CHART_INCLUDE_FIELDS = [
     "title",
     "containerTitle",
     "slug",
@@ -109,74 +102,203 @@ const DATA_CATALOG_ATTRIBUTES = [
     "availableTabs",
     "publishedAt",
     "updatedAt",
-]
+].join(",")
+
+// Deliberately excludes availableEntities/originalAvailableEntities: keyword
+// (BM25) matching against entity names lets a single sector entity (e.g.
+// "Education", "Manufacturing") hijack one-word topic queries and outrank real
+// title/topic matches. Country search doesn't need them here — it's handled via
+// filter_by (availableEntities:=...), see formatCountryFilter.
+const CHARTS_QUERY_BY = "embedding,title,slug,subtitle,variantName,tags"
+
+const PAGE_INCLUDE_FIELDS = [
+    "title",
+    "thumbnailUrl",
+    "date",
+    "slug",
+    "type",
+    "content",
+    "authors",
+    "modifiedDate",
+].join(",")
+
+const PAGES_QUERY_BY = "embedding,title,excerpt,tags,authors,content"
+
+// ── Filter helpers ──────────────────────────────────────────────────────
+
+function getFilterNamesOfType(
+    filters: Filter[],
+    type: FilterType
+): Set<string> {
+    return new Set(filters.filter((f) => f.type === type).map((f) => f.name))
+}
+
+/** Typesense filter expression for countries. */
+export function formatCountryFilter(
+    countries: Set<string>,
+    requireAll: boolean
+): string | undefined {
+    if (countries.size === 0) return undefined
+
+    const escaped = Array.from(countries).map((c) => "`" + c + "`")
+
+    if (requireAll) {
+        // Conjunction: each country as separate filter joined with &&
+        return escaped
+            .map((country) => `availableEntities:=${country}`)
+            .join(" && ")
+    }
+    // Disjunction: array syntax
+    return `availableEntities:=[${escaped.join(", ")}]`
+}
+
+/** Typesense filter expression for topics (OR logic). */
+export function formatTopicFilter(topics: Set<string>): string | undefined {
+    if (topics.size === 0) return undefined
+    const escaped = Array.from(topics).map((t) => "`" + t + "`")
+    return `tags:=[${escaped.join(", ")}]`
+}
 
 /**
- * Fetches available topics from Algolia
+ * Exclude Featured Metric records when a free-text query is present.
+ * When browsing by topic (no query), FMs are kept.
  */
-async function getAvailableTopics(config: AlgoliaConfig): Promise<string[]> {
-    const indexName = getIndexName(
-        SearchIndexName.ExplorerViewsMdimViewsAndCharts,
-        config.indexPrefix
+export function formatFeaturedMetricFilter(query: string): string | undefined {
+    return query.trim() ? "isFM:!=true" : undefined
+}
+
+/** Exclude income-group-specific FMs when no countries are selected. */
+export function formatIncomeGroupFMFilter(
+    countries: Set<string>
+): string | undefined {
+    return countries.size === 0 ? "isIncomeGroupSpecificFM:!=true" : undefined
+}
+
+/** Join non-undefined filter parts with " && ". */
+function buildFilterBy(...parts: (string | undefined)[]): string {
+    return parts.filter(Boolean).join(" && ")
+}
+
+// ── Helpers to extract hits from grouped or ungrouped responses ─────────
+
+function extractHits<T>(
+    response: TypesenseSearchResponse<T>
+): TypesenseHit<T>[] {
+    return (
+        response.hits ??
+        response.grouped_hits?.flatMap((group) => group.hits ?? []) ??
+        []
     )
-    const client = createSearchClient(config)
+}
 
-    const response = await client.searchForHits<SearchChartHit>({
-        requests: [
-            {
-                indexName,
-                query: "",
-                hitsPerPage: 0,
-                facets: ["tags"],
-            },
-        ],
-    })
+// ── Chart search ────────────────────────────────────────────────────────
 
-    return Object.keys(response.results[0].facets?.tags ?? {}).sort()
+/** Over-fetch multiplier when doing API-side deduplication. */
+const DEDUP_OVERFETCH_MULTIPLIER = 3
+
+/** Fetches the set of topics present in the charts collection (tag facet). */
+async function getAvailableTopics(config: TypesenseConfig): Promise<string[]> {
+    const response = await typesenseSearch(
+        config,
+        SearchIndexName.ExplorerViewsMdimViewsAndCharts,
+        {
+            q: "*",
+            query_by: "title",
+            per_page: "0",
+            facet_by: "tags",
+            // Return every tag, not just the top 10 (default max_facet_values)
+            max_facet_values: "500",
+        }
+    )
+    const tagFacet = response.facet_counts?.find(
+        (facet) => facet.field_name === "tags"
+    )
+    return (tagFacet?.counts ?? []).map((count) => count.value).sort()
 }
 
 export async function searchCharts(
-    config: AlgoliaConfig,
+    config: TypesenseConfig,
     state: SearchState,
     page: number = 0,
     hitsPerPage: number = 20,
-    baseUrl: string = "https://ourworldindata.org"
+    baseUrl: string = "https://ourworldindata.org",
+    alpha: number = DEFAULT_ALPHA,
+    dedup: DedupStrategy = "api"
 ): Promise<SearchApiResponse> {
-    const facetFilters = buildChartsFacetFilters({
-        query: state.query,
-        filters: state.filters,
-        requireAllCountries: state.requireAllCountries,
-    })
-
-    const indexName = getIndexName(
-        SearchIndexName.ExplorerViewsMdimViewsAndCharts,
-        config.indexPrefix
-    )
-
-    const client = createSearchClient(config)
-
-    const result = await searchSingleForHitsWithClosestMatches<SearchChartHit>(
-        client,
-        {
-            indexName,
-            query: state.query,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            highlightPreTag: "<mark>",
-            highlightPostTag: "</mark>",
-            hitsPerPage,
-            page,
-            ...(facetFilters.length > 0 && { facetFilters }),
-        }
-    )
-
-    // If we got zero results and user is filtering by topic, check if the topic exists
-    const requestedTopics = getFilterNamesOfType(
+    const selectedCountries = getFilterNamesOfType(
         state.filters,
-        FilterType.TOPIC
+        FilterType.COUNTRY
     )
-    if (result.nbHits === 0 && requestedTopics.size > 0) {
+    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+
+    const query = state.query || "*"
+    const isWildcard = query === "*"
+
+    const filterBy = buildFilterBy(
+        formatCountryFilter(selectedCountries, state.requireAllCountries),
+        formatTopicFilter(selectedTopics),
+        formatFeaturedMetricFilter(state.query),
+        formatIncomeGroupFMFilter(selectedCountries)
+    )
+
+    const useTypesenseDedup = dedup === "typesense"
+
+    // When deduplicating API-side, over-fetch to account for duplicates
+    // that will be removed, and use offset-based pagination so we can
+    // skip the right number of *unique* results.
+    const fetchSize = useTypesenseDedup
+        ? hitsPerPage
+        : hitsPerPage * DEDUP_OVERFETCH_MULTIPLIER
+
+    const params: Record<string, string | undefined> = {
+        q: query,
+        query_by: CHARTS_QUERY_BY,
+        vector_query: !isWildcard
+            ? `embedding:([], k:100, alpha:${alpha})`
+            : undefined,
+        prefix: "false",
+        include_fields: useTypesenseDedup
+            ? CHART_INCLUDE_FIELDS
+            : CHART_INCLUDE_FIELDS + ",deduplicationId",
+        highlight_start_tag: "<mark>",
+        highlight_end_tag: "</mark>",
+        stopwords: "english",
+        filter_by: filterBy || undefined,
+    }
+
+    if (useTypesenseDedup) {
+        params.group_by = "deduplicationId"
+        params.group_limit = "1"
+        params.per_page = fetchSize.toString()
+        params.page = (page + 1).toString() // Typesense pages are 1-indexed
+    } else {
+        // For API-side dedup we fetch the full available window of raw hits in
+        // one request, deduplicate it, then paginate the deduplicated list
+        // client-side. We can't paginate raw Typesense pages and dedup per-page
+        // because duplicates collapse the unique offset, so a single window is
+        // both simpler and correct. Hybrid search is already capped (per_page
+        // max 250, vector k:100), so deep pagination beyond this window has no
+        // more results to return regardless.
+        params.per_page = "250" // max allowed by Typesense
+        params.page = "1"
+    }
+
+    const collection = SearchIndexName.ExplorerViewsMdimViewsAndCharts
+    const response = await typesenseSearch(config, collection, params)
+
+    let rawHits = extractHits(response)
+
+    // Label the response when not even the best hit keyword-matched every
+    // query token — everything returned is a partial-keyword and/or
+    // semantic-only match. Computed on the full fetched window, before
+    // dedup/pagination slicing.
+    const closestMatches = areTypesenseHitsClosestMatches(state.query, rawHits)
+
+    // If we got zero results and user is filtering by topic, check if the
+    // topic exists
+    if (rawHits.length === 0 && selectedTopics.size > 0) {
         const availableTopics = await getAvailableTopics(config)
-        const invalidTopics = Array.from(requestedTopics).filter(
+        const invalidTopics = Array.from(selectedTopics).filter(
             (topic) => !availableTopics.includes(topic)
         )
         if (invalidTopics.length > 0) {
@@ -186,99 +308,136 @@ export async function searchCharts(
         }
     }
 
-    // Clean up the hits and add URL
-    const cleanedHits = result.hits.map((hit): EnrichedSearchChartHit => {
-        // Pick only the attributes we want to return to avoid spurious properties
-        const cleanHit: any = {}
-        for (const attr of DATA_CATALOG_ATTRIBUTES) {
-            if (attr in hit) {
-                cleanHit[attr] = (hit as any)[attr]
+    // API-side deduplication: keep only the first hit per deduplicationId,
+    // then slice the requested page out of the deduplicated list.
+    if (!useTypesenseDedup) {
+        const seen = new Set<string>()
+        const deduped: typeof rawHits = []
+        for (const hit of rawHits) {
+            const doc = hit.document
+            const dedupId = doc.deduplicationId as string
+            if (!seen.has(dedupId)) {
+                seen.add(dedupId)
+                deduped.push(hit)
             }
         }
+        const start = page * hitsPerPage
+        rawHits = deduped.slice(start, start + hitsPerPage)
+    }
 
-        // Construct URL based on type
+    const cleanedHits = rawHits.map((hit, index): EnrichedSearchChartHit => {
+        const doc = hit.document
+
         let url: string
-        if (cleanHit.type === ChartRecordType.ExplorerView) {
-            // Explorer views: /explorers/{slug}{queryParams}
-            const queryParams = cleanHit.queryParams || ""
-            url = `${baseUrl}/explorers/${cleanHit.slug}${queryParams}`
-        } else if (cleanHit.type === ChartRecordType.MultiDimView) {
-            // Multi-dimensional views: /grapher/{slug}{queryParams}
-            const queryParams = cleanHit.queryParams || ""
-            url = `${baseUrl}/grapher/${cleanHit.slug}${queryParams}`
+        if (doc.type === ChartRecordType.ExplorerView) {
+            const queryParams = (doc.queryParams as string) || ""
+            url = `${baseUrl}/explorers/${doc.slug}${queryParams}`
+        } else if (doc.type === ChartRecordType.MultiDimView) {
+            const queryParams = (doc.queryParams as string) || ""
+            url = `${baseUrl}/grapher/${doc.slug}${queryParams}`
         } else {
-            // Regular charts: /grapher/{slug}
-            url = `${baseUrl}/grapher/${cleanHit.slug}`
+            url = `${baseUrl}/grapher/${doc.slug}`
         }
+
+        // Remove deduplicationId from output — it's internal
+        const { deduplicationId: _, ...rest } = doc
 
         return {
-            ...(cleanHit as SearchChartHit),
+            ...(rest as unknown as SearchChartHit),
             url,
+            __position: page * hitsPerPage + index,
         }
     })
+
+    // For API-side dedup, found count is approximate (includes dupes)
+    const nbHits = response.found
+    const nbPages = Math.ceil(nbHits / hitsPerPage)
 
     return {
         query: state.query,
         results: cleanedHits,
-        nbHits: result.nbHits ?? 0,
-        page: result.page ?? page,
-        nbPages: result.nbPages ?? 0,
-        hitsPerPage: result.hitsPerPage ?? hitsPerPage,
-        ...(result.closestMatches && { closestMatches: true as const }),
+        nbHits,
+        page,
+        nbPages,
+        hitsPerPage,
+        ...(closestMatches && { closestMatches: true as const }),
     }
 }
 
-// Minimal set of attributes needed for page search
-const PAGE_ATTRIBUTES = [
-    "title",
-    "thumbnailUrl",
-    "date",
-    "slug",
-    "type",
-    "content",
-    "authors",
-    "modifiedDate",
-]
+// ── Page search ─────────────────────────────────────────────────────────
 
 export async function searchPages(
-    config: AlgoliaConfig,
+    config: TypesenseConfig,
     query: string,
     offset: number = 0,
     length: number = 10,
     pageTypes: string[] = ["article", "about-page"],
-    baseUrl: string = "https://ourworldindata.org"
+    baseUrl: string = "https://ourworldindata.org",
+    alpha: number = DEFAULT_ALPHA,
+    dedup: DedupStrategy = "api"
 ): Promise<SearchPagesApiResponse> {
-    const indexName = getIndexName(SearchIndexName.Pages, config.indexPrefix)
+    const collection = SearchIndexName.Pages
+    const q = query || "*"
+    const isWildcard = q === "*"
 
-    // Build filters string for page types
-    const filters = pageTypes.map((type) => `type:${type}`).join(" OR ")
+    // Build type filter: type:=[article, about-page]
+    const typeFilter =
+        pageTypes.length === 1
+            ? `type:=${pageTypes[0]}`
+            : `type:=[${pageTypes.join(", ")}]`
 
-    const client = createSearchClient(config)
+    const useTypesenseDedup = dedup === "typesense"
 
-    const result = await searchSingleForHitsWithClosestMatches<SearchPageHit>(
-        client,
-        {
-            indexName,
-            query,
-            filters,
-            facetFilters: [[]],
-            attributesToRetrieve: PAGE_ATTRIBUTES,
-            highlightPreTag: "<mark>",
-            highlightPostTag: "</mark>",
-            offset,
-            length,
+    const params: Record<string, string | undefined> = {
+        q,
+        query_by: PAGES_QUERY_BY,
+        vector_query: !isWildcard
+            ? `embedding:([], k:100, alpha:${alpha})`
+            : undefined,
+        prefix: "false",
+        include_fields: PAGE_INCLUDE_FIELDS,
+        highlight_start_tag: "<mark>",
+        highlight_end_tag: "</mark>",
+        stopwords: "english",
+        filter_by: typeFilter,
+    }
+
+    if (useTypesenseDedup) {
+        params.group_by = "slug"
+        params.group_limit = "1"
+        params.offset = offset.toString()
+        params.limit = length.toString()
+    } else {
+        // Over-fetch to account for duplicates we'll remove
+        const overfetch = length * DEDUP_OVERFETCH_MULTIPLIER
+        params.offset = offset.toString()
+        params.limit = Math.min(overfetch, 250).toString()
+    }
+
+    const response = await typesenseSearch(config, collection, params)
+
+    let rawHits = extractHits(response)
+
+    // See the equivalent labelling in searchCharts.
+    const closestMatches = areTypesenseHitsClosestMatches(query, rawHits)
+
+    // API-side deduplication: keep only the first hit per slug
+    if (!useTypesenseDedup) {
+        const seen = new Set<string>()
+        const deduped: typeof rawHits = []
+        for (const hit of rawHits) {
+            const doc = hit.document
+            const slug = doc.slug as string
+            if (!seen.has(slug)) {
+                seen.add(slug)
+                deduped.push(hit)
+            }
         }
-    )
+        rawHits = deduped.slice(0, length)
+    }
 
-    // Clean up the hits and add URL
-    const cleanedHits = result.hits.map((hit): EnrichedSearchPageHit => {
-        const {
-            _highlightResult,
-            _snippetResult,
-            objectID: _objectID,
-            ...cleanHit
-        } = hit as any
-
+    const cleanedHits = rawHits.map((hit): EnrichedSearchPageHit => {
+        const doc = hit.document
         // Construct URL based on slug + type: different gdoc types bake to
         // different path prefixes (e.g. data-insights -> /data-insights/,
         // profiles -> /profile/) — getCanonicalUrl/getPrefixedGdocPath is the
@@ -286,12 +445,17 @@ export async function searchPages(
         // pageTypes (beyond the original article/about-page) resolve to
         // working links instead of a bare `${baseUrl}/${slug}` guess.
         const url = getCanonicalUrl(baseUrl, {
-            slug: cleanHit.slug,
-            content: { type: cleanHit.type as OwidGdocType },
+            slug: doc.slug as string,
+            content: { type: doc.type as OwidGdocType },
         })
-
         return {
-            ...cleanHit,
+            title: doc.title as string,
+            slug: doc.slug as string,
+            type: doc.type as string,
+            thumbnailUrl: doc.thumbnailUrl as string | undefined,
+            date: doc.date as string | undefined,
+            content: doc.content as string | undefined,
+            authors: doc.authors as string[] | undefined,
             url,
         }
     })
@@ -299,9 +463,9 @@ export async function searchPages(
     return {
         query,
         results: cleanedHits,
-        nbHits: result.nbHits ?? 0,
+        nbHits: response.found,
         offset,
         length,
-        ...(result.closestMatches && { closestMatches: true as const }),
+        ...(closestMatches && { closestMatches: true as const }),
     }
 }

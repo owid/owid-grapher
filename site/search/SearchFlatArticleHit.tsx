@@ -1,5 +1,4 @@
 import cx from "clsx"
-import { Snippet } from "react-instantsearch"
 import { getCanonicalPath } from "@ourworldindata/components"
 import { OwidGdocType, FlatArticleHit } from "@ourworldindata/types"
 import { formatAuthors, formatDate } from "@ourworldindata/utils"
@@ -53,16 +52,15 @@ export function SearchFlatArticleHit({
                             <span className="search-flat-article-hit__excerpt">
                                 {hit.excerpt}
                             </span>
-                        ) : (
-                            <Snippet
-                                classNames={{
-                                    root: "search-flat-article-hit__excerpt",
-                                }}
-                                attribute="content"
-                                highlightedTagName="strong"
-                                hit={hit}
-                            />
-                        )}
+                        ) : hit.content ? (
+                            <span className="search-flat-article-hit__excerpt">
+                                {hit.content
+                                    .split(/\s+/)
+                                    .slice(0, 20)
+                                    .join(" ")}
+                                …
+                            </span>
+                        ) : null}
                     </div>
                 </div>
             </article>

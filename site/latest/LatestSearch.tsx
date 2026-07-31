@@ -6,7 +6,7 @@ import {
     LatestType,
     TagGraphRoot,
 } from "@ourworldindata/types"
-import { LiteClient } from "algoliasearch/lite"
+import { Client } from "typesense"
 import { useTagGraphTopics } from "../search/searchHooks.js"
 import { useInfiniteLatestPages, useLatestAnalytics } from "./latestHooks.js"
 import { LatestTopicFacets } from "./LatestTopicFacets.js"
@@ -23,16 +23,15 @@ import { NewsletterSignupBlock } from "../NewsletterSignupBlock.js"
 import { SearchHorizontalDivider } from "../search/SearchHorizontalDivider.js"
 import { SearchNoResults } from "../search/SearchNoResults.js"
 import { NewsletterSubscriptionContext } from "../newsletter.js"
-import { PoweredBy } from "react-instantsearch"
 
 const analytics = new SiteAnalytics()
 
 export const LatestSearch = ({
     topicTagGraph,
-    liteSearchClient,
+    typesenseClient,
 }: {
     topicTagGraph: TagGraphRoot
-    liteSearchClient: LiteClient
+    typesenseClient: Client
 }) => {
     const [searchParams, setSearchParams] = useSearchParams()
 
@@ -86,7 +85,7 @@ export const LatestSearch = ({
     } = useInfiniteLatestPages({
         topics,
         latestType,
-        liteSearchClient,
+        typesenseClient,
     })
 
     // Disable type options that would yield 0 results given the current
@@ -102,7 +101,7 @@ export const LatestSearch = ({
 
     // Disable topics that would yield 0 results given the current filters.
     // Never disable a topic that is already selected (so the user can deselect
-    // it). When topics are selected the facet counts are narrowed by Algolia's
+    // it). When topics are selected the facet counts are narrowed by Typesense's
     // conjunctive filtering, so the counts reflect co-occurrence with the
     // current selection — topics with 0 count genuinely add no results.
     const disabledTopics = useMemo(() => {
@@ -210,10 +209,6 @@ export const LatestSearch = ({
                     )}
                 </>
             )}
-            <PoweredBy
-                className="col-start-2 span-cols-12"
-                style={{ width: "200px", marginTop: "32px" }}
-            />
         </LatestContext.Provider>
     )
 }

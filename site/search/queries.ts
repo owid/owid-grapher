@@ -6,37 +6,191 @@ import {
     TagGraphRoot,
     SearchState,
     SearchChartHit,
+    SearchChartsResponse,
+    SearchDataTopicsResponse,
+    SearchDataInsightResponse,
+    DataInsightHit,
+    SearchStackedArticleResponse,
+    SearchTopicPageResponse,
+    SearchWritingTopicsResponse,
     StackedArticleHit,
     TopicPageHit,
     FilterType,
     LatestType,
+    SearchFlatArticleResponse,
+    FlatArticleHit,
+    SearchProfileResponse,
     ProfileHit,
     PageChronologicalRecord,
-    DataInsightHit,
-    FlatArticleHit,
 } from "@ourworldindata/types"
 import { type SearchResponse } from "algoliasearch"
-import { type LiteClient } from "algoliasearch/lite"
 import {
     getFilterNamesOfType,
-    formatCountryFacetFilters,
-    formatTopicFacetFilters,
     getSelectableTopics,
     CHARTS_INDEX,
     PAGES_INDEX,
     PAGES_CHRONOLOGICAL_INDEX,
-    DATA_CATALOG_ATTRIBUTES,
-    formatDisjunctiveFacetFilters,
+    formatTopicFacetFiltersTypesense,
+    formatCountryFacetFiltersTypesense,
+    formatFeaturedMetricFilterTypesense,
+    formatIncomeGroupFMFilterTypesense,
+    HYBRID_SEARCH_ALPHA,
 } from "./searchUtils.js"
-import {
-    buildChartsFacetFilters,
-    searchSingleForHits,
-    searchSingleForHitsWithClosestMatches,
-} from "@ourworldindata/utils"
+import { areTypesenseHitsClosestMatches } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
+import { ChartDocument, PageDocument } from "./typesenseCollections.js"
+import { Client } from "typesense"
+import {
+    SearchResponse as TypesenseSearchResponse,
+    SearchResponseHit,
+} from "typesense/lib/Typesense/Documents.js"
 
 function makeStateForKey(state: SearchState) {
     return R.pick(state, ["query", "filters", "requireAllCountries"])
+}
+
+/**
+ * Page documents store `date`/`modifiedDate` as Unix-second integers (see
+ * `convertDateToUnixTimestamp` in the indexer), but the page-hit types expose
+ * them as ISO strings and the renderers call `new Date(hit.date)`, which would
+ * otherwise interpret the seconds as milliseconds and show January 1970.
+ * Convert the numeric timestamps back to ISO strings before they reach hits.
+ * Returns only the keys that need overriding so chart documents (which have no
+ * `date`/`modifiedDate`) are left untouched.
+ */
+function normalizeDateFields(document: object | undefined): {
+    date?: string
+    modifiedDate?: string
+} {
+    const overrides: { date?: string; modifiedDate?: string } = {}
+    if (!document) return overrides
+    if ("date" in document && typeof document.date === "number") {
+        overrides.date = new Date(document.date * 1000).toISOString()
+    }
+    if (
+        "modifiedDate" in document &&
+        typeof document.modifiedDate === "number"
+    ) {
+        overrides.modifiedDate = new Date(
+            document.modifiedDate * 1000
+        ).toISOString()
+    }
+    return overrides
+}
+
+/**
+ * Maps a Typesense search response to the Algolia SearchResponse shape
+ * that consuming components expect.
+ *
+ * Handles both regular and grouped responses (when using `group_by`).
+ * Grouped responses return results under `grouped_hits` instead of `hits`.
+ *
+ * NOTE: the page-search callers below (queryDataInsights/queryArticles/
+ * queryTopicPages/queryProfiles) still pass `group_by: "slug"` together with a
+ * hybrid `vector_query`, so they share the Typesense bug worked around in
+ * `dedupHitsByDeduplicationId` (group_by + vector-only matches collapses
+ * results). They're lower-risk than the chart searches because they query full
+ * `content`, so the keyword arm rarely matches nothing — but for purely
+ * semantic queries they can still under-return. Apply the same over-fetch +
+ * client-side dedup (by `slug`, which is load-bearing here: pages are indexed
+ * as multiple content chunks sharing one slug) if/when this surfaces, or revert
+ * all of these to native `group_by` once we're on Typesense v31+.
+ */
+function mapTypesenseResponse<
+    TDoc extends { id?: string; slug?: string },
+    THit,
+>(
+    response: TypesenseSearchResponse<TDoc>,
+    query: string,
+    page: number,
+    perPage: number,
+    options?: {
+        /**
+         * The exact `q` sent to Typesense (which may include appended country
+         * phrases, unlike `query`). When set, the response is labelled
+         * `closestMatches: true` if not even the best hit keyword-matched
+         * every query token — see areTypesenseHitsClosestMatches. Only the
+         * result types whose UI shows the "closest matches" banner (charts,
+         * articles, data insights) pass this.
+         */
+        closestMatchesQuery?: string
+    }
+): SearchResponse<THit> & { closestMatches?: boolean } {
+    // When group_by is used, results come back in grouped_hits.
+    // Extract the first hit from each group (group_limit: 1).
+    const rawHits: SearchResponseHit<TDoc>[] =
+        response.hits ??
+        response.grouped_hits?.flatMap((group) => group.hits ?? []) ??
+        []
+
+    const closestMatches =
+        options?.closestMatchesQuery !== undefined &&
+        areTypesenseHitsClosestMatches(options.closestMatchesQuery, rawHits)
+
+    const hits = rawHits.map((hit, index) => ({
+        ...hit.document,
+        ...normalizeDateFields(hit.document),
+        objectID: hit.document?.id ?? hit.document?.slug ?? "",
+        __position: page * perPage + index,
+    })) as THit[]
+
+    return {
+        hits,
+        nbHits: response.found,
+        page,
+        nbPages: Math.ceil(response.found / perPage),
+        hitsPerPage: perPage,
+        exhaustiveNbHits: true,
+        exhaustiveTypo: true,
+        query,
+        params: "",
+        processingTimeMS: response.search_time_ms || 0,
+        ...(closestMatches && { closestMatches: true }),
+    } as SearchResponse<THit> & { closestMatches?: boolean }
+}
+
+/** Build a Typesense filter_by string combining type filter and optional extra filters. */
+function buildFilterBy(
+    typeFilter: string,
+    ...extraFilters: (string | undefined)[]
+): string {
+    return [typeFilter, ...extraFilters].filter(Boolean).join(" && ")
+}
+
+/** Format a Typesense type filter for one or more types using exact match. */
+function formatTypeFilter(...types: string[]): string {
+    if (types.length === 1) return `type:=${types[0]}`
+    return `type:=[${types.join(", ")}]`
+}
+
+/**
+ * Deduplicate Typesense chart hits by `deduplicationId` (falling back to
+ * `slug`), keeping the highest-ranked hit per chart and preserving relevance
+ * order.
+ *
+ * We do this in application code instead of using Typesense's native
+ * `group_by` because `group_by` combined with hybrid/vector search collapses
+ * the result set for natural-language queries — e.g. "tax on personal income"
+ * returns 101 results without `group_by` but only 1 with it, so the UI showed
+ * "no results" (or a single chart) for queries the keyword arm couldn't match.
+ * See typesense/typesense#2723; fixed by typesense/typesense#2738, but that fix
+ * only landed on the (still unreleased) `v31` branch — no released version
+ * contains it (we run v30.x). This mirrors the `/api/search` endpoint's default
+ * `dedup=api` strategy. Once we're on Typesense v31+ this can be replaced by
+ * `group_by: "deduplicationId", group_limit: 1`.
+ */
+function dedupHitsByDeduplicationId(
+    hits: SearchResponseHit<ChartDocument>[]
+): SearchResponseHit<ChartDocument>[] {
+    const seen = new Set<string>()
+    const deduped: SearchResponseHit<ChartDocument>[] = []
+    for (const hit of hits) {
+        const dedupId = hit.document?.deduplicationId ?? hit.document?.slug
+        if (!dedupId || seen.has(dedupId)) continue
+        seen.add(dedupId)
+        deduped.push(hit)
+    }
+    return deduped
 }
 
 /**
@@ -93,93 +247,209 @@ export const chartHitQueryKeys = {
         ] as const,
 } as const
 
+// Deliberately excludes availableEntities/originalAvailableEntities: keyword
+// (BM25) matching against entity names lets a single sector entity (e.g.
+// "Education", "Manufacturing") hijack one-word topic queries and outrank real
+// title/topic matches. Country search is handled via filter_by, not query_by.
+const CHARTS_QUERY_BY = "embedding,title,slug,subtitle,variantName,tags"
+const PAGES_QUERY_BY = "embedding,title,excerpt,tags,authors,content"
+const PAGES_QUERY_BY_RESTRICTED = "embedding,title,excerpt,tags,authors"
+
 export async function queryDataTopics(
-    liteSearchClient: LiteClient,
+    client: Client,
     state: SearchState,
     tagGraph: TagGraphRoot,
     selectedTopic: string | undefined
-) {
+): Promise<SearchDataTopicsResponse[]> {
     const dataTopics = [...getSelectableTopics(tagGraph, selectedTopic)]
 
-    const countryFacetFilters = formatCountryFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
+    const selectedCountryNames = getFilterNamesOfType(
+        state.filters,
+        FilterType.COUNTRY
+    )
+    const countryFilter = formatCountryFacetFiltersTypesense(
+        selectedCountryNames,
         state.requireAllCountries
     )
-    const searchParams = dataTopics.map((topic) => {
-        const topicFacetFilters = formatTopicFacetFilters(new Set([topic]))
-        const facetFilters = [...countryFacetFilters, ...topicFacetFilters]
+
+    const query = state.query || "*"
+
+    const fmFilter = formatFeaturedMetricFilterTypesense(state.query)
+    const incomeGroupFMFilter =
+        formatIncomeGroupFMFilterTypesense(selectedCountryNames)
+
+    // Number of charts displayed per topic row.
+    const TOPIC_CHARTS_LIMIT = 4
+    // Over-fetch (without Typesense's buggy `group_by` — see
+    // `dedupHitsByDeduplicationId`) so we have enough hits to still show
+    // TOPIC_CHARTS_LIMIT distinct charts after deduplicating in app code.
+    const TOPIC_DEDUP_FETCH_SIZE = 20
+
+    const searches = dataTopics.map((topic) => {
+        const topicFilter = formatTopicFacetFiltersTypesense(new Set([topic]))
         return {
-            indexName: CHARTS_INDEX,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            query: state.query,
-            facetFilters: facetFilters,
-            highlightPreTag: "<mark>",
-            highlightPostTag: "</mark>",
-            hitsPerPage: 4,
+            collection: CHARTS_INDEX,
+            q: query,
+            query_by: CHARTS_QUERY_BY,
+            vector_query:
+                query !== "*"
+                    ? `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`
+                    : undefined,
+            prefix: false,
+            stopwords: "english",
+            filter_by: [
+                countryFilter,
+                topicFilter,
+                fmFilter,
+                incomeGroupFMFilter,
+            ]
+                .filter(Boolean)
+                .join(" && "),
+            include_fields:
+                "title,slug,availableEntities,originalAvailableEntities,variantName,type,queryParams,availableTabs,subtitle,chartConfigId,explorerType,chartId,deduplicationId",
+            highlight_start_tag: "<mark>",
+            highlight_end_tag: "</mark>",
+            per_page: TOPIC_DEDUP_FETCH_SIZE,
+            page: 1,
         }
     })
 
-    const response =
-        await liteSearchClient.searchForHits<SearchChartHit>(searchParams)
-    return response.results.map((res, i) => ({
-        title: dataTopics[i],
-        charts: res,
-    }))
+    const response = await client.multiSearch.perform<ChartDocument[]>(
+        { searches },
+        {}
+    )
+
+    return dataTopics.map((topic, i) => {
+        const result = (
+            response.results as TypesenseSearchResponse<ChartDocument>[]
+        )[i]
+        const dedupedHits = dedupHitsByDeduplicationId(result.hits ?? []).slice(
+            0,
+            TOPIC_CHARTS_LIMIT
+        )
+        const hits = dedupedHits.map((hit, index) => ({
+            ...hit.document,
+            objectID: hit.document?.id ?? hit.document?.slug ?? "",
+            __position: index,
+        })) as SearchChartHit[]
+        return {
+            title: topic,
+            // `result.found` is the total matching documents (slightly
+            // over-counts duplicate chart views vs. the old grouped count, but
+            // never collapses to a wrong tiny value the way `group_by` does).
+            // It drives the "N charts" header and row visibility.
+            charts: {
+                hits,
+                nbHits: result.found,
+                page: 0,
+                nbPages: 1,
+                hitsPerPage: TOPIC_CHARTS_LIMIT,
+                exhaustiveNbHits: true,
+                exhaustiveTypo: true,
+                query: state.query,
+                params: "",
+                processingTimeMS: result.search_time_ms || 0,
+            } as SearchChartsResponse,
+        }
+    })
 }
 
 export async function queryCharts(
-    liteSearchClient: LiteClient,
+    client: Client,
     state: SearchState,
     page: number = 0
-) {
-    const datasetFacetFilters = [
-        ...formatDisjunctiveFacetFilters(
-            getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCT),
-            "datasetProducts"
-        ),
-        ...formatDisjunctiveFacetFilters(
-            getFilterNamesOfType(state.filters, FilterType.DATASET_NAMESPACE),
-            "datasetNamespaces"
-        ),
-        ...formatDisjunctiveFacetFilters(
-            getFilterNamesOfType(state.filters, FilterType.DATASET_VERSION),
-            "datasetVersions"
-        ),
-        ...formatDisjunctiveFacetFilters(
-            getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCER),
-            "datasetProducers"
-        ),
-    ]
-    const facetFilters = buildChartsFacetFilters({
-        query: state.query,
-        filters: state.filters,
-        requireAllCountries: state.requireAllCountries,
-        datasetFacetFilters,
-    })
-
-    const searchParams = {
-        indexName: CHARTS_INDEX,
-        attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-        query: state.query,
-        facetFilters,
-        highlightPreTag: "<mark>",
-        highlightPostTag: "</mark>",
-        hitsPerPage: 9,
-        page,
-    }
-
-    return searchSingleForHitsWithClosestMatches<SearchChartHit>(
-        liteSearchClient,
-        searchParams
+): Promise<SearchChartsResponse> {
+    const selectedCountryNames = getFilterNamesOfType(
+        state.filters,
+        FilterType.COUNTRY
     )
+    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+
+    const query = state.query || "*"
+    const fmFilter = formatFeaturedMetricFilterTypesense(state.query)
+    const incomeGroupFMFilter =
+        formatIncomeGroupFMFilterTypesense(selectedCountryNames)
+
+    // Over-fetch and deduplicate by `deduplicationId` in application code
+    // instead of using Typesense's native `group_by`, which is buggy for
+    // hybrid/vector queries — see `dedupHitsByDeduplicationId`.
+    const DEDUP_FETCH_SIZE = 250 // Typesense's max per_page
+    const response = await client
+        .collections<ChartDocument>(CHARTS_INDEX)
+        .documents()
+        .search({
+            q: query,
+            query_by: CHARTS_QUERY_BY,
+            vector_query:
+                query !== "*"
+                    ? `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`
+                    : undefined,
+            prefix: false,
+            stopwords: "english",
+            filter_by: [
+                formatCountryFacetFiltersTypesense(
+                    selectedCountryNames,
+                    state.requireAllCountries
+                ),
+                formatTopicFacetFiltersTypesense(selectedTopics),
+                fmFilter,
+                incomeGroupFMFilter,
+            ]
+                .filter(Boolean)
+                .join(" && "),
+            include_fields:
+                "title,slug,availableEntities,originalAvailableEntities,variantName,type,queryParams,availableTabs,subtitle,chartConfigId,explorerType,chartId,deduplicationId",
+            highlight_start_tag: "<mark>",
+            highlight_end_tag: "</mark>",
+            per_page: DEDUP_FETCH_SIZE,
+            page: 1,
+        })
+
+    // Label the response when not even the best hit keyword-matched every
+    // query token — everything returned is a partial-keyword and/or
+    // semantic-only match. Computed on the full fetched window, before
+    // dedup/pagination slicing.
+    const closestMatches = areTypesenseHitsClosestMatches(
+        state.query,
+        response.hits ?? []
+    )
+
+    // Deduplicate, then paginate over the unique results client-side.
+    const dedupedHits = dedupHitsByDeduplicationId(response.hits ?? [])
+
+    const pageHits = dedupedHits.slice(page * 9, page * 9 + 9)
+    const hits: SearchChartHit[] = pageHits.map((hit, index) => ({
+        ...hit.document,
+        objectID: hit.document?.slug,
+        __position: page * 9 + index,
+        availableTabs: hit.document?.availableTabs || [],
+        availableEntities: hit.document?.availableEntities || [],
+    })) as SearchChartHit[]
+
+    // nbHits is the count of unique charts within the fetched window (an
+    // approximation of the true total, which is enough to drive pagination).
+    const nbHits = dedupedHits.length
+    return {
+        hits,
+        nbHits,
+        page,
+        nbPages: Math.ceil(nbHits / 9),
+        hitsPerPage: 9,
+        exhaustiveNbHits: true,
+        exhaustiveTypo: true,
+        query: state.query,
+        params: "",
+        processingTimeMS: response.search_time_ms || 0,
+        ...(closestMatches && { closestMatches: true }),
+    } as SearchChartsResponse
 }
 
 export async function queryDataInsights(
-    liteSearchClient: LiteClient,
+    client: Client,
     state: SearchState,
     page: number = 0,
-    hitsPerPage: number = 4
-) {
+    _hitsPerPage: number = 4
+): Promise<SearchDataInsightResponse> {
     const selectedCountryNames = getFilterNamesOfType(
         state.filters,
         FilterType.COUNTRY
@@ -188,166 +458,216 @@ export async function queryDataInsights(
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
     // Using the selected countries as query search terms until data insights
     // are tagged with countries.
-    const query = [
+    const query =
+        [
+            state.query,
+            // Use advanced syntax to search for countries as exact phrases
+            // TODO: handle "Indonesia's", which gets filtered out
+            ...Array.from(selectedCountryNames).map((c) => `"${c}"`),
+        ]
+            .filter(Boolean)
+            .join(" ") || "*"
+
+    const perPage = 4
+
+    const response = await client
+        .collections<PageDocument>(PAGES_INDEX)
+        .documents()
+        .search({
+            q: query,
+            // Do not search through the content of data insights in case there
+            // is a country filter present. This is to avoid returning data
+            // insights that might mention a country, but are not *about* that
+            // country (e.g. "Unlike Germany...").
+            query_by: hasCountry ? PAGES_QUERY_BY_RESTRICTED : PAGES_QUERY_BY,
+            vector_query:
+                query !== "*"
+                    ? `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`
+                    : undefined,
+            prefix: false,
+            stopwords: "english",
+            filter_by: buildFilterBy(
+                formatTypeFilter(OwidGdocType.DataInsight),
+                formatTopicFacetFiltersTypesense(selectedTopics)
+            ),
+            include_fields: "title,thumbnailUrl,date,slug,type",
+            highlight_start_tag: "<mark>",
+            highlight_end_tag: "</mark>",
+            group_by: "slug",
+            group_limit: 1,
+            per_page: perPage,
+            page: page + 1,
+        })
+
+    return mapTypesenseResponse<PageDocument, DataInsightHit>(
+        response,
         state.query,
-        // Use advanced syntax to search for countries as exact phrases
-        ...selectedCountryNames.keys().map((c) => `"${c}"`),
-    ]
-        .filter(Boolean)
-        .join(" ")
-
-    const searchParams = {
-        indexName: PAGES_INDEX,
-        query,
-        filters: `type:${OwidGdocType.DataInsight}`,
-        facetFilters: formatTopicFacetFilters(selectedTopics),
-        // Do not search through the content of data insights in case there
-        // is a country filter present. This is to avoid returning data
-        // insights that might mention a country, but are not *about* that
-        // country (e.g. "Unlike Germany...").
-        ...(hasCountry && {
-            // a subset of searchableAttributes on the Pages index
-            restrictSearchableAttributes: ["title", "tags", "authors"],
-        }),
-        attributesToRetrieve: ["title", "thumbnailUrl", "date", "slug", "type"],
-        highlightPreTag: "<mark>",
-        highlightPostTag: "</mark>",
-        hitsPerPage,
         page,
-    }
-
-    return searchSingleForHitsWithClosestMatches<DataInsightHit>(
-        liteSearchClient,
-        searchParams
+        perPage,
+        { closestMatchesQuery: query }
     )
 }
 
 export async function queryArticles(
-    liteSearchClient: LiteClient,
+    client: Client,
     state: SearchState,
     offset: number = 0,
     length: number
-) {
+): Promise<SearchFlatArticleResponse> {
     const selectedCountryNames = getFilterNamesOfType(
         state.filters,
         FilterType.COUNTRY
     )
     const hasCountry = selectedCountryNames.size > 0
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
-    const isFilterOnly = state.query.trim() === ""
     // Using the selected countries as query search terms until articles
     // are tagged with countries.
-    const query = [
+    const query =
+        [
+            state.query,
+            // Use advanced syntax to search for countries as exact phrases
+            ...Array.from(selectedCountryNames).map((c) => `"${c}"`),
+        ]
+            .filter(Boolean)
+            .join(" ") || "*"
+
+    const response = await client
+        .collections<PageDocument>(PAGES_INDEX)
+        .documents()
+        .search({
+            q: query,
+            // Do not search through the content of articles in case there is a
+            // country filter present. This is to avoid returning articles that
+            // might mention a country, but are not *about* that country (e.g.
+            // "Unlike Germany...").
+            query_by: hasCountry ? PAGES_QUERY_BY_RESTRICTED : PAGES_QUERY_BY,
+            vector_query:
+                query !== "*"
+                    ? `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`
+                    : undefined,
+            prefix: false,
+            stopwords: "english",
+            filter_by: buildFilterBy(
+                formatTypeFilter(OwidGdocType.Article, OwidGdocType.AboutPage),
+                formatTopicFacetFiltersTypesense(selectedTopics)
+            ),
+            include_fields:
+                "title,thumbnailUrl,date,slug,type,content,excerpt,authors",
+            highlight_start_tag: "<mark>",
+            highlight_end_tag: "</mark>",
+            group_by: "slug",
+            group_limit: 1,
+            offset,
+            limit: length,
+        })
+
+    // For offset-based queries, compute page/nbPages for compatibility
+    const page = length > 0 ? Math.floor(offset / length) : 0
+    return mapTypesenseResponse<PageDocument, FlatArticleHit>(
+        response,
         state.query,
-        // Use advanced syntax to search for countries as exact phrases
-        ...selectedCountryNames.keys().map((c) => `"${c}"`),
-    ]
-        .filter(Boolean)
-        .join(" ")
-
-    const searchParams = {
-        indexName: PAGES_INDEX,
-        query,
-        filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
-        facetFilters: formatTopicFacetFilters(selectedTopics),
-        // Do not search through the content of articles in case there is a
-        // country filter present. This is to avoid returning articles that
-        // might mention a country, but are not *about* that country (e.g.
-        // "Unlike Germany...").
-        ...(hasCountry && {
-            // a subset of searchableAttributes on the Pages index
-            restrictSearchableAttributes: ["title", "tags", "authors"],
-        }),
-        attributesToRetrieve: [
-            "title",
-            "thumbnailUrl",
-            "date",
-            "slug",
-            "type",
-            isFilterOnly ? "excerpt" : "content",
-            "authors",
-        ],
-        highlightPreTag: "<mark>",
-        highlightPostTag: "</mark>",
-        offset,
+        page,
         length,
-    }
-
-    return searchSingleForHitsWithClosestMatches<FlatArticleHit>(
-        liteSearchClient,
-        searchParams
+        { closestMatchesQuery: query }
     )
 }
 
 export async function queryTopicPages(
-    liteSearchClient: LiteClient,
+    client: Client,
     state: SearchState,
     offset: number = 0,
     length: number
-) {
+): Promise<SearchTopicPageResponse> {
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+    const query = state.query || "*"
 
-    const searchParams = {
-        indexName: PAGES_INDEX,
-        query: state.query,
-        filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
-        facetFilters: formatTopicFacetFilters(selectedTopics),
-        attributesToRetrieve: [
-            "title",
-            "type",
-            "slug",
-            "excerpt",
-            "excerptLong",
-        ],
-        highlightPreTag: "<mark>",
-        highlightPostTag: "</mark>",
-        offset,
-        length,
-    }
+    const response = await client
+        .collections<PageDocument>(PAGES_INDEX)
+        .documents()
+        .search({
+            q: query,
+            query_by: PAGES_QUERY_BY,
+            vector_query:
+                query !== "*"
+                    ? `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`
+                    : undefined,
+            prefix: false,
+            stopwords: "english",
+            filter_by: buildFilterBy(
+                formatTypeFilter(
+                    OwidGdocType.TopicPage,
+                    OwidGdocType.LinearTopicPage
+                ),
+                formatTopicFacetFiltersTypesense(selectedTopics)
+            ),
+            include_fields: "title,type,slug,excerpt,excerptLong",
+            highlight_start_tag: "<mark>",
+            highlight_end_tag: "</mark>",
+            group_by: "slug",
+            group_limit: 1,
+            offset,
+            limit: length,
+        })
 
-    return searchSingleForHits<TopicPageHit>(liteSearchClient, searchParams)
+    const page = length > 0 ? Math.floor(offset / length) : 0
+    return mapTypesenseResponse<PageDocument, TopicPageHit>(
+        response,
+        state.query,
+        page,
+        length
+    )
 }
 
 export async function queryProfiles(
-    liteSearchClient: LiteClient,
+    client: Client,
     state: SearchState,
     offset: number = 0,
     length: number
-) {
+): Promise<SearchProfileResponse> {
     const selectedCountryNames = getFilterNamesOfType(
         state.filters,
         FilterType.COUNTRY
     )
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+    const query = state.query || "*"
 
-    const facetFilters = [
-        ...formatCountryFacetFilters(
-            selectedCountryNames,
-            state.requireAllCountries
-        ),
-        ...formatTopicFacetFilters(selectedTopics),
-    ]
+    const response = await client
+        .collections<PageDocument>(PAGES_INDEX)
+        .documents()
+        .search({
+            q: query,
+            query_by: PAGES_QUERY_BY,
+            vector_query:
+                query !== "*"
+                    ? `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`
+                    : undefined,
+            prefix: false,
+            stopwords: "english",
+            filter_by: buildFilterBy(
+                formatTypeFilter(OwidGdocType.Profile),
+                formatCountryFacetFiltersTypesense(
+                    selectedCountryNames,
+                    state.requireAllCountries
+                ),
+                formatTopicFacetFiltersTypesense(selectedTopics)
+            ),
+            include_fields:
+                "title,thumbnailUrl,slug,excerpt,type,availableEntities",
+            highlight_start_tag: "<mark>",
+            highlight_end_tag: "</mark>",
+            group_by: "slug",
+            group_limit: 1,
+            offset,
+            limit: length,
+        })
 
-    const searchParams = {
-        indexName: PAGES_INDEX,
-        query: state.query,
-        filters: `type:${OwidGdocType.Profile}`,
-        facetFilters,
-        attributesToRetrieve: [
-            "title",
-            "thumbnailUrl",
-            "slug",
-            "excerpt",
-            "type",
-            "availableEntities",
-        ],
-        highlightPreTag: "<mark>",
-        highlightPostTag: "</mark>",
-        offset,
-        length,
-    }
-
-    return searchSingleForHits<ProfileHit>(liteSearchClient, searchParams)
+    const page = length > 0 ? Math.floor(offset / length) : 0
+    return mapTypesenseResponse<PageDocument, ProfileHit>(
+        response,
+        state.query,
+        page,
+        length
+    )
 }
 
 export interface LatestPagesResult {
@@ -363,139 +683,180 @@ export interface LatestPagesResult {
 
 // The gdoc-type guard that excludes topic pages and linear topic pages
 // (indexed for the atom feed but hidden from /latest).
-const LATEST_BASE_FILTER = LATEST_FEED_TYPE_VALUES.map((t) => `type:${t}`).join(
-    " OR "
-)
+const LATEST_BASE_FILTER = `type:=[${LATEST_FEED_TYPE_VALUES.join(", ")}]`
 
-// Issues three searches in a single batched `liteSearchClient.searchForHits([...])`
-// call (one network round-trip): the paginated card list plus per-axis facet
-// counts used to disable filter options that would yield zero results. Each
-// facet-count query drops its own axis so the returned counts reflect "what
-// would happen if the user picked a different value here?" rather than being
-// self-narrowed to the current selection.
+/** Maps a Typesense facet_counts entry to a value -> count record. */
+function facetCountsToRecord<TDoc extends object>(
+    response: TypesenseSearchResponse<TDoc>,
+    fieldName: string
+): Record<string, number> {
+    const facet = response.facet_counts?.find(
+        (f) => String(f.field_name) === fieldName
+    )
+    return Object.fromEntries(
+        (facet?.counts ?? []).map((count) => [count.value, count.count])
+    )
+}
+
+// Issues three searches in a single batched multiSearch call (one network
+// round-trip): the paginated card list plus per-axis facet counts used to
+// disable filter options that would yield zero results. Each facet-count
+// query drops its own axis so the returned counts reflect "what would happen
+// if the user picked a different value here?" rather than being self-narrowed
+// to the current selection.
 //
-// `facetFilters` uses Algolia's array-of-arrays form: outer array is AND,
-// inner array is OR (cf. `formatDisjunctiveFacetFilters` in searchUtils.tsx).
+// No free-text search happens here — every query is a wildcard over the
+// chronological collection, filtered and sorted by date (its default sort).
 export async function queryLatestPages(
-    liteSearchClient: LiteClient,
+    client: Client,
     topics: string[],
     offset: number,
     length: number,
     latestType: LatestType | null = null
-) {
-    // Each axis lives in its own `facetFilters` group so queries can include
-    // or omit it independently. Multiple topics are OR'd within their group.
-    const topicFacetFilters =
+): Promise<LatestPagesResult> {
+    const topicFilter =
         topics.length > 0
-            ? formatDisjunctiveFacetFilters(new Set(topics), "tags")
-            : []
-    const latestTypeFacetFilter = latestType
-        ? formatDisjunctiveFacetFilters(new Set([latestType]), "latestType")
-        : []
+            ? formatTopicFacetFiltersTypesense(new Set(topics))
+            : undefined
+    const latestTypeFilter = latestType
+        ? `latestType:=${latestType}`
+        : undefined
 
-    const searchParams = [
+    const searches = [
         // Query 1: paginated cards (apply both user filters)
         {
-            indexName: PAGES_CHRONOLOGICAL_INDEX,
-            query: "",
-            filters: LATEST_BASE_FILTER,
-            facetFilters: [...topicFacetFilters, ...latestTypeFacetFilter],
+            collection: PAGES_CHRONOLOGICAL_INDEX,
+            q: "*" as const,
+            filter_by: [LATEST_BASE_FILTER, topicFilter, latestTypeFilter]
+                .filter(Boolean)
+                .join(" && "),
+            sort_by: "dateTimestamp:desc",
             offset,
-            length,
+            limit: length,
         },
         // Query 2: latestType counts under topic selection (drop type
         // filter) — drives disabling of type options in the "Filter by
         // type" dropdown.
         {
-            indexName: PAGES_CHRONOLOGICAL_INDEX,
-            query: "",
-            filters: LATEST_BASE_FILTER,
-            facetFilters: topicFacetFilters,
-            offset: 0,
-            length: 0,
-            facets: ["latestType"],
+            collection: PAGES_CHRONOLOGICAL_INDEX,
+            q: "*" as const,
+            filter_by: [LATEST_BASE_FILTER, topicFilter]
+                .filter(Boolean)
+                .join(" && "),
+            facet_by: "latestType",
+            per_page: 0,
         },
         // Query 3: tag counts under type selection (drop topic filter) —
         // drives disabling of topic pills.
         {
-            indexName: PAGES_CHRONOLOGICAL_INDEX,
-            query: "",
-            filters: LATEST_BASE_FILTER,
-            facetFilters: latestTypeFacetFilter,
-            offset: 0,
-            length: 0,
-            facets: ["tags"],
+            collection: PAGES_CHRONOLOGICAL_INDEX,
+            q: "*" as const,
+            filter_by: [LATEST_BASE_FILTER, latestTypeFilter]
+                .filter(Boolean)
+                .join(" && "),
+            facet_by: "tags",
+            max_facet_values: 500,
+            per_page: 0,
         },
     ]
 
-    const response =
-        await liteSearchClient.searchForHits<PageChronologicalRecord>(
-            searchParams
-        )
-    const [mainResult, typeResult, topicResult] = response.results
+    const response = await client.multiSearch.perform<
+        PageChronologicalRecord[]
+    >({ searches }, {})
+    const [mainResult, typeResult, topicResult] =
+        response.results as TypesenseSearchResponse<PageChronologicalRecord>[]
+
+    const page = length > 0 ? Math.floor(offset / length) : 0
     return {
-        response: mainResult,
-        tagFacetCounts: topicResult.facets?.tags ?? {},
-        latestTypeFacetCounts: typeResult.facets?.latestType ?? {},
+        response: mapTypesenseResponse<
+            PageChronologicalRecord,
+            PageChronologicalRecord
+        >(mainResult, "", page, length),
+        tagFacetCounts: facetCountsToRecord(topicResult, "tags"),
+        latestTypeFacetCounts: facetCountsToRecord(typeResult, "latestType"),
     }
 }
 
 export async function queryWritingTopics(
-    liteSearchClient: LiteClient,
+    client: Client,
     tagGraph: TagGraphRoot,
     selectedTopic: string | undefined
-) {
+): Promise<SearchWritingTopicsResponse[]> {
     const writingTopics = [...getSelectableTopics(tagGraph, selectedTopic)]
 
     // Create search parameters for both articles and topic pages for each topic
-    const searchParams = writingTopics.flatMap((topic) => {
-        const topicFacetFilters = formatTopicFacetFilters(new Set([topic]))
+    const searches = writingTopics.flatMap((topic) => {
+        const topicFilter = formatTopicFacetFiltersTypesense(new Set([topic]))
 
         return [
             {
-                indexName: PAGES_INDEX,
-                attributesToRetrieve: [
-                    "title",
-                    "slug",
-                    "thumbnailUrl",
-                    "excerpt",
-                    "type",
-                ],
-                filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
-                facetFilters: topicFacetFilters,
-                highlightPreTag: "<mark>",
-                highlightPostTag: "</mark>",
-                hitsPerPage: 3,
+                collection: PAGES_INDEX,
+                q: "*" as const,
+                query_by: PAGES_QUERY_BY,
+                filter_by: buildFilterBy(
+                    formatTypeFilter(
+                        OwidGdocType.Article,
+                        OwidGdocType.AboutPage
+                    ),
+                    topicFilter
+                ),
+                include_fields: "title,slug,thumbnailUrl,content,excerpt,type",
+                highlight_start_tag: "<mark>",
+                highlight_end_tag: "</mark>",
+                group_by: "slug",
+                group_limit: 1,
+                per_page: 3,
+                page: 1,
             },
             {
-                indexName: PAGES_INDEX,
-                attributesToRetrieve: ["title", "slug", "type"],
-                filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
-                facetFilters: topicFacetFilters,
-                highlightPreTag: "<mark>",
-                highlightPostTag: "</mark>",
-                hitsPerPage: 8,
+                collection: PAGES_INDEX,
+                q: "*" as const,
+                query_by: PAGES_QUERY_BY,
+                filter_by: buildFilterBy(
+                    formatTypeFilter(
+                        OwidGdocType.TopicPage,
+                        OwidGdocType.LinearTopicPage
+                    ),
+                    topicFilter
+                ),
+                include_fields: "title,slug,type",
+                highlight_start_tag: "<mark>",
+                highlight_end_tag: "</mark>",
+                group_by: "slug",
+                group_limit: 1,
+                per_page: 8,
+                page: 1,
             },
         ]
     })
 
-    const response = await liteSearchClient.searchForHits<
-        StackedArticleHit | TopicPageHit
-    >(searchParams)
-    // Process results in pairs (articles, then topic pages for each topic).
+    const response = await client.multiSearch.perform<PageDocument[]>(
+        { searches },
+        {}
+    )
+
+    const results = response.results as TypesenseSearchResponse<PageDocument>[]
+
+    // Process results in pairs (articles, then topic pages for each topic)
     return writingTopics.map((topic, i) => {
-        const articles = response.results[
-            i * 2
-        ] as SearchResponse<StackedArticleHit>
-        const topicPages = response.results[
-            i * 2 + 1
-        ] as SearchResponse<TopicPageHit>
+        const articlesResult = mapTypesenseResponse<
+            PageDocument,
+            StackedArticleHit
+        >(results[i * 2], "", 0, 3)
+
+        const topicPagesResult = mapTypesenseResponse<
+            PageDocument,
+            TopicPageHit
+        >(results[i * 2 + 1], "", 0, 8)
+
+        const totalCount =
+            (articlesResult.nbHits ?? 0) + (topicPagesResult.nbHits ?? 0)
 
         return {
             title: topic,
-            articles,
-            topicPages,
-            totalCount: (articles.nbHits ?? 0) + (topicPages.nbHits ?? 0),
+            articles: articlesResult as SearchStackedArticleResponse,
+            topicPages: topicPagesResult,
+            totalCount,
         }
     })
 }

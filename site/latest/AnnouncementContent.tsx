@@ -7,7 +7,7 @@ import { LatestHitMetadata } from "./LatestHitMetadata.js"
 import { announcementContentTitleId } from "./latestUtils.js"
 
 /** Shared inner content of an announcement, used by both /latest feed hits
- * (Algolia-backed) and the standalone preview page (gdoc-backed). Always
+ * (search-index-backed) and the standalone preview page (gdoc-backed). Always
  * needs a wrapper that supplies the AttachmentsContext and surrounding
  * chrome — it is not a standalone component on its own. The two call sites
  * differ only in heading level (h1 vs h2) and whether <ExpandableText>

@@ -15,6 +15,12 @@ export class Link extends React.Component<LinkProps> {
     override render() {
         const { native, to, ...rest } = this.props
         if (native) return <a href={this.context.admin.url(to)} {...rest} />
-        else return <NavLink to={to} {...rest} />
+        else
+            return (
+                <NavLink
+                    to={to}
+                    {...(rest as Omit<typeof rest, "style" | "popover">)}
+                />
+            )
     }
 }

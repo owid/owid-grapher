@@ -6,13 +6,12 @@ import {
     SearchIndexName,
 } from "@ourworldindata/types"
 import { getCanonicalUrl } from "@ourworldindata/components"
-import { formatTopicFacetFilters } from "@ourworldindata/utils"
 import { Env } from "./_common/env.js"
 import {
-    getAlgoliaConfig,
-    AlgoliaConfig,
-    getIndexName,
-} from "./api/search/algoliaClient.js"
+    getTypesenseConfig,
+    TypesenseConfig,
+    typesenseSearch,
+} from "./api/search/typesenseClient.js"
 
 const HITS_PER_FEED = 50
 
@@ -26,6 +25,9 @@ const FEED_ATTRIBUTES = [
     "thumbnailUrl",
 ]
 
+// Used to escape special characters in Typesense filter values
+const BACKTICK = "`"
+
 interface FeedHit {
     title: string
     slug: string
@@ -37,58 +39,35 @@ interface FeedHit {
 }
 
 async function queryChronologicalPages(
-    config: AlgoliaConfig,
+    config: TypesenseConfig,
     latestTypes: LatestType[] | undefined,
-    topicFacetFilters: (string | string[])[]
+    topics: string[]
 ): Promise<FeedHit[]> {
-    const indexName = getIndexName(
+    const latestTypeFilter = latestTypes?.length
+        ? `latestType:=[${latestTypes.join(", ")}]`
+        : undefined
+    const topicFilter = topics.length
+        ? `tags:=[${topics.map((topic) => BACKTICK + topic + BACKTICK).join(", ")}]`
+        : undefined
+    const filterBy = [latestTypeFilter, topicFilter]
+        .filter(Boolean)
+        .join(" && ")
+
+    const response = await typesenseSearch(
+        config,
         SearchIndexName.PagesChronological,
-        config.indexPrefix
+        {
+            q: "*",
+            sort_by: "dateTimestamp:desc",
+            filter_by: filterBy || undefined,
+            include_fields: FEED_ATTRIBUTES.join(","),
+            per_page: HITS_PER_FEED.toString(),
+        }
     )
 
-    const filters = latestTypes?.length
-        ? latestTypes.map((type) => `latestType:${type}`).join(" OR ")
-        : undefined
-    const facetFilters = topicFacetFilters.length
-        ? topicFacetFilters
-        : undefined
-
-    const searchParams = {
-        requests: [
-            {
-                indexName,
-                query: "",
-                ...(filters && { filters }),
-                ...(facetFilters && {
-                    facetFilters,
-                }),
-                attributesToRetrieve: FEED_ATTRIBUTES,
-                hitsPerPage: HITS_PER_FEED,
-            },
-        ],
-    }
-
-    const url = `https://${config.appId}-dsn.algolia.net/1/indexes/*/queries`
-
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            "X-Algolia-Application-Id": config.appId,
-            "X-Algolia-API-Key": config.apiKey,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(searchParams),
-    })
-
-    if (!response.ok) {
-        throw new Error(`Algolia search failed: ${response.statusText}`)
-    }
-
-    const data: {
-        results: [{ hits: FeedHit[] }]
-    } = await response.json()
-
-    return data.results[0].hits
+    return (response.hits ?? []).map(
+        (hit) => hit.document as unknown as FeedHit
+    )
 }
 
 function escapeXml(str: string): string {
@@ -211,17 +190,14 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             )
         }
 
-        const algoliaConfig = getAlgoliaConfig(env)
+        const typesenseConfig = getTypesenseConfig(env)
         const baseUrl = `${url.protocol}//${url.host}`
         const feedUrl = `${baseUrl}${url.pathname}${url.search}`
 
-        const topicFacetFilters =
-            topics.length > 0 ? formatTopicFacetFilters(new Set(topics)) : []
-
         const hits = await queryChronologicalPages(
-            algoliaConfig,
+            typesenseConfig,
             latestTypes,
-            topicFacetFilters
+            topics
         )
 
         const feed = generateAtomFeed(hits, baseUrl, feedUrl, topics)

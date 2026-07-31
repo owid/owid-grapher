@@ -25,7 +25,7 @@ const LATEST_TYPE_ICONS: Record<LatestType, IconDefinition> = {
 
 /**
  * Metadata row shown above each card: icon + type label + #area on the left,
- * date on the right. Takes primitives so both Algolia-backed feed hits
+ * date on the right. Takes primitives so both search-index-backed feed hits
  * (which carry an ISO date string) and the gdoc-backed standalone
  * announcement page (which has a Date) can pass through without converting.
  */

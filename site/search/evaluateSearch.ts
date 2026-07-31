@@ -1,15 +1,18 @@
 /**
- * Simulate searches against our Algolia index and evaluate the results.
+ * Simulate searches against our Typesense pages collection and evaluate the
+ * results.
  */
 
 import { fetchWithRetry } from "@ourworldindata/utils"
 import {
-    ALGOLIA_ID,
-    ALGOLIA_SEARCH_KEY,
+    TYPESENSE_HOST,
+    TYPESENSE_PORT,
+    TYPESENSE_PROTOCOL,
+    TYPESENSE_SEARCH_KEY,
 } from "../../settings/clientSettings.js"
 import { SEARCH_EVAL_URL } from "../../settings/serverSettings.js"
-import { PAGES_INDEX } from "./searchUtils.js"
-import { algoliasearch, SearchClient } from "algoliasearch"
+import { PAGES_INDEX, HYBRID_SEARCH_ALPHA } from "./searchUtils.js"
+import Typesense, { Client } from "typesense"
 import { PageRecord } from "@ourworldindata/types"
 
 /* eslint-disable no-console */
@@ -46,8 +49,8 @@ type SearchResults = {
     scope: "articles" | "charts" | "all"
     scores: Scores
     numQueries: number
-    algoliaApp: string
-    algoliaIndex: string
+    typesenseHost: string
+    typesenseIndex: string
 }
 
 const QUERY_FILES = {
@@ -70,7 +73,16 @@ const evaluateArticleSearch = async (name: string): Promise<SearchResults> => {
     const indexName = PAGES_INDEX
 
     // make a search client
-    const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
+    const client = new Typesense.Client({
+        apiKey: TYPESENSE_SEARCH_KEY,
+        nodes: [
+            {
+                host: TYPESENSE_HOST,
+                port: TYPESENSE_PORT,
+                protocol: TYPESENSE_PROTOCOL,
+            },
+        ],
+    })
 
     // run the evaluation
     const results = await simulateQueries(client, indexName, ds.queries)
@@ -88,8 +100,8 @@ const evaluateArticleSearch = async (name: string): Promise<SearchResults> => {
         scope: "articles",
         scores: scores,
         numQueries: ds.queries.length,
-        algoliaApp: ALGOLIA_ID,
-        algoliaIndex: indexName,
+        typesenseHost: TYPESENSE_HOST,
+        typesenseIndex: indexName,
     }
 }
 
@@ -101,15 +113,31 @@ const fetchQueryDataset = async (name: string): Promise<QueryDataset> => {
 }
 
 const simulateQuery = async (
-    searchClient: SearchClient,
+    searchClient: Client,
     indexName: string,
     query: Query
 ): Promise<ScoredQuery> => {
-    const { hits } = await searchClient.searchSingleIndex<SearchEvaluationHit>({
-        indexName,
-        searchParams: { query: query.query },
-    })
-    const actual = hits.map((h) => h.slug)
+    // Mirror the production article search (queryArticles in queries.ts):
+    // hybrid keyword + vector search with slug dedup across content chunks.
+    const response = await searchClient
+        .collections<SearchEvaluationHit>(indexName)
+        .documents()
+        .search({
+            q: query.query,
+            query_by: "embedding,title,excerpt,tags,authors,content",
+            vector_query: `embedding:([], k:100, alpha:${HYBRID_SEARCH_ALPHA})`,
+            prefix: false,
+            stopwords: "english",
+            group_by: "slug",
+            group_limit: 1,
+            per_page: 10,
+            page: 1,
+        })
+    const rawHits =
+        response.hits ??
+        response.grouped_hits?.flatMap((group) => group.hits ?? []) ??
+        []
+    const actual = rawHits.map((hit) => hit.document.slug)
     const scores = scoreResults(query.slugs, actual)
     return { query: query.query, expected: query.slugs, actual, scores }
 }
@@ -135,7 +163,7 @@ const scoreResults = (relevant: string[], actual: string[]): Scores => {
 }
 
 const simulateQueries = async (
-    searchClient: SearchClient,
+    searchClient: Client,
     indexName: string,
     queries: Query[]
 ): Promise<ScoredQuery[]> => {

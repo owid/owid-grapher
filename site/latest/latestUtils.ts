@@ -87,7 +87,7 @@ export function makeAttachments(hit: PageChronologicalRecord) {
         linkedDocuments:
             "linkedDocuments" in hit ? (hit.linkedDocuments ?? {}) : {},
         // Intentionally empty: card-level rendering doesn't reach into these,
-        // and indexing them per record would inflate the Algolia payload
+        // and indexing them per record would inflate the search-record payload
         // unnecessarily. If a future card type needs them, add them to
         // PageChronologicalRecord and to the indexer in pagesChronological.ts.
         linkedIndicators: {},
