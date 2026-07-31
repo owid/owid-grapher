@@ -1,11 +1,7 @@
 import { countries, excludeUndefined } from "@ourworldindata/utils"
+import { SynonymItemSchema } from "typesense/lib/Typesense/SynonymSets.js"
 import { synonyms } from "../../site/search/synonymUtils.js"
-import {
-    TYPESENSE_API_KEY,
-    TYPESENSE_HOST,
-    TYPESENSE_PORT,
-    TYPESENSE_PROTOCOL,
-} from "../../settings/serverSettings.js"
+import { getTypeSenseClient } from "./typesenseSearchClient.js"
 
 /**
  * Name of the shared Typesense synonym set. Both the pages and the charts
@@ -14,16 +10,9 @@ import {
  */
 export const SYNONYM_SET_NAME = "owid-synonyms"
 
-interface TypesenseSynonymItem {
-    id: string
-    synonyms: string[]
-    /**
-     * When set, the synonym is one-way: searching for `root` also matches
-     * documents containing any of `synonyms`, but not the other way around.
-     * (Equivalent to Algolia's oneWaySynonym `input`.)
-     */
-    root?: string
-}
+// SynonymItemSchema.root makes an item one-way: searching for `root` also
+// matches documents containing any of `synonyms`, but not the other way
+// around. (Equivalent to Algolia's oneWaySynonym `input`.)
 
 const toItemId = (prefix: string, value: string): string =>
     `${prefix}-${value.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`
@@ -37,8 +26,8 @@ const toItemId = (prefix: string, value: string): string =>
  *   "United States of America") as a one-way synonym of the canonical
  *   country name
  */
-export function buildTypesenseSynonymItems(): TypesenseSynonymItem[] {
-    const items: TypesenseSynonymItem[] = synonyms.map((group) => ({
+export function buildTypesenseSynonymItems(): SynonymItemSchema[] {
+    const items: SynonymItemSchema[] = synonyms.map((group) => ({
         id: toItemId("syn", group.join("-")),
         synonyms: group,
     }))
@@ -61,28 +50,13 @@ export function buildTypesenseSynonymItems(): TypesenseSynonymItem[] {
 }
 
 /**
- * Upserts the OWID synonym set in Typesense. Idempotent — the PUT replaces
- * the whole set. Uses a raw fetch because the `typesense` npm client (2.x)
- * predates the v30 `/synonym_sets` API (the per-collection synonyms API it
- * knows was removed from the server in v30).
+ * Upserts the OWID synonym set in Typesense. Idempotent — the upsert (PUT)
+ * replaces the whole set.
  */
 export async function ensureSynonymSet(): Promise<void> {
-    const url = `${TYPESENSE_PROTOCOL}://${TYPESENSE_HOST}:${TYPESENSE_PORT}/synonym_sets/${SYNONYM_SET_NAME}`
+    const client = getTypeSenseClient()
     const items = buildTypesenseSynonymItems()
-    const response = await fetch(url, {
-        method: "PUT",
-        headers: {
-            "X-TYPESENSE-API-KEY": TYPESENSE_API_KEY,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ items }),
-    })
-    if (!response.ok) {
-        const body = await response.text()
-        throw new Error(
-            `Failed to upsert synonym set (${response.status}): ${body}`
-        )
-    }
+    await client.synonymSets(SYNONYM_SET_NAME).upsert({ items })
     console.log(
         `Ensured synonym set '${SYNONYM_SET_NAME}' exists (${items.length} items)`
     )

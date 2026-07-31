@@ -3,17 +3,7 @@ import { CHARTS_INDEX, PAGES_INDEX } from "../../site/search/searchUtils.js"
 import { OPENAI_API_KEY } from "../../settings/serverSettings.js"
 import { SYNONYM_SET_NAME } from "./typesenseSynonyms.js"
 
-/**
- * `synonym_sets` attaches a named synonym set to a collection so queries
- * apply it automatically. The field is a Typesense v30 addition the bundled
- * `typesense` npm client's CollectionCreateSchema type doesn't know yet,
- * hence the type extension.
- */
-type CollectionCreateSchemaWithSynonyms = CollectionCreateSchema & {
-    synonym_sets?: string[]
-}
-
-export const pagesCollectionSchema: CollectionCreateSchemaWithSynonyms = {
+export const pagesCollectionSchema: CollectionCreateSchema = {
     name: PAGES_INDEX,
     fields: [
         { name: "id", type: "string" },
@@ -64,7 +54,7 @@ export const pagesCollectionSchema: CollectionCreateSchemaWithSynonyms = {
     synonym_sets: [SYNONYM_SET_NAME],
 }
 
-export const chartsCollectionSchema: CollectionCreateSchemaWithSynonyms = {
+export const chartsCollectionSchema: CollectionCreateSchema = {
     name: CHARTS_INDEX,
     fields: [
         { name: "id", type: "string" },
