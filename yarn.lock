@@ -6305,7 +6305,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.15.2, axios@npm:^1.7.5":
+"axios@npm:^1.15.2, axios@npm:^1.7.5, axios@npm:^1.8.4":
   version: 1.18.1
   resolution: "axios@npm:1.18.1"
   dependencies:
@@ -8887,6 +8887,7 @@ __metadata:
     schema-dts: "npm:^2.0.0"
     sharp: "npm:^0.34.5"
     simple-git: "npm:^3.36.0"
+    stopword: "npm:^3.1.5"
     tinyexec: "npm:^1.1.1"
     tippy.js: "npm:^6.3.7"
     topojson-server: "npm:^3.0.1"
@@ -8894,6 +8895,7 @@ __metadata:
     tsx: "npm:^4.23.0"
     typeorm: "npm:^1.0.0"
     typescript: "npm:^7.0.2"
+    typesense: "npm:^2.1.0"
     url-join: "npm:^5.0.0"
     url-slug: "npm:^4.0.1"
     usehooks-ts: "npm:^3.1.1"
@@ -10016,6 +10018,13 @@ __metadata:
     strip-ansi: "npm:^7.1.0"
     wrap-ansi: "npm:^9.0.0"
   checksum: 10/5abb4131e33b1e7f8416bb194fe17a3603d83e4657c5bf5bb81ce4187f3b00ea481643b85c3d5cefe6037a452cdcf7f1391ab8ea0d9c23e75d19589830ec4f11
+  languageName: node
+  linkType: hard
+
+"loglevel@npm:^1.8.1":
+  version: 1.9.2
+  resolution: "loglevel@npm:1.9.2"
+  checksum: 10/6153d8db308323f7ee20130bc40309e7a976c30a10379d8666b596d9c6441965c3e074c8d7ee3347fe5cfc059c0375b6f3e8a10b93d5b813cc5547f5aa412a29
   languageName: node
   linkType: hard
 
@@ -13011,6 +13020,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"stopword@npm:^3.1.5":
+  version: 3.1.5
+  resolution: "stopword@npm:3.1.5"
+  checksum: 10/4710a3e011de1d6d8af9fb0c39b35180fdb1fad3afd859b8d22b962ac67c11ffc703b8226e6a6cf2ef652a0c88f393186ce7e396c1653abb7e50cf87312d7507
+  languageName: node
+  linkType: hard
+
 "streamsearch@npm:^1.1.0":
   version: 1.1.0
   resolution: "streamsearch@npm:1.1.0"
@@ -13683,6 +13699,19 @@ __metadata:
   bin:
     tsc: bin/tsc
   checksum: 10/6d7f3d34ca7fbd3eb4999f06db29340d3dcedd7d40ed71654ea53ecd0f28a330edf0f55a0acf541bf294a2f024f11242075c1a83aed4bd99776fe99af45b994b
+  languageName: node
+  linkType: hard
+
+"typesense@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "typesense@npm:2.1.0"
+  dependencies:
+    axios: "npm:^1.8.4"
+    loglevel: "npm:^1.8.1"
+    tslib: "npm:^2.6.2"
+  peerDependencies:
+    "@babel/runtime": ^7.23.2
+  checksum: 10/f49050a398201b1b2cc4fb803195bf7e23f28563d6c20b8bec37cce974a9f98cf446d0c45ae37a7af9151ab5140c6f66da10c06d01a56dd8991ad77794bdd93b
   languageName: node
   linkType: hard
 

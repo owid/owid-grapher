@@ -4,10 +4,13 @@
     "main": "./search.e2e.worker.ts",
     "compatibility_date": "2025-05-05",
     "vars": {
-        // Same read-only, search-only production key used by
-        // searchApi.integration.test.ts — public by design (client-side
-        // Algolia calls ship this key in the browser bundle).
-        "ALGOLIA_ID": "ASCB5XMYF2",
-        "ALGOLIA_SEARCH_KEY": "bafe9c4659e5657bf750a38fbee5c269"
+        // Points at a local Typesense (docker-compose.grapher.yml) with a
+        // populated index; "xyz" is the local container's API key. There is no
+        // public Typesense endpoint to test against the way there was for
+        // Algolia, so these tests are opt-in — see search.e2e.test.ts.
+        "TYPESENSE_HOST": "localhost",
+        "TYPESENSE_PORT": "8108",
+        "TYPESENSE_PROTOCOL": "http",
+        "TYPESENSE_SEARCH_KEY": "xyz"
     }
 }

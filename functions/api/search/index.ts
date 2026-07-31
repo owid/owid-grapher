@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/cloudflare"
 import { Env } from "../../_common/env.js"
-import { getAlgoliaConfig } from "./algoliaClient.js"
+import { getTypesenseConfig } from "./typesenseClient.js"
 import {
     searchCharts,
     searchPages,
@@ -25,7 +25,7 @@ type SearchType = "charts" | "pages"
 const VALID_PAGE_TYPES = new Set<string>(ALL_GDOC_TYPES)
 
 const hasSearchEnvVars = (env: Env): boolean => {
-    return !!env.ALGOLIA_ID && !!env.ALGOLIA_SEARCH_KEY
+    return !!env.TYPESENSE_HOST && !!env.TYPESENSE_SEARCH_KEY
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
@@ -35,7 +35,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     try {
         if (!hasSearchEnvVars(env)) {
             throw new Error(
-                "Missing environment variables. Please check that both ALGOLIA_ID and ALGOLIA_SEARCH_KEY are set."
+                "Missing environment variables. Please check that both TYPESENSE_HOST and TYPESENSE_SEARCH_KEY are set."
             )
         }
 
@@ -168,8 +168,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             requireAllCountries,
         }
 
-        // Get Algolia config
-        const algoliaConfig = getAlgoliaConfig(env)
+        // Get Typesense config
+        const typesenseConfig = getTypesenseConfig(env)
 
         // Extract base URL from request (for staging/preview deployments)
         const baseUrl = `${url.protocol}//${url.host}`
@@ -178,7 +178,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const results =
             searchType === "pages"
                 ? await searchPages(
-                      algoliaConfig,
+                      typesenseConfig,
                       query,
                       page * hitsPerPage, // Convert page to offset
                       hitsPerPage,
@@ -186,7 +186,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                       baseUrl
                   )
                 : await searchCharts(
-                      algoliaConfig,
+                      typesenseConfig,
                       searchState,
                       page,
                       hitsPerPage,

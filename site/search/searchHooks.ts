@@ -7,9 +7,12 @@ import {
 } from "./searchUtils.js"
 import { DEFAULT_SEARCH_STATE } from "./searchState.js"
 import { useSearchContext } from "./SearchContext.js"
-import { fetchJson, flattenNonTopicNodes } from "@ourworldindata/utils"
+import {
+    fetchJson,
+    flattenNonTopicNodes,
+    TypesenseConfig,
+} from "@ourworldindata/utils"
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
-import { LiteClient } from "algoliasearch/lite"
 import type { SearchResponse } from "algoliasearch"
 import { useEffect, useMemo, useRef } from "react"
 import type { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
@@ -119,7 +122,7 @@ export function useInfiniteSearchOffset<THit>({
 }: {
     queryKey: (state: SearchState) => readonly (string | QueryKeyState)[]
     queryFn: (
-        liteSearchClient: LiteClient,
+        typesenseConfig: TypesenseConfig,
         state: SearchState,
         offset: number,
         length: number
@@ -128,7 +131,7 @@ export function useInfiniteSearchOffset<THit>({
     laterPageSize: number
     enabled?: boolean
 }) {
-    const { state, liteSearchClient } = useSearchContext()
+    const { state, typesenseConfig } = useSearchContext()
     const query = useInfiniteQuery({
         queryKey: queryKey(state),
         queryFn: ({ pageParam }) => {
@@ -141,7 +144,7 @@ export function useInfiniteSearchOffset<THit>({
                 laterPageSize
             )
 
-            return queryFn(liteSearchClient, state, offset, length)
+            return queryFn(typesenseConfig, state, offset, length)
         },
         getNextPageParam: (lastPage, allPages) => {
             const currentPageIndex = allPages.length - 1
@@ -185,13 +188,13 @@ export function useInfiniteSearch<THit>({
 }: {
     queryKey: (state: SearchState) => readonly (string | QueryKeyState)[]
     queryFn: (
-        liteSearchClient: LiteClient,
+        typesenseConfig: TypesenseConfig,
         state: SearchState,
         page: number
     ) => Promise<SearchResponse<THit>>
     enabled?: boolean
 }) {
-    const { state, liteSearchClient } = useSearchContext()
+    const { state, typesenseConfig } = useSearchContext()
 
     const query = useInfiniteQuery({
         // All paginated subqueries share the same query key
@@ -200,7 +203,7 @@ export function useInfiniteSearch<THit>({
             if (typeof pageParam !== "number")
                 throw new Error("Invalid pageParam")
 
-            return queryFn(liteSearchClient, state, pageParam)
+            return queryFn(typesenseConfig, state, pageParam)
         },
         getNextPageParam: (lastPage) => {
             const { page = 0, nbPages = 1 } = lastPage

@@ -15,8 +15,8 @@ vi.mock(import("./searchApi.js"), async (importOriginal) => {
 
 describe("Search API endpoint", () => {
     const mockEnv: Env = {
-        ALGOLIA_ID: "test-app-id",
-        ALGOLIA_SEARCH_KEY: "test-api-key",
+        TYPESENSE_HOST: "test-typesense-host",
+        TYPESENSE_SEARCH_KEY: "test-api-key",
     } as Env
 
     beforeEach(() => {
@@ -286,10 +286,10 @@ describe("Search API endpoint", () => {
     })
 
     describe("environment variables", () => {
-        it("returns error when ALGOLIA_ID is missing", async () => {
+        it("returns error when TYPESENSE_HOST is missing", async () => {
             const envWithoutId = {
                 ...mockEnv,
-                ALGOLIA_ID: undefined,
+                TYPESENSE_HOST: undefined,
             } as unknown as Env
             const request = new Request("http://localhost/api/search?q=test")
             const response = await onRequestGet({
@@ -305,10 +305,10 @@ describe("Search API endpoint", () => {
             )
         })
 
-        it("returns error when ALGOLIA_SEARCH_KEY is missing", async () => {
+        it("returns error when TYPESENSE_SEARCH_KEY is missing", async () => {
             const envWithoutKey = {
                 ...mockEnv,
-                ALGOLIA_SEARCH_KEY: undefined,
+                TYPESENSE_SEARCH_KEY: undefined,
             } as unknown as Env
             const request = new Request("http://localhost/api/search?q=test")
             const response = await onRequestGet({

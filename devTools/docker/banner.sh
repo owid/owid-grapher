@@ -40,6 +40,7 @@ if [[ "$FULL" == true ]]; then
 
     http://localhost:${WRANGLER_PORT:-8788}/  <-- the cloudflare functions dev server
     http://localhost:${BESPOKE_PORT:-8089}/  <-- the bespoke component dev server
+    http://localhost:8108/  <-- the typesense dev server
 EOF
 fi
 

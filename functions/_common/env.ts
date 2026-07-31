@@ -27,9 +27,15 @@ export interface Env {
     STRIPE_WEBHOOK_SECRET: string
     STRIPE_API_KEY: string
     TURNSTILE_SECRET_KEY: string
+    // Still used by the Atom feed, which reads the chronological index that
+    // stays on Algolia (see functions/atom.xml.ts).
     ALGOLIA_ID: string
     ALGOLIA_SEARCH_KEY: string
     ALGOLIA_INDEX_PREFIX?: string
+    TYPESENSE_HOST?: string
+    TYPESENSE_PORT?: string
+    TYPESENSE_PROTOCOL?: string
+    TYPESENSE_SEARCH_KEY?: string
     CATALOG_URL: string
     USER_SURVEYS_R2?: R2Bucket
 }
