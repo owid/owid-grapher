@@ -83,6 +83,7 @@ import {
     makeGrapherLinkedChart,
     makeMultiDimLinkedChart,
     getLinkedIndicatorsForCharts,
+    getPreviewableGdocIdsByCanonicalPath,
 } from "../db/model/Gdoc/GdocBase.js"
 import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/SiteConstants.js"
 import { getTombstones } from "../db/model/GdocTombstone.js"
@@ -119,6 +120,10 @@ type PrefetchedAttachments = {
     linkedIndicators: Record<number, LinkedIndicator>
     linkedNarrativeCharts: Record<string, NarrativeChartInfo>
     linkedStaticViz: Record<string, LinkedStaticViz>
+    /** Canonical path -> gdoc id, for resolving inline same-site links to the
+     *  documents a hover preview card needs. See
+     *  `getPreviewableGdocIdsByCanonicalPath`. */
+    previewableGdocIdsByPath: Map<string, string>
 }
 
 // These aren't all "wordpress" steps
@@ -210,6 +215,7 @@ export class SiteBaker {
                     profileTemplate.linkedChartSlugs.explorer,
                     profileTemplate.linkedNarrativeChartNames,
                     profileTemplate.linkedStaticVizNames,
+                    profileTemplate.sameSiteInlineLinkPaths,
                 ],
                 profileTemplate.content.authorRoles
             )
@@ -348,6 +354,7 @@ export class SiteBaker {
     private async getPrefetchedGdocAttachments(
         knex: db.KnexReadonlyTransaction,
         picks?: [
+            string[],
             string[],
             string[],
             string[],
@@ -530,6 +537,13 @@ export class SiteBaker {
             const staticVizByName = _.keyBy(staticVizList, "name")
             console.log(`✅ Prefetched ${staticVizList.length} static viz`)
 
+            console.log("Prefetching previewable gdoc paths")
+            const previewableGdocIdsByPath =
+                await getPreviewableGdocIdsByCanonicalPath(knex)
+            console.log(
+                `✅ Prefetched ${previewableGdocIdsByPath.size} previewable gdoc paths`
+            )
+
             const prefetchedAttachments = {
                 donors,
                 linkedAuthors: publishedAuthors,
@@ -546,6 +560,7 @@ export class SiteBaker {
                 linkedIndicators: datapageIndicatorsById,
                 linkedNarrativeCharts: narrativeChartsInfoByName,
                 linkedStaticViz: staticVizByName,
+                previewableGdocIdsByPath,
             }
             this._prefetchedAttachmentsCache = prefetchedAttachments
         }
@@ -558,10 +573,22 @@ export class SiteBaker {
                 linkedExplorerSlugs,
                 linkedNarrativeChartNames,
                 linkedStaticVizNames,
+                sameSiteInlineLinkPaths,
             ] = picks
+            // Inline links authored as plain ourworldindata.org URLs have no
+            // gdoc id, so they're resolved by canonical path against the
+            // prefetched map. Attaching them is what lets the hover preview
+            // card render for them; the rendered href is unaffected.
+            const pathResolvedDocumentIds = excludeUndefined(
+                (sameSiteInlineLinkPaths ?? []).map((path) =>
+                    this._prefetchedAttachmentsCache!.previewableGdocIdsByPath.get(
+                        path
+                    )
+                )
+            )
             const linkedDocuments = _.pick(
                 this._prefetchedAttachmentsCache.linkedDocuments,
-                linkedDocumentIds
+                [...linkedDocumentIds, ...pathResolvedDocumentIds]
             )
             // Gdoc.linkedImageFilenames normally gets featuredImages, but it relies on linkedDocuments already being populated,
             // which is isn't when we're prefetching attachments. So we have to do it manually here.
@@ -590,6 +617,8 @@ export class SiteBaker {
                 // not using _.pick on these, since they're not directly attached to the _OWID_GDOC_PROPS object anyhow
                 archivedVersions:
                     this._prefetchedAttachmentsCache.archivedVersions,
+                previewableGdocIdsByPath:
+                    this._prefetchedAttachmentsCache.previewableGdocIdsByPath,
 
                 linkedCharts: {
                     graphers: {
@@ -694,6 +723,7 @@ export class SiteBaker {
                     publishedGdoc.linkedChartSlugs.explorer,
                     publishedGdoc.linkedNarrativeChartNames,
                     publishedGdoc.linkedStaticVizNames,
+                    publishedGdoc.sameSiteInlineLinkPaths,
                 ],
                 publishedGdoc.content.authorRoles
             )
@@ -948,6 +978,7 @@ export class SiteBaker {
                     dataInsight.linkedChartSlugs.explorer,
                     dataInsight.linkedNarrativeChartNames,
                     dataInsight.linkedStaticVizNames,
+                    dataInsight.sameSiteInlineLinkPaths,
                 ],
                 dataInsight.content.authorRoles
             )
@@ -994,6 +1025,7 @@ export class SiteBaker {
                     publishedAuthor.linkedChartSlugs.explorer,
                     publishedAuthor.linkedNarrativeChartNames,
                     publishedAuthor.linkedStaticVizNames,
+                    publishedAuthor.sameSiteInlineLinkPaths,
                 ],
                 publishedAuthor.content.authorRoles
             )

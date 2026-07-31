@@ -36,6 +36,9 @@ export {
     getCanonicalUrl,
     getCanonicalPath,
     getPageTitle,
+    PREVIEWABLE_GDOC_TYPES,
+    getSlugCandidatesForCanonicalPath,
+    getSameSitePathFromUrl,
 } from "./GdocsUtils.js"
 
 export { ExpandableToggle } from "./ExpandableToggle/ExpandableToggle.js"

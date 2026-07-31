@@ -1,6 +1,13 @@
 import * as _ from "lodash-es"
 import * as db from "../../db.js"
-import { getUrlTarget, toPlaintext } from "@ourworldindata/components"
+import {
+    getCanonicalPath,
+    getSameSitePathFromUrl,
+    getSlugCandidatesForCanonicalPath,
+    getUrlTarget,
+    PREVIEWABLE_GDOC_TYPES,
+    toPlaintext,
+} from "@ourworldindata/components"
 import {
     LinkedChart,
     LinkedIndicator,
@@ -102,6 +109,14 @@ import { getLatestArchivedChartPageVersionsIfEnabled } from "../ArchivedChartVer
 import { documentContainsMixedStraightAndCurlyQuotes } from "./gdocValidation.js"
 
 const BASE_URL = IS_ARCHIVE ? PROD_URL : BAKED_BASE_URL
+
+const getOrigin = (url: string): string | undefined => {
+    try {
+        return new URL(url).origin
+    } catch {
+        return undefined
+    }
+}
 
 export async function getLinkedIndicatorsForCharts(
     knex: db.KnexReadonlyTransaction,
@@ -468,6 +483,42 @@ export class GdocBase implements OwidGdocBaseInterface {
             this.links
                 .filter((link) => link.linkType === "gdoc")
                 .map((link) => link.target)
+        )
+    }
+
+    /**
+     * Paths of inline links that point at a page on our own site, e.g.
+     * "/higher-poverty-global-line". These are the links a hover preview card
+     * can be shown for but that `linkedDocumentIds` can't see: authors write
+     * most of them as plain ourworldindata.org URLs, which are classified as
+     * `ContentGraphLinkType.Url` and so have no gdoc id to key off.
+     *
+     * Restricted to `span-link`, the component type set by
+     * `extractLinkFromSpan` for inline prose links, because that is exactly
+     * what `LinkedA` renders a card for. Resolving front-matter or block-level
+     * URLs would attach documents that no card could ever use.
+     *
+     * This is deliberately a getter of its own rather than a widening of
+     * `linkedDocumentIds`: that getter feeds broken-link validation,
+     * `getPublishedLinksTo` and related research, none of which should start
+     * seeing plain URLs as document links.
+     */
+    get sameSiteInlineLinkPaths(): string[] {
+        return _.uniq(
+            excludeUndefined(
+                this.links
+                    .filter(
+                        (link) =>
+                            link.componentType === "span-link" &&
+                            link.linkType === ContentGraphLinkType.Url
+                    )
+                    .map((link) =>
+                        getSameSitePathFromUrl(link.target, [
+                            PROD_URL,
+                            getOrigin(BAKED_BASE_URL),
+                        ])
+                    )
+            )
         )
     }
 
@@ -1014,6 +1065,45 @@ export class GdocBase implements OwidGdocBaseInterface {
             await getMinimalGdocPostsByIds(knex, this.linkedDocumentIds)
 
         this.linkedDocuments = _.keyBy(linkedDocuments, "id")
+
+        await this.loadDocumentsLinkedByPath(knex)
+    }
+
+    /**
+     * Attaches the documents that this page's inline same-site links point at,
+     * so the hover preview card can find them. Runs alongside — not instead of
+     * — the gdoc-id resolution in `loadLinkedDocuments`: nothing that already
+     * resolves by id changes, this only adds documents that were previously
+     * unreachable because the link was authored as a plain URL.
+     *
+     * Two queries, both batched: one to map paths to ids, one to load the
+     * minimal-post records. The second reuses `getMinimalGdocPostsByIds` so
+     * these records are byte-identical to the gdoc-linked ones, including the
+     * profile `availableEntityCodes` enrichment. The baker doesn't come through
+     * here — it resolves against a prefetched path→id map instead, so a full
+     * bake pays for one query overall rather than two per page.
+     */
+    async loadDocumentsLinkedByPath(
+        knex: db.KnexReadonlyTransaction
+    ): Promise<void> {
+        const paths = this.sameSiteInlineLinkPaths
+        if (!paths.length) return
+
+        const idsByPath = await getPreviewableGdocIdsByCanonicalPath(
+            knex,
+            _.uniq(paths.flatMap(getSlugCandidatesForCanonicalPath))
+        )
+
+        const ids = _.uniq(
+            excludeUndefined(paths.map((path) => idsByPath.get(path)))
+        ).filter((id) => id !== this.id && !this.linkedDocuments[id])
+        if (!ids.length) return
+
+        const documents = await getMinimalGdocPostsByIds(knex, ids)
+        this.linkedDocuments = {
+            ...this.linkedDocuments,
+            ..._.keyBy(documents, "id"),
+        }
     }
 
     /**
@@ -1516,6 +1606,51 @@ export async function getMinimalGdocPostsByIds(
     )
 
     return posts
+}
+
+/**
+ * Maps the canonical paths of published, listed gdocs to their ids, for the
+ * types a hover preview card can be shown for.
+ *
+ * `slugs` narrows the lookup to the slug candidates of the paths a caller cares
+ * about; omit it to build the map for the whole site, which is what the baker
+ * does once per bake. Either way it is a single query.
+ *
+ * The match is made exact by recomputing `getCanonicalPath` for each row rather
+ * than trusting the slug: `getCanonicalPath` isn't injective, so "/sdgs" must
+ * not resolve to the article whose slug is "sdgs/no-poverty", and "/team/foo"
+ * must resolve to the author "foo" rather than to anything else named foo.
+ */
+export async function getPreviewableGdocIdsByCanonicalPath(
+    knex: db.KnexReadonlyTransaction,
+    slugs?: string[]
+): Promise<Map<string, string>> {
+    if (slugs && !slugs.length) return new Map()
+
+    const rows = await db.knexRaw<{
+        id: string
+        slug: string
+        type: OwidGdocType
+    }>(
+        knex,
+        `-- sql
+            SELECT id, slug, type
+            FROM ${PostsGdocsTableName}
+            WHERE published = 1
+            AND publicationContext = :publicationContext
+            AND publishedAt <= NOW()
+            AND type IN (:types)
+            ${slugs ? "AND slug IN (:slugs)" : ""}`,
+        {
+            publicationContext: OwidGdocPublicationContext.listed,
+            types: PREVIEWABLE_GDOC_TYPES,
+            ...(slugs ? { slugs } : {}),
+        }
+    )
+
+    return new Map(
+        rows.map((row) => [getCanonicalPath(row.slug, row.type), row.id])
+    )
 }
 
 export async function getMinimalAuthorsByNames(

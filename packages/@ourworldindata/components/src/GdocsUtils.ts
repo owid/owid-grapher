@@ -148,6 +148,90 @@ export const getCanonicalPath = (slug: string, type: OwidGdocType): string => {
     })
 }
 
+/**
+ * Gdoc types that are baked as a reader-facing page of their own and carry
+ * enough metadata for a hover preview card.
+ *
+ * `Fragment` and `Homepage` are excluded because they have no per-document
+ * canonical path. `DataInsight` is excluded deliberately even though it does:
+ * `OwidGdocDataInsightContent` has no `excerpt`, `subtitle` or
+ * `featured-image` field at all, so a card for one could only ever repeat the
+ * link text. Its image is the first image block in its body, which isn't part
+ * of the minimal-post record we attach.
+ */
+export const PREVIEWABLE_GDOC_TYPES: OwidGdocType[] = [
+    OwidGdocType.Article,
+    OwidGdocType.TopicPage,
+    OwidGdocType.LinearTopicPage,
+    OwidGdocType.AboutPage,
+    OwidGdocType.Announcement,
+    OwidGdocType.Profile,
+    OwidGdocType.Author,
+]
+
+/**
+ * Path prefixes that `getCanonicalPath` puts in front of a slug. Kept in sync
+ * with it by the round-trip test in GdocsUtils.test.ts, which asserts that
+ * every previewable type's canonical path parses back to its slug.
+ */
+const CANONICAL_PATH_PREFIXES = ["profile", "team"]
+
+/**
+ * The slugs a canonical path could name — the inverse of `getCanonicalPath`,
+ * which isn't injective: `/team/foo` is both the path of the author `foo` and
+ * (in principle) of an article whose slug is literally `team/foo`. Article
+ * slugs really do contain slashes, e.g. `sdgs/no-poverty`.
+ *
+ * Callers are expected to use this only to narrow a database lookup, and then
+ * to confirm each candidate by recomputing `getCanonicalPath` — that keeps the
+ * match exact, so `/sdgs` never resolves to the article `sdgs/no-poverty`.
+ */
+export function getSlugCandidatesForCanonicalPath(path: string): string[] {
+    if (!path.startsWith("/")) return []
+    const withoutLeadingSlash = path.slice(1)
+    if (!withoutLeadingSlash) return []
+
+    const candidates = new Set<string>([withoutLeadingSlash])
+    for (const prefix of CANONICAL_PATH_PREFIXES) {
+        if (withoutLeadingSlash.startsWith(`${prefix}/`)) {
+            const rest = withoutLeadingSlash.slice(prefix.length + 1)
+            if (rest) candidates.add(rest)
+        }
+    }
+    return [...candidates]
+}
+
+/**
+ * The path of a link that points at a page on our own site, e.g.
+ * "https://ourworldindata.org/international-dollars?tab=chart#section" becomes
+ * "/international-dollars". Returns undefined for anything that can't name one
+ * of our own gdoc pages: other hosts, grapher and explorer links, gdoc links,
+ * and links that are nothing but a query string or an anchor.
+ *
+ * `sameSiteOrigins` is passed in rather than read from settings so that this
+ * stays usable from both the site and the baker. Undefined entries are ignored,
+ * which lets callers pass a parsed origin that may have failed to parse.
+ */
+export function getSameSitePathFromUrl(
+    url: string,
+    sameSiteOrigins: (string | undefined)[]
+): string | undefined {
+    const parsedUrl = Url.fromURL(url)
+    if (parsedUrl.isGoogleDoc || parsedUrl.isGrapher || parsedUrl.isExplorer) {
+        return undefined
+    }
+
+    const { origin, pathname } = parsedUrl
+    if (origin && !sameSiteOrigins.includes(origin)) return undefined
+
+    // Must be an absolute path. Anything else isn't naming a page of ours —
+    // "mailto:info@ourworldindata.org", for one, parses to a path with no
+    // leading slash.
+    if (!pathname?.startsWith("/")) return undefined
+    const path = pathname.replace(/\/+$/, "")
+    return path || undefined
+}
+
 export function getPageTitle(gdoc: OwidGdoc) {
     return match(gdoc)
         .with(

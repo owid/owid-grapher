@@ -19,6 +19,7 @@ import {
     getCanonicalPath,
     getCanonicalUrl,
     getLinkType,
+    getSameSitePathFromUrl,
     getUrlTarget,
 } from "@ourworldindata/components"
 import {
@@ -55,30 +56,16 @@ export function isExternalUrl(
 }
 
 /**
- * The path of a link that points at a page on our own site, e.g.
- * "https://ourworldindata.org/international-dollars?tab=chart#section" becomes
- * "/international-dollars". Returns undefined for anything that can't name one
- * of our own pages: other hosts, grapher and explorer links, gdoc links, and
- * links that are nothing but a query string or an anchor.
+ * The path of a link that points at a page on our own site — see
+ * `getSameSitePathFromUrl`.
  *
  * Both the baked origin and the production origin count as our own, because
  * gdoc authors always write out ourworldindata.org URLs even though staging and
- * preview deploys are baked onto a different host.
+ * preview deploys are baked onto a different host. The baker resolves the same
+ * paths server-side using the same shared helper.
  */
 export function getSameSitePath(url: string): string | undefined {
-    const parsedUrl = Url.fromURL(url)
-    if (parsedUrl.isGoogleDoc || parsedUrl.isGrapher || parsedUrl.isExplorer) {
-        return undefined
-    }
-
-    const { origin, pathname } = parsedUrl
-    if (origin && origin !== PROD_URL && origin !== getOrigin(BAKED_BASE_URL)) {
-        return undefined
-    }
-
-    if (!pathname) return undefined
-    const path = pathname.replace(/\/+$/, "")
-    return path || undefined
+    return getSameSitePathFromUrl(url, [PROD_URL, getOrigin(BAKED_BASE_URL)])
 }
 
 export const breadcrumbColorForCoverColor = (
@@ -258,9 +245,16 @@ export const useLinkedDocument = (
  * it about plain URLs would change link behaviour far beyond the hover preview
  * this is for. Callers should use it to enrich a link, never to build one.
  *
- * Note that attachments are gathered from gdoc links only, so a document is
- * found here only when something else on the page also links it by its gdoc
- * URL. Plain-URL links to documents not otherwise attached return undefined.
+ * The matching is on the whole canonical path, so it handles every type's
+ * prefix (`/team/`, `/profile/`, `/data-insights/`) and article slugs that
+ * themselves contain a slash: `/sdgs` does not match the article
+ * `sdgs/no-poverty`.
+ *
+ * Documents reachable this way are attached server-side by
+ * `GdocBase.loadDocumentsLinkedByPath`, which resolves the page's inline
+ * same-site links to published gdocs. Anything it declines to resolve — data
+ * insights, unlisted or unpublished documents, old slugs that only reach a
+ * document through a redirect — returns undefined here.
  */
 export const useLinkedDocumentByPath = (
     url: string
