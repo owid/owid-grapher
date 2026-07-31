@@ -3,7 +3,7 @@ import {
     useInfiniteQuery,
     useQuery,
 } from "@tanstack/react-query"
-import { LiteClient } from "algoliasearch/lite"
+import { Client } from "typesense"
 import { useEffect, useRef } from "react"
 import * as R from "remeda"
 import {
@@ -28,7 +28,7 @@ export const FRESH_WINDOW_MS = 60 * 60 * 1000
 
 /**
  * For freshly-published cards, probe whether the card URL is reachable before
- * showing it — the Algolia index is updated synchronously on publish but the
+ * showing it — the search index is updated synchronously on publish but the
  * static page is only available once the next bake completes, so a card can
  * otherwise link to a 404.
  *
@@ -95,12 +95,12 @@ export function useLatestAnalytics(
 export function useInfiniteLatestPages({
     topics,
     latestType = null,
-    liteSearchClient,
+    typesenseClient,
     pageSize = DEFAULT_PAGE_SIZE,
 }: {
     topics: string[]
     latestType?: LatestType | null
-    liteSearchClient: LiteClient
+    typesenseClient: Client
     pageSize?: number
 }) {
     const query = useInfiniteQuery<LatestPagesResult, Error>({
@@ -111,7 +111,7 @@ export function useInfiniteLatestPages({
 
             const offset = pageParam * pageSize
             return queryLatestPages(
-                liteSearchClient,
+                typesenseClient,
                 topics,
                 offset,
                 pageSize,

@@ -469,6 +469,8 @@ reindex.typesense: node_modules
 	yarn tsx --tsconfig tsconfig.tsx.json baker/typesense/indexPagesToTypeSense.tsx
 	@echo '--- Running indexExplorerViewsMdimViewsAndChartsToTypeSense...'
 	yarn tsx --tsconfig tsconfig.tsx.json baker/typesense/indexExplorerViewsMdimViewsAndChartsToTypeSense.ts
+	@echo '--- Running indexPagesChronologicalToTypeSense...'
+	yarn tsx --tsconfig tsconfig.tsx.json baker/typesense/indexPagesChronologicalToTypeSense.ts
 
 index-scheduled: node_modules
 	@echo '==> Indexing scheduled (newly-live) gdocs into the pages-chronological Algolia index'

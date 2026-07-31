@@ -24,7 +24,6 @@ import {
     PageChronologicalRecord,
 } from "@ourworldindata/types"
 import { type SearchResponse } from "algoliasearch"
-import { type LiteClient } from "algoliasearch/lite"
 import {
     getFilterNamesOfType,
     getSelectableTopics,
@@ -35,7 +34,6 @@ import {
     formatCountryFacetFiltersTypesense,
     formatFeaturedMetricFilterTypesense,
     formatIncomeGroupFMFilterTypesense,
-    formatDisjunctiveFacetFilters,
     HYBRID_SEARCH_ALPHA,
 } from "./searchUtils.js"
 import { areTypesenseHitsClosestMatches } from "@ourworldindata/utils"
@@ -685,80 +683,97 @@ export interface LatestPagesResult {
 
 // The gdoc-type guard that excludes topic pages and linear topic pages
 // (indexed for the atom feed but hidden from /latest).
-const LATEST_BASE_FILTER = LATEST_FEED_TYPE_VALUES.map((t) => `type:${t}`).join(
-    " OR "
-)
+const LATEST_BASE_FILTER = `type:=[${LATEST_FEED_TYPE_VALUES.join(", ")}]`
 
-// Issues three searches in a single batched `liteSearchClient.searchForHits([...])`
-// call (one network round-trip): the paginated card list plus per-axis facet
-// counts used to disable filter options that would yield zero results. Each
-// facet-count query drops its own axis so the returned counts reflect "what
-// would happen if the user picked a different value here?" rather than being
-// self-narrowed to the current selection.
+/** Maps a Typesense facet_counts entry to a value -> count record. */
+function facetCountsToRecord<TDoc extends object>(
+    response: TypesenseSearchResponse<TDoc>,
+    fieldName: string
+): Record<string, number> {
+    const facet = response.facet_counts?.find(
+        (f) => String(f.field_name) === fieldName
+    )
+    return Object.fromEntries(
+        (facet?.counts ?? []).map((count) => [count.value, count.count])
+    )
+}
+
+// Issues three searches in a single batched multiSearch call (one network
+// round-trip): the paginated card list plus per-axis facet counts used to
+// disable filter options that would yield zero results. Each facet-count
+// query drops its own axis so the returned counts reflect "what would happen
+// if the user picked a different value here?" rather than being self-narrowed
+// to the current selection.
 //
-// `facetFilters` uses Algolia's array-of-arrays form: outer array is AND,
-// inner array is OR (cf. `formatDisjunctiveFacetFilters` in searchUtils.tsx).
+// No free-text search happens here — every query is a wildcard over the
+// chronological collection, filtered and sorted by date (its default sort).
 export async function queryLatestPages(
-    liteSearchClient: LiteClient,
+    client: Client,
     topics: string[],
     offset: number,
     length: number,
     latestType: LatestType | null = null
-) {
-    // Each axis lives in its own `facetFilters` group so queries can include
-    // or omit it independently. Multiple topics are OR'd within their group.
-    const topicFacetFilters =
+): Promise<LatestPagesResult> {
+    const topicFilter =
         topics.length > 0
-            ? formatDisjunctiveFacetFilters(new Set(topics), "tags")
-            : []
-    const latestTypeFacetFilter = latestType
-        ? formatDisjunctiveFacetFilters(new Set([latestType]), "latestType")
-        : []
+            ? formatTopicFacetFiltersTypesense(new Set(topics))
+            : undefined
+    const latestTypeFilter = latestType
+        ? `latestType:=${latestType}`
+        : undefined
 
-    const searchParams = [
+    const searches = [
         // Query 1: paginated cards (apply both user filters)
         {
-            indexName: PAGES_CHRONOLOGICAL_INDEX,
-            query: "",
-            filters: LATEST_BASE_FILTER,
-            facetFilters: [...topicFacetFilters, ...latestTypeFacetFilter],
+            collection: PAGES_CHRONOLOGICAL_INDEX,
+            q: "*" as const,
+            filter_by: [LATEST_BASE_FILTER, topicFilter, latestTypeFilter]
+                .filter(Boolean)
+                .join(" && "),
+            sort_by: "dateTimestamp:desc",
             offset,
-            length,
+            limit: length,
         },
         // Query 2: latestType counts under topic selection (drop type
         // filter) — drives disabling of type options in the "Filter by
         // type" dropdown.
         {
-            indexName: PAGES_CHRONOLOGICAL_INDEX,
-            query: "",
-            filters: LATEST_BASE_FILTER,
-            facetFilters: topicFacetFilters,
-            offset: 0,
-            length: 0,
-            facets: ["latestType"],
+            collection: PAGES_CHRONOLOGICAL_INDEX,
+            q: "*" as const,
+            filter_by: [LATEST_BASE_FILTER, topicFilter]
+                .filter(Boolean)
+                .join(" && "),
+            facet_by: "latestType",
+            per_page: 0,
         },
         // Query 3: tag counts under type selection (drop topic filter) —
         // drives disabling of topic pills.
         {
-            indexName: PAGES_CHRONOLOGICAL_INDEX,
-            query: "",
-            filters: LATEST_BASE_FILTER,
-            facetFilters: latestTypeFacetFilter,
-            offset: 0,
-            length: 0,
-            facets: ["tags"],
+            collection: PAGES_CHRONOLOGICAL_INDEX,
+            q: "*" as const,
+            filter_by: [LATEST_BASE_FILTER, latestTypeFilter]
+                .filter(Boolean)
+                .join(" && "),
+            facet_by: "tags",
+            max_facet_values: 500,
+            per_page: 0,
         },
     ]
 
-    const response =
-        await liteSearchClient.searchForHits<PageChronologicalRecord>(
-            searchParams
-        )
-    const [mainResult, typeResult, topicResult] = response.results
+    const response = await client.multiSearch.perform<
+        PageChronologicalRecord[]
+    >({ searches }, {})
+    const [mainResult, typeResult, topicResult] =
+        response.results as TypesenseSearchResponse<PageChronologicalRecord>[]
+
+    const page = length > 0 ? Math.floor(offset / length) : 0
     return {
-        response: mainResult,
-        tagFacetCounts: topicResult.facets?.tags ?? {},
-        latestTypeFacetCounts: typeResult.facets?.latestType ?? {},
+        response: mapTypesenseResponse<
+            PageChronologicalRecord,
+            PageChronologicalRecord
+        >(mainResult, "", page, length),
+        tagFacetCounts: facetCountsToRecord(topicResult, "tags"),
+        latestTypeFacetCounts: facetCountsToRecord(typeResult, "latestType"),
     }
 }
 

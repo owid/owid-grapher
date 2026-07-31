@@ -276,7 +276,7 @@ async function validateChronologicalRecord(
     return null
 }
 
-async function buildChronologicalRecord(
+export async function buildChronologicalRecord(
     gdoc: ChronologicalGdoc,
     topicTags: string[],
     cloudflareImagesByFilename: Record<string, DbEnrichedImage>

@@ -46,6 +46,10 @@ import {
     indexIndividualGdocInChronological,
     removeIndividualGdocFromChronological,
 } from "../../baker/algolia/utils/pagesChronological.js"
+import {
+    indexIndividualGdocInChronologicalTypesense,
+    removeIndividualGdocFromChronologicalTypesense,
+} from "../../baker/typesense/typesenseChronological.js"
 import { GdocAbout } from "../../db/model/Gdoc/GdocAbout.js"
 import { GdocAuthor } from "../../db/model/Gdoc/GdocAuthor.js"
 import { getMinimalGdocPostsByIds } from "../../db/model/Gdoc/GdocBase.js"
@@ -376,6 +380,7 @@ async function indexAndBakeGdocIfNeccesary(
             }
             if (isChronologicalPost) {
                 await indexIndividualGdocInChronological(nextJson, trx)
+                await indexIndividualGdocInChronologicalTypesense(nextJson, trx)
             }
             await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
         })
@@ -388,6 +393,7 @@ async function indexAndBakeGdocIfNeccesary(
             }
             if (isChronologicalPost) {
                 await indexIndividualGdocInChronological(nextJson, trx)
+                await indexIndividualGdocInChronologicalTypesense(nextJson, trx)
             }
             if (checkIsLightningUpdate(prevJson, nextJson, hasChanges)) {
                 await enqueueLightningChange(
@@ -408,6 +414,9 @@ async function indexAndBakeGdocIfNeccesary(
             }
             if (wasChronologicalPost) {
                 await removeIndividualGdocFromChronological(prevJson.id)
+                await removeIndividualGdocFromChronologicalTypesense(
+                    prevJson.id
+                )
             }
             await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
         })
@@ -615,6 +624,7 @@ export async function deleteGdoc(
         }
         if (checkIsChronologicalGdoc(gdoc)) {
             await removeIndividualGdocFromChronological(gdoc.id)
+            await removeIndividualGdocFromChronologicalTypesense(gdoc.id)
         }
         if (!tombstone && gdocSlug && gdocSlug !== "/") {
             // Assets have TTL of one week in Cloudflare. Add a redirect to make sure
