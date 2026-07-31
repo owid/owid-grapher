@@ -8,6 +8,11 @@ export const PagesIndexRecordSchema = z.object({
     importance: z.number(),
     type: z.enum(OwidGdocType),
     slug: z.string(),
+    // Full path to the record's page (e.g. `/data-insights/foo` vs `/foo`).
+    // Used for `attributeForDistinct` instead of `slug`, since a data
+    // insight and an article (or other gdoc) can share the same bare slug
+    // while still resolving to different pages.
+    path: z.string(),
     title: z.string(),
     content: z.string(),
     views_7d: z.number(),
@@ -57,6 +62,7 @@ export interface ChartRecord {
     containerTitle?: string
     subtitle: string | undefined
     variantName: string
+    titleVariant?: string
     availableTabs: GrapherTabName[]
     keyChartForTags: string[]
     tags: string[]
@@ -107,6 +113,7 @@ interface BaseSearchChartHit {
     originalAvailableEntities?: string[]
     objectID: string
     variantName?: string
+    titleVariant?: string
     subtitle?: string
     availableTabs: GrapherTabName[]
     /**

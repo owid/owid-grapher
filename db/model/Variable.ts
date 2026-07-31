@@ -35,6 +35,9 @@ import {
     DbPlainChart,
     DbPlainMultiDimXChartConfig,
     Distribution,
+    DatasetOwners,
+    DbPlainDataset,
+    normalizeDescriptionKey,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 import {
@@ -910,7 +913,12 @@ export const fetchS3MetadataByPath = async (
         }
     )
     try {
-        return await resp.json()
+        const metadata = await resp.json()
+        // Metadata files written before the string migration hold arrays.
+        metadata.descriptionKey = normalizeDescriptionKey(
+            metadata.descriptionKey
+        )
+        return metadata
     } catch (error: any) {
         throw createS3JsonParseError(error, metadataPath, resp)
     }
@@ -998,6 +1006,36 @@ export async function getVariableDistribution(
             .map((row) => row.sourceLink)
             .filter((link): link is string => !!link),
     }
+}
+
+export async function getOwnersForVariables(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<DatasetOwners[]> {
+    if (!variableIds.length) return []
+
+    const rows = await knexRaw<Pick<DbPlainDataset, "id" | "name" | "owners">>(
+        knex,
+        `-- sql
+            SELECT DISTINCT
+                d.id AS id,
+                d.name AS name,
+                d.owners AS owners
+            FROM variables v
+            JOIN active_datasets d ON d.id = v.datasetId
+            WHERE v.id IN (?)
+              AND d.owners IS NOT NULL
+        `,
+        [variableIds]
+    )
+
+    return rows
+        .map((row) => ({
+            datasetId: row.id,
+            datasetName: row.name,
+            owners: row.owners ? (JSON.parse(row.owners) as string[]) : [],
+        }))
+        .filter((dataset) => dataset.owners.length > 0)
 }
 
 /**

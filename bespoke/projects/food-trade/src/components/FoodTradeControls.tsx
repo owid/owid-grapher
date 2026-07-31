@@ -14,7 +14,7 @@ import { articulateEntity, Tippy } from "@ourworldindata/utils"
 
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
-import { groupByUserLocation } from "../../../../components/EntityDropdown/EntityDropdown.js"
+import { orderOptionsByRelevance } from "../../../../components/EntityDropdown/EntityDropdown.js"
 import {
     type DropdownCollection,
     InlineLabeledDropdown,
@@ -180,11 +180,11 @@ function CountryDropdown({
             (option) => hasTradeData(metadata, option.value, product)
         )
 
-        const groupedOptions = groupByUserLocation(
-            optionsWithData,
+        const groupedOptions = orderOptionsByRelevance(optionsWithData, {
             userCountryInfo,
-            includeAllCountries ? [ALL_COUNTRIES] : []
-        )
+            pinnedToTop: includeAllCountries ? [ALL_COUNTRIES] : [],
+            selectedValue: country,
+        })
 
         if (optionsWithoutData.length === 0) return groupedOptions
 
@@ -200,7 +200,14 @@ function CountryDropdown({
         }
 
         return [...groupedOptions, ...optionsWithoutData]
-    }, [countryNames, product, metadata, userCountryInfo, includeAllCountries])
+    }, [
+        countryNames,
+        product,
+        country,
+        metadata,
+        userCountryInfo,
+        includeAllCountries,
+    ])
 
     const noDataValues = useMemo(
         () =>

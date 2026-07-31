@@ -36,9 +36,9 @@ describe("getDeploys", () => {
     const server = new DeployQueueServer()
     it("is empty when nothing is in the queues", async () => {
         vi.spyOn(fs, "readFile").mockImplementation(
-            (async (): Promise<string> => {
+            async (): Promise<string> => {
                 return ``
-            }) as any
+            }
         )
         expect(await server.getDeploys()).toEqual([])
     })

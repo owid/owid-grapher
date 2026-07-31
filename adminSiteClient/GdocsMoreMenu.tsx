@@ -59,7 +59,7 @@ export const GdocsMoreMenu = ({
             onOk() {
                 onUnpublish()
             },
-            maskClosable: true,
+            mask: { closable: true },
         })
     }
 

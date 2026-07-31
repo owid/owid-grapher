@@ -56,6 +56,7 @@ import {
     isIndicatorChartEditorInstance,
 } from "./IndicatorChartEditor.js"
 import { EditableTags } from "./EditableTags.js"
+import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
 import {
     GDP_PER_CAPITA_CATALOG_PATH,
     POPULATION_CATALOG_PATH,
@@ -82,7 +83,7 @@ interface DimensionSlotViewProps<Editor> {
 }
 
 @observer
-class DimensionSlotView<
+export class DimensionSlotView<
     Editor extends AbstractChartEditor,
 > extends React.Component<DimensionSlotViewProps<Editor>> {
     disposers: IReactionDisposer[] = []
@@ -236,8 +237,9 @@ class DimensionSlotView<
 
         if (grapherState.isScatter || grapherState.isMarimekko) {
             // Chart types that display all entities shouldn't select
-            // any entity by default
-            selection.clearSelection()
+            // any entity by default, but an existing selection (e.g. one
+            // that was authored) should be left untouched
+            return
         } else if (
             nonProjectedYColumns.length > 1 &&
             !grapherState.hasStackedArea &&
@@ -534,7 +536,7 @@ class VariablesSection<
 const TagsSection = (props: {
     chartId: number | undefined
     tags: DbChartTagJoin[] | undefined
-    availableTags: DbChartTagJoin[] | undefined
+    availableTags: MinimalTagWithMetadata[] | undefined
     onSaveTags: (tags: DbChartTagJoin[]) => void
 }) => {
     const { chartId, tags, availableTags } = props

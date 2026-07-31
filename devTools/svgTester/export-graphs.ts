@@ -9,6 +9,7 @@ import path from "path"
 import workerpool from "workerpool"
 
 import * as utils from "./utils.js"
+import { MAX_WORKERS } from "./utils.js"
 import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
 async function exportGraphers(args: ReturnType<typeof parseArguments>) {
@@ -104,6 +105,7 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
         if (!isolate) {
             const pool = workerpool.pool(__dirname + "/worker.ts", {
                 minWorkers: 2,
+                maxWorkers: MAX_WORKERS,
                 workerThreadOpts: {
                     execArgv: ["--require", "tsx"],
                 },
@@ -178,7 +180,7 @@ async function exportExplorers(args: ReturnType<typeof parseArguments>) {
 
     const pool = workerpool.pool(__dirname + "/worker.ts", {
         minWorkers: 2,
-        maxWorkers: 12,
+        maxWorkers: MAX_WORKERS,
         workerThreadOpts: {
             execArgv: ["--require", "tsx"],
         },

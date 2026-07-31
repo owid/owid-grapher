@@ -8,6 +8,7 @@ import {
     SiteFooterContext,
     DataPageDataV2,
     serializeJSONForHTML,
+    serializeJSONForInlineScript,
     mergeGrapherConfigs,
     FaqEntryData,
     GrapherInterface,
@@ -83,7 +84,7 @@ export const DataPageV2 = (props: {
     )
 
     const mergedGrapherConfig = mergeGrapherConfigs(
-        datapageData.chartConfig as GrapherInterface,
+        datapageData.chartConfig,
         grapher ?? {}
     )
 
@@ -163,7 +164,7 @@ export const DataPageV2 = (props: {
                 <main>
                     <script
                         dangerouslySetInnerHTML={{
-                            __html: `window._OWID_DATAPAGEV2_PROPS = ${JSON.stringify(
+                            __html: `window._OWID_DATAPAGEV2_PROPS = ${serializeJSONForInlineScript(
                                 {
                                     datapageData,
                                     faqEntries,

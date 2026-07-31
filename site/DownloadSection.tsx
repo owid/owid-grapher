@@ -235,7 +235,7 @@ export default function DownloadSection({
         archiveDownloadDataUrl = `?${overlaySearchParams.toString()}`
     }
 
-    const firstYColDef = yColumns?.[0]?.def as OwidColumnDef | undefined
+    const firstYColDef = yColumns?.[0]?.def
     const sourceLinksFromDistribution =
         distribution?.allowed === false ? distribution.sourceLinks : undefined
     const sourceLinks =

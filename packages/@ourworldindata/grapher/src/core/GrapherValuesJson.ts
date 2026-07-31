@@ -150,7 +150,7 @@ const makeColumnInfo = (
         unit: column.unit,
         shortUnit: column.shortUnit,
         isProjection: column.isProjection ? true : undefined,
-        yearIsDay: column.display?.yearIsDay ? true : undefined,
+        timeInterval: column.timeInterval,
     })
 }
 

@@ -1,11 +1,10 @@
-import { action, observable, makeObservable } from "mobx"
+import { action, computed, observable, makeObservable } from "mobx"
 import {
     getOwidGdocFromJSON,
     OwidGdocJSON,
-    DbChartTagJoin,
     OwidGdoc,
-    DbPlainTag,
     OwidGdocIndexItem,
+    MinimalTagWithMetadata,
 } from "@ourworldindata/utils"
 import { Admin } from "./Admin.js"
 import {
@@ -22,7 +21,7 @@ import {
  */
 export class GdocsStore {
     gdocs: OwidGdocIndexItem[] = []
-    availableTags: DbChartTagJoin[] = []
+    availableTags: MinimalTagWithMetadata[] = []
     admin: Admin
 
     constructor(admin: Admin) {
@@ -31,6 +30,14 @@ export class GdocsStore {
             availableTags: observable,
         })
         this.admin = admin
+    }
+
+    @computed get orphanTagIds(): Set<number> {
+        return new Set(
+            this.availableTags
+                .filter((tag) => tag.tagGraphRole === "orphan")
+                .map((tag) => tag.id)
+        )
     }
 
     @action
@@ -81,14 +88,14 @@ export class GdocsStore {
 
     @action
     async fetchTags() {
-        const json = await this.admin.getJSON<{ tags: DbChartTagJoin[] }>(
-            "/api/tags.json"
-        )
-        this.availableTags = json.tags
+        const { tags } = await this.admin.getJSON<{
+            tags: MinimalTagWithMetadata[]
+        }>("/api/tags.json")
+        this.availableTags = tags
     }
 
     @action
-    async updateTags(gdoc: OwidGdocIndexItem, tags: DbPlainTag[]) {
+    async updateTags(gdoc: OwidGdocIndexItem, tags: OwidGdocIndexItem["tags"]) {
         const json = await this.admin.requestJSON<{ success: boolean }>(
             `/api/gdocs/${gdoc.id}/setTags`,
             { tagIds: tags.map((t) => t.id) },

@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 import * as R from "remeda"
 
 import { ScaleLinear } from "d3-scale"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { SortOrder } from "@ourworldindata/types"
 import {
     Bounds,
@@ -626,8 +626,8 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
 
         if (_.isEmpty(renderSeries))
             return (
-                <NoDataModal
-                    manager={this.props.noDataModalManager}
+                <NoDataMessage
+                    manager={this.props.noDataMessageManager}
                     bounds={bounds}
                 />
             )

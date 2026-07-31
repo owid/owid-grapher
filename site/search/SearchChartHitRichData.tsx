@@ -233,7 +233,10 @@ export function SearchChartHitRichData({
                                 key={grapherTab}
                                 chartUrl={chartUrl}
                                 dataTableContent={data.dataTable}
-                                numAvailableEntities={availableEntities.length}
+                                numAvailableEntities={
+                                    data.numAvailableEntities ??
+                                    availableEntities.length
+                                }
                                 numRowsPerColumn={numDataTableRowsPerColumn}
                                 entityType={data.entityType}
                                 entityTypePlural={data.entityTypePlural}

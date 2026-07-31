@@ -1,6 +1,14 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import * as React from "react"
-import { Button, Flex, Input, Space, Table, TableColumnsType } from "antd"
+import {
+    Button,
+    Flex,
+    Input,
+    Modal,
+    Space,
+    Table,
+    TableColumnsType,
+} from "antd"
 
 import { AdminLayout } from "../AdminLayout.js"
 import { AdminAppContext } from "../AdminAppContext.js"
@@ -83,7 +91,7 @@ function createColumns(ctx: {
                         danger
                         onClick={() => ctx.deleteFn(slideshow.id)}
                     >
-                        Delete
+                        Delete slideshow
                     </Button>
                 </Space>
             ),
@@ -121,17 +129,25 @@ export function SlideshowsIndexPage() {
     )
 
     const deleteFn = useCallback(
-        async (slideshowId: number) => {
-            if (confirm("Are you sure you want to delete this slideshow?")) {
-                await admin.requestJSON(
-                    `/api/slideshows/${slideshowId}`,
-                    {},
-                    "DELETE"
-                )
-                setSlideshows((prev) =>
-                    prev.filter((s) => s.id !== slideshowId)
-                )
-            }
+        (slideshowId: number) => {
+            Modal.confirm({
+                title: "Delete this entire slideshow?",
+                content:
+                    "All slides in this deck will be permanently deleted. This cannot be undone.",
+                okText: "Delete slideshow",
+                okType: "danger",
+                cancelText: "Cancel",
+                onOk: async () => {
+                    await admin.requestJSON(
+                        `/api/slideshows/${slideshowId}`,
+                        {},
+                        "DELETE"
+                    )
+                    setSlideshows((prev) =>
+                        prev.filter((s) => s.id !== slideshowId)
+                    )
+                },
+            })
         },
         [admin]
     )

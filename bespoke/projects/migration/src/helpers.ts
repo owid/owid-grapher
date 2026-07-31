@@ -3,7 +3,7 @@ import { match } from "ts-pattern"
 import { formatValue } from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 
-import { GenderOption, Sex } from "./types.js"
+import { GenderOption, MigrationMetadata, Sex } from "./types.js"
 
 /** Map a raw metadata gender name onto the semantic `Sex` enum. */
 export function sexFromName(name: string): Sex {
@@ -51,6 +51,21 @@ export function formatShare(share: number): string {
         roundingMode: OwidVariableRoundingMode.significantFigures,
         numSignificantFigures: 2,
     })
+}
+
+/** Resolve a country's total population at a given year from the metadata.
+ *  The per-entity `population` array is aligned with `metadata.times`. */
+export function getPopulation(
+    metadata: MigrationMetadata,
+    countryName: string,
+    year: number
+): number | undefined {
+    const entity = metadata.entities.find((e) => e.name === countryName)
+    if (!entity) return undefined
+    const index = metadata.times.indexOf(year)
+    if (index < 0) return undefined
+    const population = entity.population[index]
+    return Number.isFinite(population) ? population : undefined
 }
 
 /** Cap a list to 8 visible items, returning the remainder count */

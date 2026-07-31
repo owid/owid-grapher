@@ -21,6 +21,12 @@ export {
     HtmlOrSimpleMarkdownText,
 } from "./SimpleMarkdownText.js"
 export {
+    DOD_TIPPY_PROPS,
+    initializeDetailsOnDemand,
+    renderDodContentHtml,
+    type InitializeDetailsOnDemandOptions,
+} from "./detailsOnDemand.js"
+export {
     getLinkType,
     getUrlTarget,
     checkIsInternalLink,
@@ -73,6 +79,7 @@ export {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     REUSE_THIS_WORK_SECTION_ID,
+    INDICATOR_PROCESSING_SECTION_ID,
 } from "./SharedDataPageConstants.js"
 
 export { Button } from "./Button/Button.js"

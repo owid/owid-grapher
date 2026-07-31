@@ -15,7 +15,7 @@ import {
 } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -90,7 +90,7 @@ const DOT_RADIUS = 3.5
 const TIME_LABEL_PADDING = 4
 const VERTICAL_LABELS_PADDING = 4
 const SIDEBAR_MARGIN = 10
-const ZERO_LABEL_PADDING = 8
+const ZERO_LABEL_PADDING = 4
 
 export type SlopeChartProps = ChartComponentProps<SlopeChartState>
 
@@ -135,9 +135,9 @@ export class SlopeChart
     }
 
     @computed private get innerBounds(): Bounds {
-        return this.boundsWithVerticalPadding
-            .padRight(this.sidebarWidth + SIDEBAR_MARGIN)
-            .padLeft(this.zeroLineLabelWidth + ZERO_LABEL_PADDING)
+        return this.boundsWithVerticalPadding.padRight(
+            this.sidebarWidth + SIDEBAR_MARGIN
+        )
     }
 
     /**
@@ -452,9 +452,25 @@ export class SlopeChart
             : this.rightLabelsState.stableWidth
     }
 
-    // Consumed by FacetChart to align gridlines across facets
+    // Consumed by FacetChart to align chart content across facets
     @computed get verticalLabelWidths(): SideWidths {
         return { left: this.leftLabelsWidth, right: this.rightLabelsWidth }
+    }
+
+    // Consumed by FacetChart to align the facet label with the plot content
+    // (here: the slope chart's start-time label)
+    @computed get contentInset(): SideWidths | undefined {
+        if (this.chartState.errorInfo.reason) return undefined
+        const hideTimeLabels = this.xAxis.config.hideTickLabels
+        const [startLabel, endLabel] = this.xAxis.tickLabels
+        const startOverflow = hideTimeLabels
+            ? 0
+            : 0.5 * (startLabel?.width ?? 0)
+        const endOverflow = hideTimeLabels ? 0 : 0.5 * (endLabel?.width ?? 0)
+        return {
+            left: this.startX - startOverflow - this.bounds.left,
+            right: this.bounds.right - (this.endX + endOverflow),
+        }
     }
 
     @computed
@@ -935,8 +951,32 @@ export class SlopeChart
     private renderZeroLine(): React.ReactElement | null {
         if (!this.shouldShowZeroLine) return null
 
-        const bounds = this.boundsWithVerticalPadding
-        const boundsForLine = bounds.padLeft(this.zeroLineLabelWidth + 2)
+        const overshoot = Math.min(1.5 * this.leftLabelsWidth, 16)
+
+        // The left end of the zero line overshoots the longest left label
+        // by a fixed amount
+        const desiredExtension =
+            VERTICAL_LABELS_PADDING + this.leftLabelsWidth + overshoot
+
+        // Ensure the zero line (and its label) don't overflow
+        const maxExtension =
+            this.startX -
+            this.bounds.left -
+            this.zeroLineLabelWidth -
+            ZERO_LABEL_PADDING
+        const extension = Math.min(desiredExtension, maxExtension)
+
+        const lineLeft = this.startX - extension
+        const lineRight = Math.min(
+            this.endX + extension,
+            this.innerBounds.right
+        )
+        const boundsForLine = this.boundsWithVerticalPadding.set({
+            x: lineLeft,
+            width: lineRight - lineLeft,
+        })
+
+        const labelX = lineLeft - ZERO_LABEL_PADDING
 
         return (
             <>
@@ -949,8 +989,9 @@ export class SlopeChart
                     />
                 )}
                 <text
-                    x={bounds.left}
+                    x={labelX}
                     y={this.yAxis.place(0).toFixed(2)}
+                    textAnchor="end"
                     dy={dyFromAlign(VerticalAlign.middle)}
                     fontSize={this.zeroLineLabelFontSize}
                     fill={GRAPHER_DARK_TEXT}
@@ -963,6 +1004,10 @@ export class SlopeChart
 
     private renderLogNotice(): React.ReactElement | null {
         if (!this.chartState.isLogScale) return null
+
+        // The notice is rendered in line with the time labels, so if those
+        // are hidden (e.g. for inner facets), hide the notice as well
+        if (this.xAxis.config.hideTickLabels) return null
 
         const fontSize = GRAPHER_FONT_SCALE_11 * this.fontSize
 
@@ -1118,7 +1163,7 @@ export class SlopeChart
     override render() {
         if (this.chartState.errorInfo.reason)
             return (
-                <NoDataModal
+                <NoDataMessage
                     manager={this.manager}
                     bounds={this.props.bounds}
                     message={this.chartState.errorInfo.reason}

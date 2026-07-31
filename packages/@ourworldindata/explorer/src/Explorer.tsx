@@ -1256,8 +1256,12 @@ export class Explorer
         } else {
             const discardColumnTypes = new Set([
                 ColumnTypeNames.Year,
+                ColumnTypeNames.Decade,
                 ColumnTypeNames.Date,
                 ColumnTypeNames.Day,
+                ColumnTypeNames.Week,
+                ColumnTypeNames.Month,
+                ColumnTypeNames.Quarter,
                 ColumnTypeNames.EntityId,
                 ColumnTypeNames.EntityCode,
             ])

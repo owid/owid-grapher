@@ -377,7 +377,7 @@ export class CoreTable<
             tableDescription,
             transformCategory,
             filterMask,
-        } as AdvancedOptions)
+        })
     }
 
     protected noopTransform(tableDescription: string): this {
@@ -386,7 +386,7 @@ export class CoreTable<
             tableDescription,
             transformCategory: TransformType.Noop,
             forceReuseColumnStore: true,
-        } as AdvancedOptions)
+        })
     }
 
     // Time between when the parent table finished loading and this table started constructing.
@@ -473,7 +473,7 @@ export class CoreTable<
     @imemo get timeColumn(): TimeColumn | MissingColumn {
         // "time" is the canonical time column slug.
         // See LegacyToOwidTable where this column is injected for all Graphers.
-        const maybeTimeColumn = this.get(OwidTableSlugs.time)
+        const maybeTimeColumn = this.get(OwidTableSlugs.Time)
         if (maybeTimeColumn instanceof ColumnTypeMap.Time)
             return maybeTimeColumn
         // If a valid "time" column doesn't exist, find _some_ time column to use.
@@ -487,9 +487,6 @@ export class CoreTable<
             ) ??
             this.columnsAsArray.find(
                 (col) => col instanceof ColumnTypeMap.Year
-            ) ??
-            this.columnsAsArray.find(
-                (col) => col instanceof ColumnTypeMap.Quarter
             ) ??
             maybeTimeColumn) as TimeColumn | MissingColumn
     }

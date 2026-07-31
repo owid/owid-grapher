@@ -1,5 +1,6 @@
 import { EntityName } from "../domainTypes/CoreTableTypes"
 import { PrimitiveType, ColumnSlug, Time } from "../grapherTypes/GrapherTypes"
+import { TimeInterval } from "../OwidVariableDisplayConfigInterface"
 
 /** Type definition for data retrieved from the `/grapher/slug.values.json` endpoint */
 export interface GrapherValuesJson {
@@ -18,7 +19,7 @@ export interface GrapherValuesJsonDimension {
     unit?: string
     shortUnit?: string
     isProjection?: boolean
-    yearIsDay?: boolean
+    timeInterval?: TimeInterval
 }
 
 export interface GrapherValuesJsonDataPoints {

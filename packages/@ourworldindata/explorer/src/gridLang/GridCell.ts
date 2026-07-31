@@ -52,7 +52,7 @@ export class GridCell implements ParsedCell {
         const { rootDefinition } = this
         if (this.isCommentCell) return CommentCellDef
         const grammar = rootDefinition.grammar as unknown as Grammar
-        if (this.column === 0) return rootDefinition as unknown as CellDef
+        if (this.column === 0) return rootDefinition
         const firstWordOnLine = this.line ? this.line[0] : undefined
         const isFirstWordAKeyword =
             firstWordOnLine && grammar[firstWordOnLine] !== undefined
@@ -174,7 +174,7 @@ export class GridCell implements ParsedCell {
         if (def) return def
 
         const subTable = this.subTableParseResults?.def
-        if (subTable) return subTable as unknown as CellDef
+        if (subTable) return subTable
 
         return WorkInProgressCellDef
     }

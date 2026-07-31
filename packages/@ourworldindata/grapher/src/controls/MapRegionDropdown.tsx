@@ -75,7 +75,7 @@ export class MapRegionDropdown extends React.Component<{
         ).map((region) => {
             return {
                 value: region,
-                label: MAP_REGION_LABELS[region as MapRegionName],
+                label: MAP_REGION_LABELS[region],
                 trackNote: "map_zoom_to_region",
             }
         })

@@ -423,7 +423,6 @@ export function enrichedBlockToIndexableText(
                         "cookie-notice",
                         "cta",
                         "donors",
-                        "entry-summary",
                         "explorer-tiles",
                         "featured-data-insights",
                         "featured-metrics",

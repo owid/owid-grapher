@@ -25,6 +25,7 @@ import {
     References,
 } from "./AbstractChartEditor.js"
 import { Admin } from "./Admin.js"
+import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
 
 export interface Log {
     userId: number
@@ -69,7 +70,7 @@ export interface ChartEditorManager extends AbstractChartEditorManager {
     redirects: ChartRedirect[]
     views?: AnalyticsGrapherViewWithRank
     tags?: DbChartTagJoin[]
-    availableTags?: DbChartTagJoin[]
+    availableTags?: MinimalTagWithMetadata[]
     forceDatapage?: boolean
 }
 

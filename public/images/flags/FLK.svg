@@ -83,8 +83,8 @@
     <use xlink:href="#fk-l" width="992.1" height="496.1" transform="translate(0 5.5)"/>
   </g>
   <path fill="#012169" d="M0 0h320v240H0z"/>
-  <path fill="#FFF" d="m37.5 0 122 90.5L281 0h39v31l-120 89.5 120 89V240h-40l-120-89.5L40.5 240H0v-30l119.5-89L0 32V0z"/>
-  <path fill="#C8102E" d="M212 140.5 320 220v20l-135.5-99.5zm-92 10 3 17.5-96 72H0zM320 0v1.5l-124.5 94 1-22L295 0zM0 0l119.5 88h-30L0 21z"/>
-  <path fill="#FFF" d="M120.5 0v240h80V0zM0 80v80h320V80z"/>
-  <path fill="#C8102E" d="M0 96.5v48h320v-48zM136.5 0v240h48V0z"/>
+  <path fill="#fff" d="m37.5 0 122 90.5L281 0h39v31l-120 89.5 120 89V240h-40l-120-89.5L40.5 240H0v-30l119.5-89L0 32V0z"/>
+  <path fill="#c8102e" d="M212 140.5 320 220v20l-135.5-99.5zm-92 10 3 17.5-96 72H0zM320 0v1.5l-124.5 94 1-22L295 0zM0 0l119.5 88h-30L0 21z"/>
+  <path fill="#fff" d="M120.5 0v240h80V0zM0 80v80h320V80z"/>
+  <path fill="#c8102e" d="M0 96.5v48h320v-48zM136.5 0v240h48V0z"/>
 </svg>

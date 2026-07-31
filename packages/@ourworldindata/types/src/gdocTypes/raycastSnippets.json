@@ -55,11 +55,6 @@
         "keyword": "+cta"
     },
     {
-        "name": "entry-summary",
-        "text": "{.entry-summary}\n[.items]\ntext: \nslug: \n[]\n{}",
-        "keyword": "+entry-summary"
-    },
-    {
         "name": "expandable-paragraph",
         "text": "[.+expandable-paragraph]\n\n[]",
         "keyword": "+expandable-paragraph"

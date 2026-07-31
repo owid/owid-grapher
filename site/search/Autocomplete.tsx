@@ -61,20 +61,24 @@ const DETACHED_MEDIA_QUERY = `(max-width: ${DETACHED_MODE_MAX_WIDTH}px)`
 const siteAnalytics = new SiteAnalytics()
 type BaseItem = Record<string, unknown>
 
-const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
-    key: "RECENT_SEARCH",
-    limit: 3,
-    transformSource({ source }) {
-        return {
-            ...source,
-            onSelect({ item, navigator }) {
-                navigator.navigate({
-                    itemUrl: `${SEARCH_BASE_PATH}${queryParamsToStr({ q: item.id, resultType: SearchResultType.ALL })}`,
-                } as any)
-            },
-        }
-    },
-})
+// Per-instance factory: the plugin holds internal subscription state, so
+// sharing one plugin object across multiple Autocomplete instances causes
+// state from one instance (e.g. open panel) to leak into another.
+const buildRecentSearchesPlugin = () =>
+    createLocalStorageRecentSearchesPlugin({
+        key: "RECENT_SEARCH",
+        limit: 3,
+        transformSource({ source }) {
+            return {
+                ...source,
+                onSelect({ item, navigator }) {
+                    navigator.navigate({
+                        itemUrl: `${SEARCH_BASE_PATH}${queryParamsToStr({ q: item.id, resultType: SearchResultType.ALL })}`,
+                    } as any)
+                },
+            }
+        },
+    })
 
 let liteSearchClient: LiteClient | null
 if (ALGOLIA_ID && ALGOLIA_SEARCH_KEY) {
@@ -234,27 +238,28 @@ const algoliaItemTemplate: AutocompleteSource<BaseItem>["templates"] = {
     },
 }
 
-const algoliaOnSelect: AutocompleteSource<BaseItem>["onSelect"] = ({
-    navigator,
-    item,
-    state,
-}) => {
-    const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
-    siteAnalytics.logInstantSearchClick({
-        query: state.query,
-        url: itemUrl,
-        position: String(state.activeItemId),
-    })
-    navigator.navigate({ itemUrl, item, state })
-}
+const makeAlgoliaOnSelect =
+    (searchSource?: string): AutocompleteSource<BaseItem>["onSelect"] =>
+    ({ navigator, item, state }) => {
+        const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
+        siteAnalytics.logInstantSearchClick({
+            query: state.query,
+            url: itemUrl,
+            position: String(state.activeItemId),
+            source: searchSource,
+        })
+        navigator.navigate({ itemUrl, item, state })
+    }
 
 const algoliaGetItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({
     item,
 }) => prependSubdirectoryToAlgoliaItemUrl(item)
 
-const AlgoliaPagesSource: AutocompleteSource<BaseItem> = {
+const createAlgoliaPagesSource = (
+    searchSource?: string
+): AutocompleteSource<BaseItem> => ({
     sourceId: "autocomplete",
-    onSelect: algoliaOnSelect,
+    onSelect: makeAlgoliaOnSelect(searchSource),
     getItemUrl: algoliaGetItemUrl,
     getItems({ query }) {
         if (!liteSearchClient) return []
@@ -275,11 +280,13 @@ const AlgoliaPagesSource: AutocompleteSource<BaseItem> = {
         })
     },
     templates: algoliaItemTemplate,
-}
+})
 
-const AlgoliaChartsSource: AutocompleteSource<BaseItem> = {
+const createAlgoliaChartsSource = (
+    searchSource?: string
+): AutocompleteSource<BaseItem> => ({
     sourceId: "autocomplete-charts",
-    onSelect: algoliaOnSelect,
+    onSelect: makeAlgoliaOnSelect(searchSource),
     getItemUrl: algoliaGetItemUrl,
     getItems({ query }) {
         if (!liteSearchClient) return []
@@ -299,11 +306,12 @@ const AlgoliaChartsSource: AutocompleteSource<BaseItem> = {
         })
     },
     templates: algoliaItemTemplate,
-}
+})
 
 const createFiltersSource = (
     allTopics: string[],
-    synonymMap: SynonymMap
+    synonymMap: SynonymMap,
+    searchSource?: string
 ): AutocompleteSource<BaseItem> => ({
     sourceId: "filters",
     onSelect({ navigator, item, state }) {
@@ -312,6 +320,7 @@ const createFiltersSource = (
             query: state.query,
             url: itemUrl,
             position: String(state.activeItemId),
+            source: searchSource,
         })
         navigator.navigate({ itemUrl, item, state })
     },
@@ -400,10 +409,11 @@ const createFiltersSource = (
  * (see configureAlgolia.ts).
  */
 const createProfileSource = (
-    countryName: string | undefined
+    countryName: string | undefined,
+    searchSource?: string
 ): AutocompleteSource<BaseItem> => ({
     sourceId: "profiles",
-    onSelect: algoliaOnSelect,
+    onSelect: makeAlgoliaOnSelect(searchSource),
     getItemUrl: algoliaGetItemUrl,
     getItems({ query }) {
         if (!liteSearchClient) return []
@@ -437,6 +447,16 @@ export function Autocomplete({
     placeholder = DEFAULT_SEARCH_PLACEHOLDER,
     panelClassName,
     isPreviewing,
+    // Optional id override. Defaults to "autocomplete" so existing call sites
+    // (topnav, homepage) keep working. Pass a unique id when more than one
+    // Autocomplete renders on the same page — the underlying library uses the
+    // container element to scope click-outside / blur detection, and duplicate
+    // ids prevent the panel from closing on outside clicks.
+    id = "autocomplete",
+    // Where this autocomplete is rendered (e.g. "topnav", "homepage",
+    // "datapage"). Attached to instant-search-click analytics so we can tell
+    // which search bar a click came from.
+    searchSource,
 }: {
     onActivate?: () => void
     onClose?: () => void
@@ -444,6 +464,8 @@ export function Autocomplete({
     placeholder?: string
     panelClassName?: string
     isPreviewing?: boolean
+    id?: string
+    searchSource: string
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
     const panelRootRef = useRef<Root | null>(null)
@@ -454,6 +476,7 @@ export function Autocomplete({
     const { allTopics } = useTagGraphTopics(topicTagGraph)
 
     const synonymMap = useMemo(() => buildSynonymMap(), [])
+    const recentSearchesPlugin = useMemo(() => buildRecentSearchesPlugin(), [])
 
     const [search, setSearch] = useState<AutocompleteApi<BaseItem> | null>(null)
 
@@ -521,10 +544,17 @@ export function Autocomplete({
                 const sources: AutocompleteSource<BaseItem>[] = []
                 if (query) {
                     sources.push(
-                        createFiltersSource(allTopics, synonymMap),
-                        createProfileSource(userCountryNameRef.current),
-                        AlgoliaPagesSource,
-                        AlgoliaChartsSource
+                        createFiltersSource(
+                            allTopics,
+                            synonymMap,
+                            searchSource
+                        ),
+                        createProfileSource(
+                            userCountryNameRef.current,
+                            searchSource
+                        ),
+                        createAlgoliaPagesSource(searchSource),
+                        createAlgoliaChartsSource(searchSource)
                     )
                 } else {
                     sources.push(FeaturedSearchesSource)
@@ -567,8 +597,90 @@ export function Autocomplete({
         containerRef,
         allTopics,
         synonymMap,
+        recentSearchesPlugin,
         userCountryNameRef,
+        searchSource,
     ])
+
+    // Close the panel on outside click. We can't rely on autocomplete-js's
+    // built-in blur detection when multiple Autocomplete instances are on the
+    // same page (e.g. topnav + datapage search): the library wires its blur
+    // handler via `window._listeners.mousedown = handler` (single-slot
+    // assignment in @algolia/autocomplete-js setProperties.js), so the second
+    // instance to mount overwrites the first's handler — and only the
+    // last-mounted instance closes properly. The autocomplete-core source
+    // even carries a `@TODO: support cases where there are multiple
+    // Autocomplete instances` comment for this. addEventListener stacks
+    // rather than overwriting, so a per-instance listener here works for any
+    // number of instances.
+    //
+    // This only applies to the docked panel. In detached (mobile) mode the
+    // library renders a full-screen modal portaled to document.body — outside
+    // both containerRef and the panel root — and handles its own dismissal
+    // (backdrop tap, cancel button). Running our handler there would treat a
+    // tap on the modal's own input or buttons as an outside click and close it,
+    // so we bail when the detached media query matches.
+    useEffect(() => {
+        if (!search) return
+
+        const onDocMouseDown = (e: MouseEvent) => {
+            if (window.matchMedia(DETACHED_MEDIA_QUERY).matches) return
+
+            const target = e.target as Node | null
+            if (!target) return
+            const isInsideContainer =
+                containerRef.current?.contains(target) ?? false
+            const isInsidePanel = rootRef.current?.contains(target) ?? false
+            if (!isInsideContainer && !isInsidePanel) {
+                search.setIsOpen(false)
+            }
+        }
+        document.addEventListener("mousedown", onDocMouseDown)
+        return () => {
+            document.removeEventListener("mousedown", onDocMouseDown)
+        }
+    }, [search])
+
+    // Preserve the page scroll position across the detached (mobile) modal.
+    // autocomplete-theme-classic locks the page with `body.aa-Detached {
+    // height: 100vh; overflow: hidden }` while the modal is open, which clamps
+    // the window scroll to 0 and never restores it on close — so closing the
+    // modal jumps the page to the top. The library does no save/restore, and we
+    // can't read the position in onStateChange because the class (and the
+    // reset) is applied before our callback runs. So we track the page scroll
+    // while the modal is closed and restore it once it closes again.
+    useEffect(() => {
+        if (!search) return
+
+        let savedScrollY = window.scrollY
+        let isModalOpen = document.body.classList.contains("aa-Detached")
+
+        const onScroll = () => {
+            if (!isModalOpen) savedScrollY = window.scrollY
+        }
+
+        // Key off the exact class that triggers the reset. The observer
+        // callback (a microtask) runs before the clamp's async scroll event, so
+        // isModalOpen is already true by the time the scroll-to-0 fires and we
+        // don't overwrite the saved position.
+        const observer = new MutationObserver(() => {
+            const open = document.body.classList.contains("aa-Detached")
+            if (open === isModalOpen) return
+            isModalOpen = open
+            if (!open) window.scrollTo(0, savedScrollY)
+        })
+
+        window.addEventListener("scroll", onScroll, { passive: true })
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ["class"],
+        })
+
+        return () => {
+            window.removeEventListener("scroll", onScroll)
+            observer.disconnect()
+        }
+    }, [search])
 
     // Register a global shortcut to open the search box on typing "/"
     useEffect(() => {
@@ -588,5 +700,5 @@ export function Autocomplete({
         }
     }, [search, containerRef])
 
-    return <div className={className} ref={containerRef} id="autocomplete" />
+    return <div className={className} ref={containerRef} id={id} />
 }

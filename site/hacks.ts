@@ -60,7 +60,7 @@ export const runMonkeyPatchForGoogleTranslate = (): void => {
                     {
                         extra: {
                             child: nodeToString(referenceNode),
-                            this: nodeToString(this as Element),
+                            this: nodeToString(this),
                         },
                     }
                 )

@@ -3,7 +3,7 @@ import { injectAutomaticSubscribeBanner } from "./gdocComponentUtils.js"
 import { Container } from "./layout.js"
 import {
     OwidEnrichedGdocBlock,
-    TocHeadingWithTitleSupertitle,
+    TocHeadingWithSupertitle,
 } from "@ourworldindata/utils"
 
 /**
@@ -26,7 +26,7 @@ export const ArticleBlocks = ({
 }: {
     blocks: OwidEnrichedGdocBlock[]
     containerType?: Container
-    toc?: TocHeadingWithTitleSupertitle[]
+    toc?: TocHeadingWithSupertitle[]
     shouldRenderLinks?: boolean
     interactiveImages?: boolean
     automaticSubscribeBanner?: boolean

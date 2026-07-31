@@ -57,6 +57,7 @@ export {
     GRAPHER_DENIM,
     GRAPHER_DARK_TEXT,
     GRAPHER_LIGHT_TEXT,
+    GRAY_60,
     GRAY_70,
     GRAY_80,
     GRAY_90,

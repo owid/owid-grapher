@@ -11,7 +11,7 @@ import {
 import * as lodash from "lodash-es"
 import { AdminLayout } from "./AdminLayout.js"
 import {
-    MinimalTagWithIsTopic,
+    MinimalTagWithMetadata,
     TagGraphNode,
     TagGraphRoot,
     createTagGraph,
@@ -89,7 +89,7 @@ function DraggableDroppable(props: {
 }
 
 interface AddChildFormProps {
-    tags: MinimalTagWithIsTopic[]
+    tags: MinimalTagWithMetadata[]
     label: string
     setChild: (parentId: number, childId: number) => void
     parentId: number
@@ -173,8 +173,8 @@ interface TagGraphNodeContainerProps {
     setWeight: (parentId: number, childId: number, weight: number) => void
     setChild: (parentId: number, childId: number) => void
     removeNode: (parentId: number, childId: number) => void
-    tags: MinimalTagWithIsTopic[]
-    parentsById: Record<string, MinimalTagWithIsTopic[]>
+    tags: MinimalTagWithMetadata[]
+    parentsById: Record<string, MinimalTagWithMetadata[]>
     disableDroppable?: boolean
 }
 
@@ -218,6 +218,8 @@ class TagGraphNodeContainer extends React.Component<TagGraphNodeContainerProps> 
 
     override render() {
         const { id, name, path, children, weight, isTopic } = this.props.node
+        const tag = this.props.tags.find((tag) => tag.id === id)
+        if (!tag) throw new Error(`Tag graph node ${id} not found`)
         const serializedPath = path.join("-")
         return (
             // IDs can't start with a number, so we prefix with "node-"
@@ -228,7 +230,7 @@ class TagGraphNodeContainer extends React.Component<TagGraphNodeContainerProps> 
                 className="tag-box"
                 disableDroppable={this.props.disableDroppable}
             >
-                <TagBadge tag={{ id, name }} />
+                <TagBadge tag={{ id, name }} tagGraphRole={tag.tagGraphRole} />
                 {isTopic ? (
                     <span
                         className="tag-box__is-topic"
@@ -339,16 +341,16 @@ export class TagGraphPage extends React.Component {
     flatTagGraph: FlatTagGraph = {}
     rootId: number | null = null
     addTagParentId: number | undefined = undefined
-    tags: MinimalTagWithIsTopic[] = []
+    tags: MinimalTagWithMetadata[] = []
 
     @computed get tagGraph(): TagGraphRoot | null {
         if (!this.rootId) return null
         return createTagGraph(this.flatTagGraph, this.rootId)
     }
 
-    @computed get parentsById(): Record<string, MinimalTagWithIsTopic[]> {
+    @computed get parentsById(): Record<string, MinimalTagWithMetadata[]> {
         if (!this.tagGraph) return {}
-        const parentsById: Record<string, MinimalTagWithIsTopic[]> = {}
+        const parentsById: Record<string, MinimalTagWithMetadata[]> = {}
         for (const [parentId, children] of Object.entries(this.flatTagGraph)) {
             for (const child of children) {
                 const parent = this.tags.find(
@@ -369,7 +371,7 @@ export class TagGraphPage extends React.Component {
     @computed get nonAreaTags() {
         if (!this.rootId) return []
         const areaTags = this.flatTagGraph[this.rootId]
-        const areaTagIds = areaTags?.map((tag) => tag.childId) || []
+        const areaTagIds = areaTags?.map((tag) => tag.childId) ?? []
         return this.tags.filter((tag) => !areaTagIds.includes(tag.id))
     }
 
@@ -569,7 +571,7 @@ export class TagGraphPage extends React.Component {
         >("/api/flatTagGraph.json")
 
         const tags = await this.context.admin
-            .getJSON<{ tags: MinimalTagWithIsTopic[] }>("/api/tags.json")
+            .getJSON<{ tags: MinimalTagWithMetadata[] }>("/api/tags.json")
             .then((data) => data.tags)
 
         runInAction(() => {

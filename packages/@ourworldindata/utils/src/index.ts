@@ -50,8 +50,7 @@ export {
     es6mapValues,
     type DataValue,
     valuesByEntityAtTimes,
-    dateDiffInDays,
-    diffDateISOStringInDays,
+    diffDatesInDays,
     getYearFromISOStringAndDayOffset,
     parseIntOrUndefined,
     anyToString,
@@ -70,7 +69,6 @@ export {
     isInIFrame,
     differenceObj,
     findDOMParent,
-    wrapInDiv,
     textAnchorFromAlign,
     dyFromAlign,
     stringifyUnknownError,
@@ -95,6 +93,8 @@ export {
     traverseEnrichedBlock,
     checkNodeIsSpan,
     generateToc,
+    groupTocIntoSections,
+    getResearchAndWritingId,
     extractLinksFromMarkdown,
     getPaginationPageNumbers,
     spansToUnformattedPlainText,
@@ -102,6 +102,7 @@ export {
     isArrayOfNumbers,
     greatestCommonDivisor,
     findGreatestCommonDivisorOfArray,
+    withUniformSpacing,
     type NodeWithUrl,
     traverseEnrichedSpan,
     copyToClipboard,
@@ -127,6 +128,11 @@ export {
     getUserNavigatorLanguages,
     getUserNavigatorLanguagesNonEnglish,
     convertDaysSinceEpochToDate,
+    convertDateToDaysSinceEpoch,
+    epochDate,
+    getTimeInterval,
+    isSubYearly,
+    snapToIntervalStart,
     logPerf,
     sleep,
     lowercaseObjectKeys,
@@ -160,7 +166,9 @@ export {
     getDateRange,
     getCitationLong,
     getCitationShort,
+    getCitationDatapage,
     getPhraseForArchivalDate,
+    getYearSuffixFromOrigin,
 } from "./metadataHelpers.js"
 
 export { getAllVariableIds } from "./multiDim.js"
@@ -292,6 +300,7 @@ export {
 
 export {
     serializeJSONForHTML,
+    serializeJSONForInlineScript,
     deserializeJSONFromHTML,
     escapeJSONStringForInlineScript,
 } from "./serializers.js"
@@ -358,7 +367,7 @@ export {
     parseArchivalDate,
 } from "./archival/archivalDate.js"
 
-export { experiments } from "./experiments/config.js"
+export { experiments, isUrlInActiveExperiment } from "./experiments/config.js"
 export {
     Experiment,
     validateUniqueExperimentIds,
@@ -372,6 +381,8 @@ export {
 export {
     EXPERIMENT_ARM_SEPARATOR,
     EXPERIMENT_PREFIX,
+    DATA_PAGE_METADATA_EXPERIMENT_ID,
+    DATA_PAGE_METADATA_EXPERIMENT_TREATMENT_ARM,
 } from "./experiments/constants.js"
 
 export {
@@ -379,5 +390,31 @@ export {
     getTableColumnCountForGridSlotKey,
 } from "./search/SearchHelpers.js"
 
+export {
+    type SearchFacetAttribute,
+    getFilterNamesOfType,
+    setToFacetFilters,
+    formatDisjunctiveFacetFilters,
+    formatConjunctiveFacetFilters,
+    formatFeaturedMetricFacetFilter,
+    formatCountryFacetFilters,
+    formatTopicFacetFilters,
+    buildChartsFacetFilters,
+} from "./search/searchFacetFilters.js"
+
+export {
+    searchSingleForHits,
+    searchSingleForHitsWithClosestMatches,
+} from "./search/searchClosestMatches.js"
+
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
 export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"
+
+export {
+    type DecisionTreeNode,
+    type QueryParamMatchRule,
+    buildQueryParamDecisionTree,
+    matchQueryParamDecisionTree,
+    serializeDecisionTree,
+    deserializeDecisionTree,
+} from "./QueryParamDecisionTree.js"
