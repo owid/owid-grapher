@@ -27,6 +27,7 @@ export function MultiDimDataPage({
     slug,
     configObj,
     initialViewData,
+    initialViewVariableId,
     initialViewDimensions,
     tagToSlugMap,
     faqEntries,
@@ -70,6 +71,22 @@ export function MultiDimDataPage({
                       dimensionSlugs: configObj.dimensions.map((d) => d.slug),
                       defaultView: initialViewDimensions,
                   },
+                  // Indicator metadata shown on a multi-dim belongs to the
+                  // indicator, not the multi-dim, so comments on it follow that
+                  // indicator to wherever else it is used. Only the landing
+                  // view's indicator is known server-side; its field keys are
+                  // the same for every view, so comments stay correctly
+                  // anchored even though a pin may not place on other views.
+                  datapageData: initialViewData,
+                  variables:
+                      initialViewVariableId !== undefined && initialViewData
+                          ? [
+                                {
+                                    variableId: initialViewVariableId,
+                                    label: initialViewData.title.title,
+                                },
+                            ]
+                          : [],
               })
             : undefined
     const imageUrl: string = urljoin(

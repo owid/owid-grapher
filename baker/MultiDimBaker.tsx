@@ -218,6 +218,7 @@ export async function renderMultiDimDataPageFromConfig({
         multiDimId,
         configObj: pageConfig.config,
         initialViewData,
+        initialViewVariableId,
         initialViewDimensions,
         tagToSlugMap,
         faqEntries,
