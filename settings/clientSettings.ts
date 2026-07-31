@@ -66,10 +66,8 @@ export const ALGOLIA_INDEX_PREFIX: string =
 
 // Endpoint of the Cloudflare function that proxies empty-query Algolia
 // searches and caches their results aggressively (see
-// functions/api/search/cached-queries.ts). Empty string disables the proxy,
-// sending all searches directly to Algolia — the default in local
-// development, where the functions dev server usually isn't running. Set it
-// to http://localhost:8788/api/search/cached-queries to test against
+// functions/api/search/cached-queries.ts).
+// Set it to http://localhost:8788/api/search/cached-queries to test against
 // `yarn startLocalCloudflareFunctions`.
 export const ALGOLIA_CACHED_QUERIES_URL: string =
     process.env.ALGOLIA_CACHED_QUERIES_URL ??
