@@ -101,8 +101,12 @@ export const PAGES_QUERY_BY_WEIGHTS = [
  * don't return articles that merely mention a country without being about it
  * ("Unlike Germany…"). The Algolia equivalent is `restrictSearchableAttributes`.
  */
-export const PAGES_QUERY_BY_RESTRICTED = ["title", "excerpt", "tags", "authors"]
-    .join(",")
+export const PAGES_QUERY_BY_RESTRICTED = [
+    "title",
+    "excerpt",
+    "tags",
+    "authors",
+].join(",")
 
 export const PAGES_QUERY_BY_RESTRICTED_WEIGHTS = [10, 8, 5, 6].join(",")
 

@@ -93,9 +93,7 @@ export function getTypesenseFoundCount<T>(
 }
 
 function buildSearchUrl(config: TypesenseConfig, path: string): URL {
-    return new URL(
-        `${config.protocol}://${config.host}:${config.port}${path}`
-    )
+    return new URL(`${config.protocol}://${config.host}:${config.port}${path}`)
 }
 
 async function parseResponse<T>(response: Response): Promise<T> {

@@ -72,11 +72,7 @@ export async function typesenseSearchWithClosestMatches<T>(
     const query = params.q === undefined ? "" : String(params.q)
     const hasQuery = query.trim() !== "" && query !== "*"
 
-    if (
-        extractTypesenseHits(primary).length > 0 ||
-        !isFirstPage ||
-        !hasQuery
-    ) {
+    if (extractTypesenseHits(primary).length > 0 || !isFirstPage || !hasQuery) {
         return primary
     }
 
