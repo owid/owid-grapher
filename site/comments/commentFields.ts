@@ -44,7 +44,12 @@ function textField(
  */
 export function chartCommentFields(targetIndex: number): CommentField[] {
     return [
-        { key: "title", label: "Chart title", grapherPart: "title", targetIndex },
+        {
+            key: "title",
+            label: "Chart title",
+            grapherPart: "title",
+            targetIndex,
+        },
         {
             key: "subtitle",
             label: "Chart subtitle",
@@ -62,19 +67,74 @@ export function indicatorCommentFields(
 ): CommentField[] {
     const attribution = datapageData.attributions?.join("; ")
     return [
-        textField("indicatorTitle", "Indicator title", datapageData.title?.title, targetIndex),
-        textField("titleVariant", "Title variant", datapageData.titleVariant, targetIndex),
-        textField("attributionShort", "Attribution (short)", datapageData.attributionShort, targetIndex),
-        textField("descriptionShort", "Short description", datapageData.descriptionShort, targetIndex),
-        textField("descriptionKey", "What you should know", datapageData.descriptionKey, targetIndex),
-        textField("descriptionFromProducer", "Description from producer", datapageData.descriptionFromProducer, targetIndex),
-        textField("descriptionProcessing", "How we process this data", datapageData.descriptionProcessing, targetIndex),
+        textField(
+            "indicatorTitle",
+            "Indicator title",
+            datapageData.title?.title,
+            targetIndex
+        ),
+        textField(
+            "titleVariant",
+            "Title variant",
+            datapageData.titleVariant,
+            targetIndex
+        ),
+        textField(
+            "attributionShort",
+            "Attribution (short)",
+            datapageData.attributionShort,
+            targetIndex
+        ),
+        textField(
+            "descriptionShort",
+            "Short description",
+            datapageData.descriptionShort,
+            targetIndex
+        ),
+        textField(
+            "descriptionKey",
+            "What you should know",
+            datapageData.descriptionKey,
+            targetIndex
+        ),
+        textField(
+            "descriptionFromProducer",
+            "Description from producer",
+            datapageData.descriptionFromProducer,
+            targetIndex
+        ),
+        textField(
+            "descriptionProcessing",
+            "How we process this data",
+            datapageData.descriptionProcessing,
+            targetIndex
+        ),
         textField("source", "Data source", attribution, targetIndex),
         textField("unit", "Unit", datapageData.unit, targetIndex),
-        textField("unitConversionFactor", "Unit conversion factor", datapageData.unitConversionFactor, targetIndex),
-        textField("dateRange", "Date range", datapageData.dateRange, targetIndex),
-        textField("lastUpdated", "Last updated", datapageData.lastUpdated, targetIndex),
-        textField("nextUpdate", "Next expected update", datapageData.nextUpdate, targetIndex),
+        textField(
+            "unitConversionFactor",
+            "Unit conversion factor",
+            datapageData.unitConversionFactor,
+            targetIndex
+        ),
+        textField(
+            "dateRange",
+            "Date range",
+            datapageData.dateRange,
+            targetIndex
+        ),
+        textField(
+            "lastUpdated",
+            "Last updated",
+            datapageData.lastUpdated,
+            targetIndex
+        ),
+        textField(
+            "nextUpdate",
+            "Next expected update",
+            datapageData.nextUpdate,
+            targetIndex
+        ),
     ].filter((field): field is CommentField => field !== undefined)
 }
 
