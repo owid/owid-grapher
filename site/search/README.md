@@ -95,7 +95,7 @@ sequenceDiagram
     participant Search bar
     participant Search state
     participant URL
-    participant Algolia
+    participant Typesense
     participant Components
 
     User->>Search bar: Types query
@@ -104,14 +104,14 @@ sequenceDiagram
     Search bar->>Search state: Dispatches action
     Search state->>URL: Updates browser URL
     Search state->>Components: Triggers re-render
-    Components->>Algolia: Fires search queries
-    Algolia->>Components: Returns results
+    Components->>Typesense: Fires search queries
+    Typesense->>Components: Returns results
     Components->>User: Displays results
 ```
 
 ## Integration Points
 
-### Algolia Search Integration
+### Typesense Search Integration
 
 - **Multiple Indices**: Separate search indices for different content types
 - **Facet Filtering**: Dynamic filters for countries and topics
@@ -120,7 +120,7 @@ sequenceDiagram
 ### React Query Integration
 
 - **Regular Queries**: Standard search queries using an unpaginated `useQuery` for getting all writing or data topics.
-- **Infinite Queries**: Paginated search results with `useInfiniteQuery` (wrapped in a custom `useInfiniteSearch` hook to handle Algolia-specific logic). Used in conjuction with the "Show more" button to load additional results on demand.
+- **Infinite Queries**: Paginated search results with `useInfiniteQuery` (wrapped in a custom `useInfiniteSearch` hook to handle search-pagination logic). Used in conjuction with the "Show more" button to load additional results on demand.
 - **Hierarchical Cache Keys**: a structured approach to organize query invalidation, but no manual cache invalidation is currently necessary
 - **Stale Time Management**: 1-minute cache for search results. We could technically go much higher since search results are only indexed once a week, but keeping this closer to the search session duration strikes a good balance between performance and freshness.
 

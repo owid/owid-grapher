@@ -6,13 +6,13 @@ The `/latest` page is a single-page app that renders a chronological feed of all
 
 The baker emits a shell page ([`site/LatestPage.tsx`](../LatestPage.tsx)) carrying only the topic tag graph; everything else mounts client-side.
 
-> **Sibling to `/search`.** `/latest` is built as a deliberate architectural parallel to the site search ([`site/search/README.md`](../search/README.md)): both are Algolia-backed SPAs mounted into a baked shell, both treat the URL as the source of truth for filter state, both colocate Algolia query construction in [`queries.ts`](../search/queries.ts), and a number of smaller pieces — the Algolia client, the topic-graph hook, URL helpers, a couple of UI primitives — come directly from search.
+> **Sibling to `/search`.** `/latest` is built as a deliberate architectural parallel to the site search ([`site/search/README.md`](../search/README.md)): both are Typesense-backed SPAs mounted into a baked shell, both treat the URL as the source of truth for filter state, both colocate search query construction in [`queries.ts`](../search/queries.ts), and a number of smaller pieces — the Typesense client, the topic-graph hook, URL helpers, a couple of UI primitives — come directly from search.
 
 ## Key Architectural Patterns
 
 ### 1. Records carry their own attachment context
 
-Gdoc components (images, article blocks, linked-author pills, …) normally render inside an `AttachmentsContext` populated server-side from DB joins (image metadata, linked charts, linked documents, linked authors). With cards rendered purely client-side from Algolia hits, an Algolia record has to carry enough of that context for the card to render with no further fetches.
+Gdoc components (images, article blocks, linked-author pills, …) normally render inside an `AttachmentsContext` populated server-side from DB joins (image metadata, linked charts, linked documents, linked authors). With cards rendered purely client-side from search hits, a search record has to carry enough of that context for the card to render with no further fetches.
 
 The contract has two ends:
 
@@ -21,7 +21,7 @@ The contract has two ends:
 
 ### 2. Two indexing paths, one record shape
 
-Two callers reindex chronological gdocs into Algolia:
+Two callers reindex chronological gdocs into the search index (each mirrored for Algolia and Typesense — see `baker/typesense/typesenseChronological.ts`):
 
 - **Bulk reindex**, run by the baker on full deploys. Walks all published chronological gdocs, loads linked content from the DB, then builds records.
 - **Individual reindex**, triggered from the admin when a single gdoc is published or updated. The admin already populates the gdoc's linked content as part of its save flow, so it skips the DB-loading step and goes straight to building the record.
@@ -39,7 +39,7 @@ See [`latestState.ts`](./latestState.ts) and its tests.
 
 ### 4. One batched search drives the whole UI
 
-A single Algolia call ([`queryLatestPages`](../search/queries.ts)) issues three queries in one round-trip: the paginated card list, plus per-axis facet counts. Each facet-count query intentionally drops its own axis so the counts answer "what would happen if I picked a different value here?" rather than self-narrowing to the current selection. That's what disables zero-match options in the type dropdown and the topic pills without a second round-trip.
+A single Typesense multiSearch call ([`queryLatestPages`](../search/queries.ts)) issues three queries in one round-trip: the paginated card list, plus per-axis facet counts. Each facet-count query intentionally drops its own axis so the counts answer "what would happen if I picked a different value here?" rather than self-narrowing to the current selection. That's what disables zero-match options in the type dropdown and the topic pills without a second round-trip.
 
 ### 5. `latestType` is a derived field for the content-type filter
 
@@ -59,7 +59,7 @@ Each announcement is also baked as a standalone page, primarily for editor previ
 ## Component layout
 
 ```
-LatestSearchWrapper            (Algolia LiteClient + QueryClientProvider)
+LatestSearchWrapper            (Typesense client + QueryClientProvider)
   └── LatestSearch             (URL state, queries, result list)
         ├── LatestTopicFacets  (topic pills + content-type dropdown)
         └── LatestHit          (per-type dispatcher)
