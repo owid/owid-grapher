@@ -75,7 +75,10 @@ import {
     getLatestDataInsights,
     getAndLoadGdocBySlug,
 } from "../db/model/Gdoc/GdocFactory.js"
-import { getBakePath } from "@ourworldindata/components"
+import {
+    getBakePath,
+    resolvePathsToPreviewableGdocIds,
+} from "@ourworldindata/components"
 import { GdocAuthor, getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
 import { getLatestArchivedPostPageVersionsIfEnabled } from "../db/model/ArchivedPostVersion.js"
 import {
@@ -104,7 +107,7 @@ import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../db/model/Arch
 import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
 import { PostArchivalManifest } from "../serverUtils/archivalUtils.js"
 
-type PrefetchedAttachments = {
+export type PrefetchedAttachments = {
     donors: string[]
     linkedAuthors: LinkedAuthor[]
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
@@ -125,6 +128,21 @@ type PrefetchedAttachments = {
      *  `getPreviewableGdocIdsByCanonicalPath`. */
     previewableGdocIdsByPath: Map<string, string>
 }
+
+/**
+ * The keys to pick out of the prefetched attachment dictionaries for one gdoc,
+ * in the order `getPrefetchedGdocAttachments` destructures them.
+ */
+export type GdocAttachmentPicks = [
+    authorNames: string[],
+    linkedDocumentIds: string[],
+    imageFilenames: string[],
+    linkedGrapherSlugs: string[],
+    linkedExplorerSlugs: string[],
+    linkedNarrativeChartNames: string[],
+    linkedStaticVizNames: string[],
+    sameSiteInlineLinkPaths: string[],
+]
 
 // These aren't all "wordpress" steps
 // But they're only run when you have the full stack available
@@ -207,6 +225,7 @@ export class SiteBaker {
         for (const profileTemplate of profileTemplates) {
             const attachments = await this.getPrefetchedGdocAttachments(
                 knex,
+                profileTemplate.id,
                 [
                     profileTemplate.content.authors,
                     profileTemplate.linkedDocumentIds,
@@ -351,18 +370,23 @@ export class SiteBaker {
     // from the prefetched dictionaries.
     // Doesn't prefetch data for callouts.
     _prefetchedAttachmentsCache: PrefetchedAttachments | undefined = undefined
+    // Whole prefetched cache, unfiltered.
+    private async getPrefetchedGdocAttachments(
+        knex: db.KnexReadonlyTransaction
+    ): Promise<PrefetchedAttachments>
+    // Filtered down to one gdoc. `gdocId` is required here, not just for
+    // bookkeeping: a gdoc must never be attached to itself. See
+    // `resolvePathsToPreviewableGdocIds`.
     private async getPrefetchedGdocAttachments(
         knex: db.KnexReadonlyTransaction,
-        picks?: [
-            string[],
-            string[],
-            string[],
-            string[],
-            string[],
-            string[],
-            string[],
-            string[],
-        ],
+        gdocId: string,
+        picks: GdocAttachmentPicks,
+        authorRoles?: Record<string, string>
+    ): Promise<PrefetchedAttachments>
+    private async getPrefetchedGdocAttachments(
+        knex: db.KnexReadonlyTransaction,
+        gdocId?: string,
+        picks?: GdocAttachmentPicks,
         // Author roles are per-gdoc (e.g. "writing", "data work"), not global,
         // so they can't be part of the shared prefetch cache. They need to be
         // applied when filtering authors for a specific gdoc.
@@ -565,6 +589,12 @@ export class SiteBaker {
             this._prefetchedAttachmentsCache = prefetchedAttachments
         }
         if (picks) {
+            // Guaranteed by the overloads above; narrowing them here is
+            // cheaper than threading a discriminated union through.
+            if (!gdocId)
+                throw new Error(
+                    "getPrefetchedGdocAttachments needs a gdocId when picking attachments for a single gdoc"
+                )
             const [
                 authorNames,
                 linkedDocumentIds,
@@ -579,13 +609,15 @@ export class SiteBaker {
             // gdoc id, so they're resolved by canonical path against the
             // prefetched map. Attaching them is what lets the hover preview
             // card render for them; the rendered href is unaffected.
-            const pathResolvedDocumentIds = excludeUndefined(
-                (sameSiteInlineLinkPaths ?? []).map((path) =>
-                    this._prefetchedAttachmentsCache!.previewableGdocIdsByPath.get(
-                        path
-                    )
-                )
-            )
+            // Shares its filtering with GdocBase.loadDocumentsLinkedByPath, so
+            // that a bake and an admin preview attach the same set.
+            const pathResolvedDocumentIds = resolvePathsToPreviewableGdocIds({
+                paths: sameSiteInlineLinkPaths,
+                idsByPath:
+                    this._prefetchedAttachmentsCache.previewableGdocIdsByPath,
+                selfId: gdocId,
+                alreadyAttachedIds: linkedDocumentIds,
+            })
             const linkedDocuments = _.pick(
                 this._prefetchedAttachmentsCache.linkedDocuments,
                 [...linkedDocumentIds, ...pathResolvedDocumentIds]
@@ -715,6 +747,7 @@ export class SiteBaker {
         for (const publishedGdoc of gdocsToBake) {
             const attachments = await this.getPrefetchedGdocAttachments(
                 knex,
+                publishedGdoc.id,
                 [
                     publishedGdoc.content.authors,
                     publishedGdoc.linkedDocumentIds,
@@ -970,6 +1003,7 @@ export class SiteBaker {
         for (const dataInsight of publishedDataInsights) {
             const attachments = await this.getPrefetchedGdocAttachments(
                 knex,
+                dataInsight.id,
                 [
                     dataInsight.content.authors,
                     dataInsight.linkedDocumentIds,
@@ -1017,6 +1051,7 @@ export class SiteBaker {
         for (const publishedAuthor of publishedAuthors) {
             const attachments = await this.getPrefetchedGdocAttachments(
                 knex,
+                publishedAuthor.id,
                 [
                     publishedAuthor.content.authors,
                     publishedAuthor.linkedDocumentIds,

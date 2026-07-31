@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     OwidGdoc,
     ContentGraphLinkType,
@@ -10,6 +11,7 @@ import {
     Url,
     detailOnDemandRegex,
     guidedChartRegex,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import urlSlug from "url-slug"
 import { P, match } from "ts-pattern"
@@ -230,6 +232,44 @@ export function getSameSitePathFromUrl(
     if (!pathname?.startsWith("/")) return undefined
     const path = pathname.replace(/\/+$/, "")
     return path || undefined
+}
+
+/**
+ * The gdoc ids that a page's inline same-site link paths resolve to, i.e. the
+ * documents that need attaching for a hover preview card to render.
+ *
+ * Shared by the only two callers that do this — `loadDocumentsLinkedByPath` for
+ * a single gdoc and `SiteBaker.getPrefetchedGdocAttachments` for a full bake —
+ * because the filtering *is* the operation, and the two drifted apart once
+ * already: the baker had no self-check and so attached every self-linking page's
+ * own document to itself.
+ *
+ * Two things are dropped:
+ *
+ * - `selfId`, the page being rendered. A card for the page the reader is already
+ *   on is pointless, and attaching it also drags in its featured image.
+ * - anything in `alreadyAttachedIds`, which is what resolved by gdoc id. Those
+ *   records are attached already and are the same shape, so re-resolving them by
+ *   path would be redundant.
+ *
+ * `idsByPath` is expected to be pre-filtered to published, previewable
+ * documents; see `getPreviewableGdocIdsByCanonicalPath`.
+ */
+export function resolvePathsToPreviewableGdocIds({
+    paths,
+    idsByPath,
+    selfId,
+    alreadyAttachedIds,
+}: {
+    paths: string[]
+    idsByPath: ReadonlyMap<string, string>
+    selfId: string
+    alreadyAttachedIds: Iterable<string>
+}): string[] {
+    const alreadyAttached = new Set(alreadyAttachedIds)
+    return _.uniq(
+        excludeUndefined(paths.map((path) => idsByPath.get(path)))
+    ).filter((id) => id !== selfId && !alreadyAttached.has(id))
 }
 
 export function getPageTitle(gdoc: OwidGdoc) {

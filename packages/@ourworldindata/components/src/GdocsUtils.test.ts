@@ -5,6 +5,7 @@ import {
     getSameSitePathFromUrl,
     getSlugCandidatesForCanonicalPath,
     PREVIEWABLE_GDOC_TYPES,
+    resolvePathsToPreviewableGdocIds,
 } from "./GdocsUtils.js"
 
 const PROD = "https://ourworldindata.org"
@@ -182,5 +183,55 @@ describe("canonical path resolution end to end", () => {
         "/nonexistent",
     ])("does not resolve %s", (path) => {
         expect(resolve(path, docs)).toBeUndefined()
+    })
+})
+
+describe(resolvePathsToPreviewableGdocIds, () => {
+    const SELF_ID = "self-id"
+    const idsByPath = new Map([
+        ["/poverty", SELF_ID],
+        ["/life-expectancy", "life-expectancy-id"],
+        ["/energy", "energy-id"],
+    ])
+
+    const resolve = (paths: string[], alreadyAttachedIds: string[] = []) =>
+        resolvePathsToPreviewableGdocIds({
+            paths,
+            idsByPath,
+            selfId: SELF_ID,
+            alreadyAttachedIds,
+        })
+
+    it("resolves paths to the ids they name", () => {
+        expect(resolve(["/life-expectancy", "/energy"])).toEqual([
+            "life-expectancy-id",
+            "energy-id",
+        ])
+    })
+
+    // Regression test: the baker had no self-check, so every page containing a
+    // link to itself attached its own document (and its featured image) to
+    // itself, and would have popped a preview card for the page the reader was
+    // already on. Both attachment paths now share this filter.
+    it("never resolves a page's own document, however the self-link is written", () => {
+        expect(resolve(["/poverty"])).toEqual([])
+        expect(resolve(["/life-expectancy", "/poverty", "/energy"])).toEqual([
+            "life-expectancy-id",
+            "energy-id",
+        ])
+    })
+
+    it("skips documents already attached by gdoc id", () => {
+        expect(
+            resolve(["/life-expectancy", "/energy"], ["life-expectancy-id"])
+        ).toEqual(["energy-id"])
+    })
+
+    it("ignores paths that name nothing previewable", () => {
+        expect(resolve(["/not-a-page", "/energy"])).toEqual(["energy-id"])
+    })
+
+    it("deduplicates a page linked more than once", () => {
+        expect(resolve(["/energy", "/energy"])).toEqual(["energy-id"])
     })
 })

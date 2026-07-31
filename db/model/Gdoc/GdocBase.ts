@@ -6,6 +6,7 @@ import {
     getSlugCandidatesForCanonicalPath,
     getUrlTarget,
     PREVIEWABLE_GDOC_TYPES,
+    resolvePathsToPreviewableGdocIds,
     toPlaintext,
 } from "@ourworldindata/components"
 import {
@@ -1102,9 +1103,12 @@ export class GdocBase implements OwidGdocBaseInterface {
             _.uniq(paths.flatMap(getSlugCandidatesForCanonicalPath))
         )
 
-        const ids = _.uniq(
-            excludeUndefined(paths.map((path) => idsByPath.get(path)))
-        ).filter((id) => id !== this.id && !this.linkedDocuments[id])
+        const ids = resolvePathsToPreviewableGdocIds({
+            paths,
+            idsByPath,
+            selfId: this.id,
+            alreadyAttachedIds: Object.keys(this.linkedDocuments),
+        })
         if (!ids.length) return
 
         const documents = await getMinimalGdocPostsByIds(knex, ids)
