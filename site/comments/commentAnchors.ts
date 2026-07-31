@@ -71,17 +71,3 @@ export function findFieldElement(field: CommentField): HTMLElement | null {
     }
     return best
 }
-
-/** The field whose element contains this click, if any */
-export function fieldForClick(
-    clicked: Element,
-    fields: CommentField[]
-): CommentField | undefined {
-    if (clicked.closest(EXCLUDED_SELECTOR)) return undefined
-    for (const field of fields) {
-        const element = findFieldElement(field)
-        if (element && (element === clicked || element.contains(clicked)))
-            return field
-    }
-    return undefined
-}

@@ -42,17 +42,12 @@ function CommentItem({
 export function CommentThread({
     thread,
     currentUserId,
-    anchorLabel,
-    targetLabel,
     onReply,
     onSetResolved,
     onDeleteComment,
 }: {
     thread: CommentThreadData
     currentUserId: number
-    anchorLabel?: string
-    /** Set when the thread hangs off something other than the page's subject */
-    targetLabel?: string
     onReply: (content: string) => Promise<unknown>
     onSetResolved: (resolved: boolean) => void
     onDeleteComment: (id: number) => void
@@ -71,16 +66,6 @@ export function CommentThread({
                 "comment-thread--resolved": isResolved,
             })}
         >
-            {(anchorLabel || targetLabel) && (
-                <div className="comment-thread__anchor">
-                    {anchorLabel ? `on: ${anchorLabel}` : "on:"}
-                    {targetLabel && (
-                        <span className="comment-thread__target">
-                            {targetLabel}
-                        </span>
-                    )}
-                </div>
-            )}
             <CommentItem
                 comment={root}
                 canDelete={root.userId === currentUserId}

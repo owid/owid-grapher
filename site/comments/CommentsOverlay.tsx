@@ -1,138 +1,97 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
 import cx from "clsx"
 import { CommentViewState } from "@ourworldindata/types"
-import { fieldForClick, findFieldElement } from "./commentAnchors.js"
+import { findFieldElement } from "./commentAnchors.js"
 import { CommentField } from "./commentFields.js"
 import {
     CommentPageContext,
+    isSameTarget,
     isSameViewState,
     readCurrentViewState,
     subscribeToUrlChanges,
 } from "./commentContext.js"
-import { CommentsPanel } from "./CommentsPanel.js"
-import {
-    CommentThreadWithTarget,
-    useCommentThreadsForTargets,
-} from "./useComments.js"
+import { CommentPopover } from "./CommentPopover.js"
+import { useCommentThreadsForTargets } from "./useComments.js"
+import "./Comments.scss"
 
-const ANCHOR_MODE_BODY_CLASS = "comments-anchor-mode"
+const COMMENT_MODE_BODY_CLASS = "comments-mode"
+const POPOVER_WIDTH = 320
 
-interface PositionedBadge {
-    key: string
+interface PlacedBubble {
+    field: CommentField
     count: number
     top: number
+    /** Offset from the left edge, or from the right when alignRight */
     left: number
+    alignRight: boolean
 }
 
 /**
- * Count badges next to whatever each thread was left on. Positioned in document
- * coordinates from a portal, so the page's own React tree is never touched.
- * A thread whose text is no longer on screen simply gets no badge - it stays
- * listed in the panel instead of disappearing.
+ * Where each commentable field's bubble goes, computed from the field's current
+ * position on the page. Nothing wraps the fields and no component knows
+ * comments exist; a field that can't be located simply gets no bubble.
  */
-function AnchorBadges({
-    threads,
-    fields,
-    viewState,
-    isMultiDim,
-    onSelect,
-}: {
-    threads: CommentThreadWithTarget[]
-    fields: CommentField[]
-    viewState: CommentViewState | null
-    isMultiDim: boolean
-    onSelect: (field: CommentField) => void
-}): React.ReactElement | null {
-    const [badges, setBadges] = useState<PositionedBadge[]>([])
-
-    const countsByAnchor = useMemo(() => {
-        const counts = new Map<string, number>()
-        for (const thread of threads) {
-            const { anchor, resolvedAt } = thread.root
-            if (!anchor || resolvedAt) continue
-            if (
-                isMultiDim &&
-                thread.root.viewState !== null &&
-                !isSameViewState(thread.root.viewState, viewState)
-            )
-                continue
-            counts.set(anchor, (counts.get(anchor) ?? 0) + 1)
-        }
-        return counts
-    }, [threads, viewState, isMultiDim])
-
-    const fieldsByKey = useMemo(() => {
-        const map = new Map<string, CommentField>()
-        for (const field of fields) map.set(field.key, field)
-        return map
-    }, [fields])
+function useBubblePlacements(
+    fields: CommentField[],
+    countByKey: Map<string, number>,
+    isOn: boolean
+): PlacedBubble[] {
+    const [placements, setPlacements] = useState<PlacedBubble[]>([])
 
     useEffect(() => {
+        if (!isOn) {
+            setPlacements([])
+            return undefined
+        }
         let timeout: number | undefined
-        // The badges live in a portal on document.body, so writing them fires
-        // the observer that computed them. Only committing genuine changes
-        // breaks that cycle: the pass triggered by our own render produces an
-        // identical list and stops there.
+        // Bubbles live in a portal on document.body, so writing them triggers
+        // the observer that placed them. Committing only real changes stops
+        // that feeding back on itself.
         let lastSerialized = ""
-        const computePositions = (): void => {
-            const positioned: PositionedBadge[] = []
-            for (const [key, count] of countsByAnchor) {
-                const field = fieldsByKey.get(key)
-                if (!field) continue
+        const place = (): void => {
+            const next: PlacedBubble[] = []
+            for (const field of fields) {
                 const element = findFieldElement(field)
                 if (!element) continue
                 const rect = element.getBoundingClientRect()
-                positioned.push({
-                    key,
-                    count,
+                if (!rect.width && !rect.height) continue
+                // Fields flush to the right edge get their bubble on the left,
+                // so it never lands outside the viewport
+                const alignRight = window.innerWidth - rect.right < 48
+                next.push({
+                    field,
+                    count: countByKey.get(field.key) ?? 0,
                     top: rect.top + window.scrollY,
-                    left: rect.right + window.scrollX + 8,
+                    left: alignRight ? 8 : rect.right + window.scrollX + 6,
+                    alignRight,
                 })
             }
-            const serialized = JSON.stringify(positioned)
+            const serialized = JSON.stringify(
+                next.map((b) => [b.field.key, b.count, b.top, b.left])
+            )
             if (serialized === lastSerialized) return
             lastSerialized = serialized
-            setBadges(positioned)
+            setPlacements(next)
         }
-        const scheduleRecompute = (): void => {
+        const schedule = (): void => {
             window.clearTimeout(timeout)
-            timeout = window.setTimeout(computePositions, 150)
+            timeout = window.setTimeout(place, 150)
         }
-        computePositions()
-        // The chart redraws asynchronously and multi-dim views swap content in
-        // place, so recompute once DOM changes settle.
-        const observer = new MutationObserver(scheduleRecompute)
+        place()
+        // The chart draws asynchronously and multi-dim views swap content in
+        // place, so re-place once the DOM settles, and on resize.
+        const observer = new MutationObserver(schedule)
         observer.observe(document.body, { childList: true, subtree: true })
-        window.addEventListener("resize", scheduleRecompute)
+        window.addEventListener("resize", schedule)
         return () => {
             window.clearTimeout(timeout)
             observer.disconnect()
-            window.removeEventListener("resize", scheduleRecompute)
+            window.removeEventListener("resize", schedule)
         }
-    }, [countsByAnchor, fieldsByKey])
+    }, [fields, countByKey, isOn])
 
-    if (!badges.length) return null
-    return createPortal(
-        <>
-            {badges.map((badge) => (
-                <button
-                    key={badge.key}
-                    type="button"
-                    className="comments-anchor-badge"
-                    style={{ top: badge.top, left: badge.left }}
-                    title="Show comments on this field"
-                    onClick={() => {
-                        const field = fieldsByKey.get(badge.key)
-                        if (field) onSelect(field)
-                    }}
-                >
-                    {badge.count}
-                </button>
-            ))}
-        </>,
-        document.body
-    )
+    return placements
 }
 
 export function CommentsOverlay({
@@ -140,13 +99,12 @@ export function CommentsOverlay({
 }: {
     context: CommentPageContext
 }): React.ReactElement {
-    const [isOpen, setIsOpen] = useState(false)
-    const [pendingField, setPendingField] = useState<CommentField | null>(null)
+    const [isOn, setIsOn] = useState(false)
+    const [openFieldKey, setOpenFieldKey] = useState<string | null>(null)
 
     const { targets, fields, multiDimDimensionSlugs } = context
     const isMultiDim = !!multiDimDimensionSlugs?.length
 
-    // Re-read the view from the URL as the user changes multi-dim dimensions
     const [viewState, setViewState] = useState<CommentViewState | null>(() =>
         readCurrentViewState(context)
     )
@@ -157,86 +115,137 @@ export function CommentsOverlay({
         )
     }, [isMultiDim, context])
 
-    const { threads } = useCommentThreadsForTargets(targets)
-    const unresolvedCount = threads.filter(
+    const { threads, currentUserId } = useCommentThreadsForTargets(targets)
+
+    // A thread belongs to the view it was left on, so on a multi-dim the other
+    // views' threads stay out of this one.
+    const threadsHere = useMemo(
+        () =>
+            threads.filter(
+                (thread) =>
+                    !isMultiDim ||
+                    thread.root.viewState === null ||
+                    isSameViewState(thread.root.viewState, viewState)
+            ),
+        [threads, isMultiDim, viewState]
+    )
+
+    const countByKey = useMemo(() => {
+        const counts = new Map<string, number>()
+        for (const thread of threadsHere) {
+            if (!thread.root.anchor || thread.root.resolvedAt) continue
+            counts.set(
+                thread.root.anchor,
+                (counts.get(thread.root.anchor) ?? 0) + 1
+            )
+        }
+        return counts
+    }, [threadsHere])
+
+    const placements = useBubblePlacements(fields, countByKey, isOn)
+    const unresolved = threadsHere.filter(
         (thread) => !thread.root.resolvedAt
     ).length
 
-    // With the panel open, clicking a metadata field picks it. Capture phase so
-    // clicking a title that is also a link selects the field instead of
-    // navigating. Clicks on anything that isn't a metadata field fall through
-    // untouched - page furniture is not commentable.
-    const onDocumentClick = useCallback(
-        (event: MouseEvent): void => {
-            const target = event.target as Element | null
-            if (!target) return
-            const field = fieldForClick(target, fields)
-            if (!field) return
-            event.preventDefault()
-            event.stopPropagation()
-            setPendingField(field)
-        },
-        [fields]
-    )
-
     useEffect(() => {
-        if (!isOpen) return undefined
-        document.body.classList.add(ANCHOR_MODE_BODY_CLASS)
-        document.addEventListener("click", onDocumentClick, true)
-        return () => {
-            document.body.classList.remove(ANCHOR_MODE_BODY_CLASS)
-            document.removeEventListener("click", onDocumentClick, true)
-        }
-    }, [isOpen, onDocumentClick])
+        document.body.classList.toggle(COMMENT_MODE_BODY_CLASS, isOn)
+        if (!isOn) setOpenFieldKey(null)
+        return () => document.body.classList.remove(COMMENT_MODE_BODY_CLASS)
+    }, [isOn])
+
+    const open = placements.find(
+        (placement) => placement.field.key === openFieldKey
+    )
+    // Field keys are only unique within a target - a chart and an indicator can
+    // both have a "title" - so match the target as well as the key
+    const threadsForOpenField = open
+        ? threadsHere.filter(
+              (thread) =>
+                  thread.root.anchor === open.field.key &&
+                  isSameTarget(thread.target, targets[open.field.targetIndex])
+          )
+        : []
 
     return (
         <>
             <button
                 type="button"
                 className={cx("comments-overlay__toggle", {
-                    "comments-overlay__toggle--open": isOpen,
+                    "comments-overlay__toggle--on": isOn,
                 })}
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={() => setIsOn(!isOn)}
             >
-                Comments
-                {unresolvedCount > 0 && (
+                {isOn ? "Exit comment mode" : "Comments"}
+                {unresolved > 0 && (
                     <span className="comments-overlay__count">
-                        {unresolvedCount}
+                        {unresolved}
                     </span>
                 )}
             </button>
-            {isOpen && (
-                <div className="comments-overlay__panel">
-                    <div className="comments-overlay__panel-header">
-                        <h3>Comments</h3>
-                        <button
-                            type="button"
-                            className="comments-overlay__close"
-                            title="Close"
-                            onClick={() => setIsOpen(false)}
-                        >
-                            &times;
-                        </button>
-                    </div>
-                    <CommentsPanel
-                        targets={targets}
-                        fields={fields}
-                        pendingField={pendingField}
-                        onPendingFieldChange={setPendingField}
-                        viewState={viewState}
-                        isMultiDim={isMultiDim}
-                    />
-                </div>
-            )}
-            {isOpen && (
-                <AnchorBadges
-                    threads={threads}
-                    fields={fields}
-                    viewState={viewState}
-                    isMultiDim={isMultiDim}
-                    onSelect={setPendingField}
-                />
-            )}
+            {isOn &&
+                createPortal(
+                    <>
+                        {placements.map((placement) => (
+                            <button
+                                key={placement.field.key}
+                                type="button"
+                                className={cx("comments-bubble", {
+                                    "comments-bubble--has-comments":
+                                        placement.count > 0,
+                                    "comments-bubble--open":
+                                        placement.field.key === openFieldKey,
+                                })}
+                                style={{
+                                    top: placement.top,
+                                    ...(placement.alignRight
+                                        ? { right: placement.left }
+                                        : { left: placement.left }),
+                                }}
+                                title={`Comment on ${placement.field.label}`}
+                                onClick={() =>
+                                    setOpenFieldKey(
+                                        openFieldKey === placement.field.key
+                                            ? null
+                                            : placement.field.key
+                                    )
+                                }
+                            >
+                                <span aria-hidden>💬</span>
+                                {placement.count > 0 && (
+                                    <span className="comments-bubble__count">
+                                        {placement.count}
+                                    </span>
+                                )}
+                            </button>
+                        ))}
+                        {open && (
+                            <CommentPopover
+                                field={open.field}
+                                target={targets[open.field.targetIndex]}
+                                threads={threadsForOpenField}
+                                currentUserId={currentUserId}
+                                viewState={viewState}
+                                position={{
+                                    top: open.top + 30,
+                                    left: open.alignRight
+                                        ? open.left
+                                        : Math.max(
+                                              8,
+                                              Math.min(
+                                                  open.left,
+                                                  window.innerWidth -
+                                                      POPOVER_WIDTH -
+                                                      16
+                                              )
+                                          ),
+                                    alignRight: open.alignRight,
+                                }}
+                                onClose={() => setOpenFieldKey(null)}
+                            />
+                        )}
+                    </>,
+                    document.body
+                )}
         </>
     )
 }
