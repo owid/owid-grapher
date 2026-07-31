@@ -73,7 +73,7 @@ export function CommentThread({
         >
             {(anchorLabel || targetLabel) && (
                 <div className="comment-thread__anchor">
-                    {anchorLabel ? <>on: &ldquo;{anchorLabel}&rdquo;</> : "on:"}
+                    {anchorLabel ? `on: ${anchorLabel}` : "on:"}
                     {targetLabel && (
                         <span className="comment-thread__target">
                             {targetLabel}

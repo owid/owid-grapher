@@ -2,7 +2,15 @@ import {
     CommentTarget,
     CommentTargetType,
     CommentViewState,
+    DataPageDataV2,
+    GrapherInterface,
 } from "@ourworldindata/types"
+import {
+    CommentField,
+    chartCommentFields,
+    chartFieldsFromConfig,
+    indicatorCommentFields,
+} from "./commentFields.js"
 
 /**
  * What a page lets staff comment on. Serialized by the page renderers (only
@@ -22,6 +30,8 @@ export interface CommentPageContext {
      * subject and receives newly created comments.
      */
     targets: CommentPageTarget[]
+    /** The metadata fields on this page that can be commented on */
+    fields: CommentField[]
     /**
      * Dimension slugs of a multi-dim, used to read the current view out of the
      * URL. Absent on charts and data pages.
@@ -48,11 +58,15 @@ declare global {
 export function buildCommentPageContext({
     chartId,
     chartLabel,
+    grapher,
     multiDim,
     variables,
+    datapageData,
 }: {
     chartId?: number
     chartLabel?: string
+    /** Used only to tell which chart-level fields the page actually shows */
+    grapher?: GrapherInterface
     multiDim?: {
         id: number
         label: string
@@ -60,6 +74,7 @@ export function buildCommentPageContext({
         defaultView?: CommentViewState
     }
     variables?: { variableId: number; label: string }[]
+    datapageData?: DataPageDataV2
 }): CommentPageContext | undefined {
     const targets: CommentPageTarget[] = []
     // The page's subject goes first and receives new comments
@@ -75,6 +90,7 @@ export function buildCommentPageContext({
             targetId: chartId,
             label: chartLabel ?? "This chart",
         })
+    const firstVariableIndex = targets.length
     for (const variable of variables ?? []) {
         targets.push({
             targetType: CommentTargetType.Variable,
@@ -83,8 +99,22 @@ export function buildCommentPageContext({
         })
     }
     if (!targets.length) return undefined
+
+    // Chart-level fields belong to the chart or multi-dim when the page has
+    // one. An indicator preview has neither, so they fall to the indicator,
+    // whose own default config is what's being rendered anyway.
+    const chartLevel = multiDim
+        ? chartCommentFields(0)
+        : chartId !== undefined
+          ? chartFieldsFromConfig(grapher, 0)
+          : chartFieldsFromConfig(grapher, firstVariableIndex)
+    const indicatorLevel = datapageData
+        ? indicatorCommentFields(datapageData, firstVariableIndex)
+        : []
+
     return {
         targets,
+        fields: [...chartLevel, ...indicatorLevel],
         multiDimDimensionSlugs: multiDim?.dimensionSlugs,
         multiDimDefaultView: multiDim?.defaultView,
     }

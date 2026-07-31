@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
 import cx from "clsx"
 import { CommentViewState } from "@ourworldindata/types"
-import { findAnchorElement, anchorTextForClick } from "./commentAnchors.js"
+import { fieldForClick, findFieldElement } from "./commentAnchors.js"
+import { CommentField } from "./commentFields.js"
 import {
     CommentPageContext,
     isSameViewState,
@@ -18,7 +19,7 @@ import {
 const ANCHOR_MODE_BODY_CLASS = "comments-anchor-mode"
 
 interface PositionedBadge {
-    anchorText: string
+    key: string
     count: number
     top: number
     left: number
@@ -32,14 +33,16 @@ interface PositionedBadge {
  */
 function AnchorBadges({
     threads,
+    fields,
     viewState,
     isMultiDim,
     onSelect,
 }: {
     threads: CommentThreadWithTarget[]
+    fields: CommentField[]
     viewState: CommentViewState | null
     isMultiDim: boolean
-    onSelect: (anchorText: string) => void
+    onSelect: (field: CommentField) => void
 }): React.ReactElement | null {
     const [badges, setBadges] = useState<PositionedBadge[]>([])
 
@@ -59,6 +62,12 @@ function AnchorBadges({
         return counts
     }, [threads, viewState, isMultiDim])
 
+    const fieldsByKey = useMemo(() => {
+        const map = new Map<string, CommentField>()
+        for (const field of fields) map.set(field.key, field)
+        return map
+    }, [fields])
+
     useEffect(() => {
         let timeout: number | undefined
         // The badges live in a portal on document.body, so writing them fires
@@ -68,12 +77,14 @@ function AnchorBadges({
         let lastSerialized = ""
         const computePositions = (): void => {
             const positioned: PositionedBadge[] = []
-            for (const [anchorText, count] of countsByAnchor) {
-                const element = findAnchorElement(anchorText)
+            for (const [key, count] of countsByAnchor) {
+                const field = fieldsByKey.get(key)
+                if (!field) continue
+                const element = findFieldElement(field)
                 if (!element) continue
                 const rect = element.getBoundingClientRect()
                 positioned.push({
-                    anchorText,
+                    key,
                     count,
                     top: rect.top + window.scrollY,
                     left: rect.right + window.scrollX + 8,
@@ -99,19 +110,22 @@ function AnchorBadges({
             observer.disconnect()
             window.removeEventListener("resize", scheduleRecompute)
         }
-    }, [countsByAnchor])
+    }, [countsByAnchor, fieldsByKey])
 
     if (!badges.length) return null
     return createPortal(
         <>
             {badges.map((badge) => (
                 <button
-                    key={badge.anchorText}
+                    key={badge.key}
                     type="button"
                     className="comments-anchor-badge"
                     style={{ top: badge.top, left: badge.left }}
-                    title="Show comments left here"
-                    onClick={() => onSelect(badge.anchorText)}
+                    title="Show comments on this field"
+                    onClick={() => {
+                        const field = fieldsByKey.get(badge.key)
+                        if (field) onSelect(field)
+                    }}
                 >
                     {badge.count}
                 </button>
@@ -127,9 +141,9 @@ export function CommentsOverlay({
     context: CommentPageContext
 }): React.ReactElement {
     const [isOpen, setIsOpen] = useState(false)
-    const [pendingAnchor, setPendingAnchor] = useState<string | null>(null)
+    const [pendingField, setPendingField] = useState<CommentField | null>(null)
 
-    const { targets, multiDimDimensionSlugs } = context
+    const { targets, fields, multiDimDimensionSlugs } = context
     const isMultiDim = !!multiDimDimensionSlugs?.length
 
     // Re-read the view from the URL as the user changes multi-dim dimensions
@@ -148,18 +162,22 @@ export function CommentsOverlay({
         (thread) => !thread.root.resolvedAt
     ).length
 
-    // With the panel open, clicking anything on the page picks it as the thing
-    // to comment on. Capture phase so a click on a link or a chart control
-    // becomes an anchor choice instead of navigating or changing the chart.
-    const onDocumentClick = useCallback((event: MouseEvent): void => {
-        const target = event.target as Element | null
-        if (!target) return
-        const anchorText = anchorTextForClick(target)
-        if (!anchorText) return
-        event.preventDefault()
-        event.stopPropagation()
-        setPendingAnchor(anchorText)
-    }, [])
+    // With the panel open, clicking a metadata field picks it. Capture phase so
+    // clicking a title that is also a link selects the field instead of
+    // navigating. Clicks on anything that isn't a metadata field fall through
+    // untouched - page furniture is not commentable.
+    const onDocumentClick = useCallback(
+        (event: MouseEvent): void => {
+            const target = event.target as Element | null
+            if (!target) return
+            const field = fieldForClick(target, fields)
+            if (!field) return
+            event.preventDefault()
+            event.stopPropagation()
+            setPendingField(field)
+        },
+        [fields]
+    )
 
     useEffect(() => {
         if (!isOpen) return undefined
@@ -202,8 +220,9 @@ export function CommentsOverlay({
                     </div>
                     <CommentsPanel
                         targets={targets}
-                        pendingAnchor={pendingAnchor}
-                        onClearPendingAnchor={() => setPendingAnchor(null)}
+                        fields={fields}
+                        pendingField={pendingField}
+                        onPendingFieldChange={setPendingField}
                         viewState={viewState}
                         isMultiDim={isMultiDim}
                     />
@@ -212,9 +231,10 @@ export function CommentsOverlay({
             {isOpen && (
                 <AnchorBadges
                     threads={threads}
+                    fields={fields}
                     viewState={viewState}
                     isMultiDim={isMultiDim}
-                    onSelect={setPendingAnchor}
+                    onSelect={setPendingField}
                 />
             )}
         </>

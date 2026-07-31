@@ -90,6 +90,8 @@ export const DataPageV2 = (props: {
         ? buildCommentPageContext({
               chartId: grapher?.id,
               chartLabel: pageTitle,
+              grapher,
+              datapageData,
               variables: variableIds.map((variableId) => ({
                   variableId,
                   label: datapageData.title.title,

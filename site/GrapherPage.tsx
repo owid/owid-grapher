@@ -111,6 +111,7 @@ window.renderSingleGrapherOnGrapherPage({ config: jsonConfig, dataApiUrl: "${DAT
         ? buildCommentPageContext({
               chartId: grapher.id,
               chartLabel: grapher.title ?? "This chart",
+              grapher,
               variables: variableIds.map((variableId) => ({
                   variableId,
                   label: `Indicator ${variableId}`,

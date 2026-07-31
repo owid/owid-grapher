@@ -1,69 +1,68 @@
-/**
- * Comments are anchored to the text they were left on, not to a fixed list of
- * fields or to CSS selectors for particular components. Whatever is on screen
- * can be commented on, and because the anchor is the content rather than the
- * markup around it, a data page rearranging its layout doesn't invalidate
- * anything: the thread keeps its quote and simply stops being pinned if the
- * text is gone.
- */
-
-/** comments.anchor is VARCHAR(255), so quotes are stored truncated */
-export const MAX_ANCHOR_TEXT_LENGTH = 255
+import { CommentField } from "./commentFields.js"
 
 /**
- * Elements worth quoting. Deliberately generic - these are the tags metadata
- * and chart headers end up in, whichever component happens to render them.
+ * Finding where a metadata field is shown on the page, so a pin can be put next
+ * to it. Purely presentational: a comment is identified by its field key, so a
+ * field we fail to locate still shows in the panel and can still be commented
+ * on - it just doesn't get a pin.
+ *
+ * Nothing here knows how a data page is laid out. Chart-level fields are found
+ * through grapher's own data-grapher-part hooks; indicator metadata is found by
+ * matching the field's current value against what's on screen.
  */
+
+const GRAPHER_PART_ATTRIBUTE = "data-grapher-part"
+
+/** Generic text-bearing tags; metadata ends up in these whoever renders them */
 const CANDIDATE_SELECTOR =
-    "h1,h2,h3,h4,h5,h6,p,li,dd,dt,td,th,figcaption,blockquote,a,span"
+    "h1,h2,h3,h4,h5,h6,p,li,dd,dt,td,th,figcaption,blockquote,span"
 
-/** Ignore our own UI, and anything the site hides from view */
+/** Our own UI must never be mistaken for page content */
 const EXCLUDED_SELECTOR =
-    ".comments-overlay__panel,.comments-overlay__toggle,.comments-anchor-badge,script,style"
+    ".comments-overlay__panel,.comments-overlay__toggle,.comments-anchor-badge"
 
-export function normalizeAnchorText(text: string): string {
+export function normalizeText(text: string): string {
     return text.replace(/\s+/g, " ").trim()
 }
 
-function anchorTextOf(element: Element): string {
-    return normalizeAnchorText(element.textContent ?? "").slice(
-        0,
-        MAX_ANCHOR_TEXT_LENGTH
-    )
+/**
+ * Markdown values reach the DOM rendered: links lose their targets and emphasis
+ * loses its markers. Strip the common markers so a value still matches the text
+ * it produced.
+ */
+function forMatching(text: string): string {
+    return normalizeText(
+        text
+            .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1") // [label](url) -> label
+            .replace(/[*_`#>]/g, "")
+    ).toLowerCase()
 }
 
-/**
- * The quote for the element the user clicked. Walks up from the click target
- * to the nearest element that reads as a field or a piece of prose, so clicking
- * a link inside a subtitle still quotes something meaningful.
- */
-export function anchorTextForClick(clicked: Element): string | null {
-    if (clicked.closest(EXCLUDED_SELECTOR)) return null
-    // Only text-bearing elements can be anchors. Without this, a click on
-    // padding or a layout wrapper would climb to a container and quote most of
-    // the page, so clicks on empty space are simply ignored - the composer is
-    // still there for a comment about the page as a whole.
-    const element = clicked.closest(CANDIDATE_SELECTOR)
-    if (!element) return null
-    return anchorTextOf(element) || null
-}
+export function findFieldElement(field: CommentField): HTMLElement | null {
+    if (field.grapherPart) {
+        return document.querySelector<HTMLElement>(
+            `[${GRAPHER_PART_ATTRIBUTE}="${field.grapherPart}"]`
+        )
+    }
+    if (!field.value) return null
+    const wanted = forMatching(field.value)
+    if (wanted.length < 2) return null
 
-/**
- * The smallest element currently displaying this quote, or null when the page
- * no longer shows it (layout changed, another multi-dim view, text edited).
- * Callers treat null as "thread is still valid, just not pinned".
- */
-export function findAnchorElement(anchorText: string): HTMLElement | null {
-    if (!anchorText) return null
     let best: HTMLElement | null = null
     let bestLength = Infinity
     for (const element of document.querySelectorAll<HTMLElement>(
         CANDIDATE_SELECTOR
     )) {
         if (element.closest(EXCLUDED_SELECTOR)) continue
-        if (anchorTextOf(element) !== anchorText) continue
-        // Prefer the deepest match: the shortest full text wins, which picks
-        // the field itself rather than a container that happens to hold only it
+        const text = forMatching(element.textContent ?? "")
+        if (!text) continue
+        // Long values get truncated or split across elements by the renderer,
+        // so accept an element that starts the value as well as an exact match
+        const matches =
+            text === wanted ||
+            (wanted.length > 40 && text.startsWith(wanted.slice(0, 40)))
+        if (!matches) continue
+        // Deepest match wins: the field itself, not a container holding it
         const length = (element.textContent ?? "").length
         if (length < bestLength) {
             best = element
@@ -73,8 +72,16 @@ export function findAnchorElement(anchorText: string): HTMLElement | null {
     return best
 }
 
-/** Shortened quote for the panel, so a long paragraph stays one line */
-export function anchorLabel(anchorText: string, maxLength = 60): string {
-    const text = normalizeAnchorText(anchorText)
-    return text.length <= maxLength ? text : `${text.slice(0, maxLength - 1)}…`
+/** The field whose element contains this click, if any */
+export function fieldForClick(
+    clicked: Element,
+    fields: CommentField[]
+): CommentField | undefined {
+    if (clicked.closest(EXCLUDED_SELECTOR)) return undefined
+    for (const field of fields) {
+        const element = findFieldElement(field)
+        if (element && (element === clicked || element.contains(clicked)))
+            return field
+    }
+    return undefined
 }
