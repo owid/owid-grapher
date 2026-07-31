@@ -1,6 +1,6 @@
 import { DEFAULT_ATOM_FEED_PROPS } from "./SiteConstants.js"
 import { viteAssetsForSite } from "./viteUtils.js"
-import { GOOGLE_TAG_MANAGER_ID } from "../settings/clientSettings.js"
+import { ENV, GOOGLE_TAG_MANAGER_ID } from "../settings/clientSettings.js"
 import { NoJSDetector } from "./NoJSDetector.js"
 import {
     ArchiveContext,
@@ -67,6 +67,7 @@ export const Head = (props: {
     const imageUrl =
         props.imageUrl || `${baseUrl}/${DEFAULT_THUMBNAIL_FILENAME}`
     const atom = props.atom ?? DEFAULT_ATOM_FEED_PROPS
+    const iconSuffix = ENV === "production" ? "" : "-dev"
 
     const stylesheets = viteAssetsForSite({
         staticAssetMap: props.staticAssetMap,
@@ -106,8 +107,16 @@ export const Head = (props: {
                     data-archival-date={props.archiveContext.archivalDate}
                 />
             )}
-            <link rel="icon" href="/favicon.ico" />
+
+            {/* https://evilmartians.com/chronicles/how-to-favicon-in-2021-six-files-that-fit-most-needs */}
+            <link rel="icon" href={`/favicon${iconSuffix}.ico`} sizes="32x32" />
+            <link
+                rel="icon"
+                href={`/icon${iconSuffix}.svg`}
+                type="image/svg+xml"
+            />
             <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
             <link
                 rel="preload"
                 href="/fonts/LatoLatin-Regular.woff2"

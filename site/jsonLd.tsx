@@ -2,6 +2,7 @@ import {
     DataPageDataV2,
     GrapherInterface,
     OwidGdocType,
+    serializeJSONForInlineScript,
     spansToUnformattedPlainText,
 } from "@ourworldindata/utils"
 import {
@@ -33,7 +34,7 @@ function JsonLdScript({ data }: { data: WithContext<Thing> }) {
         <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{
-                __html: JSON.stringify(data),
+                __html: serializeJSONForInlineScript(data),
             }}
         />
     )

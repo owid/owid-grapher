@@ -242,16 +242,13 @@ export function formatDay(
 }
 
 /**
- * Resolves the time interval of an indicator from its display config, falling
- * back to the deprecated `yearIsDay` flag when `timeInterval` is not set.
+ * Resolves the time interval of an indicator from its display config,
+ * defaulting to `year` when not set.
  */
 export function getTimeInterval(
     display?: OwidVariableDisplayConfigInterface
 ): TimeInterval {
-    return (
-        display?.timeInterval ??
-        (display?.yearIsDay ? TimeInterval.Day : TimeInterval.Year)
-    )
+    return display?.timeInterval ?? TimeInterval.Year
 }
 
 const SUB_YEARLY_INTERVALS = new Set<TimeInterval>([
@@ -2046,6 +2043,15 @@ export function findGreatestCommonDivisorOfArray(arr: number[]): number | null {
     if (arr.length === 0) return null
     if (arr.includes(1)) return 1
     return _.uniq(arr).reduce((acc, num) => greatestCommonDivisor(acc, num))
+}
+
+// Makes sure that values are evenly spaced by inserting values at the greatest
+// common divisor of the gaps between consecutive values.
+export function withUniformSpacing(values: number[]): number[] {
+    const deltas = rollingMap(values, (a, b) => b - a)
+    const gcd = findGreatestCommonDivisorOfArray(deltas)
+    if (gcd === null) return values
+    return _.range(values[0], values[values.length - 1] + gcd, gcd)
 }
 
 export function lowercaseObjectKeys(

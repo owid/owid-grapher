@@ -1,7 +1,11 @@
 import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
-import { SiteFooterContext, TagGraphRoot } from "@ourworldindata/utils"
+import {
+    SiteFooterContext,
+    TagGraphRoot,
+    serializeJSONForInlineScript,
+} from "@ourworldindata/utils"
 import { Html } from "./Html.js"
 
 declare global {
@@ -27,7 +31,7 @@ export const LatestPage = (props: {
             >
                 <script
                     dangerouslySetInnerHTML={{
-                        __html: `window._OWID_TOPIC_TAG_GRAPH = ${JSON.stringify(topicTagGraph)}`,
+                        __html: `window._OWID_TOPIC_TAG_GRAPH = ${serializeJSONForInlineScript(topicTagGraph)}`,
                     }}
                 ></script>
             </Head>
