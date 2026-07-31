@@ -158,7 +158,7 @@
         "tinyexec": "^1.1.1",
         "tippy.js": "^6.3.7",
         "ts-pattern": "^5.8.0",
-        "typeorm": "^1.0.0",
+        "typeorm": "^1.1.0",
         "url-join": "^5.0.0",
         "url-slug": "^4.0.1",
         "usehooks-ts": "^3.1.1",
