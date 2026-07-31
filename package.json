@@ -153,7 +153,7 @@
         "rxjs": "^7.8.2",
         "s-expression": "^3.1.1",
         "safe-stable-stringify": "^2.4.1",
-        "sharp": "^0.34.5",
+        "sharp": "^0.35.2",
         "simple-git": "^3.36.0",
         "tinyexec": "^1.1.1",
         "tippy.js": "^6.3.7",
@@ -225,7 +225,7 @@
         "typescript": "^7.0.2",
         "vite": "^8.1.0",
         "vitest": "^4.1.9",
-        "wrangler": "^4.112.0"
+        "wrangler": "^4.114.0"
     },
     "resolutions": {
         "@sentry/cli": "3.5.0",
