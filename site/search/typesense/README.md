@@ -29,40 +29,52 @@ synonyms).
 
 ## Known differences from Algolia
 
-This is not a behaviour-preserving swap, but the largest source of divergence
-has a fix. **Typesense counts a query token as matched regardless of which
-queried field it hit.** Left at its defaults it also has no equivalent of
-Algolia's `attribute` ranking criterion, so a chart matching one token in its
-title and one in a tag scored the same as one matching both in its title, and
-the popularity `score` broke the tie.
+This is not a behaviour-preserving swap. **Typesense counts a query token as
+matched regardless of which queried field it hit** — it has no notion of "these
+words all came from the title". Everything below follows from that.
 
-Two settings recover most of that, both in `TYPESENSE_RELEVANCE_PARAMS`:
+Three settings recover most of what Algolia's ranking gave us, all in
+`TYPESENSE_RELEVANCE_PARAMS` / `CHARTS_QUERY_BY_WEIGHTS`:
 
 - `text_match_type: "max_weight"` — makes the best-matching field's _weight_ the
   dominant ranking component, so `query_by_weights` behaves like Algolia's
-  ordered `searchableAttributes`. The default, `max_score`, treats weight as a
-  minor tie-breaker.
-- `prioritize_num_matching_fields: false` — the default (true) boosts documents
-  matching across more fields, which is exactly the scattered cross-field match
-  we want to punish. Algolia has no such rule.
-
-Measured over 16 queries against Algolia's top 5, these took the overlap from
-41/80 to 50/80. `energy consumption` went 0/5 → 4/5 (it had been returning
-land-use charts, which match "use" via the `energy use` synonym plus "energy"
-from an `Energy and Environment` tag), and `renewable energy` 0/5 → 3/5.
+  ordered `searchableAttributes`. The default, `max_score`, demotes weight to a
+  minor tie-breaker and loses the "title beats tag" rule entirely.
+- `prioritize_num_matching_fields: false` — the default boosts documents that
+  match across more fields, which is exactly the scattered cross-field match to
+  punish. Algolia has no such rule.
+- Low weights (1) on the entity lists rather than removing them from
+  `query_by`. See `CHARTS_QUERY_BY_WEIGHTS` — removing them looked defensible
+  and measured badly.
 
 What still differs:
 
-- **Roughly a third of top-5 results.** Multi-word synonyms still match as loose
-  token sets rather than phrases, so e.g. `["per capita", "per person"]`
-  combined with the `gdp` group can favour "Energy use per person vs. GDP per
-  capita" over the literal "GDP per capita".
-- **`availableEntities` is excluded from `query_by`.** Even with the settings
-  above, having entity names searchable makes "malaria worldwide" match a COVID
-  chart titled "…coverage worldwide" that lists malaria as an entity — it
-  returns 5 hits where Algolia returns none, which defeats the closest-matches
-  fallback. Country names typed as free text therefore don't match through the
-  entity list; the UI turns recognised ones into filters instead.
+- **Multi-word synonyms match as loose token sets, not phrases.** The group
+  `["energy consumption", "energy use", …]` means the query "energy consumption"
+  can also match "Land **use** per 100 grams of protein" via "use" plus an
+  `Energy and Environment` tag. No setting fixes this; the phrase structure
+  Algolia preserves is simply not represented.
+- **Cross-field matching invents some matches.** "malaria worldwide" matches a
+  COVID chart titled "…coverage worldwide" that lists malaria as an entity,
+  where Algolia returns nothing. Accepted deliberately — see
+  `CHARTS_QUERY_BY_WEIGHTS`.
+
+### Evaluating changes here
+
+Do not tune these settings against a hand-picked query list. Use the
+volume-weighted evaluator in the `analytics` repo, which judges results with an
+LLM and weights by real search demand:
+
+```sh
+uv run python -m experiments.search_demand classify --source real \
+  --engine-a https://ourworldindata.org/api/search \
+  --engine-b http://staging-site-<branch>/api/search
+```
+
+A 16-query top-5 overlap check against Algolia missed a regression affecting
+~10% of real search volume, because every query in it was a topic phrase and
+none was an entity name. Overlap with Algolia is also the wrong target on its
+own: it measures similarity, not quality.
 
 ## Collections
 

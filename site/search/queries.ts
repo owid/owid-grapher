@@ -130,7 +130,6 @@ const COMMON_PARAMS = {
     synonym_sets: TYPESENSE_SYNONYM_SET,
     highlight_start_tag: "<mark>",
     highlight_end_tag: "</mark>",
-    prefix: false,
 } as const
 
 /**

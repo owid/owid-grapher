@@ -190,10 +190,6 @@ export async function searchCharts(
         ...TYPESENSE_RELEVANCE_PARAMS,
         stopwords: TYPESENSE_STOPWORDS_SET,
         synonym_sets: TYPESENSE_SYNONYM_SET,
-        // Algolia does prefix matching on the last query word by default, but
-        // its `disablePrefixOnAttributes` config plus our exact-match
-        // expectations make whole-word matching the closer behaviour here.
-        prefix: false,
         filter_by: filterBy || undefined,
         per_page: hitsPerPage,
         page: page + 1, // Typesense pages are 1-indexed
@@ -312,7 +308,6 @@ export async function searchPages(
         ...TYPESENSE_RELEVANCE_PARAMS,
         stopwords: TYPESENSE_STOPWORDS_SET,
         synonym_sets: TYPESENSE_SYNONYM_SET,
-        prefix: false,
         filter_by: joinFilterBy(formatTypeFilterBy(...pageTypes)),
         offset,
         limit: length,

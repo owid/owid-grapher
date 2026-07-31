@@ -6,22 +6,7 @@
 // `customRanking` on the index, while Typesense takes the equivalents as query
 // parameters. So what lives in configureAlgolia.ts over there lives here.
 
-/**
- * Algolia's `searchableAttributes` for the charts index, in the same order —
- * minus `availableEntities` and `originalAvailableEntities`.
- *
- * Those two are deliberately excluded. Typesense counts a query token as
- * matched no matter which queried field it hit, so with entities searchable, a
- * chart titled "COVID-19 vaccination coverage worldwide" matches the query
- * "malaria worldwide" — "worldwide" from the title, "malaria" from an entity
- * name (entity lists include causes of death). Algolia returns nothing for that
- * query, which is the behaviour the "closest matches" fallback is built around.
- *
- * The cost is that typing a country name into the free-text box no longer
- * matches charts through their entity list. In practice the UI turns recognised
- * country names into filters, which are applied via `filter_by` on
- * `availableEntities` — see `formatCountryFilterBy`.
- */
+/** Algolia's `searchableAttributes` for the charts index, in the same order. */
 export const CHARTS_QUERY_BY = [
     "title",
     "containerTitle",
@@ -29,13 +14,34 @@ export const CHARTS_QUERY_BY = [
     "variantName",
     "subtitle",
     "tags",
+    "availableEntities",
+    "originalAvailableEntities",
     "datasetProducers",
 ].join(",")
 
 /**
- * Algolia demotes `tags` and `subtitle` via `disableExactOnAttributes` — a match
- * there doesn't count towards the `exact` ranking criterion. Typesense has no
- * direct equivalent, so those fields get low weights instead.
+ * Algolia demotes `tags`, `subtitle` and the entity lists via
+ * `disableExactOnAttributes` — a match there doesn't count towards the `exact`
+ * ranking criterion. Typesense has no direct equivalent, so those fields get low
+ * weights instead; with `text_match_type: "max_weight"` a title match reliably
+ * outranks an entity match.
+ *
+ * `availableEntities` is emphatically NOT just a country list, and it must stay
+ * searchable. For a large class of charts the entity dimension *is* the subject
+ * matter — household technologies, ocean-waste items, food products, causes of
+ * death — and for those it's the only field the term appears in at all. Dropping
+ * it made "refrigerator", "washing machine", "microwave", "dishwasher" and
+ * "cigarette butts" return literally nothing (0 hits across the whole index),
+ * and cut "bananas" from 103 matches to 21 and "coffee" from 92 to 9. A
+ * volume-weighted evaluation put the damage at ~10% of search volume regressed
+ * against ~2% improved.
+ *
+ * The known cost: cross-field token matching means a query can match one token
+ * in a title and another in an entity list, e.g. "malaria worldwide" matching a
+ * chart titled "COVID-19 vaccination coverage worldwide" that lists malaria as
+ * an entity, where Algolia returns nothing and our closest-matches fallback
+ * would otherwise fire. That's one query's worth of relevance against the class
+ * of queries above, so it loses.
  */
 export const CHARTS_QUERY_BY_WEIGHTS = [
     10, // title
@@ -44,6 +50,8 @@ export const CHARTS_QUERY_BY_WEIGHTS = [
     7, // variantName
     3, // subtitle
     4, // tags
+    1, // availableEntities
+    1, // originalAvailableEntities
     5, // datasetProducers
 ].join(",")
 
@@ -74,6 +82,14 @@ export const CHARTS_QUERY_BY_WEIGHTS = [
 export const TYPESENSE_RELEVANCE_PARAMS = {
     text_match_type: "max_weight",
     prioritize_num_matching_fields: false,
+    // Prefix-match the last query token, which is Typesense's default and also
+    // Algolia's. We previously set this false, reasoning from Algolia's
+    // `disablePrefixOnAttributes` — but that only disables prefixing on the
+    // named attributes, it doesn't turn the feature off. With it off, a
+    // truncated final word finds nothing: "bans on bullfightin" returned
+    // nothing while Algolia rescued it, even though "bullfighting" matches two
+    // charts.
+    prefix: true,
 } as const
 
 /**

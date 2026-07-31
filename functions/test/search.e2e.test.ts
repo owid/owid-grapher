@@ -72,13 +72,18 @@ describe.skipIf(!enabled)(
             expect(response.status).toBe(400)
         })
 
-        // "malaria worldwide" has no exact match ("worldwide" doesn't appear on
-        // any malaria chart) but shares the distinctive word "malaria" with many
-        // charts — this is the site's own example of a query the closest-matches
-        // fallback should rescue instead of returning nbHits: 0.
+        // "deforestation brazil amazon rate" has no exact match but shares three
+        // distinctive words with real charts — a query the closest-matches
+        // fallback should rescue instead of returning nbHits: 0. (Algolia
+        // rescues it too, returning `drivers-forest-loss-brazil-amazon`.)
+        //
+        // NB: "malaria worldwide", the example this test used to rely on, is no
+        // longer a zero-result query here — entity lists are searchable again,
+        // and a COVID chart titled "…coverage worldwide" lists malaria as an
+        // entity. See CHARTS_QUERY_BY_WEIGHTS for why that trade is deliberate.
         it("rescues a query with no exact match via closest matches", async () => {
             const response = await workerFetch(
-                "/api/search?type=charts&q=malaria%20worldwide"
+                "/api/search?type=charts&q=deforestation%20brazil%20amazon%20rate"
             )
             expect(response.status).toBe(200)
 
