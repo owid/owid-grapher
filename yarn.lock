@@ -8771,6 +8771,8 @@ __metadata:
     "@algolia/autocomplete-js": "npm:^1.19.8"
     "@algolia/autocomplete-plugin-recent-searches": "npm:^1.19.8"
     "@algolia/autocomplete-theme-classic": "npm:^1.19.8"
+    "@algolia/client-common": "npm:5.53.0"
+    "@algolia/requester-fetch": "npm:5.53.0"
     "@aws-sdk/client-s3": "npm:^3.1089.0"
     "@codemirror/commands": "npm:^6.10.3"
     "@codemirror/lang-markdown": "npm:^6.5.0"
