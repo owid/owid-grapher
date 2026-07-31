@@ -10,10 +10,7 @@ import {
 } from "../../settings/clientSettings.js"
 import { getIndexName } from "./searchClient.js"
 
-// The chronological pages index (which backs /latest) sorts by date, so a
-// newly published article ranks first the moment it's indexed — serving it
-// from a day-old cache would hide new content from the one page where
-// freshness matters most.
+// Don't cache the /latest page. It's not too many requests and freshness matters here.
 const isCacheableIndexName = (indexName: unknown): boolean =>
     indexName !== getIndexName(SearchIndexName.PagesChronological)
 
