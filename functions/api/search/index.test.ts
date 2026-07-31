@@ -307,7 +307,9 @@ describe("Search API endpoint", () => {
                 0,
                 20,
                 ["data-insight"],
-                "http://localhost"
+                "http://localhost",
+                searchApi.DEFAULT_ALPHA,
+                "api"
             )
         })
 
@@ -333,7 +335,9 @@ describe("Search API endpoint", () => {
                 0,
                 20,
                 ["article", "about-page"],
-                "http://localhost"
+                "http://localhost",
+                searchApi.DEFAULT_ALPHA,
+                "api"
             )
         })
 
