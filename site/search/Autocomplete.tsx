@@ -50,6 +50,7 @@ import { buildSynonymMap } from "./synonymUtils.js"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLineChart, faSearch } from "@fortawesome/free-solid-svg-icons"
+import { createDebouncedPromise } from "./debouncePromise.js"
 
 export const AUTOCOMPLETE_CONTAINER_ID = "#autocomplete"
 // A magic number slightly higher than our $md breakpoint to ensure there's
@@ -57,6 +58,11 @@ export const AUTOCOMPLETE_CONTAINER_ID = "#autocomplete"
 // vars in Autocomplete.scss.
 export const DETACHED_MODE_MAX_WIDTH = 1045
 const DETACHED_MEDIA_QUERY = `(max-width: ${DETACHED_MODE_MAX_WIDTH}px)`
+const AUTOCOMPLETE_DEBOUNCE_MS = 200
+// Account for the intentional debounce before using Algolia's default 300 ms
+// threshold to show the stalled loading state as recommended in the docs.
+// https://www.algolia.com/doc/ui-libraries/autocomplete/guides/debouncing-sources
+const STALL_THRESHOLD_MS = AUTOCOMPLETE_DEBOUNCE_MS + 300
 
 const siteAnalytics = new SiteAnalytics()
 type BaseItem = Record<string, unknown>
@@ -477,6 +483,14 @@ export function Autocomplete({
 
     const synonymMap = useMemo(() => buildSynonymMap(), [])
     const recentSearchesPlugin = useMemo(() => buildRecentSearchesPlugin(), [])
+    const debouncedResolveSources = useMemo(
+        () =>
+            createDebouncedPromise<AutocompleteSource<BaseItem>[]>(
+                AUTOCOMPLETE_DEBOUNCE_MS,
+                []
+            ),
+        []
+    )
 
     const [search, setSearch] = useState<AutocompleteApi<BaseItem> | null>(null)
 
@@ -502,6 +516,7 @@ export function Autocomplete({
                 panel: panelClassName,
             },
             openOnFocus: true,
+            stallThreshold: STALL_THRESHOLD_MS,
             onStateChange({ state, prevState }) {
                 if (onActivate && !prevState.isOpen && state.isOpen) {
                     onActivate()
@@ -557,9 +572,10 @@ export function Autocomplete({
                         createAlgoliaChartsSource(searchSource)
                     )
                 } else {
-                    sources.push(FeaturedSearchesSource)
+                    debouncedResolveSources.cancel()
+                    return [FeaturedSearchesSource]
                 }
-                return sources
+                return debouncedResolveSources.schedule(sources)
             },
             plugins: [recentSearchesPlugin],
         })
@@ -588,7 +604,10 @@ export function Autocomplete({
             })
         }
 
-        return () => search.destroy()
+        return () => {
+            debouncedResolveSources.cancel()
+            search.destroy()
+        }
     }, [
         onActivate,
         onClose,
@@ -600,6 +619,7 @@ export function Autocomplete({
         recentSearchesPlugin,
         userCountryNameRef,
         searchSource,
+        debouncedResolveSources,
     ])
 
     // Close the panel on outside click. We can't rely on autocomplete-js's
