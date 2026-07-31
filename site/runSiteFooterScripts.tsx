@@ -97,10 +97,12 @@ function runLatestPage() {
 }
 
 // Loaded lazily so the internal commenting UI (and its dependencies) never
-// ends up in the site chunks that public visitors download.
+// ends up in the site chunks that public visitors download. The overlay itself
+// no-ops unless the page serialized a comment context, which only happens when
+// previewing.
 function mountPreviewCommentsOverlay() {
-    void import("./comments/mountDataPageCommentsOverlay.js").then((module) =>
-        module.mountDataPageCommentsOverlay()
+    void import("./comments/mountCommentsOverlay.js").then((module) =>
+        module.mountCommentsOverlay()
     )
 }
 
@@ -353,6 +355,7 @@ export const runSiteFooterScripts = async (
             break
         case SiteFooterContext.multiDimDataPage:
             hydrateMultiDimDataPageContent(isPreviewing)
+            if (isPreviewing) mountPreviewCommentsOverlay()
             runAllGraphersLoadedListener()
             runSiteNavigation({ hideDonationFlag, isPreviewing })
             runSiteTools()
@@ -363,6 +366,7 @@ export const runSiteFooterScripts = async (
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
             runSiteNavigation({ hideDonationFlag, isPreviewing })
+            if (isPreviewing) mountPreviewCommentsOverlay()
             runAllGraphersLoadedListener()
             runSiteTools()
             runCookiePreferencesManager()

@@ -36,6 +36,7 @@ import { ArchiveContext, Distribution } from "@ourworldindata/types"
 import { DEFAULT_PAGE_DESCRIPTION } from "./dataPage.js"
 import { makeJsonLdGrapherImageUrl } from "./jsonLdHelpers.js"
 import { JsonLdDataPage } from "./jsonLd.js"
+import { buildCommentPageContext } from "./comments/commentContext.js"
 
 export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
@@ -82,6 +83,19 @@ export const DataPageV2 = (props: {
     const variableIds: number[] = _.uniq(
         _.compact(grapher?.dimensions?.map((d) => d.variableId))
     )
+
+    // Only previews get a comment context, which is what gates the overlay:
+    // public visitors never receive it, so nothing about comments loads.
+    const commentPageContext = isPreviewing
+        ? buildCommentPageContext({
+              chartId: grapher?.id,
+              chartLabel: pageTitle,
+              variables: variableIds.map((variableId) => ({
+                  variableId,
+                  label: datapageData.title.title,
+              })),
+          })
+        : undefined
 
     const mergedGrapherConfig = mergeGrapherConfigs(
         datapageData.chartConfig,
@@ -202,6 +216,15 @@ export const DataPageV2 = (props: {
                         )}`,
                     }}
                 />
+                {commentPageContext && (
+                    <script
+                        dangerouslySetInnerHTML={{
+                            __html: `window._OWID_COMMENT_CONTEXT = ${serializeJSONForHTML(
+                                commentPageContext
+                            )}`,
+                        }}
+                    />
+                )}
             </body>
         </Html>
     )

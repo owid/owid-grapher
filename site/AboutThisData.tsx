@@ -11,7 +11,6 @@ import {
 } from "@ourworldindata/components"
 import { DataPageDataV2 } from "@ourworldindata/types"
 import KeyDataTable from "./KeyDataTable.js"
-import { commentAnchorAttrs } from "./comments/commentAnchors.js"
 import { getAttributionUnshortened } from "./datapageUtils.js"
 
 export default function AboutThisData({
@@ -46,10 +45,7 @@ export default function AboutThisData({
                     <div className="col-start-1 span-cols-8 span-lg-cols-7 span-sm-cols-12">
                         <div className="key-info__content">
                             {datapageData.descriptionKey && (
-                                <div
-                                    className="key-info__key-description"
-                                    {...commentAnchorAttrs("descriptionKey")}
-                                >
+                                <div className="key-info__key-description">
                                     <SimpleMarkdownText
                                         text={datapageData.descriptionKey.trim()}
                                     />
