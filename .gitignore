@@ -72,3 +72,6 @@ typesense-data/
 
 .toolbox/
 .pi/
+
+# Email notification previews from `yarn sendEmailNotifications --dry-run`
+.email-notifications-preview/

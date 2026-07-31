@@ -19,6 +19,7 @@ import {
     renderGdocTombstone,
     renderExplorerIndexPage,
     renderSubscribePage,
+    renderEmailNotificationsPreferencesPage,
     renderGdoc,
     renderSlideshowPage,
 } from "../baker/siteRenderers.js"
@@ -26,6 +27,7 @@ import {
     BASE_DIR,
     LEGACY_WORDPRESS_IMAGE_URL,
 } from "../settings/serverSettings.js"
+import { FEATURE_FLAGS, Features } from "../settings/clientSettings.js"
 
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { makeSitemap } from "../baker/sitemap.js"
@@ -335,8 +337,22 @@ mockSiteRouter.get("/thank-you", async (req, res) =>
     res.send(await renderThankYouPage())
 )
 
-mockSiteRouter.get("/subscribe", async (req, res) =>
-    res.send(await renderSubscribePage())
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/subscribe",
+    async (_, res, trx) => res.send(await renderSubscribePage(trx))
+)
+
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/subscribe/preferences",
+    async (_, res, trx) => {
+        if (!FEATURE_FLAGS.has(Features.EmailNotifications)) {
+            res.status(404).send("Not found")
+            return
+        }
+        res.send(await renderEmailNotificationsPreferencesPage(trx))
+    }
 )
 
 getPlainRouteWithROTransaction(

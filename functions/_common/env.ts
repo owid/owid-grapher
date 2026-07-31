@@ -11,6 +11,26 @@ export interface Env {
     MAILCHIMP_API_KEY: string
     MAILCHIMP_API_SERVER: string
     MAILCHIMP_DONOR_LIST_ID: string
+    MAILCHIMP_NEWSLETTER_LIST_ID?: string
+    MAILCHIMP_OWID_BRIEF_INTEREST_ID?: string
+    // Postmark server API token used to send the email notifications
+    // welcome emails. If unset, sending is skipped (useful for local
+    // development).
+    POSTMARK_SERVER_TOKEN?: string
+    // Override for Postmark's API base URL. Point it at the local Postmark
+    // catcher (yarn postmarkCatcher) to inspect emails during development
+    // without sending anything.
+    POSTMARK_API_BASE_URL?: string
+    // Basic-auth password for the Postmark subscription-change webhook
+    // (Postmark has no HMAC signatures). If unset, the webhook endpoint
+    // responds 503.
+    POSTMARK_WEBHOOK_SECRET?: string
+    EMAIL_NOTIFICATIONS_DB?: D1Database
+    // Cloudflare rate limiting binding. Not configurable for Pages projects
+    // (only Workers), so it's currently always undefined; until we migrate to
+    // Workers, rate limiting of the email notifications API is done with a
+    // zone-level WAF rate limiting rule instead.
+    EMAIL_NOTIFICATIONS_RATE_LIMITER?: RateLimit
     CF_PAGES_BRANCH: string
     CLOUDFLARE_IMAGES_API_KEY: string
     CLOUDFLARE_IMAGES_URL: string

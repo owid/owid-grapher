@@ -9,6 +9,7 @@ import ProgressBar from "progress"
 import { stringify } from "safe-stable-stringify"
 import * as db from "../db/db.js"
 import { BASE_DIR } from "../settings/serverSettings.js"
+import { FEATURE_FLAGS, Features } from "../settings/clientSettings.js"
 
 import {
     renderFrontPage,
@@ -24,6 +25,7 @@ import {
     renderThankYouPage,
     makeDataInsightsAtomFeed,
     renderGdocTombstone,
+    renderEmailNotificationsPreferencesPage,
     renderExplorerIndexPage,
     renderLatestPage,
     renderSubscribePage,
@@ -822,8 +824,16 @@ export class SiteBaker {
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/subscribe.html`,
-            await renderSubscribePage()
+            await renderSubscribePage(knex)
         )
+        // The magic-link preferences page is only linked from emails the new
+        // notifications system sends, so it only exists behind the flag.
+        if (FEATURE_FLAGS.has(Features.EmailNotifications)) {
+            await this.stageWrite(
+                `${this.bakedSiteDir}/subscribe/preferences.html`,
+                await renderEmailNotificationsPreferencesPage(knex)
+            )
+        }
         await this.stageWrite(
             `${this.bakedSiteDir}/collection/custom.html`,
             renderDynamicCollectionPage()

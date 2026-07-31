@@ -24,6 +24,22 @@ MAILCHIMP_API_KEY=
 MAILCHIMP_API_SERVER=
 MAILCHIMP_DONOR_LIST_ID=
 
+# for subscribing to the OWID Brief newsletter via
+# /api/email-notifications/subscribe. If unset, the Mailchimp call is skipped
+# (useful for local development).
+MAILCHIMP_NEWSLETTER_LIST_ID=
+# Mailchimp interest (group) id of "The OWID Brief" in the newsletter list
+MAILCHIMP_OWID_BRIEF_INTEREST_ID=
+
+# for sending the email notifications welcome email via
+# /api/email-notifications/subscribe. If unset, sending is skipped
+# (useful for local development). NEVER use the real token in dev — set
+# POSTMARK_API_TEST (validates without sending), or to inspect the emails and
+# click their links, run `yarn postmarkCatcher` and set
+# POSTMARK_API_BASE_URL=http://localhost:8025
+POSTMARK_SERVER_TOKEN=
+POSTMARK_API_BASE_URL=
+
 # analytics
 CLOUDFLARE_GOOGLE_ANALYTICS_MEASUREMENT_PROTOCOL_KEY=
 CLOUDFLARE_GOOGLE_ANALYTICS_MEASUREMENT_ID=
