@@ -1620,12 +1620,22 @@ export async function getMinimalGdocPostsByIds(
 }
 
 /**
- * Maps the canonical paths of published, listed gdocs to their ids, for the
- * types a hover preview card can be shown for.
+ * Maps the canonical paths of published gdocs to their ids, for the types a
+ * hover preview card can be shown for.
  *
  * `slugs` narrows the lookup to the slug candidates of the paths a caller cares
  * about; omit it to build the map for the whole site, which is what the baker
  * does once per bake. Either way it is a single query.
+ *
+ * Deliberately does *not* filter on `publicationContext`. "Unlisted" here means
+ * only that a document is kept out of the Latest feed and the newsletter — the
+ * admin describes unlisted documents as "not listed, but can still be accessed
+ * via the search bar and search engines" — and most topic pages are unlisted
+ * for exactly that reason, being evergreen rather than feed items. Filtering
+ * them out removed the card from links like /hunger-and-undernourishment and
+ * /crop-yields, which is the opposite of the point. Nothing is being surfaced
+ * that wasn't already: the link is rendered either way, and the card only
+ * previews where the reader is already headed.
  *
  * The match is made exact by recomputing `getCanonicalPath` for each row rather
  * than trusting the slug: `getCanonicalPath` isn't injective, so "/sdgs" must
@@ -1648,12 +1658,10 @@ export async function getPreviewableGdocIdsByCanonicalPath(
             SELECT id, slug, type
             FROM ${PostsGdocsTableName}
             WHERE published = 1
-            AND publicationContext = :publicationContext
             AND publishedAt <= NOW()
             AND type IN (:types)
             ${slugs ? "AND slug IN (:slugs)" : ""}`,
         {
-            publicationContext: OwidGdocPublicationContext.listed,
             types: PREVIEWABLE_GDOC_TYPES,
             ...(slugs ? { slugs } : {}),
         }
