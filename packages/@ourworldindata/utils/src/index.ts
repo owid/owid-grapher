@@ -406,6 +406,8 @@ export {
     searchSingleForHitsWithClosestMatches,
 } from "./search/searchClosestMatches.js"
 
+export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
+
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
 export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"
 
