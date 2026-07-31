@@ -90,7 +90,11 @@ describe.runIf(runIntegrationTests)(
             expect(body.nbHits).toBeGreaterThan(0)
         })
 
-        it('stays honestly empty for a non-distinctive query ("world cup")', async () => {
+        it('labels a non-exact query ("world cup") as closest matches', async () => {
+            // Under Algolia this query stayed honestly empty; with hybrid
+            // search the vector arm always surfaces semantic neighbours, so
+            // the honest outcome is returning them labelled as closest
+            // matches rather than pretending they're exact results.
             const response = await workerFetch(
                 "/api/search?type=charts&q=world%20cup"
             )
@@ -101,9 +105,11 @@ describe.runIf(runIntegrationTests)(
                 nbHits: number
                 closestMatches?: boolean
             }
-            expect(body.closestMatches).toBeUndefined()
-            expect(body.results).toEqual([])
-            expect(body.nbHits).toBe(0)
+            if (body.results.length > 0) {
+                expect(body.closestMatches).toBe(true)
+            } else {
+                expect(body.closestMatches).toBeUndefined()
+            }
         })
     }
 )

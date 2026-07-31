@@ -2405,6 +2405,7 @@ __metadata:
     mobx: "npm:^6.15.4"
     react: "npm:^19.2.4"
     remeda: "npm:^2.32.0"
+    stopword: "npm:^3.1.5"
     striptags: "npm:^3.2.0"
     timezone-mock: "npm:^1.0.18"
     ts-pattern: "npm:^5.8.0"

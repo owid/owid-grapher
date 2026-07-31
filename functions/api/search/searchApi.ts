@@ -7,6 +7,7 @@ import {
     OwidGdocType,
 } from "@ourworldindata/types"
 import { getCanonicalUrl } from "@ourworldindata/components"
+import { areTypesenseHitsClosestMatches } from "@ourworldindata/utils"
 import {
     TypesenseConfig,
     TypesenseHit,
@@ -195,6 +196,26 @@ function extractHits<T>(
 /** Over-fetch multiplier when doing API-side deduplication. */
 const DEDUP_OVERFETCH_MULTIPLIER = 3
 
+/** Fetches the set of topics present in the charts collection (tag facet). */
+async function getAvailableTopics(config: TypesenseConfig): Promise<string[]> {
+    const response = await typesenseSearch(
+        config,
+        SearchIndexName.ExplorerViewsMdimViewsAndCharts,
+        {
+            q: "*",
+            query_by: "title",
+            per_page: "0",
+            facet_by: "tags",
+            // Return every tag, not just the top 10 (default max_facet_values)
+            max_facet_values: "500",
+        }
+    )
+    const tagFacet = response.facet_counts?.find(
+        (facet) => facet.field_name === "tags"
+    )
+    return (tagFacet?.counts ?? []).map((count) => count.value).sort()
+}
+
 export async function searchCharts(
     config: TypesenseConfig,
     state: SearchState,
@@ -267,6 +288,26 @@ export async function searchCharts(
 
     let rawHits = extractHits(response)
 
+    // Label the response when not even the best hit keyword-matched every
+    // query token — everything returned is a partial-keyword and/or
+    // semantic-only match. Computed on the full fetched window, before
+    // dedup/pagination slicing.
+    const closestMatches = areTypesenseHitsClosestMatches(state.query, rawHits)
+
+    // If we got zero results and user is filtering by topic, check if the
+    // topic exists
+    if (rawHits.length === 0 && selectedTopics.size > 0) {
+        const availableTopics = await getAvailableTopics(config)
+        const invalidTopics = Array.from(selectedTopics).filter(
+            (topic) => !availableTopics.includes(topic)
+        )
+        if (invalidTopics.length > 0) {
+            throw new SearchValidationError(
+                `No results found. The topic "${invalidTopics.join('", "')}" does not exist. Available topics: ${availableTopics.join(", ")}`
+            )
+        }
+    }
+
     // API-side deduplication: keep only the first hit per deduplicationId,
     // then slice the requested page out of the deduplicated list.
     if (!useTypesenseDedup) {
@@ -319,6 +360,7 @@ export async function searchCharts(
         page,
         nbPages,
         hitsPerPage,
+        ...(closestMatches && { closestMatches: true as const }),
     }
 }
 
@@ -376,6 +418,9 @@ export async function searchPages(
 
     let rawHits = extractHits(response)
 
+    // See the equivalent labelling in searchCharts.
+    const closestMatches = areTypesenseHitsClosestMatches(query, rawHits)
+
     // API-side deduplication: keep only the first hit per slug
     if (!useTypesenseDedup) {
         const seen = new Set<string>()
@@ -421,5 +466,6 @@ export async function searchPages(
         nbHits: response.found,
         offset,
         length,
+        ...(closestMatches && { closestMatches: true as const }),
     }
 }

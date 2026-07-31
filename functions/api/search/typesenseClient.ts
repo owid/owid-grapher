@@ -67,6 +67,9 @@ export interface TypesenseHit<T = Record<string, unknown>> {
         matched_tokens?: string[]
     }>
     text_match?: number
+    text_match_info?: {
+        tokens_matched?: number
+    }
     vector_distance?: number
 }
 
@@ -82,6 +85,10 @@ export interface TypesenseSearchResponse<T = Record<string, unknown>> {
     found: number
     hits?: TypesenseHit<T>[]
     grouped_hits?: TypesenseGroupedHit<T>[]
+    facet_counts?: Array<{
+        field_name: string
+        counts: Array<{ value: string; count: number }>
+    }>
     page: number
     search_time_ms: number
     out_of: number

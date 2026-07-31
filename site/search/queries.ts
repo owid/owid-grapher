@@ -38,6 +38,7 @@ import {
     formatDisjunctiveFacetFilters,
     HYBRID_SEARCH_ALPHA,
 } from "./searchUtils.js"
+import { areTypesenseHitsClosestMatches } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 import { ChartDocument, PageDocument } from "./typesenseCollections.js"
 import { Client } from "typesense"
@@ -64,14 +65,17 @@ function normalizeDateFields(document: object | undefined): {
     modifiedDate?: string
 } {
     const overrides: { date?: string; modifiedDate?: string } = {}
-    const doc = document as
-        | { date?: unknown; modifiedDate?: unknown }
-        | undefined
-    if (typeof doc?.date === "number") {
-        overrides.date = new Date(doc.date * 1000).toISOString()
+    if (!document) return overrides
+    if ("date" in document && typeof document.date === "number") {
+        overrides.date = new Date(document.date * 1000).toISOString()
     }
-    if (typeof doc?.modifiedDate === "number") {
-        overrides.modifiedDate = new Date(doc.modifiedDate * 1000).toISOString()
+    if (
+        "modifiedDate" in document &&
+        typeof document.modifiedDate === "number"
+    ) {
+        overrides.modifiedDate = new Date(
+            document.modifiedDate * 1000
+        ).toISOString()
     }
     return overrides
 }
@@ -101,14 +105,29 @@ function mapTypesenseResponse<
     response: TypesenseSearchResponse<TDoc>,
     query: string,
     page: number,
-    perPage: number
-): SearchResponse<THit> {
+    perPage: number,
+    options?: {
+        /**
+         * The exact `q` sent to Typesense (which may include appended country
+         * phrases, unlike `query`). When set, the response is labelled
+         * `closestMatches: true` if not even the best hit keyword-matched
+         * every query token — see areTypesenseHitsClosestMatches. Only the
+         * result types whose UI shows the "closest matches" banner (charts,
+         * articles, data insights) pass this.
+         */
+        closestMatchesQuery?: string
+    }
+): SearchResponse<THit> & { closestMatches?: boolean } {
     // When group_by is used, results come back in grouped_hits.
     // Extract the first hit from each group (group_limit: 1).
     const rawHits: SearchResponseHit<TDoc>[] =
         response.hits ??
         response.grouped_hits?.flatMap((group) => group.hits ?? []) ??
         []
+
+    const closestMatches =
+        options?.closestMatchesQuery !== undefined &&
+        areTypesenseHitsClosestMatches(options.closestMatchesQuery, rawHits)
 
     const hits = rawHits.map((hit, index) => ({
         ...hit.document,
@@ -128,7 +147,8 @@ function mapTypesenseResponse<
         query,
         params: "",
         processingTimeMS: response.search_time_ms || 0,
-    } as SearchResponse<THit>
+        ...(closestMatches && { closestMatches: true }),
+    } as SearchResponse<THit> & { closestMatches?: boolean }
 }
 
 /** Build a Typesense filter_by string combining type filter and optional extra filters. */
@@ -387,6 +407,15 @@ export async function queryCharts(
             page: 1,
         })
 
+    // Label the response when not even the best hit keyword-matched every
+    // query token — everything returned is a partial-keyword and/or
+    // semantic-only match. Computed on the full fetched window, before
+    // dedup/pagination slicing.
+    const closestMatches = areTypesenseHitsClosestMatches(
+        state.query,
+        response.hits ?? []
+    )
+
     // Deduplicate, then paginate over the unique results client-side.
     const dedupedHits = dedupHitsByDeduplicationId(response.hits ?? [])
 
@@ -413,6 +442,7 @@ export async function queryCharts(
         query: state.query,
         params: "",
         processingTimeMS: response.search_time_ms || 0,
+        ...(closestMatches && { closestMatches: true }),
     } as SearchChartsResponse
 }
 
@@ -475,7 +505,8 @@ export async function queryDataInsights(
         response,
         state.query,
         page,
-        perPage
+        perPage,
+        { closestMatchesQuery: query }
     )
 }
 
@@ -538,7 +569,8 @@ export async function queryArticles(
         response,
         state.query,
         page,
-        length
+        length,
+        { closestMatchesQuery: query }
     )
 }
 
