@@ -7,9 +7,7 @@ import {
     AutocompleteApi,
     AutocompleteSource,
     autocomplete,
-    getAlgoliaResults,
 } from "@algolia/autocomplete-js"
-import { LiteClient, liteClient } from "algoliasearch/lite"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
 import {
     ChartRecordType,
@@ -20,11 +18,10 @@ import {
 } from "@ourworldindata/types"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
-    ALGOLIA_ID,
-    ALGOLIA_SEARCH_KEY,
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../../settings/clientSettings.js"
+import { getTypesenseClient } from "./typesense/typesenseClient.js"
 import { DEFAULT_SEARCH_PLACEHOLDER } from "./searchClient.js"
 import {
     PAGES_INDEX,
@@ -80,12 +77,73 @@ const buildRecentSearchesPlugin = () =>
         },
     })
 
-let liteSearchClient: LiteClient | null
-if (ALGOLIA_ID && ALGOLIA_SEARCH_KEY) {
-    liteSearchClient = liteClient(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
-} else {
-    liteSearchClient = null
-    console.warn("Algolia credentials are not set")
+// The delimiters @algolia/autocomplete-js's Highlight component expects in
+// `_highlightResult` values (see parseAlgoliaHitHighlight). We ask Typesense
+// to emit them directly so the component works unchanged.
+const AA_HIGHLIGHT_PRE_TAG = "__aa-highlight__"
+const AA_HIGHLIGHT_POST_TAG = "__/aa-highlight__"
+
+/**
+ * Runs a keyword-only Typesense search shaped for autocomplete and maps the
+ * hits into autocomplete-js items.
+ *
+ * Deliberately no `vector_query`: hybrid search would call the remote OpenAI
+ * embedder on every keystroke (slow and costly), and keyword-only search
+ * keeps `prefix` matching available, which is exactly what search-as-you-type
+ * needs (Typesense doesn't support prefix search with remote embedders).
+ * Keyword-only also sidesteps the group_by + vector bug worked around in
+ * queries.ts, so we can use native `group_by` for deduplication here.
+ */
+async function searchForAutocompleteItems(options: {
+    collection: string
+    query: string
+    queryBy: string
+    perPage: number
+    groupBy?: string
+    filterBy?: string
+    sortBy?: string
+}): Promise<BaseItem[]> {
+    const client = getTypesenseClient()
+    const response = await client
+        .collections<BaseItem>(options.collection)
+        .documents()
+        .search({
+            q: options.query,
+            query_by: options.queryBy,
+            stopwords: "english",
+            filter_by: options.filterBy,
+            sort_by: options.sortBy,
+            group_by: options.groupBy,
+            group_limit: options.groupBy ? 1 : undefined,
+            per_page: options.perPage,
+            page: 1,
+            highlight_full_fields: "title",
+            highlight_start_tag: AA_HIGHLIGHT_PRE_TAG,
+            highlight_end_tag: AA_HIGHLIGHT_POST_TAG,
+        })
+
+    const rawHits =
+        response.hits ??
+        response.grouped_hits?.flatMap((group) => group.hits ?? []) ??
+        []
+
+    return rawHits.slice(0, options.perPage).map((hit) => {
+        const highlight = hit.highlight as
+            | { title?: { value?: string; snippet?: string } }
+            | undefined
+        const highlightedTitle =
+            highlight?.title?.value ??
+            highlight?.title?.snippet ??
+            (hit.document.title as string | undefined) ??
+            ""
+        return {
+            ...hit.document,
+            // The templates and URL builders key off this, mirroring the
+            // property Algolia's autocomplete preset used to set.
+            __autocomplete_indexName: options.collection,
+            _highlightResult: { title: { value: highlightedTitle } },
+        }
+    })
 }
 
 const onSelect: AutocompleteSource<BaseItem>["onSelect"] = ({
@@ -100,9 +158,9 @@ const onSelect: AutocompleteSource<BaseItem>["onSelect"] = ({
 const getItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({ item }) =>
     item.slug as string
 
-// The slugs we index to Algolia don't include grapher/, explorers/, or data-insights/ subdirectories
+// The slugs we index to search don't include grapher/, explorers/, or data-insights/ subdirectories
 // Prepend them with this function when we need them
-const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
+const prependSubdirectoryToItemUrl = (item: BaseItem): string => {
     const indexName = item.__autocomplete_indexName as string
     return match(indexName)
         .with(PAGES_INDEX, () => {
@@ -149,7 +207,7 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
                 .exhaustive()
         })
         .otherwise(() => {
-            Sentry.captureMessage(`Unknown Algolia index name: ${indexName}`, {
+            Sentry.captureMessage(`Unknown search collection: ${indexName}`, {
                 level: "error",
             })
             return urljoin(BAKED_BASE_URL, item.slug as string)
@@ -185,7 +243,7 @@ const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
     },
 }
 
-const algoliaItemTemplate: AutocompleteSource<BaseItem>["templates"] = {
+const searchResultItemTemplate: AutocompleteSource<BaseItem>["templates"] = {
     item: ({ item, components }) => {
         const indexName = item.__autocomplete_indexName as string
 
@@ -205,7 +263,7 @@ const algoliaItemTemplate: AutocompleteSource<BaseItem>["templates"] = {
             })
             .otherwise(() => {
                 Sentry.captureMessage(
-                    `Unknown Algolia index name: ${indexName}`,
+                    `Unknown search collection: ${indexName}`,
                     { level: "error" }
                 )
                 return { label: "Result", icon: faSearch }
@@ -238,10 +296,10 @@ const algoliaItemTemplate: AutocompleteSource<BaseItem>["templates"] = {
     },
 }
 
-const makeAlgoliaOnSelect =
+const makeSearchResultOnSelect =
     (searchSource?: string): AutocompleteSource<BaseItem>["onSelect"] =>
     ({ navigator, item, state }) => {
-        const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
+        const itemUrl = prependSubdirectoryToItemUrl(item)
         siteAnalytics.logInstantSearchClick({
             query: state.query,
             url: itemUrl,
@@ -251,61 +309,47 @@ const makeAlgoliaOnSelect =
         navigator.navigate({ itemUrl, item, state })
     }
 
-const algoliaGetItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({
+const searchResultGetItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({
     item,
-}) => prependSubdirectoryToAlgoliaItemUrl(item)
+}) => prependSubdirectoryToItemUrl(item)
 
-const createAlgoliaPagesSource = (
+const createPagesSource = (
     searchSource?: string
 ): AutocompleteSource<BaseItem> => ({
     sourceId: "autocomplete",
-    onSelect: makeAlgoliaOnSelect(searchSource),
-    getItemUrl: algoliaGetItemUrl,
+    onSelect: makeSearchResultOnSelect(searchSource),
+    getItemUrl: searchResultGetItemUrl,
     getItems({ query }) {
-        if (!liteSearchClient) return []
-
-        return getAlgoliaResults<BaseItem>({
-            searchClient: liteSearchClient,
-            queries: [
-                {
-                    indexName: PAGES_INDEX,
-                    params: {
-                        query,
-                        hitsPerPage: 2,
-                        distinct: true,
-                        filters: `NOT type:${OwidGdocType.Profile}`,
-                    },
-                },
-            ],
+        return searchForAutocompleteItems({
+            collection: PAGES_INDEX,
+            query,
+            queryBy: "title,excerpt,tags,authors,content",
+            perPage: 2,
+            // pages are indexed as multiple content chunks per slug
+            groupBy: "slug",
+            filterBy: `type:!=${OwidGdocType.Profile}`,
         })
     },
-    templates: algoliaItemTemplate,
+    templates: searchResultItemTemplate,
 })
 
-const createAlgoliaChartsSource = (
+const createChartsSource = (
     searchSource?: string
 ): AutocompleteSource<BaseItem> => ({
     sourceId: "autocomplete-charts",
-    onSelect: makeAlgoliaOnSelect(searchSource),
-    getItemUrl: algoliaGetItemUrl,
+    onSelect: makeSearchResultOnSelect(searchSource),
+    getItemUrl: searchResultGetItemUrl,
     getItems({ query }) {
-        if (!liteSearchClient) return []
-
-        return getAlgoliaResults<BaseItem>({
-            searchClient: liteSearchClient,
-            queries: [
-                {
-                    indexName: CHARTS_INDEX,
-                    params: {
-                        query,
-                        hitsPerPage: 3,
-                        distinct: true,
-                    },
-                },
-            ],
+        return searchForAutocompleteItems({
+            collection: CHARTS_INDEX,
+            query,
+            queryBy: "title,slug,subtitle,variantName,tags",
+            perPage: 3,
+            // equivalent of Algolia's `distinct` on the charts index
+            groupBy: "deduplicationId",
         })
     },
-    templates: algoliaItemTemplate,
+    templates: searchResultItemTemplate,
 })
 
 const createFiltersSource = (
@@ -399,45 +443,34 @@ const createFiltersSource = (
 
 /**
  * Creates a profile source that boosts the user's geolocated country
- * using Algolia's `optionalFilters`. This avoids running expensive
+ * using Typesense's `_eval` optional filtering in `sort_by` (the equivalent
+ * of Algolia's `optionalFilters`). This avoids running expensive
  * client-side country detection on every keystroke while still ensuring:
  * - "energy" → "Energy in Canada" (boosted by geolocation)
- * - "canada" → Canada profiles (matched by Algolia on title)
+ * - "canada" → Canada profiles (matched on title)
  * - "energy france" → "Energy in France" (matched naturally)
- *
- * Requires the `filters` ranking criterion in the index settings
- * (see configureAlgolia.ts).
  */
 const createProfileSource = (
     countryName: string | undefined,
     searchSource?: string
 ): AutocompleteSource<BaseItem> => ({
     sourceId: "profiles",
-    onSelect: makeAlgoliaOnSelect(searchSource),
-    getItemUrl: algoliaGetItemUrl,
+    onSelect: makeSearchResultOnSelect(searchSource),
+    getItemUrl: searchResultGetItemUrl,
     getItems({ query }) {
-        if (!liteSearchClient) return []
-
-        return getAlgoliaResults<BaseItem>({
-            searchClient: liteSearchClient,
-            queries: [
-                {
-                    indexName: PAGES_INDEX,
-                    params: {
-                        query,
-                        filters: `type:${OwidGdocType.Profile}`,
-                        ...(countryName && {
-                            optionalFilters: [
-                                `availableEntities:${countryName}`,
-                            ],
-                        }),
-                        hitsPerPage: 1,
-                    },
-                },
-            ],
+        return searchForAutocompleteItems({
+            collection: PAGES_INDEX,
+            query,
+            queryBy: "title,excerpt,tags,authors,content",
+            perPage: 1,
+            groupBy: "slug",
+            filterBy: `type:=${OwidGdocType.Profile}`,
+            ...(countryName && {
+                sortBy: `_eval(availableEntities:=\`${countryName}\`):desc,_text_match:desc`,
+            }),
         })
     },
-    templates: algoliaItemTemplate,
+    templates: searchResultItemTemplate,
 })
 
 export function Autocomplete({
@@ -553,8 +586,8 @@ export function Autocomplete({
                             userCountryNameRef.current,
                             searchSource
                         ),
-                        createAlgoliaPagesSource(searchSource),
-                        createAlgoliaChartsSource(searchSource)
+                        createPagesSource(searchSource),
+                        createChartsSource(searchSource)
                     )
                 } else {
                     sources.push(FeaturedSearchesSource)
