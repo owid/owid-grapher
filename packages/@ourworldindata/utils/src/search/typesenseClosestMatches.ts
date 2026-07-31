@@ -48,7 +48,9 @@ function getTokensMatched<T>(hit: TypesenseHit<T>): number {
  * `text_match_info.tokens_matched` is the analogue of Algolia's
  * `_rankingInfo.words`, and Typesense's default relevance sort puts
  * tokens_matched first — so, as with Algolia, the best tier is a prefix of the
- * hit list and we can cut where match quality drops.
+ * hit list and we can cut where match quality drops. Note that the relaxed
+ * query below explicitly restores that default ordering; the caller's `sort_by`
+ * would break the assumption.
  *
  * Known difference from the Algolia path: Algolia's `allOptional` makes every
  * query word optional at once, whereas Typesense drops tokens one at a time
@@ -79,6 +81,18 @@ export async function typesenseSearchWithClosestMatches<T>(
     const relaxed = await execute({
         ...params,
         drop_tokens_threshold: RELAXED_DROP_TOKENS_THRESHOLD,
+        // Fall back to Typesense's default relevance ordering, which sorts by
+        // tokens_matched first. The tiering below *requires* that: it keeps the
+        // leading run of hits sharing the best tokens_matched, which is only
+        // the best tier if the list is ordered by it.
+        //
+        // Our normal sort_by is not. `_text_match(buckets: N)` deliberately
+        // flattens text-match differences so the popularity `score` can break
+        // ties — which puts popular one-token matches above rare three-token
+        // ones. Left in place, "deforestation brazil amazon rate" reported
+        // topTokens = 1 with 1039 hits, tripped the noise guard, and returned
+        // an empty result where Algolia rescues it.
+        sort_by: undefined,
         // Also drop the stopword set. A query made up entirely of stopwords
         // ("about", "how many") is reduced to nothing by Typesense and matches
         // zero documents, where Algolia keeps stop words when removing them
