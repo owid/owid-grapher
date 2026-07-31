@@ -60,6 +60,36 @@ describe("cached queries proxy endpoint", () => {
         expect(mockCache.put).toHaveBeenCalledOnce()
     })
 
+    it("caches payloads touching the chronological pages index for only 15 minutes", async () => {
+        const body = JSON.stringify({
+            requests: [
+                { indexName: "pages-chronological", query: "" },
+                { indexName: "charts", query: "" },
+            ],
+        })
+        const response = await onRequestPost(makeContext(body))
+
+        expect(response.status).toBe(200)
+        expect(response.headers.get("Cache-Control")).toBe(
+            "public, max-age=900"
+        )
+    })
+
+    it("identifies the chronological pages index behind an index prefix", async () => {
+        const envWithPrefix = {
+            ...mockEnv,
+            ALGOLIA_INDEX_PREFIX: "test",
+        } as Env
+        const body = JSON.stringify({
+            requests: [{ indexName: "test-pages-chronological", query: "" }],
+        })
+        const response = await onRequestPost(makeContext(body, envWithPrefix))
+
+        expect(response.headers.get("Cache-Control")).toBe(
+            "public, max-age=900"
+        )
+    })
+
     it("serves a cached response without contacting Algolia", async () => {
         mockCache.match.mockResolvedValue(
             new Response(JSON.stringify({ results: [] }), { status: 200 })

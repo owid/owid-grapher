@@ -3,8 +3,8 @@
  * body POSTed to Algolia's multi-query "queries" endpoint) consists
  * exclusively of searches with an empty query string. These are the "browse"
  * requests issued by default states — the search landing page, the empty
- * autocomplete panel, featured metrics — and are highly cacheable since they
- * don't depend on user input.
+ * autocomplete panel, /latest, featured metrics — and are highly cacheable
+ * since they don't depend on user input.
  *
  * Used on both sides of our caching proxy: the site's search client routes
  * such payloads to the proxy (`site/search/searchClients.ts`), and the
