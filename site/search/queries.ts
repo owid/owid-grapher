@@ -49,6 +49,7 @@ import {
     PAGES_QUERY_BY_RESTRICTED,
     PAGES_QUERY_BY_RESTRICTED_WEIGHTS,
     PAGES_SORT_BY,
+    TYPESENSE_RELEVANCE_PARAMS,
     TYPESENSE_STOPWORDS_SET,
     TYPESENSE_SYNONYM_SET,
 } from "@ourworldindata/utils"
@@ -124,6 +125,7 @@ function toTypesenseQuery(query: string): string {
 
 /** Parameters every collection search shares. */
 const COMMON_PARAMS = {
+    ...TYPESENSE_RELEVANCE_PARAMS,
     stopwords: TYPESENSE_STOPWORDS_SET,
     synonym_sets: TYPESENSE_SYNONYM_SET,
     highlight_start_tag: "<mark>",

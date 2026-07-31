@@ -48,20 +48,48 @@ export const CHARTS_QUERY_BY_WEIGHTS = [
 ].join(",")
 
 /**
+ * The closest thing Typesense has to Algolia's `attribute` ranking criterion,
+ * and the single most important setting here.
+ *
+ * `text_match_type` defaults to `max_score`, which ranks on how *well* the best
+ * field matched and treats the field's weight as a minor tie-breaker. That
+ * loses the distinction Algolia makes between "matched in the title" and
+ * "matched in a tag": Typesense would score a chart that matched one token in
+ * its title and one in its tags the same as one that matched both in its title,
+ * and the popularity `score` then decided. Searching "energy consumption"
+ * returned land-use charts, which match "use" (via the `energy use` synonym) in
+ * their title and "energy" in an `Energy and Environment` tag.
+ *
+ * `max_weight` promotes the best-matching field's *weight* to the dominant
+ * component, so `query_by_weights` above behaves like Algolia's ordered
+ * `searchableAttributes`.
+ *
+ * `prioritize_num_matching_fields` defaults to true and boosts documents that
+ * match across more fields — Algolia has no such rule, and it actively rewards
+ * exactly the scattered cross-field matches described above.
+ *
+ * Measured over 16 queries against Algolia's top 5: 41/80 → 50/80. "energy
+ * consumption" went 0/5 → 4/5 and "renewable energy" 0/5 → 3/5.
+ */
+export const TYPESENSE_RELEVANCE_PARAMS = {
+    text_match_type: "max_weight",
+    prioritize_num_matching_fields: false,
+} as const
+
+/**
  * Algolia's `customRanking` for the charts index: desc(score),
  * asc(viewTitleIndexWithinExplorer), asc(titleLength).
  *
- * `_text_match(buckets: 3)` is what makes those tie-breakers matter. Typesense's
+ * `_text_match(buckets: 8)` is what makes those tie-breakers matter. Typesense's
  * raw `_text_match` is so fine-grained that it almost never ties, which would
  * leave the custom ranking dead code; bucketing groups comparable relevance
  * scores together so the tie-breakers decide within a bucket — the same shape as
- * Algolia's coarse, tiered ranking criteria.
+ * Algolia's tiered ranking criteria. Unbucketed measured clearly worse (45/80).
  *
- * 3 buckets rather than 10: on a 12-query spot check against Algolia, coarser
- * bucketing (i.e. letting the popularity `score` outweigh small relevance
- * differences, as Algolia's tiers do) matched Algolia noticeably more often —
- * 30/60 top-5 hits vs 24/60 at 10 buckets and 22/60 unbucketed. That sample is
- * too small to treat as tuned; it only says "coarse beats fine" here.
+ * The exact bucket count barely matters once `max_weight` is in play: anything
+ * from 5 to 12 scored 48–50/80, because the relevance signal is already
+ * dominated by field weight rather than by fine score differences. 8 sits in
+ * the middle of that flat region — it is not a tuned value.
  *
  * Typesense allows at most 3 sort fields, one short of what the Algolia ranking
  * needs, so the last two are folded into the precomputed `rankTiebreaker` field
@@ -69,7 +97,7 @@ export const CHARTS_QUERY_BY_WEIGHTS = [
  * `viewTitleIndexWithinExplorer:asc, titleLength:asc`.
  */
 export const CHARTS_SORT_BY = [
-    "_text_match(buckets: 3):desc",
+    "_text_match(buckets: 8):desc",
     "score:desc",
     "rankTiebreaker:asc",
 ].join(",")
@@ -112,7 +140,7 @@ export const PAGES_QUERY_BY_RESTRICTED_WEIGHTS = [10, 8, 5, 6].join(",")
 
 /** Algolia's `customRanking` for the pages index: desc(score), desc(importance). */
 export const PAGES_SORT_BY = [
-    "_text_match(buckets: 3):desc",
+    "_text_match(buckets: 8):desc",
     "score:desc",
     "importance:desc",
 ].join(",")

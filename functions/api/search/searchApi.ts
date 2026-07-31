@@ -24,6 +24,7 @@ import {
     PAGES_QUERY_BY,
     PAGES_QUERY_BY_WEIGHTS,
     PAGES_SORT_BY,
+    TYPESENSE_RELEVANCE_PARAMS,
     TYPESENSE_STOPWORDS_SET,
     TYPESENSE_SYNONYM_SET,
 } from "@ourworldindata/utils"
@@ -186,6 +187,7 @@ export async function searchCharts(
         include_fields: DATA_CATALOG_ATTRIBUTES.join(","),
         highlight_start_tag: "<mark>",
         highlight_end_tag: "</mark>",
+        ...TYPESENSE_RELEVANCE_PARAMS,
         stopwords: TYPESENSE_STOPWORDS_SET,
         synonym_sets: TYPESENSE_SYNONYM_SET,
         // Algolia does prefix matching on the last query word by default, but
@@ -307,6 +309,7 @@ export async function searchPages(
         include_fields: PAGE_ATTRIBUTES.join(","),
         highlight_start_tag: "<mark>",
         highlight_end_tag: "</mark>",
+        ...TYPESENSE_RELEVANCE_PARAMS,
         stopwords: TYPESENSE_STOPWORDS_SET,
         synonym_sets: TYPESENSE_SYNONYM_SET,
         prefix: false,

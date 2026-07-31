@@ -13,11 +13,12 @@ reading this code is always "what did Algolia do here?". The mapping:
 | Algolia                                   | Typesense                                                   |
 | ----------------------------------------- | ----------------------------------------------------------- |
 | `searchableAttributes` (order = ranking)  | `query_by` + `query_by_weights` (query-time)                |
-| `customRanking`                           | `sort_by` after `_text_match(buckets: 3)` (query-time)      |
+| `customRanking`                           | `sort_by` after `_text_match(buckets: 8)` (query-time)      |
 | `attributeForDistinct` + `distinct: true` | `group_by` + `group_limit: 1`                               |
+| `attribute` ranking criterion             | `text_match_type: "max_weight"`                             |
 | `facetFilters`                            | `filter_by` with `:=` exact match                           |
 | `removeStopWords: ["en"]`                 | a `stopwords` set uploaded server-side, named in each query |
-| synonyms                                  | per-collection synonyms, reapplied after every reindex      |
+| synonyms                                  | a global synonym set, named in each query                   |
 | `removeWordsIfNoResults: "allOptional"`   | `drop_tokens_threshold` (see `typesenseClosestMatches.ts`)  |
 
 The Algolia settings being mirrored live in `baker/algolia/configureAlgolia.ts`;
@@ -28,35 +29,40 @@ synonyms).
 
 ## Known differences from Algolia
 
-This is not a behaviour-preserving swap. On a 12-query spot check, the top 5
-chart results overlapped Algolia's by roughly half. The differences trace back
-to one structural gap and its consequences:
+This is not a behaviour-preserving swap, but the largest source of divergence
+has a fix. **Typesense counts a query token as matched regardless of which
+queried field it hit.** Left at its defaults it also has no equivalent of
+Algolia's `attribute` ranking criterion, so a chart matching one token in its
+title and one in a tag scored the same as one matching both in its title, and
+the popularity `score` broke the tie.
 
-**Typesense counts a query token as matched regardless of which queried field it
-hit, and has no equivalent of Algolia's `exact` / `attribute` ranking criteria.**
-Algolia ranks a literal match in a high-priority attribute above a
-synonym-substituted match in a low-priority one, before popularity is
-considered. Typesense scores both as "2 of 2 tokens matched" and then lets the
-`score` tie-breaker decide, so a popular but loosely-related chart wins.
+Two settings recover most of that, both in `TYPESENSE_RELEVANCE_PARAMS`:
 
-Two knock-on effects, both real and both observed:
+- `text_match_type: "max_weight"` — makes the best-matching field's _weight_ the
+  dominant ranking component, so `query_by_weights` behaves like Algolia's
+  ordered `searchableAttributes`. The default, `max_score`, treats weight as a
+  minor tie-breaker.
+- `prioritize_num_matching_fields: false` — the default (true) boosts documents
+  matching across more fields, which is exactly the scattered cross-field match
+  we want to punish. Algolia has no such rule.
 
-- **Multi-word synonyms match as loose token sets, not phrases.** The group
-  `["energy consumption", "energy use", …]` means the query "energy consumption"
-  also matches "Land **use** per 100 grams of protein" — "use" from the title,
-  "energy" from its `Energy and Environment` tag. Algolia returns energy charts.
-  Similarly `["per capita", "per person"]` combined with the `gdp` group pushes
-  "Energy use per person vs. GDP per capita" above the literal "GDP per capita".
-- **Cross-field matching invents matches.** This is why `availableEntities` is
-  excluded from `query_by` (see `typesenseSearchParams.ts`): with it, "malaria
-  worldwide" matched a COVID chart titled "…coverage worldwide" that happens to
-  list malaria as an entity.
+Measured over 16 queries against Algolia's top 5, these took the overlap from
+41/80 to 50/80. `energy consumption` went 0/5 → 4/5 (it had been returning
+land-use charts, which match "use" via the `energy use` synonym plus "energy"
+from an `Energy and Environment` tag), and `renewable energy` 0/5 → 3/5.
 
-Turning synonyms off does not help overall (it scored the same on the spot
-check) — it trades these bad matches for missing the abbreviation queries
-synonyms exist to serve. Closing the gap properly needs either query-side
-reranking or a change in how synonyms are expressed, neither of which is in
-this change.
+What still differs:
+
+- **Roughly a third of top-5 results.** Multi-word synonyms still match as loose
+  token sets rather than phrases, so e.g. `["per capita", "per person"]`
+  combined with the `gdp` group can favour "Energy use per person vs. GDP per
+  capita" over the literal "GDP per capita".
+- **`availableEntities` is excluded from `query_by`.** Even with the settings
+  above, having entity names searchable makes "malaria worldwide" match a COVID
+  chart titled "…coverage worldwide" that lists malaria as an entity — it
+  returns 5 hits where Algolia returns none, which defeats the closest-matches
+  fallback. Country names typed as free text therefore don't match through the
+  entity list; the UI turns recognised ones into filters instead.
 
 ## Collections
 
@@ -89,9 +95,9 @@ docker compose -f docker-compose.grapher.yml up typesense   # or `make up.full`
 make reindex.typesense
 ```
 
-`make reindex.typesense` recreates both collections, imports the records, and
-then applies stopwords and synonyms. That order matters: synonyms are stored
-per collection, so recreating a collection drops them.
+`make reindex.typesense` applies stopwords and synonyms, then recreates both
+collections and imports the records. Stopwords and synonym sets are global in
+Typesense 30, so they survive a reindex and the order doesn't matter.
 
 Requires `TYPESENSE_INDEXING=true` in `.env`.
 
@@ -102,14 +108,17 @@ curl 'http://localhost:8108/collections/explorer-views-and-charts/documents/sear
   -H 'X-TYPESENSE-API-KEY: xyz' \
   --get \
   --data-urlencode 'q=life expectancy' \
-  --data-urlencode 'query_by=title,containerTitle,slug,variantName,subtitle,tags,availableEntities,originalAvailableEntities,datasetProducers' \
-  --data-urlencode 'query_by_weights=10,9,8,7,3,4,2,2,5' \
-  --data-urlencode 'sort_by=_text_match(buckets: 3):desc,score:desc,rankTiebreaker:asc' \
+  --data-urlencode 'query_by=title,containerTitle,slug,variantName,subtitle,tags,datasetProducers' \
+  --data-urlencode 'query_by_weights=10,9,8,7,3,4,5' \
+  --data-urlencode 'sort_by=_text_match(buckets: 8):desc,score:desc,rankTiebreaker:asc' \
   --data-urlencode 'group_by=deduplicationId' \
   --data-urlencode 'group_limit=1' \
   --data-urlencode 'stopwords=english' \
+  --data-urlencode 'synonym_sets=owid' \
   --data-urlencode 'prefix=false' \
-  --data-urlencode 'drop_tokens_threshold=0'
+  --data-urlencode 'drop_tokens_threshold=0' \
+  --data-urlencode 'text_match_type=max_weight' \
+  --data-urlencode 'prioritize_num_matching_fields=false'
 ```
 
 A few parameters are easy to get wrong:
@@ -119,4 +128,5 @@ A few parameters are easy to get wrong:
 | `drop_tokens_threshold` | Typesense defaults to `1`, i.e. it silently retries with fewer tokens when a query finds nothing. We set `0` so the explicit "closest matches" fallback stays in charge, matching Algolia's default of requiring every word. |
 | `prefix`                | Defaults to `true` (prefix-matches the last word). We set `false`, closer to Algolia's `disablePrefixOnAttributes` behaviour.                                                                                                |
 | `_text_match(buckets:)` | Without bucketing, `_text_match` almost never ties and the `sort_by` tie-breakers after it never fire — so `score` would be ignored.                                                                                         |
+| `text_match_type`       | Must be `max_weight`. The default ranks on best-field _score_ and demotes field weight to a tie-breaker, which loses Algolia's "a title match beats a tag match" rule entirely.                                              |
 | `q=*`                   | Typesense has no empty-query mode; `*` matches everything, which is what a blank Algolia query does.                                                                                                                         |
