@@ -80,12 +80,6 @@ export function indicatorCommentFields(
             targetIndex
         ),
         textField(
-            "attributionShort",
-            "Attribution (short)",
-            datapageData.attributionShort,
-            targetIndex
-        ),
-        textField(
             "descriptionShort",
             "Short description",
             datapageData.descriptionShort,

@@ -193,6 +193,12 @@
         opacity: 1;
         border-color: #002147;
     }
+
+    // The whole bubble is the hit target; without this the emoji swallows the
+    // click and hit-testing resolves to the span rather than the button
+    > * {
+        pointer-events: none;
+    }
 }
 
 .comments-bubble--has-comments,
