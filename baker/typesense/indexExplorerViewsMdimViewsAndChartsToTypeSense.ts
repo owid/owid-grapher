@@ -7,6 +7,7 @@ import * as db from "../../db/db.js"
 import { TYPESENSE_INDEXING } from "../../settings/serverSettings.js"
 import ProgressBar from "progress"
 import { getTypeSenseClient } from "./typesenseSearchClient.js"
+import { ensureSynonymSet } from "./typesenseSynonyms.js"
 import {
     createCacheTable,
     saveRecordsToCache,
@@ -68,6 +69,10 @@ const indexExplorerViewsMdimViewsAndChartsToTypeSense = async () => {
     console.log(
         `Indexing explorer views and charts to TypeSense collection: ${collectionName}`
     )
+    // Ensure the synonym set exists before (re)creating the collection,
+    // which references it via `synonym_sets`
+    await ensureSynonymSet()
+
     // Create or update the TypeSense collection
     await recreateCollection(client, chartsCollectionSchema, collectionName)
 

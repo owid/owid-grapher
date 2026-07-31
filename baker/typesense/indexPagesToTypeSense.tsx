@@ -7,6 +7,7 @@ import * as db from "../../db/db.js"
 import { TYPESENSE_INDEXING } from "../../settings/serverSettings.js"
 import ProgressBar from "progress"
 import { getTypeSenseClient } from "./typesenseSearchClient.js"
+import { ensureSynonymSet } from "./typesenseSynonyms.js"
 import {
     checkTableExistsAndNotEmpty,
     createCacheTable,
@@ -63,6 +64,10 @@ const indexPagesToTypeSense = async () => {
 
     // Ensure stopwords set exists (needed for keyword search quality)
     await ensureStopwordsSet(client)
+
+    // Ensure the synonym set exists before (re)creating the collection,
+    // which references it via `synonym_sets`
+    await ensureSynonymSet()
 
     // Create or update the TypeSense collection
     await recreateCollection(client, pagesCollectionSchema, collectionName)

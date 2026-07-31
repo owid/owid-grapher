@@ -21,6 +21,17 @@ The embedding field must be listed in `query_by` for hybrid search to work.
 
 > **Note:** `availableEntities` / `originalAvailableEntities` are intentionally **not** in the charts `query_by`. Keyword (BM25) matching against entity names lets a single sector entity (e.g. "Education", "Manufacturing") outrank real title/topic matches on one-word topic queries. Country filtering still uses these fields via `filter_by` (`availableEntities:=...`), just not free-text `query_by`.
 
+## Synonyms
+
+Both collections reference the `owid-synonyms` [synonym set](https://typesense.org/docs/30.1/api/synonyms.html) via `synonym_sets` in their schemas, so every query applies it automatically — no per-query parameter needed. The set is upserted by the indexers (`ensureSynonymSet` in `baker/typesense/typesenseSynonyms.ts`) and mirrors the Algolia synonym configuration exactly:
+
+- the shared synonym groups from `site/search/synonymUtils.ts` as **multi-way synonyms** (e.g. `imf` ⟷ `international monetary fund`)
+- every country variant name as a **one-way synonym** of the canonical country name (`root: "USA"` → `synonyms: ["United States"]`), so "USA" finds United States charts but "United States" doesn't surface USA-only mentions
+
+Two Typesense caveats (by design): synonyms are not applied inside quoted phrase searches, and never to `filter_by` values — country _filters_ always use canonical names.
+
+Note: the `typesense` npm client (2.x) predates the v30 `/synonym_sets` API (the per-collection synonyms API it implements was removed from the server in v30), which is why `ensureSynonymSet` uses a raw `fetch`.
+
 ## Query Examples
 
 All examples use the Typesense REST API against a local Typesense instance.
