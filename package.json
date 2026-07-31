@@ -200,8 +200,8 @@
         "@types/react-router-dom": "^5.3.3",
         "@types/topojson-server": "^3.0.4",
         "@types/yargs": "^17.0.35",
-        "@vitejs/plugin-react": "^6.0.3",
-        "@vitest/coverage-v8": "^4.1.9",
+        "@vitejs/plugin-react": "^6.0.4",
+        "@vitest/coverage-v8": "^4.1.10",
         "@yarnpkg/types": "^4.0.1",
         "bundlemon": "^3.1.0",
         "chokidar-cli": "^3.0.0",
@@ -223,8 +223,8 @@
         "topojson-server": "^3.0.1",
         "tsx": "^4.23.0",
         "typescript": "^7.0.2",
-        "vite": "^8.1.0",
-        "vitest": "^4.1.9",
+        "vite": "^8.1.5",
+        "vitest": "^4.1.10",
         "wrangler": "^4.114.0"
     },
     "resolutions": {
