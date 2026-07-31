@@ -68,9 +68,7 @@ describe(areTypesenseHitsClosestMatches, () => {
         // "the" and "of" are never matched by Typesense (server-side
         // stopwords), so 2 matched tokens is a full match here
         expect(
-            areTypesenseHitsClosestMatches("the population of France", [
-                hit(2),
-            ])
+            areTypesenseHitsClosestMatches("the population of France", [hit(2)])
         ).toBe(false)
     })
 
