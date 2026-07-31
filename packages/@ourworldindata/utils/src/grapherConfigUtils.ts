@@ -83,3 +83,30 @@ export function diffGrapherConfigs(
 
     return { ...diffed, ...keep }
 }
+
+/**
+ * Recompute a chart patch against a new parent stack. Unlike
+ * `diffGrapherConfigs`, this doesn't keep required keys unconditionally: every
+ * field falls through to the parent stack when it matches, and only real
+ * overrides survive in the patch. Descends into nested plain objects (e.g.
+ * `yAxis`) field-by-field, so a partially-adopted nested override (some of its
+ * children now match the new parent stack, others don't) drops only the
+ * matching children instead of keeping the whole object pinned in the patch.
+ */
+export function rediffPatchAgainstNewParentStack(
+    existingPatch: GrapherInterface,
+    newParentStack: GrapherInterface
+): GrapherInterface {
+    const diffed = traverseObjects(
+        existingPatch,
+        newParentStack,
+        (value, refValue, key) => {
+            if (KEYS_EXCLUDED_FROM_INHERITANCE.includes(key)) return value
+            if (refValue === undefined) return value
+            if (!_.isEqual(value, refValue)) return value
+            return undefined
+        }
+    )
+
+    return omitEmptyObjectsRecursive(omitUndefinedValuesRecursive(diffed))
+}
