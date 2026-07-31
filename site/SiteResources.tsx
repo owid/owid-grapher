@@ -10,6 +10,9 @@ export const SiteResources = () => {
                 <a href="/explorers">Data Explorers</a>
             </li>
             <li>
+                <a href="/featured-viz">Featured Visualizations</a>
+            </li>
+            <li>
                 <a href="/sdgs">SDG Tracker</a>
             </li>
             <li>

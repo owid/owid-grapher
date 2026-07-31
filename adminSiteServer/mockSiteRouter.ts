@@ -13,6 +13,7 @@ import {
     renderExplorerPage,
     makeAtomFeedNoTopicPages,
     renderDynamicCollectionPage,
+    renderFeaturedVizPage,
     renderTopChartsCollectionPage,
     renderThankYouPage,
     makeDataInsightsAtomFeed,
@@ -219,6 +220,10 @@ getPlainRouteWithROTransaction(
 
 mockSiteRouter.get("/collection/custom", async (_, res) => {
     return res.send(renderDynamicCollectionPage())
+})
+
+mockSiteRouter.get("/featured-viz", async (_, res) => {
+    return res.send(renderFeaturedVizPage())
 })
 
 getPlainRouteWithROTransaction(

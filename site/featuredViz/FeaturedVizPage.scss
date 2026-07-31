@@ -1,0 +1,197 @@
+.featured-viz-page__header {
+    background-color: $blue-5;
+    border-bottom: 1px solid $blue-20;
+    padding: 32px 0 40px;
+}
+
+.featured-viz-page__prototype-notice {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    margin-bottom: 16px;
+    border-radius: 24px;
+    background-color: $amber-10;
+    border: 1px solid $amber;
+    color: $blue-90;
+
+    svg {
+        color: $blue-60;
+    }
+}
+
+.featured-viz-page__header h1 {
+    margin: 0 0 8px;
+    color: $blue-90;
+}
+
+.featured-viz-page__subtitle {
+    margin: 0;
+    max-width: 48rem;
+    color: $blue-70;
+}
+
+.featured-viz-page__jump-nav {
+    margin-top: 24px;
+
+    .overline-black-caps {
+        display: block;
+        margin-bottom: 8px;
+        color: $blue-50;
+    }
+
+    ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    a {
+        display: inline-block;
+        padding: 6px 16px;
+        border: 1px solid $blue-20;
+        border-radius: 24px;
+        background-color: $white;
+        color: $blue-90;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+
+        &:hover {
+            background-color: $blue-90;
+            border-color: $blue-90;
+            color: $white;
+        }
+    }
+}
+
+.featured-viz-page__section {
+    padding: 48px 0 40px;
+    scroll-margin-top: 16px;
+}
+
+.featured-viz-page__section + .featured-viz-page__section {
+    border-top: 1px solid $blue-20;
+}
+
+.featured-viz-page__eyebrow {
+    display: block;
+    margin-bottom: 8px;
+    color: $vermillion;
+}
+
+.featured-viz-page__section-intro h2 {
+    margin: 0 0 16px;
+    color: $blue-90;
+}
+
+.featured-viz-page__draft-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    vertical-align: middle;
+    margin-left: 12px;
+    padding: 4px 12px;
+    border-radius: 24px;
+    background-color: $amber-10;
+    border: 1px solid $amber;
+    color: $blue-90;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+
+    svg {
+        color: $blue-60;
+    }
+}
+
+.featured-viz-page__section-intro p {
+    margin: 0;
+    color: $blue-70;
+}
+
+.featured-viz-page__section-highlights {
+    .overline-black-caps {
+        display: block;
+        margin-bottom: 12px;
+        color: $blue-50;
+    }
+
+    ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    li {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        padding: 8px 0;
+        color: $blue-90;
+        font-size: 0.875rem;
+        line-height: 1.4;
+    }
+
+    li + li {
+        border-top: 1px solid $gray-10;
+    }
+
+    svg {
+        flex-shrink: 0;
+        width: 14px;
+        color: $vermillion;
+    }
+
+    @include md-down {
+        margin-top: 24px;
+    }
+}
+
+.featured-viz-page__embed {
+    margin-top: 32px;
+    padding: 24px;
+    border: 1px solid $gray-20;
+    border-radius: 2px;
+    background-color: $white;
+    // Reserve space so the page doesn't jump around while the
+    // visualizations load in.
+    min-height: 480px;
+
+    @include sm-only {
+        padding: 8px;
+    }
+
+    .loading-indicator {
+        min-height: 432px;
+    }
+}
+
+.featured-viz-page__section-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px 24px;
+    margin-top: 16px;
+}
+
+.featured-viz-page__authors {
+    color: $blue-50;
+}
+
+.featured-viz-page__article-link {
+    @include owid-link-90;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    svg {
+        font-size: 0.75em;
+    }
+}

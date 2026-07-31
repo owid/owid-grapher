@@ -7,6 +7,7 @@ import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.j
 import NotFoundPage from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
 import { ExplorerIndexPage } from "../site/ExplorerIndexPage.js"
+import { FeaturedVizPage } from "../site/featuredViz/FeaturedVizPage.js"
 import { SubscribePage } from "../site/SubscribePage.js"
 import { ThankYouPage } from "../site/ThankYouPage.js"
 import TombstonePage from "../site/TombstonePage.js"
@@ -135,6 +136,10 @@ export async function renderTopChartsCollectionPage(
 
 export function renderDynamicCollectionPage() {
     return renderToHtmlPage(<DynamicCollectionPage baseUrl={BAKED_BASE_URL} />)
+}
+
+export function renderFeaturedVizPage() {
+    return renderToHtmlPage(<FeaturedVizPage baseUrl={BAKED_BASE_URL} />)
 }
 
 export const renderGdocsPageBySlug = async (
