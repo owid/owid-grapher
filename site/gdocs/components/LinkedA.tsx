@@ -1,16 +1,32 @@
 import { getLinkType } from "@ourworldindata/components"
-import { SpanLink } from "@ourworldindata/types"
+import { OwidGdocMinimalPostInterface, SpanLink } from "@ourworldindata/types"
 import { useLinkedDocument, useLinkedChart } from "../utils.js"
 import { Url } from "@ourworldindata/utils"
 import Tippy from "@tippyjs/react"
 import SpanElements from "./SpanElements.js"
 import { ChartPreview } from "./ChartPreview.js"
+import { DocumentPreview } from "./DocumentPreview.js"
 import { SiteAnalytics } from "../../SiteAnalytics.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons"
 import { useDocumentContext } from "../DocumentContext.js"
 
 const analytics = new SiteAnalytics()
+
+/**
+ * Whether there's enough material to make a hover preview card worth showing.
+ * A card with nothing but a title that repeats the link text is worse than no
+ * card at all — the common case for data insights.
+ */
+function hasDocumentPreviewContent(
+    linkedDocument: OwidGdocMinimalPostInterface
+): boolean {
+    return Boolean(
+        linkedDocument.excerpt ||
+        linkedDocument.subtitle ||
+        linkedDocument["featured-image"]
+    )
+}
 
 export default function LinkedA({ span }: { span: SpanLink }) {
     const linkType = getLinkType(span.url)
@@ -72,10 +88,37 @@ export default function LinkedA({ span }: { span: SpanLink }) {
         )
     }
     if (linkedDocument && linkedDocument.published && linkedDocument.url) {
-        return (
+        const documentLink = (
             <a href={linkedDocument.url} className="span-link">
                 <SpanElements spans={span.children} />
             </a>
+        )
+
+        // Cloudflare Images URLs aren't archived, so the thumbnail would break.
+        if (isOnArchivalPage) {
+            return documentLink
+        }
+
+        if (!hasDocumentPreviewContent(linkedDocument)) {
+            return documentLink
+        }
+
+        return (
+            <Tippy
+                content={<DocumentPreview linkedDocument={linkedDocument} />}
+                onShow={() =>
+                    analytics.logDocumentPreviewMouseover(linkedDocument.url)
+                }
+                appendTo={() => document.body}
+                delay={[300, 0]}
+                placement="top"
+                maxWidth={400}
+                theme="light"
+                arrow={false}
+                touch={false}
+            >
+                {documentLink}
+            </Tippy>
         )
     }
     if (errorMessage && isPreviewing) {
