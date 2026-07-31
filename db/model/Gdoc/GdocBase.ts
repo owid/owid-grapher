@@ -1065,8 +1065,6 @@ export class GdocBase implements OwidGdocBaseInterface {
             await getMinimalGdocPostsByIds(knex, this.linkedDocumentIds)
 
         this.linkedDocuments = _.keyBy(linkedDocuments, "id")
-
-        await this.loadDocumentsLinkedByPath(knex)
     }
 
     /**
@@ -1075,6 +1073,16 @@ export class GdocBase implements OwidGdocBaseInterface {
      * — the gdoc-id resolution in `loadLinkedDocuments`: nothing that already
      * resolves by id changes, this only adds documents that were previously
      * unreachable because the link was authored as a plain URL.
+     *
+     * Deliberately called from `loadState` rather than from
+     * `loadLinkedDocuments`, so that callers which only want the gdoc-id
+     * resolution don't silently get these too. In particular the Algolia
+     * chronological indexer calls `loadLinkedDocuments` directly and then
+     * copies the whole `linkedDocuments` map into its record
+     * (`copyAttachmentsIfPresent`); since those records aren't put through
+     * `shrinkRecordsToFitAlgoliaLimit`, adding a document per inline body link
+     * there could push a record past Algolia's size limit for the sake of an
+     * excerpt that only renders a couple of links.
      *
      * Two queries, both batched: one to map paths to ids, one to load the
      * minimal-post records. The second reuses `getMinimalGdocPostsByIds` so
@@ -1517,6 +1525,9 @@ export class GdocBase implements OwidGdocBaseInterface {
     async loadState(knex: db.KnexReadonlyTransaction): Promise<void> {
         await this.loadLinkedAuthors(knex)
         await this.loadLinkedDocuments(knex)
+        // must precede loadImageMetadataFromDB, which reads the featured images
+        // of everything in linkedDocuments
+        await this.loadDocumentsLinkedByPath(knex)
         await this.loadImageMetadataFromDB(knex)
         await this.loadLinkedCharts(knex)
         await this.loadLinkedIndicators(knex) // depends on linked charts
