@@ -6,54 +6,57 @@
 // `customRanking` on the index, while Typesense takes the equivalents as query
 // parameters. So what lives in configureAlgolia.ts over there lives here.
 
-/** Algolia's `searchableAttributes` for the charts index, in the same order. */
-export const CHARTS_QUERY_BY = [
-    "title",
-    "containerTitle",
-    "slug",
-    "variantName",
-    "subtitle",
-    "tags",
-    "availableEntities",
-    "originalAvailableEntities",
-    "datasetProducers",
-].join(",")
-
 /**
- * Algolia demotes `tags`, `subtitle` and the entity lists via
- * `disableExactOnAttributes` — a match there doesn't count towards the `exact`
+ * The charts collection's searchable fields, mirroring Algolia's
+ * `searchableAttributes` in the same order. Weight and typo tolerance are
+ * declared alongside each field so the three comma-separated lists Typesense
+ * wants can't drift out of alignment.
+ *
+ * `weight` — Algolia demotes `tags`, `subtitle` and the entity lists via
+ * `disableExactOnAttributes`, so a match there doesn't count towards its `exact`
  * ranking criterion. Typesense has no direct equivalent, so those fields get low
  * weights instead; with `text_match_type: "max_weight"` a title match reliably
  * outranks an entity match.
  *
+ * `typos` — Typesense's `num_typos` defaults to 2 *per field*, and on the entity
+ * lists that is actively harmful, because every country chart carries ~200 short
+ * country names for a fuzzy match to land on:
+ *
+ *   - "malaria worldwide" matched 7 charts about anything but malaria, because
+ *     "malaria" is 2 edits from both "Malawi" and "Malaysia" — while "worldwide"
+ *     matched a title, a subtitle, or a data producer actually named
+ *     "Worldwide". That killed the closest-matches fallback (there were
+ *     "results"), and it was the single largest regression in the evaluation.
+ *   - "japaj" matched 7,842 documents, none of them about Japan.
+ *
+ * Setting 0 there costs nothing measurable — entity matching is for exact terms
+ * like "refrigerator" or "bananas" — and both cases above collapse to sane
+ * numbers (0 and 7 respectively).
+ *
  * `availableEntities` is emphatically NOT just a country list, and it must stay
  * searchable. For a large class of charts the entity dimension *is* the subject
- * matter — household technologies, ocean-waste items, food products, causes of
- * death — and for those it's the only field the term appears in at all. Dropping
- * it made "refrigerator", "washing machine", "microwave", "dishwasher" and
- * "cigarette butts" return literally nothing (0 hits across the whole index),
- * and cut "bananas" from 103 matches to 21 and "coffee" from 92 to 9. A
- * volume-weighted evaluation put the damage at ~10% of search volume regressed
- * against ~2% improved.
- *
- * The known cost: cross-field token matching means a query can match one token
- * in a title and another in an entity list, e.g. "malaria worldwide" matching a
- * chart titled "COVID-19 vaccination coverage worldwide" that lists malaria as
- * an entity, where Algolia returns nothing and our closest-matches fallback
- * would otherwise fire. That's one query's worth of relevance against the class
- * of queries above, so it loses.
+ * matter — household technologies, ocean-waste items, food products — and there
+ * it is the only field containing the term. Dropping it made "refrigerator",
+ * "washing machine", "dishwasher" and "cigarette butts" return nothing at all,
+ * and cut "bananas" from 103 matches to 21.
  */
-export const CHARTS_QUERY_BY_WEIGHTS = [
-    10, // title
-    9, // containerTitle
-    8, // slug
-    7, // variantName
-    3, // subtitle
-    4, // tags
-    1, // availableEntities
-    1, // originalAvailableEntities
-    5, // datasetProducers
-].join(",")
+const CHARTS_FIELDS = [
+    { field: "title", weight: 10, typos: 2 },
+    { field: "containerTitle", weight: 9, typos: 2 },
+    { field: "slug", weight: 8, typos: 2 },
+    { field: "variantName", weight: 7, typos: 2 },
+    { field: "subtitle", weight: 3, typos: 2 },
+    { field: "tags", weight: 4, typos: 2 },
+    { field: "availableEntities", weight: 1, typos: 0 },
+    { field: "originalAvailableEntities", weight: 1, typos: 0 },
+    { field: "datasetProducers", weight: 5, typos: 0 },
+] as const
+
+export const CHARTS_QUERY_BY = CHARTS_FIELDS.map((f) => f.field).join(",")
+export const CHARTS_QUERY_BY_WEIGHTS = CHARTS_FIELDS.map((f) => f.weight).join(
+    ","
+)
+export const CHARTS_NUM_TYPOS = CHARTS_FIELDS.map((f) => f.typos).join(",")
 
 /**
  * The closest thing Typesense has to Algolia's `attribute` ranking criterion,

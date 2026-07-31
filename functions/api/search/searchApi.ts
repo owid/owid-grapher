@@ -20,6 +20,7 @@ import {
     type TypesenseSearchParams,
     CHARTS_QUERY_BY,
     CHARTS_QUERY_BY_WEIGHTS,
+    CHARTS_NUM_TYPOS,
     CHARTS_SORT_BY,
     PAGES_QUERY_BY,
     PAGES_QUERY_BY_WEIGHTS,
@@ -180,6 +181,7 @@ export async function searchCharts(
         q: toTypesenseQuery(state.query),
         query_by: CHARTS_QUERY_BY,
         query_by_weights: CHARTS_QUERY_BY_WEIGHTS,
+        num_typos: CHARTS_NUM_TYPOS,
         sort_by: CHARTS_SORT_BY,
         // Algolia's `attributeForDistinct: "id"` + `distinct: true`.
         group_by: "deduplicationId",

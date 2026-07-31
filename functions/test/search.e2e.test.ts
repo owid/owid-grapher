@@ -77,10 +77,10 @@ describe.skipIf(!enabled)(
         // fallback should rescue instead of returning nbHits: 0. (Algolia
         // rescues it too, returning `drivers-forest-loss-brazil-amazon`.)
         //
-        // NB: "malaria worldwide", the example this test used to rely on, is no
-        // longer a zero-result query here — entity lists are searchable again,
-        // and a COVID chart titled "…coverage worldwide" lists malaria as an
-        // entity. See CHARTS_QUERY_BY_WEIGHTS for why that trade is deliberate.
+        // NB: "malaria worldwide" (the example this test used to rely on) is a
+        // zero-result query again, now that entity fields are searched with
+        // num_typos: 0 — see CHARTS_FIELDS. It briefly wasn't, because
+        // "malaria" fuzzy-matched the countries "Malawi" and "Malaysia".
         it("rescues a query with no exact match via closest matches", async () => {
             const response = await workerFetch(
                 "/api/search?type=charts&q=deforestation%20brazil%20amazon%20rate"

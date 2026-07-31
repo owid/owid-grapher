@@ -54,10 +54,14 @@ What still differs:
   can also match "Land **use** per 100 grams of protein" via "use" plus an
   `Energy and Environment` tag. No setting fixes this; the phrase structure
   Algolia preserves is simply not represented.
-- **Cross-field matching invents some matches.** "malaria worldwide" matches a
-  COVID chart titled "…coverage worldwide" that lists malaria as an entity,
-  where Algolia returns nothing. Accepted deliberately — see
-  `CHARTS_QUERY_BY_WEIGHTS`.
+- **Cross-field matching can invent matches**, since Typesense cannot require
+  that all query tokens come from the same field. Typo tolerance made this much
+  worse until `num_typos` was set to 0 on the entity fields — see
+  `CHARTS_FIELDS`. Watch for it when adding a field to `query_by`.
+- **No stemming.** Collection fields are indexed with `stem: false`, so "bans"
+  doesn't match "banned" and `drop_tokens_threshold: 0` then rejects the whole
+  query. Algolia resolves these. Enabling `stem` is a schema change and needs a
+  reindex; untested so far.
 
 ### Evaluating changes here
 
