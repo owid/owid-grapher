@@ -21,10 +21,7 @@ Inside a file-based route we sometimes use an instance of itty-router to decide 
 - (preferred) `yarn make up.full`: starts the whole local development stack, including the functions development server
 - `yarn startLocalCloudflareFunctions`: only starts the functions development server
 
-Note: compatibility dates between local development, production and preview environments should be kept in sync:
-
-- local: defined in `package.json` -> `startLocalCloudflareFunctions`
-- production & preview : see https://dash.cloudflare.com/078fcdfed9955087315dd86792e71a7e/pages/view/owid/settings/functions
+Note: the compatibility date is defined in [`wrangler.jsonc`](../wrangler.jsonc) at the repo root, which is the authoritative source for local development, previews and production alike (not the Cloudflare dashboard). The e2e tests carry their own copy in [`test/wrangler.e2e.jsonc`](./test/wrangler.e2e.jsonc) — keep the two in sync.
 
 3. _Refer to each function's "Development" section below for further instructions._
 

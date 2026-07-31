@@ -102,6 +102,7 @@ export {
     isArrayOfNumbers,
     greatestCommonDivisor,
     findGreatestCommonDivisorOfArray,
+    withUniformSpacing,
     type NodeWithUrl,
     traverseEnrichedSpan,
     copyToClipboard,
@@ -299,6 +300,7 @@ export {
 
 export {
     serializeJSONForHTML,
+    serializeJSONForInlineScript,
     deserializeJSONFromHTML,
     escapeJSONStringForInlineScript,
 } from "./serializers.js"
@@ -386,6 +388,23 @@ export {
     buildChartHitDataDisplayProps,
     getTableColumnCountForGridSlotKey,
 } from "./search/SearchHelpers.js"
+
+export {
+    type SearchFacetAttribute,
+    getFilterNamesOfType,
+    setToFacetFilters,
+    formatDisjunctiveFacetFilters,
+    formatConjunctiveFacetFilters,
+    formatFeaturedMetricFacetFilter,
+    formatCountryFacetFilters,
+    formatTopicFacetFilters,
+    buildChartsFacetFilters,
+} from "./search/searchFacetFilters.js"
+
+export {
+    searchSingleForHits,
+    searchSingleForHitsWithClosestMatches,
+} from "./search/searchClosestMatches.js"
 
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
 export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"

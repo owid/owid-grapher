@@ -1,6 +1,7 @@
 import { expect, it, describe } from "vitest"
 
 import { ColumnTypeNames } from "@ourworldindata/types"
+import { convertDateToDaysSinceEpoch, dayjs } from "@ourworldindata/utils"
 import { ColumnTypeMap } from "./CoreTableColumns.js"
 import { OwidTable } from "./OwidTable.js"
 
@@ -84,6 +85,120 @@ describe(ColumnTypeNames.Week, () => {
         expect(col.formatValue(-22)).toEqual("W1 2020")
         // day -20 = 2020-01-01 falls into the same week starting in 2019
         expect(col.formatValue(-20)).toEqual("W1 2020")
+    })
+})
+
+describe("getUniformlySpacedTimes", () => {
+    const table = new OwidTable()
+
+    const day = (iso: string): number =>
+        convertDateToDaysSinceEpoch(dayjs.utc(iso))
+
+    it("fills missing years for year columns", () => {
+        const col = new ColumnTypeMap.Year(table, { slug: "t" })
+        // GCD of the gaps is 1 (from 2000→2001), so the missing 2002 is filled
+        expect(col.getUniformlySpacedTimes([2000, 2001, 2003])).toEqual([
+            2000, 2001, 2002, 2003,
+        ])
+    })
+
+    it("respects a regular multi-year cadence (e.g. every 5 years)", () => {
+        const col = new ColumnTypeMap.Year(table, { slug: "t" })
+        // GCD of the gaps is 5
+        expect(col.getUniformlySpacedTimes([2000, 2005, 2010, 2025])).toEqual([
+            2000, 2005, 2010, 2015, 2020, 2025,
+        ])
+    })
+
+    it("fills missing days for day columns", () => {
+        const col = new ColumnTypeMap.Day(table, { slug: "t" })
+        expect(col.getUniformlySpacedTimes([0, 1, 3])).toEqual([0, 1, 2, 3])
+    })
+
+    it("fills one filler per missing week for week columns", () => {
+        const col = new ColumnTypeMap.Week(table, { slug: "t" })
+        // weeks are 7 days apart; a gap of 14 means one missing week
+        expect(col.getUniformlySpacedTimes([0, 7, 21])).toEqual([0, 7, 14, 21])
+    })
+
+    it("snaps observed days to the first of their month", () => {
+        const col = new ColumnTypeMap.Month(table, { slug: "t" })
+        expect(
+            col.getUniformlySpacedTimes([day("2021-01-31"), day("2021-02-28")])
+        ).toEqual([day("2021-01-01"), day("2021-02-01")])
+    })
+
+    it("fills one filler per missing month", () => {
+        const col = new ColumnTypeMap.Month(table, { slug: "t" })
+        // Jan and Feb present, March missing before April
+        const result = col.getUniformlySpacedTimes([
+            day("2021-01-01"),
+            day("2021-02-01"),
+            day("2021-04-01"),
+        ])
+        expect(result).toEqual([
+            day("2021-01-01"),
+            day("2021-02-01"),
+            day("2021-03-01"), // filler
+            day("2021-04-01"),
+        ])
+    })
+
+    it("respects a regular cadence (e.g. two points per year) without inserting fillers", () => {
+        const col = new ColumnTypeMap.Month(table, { slug: "t" })
+        // Two data points per year, 6 months apart
+        const input = [
+            day("2021-01-01"),
+            day("2021-07-01"),
+            day("2022-01-01"),
+            day("2022-07-01"),
+        ]
+        expect(col.getUniformlySpacedTimes(input)).toEqual(input)
+    })
+
+    it("handles months before the epoch date and across the epoch boundary", () => {
+        const col = new ColumnTypeMap.Month(table, { slug: "t" })
+        // EPOCH_DATE is 2020-01-21. Nov 2019, Dec 2019, Feb 2020 (Jan 2020
+        // missing) — all around/before the epoch, so month numbers go negative.
+        const result = col.getUniformlySpacedTimes([
+            day("2019-11-01"),
+            day("2019-12-01"),
+            day("2020-02-01"),
+        ])
+        expect(result).toEqual([
+            day("2019-11-01"),
+            day("2019-12-01"),
+            day("2020-01-01"), // filler
+            day("2020-02-01"),
+        ])
+    })
+
+    it("fills one filler per missing quarter", () => {
+        const col = new ColumnTypeMap.Quarter(table, { slug: "t" })
+        // Q1, Q2 and Q4 of 2021 present; Q3 missing
+        const result = col.getUniformlySpacedTimes([
+            day("2021-01-01"), // Q1
+            day("2021-04-01"), // Q2
+            day("2021-10-01"), // Q4
+        ])
+        expect(result).toEqual([
+            day("2021-01-01"), // Q1
+            day("2021-04-01"), // Q2
+            day("2021-07-01"), // Q3 filler
+            day("2021-10-01"), // Q4
+        ])
+    })
+
+    it("respects a regular quarterly cadence (e.g. semiannual) without inserting fillers", () => {
+        const col = new ColumnTypeMap.Quarter(table, { slug: "t" })
+        // Two data points per year, two quarters (6 months) apart
+        const input = [
+            day("2021-01-01"),
+            day("2021-07-01"),
+            day("2022-01-01"),
+            day("2022-07-01"),
+        ]
+        expect(col.getUniformlySpacedTimes(input)).toEqual(input)
     })
 })
 
