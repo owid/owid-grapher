@@ -13,17 +13,6 @@
     width: var(--thumbnail-width);
 }
 
-// A long title would otherwise take over the card and push the excerpt out of
-// sight, so both are clamped to the same two lines.
-.document-preview__title,
-.document-preview__subtitle {
-    overflow-y: hidden;
-    display: -webkit-box;
-    line-clamp: 2;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-}
-
 .document-preview__title {
     @include h4-semibold;
     line-height: 1.3125;
@@ -35,4 +24,19 @@
     @include note-13-medium;
     margin: 4px 0 0;
     color: $blue-70;
+}
+
+// A long title would otherwise take over the card and push the excerpt out of
+// sight, so both are clamped to the same two lines.
+//
+// This has to come last: `h4-semibold` sets `display: block`, so at equal
+// specificity a clamp declared before the title's own rule loses the cascade
+// and `-webkit-line-clamp` has no box to act on.
+.document-preview__title,
+.document-preview__subtitle {
+    overflow-y: hidden;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }

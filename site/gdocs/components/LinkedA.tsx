@@ -47,8 +47,16 @@ function DocumentPreviewTooltip({
             content={<DocumentPreview linkedDocument={linkedDocument} />}
             onShow={() => analytics.logDocumentPreviewMouseover(documentUrl)}
             appendTo={() => document.body}
-            delay={[300, 0]}
-            placement="top"
+            // Longer than the chart preview's 300ms. Chart links are sparse and
+            // hovered deliberately; article links are dense and get crossed
+            // mid-sentence while reading, and at 300ms a single paragraph pops
+            // up several cards in a row. The hide delay stays at 0 so sweeping
+            // across a line of links doesn't leave a card behind.
+            delay={[500, 0]}
+            // Below the link, so the card doesn't cover the lines the reader is
+            // in the middle of. Tippy flips it back above near the viewport
+            // bottom.
+            placement="bottom"
             maxWidth={400}
             theme="light"
             arrow={false}
