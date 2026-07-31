@@ -11,8 +11,14 @@ interface Result {
 const createdCommentIds: number[] = []
 
 async function dismissCookies(page: Page): Promise<void> {
-    const reject = page.locator("button", { hasText: "Reject optional cookies" })
-    if (await reject.count()) await reject.first().click().catch(() => {})
+    const reject = page.locator("button", {
+        hasText: "Reject optional cookies",
+    })
+    if (await reject.count())
+        await reject
+            .first()
+            .click()
+            .catch(() => {})
     await page.waitForTimeout(500)
 }
 
@@ -25,7 +31,9 @@ async function postComment(page: Page, text: string): Promise<void> {
     await page
         .locator(".comments-panel__composer .comment-composer__input")
         .fill(text)
-    await page.locator(".comments-panel__composer .comment-composer__submit").click()
+    await page
+        .locator(".comments-panel__composer .comment-composer__submit")
+        .click()
     await page.waitForTimeout(2500)
 }
 
@@ -85,11 +93,17 @@ async function run(
 
         const activeAnchor = page.locator(".comments-panel__active-anchor")
         if (!(await activeAnchor.count())) {
-            result.failures.push(`clicking ${clickSelector} did not set an anchor`)
+            result.failures.push(
+                `clicking ${clickSelector} did not set an anchor`
+            )
             return result
         }
         result.checks.push(
-            `anchored to: "${((await activeAnchor.textContent()) ?? "").replace(/Commenting on:\s*/, "").replace(/×/, "").trim().slice(0, 50)}"`
+            `anchored to: "${((await activeAnchor.textContent()) ?? "")
+                .replace(/Commenting on:\s*/, "")
+                .replace(/×/, "")
+                .trim()
+                .slice(0, 50)}"`
         )
 
         const marker = `automated check ${name} ${process.env.RUN_TAG}`
@@ -107,7 +121,9 @@ async function run(
                 .textContent()
                 .catch(() => null)
             if (anchorLine && quoted.slice(0, 20))
-                result.checks.push(`thread shows anchor: ${anchorLine.trim().slice(0, 50)}`)
+                result.checks.push(
+                    `thread shows anchor: ${anchorLine.trim().slice(0, 50)}`
+                )
             else result.failures.push("thread missing its anchor quote")
         }
 
@@ -117,7 +133,10 @@ async function run(
         await openComments(page)
         await page.waitForTimeout(1500)
         const badgeCount = await page.locator(".comments-anchor-badge").count()
-        if (badgeCount > 0) result.checks.push(`pin re-found after reload (${badgeCount} badge(s))`)
+        if (badgeCount > 0)
+            result.checks.push(
+                `pin re-found after reload (${badgeCount} badge(s))`
+            )
         else result.failures.push("no pin re-found after reload")
 
         if (expectMultiDim) {
@@ -139,7 +158,9 @@ async function run(
                 }
             }
             if (!switched) {
-                result.checks.push("could not switch mdim view (skipped view filter check)")
+                result.checks.push(
+                    "could not switch mdim view (skipped view filter check)"
+                )
             } else {
                 await page.waitForTimeout(1500)
                 const after = await page.locator(".comment-thread").count()
@@ -223,7 +244,9 @@ const main = async (): Promise<void> => {
         }
         await page.waitForTimeout(1500)
         await page.close()
-        console.log(`cleaned up ${new Set(createdCommentIds).size} test comment(s)`)
+        console.log(
+            `cleaned up ${new Set(createdCommentIds).size} test comment(s)`
+        )
     }
 
     await browser.close()
