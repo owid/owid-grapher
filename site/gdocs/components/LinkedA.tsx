@@ -1,6 +1,10 @@
 import { getLinkType } from "@ourworldindata/components"
 import { OwidGdocMinimalPostInterface, SpanLink } from "@ourworldindata/types"
-import { useLinkedDocument, useLinkedChart } from "../utils.js"
+import {
+    useLinkedDocument,
+    useLinkedDocumentByPath,
+    useLinkedChart,
+} from "../utils.js"
 import { Url } from "@ourworldindata/utils"
 import Tippy from "@tippyjs/react"
 import SpanElements from "./SpanElements.js"
@@ -28,18 +32,67 @@ function hasDocumentPreviewContent(
     )
 }
 
+/** Wraps a link in the hover card for the document it points at. */
+function DocumentPreviewTooltip({
+    linkedDocument,
+    documentUrl,
+    children,
+}: {
+    linkedDocument: OwidGdocMinimalPostInterface
+    documentUrl: string
+    children: React.ReactElement
+}) {
+    return (
+        <Tippy
+            content={<DocumentPreview linkedDocument={linkedDocument} />}
+            onShow={() => analytics.logDocumentPreviewMouseover(documentUrl)}
+            appendTo={() => document.body}
+            delay={[300, 0]}
+            placement="top"
+            maxWidth={400}
+            theme="light"
+            arrow={false}
+            touch={false}
+        >
+            {children}
+        </Tippy>
+    )
+}
+
 export default function LinkedA({ span }: { span: SpanLink }) {
     const linkType = getLinkType(span.url)
     const { archiveContext, isPreviewing } = useDocumentContext()
     const isOnArchivalPage = archiveContext?.type === "archive-page"
     const { linkedDocument, errorMessage } = useLinkedDocument(span.url)
     const { linkedChart } = useLinkedChart(span.url)
+    const documentAtUrl = useLinkedDocumentByPath(span.url)
 
     if (linkType === "url") {
-        return (
+        const urlLink = (
             <a href={span.url} className="span-link">
                 <SpanElements spans={span.children} />
             </a>
+        )
+
+        // Most links to our own articles are authored as a plain
+        // ourworldindata.org URL rather than a gdoc URL. Those still deserve a
+        // hover card whenever the article they point at is attached to the
+        // page. The href stays exactly as authored — only the card is added.
+        if (
+            isOnArchivalPage ||
+            !documentAtUrl ||
+            !hasDocumentPreviewContent(documentAtUrl)
+        ) {
+            return urlLink
+        }
+
+        return (
+            <DocumentPreviewTooltip
+                linkedDocument={documentAtUrl}
+                documentUrl={span.url}
+            >
+                {urlLink}
+            </DocumentPreviewTooltip>
         )
     }
     if (linkedChart) {
@@ -104,21 +157,12 @@ export default function LinkedA({ span }: { span: SpanLink }) {
         }
 
         return (
-            <Tippy
-                content={<DocumentPreview linkedDocument={linkedDocument} />}
-                onShow={() =>
-                    analytics.logDocumentPreviewMouseover(linkedDocument.url)
-                }
-                appendTo={() => document.body}
-                delay={[300, 0]}
-                placement="top"
-                maxWidth={400}
-                theme="light"
-                arrow={false}
-                touch={false}
+            <DocumentPreviewTooltip
+                linkedDocument={linkedDocument}
+                documentUrl={linkedDocument.url}
             >
                 {documentLink}
-            </Tippy>
+            </DocumentPreviewTooltip>
         )
     }
     if (errorMessage && isPreviewing) {

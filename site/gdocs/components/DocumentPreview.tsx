@@ -13,6 +13,7 @@ export function DocumentPreview({
             <Thumbnail
                 thumbnail={linkedDocument["featured-image"]}
                 className="document-preview__thumbnail"
+                containerType="document-preview"
             />
             <div className="document-preview__text">
                 <h4 className="document-preview__title">

@@ -13,6 +13,17 @@
     width: var(--thumbnail-width);
 }
 
+// A long title would otherwise take over the card and push the excerpt out of
+// sight, so both are clamped to the same two lines.
+.document-preview__title,
+.document-preview__subtitle {
+    overflow-y: hidden;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
 .document-preview__title {
     @include h4-semibold;
     line-height: 1.3125;
@@ -24,9 +35,4 @@
     @include note-13-medium;
     margin: 4px 0 0;
     color: $blue-70;
-    overflow-y: hidden;
-    display: -webkit-box;
-    line-clamp: 2;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
 }
