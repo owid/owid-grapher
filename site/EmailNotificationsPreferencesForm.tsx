@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react"
 import * as React from "react"
 import {
+    EMAIL_NOTIFICATIONS_CONTENT_TYPES,
     EmailNotificationsBriefStatusResponse,
     EmailNotificationsFrequency,
     EmailNotificationsPreferencesResponse,
     EmailNotificationsRequestLinkRequest,
     EmailNotificationsSubscribeResponse,
     EmailNotificationsUpdatePreferencesRequest,
-    LATEST_FEED_TYPE_VALUES,
     TagGraphRoot,
 } from "@ourworldindata/types"
 import { Checkbox, TextInput } from "@ourworldindata/components"
 import { EMAIL_NOTIFICATIONS_API_BASE_URL } from "../settings/clientSettings.js"
 import { EmailNotificationsPreferenceFields } from "./EmailNotificationsSubscribeForm.js"
 
-type LatestFeedType = (typeof LATEST_FEED_TYPE_VALUES)[number]
+type LatestFeedType = (typeof EMAIL_NOTIFICATIONS_CONTENT_TYPES)[number]
 
 /**
  * The magic-link preferences page. Its mode is driven by the token in the URL
@@ -50,7 +50,7 @@ export const EmailNotificationsPreferencesForm = ({
     const [token, setToken] = useState<string | null>(null)
     const [enteredEmail, setEnteredEmail] = useState("")
     const [contentTypes, setContentTypes] = useState<LatestFeedType[]>([
-        ...LATEST_FEED_TYPE_VALUES,
+        ...EMAIL_NOTIFICATIONS_CONTENT_TYPES,
     ])
     const [topicTags, setTopicTags] = useState<string[]>([])
     const [frequency, setFrequency] =
