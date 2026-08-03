@@ -1,41 +1,20 @@
-import * as Sentry from "@sentry/cloudflare"
 import * as z from "zod/mini"
 import {
     EmailNotificationsPreferences,
     EmailNotificationsPreferencesTypeObject,
     EmailNotificationsSubscribeRequestTypeObject,
-    EmailNotificationsSubscribeResponse,
     JsonError,
     mergeEmailNotificationsPreferences,
-    stringifyUnknownError,
 } from "@ourworldindata/utils"
 import { Env } from "../../_common/env.js"
-import { sendWelcomeEmail } from "../../_common/emailNotifications.js"
+import {
+    handleJsonError,
+    makeJsonResponse,
+    sendWelcomeEmail,
+} from "../../_common/emailNotifications.js"
 import { upsertOwidBriefSubscription } from "../../_common/mailchimp.js"
 
-const CORS_HEADERS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    // The Content-Type header is required to allow requests to be sent with a
-    // Content-Type of "application/json". This is because "application/json"
-    // is not an allowed value for Content-Type to be considered a
-    // CORS-safelisted header.
-    // - https://developer.mozilla.org/en-US/docs/Glossary/CORS-safelisted_request_header
-    "Access-Control-Allow-Headers": "Content-Type",
-}
-
-const DEFAULT_HEADERS = {
-    ...CORS_HEADERS,
-    "Content-Type": "application/json",
-}
-
-// This function is called when the request is a preflight request ("OPTIONS").
-export const onRequestOptions: PagesFunction = async () => {
-    return new Response(null, {
-        headers: CORS_HEADERS,
-        status: 200,
-    })
-}
+export { onRequestOptions } from "../../_common/emailNotifications.js"
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     try {
@@ -109,34 +88,16 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
         if (data.subscribeToOwidBrief) {
             // The OWID Brief newsletter stays in Mailchimp; Mailchimp runs
-            // its own double opt-in for new list members.
-            try {
-                await upsertOwidBriefSubscription(env, email, true)
-            } catch (error) {
-                Sentry.captureException(error)
-                throw new JsonError(
-                    "Failed to subscribe to the OWID Brief newsletter. Please try again later.",
-                    500
-                )
-            }
+            // its own double opt-in for new list members. A failure here
+            // propagates as-is: the outer handler reports it to Sentry and
+            // answers generically, so wrapping it would only duplicate the
+            // Sentry event.
+            await upsertOwidBriefSubscription(env, email, true)
         }
 
-        const response: EmailNotificationsSubscribeResponse = { ok: true }
-        return new Response(JSON.stringify(response), {
-            headers: DEFAULT_HEADERS,
-            status: 200,
-        })
+        return makeJsonResponse({ ok: true }, 200)
     } catch (error) {
-        if (!(error instanceof JsonError) || error.status >= 500) {
-            Sentry.captureException(error)
-        }
-        const response: EmailNotificationsSubscribeResponse = {
-            error: stringifyUnknownError(error) ?? "Unknown error",
-        }
-        return new Response(JSON.stringify(response), {
-            headers: DEFAULT_HEADERS,
-            status: error instanceof JsonError ? error.status : 500,
-        })
+        return handleJsonError(error)
     }
 }
 
