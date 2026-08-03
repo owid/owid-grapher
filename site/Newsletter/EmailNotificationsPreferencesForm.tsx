@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react"
 import * as React from "react"
+import { match } from "ts-pattern"
 import {
-    EMAIL_NOTIFICATIONS_CONTENT_TYPES,
     EmailNotificationsBriefStatusResponse,
-    EmailNotificationsFrequency,
     EmailNotificationsPreferencesResponse,
     EmailNotificationsRequestLinkRequest,
     EmailNotificationsSubscribeResponse,
@@ -11,10 +10,19 @@ import {
     TagGraphRoot,
 } from "@ourworldindata/types"
 import { Checkbox, TextInput } from "@ourworldindata/components"
-import { EMAIL_NOTIFICATIONS_API_BASE_URL } from "../settings/clientSettings.js"
-import { EmailNotificationsPreferenceFields } from "./EmailNotificationsSubscribeForm.js"
-
-type LatestFeedType = (typeof EMAIL_NOTIFICATIONS_CONTENT_TYPES)[number]
+import { EmailNotificationsPreferenceFields } from "./EmailNotificationsPreferenceFields.js"
+import {
+    apiGet,
+    apiPost,
+    getErrorMessage,
+    throwIfApiError,
+} from "./emailNotificationsApi.js"
+import { useNotificationPreferences } from "./useNotificationPreferences.js"
+import {
+    SUBSCRIBE_PAGE_CONTENT_GRID_CLASSES,
+    SubscribePageConfirmation,
+    SubscribePageHero,
+} from "./SubscribePageLayout.js"
 
 /**
  * The magic-link preferences page. Its mode is driven by the token in the URL
@@ -41,6 +49,18 @@ function getTokenFromLocation(): string | null {
     return match ? match[1] : null
 }
 
+/**
+ * The screens the reader can act on, under the page heading. The terminal
+ * screens (SubscribePageConfirmation) carry their own heading instead - which is
+ * why this component renders the heading, rather than the page baking it.
+ */
+const PreferencesScreen = ({ children }: { children: React.ReactNode }) => (
+    <>
+        <SubscribePageHero heading="Update your email preferences" />
+        <div className={SUBSCRIBE_PAGE_CONTENT_GRID_CLASSES}>{children}</div>
+    </>
+)
+
 export const EmailNotificationsPreferencesForm = ({
     topicTagGraph,
 }: {
@@ -49,12 +69,6 @@ export const EmailNotificationsPreferencesForm = ({
     const [mode, setMode] = useState<Mode>({ name: "loading" })
     const [token, setToken] = useState<string | null>(null)
     const [enteredEmail, setEnteredEmail] = useState("")
-    const [contentTypes, setContentTypes] = useState<LatestFeedType[]>([
-        ...EMAIL_NOTIFICATIONS_CONTENT_TYPES,
-    ])
-    const [topicTags, setTopicTags] = useState<string[]>([])
-    const [frequency, setFrequency] =
-        useState<EmailNotificationsFrequency>("weekly")
     // null = toggle hidden (Mailchimp unavailable or not yet answered)
     const [subscribedToOwidBrief, setSubscribedToOwidBrief] = useState<
         boolean | null
@@ -64,6 +78,8 @@ export const EmailNotificationsPreferencesForm = ({
     >(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
+    const preferences = useNotificationPreferences(topicTagGraph)
+    const { setFromStorage } = preferences
 
     useEffect(() => {
         const urlToken = getTokenFromLocation()
@@ -74,11 +90,11 @@ export const EmailNotificationsPreferencesForm = ({
         }
         const loadPreferences = async () => {
             try {
-                const response = await fetch(
-                    `${EMAIL_NOTIFICATIONS_API_BASE_URL}/preferences?token=${encodeURIComponent(urlToken)}`
-                )
-                const json: EmailNotificationsPreferencesResponse =
-                    await response.json()
+                const { response, json } =
+                    await apiGet<EmailNotificationsPreferencesResponse>(
+                        "/preferences",
+                        { token: urlToken }
+                    )
                 if (response.status === 410) {
                     setMode({ name: "expired", token: urlToken })
                     return
@@ -87,11 +103,7 @@ export const EmailNotificationsPreferencesForm = ({
                     setMode({ name: "invalid" })
                     return
                 }
-                if (json.preferences) {
-                    setTopicTags(json.preferences.topicTags)
-                    setContentTypes([...json.preferences.contentTypes])
-                    setFrequency(json.preferences.frequency)
-                }
+                if (json.preferences) setFromStorage(json.preferences)
                 setMode({ name: "loaded", email: json.email })
             } catch {
                 setMode({ name: "invalid" })
@@ -99,12 +111,12 @@ export const EmailNotificationsPreferencesForm = ({
         }
         const loadBriefStatus = async () => {
             try {
-                const response = await fetch(
-                    `${EMAIL_NOTIFICATIONS_API_BASE_URL}/brief-status?token=${encodeURIComponent(urlToken)}`
-                )
+                const { response, json } =
+                    await apiGet<EmailNotificationsBriefStatusResponse>(
+                        "/brief-status",
+                        { token: urlToken }
+                    )
                 if (!response.ok) return // fail soft: keep the toggle hidden
-                const json: EmailNotificationsBriefStatusResponse =
-                    await response.json()
                 if (json.subscribedToOwidBrief !== undefined) {
                     setSubscribedToOwidBrief(json.subscribedToOwidBrief)
                     setBriefInitialStatus(json.subscribedToOwidBrief)
@@ -115,7 +127,7 @@ export const EmailNotificationsPreferencesForm = ({
         }
         void loadPreferences()
         void loadBriefStatus()
-    }, [])
+    }, [topicTagGraph, setFromStorage])
 
     const requestLink = async (
         request: EmailNotificationsRequestLinkRequest
@@ -123,31 +135,15 @@ export const EmailNotificationsPreferencesForm = ({
         setErrorMessage(null)
         setIsSubmitting(true)
         try {
-            const response = await fetch(
-                `${EMAIL_NOTIFICATIONS_API_BASE_URL}/request-link`,
-                {
-                    method: "POST",
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(request),
-                }
-            )
-            const json: EmailNotificationsSubscribeResponse =
-                await response.json()
-            if (!response.ok || !json.ok) {
-                throw new Error(
-                    json.error ?? "Something went wrong. Please try again."
+            const { response, json } =
+                await apiPost<EmailNotificationsSubscribeResponse>(
+                    "/request-link",
+                    request
                 )
-            }
+            throwIfApiError(response, json)
             setMode({ name: "link-sent" })
         } catch (error) {
-            setErrorMessage(
-                error instanceof Error
-                    ? error.message
-                    : "Something went wrong. Please try again."
-            )
+            setErrorMessage(getErrorMessage(error))
         } finally {
             setIsSubmitting(false)
         }
@@ -156,11 +152,14 @@ export const EmailNotificationsPreferencesForm = ({
     const save = async (unsubscribe: boolean) => {
         if (!token) return
         setErrorMessage(null)
+        preferences.resetValidation()
+        if (!unsubscribe && !preferences.validate()) return
+
         const request: EmailNotificationsUpdatePreferencesRequest = unsubscribe
             ? { token, unsubscribe: true }
             : {
                   token,
-                  preferences: { topicTags, contentTypes, frequency },
+                  preferences: preferences.forStorage(),
                   // Only include the Brief when the toggle was shown and the
                   // user actually changed it.
                   subscribeToOwidBrief:
@@ -171,52 +170,37 @@ export const EmailNotificationsPreferencesForm = ({
               }
         setIsSubmitting(true)
         try {
-            const response = await fetch(
-                `${EMAIL_NOTIFICATIONS_API_BASE_URL}/preferences`,
-                {
-                    method: "POST",
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(request),
-                }
-            )
+            const { response, json } =
+                await apiPost<EmailNotificationsSubscribeResponse>(
+                    "/preferences",
+                    request
+                )
             if (response.status === 410) {
                 setMode({ name: "expired", token })
                 return
             }
-            const json: EmailNotificationsSubscribeResponse =
-                await response.json()
-            if (!response.ok || !json.ok) {
-                throw new Error(
-                    json.error ?? "Something went wrong. Please try again."
-                )
-            }
+            throwIfApiError(response, json)
             setMode(unsubscribe ? { name: "unsubscribed" } : { name: "saved" })
         } catch (error) {
-            setErrorMessage(
-                error instanceof Error
-                    ? error.message
-                    : "Something went wrong. Please try again."
-            )
+            setErrorMessage(getErrorMessage(error))
         } finally {
             setIsSubmitting(false)
         }
     }
 
     const errorAlert = errorMessage && (
-        <div className="email-notifications-subscribe-form__alert">
-            {errorMessage}
-        </div>
+        <div className="newsletter-form__alert">{errorMessage}</div>
     )
 
-    switch (mode.name) {
-        case "loading":
-            return <p>Loading your preferences…</p>
-        case "link-sent":
-            return (
-                <div className="email-notifications-subscribe-form__success">
+    return match(mode)
+        .with({ name: "loading" }, () => (
+            <PreferencesScreen>
+                <p>Loading your preferences…</p>
+            </PreferencesScreen>
+        ))
+        .with({ name: "link-sent" }, () => (
+            <PreferencesScreen>
+                <div className="newsletter-form__success">
                     <h3 className="h3-bold">Check your inbox</h3>
                     <p>
                         If that address is subscribed to email notifications, a
@@ -224,31 +208,25 @@ export const EmailNotificationsPreferencesForm = ({
                         is valid for 30 minutes.
                     </p>
                 </div>
-            )
-        case "saved":
-            return (
-                <div className="email-notifications-subscribe-form__success">
-                    <h3 className="h3-bold">Preferences updated</h3>
-                    <p>
-                        Your email notification preferences have been saved.
-                        You'll receive an email when we publish new work
-                        matching them.
-                    </p>
-                </div>
-            )
-        case "unsubscribed":
-            return (
-                <div className="email-notifications-subscribe-form__success">
-                    <h3 className="h3-bold">You've been unsubscribed</h3>
-                    <p>
-                        You won't receive any more email notifications from us.
-                        You can <a href="/subscribe">re-subscribe</a> at any
-                        time.
-                    </p>
-                </div>
-            )
-        case "expired":
-            return (
+            </PreferencesScreen>
+        ))
+        .with({ name: "saved" }, () => (
+            <SubscribePageConfirmation heading="Preferences updated">
+                Your email notification preferences have been saved. You'll
+                receive an email when we publish new work matching them.
+            </SubscribePageConfirmation>
+        ))
+        .with({ name: "unsubscribed" }, () => (
+            <SubscribePageConfirmation
+                heading="You have been successfully unsubscribed"
+                action={{ href: "/subscribe", label: "Resubscribe" }}
+            >
+                You will no longer receive emails from us. You can resubscribe
+                any time.
+            </SubscribePageConfirmation>
+        ))
+        .with({ name: "expired" }, ({ token: expiredToken }) => (
+            <PreferencesScreen>
                 <div className="email-notifications-preferences-form">
                     <h3 className="h3-bold">This link has expired</h3>
                     <p>
@@ -258,16 +236,17 @@ export const EmailNotificationsPreferencesForm = ({
                     {errorAlert}
                     <button
                         type="button"
-                        className="email-notifications-subscribe-form__submit"
+                        className="newsletter-form__submit"
                         disabled={isSubmitting}
-                        onClick={() => requestLink({ token: mode.token })}
+                        onClick={() => requestLink({ token: expiredToken })}
                     >
                         {isSubmitting ? "Sending…" : "Email me a new link"}
                     </button>
                 </div>
-            )
-        case "invalid":
-            return (
+            </PreferencesScreen>
+        ))
+        .with({ name: "invalid" }, () => (
+            <PreferencesScreen>
                 <div className="email-notifications-preferences-form">
                     <h3 className="h3-bold">This link is not valid</h3>
                     <p>
@@ -275,9 +254,10 @@ export const EmailNotificationsPreferencesForm = ({
                         <a href="/subscribe/preferences">request a new one</a>.
                     </p>
                 </div>
-            )
-        case "enter-email":
-            return (
+            </PreferencesScreen>
+        ))
+        .with({ name: "enter-email" }, () => (
+            <PreferencesScreen>
                 <form
                     className="email-notifications-preferences-form"
                     onSubmit={(event: React.SubmitEvent<HTMLFormElement>) => {
@@ -291,11 +271,11 @@ export const EmailNotificationsPreferencesForm = ({
                         view and update your notification preferences.
                     </p>
                     {errorAlert}
-                    <div className="email-notifications-subscribe-form__email-submit">
+                    <div className="newsletter-form__email-submit">
                         <TextInput
                             placeholder="Your email address"
                             type="email"
-                            className="email-notifications-subscribe-form__email sentry-mask"
+                            className="newsletter-form__email sentry-mask"
                             name="email"
                             value={enteredEmail}
                             onChange={(event) =>
@@ -305,16 +285,17 @@ export const EmailNotificationsPreferencesForm = ({
                         />
                         <button
                             type="submit"
-                            className="email-notifications-subscribe-form__submit"
+                            className="newsletter-form__submit"
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? "Sending…" : "Email me a link"}
                         </button>
                     </div>
                 </form>
-            )
-        case "loaded":
-            return (
+            </PreferencesScreen>
+        ))
+        .with({ name: "loaded" }, ({ email }) => (
+            <PreferencesScreen>
                 <form
                     className="email-notifications-preferences-form"
                     onSubmit={(event: React.SubmitEvent<HTMLFormElement>) => {
@@ -324,33 +305,13 @@ export const EmailNotificationsPreferencesForm = ({
                 >
                     <p>
                         Updating the email notification preferences for{" "}
-                        <strong>{mode.email}</strong>.
+                        <strong>{email}</strong>.
                     </p>
                     <EmailNotificationsPreferenceFields
-                        topicTagGraph={topicTagGraph}
-                        topicTags={topicTags}
-                        contentTypes={contentTypes}
-                        frequency={frequency}
-                        onToggleTopicTag={(tagName) =>
-                            setTopicTags((current) =>
-                                current.includes(tagName)
-                                    ? current.filter((name) => name !== tagName)
-                                    : [...current, tagName]
-                            )
-                        }
-                        onToggleContentType={(contentType) =>
-                            setContentTypes((current) =>
-                                current.includes(contentType)
-                                    ? current.filter(
-                                          (type) => type !== contentType
-                                      )
-                                    : [...current, contentType]
-                            )
-                        }
-                        onSetFrequency={setFrequency}
+                        {...preferences.fieldsProps}
                     />
                     {subscribedToOwidBrief !== null && (
-                        <fieldset className="email-notifications-subscribe-form__fieldset">
+                        <fieldset className="newsletter-form__fieldset">
                             <legend className="h5-black-caps">
                                 Newsletter
                             </legend>
@@ -370,7 +331,7 @@ export const EmailNotificationsPreferencesForm = ({
                     <div className="email-notifications-preferences-form__actions">
                         <button
                             type="submit"
-                            className="email-notifications-subscribe-form__submit"
+                            className="newsletter-form__submit"
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? "Saving…" : "Save preferences"}
@@ -385,6 +346,7 @@ export const EmailNotificationsPreferencesForm = ({
                         </button>
                     </div>
                 </form>
-            )
-    }
+            </PreferencesScreen>
+        ))
+        .exhaustive()
 }
