@@ -54,19 +54,6 @@ $all-charts-block-sticky-top: 72px;
     figure[data-grapher-src]:not(.grapherPreview),
     figure.grapher-component:not(.grapherPreview) {
         height: $grapher-height;
-
-        // Grapher renders its figure narrower than the column it is given
-        // (548px inside 628px at a 1440px viewport — it sizes itself from
-        // $grapher-height's aspect ratio, not from the space offered), and
-        // the site-wide figure-grapher-reset mixin centres it with `margin:
-        // 0 auto`. Centred, the chart floats ~40px away from the start of
-        // its column and no longer lines up with the indicator list beside
-        // it; the design has it flush with the column's left edge, exactly
-        // one grid gap right of the list. Note this can't be done with
-        // `justify-self: start` on the pane — the extra space is inside the
-        // pane, distributed by the figure's own auto margins.
-        margin-left: 0;
-        margin-right: auto;
     }
 
     // Below this breakpoint the persistent sidecar is replaced by an
