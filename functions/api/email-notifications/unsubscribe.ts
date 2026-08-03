@@ -1,7 +1,7 @@
-import * as Sentry from "@sentry/cloudflare"
 import { Env } from "../../_common/env.js"
 import {
     escapeHtml,
+    handleHtmlError,
     makeHtmlResponse,
     renderActionPage,
     renderMessagePage,
@@ -43,8 +43,10 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
             })
         )
     } catch (error) {
-        Sentry.captureException(error)
-        return errorResponse()
+        return handleHtmlError(
+            error,
+            "We couldn't unsubscribe you. Please try again later."
+        )
     }
 }
 
@@ -75,8 +77,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             })
         )
     } catch (error) {
-        Sentry.captureException(error)
-        return errorResponse()
+        return handleHtmlError(
+            error,
+            "We couldn't unsubscribe you. Please try again later."
+        )
     }
 }
 
@@ -97,15 +101,5 @@ function invalidLinkResponse(): Response {
                 "This unsubscribe link is not valid. Please use the link from one of our emails.",
         }),
         404
-    )
-}
-
-function errorResponse(): Response {
-    return makeHtmlResponse(
-        renderMessagePage({
-            title: "Something went wrong",
-            message: "We couldn't unsubscribe you. Please try again later.",
-        }),
-        500
     )
 }
