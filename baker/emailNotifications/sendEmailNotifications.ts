@@ -9,12 +9,14 @@ import path from "path"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import {
+    EMAIL_NOTIFICATIONS_CONTENT_TYPE_BY_LATEST_TYPE,
     EMAIL_NOTIFICATIONS_FREQUENCIES,
     EMAIL_NOTIFICATIONS_FROM_ADDRESS,
     EmailNotificationsFrequency,
     LatestFeedGdoc,
     OwidGdocType,
 } from "@ourworldindata/types"
+import { deriveLatestType } from "../../site/latest/latestUtils.js"
 import {
     checkIsLatestFeedGdoc,
     getUniqueNamesFromTagHierarchies,
@@ -124,7 +126,11 @@ function buildNotificationItem(
         ),
     ])
     const item: NotificationEmailItem = {
-        type: gdoc.content.type,
+        // Announcement gdocs split into "data-update" / "article" /
+        // "announcement" content types via their kicker.
+        type: EMAIL_NOTIFICATIONS_CONTENT_TYPE_BY_LATEST_TYPE[
+            deriveLatestType(gdoc)
+        ],
         slug: gdoc.slug,
         title: gdoc.content.title ?? "",
         url: getCanonicalUrl(BAKED_BASE_URL, gdoc),

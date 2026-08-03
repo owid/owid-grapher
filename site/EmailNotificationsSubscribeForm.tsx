@@ -2,12 +2,12 @@ import { useState } from "react"
 import * as React from "react"
 import {
     EMAIL_NOTIFICATIONS_CONTENT_TYPE_LABELS,
+    EMAIL_NOTIFICATIONS_CONTENT_TYPES,
     EMAIL_NOTIFICATIONS_FREQUENCIES,
     EMAIL_NOTIFICATIONS_FREQUENCY_LABELS,
     EmailNotificationsFrequency,
     EmailNotificationsSubscribeRequest,
     EmailNotificationsSubscribeResponse,
-    LATEST_FEED_TYPE_VALUES,
     TagGraphRoot,
 } from "@ourworldindata/types"
 import { Checkbox, TextInput } from "@ourworldindata/components"
@@ -16,7 +16,7 @@ import { SiteAnalytics } from "./SiteAnalytics.js"
 
 const analytics = new SiteAnalytics()
 
-type LatestFeedType = (typeof LATEST_FEED_TYPE_VALUES)[number]
+type LatestFeedType = (typeof EMAIL_NOTIFICATIONS_CONTENT_TYPES)[number]
 
 /**
  * The topics / content types / frequency fieldsets, shared between the
@@ -59,7 +59,7 @@ export const EmailNotificationsPreferenceFields = ({
             </fieldset>
             <fieldset className="email-notifications-subscribe-form__fieldset">
                 <legend className="h5-black-caps">Content types</legend>
-                {LATEST_FEED_TYPE_VALUES.map((contentType) => (
+                {EMAIL_NOTIFICATIONS_CONTENT_TYPES.map((contentType) => (
                     <Checkbox
                         key={contentType}
                         id={`email-notifications-content-type-${contentType}`}
@@ -115,7 +115,7 @@ export const EmailNotificationsSubscribeForm = ({
 }) => {
     const [email, setEmail] = useState("")
     const [contentTypes, setContentTypes] = useState<LatestFeedType[]>([
-        ...LATEST_FEED_TYPE_VALUES,
+        ...EMAIL_NOTIFICATIONS_CONTENT_TYPES,
     ])
     const [topicTags, setTopicTags] = useState<string[]>([])
     const [frequency, setFrequency] =
