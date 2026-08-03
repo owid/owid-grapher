@@ -27,7 +27,7 @@ import {
     BASE_DIR,
     LEGACY_WORDPRESS_IMAGE_URL,
 } from "../settings/serverSettings.js"
-import { FEATURE_FLAGS, Features } from "../settings/clientSettings.js"
+import { FEATURE_FLAGS, Features } from "../settings/clientSettings.mjs"
 
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { makeSitemap } from "../baker/sitemap.js"

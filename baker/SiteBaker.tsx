@@ -9,7 +9,7 @@ import ProgressBar from "progress"
 import { stringify } from "safe-stable-stringify"
 import * as db from "../db/db.js"
 import { BASE_DIR } from "../settings/serverSettings.js"
-import { FEATURE_FLAGS, Features } from "../settings/clientSettings.js"
+import { FEATURE_FLAGS, Features } from "../settings/clientSettings.mjs"
 
 import {
     renderFrontPage,

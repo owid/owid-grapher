@@ -1,0 +1,61 @@
+.email-notifications-subscribe-form__newsletter {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+
+    // The illustrations hang into the empty grid columns to the left of the
+    // form, so the checkboxes align with the fieldsets below.
+    @include lg-up {
+        margin-left: -109px;
+    }
+
+    .checkbox input:checked + .custom {
+        background: $blue-70;
+        border-color: $blue-70;
+    }
+}
+
+.email-notifications-subscribe-form__newsletter-image {
+    width: 85px;
+    height: 46px;
+    flex-shrink: 0;
+
+    @include sm-only {
+        display: none;
+    }
+}
+
+.email-notifications-subscribe-form__newsletter-title {
+    @include body-2-bold-tight;
+    color: $blue-90;
+}
+
+.email-notifications-subscribe-form__newsletter-cadence {
+    @include note-12-medium;
+    color: $blue-60;
+    margin-left: 2px;
+}
+
+.email-notifications-subscribe-form__newsletter-description {
+    @include body-3-medium;
+    color: $blue-90;
+    margin: 4px 0 0;
+}
+
+.email-notifications-subscribe-form__divider {
+    width: 100%;
+    margin: 24px 0;
+    border: none;
+    border-top: 1px solid $blue-20;
+}
+
+.email-notifications-subscribe-form__privacy-notice {
+    @include note-12-medium;
+    margin-top: 8px;
+    color: $blue-60;
+
+    a {
+        color: inherit;
+        text-decoration: underline;
+    }
+}
