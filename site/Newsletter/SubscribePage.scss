@@ -1,0 +1,149 @@
+.subscribe-page {
+    background-color: $white;
+    padding-bottom: 64px;
+
+    .subscribe-page__hero {
+        background-color: $gray-5;
+        padding: 32px 0;
+        margin-bottom: 32px;
+    }
+
+    .subscribe-page__heading {
+        // h1-semibold, but without the mixin's built-in margins (the mixin's
+        // nested media query would make later margin overrides a fatal
+        // mixed-decls Sass error)
+        font-family: $serif-font-stack;
+        font-size: 2rem;
+        line-height: 1.25;
+        font-weight: 600;
+        letter-spacing: 0;
+        margin: 0;
+        color: $blue-90;
+
+        @include sm-only {
+            font-size: 1.5rem;
+        }
+    }
+
+    .subscribe-page__subheading {
+        @include body-1-regular;
+        margin: 0;
+        color: $blue-60;
+    }
+
+    .subscribe-page__aside {
+        @include sm-only {
+            margin-top: 24px;
+        }
+    }
+
+    .subscribe-page__aside-heading {
+        margin: 0 0 6px;
+        color: $blue-60;
+    }
+
+    .subscribe-page__manage-link {
+        @include body-3-medium;
+        color: $blue-90;
+
+        svg {
+            font-size: 0.625rem;
+            margin-left: 2px;
+        }
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    // Terminal screens (subscribed, unsubscribed, preferences saved): no hero
+    // band above them, so they need their own top spacing.
+    .subscribe-page__confirmation {
+        margin-top: 48px;
+        color: $blue-90;
+    }
+
+    .subscribe-page__confirmation-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 85px;
+        height: 85px;
+        margin-bottom: 16px;
+        border-radius: 50%;
+        background-color: #dbf1ea;
+        color: #048055;
+        font-size: 2.125rem;
+    }
+
+    .subscribe-page__confirmation-text {
+        @include body-3-medium;
+        margin: 8px 0 0;
+    }
+
+    .subscribe-page__confirmation-action {
+        @include body-3-medium;
+        display: inline-flex;
+        align-items: center;
+        height: 40px;
+        margin-top: 32px;
+        padding: 8px 24px;
+        border: 1px solid $vermillion;
+        color: $vermillion;
+
+        &:hover {
+            background-color: $vermillion;
+            color: $white;
+        }
+    }
+
+    .subscribe-page__divider {
+        width: 100%;
+        margin: 40px 0 24px;
+        border: none;
+        border-top: 1px solid $blue-20;
+    }
+
+    .owid-socials__heading {
+        font-family: $serif-font-stack;
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: $blue-90;
+        margin: 0 0 16px;
+    }
+
+    .owid-socials__list {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        row-gap: 16px;
+
+        @include sm-only {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .owid-socials__link {
+        color: $blue-90;
+        &:hover {
+            color: $blue-60;
+        }
+    }
+
+    .owid-socials__item {
+        white-space: nowrap;
+    }
+
+    .owid-socials__label-icon {
+        color: $blue-60;
+    }
+
+    .owid-socials__label {
+        @include body-2-bold-tight;
+        display: inline-block;
+        margin-left: 8px;
+        height: unset;
+        width: unset;
+        position: relative;
+        overflow: unset;
+    }
+}
