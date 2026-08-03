@@ -2,9 +2,7 @@ import { expect, it, describe } from "vitest"
 import { GrapherChecksums } from "@ourworldindata/types"
 import { hashGrapherChecksumsObj } from "./archivalDb.js"
 
-const checksums = (
-    extra?: Partial<GrapherChecksums>
-): GrapherChecksums => ({
+const checksums = (extra?: Partial<GrapherChecksums>): GrapherChecksums => ({
     chartConfigMd5: "iCzWQFmKfPHDPq4hOCPClg==",
     indicators: {
         "1234": { metadataChecksum: "abc", dataChecksum: "def" },
