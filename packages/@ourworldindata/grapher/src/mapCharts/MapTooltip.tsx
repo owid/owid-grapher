@@ -215,36 +215,41 @@ export class MapTooltip
     @computed private get toleranceNotice(): FooterItem | undefined {
         const { startDatum, startTime, endDatum, endTime } = this
 
-        const startValueIsInterpolated =
-            startDatum && startDatum?.originalTime !== startTime
-        const endValueIsInterpolated =
-            endDatum && endDatum?.originalTime !== endTime
+        const interpolated = excludeUndefined([
+            startDatum && startDatum.originalTime !== startTime
+                ? { target: startTime, original: startDatum.originalTime }
+                : undefined,
+            endDatum && endDatum.originalTime !== endTime
+                ? { target: endTime, original: endDatum.originalTime }
+                : undefined,
+        ])
 
-        const formattedStartTime = this.formatTime(this.startTime)
-        const formattedEndTime = this.formatTime(this.endTime)
+        if (interpolated.length === 0) return undefined
 
-        if (startValueIsInterpolated && endValueIsInterpolated)
-            return {
-                icon: TooltipFooterIcon.Notice,
-                text: makeTooltipToleranceNotice(
-                    `${formattedStartTime} and ${formattedEndTime}`,
-                    { plural: true }
-                ),
-            }
+        const formatTimes = (times: (Time | undefined)[]): string =>
+            excludeUndefined(times.map((time) => this.formatTime(time))).join(
+                " and "
+            )
 
-        if (endValueIsInterpolated && formattedEndTime)
-            return {
-                icon: TooltipFooterIcon.Notice,
-                text: makeTooltipToleranceNotice(formattedEndTime),
-            }
+        const targetTimes = formatTimes(interpolated.map((i) => i.target))
+        if (!targetTimes) return undefined
 
-        if (startValueIsInterpolated && formattedStartTime)
-            return {
-                icon: TooltipFooterIcon.Notice,
-                text: makeTooltipToleranceNotice(formattedStartTime),
-            }
+        // The subtitle shows the original time of each value. Naming the
+        // original time here only helps if the subtitle mixes a target time with
+        // an original time, i.e. if a value range is shown and only one of the
+        // two values was interpolated.
+        const originalTime =
+            this.shouldShowValueRange && interpolated.length === 1
+                ? this.formatTime(interpolated[0].original)
+                : undefined
 
-        return undefined
+        return {
+            icon: TooltipFooterIcon.Notice,
+            text: makeTooltipToleranceNotice(targetTimes, {
+                plural: interpolated.length > 1,
+                originalTime,
+            }),
+        }
     }
 
     @computed private get roundingNotice(): FooterItem | undefined {
