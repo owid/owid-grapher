@@ -27,7 +27,8 @@ export function escapeHtml(text: string): string {
 function renderPreferencesListHtml(
     preferences: EmailNotificationsPreferences
 ): string {
-    // Topic tags are user-submitted strings, so escape them.
+    // Topic tags are user-submitted strings, so escape them. An empty list
+    // means "all topics".
     const topics =
         preferences.topicTags.length > 0
             ? preferences.topicTags.map(escapeHtml).join(", ")
