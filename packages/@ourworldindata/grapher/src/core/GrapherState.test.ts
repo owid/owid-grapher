@@ -519,6 +519,41 @@ describe("urls", () => {
         expect(grapher.embedUrl).toEqual("/grapher/foo?tab=map")
     })
 
+    describe("createNarrativeChartUrl", () => {
+        const adminCreateNarrativeChartPath =
+            "narrative-charts/create?type=multiDim&chartConfigId=abc"
+        const makeGrapherState = (queryStr: string): GrapherState =>
+            new GrapherState({
+                isPublished: true,
+                env: "dev", // so that admin controls are shown
+                adminBaseUrl: "https://ourworldindata.org",
+                manager: { adminCreateNarrativeChartPath, queryStr },
+            })
+
+        it("passes the live grapher state on as a single encoded param", () => {
+            const url = makeGrapherState(
+                "?tab=line&country=ETH~MDG"
+            ).createNarrativeChartUrl!
+            expect(url).toEqual(
+                "https://ourworldindata.org/admin/narrative-charts/create?type=multiDim&chartConfigId=abc&grapherQueryStr=tab%3Dline%26country%3DETH~MDG"
+            )
+            // the nested query string round-trips back into query params
+            const grapherQueryStr = new URL(url).searchParams.get(
+                "grapherQueryStr"
+            )!
+            expect(Url.fromQueryStr(grapherQueryStr).queryParams).toEqual({
+                tab: "line",
+                country: "ETH~MDG",
+            })
+        })
+
+        it("omits the param when the grapher is in its default state", () => {
+            expect(makeGrapherState("").createNarrativeChartUrl).toEqual(
+                "https://ourworldindata.org/admin/narrative-charts/create?type=multiDim&chartConfigId=abc"
+            )
+        })
+    })
+
     it("can upgrade legacy urls", () => {
         expect(legacyToCurrentGrapherQueryParams("?year=2000")).toEqual({
             time: "2000",
