@@ -57,7 +57,13 @@ function DocumentPreviewTooltip({
             // in the middle of. Tippy flips it back above near the viewport
             // bottom.
             placement="bottom"
-            maxWidth={400}
+            // The title and excerpt are shown in full, so the width sets how
+            // tall the card gets. At 400px the text column was only ~43
+            // characters per line and the longest real excerpts ran to seven
+            // lines; 480px gives ~56 and brings the worst case down to five.
+            // Wider than this stops helping — 520px renders the same line
+            // count — and starts to feel like a panel rather than a card.
+            maxWidth={480}
             theme="light"
             arrow={false}
             touch={false}
