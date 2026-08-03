@@ -1,23 +1,12 @@
 import * as Sentry from "@sentry/cloudflare"
-import { EmailNotificationsBriefStatusResponse } from "@ourworldindata/utils"
 import { Env } from "../../_common/env.js"
-import { lookupEmailToken } from "../../_common/emailNotifications.js"
+import {
+    lookupEmailToken,
+    makeJsonResponse,
+} from "../../_common/emailNotifications.js"
 import { getOwidBriefStatus } from "../../_common/mailchimp.js"
 
-const CORS_HEADERS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-}
-
-const JSON_HEADERS = {
-    ...CORS_HEADERS,
-    "Content-Type": "application/json",
-}
-
-export const onRequestOptions: PagesFunction = async () => {
-    return new Response(null, { headers: CORS_HEADERS, status: 200 })
-}
+export { onRequestOptions } from "../../_common/emailNotifications.js"
 
 /**
  * Whether the magic-link token's user is subscribed to the OWID Brief in
@@ -30,11 +19,11 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     try {
         const db = env.EMAIL_NOTIFICATIONS_DB
         const token = new URL(request.url).searchParams.get("token")
-        if (!token || !db) return jsonResponse({ error: "invalid" }, 404)
+        if (!token || !db) return makeJsonResponse({ error: "invalid" }, 404)
 
         const lookup = await lookupEmailToken(db, token)
         if (lookup.state !== "valid") {
-            return jsonResponse(
+            return makeJsonResponse(
                 { error: lookup.state },
                 lookup.state === "expired" ? 410 : 404
             )
@@ -44,25 +33,15 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
             .prepare(`SELECT email FROM users WHERE id = ?1`)
             .bind(lookup.row.user_id)
             .first<{ email: string }>()
-        if (!user) return jsonResponse({ error: "invalid" }, 404)
+        if (!user) return makeJsonResponse({ error: "invalid" }, 404)
 
         const subscribedToOwidBrief = await getOwidBriefStatus(env, user.email)
         if (subscribedToOwidBrief === null) {
-            return jsonResponse({ error: "unavailable" }, 503)
+            return makeJsonResponse({ error: "unavailable" }, 503)
         }
-        return jsonResponse({ subscribedToOwidBrief }, 200)
+        return makeJsonResponse({ subscribedToOwidBrief }, 200)
     } catch (error) {
         Sentry.captureException(error)
-        return jsonResponse({ error: "unavailable" }, 503)
+        return makeJsonResponse({ error: "unavailable" }, 503)
     }
-}
-
-function jsonResponse(
-    response: EmailNotificationsBriefStatusResponse,
-    status: number
-): Response {
-    return new Response(JSON.stringify(response), {
-        headers: JSON_HEADERS,
-        status,
-    })
 }

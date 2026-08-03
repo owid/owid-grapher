@@ -3,32 +3,19 @@ import * as z from "zod/mini"
 import {
     EmailNotificationsPreferences,
     EmailNotificationsPreferencesResponse,
-    EmailNotificationsSubscribeResponse,
     EmailNotificationsUpdatePreferencesRequestTypeObject,
     JsonError,
-    stringifyUnknownError,
 } from "@ourworldindata/utils"
 import { Env } from "../../_common/env.js"
 import {
     EmailTokenLookup,
+    handleJsonError,
     lookupEmailToken,
+    makeJsonResponse,
 } from "../../_common/emailNotifications.js"
 import { upsertOwidBriefSubscription } from "../../_common/mailchimp.js"
 
-const CORS_HEADERS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-}
-
-const JSON_HEADERS = {
-    ...CORS_HEADERS,
-    "Content-Type": "application/json",
-}
-
-export const onRequestOptions: PagesFunction = async () => {
-    return new Response(null, { headers: CORS_HEADERS, status: 200 })
-}
+export { onRequestOptions } from "../../_common/emailNotifications.js"
 
 /**
  * Data source of the magic-link preferences page: resolves a magic-link token
@@ -76,13 +63,9 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
                       } as EmailNotificationsPreferences)
                     : null,
         }
-        return new Response(JSON.stringify(response), {
-            headers: JSON_HEADERS,
-            status: 200,
-        })
+        return makeJsonResponse(response, 200)
     } catch (error) {
-        Sentry.captureException(error)
-        return errorResponse(error)
+        return handleJsonError(error)
     }
 }
 
@@ -180,36 +163,16 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             }
         }
 
-        const response: EmailNotificationsSubscribeResponse = { ok: true }
-        return new Response(JSON.stringify(response), {
-            headers: JSON_HEADERS,
-            status: 200,
-        })
+        return makeJsonResponse({ ok: true }, 200)
     } catch (error) {
-        if (!(error instanceof JsonError) || error.status >= 500) {
-            Sentry.captureException(error)
-        }
-        return errorResponse(error)
+        return handleJsonError(error)
     }
 }
 
 function tokenErrorResponse(
     lookup: EmailTokenLookup | { state: "invalid" }
 ): Response {
-    const response: EmailNotificationsPreferencesResponse =
-        lookup.state === "expired" ? { error: "expired" } : { error: "invalid" }
-    return new Response(JSON.stringify(response), {
-        headers: JSON_HEADERS,
-        status: lookup.state === "expired" ? 410 : 404,
-    })
-}
-
-function errorResponse(error: unknown): Response {
-    const response: EmailNotificationsPreferencesResponse = {
-        error: stringifyUnknownError(error) ?? "Unknown error",
-    }
-    return new Response(JSON.stringify(response), {
-        headers: JSON_HEADERS,
-        status: error instanceof JsonError ? error.status : 500,
-    })
+    return lookup.state === "expired"
+        ? makeJsonResponse({ error: "expired" }, 410)
+        : makeJsonResponse({ error: "invalid" }, 404)
 }
