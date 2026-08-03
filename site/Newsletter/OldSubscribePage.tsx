@@ -1,15 +1,15 @@
-import { Head } from "./Head.js"
-import { Html } from "./Html.js"
-import { SiteHeader } from "./SiteHeader.js"
-import { SiteFooter } from "./SiteFooter.js"
+import { Head } from "../Head.js"
+import { Html } from "../Html.js"
+import { SiteHeader } from "../SiteHeader.js"
+import { SiteFooter } from "../SiteFooter.js"
 import {
     SiteFooterContext,
     OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID,
 } from "@ourworldindata/types"
-import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
-import { NewsletterSubscriptionContext } from "./newsletter.js"
-import { OwidSocials } from "./OwidSocials.js"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { NewsletterSubscriptionForm } from "../NewsletterSubscription.js"
+import { NewsletterSubscriptionContext } from "../newsletter.js"
+import { OwidSocials } from "../OwidSocials.js"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 
 export interface OldSubscribePageProps {
     baseUrl: string
