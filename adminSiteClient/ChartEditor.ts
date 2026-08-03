@@ -135,13 +135,12 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         return this.manager.forceDatapage ?? false
     }
 
-    @computed override get isModified(): boolean {
+    @computed get isDeprecationNoticeModified(): boolean {
         const deprecationNotice =
             this.grapherState.deprecationNotice?.trim() || null
         return (
-            super.isModified ||
-            (this.savedDeprecationNotice !== undefined &&
-                deprecationNotice !== this.savedDeprecationNotice)
+            this.savedDeprecationNotice !== undefined &&
+            deprecationNotice !== this.savedDeprecationNotice
         )
     }
 
