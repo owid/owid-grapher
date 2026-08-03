@@ -56,7 +56,9 @@ export interface ArchiveVersions {
 
 export interface GrapherChecksums {
     chartConfigMd5: string
-    deprecationNoticeMd5: string
+    /** Omitted, never null, when the chart has no deprecation notice: the hash is taken over the
+     * serialized object, and an absent key is what keeps undeprecated charts hashing as before. */
+    deprecationNoticeMd5?: string
     indicators: IndicatorChecksums
 }
 
