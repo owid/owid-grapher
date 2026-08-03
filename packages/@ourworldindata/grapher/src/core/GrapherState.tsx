@@ -1626,10 +1626,19 @@ export class GrapherState
 
     @computed get createNarrativeChartUrl(): string | undefined {
         const adminPath = this.manager?.adminCreateNarrativeChartPath
-        if (this.showAdminControls && this.isPublished && adminPath) {
-            return `${this.adminBaseUrl}/admin/${adminPath}`
-        }
-        return undefined
+        if (!this.showAdminControls || !this.isPublished || !adminPath)
+            return undefined
+
+        const url = Url.fromURL(`${this.adminBaseUrl}/admin/${adminPath}`)
+
+        // Pass the live grapher state along so that the narrative chart starts
+        // out matching what the user is currently looking at, rather than the
+        // authored defaults. We send it as a single encoded param so that it
+        // can't collide with the params already present in `adminPath`.
+        const grapherQueryStr = this.queryStr.replace(/^\?/, "")
+        if (!grapherQueryStr) return url.fullUrl
+
+        return url.updateQueryParams({ grapherQueryStr }).fullUrl
     }
 
     @computed private get isAdminObjectAvailable(): boolean {

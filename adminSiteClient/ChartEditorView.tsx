@@ -20,6 +20,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
+    GrapherQueryParams,
     DimensionProperty,
     ORIGIN_URL_REGEX_PATTERNS,
 } from "@ourworldindata/types"
@@ -68,6 +69,13 @@ export type DetailReferences = Record<FieldWithDetailReferences, string[]>
 export interface ChartEditorViewManager<Editor> {
     admin: Admin
     editor: Editor
+    /**
+     * Query params to apply to the grapher once, after the initial data load.
+     * Used when creating a narrative chart from a customized chart, so that the
+     * editor opens on the state the user was looking at. Managers that don't
+     * set it get the authored config as before.
+     */
+    initialQueryParams?: GrapherQueryParams
 }
 
 interface ChartEditorViewProps<Editor> {
@@ -107,11 +115,25 @@ export class ChartEditorView<
     @computed get isReady(): boolean {
         return this._isDbSet
     }
+
+    private hasAppliedInitialQueryParams = false
+
     @action.bound async updateGrapher(): Promise<void> {
         const config = this.manager.editor.originalGrapherConfig
         this.manager.editor.grapherState.updateFromObject(config)
         await this.manager.editor.reloadGrapherData()
         this.grapherState.externalBounds = this.bounds
+
+        // Applied after the data load because the time bounds are snapped to
+        // the available times and the entity selection is gated on
+        // `addCountryMode`. Applied at most once: `updateGrapher` re-runs
+        // whenever the editor changes, and re-applying would overwrite edits
+        // made in the editor since.
+        const { initialQueryParams } = this.manager
+        if (initialQueryParams && !this.hasAppliedInitialQueryParams) {
+            this.hasAppliedInitialQueryParams = true
+            this.grapherState.populateFromQueryParams(initialQueryParams)
+        }
     }
 
     @action.bound private setDb(json: any): void {
