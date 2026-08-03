@@ -889,7 +889,9 @@ const AllChartsTableRow = ({
                 {isSelected && (
                     <div className="all-charts-block__row-action">
                         <Button
-                            theme="solid-dark-blue"
+                            // $blue-60, matching the "SUGGESTED:" links and
+                            // the button fill in the designer's mockup.
+                            theme="solid-blue"
                             className="all-charts-block__row-explore-button"
                             text="Explore the data"
                             href={chartUrl}
