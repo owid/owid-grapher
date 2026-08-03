@@ -1,38 +1,25 @@
-import * as Sentry from "@sentry/cloudflare"
 import * as z from "zod/mini"
 import {
     EMAIL_NOTIFICATIONS_MAGIC_LINK_TTL_MS,
     EmailNotificationsRequestLinkRequestTypeObject,
-    EmailNotificationsSubscribeResponse,
     JsonError,
-    stringifyUnknownError,
 } from "@ourworldindata/utils"
 import { Env } from "../../_common/env.js"
 import {
     createEmailToken,
     escapeHtml,
+    handleHtmlError,
+    handleJsonError,
     makeHtmlResponse,
+    makeJsonResponse,
     renderActionPage,
     renderMessagePage,
     sendMagicLinkEmail,
 } from "../../_common/emailNotifications.js"
 
+export { onRequestOptions } from "../../_common/emailNotifications.js"
+
 const REQUEST_LINK_PATH = "/api/email-notifications/request-link"
-
-const CORS_HEADERS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-}
-
-const JSON_HEADERS = {
-    ...CORS_HEADERS,
-    "Content-Type": "application/json",
-}
-
-export const onRequestOptions: PagesFunction = async () => {
-    return new Response(null, { headers: CORS_HEADERS, status: 200 })
-}
 
 /**
  * "Email me a link" page target from the notification email footers, with a
@@ -65,14 +52,9 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
             })
         )
     } catch (error) {
-        Sentry.captureException(error)
-        return makeHtmlResponse(
-            renderMessagePage({
-                title: "Something went wrong",
-                message:
-                    "We couldn't process your request. Please try again later.",
-            }),
-            500
+        return handleHtmlError(
+            error,
+            "We couldn't process your request. Please try again later."
         )
     }
 }
@@ -144,13 +126,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             })
         }
 
-        if (isJson) {
-            const response: EmailNotificationsSubscribeResponse = { ok: true }
-            return new Response(JSON.stringify(response), {
-                headers: JSON_HEADERS,
-                status: 200,
-            })
-        }
+        if (isJson) return makeJsonResponse({ ok: true }, 200)
         return makeHtmlResponse(
             renderMessagePage({
                 title: "Check your inbox",
@@ -159,24 +135,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             })
         )
     } catch (error) {
-        if (!(error instanceof JsonError) || error.status >= 500) {
-            Sentry.captureException(error)
-        }
-        if (isJson) {
-            const response: EmailNotificationsSubscribeResponse = {
-                error: stringifyUnknownError(error) ?? "Unknown error",
-            }
-            return new Response(JSON.stringify(response), {
-                headers: JSON_HEADERS,
-                status: error instanceof JsonError ? error.status : 500,
-            })
-        }
-        return makeHtmlResponse(
-            renderMessagePage({
-                title: "Something went wrong",
-                message: "We couldn't send the link. Please try again later.",
-            }),
-            500
+        if (isJson) return handleJsonError(error)
+        return handleHtmlError(
+            error,
+            "We couldn't send the link. Please try again later."
         )
     }
 }
