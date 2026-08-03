@@ -78,3 +78,7 @@ export enum R2GrapherConfigDirectory {
     publishedGrapherBySlug = "config/by-slug-published",
     multiDim = "multi-dim-config",
 }
+
+export const GRAPHER_DEPRECATION_NOTICE_HEADER = "X-OWID-Deprecation-Notice"
+export const GRAPHER_DEPRECATION_NOTICE_METADATA_KEY = "deprecation-notice"
+export const GRAPHER_CONFIG_RESPONSE_ETAG_METADATA_KEY = "response-etag"

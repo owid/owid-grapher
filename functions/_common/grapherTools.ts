@@ -15,6 +15,9 @@ import {
     MultiDimDataPageConfigEnriched,
     R2GrapherConfigDirectory,
     AdditionalGrapherDataFetchFn,
+    GRAPHER_CONFIG_RESPONSE_ETAG_METADATA_KEY,
+    GRAPHER_DEPRECATION_NOTICE_HEADER,
+    GRAPHER_DEPRECATION_NOTICE_METADATA_KEY,
     GRAPHER_QUERY_PARAM_KEYS,
 } from "@ourworldindata/types"
 import {
@@ -83,7 +86,14 @@ function buildResponseFromR2Object(
 ): Response {
     const headers = new Headers()
     r2Object.writeHttpMetadata(headers)
-    headers.set("ETag", r2Object.httpEtag)
+    const responseEtag =
+        r2Object.customMetadata?.[GRAPHER_CONFIG_RESPONSE_ETAG_METADATA_KEY]
+    headers.set("ETag", responseEtag ? `"${responseEtag}"` : r2Object.httpEtag)
+    const deprecationNotice =
+        r2Object.customMetadata?.[GRAPHER_DEPRECATION_NOTICE_METADATA_KEY]
+    if (deprecationNotice) {
+        headers.set(GRAPHER_DEPRECATION_NOTICE_HEADER, deprecationNotice)
+    }
 
     if ("body" in r2Object) {
         return new Response(r2Object.body, { status: 200, headers })
@@ -92,12 +102,15 @@ function buildResponseFromR2Object(
     return new Response(null, { status: 304, headers })
 }
 
+const normalizeEtag = (etag: string): string =>
+    etag.replace(/^W\//, "").replace(/^"|"$/g, "")
+
 export async function fetchFromR2(
     bucket: R2Bucket,
     key: string,
-    etag: string | undefined
+    etag: string | null | undefined
 ) {
-    const object = etag
+    let object = etag
         ? await bucket.get(key, {
               onlyIf: new Headers({ "If-None-Match": etag }),
           })
@@ -107,7 +120,27 @@ export async function fetchFromR2(
         return new Response(null, { status: 404 })
     }
 
-    return buildResponseFromR2Object(object)
+    let response = buildResponseFromR2Object(object)
+    const responseEtag = response.headers.get("ETag")
+    const isNotModified =
+        etag !== null &&
+        etag !== undefined &&
+        responseEtag !== null &&
+        normalizeEtag(etag) === normalizeEtag(responseEtag)
+
+    // R2's conditional request compares the body ETag, which intentionally
+    // stays equal to the schema-valid config body. If only runtime metadata
+    // changed, fetch the body now and return it with the metadata-aware ETag.
+    if (!("body" in object) && !isNotModified) {
+        object = await bucket.get(key)
+        if (!object) return new Response(null, { status: 404 })
+        response = buildResponseFromR2Object(object)
+    }
+
+    if (isNotModified) {
+        return new Response(null, { status: 304, headers: response.headers })
+    }
+    return response
 }
 
 export async function fetchUnparsedGrapherConfig(

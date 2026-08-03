@@ -36,6 +36,9 @@ export {
     type UserCountryInformation,
     type QueryParams,
     R2GrapherConfigDirectory,
+    GRAPHER_DEPRECATION_NOTICE_HEADER,
+    GRAPHER_DEPRECATION_NOTICE_METADATA_KEY,
+    GRAPHER_CONFIG_RESPONSE_ETAG_METADATA_KEY,
 } from "./domainTypes/Various.js"
 export { type BreadcrumbItem } from "./domainTypes/Site.js"
 export { type IndexPost, type FullPost } from "./domainTypes/Posts.js"

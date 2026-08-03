@@ -6,6 +6,7 @@ interface SeedR2Body {
     key: string
     value: string
     contentType?: string
+    customMetadata?: Record<string, string>
 }
 
 function getBucket(env: Env, bucket: "primary" | "fallback"): R2Bucket {
@@ -86,6 +87,7 @@ export default {
                     httpMetadata: body.contentType
                         ? { contentType: body.contentType }
                         : undefined,
+                    customMetadata: body.customMetadata,
                 })
                 return Response.json({ ok: true })
             }

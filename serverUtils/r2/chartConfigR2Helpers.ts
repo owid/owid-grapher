@@ -5,8 +5,14 @@ import {
     R2_ENDPOINT,
     R2_SECRET_ACCESS_KEY,
 } from "../../settings/serverSettings.js"
-import { Base64String, R2GrapherConfigDirectory } from "@ourworldindata/types"
+import {
+    Base64String,
+    GRAPHER_CONFIG_RESPONSE_ETAG_METADATA_KEY,
+    GRAPHER_DEPRECATION_NOTICE_METADATA_KEY,
+    R2GrapherConfigDirectory,
+} from "@ourworldindata/types"
 import { lazy } from "@ourworldindata/utils"
+import { hashHex } from "../hash.js"
 import {
     createR2Key,
     deleteObjectFromR2,
@@ -47,9 +53,31 @@ export async function saveGrapherConfigToR2(
     config: string,
     directory: R2GrapherConfigDirectory,
     filename: string,
-    configMd5FromDb: Base64String
+    configMd5FromDb: Base64String,
+    deprecationNotice?: string | null
 ) {
-    await saveConfigToR2(config, directory, filename, configMd5FromDb)
+    await saveConfigToR2(
+        config,
+        directory,
+        filename,
+        configMd5FromDb,
+        getGrapherConfigR2Metadata(configMd5FromDb, deprecationNotice)
+    )
+}
+
+export const getGrapherConfigR2Metadata = (
+    configMd5: Base64String,
+    deprecationNotice?: string | null
+): Record<string, string> | undefined => {
+    if (!deprecationNotice) return undefined
+    const encodedNotice = encodeURIComponent(deprecationNotice)
+    return {
+        [GRAPHER_DEPRECATION_NOTICE_METADATA_KEY]: encodedNotice,
+        [GRAPHER_CONFIG_RESPONSE_ETAG_METADATA_KEY]: hashHex(
+            `${configMd5}\n${encodedNotice}`,
+            null
+        ),
+    }
 }
 
 export async function saveMultiDimConfigToR2(
@@ -69,7 +97,8 @@ async function saveConfigToR2(
     config: string,
     directory: string,
     filename: string,
-    configMd5FromDb: Base64String
+    configMd5FromDb: Base64String,
+    metadata?: Record<string, string>
 ) {
     if (
         GRAPHER_CONFIG_R2_BUCKET === undefined ||
@@ -88,7 +117,8 @@ async function saveConfigToR2(
         key,
         "application/json",
         configMd5FromDb,
-        s3Client
+        s3Client,
+        metadata
     )
 }
 

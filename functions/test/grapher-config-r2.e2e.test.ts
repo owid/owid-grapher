@@ -2,7 +2,12 @@ import path from "node:path"
 import { readFileSync } from "node:fs"
 import { beforeAll, afterAll, beforeEach, describe, expect, it } from "vitest"
 import { unstable_startWorker } from "wrangler"
-import { R2GrapherConfigDirectory } from "@ourworldindata/types"
+import {
+    GRAPHER_CONFIG_RESPONSE_ETAG_METADATA_KEY,
+    GRAPHER_DEPRECATION_NOTICE_HEADER,
+    GRAPHER_DEPRECATION_NOTICE_METADATA_KEY,
+    R2GrapherConfigDirectory,
+} from "@ourworldindata/types"
 
 let worker: Awaited<ReturnType<typeof unstable_startWorker>>
 
@@ -33,6 +38,7 @@ async function seedR2(params: {
     bucket: "primary" | "fallback"
     key: string
     value: string
+    customMetadata?: Record<string, string>
 }) {
     const response = await workerFetch("/__test__/seed-r2", {
         method: "POST",
@@ -86,7 +92,7 @@ describe("grapher config endpoint with local R2 bindings", () => {
         const response = await workerFetch(
             "/grapher/life-expectancy.config.json"
         )
-        expect(response.status).toBe(200)
+        expect(response.status, await response.clone().text()).toBe(200)
         expect(response.headers.get("Content-Type")).toBe("application/json")
         expect(response.headers.get("ETag")).toBeTruthy()
 
@@ -106,7 +112,10 @@ describe("grapher config endpoint with local R2 bindings", () => {
             value: lifeExpectancyFixture,
         })
 
-        const first = await workerFetch("/grapher/life-expectancy.config.json")
+        const first = await workerFetch(
+            "/grapher/life-expectancy.config.json",
+            { headers: { Origin: "https://ourworldindata.org" } }
+        )
         expect(first.status).toBe(200)
         const etag = first.headers.get("ETag")
         expect(etag).toBeTruthy()
@@ -118,6 +127,76 @@ describe("grapher config endpoint with local R2 bindings", () => {
             }
         )
         expect(second.status).toBe(304)
+    })
+
+    it("delivers a runtime notice outside the schema-valid config body", async () => {
+        const key = makeSlugKey("life-expectancy")
+        const firstNotice = "Use the replacement chart."
+        await seedR2({
+            bucket: "primary",
+            key,
+            value: lifeExpectancyFixture,
+            customMetadata: {
+                [GRAPHER_DEPRECATION_NOTICE_METADATA_KEY]:
+                    encodeURIComponent(firstNotice),
+                [GRAPHER_CONFIG_RESPONSE_ETAG_METADATA_KEY]: "notice-v1",
+            },
+        })
+
+        const first = await workerFetch("/grapher/life-expectancy.config.json")
+        expect(first.status).toBe(200)
+        expect(
+            decodeURIComponent(
+                first.headers.get(GRAPHER_DEPRECATION_NOTICE_HEADER)!
+            )
+        ).toBe(firstNotice)
+        expect(first.headers.get("ETag")).toBe('"notice-v1"')
+        expect(first.headers.get("Access-Control-Expose-Headers")).toContain(
+            GRAPHER_DEPRECATION_NOTICE_HEADER
+        )
+        expect(await first.json()).not.toHaveProperty("deprecationNotice")
+
+        const secondNotice = "Use the newer replacement chart."
+        await seedR2({
+            bucket: "primary",
+            key,
+            value: lifeExpectancyFixture,
+            customMetadata: {
+                [GRAPHER_DEPRECATION_NOTICE_METADATA_KEY]:
+                    encodeURIComponent(secondNotice),
+                [GRAPHER_CONFIG_RESPONSE_ETAG_METADATA_KEY]: "notice-v2",
+            },
+        })
+        const afterUpdate = await workerFetch(
+            "/grapher/life-expectancy.config.json",
+            { headers: { "If-None-Match": '"notice-v1"' } }
+        )
+        expect(afterUpdate.status).toBe(200)
+        expect(
+            decodeURIComponent(
+                afterUpdate.headers.get(GRAPHER_DEPRECATION_NOTICE_HEADER)!
+            )
+        ).toBe(secondNotice)
+
+        const unchanged = await workerFetch(
+            "/grapher/life-expectancy.config.json",
+            { headers: { "If-None-Match": '"notice-v2"' } }
+        )
+        expect(unchanged.status).toBe(304)
+
+        await seedR2({
+            bucket: "primary",
+            key,
+            value: lifeExpectancyFixture,
+        })
+        const afterClear = await workerFetch(
+            "/grapher/life-expectancy.config.json",
+            { headers: { "If-None-Match": '"notice-v2"' } }
+        )
+        expect(afterClear.status).toBe(200)
+        expect(
+            afterClear.headers.get(GRAPHER_DEPRECATION_NOTICE_HEADER)
+        ).toBeNull()
     })
 
     it("falls back to fallback R2 bucket when primary misses", async () => {

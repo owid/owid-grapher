@@ -110,7 +110,6 @@ interface CaptionedChartProps {
 // keep in sync with sass variables in CaptionedChart.scss
 export const CONTROLS_ROW_HEIGHT = 32
 
-// keep in sync with sass variables in CaptionedChart.scss
 const DEPRECATION_NOTICE_PADDING_VERTICAL = 12
 const DEPRECATION_NOTICE_PADDING_HORIZONTAL = 16
 const DEPRECATION_NOTICE_GAP = 10

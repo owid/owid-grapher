@@ -84,7 +84,7 @@ export const getGrapherChecksumsFromDb = async (
             -- object below, so every chart without a notice keeps the hash it has today. Hashing a
             -- constant here instead would change every published chart's hash at once and make the
             -- next archival run re-snapshot the whole site.
-            IF(c.deprecationNotice IS NULL, NULL, MD5(c.deprecationNotice)) AS deprecationNoticeMd5,
+            IF(c.deprecationNotice IS NULL, NULL, TO_BASE64(UNHEX(MD5(c.deprecationNotice)))) AS deprecationNoticeMd5,
             JSON_OBJECTAGG(v.id, JSON_OBJECT("metadataChecksum", v.metadataChecksum, "dataChecksum", v.dataChecksum)) AS indicators
         FROM charts c
         JOIN chart_configs cc on c.configId = cc.id

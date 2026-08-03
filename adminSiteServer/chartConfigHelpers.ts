@@ -1,14 +1,11 @@
 import {
     ChartConfigsTableName,
-    Base64String,
     DbInsertChartConfig,
     DbRawChartConfig,
     GrapherInterface,
-    parseChartConfig,
     R2GrapherConfigDirectory,
     serializeChartConfig,
 } from "@ourworldindata/types"
-import { createHash } from "node:crypto"
 import { v7 as uuidv7 } from "uuid"
 import * as db from "../db/db.js"
 import {
@@ -58,22 +55,12 @@ export const retrieveChartConfigFromDbAndSaveToR2 = async (
             fullConfigMd5.fullMd5
         )
     } else {
-        const config = r2Path.deprecationNotice
-            ? JSON.stringify({
-                  ...parseChartConfig(fullConfigMd5.full),
-                  deprecationNotice: r2Path.deprecationNotice,
-              })
-            : fullConfigMd5.full
-        const configMd5 = r2Path.deprecationNotice
-            ? (createHash("md5")
-                  .update(config)
-                  .digest("base64") as Base64String)
-            : fullConfigMd5.fullMd5
         await saveGrapherConfigToR2(
-            config,
+            fullConfigMd5.full,
             r2Path.directory,
             r2Path.filename,
-            configMd5
+            fullConfigMd5.fullMd5,
+            r2Path.deprecationNotice
         )
     }
 

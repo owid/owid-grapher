@@ -17,9 +17,11 @@ import {
     rewriteMetaTags,
 } from "../_common/grapherTools.js"
 import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
+import { GRAPHER_DEPRECATION_NOTICE_HEADER } from "@ourworldindata/types"
 
 const { preflight, corsify } = cors({
     allowMethods: ["GET", "OPTIONS", "HEAD"],
+    exposeHeaders: [GRAPHER_DEPRECATION_NOTICE_HEADER],
 })
 
 const router = Router<
@@ -225,13 +227,20 @@ async function handleConfigRequest(
         ? "s-maxage=300, max-age=0, must-revalidate"
         : "no-cache"
 
-    //grapherPageResp.headers.set("Cache-Control", cacheControl)
+    const headers = new Headers({
+        "Content-Type": "application/json",
+        "Cache-Control": cacheControl,
+        "Access-Control-Expose-Headers": GRAPHER_DEPRECATION_NOTICE_HEADER,
+        ETag: grapherPageResp.headers.get("ETag") ?? "",
+    })
+    const deprecationNotice = grapherPageResp.headers.get(
+        GRAPHER_DEPRECATION_NOTICE_HEADER
+    )
+    if (deprecationNotice) {
+        headers.set(GRAPHER_DEPRECATION_NOTICE_HEADER, deprecationNotice)
+    }
     return new Response(grapherPageResp.body as any, {
         status: grapherPageResp.status,
-        headers: {
-            "Content-Type": "application/json",
-            "Cache-Control": cacheControl,
-            ETag: grapherPageResp.headers.get("ETag") ?? "",
-        },
+        headers,
     })
 }

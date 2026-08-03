@@ -25,10 +25,16 @@ import {
 import { DbRawChartConfig, excludeUndefined } from "@ourworldindata/utils"
 import ProgressBar from "progress"
 import { bytesToBase64, hexToBytes } from "../../serverUtils/serverUtil.js"
-import { HexString, R2GrapherConfigDirectory } from "@ourworldindata/types"
+import {
+    DbPlainChart,
+    HexString,
+    R2GrapherConfigDirectory,
+} from "@ourworldindata/types"
 import * as R from "remeda"
+import { getGrapherConfigR2Metadata } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 
-type HashAndId = Pick<DbRawChartConfig, "fullMd5" | "id">
+type HashAndId = Pick<DbRawChartConfig, "fullMd5" | "id"> &
+    Partial<Pick<DbPlainChart, "deprecationNotice">>
 
 /** S3 list operations return at most 1000 items at a time. If there are
     more results, the NextContinueationToken is set and you have to perform
@@ -93,9 +99,10 @@ async function syncWithR2(
                 // If the file in R2 exists and has the same hash as the one
                 // in list of files to upsert then we don't need to upsert it
                 // so we delete it from that map
+                const target = hashesOfFilesToToUpsert.get(object.Key)
                 if (
-                    hashesOfFilesToToUpsert.get(object.Key)?.fullMd5 ===
-                    md5Base64
+                    target?.fullMd5 === md5Base64 &&
+                    !target.deprecationNotice
                 ) {
                     hashesOfFilesToToUpsert.delete(object.Key)
                 }
@@ -179,6 +186,10 @@ async function syncWithR2(
                 Body: full,
                 ContentMD5: fullMd5,
                 ContentType: "application/json",
+                Metadata: getGrapherConfigR2Metadata(
+                    fullMd5,
+                    val.deprecationNotice
+                ),
             }
             if (!dryRun)
                 await s3Client.send(
@@ -244,13 +255,15 @@ async function main(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
         console.log("Syncing published charts")
         // Sync charts published by slug
         const slugsAndHashesFromDb = await knexRaw<
-            Pick<DbRawChartConfig, "slug" | "fullMd5" | "id">
+            Pick<DbRawChartConfig, "slug" | "fullMd5" | "id"> &
+                Pick<DbPlainChart, "deprecationNotice">
         >(
             trx,
-            `select slug, fullMd5, id
-             from chart_configs
-             where slug is not null
-             and full ->> '$.isPublished' = "true"`
+            `select cc.slug, cc.fullMd5, cc.id, c.deprecationNotice
+             from chart_configs cc
+             join charts c on c.configId = cc.id
+             where cc.slug is not null
+             and cc.full ->> '$.isPublished' = "true"`
         )
         console.log(`Found ${slugsAndHashesFromDb.length} published charts`)
 
@@ -260,6 +273,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
                 {
                     fullMd5: row.fullMd5,
                     id: row.id,
+                    deprecationNotice: row.deprecationNotice,
                 }
             )
         })

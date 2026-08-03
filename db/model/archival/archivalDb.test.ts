@@ -10,7 +10,7 @@ const checksums = (extra?: Partial<GrapherChecksums>): GrapherChecksums => ({
     ...extra,
 })
 
-describe("hashGrapherChecksumsObj", () => {
+describe("grapher archival checksums", () => {
     it("ignores an absent deprecation notice", () => {
         // The archival baker re-snapshots a chart whenever this hash changes, so introducing the
         // deprecation notice must not perturb the hash of the charts that don't have one. If it

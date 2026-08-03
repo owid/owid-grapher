@@ -52,7 +52,8 @@ export async function saveObjectToR2(
     key: string,
     contentType: string = "application/json",
     contentMD5?: Base64String,
-    s3Client?: S3Client
+    s3Client?: S3Client,
+    metadata?: Record<string, string>
 ): Promise<PutObjectCommandOutput | void> {
     if (IS_RUNNING_INSIDE_VITEST) {
         console.log("Skipping saving object to R2 in test environment")
@@ -75,6 +76,7 @@ export async function saveObjectToR2(
             Body: content,
             ContentType: contentType,
             ...(contentMD5 && { ContentMD5: contentMD5 }),
+            ...(metadata && { Metadata: metadata }),
         }
 
         console.log(

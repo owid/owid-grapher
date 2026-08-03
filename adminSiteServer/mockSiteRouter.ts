@@ -48,6 +48,7 @@ import {
     searchParamsToMultiDimView,
     SlideTemplate,
 } from "@ourworldindata/utils"
+import { GRAPHER_DEPRECATION_NOTICE_HEADER } from "@ourworldindata/types"
 import { checkShouldProfileRender } from "../db/model/Gdoc/dataCallouts.js"
 import {
     EXPLORERS_ROUTE_FOLDER,
@@ -245,10 +246,13 @@ getPlainRouteWithROTransaction(
             () => undefined
         )
         if (chartRow) {
-            res.json({
-                ...chartRow.config,
-                deprecationNotice: chartRow.deprecationNotice ?? undefined,
-            })
+            if (chartRow.deprecationNotice) {
+                res.setHeader(
+                    GRAPHER_DEPRECATION_NOTICE_HEADER,
+                    encodeURIComponent(chartRow.deprecationNotice)
+                )
+            }
+            res.json(chartRow.config)
             return
         }
 

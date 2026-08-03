@@ -1,4 +1,8 @@
-import { GrapherInterface, ArchiveContext } from "@ourworldindata/types"
+import {
+    GrapherInterface,
+    ArchiveContext,
+    GRAPHER_DEPRECATION_NOTICE_HEADER,
+} from "@ourworldindata/types"
 import React from "react"
 import { Grapher, GrapherProgrammaticInterface } from "./Grapher.js"
 import { Bounds } from "@ourworldindata/utils"
@@ -65,9 +69,16 @@ export function FetchingGrapher(
         async function fetchAndApplyConfig(): Promise<void> {
             if (props.configUrl) {
                 try {
-                    const fetchedConfig = await fetch(props.configUrl, {
+                    const response = await fetch(props.configUrl, {
                         signal: abortController.signal,
-                    }).then((res) => res.json())
+                    })
+                    const encodedDeprecationNotice = response.headers.get(
+                        GRAPHER_DEPRECATION_NOTICE_HEADER
+                    )
+                    const fetchedDeprecationNotice = encodedDeprecationNotice
+                        ? decodeURIComponent(encodedDeprecationNotice)
+                        : undefined
+                    const fetchedConfig = await response.json()
 
                     if (abortController.signal.aborted) return
 
@@ -77,6 +88,9 @@ export function FetchingGrapher(
                     const mergedConfig = {
                         ...migratedConfig,
                         ...props.config,
+                        deprecationNotice:
+                            props.config?.deprecationNotice ??
+                            fetchedDeprecationNotice,
                     }
                     setDownloadedConfig(mergedConfig)
                     // Batch the grapher updates to avoid getting intermediate
@@ -90,6 +104,8 @@ export function FetchingGrapher(
                         grapherState.current.updateFromObject(mergedConfig)
                         grapherState.current.deprecationNotice =
                             mergedConfig.deprecationNotice
+                        grapherState.current.hideDeprecationNotice =
+                            mergedConfig.hideDeprecationNotice ?? false
                         grapherState.current.legacyConfigAsAuthored =
                             mergedConfig
                         grapherState.current.isConfigReady = true
