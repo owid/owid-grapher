@@ -71,17 +71,28 @@ export class DumbbellTimeRangeTooltip extends React.Component<DumbbellTooltipPro
         if (isStartOriginal && isEndOriginal) return undefined
 
         const formatTime = (t: number) => formatColumn.formatTime(t)
-        const targetYear =
+        const targetTime =
             !isStartOriginal && !isEndOriginal
                 ? `${formatTime(startTime)} and ${formatTime(endTime)}`
                 : !isStartOriginal
                   ? formatTime(startTime)
                   : formatTime(endTime)
 
+        // The subtitle shows the original time of both values. Naming the
+        // original time here only helps if the subtitle mixes a target time with
+        // an original time, i.e. if only one of the two values was interpolated.
+        const originalTime =
+            !isStartOriginal && !isEndOriginal
+                ? undefined
+                : !isStartOriginal
+                  ? formatTime(target.start.time)
+                  : formatTime(target.end.time)
+
         return {
             icon: TooltipFooterIcon.Notice,
-            text: makeTooltipToleranceNotice(targetYear, {
+            text: makeTooltipToleranceNotice(targetTime, {
                 plural: !isStartOriginal && !isEndOriginal,
+                originalTime,
             }),
         }
     }

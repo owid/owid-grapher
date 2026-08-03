@@ -783,26 +783,48 @@ export class SlopeChart
             ? `% change between ${formatColumn.formatTime(actualStartTime)} and ${formatColumn.formatTime(actualEndTime)}`
             : timeRange
 
-        const constructTargetYearForToleranceNotice = () => {
+        // The subtitle shows the original time of both values. Naming the
+        // original time here only helps if the subtitle mixes a target time with
+        // an original time, i.e. if only one of the two values was interpolated.
+        const constructTimesForToleranceNotice = ():
+            | { target: string; original?: string; plural: boolean }
+            | undefined => {
             const isStartValueOriginal = series.start.originalTime === startTime
             const isEndValueOriginal = series.end.originalTime === endTime
 
             if (!isStartValueOriginal && !isEndValueOriginal) {
-                return `${formatTime(startTime)} and ${formatTime(endTime)}`
+                return {
+                    target: `${formatTime(startTime)} and ${formatTime(endTime)}`,
+                    plural: true,
+                }
             } else if (!isStartValueOriginal) {
-                return formatTime(startTime)
+                return {
+                    target: formatTime(startTime),
+                    original: formatTime(actualStartTime),
+                    plural: false,
+                }
             } else if (!isEndValueOriginal) {
-                return formatTime(endTime)
+                return {
+                    target: formatTime(endTime),
+                    original: formatTime(actualEndTime),
+                    plural: false,
+                }
             } else {
                 return undefined
             }
         }
 
-        const targetYear = constructTargetYearForToleranceNotice()
-        const toleranceNotice = targetYear
+        const toleranceNoticeTimes = constructTimesForToleranceNotice()
+        const toleranceNotice = toleranceNoticeTimes
             ? {
                   icon: TooltipFooterIcon.Notice,
-                  text: makeTooltipToleranceNotice(targetYear),
+                  text: makeTooltipToleranceNotice(
+                      toleranceNoticeTimes.target,
+                      {
+                          plural: toleranceNoticeTimes.plural,
+                          originalTime: toleranceNoticeTimes.original,
+                      }
+                  ),
               }
             : undefined
         const roundingNotice = series.column.roundsToSignificantFigures
@@ -832,7 +854,7 @@ export class SlopeChart
                 title={title}
                 titleAnnotation={titleAnnotation}
                 subtitle={timeLabel}
-                subtitleFormat={targetYear ? "notice" : undefined}
+                subtitleFormat={toleranceNoticeTimes ? "notice" : undefined}
                 dissolve={fading}
                 footer={footer}
                 dismiss={() => (this.tooltipState.target = null)}
