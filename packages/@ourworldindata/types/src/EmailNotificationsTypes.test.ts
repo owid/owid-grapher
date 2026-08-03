@@ -4,14 +4,13 @@ import {
     EmailNotificationsSubscribeRequestTypeObject,
     mergeEmailNotificationsPreferences,
 } from "./EmailNotificationsTypes.js"
-import { OwidGdocType } from "./gdocTypes/Gdoc.js"
 
 describe("EmailNotificationsSubscribeRequestTypeObject validation", () => {
     const validRequest = {
         email: "user@example.com",
         notifications: {
             topicTags: ["Energy", "Climate Change"],
-            contentTypes: [OwidGdocType.Article, OwidGdocType.DataInsight],
+            contentTypes: ["article", "data-insight"],
             frequency: "weekly",
         },
         subscribeToOwidBrief: true,
@@ -31,10 +30,24 @@ describe("EmailNotificationsSubscribeRequestTypeObject validation", () => {
         expect(result.success).toBe(true)
     })
 
-    it("accepts an empty topic tags array (means all topics)", () => {
+    it("accepts data updates as a content type", () => {
         const result = EmailNotificationsSubscribeRequestTypeObject.safeParse({
             ...validRequest,
-            notifications: { ...validRequest.notifications, topicTags: [] },
+            notifications: {
+                ...validRequest.notifications,
+                contentTypes: ["data-update"],
+            },
+        })
+        expect(result.success).toBe(true)
+    })
+
+    it("accepts empty topic tags (meaning all topics)", () => {
+        const result = EmailNotificationsSubscribeRequestTypeObject.safeParse({
+            ...validRequest,
+            notifications: {
+                ...validRequest.notifications,
+                topicTags: [],
+            },
         })
         expect(result.success).toBe(true)
     })
@@ -103,35 +116,50 @@ describe("EmailNotificationsSubscribeRequestTypeObject validation", () => {
 describe(mergeEmailNotificationsPreferences, () => {
     const existing: EmailNotificationsPreferences = {
         topicTags: ["Energy"],
-        contentTypes: [OwidGdocType.Article],
+        contentTypes: ["article"],
         frequency: "weekly",
     }
 
     it("unions topic tags and content types without duplicates", () => {
         const merged = mergeEmailNotificationsPreferences(existing, {
             topicTags: ["Energy", "Climate Change"],
-            contentTypes: [OwidGdocType.Article, OwidGdocType.DataInsight],
+            contentTypes: ["article", "data-insight"],
             frequency: "weekly",
         })
         expect(merged).toEqual({
             topicTags: ["Energy", "Climate Change"],
-            contentTypes: [OwidGdocType.Article, OwidGdocType.DataInsight],
+            contentTypes: ["article", "data-insight"],
             frequency: "weekly",
         })
     })
 
-    it("treats an empty topic tags array (all topics) as winning the union", () => {
-        const allTopics = mergeEmailNotificationsPreferences(existing, {
-            ...existing,
-            topicTags: [],
+    it("keeps existing topic tags when the incoming set is smaller", () => {
+        const merged = mergeEmailNotificationsPreferences(existing, {
+            topicTags: ["Climate Change"],
+            contentTypes: ["announcement"],
+            frequency: "weekly",
         })
-        expect(allTopics.topicTags).toEqual([])
+        expect(merged.topicTags).toEqual(["Energy", "Climate Change"])
+        expect(merged.contentTypes).toEqual(["article", "announcement"])
+    })
 
-        const existingAllTopics = mergeEmailNotificationsPreferences(
+    it("treats empty topic tags as all topics, absorbing the other side", () => {
+        const incomingEmpty = mergeEmailNotificationsPreferences(existing, {
+            topicTags: [],
+            contentTypes: ["article"],
+            frequency: "weekly",
+        })
+        expect(incomingEmpty.topicTags).toEqual([])
+
+        const existingEmpty = mergeEmailNotificationsPreferences(
             { ...existing, topicTags: [] },
-            existing
+            {
+                topicTags: ["Climate Change"],
+                contentTypes: ["article"],
+                frequency: "weekly",
+            }
         )
-        expect(existingAllTopics.topicTags).toEqual([])
+        expect(existingEmpty.topicTags).toEqual([])
     })
 
     it("takes the incoming frequency", () => {
