@@ -95,6 +95,89 @@ const STOP_WORDS = new Set([
     "vs",
 ])
 
+export type ChartHitIdentityFields = {
+    slug: string
+    queryParams?: string
+}
+
+/**
+ * Stable identity for the *chart* a hit renders as a row, used to recognise
+ * the same row across two different Algolia result sets.
+ *
+ * Deliberately not `objectID`. The index carries a separate "Featured Metric"
+ * record for some charts — objectID `486-fm-upper-middle-co2-greenhouse-gas-emissions`
+ * — alongside the plain record for the same chart, objectID `486`. Which of the
+ * two comes back depends on the query: `buildChartsFacetFilters` adds an
+ * `isFM:false` facet filter as soon as there is any free-text query, so the
+ * empty-query result set is served the FM record and every result set after the
+ * first keystroke is served the plain one. The two render as the same row (same
+ * slug, same title, same chart), so treating them as different records makes a
+ * chart appear to drop out of the list and re-enter as an unrelated new entry.
+ *
+ * `slug` on its own isn't sufficient either: explorer views and mdim views
+ * share a slug and are distinguished only by `queryParams`, so both go into the
+ * key. (Verified against the live index: for the CO₂ topic's 196-record
+ * unfiltered set this key is unique per row, whereas `objectID` fails to match
+ * 3 of the 165 rows returned for "china".)
+ */
+export function getChartHitIdentity(hit: ChartHitIdentityFields): string {
+    return `${hit.slug}${hit.queryParams ?? ""}`
+}
+
+/**
+ * Re-orders `hits` into the relative order the same charts appear in
+ * `baselineHits`. The result is always a permutation of `hits`: nothing is
+ * added or dropped, only reordered.
+ *
+ * Used by the all-charts block (site/AllChartsBlock.tsx), whose rows must
+ * always read in that block's default order — the order of its unfiltered,
+ * topic-only result set — whatever the visitor has typed. Algolia ranks every
+ * result set by relevance to the query text, so without this the surviving rows
+ * visibly reshuffle on every keystroke as that text grows.
+ *
+ * Rows are matched by `getChartHitIdentity`, not by `objectID` — see there for
+ * why that distinction is load-bearing rather than incidental.
+ *
+ * Hits with no counterpart in the baseline (a record indexed between the two
+ * queries, say) sort to the end, ordered by their identity. That tie-break is
+ * deliberate rather than leaving them equal: equal elements keep their order in
+ * `hits`, which is Algolia's relevance order, i.e. precisely the input that
+ * changes from keystroke to keystroke. Comparing identities instead makes this
+ * a total order that depends only on the two hits being compared, so the output
+ * is a function of the *set* of hits and not of the order they arrived in. (An
+ * inconsistent comparator would itself be a source of apparent shuffling.)
+ */
+export function sortHitsByBaselineOrder<T extends ChartHitIdentityFields>(
+    hits: readonly T[],
+    baselineHits: readonly ChartHitIdentityFields[]
+): T[] {
+    const baselineIndexByIdentity = new Map<string, number>()
+    for (const [index, hit] of baselineHits.entries()) {
+        // First occurrence wins, so a duplicated record can't give one chart
+        // two different positions.
+        const identity = getChartHitIdentity(hit)
+        if (!baselineIndexByIdentity.has(identity))
+            baselineIndexByIdentity.set(identity, index)
+    }
+
+    const positionOf = (hit: T): number =>
+        baselineIndexByIdentity.get(getChartHitIdentity(hit)) ??
+        Number.MAX_SAFE_INTEGER
+
+    return [...hits].sort((a, b) => {
+        const positionDiff = positionOf(a) - positionOf(b)
+        if (positionDiff !== 0) return positionDiff
+        // Only reachable when both hits are missing from the baseline
+        // (baseline positions are unique). Compared with < / > rather than
+        // localeCompare so the ordering can't vary with the runtime's locale.
+        const identityA = getChartHitIdentity(a)
+        const identityB = getChartHitIdentity(b)
+        if (identityA < identityB) return -1
+        if (identityA > identityB) return 1
+        return 0
+    })
+}
+
 export function pickEntitiesForChartHit(
     hit: SearchChartHit,
     selectedRegionNames: string[] | undefined
@@ -191,9 +274,11 @@ export const toGrapherQueryParams = ({
 const generateQueryStrForChartHit = ({
     hit,
     grapherParams,
+    grapherQueryStr: extraGrapherQueryStr,
 }: {
     hit: SearchChartHit
     grapherParams?: GrapherQueryParams
+    grapherQueryStr?: string
 }): string => {
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
     const isMultiDimView = hit.type === ChartRecordType.MultiDimView
@@ -205,7 +290,7 @@ const generateQueryStrForChartHit = ({
         : undefined
 
     // Remove leading '?' from query strings
-    const queryStrList = [viewQueryStr, grapherQueryStr]
+    const queryStrList = [viewQueryStr, grapherQueryStr, extraGrapherQueryStr]
         .map((queryStr) => queryStr?.replace(/^\?/, ""))
         .filter((queryStr) => queryStr)
 
@@ -217,13 +302,26 @@ const generateQueryStrForChartHit = ({
 export const constructChartUrl = ({
     hit,
     grapherParams,
+    grapherQueryStr,
     overlay,
 }: {
     hit: SearchChartHit
     grapherParams?: GrapherQueryParams
+    /**
+     * Already-serialised Grapher query string (e.g. "?country=~ESP"), merged
+     * in alongside `grapherParams`. Opt-in and unused by /search: it exists so
+     * a caller that already holds the exact query string it handed to a live
+     * Grapher can put *that* string on the chart's link, instead of rebuilding
+     * an equivalent param list that could drift from it.
+     */
+    grapherQueryStr?: string
     overlay?: "sources" | "download-data"
 }): string => {
-    const viewQueryStr = generateQueryStrForChartHit({ hit, grapherParams })
+    const viewQueryStr = generateQueryStrForChartHit({
+        hit,
+        grapherParams,
+        grapherQueryStr,
+    })
     const overlayQueryStr = overlay ? `overlay=${overlay}` : ""
     const queryParts = [
         viewQueryStr?.replace(/^\?/, ""),

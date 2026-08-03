@@ -8,6 +8,8 @@ import {
     createTopicFilter,
     extractFiltersFromQuery,
     createCountryFilter,
+    sortHitsByBaselineOrder,
+    getChartHitIdentity,
 } from "./searchUtils"
 
 import { FilterType, SynonymMap } from "@ourworldindata/types"
@@ -760,5 +762,192 @@ describe("offset pagination for useInfiniteSearchOffset hook", () => {
         expect(getNbPaginatedItemsRequested(0, 3, 6, 3)).toBe(3)
         expect(getNbPaginatedItemsRequested(1, 3, 6, 6)).toBe(9)
         expect(getNbPaginatedItemsRequested(2, 3, 6, 2)).toBe(11)
+    })
+})
+
+describe(getChartHitIdentity, () => {
+    it("ignores objectID, so a Featured Metric record and the plain record for the same chart share an identity", () => {
+        // Real records from the CO2 topic: the empty-query result set is served
+        // the FM record, every result set after the first keystroke the plain
+        // one, and both render as the same row.
+        const featuredMetricRecord = {
+            objectID: "486-fm-upper-middle-co2-greenhouse-gas-emissions",
+            slug: "co-emissions-per-capita",
+        }
+        const plainRecord = {
+            objectID: "486",
+            slug: "co-emissions-per-capita",
+        }
+        expect(getChartHitIdentity(featuredMetricRecord)).toBe(
+            getChartHitIdentity(plainRecord)
+        )
+    })
+
+    it("distinguishes views that share a slug by their queryParams", () => {
+        // Explorer/mdim views all live under one slug.
+        const viewA = { slug: "energy", queryParams: "?tab=chart&x=1" }
+        const viewB = { slug: "energy", queryParams: "?tab=chart&x=2" }
+        expect(getChartHitIdentity(viewA)).not.toBe(getChartHitIdentity(viewB))
+    })
+
+    it("treats a missing queryParams as empty", () => {
+        expect(getChartHitIdentity({ slug: "life-expectancy" })).toBe(
+            getChartHitIdentity({
+                slug: "life-expectancy",
+                queryParams: undefined,
+            })
+        )
+    })
+})
+
+describe(sortHitsByBaselineOrder, () => {
+    // The all-charts block's default order: the unfiltered, topic-only result
+    // set. Every filtered result set must read as a subsequence of this.
+    const baseline = ["a", "b", "c", "d", "e", "f"].map((slug) => ({ slug }))
+
+    const slugs = (hits: { slug: string }[]): string[] =>
+        hits.map((hit) => hit.slug)
+
+    it("restores the baseline order of a relevance-ordered result set", () => {
+        // What Algolia hands back for some query: the same charts, re-ranked.
+        const relevanceOrdered = ["e", "a", "d", "b"].map((slug) => ({ slug }))
+        expect(
+            slugs(sortHitsByBaselineOrder(relevanceOrdered, baseline))
+        ).toEqual(["a", "b", "d", "e"])
+    })
+
+    it("produces a subsequence of the baseline for every permutation of a filtered set", () => {
+        // Whatever order the hits arrive in, the output is the same
+        // baseline-ordered list — so consecutive keystrokes returning the same
+        // set in different orders can't reshuffle the rows.
+        const subset = ["b", "c", "f"]
+        const permutations = [
+            ["b", "c", "f"],
+            ["b", "f", "c"],
+            ["c", "b", "f"],
+            ["c", "f", "b"],
+            ["f", "b", "c"],
+            ["f", "c", "b"],
+        ]
+        for (const permutation of permutations) {
+            const sorted = slugs(
+                sortHitsByBaselineOrder(
+                    permutation.map((slug) => ({ slug })),
+                    baseline
+                )
+            )
+            expect(sorted).toEqual(subset)
+            // ...and that is genuinely a subsequence of the baseline.
+            expect(
+                slugs(baseline).filter((slug) => sorted.includes(slug))
+            ).toEqual(sorted)
+        }
+    })
+
+    it("keeps a chart at its baseline position when the query swaps its Featured Metric record for the plain one", () => {
+        // The bug this ordering rule exists to prevent, with the real records
+        // behind it. The unfiltered set that defines the default order is
+        // served FM records for the first few charts; the filtered set for
+        // "china" is served their plain twins, which carry different
+        // objectIDs. Keyed on objectID those three look like brand-new rows
+        // and get flung to the bottom of a 165-row list, which is what read as
+        // the top charts vanishing.
+        const defaultOrder = [
+            {
+                objectID: "486-fm-upper-middle-co2-greenhouse-gas-emissions",
+                slug: "co-emissions-per-capita",
+            },
+            {
+                objectID: "488-fm-upper-middle-co2-greenhouse-gas-emissions",
+                slug: "annual-co2-emissions-per-country",
+            },
+            {
+                objectID: "1895-fm-upper-middle-co2-greenhouse-gas-emissions",
+                slug: "temperature-anomaly",
+            },
+            {
+                objectID: "4146-fm-upper-middle-co2-greenhouse-gas-emissions",
+                slug: "ghg-emissions-by-sector",
+            },
+            { objectID: "547", slug: "annual-co2-emissions-by-region" },
+            { objectID: "558", slug: "meat-supply-vs-gdp-per-capita" },
+        ]
+        // What Algolia returns for "china": no FM records (isFM:false), the
+        // plain twins instead, in relevance order, and temperature-anomaly
+        // legitimately absent since it has no China data.
+        const chinaResults = [
+            { objectID: "547", slug: "annual-co2-emissions-by-region" },
+            { objectID: "4146", slug: "ghg-emissions-by-sector" },
+            { objectID: "486", slug: "co-emissions-per-capita" },
+            { objectID: "558", slug: "meat-supply-vs-gdp-per-capita" },
+            { objectID: "488", slug: "annual-co2-emissions-per-country" },
+        ]
+        expect(
+            slugs(sortHitsByBaselineOrder(chinaResults, defaultOrder))
+        ).toEqual([
+            "co-emissions-per-capita",
+            "annual-co2-emissions-per-country",
+            "ghg-emissions-by-sector",
+            "annual-co2-emissions-by-region",
+            "meat-supply-vs-gdp-per-capita",
+        ])
+    })
+
+    it("keeps the result a permutation of its input", () => {
+        const hits = ["f", "a", "c"].map((slug) => ({ slug }))
+        const sorted = sortHitsByBaselineOrder(hits, baseline)
+        expect(sorted).toHaveLength(hits.length)
+        expect([...slugs(sorted)].sort()).toEqual([...slugs(hits)].sort())
+    })
+
+    it("does not mutate its input", () => {
+        const hits = ["f", "a", "c"].map((slug) => ({ slug }))
+        sortHitsByBaselineOrder(hits, baseline)
+        expect(slugs(hits)).toEqual(["f", "a", "c"])
+    })
+
+    it("sorts hits missing from the baseline to the end, by identity", () => {
+        const hits = ["zz", "c", "yy", "a"].map((slug) => ({ slug }))
+        expect(slugs(sortHitsByBaselineOrder(hits, baseline))).toEqual([
+            "a",
+            "c",
+            "yy",
+            "zz",
+        ])
+    })
+
+    it("orders unknown hits independently of the order they arrived in", () => {
+        // The fallback position must not depend on Algolia's ranking, or two
+        // keystrokes returning the same unknown records in different orders
+        // would render them in different orders.
+        const first = ["yy", "zz", "xx"].map((slug) => ({ slug }))
+        const second = ["zz", "xx", "yy"].map((slug) => ({ slug }))
+        expect(slugs(sortHitsByBaselineOrder(first, baseline))).toEqual(
+            slugs(sortHitsByBaselineOrder(second, baseline))
+        )
+    })
+
+    it("orders by identity alone when the baseline is empty", () => {
+        const hits = ["c", "a", "b"].map((slug) => ({ slug }))
+        expect(slugs(sortHitsByBaselineOrder(hits, []))).toEqual([
+            "a",
+            "b",
+            "c",
+        ])
+    })
+
+    it("handles an empty result set", () => {
+        expect(sortHitsByBaselineOrder([], baseline)).toEqual([])
+    })
+
+    it("preserves the extra fields on each hit", () => {
+        const hits = [
+            { slug: "c", title: "Third" },
+            { slug: "a", title: "First" },
+        ]
+        expect(sortHitsByBaselineOrder(hits, baseline)).toEqual([
+            { slug: "a", title: "First" },
+            { slug: "c", title: "Third" },
+        ])
     })
 })

@@ -29,6 +29,7 @@ import {
     getEntityQueryStr,
     extractFiltersFromQuery,
     pickEntitiesForChartHit,
+    sortHitsByBaselineOrder,
     getFilterIcon,
     getFilterAriaLabel,
     SEARCH_BASE_PATH,
@@ -455,7 +456,7 @@ export const AllChartsBlock = ({
         [topicName]
     )
 
-    const { data: baseHits } = useQuery({
+    const { data: baseHits, isError: isBaseError } = useQuery({
         queryKey: searchQueryKeys.charts(baseSearchState),
         // `title`/`subtitle` (used by computeAutoSuggestedChips for its
         // keyword chips) are already part of the shared
@@ -472,46 +473,43 @@ export const AllChartsBlock = ({
         [baseHits, regionNames, topicName]
     )
 
-    // Position of each chart in the block's *default* ordering — i.e. the
-    // order the list is in with an empty search box. `baseHits` is the
-    // unfiltered, topic-only result set already fetched above for the
-    // suggested chips, so this needs no extra request.
-    const defaultOrderByObjectID = useMemo(() => {
-        const order = new Map<string, number>()
-        for (const [index, hit] of (baseHits ?? []).entries()) {
-            order.set(hit.objectID, index)
-        }
-        return order
-    }, [baseHits])
-
-    // Typing a country must narrow the list without re-ordering it.
+    // Searching must narrow this list without ever re-ordering it.
     //
-    // Algolia ranks every result set by relevance to the query text, so a
-    // query naming a country ("Spain") both narrows the list — via the
-    // `availableEntities` facet filter built from `detectedCountries` — and
-    // shuffles the survivors into relevance order. The intent for this block
-    // is that naming a country highlights that entity in the sidecar Grapher,
-    // not that it re-ranks the indicators, so the surviving rows are sorted
-    // back into their default relative order here.
+    // Algolia ranks every result set by relevance to the query text, so each
+    // keystroke both narrows the list and re-ranks whatever survives. In this
+    // block that reads as the rows jumping around unprompted while you type,
+    // so the block's *default* order is pinned instead: rows always appear in
+    // the relative order they have in `baseHits`, the unfiltered topic-only
+    // result set already fetched above for the suggested chips (so this needs
+    // no extra request). That holds for every query — a country, a keyword, or
+    // a half-typed prefix on the way to either — because a prefix like "chi"
+    // is just as much a query as "china" is, and an order that only settles
+    // once the text happens to resolve to something recognised is exactly the
+    // reshuffle being complained about. Filtering still applies; only the
+    // ordering is pinned.
     //
-    // Deliberately scoped to queries with a country in them: for a plain
-    // keyword search ("carbon") relevance order is the genuinely useful one —
-    // it floats the charts actually about carbon to the top — and only the
-    // country case reads as the list jumping around unprompted.
+    // Rows are matched to the baseline by chart identity rather than by
+    // `objectID`, which matters more than it sounds: the first keystroke makes
+    // the shared facet builder add `isFM:false`, swapping the Featured Metric
+    // record for several of this topic's top charts for the plain record of the
+    // same chart under a different objectID. Keyed on objectID those charts
+    // read as new rows and land at the bottom of the list — the top of the
+    // list appearing to empty out. See getChartHitIdentity.
+    const isBaselinePending = !baseHits && !isBaseError
     const hits = useMemo(() => {
         const rawHits = data ?? []
-        if (detectedCountries.length === 0) return rawHits
-        if (defaultOrderByObjectID.size === 0) return rawHits
-        // Anything missing from the baseline (a record indexed between the
-        // two queries, say) sorts to the end, keeping Algolia's relative
-        // order there since `sort` is stable.
-        const fallbackIndex = defaultOrderByObjectID.size
-        return [...rawHits].sort(
-            (a, b) =>
-                (defaultOrderByObjectID.get(a.objectID) ?? fallbackIndex) -
-                (defaultOrderByObjectID.get(b.objectID) ?? fallbackIndex)
-        )
-    }, [data, detectedCountries, defaultOrderByObjectID])
+        // No baseline and none coming: with nothing to pin the order to, fall
+        // back to Algolia's order rather than blanking the block for good. No
+        // later reshuffle can follow, since no baseline will arrive.
+        if (isBaseError) return rawHits
+        // Baseline still in flight. Render nothing rather than the raw,
+        // relevance-ordered list, which would visibly reshuffle the moment the
+        // baseline landed. In practice this window is empty: with no filters
+        // applied the two queries share a cache entry, so on first load the
+        // baseline arrives with (or before) the filtered results.
+        if (!baseHits) return []
+        return sortHitsByBaselineOrder(rawHits, baseHits)
+    }, [data, baseHits, isBaseError])
 
     // Editorially curated suggestions (set on the gdoc block) take precedence
     // when present, preserving the pre-existing authoring workflow. Every
@@ -567,7 +565,11 @@ export const AllChartsBlock = ({
                     onQueryChange={setQuery}
                     suggestedChips={suggestedChips}
                     hits={hits}
-                    isLoading={isLoading}
+                    // The skeleton also covers the window where the results
+                    // are in but the baseline that orders them isn't (see
+                    // `hits` above), so the list is never shown in an order
+                    // that's about to change.
+                    isLoading={isLoading || isBaselinePending}
                     isFetching={isFetching}
                     detectedCountries={detectedCountries}
                     producerFilters={producerFilters}
@@ -801,6 +803,27 @@ const AllChartsTable = ({
     )
 }
 
+/**
+ * The Grapher view the sidecar is showing for a hit, as a query string — e.g.
+ * "?country=~ESP" when the search names a country this chart has data for, and
+ * "" when it doesn't.
+ *
+ * Deliberately the single source of that string. `AllChartsSidecar` hands it
+ * to `GrapherWithFallback` to render the chart, and the row's "Explore the
+ * data" link puts the very same string on its href, so following the link
+ * opens the chart page on the view the sidecar was showing — country selected
+ * and all — rather than on the bare chart. Rebuilding an equivalent param list
+ * for the link separately would be free to drift from what the sidecar
+ * actually applied; both callers passing identical arguments to one function
+ * can't.
+ */
+function getSidecarViewQueryStr(
+    hit: SearchChartHit,
+    detectedCountries: string[]
+): string {
+    return getEntityQueryStr(pickEntitiesForChartHit(hit, detectedCountries))
+}
+
 const AllChartsTableRow = ({
     hit,
     isSelected,
@@ -814,10 +837,16 @@ const AllChartsTableRow = ({
     onSelect: () => void
     detectedCountries: string[]
 }) => {
-    const chartUrl = constructChartUrl({ hit })
-
     // Entities from the query that are actually available on this chart.
     const shownEntities = pickEntitiesForChartHit(hit, detectedCountries)
+
+    // Carries the sidecar's current view (the selected country) through to the
+    // chart page, so "Explore the data" lands on the same thing the visitor is
+    // already looking at instead of resetting to the chart's default entities.
+    const chartUrl = constructChartUrl({
+        hit,
+        grapherQueryStr: getSidecarViewQueryStr(hit, detectedCountries),
+    })
 
     // Rendered as a single "Source: …" line under the subtitle (see below)
     // rather than in a column of its own, so the row reads as one block of
@@ -934,8 +963,9 @@ const AllChartsSidecar = ({
     // The search field's country selection takes precedence over Grapher's own
     // entity selector. A new search resets it (the queryStr changes), but we
     // don't track entity changes made inside Grapher back to the search bar.
-    const selectedEntities = pickEntitiesForChartHit(hit, detectedCountries)
-    const queryStr = getEntityQueryStr(selectedEntities)
+    // Shared with the row's "Explore the data" href — see
+    // getSidecarViewQueryStr.
+    const queryStr = getSidecarViewQueryStr(hit, detectedCountries)
 
     // Plain charts can be loaded by slug; mdim/explorer views need a config URL.
     const configUrl =
