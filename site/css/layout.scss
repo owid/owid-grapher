@@ -7,3 +7,18 @@
     display: flex;
     flex-direction: row;
 }
+
+// For <body> on pages whose content can be shorter than the viewport (e.g. the
+// subscribe page's confirmation screen): grows <main> so the footer sits at the
+// bottom of the window instead of leaving whitespace below it. The body children
+// injected at runtime (cookie notice, user survey) are position: fixed, so they
+// stay out of this flex flow.
+.sticky-footer-body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+
+    main {
+        flex-grow: 1;
+    }
+}
