@@ -1,5 +1,5 @@
 import * as z from "zod/mini"
-import { LATEST_FEED_TYPE_VALUES, OwidGdocType } from "./gdocTypes/Gdoc.js"
+import { LatestType } from "./domainTypes/Latest.js"
 
 export const EMAIL_NOTIFICATIONS_FREQUENCIES = ["daily", "weekly"] as const
 
@@ -26,27 +26,68 @@ export const EMAIL_NOTIFICATIONS_FREQUENCY_LABELS: Record<
     weekly: "One email a week",
 }
 
+/**
+ * The content-type dimension of a notification subscription. Mostly mirrors
+ * the gdoc types of the latest feed, except announcement gdocs are split by
+ * their kicker: "data-update" / "topic-update" kickers are topic-tagged
+ * content updates and ship under "data-update", while "announcement" /
+ * "website-upgrade" kickers are news about Our World in Data itself —
+ * usually untagged, so the "announcement" content type is topic-independent.
+ */
+export const EMAIL_NOTIFICATIONS_CONTENT_TYPES = [
+    "article",
+    "data-insight",
+    "data-update",
+    "announcement",
+] as const
+
+export type EmailNotificationsContentType =
+    (typeof EMAIL_NOTIFICATIONS_CONTENT_TYPES)[number]
+
+/** Which subscription content type an item's LatestType falls under. */
+export const EMAIL_NOTIFICATIONS_CONTENT_TYPE_BY_LATEST_TYPE: Record<
+    LatestType,
+    EmailNotificationsContentType
+> = {
+    article: "article",
+    "data-insight": "data-insight",
+    "data-update": "data-update",
+    "topic-update": "data-update",
+    "website-upgrade": "announcement",
+    announcement: "announcement",
+}
+
 export const EMAIL_NOTIFICATIONS_CONTENT_TYPE_LABELS: Record<
-    (typeof LATEST_FEED_TYPE_VALUES)[number],
+    EmailNotificationsContentType,
     string
 > = {
-    [OwidGdocType.Article]: "Articles",
-    [OwidGdocType.DataInsight]: "Data insights",
-    [OwidGdocType.Announcement]: "Announcements",
+    article: "Articles",
+    "data-insight": "Data insights",
+    "data-update": "Data updates",
+    announcement: "Announcements",
 }
 
 // Mirrors the validation in the email-notifications subscribe Cloudflare
 // Function (see functions/api/email-notifications/subscribe.ts), which is the
 // authoritative place where requests are validated.
 export const EmailNotificationsPreferencesTypeObject = z.object({
-    // Topic tag names from the topic tag graph. An empty array means the user
-    // wants updates across all topics.
+    // Topic tag names from the topic tag graph. Articles, data insights
+    // and data updates are only sent when they match one of these topics;
+    // the "announcement" content type is topic-independent. An empty array
+    // means "all topics" — stored that way so topic areas added later are
+    // automatically included. (The subscribe form still makes users pick at
+    // least one pill and translates a full selection to []; that rule is
+    // client-side only, since the server can't tell "nothing selected" from
+    // "all topics".)
     topicTags: z
         .array(z.string().check(z.minLength(1), z.maxLength(100)))
         .check(z.maxLength(64)),
     contentTypes: z
-        .array(z.enum(LATEST_FEED_TYPE_VALUES))
-        .check(z.minLength(1), z.maxLength(LATEST_FEED_TYPE_VALUES.length)),
+        .array(z.enum(EMAIL_NOTIFICATIONS_CONTENT_TYPES))
+        .check(
+            z.minLength(1),
+            z.maxLength(EMAIL_NOTIFICATIONS_CONTENT_TYPES.length)
+        ),
     frequency: z.enum(EMAIL_NOTIFICATIONS_FREQUENCIES),
 })
 
@@ -59,7 +100,8 @@ export type EmailNotificationsPreferences = z.infer<
  * submitted for an address that already exists: the form is tokenless, so it
  * may only ever broaden a subscription, never narrow one — otherwise anyone
  * who knows an address could silently strip its preferences.
- * - topicTags: union; an empty array means "all topics", so it wins.
+ * - topicTags: union, where an empty array means "all topics" and therefore
+ *   absorbs everything — if either side is empty, the result is empty.
  * - contentTypes: union.
  * - frequency: the incoming one — cadence is a setting, not subscription
  *   scope, so the form's explicit choice wins.
