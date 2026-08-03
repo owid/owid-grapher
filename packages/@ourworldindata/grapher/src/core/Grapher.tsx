@@ -34,6 +34,7 @@ import {
     AdditionalGrapherDataFetchFn,
     GrapherVariant,
     Time,
+    DownloadPackage,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import {
@@ -135,6 +136,18 @@ export interface GrapherManager {
     adminEditPath?: string
     adminCreateNarrativeChartPath?: string
     analyticsContext?: AnalyticsContext
+    /**
+     * Pre-built zip covering every view of the mdim this chart belongs to,
+     * offered as a third option in the download modal. Lives on the manager
+     * rather than the chart config because it describes the mdim around the
+     * chart, not the chart itself, and because it has to survive the
+     * `reset()`/`updateFromObject()` cycle each view switch goes through.
+     *
+     * The site only sets it where the reader can see the dimension controls:
+     * in an embed pinned to a single view there is no way to tell what "the
+     * full dataset" would even cover.
+     */
+    downloadPackage?: DownloadPackage
 }
 
 export interface GrapherProps {

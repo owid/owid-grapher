@@ -1,3 +1,4 @@
+import { useState } from "react"
 import {
     DownloadApiOptions,
     DownloadButtonLink,
@@ -19,11 +20,15 @@ import {
 import {
     Distribution,
     ArchiveContext,
+    DownloadPackage,
     OwidColumnDef,
     type DownloadRewriteTarget,
 } from "@ourworldindata/types"
 import {
+    makeCompleteDatasetCodeExamples,
+    makeCompleteDatasetDescription,
     makeDownloadCodeExamples,
+    COMPLETE_DATASET_SOURCES_HELP_TEXT,
     SERVER_SIDE_DOWNLOAD_HELP_TEXT,
 } from "@ourworldindata/utils"
 
@@ -51,9 +56,11 @@ function getCodeExampleRewriteTarget(name: string): DownloadRewriteTarget {
 function ApiAndCodeExamplesSection({
     downloadCtxBase,
     firstYColDef,
+    downloadPackage,
 }: {
     downloadCtxBase: DataDownloadContextBase
     firstYColDef?: OwidColumnDef
+    downloadPackage?: DownloadPackage
 }) {
     const {
         csvUrl,
@@ -63,7 +70,33 @@ function ApiAndCodeExamplesSection({
         shortColNames,
         setShortColNames,
     } = useDataApiDownloadConfig({ downloadCtxBase, firstYColDef })
-    const codeExamples = makeDownloadCodeExamples(csvUrl, metadataUrl)
+
+    // The complete dataset is a third download scope rather than another set of
+    // options: it's the same wide table for every dimension combination, served
+    // from pre-built R2 objects, so the options above genuinely don't apply.
+    const completeDatasetUrls =
+        downloadPackage?.parquetUrl && downloadPackage.metadataUrl
+            ? {
+                  dataUrl: downloadPackage.parquetUrl,
+                  metadataUrl: downloadPackage.metadataUrl,
+              }
+            : undefined
+    const [showCompleteDataset, setShowCompleteDataset] = useState(false)
+    const completeDataset = showCompleteDataset
+        ? completeDatasetUrls
+        : undefined
+
+    const activeDataUrl = completeDataset?.dataUrl ?? csvUrl
+    const activeMetadataUrl = completeDataset?.metadataUrl ?? metadataUrl
+    const dataUrlLabel = completeDataset
+        ? "Data URL (Parquet format)"
+        : "Data URL (CSV format)"
+    const codeExamples = completeDataset
+        ? makeCompleteDatasetCodeExamples(
+              completeDataset.dataUrl,
+              completeDataset.metadataUrl
+          )
+        : makeDownloadCodeExamples(csvUrl, metadataUrl)
 
     return (
         <>
@@ -88,16 +121,30 @@ function ApiAndCodeExamplesSection({
                     shortColNames={shortColNames}
                     onShortColNamesChange={setShortColNames}
                     firstYColDef={firstYColDef}
+                    completeDataset={
+                        completeDatasetUrls && {
+                            checked: showCompleteDataset,
+                            onChange: setShowCompleteDataset,
+                        }
+                    }
                 />
+                {/* No data-owid-download-url-target while the complete dataset
+                    is selected: that mechanism exists so the edge rewriter can
+                    inject the current view's query params into the baked HTML,
+                    and these URLs are static and param-free. */}
                 <section className="downloads__api-urls">
                     <div>
                         <h5 className="downloads__code-label">
-                            Data URL (CSV format)
+                            {dataUrlLabel}
                         </h5>
                         <CodeSnippet
-                            code={csvUrl}
+                            code={activeDataUrl}
                             theme="light"
-                            codeAttributes={getDownloadRewriteAttrs("api-csv")}
+                            codeAttributes={
+                                completeDataset
+                                    ? undefined
+                                    : getDownloadRewriteAttrs("api-csv")
+                            }
                         />
                     </div>
                     <div>
@@ -105,11 +152,13 @@ function ApiAndCodeExamplesSection({
                             Metadata URL (JSON format)
                         </h5>
                         <CodeSnippet
-                            code={metadataUrl}
+                            code={activeMetadataUrl}
                             theme="light"
-                            codeAttributes={getDownloadRewriteAttrs(
-                                "api-metadata"
-                            )}
+                            codeAttributes={
+                                completeDataset
+                                    ? undefined
+                                    : getDownloadRewriteAttrs("api-metadata")
+                            }
                         />
                     </div>
                 </section>
@@ -134,11 +183,15 @@ function ApiAndCodeExamplesSection({
                                         <CodeSnippet
                                             code={snippet}
                                             theme="light"
-                                            codeAttributes={getDownloadRewriteAttrs(
-                                                getCodeExampleRewriteTarget(
-                                                    name
-                                                )
-                                            )}
+                                            codeAttributes={
+                                                completeDataset
+                                                    ? undefined
+                                                    : getDownloadRewriteAttrs(
+                                                          getCodeExampleRewriteTarget(
+                                                              name
+                                                          )
+                                                      )
+                                            }
                                         />
                                     </div>
                                 )
@@ -162,6 +215,7 @@ export type DownloadSectionProps = {
     archivedChartInfo?: ArchiveContext
     distribution?: Distribution
     hideRowCounts?: boolean
+    downloadPackage?: DownloadPackage
 }
 
 export default function DownloadSection({
@@ -175,6 +229,7 @@ export default function DownloadSection({
     archivedChartInfo,
     distribution,
     hideRowCounts,
+    downloadPackage,
 }: DownloadSectionProps) {
     const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
 
@@ -325,20 +380,15 @@ export default function DownloadSection({
                             <p className="citation__paragraph">
                                 {SERVER_SIDE_DOWNLOAD_HELP_TEXT}
                             </p>
+                            {downloadPackage && (
+                                <p className="citation__paragraph">
+                                    {COMPLETE_DATASET_SOURCES_HELP_TEXT}
+                                </p>
+                            )}
+                            {/* Ordered from smallest to biggest download */}
                             <div className="downloads__download-buttons">
                                 <DownloadButtonLink
-                                    title="Download full data"
-                                    description={fullDownloadDescription}
-                                    icon="full"
-                                    trackingNote="datapage_download_full_data--server"
-                                    href={fullDownloadUrl}
-                                    download={fullDownloadFilename}
-                                    {...getDownloadRewriteAttrs(
-                                        "download-full-data"
-                                    )}
-                                />
-                                <DownloadButtonLink
-                                    title="Download displayed data"
+                                    title="Download only selected data"
                                     description={filteredDownloadDescription}
                                     icon="selected"
                                     trackingNote="datapage_download_filtered_data--server"
@@ -348,11 +398,39 @@ export default function DownloadSection({
                                         "download-filtered-data"
                                     )}
                                 />
+                                <DownloadButtonLink
+                                    title="Download chart data"
+                                    description={fullDownloadDescription}
+                                    icon="full"
+                                    trackingNote="datapage_download_full_data--server"
+                                    href={fullDownloadUrl}
+                                    download={fullDownloadFilename}
+                                    {...getDownloadRewriteAttrs(
+                                        "download-full-data"
+                                    )}
+                                />
+                                {downloadPackage && (
+                                    <DownloadButtonLink
+                                        title="Download full dataset"
+                                        description={makeCompleteDatasetDescription(
+                                            downloadPackage
+                                        )}
+                                        icon="complete"
+                                        trackingNote="datapage_download_complete_dataset"
+                                        href={downloadPackage.url}
+                                        // No `download` attribute: the zip is
+                                        // served from R2, and the attribute is
+                                        // ignored cross-origin. ETL uploads it
+                                        // with a Content-Disposition filename
+                                        // instead.
+                                    />
+                                )}
                             </div>
                         </div>
                         <ApiAndCodeExamplesSection
                             downloadCtxBase={downloadCtx}
                             firstYColDef={firstYColDef}
+                            downloadPackage={downloadPackage}
                         />
                     </>
                 )}
