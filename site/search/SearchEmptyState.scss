@@ -1,4 +1,4 @@
-.search-no-results {
+.search-empty-state {
     display: none;
     text-align: center;
     margin-top: min(100px, 15vh);
@@ -10,7 +10,7 @@
     p {
         color: $blue-60;
     }
-    .search-no-results__icon {
+    .search-empty-state__icon {
         background-color: $blue-10;
         color: $blue-50;
         font-size: 20px;
@@ -19,6 +19,6 @@
     }
 }
 
-.search-no-results:only-child {
+.search-empty-state:only-child {
     display: block;
 }

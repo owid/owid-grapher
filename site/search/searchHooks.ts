@@ -7,11 +7,22 @@ import {
 } from "./searchUtils.js"
 import { DEFAULT_SEARCH_STATE } from "./searchState.js"
 import { useSearchContext } from "./SearchContext.js"
+import { searchQueryKeys } from "./queries.js"
 import { fetchJson, flattenNonTopicNodes } from "@ourworldindata/utils"
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
+import {
+    useInfiniteQuery,
+    useQuery,
+    useQueryClient,
+} from "@tanstack/react-query"
 import { LiteClient } from "algoliasearch/lite"
 import type { SearchResponse } from "algoliasearch"
-import { useEffect, useMemo, useRef } from "react"
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useSyncExternalStore,
+} from "react"
 import type { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import * as R from "remeda"
@@ -225,6 +236,51 @@ export function useInfiniteSearch<THit>({
         totalResults,
         isClosestMatches,
     }
+}
+
+/**
+ * True when any of the Algolia queries for the current search state failed
+ * (e.g. Algolia is down or blocking us). Every results component renders
+ * nothing when its query fails, so without this the page falls back to the
+ * "no results for this query" notice, which misrepresents an outage as an
+ * empty index — see `SearchError`.
+ *
+ * The query cache is shared site-wide and holds on to failed queries until
+ * they are garbage collected, so this only counts failures that are both
+ * keyed to the current search state and still observed by a mounted
+ * component. Without the observer check, a charts query that failed under
+ * the Data toggle would keep the notice up after a switch to Writing, whose
+ * template doesn't render charts at all — `resultType` is deliberately not
+ * part of the query keys.
+ */
+export function useHasSearchError(state: SearchState): boolean {
+    const queryCache = useQueryClient().getQueryCache()
+
+    const getSnapshot = () =>
+        [
+            searchQueryKeys.charts(state),
+            searchQueryKeys.dataTopics(state),
+            searchQueryKeys.dataInsights(state),
+            searchQueryKeys.articles(state),
+            searchQueryKeys.topicPages(state),
+            searchQueryKeys.writingTopics(state),
+            searchQueryKeys.profiles(state),
+        ].some((queryKey) => {
+            const query = queryCache.find({ queryKey, exact: true })
+            return (
+                query?.state.status === "error" && query.getObserversCount() > 0
+            )
+        })
+
+    return useSyncExternalStore(
+        useCallback(
+            (onStoreChange) => queryCache.subscribe(onStoreChange),
+            [queryCache]
+        ),
+        getSnapshot,
+        // No query has run during server rendering
+        () => false
+    )
 }
 
 export function useTopicTagGraph({ isPreviewing }: { isPreviewing: boolean }) {

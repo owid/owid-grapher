@@ -17,7 +17,11 @@ import {
     hasDatasetFilters,
     isBrowsing,
 } from "./searchUtils.js"
-import { useTagGraphTopics, useSearchAnalytics } from "./searchHooks.js"
+import {
+    useTagGraphTopics,
+    useSearchAnalytics,
+    useHasSearchError,
+} from "./searchHooks.js"
 import { stateToSearchParams, useSearchParamsState } from "./searchState.js"
 
 // Components
@@ -29,6 +33,7 @@ import { SearchTemplatesAll } from "./SearchTemplatesAll.js"
 import { SearchTemplatesData } from "./SearchTemplatesData.js"
 import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
 import { SearchNoResults } from "./SearchNoResults.js"
+import { SearchError } from "./SearchError.js"
 import { SearchDetectedFilters } from "./SearchDetectedFilters.js"
 import { buildSynonymMap } from "./synonymUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
@@ -67,6 +72,7 @@ export const Search = ({
     useSearchAnalytics(state, analytics)
 
     const isFetching = useIsFetching()
+    const hasSearchError = useHasSearchError(state)
 
     // Autofocus only on the first mount if the user is browsing.
     const [shouldAutoFocus, setShouldAutoFocus] = useState(() =>
@@ -128,7 +134,8 @@ export const Search = ({
                 <SearchResultTypeToggle />
             </div>
             <div className="search-template-results col-start-2 span-cols-12">
-                {!isFetching && <SearchNoResults />}
+                {!isFetching &&
+                    (hasSearchError ? <SearchError /> : <SearchNoResults />)}
                 {match(templateConfig.resultType)
                     .with(SearchResultType.ALL, () => <SearchTemplatesAll />)
                     .with(SearchResultType.DATA, () => <SearchTemplatesData />)
