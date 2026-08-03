@@ -399,6 +399,9 @@ function IconFragment({
                     {...hitAreaBounds.toProps()}
                     fill="transparent"
                     style={{ pointerEvents: "auto" }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={getDescriptionForKey(fragment.tooltipKey)}
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}
                 />
