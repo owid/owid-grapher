@@ -45,6 +45,16 @@
 // from the top of the viewport.
 $all-charts-block-sticky-top: 72px;
 
+// Height of that sub-nav. Its `li`s are what set it (56px, 48px on small
+// viewports — see site/blocks/StickyNav.scss); there's no shared variable to
+// import. Used to work out how much of a gap the sticky search bar leaves
+// between itself and the nav above it, which its opaque background has to
+// cover — see .all-charts-block__search below. Taking the larger of the two
+// heights is deliberate: where the nav is the shorter 48px the extra 8px just
+// slides under it (the nav's z-index is well above the search bar's), whereas
+// underestimating would leave a live gap for rows to show through.
+$all-charts-block-sticky-nav-height: 56px;
+
 .all-charts-block__right {
     min-width: 0;
     position: sticky;
@@ -86,6 +96,27 @@ $all-charts-block-sticky-top: 72px;
     // transparent, which let rows dissolve out from under the input — the
     // designer's reference has the row clipped cleanly instead.
     background-color: $white;
+
+    // The bar sticks a little *below* the sub-nav (see
+    // $all-charts-block-sticky-top), which leaves a band between the two that
+    // the background above doesn't cover — so rows scrolling past stayed
+    // visible in it, reappearing above the search input after being hidden
+    // behind it. Painted here rather than by giving the bar padding-top,
+    // because padding would also push the input down where the bar isn't
+    // stuck. Absolute positioning resolves against the bar itself (sticky is
+    // a positioned element), so this sits flush on top of it, and being a
+    // child it inherits the bar's stacking position over the rows. The
+    // sub-nav's own z-index is far higher, so overlapping it is harmless.
+    &::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 100%;
+        height: $all-charts-block-sticky-top -
+            $all-charts-block-sticky-nav-height;
+        background-color: $white;
+    }
 }
 
 .all-charts-block__search-icon {
