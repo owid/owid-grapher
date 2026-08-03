@@ -1,15 +1,14 @@
 import ReactDOMServer from "react-dom/server"
 import { CSSProperties, Fragment, ReactNode } from "react"
 import {
+    EmailNotificationsContentType,
     EmailNotificationsFrequency,
     OwidEnrichedGdocBlock,
-    OwidGdocType,
     Span,
 } from "@ourworldindata/types"
 import { dayjs, formatAuthors } from "@ourworldindata/utils"
 import {
     EmailNotificationsSubscriber,
-    LatestFeedType,
     NotificationEmailItem,
 } from "./emailNotificationsUtils.js"
 
@@ -31,10 +30,11 @@ const COLORS = {
 const BODY_FONT = 'Lato, "Helvetica Neue", Helvetica, Arial, sans-serif'
 const SERIF_FONT = '"Playfair Display", Georgia, "Times New Roman", serif'
 
-const CONTENT_TYPE_LABELS: Record<LatestFeedType, string> = {
-    [OwidGdocType.Article]: "Article",
-    [OwidGdocType.DataInsight]: "Data insight",
-    [OwidGdocType.Announcement]: "Announcement",
+const CONTENT_TYPE_LABELS: Record<EmailNotificationsContentType, string> = {
+    article: "Article",
+    "data-insight": "Data insight",
+    "data-update": "Data update",
+    announcement: "Announcement",
 }
 
 const FREQUENCY_LABELS: Record<EmailNotificationsFrequency, string> = {
@@ -238,7 +238,7 @@ function Item({ item }: { item: NotificationEmailItem }) {
                     {item.title}
                 </a>
             </h2>
-            {item.type === OwidGdocType.DataInsight ? (
+            {item.type === "data-insight" ? (
                 <DataInsightBody item={item} />
             ) : (
                 <TeaserBody item={item} />
@@ -312,7 +312,7 @@ function TeaserBody({ item }: { item: NotificationEmailItem }) {
             )}
             <p style={{ margin: 0 }}>
                 <a href={item.url} style={{ color: COLORS.blue }}>
-                    {item.type === OwidGdocType.Article
+                    {item.type === "article"
                         ? "Read the article →"
                         : "Read more →"}
                 </a>
