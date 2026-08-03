@@ -151,7 +151,14 @@ const SourceContent = (props: {
                                     Retrieved from
                                 </div>
                                 <div className="source-key-data__content">
-                                    {makeLinks({ link: source.retrievedFrom })}
+                                    {makeLinks({
+                                        link: source.retrievedFrom,
+                                        // Tracked here, in the component both
+                                        // designs share, so publisher
+                                        // click-through is measured identically
+                                        // in each arm.
+                                        trackNote: "retrieved_from",
+                                    })}
                                 </div>
                             </div>
                         )}

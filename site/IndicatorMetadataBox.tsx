@@ -35,6 +35,7 @@ import {
     splitDescriptionKey,
 } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
+import TrackedProseLinks from "./TrackedProseLinks.js"
 import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
 
 const analytics = new SiteAnalytics()
@@ -159,9 +160,12 @@ function ExpandableSection({
     return (
         <div className={cx("meta-expander", className)}>
             {descriptionKeyPreview && (
-                <div className="meta-expander__preview meta-expander__prose">
+                <TrackedProseLinks
+                    note="wysk_link"
+                    className="meta-expander__preview meta-expander__prose"
+                >
                     <SimpleMarkdownText text={descriptionKeyPreview} />
-                </div>
+                </TrackedProseLinks>
             )}
             <details
                 className="meta-expander__details"
@@ -199,9 +203,12 @@ function ExpandableSection({
                     </span>
                 </summary>
                 {descriptionKeyRest && (
-                    <div className="meta-expander__remainder meta-expander__prose">
+                    <TrackedProseLinks
+                        note="wysk_link"
+                        className="meta-expander__remainder meta-expander__prose"
+                    >
                         <SimpleMarkdownText text={descriptionKeyRest} />
-                    </div>
+                    </TrackedProseLinks>
                 )}
                 {
                     <section className="meta-expander__section meta-expander__section--faqs">
