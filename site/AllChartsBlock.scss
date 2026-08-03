@@ -8,20 +8,19 @@
 .all-charts-block__panes {
     display: grid;
     // The block itself already spans the full 12-column content grid (see the
-    // "featured-metrics" entry in site/gdocs/components/layout.ts), so the
-    // list can only be widened by taking width off the chart sidecar. An even
-    // 6/6 split gives the indicator list a good chunk more room than the 5/7
-    // it started with — needed now that each row's source sits underneath its
-    // subtitle rather than in a column of its own — while still leaving the
-    // sidecar wide enough to render a landscape chart at $grapher-height.
+    // "featured-metrics" entry in site/gdocs/components/layout.ts), so the two
+    // panes can only be balanced against each other: any width given to the
+    // indicator list comes straight off the chart sidecar.
     //
-    // The list looking wider than the chart is expected and is not a reason
-    // to skew these tracks: at a 1440px viewport both columns measure 628px,
-    // but Grapher renders its figure at 548px inside its 628px column (it
-    // sizes itself from $grapher-height's aspect ratio, not the space
-    // offered), leaving it visually centred with ~40px either side. Making
-    // the tracks uneven to "correct" that only squeezes the chart further.
-    grid-template-columns: 6fr 6fr;
+    // This deliberately favours the sidecar. An even 6/6 split was tried, to
+    // give the list more room once each row's source moved underneath its
+    // subtitle, but it made the chart card noticeably narrower: Grapher sizes
+    // its figure from $grapher-height's aspect ratio and is capped by the
+    // track it sits in, so width taken off this column shrinks the chart
+    // itself, whereas the list only reflows its text. The row text is kept
+    // within the narrower list pane by clamping the subtitle and source lines
+    // instead (see .all-charts-block__row-subtitle and -row-source below).
+    grid-template-columns: 5fr 7fr;
     gap: 24px;
     align-items: start;
 
@@ -281,15 +280,19 @@ $all-charts-block-sticky-top: 72px;
     font-weight: 400;
     // Matches .all-charts-block__row-source below.
     line-height: 1.5;
-    // Wrap rather than truncate — a cut-off subtitle reads as a rendering
-    // bug, and there's ample vertical room in the row for a couple of
-    // lines. Long subtitles are still clamped to 3 lines with an ellipsis
-    // below so a single row can't grow unboundedly tall.
+    // Wrap rather than truncate on the first line — a subtitle cut off after
+    // a few words reads as a rendering bug — but clamp at two lines with an
+    // ellipsis so one verbose indicator can't grow its row unboundedly tall
+    // and push the rest of the list down.
     overflow-wrap: break-word;
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
+    // -webkit-line-clamp is what actually does the clamping in every browser
+    // we support; the unprefixed line-clamp is only in the newest Chrome and
+    // Safari (see docs/browser-support.md) and is declared alongside it so
+    // this keeps working once that becomes the supported property.
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -315,23 +318,37 @@ $all-charts-block-sticky-top: 72px;
     font-size: 12px;
     font-weight: 400;
     line-height: 1.5;
-    // Long producer lists are clamped, same as
-    // .all-charts-block__row-subtitle above, so a single row can't grow
-    // unboundedly tall. Two lines is ample now that the line spans the row's
-    // full width rather than a narrow column.
-    overflow-wrap: break-word;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    // The source stays on one line however long the producer list is — some
+    // run to a dozen organisations ("Food and Agriculture Organization of the
+    // United Nations, Eurostat, OECD, IMF, and World Bank, …") and wrapping
+    // those would dominate the row. Laid out as a flex pair so only the
+    // producer list is truncated and the "Source:" label is always readable;
+    // a line clamp can't make that distinction.
+    display: flex;
+    // Stands in for the space between the label and the value: a
+    // whitespace-only text node between two flex items isn't rendered.
+    gap: 0.25em;
 }
 
-// The "Source:" label itself, set a step lighter than the producer names that
-// follow it so the line leads with the source rather than the word "Source".
+// The "Source:" label itself. Bold, and a step lighter in colour than the
+// producer names that follow it.
 .all-charts-block__row-source-label {
+    // Never truncated, unlike the producer list beside it — a clipped
+    // "Sour…" would just look broken.
+    flex: 0 0 auto;
     color: $gray-70;
+    font-weight: 700;
+}
+
+// The producer list, truncated with an ellipsis when it doesn't fit.
+.all-charts-block__row-source-value {
+    // Without min-width: 0 this flex item refuses to shrink below its
+    // content's intrinsic width (min-width: auto is the default), so it
+    // overflows the row instead of ellipsing.
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 // Holds the selected row's "Explore the data" link at the right-hand edge of
@@ -348,7 +365,27 @@ $all-charts-block-sticky-top: 72px;
     }
 }
 
+// The shared .owid-btn is sized for page-level calls to action: 14px
+// body-3-medium text in 8.5px/24px padding, which renders ~35px tall. Design
+// wants a compact 32px control inside a table row, so the size is overridden
+// here rather than in the shared component, which is used at full size
+// elsewhere. These selectors are no more specific than .owid-btn's own, but
+// this file is imported after Button.scss (see site/owid.scss), so they win.
 .all-charts-block__row-explore-button {
+    // A fixed height plus flex centring is what pins the *rendered* height to
+    // 32px. Overriding padding and line-height alone doesn't: the arrow svg
+    // sits in the line box with its own height and baseline offset, so it,
+    // not the declared padding, ends up setting how tall the button comes
+    // out. Centring the content in a fixed-height box takes both out of the
+    // equation. box-sizing: border-box is global, so the 1px transparent
+    // border .owid-btn draws is included in the 32px.
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    padding: 0 12px;
+    font-size: 12px;
+    line-height: 1;
     // The label reads as one unit with its arrow; wrapping it mid-phrase to
     // fit a narrow row would look broken.
     white-space: nowrap;

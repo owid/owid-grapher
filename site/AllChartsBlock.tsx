@@ -866,13 +866,15 @@ const AllChartsTableRow = ({
                     )}
                     {source && (
                         <span className="all-charts-block__row-source">
-                            {/* "Source:" is set a step lighter than the
-                                producer names it introduces, so the label
-                                recedes and the actual source reads first. */}
+                            {/* The label and the producer list are separate
+                                elements so the list can be truncated to one
+                                line on its own while "Source:" stays whole. */}
                             <span className="all-charts-block__row-source-label">
                                 Source:
-                            </span>{" "}
-                            {source}
+                            </span>
+                            <span className="all-charts-block__row-source-value">
+                                {source}
+                            </span>
                         </span>
                     )}
                     {shownEntities.length > 0 && (
