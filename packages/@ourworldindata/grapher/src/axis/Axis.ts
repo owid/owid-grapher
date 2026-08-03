@@ -50,6 +50,9 @@ type Scale = ScaleLinear<number, number> | ScaleLogarithmic<number, number>
 
 const OUTER_PADDING = 4
 
+// An axis never shows more labels than this
+const MAX_TICK_LABEL_COUNT = 50
+
 const doIntersect = (bounds: Bounds, bounds2: Bounds): boolean => {
     return bounds.intersects(bounds2)
 }
@@ -766,6 +769,9 @@ export class HorizontalAxis extends AbstractAxis {
                 bandValues: this.config.bandValues,
             })
             for (const option of options) {
+                // Denser options can't fit, so don't bother measuring them
+                if (option.length > MAX_TICK_LABEL_COUNT) continue
+
                 const placedTickLabels = option.map((tick) =>
                     this.placeTickLabel(tick.value, tick.label)
                 )
@@ -775,7 +781,7 @@ export class HorizontalAxis extends AbstractAxis {
             // If no evenly-spaced option fits, fall through to the greedy labeling below
         }
 
-        // Otherwise: place all ticks greedily drop individual overlaps.
+        // Otherwise: place all ticks greedily, then drop individual overlaps.
         const placedTickLabels = _.sortBy(
             this.baseTicks,
             (tick) => tick.priority
@@ -1044,22 +1050,25 @@ export class DualAxis {
     }
 }
 
-/** Whether no two labels overlap, keeping at least `padding` of space between them. */
+/**
+ * Whether no two labels overlap, keeping at least `padding` of space between them.
+ *
+ * Expects `tickLabels` in the order they appear on the axis, so that it suffices
+ * to compare neighbours.
+ */
 function labelsFit(
     tickLabels: TickLabelPlacement[],
     { padding = 0 }: { padding?: number } = {}
 ): boolean {
-    for (let i = 0; i < tickLabels.length; i++) {
-        for (let j = i + 1; j < tickLabels.length; j++) {
-            if (
-                doIntersect(
-                    // Expand bounds so that labels aren't too close together
-                    boundsFromLabelPlacement(tickLabels[i]).expand(padding),
-                    boundsFromLabelPlacement(tickLabels[j]).expand(padding)
-                )
+    for (let i = 0; i < tickLabels.length - 1; i++) {
+        if (
+            doIntersect(
+                // Expand bounds so that labels aren't too close together
+                boundsFromLabelPlacement(tickLabels[i]).expand(padding),
+                boundsFromLabelPlacement(tickLabels[i + 1]).expand(padding)
             )
-                return false
-        }
+        )
+            return false
     }
     return true
 }

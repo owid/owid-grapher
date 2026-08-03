@@ -6,6 +6,7 @@ import {
     convertDaysSinceEpochToDate,
     convertDateToDaysSinceEpoch,
     snapToIntervalStart,
+    sortNumeric,
 } from "@ourworldindata/utils"
 import { TimeInterval } from "@ourworldindata/types"
 import { match } from "ts-pattern"
@@ -86,12 +87,15 @@ function toCalendarValue(value: number): CalendarValue {
     }
 }
 
+// The Monday that anchors weekly day grids
+const WEEK_GRID_REFERENCE = snapToIntervalStart(0, TimeInterval.Week)
+
 /**
  * The reference day that anchors a day grid with the given step: a Monday for
  * weekly steps (so ticks land on week starts), the epoch otherwise.
  */
 function dayGridReference(step: number): number {
-    return step % 7 === 0 ? snapToIntervalStart(0, TimeInterval.Week) : 0
+    return step % 7 === 0 ? WEEK_GRID_REFERENCE : 0
 }
 
 /**
@@ -412,7 +416,10 @@ export function buildDiscreteTimeAxisTicks({
 }: {
     bandValues: number[]
 }): Tickmark[] {
-    return _.sortBy(_.uniq(bandValues)).map((value) => ({ value, priority: 2 }))
+    return sortNumeric(_.uniq(bandValues)).map((value) => ({
+        value,
+        priority: 2,
+    }))
 }
 
 /**
@@ -454,7 +461,7 @@ function buildTickOptionsFromGrids(
     bandValues: number[],
     getGridIndexers: GetGridIndex[]
 ): Tickmark[][] {
-    const calendarValues = _.sortBy(_.uniq(bandValues)).map(toCalendarValue)
+    const calendarValues = sortNumeric(_.uniq(bandValues)).map(toCalendarValue)
 
     const makeTier = (values: CalendarValue[]): Tickmark[] =>
         values.map(({ value }) => ({ value, priority: 2 }))
