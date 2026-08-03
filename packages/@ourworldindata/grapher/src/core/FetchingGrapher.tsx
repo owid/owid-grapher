@@ -88,6 +88,8 @@ export function FetchingGrapher(
                     unstable_batchedUpdates(() => {
                         grapherState.current.reset()
                         grapherState.current.updateFromObject(mergedConfig)
+                        grapherState.current.deprecationNotice =
+                            mergedConfig.deprecationNotice
                         grapherState.current.legacyConfigAsAuthored =
                             mergedConfig
                         grapherState.current.isConfigReady = true

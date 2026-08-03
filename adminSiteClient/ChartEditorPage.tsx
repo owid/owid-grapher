@@ -48,6 +48,7 @@ export class ChartEditorPage
             tags: observable,
             availableTags: observable,
             forceDatapage: observable.ref,
+            deprecationNotice: observable.ref,
             variableIdsByCatalogPath: observable.ref,
         })
     }
@@ -59,6 +60,7 @@ export class ChartEditorPage
     tags: DbChartTagJoin[] | undefined = undefined
     availableTags: MinimalTagWithMetadata[] | undefined = undefined
     forceDatapage: boolean | undefined = undefined
+    deprecationNotice: string | null | undefined = undefined
     variableIdsByCatalogPath: Record<string, number | null> | undefined =
         undefined
 
@@ -92,6 +94,7 @@ export class ChartEditorPage
             this.parentConfig = parent?.config
             this.isInheritanceEnabled = parent?.isActive ?? true
             this.forceDatapage = settings?.forceDatapage ?? false
+            this.deprecationNotice = settings?.deprecationNotice ?? null
         } else if (grapherConfig) {
             const parentIndicatorId =
                 getParentVariableIdFromChartConfig(grapherConfig)
@@ -103,9 +106,11 @@ export class ChartEditorPage
             }
             this.isInheritanceEnabled = true
             this.forceDatapage = false
+            this.deprecationNotice = null
         } else {
             this.isInheritanceEnabled = true
             this.forceDatapage = false
+            this.deprecationNotice = null
         }
     }
 

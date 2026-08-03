@@ -22,6 +22,8 @@ describe("Charts API", { timeout: 15000 }, () => {
     }
 
     it("creates, stores and reads chart configs", async () => {
+        const deprecationNotice =
+            "This chart is archived. [See the replacement](https://ourworldindata.org/grapher/replacement)."
         const chartCountBefore = await env.getCount(ChartsTableName)
         const chartConfigsCountBefore = await env.getCount(
             ChartConfigsTableName
@@ -31,7 +33,7 @@ describe("Charts API", { timeout: 15000 }, () => {
 
         const response = await env.request({
             method: "POST",
-            path: "/charts",
+            path: `/charts?deprecationNotice=${encodeURIComponent(deprecationNotice)}`,
             body: JSON.stringify(testChartConfig),
         })
         const chartId = response.chartId
@@ -54,11 +56,25 @@ describe("Charts API", { timeout: 15000 }, () => {
             version: 1,
             isPublished: false,
         })
+        expect(fullConfig).not.toHaveProperty("deprecationNotice")
+
+        const settings = await env.fetchJson(`/charts/${chartId}.settings.json`)
+        expect(settings.deprecationNotice).toBe(deprecationNotice)
 
         const patchConfig = await env.fetchJson(
             `/charts/${chartId}.patchConfig.json`
         )
         expect(patchConfig).toEqual(fullConfig)
+
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}?deprecationNotice=`,
+            body: JSON.stringify(fullConfig),
+        })
+        const settingsAfterClear = await env.fetchJson(
+            `/charts/${chartId}.settings.json`
+        )
+        expect(settingsAfterClear.deprecationNotice).toBeNull()
     })
 })
 

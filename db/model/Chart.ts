@@ -244,19 +244,19 @@ export const getChartConfigById = async (
     knex: db.KnexReadonlyTransaction,
     grapherId: number
 ): Promise<
-    | (Pick<DbPlainChart, "id" | "forceDatapage"> & {
+    | (Pick<DbPlainChart, "id" | "forceDatapage" | "deprecationNotice"> & {
           config: DbEnrichedChartConfig["full"]
       })
     | undefined
 > => {
     const grapher = await db.knexRawFirst<
-        Pick<DbPlainChart, "id" | "forceDatapage"> & {
+        Pick<DbPlainChart, "id" | "forceDatapage" | "deprecationNotice"> & {
             config: DbRawChartConfig["full"]
         }
     >(
         knex,
         `-- sql
-            SELECT c.id, c.forceDatapage, cc.full as config
+            SELECT c.id, c.forceDatapage, c.deprecationNotice, cc.full as config
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
             WHERE c.id=?
@@ -269,6 +269,7 @@ export const getChartConfigById = async (
     return {
         id: grapher.id,
         forceDatapage: Boolean(grapher.forceDatapage),
+        deprecationNotice: grapher.deprecationNotice,
         config: parseChartConfig(grapher.config),
     }
 }
@@ -277,18 +278,18 @@ export async function getChartConfigBySlug(
     knex: db.KnexReadonlyTransaction,
     slug: string
 ): Promise<
-    Pick<DbPlainChart, "id"> & {
+    Pick<DbPlainChart, "id" | "deprecationNotice"> & {
         config: DbEnrichedChartConfig["full"]
     }
 > {
     const row = await db.knexRawFirst<
-        Pick<DbPlainChart, "id" | "forceDatapage"> & {
+        Pick<DbPlainChart, "id" | "deprecationNotice"> & {
             config: DbRawChartConfig["full"]
         }
     >(
         knex,
         `-- sql
-            SELECT c.id, cc.full as config
+            SELECT c.id, c.deprecationNotice, cc.full as config
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
             WHERE cc.slug = ?`,
@@ -297,23 +298,30 @@ export async function getChartConfigBySlug(
 
     if (!row) throw new JsonError(`No chart found for slug ${slug}`, 404)
 
-    return { id: row.id, config: parseChartConfig(row.config) }
+    return {
+        id: row.id,
+        deprecationNotice: row.deprecationNotice,
+        config: parseChartConfig(row.config),
+    }
 }
 
-export async function getForceDatapageByChartId(
+export async function getChartSettingsByChartId(
     knex: db.KnexReadonlyTransaction,
     chartId: number
-): Promise<boolean> {
-    const row = await db.knexRawFirst<Pick<DbPlainChart, "forceDatapage">>(
+): Promise<Pick<DbPlainChart, "forceDatapage" | "deprecationNotice">> {
+    const row = await db.knexRawFirst<
+        Pick<DbPlainChart, "forceDatapage" | "deprecationNotice">
+    >(
         knex,
         `-- sql
-            SELECT forceDatapage
+            SELECT forceDatapage, deprecationNotice
             FROM charts
             WHERE id = ?
         `,
         [chartId]
     )
-    return !!row?.forceDatapage
+    if (!row) throw new JsonError(`No chart found for id ${chartId}`, 404)
+    return row
 }
 
 export async function isInheritanceEnabledForChart(

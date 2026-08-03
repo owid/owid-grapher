@@ -178,7 +178,10 @@ getPlainRouteWithROTransaction(
                     chart.config,
                     chart.id,
                     trx,
-                    { forceDatapage }
+                    {
+                        forceDatapage,
+                        deprecationNotice: chart.deprecationNotice,
+                    }
                 )
             res.send(previewDataPageOrGrapherPage)
             return
@@ -204,7 +207,8 @@ getPlainRouteWithROTransaction(
                 await renderPreviewDataPageOrGrapherPage(
                     chart.config,
                     chart.id,
-                    trx
+                    trx,
+                    { deprecationNotice: chart.deprecationNotice }
                 )
             res.send(previewDataPageOrGrapherPage)
             return

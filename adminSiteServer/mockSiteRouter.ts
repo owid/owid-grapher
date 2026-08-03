@@ -245,7 +245,10 @@ getPlainRouteWithROTransaction(
             () => undefined
         )
         if (chartRow) {
-            res.json(chartRow.config)
+            res.json({
+                ...chartRow.config,
+                deprecationNotice: chartRow.deprecationNotice ?? undefined,
+            })
             return
         }
 
@@ -303,7 +306,8 @@ getPlainRouteWithROTransaction(
                 await renderPreviewDataPageOrGrapherPage(
                     chartRow.config,
                     chartRow.id,
-                    trx
+                    trx,
+                    { deprecationNotice: chartRow.deprecationNotice }
                 )
             res.send(previewDataPageOrGrapherPage)
             return

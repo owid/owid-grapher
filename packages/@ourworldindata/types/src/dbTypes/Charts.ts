@@ -2,6 +2,7 @@ export const ChartsTableName = "charts"
 export interface DbInsertChart {
     configId: string
     createdAt?: Date
+    deprecationNotice?: string | null
     forceDatapage?: boolean
     id?: number
     isInheritanceEnabled?: boolean

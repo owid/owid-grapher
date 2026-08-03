@@ -408,10 +408,10 @@ export class CaptionedChart extends AbstractCaptionedChart {
         // Interactive charts also have controls above the chart area and a timeline below it.
         // Some charts have a related question below the footer.
         // A CaptionedChart looks like this (components in [brackets] are optional):
-        //    #1 Header
+        //    #1 [Deprecation notice]
         //            ---- vertical space
-        //    #2 [Deprecation notice]
-        //            ---- vertical space (small)
+        //    #2 Header
+        //            ---- vertical space
         //    #3 [Controls]
         //            ---- vertical space (small)
         //    #4 Chart/Map/Table
@@ -425,7 +425,13 @@ export class CaptionedChart extends AbstractCaptionedChart {
                 className="CaptionedChart"
                 style={{ backgroundColor: GRAPHER_BACKGROUND }}
             >
-                {/* #1 Header */}
+                {/* #1 [Deprecation notice] */}
+                {this.showDeprecationNotice && this.renderDeprecationNotice()}
+                {this.showDeprecationNotice && (
+                    <VerticalSpace height={this.verticalPadding} />
+                )}
+
+                {/* #2 Header */}
                 {this.showHeader && (
                     <>
                         <Header
@@ -434,12 +440,6 @@ export class CaptionedChart extends AbstractCaptionedChart {
                         />
                         <VerticalSpace height={this.verticalPadding} />
                     </>
-                )}
-
-                {/* #2 [Deprecation notice] */}
-                {this.showDeprecationNotice && this.renderDeprecationNotice()}
-                {this.showDeprecationNotice && (
-                    <VerticalSpace height={this.verticalPadding} />
                 )}
 
                 {this.manager.isReady ? (

@@ -67,6 +67,7 @@ export const getGrapherChecksumsFromDb = async (
         chartId: number
         chartSlug: string
         chartConfigMd5: string
+        deprecationNoticeMd5: string
         indicators: JsonString
     }
 
@@ -79,6 +80,7 @@ export const getGrapherChecksumsFromDb = async (
             c.id AS chartId,
             cc.slug AS chartSlug,
             cc.fullMd5 AS chartConfigMd5,
+            MD5(COALESCE(c.deprecationNotice, "")) AS deprecationNoticeMd5,
             JSON_OBJECTAGG(v.id, JSON_OBJECT("metadataChecksum", v.metadataChecksum, "dataChecksum", v.dataChecksum)) AS indicators
         FROM charts c
         JOIN chart_configs cc on c.configId = cc.id
@@ -97,6 +99,7 @@ export const getGrapherChecksumsFromDb = async (
                 chartSlug: r.chartSlug,
                 checksums: {
                     chartConfigMd5: r.chartConfigMd5,
+                    deprecationNoticeMd5: r.deprecationNoticeMd5,
                     indicators: JSON.parse(r.indicators),
                 },
             }))
@@ -113,7 +116,12 @@ export const getGrapherChecksumsFromDb = async (
 
 const hashGrapherChecksumsObj = (checksums: GrapherChecksums): string => {
     const stringified = stringify(
-        _.pick(checksums, "chartConfigMd5", "indicators")
+        _.pick(
+            checksums,
+            "chartConfigMd5",
+            "deprecationNoticeMd5",
+            "indicators"
+        )
     )
     const hashed = hashHex(stringified, null)
     return hashed

@@ -30,6 +30,8 @@ fields:
     description: When true, chart inherits configuration from parent variable's grapherConfigIdAdmin or grapherConfigIdETL. This allows variables to define default chart settings that are automatically applied to all inheriting charts.
   forceDatapage:
     description: When true, force rendering this chart as a data page using metadata from the first Y indicator.
+  deprecationNotice:
+    description: Optional Markdown notice shown on interactive versions of a deprecated chart, including iframe embeds. This is chart lifecycle metadata and is not part of the Grapher config.
   createdAt:
     description: Timestamp when the chart was created
   updatedAt:

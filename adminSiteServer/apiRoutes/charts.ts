@@ -31,7 +31,7 @@ import {
 import { NarrativeChartMinimalInformation } from "../../adminSiteClient/ChartEditor.js"
 import {
     getChartConfigById,
-    getForceDatapageByChartId,
+    getChartSettingsByChartId,
     getPatchConfigByChartId,
     getParentByChartConfig,
     isInheritanceEnabledForChart,
@@ -239,12 +239,14 @@ const saveNewChart = async (
         config,
         user,
         forceDatapage = false,
+        deprecationNotice = null,
         // new charts inherit by default
         shouldInherit = true,
     }: {
         config: GrapherInterface
         user: DbPlainUser
         forceDatapage?: boolean
+        deprecationNotice?: string | null
         shouldInherit?: boolean
     }
 ): Promise<{
@@ -290,14 +292,24 @@ const saveNewChart = async (
                 configId,
                 isInheritanceEnabled,
                 forceDatapage,
+                deprecationNotice,
                 createdAt,
                 updatedAt,
                 lastEditedAt,
                 lastEditedByUserId
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `,
-        [chartConfigId, shouldInherit, forceDatapage, now, now, now, user.id]
+        [
+            chartConfigId,
+            shouldInherit,
+            forceDatapage,
+            deprecationNotice,
+            now,
+            now,
+            now,
+            user.id,
+        ]
     )
 
     // The chart config itself has an id field that should store the id of the chart - update the chart now so this is true
@@ -329,6 +341,7 @@ const updateExistingChart = async (
         user: DbPlainUser
         chartId: number
         forceDatapage?: boolean
+        deprecationNotice?: string | null
         // if undefined, keep inheritance as is.
         // if true or false, enable or disable inheritance
         shouldInherit?: boolean
@@ -337,6 +350,7 @@ const updateExistingChart = async (
     chartConfigId: string
     patchConfig: GrapherInterface
     fullConfig: GrapherInterface
+    deprecationNotice: string | null
 }> => {
     const { config, user, chartId } = params
 
@@ -355,38 +369,54 @@ const updateExistingChart = async (
     const patchConfig = diffGrapherConfigs(config, parent?.config ?? {})
     const fullConfig = mergeGrapherConfigs(parent?.config ?? {}, patchConfig)
 
-    const chartConfigIdRow = await db.knexRawFirst<
-        Pick<DbPlainChart, "configId">
-    >(knex, `SELECT configId FROM charts WHERE id = ?`, [chartId])
+    const chartRow = await db.knexRawFirst<
+        Pick<DbPlainChart, "configId" | "forceDatapage" | "deprecationNotice">
+    >(
+        knex,
+        `SELECT configId, forceDatapage, deprecationNotice FROM charts WHERE id = ?`,
+        [chartId]
+    )
 
-    if (!chartConfigIdRow)
+    if (!chartRow)
         throw new JsonError(`No chart config found for id ${chartId}`, 404)
 
     const now = new Date()
 
     const { chartConfigId } = await updateChartConfigInDbAndR2(
         knex,
-        chartConfigIdRow.configId,
+        chartRow.configId,
         patchConfig,
         fullConfig,
         now
     )
 
     const forceDatapage =
-        params.forceDatapage ?? (await getForceDatapageByChartId(knex, chartId))
+        params.forceDatapage ?? Boolean(chartRow.forceDatapage)
+    const deprecationNotice =
+        params.deprecationNotice === undefined
+            ? chartRow.deprecationNotice
+            : params.deprecationNotice
 
     // update charts row
     await db.knexRaw(
         knex,
         `-- sql
             UPDATE charts
-            SET isInheritanceEnabled=?, forceDatapage=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=?
+            SET isInheritanceEnabled=?, forceDatapage=?, deprecationNotice=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=?
             WHERE id = ?
         `,
-        [shouldInherit, forceDatapage, now, now, user.id, chartId]
+        [
+            shouldInherit,
+            forceDatapage,
+            deprecationNotice,
+            now,
+            now,
+            user.id,
+            chartId,
+        ]
     )
 
-    return { chartConfigId, patchConfig, fullConfig }
+    return { chartConfigId, patchConfig, fullConfig, deprecationNotice }
 }
 
 export const saveGrapher = async (
@@ -396,12 +426,14 @@ export const saveGrapher = async (
         newConfig,
         existingConfig,
         forceDatapage,
+        deprecationNotice,
         shouldInherit,
     }: {
         user: DbPlainUser
         newConfig: GrapherInterface
         existingConfig?: GrapherInterface
         forceDatapage?: boolean
+        deprecationNotice?: string | null
         // if undefined, keep inheritance as is.
         // if true or false, enable or disable inheritance
         shouldInherit?: boolean
@@ -462,6 +494,7 @@ export const saveGrapher = async (
     let chartConfigId: string
     let patchConfig: GrapherInterface
     let fullConfig: GrapherInterface
+    let savedDeprecationNotice: string | null
     if (existingConfig) {
         chartId = existingConfig.id!
         const configs = await updateExistingChart(knex, {
@@ -469,21 +502,25 @@ export const saveGrapher = async (
             user,
             chartId,
             forceDatapage,
+            deprecationNotice,
             shouldInherit,
         })
         chartConfigId = configs.chartConfigId
         patchConfig = configs.patchConfig
         fullConfig = configs.fullConfig
+        savedDeprecationNotice = configs.deprecationNotice
     } else {
         const configs = await saveNewChart(knex, {
             config: newConfig,
             user,
             forceDatapage,
+            deprecationNotice,
             shouldInherit,
         })
         chartConfigId = configs.chartConfigId
         patchConfig = configs.patchConfig
         fullConfig = configs.fullConfig
+        savedDeprecationNotice = deprecationNotice ?? null
         chartId = fullConfig.id!
     }
 
@@ -526,6 +563,7 @@ export const saveGrapher = async (
         await retrieveChartConfigFromDbAndSaveToR2(knex, chartConfigId, {
             directory: R2GrapherConfigDirectory.publishedGrapherBySlug,
             filename: `${fullConfig.slug}.json`,
+            deprecationNotice: savedDeprecationNotice,
         })
     }
 
@@ -644,8 +682,11 @@ export async function getChartSettingsJson(
     trx: db.KnexReadonlyTransaction
 ) {
     const chartId = expectInt(req.params.chartId)
-    const forceDatapage = await getForceDatapageByChartId(trx, chartId)
-    return { forceDatapage }
+    const settings = await getChartSettingsByChartId(trx, chartId)
+    return {
+        forceDatapage: Boolean(settings.forceDatapage),
+        deprecationNotice: settings.deprecationNotice,
+    }
 }
 
 export async function getChartPatchConfigJson(
@@ -766,6 +807,12 @@ export async function getChartTagsJson(
     return { tags: chartTags }
 }
 
+const parseDeprecationNotice = (req: Request): string | null | undefined => {
+    const value = req.query.deprecationNotice
+    if (typeof value !== "string") return undefined
+    return value.trim() || null
+}
+
 export async function createChart(
     req: Request,
     res: HandlerResponse,
@@ -779,12 +826,14 @@ export async function createChart(
     if (req.query.forceDatapage) {
         forceDatapage = req.query.forceDatapage === "true"
     }
+    const deprecationNotice = parseDeprecationNotice(req)
 
     try {
         const { chartId } = await saveGrapher(trx, {
             user: res.locals.user,
             newConfig: req.body,
             forceDatapage,
+            deprecationNotice,
             shouldInherit,
         })
 
@@ -819,6 +868,7 @@ export async function updateChart(
     if (req.query.forceDatapage) {
         forceDatapage = req.query.forceDatapage === "true"
     }
+    const deprecationNotice = parseDeprecationNotice(req)
 
     const existingConfig = await expectChartById(trx, req.params.chartId)
 
@@ -828,6 +878,7 @@ export async function updateChart(
             newConfig: req.body,
             existingConfig,
             forceDatapage,
+            deprecationNotice,
             shouldInherit,
         })
 

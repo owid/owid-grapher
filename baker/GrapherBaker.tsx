@@ -63,6 +63,15 @@ import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
 import { GrapherArchivalManifest } from "../serverUtils/archivalUtils.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../db/model/ArchivedChartVersion.js"
+import { type GrapherProgrammaticInterface } from "@ourworldindata/grapher"
+
+const withDeprecationNotice = (
+    grapher: GrapherInterface,
+    deprecationNotice?: string | null
+): GrapherProgrammaticInterface => ({
+    ...grapher,
+    deprecationNotice: deprecationNotice?.trim() || undefined,
+})
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -332,17 +341,29 @@ export const renderPreviewDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
     chartId: number,
     knex: db.KnexReadonlyTransaction,
-    options?: { forceDatapage?: boolean }
+    options?: {
+        forceDatapage?: boolean
+        deprecationNotice?: string | null
+    }
 ) => {
+    const runtimeGrapher = withDeprecationNotice(
+        grapher,
+        options?.deprecationNotice
+    )
     const archiveContextDictionary =
         await getLatestArchivedChartPageVersionsIfEnabled(knex)
-    const datapage = await renderDatapageIfApplicable(grapher, true, knex, {
-        archiveContextDictionary,
-        forceDatapage: options?.forceDatapage,
-    })
+    const datapage = await renderDatapageIfApplicable(
+        runtimeGrapher,
+        true,
+        knex,
+        {
+            archiveContextDictionary,
+            forceDatapage: options?.forceDatapage,
+        }
+    )
     if (datapage) return datapage
 
-    return renderGrapherPage(grapher, knex, {
+    return renderGrapherPage(runtimeGrapher, knex, {
         archiveContext: archiveContextDictionary[chartId],
         isPreviewing: true,
     })
@@ -396,16 +417,19 @@ export const bakeSingleGrapherPageForArchival = async (
         imageMetadataDictionary,
         archiveInfo,
         manifest,
+        deprecationNotice,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveInfo: ArchiveMetaInformation
         manifest: GrapherArchivalManifest
+        deprecationNotice?: string | null
     }
 ) => {
+    const runtimeGrapher = withDeprecationNotice(grapher, deprecationNotice)
     const outPathHtml = `${bakedSiteDir}/grapher/${grapher.slug}.html`
     await fs.writeFile(
         outPathHtml,
-        await renderDataPageOrGrapherPage(grapher, knex, {
+        await renderDataPageOrGrapherPage(runtimeGrapher, knex, {
             imageMetadataDictionary,
             archiveContextDictionary: {
                 [grapher.id as number]: archiveInfo,
@@ -443,6 +467,7 @@ const bakeGrapherPage = async (
 export interface BakeSingleGrapherChartArguments {
     id: number
     config: string
+    deprecationNotice: string | null
     bakedSiteDir: string
     slug: string
     imageMetadataDictionary: Record<string, DbEnrichedImage>
@@ -453,7 +478,10 @@ export const bakeSingleGrapherChart = async (
     args: BakeSingleGrapherChartArguments,
     knex: db.KnexReadonlyTransaction
 ) => {
-    const grapher: GrapherInterface = JSON.parse(args.config)
+    const grapher = withDeprecationNotice(
+        JSON.parse(args.config),
+        args.deprecationNotice
+    )
     grapher.id = args.id
 
     // Avoid baking paths that have an Explorer redirect.
@@ -472,7 +500,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
     knex: db.KnexReadonlyTransaction
 ) => {
     const chartsToBake = await knexRaw<
-        Pick<DbPlainChart, "id"> & {
+        Pick<DbPlainChart, "id" | "deprecationNotice"> & {
             config: DbRawChartConfig["full"]
             slug: string
         }
@@ -481,6 +509,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
         `-- sql
         SELECT
             c.id,
+            c.deprecationNotice,
             cc.full as config,
             cc.slug
         FROM charts c
@@ -503,6 +532,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
     const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map((row) => ({
         id: row.id,
         config: row.config,
+        deprecationNotice: row.deprecationNotice,
         bakedSiteDir: bakedSiteDir,
         slug: row.slug,
         imageMetadataDictionary,

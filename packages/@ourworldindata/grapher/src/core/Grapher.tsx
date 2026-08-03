@@ -73,6 +73,8 @@ declare global {
 
 // Exactly the same as GrapherInterface, but contains options that developers want but authors won't be touching.
 export interface GrapherProgrammaticInterface extends GrapherInterface {
+    /** Runtime-only Markdown notice for a deprecated standalone chart. */
+    deprecationNotice?: string
     queryStr?: string
     bounds?: Bounds
     table?: OwidTable

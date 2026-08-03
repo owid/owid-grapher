@@ -630,8 +630,6 @@ export interface GrapherInterface extends SortConfig {
     subtitle?: string
     sourceDesc?: string
     note?: string
-    /** Markdown notice shown as a banner on the chart when it is no longer maintained. Supports links to a successor chart. */
-    deprecationNotice?: string
     hideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     minTime?: TimeBound | TimeBoundValueStr
     maxTime?: TimeBound | TimeBoundValueStr
@@ -782,7 +780,6 @@ export const grapherKeysToSerialize = [
     "subtitle",
     "sourceDesc",
     "note",
-    "deprecationNotice",
     "hideAnnotationFieldsInTitle",
     "minTime",
     "maxTime",

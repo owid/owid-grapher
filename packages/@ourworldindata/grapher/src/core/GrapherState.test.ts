@@ -103,22 +103,14 @@ describe("toObject", () => {
         })
     })
 
-    it("round-trips deprecationNotice", () => {
+    it("doesn't serialise the runtime-only deprecationNotice", () => {
         const grapher = new GrapherState({
             deprecationNotice:
                 "**No longer updated.** See [successor](/grapher/foo).",
         })
         expect(grapher.toObject()).toEqual({
             $schema: latestGrapherConfigSchema,
-            deprecationNotice:
-                "**No longer updated.** See [successor](/grapher/foo).",
         })
-    })
-
-    it("an empty Grapher does not serialise deprecationNotice", () => {
-        expect(new GrapherState({}).toObject().deprecationNotice).toBe(
-            undefined
-        )
     })
 })
 

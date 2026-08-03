@@ -348,6 +348,7 @@ const getGrapherConfigs = async (
     return rawGrapherConfigs.map((config) => ({
         chartId: config.id,
         chartConfigId: config.configId,
+        deprecationNotice: config.deprecationNotice,
         config: config.config,
     }))
 }

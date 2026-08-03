@@ -16,7 +16,14 @@ import {
     NARRATIVE_CHART_PROPS_TO_OMIT,
 } from "@ourworldindata/utils"
 import { DbChartTagJoin } from "@ourworldindata/types"
-import { action, computed, observable, runInAction, makeObservable } from "mobx"
+import {
+    action,
+    computed,
+    observable,
+    runInAction,
+    makeObservable,
+    when,
+} from "mobx"
 import { BAKED_GRAPHER_URL, ENV } from "../settings/clientSettings.js"
 import {
     AbstractChartEditor,
@@ -72,19 +79,32 @@ export interface ChartEditorManager extends AbstractChartEditorManager {
     tags?: DbChartTagJoin[]
     availableTags?: MinimalTagWithMetadata[]
     forceDatapage?: boolean
+    deprecationNotice?: string | null
 }
 
 export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     // This gets set when we save a new chart for the first time
     // so the page knows to update the url
     newChartId: number | undefined = undefined
+    savedDeprecationNotice: string | null | undefined = undefined
 
     constructor(props: { manager: ChartEditorManager }) {
         super(props)
 
         makeObservable(this, {
             newChartId: observable.ref,
+            savedDeprecationNotice: observable.ref,
         })
+
+        void when(
+            () => this.manager.deprecationNotice !== undefined,
+            () => {
+                const deprecationNotice = this.manager.deprecationNotice ?? null
+                this.grapherState.deprecationNotice =
+                    deprecationNotice ?? undefined
+                this.savedDeprecationNotice = deprecationNotice
+            }
+        )
     }
 
     @computed get logs() {
@@ -113,6 +133,16 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 
     @computed get forceDatapage() {
         return this.manager.forceDatapage ?? false
+    }
+
+    @computed override get isModified(): boolean {
+        const deprecationNotice =
+            this.grapherState.deprecationNotice?.trim() || null
+        return (
+            super.isModified ||
+            (this.savedDeprecationNotice !== undefined &&
+                deprecationNotice !== this.savedDeprecationNotice)
+        )
     }
 
     /** parent variable id, derived from the config */
@@ -186,10 +216,12 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         // it only makes sense to enable inheritance if the chart has a parent
         const shouldEnableInheritance =
             !!this.parentVariableId && this.isInheritanceEnabled
+        const deprecationNotice = grapherState.deprecationNotice?.trim() || null
 
         const query = new URLSearchParams({
             inheritance: shouldEnableInheritance ? "enable" : "disable",
             forceDatapage: String(this.forceDatapage),
+            deprecationNotice: deprecationNotice ?? "",
         })
         const targetUrl = isNewGrapher
             ? `/api/charts?${query}`
@@ -202,6 +234,9 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         )
 
         if (json.success) {
+            this.savedDeprecationNotice = deprecationNotice
+            this.manager.deprecationNotice = deprecationNotice
+            grapherState.deprecationNotice = deprecationNotice ?? undefined
             if (isNewGrapher) {
                 this.newChartId = json.chartId
                 this.grapherState.id = json.chartId

@@ -764,6 +764,8 @@ export class GrapherState
         })
 
         this.updateFromObject(options)
+        this.deprecationNotice = options.deprecationNotice
+        this.hideDeprecationNotice = options.hideDeprecationNotice ?? false
 
         this.additionalDataLoaderFn = options.additionalDataLoaderFn
         this.isEmbeddedInAnOwidPage = options.isEmbeddedInAnOwidPage ?? false

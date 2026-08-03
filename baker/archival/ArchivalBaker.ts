@@ -89,6 +89,7 @@ import {
 export interface MinimalChartInfo {
     chartId: number
     chartConfigId: string
+    deprecationNotice: string | null
     config: GrapherInterface
 }
 
@@ -1020,6 +1021,7 @@ async function bakeGrapherPageForArchival(
         imageMetadataDictionary,
         manifest,
         archiveInfo,
+        deprecationNotice: chartInfo.deprecationNotice,
     })
     return manifest
 }

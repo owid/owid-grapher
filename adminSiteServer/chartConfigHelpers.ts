@@ -1,11 +1,14 @@
 import {
     ChartConfigsTableName,
+    Base64String,
     DbInsertChartConfig,
     DbRawChartConfig,
     GrapherInterface,
+    parseChartConfig,
     R2GrapherConfigDirectory,
     serializeChartConfig,
 } from "@ourworldindata/types"
+import { createHash } from "node:crypto"
 import { v7 as uuidv7 } from "uuid"
 import * as db from "../db/db.js"
 import {
@@ -28,7 +31,11 @@ import {
 export const retrieveChartConfigFromDbAndSaveToR2 = async (
     knex: db.KnexReadonlyTransaction,
     chartConfigId: string,
-    r2Path?: { directory: R2GrapherConfigDirectory; filename: string }
+    r2Path?: {
+        directory: R2GrapherConfigDirectory
+        filename: string
+        deprecationNotice?: string | null
+    }
 ) => {
     // We need to get the full config and the md5 hash from the database instead of
     // computing our own md5 hash because MySQL normalizes JSON and our
@@ -51,11 +58,22 @@ export const retrieveChartConfigFromDbAndSaveToR2 = async (
             fullConfigMd5.fullMd5
         )
     } else {
+        const config = r2Path.deprecationNotice
+            ? JSON.stringify({
+                  ...parseChartConfig(fullConfigMd5.full),
+                  deprecationNotice: r2Path.deprecationNotice,
+              })
+            : fullConfigMd5.full
+        const configMd5 = r2Path.deprecationNotice
+            ? (createHash("md5")
+                  .update(config)
+                  .digest("base64") as Base64String)
+            : fullConfigMd5.fullMd5
         await saveGrapherConfigToR2(
-            fullConfigMd5.full,
+            config,
             r2Path.directory,
             r2Path.filename,
-            fullConfigMd5.fullMd5
+            configMd5
         )
     }
 

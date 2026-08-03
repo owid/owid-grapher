@@ -56,6 +56,7 @@ export interface ArchiveVersions {
 
 export interface GrapherChecksums {
     chartConfigMd5: string
+    deprecationNoticeMd5: string
     indicators: IndicatorChecksums
 }
 
