@@ -72,6 +72,7 @@ export {
     OwidDistinctLinesColors,
     EnergyColors,
     ContinentColors,
+    MapContinentColors,
 } from "./color/CustomSchemes"
 export { ColorSchemes } from "./color/ColorSchemes"
 export { DimensionSlot } from "./chart/DimensionSlot"

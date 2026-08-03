@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from "react"
 import * as _ from "lodash-es"
 import {
     ContinentColors,
+    MapContinentColors,
     Grapher,
     GrapherState,
     getRegionsForKey,
@@ -130,7 +131,8 @@ function makeRegionLineChartGrapherState(key: TooltipKey): GrapherState {
 // one dictionary is enough)
 function hasHardCodedColors(key: TooltipKey): boolean {
     return getRegionsForKey(key).every(
-        (region) => region.name in ContinentColors
+        (region) =>
+            region.name in ContinentColors && region.name in MapContinentColors
     )
 }
 
