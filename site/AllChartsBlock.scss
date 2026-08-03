@@ -45,15 +45,20 @@
 // from the top of the viewport.
 $all-charts-block-sticky-top: 72px;
 
-// Height of that sub-nav. Its `li`s are what set it (56px, 48px on small
-// viewports — see site/blocks/StickyNav.scss); there's no shared variable to
-// import. Used to work out how much of a gap the sticky search bar leaves
-// between itself and the nav above it, which its opaque background has to
-// cover — see .all-charts-block__search below. Taking the larger of the two
-// heights is deliberate: where the nav is the shorter 48px the extra 8px just
-// slides under it (the nav's z-index is well above the search bar's), whereas
-// underestimating would leave a live gap for rows to show through.
-$all-charts-block-sticky-nav-height: 56px;
+// The *shortest* that sub-nav gets. Its `li`s are what set its height (56px,
+// dropping to 48px on small viewports — see site/blocks/StickyNav.scss); there
+// is no shared variable to import. Used to work out the gap the sticky search
+// bar leaves between itself and the nav above it, which the bar's opaque
+// background has to cover — see .all-charts-block__search below.
+//
+// Taking the smaller of the two heights is the safe direction, and worth
+// spelling out because the other one looks equally plausible: the background
+// has to reach *at least* as far up as the nav's bottom edge at every
+// breakpoint. Overshooting is free — the excess slides underneath the nav,
+// whose z-index is far above the search bar's — whereas undershooting by even
+// a few pixels leaves a live band for rows to show through, which is the bug
+// this is here to prevent.
+$all-charts-block-sticky-nav-min-height: 48px;
 
 .all-charts-block__right {
     min-width: 0;
@@ -114,7 +119,7 @@ $all-charts-block-sticky-nav-height: 56px;
         right: 0;
         bottom: 100%;
         height: $all-charts-block-sticky-top -
-            $all-charts-block-sticky-nav-height;
+            $all-charts-block-sticky-nav-min-height;
         background-color: $white;
     }
 }
