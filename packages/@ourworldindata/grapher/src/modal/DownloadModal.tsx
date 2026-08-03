@@ -96,8 +96,8 @@ interface DownloadModalProps {
 }
 
 export enum DownloadModalTabName {
-    "Vis" = "Vis",
-    "Data" = "Data",
+    Vis = "Vis",
+    Data = "Data",
 }
 
 @observer

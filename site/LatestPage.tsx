@@ -7,6 +7,7 @@ import {
     serializeJSONForInlineScript,
 } from "@ourworldindata/utils"
 import { Html } from "./Html.js"
+import { LatestPageSkeleton } from "./latest/LatestPageSkeleton.js"
 
 declare global {
     interface Window {
@@ -41,7 +42,9 @@ export const LatestPage = (props: {
                     id="latest-page-root"
                     className="latest-page grid grid-cols-12-full-width"
                 >
-                    {/* Latest UI is rendered client-side only */}
+                    {/* Baked placeholder only — the real Latest UI is
+                        client-side rendered into this element, replacing it */}
+                    <LatestPageSkeleton topicTagGraph={topicTagGraph} />
                 </main>
                 <SiteFooter context={SiteFooterContext.latestPage} />
             </body>
