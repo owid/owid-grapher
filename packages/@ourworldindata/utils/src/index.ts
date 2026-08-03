@@ -366,14 +366,22 @@ export {
     parseArchivalDate,
 } from "./archival/archivalDate.js"
 
-export { experiments, isUrlInActiveExperiment } from "./experiments/config.js"
+export {
+    experiments,
+    isUrlInActiveExperiment,
+    findActiveExperiment,
+    getActiveExperimentArmForUrl,
+    isDataPageMetadataRedesignActive,
+} from "./experiments/config.js"
 export {
     Experiment,
     validateUniqueExperimentIds,
     type ExperimentArm,
+    type UnitOfAssignment,
 } from "./experiments/Experiment.js"
 export {
     getExperimentState,
+    getAssignedArms,
     defaultExperimentState,
     type ExperimentState,
 } from "./experiments/state.js"
@@ -382,6 +390,7 @@ export {
     EXPERIMENT_PREFIX,
     DATA_PAGE_METADATA_EXPERIMENT_ID,
     DATA_PAGE_METADATA_EXPERIMENT_TREATMENT_ARM,
+    DATA_PAGE_METADATA_V2_EXPERIMENT_ID,
 } from "./experiments/constants.js"
 
 export {

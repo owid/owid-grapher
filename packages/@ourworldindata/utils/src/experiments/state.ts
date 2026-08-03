@@ -26,9 +26,8 @@ export function getExperimentState(): ExperimentState {
         activeExperiments.map((exp) => [exp.id as string, exp])
     )
 
-    const assignedExperiments = getAssignedExperiments() ?? {}
-    const currentPath =
-        typeof window !== "undefined" ? window.location.pathname : ""
+    const currentPath = window.location.pathname
+    const assignedExperiments = getAssignedArms(currentPath)
 
     const state = {} as ExperimentState
     for (const [expId, armId] of Object.entries(assignedExperiments)) {
@@ -40,6 +39,27 @@ export function getExperimentState(): ExperimentState {
     }
 
     return state
+}
+
+/**
+ * Every experiment arm that applies on the given path, keyed by experiment id.
+ *
+ * Two sources, because the two kinds of experiment remember their assignment
+ * differently: visitor-assigned experiments store the arm in a cookie, while
+ * page-assigned (cluster randomised) ones read it out of the config for the
+ * current path — there is no cookie to find, because the arm belongs to the
+ * page rather than the visitor.
+ *
+ * Only works on the client, where cookies are available.
+ */
+export function getAssignedArms(pathname: string): Record<string, string> {
+    const arms = getAssignedExperiments() ?? {}
+    for (const exp of experiments) {
+        if (exp.isExpired() || exp.unitOfAssignment !== "page") continue
+        const arm = exp.getArmForUrl(pathname)
+        if (arm) arms[exp.id] = arm
+    }
+    return arms
 }
 
 /**

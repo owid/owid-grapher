@@ -47,6 +47,17 @@ export const experimentsMiddleware = async (
         }
 
         for (const exp of activeExperimentsOnPath) {
+            // A page-assigned experiment carries no per-visitor state: the arm
+            // is a property of the page, fixed in the config, so there is
+            // nothing to draw and nothing to remember between requests. Seeding
+            // `cookies` (without setting one) is what gets it into the body
+            // class below, so GA and CSS see the arm the same way they do for
+            // visitor-assigned experiments.
+            if (exp.unitOfAssignment === "page") {
+                const arm = exp.getArmForUrl(requestPath)
+                if (arm) cookies[exp.id] = arm
+                continue
+            }
             if (!Object.prototype.hasOwnProperty.call(cookies, exp.id)) {
                 const assignedArm = assignToArm(exp)
                 cookiesToSet.push({

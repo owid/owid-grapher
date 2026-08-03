@@ -6,8 +6,7 @@ import {
     excludeUndefined,
     mergeGrapherConfigs,
     Url,
-    isUrlInActiveExperiment,
-    DATA_PAGE_METADATA_EXPERIMENT_ID,
+    isDataPageMetadataRedesignActive,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import {
@@ -211,10 +210,7 @@ export async function renderDataPageV2(
     const datapageData = getDatapageDataV2(variableMetadata, grapher)
 
     const datapageMetadataExperimentActive = grapher.slug
-        ? isUrlInActiveExperiment(
-              DATA_PAGE_METADATA_EXPERIMENT_ID,
-              `/grapher/${grapher.slug}`
-          )
+        ? isDataPageMetadataRedesignActive(`/grapher/${grapher.slug}`)
         : false
 
     datapageData.primaryTopic = await getPrimaryTopic(

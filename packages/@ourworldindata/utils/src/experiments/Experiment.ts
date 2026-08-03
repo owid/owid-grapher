@@ -26,6 +26,8 @@ export class Experiment {
     expires: Date
     arms: ExperimentArm[]
     paths: string[]
+    unitOfAssignment: UnitOfAssignment
+    pathArms?: Record<string, string>
 
     constructor(data: RawExperiment) {
         this.id = asExperimentId(`${EXPERIMENT_PREFIX}-${data.id}`)
@@ -38,7 +40,14 @@ export class Experiment {
             fraction: a.fraction,
             replaysSessionSampleRate: a.replaysSessionSampleRate,
         }))
-        this.paths = data.paths
+        this.unitOfAssignment = data.unitOfAssignment ?? "visitor"
+        this.pathArms = data.pathArms
+        // A page-assigned experiment's `paths` are exactly the keys of its
+        // pre-registered assignment, so callers that only ask "is this page in
+        // the experiment at all?" keep working without knowing about `pathArms`.
+        this.paths = data.pathArms
+            ? Object.keys(data.pathArms)
+            : (data.paths ?? [])
 
         this.validate()
     }
@@ -47,6 +56,16 @@ export class Experiment {
         if (!this.validateArmFractions()) {
             throw new Error(
                 `Arm fractions in experiment "${this.id}" do not sum to 1`
+            )
+        }
+        if (!this.validatePathArms()) {
+            throw new Error(
+                `Experiment "${this.id}" assigns a path to an arm that does not exist`
+            )
+        }
+        if (this.unitOfAssignment === "page" && !this.pathArms) {
+            throw new Error(
+                `Page-assigned experiment "${this.id}" must supply "pathArms"`
             )
         }
         if (!this.validateUniqueArmIds()) {
@@ -63,6 +82,12 @@ export class Experiment {
     private validateArmFractions(): boolean {
         const total = this.arms.reduce((sum, arm) => sum + arm.fraction, 0)
         return Math.abs(total - 1) < 1e-6
+    }
+
+    private validatePathArms(): boolean {
+        if (!this.pathArms) return true
+        const armIds = new Set<string>(this.arms.map((a) => a.id))
+        return Object.values(this.pathArms).every((armId) => armIds.has(armId))
     }
 
     private validateUniqueArmIds(): boolean {
@@ -96,25 +121,46 @@ export class Experiment {
      * @returns `true` if the URL matches any of the experiment paths, `false` otherwise.
      */
     isUrlInPaths(url: string): boolean {
-        return this.paths.some((path) => {
-            // Case 1: Exact match
-            if (url === path) {
-                return true
-            }
+        return this.paths.some((path) => this.isUrlInPath(url, path))
+    }
 
-            // Case 2: Cookie path is a prefix and ends with "/"
-            if (path.endsWith("/") && url.startsWith(path)) {
-                return true
-            }
+    private isUrlInPath(url: string, path: string): boolean {
+        // Case 1: Exact match
+        if (url === path) {
+            return true
+        }
 
-            // Case 3: Cookie path is a prefix and the next character in request path is "/"
-            if (url.startsWith(path) && url.charAt(path.length) === "/") {
-                return true
-            }
+        // Case 2: Cookie path is a prefix and ends with "/"
+        if (path.endsWith("/") && url.startsWith(path)) {
+            return true
+        }
 
-            // If none of the above, return false
-            return false
-        })
+        // Case 3: Cookie path is a prefix and the next character in request path is "/"
+        if (url.startsWith(path) && url.charAt(path.length) === "/") {
+            return true
+        }
+
+        // If none of the above, return false
+        return false
+    }
+
+    /*
+     * The arm a given URL is assigned to, for page-assigned (cluster
+     * randomised) experiments.
+     *
+     * Every enrolled page has a fixed, pre-registered arm, so the design a
+     * visitor sees depends only on which page they are on — not on a cookie.
+     * That makes the assignment reproducible at bake time as well as at the
+     * edge, which is what lets the baker decide per page which markup to emit.
+     *
+     * @returns the arm id, or `undefined` if this isn't a page-assigned
+     * experiment or the URL isn't enrolled.
+     */
+    getArmForUrl(url: string): string | undefined {
+        if (this.unitOfAssignment !== "page" || !this.pathArms) return undefined
+        return Object.entries(this.pathArms).find(([path]) =>
+            this.isUrlInPath(url, path)
+        )?.[1]
     }
 }
 
@@ -130,11 +176,27 @@ type RawArm = {
     replaysSessionSampleRate?: number
 }
 
+/**
+ * What gets randomised into an arm.
+ *
+ * - `visitor` (the default): each visitor draws an arm once and carries it in a
+ *   cookie, so the same page can serve either design.
+ * - `page`: each enrolled page has a fixed arm, so every visitor to that page
+ *   sees the same design. Cluster randomisation — less statistical power per
+ *   visitor, but it needs no dual-rendering, which is why it suits experiments
+ *   whose arms differ in server-rendered markup.
+ */
+export type UnitOfAssignment = "visitor" | "page"
+
 type RawExperiment = {
     id: string
     expires: string
     arms: RawArm[]
-    paths: string[]
+    unitOfAssignment?: UnitOfAssignment
+    /** Page-assigned experiments only: the pre-registered path -> arm map.
+     * Supplied instead of `paths`, which is derived from its keys. */
+    pathArms?: Record<string, string>
+    paths?: string[]
 }
 
 type ExperimentId = string & { readonly __brand: "ExperimentId" }
