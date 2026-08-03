@@ -6,6 +6,8 @@ import {
     formatDay,
     convertDaysSinceEpochToDate,
     convertDateToDaysSinceEpoch,
+    EPOCH_DATE,
+    withUniformSpacing,
     sortNumeric,
     omitUndefinedValues,
     isPresent,
@@ -143,11 +145,6 @@ export abstract class AbstractCoreColumn<
 
     formatTime(time: number): string {
         return this.originalTimeColumn.formatValue(time)
-    }
-
-    // For space-constrained contexts like the timeline slider
-    formatTimeShort(time: number): string {
-        return this.originalTimeColumn.formatValueShort(time)
     }
 
     @imemo get roundingMode(): OwidVariableRoundingMode {
@@ -930,12 +927,17 @@ export abstract class TimeColumn<
         return this.formatValue(time)
     }
 
-    override formatTimeShort(time: number): string {
-        return this.formatValueShort(time)
-    }
-
     override parse(val: unknown): number | ErrorValue {
         return parseInt(String(val))
+    }
+
+    /**
+     * Given the sorted, de-duplicated times present in the data, returns them
+     * with gaps filled so that positions are uniformly spaced (one filler per
+     * missing step)
+     */
+    getUniformlySpacedTimes(sortedTimes: number[]): number[] {
+        return withUniformSpacing(sortedTimes)
     }
 }
 
@@ -971,19 +973,10 @@ const memoFormatMonth = _.memoize(
 const memoFormatMonthCsv = _.memoize(
     (value: number): string => formatDay(value, { format: "YYYY-MM" }) // "2023-01"
 )
-// The week as a Monday–Sunday date range. Snaps to the ISO-week Monday
-// so indicators that pick a different representative day for the same
-// week still show the same label
+// The ISO week number and week-year. Because the ISO week is the same for
+// every day of the week, indicators that pick a different representative
+// day for the same week still show the same label
 const memoFormatWeek = _.memoize((value: number): string => {
-    const monday = convertDaysSinceEpochToDate(value).startOf("isoWeek")
-    const sunday = monday.add(6, "days")
-    if (monday.year() !== sunday.year())
-        return `${monday.format("MMM D, YYYY")} – ${sunday.format("MMM D, YYYY")}` // "Dec 30, 2019 – Jan 5, 2020"
-    return monday.month() === sunday.month()
-        ? `${monday.format("MMM D")}–${sunday.format("D, YYYY")}` // "Jan 16–22, 2023"
-        : `${monday.format("MMM D")} – ${sunday.format("MMM D, YYYY")}` // "Jan 30 – Feb 5, 2023"
-})
-const memoFormatWeekShort = _.memoize((value: number): string => {
     const date = convertDaysSinceEpochToDate(value)
     return `W${date.isoWeek()} ${date.isoWeekYear()}` // "W3 2023"
 })
@@ -1055,6 +1048,39 @@ class MonthColumn<
     override formatForCsv(value: number): string {
         return memoFormatMonthCsv(value) // "2023-01"
     }
+
+    // The first of the epoch's month, used as the anchor for counting months.
+    private static readonly epochMonthStart = dayjs
+        .utc(EPOCH_DATE)
+        .startOf("month")
+
+    // Whole calendar months between the given day's month and the epoch's month.
+    private static monthsSinceEpoch(daysSinceEpoch: number): number {
+        return convertDaysSinceEpochToDate(daysSinceEpoch)
+            .startOf("month")
+            .diff(MonthColumn.epochMonthStart, "month")
+    }
+
+    // Inverse of monthsSinceEpoch: days-since-epoch for the first of that month.
+    private static daysAtStartOfMonth(monthsSinceEpoch: number): number {
+        const firstOfMonth = MonthColumn.epochMonthStart.add(
+            monthsSinceEpoch,
+            "month"
+        )
+        return convertDateToDaysSinceEpoch(firstOfMonth)
+    }
+
+    // Fill gaps one month at a time. We space in month-space (not the raw
+    // days-since-epoch of the base class) because months are 28–31 days apart,
+    // which would make the base GCD collapse to a daily grid. This also lets the
+    // GCD respect the cadence, so e.g. bi-monthly data isn't force-filled.
+    override getUniformlySpacedTimes(sortedTimes: number[]): number[] {
+        const months = new Set(
+            _.uniq(sortedTimes).map(MonthColumn.monthsSinceEpoch)
+        )
+        const spacedMonths = withUniformSpacing([...months])
+        return spacedMonths.map(MonthColumn.daysAtStartOfMonth)
+    }
 }
 
 // A sub-yearly week column, storing days-since-epoch
@@ -1071,11 +1097,7 @@ class WeekColumn<
     }
 
     override formatValue(value: number): string {
-        return memoFormatWeek(value) // "Jan 16–22, 2023"
-    }
-
-    override formatTimeShort(time: number): string {
-        return memoFormatWeekShort(time) // "W3 2023"
+        return memoFormatWeek(value) // "W3 2023"
     }
 
     override formatForCsv(value: number): string {
@@ -1102,6 +1124,39 @@ class QuarterColumn<
 
     override formatForCsv(value: number): string {
         return memoFormatQuarterCsv(value) // "2023-Q1"
+    }
+
+    // The first of the epoch's quarter, used as the anchor for counting quarters.
+    private static readonly epochQuarterStart = dayjs
+        .utc(EPOCH_DATE)
+        .startOf("quarter")
+
+    // Whole calendar quarters between the given day's quarter and the epoch's.
+    private static quartersSinceEpoch(daysSinceEpoch: number): number {
+        return convertDaysSinceEpochToDate(daysSinceEpoch)
+            .startOf("quarter")
+            .diff(QuarterColumn.epochQuarterStart, "quarter")
+    }
+
+    // Inverse of quartersSinceEpoch: days-since-epoch for the first of that quarter.
+    private static daysAtStartOfQuarter(quartersSinceEpoch: number): number {
+        const firstOfQuarter = QuarterColumn.epochQuarterStart.add(
+            quartersSinceEpoch,
+            "quarter"
+        )
+        return convertDateToDaysSinceEpoch(firstOfQuarter)
+    }
+
+    // Fill gaps one quarter at a time. We space in quarter-space (not the raw
+    // days-since-epoch of the base class) because quarters are 90–92 days apart,
+    // which would make the base GCD collapse to a daily grid. This also lets the
+    // GCD respect the cadence, so e.g. semiannual data isn't force-filled.
+    override getUniformlySpacedTimes(sortedTimes: number[]): number[] {
+        const quarters = new Set(
+            _.uniq(sortedTimes).map(QuarterColumn.quartersSinceEpoch)
+        )
+        const spacedQuarters = withUniformSpacing([...quarters])
+        return spacedQuarters.map(QuarterColumn.daysAtStartOfQuarter)
     }
 }
 

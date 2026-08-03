@@ -21,7 +21,6 @@ import {
     getFilterNamesOfType,
     formatCountryFacetFilters,
     formatTopicFacetFilters,
-    formatFeaturedMetricFacetFilter,
     getSelectableTopics,
     CHARTS_INDEX,
     PAGES_INDEX,
@@ -29,18 +28,15 @@ import {
     DATA_CATALOG_ATTRIBUTES,
     formatDisjunctiveFacetFilters,
 } from "./searchUtils.js"
+import {
+    buildChartsFacetFilters,
+    searchSingleForHits,
+    searchSingleForHitsWithClosestMatches,
+} from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 
 function makeStateForKey(state: SearchState) {
     return R.pick(state, ["query", "filters", "requireAllCountries"])
-}
-
-async function searchSingleForHits<T>(
-    liteSearchClient: LiteClient,
-    searchParams: Parameters<LiteClient["searchForHits"]>[0]
-) {
-    const response = await liteSearchClient.searchForHits<T>(searchParams)
-    return response.results[0]
 }
 
 /**
@@ -136,54 +132,46 @@ export async function queryCharts(
     state: SearchState,
     page: number = 0
 ) {
-    const countryFacetFilters = formatCountryFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        state.requireAllCountries
-    )
-    const topicFacetFilters = formatTopicFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.TOPIC)
-    )
-    const datasetProductFacetFilters = formatDisjunctiveFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCT),
-        "datasetProducts"
-    )
-    const datasetNamespaceFacetFilters = formatDisjunctiveFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.DATASET_NAMESPACE),
-        "datasetNamespaces"
-    )
-    const datasetVersionFacetFilters = formatDisjunctiveFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.DATASET_VERSION),
-        "datasetVersions"
-    )
-    const datasetProducerFacetFilters = formatDisjunctiveFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCER),
-        "datasetProducers"
-    )
-    const fmFacetFilter = formatFeaturedMetricFacetFilter(state.query)
-    const facetFilters = [
-        ...countryFacetFilters,
-        ...topicFacetFilters,
-        ...datasetProductFacetFilters,
-        ...datasetNamespaceFacetFilters,
-        ...datasetVersionFacetFilters,
-        ...datasetProducerFacetFilters,
-        ...fmFacetFilter,
+    const datasetFacetFilters = [
+        ...formatDisjunctiveFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCT),
+            "datasetProducts"
+        ),
+        ...formatDisjunctiveFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.DATASET_NAMESPACE),
+            "datasetNamespaces"
+        ),
+        ...formatDisjunctiveFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.DATASET_VERSION),
+            "datasetVersions"
+        ),
+        ...formatDisjunctiveFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCER),
+            "datasetProducers"
+        ),
     ]
+    const facetFilters = buildChartsFacetFilters({
+        query: state.query,
+        filters: state.filters,
+        requireAllCountries: state.requireAllCountries,
+        datasetFacetFilters,
+    })
 
-    const searchParams = [
-        {
-            indexName: CHARTS_INDEX,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            query: state.query,
-            facetFilters,
-            highlightPreTag: "<mark>",
-            highlightPostTag: "</mark>",
-            hitsPerPage: 9,
-            page,
-        },
-    ]
+    const searchParams = {
+        indexName: CHARTS_INDEX,
+        attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
+        query: state.query,
+        facetFilters,
+        highlightPreTag: "<mark>",
+        highlightPostTag: "</mark>",
+        hitsPerPage: 9,
+        page,
+    }
 
-    return searchSingleForHits<SearchChartHit>(liteSearchClient, searchParams)
+    return searchSingleForHitsWithClosestMatches<SearchChartHit>(
+        liteSearchClient,
+        searchParams
+    )
 }
 
 export async function queryDataInsights(
@@ -208,35 +196,30 @@ export async function queryDataInsights(
         .filter(Boolean)
         .join(" ")
 
-    const searchParams = [
-        {
-            indexName: PAGES_INDEX,
-            query,
-            filters: `type:${OwidGdocType.DataInsight}`,
-            facetFilters: formatTopicFacetFilters(selectedTopics),
-            // Do not search through the content of data insights in case there
-            // is a country filter present. This is to avoid returning data
-            // insights that might mention a country, but are not *about* that
-            // country (e.g. "Unlike Germany...").
-            ...(hasCountry && {
-                // a subset of searchableAttributes on the Pages index
-                restrictSearchableAttributes: ["title", "tags", "authors"],
-            }),
-            attributesToRetrieve: [
-                "title",
-                "thumbnailUrl",
-                "date",
-                "slug",
-                "type",
-            ],
-            highlightPreTag: "<mark>",
-            highlightPostTag: "</mark>",
-            hitsPerPage,
-            page,
-        },
-    ]
+    const searchParams = {
+        indexName: PAGES_INDEX,
+        query,
+        filters: `type:${OwidGdocType.DataInsight}`,
+        facetFilters: formatTopicFacetFilters(selectedTopics),
+        // Do not search through the content of data insights in case there
+        // is a country filter present. This is to avoid returning data
+        // insights that might mention a country, but are not *about* that
+        // country (e.g. "Unlike Germany...").
+        ...(hasCountry && {
+            // a subset of searchableAttributes on the Pages index
+            restrictSearchableAttributes: ["title", "tags", "authors"],
+        }),
+        attributesToRetrieve: ["title", "thumbnailUrl", "date", "slug", "type"],
+        highlightPreTag: "<mark>",
+        highlightPostTag: "</mark>",
+        hitsPerPage,
+        page,
+    }
 
-    return searchSingleForHits<DataInsightHit>(liteSearchClient, searchParams)
+    return searchSingleForHitsWithClosestMatches<DataInsightHit>(
+        liteSearchClient,
+        searchParams
+    )
 }
 
 export async function queryArticles(
@@ -262,37 +245,38 @@ export async function queryArticles(
         .filter(Boolean)
         .join(" ")
 
-    const searchParams = [
-        {
-            indexName: PAGES_INDEX,
-            query,
-            filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
-            facetFilters: formatTopicFacetFilters(selectedTopics),
-            // Do not search through the content of articles in case there is a
-            // country filter present. This is to avoid returning articles that
-            // might mention a country, but are not *about* that country (e.g.
-            // "Unlike Germany...").
-            ...(hasCountry && {
-                // a subset of searchableAttributes on the Pages index
-                restrictSearchableAttributes: ["title", "tags", "authors"],
-            }),
-            attributesToRetrieve: [
-                "title",
-                "thumbnailUrl",
-                "date",
-                "slug",
-                "type",
-                isFilterOnly ? "excerpt" : "content",
-                "authors",
-            ],
-            highlightPreTag: "<mark>",
-            highlightPostTag: "</mark>",
-            offset,
-            length,
-        },
-    ]
+    const searchParams = {
+        indexName: PAGES_INDEX,
+        query,
+        filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
+        facetFilters: formatTopicFacetFilters(selectedTopics),
+        // Do not search through the content of articles in case there is a
+        // country filter present. This is to avoid returning articles that
+        // might mention a country, but are not *about* that country (e.g.
+        // "Unlike Germany...").
+        ...(hasCountry && {
+            // a subset of searchableAttributes on the Pages index
+            restrictSearchableAttributes: ["title", "tags", "authors"],
+        }),
+        attributesToRetrieve: [
+            "title",
+            "thumbnailUrl",
+            "date",
+            "slug",
+            "type",
+            isFilterOnly ? "excerpt" : "content",
+            "authors",
+        ],
+        highlightPreTag: "<mark>",
+        highlightPostTag: "</mark>",
+        offset,
+        length,
+    }
 
-    return searchSingleForHits<FlatArticleHit>(liteSearchClient, searchParams)
+    return searchSingleForHitsWithClosestMatches<FlatArticleHit>(
+        liteSearchClient,
+        searchParams
+    )
 }
 
 export async function queryTopicPages(
@@ -303,25 +287,23 @@ export async function queryTopicPages(
 ) {
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
 
-    const searchParams = [
-        {
-            indexName: PAGES_INDEX,
-            query: state.query,
-            filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
-            facetFilters: formatTopicFacetFilters(selectedTopics),
-            attributesToRetrieve: [
-                "title",
-                "type",
-                "slug",
-                "excerpt",
-                "excerptLong",
-            ],
-            highlightPreTag: "<mark>",
-            highlightPostTag: "</mark>",
-            offset,
-            length,
-        },
-    ]
+    const searchParams = {
+        indexName: PAGES_INDEX,
+        query: state.query,
+        filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
+        facetFilters: formatTopicFacetFilters(selectedTopics),
+        attributesToRetrieve: [
+            "title",
+            "type",
+            "slug",
+            "excerpt",
+            "excerptLong",
+        ],
+        highlightPreTag: "<mark>",
+        highlightPostTag: "</mark>",
+        offset,
+        length,
+    }
 
     return searchSingleForHits<TopicPageHit>(liteSearchClient, searchParams)
 }
@@ -346,26 +328,24 @@ export async function queryProfiles(
         ...formatTopicFacetFilters(selectedTopics),
     ]
 
-    const searchParams = [
-        {
-            indexName: PAGES_INDEX,
-            query: state.query,
-            filters: `type:${OwidGdocType.Profile}`,
-            facetFilters,
-            attributesToRetrieve: [
-                "title",
-                "thumbnailUrl",
-                "slug",
-                "excerpt",
-                "type",
-                "availableEntities",
-            ],
-            highlightPreTag: "<mark>",
-            highlightPostTag: "</mark>",
-            offset,
-            length,
-        },
-    ]
+    const searchParams = {
+        indexName: PAGES_INDEX,
+        query: state.query,
+        filters: `type:${OwidGdocType.Profile}`,
+        facetFilters,
+        attributesToRetrieve: [
+            "title",
+            "thumbnailUrl",
+            "slug",
+            "excerpt",
+            "type",
+            "availableEntities",
+        ],
+        highlightPreTag: "<mark>",
+        highlightPostTag: "</mark>",
+        offset,
+        length,
+    }
 
     return searchSingleForHits<ProfileHit>(liteSearchClient, searchParams)
 }

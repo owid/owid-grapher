@@ -22,7 +22,8 @@ import {
     makeAnnotationsSlug,
 } from "@ourworldindata/core-table"
 import {
-    diffDateISOStringInDays,
+    diffDatesInDays,
+    epochDate,
     getYearFromISOStringAndDayOffset,
     intersection,
     trimObject,
@@ -37,6 +38,7 @@ import {
     getTimeInterval,
     isSubYearly,
     snapToIntervalStart,
+    dayjs,
 } from "@ourworldindata/utils"
 import { isContinentsVariableId } from "./GrapherConstants"
 import * as R from "remeda"
@@ -769,7 +771,7 @@ const convertLegacyYears = (years: number[], zeroDay: string): number[] => {
     // days since the specified `zeroDay`, which can be different for different variables.
     // In order to correctly join variables with different `zeroDay`s in a single chart, we
     // normalize all days to be in reference to a single epoch date.
-    const diff = diffDateISOStringInDays(zeroDay, EPOCH_DATE)
+    const diff = diffDatesInDays(dayjs.utc(zeroDay), epochDate())
     return years.map((y) => y + diff)
 }
 

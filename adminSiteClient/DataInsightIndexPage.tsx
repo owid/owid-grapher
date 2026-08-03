@@ -412,11 +412,14 @@ export function DataInsightIndexPage() {
     )
 
     const refreshDataFromGdocs = useCallback(async () => {
-        // Only refresh unpublished data insights. Published ones may have
-        // pending edits in Google Docs that aren't ready to go live yet,
-        // so we skip them to avoid re-publishing
+        // Refresh drafts and scheduled data insights (published, but with a
+        // publish date in the future) from Google Docs. Skip data insights
+        // that are already live, to avoid accidentally re-publishing content
+        // that isn't ready to go out.
         const gdocIds = visibleDataInsights
-            .filter((di) => !di.published)
+            .filter(
+                (di) => !di.published || dayjs(di.publishedAt).isAfter(dayjs())
+            )
             .map((di) => di.id)
 
         if (gdocIds.length === 0) return

@@ -24,6 +24,7 @@ import {
     DimensionProperty,
     ORIGIN_URL_REGEX_PATTERNS,
 } from "@ourworldindata/types"
+import { initializeDetailsOnDemand } from "@ourworldindata/components"
 import {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
@@ -55,7 +56,6 @@ import {
 } from "./VisionDeficiencies.js"
 import { EditorMarimekkoTab } from "./EditorMarimekkoTab.js"
 import { EditorExportTab } from "./EditorExportTab.js"
-import { runDetailsOnDemand } from "../site/detailsOnDemand.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import {
     ErrorMessages,
@@ -122,6 +122,7 @@ export class ChartEditorView<
 > extends React.Component<ChartEditorViewProps<Editor>> {
     database = new EditorDatabase({})
     details: DetailDictionary = {}
+    private cleanupDetailsOnDemand: (() => void) | undefined
 
     constructor(props: ChartEditorViewProps<Editor>) {
         super(props)
@@ -195,10 +196,14 @@ export class ChartEditorView<
     }
 
     async fetchDetails(): Promise<void> {
-        await runDetailsOnDemand({ shouldFetchFromAdminApi: true })
+        const details = await this.manager.admin.getJSON<DetailDictionary>(
+            "/api/parsed-dods.json"
+        )
+
+        this.cleanupDetailsOnDemand = initializeDetailsOnDemand({ details })
 
         runInAction(() => {
-            if (window.details) this.details = window.details
+            this.details = details
         })
     }
 
@@ -391,6 +396,7 @@ export class ChartEditorView<
     disposers: IReactionDisposer[] = []
     override componentWillUnmount(): void {
         this.disposers.forEach((dispose) => dispose())
+        this.cleanupDetailsOnDemand?.()
         this.editor?.dispose()
     }
 

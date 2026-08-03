@@ -79,6 +79,7 @@ export function formatPopulationAxisLabelShort(value: number): string {
         roundingMode: OwidVariableRoundingMode.decimalPlaces,
         numDecimalPlaces: 0,
         numberAbbreviation: "short",
+        abbreviationThreshold: 1e3,
     })
 }
 

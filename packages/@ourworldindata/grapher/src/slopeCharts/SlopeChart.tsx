@@ -1005,6 +1005,10 @@ export class SlopeChart
     private renderLogNotice(): React.ReactElement | null {
         if (!this.chartState.isLogScale) return null
 
+        // The notice is rendered in line with the time labels, so if those
+        // are hidden (e.g. for inner facets), hide the notice as well
+        if (this.xAxis.config.hideTickLabels) return null
+
         const fontSize = GRAPHER_FONT_SCALE_11 * this.fontSize
 
         const longText = "plotted on a logarithmic axis"
