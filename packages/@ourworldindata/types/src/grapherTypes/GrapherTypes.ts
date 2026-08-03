@@ -276,7 +276,7 @@ export interface TickFormattingOptions {
     numberAbbreviation?: "short" | "long" | false
     /** The magnitude at which abbreviation starts (defaults to 1 million) */
     abbreviationThreshold?: number
-    /** Precision of abbreviated values in decimal-places mode (defaults to 3) */
+    /** Minimum precision of abbreviated values (defaults to 3) */
     abbreviationSignificantFigures?: number
 }
 // Represents the actual entered configuration state in the editor

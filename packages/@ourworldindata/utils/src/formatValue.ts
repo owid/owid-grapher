@@ -52,14 +52,14 @@ function getType({
     numberAbbreviation,
     abbreviationThreshold,
     numSignificantFigures,
-    value,
+    roundedMagnitude,
     unit,
 }: {
     roundingMode: OwidVariableRoundingMode
     numberAbbreviation: "long" | "short" | false
     abbreviationThreshold?: number
     numSignificantFigures: number
-    value: number
+    roundedMagnitude: number
     unit: string
 }): "f" | "s" | "r" {
     // f: fixed-point notation (i.e. fixed number of decimal points)
@@ -76,23 +76,49 @@ function getType({
         return type
     }
     if (numberAbbreviation) {
-        // Compact labels of sig-fig columns abbreviate from 10^(sf + 2) —
-        // the magnitude from which abbreviations carry no decimals. At
-        // 3 sig figs that's 100k: 123,456 renders as "123k", while 25,240
-        // stays written out as "25,200" since "25.2k" would need a decimal
+        // Compact labels of sig-fig columns are written out only as long as
+        // every digit shown is significant; from 10^sf on, writing out would
+        // pad with placeholder zeroes, and the abbreviation is both shorter and
+        // more honest ("12.3k" rather than "12,300"). At the default of 3 sig
+        // figs that's 1,000. Above 1 million everything abbreviates anyway
         const defaultThreshold =
             numberAbbreviation === "short" &&
             roundingMode === OwidVariableRoundingMode.significantFigures
                 ? Math.min(
-                      10 ** (numSignificantFigures + 2),
+                      10 ** numSignificantFigures,
                       DEFAULT_ABBREVIATION_THRESHOLD
                   )
                 : DEFAULT_ABBREVIATION_THRESHOLD
         const threshold = abbreviationThreshold ?? defaultThreshold
-        return Math.abs(value) < threshold ? type : "s"
+        return roundedMagnitude < threshold ? type : "s"
     }
 
     return type
+}
+
+// The magnitude of the value as the formatter will render it, i.e. rounded to
+// the precision that applies. Threshold decisions are made on this rather than
+// on the raw value, since rounding can push a value across a threshold: written
+// out with no decimals, 999,999.99 becomes 1,000,000, which belongs on the
+// abbreviated side of the 1 million mark
+function getRoundedMagnitude({
+    value,
+    roundingMode,
+    numDecimalPlaces,
+    numSignificantFigures,
+}: {
+    value: number
+    roundingMode: OwidVariableRoundingMode
+    numDecimalPlaces: number
+    numSignificantFigures: number
+}): number {
+    const specifier =
+        roundingMode === OwidVariableRoundingMode.significantFigures
+            ? `.${numSignificantFigures}r`
+            : `.${numDecimalPlaces}f`
+    // d3 renders negative numbers with a Unicode minus that doesn't parse back,
+    // so round the magnitude — that's all the thresholds care about
+    return +format(specifier)(Math.abs(value))
 }
 
 // For values below 1, rounding to significant figures is capped at
@@ -147,6 +173,11 @@ function getPrecision({
 
     // "r" and "s" count significant digits
     if (roundingMode === OwidVariableRoundingMode.significantFigures) {
+        // an abbreviated tick may need more precision than the column's own sig
+        // figs to stay apart from its neighbours (see the comment below); it
+        // never gets less
+        if (type === "s" && abbreviationSignificantFigures)
+            return `${Math.max(numSignificantFigures, abbreviationSignificantFigures)}`
         return `${numSignificantFigures}`
     }
 
@@ -279,7 +310,12 @@ export function formatValue(
     const effectiveNumDecimalPlaces =
         numberAbbreviation === "short" &&
         !checkIsUnitPercent(unit) &&
-        Math.abs(value) >= 1e3
+        getRoundedMagnitude({
+            value,
+            roundingMode,
+            numDecimalPlaces,
+            numSignificantFigures,
+        }) >= 1e3
             ? 0
             : numDecimalPlaces
 
@@ -294,7 +330,12 @@ export function formatValue(
         numberAbbreviation,
         abbreviationThreshold,
         numSignificantFigures,
-        value,
+        roundedMagnitude: getRoundedMagnitude({
+            value,
+            roundingMode: effectiveRoundingMode,
+            numDecimalPlaces: effectiveNumDecimalPlaces,
+            numSignificantFigures,
+        }),
         unit,
     })
 
