@@ -14,6 +14,13 @@
     // it started with — needed now that each row's source sits underneath its
     // subtitle rather than in a column of its own — while still leaving the
     // sidecar wide enough to render a landscape chart at $grapher-height.
+    //
+    // The list looking wider than the chart is expected and is not a reason
+    // to skew these tracks: at a 1440px viewport both columns measure 628px,
+    // but Grapher renders its figure at 548px inside its 628px column (it
+    // sizes itself from $grapher-height's aspect ratio, not the space
+    // offered), leaving it visually centred with ~40px either side. Making
+    // the tracks uneven to "correct" that only squeezes the chart further.
     grid-template-columns: 6fr 6fr;
     gap: 24px;
     align-items: start;
@@ -207,6 +214,14 @@ $all-charts-block-sticky-top: 72px;
 .all-charts-block__row--selected .all-charts-block__row-body {
     border-left-color: $vermillion;
     background-color: $blue-5;
+
+    // The plain hover fill below matches this rule's specificity and is
+    // declared later in the file, so without this the selected row loses its
+    // blue and turns grey for as long as the pointer is over it — including
+    // straight after the click that selected it.
+    &:hover {
+        background-color: $blue-5;
+    }
 }
 
 // A row has no column structure: its text is one block (title, then subtitle,
@@ -311,6 +326,12 @@ $all-charts-block-sticky-top: 72px;
     line-clamp: 2;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+// The "Source:" label itself, set a step lighter than the producer names that
+// follow it so the line leads with the source rather than the word "Source".
+.all-charts-block__row-source-label {
+    color: $gray-70;
 }
 
 // Holds the selected row's "Explore the data" link at the right-hand edge of

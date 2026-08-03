@@ -438,8 +438,6 @@ export const AllChartsBlock = ({
         placeholderData: keepPreviousData,
     })
 
-    const hits = data ?? []
-
     // A second, stable "topic only" query (no text/country/producer filters)
     // used purely to derive the suggested chips below the search box. Basing
     // the chips on this baseline rather than the live, filtered `hits` above
@@ -473,6 +471,47 @@ export const AllChartsBlock = ({
         () => computeAutoSuggestedChips(baseHits ?? [], regionNames, topicName),
         [baseHits, regionNames, topicName]
     )
+
+    // Position of each chart in the block's *default* ordering — i.e. the
+    // order the list is in with an empty search box. `baseHits` is the
+    // unfiltered, topic-only result set already fetched above for the
+    // suggested chips, so this needs no extra request.
+    const defaultOrderByObjectID = useMemo(() => {
+        const order = new Map<string, number>()
+        for (const [index, hit] of (baseHits ?? []).entries()) {
+            order.set(hit.objectID, index)
+        }
+        return order
+    }, [baseHits])
+
+    // Typing a country must narrow the list without re-ordering it.
+    //
+    // Algolia ranks every result set by relevance to the query text, so a
+    // query naming a country ("Spain") both narrows the list — via the
+    // `availableEntities` facet filter built from `detectedCountries` — and
+    // shuffles the survivors into relevance order. The intent for this block
+    // is that naming a country highlights that entity in the sidecar Grapher,
+    // not that it re-ranks the indicators, so the surviving rows are sorted
+    // back into their default relative order here.
+    //
+    // Deliberately scoped to queries with a country in them: for a plain
+    // keyword search ("carbon") relevance order is the genuinely useful one —
+    // it floats the charts actually about carbon to the top — and only the
+    // country case reads as the list jumping around unprompted.
+    const hits = useMemo(() => {
+        const rawHits = data ?? []
+        if (detectedCountries.length === 0) return rawHits
+        if (defaultOrderByObjectID.size === 0) return rawHits
+        // Anything missing from the baseline (a record indexed between the
+        // two queries, say) sorts to the end, keeping Algolia's relative
+        // order there since `sort` is stable.
+        const fallbackIndex = defaultOrderByObjectID.size
+        return [...rawHits].sort(
+            (a, b) =>
+                (defaultOrderByObjectID.get(a.objectID) ?? fallbackIndex) -
+                (defaultOrderByObjectID.get(b.objectID) ?? fallbackIndex)
+        )
+    }, [data, detectedCountries, defaultOrderByObjectID])
 
     // Editorially curated suggestions (set on the gdoc block) take precedence
     // when present, preserving the pre-existing authoring workflow. Every
@@ -827,7 +866,13 @@ const AllChartsTableRow = ({
                     )}
                     {source && (
                         <span className="all-charts-block__row-source">
-                            Source: {source}
+                            {/* "Source:" is set a step lighter than the
+                                producer names it introduces, so the label
+                                recedes and the actual source reads first. */}
+                            <span className="all-charts-block__row-source-label">
+                                Source:
+                            </span>{" "}
+                            {source}
                         </span>
                     )}
                     {shownEntities.length > 0 && (
@@ -844,7 +889,7 @@ const AllChartsTableRow = ({
                 {isSelected && (
                     <div className="all-charts-block__row-action">
                         <Button
-                            theme="solid-vermillion"
+                            theme="solid-dark-blue"
                             className="all-charts-block__row-explore-button"
                             text="Explore the data"
                             href={chartUrl}
