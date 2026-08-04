@@ -27,7 +27,7 @@ function build(
     })
 }
 
-describe("buildSocialText", () => {
+describe(buildSocialText, () => {
     it("ends the title with a period when it has none", () => {
         expect(build("Life expectancy has doubled")).toBe(
             "Life expectancy has doubled."
