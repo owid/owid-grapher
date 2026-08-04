@@ -381,6 +381,143 @@ export const legacyToOwidTableAndDimensions = (
     return joinedVariablesTable
 }
 
+type RowIndexKey = number | string
+// Almost every index key matches exactly one row, so we store a bare row
+// number for that case and only allocate an array when a key actually has
+// several matching rows (this saves hundreds of thousands of tiny array
+// allocations when joining large tables)
+type RowIndexHits = number | number[]
+type RowIndex = Map<RowIndexKey, RowIndexHits>
+
+const firstHit = (hits: RowIndexHits): number =>
+    typeof hits === "number" ? hits : hits[0]
+const lastHit = (hits: RowIndexHits): number =>
+    typeof hits === "number" ? hits : hits[hits.length - 1]
+
+const addHitToRowIndex = (
+    index: RowIndex,
+    key: RowIndexKey,
+    row: number
+): void => {
+    const existing = index.get(key)
+    if (existing === undefined) index.set(key, row)
+    else if (typeof existing === "number") index.set(key, [existing, row])
+    else existing.push(row)
+}
+
+// Generic string keys ("2020 123") mean a number-to-string conversion, a
+// concatenation and string hashing for every row of every table - by far the
+// most expensive part of the join. Our index columns (year/day and entityId)
+// are always integers, so we can instead encode a [time, entityId] tuple as
+// the single number time * 2^26 + entityId, which is exact as long as
+// |time| < 2^26 (years and days since epoch are far below 67 million) and
+// 0 <= entityId < 2^26 (database ids). If any value doesn't fit we
+// transparently fall back to the generic string keys.
+// Note that this must be multiplication, not a bit shift: the composite key
+// uses up to 52 bits, but JS bitwise operators truncate to 32-bit integers.
+// Multiplication and addition are exact up to 2^53.
+const NUMERIC_KEY_BASE = 2 ** 26
+
+const tryBuildNumericRowIndexes = (
+    tables: OwidTable[],
+    columnSlugs: string[],
+    shouldIndexTable: boolean[]
+): RowIndex[] | undefined => {
+    if (columnSlugs.length !== 1 && columnSlugs.length !== 2) return undefined
+    const indexes: RowIndex[] = []
+    for (let tableIndex = 0; tableIndex < tables.length; tableIndex++) {
+        if (!shouldIndexTable[tableIndex]) {
+            indexes.push(new Map())
+            continue
+        }
+        const columnStore = tables[tableIndex].columnStore
+        const col0 = columnStore[columnSlugs[0]]
+        const col1 =
+            columnSlugs.length === 2 ? columnStore[columnSlugs[1]] : undefined
+        if (!col0 || (columnSlugs.length === 2 && !col1)) return undefined
+        const numRows = tables[tableIndex].numRows
+        const index: RowIndex = new Map()
+        for (let row = 0; row < numRows; row++) {
+            const v0 = col0[row]
+            if (typeof v0 !== "number" || !Number.isInteger(v0))
+                return undefined
+            let key = v0
+            if (col1) {
+                const v1 = col1[row]
+                if (
+                    typeof v1 !== "number" ||
+                    !Number.isInteger(v1) ||
+                    v1 < 0 ||
+                    v1 >= NUMERIC_KEY_BASE ||
+                    Math.abs(v0) >= NUMERIC_KEY_BASE
+                )
+                    return undefined
+                key = v0 * NUMERIC_KEY_BASE + v1
+            }
+            addHitToRowIndex(index, key, row)
+        }
+        indexes.push(index)
+    }
+    return indexes
+}
+
+// Same as CoreTable.rowIndex() but with the compact RowIndexHits encoding
+const buildStringRowIndex = (
+    table: OwidTable,
+    columnSlugs: string[]
+): RowIndex => {
+    const keyFn = makeKeyFn(table.columnStore, columnSlugs)
+    const index: RowIndex = new Map()
+    const numRows = table.numRows
+    for (let row = 0; row < numRows; row++)
+        addHitToRowIndex(index, keyFn(row), row)
+    return index
+}
+
+/**
+ * Builds one row index per table over the given columns, plus a key function
+ * that computes the matching lookup key from a row of the first table. Uses
+ * fast numeric composite keys when all values fit (see above) and the generic
+ * string keys of CoreTable.rowIndex() otherwise. The two key encodings are
+ * incompatible, so an index and its key function always have to come from the
+ * same call.
+ */
+const buildRowIndexesPerTable = (
+    tables: OwidTable[],
+    columnSlugs: string[],
+    shouldIndexTable?: boolean[]
+): {
+    indexPerTable: RowIndex[]
+    firstTableKeyFn: (rowIndex: number) => RowIndexKey
+} => {
+    const shouldIndex = shouldIndexTable ?? tables.map(() => true)
+    const numericIndexes = tryBuildNumericRowIndexes(
+        tables,
+        columnSlugs,
+        shouldIndex
+    )
+    if (numericIndexes) {
+        const columnStore = tables[0].columnStore
+        const col0 = columnStore[columnSlugs[0]]
+        const col1 =
+            columnSlugs.length === 2 ? columnStore[columnSlugs[1]] : undefined
+        return {
+            indexPerTable: numericIndexes,
+            firstTableKeyFn: col1
+                ? (rowIndex): number =>
+                      (col0[rowIndex] as number) * NUMERIC_KEY_BASE +
+                      (col1[rowIndex] as number)
+                : (rowIndex): number => col0[rowIndex] as number,
+        }
+    }
+    return {
+        indexPerTable: tables.map((table, i) =>
+            shouldIndex[i] ? buildStringRowIndex(table, columnSlugs) : new Map()
+        ),
+        firstTableKeyFn: makeKeyFn(tables[0].columnStore, columnSlugs),
+    }
+}
+
 // Exported for benchmarking (see LegacyToOwidTable.bench.ts), not meant to be
 // used outside of this module.
 export const fullJoinTables = (
@@ -391,8 +528,8 @@ export const fullJoinTables = (
     // This function merges a number of OwidTables together using a given list of columns
     // to be used as the merge key. The merge key columns are used to construct a full set
     // of index values from the various tables - all tables are enumerated, we create
-    // a merged string value from the index column values for each row and then we create
-    // a set from all these string values.
+    // a merged key value from the index column values for each row and then we create
+    // a set from all these key values.
     // Note that not every table has to have values for all columns - not even all the index
     // columns have to exist on all tables (the index columns have to exist on the first table though)!
     // The reason for this and how this can possibly work
@@ -411,32 +548,31 @@ export const fullJoinTables = (
     if (tables.length === 0) return new OwidTable()
     else if (tables.length === 1) return tables[0]
 
-    // Get all the index values per table and then figure out the full set of all stringified index values
-    const mainIndexPerTable: Map<string, number[]>[] = tables.map((table) =>
-        // When we get a mergeFallbackLookupColumn then it can happen that a table does not have all the
-        // columns of the main index. In this case, just return an empty map because that will lead all
-        // lookups by main index to fail and we'll try the fallback index
-        mergeFallbackLookupColumns &&
-        _.difference(indexColumnNames, table.columnSlugs).length > 0
-            ? new Map()
-            : table.rowIndex(indexColumnNames)
+    // Get all the index values per table and then figure out the full set of all index keys.
+    // When we get a mergeFallbackLookupColumn then it can happen that a table does not have
+    // all the columns of the main index. In this case, just use an empty map for that table
+    // because that will lead all lookups by main index to fail and we'll try the fallback index
+    const { indexPerTable: mainIndexPerTable } = buildRowIndexesPerTable(
+        tables,
+        indexColumnNames,
+        tables.map(
+            (table) =>
+                !mergeFallbackLookupColumns ||
+                _.difference(indexColumnNames, table.columnSlugs).length === 0
+        )
     )
 
-    // Construct all the fallback index lookup values for all tables. mergeFallbackLookupColumns is an
-    // array of array that is supposed to be treated as a sequence of tuples of column names
-    const fallbackIndexesPerTable = mergeFallbackLookupColumns?.map(
-        (fallbackColumns) =>
-            tables.map((table) => table.rowIndex(fallbackColumns))
-    )
-    // Key functions that turn a row of the first table into the lookup key for each
-    // fallback column tuple. When we look up values and don't find a match in the main
-    // index we use these as the fallback lookup keys. This is the case when we join year
-    // and day variables and then use day+entityId as the key but the year variables don't
+    // Construct all the fallback indexes for all tables. mergeFallbackLookupColumns is an
+    // array of arrays that is supposed to be treated as a sequence of tuples of column names.
+    // Each lookup comes with a key function that turns a row of the first table into the
+    // lookup key for its fallback column tuple. When we look up values and don't find a match
+    // in the main index we use these as the fallback lookup keys. This is the case when we join
+    // year and day variables and then use day+entityId as the key but the year variables don't
     // have those - so for the year variables we then check if there is a match using
     // year+entityId where the year to use comes from the first table that by convention
     // HAS TO contain a year column with the value to merge years on.
-    const fallbackKeyFnsForFirstTable = mergeFallbackLookupColumns?.map(
-        (columnSet) => makeKeyFn(tables[0].columnStore, columnSet)
+    const fallbackLookups = mergeFallbackLookupColumns?.map((columnSet) =>
+        buildRowIndexesPerTable(tables, columnSet)
     )
 
     // Figure out which column names are shared. Shared columns (the index columns but also in our
@@ -448,7 +584,7 @@ export const fullJoinTables = (
     const sharedColumnNames = intersection(
         ...tables.map((table) => table.columnSlugs)
     )
-    const allIndexValues = new Set<string>()
+    const allIndexValues = new Set<RowIndexKey>()
     for (const index of mainIndexPerTable)
         for (const key of index.keys()) allIndexValues.add(key)
     const numOutputRows = allIndexValues.size
@@ -488,48 +624,51 @@ export const fullJoinTables = (
 
     const numMultipleMatchesPerTable = new Array(tables.length).fill(0)
 
+    // Scratch array holding, for the current index value, each table's main index
+    // hits - filled once per output row so that we only pay for one lookup per table
+    const mainHitsPerTable: (RowIndexHits | undefined)[] = new Array(
+        tables.length
+    )
+
     // Now loop over all unique index values and for each assemble as full a row as we can manage by looking
     // up the values in the different source tables
     let outputRow = 0
     for (const index of allIndexValues.values()) {
-        // First we handle the shared columns. The first table might not have a value at
-        // the current index (e.g. a year that does not exist in the first table). We
-        // therefore have to keep looking in the other tables until we find a table that
-        // has the values. Because the index values were generated from the combined set
-        // of all index values we are guaranteed to find a value eventually before we
-        // exceed the length of the tables array
-        let sharedSourceTable = 0
-        let sharedHits = mainIndexPerTable[0].get(index)
-        while (sharedHits === undefined) {
-            sharedSourceTable++
-            sharedHits = mainIndexPerTable[sharedSourceTable].get(index)
+        // Look the current index value up in every table's main index. The first table
+        // that has a hit becomes the source for the shared columns. The first table might
+        // not have a value at the current index (e.g. a year that does not exist in the
+        // first table) but because the index values were generated from the combined set
+        // of all index values we are guaranteed to find one of the tables with a hit
+        let sharedSourceTable = -1
+        for (let i = 0; i < tables.length; i++) {
+            const hits = mainIndexPerTable[i].get(index)
+            mainHitsPerTable[i] = hits
+            if (sharedSourceTable === -1 && hits !== undefined)
+                sharedSourceTable = i
         }
+        const sharedRow = firstHit(mainHitsPerTable[sharedSourceTable]!)
         const sharedSourceValues = sharedSourceValuesPerTable[sharedSourceTable]
         for (let i = 0; i < sharedDefs.length; i++)
-            sharedDefs[i].values[outputRow] =
-                sharedSourceValues[i][sharedHits[0]]
+            sharedDefs[i].values[outputRow] = sharedSourceValues[i][sharedRow]
 
         // Figure out the fallback merge lookup keys from the first table (if the first
         // table has a row at the current index - otherwise there is nothing to derive
         // the fallback keys, e.g. the year, from)
-        const firstTableHits =
-            sharedSourceTable === 0
-                ? sharedHits
-                : mainIndexPerTable[0].get(index)
+        const firstTableHits = mainHitsPerTable[0]
         const fallbackKeys =
-            fallbackKeyFnsForFirstTable && firstTableHits
-                ? fallbackKeyFnsForFirstTable.map((keyFn) =>
-                      keyFn(firstTableHits[0])
+            fallbackLookups && firstTableHits !== undefined
+                ? fallbackLookups.map((lookup) =>
+                      lookup.firstTableKeyFn(firstHit(firstTableHits))
                   )
                 : undefined
         // Now add all the non-shared value columns. We loop over all tables and for each
         // resolve the source row for the current index value: first by looking up a match
-        // in the main index, mainIndexPerTable[i]. If we don't have a hit for this row in
-        // this table then we try the fallbackKeys in turn to see if we can merge based on
-        // these fallback indexes. If no option leads to a match we store
+        // in the main index. If we don't have a hit for this row in this table then we
+        // try the fallbackKeys in turn to see if we can merge based on these fallback
+        // indexes. If no option leads to a match we store
         // ErrorValueTypes.NoMatchingValueAfterJoin in the cells of this table's columns.
         for (let i = 0; i < tables.length; i++) {
-            const mainHits = mainIndexPerTable[i].get(index)
+            const mainHits = mainHitsPerTable[i]
             let sourceRow: number | undefined
             if (mainHits !== undefined) {
                 // This case should be rare but it can come up. The old algorithm ran into this often because it
@@ -539,18 +678,19 @@ export const fullJoinTables = (
                 // first we should usually be able to find a unique match. The error output (after the loop, so we
                 // log once per table instead of once per row) is here so that when something is weird in an edge
                 // case then this shows up as a debugging hint in the console.
-                if (mainHits.length > 1) numMultipleMatchesPerTable[i]++
-                sourceRow = mainHits[0]
-            } else if (fallbackKeys && fallbackIndexesPerTable) {
+                if (typeof mainHits !== "number")
+                    numMultipleMatchesPerTable[i]++
+                sourceRow = firstHit(mainHits)
+            } else if (fallbackKeys && fallbackLookups) {
                 // If the main index did not lead to a hit then we try the fallback indices in turn
                 for (
                     let fallback = 0;
                     fallback < fallbackKeys.length;
                     fallback++
                 ) {
-                    const fallbackHits = fallbackIndexesPerTable[fallback][
-                        i
-                    ].get(fallbackKeys[fallback])
+                    const fallbackHits = fallbackLookups[
+                        fallback
+                    ].indexPerTable[i].get(fallbackKeys[fallback])
                     if (fallbackHits !== undefined) {
                         // If any of the fallbacks led to a hit then we use this hit
                         // Note that we choose the last of the fallbackHits entries to look up the row in the columnstore here.
@@ -566,7 +706,7 @@ export const fullJoinTables = (
                         // this entity. This could in theory be pretty wrong as well but in practice it often means a very close match.
                         // The proper solution as mentioned above would be to never fall back to entity matches only and move
                         // the tolerance matching into this function as well instead.
-                        sourceRow = fallbackHits[fallbackHits.length - 1]
+                        sourceRow = lastHit(fallbackHits)
                         break
                     }
                 }
