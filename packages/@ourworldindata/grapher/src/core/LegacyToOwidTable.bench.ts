@@ -12,6 +12,8 @@ import * as _ from "lodash-es"
 import { bench, describe } from "vitest"
 import {
     ColumnTypeNames,
+    DimensionProperty,
+    OwidChartDimensionInterface,
     OwidColumnDef,
     OwidTableSlugs,
     TimeInterval,
@@ -20,9 +22,16 @@ import { OwidTable } from "@ourworldindata/core-table"
 import {
     EPOCH_DATE,
     getYearFromISOStringAndDayOffset,
+    MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
 } from "@ourworldindata/utils"
-import { buildVariableTable, fullJoinTables } from "./LegacyToOwidTable"
+import {
+    buildVariableTable,
+    fullJoinTables,
+    JoinTable,
+    legacyToOwidTableAndDimensionsWithMandatorySlug,
+    owidTableToJoinTable,
+} from "./LegacyToOwidTable"
 
 const YEAR_INDEX = [OwidTableSlugs.Year, OwidTableSlugs.EntityId]
 const DAY_INDEX = [OwidTableSlugs.Day, OwidTableSlugs.EntityId]
@@ -42,21 +51,20 @@ const warmTable = (table: OwidTable): OwidTable => {
 const entityIdsRange = (count: number, offset = 0): number[] =>
     _.range(offset + 1, offset + count + 1)
 
-/**
- * Builds a variable table with one row per (entity, time) pair, going through
- * the same buildVariableTable() the real code uses.
- */
-const makeVariableTable = ({
-    variableId,
-    entityIds,
-    times,
-    timeInterval = TimeInterval.Year,
-}: {
+interface VariableOptions {
     variableId: number
     entityIds: number[]
     times: number[]
     timeInterval?: TimeInterval
-}): OwidTable => {
+}
+
+/** Builds a legacy variable with one row per (entity, time) pair */
+const makeVariable = ({
+    variableId,
+    entityIds,
+    times,
+    timeInterval = TimeInterval.Year,
+}: VariableOptions): OwidVariableDataMetadataDimensions => {
     const entities: number[] = []
     const years: number[] = []
     const values: number[] = []
@@ -68,7 +76,7 @@ const makeVariableTable = ({
             values.push((entityId * 31 + time * 7) % 1000)
         }
 
-    const variable: OwidVariableDataMetadataDimensions = {
+    return {
         data: { entities, values, years },
         metadata: {
             id: variableId,
@@ -85,9 +93,14 @@ const makeVariableTable = ({
             },
         },
     }
-
-    return warmTable(buildVariableTable(variable))
 }
+
+/**
+ * Builds a variable table with one row per (entity, time) pair, going through
+ * the same buildVariableTable() the real code uses.
+ */
+const makeVariableTable = (options: VariableOptions): JoinTable =>
+    owidTableToJoinTable(warmTable(buildVariableTable(makeVariable(options))))
 
 /**
  * A variable with a targetTime, as produced for scatter/marimekko dimensions:
@@ -104,15 +117,19 @@ const makeTargetTimeTable = ({
     entityIds: number[]
     times: number[]
     targetTime: number
-}): OwidTable => {
-    const table = makeVariableTable({ variableId, entityIds, times })
-    return warmTable(
-        table
-            .filterByTargetTimes([targetTime], 0)
-            .interpolateColumnWithTolerance(variableId.toString(), {
-                toleranceOverride: 0,
-            })
-            .dropColumns([OwidTableSlugs.Year])
+}): JoinTable => {
+    const table = warmTable(
+        buildVariableTable(makeVariable({ variableId, entityIds, times }))
+    )
+    return owidTableToJoinTable(
+        warmTable(
+            table
+                .filterByTargetTimes([targetTime], 0)
+                .interpolateColumnWithTolerance(variableId.toString(), {
+                    toleranceOverride: 0,
+                })
+                .dropColumns([OwidTableSlugs.Year])
+        )
     )
 }
 
@@ -121,9 +138,9 @@ const makeTargetTimeTable = ({
  * mirroring what legacyToOwidTableAndDimensions() does before joining the
  * result with the year based variables.
  */
-const joinDaysAndFillYear = (dayTables: OwidTable[]): OwidTable => {
+const joinDaysAndFillYear = (dayTables: JoinTable[]): JoinTable => {
     const joined = fullJoinTables(dayTables, DAY_INDEX)
-    const dayColumn = joined.getColumns([OwidTableSlugs.Day])[0]
+    const dayValues = joined.columnStore[OwidTableSlugs.Day]
     const getYearMemoized = _.memoize((day: number) =>
         getYearFromISOStringAndDayOffset(EPOCH_DATE, day)
     )
@@ -131,9 +148,17 @@ const joinDaysAndFillYear = (dayTables: OwidTable[]): OwidTable => {
         slug: OwidTableSlugs.Year,
         name: OwidTableSlugs.Year,
         type: ColumnTypeNames.Year,
-        values: dayColumn.values.map((day) => getYearMemoized(day as number)),
     }
-    return warmTable(joined.appendColumns([yearColumnDef]))
+    return {
+        columnStore: {
+            ...joined.columnStore,
+            [OwidTableSlugs.Year]: dayValues.map((day) =>
+                getYearMemoized(day as number)
+            ),
+        },
+        defs: [...joined.defs, yearColumnDef],
+        numRows: joined.numRows,
+    }
 }
 
 describe("fullJoinTables: year variables", () => {
@@ -288,7 +313,7 @@ describe("fullJoinTables: variables with a targetTime", () => {
     const yearTables = _.range(0, 3).map((i) =>
         makeVariableTable({ variableId: 1000 + i, entityIds, times })
     )
-    const joinedYears = warmTable(fullJoinTables(yearTables, YEAR_INDEX))
+    const joinedYears = fullJoinTables(yearTables, YEAR_INDEX)
     const targetTimeTables = _.range(0, 2).map((i) =>
         makeTargetTimeTable({
             variableId: 1100 + i,
@@ -306,5 +331,121 @@ describe("fullJoinTables: variables with a targetTime", () => {
         fullJoinTables([joinedYears, ...targetTimeTables], YEAR_INDEX, [
             ENTITY_INDEX,
         ])
+    })
+})
+
+describe("legacyToOwidTableAndDimensions: end to end", () => {
+    const yDimensions = (
+        variables: OwidVariableDataMetadataDimensions[],
+        targetYear?: number
+    ): OwidChartDimensionInterface[] =>
+        variables.map((variable) => ({
+            variableId: variable.metadata.id,
+            property: DimensionProperty.y,
+            targetYear,
+        }))
+    const varMap = (
+        variables: OwidVariableDataMetadataDimensions[]
+    ): MultipleOwidVariableDataDimensionsMap =>
+        new Map(variables.map((variable) => [variable.metadata.id, variable]))
+    const selectedEntityColors = { "Country 1": "#f00", "Country 2": "#0f0" }
+
+    const yearVariables = _.range(0, 6).map((i) =>
+        makeVariable({
+            variableId: 2000 + i,
+            entityIds: entityIdsRange(200),
+            times: _.range(1960, 2020),
+        })
+    )
+    const largeYearVariables = _.range(0, 12).map((i) =>
+        makeVariable({
+            variableId: 2100 + i,
+            entityIds: entityIdsRange(250),
+            times: _.range(1900, 2020),
+        })
+    )
+    const dayVariables = _.range(0, 2).map((i) =>
+        makeVariable({
+            variableId: 2200 + i,
+            entityIds: entityIdsRange(60),
+            times: _.range(18000, 18000 + 365 * 2),
+            timeInterval: TimeInterval.Day,
+        })
+    )
+    const mixedYearVariables = _.range(0, 3).map((i) =>
+        makeVariable({
+            variableId: 2210 + i,
+            entityIds: entityIdsRange(60),
+            times: _.range(1960, 2025),
+        })
+    )
+    // Monthly values arrive as representative days and get snapped to the
+    // month start when the table is built
+    const monthlyVariables = _.range(0, 3).map((i) =>
+        makeVariable({
+            variableId: 2300 + i,
+            entityIds: entityIdsRange(60),
+            times: _.range(18000 + i, 18000 + i + 365 * 4, 32),
+            timeInterval: TimeInterval.Month,
+        })
+    )
+    const scatterVariables = _.range(0, 2).map((i) =>
+        makeVariable({
+            variableId: 2400 + i,
+            entityIds: entityIdsRange(200),
+            times: _.range(1960, 2020),
+        })
+    )
+    const scatterTargetTimeVariables = _.range(0, 2).map((i) =>
+        makeVariable({
+            variableId: 2410 + i,
+            entityIds: entityIdsRange(200),
+            times: _.range(1960, 2020),
+        })
+    )
+
+    bench("6 year variables × 200 entities × 60 years", () => {
+        legacyToOwidTableAndDimensionsWithMandatorySlug(
+            varMap(yearVariables),
+            yDimensions(yearVariables),
+            selectedEntityColors
+        )
+    })
+
+    bench("12 year variables × 250 entities × 120 years", () => {
+        legacyToOwidTableAndDimensionsWithMandatorySlug(
+            varMap(largeYearVariables),
+            yDimensions(largeYearVariables),
+            selectedEntityColors
+        )
+    })
+
+    bench("2 day variables + 3 year variables", () => {
+        const variables = [...dayVariables, ...mixedYearVariables]
+        legacyToOwidTableAndDimensionsWithMandatorySlug(
+            varMap(variables),
+            yDimensions(variables),
+            selectedEntityColors
+        )
+    })
+
+    bench("3 monthly variables × 60 entities × 4 years", () => {
+        legacyToOwidTableAndDimensionsWithMandatorySlug(
+            varMap(monthlyVariables),
+            yDimensions(monthlyVariables),
+            selectedEntityColors
+        )
+    })
+
+    bench("scatter: 2 year variables + 2 targetTime variables", () => {
+        const variables = [...scatterVariables, ...scatterTargetTimeVariables]
+        legacyToOwidTableAndDimensionsWithMandatorySlug(
+            varMap(variables),
+            [
+                ...yDimensions(scatterVariables),
+                ...yDimensions(scatterTargetTimeVariables, 2010),
+            ],
+            selectedEntityColors
+        )
     })
 })

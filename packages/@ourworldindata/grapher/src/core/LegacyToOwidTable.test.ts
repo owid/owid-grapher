@@ -17,8 +17,10 @@ import {
 import {
     buildVariableTable,
     fullJoinTables,
+    JoinTable,
     legacyToOwidTableAndDimensions,
     legacyToOwidTableAndDimensionsWithMandatorySlug,
+    owidTableToJoinTable,
 } from "./LegacyToOwidTable"
 import {
     MultipleOwidVariableDataDimensionsMap,
@@ -1010,7 +1012,7 @@ Papua New Guinea,PNG,1983,5.5,1983,`
 })
 
 describe(fullJoinTables, () => {
-    const makeTable = (
+    const makeOwidTable = (
         variableId: number,
         rows: [entityId: number, time: number, value: number][],
         timeInterval?: TimeInterval
@@ -1037,6 +1039,8 @@ describe(fullJoinTables, () => {
             },
         })
     }
+    const makeTable = (...args: Parameters<typeof makeOwidTable>): JoinTable =>
+        owidTableToJoinTable(makeOwidTable(...args))
 
     it("joins by year+entity", () => {
         const joined = fullJoinTables(
@@ -1055,13 +1059,13 @@ describe(fullJoinTables, () => {
             [OwidTableSlugs.Year, OwidTableSlugs.EntityId]
         )
 
-        expect(joined.get("2").valuesIncludingErrorValues).toEqual([
+        expect(joined.columnStore["2"]).toEqual([
             1,
             2,
             3,
             ErrorValueTypes.NoMatchingValueAfterJoin,
         ])
-        expect(joined.get("3").valuesIncludingErrorValues).toEqual([
+        expect(joined.columnStore["3"]).toEqual([
             ErrorValueTypes.NoMatchingValueAfterJoin,
             10,
             ErrorValueTypes.NoMatchingValueAfterJoin,
@@ -1070,22 +1074,24 @@ describe(fullJoinTables, () => {
     })
 
     it("joins days and years via fallbacks", () => {
-        const dayTable = makeTable(
-            4,
-            [
-                [1, 18992, 5],
-                [1, 18993, 6],
-                [2, 18992, 7],
-            ],
-            TimeInterval.Day
-        ).appendColumns([
-            {
-                slug: OwidTableSlugs.Year,
-                name: OwidTableSlugs.Year,
-                type: ColumnTypeNames.Year,
-                values: [2022, 2022, 2022],
-            },
-        ])
+        const dayTable = owidTableToJoinTable(
+            makeOwidTable(
+                4,
+                [
+                    [1, 18992, 5],
+                    [1, 18993, 6],
+                    [2, 18992, 7],
+                ],
+                TimeInterval.Day
+            ).appendColumns([
+                {
+                    slug: OwidTableSlugs.Year,
+                    name: OwidTableSlugs.Year,
+                    type: ColumnTypeNames.Year,
+                    values: [2022, 2022, 2022],
+                },
+            ])
+        )
         const yearTable = makeTable(5, [
             [1, 2022, 100],
             // only matched via the entity-only fallback
@@ -1100,11 +1106,9 @@ describe(fullJoinTables, () => {
             ]
         )
 
-        expect(joined.get("4").valuesIncludingErrorValues).toEqual([5, 6, 7])
+        expect(joined.columnStore["4"]).toEqual([5, 6, 7])
         // entity 1 matches by year+entity, entity 2 by entity only
-        expect(joined.get("5").valuesIncludingErrorValues).toEqual([
-            100, 100, 200,
-        ])
+        expect(joined.columnStore["5"]).toEqual([100, 100, 200])
     })
 
     it("throws when an entity id is too large for the composite key encoding", () => {

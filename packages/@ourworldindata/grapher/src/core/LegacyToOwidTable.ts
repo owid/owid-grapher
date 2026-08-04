@@ -4,6 +4,7 @@ import * as _ from "lodash-es"
 import {
     ColumnTypeNames,
     CoreColumnDef,
+    CoreColumnStore,
     StandardOwidColumnDefs,
     OwidTableSlugs,
     OwidColumnDef,
@@ -43,6 +44,47 @@ import { isContinentsVariableId } from "./GrapherConstants"
 import * as R from "remeda"
 import { getDimensionColumnSlug } from "../chart/ChartDimension.js"
 
+/**
+ * A lightweight table representation used while joining variables: just the
+ * column values and defs, without any of the OwidTable machinery. Building a
+ * real OwidTable for every variable would re-parse each non-skipParsing column
+ * (a per-cell String()/parseFloat round trip that allocates a new array per
+ * column); instead we construct the values with the right types directly and
+ * only build one OwidTable at the very end.
+ */
+export interface JoinTable {
+    columnStore: CoreColumnStore
+    defs: OwidColumnDef[]
+    numRows: number
+}
+
+export const owidTableToJoinTable = (table: OwidTable): JoinTable => ({
+    columnStore: table.columnStore,
+    defs: table.getColumns(table.columnSlugs).map((col) => col.def),
+    numRows: table.numRows,
+})
+
+export const joinTableToOwidTable = (joinTable: JoinTable): OwidTable =>
+    // Passing the values via the defs marks the columns as already typed, so
+    // the constructor doesn't re-parse them
+    new OwidTable(
+        [],
+        joinTable.defs.map((def) => ({
+            ...def,
+            values: joinTable.columnStore[def.slug],
+        }))
+    )
+
+/** Mirrors what StringColumn.parse() would do with a missing value */
+const toStringValueOrError = (
+    value: string | undefined | null
+): string | ErrorValue =>
+    value === undefined
+        ? ErrorValueTypes.UndefinedButShouldBeString
+        : value === null
+          ? ErrorValueTypes.NullButShouldBeString
+          : value
+
 export const legacyToOwidTableAndDimensionsWithMandatorySlug = (
     json: MultipleOwidVariableDataDimensionsMap,
     dimensions: OwidChartDimensionInterface[],
@@ -75,13 +117,13 @@ export const legacyToOwidTableAndDimensions = (
     const entityMeta = [...json.values()].flatMap(
         (value) => value.metadata.dimensions.entities.values
     )
-    const entityMetaById: OwidEntityKey = Object.fromEntries(
-        entityMeta.map((entity) => [entity.id.toString(), entity])
+    const entityMetaById = new Map(
+        entityMeta.map((entity) => [entity.id, entity])
     )
 
     // Base column defs, shared by all variable tables
 
-    const baseColumnDefs: Map<ColumnSlug, CoreColumnDef> = new Map()
+    const baseColumnDefs: Map<ColumnSlug, OwidColumnDef> = new Map()
     StandardOwidColumnDefs.forEach((def) => {
         baseColumnDefs.set(def.slug, def)
     })
@@ -90,9 +132,9 @@ export const legacyToOwidTableAndDimensions = (
     // multiple columns for a single variable.
     const dimensionColumns = _.uniqBy(dimensions, (dim) => dim.slug)
 
-    const variableTablesToJoinByYear: OwidTable[] = []
-    const variableTablesToJoinByDay: OwidTable[] = []
-    const variableTablesWithYearToJoinByEntityOnly: OwidTable[] = []
+    const variableTablesToJoinByYear: JoinTable[] = []
+    const variableTablesToJoinByDay: JoinTable[] = []
+    const variableTablesWithYearToJoinByEntityOnly: JoinTable[] = []
     for (const dimension of dimensionColumns) {
         const variable = json.get(dimension.variableId)
 
@@ -142,14 +184,17 @@ export const legacyToOwidTableAndDimensions = (
         )
         const entityIds = variable.data.entities ?? []
         const entityNames = entityIds.map(
-            // if entityMetaById[id] does not exist, then we don't have entity
-            // from variable metadata in MySQL. This can happen because we take
-            // data from S3 and metadata from MySQL. After we unify it, it should
-            // no longer be a problem
-            (id) => entityMetaById[id]?.name ?? id.toString()
+            // if entityMetaById.get(id) does not exist, then we don't have
+            // entity from variable metadata in MySQL. This can happen because
+            // we take data from S3 and metadata from MySQL. After we unify it,
+            // it should no longer be a problem
+            (id) => entityMetaById.get(id)?.name ?? id.toString()
         )
-        // see comment above about entityMetaById[id]
-        const entityCodes = entityIds.map((id) => entityMetaById[id]?.code)
+        // see comment above about entityMetaById.get(id). Codes can be missing
+        // and are stored as ErrorValues then, just like column parsing would
+        const entityCodes = entityIds.map((id) =>
+            toStringValueOrError(entityMetaById.get(id)?.code)
+        )
 
         // If there is a conversionFactor, apply it.
         let values = variable.data.values || []
@@ -168,7 +213,7 @@ export const legacyToOwidTableAndDimensions = (
                 valueColumnDef.type = ColumnTypeNames.Numeric
         }
 
-        const columnStore: { [key: string]: any[] } = {
+        const columnStore: CoreColumnStore = {
             [OwidTableSlugs.EntityId]: entityIds,
             [OwidTableSlugs.EntityCode]: entityCodes,
             [OwidTableSlugs.EntityName]: entityNames,
@@ -177,17 +222,21 @@ export const legacyToOwidTableAndDimensions = (
         }
 
         if (annotationColumnDef) {
+            // Missing annotations are stored as ErrorValues, just like column
+            // parsing would
             columnStore[annotationColumnDef.slug] = entityNames.map(
-                (entityName) => annotationMap!.get(entityName)
+                (entityName) =>
+                    toStringValueOrError(annotationMap!.get(entityName))
             )
             columnDefs.set(annotationColumnDef.slug, annotationColumnDef)
         }
         // Build the tables
 
-        let variableTable = new OwidTable(
+        const variableTable: JoinTable = {
             columnStore,
-            Array.from(columnDefs.values())
-        )
+            defs: Array.from(columnDefs.values()),
+            numRows: entityIds.length,
+        }
 
         // If there is a targetTime set on the dimension, we need to perform the join on the
         // entities columns only, excluding any time columns.
@@ -195,7 +244,9 @@ export const legacyToOwidTableAndDimensions = (
         // column which can be used to recover the time.
         const targetTime = dimension?.targetYear
         if (_.isNumber(targetTime)) {
-            variableTable = variableTable
+            // These transforms need a real OwidTable, so we build one just for
+            // this variable
+            const owidTable = joinTableToOwidTable(variableTable)
                 // interpolateColumnWithTolerance() won't handle injecting times beyond the current
                 // allTimes. So if targetYear is 2018, and we have data up to 2017, the
                 // interpolation won't add the 2018 rows (unless we apply the interpolation after
@@ -213,7 +264,9 @@ export const legacyToOwidTableAndDimensions = (
             // We keep variables that have a targetTime set in a special bucket and will join them
             // on entity only (disregarding the year since we already filtered all other years out for
             // those variables)
-            variableTablesWithYearToJoinByEntityOnly.push(variableTable)
+            variableTablesWithYearToJoinByEntityOnly.push(
+                owidTableToJoinTable(owidTable)
+            )
         } else if (isSubYearly(getTimeInterval(variable.metadata.display)))
             variableTablesToJoinByDay.push(variableTable)
         else variableTablesToJoinByYear.push(variableTable)
@@ -250,31 +303,36 @@ export const legacyToOwidTableAndDimensions = (
         OwidTableSlugs.EntityId,
     ])
 
-    let joinedVariablesTable: OwidTable
+    let joinedVariablesTable: JoinTable
     // If we have both day and year based variables we need to do some special logic as described above
     if (
         variableTablesToJoinByYear.length > 0 &&
         variableTablesToJoinByDay.length > 0
     ) {
         // Derive the year from the day column and add it to the joined days table
-        const daysColumn = variablesJoinedByDay.getColumns([
-            OwidTableSlugs.Day,
-        ])[0]
+        const daysValues = variablesJoinedByDay.columnStore[OwidTableSlugs.Day]
         const getYearFromISOStringMemoized = _.memoize((dayValue: number) =>
             getYearFromISOStringAndDayOffset(EPOCH_DATE, dayValue)
         )
-        const yearsForDaysValues = daysColumn.values.map((dayValue) =>
+        const yearsForDaysValues = daysValues.map((dayValue) =>
             getYearFromISOStringMemoized(dayValue as number)
         )
 
-        const newYearColumn = {
-            ...daysColumn,
-            slug: OwidTableSlugs.Year,
-            name: OwidTableSlugs.Year,
-            values: yearsForDaysValues,
-        } as OwidColumnDef
-        const variablesJoinedByDayWithYearFilled =
-            variablesJoinedByDay.appendColumns([newYearColumn])
+        const variablesJoinedByDayWithYearFilled: JoinTable = {
+            columnStore: {
+                ...variablesJoinedByDay.columnStore,
+                [OwidTableSlugs.Year]: yearsForDaysValues,
+            },
+            defs: [
+                ...variablesJoinedByDay.defs,
+                {
+                    slug: OwidTableSlugs.Year,
+                    name: OwidTableSlugs.Year,
+                    type: ColumnTypeNames.Year,
+                },
+            ],
+            numRows: variablesJoinedByDay.numRows,
+        }
 
         // Now join the already merged days table with all the years. It is important
         // to not join the years together into one table already before so that each
@@ -339,11 +397,26 @@ export const legacyToOwidTableAndDimensions = (
     // Inject a common "time" column that is used as the main time column for the table
     // e.g. for the timeline.
     for (const dayOrYearSlug of [OwidTableSlugs.Day, OwidTableSlugs.Year]) {
-        if (joinedVariablesTable.columnSlugs.includes(dayOrYearSlug)) {
-            joinedVariablesTable = joinedVariablesTable.duplicateColumn(
-                dayOrYearSlug,
-                { slug: OwidTableSlugs.Time, name: OwidTableSlugs.Time }
-            )
+        const sourceDef = joinedVariablesTable.defs.find(
+            (def) => def.slug === dayOrYearSlug
+        )
+        if (sourceDef) {
+            joinedVariablesTable = {
+                columnStore: {
+                    ...joinedVariablesTable.columnStore,
+                    [OwidTableSlugs.Time]:
+                        joinedVariablesTable.columnStore[dayOrYearSlug].slice(),
+                },
+                defs: [
+                    ...joinedVariablesTable.defs,
+                    {
+                        ...sourceDef,
+                        slug: OwidTableSlugs.Time,
+                        name: OwidTableSlugs.Time,
+                    },
+                ],
+                numRows: joinedVariablesTable.numRows,
+            }
             // Do not inject multiple columns, terminate after one is successful
             break
         }
@@ -363,21 +436,29 @@ export const legacyToOwidTableAndDimensions = (
                 : ErrorValueTypes.UndefinedButShouldBeString
         }
 
-        const values =
-            joinedVariablesTable.entityNameColumn.valuesIncludingErrorValues.map(
-                (entityName) => valueFn(entityName as EntityName)
-            )
+        const entityNames =
+            joinedVariablesTable.columnStore[OwidTableSlugs.EntityName] ?? []
+        const values = entityNames.map((entityName) =>
+            valueFn(entityName as EntityName)
+        )
 
-        joinedVariablesTable = joinedVariablesTable.appendColumns([
-            {
-                slug: entityColorColumnSlug,
-                name: entityColorColumnSlug,
-                type: ColumnTypeNames.Color,
-                values: values,
+        joinedVariablesTable = {
+            columnStore: {
+                ...joinedVariablesTable.columnStore,
+                [entityColorColumnSlug]: values,
             },
-        ])
+            defs: [
+                ...joinedVariablesTable.defs,
+                {
+                    slug: entityColorColumnSlug,
+                    name: entityColorColumnSlug,
+                    type: ColumnTypeNames.Color,
+                },
+            ],
+            numRows: joinedVariablesTable.numRows,
+        }
     }
-    return joinedVariablesTable
+    return joinTableToOwidTable(joinedVariablesTable)
 }
 
 type JoinKeyFn = (rowIndex: number) => number
@@ -404,7 +485,7 @@ const NUMERIC_KEY_BASE = 2 ** 26
  * lack the key columns entirely).
  */
 const makeJoinKeyFns = (
-    tables: OwidTable[],
+    tables: JoinTable[],
     columnSlugs: string[],
     tableNeedsKeys: boolean[]
 ): JoinKeyFn[] => {
@@ -422,7 +503,9 @@ const makeJoinKeyFns = (
                 throw new Error(
                     `Join column '${slug}' is missing from a table (columns: ${tables[
                         t
-                    ].columnSlugs.join(", ")})`
+                    ].defs
+                        .map((def) => def.slug)
+                        .join(", ")})`
                 )
             for (let row = 0; row < numRows; row++) {
                 const value = column[row]
@@ -455,14 +538,14 @@ const makeJoinKeyFns = (
     })
 }
 
-// Exported for benchmarking (see LegacyToOwidTable.bench.ts), not meant to be
-// used outside of this module.
+// Exported for benchmarking and testing (see LegacyToOwidTable.bench.ts), not
+// meant to be used outside of this module.
 export const fullJoinTables = (
-    tables: OwidTable[],
+    tables: JoinTable[],
     indexColumnNames: OwidTableSlugs[],
     mergeFallbackLookupColumns?: OwidTableSlugs[][]
-): OwidTable => {
-    // This function merges a number of OwidTables together using a given list of columns
+): JoinTable => {
+    // This function merges a number of tables together using a given list of columns
     // to be used as the merge key. The merge key columns are used to construct a full set
     // of index values from the various tables - all tables are enumerated, we create
     // a merged key value from the index column values for each row and then we create
@@ -482,16 +565,20 @@ export const fullJoinTables = (
     // matching the day from the population variable (year+entity lookup) but for variables that don't
     // have overlapping years (e.g. continents that only has 2015 as the single year) we want to fall back
     // to merging by entity alone as a last resort
-    if (tables.length === 0) return new OwidTable()
+    if (tables.length === 0) return { columnStore: {}, defs: [], numRows: 0 }
     else if (tables.length === 1) return tables[0]
+
+    const columnSlugsPerTable = tables.map((table) =>
+        table.defs.map((def) => def.slug)
+    )
 
     // When we get a mergeFallbackLookupColumn then it can happen that a table does not
     // have all the columns of the main index. Those tables get no main index keys at all,
     // so all main lookups miss for them and we go through the fallback indexes instead
-    const tableHasMainIndexColumns = tables.map(
-        (table) =>
+    const tableHasMainIndexColumns = columnSlugsPerTable.map(
+        (columnSlugs) =>
             !mergeFallbackLookupColumns ||
-            _.difference(indexColumnNames, table.columnSlugs).length === 0
+            _.difference(indexColumnNames, columnSlugs).length === 0
     )
     const mainKeyFns = makeJoinKeyFns(
         tables,
@@ -589,30 +676,30 @@ export const fullJoinTables = (
     // as we don't make sure that the values are equal for the same index values (we only assume that
     // this is true) - but this is how we have handled it in the past and it works with the setup we
     // have.
-    const sharedColumnNames = intersection(
-        ...tables.map((table) => table.columnSlugs)
-    )
+    const sharedColumnNames = intersection(...columnSlugsPerTable)
 
     // Now identify for each table which columns should be copied (i.e. all non-index columns).
-    const columnsToAddPerTable = tables.map((table) =>
-        _.difference(table.columnSlugs, sharedColumnNames)
+    const columnsToAddPerTable = columnSlugsPerTable.map((columnSlugs) =>
+        _.difference(columnSlugs, sharedColumnNames)
     )
     // Prepare the output column defs with preallocated value arrays (we know the number
     // of output rows already - one per unique index value). For each def we also keep a
     // reference to the column store array it is copied from so that we don't have to
     // re-resolve it for every cell.
     const makeOutputDefs = (
-        table: OwidTable,
+        table: JoinTable,
         columnNames: string[]
-    ): { def: OwidColumnDef; values: any[]; sourceValues: any[] }[] =>
-        table.getColumns(columnNames).map((col) => {
+    ): { def: OwidColumnDef; values: any[]; sourceValues: any[] }[] => {
+        const defsBySlug = new Map(table.defs.map((def) => [def.slug, def]))
+        return columnNames.map((slug) => {
             const values = new Array(numOutputRows)
             return {
-                def: { ...col.def, values },
+                def: { ...defsBySlug.get(slug)! },
                 values,
-                sourceValues: table.columnStore[col.slug],
+                sourceValues: table.columnStore[slug],
             }
         })
+    }
     // The shared columns end up only once in the output. We preferentially get their
     // values from the first table but because the first table is not guaranteed to
     // contain all index values we'll try the other tables in turn if the given row
@@ -689,17 +776,21 @@ export const fullJoinTables = (
     numMultipleMatchesPerTable.forEach((count, i) => {
         if (count > 0)
             console.error(
-                `Found ${count} duplicate rows for the join index in table ${
-                    tables[i].tableSlug ??
-                    `#${i} (columns ${tables[i].columnSlugs.join(", ")})`
-                }`
+                `Found ${count} duplicate rows for the join index in table #${i} (columns ${columnSlugsPerTable[
+                    i
+                ].join(", ")})`
             )
     })
 
-    return new OwidTable(
-        [],
-        [...sharedDefs, ...ownDefsPerTable.flat()].map((entry) => entry.def)
-    )
+    const outputEntries = [...sharedDefs, ...ownDefsPerTable.flat()]
+    const columnStore: CoreColumnStore = {}
+    for (const entry of outputEntries)
+        columnStore[entry.def.slug] = entry.values
+    return {
+        columnStore,
+        defs: outputEntries.map((entry) => entry.def),
+        numRows: numOutputRows,
+    }
 }
 
 const variableTypeToColumnType = (type: OwidVariableType): ColumnTypeNames => {
@@ -879,9 +970,14 @@ const timeColumnValuesFromOwidVariable = (
 
     // Snap sub-yearly values (except plain days) to the start of their period,
     // so variables that pick different representative days for the same period
-    // still align
-    if (isSubYearly(interval) && interval !== TimeInterval.Day)
-        times = times.map((time) => snapToIntervalStart(time, interval))
+    // still align. Memoized because the snapping goes through dayjs and the
+    // same times come up once per entity
+    if (isSubYearly(interval) && interval !== TimeInterval.Day) {
+        const snapMemoized = _.memoize((time: number) =>
+            snapToIntervalStart(time, interval)
+        )
+        times = times.map(snapMemoized)
+    }
 
     return times
 }
