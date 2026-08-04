@@ -412,7 +412,7 @@ export const fullJoinTables = (
     else if (tables.length === 1) return tables[0]
 
     // Get all the index values per table and then figure out the full set of all stringified index values
-    const indexValuesPerTable: Map<string, number[]>[] = tables.map((table) =>
+    const mainIndexPerTable: Map<string, number[]>[] = tables.map((table) =>
         // When we get a mergeFallbackLookupColumn then it can happen that a table does not have all the
         // columns of the main index. In this case, just return an empty map because that will lead all
         // lookups by main index to fail and we'll try the fallback index
@@ -424,11 +424,20 @@ export const fullJoinTables = (
 
     // Construct all the fallback index lookup values for all tables. mergeFallbackLookupColumns is an
     // array of array that is supposed to be treated as a sequence of tuples of column names
-    const mergeFallbackLookupValuesPerTable = mergeFallbackLookupColumns
-        ? mergeFallbackLookupColumns.map((fallbackColumns) =>
-              tables.map((table) => table.rowIndex(fallbackColumns))
-          )
-        : undefined
+    const fallbackIndexesPerTable = mergeFallbackLookupColumns?.map(
+        (fallbackColumns) =>
+            tables.map((table) => table.rowIndex(fallbackColumns))
+    )
+    // Key functions that turn a row of the first table into the lookup key for each
+    // fallback column tuple. When we look up values and don't find a match in the main
+    // index we use these as the fallback lookup keys. This is the case when we join year
+    // and day variables and then use day+entityId as the key but the year variables don't
+    // have those - so for the year variables we then check if there is a match using
+    // year+entityId where the year to use comes from the first table that by convention
+    // HAS TO contain a year column with the value to merge years on.
+    const fallbackKeyFnsForFirstTable = mergeFallbackLookupColumns?.map(
+        (columnSet) => makeKeyFn(tables[0].columnStore, columnSet)
+    )
 
     // Figure out which column names are shared. Shared columns (the index columns but also in our
     // data model stuff like entityCode and entityName that we usually have in addition to entityId)
@@ -439,147 +448,155 @@ export const fullJoinTables = (
     const sharedColumnNames = intersection(
         ...tables.map((table) => table.columnSlugs)
     )
-    const allIndexValuesArray = indexValuesPerTable.flatMap((index) => [
-        ...index.keys(),
-    ])
-    const allIndexValues = new Set(allIndexValuesArray)
+    const allIndexValues = new Set<string>()
+    for (const index of mainIndexPerTable)
+        for (const key of index.keys()) allIndexValues.add(key)
+    const numOutputRows = allIndexValues.size
 
     // Now identify for each table which columns should be copied (i.e. all non-index columns).
     const columnsToAddPerTable = tables.map((table) =>
         _.difference(table.columnSlugs, sharedColumnNames)
     )
-    // Prepare a special entry for the Table + column names tuple that we will zip and
-    // map in the next step. This special entry is the first table and contains only the
-    // unique columns (index + other tables that are shared among all tables).
-    // We will preferentially get the unique values from the first table but because
-    // the first table is not guaranteed to contain all index values we'll later on
-    // try other tables for these shared columns if the given row index does
-    // not exist in the first table
-    const firstTableDuplicateForIndices: [
-        OwidTable | undefined,
-        string[] | undefined,
-    ] = [tables[0], sharedColumnNames]
-    const defsToAddPerTable = [firstTableDuplicateForIndices]
-        .concat(R.zip(tables, columnsToAddPerTable))
-        .map(
-            (tableAndColumns) =>
-                tableAndColumns[0]!
-                    .getColumns(tableAndColumns[1]!)
-                    .map((col) => {
-                        const def = { ...col.def }
-                        def.values = []
-                        return def
-                    }) as OwidColumnDef[]
-        )
+    // Prepare the output column defs with preallocated value arrays (we know the number
+    // of output rows already - one per unique index value). For each def we also keep a
+    // reference to the column store array it is copied from so that we don't have to
+    // re-resolve it for every cell.
+    const makeOutputDefs = (
+        table: OwidTable,
+        columnNames: string[]
+    ): { def: OwidColumnDef; values: any[]; sourceValues: any[] }[] =>
+        table.getColumns(columnNames).map((col) => {
+            const values = new Array(numOutputRows)
+            return {
+                def: { ...col.def, values },
+                values,
+                sourceValues: table.columnStore[col.slug],
+            }
+        })
+    // The shared columns end up only once in the output. We preferentially get their
+    // values from the first table but because the first table is not guaranteed to
+    // contain all index values we'll try the other tables in turn if the given row
+    // index does not exist in the first table. For this we need each table's column
+    // store array per shared column.
+    const sharedDefs = makeOutputDefs(tables[0], sharedColumnNames)
+    const sharedSourceValuesPerTable = tables.map((table) =>
+        sharedColumnNames.map((slug) => table.columnStore[slug])
+    )
+    const ownDefsPerTable = R.zip(tables, columnsToAddPerTable).map(
+        ([table, columnNames]) => makeOutputDefs(table, columnNames)
+    )
+
+    const numMultipleMatchesPerTable = new Array(tables.length).fill(0)
+
     // Now loop over all unique index values and for each assemble as full a row as we can manage by looking
     // up the values in the different source tables
+    let outputRow = 0
     for (const index of allIndexValues.values()) {
-        // First we handle the unique/index columns (defsToAddPerTable[0])
-        for (const def of defsToAddPerTable[0]) {
-            // The index columns are special - the first table might not have a value for each of the index columns
-            // at the current index (e.g. a year that does not exist in the first table). We therefore have to keep
-            // looking in the other tables until we find a table that has the values. Because the index values were
-            // generated from the combined set of all index values we are guaranteed to find a value eventually before
-            // we exceed the length of the tables array
-            let tableIndex = 0
-            let indexHits = indexValuesPerTable[tableIndex].get(index)
-            while (indexHits === undefined) {
-                tableIndex++
-                indexHits = indexValuesPerTable[tableIndex].get(index)
-            }
-            def.values?.push(
-                tables[tableIndex].columnStore[def.slug][indexHits[0]]
-            )
+        // First we handle the shared columns. The first table might not have a value at
+        // the current index (e.g. a year that does not exist in the first table). We
+        // therefore have to keep looking in the other tables until we find a table that
+        // has the values. Because the index values were generated from the combined set
+        // of all index values we are guaranteed to find a value eventually before we
+        // exceed the length of the tables array
+        let sharedSourceTable = 0
+        let sharedHits = mainIndexPerTable[0].get(index)
+        while (sharedHits === undefined) {
+            sharedSourceTable++
+            sharedHits = mainIndexPerTable[sharedSourceTable].get(index)
         }
-        // Now figure out the fallback merge lookup index value from the first table.
-        // This is the fallback index we use when looking up values and we don't find a value in the normal index.
-        // This is the case when we join year and day variables and then use day+entityid as the key but the year
-        // variables don't have those - so for the year variables we then check if there is a match using year+entityId
-        // where the year to use comes from the first table that by convention HAS TO contain a year column with the
-        // value to merge years on.
-        const indexHits = indexValuesPerTable[0].get(index)
-        const fallbackMergeIndices =
-            mergeFallbackLookupColumns && indexHits
-                ? mergeFallbackLookupColumns.map((columnSet) =>
-                      makeKeyFn(tables[0].columnStore, columnSet)(indexHits[0])
+        const sharedSourceValues = sharedSourceValuesPerTable[sharedSourceTable]
+        for (let i = 0; i < sharedDefs.length; i++)
+            sharedDefs[i].values[outputRow] =
+                sharedSourceValues[i][sharedHits[0]]
+
+        // Figure out the fallback merge lookup keys from the first table (if the first
+        // table has a row at the current index - otherwise there is nothing to derive
+        // the fallback keys, e.g. the year, from)
+        const firstTableHits =
+            sharedSourceTable === 0
+                ? sharedHits
+                : mainIndexPerTable[0].get(index)
+        const fallbackKeys =
+            fallbackKeyFnsForFirstTable && firstTableHits
+                ? fallbackKeyFnsForFirstTable.map((keyFn) =>
+                      keyFn(firstTableHits[0])
                   )
                 : undefined
-        // now add all the nonindex value columns. We now loop over all tables and for each non-shared column
-        // we look up the value for the current row. We find the value for the current row by first trying to
-        // look up a match based on the shared index values, indexValuesPerTable[i]. If we don't have a hit
-        // for this row in this table then we try the fallbackMergeIndices in turn to see if we can merge
-        // based on these fallback indexes. If no option leads to a match we store ErrorValueTypes.NoMatchingValueAfterJoin
-        // in the cell.
-
-        // note that defsToAddPerTable has one more element than tables (the one duplicate of the
-        // first table that we added in the beginning that we use as the primary source for the shared columns)
+        // Now add all the non-shared value columns. We loop over all tables and for each
+        // resolve the source row for the current index value: first by looking up a match
+        // in the main index, mainIndexPerTable[i]. If we don't have a hit for this row in
+        // this table then we try the fallbackKeys in turn to see if we can merge based on
+        // these fallback indexes. If no option leads to a match we store
+        // ErrorValueTypes.NoMatchingValueAfterJoin in the cells of this table's columns.
         for (let i = 0; i < tables.length; i++) {
-            let indexHits = indexValuesPerTable[i].get(index)
-
-            if (indexHits !== undefined && indexHits.length > 1)
+            const mainHits = mainIndexPerTable[i].get(index)
+            let sourceRow: number | undefined
+            if (mainHits !== undefined) {
                 // This case should be rare but it can come up. The old algorithm ran into this often because it
                 // joined a lot more stuff on entity only and then when you look up by entity into a table that has
                 // several years you end up with multiple matches. The old algorithm used to just pick one value.
                 // We still do this ultimately but because we try to match even day and year variables by year+entity
-                // first we should usually be able to find a unique match. The error output is here so that when
-                // something is weird in an edge case then this shows up as a debugging hint in the console.
-                console.error(
-                    `Found more than one matching row in table ${tables[i].tableSlug}`
-                )
-            for (const def of defsToAddPerTable[i + 1]) {
-                // If the main index led to a hit then we just copy the value into the new row from the source table
-                if (indexHits !== undefined)
-                    def.values?.push(
-                        tables[i].columnStore[def.slug][indexHits[0]]
-                    )
-                else {
-                    // If the main index did not lead to a hit then we try the fallback indices in turn
-                    indexHits = undefined
-                    for (
-                        let fallbackIndex = 0;
-                        fallbackMergeIndices &&
-                        mergeFallbackLookupValuesPerTable &&
-                        indexHits === undefined &&
-                        fallbackIndex < fallbackMergeIndices.length;
-                        fallbackIndex++
-                    ) {
-                        indexHits = mergeFallbackLookupValuesPerTable[
-                            fallbackIndex
-                        ][i].get(fallbackMergeIndices[fallbackIndex])
-                    }
-                    if (indexHits !== undefined)
+                // first we should usually be able to find a unique match. The error output (after the loop, so we
+                // log once per table instead of once per row) is here so that when something is weird in an edge
+                // case then this shows up as a debugging hint in the console.
+                if (mainHits.length > 1) numMultipleMatchesPerTable[i]++
+                sourceRow = mainHits[0]
+            } else if (fallbackKeys && fallbackIndexesPerTable) {
+                // If the main index did not lead to a hit then we try the fallback indices in turn
+                for (
+                    let fallback = 0;
+                    fallback < fallbackKeys.length;
+                    fallback++
+                ) {
+                    const fallbackHits = fallbackIndexesPerTable[fallback][
+                        i
+                    ].get(fallbackKeys[fallback])
+                    if (fallbackHits !== undefined) {
                         // If any of the fallbacks led to a hit then we use this hit
-                        // Note that we choose the last of the indexHits entries to look up the row in the columnstore here.
+                        // Note that we choose the last of the fallbackHits entries to look up the row in the columnstore here.
                         // In the usual case the fallback index should still have enough information to match just one row (e.g.
                         // year+entity). But for cases when we join day and year variables we have as the ultimate fallback a match
-                        // by entity only and this can then of course result in many indexHits when looking up an entity like Germany
+                        // by entity only and this can then of course result in many hits when looking up an entity like Germany
                         // in e.g. the population variable. If this join here were properly time and tolerance aware then we could
-                        // avoid matching on entity alone as the ultimate fallback but for  now this function is not that clever.
+                        // avoid matching on entity alone as the ultimate fallback but for now this function is not that clever.
                         // For the cases when we do get multiple hits for an index we could thus choose any data point. Pre July 2022
                         // the old code always chose the first datapoint, which is often the first year that the variable has data for
                         // for the given entity. This is not great, e.g. when using a covid date based variable and joining it to
-                        // population or similar. What we do here now is to use indexHits.length - 1 as the index, i.e. the last
-                        // row that this variable has data for for this entity. This could in theory be pretty wrong as well but in
-                        // practice it often means a very close match.
+                        // population or similar. What we do here now is to use the last row that this variable has data for for
+                        // this entity. This could in theory be pretty wrong as well but in practice it often means a very close match.
                         // The proper solution as mentioned above would be to never fall back to entity matches only and move
                         // the tolerance matching into this function as well instead.
-                        def.values?.push(
-                            tables[i].columnStore[def.slug][
-                                indexHits[indexHits.length - 1]
-                            ]
-                        )
-                    // If none of the fallback values worked either we write ErrorValueTypes.NoMatchingValueAfterJoin into the cell
-                    else
-                        def.values?.push(
-                            ErrorValueTypes.NoMatchingValueAfterJoin
-                        )
+                        sourceRow = fallbackHits[fallbackHits.length - 1]
+                        break
+                    }
                 }
             }
+            if (sourceRow !== undefined)
+                for (const ownDef of ownDefsPerTable[i])
+                    ownDef.values[outputRow] = ownDef.sourceValues[sourceRow]
+            else
+                // If neither the main index nor the fallbacks led to a hit we write
+                // ErrorValueTypes.NoMatchingValueAfterJoin into the cells
+                for (const ownDef of ownDefsPerTable[i])
+                    ownDef.values[outputRow] =
+                        ErrorValueTypes.NoMatchingValueAfterJoin
         }
+        outputRow++
     }
+
+    numMultipleMatchesPerTable.forEach((count, i) => {
+        if (count > 0)
+            console.error(
+                `Found more than one matching row for ${count} index values in table ${
+                    tables[i].tableSlug ??
+                    `#${i} (columns ${tables[i].columnSlugs.join(", ")})`
+                }`
+            )
+    })
+
     return new OwidTable(
         [],
-        defsToAddPerTable.flatMap((defs) => defs)
+        [...sharedDefs, ...ownDefsPerTable.flat()].map((entry) => entry.def)
     )
 }
 
