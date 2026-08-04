@@ -630,13 +630,14 @@ describe("titleAnnotationTooltip", () => {
         )
     })
 
-    it("names the affected countries, and gives the tolerance", () => {
-        // Germany's most recent data is from 2001, Spain's from 2000
+    it("names the affected countries, and gives the applied tolerance", () => {
+        // Germany's most recent data is from 2001, Spain's from 2000, so the
+        // largest applied tolerance is 2 years, not the configured 3
         const grapher = makeGrapher({
             table: makeTable([["Spain", 2000, 800]]),
         })
         expect(grapher.titleAnnotationTooltip).toEqual(
-            "Germany and Spain lack data for 2002 and show the closest available value within 3 years."
+            "Germany and Spain lack data for 2002 and show the closest available value within 2 years."
         )
     })
 
@@ -645,7 +646,7 @@ describe("titleAnnotationTooltip", () => {
             table: makeTable([["Netherlands", 2000, 800]]),
         })
         expect(grapher.titleAnnotationTooltip).toEqual(
-            "Germany and the Netherlands lack data for 2002 and show the closest available value within 3 years."
+            "Germany and the Netherlands lack data for 2002 and show the closest available value within 2 years."
         )
     })
 
@@ -680,12 +681,13 @@ describe("titleAnnotationTooltip", () => {
             ]),
         })
         expect(grapher.titleAnnotationTooltip).toEqual(
-            "4 countries lack data for 2002 and show the closest available value within 3 years."
+            "4 countries lack data for 2002 and show the closest available value within 2 years."
         )
     })
 
     it("gives the tolerance of sub-yearly indicators in days", () => {
-        // Monthly times are stored as days, and so is their tolerance
+        // Monthly times are stored as days, and so is their tolerance:
+        // Germany and Spain are 11 days short of Feb 2020
         const grapher = makeGrapher({
             table: new OwidTable(
                 [
@@ -703,7 +705,7 @@ describe("titleAnnotationTooltip", () => {
             map: { timeTolerance: 90 },
         })
         expect(grapher.titleAnnotationTooltip).toEqual(
-            "Germany and Spain lack data for Feb 2020 and show the closest available value within 90 days."
+            "Germany and Spain lack data for Feb 2020 and show the closest available value within 11 days."
         )
     })
 
