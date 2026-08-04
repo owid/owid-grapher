@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import * as R from "remeda"
 import * as React from "react"
 import {
     LogoOption,
@@ -171,35 +172,56 @@ abstract class AbstractHeader<
             })
         }
 
-        const { initialTitleFontSize } = this
+        // Decrease the initial font size by no more than 15% using 0.5px steps
+        const initialFontSize = roundFontSize(this.initialTitleFontSize)
+        const potentialFontSizes = _.range(
+            initialFontSize,
+            initialFontSize * 0.85,
+            -0.5
+        )
 
-        const title = makeTitle(Math.round(initialTitleFontSize))
+        // Laying out a title is expensive, so candidates are only created
+        // when they're actually needed
+        const candidates: (TextWrapGroup | undefined)[] = []
+        const candidateAt = (index: number): TextWrapGroup =>
+            (candidates[index] ??= makeTitle(potentialFontSizes[index]))
+
+        // The first candidate is the title at its initial font size
+        const title = candidateAt(0)
 
         // If the title is already a single line, no need to decrease font size
         if (title.lineCount <= 1) return title
 
-        // Decrease the initial font size by no more than 15% using 0.5px steps
-        const potentialFontSizes = _.range(
-            initialTitleFontSize,
-            initialTitleFontSize * 0.85,
-            -0.5
-        )
-
-        const candidates = potentialFontSizes.map(makeTitle)
+        // Use binary search to find the largest font size that satisfies
+        // the given condition, or undefined if none do
+        const findLargestFontSizeThatFits = (
+            fits: (candidate: TextWrapGroup) => boolean
+        ): TextWrapGroup | undefined => {
+            const index = R.sortedIndexWith(
+                potentialFontSizes,
+                (_fontSize, index) => !fits(candidateAt(index))
+            )
+            // Nothing fits if the check fails for every candidate
+            if (index === potentialFontSizes.length) return undefined
+            return candidateAt(index)
+        }
 
         // Try to fit the title (including the annotation) into a single
         // line if possible
         const fitsFullTitleInOneLine = (candidate: TextWrapGroup): boolean =>
             candidate.lineCount <= 1
-        const singleLineTitle = candidates.find(fitsFullTitleInOneLine)
+        const singleLineTitle = findLargestFontSizeThatFits(
+            fitsFullTitleInOneLine
+        )
         if (singleLineTitle) return singleLineTitle
 
         // Try to fit the main title text alone into a single line,
         // with the annotation on its own line
         const fitsMainTextInOneLine = (candidate: TextWrapGroup): boolean =>
             candidate.fragmentLineCounts[0] === 1
-        if (fitsMainTextInOneLine(title)) return title
-        const singleLineMainText = candidates.find(fitsMainTextInOneLine)
+        const singleLineMainText = findLargestFontSizeThatFits(
+            fitsMainTextInOneLine
+        )
         if (singleLineMainText) return singleLineMainText
 
         // Otherwise, return the title at a reduced font size: either it now
@@ -207,12 +229,14 @@ abstract class AbstractHeader<
         // up quite that much space
         const hasFewerLinesThanTitle = (candidate: TextWrapGroup): boolean =>
             candidate.lineCount < title.lineCount
-        const candidateWithFewerLines = candidates.find(hasFewerLinesThanTitle)
+        const candidateWithFewerLines = findLargestFontSizeThatFits(
+            hasFewerLinesThanTitle
+        )
         if (candidateWithFewerLines) return candidateWithFewerLines
 
         // If none of the candidates have fewer lines than the original title,
-        // return the last candidate (the one with the smallest font size)
-        return candidates.at(-1)!
+        // return the candidate with the smallest font size
+        return candidateAt(potentialFontSizes.length - 1)
     }
 
     @computed private get titleStyle(): React.CSSProperties {
