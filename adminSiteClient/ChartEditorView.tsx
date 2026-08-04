@@ -281,6 +281,7 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
             [DimensionProperty.color]: [],
             [DimensionProperty.size]: [],
             [DimensionProperty.table]: [], // not used
+            [DimensionProperty.map]: [],
         }
 
         this.grapherState.dimensionSlots.forEach((slot) => {
