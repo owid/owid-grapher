@@ -25,6 +25,7 @@ export const pickColumnsForSourcesLine = ({
     xColumnSlug,
     colorColumnSlug,
     sizeColumnSlug,
+    mapColumnSlug,
     activeTab,
 }: {
     table: OwidTable
@@ -32,6 +33,7 @@ export const pickColumnsForSourcesLine = ({
     xColumnSlug?: ColumnSlug
     colorColumnSlug?: ColumnSlug
     sizeColumnSlug?: ColumnSlug
+    mapColumnSlug?: ColumnSlug
     activeTab?: GrapherTabName
 }): ColumnSlug[] => {
     const activeDimensions = new Set(
@@ -45,6 +47,12 @@ export const pickColumnsForSourcesLine = ({
     // Include all y-columns
     if (activeDimensions.has(DimensionProperty.y)) {
         columnSlugs.push(...yColumnSlugs)
+    }
+
+    // Include the map column; fall back to the y columns if it isn't given
+    if (activeDimensions.has(DimensionProperty.map)) {
+        if (mapColumnSlug) columnSlugs.push(mapColumnSlug)
+        else columnSlugs.push(...yColumnSlugs)
     }
 
     // Include color dimension, excluding:
@@ -85,20 +93,20 @@ export const pickColumnsForSourcesLine = ({
 }
 
 /**
- * Determines which dimension properties (y, x, color, size) are relevant
+ * Determines which dimension properties (y, x, color, size, map) are relevant
  * for the active tab
  */
 const getDimensionPropertiesForActiveTab = (
     tab: GrapherTabName
 ): DimensionProperty[] => {
-    const { x, y, color, size } = DimensionProperty
+    const { x, y, color, size, map } = DimensionProperty
 
     // Only include dimensions relevant to the active chart type
     // (e.g. exclude x dimension for line charts)
     if (isChartTab(tab)) return getSupportedDimensionsForChartTypes([tab])
 
-    // Only include y dimension for the map tab
-    if (tab === GRAPHER_TAB_NAMES.WorldMap) return [y]
+    // The map tab shows a single indicator; attribute only its source
+    if (tab === GRAPHER_TAB_NAMES.WorldMap) return [map]
 
     // Include all dimensions for the table tab
     return [y, x, color, size]

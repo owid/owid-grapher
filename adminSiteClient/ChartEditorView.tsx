@@ -328,6 +328,7 @@ export class ChartEditorView<
             [DimensionProperty.color]: [],
             [DimensionProperty.size]: [],
             [DimensionProperty.table]: [], // not used
+            [DimensionProperty.map]: [],
         }
 
         this.grapherState.dimensionSlots.forEach((slot) => {
@@ -494,7 +495,11 @@ export class ChartEditorView<
                         {editor.tab === "map" && (
                             <EditorMapTab
                                 editor={editor}
+                                database={this.database}
                                 errorMessages={this.errorMessages}
+                                errorMessagesForDimensions={
+                                    this.errorMessagesForDimensions
+                                }
                             />
                         )}
                         {chartEditor && chartEditor.tab === "revisions" && (

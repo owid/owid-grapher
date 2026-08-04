@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     ArchiveContext,
     AssetMap,
@@ -110,7 +111,8 @@ export async function loadVariablesDataSite(
     noCache?: boolean,
     loadMetadataOnly?: boolean
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
-    const loadVariableDataPromises = variableIds.map((variableId) =>
+    const uniqueVariableIds = _.uniq(variableIds)
+    const loadVariableDataPromises = uniqueVariableIds.map((variableId) =>
         loadVariableDataAndMetadata(variableId, dataApiUrl, {
             assetMap:
                 archiveContext?.type === "archive-page"

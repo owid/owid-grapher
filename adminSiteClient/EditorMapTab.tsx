@@ -6,12 +6,19 @@ import {
 } from "@ourworldindata/types"
 import {
     ChartDimension,
+    DimensionSlot,
     MapChartState,
     MapConfig,
     MAP_REGION_LABELS,
 } from "@ourworldindata/grapher"
-import { ColumnSlug, ToleranceStrategy } from "@ourworldindata/utils"
-import { action, computed, makeObservable } from "mobx"
+import {
+    ColumnSlug,
+    DimensionProperty,
+    OwidChartDimensionInterface,
+    OwidVariableId,
+    ToleranceStrategy,
+} from "@ourworldindata/utils"
+import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
 import { Component, Fragment } from "react"
@@ -21,40 +28,163 @@ import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { isChartEditorInstance, Log } from "./ChartEditor.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLink } from "@fortawesome/free-solid-svg-icons"
-import { ErrorMessages } from "./ChartEditorTypes.js"
+import {
+    ErrorMessages,
+    ErrorMessagesForDimensions,
+} from "./ChartEditorTypes.js"
+import { VariableSelector } from "./VariableSelector.js"
+import { EditorDatabase } from "./ChartEditorView.js"
+import { DimensionCard } from "./DimensionCard.js"
 
-interface VariableSectionProps {
-    mapConfig: MapConfig
-    filledDimensions: ChartDimension[]
+// Sentinel dropdown value that opens the variable selector
+const BROWSE_ALL_INDICATORS = "__browseAllIndicators__"
+
+interface VariableSectionProps<Editor> {
+    editor: Editor
+    database: EditorDatabase
+    errorMessagesForDimensions: ErrorMessagesForDimensions
     parentConfig?: GrapherInterface
 }
 
 @observer
-class VariableSection extends Component<VariableSectionProps> {
-    constructor(props: VariableSectionProps) {
+class VariableSection<Editor extends AbstractChartEditor> extends Component<
+    VariableSectionProps<Editor>
+> {
+    isSelectingVariables: boolean = false
+
+    constructor(props: VariableSectionProps<Editor>) {
         super(props)
-        makeObservable(this)
+        makeObservable(this, { isSelectingVariables: observable.ref })
+    }
+
+    @computed private get grapherState() {
+        return this.props.editor.grapherState
+    }
+
+    @computed private get mapConfig(): MapConfig {
+        return this.grapherState.map
+    }
+
+    @computed private get mapSlot(): DimensionSlot | undefined {
+        return this.grapherState.dimensionSlots.find(
+            (slot) => slot.property === DimensionProperty.map
+        )
+    }
+
+    @computed private get mapDimension(): ChartDimension | undefined {
+        return this.grapherState.dimensions.find(
+            (dim) => dim.property === DimensionProperty.map
+        )
+    }
+
+    @computed private get indicatorOptions(): {
+        value: string
+        label: string
+    }[] {
+        return [
+            ...this.grapherState.loadedDimensions.map((d) => ({
+                value: d.columnSlug,
+                label: d.column.displayName,
+            })),
+            {
+                value: BROWSE_ALL_INDICATORS,
+                label: "Browse all indicators…",
+            },
+        ]
     }
 
     @action.bound onColumnSlug(columnSlug: ColumnSlug) {
-        this.props.mapConfig.columnSlug = columnSlug
+        if (columnSlug === BROWSE_ALL_INDICATORS) {
+            // Native selects fire a click event right after this change
+            // event. The variable selector dismisses itself on any click
+            // outside the modal, so that trailing click would close it
+            // immediately — swallow it before it reaches the modal's
+            // dismiss listener
+            document.addEventListener(
+                "click",
+                (event) => {
+                    if (event.target instanceof HTMLSelectElement)
+                        event.stopImmediatePropagation()
+                },
+                { capture: true, once: true }
+            )
+            this.isSelectingVariables = true
+            return
+        }
+        this.mapConfig.columnSlug = columnSlug
+        // The dedicated map dimension takes precedence over map.columnSlug,
+        // so selecting another indicator removes it
+        if (this.mapDimension && this.mapDimension.columnSlug !== columnSlug)
+            void this.removeMapDimension()
+    }
+
+    @action.bound private async onSelectMapVariable(
+        variableIds: OwidVariableId[]
+    ) {
+        this.isSelectingVariables = false
+
+        const variableId = variableIds[0]
+        if (variableId === undefined) return
+
+        // An indicator that's already plotted on the chart is selected via
+        // map.columnSlug; a dedicated map dimension would be redundant
+        const plottedDimension = this.grapherState.dimensions.find(
+            (dim) =>
+                dim.variableId === variableId &&
+                dim.property !== DimensionProperty.map
+        )
+        if (plottedDimension) {
+            this.onColumnSlug(plottedDimension.columnSlug)
+            return
+        }
+
+        if (this.mapDimension?.variableId === variableId) return
+
+        await this.commitMapDimensions([
+            { property: DimensionProperty.map, variableId },
+        ])
+    }
+
+    @action.bound private onChangeMapDimension() {
+        void this.commitMapDimensions(this.mapSlot?.dimensions ?? [])
+    }
+
+    @action.bound private onRemoveMapDimension() {
+        void this.removeMapDimension()
+    }
+
+    private async removeMapDimension(): Promise<void> {
+        await this.commitMapDimensions([])
+    }
+
+    private async commitMapDimensions(
+        dimensions: OwidChartDimensionInterface[]
+    ): Promise<void> {
+        const { editor } = this.props
+        this.grapherState.setDimensionsForProperty(
+            DimensionProperty.map,
+            dimensions
+        )
+        await editor.commitDimensionsAndReloadData()
+        if (isChartEditorInstance(editor)) void editor.updateParentConfig()
     }
 
     @action.bound onBlurColumnSlug() {
-        if (this.props.mapConfig.columnSlug === undefined) {
-            this.props.mapConfig.columnSlug =
-                this.props.parentConfig?.map?.columnSlug
+        if (this.mapConfig.columnSlug === undefined) {
+            this.mapConfig.columnSlug = this.props.parentConfig?.map?.columnSlug
         }
     }
 
     @action.bound onRegion(region: string | undefined) {
-        this.props.mapConfig.region = region as MapRegionName
+        this.mapConfig.region = region as MapRegionName
     }
 
     override render() {
-        const { mapConfig, filledDimensions } = this.props
+        const { mapConfig, mapDimension } = this
+        const { editor, database, errorMessagesForDimensions } = this.props
+        const { loadedDimensions } = this.grapherState
 
-        if (_.isEmpty(filledDimensions))
+        if (_.isEmpty(loadedDimensions))
             return (
                 <section>
                     <h2>Add some indicators on data tab first</h2>
@@ -65,14 +195,22 @@ class VariableSection extends Component<VariableSectionProps> {
             <Section name="Map">
                 <SelectField
                     label="Indicator"
-                    value={mapConfig.columnSlug}
-                    options={filledDimensions.map((d) => ({
-                        value: d.columnSlug,
-                        label: d.column.displayName,
-                    }))}
+                    value={this.grapherState.mapColumnSlug}
+                    options={this.indicatorOptions}
                     onValue={this.onColumnSlug}
                     onBlur={this.onBlurColumnSlug}
                 />
+                {mapDimension && (
+                    <DimensionCard
+                        dimension={mapDimension}
+                        editor={editor}
+                        onChange={this.onChangeMapDimension}
+                        onRemove={this.onRemoveMapDimension}
+                        errorMessage={
+                            errorMessagesForDimensions[DimensionProperty.map][0]
+                        }
+                    />
+                )}
                 <SelectField
                     label="Region"
                     value={mapConfig.region}
@@ -81,6 +219,17 @@ class VariableSection extends Component<VariableSectionProps> {
                     )}
                     onValue={this.onRegion}
                 />
+                {this.isSelectingVariables && this.mapSlot && (
+                    <VariableSelector
+                        editor={editor}
+                        database={database}
+                        slot={this.mapSlot}
+                        onDismiss={action(
+                            () => (this.isSelectingVariables = false)
+                        )}
+                        onComplete={this.onSelectMapVariable}
+                    />
+                )}
             </Section>
         )
     }
@@ -251,7 +400,9 @@ class InheritanceSection<Editor extends AbstractChartEditor> extends Component<{
 
 interface EditorMapTabProps<Editor> {
     editor: Editor
+    database: EditorDatabase
     errorMessages: ErrorMessages
+    errorMessagesForDimensions: ErrorMessagesForDimensions
 }
 
 @observer
@@ -295,8 +446,11 @@ export class EditorMapTab<Editor extends AbstractChartEditor> extends Component<
         return (
             <div className="EditorMapTab tab-pane">
                 <VariableSection
-                    mapConfig={mapConfig}
-                    filledDimensions={grapherState.filledDimensions}
+                    editor={this.props.editor}
+                    database={this.props.database}
+                    errorMessagesForDimensions={
+                        this.props.errorMessagesForDimensions
+                    }
                     parentConfig={this.props.editor.activeParentConfig}
                 />
                 {isReady && (

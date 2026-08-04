@@ -511,10 +511,15 @@ class VariablesSection<
         const { props } = this
         const { dimensionSlots } = props.editor.grapherState
 
+        // The map dimension is configured on the map tab
+        const slots = dimensionSlots.filter(
+            (slot) => slot.property !== DimensionProperty.map
+        )
+
         return (
             <Section name="Add indicators">
                 <div className="VariableSlots">
-                    {dimensionSlots.map((slot) => (
+                    {slots.map((slot) => (
                         <DimensionSlotView
                             key={slot.name}
                             slot={slot}
