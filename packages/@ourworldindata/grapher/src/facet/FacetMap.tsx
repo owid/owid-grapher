@@ -702,8 +702,6 @@ function FacetMapLabelInfoIcon({
                     {...hitAreaBounds.toProps()}
                     fill="transparent"
                     style={{ pointerEvents: "auto" }}
-                    tabIndex={0}
-                    role="button"
                     aria-label={tooltip}
                 />
             </Tippy>

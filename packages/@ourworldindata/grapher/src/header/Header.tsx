@@ -474,7 +474,6 @@ function TitleAnnotationInfoIcon({
             <span
                 className="title-annotation-info-icon"
                 style={{ marginLeft: gap, fontSize: size, verticalAlign }}
-                tabIndex={0}
                 aria-label={tooltip}
                 onClick={(event): void => {
                     // The title is often wrapped in a link; don't navigate
