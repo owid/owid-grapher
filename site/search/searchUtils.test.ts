@@ -9,6 +9,7 @@ import {
     extractFiltersFromQuery,
     createCountryFilter,
     sortHitsByBaselineOrder,
+    resolveSelectedChartIndex,
     getChartHitIdentity,
 } from "./searchUtils"
 
@@ -949,5 +950,134 @@ describe(sortHitsByBaselineOrder, () => {
             { slug: "a", title: "First" },
             { slug: "c", title: "Third" },
         ])
+    })
+})
+
+describe(resolveSelectedChartIndex, () => {
+    // The all-charts block's unfiltered rows, in their default order.
+    const rows = ["a", "b", "c", "d", "e"].map((slug) => ({ slug }))
+
+    it("selects the first row before anything has been picked", () => {
+        expect(resolveSelectedChartIndex(rows, null)).toBe(0)
+    })
+
+    it("keeps the picked chart selected when the list narrows around it", () => {
+        // Row 4 is picked, then a search removes two rows above it: the
+        // selection follows the chart down to index 1 rather than staying on
+        // index 3 (a different chart) or resetting to the top.
+        const picked = getChartHitIdentity(rows[3])
+        expect(resolveSelectedChartIndex(rows, picked)).toBe(3)
+
+        const narrowed = ["b", "d", "e"].map((slug) => ({ slug }))
+        expect(resolveSelectedChartIndex(narrowed, picked)).toBe(1)
+    })
+
+    it("keeps the picked chart selected when it moves to the top", () => {
+        const picked = getChartHitIdentity(rows[4])
+        expect(resolveSelectedChartIndex([{ slug: "e" }], picked)).toBe(0)
+    })
+
+    it("falls back to the first row when the picked chart is filtered out", () => {
+        // The only case in which the selection is allowed to move on its own.
+        const picked = getChartHitIdentity({ slug: "c" })
+        const withoutC = ["a", "b", "d"].map((slug) => ({ slug }))
+        expect(resolveSelectedChartIndex(withoutC, picked)).toBe(0)
+    })
+
+    it("survives the Featured Metric record swap on the first keystroke", () => {
+        // Real objectIDs from the CO2 topic. The empty-query result set is
+        // served FM records; the first character typed adds isFM:false and
+        // swaps in the plain twins. The visible list is identical, so a
+        // selection made before typing must still point at the same chart —
+        // which an objectID-keyed selection could not do.
+        const beforeTyping = [
+            {
+                objectID: "486-fm-upper-middle-co2-greenhouse-gas-emissions",
+                slug: "co-emissions-per-capita",
+            },
+            {
+                objectID: "488-fm-upper-middle-co2-greenhouse-gas-emissions",
+                slug: "annual-co2-emissions-per-country",
+            },
+            {
+                objectID: "4146-fm-upper-middle-co2-greenhouse-gas-emissions",
+                slug: "ghg-emissions-by-sector",
+            },
+        ]
+        const afterTyping = [
+            { objectID: "486", slug: "co-emissions-per-capita" },
+            { objectID: "488", slug: "annual-co2-emissions-per-country" },
+            { objectID: "4146", slug: "ghg-emissions-by-sector" },
+        ]
+
+        const picked = getChartHitIdentity(beforeTyping[2])
+        expect(resolveSelectedChartIndex(beforeTyping, picked)).toBe(2)
+        expect(resolveSelectedChartIndex(afterTyping, picked)).toBe(2)
+    })
+
+    it("holds the selection across every keystroke of a country search", () => {
+        // Typing "china" one character at a time, each prefix returning a
+        // narrower set (and the plain records from the first character on).
+        // ghg-emissions-by-sector, picked first, is in every one of them, so
+        // the selection must never leave it.
+        const picked = getChartHitIdentity({ slug: "ghg-emissions-by-sector" })
+        const resultSets = [
+            [
+                "co-emissions-per-capita",
+                "temperature-anomaly",
+                "ghg-emissions-by-sector",
+                "meat-supply-vs-gdp-per-capita",
+            ], // ""
+            [
+                "co-emissions-per-capita",
+                "temperature-anomaly",
+                "ghg-emissions-by-sector",
+                "meat-supply-vs-gdp-per-capita",
+            ], // "c"
+            [
+                "co-emissions-per-capita",
+                "ghg-emissions-by-sector",
+                "meat-supply-vs-gdp-per-capita",
+            ], // "ch"
+            ["co-emissions-per-capita", "ghg-emissions-by-sector"], // "chi"
+            ["ghg-emissions-by-sector"], // "chin"
+            ["ghg-emissions-by-sector"], // "china"
+        ]
+        const selectedSlugs = resultSets.map((slugs) => {
+            const hits = slugs.map((slug) => ({ slug }))
+            return hits[resolveSelectedChartIndex(hits, picked)].slug
+        })
+        expect(selectedSlugs).toEqual(
+            resultSets.map(() => "ghg-emissions-by-sector")
+        )
+    })
+
+    it("distinguishes views that share a slug", () => {
+        // Two explorer views of one slug are different charts to the block, so
+        // picking one must not select the other.
+        const views = [
+            { slug: "energy", queryParams: "?country=~ESP" },
+            { slug: "energy", queryParams: "?country=~FRA" },
+        ]
+        expect(
+            resolveSelectedChartIndex(views, getChartHitIdentity(views[1]))
+        ).toBe(1)
+        // Only the FRA view survives: the selection lands on it at index 0
+        // because it is the picked chart, not because it is the first row.
+        expect(
+            resolveSelectedChartIndex([views[1]], getChartHitIdentity(views[1]))
+        ).toBe(0)
+        // The ESP view alone, with FRA picked: the picked chart is gone, so
+        // back to the first row.
+        expect(
+            resolveSelectedChartIndex([views[0]], getChartHitIdentity(views[1]))
+        ).toBe(0)
+    })
+
+    it("returns the first index for an empty result set", () => {
+        // The caller renders no sidecar at all in this case; this only has to
+        // not throw.
+        expect(resolveSelectedChartIndex([], null)).toBe(0)
+        expect(resolveSelectedChartIndex([], "life-expectancy")).toBe(0)
     })
 })

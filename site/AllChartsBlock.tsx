@@ -30,6 +30,8 @@ import {
     extractFiltersFromQuery,
     pickEntitiesForChartHit,
     sortHitsByBaselineOrder,
+    getChartHitIdentity,
+    resolveSelectedChartIndex,
     getFilterIcon,
     getFilterAriaLabel,
     SEARCH_BASE_PATH,
@@ -611,13 +613,39 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
         searchParams,
     } = props
 
-    // Index of the selected row. Reset to the first result whenever the result
-    // set changes (i.e. a new search runs).
-    const [selectedIndex, setSelectedIndex] = useState(0)
-    const resultKey = hits.map((hit) => hit.objectID).join("~")
-    useEffect(() => {
-        setSelectedIndex(0)
-    }, [resultKey])
+    // The selected row is remembered by *which chart* it is, not by where it
+    // sits in the list, so that searching narrows the list around the chart
+    // the visitor is already reading instead of throwing them back to the top
+    // of it. Typing a country keeps the selected chart selected — and keeps it
+    // in the sidecar — for as long as that chart survives the filter, however
+    // far up the list it moves; only a query that filters it out entirely
+    // moves the selection, and then to the first surviving row.
+    //
+    // Identity rather than `objectID` for the same reason the row ordering
+    // uses it (see getChartHitIdentity): the first keystroke swaps the
+    // Featured Metric record of several of this topic's charts for the plain
+    // record of the same chart, so an objectID-keyed selection would be lost
+    // on the very first character typed even when the visible list hasn't
+    // changed at all.
+    //
+    // `null` means "nothing picked yet", which resolves to the first row: the
+    // block opens with row 1 selected and its chart in the sidecar.
+    const [selectedIdentity, setSelectedIdentity] = useState<string | null>(
+        null
+    )
+
+    // The one place identity is turned back into an index, so the row
+    // highlighting, the mobile accordion and the sidecar can't disagree about
+    // which row is selected. See resolveSelectedChartIndex for the fallbacks.
+    const selectedIndex = useMemo(
+        () => resolveSelectedChartIndex(hits, selectedIdentity),
+        [hits, selectedIdentity]
+    )
+
+    // Keyed on chart identity rather than on `objectID` so the FM→plain record
+    // swap on the first keystroke doesn't read as a new result set (see
+    // getChartHitIdentity).
+    const resultKey = hits.map(getChartHitIdentity).join("~")
 
     // On narrow viewports the persistent chart sidecar (all-charts-block__right)
     // is hidden in favour of an accordion: clicking a row expands an inline
@@ -631,11 +659,12 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
     }, [resultKey])
 
     const handleRowClick = (index: number) => {
-        setSelectedIndex(index)
+        const hit = hits[index]
+        if (hit) setSelectedIdentity(getChartHitIdentity(hit))
         setExpandedIndex((prev) => (prev === index ? null : index))
     }
 
-    const selectedHit = hits[selectedIndex] ?? hits[0]
+    const selectedHit = hits[selectedIndex]
 
     return (
         <>
@@ -791,7 +820,13 @@ const AllChartsTable = ({
         >
             {hits.map((hit, index) => (
                 <AllChartsTableRow
-                    key={hit.objectID}
+                    // Chart identity, not `objectID`: the first keystroke
+                    // swaps the Featured Metric record of some of this topic's
+                    // charts for the plain record of the same chart, and an
+                    // objectID key would tear down and rebuild those rows —
+                    // including any chart mounted inside them — for a swap
+                    // that changes nothing on screen. See getChartHitIdentity.
+                    key={getChartHitIdentity(hit)}
                     hit={hit}
                     isSelected={index === selectedIndex}
                     isExpanded={index === expandedIndex}
@@ -973,9 +1008,19 @@ const AllChartsSidecar = ({
 
     return (
         <GrapherWithFallback
-            // Remount when the selected indicator changes so Grapher fully
-            // re-initializes (config, tabs, entity selection).
-            key={`${hit.objectID}${queryStr}`}
+            // Remount when the selected indicator *or* the view of it changes
+            // so Grapher fully re-initializes (config, tabs, entity
+            // selection) — in particular, picking up a newly detected country
+            // in `queryStr`, which Grapher only reads at initialization.
+            //
+            // The chart half of that key is its identity rather than its
+            // `objectID`, so the FM→plain record swap on the first keystroke
+            // no longer counts as a change of chart: without this the sidecar
+            // remounted and restarted its loading spinner while the visitor
+            // typed, blanking a chart that hadn't actually changed. The
+            // `queryStr` half is unchanged, so a change of country still
+            // remounts and re-applies the entity selection.
+            key={`${getChartHitIdentity(hit)}${queryStr}`}
             slug={hit.type === "chart" ? hit.slug : undefined}
             configUrl={configUrl}
             className="all-charts-block__grapher"

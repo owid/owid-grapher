@@ -342,10 +342,12 @@ $all-charts-block-sticky-nav-min-height: 48px;
 }
 
 // The "Source: …" line, sitting directly beneath the subtitle rather than in
-// a column of its own. Styled to match .all-charts-block__row-subtitle above
-// so the two read as one continuous block of supporting text.
+// a column of its own. Shares the subtitle's size, weight and line-height so
+// the two sit as one continuous block of supporting text, but deliberately a
+// darker hue: $blue-90 against the subtitle's $blue-50, which gives the
+// attribution more presence than the description above it.
 .all-charts-block__row-source {
-    color: $blue-50;
+    color: $blue-90;
     font-size: 12px;
     font-weight: 400;
     line-height: 1.5;
@@ -362,11 +364,10 @@ $all-charts-block-sticky-nav-min-height: 48px;
 }
 
 // The "Source:" label itself. Bold, but deliberately *not* given a colour of
-// its own: it inherits $blue-50 from .all-charts-block__row-source above, so
-// the label, the producer names beside it and the subtitle are all the same
-// hue and only the weight distinguishes the label. An earlier version set
-// this to $gray-70, which read as a stray grey against the blue text around
-// it.
+// its own: it inherits $blue-90 from .all-charts-block__row-source above, so
+// the label and the producer names beside it are one hue and only the weight
+// distinguishes the label. An earlier version set this to $gray-70, which
+// read as a stray grey against the blue text around it.
 .all-charts-block__row-source-label {
     // Never truncated, unlike the producer list beside it — a clipped
     // "Sour…" would just look broken.

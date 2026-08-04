@@ -178,6 +178,39 @@ export function sortHitsByBaselineOrder<T extends ChartHitIdentityFields>(
     })
 }
 
+/**
+ * Which row of `hits` is selected, given the identity of the chart the visitor
+ * last picked — `null` before they have picked anything.
+ *
+ * Used by the all-charts block (site/AllChartsBlock.tsx) to keep a selection
+ * pinned to a *chart* rather than to a position in the list, so that searching
+ * narrows the list around whatever the visitor is currently reading instead of
+ * snapping the sidecar back to the top of it. Three cases, and the last is the
+ * only one that moves the selection:
+ *
+ * - nothing picked yet → the first row, so the block opens on row 1;
+ * - the picked chart is still in the results → wherever it now sits, however
+ *   far it has moved (filtering out the rows above it shifts every position);
+ * - the picked chart has been filtered out → back to the first row, there
+ *   being nothing else to honour.
+ *
+ * Matching on `getChartHitIdentity` and not on `objectID` is what makes the
+ * second case hold from the first character typed: that keystroke swaps the
+ * Featured Metric record of some charts for the plain record of the same chart
+ * (see getChartHitIdentity), which an objectID-keyed selection would read as
+ * its chart having disappeared.
+ */
+export function resolveSelectedChartIndex(
+    hits: readonly ChartHitIdentityFields[],
+    selectedIdentity: string | null
+): number {
+    if (selectedIdentity === null) return 0
+    const index = hits.findIndex(
+        (hit) => getChartHitIdentity(hit) === selectedIdentity
+    )
+    return index === -1 ? 0 : index
+}
+
 export function pickEntitiesForChartHit(
     hit: SearchChartHit,
     selectedRegionNames: string[] | undefined
