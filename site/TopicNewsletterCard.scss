@@ -146,6 +146,27 @@
     // by side, text block left and button right. Below md the card is as narrow
     // as a phone screen, so there it keeps the stacked layout.
     @include md-up {
+        // Below the card, the related block's panel starts exactly where the
+        // 32px bottom margin ends, so the gap you see there is 32px. Above the
+        // card it isn't: grapher sizes itself to 95% of the height its
+        // container offers and centres itself in the remainder
+        // (`scaleToFitIdeal` in GrapherState), so the chart figure always ends
+        // with an empty strip below the chart's bottom border — 16–22px at
+        // these widths. That strip reads as part of the gap, which is why the
+        // card looked further from the chart above than from the block below.
+        // Trimming the top margin brings the two visible gaps to within a few
+        // px of each other across desktop sizes (28–34px against 32px).
+        //
+        // It can't be made exact from here: the strip's height depends on how
+        // grapher's aspect-ratio fit lands, so it moves with the viewport, and
+        // the alternative — taking the strip away in the chart container — is
+        // shared layout that every other embed of that figure depends on.
+        //
+        // Deliberately md-up only. Narrower than this, grapher fills its
+        // container and leaves no strip at all, so 32px top and bottom is
+        // already symmetrical there and trimming would break it.
+        margin-top: 12px;
+
         display: grid;
         // A max-content track keeps the button at its natural width however the
         // copy behaves; the text block takes everything that's left.
