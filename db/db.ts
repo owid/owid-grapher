@@ -767,6 +767,112 @@ export function getTopicAreaNameForTagNames(
     return areaNamesByTagName[primaryTagName]
 }
 
+/**
+ * `chart id -> top-level topic area name`, from the chart's own tags in
+ * `chart_tags`.
+ *
+ * This exists as a fallback for pages whose *indicators* carry no
+ * `presentation.topicTagsLinks`: that field is mostly authored on the
+ * indicators that front a data page, whereas charts themselves are tagged in
+ * the admin far more consistently. See `getTopicAreaForGrapherPage` in
+ * `baker/GrapherBaker.tsx` for the only current caller.
+ *
+ * **Which area a chart resolves to.** `chart_tags` has no ordering column, so
+ * unlike `getTopicAreaNameForTagNames` there is no "first tag" to take — with
+ * several tags on a chart, picking one by row order would let the same chart
+ * resolve differently between two bakes. So every tag is resolved to its area
+ * instead, and the candidate areas are ranked the way the tag graph already
+ * ranks everything else: **by the weight of their edge from the graph root,
+ * descending, tiebroken by area name** — which is exactly the order
+ * `getFlatTagGraph` returns the root's children in, so the rank is that
+ * array's index rather than a second comparator. This is the same tie-break
+ * `topicAreaNamesFromTagHierarchies` applies to a single tag sitting under
+ * several areas, so both routes to an area agree.
+ *
+ * Because those ranks are distinct array indices, the winner is fully
+ * determined by *which* areas a chart's tags resolve to; the `ORDER BY` on tag
+ * name below therefore doesn't change any result today, and is there to keep
+ * the row stream itself reproducible.
+ *
+ * Note this ranking is a navigation weight, not a relevance score: a chart
+ * tagged across two areas lands on whichever of them the site nav weights
+ * higher, which need not be the better fit for its subject.
+ *
+ * Conservative by design — a chart with no tags, or none that resolve to an
+ * area (tags outside the graph, e.g. `Unlisted`, don't), is simply absent from
+ * the result, and callers should render nothing rather than guess.
+ *
+ * The result is a small plain object, so like `topicAreaNamesByTagName` it can
+ * be resolved once per bake and handed to bake worker threads.
+ *
+ * @param areaNamesByTagName output of `getTopicAreaNamesByTagName`
+ * @param chartIds optional filter; omit for every tagged chart
+ */
+export async function getTopicAreaNamesByChartId(
+    trx: KnexReadonlyTransaction,
+    areaNamesByTagName: Record<string, string>,
+    chartIds?: number[]
+): Promise<Record<number, string>> {
+    // Nothing resolvable, or nothing asked for.
+    if (_.isEmpty(areaNamesByTagName)) return {}
+    if (chartIds && chartIds.length === 0) return {}
+
+    const { __rootId, ...flatTagGraph } = await getFlatTagGraph(trx)
+    // The root's children are the ten top-level areas, already ordered by
+    // `weight DESC, name ASC` by getFlatTagGraph.
+    const areaRankByName = new Map<string, number>(
+        (flatTagGraph[__rootId] ?? []).map(({ name }, index) => [name, index])
+    )
+    if (areaRankByName.size === 0) return {}
+
+    const rows = await knexRaw<{ chartId: number; tagName: string }>(
+        trx,
+        `-- sql
+        SELECT
+            ct.chartId AS chartId,
+            t.name AS tagName
+        FROM chart_tags ct
+        JOIN tags t ON t.id = ct.tagId
+        ${chartIds ? "WHERE ct.chartId IN (:chartIds)" : ""}
+        ORDER BY ct.chartId ASC, t.name ASC`,
+        chartIds ? { chartIds } : {}
+    )
+
+    // chart id -> { area name -> rank }, for the areas its tags resolve to.
+    const areaRanksByChartId = new Map<number, Map<string, number>>()
+    for (const { chartId, tagName } of rows) {
+        const areaName = areaNamesByTagName[tagName]
+        if (!areaName) continue
+        const rank = areaRankByName.get(areaName)
+        if (rank === undefined) continue
+        const ranks =
+            areaRanksByChartId.get(chartId) ?? new Map<string, number>()
+        ranks.set(areaName, rank)
+        areaRanksByChartId.set(chartId, ranks)
+    }
+
+    const areaNamesByChartId: Record<number, string> = {}
+    let multiAreaChartCount = 0
+    for (const [chartId, ranks] of areaRanksByChartId) {
+        if (ranks.size > 1) multiAreaChartCount++
+        const [[areaName]] = [...ranks].sort(
+            ([, rankA], [, rankB]) => rankA - rankB
+        )
+        areaNamesByChartId[chartId] = areaName
+    }
+
+    // Charts whose tags span several areas are the wrong-topic risk here: which
+    // of them wins is a navigation weight, not anything about the chart's
+    // subject. Log the rate once per bake so it stays visible; skipped for the
+    // single-chart lookups admin previews make.
+    if (!chartIds)
+        console.log(
+            `Chart-tag topic areas: ${Object.keys(areaNamesByChartId).length} charts resolved to an area, ${multiAreaChartCount} of them tagged across more than one area.`
+        )
+
+    return areaNamesByChartId
+}
+
 export function getBestBreadcrumbs(
     tags: MinimalTag[],
     parentTagArraysByChildName: Record<

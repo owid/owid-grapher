@@ -121,10 +121,17 @@ export const renderDataPageOrGrapherPage = async (
         imageMetadataDictionary,
         archiveContextDictionary,
         topicAreaNamesByTagName,
+        topicAreaNamesByChartId,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
         topicAreaNamesByTagName?: Record<string, string>
+        /**
+         * Chart id -> top-level topic area name, resolved once per bake. Only
+         * the plain grapher page path uses it, as a fallback for charts whose
+         * indicators carry no topic tags; data pages read the indicator's tags.
+         */
+        topicAreaNamesByChartId?: Record<number, string>
     } = {}
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
@@ -139,6 +146,7 @@ export const renderDataPageOrGrapherPage = async (
                 ? archiveContextDictionary?.[grapher.id]
                 : undefined,
         topicAreaNamesByTagName,
+        topicAreaNamesByChartId,
     })
 }
 
@@ -372,26 +380,19 @@ export const renderPreviewDataPageOrGrapherPage = async (
 }
 
 /**
- * Topic area for the newsletter card on a plain grapher page, resolved the same
- * way data pages resolve theirs: take the page's tags, use the first one, and
- * walk it up the tag graph to its highest-weight top-level area.
+ * Topic area for a plain grapher page from its first y indicator's authored
+ * `presentation.topicTagsLinks` — the same field data pages read, resolved the
+ * same way they resolve theirs: take the first tag and walk it up the tag graph
+ * to its highest-weight top-level area.
  *
  * A plain grapher page has no indicator metadata section of its own to take
- * tags from, so the tags come from the first y indicator's authored
- * `presentation.topicTagsLinks` — the same field data pages read. Where several
- * y indicators carry tags they agree on the area in practice, so the first one
- * is enough and no tie-break across indicators is needed.
- *
- * `presentation.topicTagsLinks` is mostly authored on the indicators that front
- * a data page, so a large minority of plain grapher pages carry no tags at all
- * and resolve to undefined. Those render no card, deliberately: a card offering
- * the wrong topic area is worse than no card, and there is no sensible fallback
- * that doesn't guess.
+ * tags from, hence going to the indicator. Where several y indicators carry
+ * tags they agree on the area in practice, so the first one is enough and no
+ * tie-break across indicators is needed.
  */
-const getTopicAreaForGrapherPage = async (
+const getTopicAreaFromFirstYIndicator = async (
     grapher: GrapherInterface,
-    knex: db.KnexReadonlyTransaction,
-    topicAreaNamesByTagName?: Record<string, string>
+    areaNamesByTagName: Record<string, string>
 ): Promise<string | undefined> => {
     const firstYVariableId = grapher.dimensions?.find(
         ({ property }) => property === DimensionProperty.y
@@ -412,10 +413,54 @@ const getTopicAreaForGrapherPage = async (
     }
     if (!topicTagsLinks?.length) return undefined
 
-    return db.getTopicAreaNameForTagNames(
-        topicTagsLinks,
+    return db.getTopicAreaNameForTagNames(topicTagsLinks, areaNamesByTagName)
+}
+
+/**
+ * Topic area for the newsletter card on a plain grapher page.
+ *
+ * Two routes, in order:
+ *
+ * 1. **The page's first y indicator's `presentation.topicTagsLinks`**, as data
+ *    pages use. This stays the primary route, so no page that already names an
+ *    area changes.
+ * 2. **The chart's own tags in `chart_tags`**, as a fallback. That field is
+ *    mostly authored on the indicators that front a data page, so a large
+ *    minority of plain grapher pages have nothing to walk up from — whereas the
+ *    charts themselves are tagged in the admin, so the chart's tags usually
+ *    resolve where its indicators' don't. `db.getTopicAreaNamesByChartId`
+ *    documents how it picks one area when a chart's tags span several; unlike
+ *    route 1 that pick is a navigation weight rather than an authored ordering,
+ *    which is why it's the fallback and not the primary.
+ *
+ * A page that resolves through neither route renders no card, deliberately: a
+ * card offering the wrong topic area is worse than no card.
+ */
+const getTopicAreaForGrapherPage = async (
+    grapher: GrapherInterface,
+    knex: db.KnexReadonlyTransaction,
+    topicAreaNamesByTagName?: Record<string, string>,
+    topicAreaNamesByChartId?: Record<number, string>
+): Promise<string | undefined> => {
+    const areaNamesByTagName =
         topicAreaNamesByTagName ?? (await db.getTopicAreaNamesByTagName(knex))
+
+    const indicatorArea = await getTopicAreaFromFirstYIndicator(
+        grapher,
+        areaNamesByTagName
     )
+    if (indicatorArea) return indicatorArea
+
+    if (grapher.id === undefined) return undefined
+    const areaNamesByChartId =
+        topicAreaNamesByChartId ??
+        // Only when a single page is rendered on its own (admin previews, the
+        // dev mock site router). Bakes pass the whole mapping in, so they don't
+        // pay a query per page.
+        (await db.getTopicAreaNamesByChartId(knex, areaNamesByTagName, [
+            grapher.id,
+        ]))
+    return areaNamesByChartId[grapher.id]
 }
 
 const renderGrapherPage = async (
@@ -425,10 +470,12 @@ const renderGrapherPage = async (
         archiveContext,
         isPreviewing,
         topicAreaNamesByTagName,
+        topicAreaNamesByChartId,
     }: {
         archiveContext?: ArchiveContext
         isPreviewing?: boolean
         topicAreaNamesByTagName?: Record<string, string>
+        topicAreaNamesByChartId?: Record<number, string>
     } = {}
 ) => {
     const isOnArchivalPage = archiveContext?.type === "archive-page"
@@ -449,7 +496,8 @@ const renderGrapherPage = async (
     const topicArea = await getTopicAreaForGrapherPage(
         grapher,
         knex,
-        topicAreaNamesByTagName
+        topicAreaNamesByTagName,
+        topicAreaNamesByChartId
     )
 
     return renderToHtmlPage(
@@ -473,11 +521,13 @@ export const bakeSingleGrapherPageForArchival = async (
     {
         imageMetadataDictionary,
         topicAreaNamesByTagName,
+        topicAreaNamesByChartId,
         archiveInfo,
         manifest,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         topicAreaNamesByTagName?: Record<string, string>
+        topicAreaNamesByChartId?: Record<number, string>
         archiveInfo: ArchiveMetaInformation
         manifest: GrapherArchivalManifest
     }
@@ -488,6 +538,7 @@ export const bakeSingleGrapherPageForArchival = async (
         await renderDataPageOrGrapherPage(grapher, knex, {
             imageMetadataDictionary,
             topicAreaNamesByTagName,
+            topicAreaNamesByChartId,
             archiveContextDictionary: {
                 [grapher.id as number]: archiveInfo,
             },
@@ -518,6 +569,7 @@ const bakeGrapherPage = async (
             imageMetadataDictionary: args.imageMetadataDictionary,
             archiveContextDictionary: args.archiveContextDictionary,
             topicAreaNamesByTagName: args.topicAreaNamesByTagName,
+            topicAreaNamesByChartId: args.topicAreaNamesByChartId,
         })
     )
 }
@@ -530,6 +582,7 @@ export interface BakeSingleGrapherChartArguments {
     imageMetadataDictionary: Record<string, DbEnrichedImage>
     archiveContextDictionary: Record<number, ArchiveContext | undefined>
     topicAreaNamesByTagName: Record<string, string>
+    topicAreaNamesByChartId: Record<number, string>
 }
 
 export const bakeSingleGrapherChart = async (
@@ -585,6 +638,12 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
     // Resolved once per bake rather than per page: walking the tag graph is
     // cheap but not per-chart cheap. Precedent: baker/algolia/utils/context.ts.
     const topicAreaNamesByTagName = await db.getTopicAreaNamesByTagName(knex)
+    // Ditto, and for the same reason: it's one query for every tagged chart
+    // rather than one per page.
+    const topicAreaNamesByChartId = await db.getTopicAreaNamesByChartId(
+        knex,
+        topicAreaNamesByTagName
+    )
 
     const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map((row) => ({
         id: row.id,
@@ -594,6 +653,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
         imageMetadataDictionary,
         archiveContextDictionary,
         topicAreaNamesByTagName,
+        topicAreaNamesByChartId,
     }))
 
     const progressBar = new ProgressBar(

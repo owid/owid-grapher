@@ -612,6 +612,10 @@ export const createCommonArchivalContext = async (
         _.keyBy(images, "filename")
     )
     const topicAreaNamesByTagName = await db.getTopicAreaNamesByTagName(knex)
+    const topicAreaNamesByChartId = await db.getTopicAreaNamesByChartId(
+        knex,
+        topicAreaNamesByTagName
+    )
 
     return {
         date,
@@ -622,6 +626,7 @@ export const createCommonArchivalContext = async (
         staticAssetMap,
         imageMetadataDictionary,
         topicAreaNamesByTagName,
+        topicAreaNamesByChartId,
     }
 }
 
@@ -904,6 +909,7 @@ export interface CommonArchivalContext {
     staticAssetMap: Record<string, string>
     imageMetadataDictionary: Record<string, DbEnrichedImage>
     topicAreaNamesByTagName: Record<string, string>
+    topicAreaNamesByChartId: Record<number, string>
 }
 
 interface GrapherBakeContext extends CommonArchivalContext {
@@ -957,6 +963,7 @@ async function bakeGrapherPageForArchival(
         catalogFiles,
         imageMetadataDictionary,
         topicAreaNamesByTagName,
+        topicAreaNamesByChartId,
         staticAssetMap,
         variableFiles,
         checksumsObj,
@@ -1023,6 +1030,7 @@ async function bakeGrapherPageForArchival(
     await bakeSingleGrapherPageForArchival(dir, config, trx, {
         imageMetadataDictionary,
         topicAreaNamesByTagName,
+        topicAreaNamesByChartId,
         manifest,
         archiveInfo,
     })
