@@ -39,6 +39,7 @@ import ProgressBar from "progress"
 import {
     getVariableDistribution,
     getMergedGrapherConfigForVariable,
+    getVariableMetadata,
     getVariableOfDatapageIfApplicable,
     getOwnersForVariables,
 } from "../db/model/Variable.js"
@@ -137,6 +138,7 @@ export const renderDataPageOrGrapherPage = async (
             grapher.id !== undefined
                 ? archiveContextDictionary?.[grapher.id]
                 : undefined,
+        topicAreaNamesByTagName,
     })
 }
 
@@ -369,15 +371,64 @@ export const renderPreviewDataPageOrGrapherPage = async (
     })
 }
 
+/**
+ * Topic area for the newsletter card on a plain grapher page, resolved the same
+ * way data pages resolve theirs: take the page's tags, use the first one, and
+ * walk it up the tag graph to its highest-weight top-level area.
+ *
+ * A plain grapher page has no indicator metadata section of its own to take
+ * tags from, so the tags come from the first y indicator's authored
+ * `presentation.topicTagsLinks` — the same field data pages read. Where several
+ * y indicators carry tags they agree on the area in practice, so the first one
+ * is enough and no tie-break across indicators is needed.
+ *
+ * `presentation.topicTagsLinks` is mostly authored on the indicators that front
+ * a data page, so a large minority of plain grapher pages carry no tags at all
+ * and resolve to undefined. Those render no card, deliberately: a card offering
+ * the wrong topic area is worse than no card, and there is no sensible fallback
+ * that doesn't guess.
+ */
+const getTopicAreaForGrapherPage = async (
+    grapher: GrapherInterface,
+    knex: db.KnexReadonlyTransaction,
+    topicAreaNamesByTagName?: Record<string, string>
+): Promise<string | undefined> => {
+    const firstYVariableId = grapher.dimensions?.find(
+        ({ property }) => property === DimensionProperty.y
+    )?.variableId
+    if (!firstYVariableId) return undefined
+
+    let topicTagsLinks: string[] | undefined
+    try {
+        // One extra data-API request per plain grapher page. The metadata isn't
+        // otherwise fetched on this path, and only the tags are needed from it.
+        const metadata = await getVariableMetadata(firstYVariableId)
+        topicTagsLinks = metadata.presentation?.topicTagsLinks
+    } catch (error) {
+        // A missing or unparseable metadata file shouldn't fail the page; drop
+        // the card and carry on.
+        await logErrorAndMaybeCaptureInSentry(error)
+        return undefined
+    }
+    if (!topicTagsLinks?.length) return undefined
+
+    return db.getTopicAreaNameForTagNames(
+        topicTagsLinks,
+        topicAreaNamesByTagName ?? (await db.getTopicAreaNamesByTagName(knex))
+    )
+}
+
 const renderGrapherPage = async (
     grapher: GrapherInterface,
     knex: db.KnexReadonlyTransaction,
     {
         archiveContext,
         isPreviewing,
+        topicAreaNamesByTagName,
     }: {
         archiveContext?: ArchiveContext
         isPreviewing?: boolean
+        topicAreaNamesByTagName?: Record<string, string>
     } = {}
 ) => {
     const isOnArchivalPage = archiveContext?.type === "archive-page"
@@ -395,6 +446,11 @@ const renderGrapherPage = async (
         grapher.id && !isOnArchivalPage
             ? await getRelatedArticles(knex, grapher.id)
             : undefined
+    const topicArea = await getTopicAreaForGrapherPage(
+        grapher,
+        knex,
+        topicAreaNamesByTagName
+    )
 
     return renderToHtmlPage(
         <GrapherPage
@@ -405,6 +461,7 @@ const renderGrapherPage = async (
             baseGrapherUrl={BAKED_GRAPHER_URL}
             archiveContext={archiveContext}
             isPreviewing={isPreviewing}
+            topicArea={topicArea}
         />
     )
 }

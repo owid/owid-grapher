@@ -36,6 +36,7 @@ import { Html } from "./Html.js"
 import { DEFAULT_PAGE_DESCRIPTION } from "./dataPage.js"
 import { makeJsonLdGrapherImageUrl } from "./jsonLdHelpers.js"
 import { JsonLdDataPage } from "./jsonLd.js"
+import TopicNewsletterCard from "./TopicNewsletterCard.js"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
@@ -45,6 +46,7 @@ export const GrapherPage = (props: {
     baseGrapherUrl: string
     archiveContext?: ArchiveContext
     isPreviewing?: boolean
+    topicArea?: string
 }) => {
     const {
         grapher,
@@ -54,6 +56,7 @@ export const GrapherPage = (props: {
         baseUrl,
         archiveContext,
         isPreviewing,
+        topicArea,
     } = props
     const pageTitle = grapher.title
 
@@ -176,6 +179,17 @@ window.renderSingleGrapherOnGrapherPage({ config: jsonConfig, dataApiUrl: "${DAT
                         )}
                         <p>Interactive visualization requires JavaScript</p>
                     </div>
+
+                    {/* Renders nothing when the page doesn't resolve to a topic
+                    area, which is most of the ones whose indicators aren't the
+                    subject of a data page. Sits here rather than inside the
+                    related-research conditional below because it belongs after
+                    the chart, and that block is absent on some of these pages. */}
+                    <TopicNewsletterCard
+                        topicArea={topicArea}
+                        pageType="chart"
+                        className="topic-newsletter-card--grapher-page"
+                    />
 
                     {((relatedArticles && relatedArticles.length !== 0) ||
                         (relatedCharts && relatedCharts.length !== 0)) && (

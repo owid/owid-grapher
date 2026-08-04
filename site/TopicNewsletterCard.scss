@@ -114,6 +114,66 @@
     }
 }
 
+// Between the chart and the "Related research and data" block on plain grapher
+// pages — the legacy chart pages that have no indicator metadata section of
+// their own. `main` is block flow on those pages rather than a grid, so the
+// width can't come from `span-cols-*` the way it does in every other slot; it
+// comes from the same centred max-width `.related-research-data` uses in
+// site/css/chart.scss. Everything is `box-sizing: border-box`, so matching the
+// max-width lines the two outer boxes up exactly, and both step in noticeably
+// from a chart that can be up to 1250px wide.
+//
+// The related block is conditional and missing on a minority of these pages.
+// The card's position is "after the chart", not "before the related block", so
+// it carries its own bottom margin and looks the same either way.
+.topic-newsletter-card--grapher-page {
+    // From 800px up this is the 800px box, so the card's outer edges line up
+    // with the related block's exactly. Narrower than that, `main` has no side
+    // padding and the related block runs edge to edge with its 24px turned
+    // inward as padding; this card has rounded corners, so it keeps the 24px as
+    // a real gutter and lines up with the related block's content edge instead
+    // of clipping its corners against the viewport.
+    width: calc(100% - #{$padding-x-sm * 2});
+    max-width: 800px;
+    margin: 32px auto;
+
+    // TODO: this duplicates the horizontal layout in
+    // `.topic-newsletter-card--key-info-left` above. Worth extracting the two
+    // into a shared mixin once the data page slots stop moving; kept separate
+    // for now so the two placements can change independently.
+    //
+    // At 800px there is plenty of room for the copy and the button to sit side
+    // by side, text block left and button right. Below md the card is as narrow
+    // as a phone screen, so there it keeps the stacked layout.
+    @include md-up {
+        display: grid;
+        // A max-content track keeps the button at its natural width however the
+        // copy behaves; the text block takes everything that's left.
+        grid-template-columns: minmax(0, 1fr) max-content;
+        column-gap: 32px;
+
+        .topic-newsletter-card__header {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .topic-newsletter-card__p {
+            grid-column: 1;
+            grid-row: 2;
+            // Nothing sits below the copy in this layout.
+            margin-bottom: 0;
+        }
+
+        .topic-newsletter-card__button {
+            grid-column: 2;
+            // Spanning both text rows centres the button against the text block
+            // as a whole rather than against the heading alone.
+            grid-row: 1 / span 2;
+            align-self: center;
+        }
+    }
+}
+
 // To the right of the (roughly two-thirds width) indicator metadata box on
 // data pages in the data-page-metadata-v1 experiment. The box is pulled up over
 // the chart above it, so match its offsets to line the two tops up.
