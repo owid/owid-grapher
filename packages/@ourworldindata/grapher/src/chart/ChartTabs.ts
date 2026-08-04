@@ -207,3 +207,23 @@ export const getSupportedDimensionsForChartTypes = (
     if (hasLineChart || hasDiscreteBar) return [y, color]
     return [y]
 }
+
+/**
+ * Determines which dimension properties (y, x, color, size, map) the given
+ * tab displays
+ */
+export const getDimensionPropertiesForTab = (
+    tab: GrapherTabName
+): DimensionProperty[] => {
+    const { x, y, color, size, map } = DimensionProperty
+
+    // Only include dimensions relevant to the active chart type
+    // (e.g. exclude x dimension for line charts)
+    if (isChartTab(tab)) return getSupportedDimensionsForChartTypes([tab])
+
+    // The map tab shows a single indicator
+    if (tab === GRAPHER_TAB_NAMES.WorldMap) return [map]
+
+    // Include all dimensions for the table tab
+    return [y, map, x, color, size]
+}

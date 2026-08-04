@@ -309,7 +309,7 @@ export const getRelatedResearchAndWritingForVariables = async (
             pl.linkType = 'grapher'
             AND pl.componentType = 'chart' -- this filters out links in tags and keeps only embedded charts
             AND cd.variableId IN (?)
-            AND cd.property IN ('x', 'y') -- ignore cases where the indicator is size, color etc
+            AND cd.property IN ('x', 'y', 'map') -- ignore cases where the indicator is size or color
             AND p.published = 1
             AND p.type != 'fragment'
         ORDER BY pageviews DESC`,
