@@ -866,16 +866,28 @@ export class GdocBase implements OwidGdocBaseInterface {
                     text: block.title ?? "Country profile selector",
                 }),
             ])
-            .with({ type: "chart-rows" }, (block) =>
-                block.rows.map((row) =>
-                    createLinkFromUrl({
-                        url: row.url,
-                        sourceId: this.id,
-                        componentType: block.type,
-                        text: "",
-                    })
-                )
-            )
+            .with({ type: "chart-rows" }, (block) => {
+                const links: DbInsertPostGdocLink[] = []
+                block.rows.forEach((row) => {
+                    links.push(
+                        createLinkFromUrl({
+                            url: row.url,
+                            sourceId: this.id,
+                            componentType: block.type,
+                            text: "",
+                        })
+                    )
+                    if (row.caption) {
+                        for (const span of row.caption) {
+                            traverseEnrichedSpan(span, (span) => {
+                                const link = this.extractLinkFromSpan(span)
+                                if (link) links.push(link)
+                            })
+                        }
+                    }
+                })
+                return links
+            })
             .with({ type: "pull-chart" }, (block) => [
                 createLinkFromUrl({
                     url: block.url,
