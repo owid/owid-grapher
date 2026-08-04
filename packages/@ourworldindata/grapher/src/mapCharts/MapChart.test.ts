@@ -68,22 +68,17 @@ it("combines projected data with its historical counterpart", () => {
     })
 
     const combinedSlug = `${SampleColumnSlugs.ProjectedPopulation}-${SampleColumnSlugs.Population}`
-    const projectionColumnInfos = [
-        {
-            projectedSlug: SampleColumnSlugs.ProjectedPopulation,
-            historicalSlug: SampleColumnSlugs.Population,
-            combinedSlug,
-            slugForIsProjectionColumn: `${combinedSlug}-isProjection`,
-        },
-    ]
 
     const manager: MapChartManager = {
         table,
         mapColumnSlug: SampleColumnSlugs.ProjectedPopulation,
         endTime: 2000,
-        projectionColumnInfoBySlug: new Map(
-            projectionColumnInfos.map((info) => [info.projectedSlug, info])
-        ),
+        mapProjectionColumnInfo: {
+            projectedSlug: SampleColumnSlugs.ProjectedPopulation,
+            historicalSlug: SampleColumnSlugs.Population,
+            combinedSlug,
+            slugForIsProjectionColumn: `${combinedSlug}-isProjection`,
+        },
     }
 
     const chartState = new MapChartState({ manager })

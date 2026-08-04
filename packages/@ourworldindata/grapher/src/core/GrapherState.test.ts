@@ -56,6 +56,12 @@ it("can get dimension slots", () => {
 
     grapher.chartTypes = [GRAPHER_CHART_TYPES.ScatterPlot]
     expect(grapher.dimensionSlots.length).toBe(4)
+
+    // Charts with a map tab get an additional map slot
+    grapher.hasMapTab = true
+    expect(grapher.dimensionSlots.map((slot) => slot.property)).toContain(
+        DimensionProperty.map
+    )
 })
 
 describe("toObject", () => {
@@ -216,6 +222,92 @@ it("can fallback to a ycolumn if a map variableId does not exist", () => {
     } as GrapherInterface
     const grapher = new GrapherState(config)
     expect(grapher.mapColumnSlug).toEqual("3512")
+})
+
+it("uses the dedicated map dimension as the map column, ignoring map.columnSlug", () => {
+    const config = {
+        ...legacyConfig,
+        map: { columnSlug: "3512" },
+        dimensions: [
+            ...legacyConfig.dimensions!,
+            { variableId: 4001, property: DimensionProperty.map },
+        ],
+    } as GrapherInterface
+    const grapher = new GrapherState(config)
+    expect(grapher.mapColumnSlug).toEqual("4001")
+})
+
+it("does not auto-plot the map column on chart tabs if the chart only has a map dimension", () => {
+    const config = {
+        ...legacyConfig,
+        tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
+        dimensions: [{ variableId: 4001, property: DimensionProperty.map }],
+    } as GrapherInterface
+    const grapher = new GrapherState(config)
+    grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        new Map([[4001, { data, metadata: { ...metadata, id: 4001 } }]]),
+        config.dimensions!,
+        config.selectedEntityColors
+    )
+    expect(grapher.chartState.errorInfo.reason).toEqual("Missing Y axis column")
+})
+
+describe("default title and subtitle with a dedicated map dimension", () => {
+    const mapVariableMetadata = {
+        id: 4001,
+        descriptionShort: "Short description of the map variable",
+        display: { name: "Map variable" },
+        dimensions: metadata.dimensions,
+    }
+
+    const makeGrapher = (config: GrapherInterface): GrapherState => {
+        const grapher = new GrapherState(config)
+        grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+            new Map([
+                [3512, { data, metadata }],
+                [4001, { data, metadata: mapVariableMetadata }],
+            ]),
+            config.dimensions!,
+            config.selectedEntityColors
+        )
+        return grapher
+    }
+
+    const configWithMapDimension = {
+        ...legacyConfig,
+        dimensions: [
+            ...legacyConfig.dimensions!,
+            { variableId: 4001, property: DimensionProperty.map },
+        ],
+    } as GrapherInterface
+
+    it("derives the default title and subtitle from the map column on the map tab", () => {
+        const grapher = makeGrapher({
+            ...configWithMapDimension,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+        })
+        expect(grapher.defaultTitle).toEqual("Map variable")
+        expect(grapher.effectiveSubtitle).toEqual(
+            "Short description of the map variable"
+        )
+    })
+
+    it("derives the default title and subtitle from the y column on the chart tab", () => {
+        const grapher = makeGrapher({
+            ...configWithMapDimension,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
+        })
+        expect(grapher.defaultTitle).toEqual(name)
+        expect(grapher.effectiveSubtitle).toEqual("")
+    })
+
+    it("derives the default title from the y column on the map tab if no map dimension is given", () => {
+        const grapher = makeGrapher({
+            ...legacyConfig,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+        })
+        expect(grapher.defaultTitle).toEqual(name)
+    })
 })
 
 it("can generate a url with country selection even if there is no entity code", () => {

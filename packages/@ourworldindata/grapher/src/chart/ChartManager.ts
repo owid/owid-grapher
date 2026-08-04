@@ -73,6 +73,7 @@ export interface ChartManager {
     xColumnSlug?: ColumnSlug
     sizeColumnSlug?: ColumnSlug
     colorColumnSlug?: ColumnSlug
+    mapColumnSlug?: ColumnSlug
 
     selection?: SelectionArray | EntityName[]
     entityType?: string

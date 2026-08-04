@@ -19,9 +19,10 @@ export class DimensionSlot {
             size: "Size",
             color: "Color",
             table: "Table",
+            map: "Map",
         }
 
-        return (names as any)[this.property] || ""
+        return names[this.property]
     }
 
     @computed get allowMultiple(): boolean {
@@ -32,7 +33,7 @@ export class DimensionSlot {
     }
 
     @computed get isOptional(): boolean {
-        return this.allowMultiple
+        return this.allowMultiple || this.property === DimensionProperty.map
     }
 
     @computed get dimensions(): ChartDimension[] {
