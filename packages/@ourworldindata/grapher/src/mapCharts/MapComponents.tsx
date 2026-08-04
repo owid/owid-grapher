@@ -61,7 +61,7 @@ export function CountryWithData<Feature extends RenderFeature>({
     isSelected?: boolean
     hover?: InteractionState
     strokeScale?: number
-    onClick?: (event: SVGMouseEvent) => void
+    onClick?: (feature: Feature, event: SVGMouseEvent) => void
     onPointerEnter?: (feature: Feature, event: PointerEvent) => void
     onPointerLeave?: (event: PointerEvent) => void
 }): React.ReactElement {
@@ -92,7 +92,7 @@ export function CountryWithData<Feature extends RenderFeature>({
             cursor="pointer"
             fill={fill}
             fillOpacity={fillOpacity}
-            onClick={onClick}
+            onClick={(event) => onClick?.(feature, event)}
             onPointerEnter={(e) => onPointerEnter?.(feature, e.nativeEvent)}
             onPointerLeave={(e) => onPointerLeave?.(e.nativeEvent)}
         />
@@ -116,7 +116,7 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     isSelected?: boolean
     hover?: InteractionState
     strokeScale?: number
-    onClick?: (event: SVGMouseEvent) => void
+    onClick?: (feature: Feature, event: SVGMouseEvent) => void
     onPointerEnter?: (feature: Feature, event: PointerEvent) => void
     onPointerLeave?: (event: PointerEvent) => void
 }): React.ReactElement {
@@ -142,7 +142,7 @@ export function CountryWithNoData<Feature extends RenderFeature>({
             cursor="pointer"
             fill={`url(#${patternId})`}
             fillOpacity={fillOpacity}
-            onClick={onClick}
+            onClick={(event) => onClick?.(feature, event)}
             onPointerEnter={(e) => onPointerEnter?.(feature, e.nativeEvent)}
             onPointerLeave={(e) => onPointerLeave?.(e.nativeEvent)}
         />
@@ -168,6 +168,32 @@ export function NoDataPattern({
             <path
                 d="M -1,2 l 6,0"
                 stroke="#ccc"
+                strokeWidth={PATTERN_STROKE_WIDTH}
+            />
+        </pattern>
+    )
+}
+
+export function NotApplicablePattern({
+    patternId,
+    scale = 1,
+}: {
+    patternId: string
+    scale?: number
+}): React.ReactElement {
+    const roundedScale = R.round(scale, 3)
+    return (
+        <pattern
+            id={patternId}
+            patternUnits="userSpaceOnUse"
+            width="4"
+            height="4"
+            patternTransform={`rotate(-45 2 2) scale(${roundedScale})`}
+        >
+            <rect width="4" height="4" fill="#ccc" />
+            <path
+                d="M -1,2 l 6,0"
+                stroke="#fff"
                 strokeWidth={PATTERN_STROKE_WIDTH}
             />
         </pattern>

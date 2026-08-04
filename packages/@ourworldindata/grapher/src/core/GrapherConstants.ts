@@ -146,10 +146,17 @@ export const isPopulationVariableETLPath = (path: string): boolean => {
 }
 
 export enum Patterns {
+    /** No-data hatch used by legends, chart elements and the globe */
     noDataPattern = "noDataPattern",
+    /** Viewport-scaled no-data hatch used by 2D maps */
     noDataPatternForMap = "noDataPatternForMap",
-    noDataPatternForGlobe = "noDataPatternForGlobe",
+    /** Not-applicable hatch used by legends and the globe */
+    notApplicablePattern = "notApplicablePattern",
+    /** Viewport-scaled not-applicable hatch used by 2D maps */
+    notApplicablePatternForMap = "notApplicablePatternForMap",
+    /** Dot pattern for maps and the globe */
     projectedDataPattern = "projectedDataPattern",
+    /** Dot pattern for the legend */
     projectedDataPatternForLegend = "projectedDataPatternForLegend",
 }
 

@@ -54,8 +54,8 @@ import {
     CountryWithNoData,
     ExternalValueAnnotation,
     InternalValueAnnotation,
-    NoDataPattern,
     ProjectedDataPattern,
+    NotApplicablePattern,
 } from "./MapComponents"
 import { Patterns } from "../core/GrapherConstants"
 import {
@@ -479,6 +479,17 @@ export class ChoroplethGlobe extends React.Component<{
         }
     }
 
+    @action.bound private onClickFeature(
+        feature: GlobeRenderFeature,
+        event: SVGMouseEvent
+    ): void {
+        // Don't invoke a second click on the parent
+        // that catches clicks on 'nearby' features
+        event.stopPropagation()
+
+        this.onClick(feature)
+    }
+
     @action.bound private onDocumentPointerDown(): void {
         this.clearHover()
     }
@@ -718,34 +729,40 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     renderFeaturesWithNoData(): React.ReactElement | undefined {
-        if (this.featuresWithNoData.length === 0) return
+        const {
+            featuresWithNoData,
+            manager: { notApplicableEntityNamesSet },
+        } = this
 
-        const patternId = Patterns.noDataPatternForGlobe
+        if (featuresWithNoData.length === 0) return
 
         return (
             <g
                 id={makeFigmaId("countries-without-data")}
                 className="noDataFeatures"
             >
-                <defs>
-                    <NoDataPattern patternId={patternId} />
-                </defs>
+                {notApplicableEntityNamesSet &&
+                    notApplicableEntityNamesSet.size > 0 && (
+                        <defs>
+                            <NotApplicablePattern
+                                patternId={Patterns.notApplicablePattern}
+                            />
+                        </defs>
+                    )}
 
-                {this.featuresWithNoData.map((feature) => (
+                {featuresWithNoData.map((feature) => (
                     <CountryWithNoData
                         key={feature.id}
                         feature={feature}
                         path={this.getPath(feature)}
-                        patternId={patternId}
+                        patternId={
+                            notApplicableEntityNamesSet?.has(feature.id)
+                                ? Patterns.notApplicablePattern
+                                : Patterns.noDataPattern
+                        }
                         isSelected={this.manager.isSelected?.(feature.id)}
                         hover={this.manager.getHoverState?.(feature.id)}
-                        onClick={(event) => {
-                            // don't invoke a second click on parent that
-                            // catches clicks on 'nearby' features
-                            event.stopPropagation()
-
-                            this.onClick(feature)
-                        }}
+                        onClick={this.onClickFeature}
                         onPointerEnter={this.onPointerEnterFeature}
                         onPointerLeave={this.onPointerLeaveFeature}
                     />
@@ -799,13 +816,7 @@ export class ChoroplethGlobe extends React.Component<{
                             path={this.getPath(feature)}
                             isSelected={this.manager.isSelected?.(feature.id)}
                             hover={this.manager.getHoverState?.(feature.id)}
-                            onClick={(event) => {
-                                // don't invoke a second click on parent that
-                                // catches clicks on 'nearby' features
-                                event.stopPropagation()
-
-                                this.onClick(feature)
-                            }}
+                            onClick={this.onClickFeature}
                             onPointerEnter={this.onPointerEnterFeature}
                             onPointerLeave={this.onPointerLeaveFeature}
                         />

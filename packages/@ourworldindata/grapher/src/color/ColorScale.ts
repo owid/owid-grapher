@@ -6,7 +6,7 @@ import { pairs } from "d3-array"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { ColorScheme } from "../color/ColorScheme"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
-import { OWID_NO_DATA_GRAY } from "./ColorConstants"
+import { GRAY_90, OWID_NO_DATA_GRAY } from "./ColorConstants"
 import {
     ColorScaleConfigInterface,
     ColorSchemeName,
@@ -20,11 +20,15 @@ import { runBinningStrategy } from "./BinningStrategies.js"
 
 export const NO_DATA_LABEL = "No data"
 export const PROJECTED_DATA_LABEL = "Projected data"
+export const NOT_APPLICABLE_LABEL = "Not applicable"
+
+export const NOT_APPLICABLE_COLOR = GRAY_90
 
 export interface ColorScaleManager {
     colorScaleConfig?: ColorScaleConfigInterface
     hasNoDataBin?: boolean
     hasProjectedDataBin?: boolean
+    hasNotApplicableBin?: boolean
     defaultNoDataColor?: string
     defaultBaseColorScheme?: ColorSchemeName
     colorScaleColumn?: CoreColumn
@@ -116,6 +120,10 @@ export class ColorScale {
         return this.manager.hasProjectedDataBin || false
     }
 
+    @computed private get hasNotApplicableBin(): boolean {
+        return this.manager.hasNotApplicableBin || false
+    }
+
     @computed get sortedNumericValues(): number[] {
         return sortNumeric(
             this.colorScaleColumn?.values.filter(R.isNumber) ?? []
@@ -177,20 +185,40 @@ export class ColorScale {
             : this.autoBinThresholds
     }
 
-    // Ensure there's always a custom color for "No data"
     @computed private get customCategoryColors(): { [key: string]: Color } {
+        // Provide default colors for the injected "No data" and "Not applicable"
+        // bins. They're added conditionally so that a data category that happens
+        // to share their name isn't hijacked away from its color scheme color.
+        // Note that on maps, both bins are rendered as patterns with fixed
+        // colors, so their bin color is only used in a few places, e.g. for
+        // entities that don't belong in any color group on scatters/marimekkos
+        // or for the the admin's color scale editor
         return {
-            [NO_DATA_LABEL]: this.defaultNoDataColor, // default 'no data' color
+            ...(this.hasNoDataBin
+                ? { [NO_DATA_LABEL]: this.defaultNoDataColor }
+                : undefined),
+            ...(this.hasNotApplicableBin
+                ? { [NOT_APPLICABLE_LABEL]: NOT_APPLICABLE_COLOR }
+                : undefined),
             ...this.config.customCategoryColors,
         }
     }
 
     @computed get noDataColor(): Color {
-        return this.customCategoryColors[NO_DATA_LABEL]
+        return (
+            this.customCategoryColors[NO_DATA_LABEL] ?? this.defaultNoDataColor
+        )
     }
 
     @computed get noDataLabel(): string {
         return this.customCategoryLabels[NO_DATA_LABEL] ?? NO_DATA_LABEL
+    }
+
+    @computed get notApplicableLabel(): string {
+        return (
+            this.customCategoryLabels[NOT_APPLICABLE_LABEL] ??
+            NOT_APPLICABLE_LABEL
+        )
     }
 
     @computed get baseColors(): Color[] {
@@ -276,6 +304,7 @@ export class ColorScale {
             baseColors,
             hasNoDataBin,
             hasProjectedDataBin,
+            hasNotApplicableBin,
             categoricalValues,
             customCategoryColors,
             customCategoryLabels,
@@ -285,12 +314,27 @@ export class ColorScale {
 
         let allCategoricalValues = categoricalValues
 
+        // The injected bins below must be appended _after_ the data-driven
+        // values: the color scheme allocates colors for the data values only
+        // (see baseColors), so injecting a bin earlier would shift every
+        // subsequent data value onto its neighbour's color. The injected bins
+        // don't take part in the scheme; their colors come from the
+        // customCategoryColors defaults ("Not applicable", "No data") or from
+        // a pattern with a fixed color ("Projected data")
+
+        // Inject "Not applicable" bin for the indicator's reference entity
+        if (
+            hasNotApplicableBin &&
+            !allCategoricalValues.includes(NOT_APPLICABLE_LABEL)
+        ) {
+            allCategoricalValues = [
+                ...allCategoricalValues,
+                NOT_APPLICABLE_LABEL,
+            ]
+        }
+
         // Inject "No data" bin
         if (hasNoDataBin && !allCategoricalValues.includes(NO_DATA_LABEL)) {
-            // The color scheme colors get applied in order, starting from first, and we only use
-            // as many colors as there are categorical values (excluding "No data").
-            // So in order to leave it colorless, we want to append the "No data" label last.
-            // -@danielgavrilov, 2020-06-02
             allCategoricalValues = [...allCategoricalValues, NO_DATA_LABEL]
         }
 
@@ -316,6 +360,7 @@ export class ColorScale {
             }
 
             const color = customCategoryColors[value] ?? baseColor
+
             const label = customCategoryLabels[value] ?? value
 
             return new CategoricalBin({
