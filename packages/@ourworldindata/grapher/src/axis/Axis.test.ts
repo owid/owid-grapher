@@ -1,4 +1,4 @@
-import { expect, it, describe } from "vitest"
+import { expect, it, describe, vi } from "vitest"
 import * as R from "remeda"
 
 import { HorizontalAxis } from "../axis/Axis"
@@ -462,7 +462,15 @@ describe("axis height", () => {
         it(`matches the placed tick labels for ${description}`, () => {
             const axis = makeAxis()
             axis.range = [0, 800]
-            expect(axis.height).toEqual(heightFromPlacedTickLabels(axis))
+
+            // ...and gets there without placing a single label, which is the
+            // whole point of computing the height separately
+            const placeTickLabel = vi.spyOn(axis, "placeTickLabel")
+            const { height } = axis
+            expect(placeTickLabel).not.toHaveBeenCalled()
+            placeTickLabel.mockRestore()
+
+            expect(height).toEqual(heightFromPlacedTickLabels(axis))
         })
     }
 })
