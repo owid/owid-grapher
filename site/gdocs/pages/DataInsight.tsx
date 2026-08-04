@@ -130,7 +130,7 @@ function resolveCtaUrl(
 
 function ensureTrailingPunctuation(text: string): string {
     const trimmed = text.trimEnd()
-    return /[.!?…]$/.test(trimmed) ? trimmed : `${trimmed}.`
+    return /[.!?…]["'”’)\]]*$/.test(trimmed) ? trimmed : `${trimmed}.`
 }
 
 function buildSocialText(
