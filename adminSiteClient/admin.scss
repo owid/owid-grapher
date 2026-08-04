@@ -398,39 +398,38 @@ $nav-height: 45px;
     }
 }
 
-// Used in the basic tab's dimension slots and the map tab's map indicator
-.DimensionCard {
-    header {
-        display: flex;
-        color: #666;
-        align-items: center;
-        text-align: center;
-        gap: 1em;
-        justify-content: space-between;
+.EditorBasicTab {
+    .DimensionCard {
+        header {
+            display: flex;
+            color: #666;
+            align-items: center;
+            text-align: center;
+            gap: 1em;
+            justify-content: space-between;
+
+            > div {
+                display: flex;
+                align-items: center;
+                gap: 0.5em;
+            }
+        }
 
         > div {
-            display: flex;
-            align-items: center;
-            gap: 0.5em;
+            margin: 1em 0;
+        }
+
+        .dimensionLink {
+            color: inherit;
+            text-decoration: underline;
+            text-decoration-color: rgba(0, 0, 0, 0.2);
+
+            &:hover {
+                text-decoration-color: inherit;
+            }
         }
     }
 
-    > div {
-        margin: 1em 0;
-    }
-
-    .dimensionLink {
-        color: inherit;
-        text-decoration: underline;
-        text-decoration-color: rgba(0, 0, 0, 0.2);
-
-        &:hover {
-            text-decoration-color: inherit;
-        }
-    }
-}
-
-.EditorBasicTab {
     .dimensionSlot {
         cursor: pointer;
         min-height: 50px;

@@ -495,11 +495,7 @@ export class ChartEditorView<
                         {editor.tab === "map" && (
                             <EditorMapTab
                                 editor={editor}
-                                database={this.database}
                                 errorMessages={this.errorMessages}
-                                errorMessagesForDimensions={
-                                    this.errorMessagesForDimensions
-                                }
                             />
                         )}
                         {chartEditor && chartEditor.tab === "revisions" && (
