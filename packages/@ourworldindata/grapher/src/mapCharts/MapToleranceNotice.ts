@@ -12,12 +12,10 @@ export function makeMapToleranceNotice({
     rowsWithTolerance,
     targetTime,
     timeColumn,
-    tolerance,
 }: {
     rowsWithTolerance: { entityName: EntityName; originalTime: Time }[]
     targetTime: Time
     timeColumn: CoreColumn
-    tolerance: number
 }): string {
     const formattedTargetTime = formatTimeForProse(targetTime, timeColumn)
 
@@ -37,10 +35,24 @@ export function makeMapToleranceNotice({
         countryNames: rowsWithTolerance.map((row) => row.entityName),
         formattedTargetTime,
         formattedTimeTolerance: formatTimeTolerance(
-            tolerance,
+            findMaxAppliedTolerance(rowsWithTolerance, targetTime),
             timeColumn.timeInterval
         ),
     })
+}
+
+/**
+ * The tolerance that was actually applied, i.e. the largest gap between the
+ * target time and the time a shown value comes from
+ */
+function findMaxAppliedTolerance(
+    rowsWithTolerance: { originalTime: Time }[],
+    targetTime: Time
+): number {
+    const deviations = rowsWithTolerance.map((row) =>
+        Math.abs(row.originalTime - targetTime)
+    )
+    return Math.max(...deviations)
 }
 
 function makeSingleCountryMapToleranceNotice({
