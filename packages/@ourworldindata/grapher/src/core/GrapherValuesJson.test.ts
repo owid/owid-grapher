@@ -2,11 +2,15 @@ import { describe, expect, it } from "vitest"
 import {
     DimensionProperty,
     GRAPHER_CHART_TYPES,
+    GRAPHER_TAB_CONFIG_OPTIONS,
+    GrapherInterface,
     OwidTableSlugs,
 } from "@ourworldindata/types"
 import {
     constructGrapherValuesJson,
+    constructGrapherValuesJsonFromTable,
     makeDimensionValuesForTimeDirect,
+    prepareCalloutTable,
 } from "./GrapherValuesJson"
 import {
     OwidTable,
@@ -240,6 +244,88 @@ describe(constructGrapherValuesJson, () => {
 
         expect(result.endValues?.y.map((d) => d.columnSlug)).toEqual([
             SampleColumnSlugs.GDP,
+            SampleColumnSlugs.Population,
+        ])
+    })
+
+    const dimensionsWithMapDimension = [
+        {
+            slug: SampleColumnSlugs.GDP,
+            property: DimensionProperty.y,
+            variableId: SampleColumnSlugs.GDP as any,
+        },
+        {
+            slug: SampleColumnSlugs.Population,
+            property: DimensionProperty.map,
+            variableId: SampleColumnSlugs.Population as any,
+        },
+    ]
+
+    it("reports the dedicated map column on the map tab", () => {
+        const grapherState = makeGrapherState({
+            hasMapTab: true,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+            dimensions: dimensionsWithMapDimension,
+        })
+
+        const result = constructGrapherValuesJson(grapherState, "Philippines")
+
+        expect(result.endValues?.y.map((d) => d.columnSlug)).toEqual([
+            SampleColumnSlugs.Population,
+        ])
+        expect(Object.keys(result.columns ?? {})).toEqual([
+            SampleColumnSlugs.Population,
+        ])
+    })
+
+    it("reports the y columns on the chart tab even if a dedicated map column is configured", () => {
+        const grapherState = makeGrapherState({
+            hasMapTab: true,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
+            dimensions: dimensionsWithMapDimension,
+        })
+
+        const result = constructGrapherValuesJson(grapherState, "Philippines")
+
+        expect(result.endValues?.y.map((d) => d.columnSlug)).toEqual([
+            SampleColumnSlugs.GDP,
+        ])
+    })
+})
+
+describe(constructGrapherValuesJsonFromTable, () => {
+    it("reports the dedicated map column for map-tab charts", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 5, timeRange: [2000, 2010] },
+            12 // Seed
+        )
+        const config = {
+            hasMapTab: true,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: SampleColumnSlugs.GDP as any,
+                },
+                {
+                    slug: SampleColumnSlugs.Population,
+                    property: DimensionProperty.map,
+                    variableId: SampleColumnSlugs.Population as any,
+                },
+            ],
+        } as GrapherInterface
+
+        const prepared = prepareCalloutTable(table, config)
+        const result = constructGrapherValuesJsonFromTable(
+            prepared,
+            "Philippines"
+        )
+
+        expect(result.endValues?.y.map((d) => d.columnSlug)).toEqual([
+            SampleColumnSlugs.Population,
+        ])
+        expect(Object.keys(result.columns ?? {})).toEqual([
             SampleColumnSlugs.Population,
         ])
     })
