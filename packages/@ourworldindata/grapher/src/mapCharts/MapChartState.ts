@@ -363,7 +363,7 @@ export class MapChartState implements ChartState, ColorScaleManager {
         return makeMapToleranceNotice({
             rowsWithTolerance,
             targetTime,
-            column: this.mapColumnUntransformed,
+            timeColumn,
             tolerance: this.timeTolerance,
         })
     }

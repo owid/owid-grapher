@@ -2,27 +2,34 @@ import * as _ from "lodash-es"
 import { match } from "ts-pattern"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { EntityName, Time, TimeInterval } from "@ourworldindata/types"
-import { articulateEntity, formatInlineList } from "@ourworldindata/utils"
+import {
+    articulateEntity,
+    formatInlineList,
+    isSubYearly,
+} from "@ourworldindata/utils"
 
 export function makeMapToleranceNotice({
     rowsWithTolerance,
     targetTime,
-    column,
+    timeColumn,
     tolerance,
 }: {
     rowsWithTolerance: { entityName: EntityName; originalTime: Time }[]
     targetTime: Time
-    column: CoreColumn
+    timeColumn: CoreColumn
     tolerance: number
 }): string {
-    const formattedTargetTime = column.formatTime(targetTime)
+    const formattedTargetTime = formatTimeForProse(targetTime, timeColumn)
 
     if (rowsWithTolerance.length === 1) {
         const [row] = rowsWithTolerance
         return makeSingleCountryMapToleranceNotice({
             countryName: row.entityName,
             formattedTargetTime,
-            formattedOriginalTime: column.formatTime(row.originalTime),
+            formattedOriginalTime: formatTimeForProse(
+                row.originalTime,
+                timeColumn
+            ),
         })
     }
 
@@ -31,25 +38,9 @@ export function makeMapToleranceNotice({
         formattedTargetTime,
         formattedTimeTolerance: formatTimeTolerance(
             tolerance,
-            column.originalTimeColumn.timeInterval
+            timeColumn.timeInterval
         ),
     })
-}
-
-/** The tolerance in words, e.g. "3 years" or "a year" */
-function formatTimeTolerance(
-    tolerance: number,
-    timeInterval: TimeInterval
-): string | undefined {
-    if (tolerance <= 0) return undefined
-
-    const unit = match(timeInterval)
-        .with(TimeInterval.Year, () => "year")
-        .with(TimeInterval.Day, () => "day")
-        .otherwise(() => undefined)
-    if (!unit) return undefined
-
-    return tolerance === 1 ? `a ${unit}` : `${tolerance} ${unit}s`
 }
 
 function makeSingleCountryMapToleranceNotice({

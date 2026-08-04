@@ -684,9 +684,8 @@ describe("titleAnnotationTooltip", () => {
         )
     })
 
-    it("omits the tolerance for indicators that aren't yearly or daily", () => {
-        // Monthly times are stored as days since 2020-01-21, so the tolerance of
-        // a monthly indicator would read "90 days" rather than "3 months"
+    it("gives the tolerance of sub-yearly indicators in days", () => {
+        // Monthly times are stored as days, and so is their tolerance
         const grapher = makeGrapher({
             table: new OwidTable(
                 [
@@ -704,7 +703,61 @@ describe("titleAnnotationTooltip", () => {
             map: { timeTolerance: 90 },
         })
         expect(grapher.titleAnnotationTooltip).toEqual(
-            "Germany and Spain lack data for Feb 2020 and show the closest available value."
+            "Germany and Spain lack data for Feb 2020 and show the closest available value within 90 days."
+        )
+    })
+
+    it("gives decades the definite article, and their tolerance in years", () => {
+        const makeDecadeGrapher = (
+            extraRows: (string | number)[][]
+        ): GrapherState =>
+            makeGrapher({
+                table: new OwidTable(
+                    [
+                        ["entityName", "decade", "gdp"],
+                        ["France", 2010, 100],
+                        ["France", 2020, 200],
+                        ["Germany", 2010, 300],
+                        ...extraRows,
+                    ],
+                    [
+                        { slug: "gdp", type: ColumnTypeNames.Numeric },
+                        { slug: "decade", type: ColumnTypeNames.Decade },
+                    ]
+                ),
+                map: { timeTolerance: 10 },
+            })
+
+        expect(makeDecadeGrapher([]).titleAnnotationTooltip).toEqual(
+            "Germany lacks data for the 2020s and shows the closest available value, from the 2010s."
+        )
+        expect(
+            makeDecadeGrapher([["Spain", 2010, 400]]).titleAnnotationTooltip
+        ).toEqual(
+            "Germany and Spain lack data for the 2020s and show the closest available value within 10 years."
+        )
+    })
+
+    it("names a week by its start date rather than its label", () => {
+        // Weekly times are stored as days since 2020-01-21; the standalone
+        // label "Week of Jan 27, 2020" reads oddly mid-sentence
+        const grapher = makeGrapher({
+            table: new OwidTable(
+                [
+                    ["entityName", "week", "gdp"],
+                    ["France", 0, 100], // week of Jan 20, 2020
+                    ["France", 7, 200], // week of Jan 27, 2020
+                    ["Germany", 0, 300],
+                ],
+                [
+                    { slug: "gdp", type: ColumnTypeNames.Numeric },
+                    { slug: "week", type: ColumnTypeNames.Week },
+                ]
+            ),
+            map: { timeTolerance: 14 },
+        })
+        expect(grapher.titleAnnotationTooltip).toEqual(
+            "Germany lacks data for the week of Jan 27, 2020 and shows the closest available value, from the week of Jan 20, 2020."
         )
     })
 
