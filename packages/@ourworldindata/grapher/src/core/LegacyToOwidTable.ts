@@ -169,12 +169,24 @@ export const legacyToOwidTableAndDimensions = (
                 valueColumnDef.type = ColumnTypeNames.Numeric
         }
 
+        // TODO: debug only, remove before committing.
+        // Drop the categorical "China" values carried by the china-imports
+        // variable — in the real setup, the reference entity has no values
+        const debugValues: unknown[] =
+            dimension.variableId === 1104804
+                ? values.map((value, index) =>
+                      entityNames[index] === "China"
+                          ? ErrorValueTypes.MissingValuePlaceholder
+                          : value
+                  )
+                : values
+
         const columnStore: { [key: string]: any[] } = {
             [OwidTableSlugs.EntityId]: entityIds,
             [OwidTableSlugs.EntityCode]: entityCodes,
             [OwidTableSlugs.EntityName]: entityNames,
             [timeColumnDef.slug]: times,
-            [valueColumnDef.slug]: values,
+            [valueColumnDef.slug]: debugValues,
         }
 
         if (annotationColumnDef) {
@@ -629,7 +641,6 @@ const columnDefFromOwidVariable = (
         descriptionFromProducer,
         source,
         origins,
-        display,
         timespan,
         nonRedistributable,
         presentation,
@@ -637,6 +648,12 @@ const columnDefFromOwidVariable = (
         updatePeriodDays,
         shortName,
     } = variable
+
+    // TODO: debug only, remove before committing
+    const display =
+        variable.id === 1104804
+            ? { ...variable.display, notApplicableEntities: ["China"] }
+            : variable.display
 
     const isContinent = isContinentsVariableId(variable.id)
     const name = variable.name
