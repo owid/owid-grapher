@@ -166,7 +166,7 @@ export abstract class AbstractTokenTextWrap<
     }
 
     @imemo get lineCount(): number {
-        return this.htmlLines.length
+        return this.svgLines.length
     }
 
     getLineHeight(line: IRToken[]): number {
