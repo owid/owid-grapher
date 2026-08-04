@@ -1253,9 +1253,12 @@ function parseChartRows(raw: RawBlockChartRows): EnrichedBlockChartRows {
             })
         }
 
+        const caption = htmlToSpans(row.caption ?? "")
+
         enrichedRows.push({
             image: row.image,
             url: extractUrl(row.url),
+            caption: caption,
             content: enrichedContent,
         })
     }

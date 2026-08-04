@@ -371,11 +371,14 @@ export function enrichedBlockToIndexableText(
                 (b): string | undefined => b.value.text
             )
             .with({ type: "chart-rows" }, (b): string | undefined => {
-                const parts = b.rows.flatMap((row) =>
-                    row.content.map((contentBlock) =>
+                const parts = b.rows.flatMap((row) => [
+                    row.caption
+                        ? spansToIndexableText(row.caption, options)
+                        : undefined,
+                    ...row.content.map((contentBlock) =>
                         enrichedBlockToIndexableText(contentBlock, options)
-                    )
-                )
+                    ),
+                ])
                 return joinBlocksAsSentences(parts) || undefined
             })
             .with({ type: "pull-chart" }, (b): string | undefined => {
