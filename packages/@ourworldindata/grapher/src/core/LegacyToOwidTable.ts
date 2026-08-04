@@ -381,7 +381,9 @@ export const legacyToOwidTableAndDimensions = (
     return joinedVariablesTable
 }
 
-const fullJoinTables = (
+// Exported for benchmarking (see LegacyToOwidTable.bench.ts), not meant to be
+// used outside of this module.
+export const fullJoinTables = (
     tables: OwidTable[],
     indexColumnNames: OwidTableSlugs[],
     mergeFallbackLookupColumns?: OwidTableSlugs[][]
