@@ -431,6 +431,16 @@ mockSiteRouter.use(
 
 mockSiteRouter.use("/", express.static(path.join(BASE_DIR, "public")))
 
+// Legacy data-nuggets static prototype browse page (data-nuggets/index.html)
+// from the pre-DB era. Kept here so old links keep working; the actual review
+// + editorial workflow now lives in the admin (/admin/agentic-writing + /admin/api/agentic-writing*).
+mockSiteRouter.use(
+    "/data-nuggets",
+    express.static(path.join(BASE_DIR, "data-nuggets"), {
+        extensions: ["html"],
+    })
+)
+
 mockSiteRouter.get("/feedback", async (req, res) => res.send(feedbackPage()))
 
 mockSiteRouter.get("/multiEmbedderTest", async (req, res) =>

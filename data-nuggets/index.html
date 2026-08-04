@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>Data Nuggets — prototype</title>
+        <style>
+            :root {
+                --fg: #1d1f21;
+                --muted: #6b7280;
+                --rule: #e5e7eb;
+                --link: #1d4ed8;
+                --link-hover: #1e40af;
+                --bg: #fff;
+                --tile-bg: #fafafa;
+                --key-bg: #fef3c7;
+                --key-fg: #92400e;
+                --notable-bg: #dbeafe;
+                --notable-fg: #1e3a8a;
+                --corrected-bg: #fce7f3;
+                --corrected-fg: #9d174d;
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                background: var(--bg);
+                color: var(--fg);
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    Helvetica, Arial, sans-serif;
+                line-height: 1.55;
+            }
+            .container {
+                max-width: 1080px;
+                margin: 0 auto;
+                padding: 32px 24px 64px;
+            }
+            h1 {
+                font-size: 28px;
+                margin: 0 0 4px;
+                letter-spacing: -0.01em;
+            }
+            .subtitle {
+                color: var(--muted);
+                margin: 0 0 24px;
+                font-size: 15px;
+            }
+            .controls {
+                display: flex;
+                gap: 8px;
+                align-items: baseline;
+                flex-wrap: wrap;
+                padding: 12px 0 8px;
+                border-top: 1px solid var(--rule);
+                border-bottom: 1px solid var(--rule);
+                margin-bottom: 24px;
+                font-size: 14px;
+            }
+            .controls strong {
+                font-weight: 600;
+            }
+            .controls .pill {
+                display: inline-block;
+                padding: 2px 10px;
+                background: #eef2ff;
+                color: #312e81;
+                border-radius: 999px;
+                font-size: 13px;
+                font-weight: 500;
+            }
+            .controls a {
+                color: var(--link);
+                text-decoration: none;
+            }
+            .controls a:hover {
+                text-decoration: underline;
+            }
+            .view {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr);
+                gap: 16px;
+                padding: 24px 0;
+                border-bottom: 1px solid var(--rule);
+            }
+            @media (min-width: 700px) {
+                .view {
+                    grid-template-columns: minmax(0, 5fr) minmax(0, 4fr);
+                    gap: 32px;
+                }
+                .view.view--multi {
+                    grid-template-columns: 1fr;
+                }
+                .view.view--multi .view__charts {
+                    order: 2;
+                }
+                .view.view--multi .view__text {
+                    order: 1;
+                }
+            }
+            .view__charts {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            .view--multi .view__charts {
+                gap: 16px;
+                margin-top: 8px;
+            }
+            .chart-tile {
+                display: block;
+                position: relative;
+                flex: 1 1 0;
+                min-width: 0;
+                background: var(--tile-bg);
+                border: 1px solid var(--rule);
+                border-radius: 6px;
+                overflow: hidden;
+                text-decoration: none;
+                color: inherit;
+                transition: box-shadow 0.15s ease;
+            }
+            .chart-tile:hover {
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            }
+            .chart-tile img {
+                display: block;
+                width: 100%;
+                height: auto;
+                aspect-ratio: 850 / 600;
+                object-fit: cover;
+                background: #f3f4f6;
+            }
+            .chart-tile__caption {
+                font-size: 12px;
+                color: var(--muted);
+                padding: 6px 10px 8px;
+                border-top: 1px solid var(--rule);
+                background: #fff;
+            }
+            .chart-tile__overlay {
+                position: absolute;
+                inset: 0;
+                background: rgba(163, 199, 245, 0.3);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                opacity: 0;
+                transition: opacity 0.15s ease-in-out;
+                pointer-events: none;
+            }
+            .chart-tile:hover .chart-tile__overlay {
+                opacity: 1;
+            }
+            .chart-tile__cta {
+                background: #fff;
+                padding: 4px 10px;
+                border-radius: 4px;
+                font-weight: 600;
+                font-size: 12px;
+                color: var(--link);
+            }
+            .view__text {
+                min-width: 0;
+            }
+            .view__title {
+                margin: 0 0 6px;
+                font-size: 19px;
+                font-weight: 600;
+                line-height: 1.3;
+                letter-spacing: -0.01em;
+            }
+            .view__title a {
+                color: var(--link);
+                text-decoration: none;
+            }
+            .view__title a:hover {
+                text-decoration: underline;
+            }
+            .view__description {
+                margin: 0 0 8px;
+                font-size: 15px;
+                color: #374151;
+            }
+            .view__meta {
+                font-size: 12px;
+                color: var(--muted);
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+            .badge {
+                display: inline-block;
+                padding: 1px 8px;
+                border-radius: 999px;
+                font-size: 11px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+            }
+            .badge--key {
+                background: var(--key-bg);
+                color: var(--key-fg);
+            }
+            .badge--notable {
+                background: var(--notable-bg);
+                color: var(--notable-fg);
+            }
+            .badge--corrected {
+                background: var(--corrected-bg);
+                color: var(--corrected-fg);
+            }
+            .badge--multi {
+                background: #ede9fe;
+                color: #5b21b6;
+            }
+            .empty {
+                padding: 64px 0;
+                text-align: center;
+                color: var(--muted);
+            }
+            .empty .slugs {
+                font-size: 13px;
+                margin-top: 16px;
+                display: flex;
+                gap: 6px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .empty .slugs a {
+                color: var(--link);
+                text-decoration: none;
+                padding: 2px 8px;
+                background: #f3f4f6;
+                border-radius: 999px;
+            }
+            .empty .slugs a:hover {
+                background: #e5e7eb;
+            }
+            footer {
+                margin-top: 40px;
+                color: var(--muted);
+                font-size: 12px;
+            }
+            footer code {
+                background: #f3f4f6;
+                padding: 1px 6px;
+                border-radius: 4px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>Data nuggets</h1>
+                <p class="subtitle">
+                    Prototype — short, link-backed slices of OWID chart data
+                    generated by the
+                    <code style="font-size: 13px">data-nuggets</code>
+                    pipeline. Review &amp; approval happens in the admin (<code
+                        style="font-size: 13px"
+                        >/admin/agentic-writing</code
+                    >).
+                </p>
+            </header>
+
+            <div class="controls" id="controls">
+                <span id="filter-label" class="muted"
+                    >Loading <code>views/index.json</code>…</span
+                >
+            </div>
+
+            <main id="views"></main>
+
+            <footer>
+                <p>
+                    Filter by chart slug:
+                    <code>?slug=child-mortality</code> in the URL. Click a
+                    thumbnail to open the live grapher view. The thumbnail is
+                    rendered from
+                    <code>ourworldindata.org/grapher/{slug}.png?{params}</code>
+                    so it reflects the exact query params of the view.
+                </p>
+            </footer>
+        </div>
+
+        <script>
+            const GRAPHER_BASE = "https://ourworldindata.org/grapher"
+            const $views = document.getElementById("views")
+            const $controls = document.getElementById("controls")
+
+            function getParam(name) {
+                return new URLSearchParams(window.location.search).get(name)
+            }
+
+            function thumbnailUrl(gv) {
+                // Build a .png thumbnail URL from a grapherView's slug + queryParams.
+                // imType=thumbnail renders grapher in its small-optimized mode
+                // (thicker lines, larger fonts) — the same treatment as the
+                // pull-chart Archie component.
+                const params = new URLSearchParams(gv.queryParams || {})
+                params.set("imType", "thumbnail")
+                return `${GRAPHER_BASE}/${gv.slug}.png?${params.toString()}`
+            }
+
+            function escape(s) {
+                return String(s)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+            }
+
+            function badge(text, kind) {
+                return `<span class="badge badge--${kind}">${escape(text)}</span>`
+            }
+
+            function renderView(v) {
+                const charts = v.grapherViews || []
+                const isMulti = charts.length > 1
+                const lvl = v.metadata && v.metadata.keyInsightLevel
+                const fc = v.metadata && v.metadata.factCheck
+                const tiles = charts
+                    .map(
+                        (gv) => `
+                    <a class="chart-tile" href="${escape(gv.url)}" target="_blank" rel="noopener">
+                        <img src="${escape(thumbnailUrl(gv))}" alt="${escape(gv.slug)}" loading="lazy" />
+                        <div class="chart-tile__overlay"><span class="chart-tile__cta">Open chart →</span></div>
+                        ${gv.caption ? `<div class="chart-tile__caption">${escape(gv.caption)}</div>` : ""}
+                    </a>
+                `
+                    )
+                    .join("")
+
+                const metaParts = []
+                if (lvl === "key") metaParts.push(badge("key", "key"))
+                else if (lvl === "notable")
+                    metaParts.push(badge("notable", "notable"))
+                if (fc && fc.status === "corrected")
+                    metaParts.push(badge("corrected", "corrected"))
+                if (isMulti)
+                    metaParts.push(badge(`${charts.length} charts`, "multi"))
+                metaParts.push(`<span>${escape(v.globalId)}</span>`)
+
+                const firstUrl = charts[0] ? charts[0].url : "#"
+                return `
+                <article class="view ${isMulti ? "view--multi" : ""}">
+                    <div class="view__charts">${tiles}</div>
+                    <div class="view__text">
+                        <h2 class="view__title"><a href="${escape(firstUrl)}" target="_blank" rel="noopener">${escape(v.title)}</a></h2>
+                        <p class="view__description">${escape(v.description)}</p>
+                        <div class="view__meta">${metaParts.join(" ")}</div>
+                    </div>
+                </article>
+                `
+            }
+
+            function renderEmpty(slug, allSlugs) {
+                const slugLinks = allSlugs
+                    .map(
+                        (s) =>
+                            `<a href="?slug=${encodeURIComponent(s)}">${escape(s)}</a>`
+                    )
+                    .join("")
+                return `
+                <div class="empty">
+                    <p>No views matched <code>?slug=${escape(slug)}</code>.</p>
+                    <p>Try one of:</p>
+                    <div class="slugs">${slugLinks}</div>
+                </div>
+                `
+            }
+
+            function uniqueSlugs(views) {
+                const set = new Set()
+                for (const v of views) {
+                    for (const gv of v.grapherViews || []) set.add(gv.slug)
+                }
+                return Array.from(set).sort()
+            }
+
+            function renderControls(slug, all, filtered) {
+                const allSlugs = uniqueSlugs(all)
+                if (slug) {
+                    $controls.innerHTML = `
+                        <strong>Filter:</strong>
+                        <span class="pill">slug = ${escape(slug)}</span>
+                        <span>showing ${filtered.length} of ${all.length} views</span>
+                        <span style="flex:1"></span>
+                        <a href="?">Clear filter</a>
+                    `
+                } else {
+                    $controls.innerHTML = `
+                        <strong>All views</strong>
+                        <span>${all.length} total across ${allSlugs.length} chart slugs</span>
+                        <span style="flex:1"></span>
+                        <span>Try: ${allSlugs
+                            .slice(0, 4)
+                            .map(
+                                (s) =>
+                                    `<a href="?slug=${encodeURIComponent(s)}">${escape(s)}</a>`
+                            )
+                            .join(" · ")}</span>
+                    `
+                }
+            }
+
+            async function main() {
+                let idx
+                try {
+                    const res = await fetch("./views/index.json", {
+                        cache: "no-cache",
+                    })
+                    idx = await res.json()
+                } catch (err) {
+                    $views.innerHTML = `<div class="empty"><p>Could not load <code>views/index.json</code>: ${escape(err.message)}.</p><p>Serve this page from a local static server (e.g. <code>python3 -m http.server</code>) — opening it as a <code>file://</code> URL will block the fetch.</p></div>`
+                    $controls.innerHTML = ""
+                    return
+                }
+                const slug = getParam("slug")
+                const all = idx.views
+                const filtered = slug
+                    ? all.filter((v) =>
+                          (v.grapherViews || []).some((gv) => gv.slug === slug)
+                      )
+                    : all
+                renderControls(slug, all, filtered)
+                if (filtered.length === 0) {
+                    $views.innerHTML = renderEmpty(slug, uniqueSlugs(all))
+                    return
+                }
+                // Order: key first, then notable, then null, preserving file order within
+                const order = { key: 0, notable: 1 }
+                const sorted = filtered.slice().sort((a, b) => {
+                    const la = order[a.metadata?.keyInsightLevel] ?? 2
+                    const lb = order[b.metadata?.keyInsightLevel] ?? 2
+                    return la - lb
+                })
+                $views.innerHTML = sorted.map(renderView).join("")
+            }
+
+            main()
+        </script>
+    </body>
+</html>

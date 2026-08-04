@@ -1,0 +1,40 @@
+metadata:
+  description: |
+    Stable "lineage" rows for the agentic-writing playground — one row per
+    drafted piece of AI-authored content, regardless of content type. Versions
+    belong to a lineage via `agentic_writing_versions.lineageId` and are
+    immutable. The lineage carries the editorial state (private → submitted →
+    published), the owner, and the content type. Review state is derived from
+    the latest version's review block.
+  incoming_foreign_keys:
+    - table: agentic_writing_versions
+      column: lineageId
+fields:
+  id:
+    description: Unique identifier for the lineage (integer primary key)
+  lineageKey:
+    description: |
+      Natural key, `{sourceId}__{localId}` (e.g.
+      "child-mortality-2026-05-22-18-15-00__view-01"). Used in API paths.
+  contentType:
+    description: |
+      What kind of content this lineage holds. Discriminates the shape of the
+      `payload` JSON on each version. Currently only `data_nugget` is supported.
+  sourceId:
+    description: Source identifier for the generation batch this piece belongs to (e.g. "child-mortality-2026-05-22-18-15-00")
+  localId:
+    description: Per-source id within the generation batch (e.g. "view-01")
+  ownerUserId:
+    description: Foreign key to users — the OWID user who owns this lineage (their private workspace)
+  submittedAt:
+    description: Timestamp the owner submitted this lineage for editorial review, or null if still private
+  submittedByUserId:
+    description: Foreign key to users — who submitted it for editorial review (typically the owner)
+  publishedAt:
+    description: Timestamp the lineage was published, or null
+  publishedByUserId:
+    description: Foreign key to users — who published it
+  createdAt:
+    description: Timestamp when the lineage row was created
+  updatedAt:
+    description: Timestamp when the lineage row was last modified
