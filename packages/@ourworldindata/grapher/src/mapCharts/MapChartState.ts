@@ -300,6 +300,13 @@ export class MapChartState implements ChartState, ColorScaleManager {
         return this.manager.mapConfig || new MapConfig()
     }
 
+    @computed get notApplicableEntityNamesSet(): Set<EntityName> {
+        const notApplicableEntities = this.inputTable.get(this.mapColumnSlug)
+            .def.display?.notApplicableEntities
+
+        return new Set((notApplicableEntities ?? []).filter(isOnTheMap))
+    }
+
     @computed get mapColumnSlug(): ColumnSlug {
         return this.mapColumnInfo.slug
     }
@@ -328,6 +335,10 @@ export class MapChartState implements ChartState, ColorScaleManager {
 
     @computed get hasProjectedDataBin(): boolean {
         return this.hasProjectedData
+    }
+
+    @computed get hasNotApplicableBin(): boolean {
+        return this.notApplicableEntityNamesSet.size > 0
     }
 
     @computed get targetTime(): number | undefined {
@@ -382,13 +393,20 @@ export class MapChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get series(): ChoroplethSeries[] {
-        const { mapColumn, targetTime } = this
+        const { mapColumn, targetTime, notApplicableEntityNamesSet } = this
         if (mapColumn.isMissing) return []
         if (targetTime === undefined) return []
 
         return mapColumn.owidRows
             .map((row) => {
                 const { entityName, value, originalTime } = row
+
+                // Entities with not-applicable values are expected to have
+                // no data, but skip any rows they might have anyway, so that
+                // they're guaranteed to never have a series
+                if (notApplicableEntityNamesSet.has(entityName))
+                    return undefined
+
                 const color =
                     this.colorScale.getColor(value) || this.noDataColor
                 const isProjection = this.checkIsProjection(
