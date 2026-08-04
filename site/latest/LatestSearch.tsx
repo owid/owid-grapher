@@ -10,6 +10,11 @@ import { LiteClient } from "algoliasearch/lite"
 import { useTagGraphTopics } from "../search/searchHooks.js"
 import { useInfiniteLatestPages, useLatestAnalytics } from "./latestHooks.js"
 import { LatestTopicFacets } from "./LatestTopicFacets.js"
+import { LatestPageHeader } from "./LatestPageHeader.js"
+import {
+    LATEST_FACETS_CONTAINER_CLASSES,
+    LATEST_FILTERS_DIVIDER_CLASSES,
+} from "./latestUtils.js"
 import {
     searchParamsToState,
     stateToSearchParams,
@@ -135,15 +140,8 @@ export const LatestSearch = ({
 
     return (
         <LatestContext.Provider value={{ analytics }}>
-            <header className="latest-page-header span-cols-14 grid grid-cols-12-full-width">
-                <h1 className="display-2-semibold span-cols-8 col-start-2 col-md-start-2 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
-                    Latest
-                </h1>
-                <p className="latest-page__header-subtitle body-1-regular span-cols-8 col-start-2 col-md-start-2 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
-                    Our latest articles, data updates, and announcements
-                </p>
-            </header>
-            <div className="latest-search__facets-container span-cols-12 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1">
+            <LatestPageHeader />
+            <div className={LATEST_FACETS_CONTAINER_CLASSES}>
                 <LatestTopicFacets
                     topics={allAreas}
                     selectedTopics={topics}
@@ -154,7 +152,7 @@ export const LatestSearch = ({
                     disabledTopics={disabledTopics}
                 />
             </div>
-            <hr className="latest-search__filters-divider span-cols-12 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1" />
+            <hr className={LATEST_FILTERS_DIVIDER_CLASSES} />
             {isLoading ? (
                 <LatestSearchSkeleton topicArea={topics[0]} />
             ) : hits.length === 0 ? (

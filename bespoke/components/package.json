@@ -21,7 +21,7 @@
     "devDependencies": {
         "@types/d3-sankey": "^0.12.5",
         "typescript": "^7.0.2",
-        "vitest": "^4.1.8"
+        "vitest": "^4.1.10"
     },
     "scripts": {
         "build": "",

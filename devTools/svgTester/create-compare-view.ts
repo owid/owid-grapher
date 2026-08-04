@@ -54,8 +54,8 @@ async function main(args: ReturnType<typeof parseArguments>) {
         referenceData.map((record) => [record.svgFilename, record])
     )
     const svgRecords = _.sortBy(
-        svgFilesWithDifferences.map(
-            (filename) => referenceDataByFilename.get(filename)!
+        svgFilesWithDifferences.map((filename) =>
+            referenceDataByFilename.get(filename)!
         ),
         "viewId"
     )

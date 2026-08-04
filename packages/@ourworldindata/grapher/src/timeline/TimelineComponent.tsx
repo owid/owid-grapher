@@ -430,7 +430,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     private formatTime(time: number): string {
         const { timeColumn } = this.manager
         if (!timeColumn) return time.toString()
-        return timeColumn.formatTime(time)
+        return timeColumn.formatTimeShort(time)
     }
 
     @action.bound private togglePlay(): void {

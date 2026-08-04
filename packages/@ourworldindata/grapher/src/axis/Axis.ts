@@ -14,9 +14,15 @@ import {
     Tickmark,
     ValueRange,
     OwidVariableRoundingMode,
+    isSubYearly,
 } from "@ourworldindata/utils"
 import { ComparisonLineConfig } from "@ourworldindata/types"
 import { AxisConfig, AxisManager } from "./AxisConfig"
+import {
+    buildTimeAxisTicks,
+    getDiscreteTimeTickOptions,
+    type CalendarTickInterval,
+} from "./timeAxisTicks.js"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { CoreColumn } from "@ourworldindata/core-table"
 import {
@@ -43,6 +49,9 @@ interface TickLabelPlacement {
 type Scale = ScaleLinear<number, number> | ScaleLogarithmic<number, number>
 
 const OUTER_PADDING = 4
+
+// An axis never shows more labels than this
+const MAX_TICK_LABEL_COUNT = 50
 
 const doIntersect = (bounds: Bounds, bounds2: Bounds): boolean => {
     return bounds.intersects(bounds2)
@@ -228,13 +237,13 @@ abstract class AbstractAxis {
 
     /**
      * Maximum width a single value can take up on the axis.
-     * Not meaningful if no domain values are given.
+     * Not meaningful if no band values are given.
      */
     @computed get bandWidth(): number | undefined {
-        const { domainValues } = this.config
-        if (!domainValues) return undefined
+        const { bandValues } = this.config
+        if (!bandValues) return undefined
         return AbstractAxis.calculateBandWidth({
-            values: domainValues,
+            values: bandValues,
             scale: this.d3_scale,
         })
     }
@@ -281,10 +290,10 @@ abstract class AbstractAxis {
             this.niceTicks = undefined
         }
 
-        if (this.config.domainValues) {
+        if (this.config.bandValues) {
             // compute bandwidth and adjust the scale
             const bandWidth = AbstractAxis.calculateBandWidth({
-                values: this.config.domainValues,
+                values: this.config.bandValues,
                 scale,
             })
             const offset = bandWidth / 2 + OUTER_PADDING
@@ -325,15 +334,56 @@ abstract class AbstractAxis {
         )
     }
 
+    /**
+     * The time interval for which this axis shows calendar-aware ticks, or
+     * `undefined` if the axis uses the generic tick pipeline instead (because
+     * ticks are author-supplied, the column isn't a time column, or its
+     * interval has no calendar-aware handling).
+     */
+    @computed protected get calendarTickInterval():
+        | CalendarTickInterval
+        | undefined {
+        const column = this.formatColumn
+        if (this.config.ticks || !column?.isTimeColumn) return undefined
+        return isSubYearly(column.timeInterval)
+            ? column.timeInterval
+            : undefined
+    }
+
+    /**
+     * Calendar-aware ticks (values + labels) for time axes that support them;
+     * `undefined` otherwise, so the axis falls through to the generic pipeline.
+     */
+    @computed protected get timeAxisTicks(): Tickmark[] | undefined {
+        if (this.calendarTickInterval === undefined) return undefined
+
+        return buildTimeAxisTicks({
+            interval: this.calendarTickInterval,
+            domain: this.domain,
+            targetCount: this.totalTicksTarget,
+            bandValues: this.config.bandValues,
+        })
+    }
+
+    /** One labelled tick per discrete band */
+    @computed private get bandTicks(): Tickmark[] | undefined {
+        const { bandValues } = this.config
+        if (!bandValues) return undefined
+        return bandValues.map((value) => ({ value, priority: 2 }))
+    }
+
     getTickValues(): Tickmark[] {
-        const { d3_scale } = this
+        const { d3_scale, timeAxisTicks } = this
+
+        if (timeAxisTicks) return timeAxisTicks
 
         let ticks: Tickmark[]
 
-        if (this.config.ticks) {
+        const manualTicks = this.config.ticks ?? this.bandTicks
+        if (manualTicks) {
             // If custom ticks are supplied, use them without any transformations or additions.
             const [minValue, maxValue] = d3_scale.domain()
-            const processedTicks = this.config.ticks
+            const processedTicks = manualTicks
                 // replace ±Infinity with minimum/maximum
                 .map((tick) => {
                     if (tick.value === -Infinity)
@@ -477,6 +527,24 @@ abstract class AbstractAxis {
             const dp = -numberMagnitude(minDist) + 1
             if (dp >= 0) {
                 options.numDecimalPlaces = dp
+            }
+
+            // The same requirement expressed in significant figures, for
+            // abbreviated ticks (e.g. 10.02M) whose precision counts from the
+            // value's leading digit rather than from the decimal point. Only
+            // set when it exceeds the formatter's default of 3, e.g. for a
+            // narrow domain at a high magnitude like [10.02M, 10.08M]
+            if (!this.isLogScale) {
+                const maxAbs = _.max(
+                    this.baseTicks.map((tick) => Math.abs(tick.value))
+                )
+                if (maxAbs) {
+                    const sigFigs =
+                        numberMagnitude(maxAbs) - numberMagnitude(minDist) + 1
+                    if (sigFigs > 3) {
+                        options.abbreviationSignificantFigures = sigFigs
+                    }
+                }
             }
         }
         return options
@@ -655,6 +723,8 @@ export class HorizontalAxis extends AbstractAxis {
     }
 
     protected override get baseTicks(): Tickmark[] {
+        if (this.timeAxisTicks) return this.timeAxisTicks
+
         let ticks = this.getTickValues().filter(
             (tick): boolean => !tick.gridLineOnly
         )
@@ -690,19 +760,37 @@ export class HorizontalAxis extends AbstractAxis {
     }
 
     @computed get tickLabels(): TickLabelPlacement[] {
-        // Get ticks with coordinates, sorted by priority
-        const tickLabels = _.sortBy(
+        // A discrete (band) time axis shows a single evenly-spaced labeling:
+        // the finest one that fits (every day, then week, month, quarter, year, …)
+        const interval = this.calendarTickInterval
+        if (interval !== undefined && this.config.bandValues) {
+            const options = getDiscreteTimeTickOptions({
+                interval,
+                bandValues: this.config.bandValues,
+            })
+            for (const option of options) {
+                // Denser options can't fit, so don't bother measuring them
+                if (option.length > MAX_TICK_LABEL_COUNT) continue
+
+                const placedTickLabels = option.map((tick) =>
+                    this.placeTickLabel(tick.value, tick.label)
+                )
+                if (labelsFit(placedTickLabels, { padding: 3 }))
+                    return placedTickLabels
+            }
+            // If no evenly-spaced option fits, fall through to the greedy labeling below
+        }
+
+        // Otherwise: place all ticks greedily, then drop individual overlaps.
+        const placedTickLabels = _.sortBy(
             this.baseTicks,
             (tick) => tick.priority
-        ).map((tick) => this.placeTickLabel(tick.value))
-        const visibleTickLabels = hideOverlappingTickLabels(tickLabels, {
-            padding: 3,
-        })
-        return visibleTickLabels
+        ).map((tick) => this.placeTickLabel(tick.value, tick.label))
+        return hideOverlappingTickLabels(placedTickLabels, { padding: 3 })
     }
 
-    placeTickLabel(value: number): TickLabelPlacement {
-        const formattedValue = this.formatTick(value)
+    placeTickLabel(value: number, label?: string): TickLabelPlacement {
+        const formattedValue = label ?? this.formatTick(value)
         const { width, height } = Bounds.forText(formattedValue, {
             fontSize: this.tickFontSize,
         })
@@ -962,6 +1050,33 @@ export class DualAxis {
     }
 }
 
+/**
+ * Whether no two labels overlap, keeping at least `padding` of space between them.
+ *
+ * Expects `tickLabels` in the order they appear on the axis, so that it suffices
+ * to compare neighbours.
+ */
+function labelsFit(
+    tickLabels: TickLabelPlacement[],
+    { padding = 0 }: { padding?: number } = {}
+): boolean {
+    for (let i = 0; i < tickLabels.length - 1; i++) {
+        if (
+            doIntersect(
+                // Expand bounds so that labels aren't too close together
+                boundsFromLabelPlacement(tickLabels[i]).expand(padding),
+                boundsFromLabelPlacement(tickLabels[i + 1]).expand(padding)
+            )
+        )
+            return false
+    }
+    return true
+}
+
+/**
+ * Drops each label that overlaps an earlier (higher-priority) one, returning the
+ * survivors. `padding` is the minimum space kept between them.
+ */
 function hideOverlappingTickLabels(
     tickLabels: TickLabelPlacement[],
     { padding = 0 }: { padding?: number } = {}
@@ -973,7 +1088,7 @@ function hideOverlappingTickLabels(
             if (t1 === t2 || t1.isHidden || t2.isHidden) continue
             if (
                 doIntersect(
-                    // Expand bounds so that labels aren't too close together.
+                    // Expand bounds so that labels aren't too close together
                     boundsFromLabelPlacement(t1).expand(padding),
                     boundsFromLabelPlacement(t2).expand(padding)
                 )

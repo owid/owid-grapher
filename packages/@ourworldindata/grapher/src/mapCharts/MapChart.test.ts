@@ -6,6 +6,7 @@ import {
     SynthesizeProjectedPopulationTable,
 } from "@ourworldindata/core-table"
 import { MapChartManager } from "./MapChartConstants"
+import { MapChart } from "./MapChart"
 import { MapChartState } from "./MapChartState"
 
 const table = SynthesizeGDPTable({
@@ -31,6 +32,30 @@ it("filters out non-map entities from colorScaleColumn", () => {
     expect(chartState.colorScaleColumn.uniqEntityNames).toEqual(
         expect.arrayContaining(["France", "Germany"])
     )
+})
+
+it("pins a map bracket selected by touch until the next touch", () => {
+    const chartState = new MapChartState({ manager })
+    const chart = new MapChart({ chartState })
+    const [firstBracket, secondBracket] = chartState.colorScale.legendBins
+
+    expect(firstBracket).toBeDefined()
+    expect(secondBracket).toBeDefined()
+
+    chart.onLegendMouseOver(firstBracket)
+    chart.onLegendTouchSelect(firstBracket)
+    chart.onLegendMouseLeave()
+    chart.onLegendMouseOver(secondBracket)
+
+    expect(chart.hoverBracket).toBe(firstBracket)
+
+    chart.onDocumentPointerDown()
+
+    expect(chart.hoverBracket).toBeUndefined()
+
+    chart.onLegendMouseOver(secondBracket)
+
+    expect(chart.hoverBracket).toBe(secondBracket)
 })
 
 it("combines projected data with its historical counterpart", () => {
