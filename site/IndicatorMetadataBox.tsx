@@ -159,7 +159,10 @@ function ExpandableSection({
     return (
         <div className={cx("meta-expander", className)}>
             {descriptionKeyPreview && (
-                <div className="meta-expander__preview meta-expander__prose">
+                <div
+                    className="meta-expander__preview meta-expander__prose"
+                    data-comment-field="descriptionKey"
+                >
                     <SimpleMarkdownText text={descriptionKeyPreview} />
                 </div>
             )}

@@ -255,7 +255,7 @@ abstract class AbstractHeader<
                         rel: "noopener",
                     })}
                 >
-                    <h1 style={this.title.htmlStyle}>
+                    <h1 data-grapher-part="title" style={this.title.htmlStyle}>
                         <TextWrapHtml textWrap={this.title} />
                     </h1>
                 </a>
@@ -264,7 +264,7 @@ abstract class AbstractHeader<
 
         // on larger screens, only make the title text itself clickable
         return (
-            <h1 style={this.title.htmlStyle}>
+            <h1 data-grapher-part="title" style={this.title.htmlStyle}>
                 <a
                     href={manager.canonicalUrl}
                     data-track-note="chart_click_title"
@@ -288,7 +288,7 @@ abstract class AbstractHeader<
             overflowY: "hidden",
         }
         return (
-            <p style={style}>
+            <p data-grapher-part="subtitle" style={style}>
                 <MarkdownTextWrapHtml textWrap={this.subtitle} />
             </p>
         )

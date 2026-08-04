@@ -588,7 +588,11 @@ abstract class AbstractFooter<
 
     private renderNote(): React.ReactElement {
         return (
-            <p className="note" style={this.note.style}>
+            <p
+                className="note"
+                data-grapher-part="note"
+                style={this.note.style}
+            >
                 <MarkdownTextWrapHtml textWrap={this.note} />
             </p>
         )

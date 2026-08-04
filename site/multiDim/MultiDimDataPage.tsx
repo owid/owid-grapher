@@ -13,6 +13,7 @@ import {
 } from "@ourworldindata/utils"
 import { MultiDimDataPageProps } from "@ourworldindata/types"
 import { DebugProvider } from "../gdocs/DebugProvider.js"
+import { buildCommentPageContext } from "../comments/commentContext.js"
 import { Html } from "../Html.js"
 import {
     MultiDimDataPageContent,
@@ -26,6 +27,7 @@ export function MultiDimDataPage({
     slug,
     configObj,
     initialViewData,
+    initialViewVariableId,
     initialViewDimensions,
     tagToSlugMap,
     faqEntries,
@@ -35,6 +37,7 @@ export function MultiDimDataPage({
     isPreviewing,
     archiveContext,
     canonicalUrl,
+    multiDimId,
 }: MultiDimDataPageProps) {
     if (!slug && !isPreviewing) {
         throw new Error("Missing slug for multidimensional data page")
@@ -57,6 +60,35 @@ export function MultiDimDataPage({
         tagToSlugMap,
         isPreviewing,
     }
+    // Previews only. Dimension slugs let the overlay read the current view out
+    // of the URL, so a comment records which view it was left on.
+    const commentPageContext =
+        isPreviewing && multiDimId !== undefined
+            ? buildCommentPageContext({
+                  multiDim: {
+                      id: multiDimId,
+                      label: pageTitle,
+                      dimensionSlugs: configObj.dimensions.map((d) => d.slug),
+                      defaultView: initialViewDimensions,
+                  },
+                  // Indicator metadata shown on a multi-dim belongs to the
+                  // indicator, not the multi-dim, so comments on it follow that
+                  // indicator to wherever else it is used. Only the landing
+                  // view's indicator is known server-side; its field keys are
+                  // the same for every view, so comments stay correctly
+                  // anchored even though a pin may not place on other views.
+                  datapageData: initialViewData,
+                  variables:
+                      initialViewVariableId !== undefined && initialViewData
+                          ? [
+                                {
+                                    variableId: initialViewVariableId,
+                                    label: initialViewData.title.title,
+                                },
+                            ]
+                          : [],
+              })
+            : undefined
     const imageUrl: string = urljoin(
         baseUrl || "/",
         "default-grapher-thumbnail.png"
@@ -123,6 +155,15 @@ export function MultiDimDataPage({
                             )}`,
                         }}
                     />
+                    {commentPageContext && (
+                        <script
+                            dangerouslySetInnerHTML={{
+                                __html: `window._OWID_COMMENT_CONTEXT = ${serializeJSONForHTML(
+                                    commentPageContext
+                                )}`,
+                            }}
+                        />
+                    )}
                     <div id={OWID_DATAPAGE_CONTENT_ROOT_ID}>
                         <DebugProvider debug={isPreviewing}>
                             {/* Location is mandatory, but we don't really need it. */}

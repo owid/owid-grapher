@@ -45,10 +45,14 @@ export default function AboutThisData({
                     <div className="col-start-1 span-cols-8 span-lg-cols-7 span-sm-cols-12">
                         <div className="key-info__content">
                             {datapageData.descriptionKey && (
-                                <div className="key-info__key-description">
+                                <div
+                                    className="key-info__key-description"
+                                    data-comment-field="descriptionKey"
+                                >
                                     <SimpleMarkdownText
                                         text={datapageData.descriptionKey.trim()}
                                     />
+
                                     {hasFaq && (
                                         <a
                                             className="key-info__learn-more"

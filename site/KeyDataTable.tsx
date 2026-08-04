@@ -32,10 +32,16 @@ export default function KeyDataTable({
         <div className="key-data-block grid grid-cols-4 grid-sm-cols-12">
             {datapageData.descriptionShort && (
                 <div className="key-data span-cols-4 span-sm-cols-12">
-                    <div className="key-data-description-short__title">
+                    <div
+                        className="key-data-description-short__title"
+                        data-comment-field="indicatorTitle"
+                    >
                         {datapageData.title.title}
                     </div>
-                    <div className="key-data-description-short__title-fragments">
+                    <div
+                        className="key-data-description-short__title-fragments"
+                        data-comment-field="titleVariant"
+                    >
                         {
                             // This method may return undefined if both fields are empty
                             joinTitleFragments(
@@ -53,37 +59,55 @@ export default function KeyDataTable({
                 </div>
             )}
             {source && (
-                <div className="key-data span-cols-4 span-sm-cols-12">
+                <div
+                    className="key-data span-cols-4 span-sm-cols-12"
+                    data-comment-field="source"
+                >
                     <div className="key-data__title">Source</div>
                     <div>{source}</div>
                 </div>
             )}
             {lastUpdated && (
-                <div className="key-data span-cols-2 span-sm-cols-6">
+                <div
+                    className="key-data span-cols-2 span-sm-cols-6"
+                    data-comment-field="lastUpdated"
+                >
                     <div className="key-data__title">Last updated</div>
                     <div>{lastUpdated}</div>
                 </div>
             )}
             {nextUpdate && (
-                <div className="key-data span-cols-2 span-sm-cols-6">
+                <div
+                    className="key-data span-cols-2 span-sm-cols-6"
+                    data-comment-field="nextUpdate"
+                >
                     <div className="key-data__title">Next expected update</div>
                     <div>{nextUpdate}</div>
                 </div>
             )}
             {dateRange && (
-                <div className="key-data span-cols-2 span-sm-cols-6">
+                <div
+                    className="key-data span-cols-2 span-sm-cols-6"
+                    data-comment-field="dateRange"
+                >
                     <div className="key-data__title">Date range</div>
                     <div>{dateRange}</div>
                 </div>
             )}
             {unit && (
-                <div className="key-data span-cols-2 span-sm-cols-6">
+                <div
+                    className="key-data span-cols-2 span-sm-cols-6"
+                    data-comment-field="unit"
+                >
                     <div className="key-data__title">Unit</div>
                     <div>{unit}</div>
                 </div>
             )}
             {unitConversionFactor && (
-                <div className="key-data span-cols-2 span-sm-cols-6">
+                <div
+                    className="key-data span-cols-2 span-sm-cols-6"
+                    data-comment-field="unitConversionFactor"
+                >
                     <div className="key-data__title">
                         Unit conversion factor
                     </div>

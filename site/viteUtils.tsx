@@ -183,7 +183,15 @@ export const viteAssetsForAdmin = () => viteAssets(ViteEntryPoint.Admin)
 export const viteAssetsForSite = ({
     staticAssetMap,
 }: { staticAssetMap?: AssetMap } = {}) =>
-    viteAssets(ViteEntryPoint.Site, { prodAssetMap: staticAssetMap })
+    // A static asset map is only ever passed when baking an archival snapshot,
+    // and it describes the archive bundle, which is self-contained. Read that
+    // bundle's manifest rather than the site one: the site build is code-split
+    // (the comments overlay is a lazy chunk, which also makes rolldown emit a
+    // shared runtime chunk), and those chunks have no counterpart in the
+    // archive build, so resolving them against the archive map would throw.
+    staticAssetMap
+        ? viteAssets(ViteEntryPoint.Archive, { prodAssetMap: staticAssetMap })
+        : viteAssets(ViteEntryPoint.Site)
 
 export const generateEmbedSnippet = () => {
     // Make sure we're using an absolute URL here, since we don't know in what context the embed snippet is used.
