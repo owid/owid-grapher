@@ -128,6 +128,11 @@ function resolveCtaUrl(
     return getLinkedDocumentUrl(doc, rawUrl)
 }
 
+function ensureTrailingPunctuation(text: string): string {
+    const trimmed = text.trimEnd()
+    return /[.!?…]["'”’)\]]*$/.test(trimmed) ? trimmed : `${trimmed}.`
+}
+
 function buildSocialText(
     title: string,
     body: OwidEnrichedGdocBlock[],
@@ -147,7 +152,7 @@ function buildSocialText(
         }
     }
 
-    const parts = [title, paragraphs.join("\n\n")]
+    const parts = [ensureTrailingPunctuation(title), paragraphs.join("\n\n")]
 
     if (authors.length > 0) {
         parts.push(
