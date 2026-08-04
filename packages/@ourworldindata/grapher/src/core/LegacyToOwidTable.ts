@@ -18,7 +18,6 @@ import {
 import {
     OwidTable,
     ErrorValueTypes,
-    makeKeyFn,
     makeAnnotationsSlug,
 } from "@ourworldindata/core-table"
 import {
@@ -381,84 +380,79 @@ export const legacyToOwidTableAndDimensions = (
     return joinedVariablesTable
 }
 
-type JoinKey = number | string
-type JoinKeyFn = (rowIndex: number) => JoinKey
+type JoinKeyFn = (rowIndex: number) => number
 
-// Generic string keys ("2020 123") mean a number-to-string conversion, a
+// String join keys ("2020 123") would mean a number-to-string conversion, a
 // concatenation and string hashing for every row of every table - by far the
 // most expensive part of the join. Our index columns (year/day and entityId)
-// are always integers, so we can instead encode a [time, entityId] tuple as
-// the single number time * 2^26 + entityId, which is exact as long as
+// are always integers, so we instead encode a [time, entityId] tuple as the
+// single number time * 2^26 + entityId, which is exact as long as
 // |time| < 2^26 (years and days since epoch are far below 67 million) and
-// 0 <= entityId < 2^26 (database ids). If any value doesn't fit we
-// transparently fall back to the generic string keys.
+// 0 <= entityId < 2^26 (database ids). We validate this upfront and throw if
+// any value doesn't fit.
 // Note that this must be multiplication, not a bit shift: the composite key
 // uses up to 52 bits, but JS bitwise operators truncate to 32-bit integers.
 // Multiplication and addition are exact up to 2^53.
 const NUMERIC_KEY_BASE = 2 ** 26
 
-const canUseNumericKeys = (
-    tables: OwidTable[],
-    columnSlugs: string[],
-    tableNeedsKeys: boolean[]
-): boolean => {
-    if (columnSlugs.length !== 1 && columnSlugs.length !== 2) return false
-    for (let t = 0; t < tables.length; t++) {
-        if (!tableNeedsKeys[t]) continue
-        const columnStore = tables[t].columnStore
-        const col0 = columnStore[columnSlugs[0]]
-        const col1 =
-            columnSlugs.length === 2 ? columnStore[columnSlugs[1]] : undefined
-        if (!col0 || (columnSlugs.length === 2 && !col1)) return false
-        const numRows = tables[t].numRows
-        for (let row = 0; row < numRows; row++) {
-            const v0 = col0[row]
-            if (typeof v0 !== "number" || !Number.isInteger(v0)) return false
-            if (col1) {
-                const v1 = col1[row]
-                if (
-                    typeof v1 !== "number" ||
-                    !Number.isInteger(v1) ||
-                    v1 < 0 ||
-                    v1 >= NUMERIC_KEY_BASE ||
-                    Math.abs(v0) >= NUMERIC_KEY_BASE
-                )
-                    return false
-            }
-        }
-    }
-    return true
-}
-
 /**
- * Builds, for each table, a function that computes the join key for one of its
- * rows over the given columns. Uses the fast numeric composite keys when all
- * values fit (see above) and generic string keys otherwise. The two encodings
- * are incompatible, so key functions that are matched against each other
- * always have to come from the same call. Tables with `tableNeedsKeys` set to
- * false are skipped during validation and get a key function that must not be
- * called (they may lack the key columns entirely).
+ * Builds, for each table, a function that computes the numeric join key for
+ * one of its rows over the given columns: the column value itself for a single
+ * column, v0 * 2^26 + v1 for a pair (see above). Throws if any value doesn't
+ * fit the encoding. Tables with `tableNeedsKeys` set to false are skipped
+ * during validation and get a key function that must not be called (they may
+ * lack the key columns entirely).
  */
 const makeJoinKeyFns = (
     tables: OwidTable[],
     columnSlugs: string[],
     tableNeedsKeys: boolean[]
 ): JoinKeyFn[] => {
-    if (canUseNumericKeys(tables, columnSlugs, tableNeedsKeys))
-        return tables.map((table) => {
-            const columnStore = table.columnStore
-            const col0 = columnStore[columnSlugs[0]]
-            const col1 =
-                columnSlugs.length === 2
-                    ? columnStore[columnSlugs[1]]
-                    : undefined
-            return col1
-                ? (rowIndex): number =>
-                      (col0[rowIndex] as number) * NUMERIC_KEY_BASE +
-                      (col1[rowIndex] as number)
-                : (rowIndex): number => col0[rowIndex] as number
+    if (columnSlugs.length !== 1 && columnSlugs.length !== 2)
+        throw new Error(
+            `Cannot join on ${columnSlugs.length} columns, only 1 or 2 are supported`
+        )
+    for (let t = 0; t < tables.length; t++) {
+        if (!tableNeedsKeys[t]) continue
+        const columnStore = tables[t].columnStore
+        const numRows = tables[t].numRows
+        columnSlugs.forEach((slug, i) => {
+            const column = columnStore[slug]
+            if (!column)
+                throw new Error(
+                    `Join column '${slug}' is missing from a table (columns: ${tables[
+                        t
+                    ].columnSlugs.join(", ")})`
+                )
+            for (let row = 0; row < numRows; row++) {
+                const value = column[row]
+                if (typeof value !== "number" || !Number.isSafeInteger(value))
+                    throw new Error(
+                        `Join key value '${value}' in column '${slug}' is not an integer`
+                    )
+                if (
+                    columnSlugs.length === 2 &&
+                    (i === 0
+                        ? Math.abs(value) >= NUMERIC_KEY_BASE
+                        : value < 0 || value >= NUMERIC_KEY_BASE)
+                )
+                    throw new Error(
+                        `Join key value ${value} in column '${slug}' does not fit the composite key encoding`
+                    )
+            }
         })
-    return tables.map((table) => makeKeyFn(table.columnStore, columnSlugs))
+    }
+    return tables.map((table) => {
+        const columnStore = table.columnStore
+        const col0 = columnStore[columnSlugs[0]]
+        const col1 =
+            columnSlugs.length === 2 ? columnStore[columnSlugs[1]] : undefined
+        return col1
+            ? (rowIndex): number =>
+                  (col0[rowIndex] as number) * NUMERIC_KEY_BASE +
+                  (col1[rowIndex] as number)
+            : (rowIndex): number => col0[rowIndex] as number
+    })
 }
 
 // Exported for benchmarking (see LegacyToOwidTable.bench.ts), not meant to be
@@ -507,7 +501,7 @@ export const fullJoinTables = (
 
     // Pass 1: assign an output row to every distinct index key, in order of first
     // occurrence across the tables (this determines the row order of the joined table)
-    const outputRowByKey = new Map<JoinKey, number>()
+    const outputRowByKey = new Map<number, number>()
     for (let t = 0; t < tables.length; t++) {
         if (!tableHasMainIndexColumns[t]) continue
         const keyFn = mainKeyFns[t]
@@ -564,7 +558,7 @@ export const fullJoinTables = (
             firstTableKeyFn: keyFns[0],
             lastRowByKeyPerTable: tables.map((table, t) => {
                 const keyFn = keyFns[t]
-                const lastRowByKey = new Map<JoinKey, number>()
+                const lastRowByKey = new Map<number, number>()
                 const numRows = table.numRows
                 // Later rows overwrite earlier ones, so a lookup yields the LAST row with
                 // a given fallback key. In the usual case the fallback key should have

@@ -1010,12 +1010,6 @@ Papua New Guinea,PNG,1983,5.5,1983,`
 })
 
 describe(fullJoinTables, () => {
-    // fullJoinTables uses fast numeric composite keys when all times and entity
-    // ids fit into 26 bits, and generic string keys otherwise. Both paths have
-    // to produce equivalent joins - we verify this by joining the same data
-    // twice, with entity ids shifted beyond 2^26 to force the string path.
-    const HUGE_ID_OFFSET = 2 ** 26
-
     const makeTable = (
         variableId: number,
         rows: [entityId: number, time: number, value: number][],
@@ -1036,9 +1030,7 @@ describe(fullJoinTables, () => {
                     entities: {
                         values: entityIds.map((id) => ({
                             id,
-                            // identical names for both id ranges, so the
-                            // joined tables are comparable
-                            name: `Entity ${id % HUGE_ID_OFFSET}`,
+                            name: `Entity ${id}`,
                         })),
                     },
                 },
@@ -1046,99 +1038,102 @@ describe(fullJoinTables, () => {
         })
     }
 
-    const expectEquivalentJoins = (
-        numericKeyed: OwidTable,
-        stringKeyed: OwidTable
-    ): void => {
-        expect(stringKeyed.columnSlugs).toEqual(numericKeyed.columnSlugs)
-        for (const slug of numericKeyed.columnSlugs) {
-            const numericValues =
-                numericKeyed.get(slug).valuesIncludingErrorValues
-            const stringValues =
-                stringKeyed.get(slug).valuesIncludingErrorValues
-            if (slug === OwidTableSlugs.EntityId)
-                expect(stringValues).toEqual(
-                    numericValues.map((id) => (id as number) + HUGE_ID_OFFSET)
-                )
-            else expect(stringValues).toEqual(numericValues)
-        }
-    }
+    it("joins by year+entity", () => {
+        const joined = fullJoinTables(
+            [
+                makeTable(2, [
+                    [1, 2000, 1],
+                    [1, 2001, 2],
+                    [2, 2001, 3],
+                ]),
+                // partial overlap, so the join has misses too
+                makeTable(3, [
+                    [1, 2001, 10],
+                    [2, 2003, 11],
+                ]),
+            ],
+            [OwidTableSlugs.Year, OwidTableSlugs.EntityId]
+        )
 
-    it("joins by year+entity identically with numeric and string keys", () => {
-        const joinByYear = (offset: number): OwidTable =>
-            fullJoinTables(
-                [
-                    makeTable(2, [
-                        [offset + 1, 2000, 1],
-                        [offset + 1, 2001, 2],
-                        [offset + 2, 2001, 3],
-                    ]),
-                    // partial overlap, so the join has misses too
-                    makeTable(3, [
-                        [offset + 1, 2001, 10],
-                        [offset + 2, 2003, 11],
-                    ]),
-                ],
-                [OwidTableSlugs.Year, OwidTableSlugs.EntityId]
-            )
-
-        const numericKeyed = joinByYear(0)
-        expect(numericKeyed.get("2").valuesIncludingErrorValues).toEqual([
+        expect(joined.get("2").valuesIncludingErrorValues).toEqual([
             1,
             2,
             3,
             ErrorValueTypes.NoMatchingValueAfterJoin,
         ])
-        expect(numericKeyed.get("3").valuesIncludingErrorValues).toEqual([
+        expect(joined.get("3").valuesIncludingErrorValues).toEqual([
             ErrorValueTypes.NoMatchingValueAfterJoin,
             10,
             ErrorValueTypes.NoMatchingValueAfterJoin,
             11,
         ])
-        expectEquivalentJoins(numericKeyed, joinByYear(HUGE_ID_OFFSET))
     })
 
-    it("joins days and years via fallbacks identically with numeric and string keys", () => {
-        const joinDaysAndYears = (offset: number): OwidTable => {
-            const dayTable = makeTable(
-                4,
-                [
-                    [offset + 1, 18992, 5],
-                    [offset + 1, 18993, 6],
-                    [offset + 2, 18992, 7],
-                ],
-                TimeInterval.Day
-            ).appendColumns([
-                {
-                    slug: OwidTableSlugs.Year,
-                    name: OwidTableSlugs.Year,
-                    type: ColumnTypeNames.Year,
-                    values: [2022, 2022, 2022],
-                },
-            ])
-            const yearTable = makeTable(5, [
-                [offset + 1, 2022, 100],
-                // only matched via the entity-only fallback
-                [offset + 2, 2015, 200],
-            ])
-            return fullJoinTables(
-                [dayTable, yearTable],
-                [OwidTableSlugs.Day, OwidTableSlugs.EntityId],
-                [
-                    [OwidTableSlugs.Year, OwidTableSlugs.EntityId],
-                    [OwidTableSlugs.EntityId],
-                ]
-            )
-        }
-
-        const numericKeyed = joinDaysAndYears(0)
-        expect(numericKeyed.get("4").valuesIncludingErrorValues).toEqual([
-            5, 6, 7,
+    it("joins days and years via fallbacks", () => {
+        const dayTable = makeTable(
+            4,
+            [
+                [1, 18992, 5],
+                [1, 18993, 6],
+                [2, 18992, 7],
+            ],
+            TimeInterval.Day
+        ).appendColumns([
+            {
+                slug: OwidTableSlugs.Year,
+                name: OwidTableSlugs.Year,
+                type: ColumnTypeNames.Year,
+                values: [2022, 2022, 2022],
+            },
         ])
+        const yearTable = makeTable(5, [
+            [1, 2022, 100],
+            // only matched via the entity-only fallback
+            [2, 2015, 200],
+        ])
+        const joined = fullJoinTables(
+            [dayTable, yearTable],
+            [OwidTableSlugs.Day, OwidTableSlugs.EntityId],
+            [
+                [OwidTableSlugs.Year, OwidTableSlugs.EntityId],
+                [OwidTableSlugs.EntityId],
+            ]
+        )
+
+        expect(joined.get("4").valuesIncludingErrorValues).toEqual([5, 6, 7])
         // entity 1 matches by year+entity, entity 2 by entity only
-        expect(numericKeyed.get("5").valuesIncludingErrorValues).toEqual([
+        expect(joined.get("5").valuesIncludingErrorValues).toEqual([
             100, 100, 200,
         ])
-        expectEquivalentJoins(numericKeyed, joinDaysAndYears(HUGE_ID_OFFSET))
+    })
+
+    it("throws when an entity id is too large for the composite key encoding", () => {
+        // entity ids have to be below 2^26 for the numeric composite join keys
+        const hugeId = 2 ** 26
+        const tables = [
+            makeTable(2, [[hugeId, 2000, 1]]),
+            makeTable(3, [[hugeId, 2001, 2]]),
+        ]
+        expect(() =>
+            fullJoinTables(tables, [
+                OwidTableSlugs.Year,
+                OwidTableSlugs.EntityId,
+            ])
+        ).toThrow("does not fit the composite key encoding")
+    })
+
+    it("throws when a time value is too large for the composite key encoding", () => {
+        // times have to be within ±2^26 for the numeric composite join keys
+        const hugeYear = 2 ** 26
+        const tables = [
+            makeTable(2, [[1, hugeYear, 1]]),
+            makeTable(3, [[1, 2001, 2]]),
+        ]
+        expect(() =>
+            fullJoinTables(tables, [
+                OwidTableSlugs.Year,
+                OwidTableSlugs.EntityId,
+            ])
+        ).toThrow("does not fit the composite key encoding")
     })
 })
