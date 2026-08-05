@@ -712,8 +712,9 @@ export class HorizontalAxis extends AbstractAxis {
 
         if (hideAxis) return 0
 
-        const maxTickHeight = _.max(this.tickLabels.map((tick) => tick.height))
-        const paddedTickHeight = maxTickHeight ? maxTickHeight + tickPadding : 0
+        const paddedTickHeight = this.hasTickLabels
+            ? this.tickFontSize + tickPadding
+            : 0
 
         return Math.max(paddedTickHeight + labelOffset, minSize)
     }
@@ -757,6 +758,34 @@ export class HorizontalAxis extends AbstractAxis {
             (t): number => t.priority,
         ])
         return _.sortedUniqBy(sortedTicks, (t) => t.value)
+    }
+
+    /**
+     * Whether the axis shows any tick labels. Mirrors the branches of
+     * `tickLabels` without placing them, so callers that only need to know
+     * whether there are labels don't pay for the layout computation.
+     */
+    @computed private get hasTickLabels(): boolean {
+        // A calendar-aware time axis picks its ticks before the generic
+        // pipeline below gets a say
+        if (this.calendarTickInterval !== undefined) {
+            // A discrete axis labels its band values and nothing else: each
+            // labeling option it chooses from labels at least one band, and if
+            // none of them fit it falls back to one label per band
+            if (this.config.bandValues) return this.config.bandValues.length > 0
+
+            // A continuous axis usually has labels, either because it is labelled
+            // via the calendar ticks code path, or because that code path returns
+            // `undefined` and then we fall back to the same `baseTicks` logic
+            // that otherwise runs, and we then know that `domain[0]` is a whole
+            // number and thus there is at least this one tick.
+        }
+
+        // The generic pipeline keeps the domain start whenever it's a whole
+        // number, so any such domain has at least one tick.
+        if (this.domain[0] % 1 === 0) return true
+
+        return this.baseTicks.length > 0
     }
 
     @computed get tickLabels(): TickLabelPlacement[] {

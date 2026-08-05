@@ -1,6 +1,5 @@
 import * as _ from "lodash-es"
 import cx from "clsx"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
 
 import {
@@ -8,6 +7,7 @@ import {
     SimpleMarkdownText,
     ExpandableToggle,
     HtmlOrSimpleMarkdownText,
+    Button,
 } from "@ourworldindata/components"
 import { DataPageDataV2 } from "@ourworldindata/types"
 import KeyDataTable from "./KeyDataTable.js"
@@ -80,17 +80,6 @@ export default function AboutThisData({
                                     <SimpleMarkdownText
                                         text={datapageData.descriptionKey.trim()}
                                     />
-                                    {hasFaq && (
-                                        <a
-                                            className="key-info__learn-more"
-                                            href="#faqs"
-                                        >
-                                            Learn more in the FAQs
-                                            <FontAwesomeIcon
-                                                icon={faArrowDown}
-                                            />
-                                        </a>
-                                    )}
                                 </div>
                             )}
 
@@ -131,6 +120,15 @@ export default function AboutThisData({
                                 )}
                             </div>
                         </div>
+                        {hasDescriptionKey && hasFaq && (
+                            <Button
+                                className="key-info__learn-more"
+                                theme="solid-light-blue"
+                                text="Learn more in the FAQs"
+                                href="#faqs"
+                                icon={faArrowDown}
+                            />
+                        )}
                         {isNewsletterCardOnLeft && (
                             /* Inside the description column rather than as a
                                grid item of its own: a third row would sit below
