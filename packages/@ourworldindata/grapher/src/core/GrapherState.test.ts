@@ -566,6 +566,80 @@ describe("title", () => {
         expect(grapher.mainTitle).toContain("Change in")
     })
 
+    it("compares the two times of a faceted map, rather than giving a range", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            ySlugs: SampleColumnSlugs.GDP,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+            hasMapTab: true,
+        })
+
+        // A single time is shown as-is
+        grapher.timelineHandleTimeBounds = [2005, 2005]
+        expect(grapher.titleAnnotation).toEqual("2005")
+
+        // Two times facet the map into two snapshots
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+        expect(grapher.isFaceted).toBe(true)
+        expect(grapher.titleAnnotation).toEqual("2001 vs. 2005")
+    })
+
+    it("compares the two times of a dumbbell chart, rather than giving a range", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            ySlugs: SampleColumnSlugs.GDP,
+            chartTypes: [GRAPHER_CHART_TYPES.Dumbbell],
+            selectedEntityNames: [...table.availableEntityNames],
+        })
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+
+        expect(grapher.titleAnnotation).toEqual("2001 vs. 2005")
+    })
+
+    it("compares the two times of a slope chart, rather than giving a range", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            ySlugs: SampleColumnSlugs.GDP,
+            chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+            selectedEntityNames: [...table.availableEntityNames],
+        })
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+
+        expect(grapher.titleAnnotation).toEqual("2001 vs. 2005")
+    })
+
+    it("gives a range for a relative slope chart, which shows a change over a period", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            ySlugs: SampleColumnSlugs.GDP,
+            chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+            selectedEntityNames: [...table.availableEntityNames],
+            stackMode: StackMode.relative,
+        })
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+
+        // The two halves of the copy belong together: "Change in …" reads as a
+        // period, so the annotation stays a range
+        expect(grapher.mainTitle).toContain("Change in")
+        expect(grapher.titleAnnotation).toEqual("2001 to 2005")
+    })
+
     it("has no annotation when annotation fields are hidden", () => {
         const table = SynthesizeGDPTable(
             { entityCount: 2, timeRange: [2000, 2010] },
