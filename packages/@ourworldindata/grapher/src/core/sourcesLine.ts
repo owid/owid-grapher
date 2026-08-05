@@ -110,7 +110,7 @@ const getDimensionPropertiesForActiveTab = (
     if (tab === GRAPHER_TAB_NAMES.WorldMap) return [map]
 
     // Include all dimensions for the table tab
-    return [y, x, color, size]
+    return [y, map, x, color, size]
 }
 
 /**
