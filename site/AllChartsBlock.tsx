@@ -15,7 +15,10 @@ import {
     FilterType,
     ALL_CHARTS_ID,
 } from "@ourworldindata/types"
-import { listedRegionsNames } from "@ourworldindata/utils"
+import {
+    getRegionByNameOrVariantName,
+    listedRegionsNames,
+} from "@ourworldindata/utils"
 import { Button } from "@ourworldindata/components"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { useDocumentContext } from "./gdocs/DocumentContext.js"
@@ -53,11 +56,6 @@ const SEARCH_PLACEHOLDER =
 // indicator rather than a genuine shortcut into the topic's chart list.
 const MIN_SUGGESTED_CHIP_COUNT = 2
 const MAX_SUGGESTED_CHIPS = 5
-
-// Cap on how many of the auto-suggested chips are countries — the rest of
-// the budget goes to keyword chips (see below), with producers only used to
-// top up the list if there isn't enough keyword variety.
-const MAX_SUGGESTED_COUNTRY_CHIPS = 2
 
 // Shortest a keyword must be to be worth suggesting on its own (drops noise
 // like short acronyms picked up mid-title).
@@ -211,9 +209,19 @@ const KEYWORD_STOP_WORDS = new Set([
 ])
 
 type SuggestedChipCandidate = {
-    dimension: "country" | "producer" | "keyword"
+    dimension: "producer" | "keyword"
     name: string
     count: number
+}
+
+// True for anything that names a place: a country, a continent, an aggregate
+// like "World", or a variant name for one of those ("US", "UK", "Czech
+// Republic"). Suggested searches deliberately don't include places — see
+// computeAutoSuggestedChips — and this is the same lookup the rest of the site
+// uses to recognise one, so variants and non-country regions are covered
+// without a hand-written list of names here.
+function isPlaceName(name: string): boolean {
+    return getRegionByNameOrVariantName(name) !== undefined
 }
 
 // Splits free text into lowercase word tokens, keeping only alphabetic runs
@@ -244,38 +252,46 @@ function rankByFrequency(
 
 /**
  * Client-side pass over a topic's full chart list, deriving ~4-5 "suggested
- * search" chips from per-chart data Algolia already returns for this block
- * (see DATA_CATALOG_ATTRIBUTES): the countries/entities a chart has data for
- * (`availableEntities`/`originalAvailableEntities`), significant keywords
- * pulled from its `title`/`subtitle` text, and its data producers
- * (`datasetProducers`).
+ * search" chips from per-chart data Algolia already returns for this block (see
+ * DATA_CATALOG_ATTRIBUTES): significant keywords pulled from each chart's
+ * `title`/`subtitle` text, plus its data producers (`datasetProducers`).
  *
- * An earlier version of this used the chart's topic `tags` for the
- * non-country chips, but those tend to read as generic category labels
- * (dataset/producer names, broad sub-topics) rather than the kind of
- * specific, human search term a visitor would actually type — the design
- * brief's own examples ("deaths", "births") are words you'd find in a chart
- * *title*, not in its tag list. Extracting frequent significant words
- * straight from titles/subtitles gets much closer to that: for a topic like
- * "Population Growth", a chart titled "Births and deaths per year" now
- * contributes "births" and "deaths" as candidate chips, rather than a tag
- * like "Life Expectancy" or a producer like "UN WPP".
+ * An earlier version of this used the chart's topic `tags` for its chips, but
+ * those tend to read as generic category labels (dataset/producer names, broad
+ * sub-topics) rather than the kind of specific, human search term a visitor
+ * would actually type — the design brief's own examples ("deaths", "births")
+ * are words you'd find in a chart *title*, not in its tag list. Extracting
+ * frequent significant words straight from titles/subtitles gets much closer
+ * to that: for a topic like "Population Growth", a chart titled "Births and
+ * deaths per year" now contributes "births" and "deaths" as candidate chips,
+ * rather than a tag like "Life Expectancy" or a producer like "UN WPP".
  *
- * To match the design brief's mix of a couple of countries plus specific
- * topical terms (e.g. "Spain, Japan, deaths, births, fertility"), country
- * chips are capped at two, remaining slots are filled with the most frequent
- * keywords first, and producers are only used to top up the list when there
- * isn't enough keyword variety.
+ * Places are deliberately not suggested. Chips used to include up to two of
+ * the countries a topic's charts have data for, which put names like "China"
+ * or "Finland" in a line that otherwise offers ways of narrowing *what* the
+ * charts are about, and — being derived from the whole topic rather than from
+ * the current query — left an unrelated country sitting there while the
+ * visitor searched for a different one. Country entities are no longer counted
+ * at all, and any candidate that happens to name a place is dropped (see
+ * isPlaceName), so a title mentioning "China" can't reintroduce one through
+ * the keyword route either. Searching by country still works — typing one
+ * filters the list and preselects that entity in the chart — it just isn't
+ * suggested here.
+ *
+ * Keywords fill the chip budget first, most frequent first, with producers only
+ * used to top the list up when there isn't enough keyword variety. That budget
+ * is unchanged at MAX_SUGGESTED_CHIPS, so dropping places doesn't shorten the
+ * line: the slots the countries used to occupy are backfilled with the next
+ * ranked keywords instead. If a topic is small enough that nothing clears the
+ * frequency threshold the list comes back empty, and the caller renders no
+ * "Suggested:" line at all.
  */
 function computeAutoSuggestedChips(
     hits: SearchChartHit[],
-    regionNames: string[],
     topicName: string
 ): SuggestedChipCandidate[] {
     if (hits.length === 0) return []
 
-    const regionNameSet = new Set(regionNames)
-    const countryCounts = new Map<string, number>()
     const producerCounts = new Map<string, number>()
     const keywordCounts = new Map<string, number>()
 
@@ -285,16 +301,9 @@ function computeAutoSuggestedChips(
     const topicNameWords = new Set(splitIntoLowercaseWords(topicName))
 
     for (const hit of hits) {
-        const entities = hit.originalAvailableEntities ?? hit.availableEntities
-        const countriesOnChart = new Set(
-            (entities ?? []).filter((entity) => regionNameSet.has(entity))
-        )
-        for (const country of countriesOnChart) {
-            countryCounts.set(country, (countryCounts.get(country) ?? 0) + 1)
-        }
-
         const producersOnChart = new Set(hit.datasetProducers ?? [])
         for (const producer of producersOnChart) {
+            if (isPlaceName(producer)) continue
             producerCounts.set(
                 producer,
                 (producerCounts.get(producer) ?? 0) + 1
@@ -303,7 +312,7 @@ function computeAutoSuggestedChips(
 
         // Significant words from the chart's own title/subtitle — the most
         // specific, human-readable description of what the chart actually
-        // shows. Counted as a set per chart (like the dimensions above) so a
+        // shows. Counted as a set per chart (like the producers above) so a
         // single title repeating a word doesn't outweigh many different
         // charts mentioning it once each.
         const text = [hit.title, hit.subtitle].filter(Boolean).join(" ")
@@ -312,7 +321,8 @@ function computeAutoSuggestedChips(
                 (word) =>
                     word.length >= MIN_KEYWORD_LENGTH &&
                     !KEYWORD_STOP_WORDS.has(word) &&
-                    !topicNameWords.has(word)
+                    !topicNameWords.has(word) &&
+                    !isPlaceName(word)
             )
         )
         for (const keyword of keywordsOnChart) {
@@ -320,19 +330,10 @@ function computeAutoSuggestedChips(
         }
     }
 
-    const topCountries = rankByFrequency(countryCounts, "country")
     const topProducers = rankByFrequency(producerCounts, "producer")
     const topKeywords = rankByFrequency(keywordCounts, "keyword")
 
-    // At most two country chips (both must still clear the frequency
-    // threshold applied above), then prefer specific title/subtitle keywords
-    // for the remaining slots, falling back to producers only if there isn't
-    // enough keyword variety to fill out the list.
-    // `slice` already returns a fresh array, safe for the `push`es below.
-    const chips: SuggestedChipCandidate[] = topCountries.slice(
-        0,
-        MAX_SUGGESTED_COUNTRY_CHIPS
-    )
+    const chips: SuggestedChipCandidate[] = []
 
     for (const keyword of topKeywords) {
         if (chips.length >= MAX_SUGGESTED_CHIPS) break
@@ -344,7 +345,7 @@ function computeAutoSuggestedChips(
         chips.push(producer)
     }
 
-    return chips.slice(0, MAX_SUGGESTED_CHIPS)
+    return chips
 }
 
 export type AllChartsBlockProps = {
@@ -473,8 +474,8 @@ export const AllChartsBlock = ({
     })
 
     const autoSuggestedChips = useMemo(
-        () => computeAutoSuggestedChips(baseHits ?? [], regionNames, topicName),
-        [baseHits, regionNames, topicName]
+        () => computeAutoSuggestedChips(baseHits ?? [], topicName),
+        [baseHits, topicName]
     )
 
     // Searching must narrow this list without ever re-ordering it.
@@ -516,9 +517,11 @@ export const AllChartsBlock = ({
     }, [data, baseHits, isBaseError])
 
     // Editorially curated suggestions (set on the gdoc block) take precedence
-    // when present, preserving the pre-existing authoring workflow. Every
-    // chip — curated or auto-generated, whatever dimension it came from
-    // (country, keyword, or producer) — does exactly one thing when clicked:
+    // when present, preserving the pre-existing authoring workflow — including
+    // any place name an author has deliberately listed there, which the
+    // auto-generated chips no longer offer (see computeAutoSuggestedChips).
+    // Every chip — curated or auto-generated, keyword or producer — does
+    // exactly one thing when clicked:
     // populate the search input with its label, so it drives the same
     // full-text search path as if the visitor had typed it themselves. This
     // used to differ by dimension (a producer chip applied a structured
@@ -538,8 +541,6 @@ export const AllChartsBlock = ({
             .filter((chip) => {
                 if (chip.dimension === "producer")
                     return !producerFilters.includes(chip.name)
-                if (chip.dimension === "country")
-                    return !detectedCountries.includes(chip.name)
                 return query.trim().toLowerCase() !== chip.name.toLowerCase()
             })
             .map((chip) => ({
@@ -547,13 +548,7 @@ export const AllChartsBlock = ({
                 label: chip.name,
                 onClick: () => setQuery(chip.name),
             }))
-    }, [
-        suggested,
-        autoSuggestedChips,
-        producerFilters,
-        detectedCountries,
-        query,
-    ])
+    }, [suggested, autoSuggestedChips, producerFilters, query])
 
     if (isError || !topicName) return null
 
