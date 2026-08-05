@@ -264,9 +264,10 @@ export async function renderDataPageV2(
     //    the same "first tag wins" rule as `getPrimaryTopic` above;
     // 2. the chart's own tags in `chart_tags`, as a fallback.
     //
-    // Most indicators carry no topic tags, so route 1 alone left the large
-    // majority of data pages with no card even where the chart itself is
-    // tagged. A page that resolves through neither route still renders none.
+    // `presentation.topicTagsLinks` is often unauthored, so route 1 alone left
+    // a substantial minority of data pages — 454 of 2,322, about a fifth, in a
+    // sweep of every `/grapher/` URL — with no card even where the chart itself
+    // is tagged. A page that resolves through neither route still renders none.
     const areaNamesByTagName =
         topicAreaNamesByTagName ?? (await db.getTopicAreaNamesByTagName(knex))
     datapageData.topicArea =
