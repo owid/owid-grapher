@@ -66,7 +66,7 @@ function makeSingleCountryMapToleranceNotice({
 }): string {
     // The country starts the sentence, so an article needs capitalizing
     const country = _.upperFirst(articulateEntity(countryName))
-    return `${country} lacks data for ${formattedTargetTime} and shows the closest available value, from ${formattedOriginalTime}.`
+    return `${country} lacks data for ${formattedTargetTime} and instead shows the closest available value, from ${formattedOriginalTime}.`
 }
 
 function makeMultiCountryMapToleranceNotice({
@@ -88,7 +88,7 @@ function makeMultiCountryMapToleranceNotice({
             : `${countryNames.length} countries`
 
     // The subject starts the sentence, so an article needs capitalizing
-    return `${_.upperFirst(subject)} lack data for ${formattedTargetTime} and show the closest available value within ${formattedTimeTolerance}.`
+    return `${_.upperFirst(subject)} lack data for ${formattedTargetTime} and instead show the closest available value within ${formattedTimeTolerance}.`
 }
 
 /** The tolerance in words, e.g. "3 years" or "a year" */

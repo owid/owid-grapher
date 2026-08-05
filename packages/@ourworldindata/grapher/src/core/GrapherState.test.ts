@@ -626,7 +626,7 @@ describe("titleAnnotationTooltip", () => {
     it("explains the applied tolerance on the map tab", () => {
         const grapher = makeGrapher()
         expect(grapher.titleAnnotationTooltip).toEqual(
-            "Germany lacks data for 2002 and shows the closest available value, from 2001."
+            "Germany lacks data for 2002 and instead shows the closest available value, from 2001."
         )
     })
 
@@ -637,7 +637,7 @@ describe("titleAnnotationTooltip", () => {
             table: makeTable([["Spain", 2000, 800]]),
         })
         expect(grapher.titleAnnotationTooltip).toEqual(
-            "Germany and Spain lack data for 2002 and show the closest available value within 2 years."
+            "Germany and Spain lack data for 2002 and instead show the closest available value within 2 years."
         )
     })
 
@@ -646,7 +646,7 @@ describe("titleAnnotationTooltip", () => {
             table: makeTable([["Netherlands", 2000, 800]]),
         })
         expect(grapher.titleAnnotationTooltip).toEqual(
-            "Germany and the Netherlands lack data for 2002 and show the closest available value within 2 years."
+            "Germany and the Netherlands lack data for 2002 and instead show the closest available value within 2 years."
         )
     })
 
@@ -667,7 +667,7 @@ describe("titleAnnotationTooltip", () => {
             ),
         })
         expect(grapher.titleAnnotationTooltip).toEqual(
-            "The Netherlands lacks data for 2002 and shows the closest available value, from 2001."
+            "The Netherlands lacks data for 2002 and instead shows the closest available value, from 2001."
         )
     })
 
@@ -681,7 +681,7 @@ describe("titleAnnotationTooltip", () => {
             ]),
         })
         expect(grapher.titleAnnotationTooltip).toEqual(
-            "4 countries lack data for 2002 and show the closest available value within 2 years."
+            "4 countries lack data for 2002 and instead show the closest available value within 2 years."
         )
     })
 
@@ -705,7 +705,7 @@ describe("titleAnnotationTooltip", () => {
             map: { timeTolerance: 90 },
         })
         expect(grapher.titleAnnotationTooltip).toEqual(
-            "Germany and Spain lack data for Feb 2020 and show the closest available value within 11 days."
+            "Germany and Spain lack data for Feb 2020 and instead show the closest available value within 11 days."
         )
     })
 
@@ -731,12 +731,12 @@ describe("titleAnnotationTooltip", () => {
             })
 
         expect(makeDecadeGrapher([]).titleAnnotationTooltip).toEqual(
-            "Germany lacks data for the 2020s and shows the closest available value, from the 2010s."
+            "Germany lacks data for the 2020s and instead shows the closest available value, from the 2010s."
         )
         expect(
             makeDecadeGrapher([["Spain", 2010, 400]]).titleAnnotationTooltip
         ).toEqual(
-            "Germany and Spain lack data for the 2020s and show the closest available value within 10 years."
+            "Germany and Spain lack data for the 2020s and instead show the closest available value within 10 years."
         )
     })
 
@@ -759,7 +759,7 @@ describe("titleAnnotationTooltip", () => {
             map: { timeTolerance: 14 },
         })
         expect(grapher.titleAnnotationTooltip).toEqual(
-            "Germany lacks data for the week of Jan 27, 2020 and shows the closest available value, from the week of Jan 20, 2020."
+            "Germany lacks data for the week of Jan 27, 2020 and instead shows the closest available value, from the week of Jan 20, 2020."
         )
     })
 
@@ -770,7 +770,7 @@ describe("titleAnnotationTooltip", () => {
             map: {},
         })
         expect(grapher.titleAnnotationTooltip).toEqual(
-            "Germany lacks data for 2002 and shows the closest available value, from 2001."
+            "Germany lacks data for 2002 and instead shows the closest available value, from 2001."
         )
     })
 
@@ -781,7 +781,7 @@ describe("titleAnnotationTooltip", () => {
             map: { timeTolerance: 3, region: MapRegionName.Europe },
         })
         expect(grapher.titleAnnotationTooltip).toEqual(
-            "Germany lacks data for 2002 and shows the closest available value, from 2001."
+            "Germany lacks data for 2002 and instead shows the closest available value, from 2001."
         )
     })
 
