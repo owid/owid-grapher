@@ -202,7 +202,7 @@
         "@types/react-router-dom": "^5.3.3",
         "@types/topojson-server": "^3.0.4",
         "@types/yargs": "^17.0.35",
-        "@vitejs/plugin-react": "^6.0.4",
+        "@vitejs/plugin-react": "^6.0.5",
         "@vitest/coverage-v8": "^4.1.10",
         "@yarnpkg/types": "^4.0.1",
         "bundlemon": "^3.1.0",
@@ -225,7 +225,7 @@
         "topojson-server": "^3.0.1",
         "tsx": "^4.23.0",
         "typescript": "^7.0.2",
-        "vite": "^8.1.5",
+        "vite": "^8.2.0",
         "vitest": "^4.1.10",
         "wrangler": "^4.114.0"
     },
