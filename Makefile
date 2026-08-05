@@ -27,6 +27,9 @@ endif
 ifdef TMUX_SESSION_NAME
 TMUX_SESSION_NAME := $(strip $(TMUX_SESSION_NAME))
 endif
+ifdef ADMIN_SERVER_PORT
+ADMIN_SERVER_PORT := $(strip $(ADMIN_SERVER_PORT))
+endif
 ifdef VITE_PORT
 VITE_PORT := $(strip $(VITE_PORT))
 endif
