@@ -516,16 +516,6 @@ $all-charts-block-sticky-nav-min-height: 48px;
         display: block;
     }
 
-    // `full-width-on-mobile`, which every GrapherWithFallback carries, pulls the
-    // chart 8px past its container on each side. That is meant for a chart in
-    // the article body, where those 8px are half the page gutter and the effect
-    // is a chart bleeding to the screen edge; inside a row it just breaks the
-    // alignment with the text above.
-    .all-charts-block__grapher {
-        margin-left: 0;
-        margin-right: 0;
-    }
-
     figure[data-grapher-src]:not(.grapherPreview),
     figure.grapher-component:not(.grapherPreview) {
         height: $grapher-height;
@@ -543,6 +533,21 @@ $all-charts-block-sticky-nav-min-height: 48px;
         margin-left: 0;
         margin-right: 0;
     }
+}
+
+// `full-width-on-mobile`, which every GrapherWithFallback carries, pulls the
+// chart 8px past its container on each side. That is meant for a chart in the
+// article body, where those 8px are half the page gutter and the effect is a
+// chart bleeding to the screen edge; inside a row it just puts the chart card 8px
+// outside the row text on either side.
+//
+// Written with the block class in front, and so with three classes, purely to
+// outweigh the `html:not(.IsInIframe) .full-width-on-mobile` that sets those
+// margins (site/gdocs/components/Chart.scss): two classes lose to it and the
+// margins survive.
+.all-charts-block .all-charts-block__row-accordion .all-charts-block__grapher {
+    margin-left: 0;
+    margin-right: 0;
 }
 
 // Holds the "Show all N indicators" control that reveals the rest of the topic's
