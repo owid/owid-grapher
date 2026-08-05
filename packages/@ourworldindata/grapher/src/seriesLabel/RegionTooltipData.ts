@@ -59,11 +59,47 @@ const descriptions: Record<TooltipKey, string> = {
     fao_2: "The **Food and Agriculture Organization of the United Nations (FAO)** reports data for [world regions](https://ourworldindata.org/world-region-map-definitions#food-and-agriculture-organization-fao) at several levels of detail. This map shows its subregions:",
     fao_sdg:
         "The **Food and Agriculture Organization of the United Nations (FAO)** groups countries into [world regions](https://ourworldindata.org/world-region-map-definitions#food-and-agriculture-organization-fao) for its Sustainable Development Goals reporting:",
+    ihme_gbd_1:
+        "In its Global Burden of Disease study, the **Institute for Health Metrics and Evaluation (IHME)** groups countries into [seven super-regions](https://ourworldindata.org/world-region-map-definitions#institute-for-health-metrics-and-evaluation-ihme-gbd):",
+    ihme_gbd_2:
+        "In its Global Burden of Disease study, the **Institute for Health Metrics and Evaluation (IHME)** divides the world into [21 regions](https://ourworldindata.org/world-region-map-definitions#institute-for-health-metrics-and-evaluation-ihme-gbd), nested within its seven super-regions:",
 }
 
 // Geographic display order: left-to-right on the map.
 // Providers without a custom order will be sorted alphabetically.
 const customRegionDisplayOrder: Partial<Record<TooltipKey, string[]>> = {
+    ihme_gbd_1: [
+        "High-income (IHME GBD)",
+        "Latin America and Caribbean (IHME GBD)",
+        "Sub-Saharan Africa (IHME GBD)",
+        "North Africa and Middle East (IHME GBD)",
+        "Central Europe, Eastern Europe, and Central Asia (IHME GBD)",
+        "South Asia (IHME GBD)",
+        "Southeast Asia, East Asia, and Oceania (IHME GBD)",
+    ],
+    ihme_gbd_2: [
+        "High-income North America (IHME GBD)",
+        "Caribbean (IHME GBD)",
+        "Central Latin America (IHME GBD)",
+        "Andean Latin America (IHME GBD)",
+        "Tropical Latin America (IHME GBD)",
+        "Southern Latin America (IHME GBD)",
+        "Western Sub-Saharan Africa (IHME GBD)",
+        "Central Sub-Saharan Africa (IHME GBD)",
+        "Eastern Sub-Saharan Africa (IHME GBD)",
+        "Southern Sub-Saharan Africa (IHME GBD)",
+        "North Africa and Middle East (IHME GBD)",
+        "Western Europe (IHME GBD)",
+        "Central Europe (IHME GBD)",
+        "Eastern Europe (IHME GBD)",
+        "Central Asia (IHME GBD)",
+        "South Asia (IHME GBD)",
+        "East Asia (IHME GBD)",
+        "Southeast Asia (IHME GBD)",
+        "High-income Asia Pacific (IHME GBD)",
+        "Australasia (IHME GBD)",
+        "Oceania (IHME GBD)",
+    ],
     continents: [
         "North America",
         "South America",
