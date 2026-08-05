@@ -27,6 +27,9 @@ endif
 ifdef TMUX_SESSION_NAME
 TMUX_SESSION_NAME := $(strip $(TMUX_SESSION_NAME))
 endif
+ifdef ADMIN_SERVER_PORT
+ADMIN_SERVER_PORT := $(strip $(ADMIN_SERVER_PORT))
+endif
 ifdef VITE_PORT
 VITE_PORT := $(strip $(VITE_PORT))
 endif
@@ -34,7 +37,7 @@ ifdef WRANGLER_PORT
 WRANGLER_PORT := $(strip $(WRANGLER_PORT))
 endif
 
-.PHONY: help up up.headless up.full down down.headless refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.graphers svgtest.grapher-views svgtest.mdims svgtest.explorers svgtest.thumbnails bdd bdd.ui check-not-prod
+.PHONY: help up up.headless up.worktree setup.worktree require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.graphers svgtest.grapher-views svgtest.mdims svgtest.explorers svgtest.thumbnails bdd bdd.ui check-not-prod
 
 help:
 	@echo 'Available commands:'
@@ -42,8 +45,11 @@ help:
 	@echo '  GRAPHER ONLY'
 	@echo '  make up                     start dev environment via docker-compose and tmux'
 	@echo '  make up.headless            start dev environment without tmux (AI agents, cloud sandboxes, CI)'
+	@echo '  make up.worktree            start this git worktree'"'"'s dev environment next to your main one'
+	@echo '  make setup.worktree         only write this checkout'"'"'s .env (random free ports, own tmux session)'
 	@echo '  make down                   stop any services still running'
 	@echo '  make down.headless          stop services started by make up.headless'
+	@echo '  make down.worktree          stop services started by make up.worktree (leaves MySQL up)'
 	@echo '  make refresh                (while up) download a new grapher snapshot and update MySQL'
 	@echo '  make refresh.private        (while up) download and load the private sidecar dump: admin keys + analytics (needs access)'
 	@echo '  make refresh.full           (while up) run refresh and refresh.private'
@@ -134,6 +140,25 @@ require.headless:
 	@echo '==> Checking your environment has the necessary commands...'
 	@which docker >/dev/null 2>&1 || (echo "ERROR: docker compose is required."; exit 1)
 	@which yarn >/dev/null 2>&1 || (echo "ERROR: yarn is required."; exit 1)
+
+# `setup.worktree` writes the .env this reads, so don't export ports here: make
+# includes .env when it parses this file, i.e. before that .env exists on a
+# freshly created worktree. up-worktree.sh sources it once it is there.
+up.worktree: require.worktree setup.worktree node_modules
+	@make validate.env
+	@./devTools/docker/up-worktree.sh
+
+setup.worktree:
+	@./devTools/docker/setup-worktree-env.sh
+
+down.worktree: TMUX_SESSION_NAME ?= grapher-$(notdir $(CURDIR))
+down.worktree:
+	@echo '==> Killing the $(TMUX_SESSION_NAME) tmux session'
+	@tmux kill-session -t $(TMUX_SESSION_NAME) 2>/dev/null || echo '    (no such session, nothing to stop)'
+	@echo '==> Leaving MySQL up, your other checkouts share it (stop it with `make down`)'
+
+require.worktree: require.headless
+	@which tmux >/dev/null 2>&1 || (echo "ERROR: tmux is required."; exit 1)
 
 up.full: export DEBUG = 'knex:query'
 up.full: export COMPOSE_PROJECT_NAME ?= owid-grapher
