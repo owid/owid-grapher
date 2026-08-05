@@ -199,14 +199,22 @@ export class MapTooltip
 
     @computed private get tooltipSubtitle(): string | undefined {
         const { startDatum, endDatum, startTime, endTime } = this
+        const { timeColumn } = this.entityTable
 
         const originalStartTime = startDatum?.originalTime ?? startTime
         const originalEndTime = endDatum?.originalTime ?? endTime
 
         if (this.shouldShowValueRange) {
-            return [originalStartTime, originalEndTime]
-                .map((time) => this.formatTime(time))
-                .join(" to ")
+            if (
+                originalStartTime === undefined ||
+                originalEndTime === undefined
+            )
+                return undefined
+
+            return timeColumn.formatTimeComparison(
+                originalStartTime,
+                originalEndTime
+            )
         }
 
         return this.formatTime(originalEndTime)

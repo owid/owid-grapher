@@ -81,7 +81,7 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
             return makeToleranceNotice({
                 startTime,
                 endTime,
-                formatTime: (time) => yColumn.formatTime(time),
+                column: yColumn,
             })
         }
 
@@ -106,7 +106,7 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
         return makeToleranceNotice({
             startTime,
             endTime,
-            formatTime: (time) => yColumn.formatTime(time),
+            column: yColumn,
         })
     }
 
@@ -156,8 +156,14 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
         const { manager, yColumn, xColumn } = this.chartState
         const { startTime, endTime, isRelativeMode } = manager
 
+        const isComparison = hasSameVariableWithTimeOverride(
+            xColumn,
+            yColumn,
+            this.points
+        )
+
         let times: Time[]
-        if (hasSameVariableWithTimeOverride(xColumn, yColumn, this.points)) {
+        if (isComparison) {
             times = _.sortBy([this.points[0].time.x, this.points[0].time.y])
         } else if (this.chartState.isTimeScatter) {
             times = _.uniq(excludeNullish(this.values.map((v) => v.time.y)))
@@ -165,9 +171,9 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
             times = _.uniq(excludeNullish([startTime, endTime]))
         }
 
-        const timeRange = times.map((t) => yColumn.formatTime(t)).join(" to ")
+        const timeLabel = formatTimes(times, yColumn, { isComparison })
 
-        return timeRange + (isRelativeMode ? " (avg. annual change)" : "")
+        return timeLabel + (isRelativeMode ? " (avg. annual change)" : "")
     }
 
     override render(): React.ReactElement | null {
@@ -412,18 +418,33 @@ function hasTimeMismatch({
     return startTimesDiffer || endTimesDiffer
 }
 
+function formatTimes(
+    times: Time[],
+    column: CoreColumn,
+    { isComparison = false }: { isComparison?: boolean } = {}
+): string {
+    if (times.length === 0) return ""
+    if (times.length === 1) return column.formatTime(times[0])
+
+    const [startTime, endTime] = times
+    return isComparison
+        ? column.formatTimeComparison(startTime, endTime)
+        : column.formatTimeRange(startTime, endTime)
+}
+
 function makeToleranceNotice({
     startTime,
     endTime,
-    formatTime,
+    column,
 }: {
     startTime?: Time
     endTime?: Time
-    formatTime: (time: Time) => string
+    column: CoreColumn
 }): FooterItem {
-    const targetNotice = _.uniq(excludeNullish([startTime, endTime]))
-        .map((t) => formatTime(t))
-        .join(" to ")
+    const targetNotice = formatTimes(
+        _.uniq(excludeNullish([startTime, endTime])),
+        column
+    )
 
     return {
         icon: TooltipFooterIcon.Notice,
