@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, Fragment } from "react"
+import { useMemo, useRef, useState, useEffect, Fragment } from "react"
 import { useQuery, keepPreviousData } from "@tanstack/react-query"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -8,7 +8,7 @@ import {
     faMagnifyingGlass,
     faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons"
-import { useDebounceValue } from "usehooks-ts"
+import { useDebounceValue, useMediaQuery, useResizeObserver } from "usehooks-ts"
 import {
     SearchResultType,
     SearchChartHit,
@@ -48,8 +48,15 @@ import { buildSynonymMap } from "./search/synonymUtils.js"
 import { SearchDataResultsSkeleton } from "./search/SearchDataResultsSkeleton.js"
 import { SearchFilterPill } from "./search/SearchFilterPill.js"
 import { useVisibleChartHits } from "./useVisibleChartHits.js"
+import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "./SiteConstants.js"
 
 const SEARCH_DEBOUNCE_MS = 200
+
+// The viewport below which the block drops its second pane: the persistent chart
+// sidecar is replaced by a per-row accordion, and neither the heading nor the
+// search bar sticks. Mirrors the `md-down` breakpoint the stylesheet uses for the
+// same switch (see AllChartsBlock.scss).
+const ACCORDION_LAYOUT_MEDIA_QUERY = MEDIUM_BREAKPOINT_MEDIA_QUERY
 
 const SEARCH_PLACEHOLDER =
     "Search indicators by name, keyword, country, or source…"
@@ -581,18 +588,61 @@ export const AllChartsBlock = ({
             }))
     }, [suggested, autoSuggestedChips, producerFilters, query])
 
+    // The heading and the search bar stick to the top of the viewport as a
+    // single unit on desktop (see .all-charts-block__sticky-header), which means
+    // the chart sidecar beside the list has to come to rest *below* that unit
+    // rather than sliding behind it. How tall the unit is depends on the topic's
+    // name — long ones wrap the heading onto a second line — so it is measured
+    // rather than assumed, and handed to the stylesheet as a custom property.
+    // Nothing reads it below the breakpoint, where nothing sticks and the
+    // sidecar is hidden.
+    const stickyHeaderRef = useRef<HTMLDivElement>(null)
+    const { height: stickyHeaderHeight } = useResizeObserver({
+        ref: stickyHeaderRef as React.RefObject<HTMLDivElement>,
+    })
+
     if (isError || !topicName) return null
 
     return (
-        <section className={cx(className, "all-charts-block")} id={id}>
-            <h1 className="h1-semibold all-charts-block__heading">
-                <span>All charts on {topicName}</span>
-                <a className="deep-link" aria-labelledby={id} href={`#${id}`} />
-            </h1>
+        <section
+            className={cx(className, "all-charts-block")}
+            id={id}
+            style={
+                {
+                    "--all-charts-block-sticky-header-height": `${stickyHeaderHeight ?? 0}px`,
+                } as React.CSSProperties
+            }
+        >
+            <div
+                className="all-charts-block__sticky-header"
+                ref={stickyHeaderRef}
+            >
+                <h1 className="h1-semibold all-charts-block__heading">
+                    <span>All charts on {topicName}</span>
+                    <a
+                        className="deep-link"
+                        aria-labelledby={id}
+                        href={`#${id}`}
+                    />
+                </h1>
+                {/* Laid out on the same two-column grid as the panes below, so
+                    the input keeps the width of the list pane it belongs to
+                    while the sticky unit's white background spans the whole
+                    block. */}
+                <div className="all-charts-block__sticky-header-columns">
+                    <div className="all-charts-block__sticky-header-search">
+                        <AllChartsSearchInput
+                            query={query}
+                            onQueryChange={setQuery}
+                            producerFilters={producerFilters}
+                            onRemoveProducerFilter={removeProducerFilter}
+                        />
+                    </div>
+                </div>
+            </div>
             <div className="all-charts-block__panes">
                 <AllChartsLeftPane
                     query={query}
-                    onQueryChange={setQuery}
                     suggestedChips={suggestedChips}
                     hits={hits}
                     // The skeleton also covers the window where the results
@@ -602,8 +652,6 @@ export const AllChartsBlock = ({
                     isLoading={isLoading || isBaselinePending}
                     isFetching={isFetching}
                     detectedCountries={detectedCountries}
-                    producerFilters={producerFilters}
-                    onRemoveProducerFilter={removeProducerFilter}
                     topicName={topicName}
                     searchParams={stateToSearchParams(searchState)}
                 />
@@ -614,14 +662,11 @@ export const AllChartsBlock = ({
 
 type AllChartsLeftPaneProps = {
     query: string
-    onQueryChange: (query: string) => void
     suggestedChips: SuggestedChip[]
     hits: SearchChartHit[]
     isLoading: boolean
     isFetching: boolean
     detectedCountries: string[]
-    producerFilters: string[]
-    onRemoveProducerFilter: (producer: string) => void
     topicName: string
     searchParams: URLSearchParams
 }
@@ -629,14 +674,11 @@ type AllChartsLeftPaneProps = {
 const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
     const {
         query,
-        onQueryChange,
         suggestedChips,
         hits,
         isLoading,
         isFetching,
         detectedCountries,
-        producerFilters,
-        onRemoveProducerFilter,
         topicName,
         searchParams,
     } = props
@@ -679,12 +721,35 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
     // is hidden in favour of an accordion: clicking a row expands an inline
     // chart directly beneath it, and clicking it again (or another row)
     // collapses it. `null` means no row is expanded. This is independent of
-    // `selectedIndex` (which continues to drive the desktop sidecar) so a
-    // fresh result set always starts fully collapsed on mobile.
+    // `selectedIndex`, which continues to drive the desktop sidecar.
     const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
+    const isAccordionLayout = useMediaQuery(ACCORDION_LAYOUT_MEDIA_QUERY)
+
+    // Where a result set starts out. On the accordion layout the first row opens
+    // with its chart showing, so the block never presents a phone with a list of
+    // titles and no chart at all — the counterpart of the desktop sidecar, which
+    // opens on row 1 for the same reason (see resolveSelectedChartIndex).
+    //
+    // This is the same effect that used to collapse everything on a new result
+    // set, rather than an initial value alongside it: the effect runs when the
+    // results first arrive, so an initial value would immediately be overwritten
+    // by it. Which also settles what a new query does — it re-opens the first
+    // row of the new results, so the chart on screen always belongs to the list
+    // under it.
+    //
+    // Row 0 rather than `selectedIndex`: both are 0 for a fresh result set (no
+    // selection has been made yet), and pinning it to the first row keeps the
+    // one open chart at the top of the list, where a phone visitor can see it.
+    // The row stays a toggle: tapping it closes the chart again, and tapping
+    // another row moves it, exactly as before.
+    //
+    // Off the accordion layout this stays `null` — not just because there is
+    // nothing to expand, but because the accordion markup still exists on
+    // desktop (hidden by CSS), and mounting a Grapher into a hidden element
+    // would render a second copy of the chart already in the sidecar.
     useEffect(() => {
-        setExpandedIndex(null)
-    }, [resultKey])
+        setExpandedIndex(isAccordionLayout ? 0 : null)
+    }, [resultKey, isAccordionLayout])
 
     // Only the rows on screen: a topic's chart list is unbounded, so the block
     // renders a bounded first slice of it until the visitor asks for the rest.
@@ -704,12 +769,6 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
     return (
         <>
             <div className="all-charts-block__left">
-                <AllChartsSearchInput
-                    query={query}
-                    onQueryChange={onQueryChange}
-                    producerFilters={producerFilters}
-                    onRemoveProducerFilter={onRemoveProducerFilter}
-                />
                 {suggestedChips.length > 0 && (
                     <div className="all-charts-block__suggested">
                         <span className="all-charts-block__suggested-label">

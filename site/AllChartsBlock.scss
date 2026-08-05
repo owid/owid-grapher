@@ -5,7 +5,11 @@
     }
 }
 
-.all-charts-block__panes {
+// The two-column layout the block uses above the accordion breakpoint. Shared by
+// the panes and by the sticky header above them (see
+// .all-charts-block__sticky-header-columns), so the search input can line up
+// with the list pane it belongs to while the header spans the whole block.
+@mixin all-charts-block-columns {
     display: grid;
     // The block itself already spans the full 12-column content grid (see the
     // "featured-metrics" entry in site/gdocs/components/layout.ts), so the two
@@ -22,11 +26,15 @@
     // instead (see .all-charts-block__row-subtitle and -row-source below).
     grid-template-columns: 5fr 7fr;
     gap: 24px;
-    align-items: start;
 
     @include md-down {
         grid-template-columns: 1fr;
     }
+}
+
+.all-charts-block__panes {
+    @include all-charts-block-columns;
+    align-items: start;
 }
 
 .all-charts-block__left {
@@ -47,9 +55,9 @@ $all-charts-block-sticky-top: 72px;
 
 // The *shortest* that sub-nav gets. Its `li`s are what set its height (56px,
 // dropping to 48px on small viewports — see site/blocks/StickyNav.scss); there
-// is no shared variable to import. Used to work out the gap the sticky search
-// bar leaves between itself and the nav above it, which the bar's opaque
-// background has to cover — see .all-charts-block__search below.
+// is no shared variable to import. Used to work out the gap the sticky heading
+// and search bar leave between themselves and the nav above them, which their
+// opaque background has to cover — see .all-charts-block__sticky-header below.
 //
 // Taking the smaller of the two heights is the safe direction, and worth
 // spelling out because the other one looks equally plausible: the background
@@ -60,10 +68,93 @@ $all-charts-block-sticky-top: 72px;
 // this is here to prevent.
 $all-charts-block-sticky-nav-min-height: 48px;
 
+// The block's heading and its search bar, stuck to the top of the viewport as a
+// single unit so the indicator rows scroll underneath both of them. They are one
+// element rather than two separately-stuck ones because their combined height
+// depends on the heading's text: a topic whose name wraps the heading onto a
+// second line would otherwise need a second offset kept in sync with it by hand.
+//
+// The white background belongs here, on the unit, so what a row scrolls behind
+// is a single opaque band with one hard bottom edge — the heading and the input
+// don't read as two separately floating strips.
+//
+// Not stuck below the breakpoint: on a phone the two together would take a
+// serious bite out of a short viewport, and the sidecar they were sharing the
+// screen with isn't there anyway. Both scroll away with the page instead.
+.all-charts-block__sticky-header {
+    position: sticky;
+    // Clears the topic page's own sticky sub-nav, the same offset the chart
+    // sidecar uses (see $all-charts-block-sticky-top).
+    top: $all-charts-block-sticky-top;
+    z-index: 1;
+    // Solid white, so a row scrolling up underneath is hidden outright and cut
+    // off with a hard edge at the bottom of the bar, rather than showing through
+    // it. An earlier version faded to transparent, which let rows dissolve out
+    // from under the input — the designer's reference has the row clipped
+    // cleanly instead.
+    background-color: $white;
+    // 12px of padding below the input extends the opaque background past it,
+    // then a smaller margin makes up the rest of the original 16px gap to the
+    // suggested-searches row beneath.
+    padding-bottom: 12px;
+    margin-bottom: 4px;
+
+    // The unit sticks a little *below* the sub-nav (see
+    // $all-charts-block-sticky-top), which leaves a band between the two that
+    // the background above doesn't cover — so rows scrolling past stayed
+    // visible in it, reappearing above the heading after being hidden behind
+    // it. Painted here rather than by giving the unit padding-top, because
+    // padding would also push the heading down where the unit isn't stuck.
+    // Absolute positioning resolves against the unit itself (sticky is a
+    // positioned element), so this sits flush on top of it, and being a child it
+    // inherits the unit's stacking position over the rows. The sub-nav's own
+    // z-index is far higher, so overlapping it is harmless.
+    &::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 100%;
+        height: $all-charts-block-sticky-top -
+            $all-charts-block-sticky-nav-min-height;
+        background-color: $white;
+    }
+
+    @include md-down {
+        position: static;
+        // Nothing is stuck, so there is no gap above the heading to cover — and
+        // a band of white painted over whatever precedes the block would be a
+        // bug rather than a backdrop.
+        &::before {
+            content: none;
+        }
+    }
+}
+
+.all-charts-block__sticky-header-columns {
+    @include all-charts-block-columns;
+}
+
+// Holds the search input in the first column of that grid, so it keeps the width
+// of the list pane below it. A wrapper rather than putting the input straight
+// into the grid: the input comes with an active-filters row beneath it, and both
+// belong in the same column.
+.all-charts-block__sticky-header-search {
+    min-width: 0;
+}
+
 .all-charts-block__right {
     min-width: 0;
     position: sticky;
-    top: $all-charts-block-sticky-top;
+    // Below the sticky heading + search bar above, which is opaque: pinned at
+    // the same offset as those, the chart would scroll up behind them and lose
+    // its top. The height of that unit is measured by the block and published as
+    // a custom property, since it depends on how many lines the heading takes
+    // (see AllChartsBlock.tsx).
+    top: calc(
+        #{$all-charts-block-sticky-top} +
+            var(--all-charts-block-sticky-header-height, 0px)
+    );
 
     figure[data-grapher-src]:not(.grapherPreview),
     figure.grapher-component:not(.grapherPreview) {
@@ -81,47 +172,14 @@ $all-charts-block-sticky-nav-min-height: 48px;
 }
 
 .all-charts-block__search {
-    position: sticky;
-    // Sticks to the same offset as the chart sidecar (.all-charts-block__right
-    // above) for consistency — both clear the topic page's sticky sub-nav by
-    // the same amount. Only the search input itself sticks; the suggested-
-    // searches row below it scrolls away normally with the rest of the list.
-    top: $all-charts-block-sticky-top;
-    z-index: 1;
+    // Sticking, and the opaque background that goes with it, belong to
+    // .all-charts-block__sticky-header above, which carries the heading along
+    // with the input. What is still needed here is a positioned ancestor for
+    // the search icon and the clear button, both absolutely positioned inside
+    // it.
+    position: relative;
     display: flex;
     align-items: center;
-    // 12px of padding below the input extends the opaque background past it,
-    // then a smaller margin makes up the rest of the original 16px gap to the
-    // suggested-searches row beneath.
-    padding-bottom: 12px;
-    margin-bottom: 4px;
-    // Solid white, so a row scrolling up underneath the sticky bar is hidden
-    // outright and cut off with a hard edge at the bar's bottom, rather than
-    // showing through it. An earlier version used a gradient fading to
-    // transparent, which let rows dissolve out from under the input — the
-    // designer's reference has the row clipped cleanly instead.
-    background-color: $white;
-
-    // The bar sticks a little *below* the sub-nav (see
-    // $all-charts-block-sticky-top), which leaves a band between the two that
-    // the background above doesn't cover — so rows scrolling past stayed
-    // visible in it, reappearing above the search input after being hidden
-    // behind it. Painted here rather than by giving the bar padding-top,
-    // because padding would also push the input down where the bar isn't
-    // stuck. Absolute positioning resolves against the bar itself (sticky is
-    // a positioned element), so this sits flush on top of it, and being a
-    // child it inherits the bar's stacking position over the rows. The
-    // sub-nav's own z-index is far higher, so overlapping it is harmless.
-    &::before {
-        content: "";
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 100%;
-        height: $all-charts-block-sticky-top -
-            $all-charts-block-sticky-nav-min-height;
-        background-color: $white;
-    }
 }
 
 .all-charts-block__search-icon {
@@ -138,6 +196,17 @@ $all-charts-block-sticky-nav-min-height: 48px;
     border-radius: 4px;
     font-size: 16px;
     color: $text-color;
+    // Both of these are here to stop the browser painting the field for us.
+    // Nothing declared a background, so the input was left with whatever its
+    // engine draws for a native search field: white in Chrome and Firefox, but a
+    // grey fill in Safari on iOS, where `<input type="search">` is styled like
+    // the system search box — which is why the bar looked grey on a phone and
+    // white on a desktop. Turning the native appearance off as well as naming
+    // the colour, since the grey is drawn by that appearance rather than by an
+    // inherited background.
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: $white;
 
     &:focus {
         outline: none;
@@ -431,7 +500,12 @@ $all-charts-block-sticky-nav-min-height: 48px;
 // (.all-charts-block__right) is used instead.
 .all-charts-block__row-accordion {
     display: none;
-    padding: 16px;
+    // Lined up with the row text above it rather than inset by a round 16px all
+    // round: the text starts 16px in from the row's left edge (a 3px accent
+    // border plus 13px of padding) and stops 13px short of its right edge, so
+    // the chart takes the same two insets and its card sits directly under the
+    // title.
+    padding: 16px 13px 16px 16px;
     background-color: $blue-5;
     border-top: 1px solid $gray-20;
 
@@ -439,9 +513,32 @@ $all-charts-block-sticky-nav-min-height: 48px;
         display: block;
     }
 
+    // `full-width-on-mobile`, which every GrapherWithFallback carries, pulls the
+    // chart 8px past its container on each side. That is meant for a chart in
+    // the article body, where those 8px are half the page gutter and the effect
+    // is a chart bleeding to the screen edge; inside a row it just breaks the
+    // alignment with the text above.
+    .all-charts-block__grapher {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
     figure[data-grapher-src]:not(.grapherPreview),
     figure.grapher-component:not(.grapherPreview) {
         height: $grapher-height;
+        // A <figure> is one of the few elements browsers give a horizontal
+        // margin of their own: `margin: 1em 40px`. Nothing here overrode it —
+        // the site's own reset for grapher figures only applies inside
+        // `.article-content`, and this block is in a gdoc's
+        // `.centered-article-container` — so the chart was rendering 80px
+        // narrower than the space it had, centred by the leftover margin. On a
+        // phone that is 80px out of ~340: the card sat well inside the row text
+        // on both sides. Grapher measures this figure to size itself, so
+        // clearing the margin and filling the width is what actually makes the
+        // chart bigger rather than just moving it.
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
     }
 }
 
