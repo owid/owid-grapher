@@ -33,6 +33,9 @@ import {
     getEntityQueryStr,
     extractFiltersFromQuery,
     pickEntitiesForChartHit,
+    filterChartHitsByPhrase,
+    removeMatchedWordsWithStopWords,
+    splitIntoWords,
     sortHitsByBaselineOrder,
     getChartHitIdentity,
     resolveSelectedChartIndex,
@@ -395,8 +398,19 @@ export const AllChartsBlock = ({
     // Detect a country in the query so we can (a) apply a country facet filter,
     // (b) preselect that entity in the sidecar Grapher, and (c) show a
     // "shown on chart" tag on rows that support it.
-    const detectedCountries = useMemo(() => {
-        if (!debouncedQuery.trim()) return []
+    //
+    // Whatever is left of the query once those country words are taken out is
+    // the phrase the rows themselves are matched against (see `hits` below).
+    // Splitting it this way is what keeps a country search working: typing
+    // "china" filters by the entity facet, and the leftover phrase is empty, so
+    // no row is asked to have the word "china" printed on it. "china emissions"
+    // applies the facet *and* requires "emissions" on the row.
+    // `removeMatchedWordsWithStopWords` is the same helper the search bar uses
+    // when it turns typed words into a filter pill, so "poverty in china" leaves
+    // "poverty" rather than a dangling "poverty in".
+    const { detectedCountries, searchPhrase } = useMemo(() => {
+        if (!debouncedQuery.trim())
+            return { detectedCountries: [], searchPhrase: "" }
         const filters = extractFiltersFromQuery(
             debouncedQuery,
             regionNames,
@@ -405,9 +419,16 @@ export const AllChartsBlock = ({
             { threshold: 1, limit: 1 }, // exact matches only
             synonymMap
         )
-        return filters
-            .filter((f) => f.type === FilterType.COUNTRY)
-            .map((f) => f.name)
+        const countryFilters = filters.filter(
+            (f) => f.type === FilterType.COUNTRY
+        )
+        return {
+            detectedCountries: countryFilters.map((f) => f.name),
+            searchPhrase: removeMatchedWordsWithStopWords(
+                splitIntoWords(debouncedQuery),
+                countryFilters.flatMap((f) => f.positions)
+            ),
+        }
     }, [debouncedQuery, regionNames, synonymMap])
 
     const searchState = useMemo(() => {
@@ -500,9 +521,19 @@ export const AllChartsBlock = ({
     // same chart under a different objectID. Keyed on objectID those charts
     // read as new rows and land at the bottom of the list — the top of the
     // list appearing to empty out. See getChartHitIdentity.
+    //
+    // The rows are also narrowed to the ones whose own text contains the typed
+    // phrase, which is a "find" within the topic rather than a relevance search:
+    // Algolia requires every word of the query to appear *somewhere* in a
+    // record, but each word may come from a different searchable attribute (tags,
+    // producers, entity names, the slug) and may be a typo away from what was
+    // typed, so "national poverty line" came back with 34 charts on the Poverty
+    // topic — including "Mean income or consumption per day", which contains
+    // none of the three words. See filterChartHitsByPhrase for the mechanism and
+    // for why the narrowing happens here rather than in the query.
     const isBaselinePending = !baseHits && !isBaseError
     const hits = useMemo(() => {
-        const rawHits = data ?? []
+        const rawHits = filterChartHitsByPhrase(data ?? [], searchPhrase)
         // No baseline and none coming: with nothing to pin the order to, fall
         // back to Algolia's order rather than blanking the block for good. No
         // later reshuffle can follow, since no baseline will arrive.
@@ -514,7 +545,7 @@ export const AllChartsBlock = ({
         // baseline arrives with (or before) the filtered results.
         if (!baseHits) return []
         return sortHitsByBaselineOrder(rawHits, baseHits)
-    }, [data, baseHits, isBaseError])
+    }, [data, baseHits, isBaseError, searchPhrase])
 
     // Editorially curated suggestions (set on the gdoc block) take precedence
     // when present, preserving the pre-existing authoring workflow — including

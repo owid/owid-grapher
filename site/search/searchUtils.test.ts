@@ -13,6 +13,8 @@ import {
     getChartHitIdentity,
     getVisibleChartHits,
     hasHiddenChartHits,
+    filterChartHitsByPhrase,
+    textContainsPhrase,
     ALL_CHARTS_INITIAL_ROW_COUNT,
 } from "./searchUtils"
 
@@ -1156,5 +1158,198 @@ describe(resolveSelectedChartIndex, () => {
         // not throw.
         expect(resolveSelectedChartIndex([], null)).toBe(0)
         expect(resolveSelectedChartIndex([], "life-expectancy")).toBe(0)
+    })
+})
+
+describe(filterChartHitsByPhrase, () => {
+    // The rows the Poverty topic returned for "national poverty line", with the
+    // text each row actually shows. The first four are the charts the search is
+    // asking for; the rest are what Algolia added because each word of the query
+    // may be found in a different attribute of a record (a tag, a producer, the
+    // slug), typos included.
+    const nationalPovertyLine = {
+        slug: "national-poverty-line-vs-gdp-per-capita",
+        title: "National poverty line vs. GDP per capita",
+        subtitle: "",
+        datasetProducers: ["World Bank Poverty and Inequality Platform"],
+    }
+    const nationalPovertyLinesPlural = {
+        slug: "share-of-population-living-in-poverty-by-national-poverty-lines",
+        title: "Share of population living below national poverty lines",
+        subtitle:
+            "National poverty headcount ratio is the percentage of the population living below the national poverty lines.",
+        datasetProducers: ["World Bank Poverty and Inequality Platform"],
+    }
+    // The chart the designer reported: none of "national", "poverty" or "line"
+    // appears on the row. Algolia matched "poverty" in the producer name,
+    // "line" elsewhere in the record, and "national" in "United Nations" via
+    // typo tolerance.
+    const meanIncome = {
+        slug: "daily-mean-income",
+        title: "Mean income or consumption per day",
+        subtitle:
+            "This data is adjusted for inflation and differences in living costs between countries.",
+        datasetProducers: [
+            "World Bank Poverty and Inequality Platform",
+            "United Nations",
+        ],
+    }
+    // Matched only through its subtitle's "International Poverty Line", which
+    // contains the typed phrase as a raw substring but not as whole words.
+    const extremePoverty = {
+        slug: "share-of-population-in-extreme-poverty",
+        title: "Share of population living in extreme poverty",
+        subtitle:
+            "Extreme poverty is defined as living below the International Poverty Line of $3 per day.",
+        datasetProducers: ["World Bank Poverty and Inequality Platform"],
+    }
+    const povertyHits = [
+        nationalPovertyLine,
+        nationalPovertyLinesPlural,
+        meanIncome,
+        extremePoverty,
+    ]
+
+    it("keeps only the rows whose own text contains the whole phrase", () => {
+        expect(
+            filterChartHitsByPhrase(povertyHits, "national poverty line")
+        ).toEqual([nationalPovertyLine, nationalPovertyLinesPlural])
+    })
+
+    it("matches a plural in the row against a singular in the query", () => {
+        // "national poverty lines" is the most relevant chart of all for this
+        // search, and Algolia's own "exactPhrase" operator drops it.
+        expect(
+            filterChartHitsByPhrase(
+                [nationalPovertyLinesPlural],
+                "national poverty line"
+            )
+        ).toEqual([nationalPovertyLinesPlural])
+    })
+
+    it("does not match a longer word mid-phrase", () => {
+        // "International Poverty Line" contains "national poverty line" as a
+        // substring, but "international" is not the word that was typed.
+        expect(
+            filterChartHitsByPhrase([extremePoverty], "national poverty line")
+        ).toEqual([])
+        // Whereas the phrase the row does show is found.
+        expect(
+            filterChartHitsByPhrase(
+                [extremePoverty],
+                "international poverty line"
+            )
+        ).toEqual([extremePoverty])
+    })
+
+    it("requires the words to be adjacent, not merely all present", () => {
+        // Every word of the query appears on this row — across the title, the
+        // subtitle and the producer list — but never as the phrase.
+        expect(
+            filterChartHitsByPhrase(
+                [meanIncome],
+                "united nations poverty platform"
+            )
+        ).toEqual([])
+    })
+
+    it("never matches a phrase across two separate fields", () => {
+        // The title ends with "emissions" and the subtitle opens with "per
+        // capita", so the concatenation of the two contains "emissions per
+        // capita" although neither line does.
+        const methane = {
+            slug: "per-capita-methane-emissions",
+            title: "Per capita methane emissions",
+            subtitle: "Per capita methane emissions are measured in tonnes.",
+            datasetProducers: ["Climate Watch"],
+        }
+        expect(
+            filterChartHitsByPhrase([methane], "emissions per capita")
+        ).toEqual([])
+        expect(
+            filterChartHitsByPhrase([methane], "per capita methane")
+        ).toEqual([methane])
+    })
+
+    it("finds subscript digits typed as plain ones", () => {
+        // Chart titles use "CO₂", visitors type "co2".
+        const co2 = {
+            slug: "co2-emissions-per-capita",
+            title: "CO₂ emissions per capita",
+            subtitle: "Carbon dioxide (CO₂) emissions from fossil fuels.",
+            datasetProducers: ["Global Carbon Project"],
+        }
+        expect(filterChartHitsByPhrase([co2], "co2 emissions")).toEqual([co2])
+        expect(
+            filterChartHitsByPhrase([co2], "co₂ emissions per capita")
+        ).toEqual([co2])
+    })
+
+    it("matches the source line as well as the title and subtitle", () => {
+        expect(filterChartHitsByPhrase(povertyHits, "world bank")).toEqual(
+            povertyHits
+        )
+    })
+
+    it("treats a half-typed last word as a prefix", () => {
+        // The query is debounced, not submitted, so the last word is routinely
+        // unfinished — the list must not empty out mid-word.
+        for (const prefix of [
+            "national",
+            "national pov",
+            "national poverty l",
+            "national poverty line",
+        ])
+            expect(filterChartHitsByPhrase(povertyHits, prefix)).toEqual([
+                nationalPovertyLine,
+                nationalPovertyLinesPlural,
+            ])
+    })
+
+    it("keeps every hit when there is no phrase to match", () => {
+        // The all-charts block passes an empty phrase whenever the query is
+        // empty, or consists only of a country name — which filters by the
+        // entity facet instead, and must not additionally require the country's
+        // name to be printed on the row.
+        expect(filterChartHitsByPhrase(povertyHits, "")).toEqual(povertyHits)
+        expect(filterChartHitsByPhrase(povertyHits, "   ")).toEqual(povertyHits)
+        // Punctuation-only input normalises to no words at all.
+        expect(filterChartHitsByPhrase(povertyHits, "-")).toEqual(povertyHits)
+    })
+
+    it("drops every hit for a misspelled phrase", () => {
+        // Typo tolerance does not survive this narrowing: Algolia still returns
+        // the typo-matched hits, but none of them shows the typed phrase, so the
+        // block falls through to its empty state ("Search all charts").
+        expect(
+            filterChartHitsByPhrase(povertyHits, "national povery line")
+        ).toEqual([])
+    })
+})
+
+describe(textContainsPhrase, () => {
+    it("ignores case, punctuation and repeated whitespace", () => {
+        expect(
+            textContainsPhrase(
+                "Share of population living\nin poverty",
+                "IN POVERTY"
+            )
+        ).toBe(true)
+        expect(
+            textContainsPhrase("Poverty: share of population", "poverty share")
+        ).toBe(true)
+    })
+
+    it("matches at the start and at the end of the text", () => {
+        expect(textContainsPhrase("Annual CO₂ emissions", "annual")).toBe(true)
+        expect(
+            textContainsPhrase("Annual CO₂ emissions", "co2 emissions")
+        ).toBe(true)
+    })
+
+    it("returns false when the text runs out mid-phrase", () => {
+        expect(
+            textContainsPhrase("Annual CO₂ emissions", "emissions by sector")
+        ).toBe(false)
     })
 })

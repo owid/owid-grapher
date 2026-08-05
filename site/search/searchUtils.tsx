@@ -26,6 +26,7 @@ import {
 import {
     Url,
     countriesByName,
+    slugify,
     FuzzySearch,
     FuzzySearchResult,
     getAllChildrenOfArea,
@@ -122,6 +123,127 @@ export type ChartHitIdentityFields = {
  */
 export function getChartHitIdentity(hit: ChartHitIdentityFields): string {
     return `${hit.slug}${hit.queryParams ?? ""}`
+}
+
+export type ChartHitPhraseFields = {
+    title?: string
+    subtitle?: string
+    datasetProducers?: string[]
+}
+
+/**
+ * The text of a chart hit as the all-charts block actually renders it: the row's
+ * title, its subtitle, and each producer named in its "Source:" line — kept as
+ * separate strings rather than joined, so a phrase can never be matched across
+ * the boundary between two of them. (Concatenated, a row titled "Per capita
+ * methane emissions" whose subtitle opens "Per capita …" would match the phrase
+ * "emissions per capita", which appears nowhere on it.)
+ *
+ * Deliberately *only* the visible text. The index makes far more searchable than
+ * this — `slug`, `tags`, `datasetProducers`, `availableEntities` — and matching a
+ * typed phrase against fields the row doesn't show is exactly what makes results
+ * look arbitrary (see filterChartHitsByPhrase).
+ */
+function getChartHitRowTexts(hit: ChartHitPhraseFields): string[] {
+    return [
+        hit.title ?? "",
+        hit.subtitle ?? "",
+        ...(hit.datasetProducers ?? []),
+    ].filter((text) => text !== "")
+}
+
+/**
+ * Words for phrase matching, normalised identically on both sides of the
+ * comparison.
+ *
+ * `slugify` is reused here rather than hand-rolling a normaliser: it lowercases,
+ * drops punctuation, and — the part that matters most for our titles — folds
+ * subscript digits, so "CO₂ emissions" becomes "co2-emissions" and a visitor
+ * typing "co2 emissions" still finds it. It's also the same normalisation the
+ * indexed `slug` itself goes through.
+ *
+ * Whitespace is collapsed to single spaces first because `slugify` only turns
+ * *spaces* into separators: a newline or tab is instead removed as punctuation,
+ * which would weld the words on either side of it into one.
+ */
+function splitIntoPhraseMatchWords(text: string): string[] {
+    return slugify(text.replace(/\s+/g, " "))
+        .split("-")
+        .filter((word) => word !== "")
+}
+
+/**
+ * True when `text` contains `phrase` as a run of consecutive whole words, with
+ * the last word of the phrase allowed to match a prefix.
+ *
+ * Whole words, not raw substrings: a substring test would report
+ * "national poverty line" as found in "…below the International Poverty Line",
+ * which is how a search for the phrase ends up returning charts about extreme
+ * poverty (17 of them on the Poverty topic).
+ *
+ * Prefix on the final word only, which covers two things at once: the visitor is
+ * typing, so the last word is routinely half-finished ("national poverty li"),
+ * and it makes the singular find the plural — "national poverty line" matches
+ * the chart titled "Share of population living below national poverty lines",
+ * which is the single most relevant result for that search and which Algolia's
+ * own `"exactPhrase"` operator drops.
+ */
+export function textContainsPhrase(text: string, phrase: string): boolean {
+    const phraseWords = splitIntoPhraseMatchWords(phrase)
+    if (phraseWords.length === 0) return true
+
+    const textWords = splitIntoPhraseMatchWords(text)
+    const leadingWords = phraseWords.slice(0, -1)
+    const lastWord = phraseWords[phraseWords.length - 1]
+
+    for (
+        let start = 0;
+        start + phraseWords.length <= textWords.length;
+        start++
+    ) {
+        const leadingWordsMatch = leadingWords.every(
+            (word, offset) => textWords[start + offset] === word
+        )
+        if (
+            leadingWordsMatch &&
+            textWords[start + leadingWords.length].startsWith(lastWord)
+        )
+            return true
+    }
+    return false
+}
+
+/**
+ * Keeps only the hits whose own visible text contains `phrase` — the
+ * "find"-like narrowing the all-charts block applies on top of its Algolia
+ * results (site/AllChartsBlock.tsx). An empty phrase keeps everything.
+ *
+ * Why the block needs this at all: Algolia does require every word of the query
+ * to be present, but each word may be found in a *different* searchable
+ * attribute of the record, with typo tolerance on top. So on the Poverty topic
+ * "national poverty line" matched 34 charts, among them "Mean income or
+ * consumption per day", which contains none of the three words: "poverty" came
+ * from its producer "World Bank Poverty and Inequality Platform", "line" from
+ * elsewhere in its record, and "national" from "United Nations" via typo
+ * tolerance. Restricted to the words on the row, the same search returns the 4
+ * charts that are actually about national poverty lines.
+ *
+ * The filter runs client-side rather than as a query parameter for two reasons:
+ * Algolia's `"exactPhrase"` operator is token-exact, so quoting the query drops
+ * the plural-titled chart (see textContainsPhrase); and the caller already holds
+ * the complete result set for its topic (queryAllCharts walks every page), so
+ * narrowing it locally can't hide a match on a page that wasn't fetched.
+ */
+export function filterChartHitsByPhrase<T extends ChartHitPhraseFields>(
+    hits: readonly T[],
+    phrase: string
+): T[] {
+    if (splitIntoPhraseMatchWords(phrase).length === 0) return [...hits]
+    return hits.filter((hit) =>
+        getChartHitRowTexts(hit).some((text) =>
+            textContainsPhrase(text, phrase)
+        )
+    )
 }
 
 /**
