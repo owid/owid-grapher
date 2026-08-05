@@ -73,11 +73,13 @@ const renderDatapageIfApplicable = async (
         imageMetadataDictionary,
         archiveContextDictionary,
         topicAreaNamesByTagName,
+        topicAreaNamesByChartId,
         forceDatapage,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
         topicAreaNamesByTagName?: Record<string, string>
+        topicAreaNamesByChartId?: Record<number, string>
         forceDatapage?: boolean
     } = {}
 ) => {
@@ -106,6 +108,7 @@ const renderDatapageIfApplicable = async (
             imageMetadataDictionary,
             archiveContextDictionary,
             topicAreaNamesByTagName,
+            topicAreaNamesByChartId,
         },
         knex
     )
@@ -127,9 +130,9 @@ export const renderDataPageOrGrapherPage = async (
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
         topicAreaNamesByTagName?: Record<string, string>
         /**
-         * Chart id -> top-level topic area name, resolved once per bake. Only
-         * the plain grapher page path uses it, as a fallback for charts whose
-         * indicators carry no topic tags; data pages read the indicator's tags.
+         * Chart id -> top-level topic area name, resolved once per bake. Both
+         * page paths use it as the fallback for charts whose indicators carry no
+         * topic tags.
          */
         topicAreaNamesByChartId?: Record<number, string>
     } = {}
@@ -138,6 +141,7 @@ export const renderDataPageOrGrapherPage = async (
         imageMetadataDictionary,
         archiveContextDictionary,
         topicAreaNamesByTagName,
+        topicAreaNamesByChartId,
     })
     if (datapage) return datapage
     return renderGrapherPage(grapher, knex, {
@@ -160,6 +164,7 @@ export async function renderDataPageV2(
         imageMetadataDictionary = {},
         archiveContextDictionary,
         topicAreaNamesByTagName,
+        topicAreaNamesByChartId,
     }: {
         variableId: number
         variableMetadata: OwidVariableWithSource
@@ -174,6 +179,11 @@ export async function renderDataPageV2(
          * (admin previews, the dev mock site router).
          */
         topicAreaNamesByTagName?: Record<string, string>
+        /**
+         * Chart id -> top-level topic area name, resolved once per bake. Same
+         * fallback role, and same single-page fallback, as above.
+         */
+        topicAreaNamesByChartId?: Record<number, string>
     },
     knex: db.KnexReadonlyTransaction
 ) {
@@ -245,13 +255,31 @@ export async function renderDataPageV2(
         datapageData.topicTagsLinks
     )
 
-    // Topic area for the newsletter card. Uses the same "first tag wins" rule
-    // as getPrimaryTopic above; datapage tags come from variable metadata
-    // (presentation.topicTagsLinks), not chart_tags.
-    datapageData.topicArea = db.getTopicAreaNameForTagNames(
-        datapageData.topicTagsLinks ?? [],
+    // Topic area for the newsletter card, resolved by the same two routes and
+    // in the same order as `getTopicAreaForGrapherPage` uses for plain grapher
+    // pages, so the two page types can't disagree about a chart:
+    //
+    // 1. the indicator's authored `presentation.topicTagsLinks`, which a data
+    //    page already has to hand as `datapageData.topicTagsLinks`, read with
+    //    the same "first tag wins" rule as `getPrimaryTopic` above;
+    // 2. the chart's own tags in `chart_tags`, as a fallback.
+    //
+    // Most indicators carry no topic tags, so route 1 alone left the large
+    // majority of data pages with no card even where the chart itself is
+    // tagged. A page that resolves through neither route still renders none.
+    const areaNamesByTagName =
         topicAreaNamesByTagName ?? (await db.getTopicAreaNamesByTagName(knex))
-    )
+    datapageData.topicArea =
+        db.getTopicAreaNameForTagNames(
+            datapageData.topicTagsLinks ?? [],
+            areaNamesByTagName
+        ) ??
+        (await getTopicAreaFromChartTags(
+            grapher,
+            knex,
+            areaNamesByTagName,
+            topicAreaNamesByChartId
+        ))
 
     let imageMetadata: Record<string, ImageMetadata> = {}
 
@@ -417,6 +445,37 @@ const getTopicAreaFromFirstYIndicator = async (
 }
 
 /**
+ * Topic area for the newsletter card from a chart's own tags in `chart_tags` —
+ * the fallback route for pages whose indicators carry no
+ * `presentation.topicTagsLinks`, shared by the plain grapher page path
+ * (`getTopicAreaForGrapherPage`) and the data page path (`renderDataPageV2`) so
+ * that the two resolve a given chart identically.
+ *
+ * `db.getTopicAreaNamesByChartId` documents how it picks one area when a chart's
+ * tags span several, and why that pick is a fallback rather than the primary
+ * route. A chart with no id (indicator-level previews, where the page isn't a
+ * chart at all) or no tags that resolve to an area yields undefined, and callers
+ * render no card.
+ */
+const getTopicAreaFromChartTags = async (
+    grapher: GrapherInterface,
+    knex: db.KnexReadonlyTransaction,
+    areaNamesByTagName: Record<string, string>,
+    topicAreaNamesByChartId?: Record<number, string>
+): Promise<string | undefined> => {
+    if (grapher.id === undefined) return undefined
+    const areaNamesByChartId =
+        topicAreaNamesByChartId ??
+        // Only when a single page is rendered on its own (admin previews, the
+        // dev mock site router). Bakes pass the whole mapping in, so they don't
+        // pay a query per page.
+        (await db.getTopicAreaNamesByChartId(knex, areaNamesByTagName, [
+            grapher.id,
+        ]))
+    return areaNamesByChartId[grapher.id]
+}
+
+/**
  * Topic area for the newsletter card on a plain grapher page.
  *
  * Two routes, in order:
@@ -428,10 +487,9 @@ const getTopicAreaFromFirstYIndicator = async (
  *    mostly authored on the indicators that front a data page, so a large
  *    minority of plain grapher pages have nothing to walk up from — whereas the
  *    charts themselves are tagged in the admin, so the chart's tags usually
- *    resolve where its indicators' don't. `db.getTopicAreaNamesByChartId`
- *    documents how it picks one area when a chart's tags span several; unlike
- *    route 1 that pick is a navigation weight rather than an authored ordering,
- *    which is why it's the fallback and not the primary.
+ *    resolve where its indicators' don't. See `getTopicAreaFromChartTags`;
+ *    unlike route 1 that pick is a navigation weight rather than an authored
+ *    ordering, which is why it's the fallback and not the primary.
  *
  * A page that resolves through neither route renders no card, deliberately: a
  * card offering the wrong topic area is worse than no card.
@@ -451,16 +509,12 @@ const getTopicAreaForGrapherPage = async (
     )
     if (indicatorArea) return indicatorArea
 
-    if (grapher.id === undefined) return undefined
-    const areaNamesByChartId =
-        topicAreaNamesByChartId ??
-        // Only when a single page is rendered on its own (admin previews, the
-        // dev mock site router). Bakes pass the whole mapping in, so they don't
-        // pay a query per page.
-        (await db.getTopicAreaNamesByChartId(knex, areaNamesByTagName, [
-            grapher.id,
-        ]))
-    return areaNamesByChartId[grapher.id]
+    return await getTopicAreaFromChartTags(
+        grapher,
+        knex,
+        areaNamesByTagName,
+        topicAreaNamesByChartId
+    )
 }
 
 const renderGrapherPage = async (
