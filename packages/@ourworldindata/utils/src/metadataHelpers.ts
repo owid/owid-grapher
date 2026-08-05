@@ -144,9 +144,15 @@ const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
         label += " – " + origin.title
     }
 
+    const descriptions = [origin.description, origin.descriptionSnapshot]
+        .filter((text): text is string => !!text)
+        .map((text) => text.trim())
+    const description =
+        descriptions.length > 0 ? descriptions.join("\n\n") : undefined
+
     return {
         label,
-        description: origin.description,
+        description,
         retrievedOn: origin.dateAccessed,
         retrievedFrom: origin.urlMain,
         citation: origin.citationFull,
