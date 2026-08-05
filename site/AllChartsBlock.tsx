@@ -733,7 +733,18 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                         {hasHiddenHits && (
                             <div className="all-charts-block__reveal">
                                 <Button
-                                    theme="outline-light-blue"
+                                    // $blue-20 fill with $blue-90 text: the
+                                    // same theme the search page's own "Show
+                                    // more" control uses (see
+                                    // SearchHorizontalDivider), reading as
+                                    // secondary to the row's solid-blue
+                                    // "Explore the data". An outline theme
+                                    // can't be used here: those declare no
+                                    // background, which is invisible on the
+                                    // <a> elements they're used on elsewhere
+                                    // but leaves a <button> showing the
+                                    // browser's default grey.
+                                    theme="solid-light-blue"
                                     className="all-charts-block__reveal-button"
                                     text={`Show all ${hits.length} indicators`}
                                     ariaLabel={`Show all ${hits.length} indicators on ${topicName}`}
