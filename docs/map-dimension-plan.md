@@ -138,10 +138,26 @@ desirable.
 
 Considered and parked: express "map shows plotted indicator X" as a `map`
 dimension too (duplicating X's variable), and drop `map.columnSlug` entirely.
-Findings from scoping this (July 2026, local DB snapshot):
+Findings from scoping this (July 2026, refined August 2026; local DB
+snapshot):
 
-- ~1,650 of ~31,400 map-tab configs set `map.columnSlug`; they'd migrate to a
-  duplicate y+map dimension pair.
+- Real usage is far smaller than the raw count. 1,667 configs (of ~31,400
+  with a map tab) have `map.columnSlug` in their `full` config, but 1,141
+  just repeat the first y variable and 418 are dangling (match no dimension,
+  so the first-y fallback kicks in anyway). Only ~108 change what the map
+  shows: 58 standalone charts (41 published; mostly UN estimates+projections
+  charts mapping the projection variable, e.g. `median-age`), 44 mdim views,
+  6 narrative charts, 0 explorer views, 0 indicator configs. Only those 108
+  would need a duplicate y+map pair; the other ~1,560 no-op slugs can simply
+  be deleted.
+- Hard blocker: the 44 mdim views are ETL-authored, and the mdim view format
+  cannot express a `map` dimension (`viewToDimensionsConfig` emits
+  y/x/size/color only) — mdim map-indicator support has to ship in both
+  repos before those usages can migrate at all.
+- The 418 dangling slugs are the by-reference footgun in the wild: the field
+  rots silently when dimensions change. Counterpoint for keeping it:
+  by-reference means the mapped indicator's `display` can never drift from
+  its y twin, which a duplicated dimension permits.
 - Duplicate-variable dimensions already exist in production (74 charts):
   x+y scatters are disambiguated into two real columns via `targetYear`
   slugs (`getDimensionColumnSlug`); 53 y+color pairs without `targetYear`
@@ -153,11 +169,20 @@ Findings from scoping this (July 2026, local DB snapshot):
   `LegacyToOwidTable`), not the current accident.
 - Costs: a breaking schema bump (v012) with a config migration over both
   `patch` and `full`, ETL coordination, a transition read-path for configs
-  outside the DB (exports, svg-tester fixtures), and — sharpest — an
-  inheritance granularity regression: `mergeGrapherConfigs` replaces
-  `dimensions` wholesale, so picking a map indicator would force a chart's
-  patch to carry the entire dimensions array instead of the one-leaf
-  `map.columnSlug` override, decoupling it from parent dimension updates.
+  outside the DB (exports, svg-tester fixtures) that keeps most of the
+  ~10-line fallback in `GrapherState.mapColumnSlug` alive indefinitely, and
+  — sharpest — an inheritance granularity regression: `mergeGrapherConfigs`
+  replaces `dimensions` wholesale, so picking a map indicator would force a
+  chart's patch to carry the entire dimensions array instead of the one-leaf
+  `map.columnSlug` override, decoupling it from parent dimension updates
+  (this bites the 6 narrative charts and indicator-inheriting charts
+  directly).
 
-Revisit only alongside a schema-breaking window that happens anyway, with the
-duplicate-dimension `display` semantics defined first.
+Cheap steps worth taking without the migration: mark `map.columnSlug` as
+deprecated in the schema description, and optionally delete the ~1,560 no-op
+slugs from patches (zero rendering change), so the eventual migration only
+has to audit the ~108 real usages.
+
+Revisit only alongside a schema-breaking window that happens anyway, after
+mdims can express a map indicator, and with the duplicate-dimension
+`display` semantics defined first.
