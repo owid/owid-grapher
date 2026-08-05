@@ -11,6 +11,9 @@ import {
     sortHitsByBaselineOrder,
     resolveSelectedChartIndex,
     getChartHitIdentity,
+    getVisibleChartHits,
+    hasHiddenChartHits,
+    ALL_CHARTS_INITIAL_ROW_COUNT,
 } from "./searchUtils"
 
 import { FilterType, SynonymMap } from "@ourworldindata/types"
@@ -950,6 +953,80 @@ describe(sortHitsByBaselineOrder, () => {
             { slug: "a", title: "First" },
             { slug: "c", title: "Third" },
         ])
+    })
+})
+
+describe(getVisibleChartHits, () => {
+    // A topic's list, as the block holds it: the full result set for the
+    // current query, in the block's default order.
+    const hits = (count: number): { slug: string }[] =>
+        Array.from({ length: count }, (_, index) => ({
+            slug: `chart-${index}`,
+        }))
+
+    it("renders only the first slice of a long list", () => {
+        // The CO2 topic's real size. Every one of those rows in the page is
+        // what pinned the chart sidecar for seventeen viewport heights.
+        const visible = getVisibleChartHits(hits(196), false)
+        expect(visible).toHaveLength(ALL_CHARTS_INITIAL_ROW_COUNT)
+    })
+
+    it("renders the slice as a prefix of the list, in order", () => {
+        // Load-bearing: the block resolves its selected row against the full
+        // result set and hands the slice to the table, so the two only agree
+        // about which row is selected while this is a prefix.
+        const all = hits(196)
+        expect(getVisibleChartHits(all, false, 4)).toEqual(all.slice(0, 4))
+    })
+
+    it("renders everything once the list is expanded", () => {
+        const all = hits(196)
+        expect(getVisibleChartHits(all, true)).toEqual(all)
+    })
+
+    it("renders every row of a list shorter than the slice, either way", () => {
+        const all = hits(7)
+        expect(getVisibleChartHits(all, false)).toEqual(all)
+        expect(getVisibleChartHits(all, true)).toEqual(all)
+    })
+
+    it("handles an empty result set", () => {
+        expect(getVisibleChartHits([], false)).toEqual([])
+        expect(getVisibleChartHits([], true)).toEqual([])
+    })
+
+    it("does not mutate the list it slices", () => {
+        const all = hits(30)
+        getVisibleChartHits(all, false)
+        expect(all).toHaveLength(30)
+    })
+})
+
+describe(hasHiddenChartHits, () => {
+    it("asks for the reveal control when rows are being held back", () => {
+        expect(hasHiddenChartHits(196)).toBe(true)
+        expect(hasHiddenChartHits(165)).toBe(true) // the "china" result set
+        expect(hasHiddenChartHits(ALL_CHARTS_INITIAL_ROW_COUNT + 1)).toBe(true)
+    })
+
+    it("renders no control when the whole list is already on screen", () => {
+        // Including at exactly the slice size: "Show all 25 indicators" under
+        // a list of all 25 of them would do nothing.
+        expect(hasHiddenChartHits(ALL_CHARTS_INITIAL_ROW_COUNT)).toBe(false)
+        expect(hasHiddenChartHits(3)).toBe(false)
+        expect(hasHiddenChartHits(0)).toBe(false)
+    })
+
+    it("agrees with what getVisibleChartHits actually renders", () => {
+        // The control must appear exactly when the slice is hiding something,
+        // whatever the two are given.
+        for (const total of [0, 1, 24, 25, 26, 196]) {
+            const all = Array.from({ length: total }, (_, index) => ({
+                slug: `chart-${index}`,
+            }))
+            const isHiding = getVisibleChartHits(all, false).length < all.length
+            expect(hasHiddenChartHits(total)).toBe(isHiding)
+        }
     })
 })
 

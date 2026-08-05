@@ -445,6 +445,32 @@ $all-charts-block-sticky-nav-min-height: 48px;
     }
 }
 
+// Holds the "Show all N indicators" control that reveals the rest of the topic's
+// chart list, directly below the last rendered row and inside the list pane (so
+// it scrolls up past the sticky search bar with the rows, and the chart sidecar
+// beside it is unaffected). Centred under the list rather than aligned to the
+// rows' 16px text inset: it acts on the whole list, not on a row.
+//
+// No border of its own — the last row's own bottom border
+// (.all-charts-block__row) already closes the list off above it.
+.all-charts-block__reveal {
+    display: flex;
+    justify-content: center;
+    padding-top: 16px;
+    // Matches the rows' horizontal inset (3px accent border + 13px), so on a
+    // phone the button has the same margin from the pane edge as the row text
+    // above it rather than sitting flush against it.
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+// The label carries a real count ("Show all 196 indicators"), which is wider
+// than a bare "Show more" — on the narrowest phones let it wrap inside the
+// button instead of overflowing the pane.
+.all-charts-block__reveal-button {
+    max-width: 100%;
+}
+
 .all-charts-block__empty {
     display: flex;
     flex-direction: column;

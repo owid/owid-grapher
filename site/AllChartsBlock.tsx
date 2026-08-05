@@ -4,6 +4,7 @@ import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
+    faChevronDown,
     faMagnifyingGlass,
     faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons"
@@ -40,6 +41,7 @@ import { stateToSearchParams } from "./search/searchState.js"
 import { buildSynonymMap } from "./search/synonymUtils.js"
 import { SearchDataResultsSkeleton } from "./search/SearchDataResultsSkeleton.js"
 import { SearchFilterPill } from "./search/SearchFilterPill.js"
+import { useVisibleChartHits } from "./useVisibleChartHits.js"
 
 const SEARCH_DEBOUNCE_MS = 200
 
@@ -658,6 +660,13 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
         setExpandedIndex(null)
     }, [resultKey])
 
+    // Only the rows on screen: a topic's chart list is unbounded, so the block
+    // renders a bounded first slice of it until the visitor asks for the rest.
+    const { visibleHits, hasHiddenHits, revealAll } = useVisibleChartHits(
+        hits,
+        query
+    )
+
     const handleRowClick = (index: number) => {
         const hit = hits[index]
         if (hit) setSelectedIdentity(getChartHitIdentity(hit))
@@ -703,19 +712,44 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                         searchParams={searchParams}
                     />
                 ) : (
-                    <AllChartsTable
-                        hits={hits}
-                        selectedIndex={selectedIndex}
-                        expandedIndex={expandedIndex}
-                        onRowClick={handleRowClick}
-                        detectedCountries={detectedCountries}
-                        // True while a new debounced query is fetching in the
-                        // background (see the keepPreviousData note above) —
-                        // a subtle dim on the still-visible previous results,
-                        // rather than the skeleton/blank state `isLoading`
-                        // triggers on a genuine first load.
-                        isRefreshing={isFetching && !isLoading}
-                    />
+                    <>
+                        <AllChartsTable
+                            hits={visibleHits}
+                            selectedIndex={selectedIndex}
+                            expandedIndex={expandedIndex}
+                            onRowClick={handleRowClick}
+                            detectedCountries={detectedCountries}
+                            // True while a new debounced query is fetching in
+                            // the background (see the keepPreviousData note
+                            // above) — a subtle dim on the still-visible
+                            // previous results, rather than the skeleton/blank
+                            // state `isLoading` triggers on a genuine first
+                            // load.
+                            isRefreshing={isFetching && !isLoading}
+                        />
+                        {/* The rest of the list, one click away. Counts the
+                            whole result set for the current query, not the
+                            slice on screen, so the number narrows with the
+                            search ("Show all 196 indicators" on the bare topic,
+                            165 once "china" is typed). Revealing is one-way
+                            until the query changes: collapsing a list the
+                            visitor has scrolled into would pull the page up
+                            from under them. */}
+                        {hasHiddenHits && (
+                            <div className="all-charts-block__reveal">
+                                <Button
+                                    theme="outline-light-blue"
+                                    className="all-charts-block__reveal-button"
+                                    text={`Show all ${hits.length} indicators`}
+                                    ariaLabel={`Show all ${hits.length} indicators on ${topicName}`}
+                                    dataTrackNote="all-charts-reveal-all"
+                                    icon={faChevronDown}
+                                    iconPosition="right"
+                                    onClick={revealAll}
+                                />
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
             <div className="all-charts-block__right">
@@ -804,7 +838,9 @@ const AllChartsTable = ({
     detectedCountries,
     isRefreshing,
 }: {
-    hits: SearchChartHit[]
+    // Only the rows on screen — the first slice of the result set, or all of it
+    // once the visitor has revealed the rest (see useVisibleChartHits).
+    hits: readonly SearchChartHit[]
     selectedIndex: number
     expandedIndex: number | null
     onRowClick: (index: number) => void
