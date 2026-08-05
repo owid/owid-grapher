@@ -21,13 +21,8 @@ async function main(args: ReturnType<typeof parseArguments>) {
 
     const compareUrl = args.compareUrl
 
-    const isExplorer = testSuite === "explorers"
-    const compareChartUrl = isExplorer
-        ? compareUrl + "/explorers"
-        : compareUrl + "/grapher"
-    const liveChartUrl = isExplorer
-        ? LIVE_URL + "/explorers"
-        : LIVE_URL + "/grapher"
+    const compareChartUrl = compareUrl + "/grapher"
+    const liveChartUrl = LIVE_URL + "/grapher"
 
     if (!fs.existsSync(workingDir))
         throw `Working directory does not exist ${workingDir}`

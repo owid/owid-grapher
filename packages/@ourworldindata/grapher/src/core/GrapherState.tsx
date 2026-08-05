@@ -2738,15 +2738,13 @@ export class GrapherState
 
         if (startTime === undefined || endTime === undefined) return undefined
 
-        // Dumbbell charts compare two points, so use "vs" instead of "to"
-        const separator = this.isOnDumbbellTab ? " vs. " : " to "
+        if (startTime === endTime) return formatTime(startTime)
 
-        const time =
-            startTime === endTime
-                ? formatTime(startTime)
-                : formatTime(startTime) + separator + formatTime(endTime)
+        // Dumbbell charts compare two points, so use "vs." instead of a range
+        if (this.isOnDumbbellTab)
+            return `${formatTime(startTime)} vs. ${formatTime(endTime)}`
 
-        return time
+        return timeColumn.formatTimeRange(startTime, endTime)
     }
 
     @computed get sourcesLine(): string {

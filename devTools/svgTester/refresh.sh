@@ -52,7 +52,6 @@ main() {
     refresh graphers
     refresh grapher-views
     refresh mdims
-    refresh explorers
     refresh thumbnails
 }
 

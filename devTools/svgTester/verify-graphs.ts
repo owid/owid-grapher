@@ -13,107 +13,6 @@ import { JOB_TIMEOUT_MS, MAX_WORKERS } from "./utils.js"
 import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
 import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
-async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
-    const testSuite = args.testSuite as utils.TestSuite
-    const verbose = args.verbose
-    const manifest = args.manifest
-
-    // Input and output directories
-    const dataDir = path.join(utils.SVG_REPO_PATH, testSuite, "data")
-    const referencesDir = path.join(
-        utils.SVG_REPO_PATH,
-        testSuite,
-        "references"
-    )
-    const differencesDir = path.join(
-        utils.SVG_REPO_PATH,
-        testSuite,
-        "differences"
-    )
-
-    if (!fs.existsSync(dataDir))
-        throw `Input directory does not exist ${dataDir}`
-    if (!fs.existsSync(referencesDir))
-        throw `Reference directory does not exist ${referencesDir}`
-    if (!fs.existsSync(differencesDir))
-        fs.mkdirSync(differencesDir, { recursive: true })
-
-    // Collect all explorer directories
-    const explorerJobs: {
-        explorerDir: string
-        explorerSlug: string
-        referencesDir: string
-        differencesDir: string
-        verbose: boolean
-        rmOnError: boolean
-        manifest?: string
-    }[] = []
-
-    const dir = await fs.opendir(dataDir)
-    for await (const entry of dir) {
-        if (!entry.isDirectory()) continue
-
-        const explorerDir = path.join(dataDir, entry.name)
-        const explorerSlug = entry.name
-
-        explorerJobs.push({
-            explorerDir,
-            explorerSlug,
-            referencesDir,
-            differencesDir,
-            manifest,
-            verbose: args.verbose,
-            rmOnError: args.rmOnError,
-        })
-    }
-
-    const jobCount = explorerJobs.length
-    if (jobCount === 0) {
-        utils.logIfVerbose(verbose, "No explorer directories found")
-        process.exit(0)
-    } else {
-        utils.logIfVerbose(
-            verbose,
-            `Verifying ${jobCount} explorer${jobCount > 1 ? "s" : ""}...`
-        )
-    }
-
-    const pool = workerpool.pool(__dirname + "/worker.ts", {
-        minWorkers: 2,
-        maxWorkers: MAX_WORKERS,
-        workerThreadOpts: {
-            execArgv: ["--require", "tsx"],
-        },
-    })
-
-    const validationResultsArrays: utils.VerifyResult[][] = await Promise.all(
-        explorerJobs.map((job) =>
-            // The per-view timeout lives inside renderAndVerifyExplorerViews,
-            // so we deliberately don't wrap this whole (multi-view) call in
-            // .timeout() — a large explorer with many views could legitimately
-            // exceed the per-view budget in aggregate.
-            pool
-                .exec("renderAndVerifyExplorerViews", [job])
-                .catch((err: Error) => [
-                    utils.resultError(job.explorerSlug, err),
-                ])
-        )
-    )
-
-    await pool.terminate()
-
-    // Flatten the array of arrays
-    const validationResults = validationResultsArrays.flat()
-
-    utils.logIfVerbose(verbose, "Verifications completed")
-
-    const exitCode = utils.displayVerifyResultsAndGetExitCode(
-        validationResults,
-        verbose
-    )
-    process.exit(exitCode)
-}
-
 async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
     try {
         // Test suite
@@ -262,7 +161,6 @@ async function main(args: ReturnType<typeof parseArguments>) {
         .with("grapher-views", () => verifyGraphers(args))
         .with("mdims", () => verifyGraphers(args))
         .with("thumbnails", () => verifyGraphers(args))
-        .with("explorers", () => verifyExplorers(args))
         .exhaustive()
 }
 
