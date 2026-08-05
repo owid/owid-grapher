@@ -33,8 +33,11 @@
 }
 
 .all-charts-block__panes {
-    @include all-charts-block-columns;
+    // Ahead of the mixin, which ends in a media query: a declaration after a
+    // nested rule is a fatal Sass deprecation here (see `mixed-decls` in
+    // vite.config-common.mts).
     align-items: start;
+    @include all-charts-block-columns;
 }
 
 .all-charts-block__left {
