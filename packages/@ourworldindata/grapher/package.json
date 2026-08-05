@@ -25,8 +25,7 @@
         "dist"
     ],
     "scripts": {
-        "build": "vite build && vite build --mode cdn && yarn build:types",
-        "build:types": "tsdown"
+        "build": "tsdown"
     },
     "directories": {
         "lib": "src"
@@ -76,6 +75,7 @@
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
         "@testing-library/react": "^16.3.2",
+        "@tsdown/css": "^0.22.14",
         "@types/colorbrewer": "^1.0.32",
         "@types/d3": "^7.4.3",
         "@types/geojson": "^7946.0.16",
@@ -86,8 +86,8 @@
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
         "@types/topojson-client": "^3.1.5",
-        "tsdown": "^0.22.5",
-        "vite": "^8.0.14",
+        "sass": "^1.89.2",
+        "tsdown": "^0.22.14",
         "vitest": "^4.1.10"
     },
     "license": "SEE LICENSE IN LICENSE.md"

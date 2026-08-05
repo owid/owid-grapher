@@ -1,4 +1,4 @@
-// Vite library entry point for @ourworldindata/grapher
+// Library entry point for @ourworldindata/grapher (see tsdown.config.ts).
 // This bundles everything needed for external consumers:
 // the full JS API plus grapher styles.
 

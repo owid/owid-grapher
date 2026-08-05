@@ -219,6 +219,7 @@
         "oxlint": "^1.76.0",
         "oxlint-tsgolint": "^7.0.2001",
         "playwright-bdd": "^9.1.0",
+        "rolldown": "^1.2.1",
         "sass": "^1.89.2",
         "schema-dts": "^2.0.0",
         "topojson-server": "^3.0.1",
