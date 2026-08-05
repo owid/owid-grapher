@@ -264,7 +264,7 @@ export function prepareCalloutTable(
         xColumnSlug,
         colorColumnSlug,
         sizeColumnSlug,
-        mapColumnSlug,
+        mapColumnSlugs,
         activeTab,
         minTime = TimeBoundValue.negativeInfinity,
         maxTime = TimeBoundValue.positiveInfinity,
@@ -283,7 +283,7 @@ export function prepareCalloutTable(
         xColumnSlug,
         sizeColumnSlug,
         colorColumnSlug,
-        mapColumnSlug,
+        mapColumnSlugs,
         activeTab,
     })
     const sourcesLine =

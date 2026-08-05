@@ -1768,16 +1768,11 @@ export class GrapherState
     }
 
     @computed get times(): Time[] {
-        const { mapColumnSlug, projectionColumnInfoBySlug, yColumnSlugs } = this
-
         // If the map shows historical and projected data, then the time range
         // has to extend to the full range of both indicators
-        const mapColumnInfo = projectionColumnInfoBySlug.get(mapColumnSlug)
-        const mapColumnSlugs = mapColumnInfo
-            ? [mapColumnInfo.projectedSlug, mapColumnInfo.historicalSlug]
-            : [mapColumnSlug]
-
-        const columnSlugs = this.isOnMapTab ? mapColumnSlugs : yColumnSlugs
+        const columnSlugs = this.isOnMapTab
+            ? this.mapColumnSlugs
+            : this.yColumnSlugs
 
         // Generate the times only after the chart transform has been applied, so that we don't show
         // times on the timeline for which data may not exist, e.g. when the selected entity
@@ -2609,6 +2604,19 @@ export class GrapherState
         return mapColumnSlug
     }
 
+    /**
+     * Slugs of all columns the map renders data from: both the projected and
+     * the historical column if the map shows combined data
+     */
+    @computed get mapColumnSlugs(): ColumnSlug[] {
+        const mapColumnInfo = this.projectionColumnInfoBySlug.get(
+            this.mapColumnSlug
+        )
+        return mapColumnInfo
+            ? [mapColumnInfo.projectedSlug, mapColumnInfo.historicalSlug]
+            : [this.mapColumnSlug]
+    }
+
     private getSlugForProperty(
         property: DimensionProperty
     ): string | undefined {
@@ -2804,7 +2812,7 @@ export class GrapherState
             xColumnSlug: this.xColumnSlug,
             sizeColumnSlug: this.sizeColumnSlug,
             colorColumnSlug: this.colorColumnSlug,
-            mapColumnSlug: this.mapColumnSlug,
+            mapColumnSlugs: this.mapColumnSlugs,
             activeTab: this.activeTab,
         })
         const columns = this.inputTable.getColumns(columnSlugs)

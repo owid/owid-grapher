@@ -25,7 +25,7 @@ export const pickColumnsForSourcesLine = ({
     xColumnSlug,
     colorColumnSlug,
     sizeColumnSlug,
-    mapColumnSlug,
+    mapColumnSlugs,
     activeTab,
 }: {
     table: OwidTable
@@ -33,7 +33,7 @@ export const pickColumnsForSourcesLine = ({
     xColumnSlug?: ColumnSlug
     colorColumnSlug?: ColumnSlug
     sizeColumnSlug?: ColumnSlug
-    mapColumnSlug?: ColumnSlug
+    mapColumnSlugs?: ColumnSlug[]
     activeTab?: GrapherTabName
 }): ColumnSlug[] => {
     const activeDimensions = new Set(
@@ -49,9 +49,10 @@ export const pickColumnsForSourcesLine = ({
         columnSlugs.push(...yColumnSlugs)
     }
 
-    // Include the map column; fall back to the y columns if it isn't given
+    // Include the map columns (the projected and historical column if the map
+    // shows combined data); fall back to the y columns if none are given
     if (activeDimensions.has(DimensionProperty.map)) {
-        if (mapColumnSlug) columnSlugs.push(mapColumnSlug)
+        if (mapColumnSlugs?.length) columnSlugs.push(...mapColumnSlugs)
         else columnSlugs.push(...yColumnSlugs)
     }
 

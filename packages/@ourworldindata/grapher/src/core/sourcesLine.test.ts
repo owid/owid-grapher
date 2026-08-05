@@ -27,10 +27,20 @@ it("attributes only the map column on the map tab", () => {
     const columnSlugs = pickColumnsForSourcesLine({
         table: BlankOwidTable(),
         yColumnSlugs: ["y1", "y2"],
-        mapColumnSlug: "map",
+        mapColumnSlugs: ["map"],
         activeTab: GRAPHER_TAB_NAMES.WorldMap,
     })
     expect(columnSlugs).toEqual(["map"])
+})
+
+it("attributes both map columns if the map combines projected and historical data", () => {
+    const columnSlugs = pickColumnsForSourcesLine({
+        table: BlankOwidTable(),
+        yColumnSlugs: ["projected", "historical"],
+        mapColumnSlugs: ["projected", "historical"],
+        activeTab: GRAPHER_TAB_NAMES.WorldMap,
+    })
+    expect(columnSlugs).toEqual(["projected", "historical"])
 })
 
 it("falls back to the y column on the map tab if no map column is given", () => {
@@ -46,7 +56,7 @@ it("attributes all y columns on chart tabs", () => {
     const columnSlugs = pickColumnsForSourcesLine({
         table: BlankOwidTable(),
         yColumnSlugs: ["y1", "y2"],
-        mapColumnSlug: "map",
+        mapColumnSlugs: ["map"],
         activeTab: GRAPHER_TAB_NAMES.LineChart,
     })
     expect(columnSlugs).toEqual(["y1", "y2"])
