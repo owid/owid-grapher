@@ -145,59 +145,6 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
     }
 }
 
-async function exportExplorers(args: ReturnType<typeof parseArguments>) {
-    const testSuite = args.testSuite as utils.TestSuite
-    const verbose = args.verbose
-
-    // Input and output directories
-    const dataDir = path.join(utils.SVG_REPO_PATH, testSuite, "data")
-    const outDir = path.join(utils.SVG_REPO_PATH, testSuite, "references")
-
-    if (!fs.existsSync(dataDir))
-        throw `Input directory does not exist ${dataDir}`
-    if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
-
-    // Collect all explorer directories
-    const explorerJobs: { dir: string; outDir: string }[] = []
-    const dir = await fs.opendir(dataDir)
-    for await (const entry of dir) {
-        if (!entry.isDirectory()) continue
-
-        const explorerDataDir = path.join(dataDir, entry.name)
-        explorerJobs.push({ dir: explorerDataDir, outDir })
-    }
-
-    const jobCount = explorerJobs.length
-    if (jobCount === 0) {
-        utils.logIfVerbose(verbose, "No explorer directories found")
-        process.exit(0)
-    } else {
-        utils.logIfVerbose(
-            verbose,
-            `Exporting ${jobCount} explorer${jobCount > 1 ? "s" : ""}...`
-        )
-    }
-
-    const pool = workerpool.pool(__dirname + "/worker.ts", {
-        minWorkers: 2,
-        maxWorkers: MAX_WORKERS,
-        workerThreadOpts: {
-            execArgv: ["--require", "tsx"],
-        },
-    })
-
-    const allSvgRecordsArrays: utils.SvgRecord[][] = await Promise.all(
-        explorerJobs.map((job) =>
-            pool.exec("renderExplorerViewsToSVGsAndSave", [job])
-        )
-    )
-
-    await pool.terminate()
-
-    const allSvgRecords = allSvgRecordsArrays.flat()
-    await utils.writeReferenceCsv(outDir, allSvgRecords)
-}
-
 async function main(args: ReturnType<typeof parseArguments>) {
     const testSuite = args.testSuite as utils.TestSuite
 
@@ -206,7 +153,6 @@ async function main(args: ReturnType<typeof parseArguments>) {
         .with("grapher-views", () => exportGraphers(args))
         .with("mdims", () => exportGraphers(args))
         .with("thumbnails", () => exportGraphers(args))
-        .with("explorers", () => exportExplorers(args))
         .exhaustive()
 }
 

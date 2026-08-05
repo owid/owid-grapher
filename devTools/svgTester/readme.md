@@ -1,6 +1,6 @@
 # SVG Tester
 
-This folder contains a set of tools to check the default svg output of all (or a subset of) graphers, mdims and explorers. The intended use is to easily check if a change you made to the grapher leads to any of the svg outputs to change (i.e. it tests all graphers svg output plus mdim and explorer views against a reference export). This is not perfect as it doesn't include any interaction but it's a nice sanity check to see if a change broke something.
+This folder contains a set of tools to check the default svg output of all (or a subset of) graphers and mdims. The intended use is to easily check if a change you made to the grapher leads to any of the svg outputs to change (i.e. it tests all graphers svg output plus mdim views against a reference export). This is not perfect as it doesn't include any interaction but it's a nice sanity check to see if a change broke something.
 
 ## Overview
 
@@ -13,7 +13,6 @@ The SVG tester supports multiple test suites:
 - **graphers**: Standalone grapher charts
 - **grapher-views**: All possible chart configurations for each grapher (different tabs, etc.)
 - **mdims**: Multi-dimensional data pages with multiple views
-- **explorers**: Interactive data explorers. Both indicator-based and CSV-based (FromColumnSlugs) explorers are tested. Grapher ID-based explorers are skipped since they're already covered by the grapher tests.
 - **thumbnails**: Thumbnail versions of the most viewed graphers. For each chart, all available tabs are tested.
 
 ## Make a reference set of SVGs
@@ -44,21 +43,6 @@ For published multi-dimensional data pages, creates subdirectories named `{slug}
 yarn tsx devTools/svgTester/dump-data.ts mdims
 ```
 
-#### Explorers
-
-For every published explorer, creates one subdirectory named after the explorer slug in the `explorers` test suite directory containing:
-
-- `config.tsv` - The explorer's TSV configuration with URLs replaced by local file paths
-- For **indicator-based explorers**: `{variableId}.data.json`, `{variableId}.metadata.json`, and `{variableId}.config.json` files for each variable referenced in the explorer
-- For **CSV-based explorers**: CSV files are downloaded and saved as `{tableSlug}.csv`
-
-The script automatically resolves catalog paths to indicator IDs and replaces remote URLs in the explorer tsv config with local file paths to the dumped data.
-
-```bash
-# Dump all published explorer configs and data
-yarn tsx devTools/svgTester/dump-data.ts explorers
-```
-
 **Note on compression:** We use uncompressed files because gzipped files have legacy headers that indicate the OS they were generated on, leading to mass git diffs when dumps are made on different systems.
 
 #### Thumbnails
@@ -69,10 +53,10 @@ For the most-viewed graphers, creates a manifest file listing which charts to te
 
 ### 2. Generate reference SVGs
 
-Use `export-graphs.ts` to generate reference SVG exports. The script uses parallel processing (workerpools) for efficient handling of large numbers of charts and explorers. For each item, it:
+Use `export-graphs.ts` to generate reference SVG exports. The script uses parallel processing (workerpools) for efficient handling of large numbers of charts. For each item, it:
 
 - Loads the config and data
-- Initializes a grapher or explorer instance
+- Initializes a grapher instance
 - Generates SVG output
 - Processes the SVG to remove non-deterministic elements
 - Calculates an MD5 checksum
@@ -93,7 +77,7 @@ This script does NOT require database access - it uses the dumped data files fro
 Use `verify-graphs.ts` to check SVG outputs against the reference export. The script uses parallel processing (workerpools) for efficient verification. For each item, it:
 
 - Loads the config and data
-- Initializes a grapher or explorer instance
+- Initializes a grapher instance
 - Generates SVG output
 - Processes the SVG to remove non-deterministic elements
 - Compares the MD5 hash with the reference
@@ -135,7 +119,7 @@ make svgtest.full
 This command:
 
 1. Resets `../owid-grapher-svgs` to `origin/master`
-2. Runs `export-graphs.ts` for all test suites (graphers, grapher-views, mdims, explorers, thumbnails)
+2. Runs `export-graphs.ts` for all test suites (graphers, grapher-views, mdims, thumbnails)
 3. Generates HTML comparison reports for each test suite
 
 ## Refreshing Reference Data
@@ -153,7 +137,7 @@ make refresh.full    # Refresh the database and analytics from production
 The `refresh.sh` script will:
 
 1. Reset `../owid-grapher-svgs` to `origin/master`
-2. For each test suite (graphers, grapher-views, mdims, explorers):
+2. For each test suite (graphers, grapher-views, mdims, thumbnails):
     - Dump configs and data using `dump-data.ts`
     - Commit the configs and data
     - Generate reference SVGs using `export-graphs.ts`
