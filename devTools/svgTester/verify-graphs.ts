@@ -49,8 +49,14 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         if (!fs.existsSync(dataDir))
             throw `Input directory does not exist ${dataDir}`
         if (!fs.existsSync(referencesDir))
-            throw `Reference directory does not exist ${dataDir}`
+            throw `Reference directory does not exist ${referencesDir}`
         if (!fs.existsSync(differencesDir)) fs.mkdirSync(differencesDir)
+
+        // Claim the results file up front: from here on its absence means the
+        // suite never started, and a lingering "running" status means it was
+        // killed before it could report.
+        const startedAt = new Date()
+        await utils.writeVerifyRunStarted(testSuiteDir, testSuite, startedAt)
 
         const chartIdsToProcess = await utils.selectChartIdsToProcess(dataDir, {
             viewIds: targetViewIds ?? manifestViewIds ?? undefined,
@@ -100,6 +106,16 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         const jobCount = verifyJobs.length
         if (jobCount === 0) {
             utils.logIfVerbose(verbose, "No matching configs found")
+            // Nothing to do is a legitimate outcome, but it still has to
+            // overwrite the "running" placeholder written above.
+            await utils.writeVerifyResults(
+                testSuiteDir,
+                utils.summariseVerifyResults([], {
+                    suite: testSuite,
+                    startedAt,
+                    durationMs: Date.now() - startedAt.getTime(),
+                })
+            )
             process.exit(0)
         } else {
             utils.logIfVerbose(
@@ -138,6 +154,15 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
 
         utils.logIfVerbose(verbose, "Verifications completed")
 
+        await utils.writeVerifyResults(
+            testSuiteDir,
+            utils.summariseVerifyResults(validationResults, {
+                suite: testSuite,
+                startedAt,
+                durationMs: Date.now() - startedAt.getTime(),
+            })
+        )
+
         const exitCode = utils.displayVerifyResultsAndGetExitCode(
             validationResults,
             verbose
@@ -147,6 +172,22 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         process.exit(exitCode)
     } catch (error) {
         console.error("Encountered an error: ", error)
+        // Record the failure too, so that "the suite never got to run" is
+        // distinguishable from "the suite ran and found nothing" by whoever
+        // reads the results file. Best-effort: if even this write fails there's
+        // nothing useful left to do but exit.
+        await utils
+            .writeVerifyRunFailure(
+                path.join(utils.SVG_REPO_PATH, args.testSuite),
+                args.testSuite as utils.TestSuite,
+                error
+            )
+            .catch((writeError) => {
+                console.error(
+                    "Could not write the results file either: ",
+                    writeError
+                )
+            })
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
         process.exit(-1)
