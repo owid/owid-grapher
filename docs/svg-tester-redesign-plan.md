@@ -3,8 +3,9 @@
 _Covers `devTools/svgTester/`, the `svg-tester.sh` step in `owid/ops`, the
 `owid-grapher-svgs` repo, and the `grapher` service in `owid/etl`'s owidbot._
 
-**Status: Phases 0 and 1 are done** (owid-grapher#6909/#6911/#6913/#6914,
-ops#594/#595, etl#6623). Phase 2 has not started. The Problem section below
+**Status: Phases 0–2 are done** (owid-grapher#6909/#6911/#6913/#6914,
+ops#594/#595/#596, etl#6623), except for the svgs-repo half of Phase 0 — see
+there. Phase 3, the viewer, is next and is unblocked. The Problem section below
 describes the state this work started from — points 2, 5 and 6 are fixed, the
 rest still stand.
 
@@ -78,9 +79,9 @@ charts in **134 s** and grapher-views 1,058 in **97 s**, so a full sweep is a fe
 minutes, not the tens of minutes guessed at. Running suites nobody asked for is
 mild waste, and reaching the 60-minute ceiling means something is badly wrong
 (a hung render, or the orphaned-process problem) rather than a suite legitimately
-taking that long. Selection and step-splitting are worth doing for **feedback
-quality** — independent status, independent timeouts, results that survive a
-sibling's failure — not for wall-clock.
+taking that long. So there is no wall-clock case for splitting the step; the
+feedback-quality case — independent status per suite — is answered by per-suite
+check runs instead (item 16). Suite selection stands on its own.
 
 **8. It runs in the wrong place.** `verify-graphs.ts` needs no database (the
 readme is explicit). It runs on the per-PR staging container over SSH via
@@ -122,6 +123,16 @@ grapher commit and DB snapshot date they came from, so staleness is visible.
 
 **Results go to R2, never git.** Tooling already exists
 (`devTools/syncGraphersToR2`, `.github/workflows/sync-grapher-schema-to-r2.yml`).
+
+One correction to this section, found while sequencing the work: **R2 is a
+durability layer, not a foundation.** Everything below describes the end state
+correctly, but it reads as though the viewer, the check runs and the git cleanup
+all sit on top of R2. They don't. A run's outputs are already on the staging
+container's disk, and the admin server is already there to serve them, so the
+viewer, the report link, the deletion of the generated HTML, the end of pushing
+to svgs branches, and the check runs all land without a bucket. What R2 uniquely
+buys is a report that outlives its container. It is therefore last
+([Phase 4](#phase-4--r2-and-durability)) and optional.
 
 ### What lives where
 
@@ -278,14 +289,16 @@ nothing is copied into `originals/`. A run's output is pure data: one
 `results.json` plus whatever changed renderings weren't already in the blob
 store.
 
-In its place, one viewer deployed **once** at a stable URL, which takes a run
-identifier and fetches that run's data:
+In its place, one viewer that takes a run identifier and fetches that run's data.
+It ships first inside the admin, where the data already is:
 
 ```
-https://<r2-domain>/svgtester/viewer/?run={grapherCommit}&suite=graphers
+http://{container}/admin/svgtester/{suite}                        # Phase 3
+https://<r2-domain>/svgtester/viewer/?run={grapherCommit}&suite=  # Phase 4, if wanted
 ```
 
-That URL is what the check run's `details_url` points at. One consequence worth
+Same component either way — the difference is a URL resolver, not a second
+viewer. That URL is what the check run's `details_url` points at. One consequence worth
 naming: a viewer change can now affect how an older run renders. We start
 _without_ a `schemaVersion` in `results.json` — with runs expiring after 60–90
 days the drift window is small, and versioning a format nothing else consumes
@@ -345,11 +358,15 @@ enough: a page on staging dies with the container, so it can't be the durable
 record for master runs or for a PR someone revisits next month; and CI alone
 can't offer a button. So:
 
-- push-triggered `graphers` run in CI → `results.json` + artifacts to R2 →
-  check run. Automatic and durable.
+- push-triggered `graphers` run in CI → `results.json` on disk → check run.
+  Automatic. Durable once Phase 4 adds the R2 upload.
 - `/admin/svgtester` on staging reads the same `results.json` for the current
-  commit and can trigger any suite on demand, publishing to R2 exactly as CI
-  does when it finishes. Same code path, two triggers.
+  commit and can trigger any suite on demand, publishing exactly as CI does when
+  it finishes. Same code path, two triggers.
+
+Note the ordering that follows: the page is worth building _before_ durability,
+not after. It needs nothing that isn't already on the container, and until it
+exists there is nothing for a durable URL to point at.
 
 The constraint: **the diff browser is one React component rendered from
 `results.json`, used by both the static R2 bundle and the admin page.** Build
@@ -389,8 +406,12 @@ chart-diff feels good.
 
 Every step is independently shippable, ordered by value per unit of effort. B
 converges on A. This section is the _what_ and its priority; the concrete
-per-repo PR sequencing is in [Implementation plan](#implementation-plan) below,
-where P0 maps to Phases 0–2, P1 to Phase 3, and P2 to Phase 4.
+per-repo PR sequencing is in [Implementation plan](#implementation-plan) below.
+
+_Written before Phase 0. The priorities held up, but the grouping did not: the
+viewer turned out to need nothing from R2, so P2's first two items came forward
+into Phase 3 and P1's R2 work went last. The phase tables below are the current
+plan; this list is kept for the value-per-effort argument._
 
 ### P0 — days; removes most of the flakiness
 
@@ -413,16 +434,16 @@ where P0 maps to Phases 0–2, P1 to Phase 3, and P2 to Phase 4.
 3. Stop committing `originals/` — the report can point at `references/` at the
    master commit in the same tree. Halves per-run blob churn for one small
    change to `create_report`.
-4. Serve the report from staging nginx
-   (`location /svgtester/ { alias /home/owid/owid-grapher-svgs/; }` in
-   `ops/templates/owid-site-staging/owid.cloud`) instead of githack. Roughly a
-   one-line change; removes two of the three link failure points and puts the
-   report on the host the reviewer is already looking at.
-5. **Split the Buildkite step into one step per suite.** Own timeout, own status,
-   own report. Fixes the 60 min vs 7200 s mismatch and the all-or-nothing result
-   loss. Note this is about feedback quality, not speed: suites take a couple of
-   minutes each (see Problem 7), so parallelising them saves little wall-clock.
-   What it buys is that a crashed `mdims` stops colouring the `graphers` result.
+4. ~~Serve the report from staging nginx
+   (`location /svgtester/ { alias /home/owid/owid-grapher-svgs/; }`) instead of
+   githack.~~ **Superseded** — see item 10. The instinct was right (put the
+   report on the host the reviewer is already looking at) but the admin serves it
+   with no nginx change at all.
+5. ~~**Split the Buildkite step into one step per suite.**~~ **Dropped** — see
+   item 13 in [Phase 2](#phase-2--serve-the-report-over-http). Four steps
+   sharing one staging container and one svgs checkout is a shared-mutable-state
+   trap, the suites are serialised by `concurrency_group` anyway, and per-suite
+   check runs (item 16) deliver the independent status without it.
 
 ### P1 — weeks
 
@@ -485,8 +506,14 @@ CI script, the PR comment, and the svgs repo, leaving one render path instead of
 two. Execution detail, with the exact symbols and line ranges to delete, is in
 [svg-tester-phase-0-plan.md](./svg-tester-phase-0-plan.md).
 
-**Done** — all four landed: ops#594, owid-grapher#6909, etl `e1b4ceb40`, and the
-svgs repo refreshed with `explorers/` removed.
+**Items 1–3 are done** (ops#594, owid-grapher#6909, etl `e1b4ceb40`). **Item 4
+was not** — an earlier version of this line claimed it was. Checked while testing
+Phase 2: svgs `origin/master` still contained `explorers/`, there was no refresh
+commit after Phase 1's `.gitignore` change, and the branch count had reached 936.
+`explorers/` has since been removed (see the item 4 row). The reference refresh
+turned out not to be urgent: a Phase 2 test run found the four suites rendering
+identically to their references apart from the change under test, so they are
+current — the refresh is periodic hygiene, not a Phase 0 dependency.
 
 Order mattered here: ops had to go first. If G stops accepting `explorers` while
 ops `main` still calls `run_test_suite 'explorers'`, yargs rejects the choice,
@@ -494,12 +521,12 @@ the suite exits non-zero, and (since `set +e` is active) `exit_code_explorers`
 turns the step red on every open PR. The reverse is harmless — ops simply stops
 invoking code that still exists.
 
-| #   | Repo | Change                                                                                                                                                                                                                                                                                                                                                                                                                     | Depends on |
-| --- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| 1   | O    | Drop the explorers arm from `svg-tester.sh`: `run_test_suite 'explorers' '--manifest top.manifest.json'`, and the `create_report` / `commit_differences` / `log_differences` / `exit_code_explorers` lines.                                                                                                                                                                                                                | —          |
-| 2   | G    | Remove the suite: `verifyExplorers` and its `match` arm, `renderAndVerifyExplorerViews`, the explorer branches in `dump-data.ts` and `utils.ts` (catalog-path resolution, CSV download, URL rewriting), `TEST_SUITES`, `worker.ts` export, the `svgtest.explorers` and `svgtest.full` Makefile targets, the explorers arm of `refresh.sh`, and the readme sections. Verify with `yarn typecheck` and a `make svgtest` run. | 1          |
-| 3   | E    | Drop the explorers line from `apps/owidbot/grapher.py`. Safe any time after 1 — until then it reports the suite as missing, which is correct.                                                                                                                                                                                                                                                                              | 1          |
-| 4   | S    | `rm -rf explorers/`, then run the due reference refresh (`make refresh.full` then `refresh.sh`) so the four remaining suites are regenerated with post-Phase-0 code. 3.1 GB off the working tree, so new `--depth=1` container clones fetch less; the pack is unchanged, since those blobs stay reachable from history.                                                                                                    | 2          |
+| #   | Repo | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Depends on |
+| --- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 1   | O    | Drop the explorers arm from `svg-tester.sh`: `run_test_suite 'explorers' '--manifest top.manifest.json'`, and the `create_report` / `commit_differences` / `log_differences` / `exit_code_explorers` lines.                                                                                                                                                                                                                                                                                              | —          |
+| 2   | G    | Remove the suite: `verifyExplorers` and its `match` arm, `renderAndVerifyExplorerViews`, the explorer branches in `dump-data.ts` and `utils.ts` (catalog-path resolution, CSV download, URL rewriting), `TEST_SUITES`, `worker.ts` export, the `svgtest.explorers` and `svgtest.full` Makefile targets, the explorers arm of `refresh.sh`, and the readme sections. Verify with `yarn typecheck` and a `make svgtest` run.                                                                               | 1          |
+| 3   | E    | Drop the explorers line from `apps/owidbot/grapher.py`. Safe any time after 1 — until then it reports the suite as missing, which is correct.                                                                                                                                                                                                                                                                                                                                                            | 1          |
+| 4   | S    | ~~`rm -rf explorers/`~~ **done** (svgs `e3137a4bc2`, long after the rest of the phase) — 28,640 files, 3.1 GB off the working tree, so new `--depth=1` container clones fetch less; the pack is unchanged, since those blobs stay reachable from history. The other half — the due reference refresh (`make refresh.full` then `refresh.sh`) — is **still open**, and Phase 2's testing showed it isn't a dependency: the four suites render identically to their references, so it is periodic hygiene. | 2          |
 
 ### Phase 1 — the status contract
 
@@ -519,91 +546,181 @@ broke" in the exit code so red means red. Execution detail in
 | 8     | O    | Apply the policy: master green, `staging-viz` PRs soft-fail via exit 24, unlabelled PRs red, a broken tester always red. Remove the `\|\| :` swallowing so mutating steps can actually fail; call 7b's script from `commit_differences` so the md5 index stops drifting; drop the `verify-graphs.log` redirect.           | 7, 7b      |
 | ~~9~~ | O    | ~~Remove the `\|\| true` around the owidbot call in `owidbot.sh`.~~ **Dropped**: it was added deliberately (`b0f320a`) because the container-creation step invokes owidbot without a `soft_fail`, so a failure there would fail container creation. The two calls this phase cares about already soft-fail at step level. | —          |
 
-### Phase 2 — kill the git-as-transport path
+### Phase 2 — stop duplicating the reference set
 
-**Next up.** Nothing here has started. Note two things Phase 1 leaves it:
-`svg-tester.sh` now has a single per-suite report/commit path with real error
-propagation, which is what item 13 has to preserve when it splits the step; and
-the `staging-viz` label now carries a policy (which differences are a surprise),
-not just suite selection, so item 11's path-based inference must not quietly
-become the input to that decision.
+**Done** — ops#596, a single PR. Execution detail and the test evidence are in
+[svg-tester-phase-2-plan.md](./svg-tester-phase-2-plan.md). One path went
+untested: the master arm, whose body is unchanged apart from the deleted
+`commit.log` write, so the first master run with differences after the merge is
+worth a look.
 
-**Why:** getting a report link currently requires a commit, a force-push to a
-second repo, and a CDN caching a blob from that commit — three things that must
-all succeed, for a link that rots when the branch goes. These PRs serve the
-report from the staging host the reviewer is already on, stop committing
-per-run artifacts, and split the monolithic CI step so one slow suite can no
-longer discard the results of the others.
+**Why:** the largest write in the whole pipeline is a duplicate. `create_report`
+copies every differing reference SVG into `originals/` and commits both copies —
+~65 MB of redundant permanent blobs on a 500-difference run, in a pack that
+cannot be pruned without rewriting history. Deleting it costs one small change,
+and the same PR stops branches absorbing their own differences into
+`references/`, which is the invariant every viewer downstream depends on.
 
-| #   | Repo | Change                                                                                                                                                                                                                                                                                                                                                                                                     | Depends on |
-| --- | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| 10  | O    | Add `location /svgtester/ { alias /home/owid/owid-grapher-svgs/; }` to `owid.cloud`, and point `create_report`'s output at it.                                                                                                                                                                                                                                                                             | —          |
-| 11  | E    | Switch the report link in `grapher.py` from `rawcdn.githack.com` to the staging URL. No fallback — a stale container just links to the old place until recreated.                                                                                                                                                                                                                                          | 10         |
-| 12  | O    | Stop `commit_differences` on branches (keep it on master, which legitimately absorbs new references), then pass `-r references` to `create-compare-view.ts` and delete the `originals/` copy. **Depends on 10**: `originals/` exists precisely because `commit_differences` overwrites `references/` after the report is generated, so the report must stop depending on the `compare/{branch}` URL first. | 10         |
-| 13  | O    | Split the Buildkite step into one step per suite, each with its own timeout, status, and report. Reconcile the 60 min step timeout with the 7200 s inner one. **Do not call `reset_to_master` per step** — see below. Pipeline-only change: test via the bootstrap override above.                                                                                                                         | 8          |
+**This phase used to be four items.** Two of them — the nginx alias (10) and the
+githack-to-nginx link swap (11) — were a bridge to a report served over HTTP from
+the staging container. Item 19 does that better and needs no nginx, so building
+the bridge would mean writing two PRs and then deleting them. They are struck
+through below rather than removed, so the reasoning survives.
 
-⚠️ **The per-step reset is a trap.** `reset_to_master` runs
-`git clean -fdx` over the whole svgs checkout, which today is safe because one
-reset precedes all suites in a single step. Give each suite its own step that
-resets, and step B wipes step A's `verify-results.json` and `differences/` while
-A is still running — non-deterministically, in parallel, with no error. Either
-reset exactly once in a preceding step that the suite steps depend on, or stop
-keeping per-run state in a shared checkout at all, which is what item 14 does by
-uploading to R2. The second is the real fix; the first is the stopgap if items
-13 and 14 don't land together.
+**The dependency here is the reverse of what earlier drafts said.** `originals/`
+was thought to be load-bearing until the report stopped being served from a git
+commit. It is not: `create_report` runs before `commit_differences`, so the report
+commit precedes the reference-overwrite commit, and the report's relative
+`references/…` URLs already resolve to the correct "before" images inside the
+pinned tree. `originals/` could always have gone. What genuinely requires
+`commit_differences` to stop on branches is reading those images from the **live
+checkout**, which is what the viewer does — so item 12 must land before item 19,
+or every comparison silently shows before == after.
 
-Optional stopgap (O, after 13): a Buildkite `block` step with a multi-select
+Two things Phase 1 leaves this phase. The `staging-viz` label now carries a
+policy (which differences are a surprise), not just suite selection, so item 22's
+path-based inference must not quietly become the input to that decision. And
+owidbot now derives the report commit from git rather than `commit.log`
+(etl#6623), so that side-channel file is dead and item 12 sweeps it.
+
+| #      | Repo | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Depends on |
+| ------ | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 12     | O    | One PR, two changes to `svg-tester.sh`. Delete the `originals/` copy from `create_report` and drop `-r originals`, letting `create-compare-view.ts` fall back to its `references` default — which is what `make svgtest` already uses, so CI and local stop diverging. And run `commit_differences` on master only: a branch is never merged into the svgs repo, so absorbing its differences into `references/` achieves nothing and would corrupt the viewer's "before" images. Sweeps the dead `commit.log` write while in there.                                                                                                                                   | —          |
+| ~~10~~ | O    | ~~Add `location /svgtester/ { alias /home/owid/owid-grapher-svgs/; }` to `owid.cloud`.~~ **Superseded by item 19.** The admin is already proxied on staging (`location ~ ^/(admin\|gdocs)` → `:3030`), so once the viewer serves the SVGs there is no nginx change to make — and explicit routes never expose `data/**` or `.git/`, which an alias would have needed `deny` rules for.                                                                                                                                                                                                                                                                                 | —          |
+| ~~11~~ | E    | ~~Switch the report link in `grapher.py` from `rawcdn.githack.com` to a staging `/svgtester/` URL.~~ **Superseded by item 19b**, which points the same link at `/admin/svgtester` instead. Building the nginx URL first would be two PRs written and then deleted.                                                                                                                                                                                                                                                                                                                                                                                                     | —          |
+| ~~13~~ | O    | ~~Split the Buildkite step into one step per suite, each with its own timeout, status, and report.~~ **Dropped.** All four steps would drive the same staging container and the same svgs checkout, so they would share mutable state three ways: `reset_to_master` runs `git clean -fdx` over the whole checkout, and `git add` / `commit` / `push --force` race on the index and on the ref. It buys no parallelism either — `concurrency_group: "svg-tester/$BUILDKITE_BRANCH"` with `concurrency: 1` serialises the suites regardless — and the independent-status payoff arrives instead with item 16's per-suite check runs, which carry no shared-state hazard. | —          |
+
+Optional stopgap (O): a Buildkite `block` step with a multi-select
 field, plus `buildkite-agent meta-data get svg-suites` in `svg-tester.sh`, gives
 per-suite on-demand selection until item 21 lands. Set `blocked_state: passed`.
-Skip it if Phase 4 is close — it's throwaway work.
+Skip it if Phase 3 is close — it's throwaway work.
 
-### Phase 3 — R2 and check runs
+### Phase 3 — the viewer, and the end of generated HTML
 
-**Why:** artifacts stored in git are permanent, and the ~900 never-deleted
-branches in a 5.11 GiB pack are the bill for that. These PRs move per-run output
-to content-addressed, expiring R2 objects and surface each suite as its own
-GitHub check run — which is what finally makes the svgs repo prunable and the PR
-status honest. The largest phase, and where most of the work is.
+**Next up.** Nothing here has started; item 12 was its only blocker and has
+merged.
+
+**Why:** this is the payoff, and it turned out not to need R2. The viewer's three
+inputs — `verify-results.json`, `references/`, `differences/` — are all already
+on the container's disk, and the admin server already runs there, is already
+proxied, and already has auth. R2 is a _transport_ that moves those inputs
+somewhere the container's death can't reach; it is not a capability the viewer
+needs. So the whole of the old Phase 4 comes forward, and it drags two items out
+of the old Phase 3 with it: once nothing generates a report, nothing commits on a
+branch, and once nothing commits, the push and the 5.11 GiB pack can go.
+
+| #   | Repo  | Change                                                                                                                                                                                                                                                                                              | Depends on |
+| --- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 19  | G     | The viewer: a React component plus `verify-results.json` types, served read-only at `/admin/svgtester`, reading results and SVGs off the local svgs checkout. Works identically for a local `make svgtest` run and a staging container's CI run. See [What the page serves](#what-the-page-serves). | 12         |
+| 19b | E     | owidbot's report link becomes `http://{container}/admin/svgtester/{suite}`, replacing the githack URL, and stops being gated on `commit_id`.                                                                                                                                                        | 19         |
+| 20a | G + O | **Delete `create-compare-view.ts`** and the generated-HTML path, and delete `create_report` from `svg-tester.sh` with it. After this a branch run commits nothing at all.                                                                                                                           | 19b        |
+| 18  | O + S | Stop pushing to svgs branches; prune the ~900 stale branches; `git gc`. Reclaims most of the 5.11 GiB pack. Was blocked on R2 holding the artifacts instead; with the viewer reading from disk they never need to leave the container.                                                              | 20a        |
+| 16  | E     | Post a check run per suite (`create_check_run`, already used by chart-diff), `details_url` → the staging viewer. Conclusion never `failure` for differences. Was blocked on R2 only because `details_url` was assumed to point there.                                                               | 6, 19b     |
+| 21  | G     | Run button plus API routes: lock file per suite, disabled while running, hard timeout, no git write access.                                                                                                                                                                                         | 19         |
+| 22  | G + O | Path-scoped default suites; retire the Buildkite block step and delete the `staging-viz` job from `.github/workflows/project-automations.yml`.                                                                                                                                                      | 21         |
+
+Three ordering constraints:
+
+- **12 before 19.** The viewer reads `references/` off disk for the "before"
+  image, so branches must have stopped overwriting it. Same invariant that made
+  12 load-bearing in Phase 2.
+- **19 on master before 19b.** `19b` writes a static URL into the PR comment, and
+  a container building a branch that predates 19 has no `/admin/svgtester` route.
+  Either wait for branches to catch up or accept a short 404 window.
+- **20a degrades gracefully on old containers.** Deleting `create_report` is an
+  ops change, so it hits every open PR the moment it merges, while `19b` only
+  reaches containers created after it. Containers in between run old owidbot,
+  find no report commit, and render the row with its count and icon but no link.
+  A missing link, not a 404.
+
+**One forward-compatibility change rides along with 19.** Add the rendered SVG's
+`md5` to each entry in `verify-results.json`'s `differences[]`. The Phase 1
+contract carries `viewId`, `queryStr`, `chartType` and `svgFilename` but no hash,
+even though `verify-graphs.ts` computes one for every render. Phase 4's
+content-addressed `blobs/{md5}.svg` can't be addressed from `results.json`
+without it, so leaving it out turns Phase 4 from a URL change into a data-model
+change. One field, free now.
+
+The same logic applies to the viewer's fetch layer: build it against a resolver,
+`(suite, kind, entry) → url`, rather than hard-coded admin paths. The admin
+resolves to `/admin/api/svgtester/{suite}/differences/{svgFilename}`; R2 later
+resolves to `blobs/{md5}.svg` for the after and
+`refs/{svgsCommit}/{suite}/{svgFilename}` for the before, and `results.json`
+already carries `svgsCommit`. Two viewers is the failure mode this design has
+been guarding against since the start — one resolver is what prevents it.
+
+#### What the page serves
+
+Two client-side routes in the admin SPA, three API routes behind them. Everything
+is read from `SVG_REPO_PATH` (`../owid-grapher-svgs`, `devTools/svgTester/utils.ts:47`)
+and no query touches the database, so these are plain routes rather than the
+`WithROTransaction` helpers.
+
+`/admin/svgtester` — the index. One row per suite showing status, counts, when it
+ran, how long it took and which grapher commit it ran against, from
+`GET /admin/api/svgtester/suites.json`. It renders the same six states owidbot
+already renders from the same contract: no file (never run), `running` (killed
+mid-run), `error`, stale `grapherCommit`, `ok`, `differences`. Item 21's Run
+button lands here.
+
+`/admin/svgtester/{suite}` — the diff browser that replaces `differences.html`,
+backed by:
+
+```
+GET /admin/api/svgtester/{suite}/results.json                          # + a staleness flag
+GET /admin/api/svgtester/{suite}/{references|differences}/{file}.svg   # raw bytes off disk
+```
+
+The page fetches `results.json` once and renders one section per entry in
+`differences[]`; each section lazily fetches its two SVGs when scrolled into view
+and computes the unified diff in the browser with `jsdiff`. The initial payload is
+therefore a few hundred KB even for a 4,460-difference run, where today the whole
+report including every inlined diff arrives up front.
+
+It keeps what `create-compare-view.ts` already does — side-by-side, swipe slider,
+text diff, chart-type filter, links to the live and staging chart — and adds
+sort-by-magnitude and per-item deep links. It deliberately serves nothing else
+from the checkout: `data/**` and `.git/` are unreachable because the routes are
+explicit.
+
+Decision point at 16: owidbot already has GitHub App auth, so posting from E is
+cheapest. The "status is reported by the component that knows it" argument favours
+G posting its own check run — but that means new credentials on the tester
+machine. Start with E; revisit only if the indirection bites.
+
+### Phase 4 — R2, and durability
+
+**Why:** everything above leaves reports living on the staging container and dying
+with it. That is fine for the workflow reports are actually used in — read within
+hours of a push — and it is not fine for opening last month's master run. Phase 4
+buys durability and cross-run history, and nothing else. **It is genuinely
+optional**: do it when someone asks for a report that no longer exists.
+
+What softens the wait: item 12 keeps master's reference commits, so the reference
+history — the thing anyone actually does archaeology on — stays in git
+permanently. Only per-branch reports are ephemeral.
 
 | #   | Repo | Change                                                                                                                                                                                                                                                                                  | Depends on |
 | --- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| 14  | G    | Upload script following the `devTools/syncGraphersToR2` pattern: changed SVGs to `blobs/{md5}.svg` (skip the put if the object already exists), `results.json` to `runs/{branch\|master}/{grapherCommit}/{suite}/`. Includes the visible per-run cap (`truncated`, `totalDifferences`). | 5          |
-| 15  | O    | Wire the upload into `svg-tester.sh`; add R2 credentials to `grapher-env.secret`.                                                                                                                                                                                                       | 14         |
-| 16  | E    | Post a check run per suite (`create_check_run`, already used by chart-diff) with `details_url` → the report. Conclusion never `failure` for differences.                                                                                                                                | 6, 15      |
+| 14  | G    | Upload script following the `devTools/syncGraphersToR2` pattern: changed SVGs to `blobs/{md5}.svg` (skip the put if the object already exists), `results.json` to `runs/{branch\|master}/{grapherCommit}/{suite}/`. Includes the visible per-run cap (`truncated`, `totalDifferences`). | 19         |
+| 15  | O    | Wire the upload into `svg-tester.sh`; add R2 credentials to `grapher-env.secret`. With `create_report` already gone, the step reduces to "run the suite, then upload".                                                                                                                  | 14         |
 | 17  | O    | Mirror `references/` to `svgtester/refs/{svgsCommit}/` in the refresh job, pruning all but the last two generations. Configure the lifecycle rules: `runs/` branch 30 days, `runs/master/` 1 year, `blobs/` 90 days.                                                                    | 15         |
-| 18  | S    | Stop pushing branches entirely; prune the ~900 stale branches; `git gc`. Reclaims most of the 5.11 GiB pack.                                                                                                                                                                            | 15, 16     |
-
-Decision point at 16: owidbot already has GitHub App auth, so posting from E is cheapest. The "status is reported by the component that knows it" argument favours G posting its own check run — but that means new credentials on the tester machine. Start with E; revisit only if the indirection bites.
-
-### Phase 4 — viewer and page
-
-**Why:** this is the payoff — one data-driven viewer replacing 800 lines of
-generated HTML, reachable identically from a local run, a staging container, and
-a durable R2 URL, with a Run button that makes suite selection a click instead of
-a label plus a push. Everything here is optional in the sense that Phases 0–3
-already leave the tester robust; Phase 4 is what makes it pleasant.
-
-| #   | Repo  | Change                                                                                                                                                                                                        | Depends on |
-| --- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| 19  | G     | The viewer as a React component plus `results.json` types, served read-only at `/admin/svgtester`. Works locally against the on-disk svgs checkout, so `make svgtest` opens `localhost:3030/admin/svgtester`. | 5          |
-| 20  | G     | Deploy the same bundle to R2 at a stable URL; repoint `details_url`; **delete `create-compare-view.ts`** and the generated-HTML path.                                                                         | 19, 16     |
-| 21  | G     | Run button plus API routes: lock file per suite, disabled while running, hard timeout, no git write access.                                                                                                   | 19         |
-| 22  | G + O | Path-scoped default suites; retire the Buildkite block step and delete the `staging-viz` job from `.github/workflows/project-automations.yml`.                                                                | 21         |
-| 23  | O     | Scheduled monthly reference refresh replacing manual `refresh.sh`.                                                                                                                                            | 17         |
+| 20b | G    | Deploy the same viewer bundle to R2 at a stable URL and point the resolver at R2 objects; repoint `details_url` from the staging page to the durable one.                                                                                                                               | 15, 17     |
+| 23  | O    | Scheduled monthly reference refresh replacing manual `refresh.sh`. Only the R2-mirroring half depends on 17 — a cron'd `refresh.sh` that commits to git depends on nothing and can land any time.                                                                                       | 17         |
 
 ### Landing order at a glance
 
 ```
-O1 → G2 → E3 → S4          explorers gone
-G5 → E6 → G7 → O8          status contract; O9 anytime
-O10 → E11 → O12 → O13      report served, git transport retired
-G14 → O15 → E16 → O17 → S18   R2, check runs, repo cleanup
-G19 → G20 → G21 → G22 → O23   viewer, page, triggers
+O1 → G2 → E3 → S4               explorers gone
+G5 → E6 → G7 → O8               status contract; O9 anytime
+O12                             originals gone, branches stop absorbing
+G19 → E19b → G20a/O20a → O18/S18   viewer; generated HTML and the git pack gone
+E16 → G21 → G22                 check runs, Run button, suite selection
+G14 → O15 → O17 → G20b → O23    R2: durability, if and when it's wanted
 ```
 
-Phases 0–2 are the ones worth doing promptly; each is a handful of small,
-independently revertable PRs. Phase 3 is where the real work is. Phase 4 is the
-payoff and can wait.
+Phases 0–2 are small and done or nearly so. Phase 3 is where the work and the
+payoff both are. Phase 4 is optional and can wait indefinitely.
 
 ## Future improvements
 
@@ -640,7 +757,7 @@ exist.
    infrastructure, works today: a `block` step with a `select` field, then
    `buildkite-agent meta-data get svg-suites` in the follow-on step. Set
    `blocked_state: passed` so a never-unblocked build doesn't hold the GitHub
-   check hostage. The right stopgap for P1, before the page exists.
+   check hostage. A stopgap only if the page (item 21) slips.
 4. **Sticky per-suite labels** (`svgtest:mdims`, …) — a reasonable fallback if
    the page slips: labels persist across pushes, so "always run mdims on this
    PR" is expressible, which the button isn't. Cost is a GH Actions job on
@@ -669,22 +786,41 @@ CLI-driven with no webhook receiver; not worth standing one up for this.
   coverage of explorers for whatever remains of their life in the codebase; the
   grapher-id-based ones were never covered anyway (they're covered by the
   graphers suite), and the indicator- and CSV-based ones are on the way out.
+- **Reports are ephemeral until Phase 4, and Phase 4 is optional.** From item 18
+  onwards nothing per-run is committed or pushed, so a report lives on its
+  staging container and dies with it. Accepted because reports are read within
+  hours of the push, and because item 12 keeps master's reference commits — the
+  history anyone actually does archaeology on stays in git permanently.
+- **The report link needs the tailnet and an admin login.** Today's githack link
+  is public. `/admin/svgtester` is neither, which is fine for staff (every other
+  link in the owidbot comment is already internal) but means a report can't be
+  pasted as evidence into a public thread.
+- The timeout mismatch from Problem 7 stays: the 60 min step cap bounds all
+  suites together and is shorter than the 7200 s per-suite `SVG_TEST_TIMEOUT`,
+  so a hung suite is killed from the outside and takes its siblings' results
+  with it. Accepted, because hitting either ceiling means the tester
+  malfunctioned — a case Phase 1 already reports as red — rather than a result
+  worth salvaging. Splitting the step to fix it was considered and dropped
+  (item 13).
 - Diff grouping is deferred to [Future improvements](#future-improvements).
   Reviewing a large diff stays as tedious as it is today until then; the
   robustness work doesn't depend on it.
 
 ## Recommendation
 
-_Written before any of this shipped; P0 is now done. Kept because the ordering
-argument still applies to what's left._
+Ship item 12 as one ops PR, then build the viewer (19). Everything else follows
+from those two.
 
-Do P0 items 1, 2, and 5 first: they are small, they are where the
-"error-prone" feeling actually originates, and 5 alone noticeably shortens the
-feedback loop. Then the block step as a stopgap for suite selection, then R2
-plus check runs, then the data-driven viewer. The `/admin/svgtester` page is the
-most attractive item on the list and the one most worth deferring: it is only
-cheap once `results.json` and the viewer component exist, and building it first
-means building the viewer twice.
+The original recommendation, written before any of this shipped, argued for the
+robustness work first and the `/admin/svgtester` page last, on the grounds that
+the page was "only cheap once `results.json` and the viewer component exist, and
+building it first means building the viewer twice". Half of that was right:
+`results.json` genuinely had to come first, and it did, in Phase 1. The other
+half was wrong, because it assumed the viewer's data had to reach R2 before a
+page could render it. It doesn't — the data is already on the container. So the
+page is not the expensive thing to defer; it is the cheap thing that makes four
+other items land, and deferring it is what was keeping `create-compare-view.ts`
+alive.
 
 What Phase 1 actually taught, for whoever picks up Phase 2:
 

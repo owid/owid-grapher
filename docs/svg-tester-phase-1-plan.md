@@ -277,8 +277,9 @@ Two alternatives rejected:
 
 ### Derive the report commit instead of reading `commit.log`
 
-Included in PR 6. Phase 2 items 10–11 delete it along with the whole githack
-path, but it fixes a live 404 in the meantime — see below.
+Included in PR 6. Phase 2 deletes the `commit.log` write itself (item 12b) and
+the githack path with it (items 10–11), but this fixes a live 404 in the
+meantime — see below.
 
 `commit.log` is a side-channel file recording state that git already knows, which
 is the same pattern PR 5 exists to remove. owidbot runs on the container where
@@ -679,11 +680,13 @@ differences soft-failed on a `staging-viz` PR and committed both a report and a
 references commit carrying the resynced `results.csv`; a run with no chart changes
 came back clean and committed nothing.
 
-**Left undone deliberately.** The one-off repair of master's `results.csv` was
-never committed, so the ~1,924 stale rows in the graphers suite are still there
-and the first differences run on any branch rewrites most of that file. It costs
-nothing to fix later — `make svgtest.md5s` on a clean master checkout of
-`owid-grapher-svgs`, then commit the four CSVs.
+**Left undone deliberately, and since closed.** The one-off repair of master's
+`results.csv` was not committed with this phase. It was regenerated with
+`make svgtest.md5s` and committed during Phase 2 (svgs `97839fff37`): 1,924 of
+4,460 graphers rows were stale, plus 29 grapher-views, 274 mdims and 34
+thumbnails. Note the original wording here — "the first differences run on any
+branch rewrites most of that file" — stopped being true with ops#596, which made
+`commit_differences` master-only; branches no longer touch `references/` at all.
 
 ## Incidental findings
 
