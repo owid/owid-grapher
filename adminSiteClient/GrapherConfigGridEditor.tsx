@@ -69,7 +69,6 @@ import {
     ColumnSet,
     FetchVariablesParameters,
     fetchVariablesParametersToQueryParametersString,
-    IconToggleComponent,
     isConfigColumn,
     filterTreeToSExpression,
     FilterPanelState,
@@ -88,6 +87,7 @@ import {
     fetchVariablesParametersToQueryParameters,
     postprocessJsonLogicTree,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
+import { IconToggleComponent } from "./IconToggleComponent.js"
 import QueryBuilderContainer from "./QueryBuilderContainer.js"
 import {
     Query,

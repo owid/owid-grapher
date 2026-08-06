@@ -1,4 +1,3 @@
-/* eslint-disable react/only-export-components */
 /* Forms.tsx
  * ================
  *
@@ -290,8 +289,6 @@ export class TextAreaField extends React.Component<TextFieldProps> {
         )
     }
 }
-
-export class SearchField extends TextField {}
 
 interface NumberFieldProps {
     label?: string
