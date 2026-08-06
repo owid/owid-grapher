@@ -2356,6 +2356,18 @@ export class GrapherState
             (slug) => table.get(slug).isProjection
         )
 
+        // A dedicated map column might be a projection that needs to be
+        // stitched with a historical y column. A non-projected map column
+        // is deliberately not offered as a historical candidate since it's
+        // not plotted alongside the y columns.
+        const mapSlug = this.inputMapColumnSlug
+        if (
+            mapSlug &&
+            !projectionSlugs.includes(mapSlug) &&
+            table.get(mapSlug).isProjection
+        )
+            projectionSlugs.push(mapSlug)
+
         if (!projectionSlugs.length) return new Map()
 
         const projectionColumnInfoBySlug = new Map<
