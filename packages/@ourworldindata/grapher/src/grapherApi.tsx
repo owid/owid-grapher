@@ -95,13 +95,24 @@ function BoundsObservingGrapher({
 
     if (!bounds) return null
 
-    // The flex wrapper is load-bearing: .GrapherComponent is an inline-block,
-    // and sitting directly in the container it would get the line box's
-    // baseline gap added below it. That gap would grow the container, the
-    // ResizeObserver would report the larger size, Grapher would render
-    // taller — an unbounded growth loop. A flex item has no line box.
+    // The wrapper styles are load-bearing: the rendered chart must never
+    // influence the container's size, or sizing loops ensue. `contain: size`
+    // makes the wrapper's size independent of the chart (e.g. a container
+    // whose height comes from a CSS aspect-ratio would otherwise be propped
+    // open by the previously rendered chart and could grow but never shrink),
+    // `overflow: hidden` clips the old render while a resize is throttled,
+    // and the flex display keeps the inline-block .GrapherComponent from
+    // adding a line box's baseline gap below itself.
     return (
-        <div style={{ display: "flex" }}>
+        <div
+            style={{
+                display: "flex",
+                width: "100%",
+                height: "100%",
+                contain: "size",
+                overflow: "hidden",
+            }}
+        >
             <Grapher grapherState={grapherState} />
         </div>
     )
