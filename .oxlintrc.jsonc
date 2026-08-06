@@ -305,6 +305,7 @@
         }
     ],
     "options": {
-        "typeAware": true
+        "typeAware": true,
+        "reportUnusedDisableDirectives": "error"
     }
 }
