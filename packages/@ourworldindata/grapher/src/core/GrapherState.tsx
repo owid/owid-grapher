@@ -2512,7 +2512,8 @@ export class GrapherState
     }
 
     @computed get currentTitle(): string {
-        let text = (this.id === 64 ? "[test 3] " : "") + this.displayTitle.trim()
+        let text =
+            (this.id === 64 ? "[test 3] " : "") + this.displayTitle.trim()
         if (text.length === 0) return text
 
         // Helper function to add an annotation fragment to the title;
