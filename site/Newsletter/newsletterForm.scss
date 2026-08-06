@@ -1,0 +1,66 @@
+// Form chrome shared by the subscribe form and the magic-link preferences
+// form: both render the same fieldsets, alerts, email row and submit button.
+
+.newsletter-form__success {
+    color: $blue-90;
+}
+
+.newsletter-form__fieldset {
+    margin: 32px 0 0;
+    padding: 0;
+    border: none;
+
+    legend {
+        margin-bottom: 16px;
+        color: $blue-60;
+    }
+}
+
+.newsletter-form__alert {
+    margin-top: 16px;
+    color: $vermillion;
+}
+
+.newsletter-form__divider {
+    width: 100%;
+    margin: 24px 0;
+    border: none;
+    border-top: 1px solid $blue-20;
+}
+
+.newsletter-form__email-submit {
+    display: flex;
+    gap: 8px;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid $blue-20;
+}
+
+.newsletter-form__email {
+    @include body-3-medium;
+    flex: 1;
+    padding: 8px 16px;
+    border: 1px solid $blue-20;
+
+    &::placeholder {
+        color: $blue-40;
+    }
+}
+
+.newsletter-form__submit {
+    @include body-3-medium;
+    padding: 8px 24px;
+    background-color: $vermillion;
+    color: $white;
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $accent-vermillion;
+    }
+
+    &:disabled {
+        background-color: $gray-30;
+        cursor: default;
+    }
+}

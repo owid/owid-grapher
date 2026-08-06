@@ -1,9 +1,9 @@
-import { Head } from "./Head.js"
-import { Html } from "./Html.js"
-import { SiteHeader } from "./SiteHeader.js"
-import { SiteFooter } from "./SiteFooter.js"
+import { Head } from "../Head.js"
+import { Html } from "../Html.js"
+import { SiteHeader } from "../SiteHeader.js"
+import { SiteFooter } from "../SiteFooter.js"
 import {
-    PREFERENCES_PAGE_FORM_CONTAINER_ID,
+    PREFERENCES_PAGE_ROOT_ID,
     SiteFooterContext,
     TagGraphRoot,
 } from "@ourworldindata/types"
@@ -14,9 +14,10 @@ export interface EmailNotificationsPreferencesPageProps {
 }
 
 /**
- * The magic-link update-preferences page. Everything interesting happens
+ * The magic-link update-preferences page. Everything inside <main> is rendered
  * client-side (EmailNotificationsPreferencesForm), driven by the token in the
- * URL fragment; this shell just bakes the topic tag graph the form needs.
+ * URL fragment - including the page heading, which the terminal screens replace.
+ * This shell just bakes the topic tag graph the form needs.
  */
 export const EmailNotificationsPreferencesPage = ({
     baseUrl,
@@ -26,7 +27,7 @@ export const EmailNotificationsPreferencesPage = ({
         <Html>
             <Head
                 canonicalUrl={`${baseUrl}/subscribe/preferences`}
-                pageTitle="Update your email preferences"
+                pageTitle="Update your preferences"
                 pageDesc="View and update your Our World in Data email notification preferences."
                 baseUrl={baseUrl}
             >
@@ -37,16 +38,12 @@ export const EmailNotificationsPreferencesPage = ({
                     }}
                 ></script>
             </Head>
-            <body>
+            <body className="sticky-footer-body">
                 <SiteHeader />
-                <main className="subscribe-page grid grid-cols-12-full-width">
-                    <h1 className="subscribe-page__heading display-2-semibold span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
-                        Update your email preferences
-                    </h1>
-                    <div className="span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
-                        <div id={PREFERENCES_PAGE_FORM_CONTAINER_ID}></div>
-                    </div>
-                </main>
+                <main
+                    id={PREFERENCES_PAGE_ROOT_ID}
+                    className="subscribe-page grid grid-cols-12-full-width"
+                ></main>
                 <SiteFooter context={SiteFooterContext.subscribePage} />
             </body>
         </Html>

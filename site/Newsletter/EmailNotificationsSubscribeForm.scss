@@ -1,0 +1,10 @@
+.email-notifications-subscribe-form__privacy-notice {
+    @include note-12-medium;
+    margin-top: 8px;
+    color: $blue-60;
+
+    a {
+        color: inherit;
+        text-decoration: underline;
+    }
+}
