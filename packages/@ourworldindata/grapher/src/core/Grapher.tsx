@@ -63,12 +63,6 @@ import { Chart } from "../chart/Chart.js"
 import { flushSync } from "react-dom"
 import { GrapherState } from "./GrapherState.js"
 
-declare global {
-    interface Window {
-        admin?: any // TODO: use stricter type
-    }
-}
-
 // Exactly the same as GrapherInterface, but contains options that developers want but authors won't be touching.
 export interface GrapherProgrammaticInterface extends GrapherInterface {
     queryStr?: string

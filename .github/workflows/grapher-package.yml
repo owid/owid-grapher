@@ -40,3 +40,6 @@ jobs:
 
       - name: Test package
         run: yarn testPackage
+
+      - name: Verify JSR publishability
+        run: yarn jsr publish --dry-run --allow-dirty

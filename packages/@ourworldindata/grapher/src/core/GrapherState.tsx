@@ -234,6 +234,14 @@ import { SettingsMenuManager } from "../controls/SettingsMenu.js"
 import { SlopeChartManager } from "../slopeCharts/SlopeChartConstants.js"
 import { selectPeerCountriesForGrapher } from "./PeerCountrySelection.js"
 
+// The admin client sets `window.admin`. It's typed here locally instead of
+// via a `declare global` Window augmentation: that augmentation would end up
+// in the published package's type declarations, polluting consumers' global
+// types (and JSR rejects global augmentations outright).
+function getWindowAdmin(): { isSuperuser?: unknown } | undefined {
+    return (window as { admin?: { isSuperuser?: unknown } }).admin
+}
+
 export class GrapherState
     implements
         AxisManager,
@@ -1628,10 +1636,11 @@ export class GrapherState
 
     @computed private get isAdminObjectAvailable(): boolean {
         if (typeof window === "undefined") return false
+        const admin = getWindowAdmin()
         return (
-            window.admin !== undefined &&
+            admin !== undefined &&
             // Ensure that we're not accidentally matching on a DOM element with an ID of "admin"
-            typeof window.admin.isSuperuser === "boolean"
+            typeof admin.isSuperuser === "boolean"
         )
     }
 
@@ -3581,7 +3590,7 @@ export class GrapherState
             // We're not on an archival grapher page
             !this.isOnArchivalPage &&
             // We're not inside the admin
-            window.admin === undefined &&
+            getWindowAdmin() === undefined &&
             // We're not in a narrative chart
             !this.narrativeChartInfo &&
             // We have a baseUrl to send the request to
