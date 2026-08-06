@@ -214,6 +214,16 @@ Two tools help verify the built package (both expect `yarn build` to have run fi
 - `yarn testPackage` runs the smoke tests in `packageTest/`: they import both JS builds, mount a chart from the built code into a DOM, and pack the package (`yarn pack`, which applies `publishConfig`) to typecheck a simulated external consumer against the bundled type declarations — with `moduleResolution: bundler` and `nodenext`, plus a full check of the declaration bundle itself. These tests are intentionally not part of the repo-wide `yarn test` since they depend on `dist/`.
 - `yarn startDemoServer` serves this directory on http://localhost:8433 via `http-server` and opens `/demo.html`, which shows the three `GrapherLoader` variants (`/core-econ-demo.html` is a styled embedding example). It's a plain static server, so the demo pages load `dist/` exactly like a CDN consumer would.
 
+### Publishing to JSR
+
+The package is set up for publishing to [JSR](https://jsr.io) via `yarn publishJsr` (which builds first). JSR cannot ingest our TypeScript source (SCSS imports, workspace dependencies, and its "no slow types" rules rule that out), so `jsr.json` publishes the **built** artifacts instead: `dist/grapher.js` as the sole entrypoint — its first line is a `@ts-self-types` directive pointing JSR and Deno consumers at the bundled `dist/grapher.d.ts` — plus the stylesheet, readme, and license.
+
+Things to know:
+
+- The version in `jsr.json` must be bumped in lockstep with `package.json`; `yarn testPackage` enforces that they match. Publishing skips silently if the version already exists on JSR.
+- Publishing requires the `@ourworldindata` scope to exist on jsr.io and either an interactive browser login or, for CI publishing, the GitHub repo being linked in the package settings on jsr.io (auth then works via OIDC with `id-token: write` permissions).
+- CI runs `jsr publish --dry-run` on every grapher-package build to catch publishability regressions — for example, `declare global` blocks anywhere in the source, which end up in the bundled declarations and which JSR rejects outright.
+
 ## How Grapher works
 
 The Grapher pipeline, as it runs on ourworldindata.org, is explained below.

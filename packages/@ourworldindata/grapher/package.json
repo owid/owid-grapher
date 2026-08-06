@@ -26,6 +26,7 @@
     ],
     "scripts": {
         "build": "tsdown",
+        "publishJsr": "yarn build && jsr publish",
         "startDemoServer": "http-server . -p 8433 -c-1 -o /demo.html",
         "testPackage": "vitest run --config vitest.package.config.ts"
     },
@@ -89,6 +90,7 @@
         "@types/react-dom": "^19.2.3",
         "@types/topojson-client": "^3.1.5",
         "http-server": "^14.1.1",
+        "jsr": "^0.14.3",
         "sass": "^1.89.2",
         "tsdown": "^0.22.14",
         "vitest": "^4.1.10"
