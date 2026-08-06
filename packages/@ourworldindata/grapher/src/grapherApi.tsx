@@ -83,7 +83,16 @@ function BoundsObservingGrapher({
         grapherState.externalBounds = bounds
     }, [grapherState, bounds])
 
-    return <Grapher grapherState={grapherState} />
+    // The flex wrapper is load-bearing: .GrapherComponent is an inline-block,
+    // and sitting directly in the container it would get the line box's
+    // baseline gap added below it. That gap would grow the container, the
+    // ResizeObserver would report the larger size, Grapher would render
+    // taller — an unbounded growth loop. A flex item has no line box.
+    return (
+        <div style={{ display: "flex" }}>
+            <Grapher grapherState={grapherState} />
+        </div>
+    )
 }
 
 // --- Public API --------------------------------------------------------------
