@@ -2,6 +2,11 @@
     "name": "@ourworldindata/grapher",
     "version": "0.0.0",
     "description": "OWID's data exploration and visualization library.",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/owid/owid-grapher.git",
+        "directory": "packages/@ourworldindata/grapher"
+    },
     "type": "module",
     "main": "src/index.ts",
     "types": "src/index.ts",
@@ -25,7 +30,13 @@
         "react-dom": "^19.0.0"
     },
     "files": [
-        "dist"
+        "dist/grapher.js",
+        "dist/grapher.js.map",
+        "dist/grapher.bundle.js",
+        "dist/grapher.bundle.js.map",
+        "dist/grapher.css",
+        "dist/grapher.d.ts",
+        "dist/grapher.d.ts.map"
     ],
     "scripts": {
         "build": "tsdown",
