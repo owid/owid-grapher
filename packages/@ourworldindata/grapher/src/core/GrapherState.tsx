@@ -2512,7 +2512,8 @@ export class GrapherState
     }
 
     @computed get currentTitle(): string {
-        let text = this.displayTitle.trim()
+        let text =
+            (this.id === 64 ? "[test 2] " : "") + this.displayTitle.trim()
         if (text.length === 0) return text
 
         // Helper function to add an annotation fragment to the title;
@@ -2764,6 +2765,8 @@ export class GrapherState
     private set facetStrategy(facet: FacetStrategy) {
         this.selectedFacetStrategy = facet
     }
+
+    // test
 
     set baseFontSize(val: number) {
         this._baseFontSize = val
