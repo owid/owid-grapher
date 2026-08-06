@@ -1012,24 +1012,14 @@ export function reportVerifyResults(
     }
 
     if (errorResults.length) {
-        console.warn(
-            `${errorResults.length} graphs threw errors: ${errorResults
-                .map((err) => err.viewId)
-                .join()}`
-        )
+        console.warn(`${errorResults.length} graphs threw errors`)
         for (const result of errorResults) {
             console.log(`${result.viewId}: ${verifyErrorMessage(result.error)}`)
         }
     }
 
     if (differenceResults.length) {
-        console.warn(
-            `${
-                differenceResults.length
-            } graphs had differences: ${differenceResults
-                .map((err) => err.difference.viewId)
-                .join()}`
-        )
+        console.warn(`${differenceResults.length} graphs had differences`)
         for (const result of differenceResults) {
             console.log(result.difference.viewId)
         }
