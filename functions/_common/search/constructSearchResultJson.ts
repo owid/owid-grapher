@@ -185,9 +185,13 @@ export async function constructSearchResultJson(
         ]),
     }
 
-    const unit = grapherState.transformedTable.get(
-        grapherState.yColumnSlug
-    ).unit
+    // The unit is displayed on the first tab's thumbnail, which might be a
+    // map that renders a dedicated map column instead of the y column
+    const firstTab = layout[0]?.grapherTab
+    const [unitColumnSlug] = firstTab
+        ? grapherState.getPrimaryColumnSlugsForTab(firstTab)
+        : grapherState.yColumnSlugs
+    const unit = grapherState.transformedTable.get(unitColumnSlug).unit
     const strippedUnit = unit ? stripOuterParentheses(unit) : undefined
 
     return omitUndefinedValues({
