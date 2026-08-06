@@ -496,7 +496,17 @@ longer discard the results of the others.
 | 10 | O | Add `location /svgtester/ { alias /home/owid/owid-grapher-svgs/; }` to `owid.cloud`, and point `create_report`'s output at it. | — |
 | 11 | E | Switch the report link in `grapher.py` from `rawcdn.githack.com` to the staging URL. No fallback — a stale container just links to the old place until recreated. | 10 |
 | 12 | O | Stop `commit_differences` on branches (keep it on master, which legitimately absorbs new references), then pass `-r references` to `create-compare-view.ts` and delete the `originals/` copy. **Depends on 10**: `originals/` exists precisely because `commit_differences` overwrites `references/` after the report is generated, so the report must stop depending on the `compare/{branch}` URL first. | 10 |
-| 13 | O | Split the Buildkite step into one step per suite, each with its own timeout, status, and report. Reconcile the 60 min step timeout with the 7200 s inner one. Pipeline-only change: test via the bootstrap override above. | 8 |
+| 13 | O | Split the Buildkite step into one step per suite, each with its own timeout, status, and report. Reconcile the 60 min step timeout with the 7200 s inner one. **Do not call `reset_to_master` per step** — see below. Pipeline-only change: test via the bootstrap override above. | 8 |
+
+⚠️ **The per-step reset is a trap.** `reset_to_master` runs
+`git clean -fdx` over the whole svgs checkout, which today is safe because one
+reset precedes all suites in a single step. Give each suite its own step that
+resets, and step B wipes step A's `verify-results.json` and `differences/` while
+A is still running — non-deterministically, in parallel, with no error. Either
+reset exactly once in a preceding step that the suite steps depend on, or stop
+keeping per-run state in a shared checkout at all, which is what item 14 does by
+uploading to R2. The second is the real fix; the first is the stopgap if items
+13 and 14 don't land together.
 
 Optional stopgap (O, after 13): a Buildkite `block` step with a multi-select
 field, plus `buildkite-agent meta-data get svg-suites` in `svg-tester.sh`, gives

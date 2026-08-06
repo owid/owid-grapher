@@ -95,6 +95,29 @@ Notes on the shape:
   `verify-graphs.log` for the same reason. `differences/`, `differences.html` and
   `originals/` can't join it until Phase 2/3 stop committing them.
 
+### Stale files, and why absence alone can't be trusted
+
+The "no file means this suite never ran" half of the contract only holds if every
+reset actually removes the file — and gitignoring it (above) is what makes that
+non-obvious, since `git clean -fd` skips ignored files.
+
+- **CI is already correct.** `reset_to_master` in `svg-tester.sh` uses
+  `git clean -fdx`, and runs before any suite with `errexit` active.
+- **Local was not.** `svgtest.reset` in the Makefile used `git clean -fd`, so a
+  stale file survived. Fixed to `-fdx`, matching ops and `refresh.sh`.
+
+Cleaning is necessary but not sufficient, because it makes correctness depend on
+an external actor behaving, in every environment, forever. Two known ways it can
+still be wrong: `kill_stale_runs` pkills a superseded build's process *before* the
+reset, and pkill is best-effort, so a straggler could write a file afterwards; and
+any future consumer running against a checkout nobody reset.
+
+**So consumers must validate, not just look.** Every file carries `grapherCommit`
+and `startedAt` — the per-run identifier is already there, it just has to be used:
+treat a file whose `grapherCommit` doesn't match the commit under test as stale
+and report it as not-run. Then a missed cleanup degrades to "no result" instead of
+"wrong result". See PR 6.
+
 ## Ordering constraints
 
 - **PR 5 before PR 6**: owidbot can only prefer a file that exists.
@@ -169,6 +192,12 @@ Verify — six cases, all run against the real graphers suite:
   | `running` | started, then killed (outer timeout, cancelled step) | `⚠️ killed mid-run` |
   | `error` | ran, something malfunctioned | `⚠️ N errors` |
   | `ok` / `differences` | ran cleanly | `0 ✅` / `141 ❌ [Report]` |
+
+- **Check `grapherCommit` before trusting any of it.** If it doesn't match the
+  commit owidbot is reporting on, the file is left over from an earlier run that a
+  reset failed to clear — treat it as absent. Three lines, and it means a missed
+  cleanup degrades to "no result" rather than "confidently wrong result". See
+  [Stale files](#stale-files-and-why-absence-alone-cant-be-trusted).
 - **Delete** `get_num_differences` and the `wc -l` path outright — no fallback.
   Also delete the "missing file means skipped, unless it's graphers, then it means
   error" heuristic (`:76`): `status` now says which it is.
