@@ -59,9 +59,6 @@ export default defineConfig([
         ...shared,
         name: "npm",
         entry: { grapher: "./src/grapher.entry.ts" },
-        // Points JSR (and Deno) consumers of this plain-JS entrypoint at the
-        // bundled declaration file; must be the first line of the output.
-        banner: '/* @ts-self-types="./grapher.d.ts" */',
         // React is a peer dependency of the npm package.
         deps: { ...shared.deps, neverBundle: REACT_EXTERNALS },
         css: {
