@@ -28,7 +28,10 @@ metadata:
       column: grapherConfigIdETL
 fields:
   id:
-    description: Unique identifier for the chart configuration
+    description: |
+      Unique identifier for the chart configuration: a UUIDv7, generated in application code (MySQL has no native UUIDv7 generator), stored as char(36).
+
+      For standalone charts this UUID doubles as the chart's stable external identity: charts.configId points at it 1:1, is assigned at creation and never changes over the chart's lifetime (updates modify this row in place). It is the preferred identifier for referencing charts from external systems — numeric chart ids are minted independently per environment and slugs can change — and the admin API accepts it wherever a :chartId route param is expected. It is also used as the key for config storage in R2 and served publicly at /grapher/by-uuid/:uuid.config.json.
   patch:
     description: |
       Incremental configuration JSON that contains only the changes from the inherited or base configuration. Stored as a JSON column, so can be queried with the ->> operator.
