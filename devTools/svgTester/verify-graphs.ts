@@ -154,22 +154,18 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
 
         utils.logIfVerbose(verbose, "Verifications completed")
 
-        await utils.writeVerifyResults(
-            testSuiteDir,
-            utils.summariseVerifyResults(validationResults, {
-                suite: testSuite,
-                startedAt,
-                durationMs: Date.now() - startedAt.getTime(),
-            })
-        )
+        const summary = utils.summariseVerifyResults(validationResults, {
+            suite: testSuite,
+            startedAt,
+            durationMs: Date.now() - startedAt.getTime(),
+        })
+        await utils.writeVerifyResults(testSuiteDir, summary)
 
-        const exitCode = utils.displayVerifyResultsAndGetExitCode(
-            validationResults,
-            verbose
-        )
+        utils.reportVerifyResults(validationResults, verbose)
+
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
-        process.exit(exitCode)
+        process.exit(utils.verifyExitCode(summary))
     } catch (error) {
         console.error("Encountered an error: ", error)
         // Record the failure too, so that "the suite never got to run" is
@@ -190,7 +186,7 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
             })
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
-        process.exit(-1)
+        process.exit(1)
     }
 }
 

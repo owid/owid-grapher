@@ -82,7 +82,8 @@ Use `verify-graphs.ts` to check SVG outputs against the reference export. The sc
 - Processes the SVG to remove non-deterministic elements
 - Compares the MD5 hash with the reference
 - If there's a difference, saves the new SVG to the differences directory and reports it
-- Returns a non-zero exit code if any differences are found
+- Writes `verify-results.json` recording the outcome: status, counts, which views differed and which errored
+- Returns a non-zero exit code only if the tester itself malfunctioned (a render crashed, a reference was missing, a job timed out). Differences are the expected output and exit 0 — read `verify-results.json` to find out how many there were
 
 The script works with test suites stored in the directory structure:
 
@@ -162,4 +163,4 @@ This should be done periodically (e.g., monthly) or when significant data/config
 
 ## Notes
 
-For all tools use the verbose flag if you want to see what the tool is doing, otherwise there is no output to stdout except for failing graph ids in the verify-graphs script for easy bash collection of failing graphs.
+For all tools use the verbose flag if you want to see what the tool is doing. Otherwise `verify-graphs.ts` prints one affected view id per line to stdout, so failing ids can be collected with a shell pipeline, and counts to stderr. That output is for humans and pipelines only — anything that needs to act on the result should read `verify-results.json` instead.
