@@ -596,9 +596,43 @@ export const AllChartsBlock = ({
     // rather than assumed, and handed to the stylesheet as a custom property.
     // Nothing reads it below the breakpoint, where nothing sticks and the
     // sidecar is hidden.
+    //
+    // The border box, not the content box: the unit's own 12px of bottom
+    // padding is part of the opaque band a row is clipped against, so the
+    // sidecar has to come to rest below that too, not 12px up inside it.
     const stickyHeaderRef = useRef<HTMLDivElement>(null)
     const { height: stickyHeaderHeight } = useResizeObserver({
         ref: stickyHeaderRef as React.RefObject<HTMLDivElement>,
+        box: "border-box",
+    })
+
+    // ...and the unit itself has to come to rest flush against the bottom of
+    // whatever is *already* pinned at the top of the viewport, so that nothing
+    // is left showing in between. That is the topic page's own sub-nav
+    // (.sticky-nav, pinned at top: 0) — but only on the topic pages that have
+    // one: it is rendered from the gdoc's `sticky-nav` list, which plenty of
+    // pages don't define (see site/gdocs/pages/GdocPost.tsx), and where it is
+    // present its height varies by breakpoint (56px, 48px on small viewports).
+    // Both facts are only knowable at runtime, so the nav is measured the same
+    // way the unit above is, and 0 stands in when there is no nav to measure.
+    //
+    // This replaced a hardcoded 72px offset, which assumed a sub-nav was always
+    // there: on the pages without one it left a live strip at the top of the
+    // viewport for rows to scroll through, above a dead band of white.
+    const [stickyNavElement, setStickyNavElement] =
+        useState<HTMLElement | null>(null)
+    useEffect(() => {
+        setStickyNavElement(document.querySelector<HTMLElement>(".sticky-nav"))
+    }, [])
+    // A ref object rather than the element, because that is what the hook takes;
+    // a fresh one per element so the hook re-observes when it appears.
+    const stickyNavRef = useMemo(
+        () => ({ current: stickyNavElement }),
+        [stickyNavElement]
+    )
+    const { height: stickyNavHeight } = useResizeObserver({
+        ref: stickyNavRef as React.RefObject<HTMLElement>,
+        box: "border-box",
     })
 
     if (isError || !topicName) return null
@@ -609,6 +643,7 @@ export const AllChartsBlock = ({
             id={id}
             style={
                 {
+                    "--all-charts-block-pinned-above-height": `${stickyNavHeight ?? 0}px`,
                     "--all-charts-block-sticky-header-height": `${stickyHeaderHeight ?? 0}px`,
                 } as React.CSSProperties
             }
