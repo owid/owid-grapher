@@ -235,6 +235,51 @@ it("uses the dedicated map dimension as the map column, ignoring map.columnSlug"
     expect(grapher.mapColumnSlug).toEqual("4001")
 })
 
+it("does not auto-plot the map column on chart tabs if the chart only has a map dimension", () => {
+    const config = {
+        ...legacyConfig,
+        tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
+        dimensions: [{ variableId: 4001, property: DimensionProperty.map }],
+    } as GrapherInterface
+    const grapher = new GrapherState(config)
+    grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        new Map([[4001, { data, metadata: { ...metadata, id: 4001 } }]]),
+        config.dimensions!,
+        config.selectedEntityColors
+    )
+    expect(grapher.chartState.errorInfo.reason).toEqual("Missing Y axis column")
+})
+
+it("stitches a projected map dimension with its historical y column", () => {
+    const config = {
+        ...legacyConfig,
+        dimensions: [
+            ...legacyConfig.dimensions!,
+            { variableId: 4001, property: DimensionProperty.map },
+        ],
+    } as GrapherInterface
+    const grapher = new GrapherState(config)
+    grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        new Map([
+            [3512, { data, metadata }],
+            [
+                4001,
+                {
+                    data,
+                    metadata: {
+                        ...metadata,
+                        id: 4001,
+                        display: { name, isProjection: true },
+                    },
+                },
+            ],
+        ]),
+        config.dimensions!,
+        config.selectedEntityColors
+    )
+    expect(grapher.mapColumnSlugs).toEqual(["4001", "3512"])
+})
+
 describe("default title and subtitle with a dedicated map dimension", () => {
     const mapVariableMetadata = {
         id: 4001,
