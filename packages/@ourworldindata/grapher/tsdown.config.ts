@@ -16,7 +16,7 @@ import {
 //
 //   npm    dist/grapher.js + dist/grapher.css  for bundler/React consumers
 //   cdn    dist/grapher.bundle.js              for plain HTML pages
-//   types  dist/grapher.public.d.ts            for both of the above
+//   types  dist/grapher.d.ts                   for both of the above
 //
 // They all write into dist/, so no two of them may emit the same filename.
 
@@ -86,7 +86,7 @@ export default defineConfig([
     {
         ...shared,
         name: "types",
-        entry: { "grapher.public": "./src/grapher.public.ts" },
+        entry: { grapher: "./src/grapher.public.ts" },
         // Includes the sources of grapher's workspace dependencies so their
         // types can be inlined into the bundle.
         tsconfig: "../tsconfig.tsdown.json",

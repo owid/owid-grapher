@@ -23,7 +23,7 @@ const distDir = path.join(pkgDir, "dist")
 const npmBuildPath = path.join(distDir, "grapher.js")
 const cdnBundlePath = path.join(distDir, "grapher.bundle.js")
 const cssPath = path.join(distDir, "grapher.css")
-const dtsPath = path.join(distDir, "grapher.public.d.ts")
+const dtsPath = path.join(distDir, "grapher.d.ts")
 
 const PUBLIC_EXPORTS = [
     "Grapher",
