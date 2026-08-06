@@ -549,6 +549,23 @@ export const ContinentColors = {
     "Western Asia (UN M49)": OwidDistinctColors.Camel,
     "Western Europe (UN M49)": OwidDistinctColors.Blue,
 
+    // IHME GBD super-regions. High-income is not a geographic band but spans Western Europe,
+    // North America, Australasia, High-income Asia Pacific and Southern Latin America; it takes the
+    // Europe hue because Western Europe is 24 of its 36 countries. Its 21 nested regions
+    // (ihme_gbd_2) are deliberately left unpinned: that tier needs 21 distinct colors and
+    // OwidMapColors only has 20, so it falls back to the positional palette, as fao_2 does.
+    // North Africa and Middle East and South Asia are pinned here and also appear in that tier,
+    // since each is a super-region with no finer breakdown.
+    "High-income (IHME GBD)": OwidDistinctColors.Denim,
+    "Latin America and Caribbean (IHME GBD)": OwidDistinctColors.Maroon,
+    "Sub-Saharan Africa (IHME GBD)": OwidDistinctColors.DarkMauve,
+    "North Africa and Middle East (IHME GBD)": OwidDistinctColors.Camel,
+    "Central Europe, Eastern Europe, and Central Asia (IHME GBD)":
+        OwidDistinctColors.MidnightBlue,
+    "South Asia (IHME GBD)": OwidDistinctColors.OliveGreen,
+    "Southeast Asia, East Asia, and Oceania (IHME GBD)":
+        OwidDistinctColors.Lime,
+
     // Income groups
     "High-income countries": IncomeGroupColors.HighIncome,
     "Upper-middle-income countries": IncomeGroupColors.UpperMiddleIncome,
@@ -1058,6 +1075,23 @@ export const MapContinentColors = {
     "Sub-Saharan Africa (UN M49)": OwidMapColors.LightPurple,
     "Western Asia (UN M49)": OwidMapColors.Sand,
     "Western Europe (UN M49)": OwidMapColors.Lavendar,
+
+    // IHME GBD super-regions. High-income is not a geographic band but spans Western Europe,
+    // North America, Australasia, High-income Asia Pacific and Southern Latin America; it takes the
+    // Europe hue because Western Europe is 24 of its 36 countries. Its 21 nested regions
+    // (ihme_gbd_2) are deliberately left unpinned: that tier needs 21 distinct colors and
+    // OwidMapColors only has 20, so it falls back to the positional palette, as fao_2 does.
+    // North Africa and Middle East and South Asia are pinned here and also appear in that tier,
+    // since each is a super-region with no finer breakdown.
+    "High-income (IHME GBD)": OwidMapColors.MutedDenim,
+    "Latin America and Caribbean (IHME GBD)": OwidMapColors.MutedCherry,
+    "Sub-Saharan Africa (IHME GBD)": OwidMapColors.LightPurple,
+    "North Africa and Middle East (IHME GBD)": OwidMapColors.Sand,
+    "Central Europe, Eastern Europe, and Central Asia (IHME GBD)":
+        OwidMapColors.LightDenim,
+    "South Asia (IHME GBD)": OwidMapColors.Olive,
+    "Southeast Asia, East Asia, and Oceania (IHME GBD)":
+        OwidMapColors.LeafGreen,
 } as const
 
 /**

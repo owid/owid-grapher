@@ -136,6 +136,11 @@ export const ADDITIONAL_REGION_DATA_PROVIDERS = [
     // ILO entities are recognized by their "(ILO)" suffix here; the per-level region
     // definitions live under the `ilo_1`/`ilo_2` RegionDataProviders (cf. unm49 vs un_m49_*).
     "ilo",
+    // Same for IHME GBD: the "(IHME GBD)" suffix resolves to `ihmegbd` (lowercased, spaces
+    // stripped), which matches neither `ihme_gbd_1` nor `ihme_gbd_2`, so the bare slug is the
+    // recognition handle. Without it parseLabel returns no providerKey and both entity-selector
+    // grouping and the region hover silently stop working.
+    "ihmegbd",
 ] as const
 
 export type AdditionalRegionDataProvider =
