@@ -14,10 +14,7 @@ import {
     GRAPHER_TAB_NAMES,
 } from "@ourworldindata/types"
 import { isPopulationVariableETLPath } from "./GrapherConstants.js"
-import {
-    isChartTab,
-    getSupportedDimensionsForChartTypes,
-} from "../chart/ChartTabs.js"
+import { getDimensionPropertiesForTab } from "../chart/ChartTabs.js"
 
 export const pickColumnsForSourcesLine = ({
     table,
@@ -37,9 +34,7 @@ export const pickColumnsForSourcesLine = ({
     activeTab?: GrapherTabName
 }): ColumnSlug[] => {
     const activeDimensions = new Set(
-        activeTab
-            ? getDimensionPropertiesForActiveTab(activeTab)
-            : getDimensionPropertiesForActiveTab(GRAPHER_TAB_NAMES.Table)
+        getDimensionPropertiesForTab(activeTab ?? GRAPHER_TAB_NAMES.Table)
     )
 
     const columnSlugs: ColumnSlug[] = []
@@ -91,26 +86,6 @@ export const pickColumnsForSourcesLine = ({
     }
 
     return _.uniq(columnSlugs)
-}
-
-/**
- * Determines which dimension properties (y, x, color, size, map) are relevant
- * for the active tab
- */
-const getDimensionPropertiesForActiveTab = (
-    tab: GrapherTabName
-): DimensionProperty[] => {
-    const { x, y, color, size, map } = DimensionProperty
-
-    // Only include dimensions relevant to the active chart type
-    // (e.g. exclude x dimension for line charts)
-    if (isChartTab(tab)) return getSupportedDimensionsForChartTypes([tab])
-
-    // The map tab shows a single indicator; attribute only its source
-    if (tab === GRAPHER_TAB_NAMES.WorldMap) return [map]
-
-    // Include all dimensions for the table tab
-    return [y, map, x, color, size]
 }
 
 /**
