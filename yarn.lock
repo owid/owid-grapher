@@ -2399,7 +2399,6 @@ __metadata:
     http-server: "npm:^14.1.1"
     indefinite: "npm:^2.5.2"
     js-cookie: "npm:^3.0.7"
-    jsr: "npm:^0.14.3"
     lodash-es: "npm:^4.18.1"
     mobx: "npm:^6.15.4"
     mobx-react: "npm:^7.6.0"
@@ -10002,18 +10001,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsr@npm:^0.14.3":
-  version: 0.14.3
-  resolution: "jsr@npm:0.14.3"
-  dependencies:
-    node-stream-zip: "npm:^1.15.0"
-    semiver: "npm:^1.1.0"
-  bin:
-    jsr: dist/bin.js
-  checksum: 10/e4022877fc06f5afac27eea1fc35ae9254b21f5f4d580573a6707c7b6d35facf066ac35edb1998c7314321d6a5de78f6d7449b4fc54a20ea764ed5dce6ed6ecb
-  languageName: node
-  linkType: hard
-
 "jwa@npm:^2.0.1":
   version: 2.0.1
   resolution: "jwa@npm:2.0.1"
@@ -11194,13 +11181,6 @@ __metadata:
   version: 2.0.19
   resolution: "node-releases@npm:2.0.19"
   checksum: 10/c2b33b4f0c40445aee56141f13ca692fa6805db88510e5bbb3baadb2da13e1293b738e638e15e4a8eb668bb9e97debb08e7a35409b477b5cc18f171d35a83045
-  languageName: node
-  linkType: hard
-
-"node-stream-zip@npm:^1.15.0":
-  version: 1.16.0
-  resolution: "node-stream-zip@npm:1.16.0"
-  checksum: 10/172af3d7856d33706dadd1fe299c9a8d6a13a5fdd270abf8e4e8c4c62f0c02722815f3b0966e862746546fc77142dcc58ce087d5702627f7ee7dfdca0f4b98dc
   languageName: node
   linkType: hard
 
@@ -13026,13 +13006,6 @@ __metadata:
   version: 1.0.0
   resolution: "semifies@npm:1.0.0"
   checksum: 10/b26788144816ec45e4f9964bee3b308890154a16ea09974eb080b39ce987fb7c4f86424d79a4a1ec7ef007a71f6e4a7be75583b56feaf2b46efa1f5c386073af
-  languageName: node
-  linkType: hard
-
-"semiver@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "semiver@npm:1.1.0"
-  checksum: 10/87e78c4fca6e082fed8905266341524b952a6d917397ca7e4feba469459e4165015fb25c0cd5b214f30ac4588e227e7c5b56ce91fd053893738d8a44a761ddb3
   languageName: node
   linkType: hard
 
