@@ -361,6 +361,7 @@ function* rawBlockChartRowsToArchieMLString(
             for (const row of block.value.rows) {
                 yield* propertyToArchieMLString("image", row)
                 yield* propertyToArchieMLString("url", row)
+                yield* propertyToArchieMLString("caption", row)
                 if (row.content) {
                     yield "[.+content]"
                     for (const content of row.content) {

@@ -13,107 +13,6 @@ import { JOB_TIMEOUT_MS, MAX_WORKERS } from "./utils.js"
 import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
 import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
-async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
-    const testSuite = args.testSuite as utils.TestSuite
-    const verbose = args.verbose
-    const manifest = args.manifest
-
-    // Input and output directories
-    const dataDir = path.join(utils.SVG_REPO_PATH, testSuite, "data")
-    const referencesDir = path.join(
-        utils.SVG_REPO_PATH,
-        testSuite,
-        "references"
-    )
-    const differencesDir = path.join(
-        utils.SVG_REPO_PATH,
-        testSuite,
-        "differences"
-    )
-
-    if (!fs.existsSync(dataDir))
-        throw `Input directory does not exist ${dataDir}`
-    if (!fs.existsSync(referencesDir))
-        throw `Reference directory does not exist ${referencesDir}`
-    if (!fs.existsSync(differencesDir))
-        fs.mkdirSync(differencesDir, { recursive: true })
-
-    // Collect all explorer directories
-    const explorerJobs: {
-        explorerDir: string
-        explorerSlug: string
-        referencesDir: string
-        differencesDir: string
-        verbose: boolean
-        rmOnError: boolean
-        manifest?: string
-    }[] = []
-
-    const dir = await fs.opendir(dataDir)
-    for await (const entry of dir) {
-        if (!entry.isDirectory()) continue
-
-        const explorerDir = path.join(dataDir, entry.name)
-        const explorerSlug = entry.name
-
-        explorerJobs.push({
-            explorerDir,
-            explorerSlug,
-            referencesDir,
-            differencesDir,
-            manifest,
-            verbose: args.verbose,
-            rmOnError: args.rmOnError,
-        })
-    }
-
-    const jobCount = explorerJobs.length
-    if (jobCount === 0) {
-        utils.logIfVerbose(verbose, "No explorer directories found")
-        process.exit(0)
-    } else {
-        utils.logIfVerbose(
-            verbose,
-            `Verifying ${jobCount} explorer${jobCount > 1 ? "s" : ""}...`
-        )
-    }
-
-    const pool = workerpool.pool(__dirname + "/worker.ts", {
-        minWorkers: 2,
-        maxWorkers: MAX_WORKERS,
-        workerThreadOpts: {
-            execArgv: ["--require", "tsx"],
-        },
-    })
-
-    const validationResultsArrays: utils.VerifyResult[][] = await Promise.all(
-        explorerJobs.map((job) =>
-            // The per-view timeout lives inside renderAndVerifyExplorerViews,
-            // so we deliberately don't wrap this whole (multi-view) call in
-            // .timeout() — a large explorer with many views could legitimately
-            // exceed the per-view budget in aggregate.
-            pool
-                .exec("renderAndVerifyExplorerViews", [job])
-                .catch((err: Error) => [
-                    utils.resultError(job.explorerSlug, err),
-                ])
-        )
-    )
-
-    await pool.terminate()
-
-    // Flatten the array of arrays
-    const validationResults = validationResultsArrays.flat()
-
-    utils.logIfVerbose(verbose, "Verifications completed")
-
-    const exitCode = utils.displayVerifyResultsAndGetExitCode(
-        validationResults,
-        verbose
-    )
-    process.exit(exitCode)
-}
-
 async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
     try {
         // Test suite
@@ -150,8 +49,14 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         if (!fs.existsSync(dataDir))
             throw `Input directory does not exist ${dataDir}`
         if (!fs.existsSync(referencesDir))
-            throw `Reference directory does not exist ${dataDir}`
+            throw `Reference directory does not exist ${referencesDir}`
         if (!fs.existsSync(differencesDir)) fs.mkdirSync(differencesDir)
+
+        // Claim the results file up front: from here on its absence means the
+        // suite never started, and a lingering "running" status means it was
+        // killed before it could report.
+        const startedAt = new Date()
+        await utils.writeVerifyRunStarted(testSuiteDir, testSuite, startedAt)
 
         const chartIdsToProcess = await utils.selectChartIdsToProcess(dataDir, {
             viewIds: targetViewIds ?? manifestViewIds ?? undefined,
@@ -201,6 +106,16 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         const jobCount = verifyJobs.length
         if (jobCount === 0) {
             utils.logIfVerbose(verbose, "No matching configs found")
+            // Nothing to do is a legitimate outcome, but it still has to
+            // overwrite the "running" placeholder written above.
+            await utils.writeVerifyResults(
+                testSuiteDir,
+                utils.summariseVerifyResults([], {
+                    suite: testSuite,
+                    startedAt,
+                    durationMs: Date.now() - startedAt.getTime(),
+                })
+            )
             process.exit(0)
         } else {
             utils.logIfVerbose(
@@ -239,18 +154,39 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
 
         utils.logIfVerbose(verbose, "Verifications completed")
 
-        const exitCode = utils.displayVerifyResultsAndGetExitCode(
-            validationResults,
-            verbose
-        )
+        const summary = utils.summariseVerifyResults(validationResults, {
+            suite: testSuite,
+            startedAt,
+            durationMs: Date.now() - startedAt.getTime(),
+        })
+        await utils.writeVerifyResults(testSuiteDir, summary)
+
+        utils.reportVerifyResults(validationResults, verbose)
+
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
-        process.exit(exitCode)
+        process.exit(utils.verifyExitCode(summary))
     } catch (error) {
         console.error("Encountered an error: ", error)
+        // Record the failure too, so that "the suite never got to run" is
+        // distinguishable from "the suite ran and found nothing" by whoever
+        // reads the results file. Best-effort: if even this write fails there's
+        // nothing useful left to do but exit.
+        await utils
+            .writeVerifyRunFailure(
+                path.join(utils.SVG_REPO_PATH, args.testSuite),
+                args.testSuite as utils.TestSuite,
+                error
+            )
+            .catch((writeError) => {
+                console.error(
+                    "Could not write the results file either: ",
+                    writeError
+                )
+            })
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
-        process.exit(-1)
+        process.exit(1)
     }
 }
 
@@ -262,7 +198,6 @@ async function main(args: ReturnType<typeof parseArguments>) {
         .with("grapher-views", () => verifyGraphers(args))
         .with("mdims", () => verifyGraphers(args))
         .with("thumbnails", () => verifyGraphers(args))
-        .with("explorers", () => verifyExplorers(args))
         .exhaustive()
 }
 

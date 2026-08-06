@@ -1,29 +1,23 @@
 import {
-    ExplorerType,
     GRAPHER_CHART_TYPES,
     GrapherChartType,
     GrapherTabName,
     GrapherInterface,
-    OwidChartDimensionInterface,
-    parseChartConfig,
     GrapherVariant,
     GRAPHER_TAB_NAMES,
     GrapherChartOrMapType,
 } from "@ourworldindata/types"
 import {
     Bounds,
-    mergeGrapherConfigs,
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
-    queryParamsToStr,
     TESTING_ONLY_disable_guid,
-    PromiseCache,
-    CoreTableInputOption,
 } from "@ourworldindata/utils"
 import fs, { stat } from "fs-extra"
 import path from "path"
 import stream from "stream"
+import { execFileSync } from "child_process"
 import {
     buildSvgOutFilename,
     initGrapherForSvgExport,
@@ -36,11 +30,8 @@ import { getHeapStatistics } from "v8"
 import { queryStringsByChartType } from "./chart-configurations.js"
 import * as d3 from "d3-dsv"
 import {
-    DEFAULT_GRAPHER_HEIGHT,
-    DEFAULT_GRAPHER_WIDTH,
     GrapherProgrammaticInterface,
     legacyToOwidTableAndDimensions,
-    legacyToOwidTableAndDimensionsWithMandatorySlug,
     migrateGrapherConfigToLatestVersion,
     GrapherState,
     GRAPHER_THUMBNAIL_WIDTH,
@@ -52,15 +43,6 @@ import oxfmtConfig from "../../.oxfmtrc.json"
 import { hashMd5 } from "../../serverUtils/hash.js"
 import * as R from "remeda"
 import ReactDOMServer from "react-dom/server"
-import {
-    Explorer,
-    ExplorerChartCreationMode,
-    ExplorerChoiceParams,
-    ExplorerProgram,
-    ExplorerProps,
-    GrapherGrammar,
-} from "@ourworldindata/explorer"
-import { knexRaw, KnexReadonlyTransaction } from "../../db/db.js"
 
 export const SVG_REPO_PATH = "../owid-grapher-svgs"
 
@@ -68,16 +50,17 @@ export const TEST_SUITES = [
     "graphers",
     "grapher-views",
     "mdims",
-    "explorers",
     "thumbnails",
 ] as const
 export type TestSuite = (typeof TEST_SUITES)[number]
 
 export const TEST_SUITE_DESCRIPTION =
-    "Test suite to run: 'graphers' for default Grapher views, 'grapher-views' for all views of a subset of Graphers. 'mdims' for all multi-dim views. 'explorers' for all Explorer views. 'thumbnails' for thumbnail versions (300x160) of all published graphers."
+    "Test suite to run: 'graphers' for default Grapher views, 'grapher-views' for all views of a subset of Graphers. 'mdims' for all multi-dim views. 'thumbnails' for thumbnail versions (300x160) of all published graphers."
 
 const CONFIG_FILENAME = "config.json"
 const RESULTS_FILENAME = "results.csv"
+
+export const VERIFY_RESULTS_FILENAME = "verify-results.json"
 
 export const finished = util.promisify(stream.finished) // (A)
 
@@ -131,27 +114,6 @@ export const JOB_TIMEOUT_MS = 2 * 60 * 1000
 // SVG_TESTER_MAX_WORKERS on memory-constrained hosts.
 export const MAX_WORKERS = Number(process.env.SVG_TESTER_MAX_WORKERS) || 6
 
-// Rejects if the given promise doesn't settle within `timeoutMs`. Used to bound
-// a single render so one stuck view can't hang a whole worker job.
-async function withTimeout<T>(
-    promise: Promise<T>,
-    timeoutMs: number,
-    label: string
-): Promise<T> {
-    let timer: ReturnType<typeof setTimeout> | undefined
-    const timeout = new Promise<never>((_resolve, reject) => {
-        timer = setTimeout(
-            () => reject(new Error(`Timed out after ${timeoutMs}ms: ${label}`)),
-            timeoutMs
-        )
-    })
-    try {
-        return await Promise.race([promise, timeout])
-    } finally {
-        if (timer) clearTimeout(timer)
-    }
-}
-
 const resultDifference = (difference: SvgDifference): VerifyResult => ({
     kind: "difference",
     difference: difference,
@@ -176,6 +138,9 @@ export type SvgRecord = {
 
 export interface SvgDifference {
     viewId: string
+    queryStr?: string
+    chartType: GrapherTabName | undefined
+    svgFilename: string
     startIndex: number
     referenceSvgFragment: string
     newSvgFragment: string
@@ -201,10 +166,8 @@ export function logIfVerbose(verbose: boolean, message: string, param?: any) {
 function findFirstDiffIndex(a: string, b: string): number {
     let i = 0
     while (i < a.length && i < b.length && a[i] === b[i]) i++
-    if (a.length === b.length && a.length === i) {
-        console.warn("No difference found even though hash was different!")
-        i = -1
-    }
+    // No difference found even though hash was different
+    if (a.length === b.length && a.length === i) i = -1
     return i
 }
 
@@ -263,6 +226,9 @@ export async function verifySvg(
     logIfVerbose(verbose, `${newSvgRecord.viewId} had differences`)
     return resultDifference({
         viewId: newSvgRecord.viewId,
+        queryStr: newSvgRecord.resolvedQueryStr ?? newSvgRecord.queryStr,
+        chartType: newSvgRecord.chartType,
+        svgFilename: newSvgRecord.svgFilename,
         startIndex: firstDiffIndex,
         referenceSvgFragment: preparedReferenceSvg.substring(
             firstDiffIndex - 20,
@@ -667,7 +633,7 @@ export async function loadReferenceSvg(
         referenceSvgRecord.svgFilename
     )
     if (!fs.existsSync(referenceFilename))
-        throw `Input directory does not exist ${referenceFilename}`
+        throw `Reference SVG does not exist ${referenceFilename}`
     const svg = await fs.readFile(referenceFilename, "utf-8")
     return svg
 }
@@ -828,12 +794,207 @@ export async function renderAndVerifySvg({
     }
 }
 
-export function displayVerifyResultsAndGetExitCode(
+// "running" is written before the first render and overwritten when the run
+// finishes. A file left in that state means the process died before it could
+// report - killed by the `timeout` wrapper or Buildkite cancelling the step, say -
+// which is otherwise indistinguishable from a suite that was never selected.
+export type VerifyRunStatus = "running" | "ok" | "differences" | "error"
+
+export interface VerifyDifferenceEntry {
+    viewId: string
+    queryStr?: string
+    chartType?: string
+    svgFilename: string
+}
+
+export interface VerifyErrorEntry {
+    viewId: string
+    kind: "timeout" | "render"
+    message: string
+}
+
+export interface VerifyRunSummary {
+    suite: TestSuite
+    status: VerifyRunStatus
+    startedAt: string
+    durationMs: number
+    grapherCommit: string | null
+    svgsCommit: string | null
+    counts: {
+        total: number
+        ok: number
+        differences: number
+        errors: number
+    }
+    differences: VerifyDifferenceEntry[]
+    errors: VerifyErrorEntry[]
+}
+
+// A `.timeout()` breach and a render crash both arrive through the same `.catch`
+// in verify-graphs.ts, so the only thing distinguishing them is the error name
+// workerpool gives a timeout. Errors crossing a worker boundary are structured
+// clones rather than real Error instances, hence the defensive access.
+function classifyVerifyError(error: Error): VerifyErrorEntry["kind"] {
+    return error?.name === "TimeoutError" ? "timeout" : "render"
+}
+
+// Several failure paths in here `throw` a plain string rather than an Error, and
+// errors crossing a worker boundary are structured clones, so `.message` is not
+// something we can count on.
+function verifyErrorMessage(error: Error): string {
+    return String(error?.message ?? error)
+}
+
+export function summariseVerifyResults(
+    validationResults: VerifyResult[],
+    options: {
+        suite: TestSuite
+        startedAt: Date
+        durationMs: number
+    }
+): VerifyRunSummary {
+    const differences = validationResults
+        .filter((result) => result.kind === "difference")
+        .map(({ difference }) => ({
+            viewId: difference.viewId,
+            // The default view has an empty query string; omit rather than
+            // recording `""`.
+            queryStr: difference.queryStr || undefined,
+            chartType: difference.chartType,
+            svgFilename: difference.svgFilename,
+        }))
+
+    const errors = validationResults
+        .filter((result) => result.kind === "error")
+        .map((result) => ({
+            viewId: result.viewId,
+            kind: classifyVerifyError(result.error),
+            // The stack stays on stderr for the CI log; this file is a status
+            // report, not a crash dump.
+            message: verifyErrorMessage(result.error),
+        }))
+
+    // An errored suite is reported as errored even if it also found differences:
+    // we can't claim to know what changed when part of the run didn't complete.
+    const status: VerifyRunStatus = errors.length
+        ? "error"
+        : differences.length
+          ? "differences"
+          : "ok"
+
+    return {
+        suite: options.suite,
+        status,
+        startedAt: options.startedAt.toISOString(),
+        durationMs: options.durationMs,
+        grapherCommit: resolveCommit(),
+        svgsCommit: resolveCommit(SVG_REPO_PATH),
+        counts: {
+            total: validationResults.length,
+            ok: validationResults.length - differences.length - errors.length,
+            differences: differences.length,
+            errors: errors.length,
+        },
+        differences,
+        errors,
+    }
+}
+
+// Written next to verify-graphs.log so both live with the suite they describe.
+// Nothing commits it: create_report/commit_differences in svg-tester.sh add
+// explicit paths only.
+export async function writeVerifyResults(
+    testSuiteDir: string,
+    summary: VerifyRunSummary
+): Promise<void> {
+    const outPath = path.join(testSuiteDir, VERIFY_RESULTS_FILENAME)
+    await fs.writeFile(outPath, JSON.stringify(summary, null, 2) + "\n")
+}
+
+// Written before the first render so that the file's existence proves the suite
+// started. If the process is killed before it can overwrite this - the `timeout`
+// wrapper in svg-tester.sh, a cancelled Buildkite step, kill_stale_runs - the
+// leftover "running" status is what tells the reader it died mid-run. Deliberately
+// not a signal handler: `timeout` signals `yarn`, not the node process underneath
+// it, and nothing can catch the SIGKILL that follows --kill-after anyway.
+// The counts are zeroed placeholders and mean nothing until the run finishes.
+export async function writeVerifyRunStarted(
+    testSuiteDir: string,
+    suite: TestSuite,
+    startedAt: Date
+): Promise<void> {
+    await writeVerifyResults(testSuiteDir, {
+        suite,
+        status: "running",
+        startedAt: startedAt.toISOString(),
+        durationMs: 0,
+        grapherCommit: resolveCommit(),
+        svgsCommit: resolveCommit(SVG_REPO_PATH),
+        counts: { total: 0, ok: 0, differences: 0, errors: 0 },
+        differences: [],
+        errors: [],
+    })
+}
+
+// For failures that happen before or around the run itself (missing directories,
+// an unreadable reference CSV, the job-count sanity check) rather than for a
+// single chart. Without this, such a run leaves no results file at all and is
+// indistinguishable from a suite that was never started.
+export async function writeVerifyRunFailure(
+    testSuiteDir: string,
+    suite: TestSuite,
+    error: unknown
+): Promise<void> {
+    const startedAt = new Date()
+    await writeVerifyResults(testSuiteDir, {
+        suite,
+        status: "error",
+        startedAt: startedAt.toISOString(),
+        durationMs: 0,
+        grapherCommit: resolveCommit(),
+        svgsCommit: resolveCommit(SVG_REPO_PATH),
+        counts: { total: 0, ok: 0, differences: 0, errors: 1 },
+        differences: [],
+        errors: [
+            {
+                viewId: "",
+                kind: "render",
+                message: String(error instanceof Error ? error.message : error),
+            },
+        ],
+    })
+}
+
+// Best-effort: in CI the commit is handed to us, locally we ask git, and if
+// neither works the field is null rather than the run failing over provenance.
+function resolveCommit(cwd?: string): string | null {
+    if (!cwd && process.env.BUILDKITE_COMMIT)
+        return process.env.BUILDKITE_COMMIT
+    try {
+        return execFileSync("git", ["rev-parse", "HEAD"], {
+            cwd,
+            encoding: "utf-8",
+        }).trim()
+    } catch {
+        return null
+    }
+}
+
+export const EXIT_CODE_DIFFERENCES = 2
+export const EXIT_CODE_ERROR = 1
+
+export function verifyExitCode(summary: VerifyRunSummary): number {
+    if (summary.counts.errors > 0) return EXIT_CODE_ERROR
+    if (summary.counts.differences > 0) return EXIT_CODE_DIFFERENCES
+    return 0
+}
+
+// Human-facing output. The machine-readable version of all this is
+// verify-results.json.
+export function reportVerifyResults(
     validationResults: VerifyResult[],
     verbose: boolean
-): number {
-    let returnCode: number
-
+): void {
     const errorResults = validationResults.filter(
         (result) => result.kind === "error"
     )
@@ -847,33 +1008,22 @@ export function displayVerifyResultsAndGetExitCode(
             verbose,
             `There were no differences in all graphs processed`
         )
-        returnCode = 0
-    } else {
-        if (errorResults.length) {
-            console.warn(
-                `${errorResults.length} graphs threw errors: ${errorResults
-                    .map((err) => err.viewId)
-                    .join()}`
-            )
-            for (const result of errorResults) {
-                console.log(result.viewId?.toString(), result.error) // write to stdout one grapher id per file for easy piping to other processes
-            }
-        }
-        if (differenceResults.length) {
-            console.warn(
-                `${
-                    differenceResults.length
-                } graphs had differences: ${differenceResults
-                    .map((err) => err.difference.viewId)
-                    .join()}`
-            )
-            for (const result of differenceResults) {
-                console.log("", result.difference.viewId) // write to stdout one grapher id per file for easy piping to other processes
-            }
-        }
-        returnCode = errorResults.length + differenceResults.length
+        return
     }
-    return returnCode
+
+    if (errorResults.length) {
+        console.warn(`${errorResults.length} graphs threw errors`)
+        for (const result of errorResults) {
+            console.log(`${result.viewId}: ${verifyErrorMessage(result.error)}`)
+        }
+    }
+
+    if (differenceResults.length) {
+        console.warn(`${differenceResults.length} graphs had differences`)
+        for (const result of differenceResults) {
+            console.log(result.difference.viewId)
+        }
+    }
 }
 
 export function readLinesFromFile(filename: string): string[] {
@@ -881,132 +1031,9 @@ export function readLinesFromFile(filename: string): string[] {
     return content.split("\n")
 }
 
-export function getExplorerType(
-    explorerProgram: ExplorerProgram
-): ExplorerType {
-    const decisionMatrix = explorerProgram.decisionMatrix
-
-    // It's an indicator-based explorer if any row refers to yVariableIds
-    const yVariableIdsColumn = decisionMatrix.table.get(
-        GrapherGrammar.yVariableIds.keyword
-    )
-    if (yVariableIdsColumn.numValues > 0) return ExplorerType.Indicator
-
-    // If all rows refer to grapher IDs, it's a grapher-based explorer
-    const grapherIdsColumn = decisionMatrix.table.get(
-        GrapherGrammar.grapherId.keyword
-    )
-    if (grapherIdsColumn.numValues === decisionMatrix.numRows)
-        return ExplorerType.Grapher
-
-    // Otherwise, it's a CSV-based explorer
-    return ExplorerType.Csv
-}
-
-const loadInputTableForConfig = async (
-    dir: string,
-    args: {
-        dimensions?: OwidChartDimensionInterface[]
-        selectedEntityColors?: {
-            [entityName: string]: string | undefined
-        }
-    }
-) => {
-    if (!args.dimensions || args.dimensions.length === 0) return undefined
-
-    // Load variable data from disk for the requested dimensions
-    const variableIds = args.dimensions.map((d) => d.variableId)
-    const variableDataMap = new Map()
-
-    for (const variableId of variableIds) {
-        const dataPath = path.join(dir, `${variableId}.data.json`)
-        const metadataPath = path.join(dir, `${variableId}.metadata.json`)
-
-        if (!(await fs.pathExists(dataPath))) {
-            console.warn(
-                `Missing data file for variable ${variableId} (${dir})`
-            )
-            continue
-        }
-
-        const data = await fs.readJson(dataPath)
-        const metadata = await fs.readJson(metadataPath)
-        variableDataMap.set(variableId, { data, metadata })
-    }
-
-    // Convert to OwidTable
-    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
-        variableDataMap,
-        args.dimensions,
-        args.selectedEntityColors
-    )
-
-    return inputTable
-}
-
-async function loadPartialGrapherConfigs(
-    dir: string
-): Promise<GrapherProgrammaticInterface[]> {
-    const partialGrapherConfigs: GrapherProgrammaticInterface[] = []
-
-    // Read all .config.json files in the directory
-    const files = await fs.readdir(dir)
-    const configFiles = files.filter((file) => file.endsWith(".config.json"))
-
-    for (const configFile of configFiles) {
-        const variableId = parseInt(configFile.replace(".config.json", ""))
-        if (isNaN(variableId)) continue
-
-        const configPath = path.join(dir, configFile)
-        const config = await fs.readJson(configPath)
-        partialGrapherConfigs.push(config)
-    }
-
-    return partialGrapherConfigs
-}
-
-// Patch ExplorerProgram's static tableDataLoader to support file:// URLs
-// This allows us to load CSV files from disk during testing without
-// modifying global fetch or requiring network access
-function patchExplorerTableLoader(): void {
-    ;(ExplorerProgram as any).tableDataLoader = new PromiseCache(
-        async (url: string): Promise<CoreTableInputOption> => {
-            if (url.startsWith("file://")) {
-                const filePath = url.replace("file://", "")
-                const content = await fs.readFile(filePath, "utf-8")
-                return content
-            }
-
-            const response = await fetch(url)
-            if (!response.ok) throw new Error(response.statusText)
-            const tableInput: CoreTableInputOption = url.endsWith(".json")
-                ? await response.json()
-                : await response.text()
-            return tableInput
-        }
-    )
-}
-
-export interface ExplorerViewManifest {
-    totalViews: number
-    selectedViews: number
-    viewsToTest: ExplorerChoiceParams[]
-}
-
 export interface GrapherViewsManifest {
     slugs: string[]
     dataDir: string // Relative path to the data directory (e.g., "../graphers/data")
-}
-
-async function loadViewsManifest(
-    explorerDir: string,
-    filename: string
-): Promise<ExplorerViewManifest | null> {
-    const manifestPath = path.join(explorerDir, filename)
-    if (!(await fs.pathExists(manifestPath))) {
-        return null
-    }
-    return await fs.readJson(manifestPath)
 }
 
 // Load manifest from a specific path
@@ -1096,361 +1123,4 @@ export async function loadManifestViewIds(
 
     // Default: no manifest, use default data directory
     return { viewIds: null, dataDir: defaultDataDir }
-}
-
-async function getChoicesToTest(
-    explorerDir: string,
-    explorerProgram: ExplorerProgram,
-    manifestFilename?: string
-): Promise<Array<Record<string, string>>> {
-    // Use manifest to select which views to test
-    if (manifestFilename) {
-        const manifest = await loadViewsManifest(explorerDir, manifestFilename)
-        if (manifest) return manifest.viewsToTest
-    }
-
-    // No manifest - generate all possible choices
-    return explorerProgram.decisionMatrix.allDecisionsAsQueryParams()
-}
-
-export async function renderExplorerViewsToSVGsAndSave({
-    dir,
-    outDir,
-}: {
-    dir: string
-    outDir: string
-}): Promise<SvgRecord[]> {
-    // Set up file-aware table loader for local CSV files
-    patchExplorerTableLoader()
-
-    const configPath = path.join(dir, "config.tsv")
-    const tsvContent = await fs.readFile(configPath, "utf-8")
-
-    const explorerSlug = path.basename(dir)
-    const explorerProgram = new ExplorerProgram(explorerSlug, tsvContent)
-    const explorerType = getExplorerType(explorerProgram)
-
-    // Skip Grapher explorers
-    if (explorerType === ExplorerType.Grapher) return []
-
-    const width = DEFAULT_GRAPHER_WIDTH
-    const height = DEFAULT_GRAPHER_HEIGHT
-    const bounds = new Bounds(0, 0, width, height)
-
-    // Load partial grapher configs
-    const partialGrapherConfigs = await loadPartialGrapherConfigs(dir)
-
-    const explorerProps: ExplorerProps = {
-        slug: explorerSlug,
-        program: tsvContent,
-        isEmbeddedInAnOwidPage: true,
-        adminBaseUrl: "https://ourworldindata.org",
-        bakedBaseUrl: "https://ourworldindata.org",
-        bakedGrapherUrl: "https://ourworldindata.org/grapher",
-        dataApiUrl: "https://api.ourworldindata.org/v1/indicators", // Unused
-        catalogUrl: "https://catalog.ourworldindata.org", // Unused
-        partialGrapherConfigs,
-        bounds,
-        staticBounds: bounds,
-        loadInputTableForConfig: (args) => loadInputTableForConfig(dir, args),
-    }
-
-    const choicesToTest = await getChoicesToTest(dir, explorerProgram)
-
-    const svgRecords: SvgRecord[] = []
-
-    for (const choiceParams of choicesToTest) {
-        // Reset GUID for each view to ensure deterministic output
-        TESTING_ONLY_disable_guid()
-
-        // Create a fresh Explorer instance for each view
-        const explorer = new Explorer(explorerProps)
-
-        const oldRow = explorer.explorerProgram.currentlySelectedGrapherRow || 0
-
-        // Set the explorer to this specific choice combination
-        explorer.explorerProgram.decisionMatrix.setValuesFromChoiceParams(
-            choiceParams
-        )
-
-        // Skip if this is a grapher id based row
-        if (
-            explorer.explorerProgram.chartCreationMode ===
-            ExplorerChartCreationMode.FromGrapherId
-        )
-            continue
-
-        // Update the explorer
-        await explorer.reactToUserChangingSelection(oldRow)
-
-        // Generate SVG for this view
-        const svg = await explorer.grapherState.generateStaticSvg(
-            ReactDOMServer.renderToStaticMarkup
-        )
-        const preparedSvg = await prepareSvgForComparison(svg)
-
-        const queryStr = queryParamsToStr(choiceParams).replace("?", "")
-        const viewId = `${explorerSlug}?${queryStr}`
-
-        const outFilename = buildSvgOutFilename(
-            {
-                slug: explorerSlug,
-                version: 0, // Explorers don't have versions
-                width,
-                height,
-                queryStr,
-            },
-            { shouldHashQueryStr: true }
-        )
-
-        await fs.writeFile(path.join(outDir, outFilename), preparedSvg)
-
-        svgRecords.push({
-            viewId,
-            chartType: explorer.grapherState.activeTab,
-            md5: hashMd5(preparedSvg),
-            svgFilename: outFilename,
-        })
-    }
-
-    return svgRecords
-}
-
-export async function renderAndVerifyExplorerViews({
-    explorerDir,
-    explorerSlug,
-    referencesDir,
-    differencesDir,
-    verbose,
-    rmOnError,
-    manifest,
-}: {
-    explorerDir: string
-    explorerSlug: string
-    referencesDir: string
-    differencesDir: string
-    verbose: boolean
-    rmOnError: boolean
-    manifest?: string
-}): Promise<VerifyResult[]> {
-    // Set up file-aware table loader for local CSV files
-    patchExplorerTableLoader()
-
-    // Load reference CSV
-    const referenceData = await parseReferenceCsv(referencesDir)
-    const referenceDataByViewId = new Map(
-        referenceData.map((record) => [record.viewId, record])
-    )
-
-    // Load explorer config
-    const configPath = path.join(explorerDir, "config.tsv")
-    const tsvContent = await fs.readFile(configPath, "utf-8")
-    const explorerProgram = new ExplorerProgram(explorerSlug, tsvContent)
-    const explorerType = getExplorerType(explorerProgram)
-
-    // Skip Grapher explorers
-    if (explorerType === ExplorerType.Grapher) return []
-
-    const width = DEFAULT_GRAPHER_WIDTH
-    const height = DEFAULT_GRAPHER_HEIGHT
-    const bounds = new Bounds(0, 0, width, height)
-
-    // Load partial grapher configs
-    const partialGrapherConfigs = await loadPartialGrapherConfigs(explorerDir)
-
-    // Set up explorer props
-    const explorerProps: ExplorerProps = {
-        slug: explorerSlug,
-        program: tsvContent,
-        isEmbeddedInAnOwidPage: true,
-        adminBaseUrl: "https://ourworldindata.org",
-        bakedBaseUrl: "https://ourworldindata.org",
-        bakedGrapherUrl: "https://ourworldindata.org/grapher",
-        dataApiUrl: "https://api.ourworldindata.org/v1/indicators", // Unused
-        catalogUrl: "https://catalog.ourworldindata.org", // Unused
-        partialGrapherConfigs,
-        bounds,
-        staticBounds: bounds,
-        loadInputTableForConfig: (args) =>
-            loadInputTableForConfig(explorerDir, args),
-    }
-
-    const choicesToTest = await getChoicesToTest(
-        explorerDir,
-        explorerProgram,
-        manifest
-    )
-
-    const results: VerifyResult[] = []
-
-    // Process all views for this explorer sequentially
-    for (const choiceParams of choicesToTest) {
-        const queryStr = queryParamsToStr(choiceParams).replace("?", "")
-        const viewId = `${explorerSlug}?${queryStr}`
-
-        const referenceEntry = referenceDataByViewId.get(viewId)
-        if (!referenceEntry) {
-            console.warn(`No reference found for ${viewId}`)
-            continue
-        }
-
-        try {
-            logIfVerbose(verbose, `Verifying explorer view ${viewId}`)
-
-            // Reset GUID for deterministic output
-            TESTING_ONLY_disable_guid()
-
-            // Create a fresh Explorer instance for this view, reusing shared config
-            const explorer = new Explorer(explorerProps)
-
-            const oldRow =
-                explorer.explorerProgram.currentlySelectedGrapherRow || 0
-
-            // Set the explorer to this specific choice combination
-            explorer.explorerProgram.decisionMatrix.setValuesFromChoiceParams(
-                choiceParams
-            )
-
-            // Skip if this is a grapher id based row
-            if (
-                explorer.explorerProgram.chartCreationMode ===
-                ExplorerChartCreationMode.FromGrapherId
-            ) {
-                results.push({ kind: "ok" })
-                continue
-            }
-
-            // Bound each view's render+verify so one stuck view can't hang the
-            // whole worker job. Scoping the timeout here (rather than around the
-            // entire multi-view worker call) means large explorers with many
-            // views aren't misreported as timeouts just for taking a while in
-            // aggregate.
-            const validationResult = await withTimeout(
-                (async (): Promise<VerifyResult> => {
-                    // Update the explorer
-                    await explorer.reactToUserChangingSelection(oldRow)
-
-                    // Generate SVG for this view
-                    const svg = await explorer.grapherState.generateStaticSvg(
-                        ReactDOMServer.renderToStaticMarkup
-                    )
-
-                    const outFilename = buildSvgOutFilename(
-                        {
-                            slug: explorerSlug,
-                            version: 0, // Explorers don't have versions
-                            width,
-                            height,
-                            queryStr,
-                        },
-                        { shouldHashQueryStr: true }
-                    )
-
-                    const preparedSvg = await prepareSvgForComparison(svg)
-                    const svgRecord: SvgRecord = {
-                        viewId,
-                        chartType: explorer.grapherState.activeTab,
-                        md5: hashMd5(preparedSvg),
-                        svgFilename: outFilename,
-                    }
-
-                    // Verify against reference
-                    const result = await verifySvg(
-                        preparedSvg,
-                        svgRecord,
-                        referenceEntry,
-                        referencesDir,
-                        verbose
-                    )
-
-                    // If there was a difference, write the SVG
-                    if (result.kind === "difference") {
-                        if (verbose) logDifferencesToConsole(svgRecord, result)
-                        const pathFragments = path.parse(svgRecord.svgFilename)
-                        const outputPath = path.join(
-                            differencesDir,
-                            pathFragments.name + pathFragments.ext
-                        )
-                        await fs.writeFile(outputPath, preparedSvg)
-                    }
-
-                    return result
-                })(),
-                JOB_TIMEOUT_MS,
-                viewId
-            )
-
-            results.push(validationResult)
-        } catch (err) {
-            console.error(`Threw error for ${viewId}:`, err)
-            if (rmOnError) {
-                const outPath = path.join(
-                    differencesDir,
-                    referenceEntry.svgFilename
-                )
-                await fs.unlink(outPath).catch(() => {
-                    /* ignore ENOENT */
-                })
-            }
-            results.push(resultError(viewId, err as Error))
-        }
-    }
-
-    return results
-}
-
-export async function savePartialGrapherConfigs(
-    variableIds: number[],
-    outDir: string,
-    knex: KnexReadonlyTransaction
-): Promise<void> {
-    // Fetch partial grapher configs for each variable
-    type ChartRow = {
-        id: number
-        grapherConfigAdmin: string | null
-        grapherConfigETL: string | null
-    }
-    const partialGrapherConfigRows: ChartRow[] = await knexRaw(
-        knex,
-        `-- sql
-        SELECT
-            v.id,
-            cc_etl.patch AS grapherConfigETL,
-            cc_admin.patch AS grapherConfigAdmin
-        FROM variables v
-            LEFT JOIN chart_configs cc_admin ON cc_admin.id=v.grapherConfigIdAdmin
-            LEFT JOIN chart_configs cc_etl ON cc_etl.id=v.grapherConfigIdETL
-        WHERE v.id IN (?)`,
-        [variableIds]
-    )
-
-    const parseRow = (
-        row: ChartRow
-    ): { variableId: number; config: GrapherInterface } => {
-        const adminConfig: GrapherProgrammaticInterface = row.grapherConfigAdmin
-            ? parseChartConfig(row.grapherConfigAdmin)
-            : {}
-        const etlConfig: GrapherProgrammaticInterface = row.grapherConfigETL
-            ? parseChartConfig(row.grapherConfigETL)
-            : {}
-
-        const mergedConfig = mergeGrapherConfigs(etlConfig, adminConfig)
-
-        // Set the variable id as the config id
-        mergedConfig.id = row.id
-
-        // Explorers set their own dimensions, so we don't need to include them here
-        delete mergedConfig.dimensions
-
-        return { variableId: row.id, config: mergedConfig }
-    }
-
-    const partialGrapherConfigs = partialGrapherConfigRows
-        .filter((row) => row.grapherConfigAdmin || row.grapherConfigETL)
-        .map((row) => parseRow(row))
-
-    for (const { variableId, config } of partialGrapherConfigs) {
-        const configPath = path.join(outDir, `${variableId}.config.json`)
-        await fs.writeFile(configPath, JSON.stringify(config, null, 2))
-    }
 }
