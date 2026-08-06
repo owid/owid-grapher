@@ -1,11 +1,9 @@
 import {
+    EmailNotificationsContentType,
     EmailNotificationsFrequency,
     EmailNotificationsPreferencesTypeObject,
-    LATEST_FEED_TYPE_VALUES,
     OwidEnrichedGdocBlock,
 } from "@ourworldindata/types"
-
-export type LatestFeedType = (typeof LATEST_FEED_TYPE_VALUES)[number]
 
 export interface EmailNotificationsSubscriber {
     userId: number
@@ -13,7 +11,7 @@ export interface EmailNotificationsSubscriber {
     token: string
     // Topic tag names the user subscribed to. Empty means "all topics".
     topicTags: string[]
-    contentTypes: LatestFeedType[]
+    contentTypes: EmailNotificationsContentType[]
     frequency: EmailNotificationsFrequency
     lastSentAt: Date | null
 }
@@ -30,7 +28,7 @@ export interface D1SubscriberRow {
 }
 
 export interface NotificationEmailItem {
-    type: LatestFeedType
+    type: EmailNotificationsContentType
     slug: string
     title: string
     url: string
@@ -98,14 +96,17 @@ export function filterItemsForSubscriber(
     now: Date
 ): NotificationEmailItem[] {
     const windowStart = getWindowStart(subscriber, now)
-    return items.filter(
-        (item) =>
-            item.publishedAt > windowStart &&
-            item.publishedAt <= now &&
-            subscriber.contentTypes.includes(item.type) &&
-            (subscriber.topicTags.length === 0 ||
-                item.topicNames.some((name) =>
-                    subscriber.topicTags.includes(name)
-                ))
-    )
+    return items.filter((item) => {
+        if (item.publishedAt <= windowStart || item.publishedAt > now)
+            return false
+        if (!subscriber.contentTypes.includes(item.type)) return false
+        // Announcements are news about Our World in Data itself and are
+        // usually untagged, so they are not topic-filtered.
+        if (item.type === "announcement") return true
+        // An empty topicTags array means "all topics".
+        if (subscriber.topicTags.length === 0) return true
+        return item.topicNames.some((name) =>
+            subscriber.topicTags.includes(name)
+        )
+    })
 }
