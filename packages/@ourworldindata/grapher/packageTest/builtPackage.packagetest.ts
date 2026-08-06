@@ -104,6 +104,13 @@ describe("npm build (dist/grapher.js)", () => {
         expect(source).toMatch(/from\s*["']react-dom\/client["']/)
     })
 
+    it("starts with the @ts-self-types directive for JSR/Deno consumers", () => {
+        const source = fs.readFileSync(npmBuildPath, "utf8")
+        expect(source.startsWith('/* @ts-self-types="./grapher.d.ts" */')).toBe(
+            true
+        )
+    })
+
     it("mounts and disposes a chart via GrapherLoader.fromTable", async () => {
         stubImmediateIntersectionObserver()
         const { GrapherLoader, OwidTable } = await import(
@@ -201,5 +208,31 @@ describe("stylesheet (dist/grapher.css)", () => {
         const css = fs.readFileSync(cssPath, "utf8")
         expect(css.length).toBeGreaterThan(10_000)
         expect(css).toContain(".GrapherComponent")
+    })
+})
+
+describe("jsr.json", () => {
+    it("stays in sync with package.json and the build outputs", () => {
+        const jsr = JSON.parse(
+            fs.readFileSync(path.join(pkgDir, "jsr.json"), "utf8")
+        ) as {
+            name: string
+            version: string
+            exports: Record<string, string>
+            publish: { include: string[] }
+        }
+        const pkg = JSON.parse(
+            fs.readFileSync(path.join(pkgDir, "package.json"), "utf8")
+        ) as { name: string; version: string }
+
+        expect(jsr.name).toBe(pkg.name)
+        expect(jsr.version).toBe(pkg.version)
+        expect(jsr.exports["."]).toBe("./dist/grapher.js")
+        for (const file of jsr.publish.include) {
+            expect(
+                fs.existsSync(path.join(pkgDir, file)),
+                `jsr.json publish.include file ${file}`
+            ).toBe(true)
+        }
     })
 })
