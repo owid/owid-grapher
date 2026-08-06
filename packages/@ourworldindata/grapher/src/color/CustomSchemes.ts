@@ -356,19 +356,16 @@ export const OwidMapColors: Record<string, Color> = {
     LightCherry: "#CB7FA0",
     LightGreen: "#9DCA7B",
 
-    // Additional purples, needed by providers that split Africa into more than
-    // two subregions (FAO level 2, UN M49 level 3): five African subregions in
-    // one legend don't fit in the three purples above. Reachable only by name
-    // lookup — deliberately not part of the positional CategoricalMapPalette
-    // sets, so unpinned categorical maps are unaffected.
-    SoftMagenta: "#A35C86",
-    MutedPlum: "#6B3A62",
-    LightPlum: "#C49BC0",
-
     // Special
     Taupe: "#B9B2A6",
     Mustard: "#D9BC54",
     Tomato: "#D94C3F",
+
+    // Additional colors used only for provider maps; deliberately not part
+    // of the CategoricalMapPalette sets for the 'OWID Categorical Map'
+    SoftMagenta: "#A35C86",
+    MutedPlum: "#6B3A62",
+    LightPlum: "#C49BC0",
 } as const
 
 /**
@@ -502,10 +499,7 @@ export const ContinentColors = {
     "Asia (FAO)": OwidDistinctColors.Teal,
     "Oceania (FAO)": OwidDistinctColors.Turquoise,
 
-    // FAO subregions (level 2). Mirrors the UN M49 subregions below wherever the
-    // region name is shared, so a region reads the same across both providers.
-    // "Australia and New Zealand (FAO)" is a level-2 subregion too, but it is
-    // listed with the FAO SDG regions, which it also belongs to.
+    // FAO subregions (level 2)
     "Northern America (FAO)": OwidDistinctColors.Peach,
     "Caribbean (FAO)": OwidDistinctColors.Coral,
     "Central America (FAO)": OwidDistinctColors.DustyCoral,
@@ -584,8 +578,7 @@ export const ContinentColors = {
     "Western Asia (UN M49)": OwidDistinctColors.Camel,
     "Western Europe (UN M49)": OwidDistinctColors.Blue,
 
-    // UN M49 level-3 regions (the same seven splits FAO's level 2 uses, so they
-    // carry the same colors as their "(FAO)" counterparts above)
+    // UN M49 regions (level 3)
     "Caribbean (UN M49)": OwidDistinctColors.Coral,
     "Central America (UN M49)": OwidDistinctColors.DustyCoral,
     "South America (UN M49)": OwidDistinctColors.Maroon,
@@ -1048,10 +1041,7 @@ export const MapContinentColors = {
     "Asia (FAO)": OwidMapColors.MutedTeal,
     "Oceania (FAO)": OwidMapColors.SkyTurquoise,
 
-    // FAO subregions (level 2), mirroring the UN M49 subregions below wherever the
-    // region name is shared. Africa's five-way split needs two purples beyond the
-    // shared ones, and the Americas' four-way split takes the warm reds.
-    // "Australia and New Zealand (FAO)" is listed with the FAO SDG regions.
+    // FAO subregions (level 2)
     "Northern America (FAO)": OwidMapColors.SoftOrange,
     "Caribbean (FAO)": OwidMapColors.Mustard,
     "Central America (FAO)": OwidMapColors.MutedCherry,
@@ -1130,8 +1120,7 @@ export const MapContinentColors = {
     "Western Asia (UN M49)": OwidMapColors.Sand,
     "Western Europe (UN M49)": OwidMapColors.Lavendar,
 
-    // UN M49 level-3 regions (the same seven splits FAO's level 2 uses, so they
-    // carry the same colors as their "(FAO)" counterparts above)
+    // UN M49 regions (level 3)
     "Caribbean (UN M49)": OwidMapColors.Mustard,
     "Central America (UN M49)": OwidMapColors.MutedCherry,
     "South America (UN M49)": OwidMapColors.Tomato,
