@@ -14,7 +14,10 @@
                 "import": "./dist/grapher.js"
             },
             "./dist/grapher.css": "./dist/grapher.css",
-            "./cdn": "./dist/grapher.bundle.js"
+            "./cdn": {
+                "types": "./dist/grapher.d.ts",
+                "import": "./dist/grapher.bundle.js"
+            }
         }
     },
     "peerDependencies": {
@@ -72,6 +75,7 @@
         "versor": "^0.2.0"
     },
     "devDependencies": {
+        "@arethetypeswrong/cli": "^0.18.5",
         "@ourworldindata/components": "workspace:^",
         "@ourworldindata/core-table": "workspace:^",
         "@ourworldindata/types": "workspace:^",
