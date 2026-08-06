@@ -1,8 +1,12 @@
 # Plan: SVG tester redesign
 
-_Status: proposal, not yet implemented. Covers `devTools/svgTester/`, the
-`svg-tester.sh` step in `owid/ops`, the `owid-grapher-svgs` repo, and the
-`grapher` service in `owid/etl`'s owidbot._
+_Covers `devTools/svgTester/`, the `svg-tester.sh` step in `owid/ops`, the
+`owid-grapher-svgs` repo, and the `grapher` service in `owid/etl`'s owidbot._
+
+**Status: Phases 0 and 1 are done** (owid-grapher#6909/#6911/#6913/#6914,
+ops#594/#595, etl#6623). Phase 2 has not started. The Problem section below
+describes the state this work started from — points 2, 5 and 6 are fixed, the
+rest still stand.
 
 ## Problem
 
@@ -47,7 +51,10 @@ the link rots when the branch goes.
 `automated_staging_environment.yml:95` declares as `soft_fail`. So the identical
 underlying fact — N charts render differently — shows up red on an unlabelled PR
 and yellow on a labelled one, and a render _crash_ is indistinguishable from
-both. Three mechanisms (exit code, `soft_fail`, label) encode one bit.
+both — a crashed render on a labelled PR is soft-failed and reads as ordinary
+chart churn. The label policy itself is sound and stays; what has to change is
+that the exit code can't distinguish "charts differ" from "the tester broke", so
+the label ends up softening both.
 
 **6. One of the five suites is for a feature being retired.** Explorers are
 being dropped from the codebase, but the explorers suite is ~207 explorer
@@ -64,6 +71,16 @@ serially, in a single Buildkite step with `concurrency: 1` per branch. The
 outer step timeout is 60 min but the inner per-suite timeout is 7200 s — the
 outer kill wins, and _all_ results are lost, including suites that already
 finished.
+
+Note the cost here is smaller than it looks, and smaller than earlier drafts of
+this document assumed. Measured on a staging container: graphers verifies 4,460
+charts in **134 s** and grapher-views 1,058 in **97 s**, so a full sweep is a few
+minutes, not the tens of minutes guessed at. Running suites nobody asked for is
+mild waste, and reaching the 60-minute ceiling means something is badly wrong
+(a hung render, or the orphaned-process problem) rather than a suite legitimately
+taking that long. Selection and step-splitting are worth doing for **feedback
+quality** — independent status, independent timeouts, results that survive a
+sibling's failure — not for wall-clock.
 
 **8. It runs in the wrong place.** `verify-graphs.ts` needs no database (the
 readme is explicit). It runs on the per-PR staging container over SSH via
@@ -93,6 +110,11 @@ bumps the 10 GB cache ceiling, so ephemeral runners are the wrong call despite
 being architecturally cleaner. One long-lived `svgtester` agent with a warm
 checkout, taking jobs off a queue, is the right shape: no per-container clone,
 no coupling to staging lifecycle, no SSH-without-PTY.
+
+The measured runtimes make this decisive rather than marginal: graphers verifies
+in ~134 s. Spending several minutes fetching 4.4 GB to support a two-minute run
+inverts the cost of the job entirely — the data is the expensive part, so the
+data should stay put and the work should come to it.
 
 **References stay in git.** They are reviewed expected values; history and
 `git diff` on master are genuinely useful. Add a `refs.json` recording which
@@ -218,26 +240,35 @@ helper (`etl/apps/owidbot/chart_diff.py:39`, `create_check_run`). Conclusion is
 ergonomics we want, as a first-class PR element rather than a comment
 appendix, and it deletes the second owidbot run and its filesystem coupling.
 
-**Exit code means one thing:** 0 for differences, non-zero only for render
-errors, missing references, or timeout.
+**The exit code says what happened; the caller decides what it means.** Three
+fixed codes from the tester — 0 clean, 2 differences, 1 the tester malfunctioned —
+replacing a count that the shell masked to 8 bits.
 
-This is the substantive change behind "no `soft_fail`", and it's worth being
-precise about, because soft-failing labelled PRs is not the thing being objected
-to. Today, red/yellow/green encodes _both_ "did the tester work?" and "did
-anything change?", and the label picks which meaning applies. In the target
-state those are two separate signals: the **step status** answers "did the
-tester work?" (green unless something actually malfunctioned) and the **check
-run** answers "what changed?" (`"142 charts changed"`, with a link). Once
-differences exit 0, there is nothing left to soften — `soft_fail` isn't removed
-as a policy decision, it just has no failure to catch. And with one step per
-suite (P0 item 5), a `mdims` crash no longer colours the `graphers` result.
+An earlier draft of this document argued that differences should simply exit 0
+and never fail a build, on the grounds that they are information rather than
+failure. That was wrong, and the rule we settled on is better: **an unexpected
+difference is a surprise worth stopping at.** A PR carrying `staging-viz` is
+declaring that it changes charts; a PR without it is not, and 141 changed charts
+there deserve a red step rather than a line in a comment nobody re-reads.
 
-If we later decide unexpected diffs should still be loud on PRs that _don't_
-expect viz changes, the lever is the check-run conclusion (`neutral` vs
-`failure`), not an exit code plus a pipeline setting plus a label. Note this
-inverts today's label: you'd be marking the rare PR where diffs are a red flag,
-not the common one where they're expected. My guess is nobody would use it, so
-start without it.
+So the policy lives in `svg-tester.sh`, where the label already does:
+
+| branch               | outcome              | step                                 |
+| -------------------- | -------------------- | ------------------------------------ |
+| master               | differences          | 🟢 — committed as the new references |
+| PR + `staging-viz`   | differences          | 🟡 soft-fail — "charts changed here" |
+| PR without the label | differences          | 🔴                                   |
+| any                  | tester malfunctioned | 🔴                                   |
+
+What the tri-state buys is the last row. Previously every non-zero exit went
+through the label check, so a crashed render on a labelled PR came back
+soft-failed and looked like ordinary chart churn. Separating 2 from 1 means "we
+don't know whether anything changed" can never be softened by a label.
+
+`soft_fail` survives, then — but as presentation, not as policy. It turns exit 24
+into a visible "something changed here" marker, distinct from both a clean pass
+and a failure. The magic number now couples exactly two things, the script and
+the pipeline clause, and both sides say so.
 
 ### The viewer: no more generated HTML
 
@@ -387,9 +418,11 @@ where P0 maps to Phases 0–2, P1 to Phase 3, and P2 to Phase 4.
    `ops/templates/owid-site-staging/owid.cloud`) instead of githack. Roughly a
    one-line change; removes two of the three link failure points and puts the
    report on the host the reviewer is already looking at.
-5. **Split the Buildkite step into one step per suite.** Parallel, own timeout,
-   own status, own report. Fixes the 60 min vs 7200 s mismatch and the
-   all-or-nothing result loss. Biggest single latency win.
+5. **Split the Buildkite step into one step per suite.** Own timeout, own status,
+   own report. Fixes the 60 min vs 7200 s mismatch and the all-or-nothing result
+   loss. Note this is about feedback quality, not speed: suites take a couple of
+   minutes each (see Problem 7), so parallelising them saves little wall-clock.
+   What it buys is that a crashed `mdims` stops colouring the `graphers` result.
 
 ### P1 — weeks
 
@@ -452,18 +485,21 @@ CI script, the PR comment, and the svgs repo, leaving one render path instead of
 two. Execution detail, with the exact symbols and line ranges to delete, is in
 [svg-tester-phase-0-plan.md](./svg-tester-phase-0-plan.md).
 
-Order matters here: ops must go first. If G stops accepting `explorers` while
+**Done** — all four landed: ops#594, owid-grapher#6909, etl `e1b4ceb40`, and the
+svgs repo refreshed with `explorers/` removed.
+
+Order mattered here: ops had to go first. If G stops accepting `explorers` while
 ops `main` still calls `run_test_suite 'explorers'`, yargs rejects the choice,
 the suite exits non-zero, and (since `set +e` is active) `exit_code_explorers`
 turns the step red on every open PR. The reverse is harmless — ops simply stops
 invoking code that still exists.
 
-| # | Repo | Change | Depends on |
-| --- | --- | --- | --- |
-| 1 | O | Drop the explorers arm from `svg-tester.sh`: `run_test_suite 'explorers' '--manifest top.manifest.json'`, and the `create_report` / `commit_differences` / `log_differences` / `exit_code_explorers` lines. | — |
-| 2 | G | Remove the suite: `verifyExplorers` and its `match` arm, `renderAndVerifyExplorerViews`, the explorer branches in `dump-data.ts` and `utils.ts` (catalog-path resolution, CSV download, URL rewriting), `TEST_SUITES`, `worker.ts` export, the `svgtest.explorers` and `svgtest.full` Makefile targets, the explorers arm of `refresh.sh`, and the readme sections. Verify with `yarn typecheck` and a `make svgtest` run. | 1 |
-| 3 | E | Drop the explorers line from `apps/owidbot/grapher.py`. Safe any time after 1 — until then it reports `_skipped_`, which is correct. | 1 |
-| 4 | S | `rm -rf explorers/`, then run the due reference refresh (`make refresh.full` then `refresh.sh`) so the four remaining suites are regenerated with post-Phase-0 code. 3.1 GB off the working tree, so new `--depth=1` container clones fetch less; the pack is unchanged, since those blobs stay reachable from history. | 2 |
+| #   | Repo | Change                                                                                                                                                                                                                                                                                                                                                                                                                     | Depends on |
+| --- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 1   | O    | Drop the explorers arm from `svg-tester.sh`: `run_test_suite 'explorers' '--manifest top.manifest.json'`, and the `create_report` / `commit_differences` / `log_differences` / `exit_code_explorers` lines.                                                                                                                                                                                                                | —          |
+| 2   | G    | Remove the suite: `verifyExplorers` and its `match` arm, `renderAndVerifyExplorerViews`, the explorer branches in `dump-data.ts` and `utils.ts` (catalog-path resolution, CSV download, URL rewriting), `TEST_SUITES`, `worker.ts` export, the `svgtest.explorers` and `svgtest.full` Makefile targets, the explorers arm of `refresh.sh`, and the readme sections. Verify with `yarn typecheck` and a `make svgtest` run. | 1          |
+| 3   | E    | Drop the explorers line from `apps/owidbot/grapher.py`. Safe any time after 1 — until then it reports the suite as missing, which is correct.                                                                                                                                                                                                                                                                              | 1          |
+| 4   | S    | `rm -rf explorers/`, then run the due reference refresh (`make refresh.full` then `refresh.sh`) so the four remaining suites are regenerated with post-Phase-0 code. 3.1 GB off the working tree, so new `--depth=1` container clones fetch less; the pack is unchanged, since those blobs stay reachable from history.                                                                                                    | 2          |
 
 ### Phase 1 — the status contract
 
@@ -474,15 +510,23 @@ that owidbot reads directly, and separate "charts changed" from "the tester
 broke" in the exit code so red means red. Execution detail in
 [svg-tester-phase-1-plan.md](./svg-tester-phase-1-plan.md).
 
-| # | Repo | Change | Depends on |
-| --- | --- | --- | --- |
-| 5 | G | `verify-graphs.ts` writes `verify-results.json` alongside the existing stdout/log output. Purely additive — nothing consumes it yet, nothing breaks. | — |
-| 6 | E | owidbot reads `results.json` and the log-parsing path is deleted — no fallback. Containers older than the merge report "not run" until recreated; accepted. | 5 |
-| 7 | G | Differences exit 0; non-zero reserved for render errors, missing references, timeout. | 5 |
-| 8 | O | Delete exit 24 and the `soft_fail` clause; remove the `\|\| :` swallowing so mutating steps can actually fail. **Must follow 7** — dropping `soft_fail` while G still exits 24 turns every viz PR red. | 7 |
-| 9 | O | Remove the `\|\| true` around the owidbot call in `owidbot.sh` so owidbot failures stop being invisible. Independent and tiny. | — |
+| #     | Repo | Change                                                                                                                                                                                                                                                                                                                    | Depends on |
+| ----- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 5     | G    | `verify-graphs.ts` writes `verify-results.json` alongside the existing stdout/log output. Purely additive — nothing consumes it yet, nothing breaks.                                                                                                                                                                      | —          |
+| 6     | E    | owidbot reads `results.json` and the log-parsing path is deleted — no fallback. Containers older than the merge report "not run" until recreated; accepted.                                                                                                                                                               | 5          |
+| 7     | G    | Three fixed exit codes — 0 clean, 2 differences, 1 malfunction — replacing the count the shell masked to 8 bits. The caller decides what a difference means.                                                                                                                                                              | 5          |
+| 7b    | G    | Resync `references/results.csv`'s md5 column, which `commit_differences` leaves describing the previous references — 43% of the graphers suite was stale. Independent of the rest of the phase.                                                                                                                           | —          |
+| 8     | O    | Apply the policy: master green, `staging-viz` PRs soft-fail via exit 24, unlabelled PRs red, a broken tester always red. Remove the `\|\| :` swallowing so mutating steps can actually fail; call 7b's script from `commit_differences` so the md5 index stops drifting; drop the `verify-graphs.log` redirect.           | 7, 7b      |
+| ~~9~~ | O    | ~~Remove the `\|\| true` around the owidbot call in `owidbot.sh`.~~ **Dropped**: it was added deliberately (`b0f320a`) because the container-creation step invokes owidbot without a `soft_fail`, so a failure there would fail container creation. The two calls this phase cares about already soft-fail at step level. | —          |
 
 ### Phase 2 — kill the git-as-transport path
+
+**Next up.** Nothing here has started. Note two things Phase 1 leaves it:
+`svg-tester.sh` now has a single per-suite report/commit path with real error
+propagation, which is what item 13 has to preserve when it splits the step; and
+the `staging-viz` label now carries a policy (which differences are a surprise),
+not just suite selection, so item 11's path-based inference must not quietly
+become the input to that decision.
 
 **Why:** getting a report link currently requires a commit, a force-push to a
 second repo, and a CDN caching a blob from that commit — three things that must
@@ -491,12 +535,12 @@ report from the staging host the reviewer is already on, stop committing
 per-run artifacts, and split the monolithic CI step so one slow suite can no
 longer discard the results of the others.
 
-| # | Repo | Change | Depends on |
-| --- | --- | --- | --- |
-| 10 | O | Add `location /svgtester/ { alias /home/owid/owid-grapher-svgs/; }` to `owid.cloud`, and point `create_report`'s output at it. | — |
-| 11 | E | Switch the report link in `grapher.py` from `rawcdn.githack.com` to the staging URL. No fallback — a stale container just links to the old place until recreated. | 10 |
-| 12 | O | Stop `commit_differences` on branches (keep it on master, which legitimately absorbs new references), then pass `-r references` to `create-compare-view.ts` and delete the `originals/` copy. **Depends on 10**: `originals/` exists precisely because `commit_differences` overwrites `references/` after the report is generated, so the report must stop depending on the `compare/{branch}` URL first. | 10 |
-| 13 | O | Split the Buildkite step into one step per suite, each with its own timeout, status, and report. Reconcile the 60 min step timeout with the 7200 s inner one. **Do not call `reset_to_master` per step** — see below. Pipeline-only change: test via the bootstrap override above. | 8 |
+| #   | Repo | Change                                                                                                                                                                                                                                                                                                                                                                                                     | Depends on |
+| --- | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 10  | O    | Add `location /svgtester/ { alias /home/owid/owid-grapher-svgs/; }` to `owid.cloud`, and point `create_report`'s output at it.                                                                                                                                                                                                                                                                             | —          |
+| 11  | E    | Switch the report link in `grapher.py` from `rawcdn.githack.com` to the staging URL. No fallback — a stale container just links to the old place until recreated.                                                                                                                                                                                                                                          | 10         |
+| 12  | O    | Stop `commit_differences` on branches (keep it on master, which legitimately absorbs new references), then pass `-r references` to `create-compare-view.ts` and delete the `originals/` copy. **Depends on 10**: `originals/` exists precisely because `commit_differences` overwrites `references/` after the report is generated, so the report must stop depending on the `compare/{branch}` URL first. | 10         |
+| 13  | O    | Split the Buildkite step into one step per suite, each with its own timeout, status, and report. Reconcile the 60 min step timeout with the 7200 s inner one. **Do not call `reset_to_master` per step** — see below. Pipeline-only change: test via the bootstrap override above.                                                                                                                         | 8          |
 
 ⚠️ **The per-step reset is a trap.** `reset_to_master` runs
 `git clean -fdx` over the whole svgs checkout, which today is safe because one
@@ -521,13 +565,13 @@ to content-addressed, expiring R2 objects and surface each suite as its own
 GitHub check run — which is what finally makes the svgs repo prunable and the PR
 status honest. The largest phase, and where most of the work is.
 
-| # | Repo | Change | Depends on |
-| --- | --- | --- | --- |
-| 14 | G | Upload script following the `devTools/syncGraphersToR2` pattern: changed SVGs to `blobs/{md5}.svg` (skip the put if the object already exists), `results.json` to `runs/{branch\|master}/{grapherCommit}/{suite}/`. Includes the visible per-run cap (`truncated`, `totalDifferences`). | 5 |
-| 15 | O | Wire the upload into `svg-tester.sh`; add R2 credentials to `grapher-env.secret`. | 14 |
-| 16 | E | Post a check run per suite (`create_check_run`, already used by chart-diff) with `details_url` → the report. Conclusion never `failure` for differences. | 6, 15 |
-| 17 | O | Mirror `references/` to `svgtester/refs/{svgsCommit}/` in the refresh job, pruning all but the last two generations. Configure the lifecycle rules: `runs/` branch 30 days, `runs/master/` 1 year, `blobs/` 90 days. | 15 |
-| 18 | S | Stop pushing branches entirely; prune the ~900 stale branches; `git gc`. Reclaims most of the 5.11 GiB pack. | 15, 16 |
+| #   | Repo | Change                                                                                                                                                                                                                                                                                  | Depends on |
+| --- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 14  | G    | Upload script following the `devTools/syncGraphersToR2` pattern: changed SVGs to `blobs/{md5}.svg` (skip the put if the object already exists), `results.json` to `runs/{branch\|master}/{grapherCommit}/{suite}/`. Includes the visible per-run cap (`truncated`, `totalDifferences`). | 5          |
+| 15  | O    | Wire the upload into `svg-tester.sh`; add R2 credentials to `grapher-env.secret`.                                                                                                                                                                                                       | 14         |
+| 16  | E    | Post a check run per suite (`create_check_run`, already used by chart-diff) with `details_url` → the report. Conclusion never `failure` for differences.                                                                                                                                | 6, 15      |
+| 17  | O    | Mirror `references/` to `svgtester/refs/{svgsCommit}/` in the refresh job, pruning all but the last two generations. Configure the lifecycle rules: `runs/` branch 30 days, `runs/master/` 1 year, `blobs/` 90 days.                                                                    | 15         |
+| 18  | S    | Stop pushing branches entirely; prune the ~900 stale branches; `git gc`. Reclaims most of the 5.11 GiB pack.                                                                                                                                                                            | 15, 16     |
 
 Decision point at 16: owidbot already has GitHub App auth, so posting from E is cheapest. The "status is reported by the component that knows it" argument favours G posting its own check run — but that means new credentials on the tester machine. Start with E; revisit only if the indirection bites.
 
@@ -539,13 +583,13 @@ a durable R2 URL, with a Run button that makes suite selection a click instead o
 a label plus a push. Everything here is optional in the sense that Phases 0–3
 already leave the tester robust; Phase 4 is what makes it pleasant.
 
-| # | Repo | Change | Depends on |
-| --- | --- | --- | --- |
-| 19 | G | The viewer as a React component plus `results.json` types, served read-only at `/admin/svgtester`. Works locally against the on-disk svgs checkout, so `make svgtest` opens `localhost:3030/admin/svgtester`. | 5 |
-| 20 | G | Deploy the same bundle to R2 at a stable URL; repoint `details_url`; **delete `create-compare-view.ts`** and the generated-HTML path. | 19, 16 |
-| 21 | G | Run button plus API routes: lock file per suite, disabled while running, hard timeout, no git write access. | 19 |
-| 22 | G + O | Path-scoped default suites; retire the Buildkite block step and delete the `staging-viz` job from `.github/workflows/project-automations.yml`. | 21 |
-| 23 | O | Scheduled monthly reference refresh replacing manual `refresh.sh`. | 17 |
+| #   | Repo  | Change                                                                                                                                                                                                        | Depends on |
+| --- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 19  | G     | The viewer as a React component plus `results.json` types, served read-only at `/admin/svgtester`. Works locally against the on-disk svgs checkout, so `make svgtest` opens `localhost:3030/admin/svgtester`. | 5          |
+| 20  | G     | Deploy the same bundle to R2 at a stable URL; repoint `details_url`; **delete `create-compare-view.ts`** and the generated-HTML path.                                                                         | 19, 16     |
+| 21  | G     | Run button plus API routes: lock file per suite, disabled while running, hard timeout, no git write access.                                                                                                   | 19         |
+| 22  | G + O | Path-scoped default suites; retire the Buildkite block step and delete the `staging-viz` job from `.github/workflows/project-automations.yml`.                                                                | 21         |
+| 23  | O     | Scheduled monthly reference refresh replacing manual `refresh.sh`.                                                                                                                                            | 17         |
 
 ### Landing order at a glance
 
@@ -612,8 +656,10 @@ CLI-driven with no webhook receiver; not worth standing one up for this.
 
 ## Non-scope / accepted trade-offs
 
-- No approval step. Differences are information, not a gate; nothing needs to
-  be reviewed before merge, unlike chart-diff.
+- No approval step: nothing has to be signed off before merge, unlike chart-diff.
+  Differences do gate the build when they are unexpected (a PR without
+  `staging-viz`), but that is a prompt to look or to label, not a review workflow
+  with state to maintain.
 - SVG-string rendering stays. We accept that it covers no interaction — that's
   the BDD suite's job — in exchange for speed and text diffs.
 - References stay in git rather than moving wholesale to R2, accepting that the
@@ -629,6 +675,9 @@ CLI-driven with no webhook receiver; not worth standing one up for this.
 
 ## Recommendation
 
+_Written before any of this shipped; P0 is now done. Kept because the ordering
+argument still applies to what's left._
+
 Do P0 items 1, 2, and 5 first: they are small, they are where the
 "error-prone" feeling actually originates, and 5 alone noticeably shortens the
 feedback loop. Then the block step as a stopgap for suite selection, then R2
@@ -636,3 +685,16 @@ plus check runs, then the data-driven viewer. The `/admin/svgtester` page is the
 most attractive item on the list and the one most worth deferring: it is only
 cheap once `results.json` and the viewer component exist, and building it first
 means building the viewer twice.
+
+What Phase 1 actually taught, for whoever picks up Phase 2:
+
+- **The staging container is the cheap test rig.** Pushing a branch builds one,
+  and `staging-script` resolves an ops branch of the same name — so an ops change
+  can be exercised end to end before it merges. Every bug worth catching here was
+  caught that way, not by reading.
+- **Measure before designing around performance.** A full graphers sweep is
+  ~134 s, not the tens of minutes assumed; that killed the wall-clock argument for
+  splitting the step and left the real one (independent status per suite).
+- **Suspect derived state.** The md5 index had been wrong for 43% of the suite,
+  and the code comment describing the symptom had been read as a fact of life for
+  long enough that nobody checked.

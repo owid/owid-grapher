@@ -1,7 +1,10 @@
 # Phase 0: delete the explorers suite
 
-_Execution detail for Phase 0 of [svg-tester-redesign-plan.md](./svg-tester-redesign-plan.md).
-Short-lived: delete this file once the four PRs have landed._
+_Execution detail for Phase 0 of [svg-tester-redesign-plan.md](./svg-tester-redesign-plan.md)._
+
+**Done.** ops#594, owid-grapher#6909, etl `e1b4ceb40`, and the svgs repo refreshed
+with `explorers/` removed. Kept as a record of what was removed and why — delete
+it once nobody is asking where the explorers suite went.
 
 ## Why now
 
@@ -57,19 +60,19 @@ Repo: `owid-grapher`. Depends on PR 1 being merged to ops `main`.
 **`devTools/svgTester/utils.ts`** — delete these functions. All of them are
 reachable only from the two explorer render entry points; I checked each caller.
 
-| Lines | Symbol |
-| --- | --- |
-| 884–904 | `getExplorerType` |
-| 906–946 | `loadInputTableForConfig` (called only at `:1155`, `:1274`) |
-| 947–970 | `loadPartialGrapherConfigs` (called only at `:1141`, `:1259`) |
-| 971–989 | `patchExplorerTableLoader` |
-| 990–995 | `ExplorerViewManifest` |
-| 1001–1012 | `loadViewsManifest` (called only at `:1108`) |
-| 1101–1115 | `getChoicesToTest` |
-| 1116–1218 | `renderExplorerViewsToSVGsAndSave` |
-| 1219–1401 | `renderAndVerifyExplorerViews` |
-| 1402–end of fn | `savePartialGrapherConfigs` (called only from the `ExplorerType.Indicator` branch at `dump-data.ts:280`) |
-| 136–159 | `withTimeout` — sole call site was `:1328`, inside `renderAndVerifyExplorerViews`. It existed because one `pool.exec` handled a whole explorer (many views), so workerpool's job-level `.timeout()` couldn't distinguish a wedged view from a legitimately large explorer. The grapher suites are one render per job and stay bounded by `.timeout(JOB_TIMEOUT_MS)` at `verify-graphs.ts:128`, so nothing regresses. |
+| Lines          | Symbol                                                                                                                                                                                                                                                                                                                                                                                                               |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 884–904        | `getExplorerType`                                                                                                                                                                                                                                                                                                                                                                                                    |
+| 906–946        | `loadInputTableForConfig` (called only at `:1155`, `:1274`)                                                                                                                                                                                                                                                                                                                                                          |
+| 947–970        | `loadPartialGrapherConfigs` (called only at `:1141`, `:1259`)                                                                                                                                                                                                                                                                                                                                                        |
+| 971–989        | `patchExplorerTableLoader`                                                                                                                                                                                                                                                                                                                                                                                           |
+| 990–995        | `ExplorerViewManifest`                                                                                                                                                                                                                                                                                                                                                                                               |
+| 1001–1012      | `loadViewsManifest` (called only at `:1108`)                                                                                                                                                                                                                                                                                                                                                                         |
+| 1101–1115      | `getChoicesToTest`                                                                                                                                                                                                                                                                                                                                                                                                   |
+| 1116–1218      | `renderExplorerViewsToSVGsAndSave`                                                                                                                                                                                                                                                                                                                                                                                   |
+| 1219–1401      | `renderAndVerifyExplorerViews`                                                                                                                                                                                                                                                                                                                                                                                       |
+| 1402–end of fn | `savePartialGrapherConfigs` (called only from the `ExplorerType.Indicator` branch at `dump-data.ts:280`)                                                                                                                                                                                                                                                                                                             |
+| 136–159        | `withTimeout` — sole call site was `:1328`, inside `renderAndVerifyExplorerViews`. It existed because one `pool.exec` handled a whole explorer (many views), so workerpool's job-level `.timeout()` couldn't distinguish a wedged view from a legitimately large explorer. The grapher suites are one render per job and stay bounded by `.timeout(JOB_TIMEOUT_MS)` at `verify-graphs.ts:128`, so nothing regresses. |
 
 Keep, despite sitting in the middle of that range: `GrapherViewsManifest`
 (`:996`), `loadManifestFromPath` (`:1013`), `loadManifestViewIds` (`:1025`) —
@@ -146,7 +149,7 @@ Remove `"explorers"` from `svg_tester_dirs` (`:10`), the `svg_tester_explorers`
 assignment (`:18`), and the "Number of differences (explorers)" line in
 `svg_tester_block` (`:32`).
 
-Safe at any point after PR 1: until this merges, owidbot reports `_skipped_` for
+Safe at any point after PR 1: until this merges, owidbot reports "no results" for
 explorers, which is accurate. Remember that owidbot reaches a container only if
 the container was created after this merges (`init.sh:117` clones etl at master
 and the grapher pipeline never pulls it), so expect the old line to linger on
