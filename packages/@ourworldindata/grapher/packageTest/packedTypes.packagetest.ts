@@ -5,13 +5,13 @@
 //
 // The packed tarball is extracted into a throwaway consumer project whose
 // node_modules contains only the packed grapher package plus symlinks to the
-// handful of packages its bundled d.ts imports from (react, mobx). tsc then
-// typechecks a consumer file against it, with `skipLibCheck: true` like
-// virtually all real consumers (mobx's own declarations don't pass a full lib
-// check under any lib version). To still validate our bundled declaration
-// file itself, a third tsc run checks a copy of it renamed to `.ts` —
-// skipLibCheck only skips `.d.ts` files, so the copy is fully checked while
-// third-party declarations stay skipped.
+// react type packages — the only ones its bundled d.ts is allowed to import
+// from (enforced by a test below). tsc then typechecks a consumer file
+// against it, with `skipLibCheck: true` like virtually all real consumers.
+// To still validate our bundled declaration file itself, a third tsc run
+// checks a copy of it renamed to `.ts` — skipLibCheck only skips `.d.ts`
+// files, so the copy is fully checked while third-party declarations stay
+// skipped.
 //
 // Requires `yarn build` to have run first; execute via `yarn testPackage`.
 
@@ -20,6 +20,7 @@ import * as fs from "node:fs"
 import * as os from "node:os"
 import * as path from "node:path"
 import { fileURLToPath } from "node:url"
+import { init as initEsModuleLexer, parse } from "es-module-lexer"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
 const pkgDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
@@ -29,12 +30,14 @@ const tscBin = path.join(repoRoot, "node_modules/.bin/tsc")
 // Packages the bundled grapher.d.ts imports types from. The consumer
 // needs them resolvable, so we symlink them out of the monorepo node_modules
 // (csstype is required by @types/react).
-const TYPE_DEPENDENCIES = [
-    "@types/react",
-    "@types/react-dom",
-    "csstype",
-    "mobx",
-]
+const TYPE_DEPENDENCIES = ["@types/react", "@types/react-dom", "csstype"]
+
+// The only modules the bundled grapher.d.ts may import from: react and
+// react-dom (incl. subpaths like react/jsx-runtime), which consumers have
+// anyway since they're peer dependencies. Everything else must be inlined
+// into the bundle — any other external import forces consumers to install
+// that package just to typecheck.
+const ALLOWED_TYPE_IMPORTS = /^react(-dom)?(\/|$)/
 
 // Exercises the public API surface. The @ts-expect-error lines double as a
 // guard that the types are real: if the declarations failed to load and
@@ -243,6 +246,34 @@ describe("packed package", () => {
                 `packed file ${file}`
             ).toBe(true)
         }
+    })
+
+    it("only imports from react and react-dom in its declaration bundle", async () => {
+        const dtsPath = path.join(
+            consumerDir,
+            "node_modules/@ourworldindata/grapher/dist/grapher.d.ts"
+        )
+        const source = fs.readFileSync(dtsPath, "utf8")
+
+        // es-module-lexer picks up all import/export forms, including inline
+        // `import("...")` type references, and correctly ignores comments.
+        await initEsModuleLexer
+        const [imports] = parse(source, "grapher.d.ts")
+        const specifiers = new Set(
+            imports.map((imp) => imp.n).filter((name) => name !== undefined)
+        )
+        // `/// <reference types="..." />` directives aren't imports, but pull
+        // in type packages all the same.
+        for (const [, types] of source.matchAll(
+            /^\/\/\/\s*<reference\s+types\s*=\s*["']([^"']+)["']/gm
+        ))
+            specifiers.add(types)
+
+        expect(specifiers.size).toBeGreaterThan(0)
+        const disallowed = [...specifiers].filter(
+            (specifier) => !ALLOWED_TYPE_IMPORTS.test(specifier)
+        )
+        expect(disallowed).toEqual([])
     })
 
     it("typechecks for a bundler consumer (moduleResolution: bundler)", () => {

@@ -2452,6 +2452,7 @@ __metadata:
     clsx: "npm:^2.1.1"
     colorbrewer: "npm:^1.3.0"
     d3: "npm:^7.9.0"
+    es-module-lexer: "npm:^2.3.1"
     fparser: "npm:^3.1.0"
     http-server: "npm:^14.1.1"
     indefinite: "npm:^2.5.2"
@@ -8269,6 +8270,13 @@ __metadata:
   version: 2.2.0
   resolution: "es-module-lexer@npm:2.2.0"
   checksum: 10/076e1aacd032e218ffd99d4b58b4e875b09aba3aace089e32ed9dacc5995df914ec138571d9fde1280151f07f78e61336d9f43d241947a6ff7db26c49b9b3976
+  languageName: node
+  linkType: hard
+
+"es-module-lexer@npm:^2.3.1":
+  version: 2.3.1
+  resolution: "es-module-lexer@npm:2.3.1"
+  checksum: 10/15bd9f6d70ec7f046a308b7fbeb56a1fd4bde09e6a46df0015caee58bd5888fc114029754e922ca68577b761890ac95cc450683424209464530cfe54f69b8566
   languageName: node
   linkType: hard
 
