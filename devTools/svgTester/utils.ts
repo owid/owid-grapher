@@ -17,6 +17,7 @@ import {
 import fs, { stat } from "fs-extra"
 import path from "path"
 import stream from "stream"
+import { execFileSync } from "child_process"
 import {
     buildSvgOutFilename,
     initGrapherForSvgExport,
@@ -58,6 +59,8 @@ export const TEST_SUITE_DESCRIPTION =
 
 const CONFIG_FILENAME = "config.json"
 const RESULTS_FILENAME = "results.csv"
+
+export const VERIFY_RESULTS_FILENAME = "verify-results.json"
 
 export const finished = util.promisify(stream.finished) // (A)
 
@@ -135,6 +138,9 @@ export type SvgRecord = {
 
 export interface SvgDifference {
     viewId: string
+    queryStr?: string
+    chartType: GrapherTabName | undefined
+    svgFilename: string
     startIndex: number
     referenceSvgFragment: string
     newSvgFragment: string
@@ -222,6 +228,9 @@ export async function verifySvg(
     logIfVerbose(verbose, `${newSvgRecord.viewId} had differences`)
     return resultDifference({
         viewId: newSvgRecord.viewId,
+        queryStr: newSvgRecord.resolvedQueryStr ?? newSvgRecord.queryStr,
+        chartType: newSvgRecord.chartType,
+        svgFilename: newSvgRecord.svgFilename,
         startIndex: firstDiffIndex,
         referenceSvgFragment: preparedReferenceSvg.substring(
             firstDiffIndex - 20,
@@ -626,7 +635,7 @@ export async function loadReferenceSvg(
         referenceSvgRecord.svgFilename
     )
     if (!fs.existsSync(referenceFilename))
-        throw `Input directory does not exist ${referenceFilename}`
+        throw `Reference SVG does not exist ${referenceFilename}`
     const svg = await fs.readFile(referenceFilename, "utf-8")
     return svg
 }
@@ -784,6 +793,185 @@ export async function renderAndVerifySvg({
             })
         }
         return Promise.resolve(resultError(referenceEntry.viewId, err as Error))
+    }
+}
+
+// "running" is written before the first render and overwritten when the run
+// finishes. A file left in that state means the process died before it could
+// report - killed by the `timeout` wrapper or Buildkite cancelling the step, say -
+// which is otherwise indistinguishable from a suite that was never selected.
+export type VerifyRunStatus = "running" | "ok" | "differences" | "error"
+
+export interface VerifyDifferenceEntry {
+    viewId: string
+    queryStr?: string
+    chartType?: string
+    svgFilename: string
+}
+
+export interface VerifyErrorEntry {
+    viewId: string
+    kind: "timeout" | "render"
+    message: string
+}
+
+export interface VerifyRunSummary {
+    suite: TestSuite
+    status: VerifyRunStatus
+    startedAt: string
+    durationMs: number
+    grapherCommit: string | null
+    svgsCommit: string | null
+    counts: {
+        total: number
+        ok: number
+        differences: number
+        errors: number
+    }
+    differences: VerifyDifferenceEntry[]
+    errors: VerifyErrorEntry[]
+}
+
+// A `.timeout()` breach and a render crash both arrive through the same `.catch`
+// in verify-graphs.ts, so the only thing distinguishing them is the error name
+// workerpool gives a timeout. Errors crossing a worker boundary are structured
+// clones rather than real Error instances, hence the defensive access.
+function classifyVerifyError(error: Error): VerifyErrorEntry["kind"] {
+    return error?.name === "TimeoutError" ? "timeout" : "render"
+}
+
+export function summariseVerifyResults(
+    validationResults: VerifyResult[],
+    options: {
+        suite: TestSuite
+        startedAt: Date
+        durationMs: number
+    }
+): VerifyRunSummary {
+    const differences = validationResults
+        .filter((result) => result.kind === "difference")
+        .map(({ difference }) => ({
+            viewId: difference.viewId,
+            // The default view has an empty query string; omit rather than
+            // recording `""`.
+            queryStr: difference.queryStr || undefined,
+            chartType: difference.chartType,
+            svgFilename: difference.svgFilename,
+        }))
+
+    const errors = validationResults
+        .filter((result) => result.kind === "error")
+        .map((result) => ({
+            viewId: result.viewId,
+            kind: classifyVerifyError(result.error),
+            // The stack stays on stderr for the CI log; this file is a status
+            // report, not a crash dump.
+            message: String(result.error?.message ?? result.error),
+        }))
+
+    // An errored suite is reported as errored even if it also found differences:
+    // we can't claim to know what changed when part of the run didn't complete.
+    const status: VerifyRunStatus = errors.length
+        ? "error"
+        : differences.length
+          ? "differences"
+          : "ok"
+
+    return {
+        suite: options.suite,
+        status,
+        startedAt: options.startedAt.toISOString(),
+        durationMs: options.durationMs,
+        grapherCommit: resolveCommit(),
+        svgsCommit: resolveCommit(SVG_REPO_PATH),
+        counts: {
+            total: validationResults.length,
+            ok: validationResults.length - differences.length - errors.length,
+            differences: differences.length,
+            errors: errors.length,
+        },
+        differences,
+        errors,
+    }
+}
+
+// Written next to verify-graphs.log so both live with the suite they describe.
+// Nothing commits it: create_report/commit_differences in svg-tester.sh add
+// explicit paths only.
+export async function writeVerifyResults(
+    testSuiteDir: string,
+    summary: VerifyRunSummary
+): Promise<void> {
+    const outPath = path.join(testSuiteDir, VERIFY_RESULTS_FILENAME)
+    await fs.writeFile(outPath, JSON.stringify(summary, null, 2) + "\n")
+}
+
+// Written before the first render so that the file's existence proves the suite
+// started. If the process is killed before it can overwrite this - the `timeout`
+// wrapper in svg-tester.sh, a cancelled Buildkite step, kill_stale_runs - the
+// leftover "running" status is what tells the reader it died mid-run. Deliberately
+// not a signal handler: `timeout` signals `yarn`, not the node process underneath
+// it, and nothing can catch the SIGKILL that follows --kill-after anyway.
+// The counts are zeroed placeholders and mean nothing until the run finishes.
+export async function writeVerifyRunStarted(
+    testSuiteDir: string,
+    suite: TestSuite,
+    startedAt: Date
+): Promise<void> {
+    await writeVerifyResults(testSuiteDir, {
+        suite,
+        status: "running",
+        startedAt: startedAt.toISOString(),
+        durationMs: 0,
+        grapherCommit: resolveCommit(),
+        svgsCommit: resolveCommit(SVG_REPO_PATH),
+        counts: { total: 0, ok: 0, differences: 0, errors: 0 },
+        differences: [],
+        errors: [],
+    })
+}
+
+// For failures that happen before or around the run itself (missing directories,
+// an unreadable reference CSV, the job-count sanity check) rather than for a
+// single chart. Without this, such a run leaves no results file at all and is
+// indistinguishable from a suite that was never started.
+export async function writeVerifyRunFailure(
+    testSuiteDir: string,
+    suite: TestSuite,
+    error: unknown
+): Promise<void> {
+    const startedAt = new Date()
+    await writeVerifyResults(testSuiteDir, {
+        suite,
+        status: "error",
+        startedAt: startedAt.toISOString(),
+        durationMs: 0,
+        grapherCommit: resolveCommit(),
+        svgsCommit: resolveCommit(SVG_REPO_PATH),
+        counts: { total: 0, ok: 0, differences: 0, errors: 1 },
+        differences: [],
+        errors: [
+            {
+                viewId: "",
+                kind: "render",
+                message: String(error instanceof Error ? error.message : error),
+            },
+        ],
+    })
+}
+
+// Best-effort: in CI the commit is handed to us, locally we ask git, and if
+// neither works the field is null rather than the run failing over provenance.
+function resolveCommit(cwd?: string): string | null {
+    if (!cwd && process.env.BUILDKITE_COMMIT)
+        return process.env.BUILDKITE_COMMIT
+    try {
+        return execFileSync("git", ["rev-parse", "HEAD"], {
+            cwd,
+            encoding: "utf-8",
+        }).trim()
+    } catch {
+        return null
     }
 }
 

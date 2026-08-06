@@ -406,7 +406,7 @@ unittest: node_modules
 
 svgtest.reset: ../owid-grapher-svgs
 	@echo '==> Resetting owid-grapher-svgs repo to a clean state'
-	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master && git clean -fd
+	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master && git clean -fdx
 
 svgtest: svgtest.reset node_modules
 	@echo '==> Generating SVG test report for graphers'
