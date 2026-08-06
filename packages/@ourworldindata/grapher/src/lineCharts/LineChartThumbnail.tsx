@@ -745,7 +745,7 @@ export class LineChartThumbnail
                     <VerticalAxisZeroLine
                         axis={this.dualAxis.verticalAxis}
                         bounds={this.dualAxis.innerBounds}
-                        strokeWidth={0.5}
+                        strokeWidth={1}
                     />
                 ) : (
                     // The domain line is the baseline at the bottom of the plot.
@@ -754,7 +754,7 @@ export class LineChartThumbnail
                     <VerticalAxisDomainLine
                         verticalAxis={this.dualAxis.verticalAxis}
                         bounds={this.dualAxis.innerBounds}
-                        strokeWidth={0.5}
+                        strokeWidth={1}
                     />
                 )}
                 {!this.dualAxis.horizontalAxis.hideAxis && (
