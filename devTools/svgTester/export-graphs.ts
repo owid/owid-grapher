@@ -8,17 +8,22 @@ import { hideBin } from "yargs/helpers"
 import path from "path"
 import workerpool from "workerpool"
 
+import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as utils from "./utils.js"
 import { MAX_WORKERS } from "./utils.js"
-import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
+import {
+    ALL_GRAPHER_CHART_TYPES,
+    SVG_TESTER_SUITES,
+    type SvgTesterSuite,
+} from "@ourworldindata/types"
 
 async function exportGraphers(args: ReturnType<typeof parseArguments>) {
     try {
         // Test suite
-        const testSuite = args.testSuite as utils.TestSuite
+        const testSuite = args.testSuite as SvgTesterSuite
 
         // Input and output directories
-        const testSuiteDir = path.join(utils.SVG_REPO_PATH, testSuite)
+        const testSuiteDir = path.join(SVG_TESTER_REPO_PATH, testSuite)
         const outDir = path.join(testSuiteDir, "references")
 
         // Charts to process
@@ -146,7 +151,7 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
 }
 
 async function main(args: ReturnType<typeof parseArguments>) {
-    const testSuite = args.testSuite as utils.TestSuite
+    const testSuite = args.testSuite as SvgTesterSuite
 
     await match(testSuite)
         .with("graphers", () => exportGraphers(args))
@@ -164,7 +169,7 @@ function parseArguments() {
             type: "string",
             description: utils.TEST_SUITE_DESCRIPTION,
             default: "graphers",
-            choices: utils.TEST_SUITES,
+            choices: SVG_TESTER_SUITES,
         })
         .parserConfiguration({ "camel-case-expansion": true })
         .options({

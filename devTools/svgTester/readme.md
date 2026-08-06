@@ -109,9 +109,9 @@ This command:
 
 1. Resets `../owid-grapher-svgs` to `origin/master`
 2. Runs `verify-graphs.ts` against the reference SVGs
-3. If there are differences, generates an HTML comparison report using `create-compare-view.ts`
+3. Lists any differences it found; inspect them at `/admin/svgtester/graphers` in the admin
 
-### Generate full test report with all test suites
+### Run all test suites
 
 ```bash
 make svgtest.full
@@ -121,7 +121,7 @@ This command:
 
 1. Resets `../owid-grapher-svgs` to `origin/master`
 2. Runs `export-graphs.ts` for all test suites (graphers, grapher-views, mdims, thumbnails)
-3. Generates HTML comparison reports for each test suite
+3. Lists any differences it found; inspect them at `/admin/svgtester/<suite>` in the admin
 
 ## Refreshing Reference Data
 
