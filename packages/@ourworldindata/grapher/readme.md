@@ -211,7 +211,7 @@ yarn build
 
 Two tools help verify the built package (both expect `yarn build` to have run first):
 
-- `yarn testPackage` runs the smoke tests in `packageTest/`: they import both JS builds, mount a chart from the built code into a DOM, and pack the package (`yarn pack`, which applies `publishConfig`) to typecheck a simulated external consumer against the bundled type declarations — with `moduleResolution: bundler` and `nodenext`, plus a full check of the declaration bundle itself. These tests are intentionally not part of the repo-wide `yarn test` since they depend on `dist/`.
+- `yarn testPackage` runs the smoke tests in `packageTest/`: they import both JS builds, mount a chart from the built code into a DOM, and pack the package (`yarn pack`, which applies `publishConfig`) to typecheck a simulated external consumer against the bundled type declarations — with `moduleResolution: bundler` and `nodenext`, plus a full check of the declaration bundle itself and an [`@arethetypeswrong/cli`](https://github.com/arethetypeswrong/arethetypeswrong.github.io) pass over the tarball's types/exports wiring. These tests are intentionally not part of the repo-wide `yarn test` since they depend on `dist/`.
 - `yarn startDemoServer` serves this directory on http://localhost:8433 via `http-server` and opens `/demo.html`, which shows the three `GrapherLoader` variants (`/core-econ-demo.html` is a styled embedding example). It's a plain static server, so the demo pages load `dist/` exactly like a CDN consumer would.
 
 ## How Grapher works

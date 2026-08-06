@@ -100,6 +100,7 @@ console.log(Grapher.name)
 
 let tmpDir: string
 let consumerDir: string
+let tarballPath: string
 
 function writeTsconfig(
     fileName: string,
@@ -148,8 +149,8 @@ beforeAll(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "grapher-package-test-"))
 
     // Pack the package exactly as `yarn npm publish` would.
-    const tarball = path.join(tmpDir, "grapher.tgz")
-    const packResult = spawnSync("yarn", ["pack", "--out", tarball], {
+    tarballPath = path.join(tmpDir, "grapher.tgz")
+    const packResult = spawnSync("yarn", ["pack", "--out", tarballPath], {
         cwd: pkgDir,
         encoding: "utf8",
     })
@@ -157,7 +158,7 @@ beforeAll(() => {
         throw new Error(
             `yarn pack failed:\n${packResult.stdout}${packResult.stderr}`
         )
-    const tarResult = spawnSync("tar", ["-xzf", tarball, "-C", tmpDir], {
+    const tarResult = spawnSync("tar", ["-xzf", tarballPath, "-C", tmpDir], {
         encoding: "utf8",
     })
     if (tarResult.status !== 0)
@@ -191,10 +192,7 @@ beforeAll(() => {
     // Copy of the bundled declaration file, renamed to .ts so tsc fully
     // checks it (skipLibCheck skips .d.ts files).
     fs.copyFileSync(
-        path.join(
-            nodeModules,
-            "@ourworldindata/grapher/dist/grapher.d.ts"
-        ),
+        path.join(nodeModules, "@ourworldindata/grapher/dist/grapher.d.ts"),
         path.join(consumerDir, "declarationCheck.ts")
     )
     writeTsconfig("tsconfig.bundler.json", {
@@ -257,5 +255,28 @@ describe("packed package", () => {
 
     it("ships an internally valid declaration bundle", () => {
         runTsc("tsconfig.dtscheck.json")
+    })
+
+    it("passes @arethetypeswrong/cli's resolution checks", () => {
+        const result = spawnSync(
+            path.join(repoRoot, "node_modules/.bin/attw"),
+            [
+                // The package is ESM-only, so node10 resolution and require()
+                // from CJS are out of scope.
+                "--profile",
+                "esm-only",
+                // The stylesheet export isn't a resolvable module; consumers'
+                // bundlers handle it.
+                "--exclude-entrypoints",
+                "./dist/grapher.css",
+                "--",
+                tarballPath,
+            ],
+            { encoding: "utf8" }
+        )
+        expect(
+            result.status,
+            `attw failed:\n${result.stdout}${result.stderr}`
+        ).toBe(0)
     })
 })

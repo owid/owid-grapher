@@ -203,3 +203,19 @@ describe("stylesheet (dist/grapher.css)", () => {
         expect(css).toContain(".GrapherComponent")
     })
 })
+
+describe("type declarations (dist/grapher.d.ts)", () => {
+    it("does not augment the global scope or third-party modules", () => {
+        // A `declare global` block (or a top-level module augmentation like
+        // `declare module "react"`) anywhere in our source ends up in the
+        // bundled declarations, where it silently rewrites those types in
+        // every consumer's project — e.g. a Window augmentation would make
+        // `window.admin` an `any` for everyone who imports this package.
+        // Keep such augmentations out of the published type surface; type
+        // globals locally at the use site instead (see getWindowAdmin in
+        // GrapherState.tsx).
+        const dts = fs.readFileSync(dtsPath, "utf8")
+        expect(dts).not.toMatch(/^\s*declare\s+global\b/m)
+        expect(dts).not.toMatch(/^\s*declare\s+module\s+["']/m)
+    })
+})
