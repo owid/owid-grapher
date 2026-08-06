@@ -6,6 +6,11 @@ import {
     GrapherVariant,
     GRAPHER_TAB_NAMES,
     GrapherChartOrMapType,
+    type SvgTesterSuite,
+    SVG_TESTER_VERIFY_RESULTS_FILENAME,
+    type SvgTesterVerifyRunStatus,
+    type SvgTesterVerifyErrorEntry,
+    type SvgTesterVerifyRunSummary,
 } from "@ourworldindata/types"
 import {
     Bounds,
@@ -41,26 +46,15 @@ import {
 import { format, type FormatConfig } from "oxfmt"
 import oxfmtConfig from "../../.oxfmtrc.json"
 import { hashMd5 } from "../../serverUtils/hash.js"
+import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as R from "remeda"
 import ReactDOMServer from "react-dom/server"
-
-export const SVG_REPO_PATH = "../owid-grapher-svgs"
-
-export const TEST_SUITES = [
-    "graphers",
-    "grapher-views",
-    "mdims",
-    "thumbnails",
-] as const
-export type TestSuite = (typeof TEST_SUITES)[number]
 
 export const TEST_SUITE_DESCRIPTION =
     "Test suite to run: 'graphers' for default Grapher views, 'grapher-views' for all views of a subset of Graphers. 'mdims' for all multi-dim views. 'thumbnails' for thumbnail versions (300x160) of all published graphers."
 
 const CONFIG_FILENAME = "config.json"
 const RESULTS_FILENAME = "results.csv"
-
-export const VERIFY_RESULTS_FILENAME = "verify-results.json"
 
 export const finished = util.promisify(stream.finished) // (A)
 
@@ -141,6 +135,7 @@ export interface SvgDifference {
     queryStr?: string
     chartType: GrapherTabName | undefined
     svgFilename: string
+    changedRatio: number
     startIndex: number
     referenceSvgFragment: string
     newSvgFragment: string
@@ -161,6 +156,31 @@ export function logIfVerbose(verbose: boolean, message: string, param?: any) {
     if (verbose)
         if (param) console.log(message, param)
         else console.log(message)
+}
+
+/**
+ * Share of lines on one side with no counterpart on the other, 0–1.
+ *
+ * O(n) and about a millisecond on a typical chart, so it is affordable for
+ * every difference in a run. A real edit distance is not: on the largest
+ * reference (16k lines), diffing two renderings that differ everywhere takes
+ * over 15 seconds.
+ */
+export function estimateChangedRatio(before: string, after: string): number {
+    const beforeLines = before.split("\n")
+    const afterLines = after.split("\n")
+    const counts = new Map<string, number>()
+    for (const line of beforeLines)
+        counts.set(line, (counts.get(line) ?? 0) + 1)
+    let shared = 0
+    for (const line of afterLines) {
+        const remaining = counts.get(line)
+        if (remaining) {
+            counts.set(line, remaining - 1)
+            shared++
+        }
+    }
+    return 1 - shared / Math.max(beforeLines.length, afterLines.length)
 }
 
 function findFirstDiffIndex(a: string, b: string): number {
@@ -229,6 +249,10 @@ export async function verifySvg(
         queryStr: newSvgRecord.resolvedQueryStr ?? newSvgRecord.queryStr,
         chartType: newSvgRecord.chartType,
         svgFilename: newSvgRecord.svgFilename,
+        changedRatio: estimateChangedRatio(
+            preparedReferenceSvg,
+            preparedNewSvg
+        ),
         startIndex: firstDiffIndex,
         referenceSvgFragment: preparedReferenceSvg.substring(
             firstDiffIndex - 20,
@@ -794,47 +818,11 @@ export async function renderAndVerifySvg({
     }
 }
 
-// "running" is written before the first render and overwritten when the run
-// finishes. A file left in that state means the process died before it could
-// report - killed by the `timeout` wrapper or Buildkite cancelling the step, say -
-// which is otherwise indistinguishable from a suite that was never selected.
-export type VerifyRunStatus = "running" | "ok" | "differences" | "error"
-
-export interface VerifyDifferenceEntry {
-    viewId: string
-    queryStr?: string
-    chartType?: string
-    svgFilename: string
-}
-
-export interface VerifyErrorEntry {
-    viewId: string
-    kind: "timeout" | "render"
-    message: string
-}
-
-export interface VerifyRunSummary {
-    suite: TestSuite
-    status: VerifyRunStatus
-    startedAt: string
-    durationMs: number
-    grapherCommit: string | null
-    svgsCommit: string | null
-    counts: {
-        total: number
-        ok: number
-        differences: number
-        errors: number
-    }
-    differences: VerifyDifferenceEntry[]
-    errors: VerifyErrorEntry[]
-}
-
 // A `.timeout()` breach and a render crash both arrive through the same `.catch`
 // in verify-graphs.ts, so the only thing distinguishing them is the error name
 // workerpool gives a timeout. Errors crossing a worker boundary are structured
 // clones rather than real Error instances, hence the defensive access.
-function classifyVerifyError(error: Error): VerifyErrorEntry["kind"] {
+function classifyVerifyError(error: Error): SvgTesterVerifyErrorEntry["kind"] {
     return error?.name === "TimeoutError" ? "timeout" : "render"
 }
 
@@ -848,11 +836,11 @@ function verifyErrorMessage(error: Error): string {
 export function summariseVerifyResults(
     validationResults: VerifyResult[],
     options: {
-        suite: TestSuite
+        suite: SvgTesterSuite
         startedAt: Date
         durationMs: number
     }
-): VerifyRunSummary {
+): SvgTesterVerifyRunSummary {
     const differences = validationResults
         .filter((result) => result.kind === "difference")
         .map(({ difference }) => ({
@@ -862,6 +850,7 @@ export function summariseVerifyResults(
             queryStr: difference.queryStr || undefined,
             chartType: difference.chartType,
             svgFilename: difference.svgFilename,
+            changedRatio: difference.changedRatio,
         }))
 
     const errors = validationResults
@@ -876,7 +865,7 @@ export function summariseVerifyResults(
 
     // An errored suite is reported as errored even if it also found differences:
     // we can't claim to know what changed when part of the run didn't complete.
-    const status: VerifyRunStatus = errors.length
+    const status: SvgTesterVerifyRunStatus = errors.length
         ? "error"
         : differences.length
           ? "differences"
@@ -888,7 +877,7 @@ export function summariseVerifyResults(
         startedAt: options.startedAt.toISOString(),
         durationMs: options.durationMs,
         grapherCommit: resolveCommit(),
-        svgsCommit: resolveCommit(SVG_REPO_PATH),
+        svgsCommit: resolveCommit(SVG_TESTER_REPO_PATH),
         counts: {
             total: validationResults.length,
             ok: validationResults.length - differences.length - errors.length,
@@ -905,9 +894,9 @@ export function summariseVerifyResults(
 // explicit paths only.
 export async function writeVerifyResults(
     testSuiteDir: string,
-    summary: VerifyRunSummary
+    summary: SvgTesterVerifyRunSummary
 ): Promise<void> {
-    const outPath = path.join(testSuiteDir, VERIFY_RESULTS_FILENAME)
+    const outPath = path.join(testSuiteDir, SVG_TESTER_VERIFY_RESULTS_FILENAME)
     await fs.writeFile(outPath, JSON.stringify(summary, null, 2) + "\n")
 }
 
@@ -920,7 +909,7 @@ export async function writeVerifyResults(
 // The counts are zeroed placeholders and mean nothing until the run finishes.
 export async function writeVerifyRunStarted(
     testSuiteDir: string,
-    suite: TestSuite,
+    suite: SvgTesterSuite,
     startedAt: Date
 ): Promise<void> {
     await writeVerifyResults(testSuiteDir, {
@@ -929,7 +918,7 @@ export async function writeVerifyRunStarted(
         startedAt: startedAt.toISOString(),
         durationMs: 0,
         grapherCommit: resolveCommit(),
-        svgsCommit: resolveCommit(SVG_REPO_PATH),
+        svgsCommit: resolveCommit(SVG_TESTER_REPO_PATH),
         counts: { total: 0, ok: 0, differences: 0, errors: 0 },
         differences: [],
         errors: [],
@@ -942,7 +931,7 @@ export async function writeVerifyRunStarted(
 // indistinguishable from a suite that was never started.
 export async function writeVerifyRunFailure(
     testSuiteDir: string,
-    suite: TestSuite,
+    suite: SvgTesterSuite,
     error: unknown
 ): Promise<void> {
     const startedAt = new Date()
@@ -952,7 +941,7 @@ export async function writeVerifyRunFailure(
         startedAt: startedAt.toISOString(),
         durationMs: 0,
         grapherCommit: resolveCommit(),
-        svgsCommit: resolveCommit(SVG_REPO_PATH),
+        svgsCommit: resolveCommit(SVG_TESTER_REPO_PATH),
         counts: { total: 0, ok: 0, differences: 0, errors: 1 },
         differences: [],
         errors: [
@@ -985,7 +974,7 @@ const PROGRESS_INTERVAL_MS = 30 * 1000
 
 /** Periodic progress while a suite runs. */
 export function startVerifyProgress(
-    suite: string, // TODO: Use type
+    suite: SvgTesterSuite,
     total: number,
     pool: { stats: () => { busyWorkers: number } }
 ): { recordResult: (result: VerifyResult) => void; stop: () => void } {
@@ -1017,7 +1006,7 @@ export function startVerifyProgress(
 export const EXIT_CODE_DIFFERENCES = 2
 export const EXIT_CODE_ERROR = 1
 
-export function verifyExitCode(summary: VerifyRunSummary): number {
+export function verifyExitCode(summary: SvgTesterVerifyRunSummary): number {
     if (summary.counts.errors > 0) return EXIT_CODE_ERROR
     if (summary.counts.differences > 0) return EXIT_CODE_DIFFERENCES
     return 0
@@ -1084,7 +1073,7 @@ export async function loadManifestFromPath(
 // Load manifest with appropriate defaults for test suites that require it
 // Returns the manifest view IDs and the data directory to use
 export async function loadManifestViewIds(
-    testSuite: TestSuite,
+    testSuite: SvgTesterSuite,
     options: {
         targetViewIds?: string[]
         manifestName?: string
@@ -1093,7 +1082,7 @@ export async function loadManifestViewIds(
 ): Promise<{ viewIds: string[] | null; dataDir: string }> {
     const { verbose = false } = options
 
-    const testSuiteDir = path.join(SVG_REPO_PATH, testSuite)
+    const testSuiteDir = path.join(SVG_TESTER_REPO_PATH, testSuite)
     const defaultDataDir = path.join(testSuiteDir, "data")
 
     // For grapher-views and thumbnails, load the manifest to resolve dataDir

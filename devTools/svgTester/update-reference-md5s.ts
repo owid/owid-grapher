@@ -5,6 +5,8 @@ import { hideBin } from "yargs/helpers"
 import fs from "fs-extra"
 import path from "path"
 
+import { SVG_TESTER_SUITES, type SvgTesterSuite } from "@ourworldindata/types"
+import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as utils from "./utils.js"
 import { hashMd5 } from "../../serverUtils/hash.js"
 
@@ -13,9 +15,9 @@ import { hashMd5 } from "../../serverUtils/hash.js"
  * .svg files next to it.
  */
 async function main(args: ReturnType<typeof parseArguments>): Promise<void> {
-    const testSuite = args.testSuite as utils.TestSuite
+    const testSuite = args.testSuite as SvgTesterSuite
     const referencesDir = path.join(
-        utils.SVG_REPO_PATH,
+        SVG_TESTER_REPO_PATH,
         testSuite,
         "references"
     )
@@ -78,7 +80,7 @@ function parseArguments() {
             type: "string",
             description: utils.TEST_SUITE_DESCRIPTION,
             default: "graphers",
-            choices: utils.TEST_SUITES,
+            choices: SVG_TESTER_SUITES,
         })
         .options({
             verbose: {

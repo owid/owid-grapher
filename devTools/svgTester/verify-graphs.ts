@@ -8,18 +8,23 @@ import workerpool from "workerpool"
 import * as _ from "lodash-es"
 import { match } from "ts-pattern"
 
+import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as utils from "./utils.js"
 import { JOB_TIMEOUT_MS, MAX_WORKERS } from "./utils.js"
 import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
-import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
+import {
+    ALL_GRAPHER_CHART_TYPES,
+    SVG_TESTER_SUITES,
+    type SvgTesterSuite,
+} from "@ourworldindata/types"
 
 async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
     try {
         // Test suite
-        const testSuite = args.testSuite as utils.TestSuite
+        const testSuite = args.testSuite as SvgTesterSuite
 
         // Input and output directories
-        const testSuiteDir = path.join(utils.SVG_REPO_PATH, testSuite)
+        const testSuiteDir = path.join(SVG_TESTER_REPO_PATH, testSuite)
         const referencesDir = path.join(testSuiteDir, "references")
         const differencesDir = path.join(testSuiteDir, "differences")
 
@@ -185,8 +190,8 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         // nothing useful left to do but exit.
         await utils
             .writeVerifyRunFailure(
-                path.join(utils.SVG_REPO_PATH, args.testSuite),
-                args.testSuite as utils.TestSuite,
+                path.join(SVG_TESTER_REPO_PATH, args.testSuite),
+                args.testSuite as SvgTesterSuite,
                 error
             )
             .catch((writeError) => {
@@ -202,7 +207,7 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
 }
 
 async function main(args: ReturnType<typeof parseArguments>) {
-    const testSuite = args.testSuite as utils.TestSuite
+    const testSuite = args.testSuite as SvgTesterSuite
 
     await match(testSuite)
         .with("graphers", () => verifyGraphers(args))
@@ -222,7 +227,7 @@ function parseArguments() {
             type: "string",
             description: utils.TEST_SUITE_DESCRIPTION,
             default: "graphers",
-            choices: utils.TEST_SUITES,
+            choices: SVG_TESTER_SUITES,
         })
         .parserConfiguration({ "camel-case-expansion": true })
         .options({

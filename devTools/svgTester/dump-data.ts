@@ -7,6 +7,7 @@ import {
     knexReadonlyTransaction,
     type KnexReadonlyTransaction,
 } from "../../db/db.js"
+import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import { getPublishedGraphersBySlug } from "../../baker/GrapherImageBaker.js"
 import { getMostViewedGrapherIdsByChartType } from "../../db/model/Chart.js"
 import { getAllPublishedMultiDimDataPages } from "../../db/model/MultiDimDataPage.js"
@@ -15,6 +16,8 @@ import {
     GrapherInterface,
     ChartConfigsTableName,
     DbRawChartConfig,
+    SVG_TESTER_SUITES,
+    type SvgTesterSuite,
 } from "@ourworldindata/types"
 import { parseChartConfig, queryParamsToStr } from "@ourworldindata/utils"
 
@@ -128,8 +131,8 @@ async function saveGrapherSchemaAndData(
 
 async function main(args: ReturnType<typeof parseArguments>) {
     try {
-        const testSuite = args.testSuite as utils.TestSuite
-        const testSuiteDir = path.join(utils.SVG_REPO_PATH, testSuite)
+        const testSuite = args.testSuite as SvgTesterSuite
+        const testSuiteDir = path.join(SVG_TESTER_REPO_PATH, testSuite)
         const outDir = path.join(testSuiteDir, "data")
         const concurrency = args.concurrency
 
@@ -241,7 +244,7 @@ function parseArguments() {
             type: "string",
             description: utils.TEST_SUITE_DESCRIPTION,
             default: "graphers",
-            choices: utils.TEST_SUITES,
+            choices: SVG_TESTER_SUITES,
         })
         .parserConfiguration({ "camel-case-expansion": true })
         .options({

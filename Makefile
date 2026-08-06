@@ -416,8 +416,7 @@ svgtest: svgtest.reset node_modules
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts || [ $$? -eq 2 ]
 
 	@if [ -n "$$(ls -A ../owid-grapher-svgs/graphers/differences 2>/dev/null)" ]; then \
-		yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts graphers && \
-		open ../owid-grapher-svgs/graphers/differences.html; \
+		yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts graphers; \
 	else \
 		echo '==> No differences (graphers)'; \
 	fi
@@ -468,8 +467,7 @@ svgtest.grapher-views: svgtest.reset node_modules
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts grapher-views || [ $$? -eq 2 ]
 
 	@if [ -n "$$(ls -A ../owid-grapher-svgs/grapher-views/differences 2>/dev/null)" ]; then \
-		yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts grapher-views && \
-		open ../owid-grapher-svgs/grapher-views/differences.html; \
+		yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts grapher-views; \
 	else \
 		echo '==> No differences (grapher-views)'; \
 	fi
@@ -481,8 +479,7 @@ svgtest.mdims: svgtest.reset node_modules
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts mdims || [ $$? -eq 2 ]
 
 	@if [ -n "$$(ls -A ../owid-grapher-svgs/mdims/differences 2>/dev/null)" ]; then \
-		yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts mdims && \
-		open ../owid-grapher-svgs/mdims/differences.html; \
+		yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts mdims; \
 	else \
 		echo '==> No differences (mdims)'; \
 	fi
@@ -494,8 +491,7 @@ svgtest.thumbnails: svgtest.reset node_modules
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts thumbnails || [ $$? -eq 2 ]
 
 	@if [ -n "$$(ls -A ../owid-grapher-svgs/thumbnails/differences 2>/dev/null)" ]; then \
-		yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts thumbnails && \
-		open ../owid-grapher-svgs/thumbnails/differences.html; \
+		yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts thumbnails; \
 	else \
 		echo '==> No differences (thumbnails)'; \
 	fi
