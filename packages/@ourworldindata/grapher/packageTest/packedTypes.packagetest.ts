@@ -41,6 +41,8 @@ const TYPE_DEPENDENCIES = [
 // everything collapsed to `any`, tsc would report the suppressions as unused
 // (TS2578) and the typecheck would fail.
 const CONSUMER_SOURCE = `import {
+    ColumnTypeNames,
+    DimensionProperty,
     Grapher,
     GrapherLoader,
     OwidTable,
@@ -56,15 +58,25 @@ const tableOptions: FromTableOptions = { config, data: new OwidTable() }
 const loader: GrapherLoader = GrapherLoader.fromTable(tableOptions)
 loader.mount(document.body)
 loader.grapherState.externalBounds satisfies unknown
+const ready: Promise<void> = loader.ready
+void ready
 loader.dispose()
 
 const csvOptions: FromCsvOptions = {
     config,
     csvUrl: "https://example.org/data.csv",
+    columnDefs: [
+        { slug: "gdp", type: ColumnTypeNames.Numeric, name: "GDP" },
+    ],
 }
 GrapherLoader.fromCsv(csvOptions)
 
-const apiOptions: FromApiOptions = { config }
+const apiOptions: FromApiOptions = {
+    config: {
+        ...config,
+        dimensions: [{ property: DimensionProperty.y, variableId: 1118466 }],
+    },
+}
 GrapherLoader.fromApi(apiOptions)
 
 // @ts-expect-error csvUrl must be a string
@@ -72,6 +84,9 @@ GrapherLoader.fromCsv({ config, csvUrl: 123 })
 
 // @ts-expect-error fromTable requires a data table
 GrapherLoader.fromTable({ config })
+
+// @ts-expect-error fromApi requires dimensions in the config
+GrapherLoader.fromApi({ config })
 
 console.log(Grapher.name)
 `
@@ -92,9 +107,7 @@ function writeTsconfig(
             noEmit: true,
             skipLibCheck: true,
             module:
-                options.moduleResolution === "bundler"
-                    ? "esnext"
-                    : "nodenext",
+                options.moduleResolution === "bundler" ? "esnext" : "nodenext",
             moduleResolution: options.moduleResolution,
             target: "es2022",
             lib: ["esnext", "dom", "dom.iterable"],

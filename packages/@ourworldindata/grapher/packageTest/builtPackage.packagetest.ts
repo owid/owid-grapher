@@ -25,7 +25,12 @@ const cdnBundlePath = path.join(distDir, "grapher.bundle.js")
 const cssPath = path.join(distDir, "grapher.css")
 const dtsPath = path.join(distDir, "grapher.public.d.ts")
 
-const PUBLIC_EXPORTS = ["Grapher", "FetchingGrapher", "OwidTable", "GrapherLoader"]
+const PUBLIC_EXPORTS = [
+    "Grapher",
+    "FetchingGrapher",
+    "OwidTable",
+    "GrapherLoader",
+]
 
 function assertHasPublicExports(mod: Record<string, unknown>): void {
     for (const name of PUBLIC_EXPORTS) {
@@ -65,7 +70,9 @@ describe("npm build (dist/grapher.js)", () => {
         vi.stubGlobal(
             "IntersectionObserver",
             class {
-                constructor(private callback: IntersectionObserverCallback) {}
+                constructor(
+                    private readonly callback: IntersectionObserverCallback
+                ) {}
                 observe(target: Element): void {
                     this.callback(
                         [
@@ -77,8 +84,12 @@ describe("npm build (dist/grapher.js)", () => {
                         this as unknown as IntersectionObserver
                     )
                 }
-                unobserve(): void {}
-                disconnect(): void {}
+                unobserve(): void {
+                    // noop
+                }
+                disconnect(): void {
+                    // noop
+                }
             }
         )
 
@@ -118,10 +129,15 @@ Germany,DEU,2,2020,46468`,
             data: table,
         }).mount(container)
 
+        // fromTable data is available immediately
+        await expect(loader.ready).resolves.toBeUndefined()
+
         await vi.waitFor(() => {
             expect(container.querySelector("svg")).toBeTruthy()
         })
         expect(container.textContent).toContain("GDP per capita")
+
+        expect(() => loader.mount(container)).toThrow(/already mounted/)
 
         loader.dispose()
         expect(container.innerHTML).toBe("")

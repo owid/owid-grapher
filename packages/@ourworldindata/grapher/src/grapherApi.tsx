@@ -1,6 +1,10 @@
 import { createRoot, Root } from "react-dom/client"
 import { useEffect, useRef } from "react"
-import { GrapherInterface, OwidColumnDef } from "@ourworldindata/types"
+import {
+    GrapherInterface,
+    OwidChartDimensionInterface,
+    OwidColumnDef,
+} from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import { Grapher, GrapherProgrammaticInterface } from "./core/Grapher.js"
 import { GrapherState } from "./core/GrapherState.js"
@@ -32,15 +36,21 @@ export interface FromCsvOptions extends GrapherApiOptionsBase {
 
 /** Options for {@link GrapherLoader.fromApi}. */
 export interface FromApiOptions extends GrapherApiOptionsBase {
+    /** The config must say which indicators to fetch: a `dimensions` array
+     *  with at least a `y` entry (e.g. `{ property: "y", variableId: 1118466 }`). */
+    config: GrapherInterface & { dimensions: OwidChartDimensionInterface[] }
     /** Base URL for the OWID data API.
      *  Defaults to "https://api.ourworldindata.org/v1/indicators/" */
     dataApiUrl?: string
 }
 
-const DEFAULT_GRAPHER_CONFIG_OVERRIDES: Partial<GrapherProgrammaticInterface> =
-    {
+// A function rather than a shared constant: the returned object is spread
+// into a mutable GrapherState, so each chart must get its own copy.
+function defaultGrapherConfigOverrides(): Partial<GrapherProgrammaticInterface> {
+    return {
         manager: {}, // explicitly set this, so that `useIdealBounds` is false and we can specify custom bounds
     }
+}
 
 // --- Internal React component ------------------------------------------------
 
@@ -94,26 +104,49 @@ function BoundsObservingGrapher({
  *     .fromApi({ config: { title: "My chart", dimensions: [...] } })
  *     .mount(container)
  *
- * // Unmount later
+ * // Optionally await the data, unmount later
  * const loader = GrapherLoader.fromApi({ config }).mount(container)
+ * await loader.ready
  * loader.dispose()
  */
 export class GrapherLoader {
     /** The underlying GrapherState — use this to read or modify chart state programmatically. */
     readonly grapherState: GrapherState
+    /**
+     * Resolves once the chart's data has loaded (immediately for
+     * {@link fromTable}), and rejects if fetching fails — in which case the
+     * chart stays in its loading state. Awaiting this is optional; a failure
+     * is also logged to the console.
+     */
+    readonly ready: Promise<void>
     private _reactRoot: Root | null = null
 
-    private constructor(grapherState: GrapherState) {
+    private constructor(
+        grapherState: GrapherState,
+        ready: Promise<void> = Promise.resolve()
+    ) {
         this.grapherState = grapherState
+        this.ready = ready
+        // Not every caller awaits `ready`; report failures without producing
+        // an unhandled rejection. (This doesn't consume the rejection for
+        // callers that do await it.)
+        this.ready.catch((error: unknown) => {
+            console.error("GrapherLoader failed to load data:", error)
+        })
     }
 
     /**
      * Render the chart into the given container.
      * Data fetching (if any) starts at construction time, so the chart will
-     * show a loading state until the data arrives.
+     * show a loading state until the data arrives. The chart itself renders
+     * lazily once the container is scrolled into view.
      * Returns `this` for optional chaining.
      */
     mount(container: HTMLElement): this {
+        if (this._reactRoot)
+            throw new Error(
+                "This GrapherLoader is already mounted — call dispose() first."
+            )
         this._reactRoot = createRoot(container)
         this._reactRoot.render(
             <BoundsObservingGrapher
@@ -133,7 +166,7 @@ export class GrapherLoader {
     /** Prepare a chart whose data comes from a pre-built OwidTable. */
     static fromTable({ config, data }: FromTableOptions): GrapherLoader {
         const grapherState = new GrapherState({
-            ...DEFAULT_GRAPHER_CONFIG_OVERRIDES,
+            ...defaultGrapherConfigOverrides(),
             ...config,
             table: data,
             isConfigReady: true,
@@ -149,16 +182,16 @@ export class GrapherLoader {
         columnDefs,
     }: FromCsvOptions): GrapherLoader {
         const grapherState = new GrapherState({
-            ...DEFAULT_GRAPHER_CONFIG_OVERRIDES,
+            ...defaultGrapherConfigOverrides(),
             ...config,
             isConfigReady: true,
             isDataReady: false,
         })
-        void OwidTable.fromUrl(csvUrl, columnDefs).then((table) => {
+        const ready = OwidTable.fromUrl(csvUrl, columnDefs).then((table) => {
             grapherState.inputTable = table
             grapherState.isDataReady = true
         })
-        return new GrapherLoader(grapherState)
+        return new GrapherLoader(grapherState, ready)
     }
 
     /** Prepare a chart whose data will be fetched from the OWID data API. */
@@ -167,12 +200,12 @@ export class GrapherLoader {
         dataApiUrl = DEFAULT_DATA_API_URL,
     }: FromApiOptions): GrapherLoader {
         const grapherState = new GrapherState({
-            ...DEFAULT_GRAPHER_CONFIG_OVERRIDES,
+            ...defaultGrapherConfigOverrides(),
             ...config,
             isConfigReady: true,
             isDataReady: false,
         })
-        void fetchInputTableForConfig({
+        const ready = fetchInputTableForConfig({
             dimensions: config.dimensions,
             selectedEntityColors: config.selectedEntityColors,
             dataApiUrl,
@@ -180,6 +213,6 @@ export class GrapherLoader {
             if (table) grapherState.inputTable = table
             grapherState.isDataReady = true
         })
-        return new GrapherLoader(grapherState)
+        return new GrapherLoader(grapherState, ready)
     }
 }

@@ -193,14 +193,16 @@ Asynchronously fetches and parses a remote CSV file, automatically creating an `
 
 Loads data directly from the Our World in Data Catalog/Indicators API.
 
-- **`config`** (`GrapherInterface`): Grapher configuration. Must include a `dimensions` array listing the required variable/indicator IDs (e.g., `variableId: 1118466`).
+- **`config`** (`GrapherInterface`): Grapher configuration. Must include a `dimensions` array listing the required variable/indicator IDs (e.g., `{ property: "y", variableId: 1118466 }`) — the types enforce this.
 - **`dataApiUrl`** (`string`, optional): Custom indicators base URL. Defaults to `"https://api.ourworldindata.org/v1/indicators/"`.
 
-#### Instance Methods
+#### Instance Methods & Properties
 
 - **`mount(container: HTMLElement): this`**
-  Renders the chart inside the target container. Resizes of the container will be observed and automatically update the chart bounds.
+  Renders the chart inside the target container. Resizes of the container will be observed and automatically update the chart bounds. Note that the chart renders lazily: it stays empty until the container is scrolled into view. Throws if the loader is already mounted; call `dispose()` first to re-mount.
 - **`dispose(): void`**
   Unmounts the chart, cleans up the React root, and disconnects all observers.
+- **`ready`** (`Promise<void>`)
+  Resolves once the chart's data has loaded (immediately for `fromTable`). Rejects if fetching fails, in which case the chart stays in its loading state; failures are also logged to the console, so awaiting is optional.
 - **`grapherState`** (`GrapherState`)
   The underlying mutable MobX state of the chart. You can read properties or modify them programmatically (e.g., changing `selectedEntityNames` on the fly).
