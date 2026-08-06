@@ -70,6 +70,13 @@ const csvOptions: FromCsvOptions = {
     ],
 }
 GrapherLoader.fromCsv(csvOptions)
+GrapherLoader.fromCsv({ config, csv: "entityName,entityCode,entityId,year" })
+
+// @ts-expect-error csv and csvUrl are mutually exclusive
+GrapherLoader.fromCsv({ config, csv: "entityName", csvUrl: "./data.csv" })
+
+// @ts-expect-error one of csv and csvUrl is required
+GrapherLoader.fromCsv({ config })
 
 const apiOptions: FromApiOptions = {
     config: {

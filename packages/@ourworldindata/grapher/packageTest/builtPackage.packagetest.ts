@@ -51,6 +51,47 @@ beforeAll(() => {
     }
 })
 
+// Grapher renders lazily once scrolled into view. happy-dom does no layout,
+// so its IntersectionObserver never fires — replace it with one that reports
+// the chart visible immediately.
+function stubImmediateIntersectionObserver(): void {
+    vi.stubGlobal(
+        "IntersectionObserver",
+        class {
+            constructor(
+                private readonly callback: IntersectionObserverCallback
+            ) {}
+            observe(target: Element): void {
+                this.callback(
+                    [
+                        {
+                            isIntersecting: true,
+                            target,
+                        } as IntersectionObserverEntry,
+                    ],
+                    this as unknown as IntersectionObserver
+                )
+            }
+            unobserve(): void {
+                // noop
+            }
+            disconnect(): void {
+                // noop
+            }
+        }
+    )
+}
+
+// happy-dom does no layout, so give the container a real size for
+// useElementBounds to measure.
+function createSizedContainer(): HTMLDivElement {
+    const container = document.createElement("div")
+    container.getBoundingClientRect = (): DOMRect =>
+        ({ x: 0, y: 0, width: 850, height: 600 }) as DOMRect
+    document.body.appendChild(container)
+    return container
+}
+
 describe("npm build (dist/grapher.js)", () => {
     it("is importable and exports the public API", async () => {
         const mod = await import(pathToFileURL(npmBuildPath).href)
@@ -64,35 +105,7 @@ describe("npm build (dist/grapher.js)", () => {
     })
 
     it("mounts and disposes a chart via GrapherLoader.fromTable", async () => {
-        // Grapher renders lazily once scrolled into view. happy-dom does no
-        // layout, so its IntersectionObserver never fires — replace it with
-        // one that reports the chart visible immediately.
-        vi.stubGlobal(
-            "IntersectionObserver",
-            class {
-                constructor(
-                    private readonly callback: IntersectionObserverCallback
-                ) {}
-                observe(target: Element): void {
-                    this.callback(
-                        [
-                            {
-                                isIntersecting: true,
-                                target,
-                            } as IntersectionObserverEntry,
-                        ],
-                        this as unknown as IntersectionObserver
-                    )
-                }
-                unobserve(): void {
-                    // noop
-                }
-                disconnect(): void {
-                    // noop
-                }
-            }
-        )
-
+        stubImmediateIntersectionObserver()
         const { GrapherLoader, OwidTable } = await import(
             pathToFileURL(npmBuildPath).href
         )
@@ -114,12 +127,7 @@ Germany,DEU,2,2020,46468`,
             ]
         )
 
-        const container = document.createElement("div")
-        // happy-dom does no layout, so give the container a real size for
-        // useElementBounds to measure.
-        container.getBoundingClientRect = (): DOMRect =>
-            ({ x: 0, y: 0, width: 850, height: 600 }) as DOMRect
-        document.body.appendChild(container)
+        const container = createSizedContainer()
 
         const loader = GrapherLoader.fromTable({
             config: {
@@ -142,6 +150,33 @@ Germany,DEU,2,2020,46468`,
         loader.dispose()
         expect(container.innerHTML).toBe("")
 
+        container.remove()
+    })
+
+    it("mounts a chart from an inline CSV string via GrapherLoader.fromCsv", async () => {
+        stubImmediateIntersectionObserver()
+        const { GrapherLoader } = await import(pathToFileURL(npmBuildPath).href)
+        const container = createSizedContainer()
+
+        const loader = GrapherLoader.fromCsv({
+            config: { title: "Population" },
+            csv: `entityName,entityCode,entityId,year,population
+France,FRA,1,2000,59000000
+France,FRA,1,2020,67000000`,
+            columnDefs: [
+                { slug: "population", type: "Numeric", name: "Population" },
+            ],
+        }).mount(container)
+
+        // inline CSV data is available immediately
+        await expect(loader.ready).resolves.toBeUndefined()
+
+        await vi.waitFor(() => {
+            expect(container.querySelector("svg")).toBeTruthy()
+        })
+        expect(container.textContent).toContain("Population")
+
+        loader.dispose()
         container.remove()
     })
 })
