@@ -166,10 +166,8 @@ export function logIfVerbose(verbose: boolean, message: string, param?: any) {
 function findFirstDiffIndex(a: string, b: string): number {
     let i = 0
     while (i < a.length && i < b.length && a[i] === b[i]) i++
-    if (a.length === b.length && a.length === i) {
-        console.warn("No difference found even though hash was different!")
-        i = -1
-    }
+    // No difference found even though hash was different
+    if (a.length === b.length && a.length === i) i = -1
     return i
 }
 
@@ -840,6 +838,13 @@ function classifyVerifyError(error: Error): VerifyErrorEntry["kind"] {
     return error?.name === "TimeoutError" ? "timeout" : "render"
 }
 
+// Several failure paths in here `throw` a plain string rather than an Error, and
+// errors crossing a worker boundary are structured clones, so `.message` is not
+// something we can count on.
+function verifyErrorMessage(error: Error): string {
+    return String(error?.message ?? error)
+}
+
 export function summariseVerifyResults(
     validationResults: VerifyResult[],
     options: {
@@ -866,7 +871,7 @@ export function summariseVerifyResults(
             kind: classifyVerifyError(result.error),
             // The stack stays on stderr for the CI log; this file is a status
             // report, not a crash dump.
-            message: String(result.error?.message ?? result.error),
+            message: verifyErrorMessage(result.error),
         }))
 
     // An errored suite is reported as errored even if it also found differences:
@@ -975,12 +980,21 @@ function resolveCommit(cwd?: string): string | null {
     }
 }
 
-export function displayVerifyResultsAndGetExitCode(
+export const EXIT_CODE_DIFFERENCES = 2
+export const EXIT_CODE_ERROR = 1
+
+export function verifyExitCode(summary: VerifyRunSummary): number {
+    if (summary.counts.errors > 0) return EXIT_CODE_ERROR
+    if (summary.counts.differences > 0) return EXIT_CODE_DIFFERENCES
+    return 0
+}
+
+// Human-facing output. The machine-readable version of all this is
+// verify-results.json.
+export function reportVerifyResults(
     validationResults: VerifyResult[],
     verbose: boolean
-): number {
-    let returnCode: number
-
+): void {
     const errorResults = validationResults.filter(
         (result) => result.kind === "error"
     )
@@ -994,33 +1008,22 @@ export function displayVerifyResultsAndGetExitCode(
             verbose,
             `There were no differences in all graphs processed`
         )
-        returnCode = 0
-    } else {
-        if (errorResults.length) {
-            console.warn(
-                `${errorResults.length} graphs threw errors: ${errorResults
-                    .map((err) => err.viewId)
-                    .join()}`
-            )
-            for (const result of errorResults) {
-                console.log(result.viewId?.toString(), result.error) // write to stdout one grapher id per file for easy piping to other processes
-            }
-        }
-        if (differenceResults.length) {
-            console.warn(
-                `${
-                    differenceResults.length
-                } graphs had differences: ${differenceResults
-                    .map((err) => err.difference.viewId)
-                    .join()}`
-            )
-            for (const result of differenceResults) {
-                console.log("", result.difference.viewId) // write to stdout one grapher id per file for easy piping to other processes
-            }
-        }
-        returnCode = errorResults.length + differenceResults.length
+        return
     }
-    return returnCode
+
+    if (errorResults.length) {
+        console.warn(`${errorResults.length} graphs threw errors`)
+        for (const result of errorResults) {
+            console.log(`${result.viewId}: ${verifyErrorMessage(result.error)}`)
+        }
+    }
+
+    if (differenceResults.length) {
+        console.warn(`${differenceResults.length} graphs had differences`)
+        for (const result of differenceResults) {
+            console.log(result.difference.viewId)
+        }
+    }
 }
 
 export function readLinesFromFile(filename: string): string[] {
