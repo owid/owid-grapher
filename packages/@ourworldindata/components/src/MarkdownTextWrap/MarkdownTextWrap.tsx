@@ -515,28 +515,25 @@ type MarkdownTextWrapProps = { text: string } & MarkdownTextWrapOptions
 type TextFragment = { text: string; bold?: boolean }
 
 export class MarkdownTextWrap implements ITextWrap {
-    private static readonly defaultOptions = {
+    protected static readonly defaultOptions = {
         maxWidth: Infinity,
         lineHeight: 1.1,
         verticalAlign: VerticalAlign.bottom,
         detailsOrderedByReference: [] as string[],
     } as const satisfies Partial<MarkdownTextWrapProps>
 
-    private readonly initialProps: MarkdownTextWrapProps
+    protected readonly initialProps: MarkdownTextWrapProps
     constructor(props: MarkdownTextWrapProps) {
         this.initialProps = props
     }
 
-    // The defaulted keys are listed explicitly (not derived via
-    // `keyof typeof MarkdownTextWrap.defaultOptions`): private statics lose
-    // their inferred type in the emitted declaration file, which would make
-    // this degenerate to `string | number | symbol` for package consumers.
+    // `defaultOptions` must not be `private`: private statics lose their
+    // inferred type in the emitted declaration file, which would make the
+    // `keyof typeof` below degenerate to `string | number | symbol` for
+    // package consumers (protected members keep their types).
     @imemo get props(): RequiredBy<
         MarkdownTextWrapProps,
-        | "maxWidth"
-        | "lineHeight"
-        | "verticalAlign"
-        | "detailsOrderedByReference"
+        keyof typeof MarkdownTextWrap.defaultOptions
     > {
         return { ...MarkdownTextWrap.defaultOptions, ...this.initialProps }
     }
