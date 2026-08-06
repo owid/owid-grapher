@@ -228,12 +228,24 @@ describe("packed package", () => {
             main: string
             types: string
             exports: Record<string, unknown>
+            dependencies?: Record<string, string>
+            peerDependencies?: Record<string, string>
         }
 
         // `yarn pack` must have applied publishConfig.
         expect(manifest.main).toBe("dist/grapher.js")
         expect(manifest.types).toBe("dist/grapher.d.ts")
         expect(manifest.exports).toBeDefined()
+
+        // Everything the package needs at runtime is bundled, so it must not
+        // declare any dependencies: `yarn pack` turns `workspace:^` entries
+        // into semver ranges of unpublished packages, which would make
+        // `npm install` fail outright. Only the react peer deps are expected.
+        expect(manifest.dependencies).toBeUndefined()
+        expect(Object.keys(manifest.peerDependencies ?? {})).toEqual([
+            "react",
+            "react-dom",
+        ])
 
         for (const file of [
             manifest.main,
