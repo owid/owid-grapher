@@ -598,7 +598,9 @@ Skip it if Phase 3 is close — it's throwaway work.
 ### Phase 3 — the viewer, and the end of generated HTML
 
 **Next up.** Nothing here has started; item 12 was its only blocker and has
-merged.
+merged. Execution detail — three stages, the first of them a single
+`owid-grapher` PR, with the ordering constraints and open decisions — is in
+[svg-tester-phase-3-plan.md](./svg-tester-phase-3-plan.md).
 
 **Why:** this is the payoff, and it turned out not to need R2. The viewer's three
 inputs — `verify-results.json`, `references/`, `differences/` — are all already
