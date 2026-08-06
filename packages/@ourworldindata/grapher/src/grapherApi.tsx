@@ -1,5 +1,6 @@
 import { createRoot, Root } from "react-dom/client"
-import { useEffect, useRef } from "react"
+import { useRef } from "react"
+import { useIsomorphicLayoutEffect } from "usehooks-ts"
 import {
     GrapherInterface,
     OwidChartDimensionInterface,
@@ -65,23 +66,34 @@ function defaultGrapherConfigOverrides(): Partial<GrapherProgrammaticInterface> 
 
 // --- Internal React component ------------------------------------------------
 
-/** Thin wrapper that observes the container's size via useElementBounds
- *  and syncs it to grapherState.externalBounds (MobX observable).
- *  Grapher is rendered once; subsequent size changes flow through MobX
- *  without triggering a React re-render of this component's parent. */
+/** Renders Grapher into the caller's container, keeping
+ *  `grapherState.externalBounds` in sync with that container's size so the
+ *  chart fills it — GrapherLoader turns off Grapher's own ideal-bounds sizing
+ *  (see `defaultGrapherConfigOverrides`), which makes externalBounds the single
+ *  source of truth for how big the chart is.
+ *
+ *  Nothing renders until the container has been measured: starting from the
+ *  default bounds instead makes the chart visibly render 850px wide for a frame
+ *  before its real size arrives. Bounds are written in a layout effect so the
+ *  value is in place before the browser paints.
+ *
+ *  Size changes reach Grapher through the MobX observable rather than through
+ *  props, so `Grapher` is never re-rendered by a prop change. */
 function BoundsObservingGrapher({
     grapherState,
     container,
 }: {
     grapherState: GrapherState
     container: HTMLElement
-}): React.ReactElement {
+}): React.ReactElement | null {
     const containerRef = useRef<HTMLElement>(container)
-    const bounds = useElementBounds(containerRef)
+    const bounds = useElementBounds(containerRef, null)
 
-    useEffect(() => {
-        grapherState.externalBounds = bounds
+    useIsomorphicLayoutEffect(() => {
+        if (bounds) grapherState.externalBounds = bounds
     }, [grapherState, bounds])
+
+    if (!bounds) return null
 
     // The flex wrapper is load-bearing: .GrapherComponent is an inline-block,
     // and sitting directly in the container it would get the line box's
