@@ -2,11 +2,10 @@
 
 _Execution detail for Phase 3 of [svg-tester-redesign-plan.md](./svg-tester-redesign-plan.md)._
 
-**Not started.** The largest phase, and the one that pays. Three stages — one PR
-of six commits, then three PRs, then three — each independently valuable and
-independently stoppable: after Stage 1 there is a working viewer and nothing else
-has changed; after Stage 2 the generated HTML and the git-as-transport path are
-gone.
+**Stage 1 is done; Stages 2 and 3 have not started.** The largest phase, and the
+one that pays. Three stages, each independently valuable and independently
+stoppable: after Stage 1 there is a working viewer and nothing else has changed;
+after Stage 2 the generated HTML and the git-as-transport path are gone.
 
 **Stage 1 is entirely `owid-grapher`.** No ops, etl or svgs changes, so none of
 the cross-repo deployment asymmetry applies until Stage 2 — and it can still be
@@ -23,7 +22,7 @@ browser they'd see locally after `make svgtest`. And the whole thing reads
 `verify-results.json` plus two directories of SVGs off the container's disk — no
 bucket, no CDN, no second repo.
 
-## The finding that shapes commit 1
+## Why the contract had to move
 
 **The admin cannot import the tester's types today, and shouldn't.**
 `adminSiteServer/tsconfig.json` references `types`, `utils`, `db`, `site` and so
@@ -36,175 +35,105 @@ Everything the viewer needs is currently stranded in
 `VerifyErrorEntry`, `VerifyRunStatus` (`:800–831`), `TEST_SUITES` / `TestSuite`
 (`:49–55`), and `VERIFY_RESULTS_FILENAME` (`:63`). Both the tester and the admin
 already reference `@ourworldindata/types`, which is the base of the dependency
-graph, so that is where the contract belongs. Doing this first is what keeps
-every later commit small.
+graph, so that is where the contract belongs.
 
-## Stage 1 — the viewer (one PR, six commits)
+## Stage 1 — the viewer (done)
 
-One PR in `owid-grapher`, six commits. Commits 1–2 are the contract and change no
-behaviour; 3–6 build the page on top. Nothing here deletes anything, and nothing
-consumes the new page until Stage 2 — so this can sit on master indefinitely.
+One `owid-grapher` PR. Planned as six commits and squashed for review; what
+follows is what shipped, which is more than was planned.
 
-### Libraries: one existing dependency, one hand-rolled component
+**The contract moved to `@ourworldindata/types`.** `adminSiteServer` must not
+depend on `devTools/`, and it already depends on `adminSiteClient`, so neither
+the tester nor the admin could own the shape — both depend on `types`. Everything
+the two sides share ended up there: the suite list, the two rendering
+directories, the results filename, the run status, the difference and error
+entries, the run summary, and the suite status the API returns. All prefixed
+`SvgTester*`, because `VerifyRunSummary` says nothing in a package-global
+namespace. `devTools/svgTester` imports them directly rather than re-exporting.
 
-The generated report loads `img-comparison-slider` and `diff2html` from unpkg
-(`create-compare-view.ts:351–352`, `:680–681`). Neither is an npm dependency and
-neither should come back — but the answers differ.
+**`verify-results.json` gained `changedRatio`** — how much of the markup
+changed, 0–1. The tester is the only place that measurement is cheap: it holds
+both renderings already, so an O(n) estimate costs about a millisecond, where a
+reader would have to fetch two ~127 KB files per chart. The diff view uses it to
+recognise an unreadable diff before fetching anything.
 
-**The text diff uses `react-diff-viewer-continued`, already a dependency at
-^4.2.2** and already the admin's way of showing a diff: `GdocsDiff.tsx`,
-`EditorHistoryTab.tsx` and `EditorDebugTab.tsx` all use it. Matching them beats
-introducing a second diff idiom, and it is a real React component rather than a
-library that writes DOM, which `diff2html` is. Give it `oldValue` / `newValue`
-as the two raw SVG strings and let it diff client-side; `showDiffOnly` collapses
-the unchanged bulk of the file, and `compareMethod: DiffMethod.LINES` is the
-right granularity for SVG markup — the `WORDS` mode `GdocsDiff` uses would be far
-too slow over a thousand-line file.
+An `md5` field was added and then removed. It had no consumer — it was
+speculative groundwork for Phase 4's content-addressed blobs, and since the
+results file is gitignored and rewritten every run there is no migration cost to
+adding it when Phase 4 actually happens.
 
-Keep an equivalent of the existing `MAX_LINES_FOR_DIFF = 20_000` guard
-(`create-compare-view.ts:206`): above that, show a "diff skipped, file too large"
-state rather than hanging the tab. The guard exists because the diff algorithm is
-slow on very large files, and that is truer in a browser than in a build script.
+**Three read-only API routes** under `/admin/api/svgtester`: a per-suite status
+summary, one suite's full results, and the raw SVGs. Naming each reachable
+directory in an explicit route rather than mounting one means the suite's 3.8 GB
+of dumped inputs and the repo's `.git` are unreachable by construction;
+`resolveSvgPath` validates on top of that and is unit-tested, since the traversal
+cases are the part worth locking down.
 
-This also means `diff` (jsdiff) is no longer needed by the viewer — the library
-does its own diffing. It stays a dependency for other reasons; just don't pull
-`Diff.createTwoFilesPatch` into React code.
+**The index page** lists the four suites with status, counts, timings and the
+grapher commit — linked to GitHub only where the commit is pushed, since locally
+the suite runs against an unpushed working tree and the link would 404. Sidebar
+entry under UTILITIES. A suite with no reported result shows dashes rather than
+a confident `0`, because the counts in a `running` file are placeholders written
+before the first render.
 
-**The swipe slider is hand-rolled**, roughly 40 lines plus a companion `.scss`.
-It is a native `<input type="range">` over two stacked `<img>` elements, with the
-top one clipped by `clip-path: inset(0 0 0 var(--pos))`:
+**The diff browser** offers five views per chart, chosen per card because which
+one answers the question depends on the chart:
 
-```tsx
-<div className="svg-tester-slider" style={{ "--pos": `${pos}%` }}>
-    <img src={beforeUrl} alt="Reference" />
-    <img src={afterUrl} alt="Current" className="svg-tester-slider__clipped" />
-    <input type="range" min={0} max={100} value={pos} onChange={…} />
-</div>
-```
+| view         | question                              |
+| ------------ | ------------------------------------- |
+| Side by side | what do the two renderings look like? |
+| Swipe        | where did it move?                    |
+| Overlay      | which pixels changed at all?          |
+| Diff         | what changed in the markup?           |
+| Interactive  | does the chart still work?            |
 
-Why not a package: `img-comparison-slider` is a web component, so it brings
-Shadow DOM and custom-element registration into a React tree for a control this
-small, and `react-compare-slider` would be a new dependency to justify in review
-for the same. The native range input is keyboard-accessible for free and does not
-drop light trackpad taps — the failure mode we already hit with React Aria
-Components in the bespoke work.
+Overlay and Interactive were not in the plan. Overlay stacks the two renderings
+with `mix-blend-mode: difference` and inverts the result, so unchanged reads as
+white and only changes show — one CSS property, and it caught a data change on
+the China import map that reading the two charts side by side did not make
+obvious. Interactive embeds both charts live, production against this build;
+it answers a different question from every other view, since those compare
+renderings from the frozen dump while these render from live data.
 
-### Commit 1 — move the results contract into `@ourworldindata/types`
+**Charts that failed to render are listed** above the differences, with kind and
+message, each linking to the chart on this build where it broke. They were
+counted but never shown, which is backwards: an error matters more than a
+difference.
 
-Move the six symbols above and re-export them from `devTools/svgTester/utils.ts`
-so the tester's own imports don't churn. Note the `explicit-function-return-type`
-/ `explicit-module-boundary-types` overrides that apply under
-`packages/@ourworldindata/**` — anything moving in needs explicit return types or
-`oxlint --deny-warnings` fails.
+**`make svgtest` opens the page** instead of the generated file, and no longer
+opens a browser at all when the admin server is down — it prints the URL.
 
-`SVG_REPO_PATH` (`utils.ts:47`) is a bare relative string, `"../owid-grapher-svgs"`,
-which happens to resolve because both the tester and the admin server run with
-the repo root as cwd. Rather than duplicate it, add `SVG_TESTER_REPO_PATH` to
-`settings/serverSettings.ts` with that default — both `devTools/svgTester` and
-`adminSiteServer` already reference `settings`, and it becomes configurable for
-free.
+### Libraries
 
-Verify with `yarn typecheck`; there is no behaviour to test.
+The generated report loaded `img-comparison-slider` and `diff2html` from unpkg.
+Neither came back.
 
-### Commit 2 — add `md5` to each difference entry
+The text diff uses **`react-diff-viewer-continued`**, already a dependency and
+already how `GdocsDiff` and the chart editor show diffs. `DiffMethod.LINES`, not
+the `WORDS` mode `GdocsDiff` uses — word granularity over a thousand lines of
+markup is far too slow — and `showDiffOnly` collapses the unchanged bulk.
 
-`VerifyDifferenceEntry` gains `md5: string`; the value is already on `SvgRecord`
-and already computed for every render.
+The swipe control is **hand-rolled**: a native `<input type="range">` stretched
+invisibly across the chart, so press-to-jump, drag-to-scrub, arrow keys and a
+focus target all come for free. A web component would have brought Shadow DOM
+into the tree for a control this small.
 
-Worth doing now rather than in Phase 4: content-addressed `blobs/{md5}.svg` can't
-be addressed from `results.json` without it, so leaving it out turns Phase 4 from
-a URL swap into a data-model change. It also gives the viewer a natural cache key.
+### Tried and reverted
 
-Additive for owidbot, which reads the file with `.get()` throughout — no etl
-change is needed, and old results files stay readable.
+Recorded so they are not proposed again.
 
-### Commit 3 — the read-only API
+**Ranking by magnitude.** Each card carried a bar showing how much changed, and
+the list sorted by it. Rejected: on a page where you scan the charts themselves,
+the ranking was not worth the chrome. `changedRatio` stays because the diff view
+uses it.
 
-A new `adminSiteServer/apiRoutes/svgTester.ts`. These need no database, and
-`apiRouter.get("/deploys.json", …)` (`apiRouter.ts:688`) is the precedent for a
-plain route — the `…WithROTransaction` helpers in `plainRouterHelpers.ts` all
-open a transaction and would be wrong here.
+**A chart filter.** It matched the slug and query string but not the chart's
+title, which lives in the SVG rather than in `results.json` — a filter that finds
+a chart only when its slug happens to resemble its title is one you cannot trust.
 
-```
-GET /admin/api/svgtester/suites.json                     # one entry per suite
-GET /admin/api/svgtester/{suite}/results.json            # the parsed run summary
-GET /admin/api/svgtester/{suite}/{references|differences}/{file}.svg
-```
-
-`suites.json` returns each suite's parsed `verify-results.json` or null, plus a
-staleness flag comparing `grapherCommit` against the local checkout's HEAD —
-the same check owidbot makes (`grapher.py`, `is_stale`), for the same reason: a
-leftover results file must read as "not run", never as a result.
-
-The SVG route is the one with a sharp edge. Validate `suite` against
-`TEST_SUITES`, `kind` against the two literals, and the filename against both a
-strict pattern and the suite's own results — never join a request path into a
-filesystem path unchecked. Because the routes are explicit rather than a
-directory mount, `data/**` and `.git/` are unreachable by construction, which is
-the same property that made the nginx alias in the old item 10 unnecessary.
-
-Testable with `curl` before any UI exists.
-
-### Commit 4 — the index page and the sidebar entry
-
-`/admin/svgtester`, one row per suite: status, counts, when it ran, duration,
-grapher commit. `StaticVizIndexPage` + `StaticVizEditPage` (registered in
-`AdminApp.tsx`) is the precedent for an index-plus-detail pair with a param
-route.
-
-Render the same six states owidbot does — never run, `running`, `error`, stale,
-`ok`, `differences` — since both read one contract and disagreeing would be a bug
-in one of them.
-
-Sidebar entry goes under the **UTILITIES** header in `AdminSidebar.tsx`,
-alongside Deploy status and Callout functions, following the established shape:
-
-```tsx
-<li>
-    <Link to="/svgtester">
-        <FontAwesomeIcon icon={faCodeCompare} fixedWidth /> SVG tester
-    </Link>
-</li>
-```
-
-`faCodeCompare` is present in the installed `@fortawesome/free-solid-svg-icons`
-6.7.2 and is not yet used elsewhere in the sidebar.
-
-### Commit 5 — the diff browser
-
-`/admin/svgtester/:suite`. The bulk of the phase.
-
-Ports what already works: side-by-side, swipe slider, unified text diff,
-chart-type filter, links to the live and staging chart. Adds: sort by magnitude
-so the two charts that actually broke aren't buried under 400 cosmetic ones,
-`#slug` deep links so a single diff can be shared in review, and lazy SVG loading
-with the diff computed in the browser from the two fetched files.
-
-**Build it against a URL resolver — `(suite, kind, entry) => string` — not
-hard-coded admin paths.** In Phase 4 the resolver points at `blobs/{md5}.svg` and
-`refs/{svgsCommit}/{suite}/{svgFilename}` instead, and nothing else changes.
-Splitting into two viewers is the failure mode this design has been guarding
-against from the start; the resolver is what prevents it.
-
-Two loading details carried over from the generated report, both still needed:
-`loading="lazy"` on every image, and fetching the raw SVG text only when the diff
-tab for that entry is opened — the images and the diff have different costs and
-should not be coupled.
-
-### Commit 6 — local wiring
-
-`make svgtest` and the per-suite targets open
-`localhost:3030/admin/svgtester/{suite}` instead of the generated file.
-
-**Decided: needing the admin server on :3030 is acceptable.** Today the target
-opens a static file and needs nothing, so this is a real change for anyone who
-just wants to see what their change did without a dev environment. The
-alternative — keeping local HTML generation — is the two-viewers failure mode,
-which is the thing this phase exists to end. Print the URL so a run is still
-useful when the server is down.
-
-The old generated report keeps working throughout Stage 1; it is not deleted
-until Stage 2.
+**Deep links.** Each card had an `id` and a `#` anchor, with an effect that
+re-scrolled once the cards existed. Dropped; the effect also re-fired on filter
+changes, yanking you back mid-browse. The `#` survives as decoration.
 
 ## Stage 2 — retire the old path (3 PRs)
 
@@ -261,15 +190,13 @@ quietly become the input to that decision.
 All three of Stage 1's open questions are now answered; kept here with their
 reasoning so they are not relitigated mid-implementation.
 
-**`make svgtest` may require the admin server on `:3030`.** Accepted. Keeping a
+**`make svgtest` may require the admin server on `:3030`.** Accepted, and shipped. Keeping a
 local-only generated report was the alternative and it is exactly the
 two-viewers failure mode. Print the URL so the run is still useful with the
 server down.
 
 **The text diff uses `react-diff-viewer-continued`, the slider is hand-rolled.**
-Neither unpkg script comes back. See
-[Libraries](#libraries-one-existing-dependency-and-one-hand-rolled-component)
-above — the diff library is already a dependency and already the admin's idiom,
+Neither unpkg script came back. See [Libraries](#libraries) above — the diff library is already a dependency and already the admin's idiom,
 and a web component for a range input plus a `clip-path` is not worth the Shadow
 DOM.
 
@@ -296,7 +223,8 @@ the index page only, or also per suite on the diff page.
 ## Rollback
 
 Stage 1 is additive — nothing consumes the new page until Stage 2, so it can sit
-on master indefinitely or be reverted freely.
+on master indefinitely or be reverted freely. The old generated report still
+works alongside it.
 
 Stage 2 is the one-way door. Once its PR 2 deletes `create-compare-view.ts` there
 is no generated report to fall back to, so PR 1 should have been live long enough

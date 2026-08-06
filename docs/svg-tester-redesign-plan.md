@@ -3,11 +3,11 @@
 _Covers `devTools/svgTester/`, the `svg-tester.sh` step in `owid/ops`, the
 `owid-grapher-svgs` repo, and the `grapher` service in `owid/etl`'s owidbot._
 
-**Status: Phases 0–2 are done** (owid-grapher#6909/#6911/#6913/#6914,
-ops#594/#595/#596, etl#6623), except for the svgs-repo half of Phase 0 — see
-there. Phase 3, the viewer, is next and is unblocked. The Problem section below
-describes the state this work started from — points 2, 5 and 6 are fixed, the
-rest still stand.
+**Status: Phases 0–2 are done, and Phase 3 has begun** (owid-grapher#6909/#6911/
+#6913/#6914, ops#594/#595/#596, etl#6623), except for the svgs-repo half of
+Phase 0 — see there. Item 19, the viewer, has shipped; the rest of Phase 3 has
+not started. The Problem section below describes the state this work started
+from — points 2, 5 and 6 are fixed, the rest still stand.
 
 ## Problem
 
@@ -597,8 +597,9 @@ Skip it if Phase 3 is close — it's throwaway work.
 
 ### Phase 3 — the viewer, and the end of generated HTML
 
-**Next up.** Nothing here has started; item 12 was its only blocker and has
-merged. Execution detail — three stages, the first of them a single
+**Item 19 is done** — the viewer, plus the render-error list, the overlay and
+interactive views, and `make svgtest` pointing at the page. The rest of the
+phase has not started. Execution detail — three stages, the first of them a single
 `owid-grapher` PR, with the ordering constraints and open decisions — is in
 [svg-tester-phase-3-plan.md](./svg-tester-phase-3-plan.md).
 
