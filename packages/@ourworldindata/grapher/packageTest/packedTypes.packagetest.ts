@@ -260,6 +260,23 @@ describe("packed package", () => {
         }
     })
 
+    it("contains only the intended files", () => {
+        const entries = spawnSync("tar", ["-tzf", tarballPath], {
+            encoding: "utf8",
+        })
+            .stdout.trim()
+            .split("\n")
+
+        // On dev machines, dist/ also accumulates per-module output from the
+        // project-references tsc build (dist/src/**) — over 900 files that
+        // must not end up in the tarball. package.json's `files` therefore
+        // lists the tsdown artifacts explicitly.
+        expect(
+            entries.filter((e) => e.startsWith("package/dist/src/"))
+        ).toEqual([])
+        expect(entries.length).toBeLessThan(20)
+    })
+
     it("only imports from react and react-dom in its declaration bundle", async () => {
         const dtsPath = path.join(
             consumerDir,

@@ -214,6 +214,21 @@ Two tools help verify the built package (both expect `yarn build` to have run fi
 - `yarn testPackage` runs the smoke tests in `packageTest/`: they import both JS builds, mount a chart from the built code into a DOM, and pack the package (`yarn pack`, which applies `publishConfig`) to typecheck a simulated external consumer against the bundled type declarations — with `moduleResolution: bundler` and `nodenext`, plus a full check of the declaration bundle itself and an [`@arethetypeswrong/cli`](https://github.com/arethetypeswrong/arethetypeswrong.github.io) pass over the tarball's types/exports wiring. These tests are intentionally not part of the repo-wide `yarn test` since they depend on `dist/`.
 - `yarn startDemoServer` serves this directory on http://localhost:8433 via `http-server` and opens `/demo.html`, which shows the three `GrapherLoader` variants (`/core-econ-demo.html` is a styled embedding example). It's a plain static server, so the demo pages load `dist/` exactly like a CDN consumer would.
 
+### Publishing a preview to GitHub Packages
+
+The [Publish grapher to GitHub Packages](../../../.github/workflows/grapher-publish-github.yml) workflow (Actions → run manually, from any branch) builds the package, runs `yarn testPackage`, and publishes to GitHub's npm registry — useful for testing the real install flow before the package exists on npm proper.
+
+Because GitHub Packages requires the npm scope to match the owning GitHub account (and no `ourworldindata` account exists there), the package is published as **`@owid/grapher`**; the rename happens inside the packed tarball only. Versions default to `0.0.0-preview.<run number>` under the `preview` dist-tag; pass an explicit version via the workflow input to override.
+
+To install a published preview (GitHub Packages requires auth even for public packages), put this in the consuming project's `.npmrc`:
+
+```
+@owid:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=<a GitHub PAT with read:packages>
+```
+
+and run `npm install @owid/grapher@preview`.
+
 ## How Grapher works
 
 The Grapher pipeline, as it runs on ourworldindata.org, is explained below.
