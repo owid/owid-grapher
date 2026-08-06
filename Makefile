@@ -37,7 +37,7 @@ ifdef WRANGLER_PORT
 WRANGLER_PORT := $(strip $(WRANGLER_PORT))
 endif
 
-.PHONY: help up up.headless up.worktree setup.worktree require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.grapher-views svgtest.mdims svgtest.thumbnails bdd bdd.ui check-not-prod
+.PHONY: help up up.headless up.worktree setup.worktree require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.md5s bdd bdd.ui check-not-prod
 
 help:
 	@echo 'Available commands:'
@@ -61,6 +61,7 @@ help:
 	@echo '  make bdd.ui                 (while up) start BDD test environment with UI'
 	@echo '  make svgtest                generate an SVG test report for graphers'
 	@echo '  make svgtest.full           generate a full SVG test report'
+	@echo '  make svgtest.md5s           resync reference md5s in ../owid-grapher-svgs after references change'
 	@echo '  make local-bake             do a full local site bake'
 	@echo '  make archive                create an archived version of our charts'
 	@echo '  make wikipedia-archive      create a Wikipedia archive (strips GTM, rewrites archive URLs)'
@@ -498,6 +499,14 @@ svgtest.thumbnails: svgtest.reset node_modules
 	else \
 		echo '==> No differences (thumbnails)'; \
 	fi
+
+svgtest.md5s: ../owid-grapher-svgs node_modules
+	@echo '==> Recomputing reference md5s in ../owid-grapher-svgs'
+
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts graphers
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts grapher-views
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts mdims
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts thumbnails
 
 node_modules: package.json yarn.lock yarn.config.cjs
 	@echo '==> Installing packages'
