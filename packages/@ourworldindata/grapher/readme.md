@@ -10,7 +10,7 @@ This readme first covers how to use Grapher as a standalone package — in a Rea
 
 (TBD)
 
-`react` and `react-dom` (18 or 19) are peer dependencies of the library build; the CDN bundle described below has them baked in. The package is ESM-only.
+`react` and `react-dom` (19) are peer dependencies of the library build; the CDN bundle described below has them baked in. The package is ESM-only.
 
 Two things to include on any page that shows a chart:
 
