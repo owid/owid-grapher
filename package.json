@@ -210,7 +210,6 @@
         "eslint": "^10.0.3",
         "eslint-plugin-import-x": "^4.16.2",
         "eslint-plugin-mobx": "^0.0.14",
-        "eslint-plugin-react-refresh": "^0.5.2",
         "flag-icons": "^7.5.0",
         "happy-dom": "^20.8.9",
         "http-server": "^14.1.1",

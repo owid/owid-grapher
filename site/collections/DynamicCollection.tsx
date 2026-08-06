@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
+/* eslint-disable react/only-export-components */
 import cx from "clsx"
 import * as React from "react"
 import ReactDOM from "react-dom/client"
