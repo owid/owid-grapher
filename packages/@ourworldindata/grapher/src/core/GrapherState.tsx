@@ -1770,9 +1770,7 @@ export class GrapherState
     @computed get times(): Time[] {
         // If the map shows historical and projected data, then the time range
         // has to extend to the full range of both indicators
-        const columnSlugs = this.isOnMapTab
-            ? this.mapColumnSlugs
-            : this.yColumnSlugs
+        const columnSlugs = this.primaryColumnSlugs
 
         // Generate the times only after the chart transform has been applied, so that we don't show
         // times on the timeline for which data may not exist, e.g. when the selected entity
@@ -2615,6 +2613,28 @@ export class GrapherState
         return mapColumnInfo
             ? [mapColumnInfo.projectedSlug, mapColumnInfo.historicalSlug]
             : [this.mapColumnSlug]
+    }
+
+    /**
+     * Slugs of the primary columns the given tab renders data from: the map
+     * columns on the map tab (which might differ from the y columns if the
+     * chart has a dedicated map dimension), the y columns otherwise.
+     *
+     * Prefer this over `yColumnSlugs` whenever the code asks "what data does
+     * this tab display?" rather than "what are the y dimensions?".
+     */
+    getPrimaryColumnSlugsForTab(tab: GrapherTabName): ColumnSlug[] {
+        return isMapTab(tab) ? this.mapColumnSlugs : this.yColumnSlugs
+    }
+
+    /** Slugs of the primary columns the active tab renders data from */
+    @computed get primaryColumnSlugs(): ColumnSlug[] {
+        return this.getPrimaryColumnSlugsForTab(this.activeTab)
+    }
+
+    /** Slug of the primary column the active tab renders data from */
+    @computed get primaryColumnSlug(): ColumnSlug | undefined {
+        return this.isOnMapTab ? this.mapColumnSlug : this.yColumnSlug
     }
 
     private getSlugForProperty(
