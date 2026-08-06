@@ -46,8 +46,8 @@
 @import "css/noscript.scss";
 @import "./NewsletterSignupBlock.scss";
 @import "./ExplorerIndexPage.scss";
-@import "./SubscribePage.scss";
-@import "./OldSubscribePage.scss";
+@import "./Newsletter/SubscribePage.scss";
+@import "./Newsletter/OldSubscribePage.scss";
 @import "./LatestPage.scss";
 @import "./latest/LatestSearch.scss";
 @import "./latest/LatestTopicFacets.scss";
@@ -118,8 +118,11 @@
 @import "css/cookie-notice.scss";
 @import "css/site-tools.scss";
 @import "css/newsletter-subscription.scss";
-@import "css/email-notifications-subscribe-form.scss";
-@import "css/email-notifications-preferences-form.scss";
+@import "./Newsletter/newsletterForm.scss";
+@import "./Newsletter/NewsletterOption.scss";
+@import "./Newsletter/EmailNotificationsPreferenceFields.scss";
+@import "./Newsletter/EmailNotificationsSubscribeForm.scss";
+@import "./Newsletter/EmailNotificationsPreferencesForm.scss";
 @import "css/lightbox.scss";
 
 @import "./blocks/front-matter.scss";

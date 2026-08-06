@@ -1,0 +1,186 @@
+.newsletter-preference-fields__hint {
+    color: $blue-60;
+    margin: 8px 0 0;
+}
+
+.newsletter-preference-fields__pills {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.newsletter-preference-fields__pill {
+    @include body-3-medium;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 32px;
+    padding: 4px 12px;
+    border: 1px solid $blue-20;
+    border-radius: 1000px;
+    background: none;
+    color: $blue-60;
+    cursor: pointer;
+
+    svg {
+        font-size: 0.75rem;
+    }
+
+    &:hover {
+        background-color: $gray-5;
+    }
+}
+
+.newsletter-preference-fields__pill--selected {
+    background-color: $accent-pale-blue;
+    border-color: $accent-pale-blue;
+    color: $blue-90;
+
+    &:hover {
+        background-color: $accent-pale-blue;
+    }
+}
+
+.newsletter-preference-fields__select-all {
+    @include body-3-medium;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    padding: 4px 0;
+    border: none;
+    background: none;
+    color: $blue-90;
+    cursor: pointer;
+
+    svg {
+        font-size: 0.75rem;
+    }
+
+    span {
+        text-decoration: underline;
+    }
+}
+
+.newsletter-preference-fields__cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+
+    @include md-up {
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+}
+
+.newsletter-preference-fields__card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid $blue-20;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $gray-5;
+    }
+}
+
+.newsletter-preference-fields__card--selected {
+    background-color: $accent-pale-blue;
+    border-color: $accent-pale-blue;
+
+    &:hover {
+        background-color: $accent-pale-blue;
+    }
+}
+
+.newsletter-preference-fields__card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    color: $blue-60;
+    font-size: 0.75rem;
+}
+
+.newsletter-preference-fields__checkbox {
+    border: 1px solid $blue-20;
+    border-radius: 3px;
+    background: #fff;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.newsletter-preference-fields__checkbox--selected {
+    border-color: $blue-60;
+    background: $blue-60;
+    svg {
+        color: #fff;
+    }
+}
+
+.newsletter-preference-fields__card-title {
+    @include body-3-medium;
+    margin-top: 6px;
+    color: $blue-90;
+}
+
+.newsletter-preference-fields__card-description {
+    @include body-3-medium;
+    color: $blue-60;
+    margin-top: 2px;
+}
+
+.newsletter-preference-fields__frequency-options {
+    display: flex;
+    width: fit-content;
+    outline: 1px solid $blue-20;
+}
+
+.newsletter-preference-fields__frequency-option {
+    @include body-3-medium;
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 40px;
+    padding: 8px 16px;
+    border: 1px solid #fff;
+    color: $blue-50;
+    cursor: pointer;
+
+    input {
+        position: absolute;
+        inset: 0;
+        margin: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    &:hover {
+        background-color: $gray-5;
+    }
+
+    &:focus-within {
+        outline: 1px solid $blue-60;
+        outline-offset: -2px;
+    }
+}
+
+.newsletter-preference-fields__frequency-option--selected {
+    background-color: $accent-pale-blue;
+    border-color: #fff;
+    color: $blue-90;
+    font-weight: 600;
+
+    &:hover {
+        background-color: $accent-pale-blue;
+    }
+}

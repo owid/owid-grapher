@@ -1,0 +1,86 @@
+// The email-address block rendered inside the hero band, above the form.
+.email-notifications-preferences-form__email-block {
+    margin-top: 24px;
+
+    label {
+        display: block;
+        margin-bottom: 12px;
+        color: $blue-60;
+    }
+
+    .newsletter-form__email {
+        display: block;
+        width: 100%;
+        background-color: $white;
+
+        &:disabled {
+            color: $blue-40;
+        }
+    }
+}
+
+.email-notifications-preferences-form__email-note {
+    @include note-12-medium;
+    margin: 8px 0 0;
+    color: $blue-60;
+}
+
+.email-notifications-preferences-form {
+    margin-top: 24px;
+}
+
+.email-notifications-preferences-form__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.email-notifications-preferences-form__privacy-notice {
+    @include note-12-medium;
+    margin: 0;
+    color: $blue-60;
+
+    a {
+        color: inherit;
+        text-decoration: underline;
+    }
+}
+
+.email-notifications-unsubscribe__heading {
+    @include body-2-bold-tight;
+    margin: 0;
+    color: $blue-90;
+}
+
+.email-notifications-unsubscribe__text {
+    @include body-3-medium;
+    margin: 4px 0 0;
+    color: $blue-90;
+}
+
+.email-notifications-unsubscribe__button {
+    @include body-3-medium;
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+    margin-top: 16px;
+    padding: 8px 24px;
+    background: $white;
+    border: 1px solid $vermillion;
+    color: $vermillion;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $vermillion;
+        color: $white;
+    }
+
+    &:disabled {
+        background: $white;
+        border-color: $gray-30;
+        color: $gray-30;
+        cursor: default;
+    }
+}
