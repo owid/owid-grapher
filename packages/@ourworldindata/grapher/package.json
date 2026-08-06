@@ -25,7 +25,9 @@
         "dist"
     ],
     "scripts": {
-        "build": "tsdown"
+        "build": "tsdown",
+        "startDemoServer": "node packageTest/serve.mjs",
+        "testPackage": "vitest run --config vitest.package.config.ts"
     },
     "directories": {
         "lib": "src"
