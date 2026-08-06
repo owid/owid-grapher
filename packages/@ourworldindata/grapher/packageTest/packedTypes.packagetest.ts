@@ -26,7 +26,7 @@ const pkgDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const repoRoot = path.resolve(pkgDir, "../../..")
 const tscBin = path.join(repoRoot, "node_modules/.bin/tsc")
 
-// Packages the bundled grapher.public.d.ts imports types from. The consumer
+// Packages the bundled grapher.d.ts imports types from. The consumer
 // needs them resolvable, so we symlink them out of the monorepo node_modules
 // (csstype is required by @types/react).
 const TYPE_DEPENDENCIES = [
@@ -140,9 +140,9 @@ function runTsc(tsconfigFileName: string): void {
 }
 
 beforeAll(() => {
-    if (!fs.existsSync(path.join(pkgDir, "dist/grapher.public.d.ts")))
+    if (!fs.existsSync(path.join(pkgDir, "dist/grapher.d.ts")))
         throw new Error(
-            "Missing dist/grapher.public.d.ts — run `yarn build` in packages/@ourworldindata/grapher first."
+            "Missing dist/grapher.d.ts — run `yarn build` in packages/@ourworldindata/grapher first."
         )
 
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "grapher-package-test-"))
@@ -193,7 +193,7 @@ beforeAll(() => {
     fs.copyFileSync(
         path.join(
             nodeModules,
-            "@ourworldindata/grapher/dist/grapher.public.d.ts"
+            "@ourworldindata/grapher/dist/grapher.d.ts"
         ),
         path.join(consumerDir, "declarationCheck.ts")
     )
@@ -231,7 +231,7 @@ describe("packed package", () => {
 
         // `yarn pack` must have applied publishConfig.
         expect(manifest.main).toBe("dist/grapher.js")
-        expect(manifest.types).toBe("dist/grapher.public.d.ts")
+        expect(manifest.types).toBe("dist/grapher.d.ts")
         expect(manifest.exports).toBeDefined()
 
         for (const file of [

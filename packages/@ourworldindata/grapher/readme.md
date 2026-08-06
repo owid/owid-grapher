@@ -198,7 +198,7 @@ Running the build script produces the following outputs under `dist/`:
 - `grapher.js`: The ES module library build. React and React DOM are marked as external peer dependencies (ideal for modern React apps or bundler environments).
 - `grapher.bundle.js`: The standalone CDN bundle. All dependencies (including React and React DOM) are bundled, enabling plug-and-play usage directly in any HTML page.
 - `grapher.css`: The stylesheet containing all Grapher layouts and components styles.
-- `grapher.public.d.ts`: TypeScript declaration entry point for the public API.
+- `grapher.d.ts`: TypeScript declaration entry point for the public API.
 
 To compile these assets:
 
@@ -277,8 +277,6 @@ Now all the _Chart Components_ have all their own _Tables_ and Grapher renders t
 As the user interacts with **Chart Controls**, changes are made to the respective _Tables_ and the visualizations update.
 
 ### Flowchart
-
-<img src="readme.svg">
 
 ```mermaid
 graph LR
