@@ -1,5 +1,5 @@
 // FIXME: Don't mix components and business logic in this file.
-/* eslint-disable react-refresh/only-export-components */
+/* eslint-disable react/only-export-components */
 import * as _ from "lodash-es"
 import {
     excludeUndefined,
