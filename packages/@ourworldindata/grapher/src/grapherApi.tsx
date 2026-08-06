@@ -76,18 +76,26 @@ function BoundsObservingGrapher({
  *
  * @example
  * // From a pre-built OwidTable
- * GrapherLoader.fromTable({ data: table, title: "My chart" }).mount(container)
+ * GrapherLoader
+ *     .fromTable({ config: { title: "My chart" }, data: table })
+ *     .mount(container)
  *
  * // From a CSV URL
  * GrapherLoader
- *     .fromCsv({ csvUrl: "./data.csv", columnDefs: [{ slug: "gdp", type: "Numeric", name: "GDP" }], title: "My chart" })
+ *     .fromCsv({
+ *         config: { title: "My chart" },
+ *         csvUrl: "./data.csv",
+ *         columnDefs: [{ slug: "gdp", name: "GDP" }],
+ *     })
  *     .mount(container)
  *
- * // From the OWID data API
- * GrapherLoader.fromApi({ title: "My chart" }).mount(container)
+ * // From the OWID data API (config must include `dimensions`)
+ * GrapherLoader
+ *     .fromApi({ config: { title: "My chart", dimensions: [...] } })
+ *     .mount(container)
  *
  * // Unmount later
- * const loader = GrapherLoader.fromApi({ title: "My chart" }).mount(container)
+ * const loader = GrapherLoader.fromApi({ config }).mount(container)
  * loader.dispose()
  */
 export class GrapherLoader {

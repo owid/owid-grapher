@@ -527,9 +527,16 @@ export class MarkdownTextWrap implements ITextWrap {
         this.initialProps = props
     }
 
+    // The defaulted keys are listed explicitly (not derived via
+    // `keyof typeof MarkdownTextWrap.defaultOptions`): private statics lose
+    // their inferred type in the emitted declaration file, which would make
+    // this degenerate to `string | number | symbol` for package consumers.
     @imemo get props(): RequiredBy<
         MarkdownTextWrapProps,
-        keyof typeof MarkdownTextWrap.defaultOptions
+        | "maxWidth"
+        | "lineHeight"
+        | "verticalAlign"
+        | "detailsOrderedByReference"
     > {
         return { ...MarkdownTextWrap.defaultOptions, ...this.initialProps }
     }
