@@ -24,15 +24,26 @@ export interface FromTableOptions extends GrapherApiOptionsBase {
     data: OwidTable
 }
 
-/** Options for {@link GrapherLoader.fromCsv}. */
-export interface FromCsvOptions extends GrapherApiOptionsBase {
-    /** URL of a CSV file to fetch. Must have entityName, entityCode, entityId,
-     *  and year (or day) columns, plus one or more value columns. */
-    csvUrl: string
+/** Options for {@link GrapherLoader.fromCsv}. Provide the CSV either inline
+ *  (`csv`) or as a URL to fetch (`csvUrl`). It must have entityName,
+ *  entityCode, entityId, and year (or day) columns, plus one or more value
+ *  columns. */
+export type FromCsvOptions = GrapherApiOptionsBase & {
     /** Column definitions — use these to specify types and display names for
      *  your value columns. */
     columnDefs?: OwidColumnDef[]
-}
+} & (
+        | {
+              /** URL of a CSV file to fetch. */
+              csvUrl: string
+              csv?: never
+          }
+        | {
+              /** CSV content as an inline string. */
+              csv: string
+              csvUrl?: never
+          }
+    )
 
 /** Options for {@link GrapherLoader.fromApi}. */
 export interface FromApiOptions extends GrapherApiOptionsBase {
@@ -90,7 +101,7 @@ function BoundsObservingGrapher({
  *     .fromTable({ config: { title: "My chart" }, data: table })
  *     .mount(container)
  *
- * // From a CSV URL
+ * // From a CSV URL (or pass the content inline via `csv` instead)
  * GrapherLoader
  *     .fromCsv({
  *         config: { title: "My chart" },
@@ -114,9 +125,9 @@ export class GrapherLoader {
     readonly grapherState: GrapherState
     /**
      * Resolves once the chart's data has loaded (immediately for
-     * {@link fromTable}), and rejects if fetching fails — in which case the
-     * chart stays in its loading state. Awaiting this is optional; a failure
-     * is also logged to the console.
+     * {@link fromTable} and inline-CSV {@link fromCsv}), and rejects if
+     * fetching fails — in which case the chart stays in its loading state.
+     * Awaiting this is optional; a failure is also logged to the console.
      */
     readonly ready: Promise<void>
     private _reactRoot: Root | null = null
@@ -175,22 +186,31 @@ export class GrapherLoader {
         return new GrapherLoader(grapherState)
     }
 
-    /** Prepare a chart whose data will be fetched from a CSV file at the given URL. */
-    static fromCsv({
-        config,
-        csvUrl,
-        columnDefs,
-    }: FromCsvOptions): GrapherLoader {
+    /** Prepare a chart whose data comes from a CSV, either passed inline as a
+     *  string or fetched from a URL. */
+    static fromCsv(options: FromCsvOptions): GrapherLoader {
+        const { config, columnDefs } = options
+
+        // An inline CSV string can be parsed synchronously, making this
+        // equivalent to fromTable.
+        if (options.csv !== undefined)
+            return GrapherLoader.fromTable({
+                config,
+                data: new OwidTable(options.csv, columnDefs),
+            })
+
         const grapherState = new GrapherState({
             ...defaultGrapherConfigOverrides(),
             ...config,
             isConfigReady: true,
             isDataReady: false,
         })
-        const ready = OwidTable.fromUrl(csvUrl, columnDefs).then((table) => {
-            grapherState.inputTable = table
-            grapherState.isDataReady = true
-        })
+        const ready = OwidTable.fromUrl(options.csvUrl, columnDefs).then(
+            (table) => {
+                grapherState.inputTable = table
+                grapherState.isDataReady = true
+            }
+        )
         return new GrapherLoader(grapherState, ready)
     }
 
