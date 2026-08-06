@@ -1,5 +1,3 @@
-// FIXME: Don't mix components and business logic in this file.
-/* eslint-disable react/only-export-components */
 import * as _ from "lodash-es"
 import {
     excludeUndefined,
@@ -37,8 +35,6 @@ import {
     EditorOption,
     FieldDescription,
 } from "../adminShared/schemaProcessing.js"
-import type { IconDefinition } from "@fortawesome/fontawesome-common-types"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 import { GrapherInterface } from "@ourworldindata/types"
 import {
@@ -163,13 +159,6 @@ export function fetchVariablesParametersToQueryParametersString(
     return queryParamsToStr(fetchVariablesParametersToQueryParameters(params))
 }
 
-export interface IconToggleProps {
-    isOn: boolean
-    onIcon: IconDefinition
-    offIcon: IconDefinition
-    onClick: (newState: boolean) => void
-}
-
 export enum ColumnDataSourceType {
     FieldDescription = "FieldDescription",
     MultipleFieldDescriptions = "MultipleFieldDescriptions",
@@ -198,15 +187,6 @@ export type ColumnDataSource =
     | ColumnDataSourceFieldDescription
     | ColumnDataSourceReadOnlyColumn
     | ColumnDataSourceUnknown
-
-export const IconToggleComponent = (props: IconToggleProps) => (
-    <button
-        className="btn btn-light btn-sm"
-        onClick={() => props.onClick(!props.isOn)}
-    >
-        <FontAwesomeIcon icon={props.isOn ? props.onIcon : props.offIcon} />
-    </button>
-)
 
 /** Turns a search string like "nuclear share" into a BooleanOperation
     that AND connects a CONTAINS query for every word - i.e. it would result in

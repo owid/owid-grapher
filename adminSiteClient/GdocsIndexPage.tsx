@@ -1,7 +1,7 @@
 import * as React from "react"
 import cx from "clsx"
 import { AdminLayout } from "./AdminLayout.js"
-import { Modal, SearchField } from "./Forms.js"
+import { Modal, TextField } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
 import {
     faCirclePlus,
@@ -88,7 +88,7 @@ const GdocsIndexPageSearch = observer(function GdocsIndexPageSearch({
     ]
     return (
         <div className="d-flex flex-grow-1 flex-wrap">
-            <SearchField
+            <TextField
                 placeholder="Search by author, category, or title"
                 className="gdoc-index__search-bar"
                 value={searchValue}
