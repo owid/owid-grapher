@@ -27,7 +27,7 @@ export interface SvgTesterVerifyDifferenceEntry {
 
 export interface SvgTesterVerifyErrorEntry {
     viewId: string
-    kind: "timeout" | "render"
+    kind: "timeout" | "render" | "stalled"
     message: string
 }
 

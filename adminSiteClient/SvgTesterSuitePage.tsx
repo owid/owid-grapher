@@ -47,6 +47,7 @@ const VIEW_MODE_OPTIONS: { label: string; value: ViewMode }[] = [
 const KIND_LABELS: Record<SvgTesterVerifyErrorEntry["kind"], string> = {
     timeout: "Timed out",
     render: "Failed to render",
+    stalled: "Never ran",
 }
 
 /** Skip the diff when this much of the file changed */
@@ -438,8 +439,11 @@ function SvgTesterErrors({ errors }: { errors: SvgTesterVerifyErrorEntry[] }) {
                 not render
             </h2>
             <ul className="SvgTesterErrors__list">
-                {errors.map((error) => (
-                    <li key={error.viewId} className="SvgTesterErrors__item">
+                {errors.map((error, index) => (
+                    <li
+                        key={`${error.viewId}-${index}`}
+                        className="SvgTesterErrors__item"
+                    >
                         <div className="SvgTesterErrors__view">
                             <a
                                 className="SvgTesterErrors__slug"

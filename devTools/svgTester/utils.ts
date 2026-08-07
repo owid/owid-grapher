@@ -21,6 +21,7 @@ import {
 } from "@ourworldindata/utils"
 import fs, { stat } from "fs-extra"
 import path from "path"
+import workerpool from "workerpool"
 import stream from "stream"
 import { execFileSync } from "child_process"
 import {
@@ -98,8 +99,19 @@ export const resultError = (viewId: string, error: Error): VerifyResult => ({
 // safety margin so one stuck render can't hang the entire run indefinitely.
 export const JOB_TIMEOUT_MS = 2 * 60 * 1000
 
-// Each worker is a separate Node worker_thread with its own V8 isolate/heap -
-// heap is not shared, so peak memory scales close to linearly with worker count
+// Total silence for this long means the pool has stopped dispatching
+// altogether - see the comment on createSvgTesterPool for how that happens -
+// and no per-job guard can see it, because the jobs left are all still queued
+// and a queued job hasn't armed its timer yet.
+export const STALL_TIMEOUT_MS = 2 * JOB_TIMEOUT_MS
+
+/** Raised when a suite gives up part-way rather than running to the end */
+export class SuiteAbortedError extends Error {
+    override name = "SuiteAbortedError"
+}
+
+// Each worker is a separate Node process with its own V8 isolate/heap - heap is
+// not shared, so peak memory scales close to linearly with worker count
 // regardless of how much of that concurrency is actually used. Swept 4/6/8/12 on
 // a 300-chart sample under two different host-contention levels (see the
 // verify-graphs PR description for both full tables) - 6 came out as the sweet
@@ -107,6 +119,61 @@ export const JOB_TIMEOUT_MS = 2 * 60 * 1000
 // wall-clock, not just a cheaper-but-slower tradeoff. Override via
 // SVG_TESTER_MAX_WORKERS on memory-constrained hosts.
 export const MAX_WORKERS = Number(process.env.SVG_TESTER_MAX_WORKERS) || 6
+
+// A worker that wedges fails every job handed to it, so an unbroken run of
+// timeouts means the pool is sick rather than the charts being slow. Bail
+// rather than spend JOB_TIMEOUT_MS on each job that is left. Only timeouts
+// count: a change that breaks a whole chart type legitimately errors many
+// charts in a row, and the run should report all of them.
+export const MAX_CONSECUTIVE_TIMEOUTS = 3 * MAX_WORKERS
+
+/**
+ * Workers are separate processes rather than worker_threads.
+ *
+ * Rendering calls into native addons (oxfmt formats every SVG), and a thread
+ * parked inside a N-API call cannot be reclaimed: `Worker.terminate()` only
+ * unwinds JS, so workerpool can neither kill nor replace it and the pool stops
+ * dispatching for good. A child process is killable, so the per-job timeout can
+ * actually recover the pool. Costs a slower worker start than a thread; the
+ * heap was never shared between workers anyway.
+ */
+export function createSvgTesterPool(
+    maxWorkers: number = MAX_WORKERS
+): workerpool.Pool {
+    return workerpool.pool(path.join(__dirname, "worker.ts"), {
+        minWorkers: Math.min(2, maxWorkers),
+        maxWorkers,
+        workerType: "process",
+        forkOpts: {
+            execArgv: ["--require", "tsx"],
+            // A render error travels home inside the result rather than as a
+            // rejection, and `fork`'s default JSON serialization flattens an
+            // Error to `{}` - name, message and stack all gone. Structured
+            // clone keeps them, which is what worker_threads gave us for free.
+            serialization: "advanced",
+        },
+    })
+}
+
+/** How long to wait for workers to die before leaving without them */
+const POOL_TERMINATE_TIMEOUT_MS = 10 * 1000
+
+/**
+ * Must be awaited before any `process.exit()` that follows a pool.
+ *
+ * `process.exit()` took worker threads with it; it does not take child
+ * processes, and an orphaned worker is reparented to pid 1 and runs on after
+ * the build that started it. Nothing on the staging boxes reaps those.
+ */
+export async function shutDownPool(pool: workerpool.Pool): Promise<void> {
+    // Force, because a wedged worker is exactly the case this has to handle,
+    // and time-boxed, because we are on our way out either way.
+    await pool
+        .terminate(true, POOL_TERMINATE_TIMEOUT_MS)
+        .catch((error: unknown) =>
+            console.error("Could not shut the worker pool down: ", error)
+        )
+}
 
 const resultDifference = (difference: SvgDifference): VerifyResult => ({
     kind: "difference",
@@ -813,12 +880,15 @@ export async function renderAndVerifySvg({
     }
 }
 
-// A `.timeout()` breach and a render crash both arrive through the same `.catch`
-// in verify-graphs.ts, so the only thing distinguishing them is the error name
-// workerpool gives a timeout. Errors crossing a worker boundary are structured
-// clones rather than real Error instances, hence the defensive access.
+// A `.timeout()` breach, a job the suite gave up on and a render crash all
+// arrive through the same `.catch` in verify-graphs.ts, so the only thing
+// distinguishing them is the error name workerpool gives a timeout (and the one
+// SuiteAbortedError gives itself). Errors crossing a worker boundary are
+// structured clones rather than real Error instances, hence the defensive access.
 function classifyVerifyError(error: Error): SvgTesterVerifyErrorEntry["kind"] {
-    return error?.name === "TimeoutError" ? "timeout" : "render"
+    if (error?.name === "TimeoutError") return "timeout"
+    if (error?.name === "SuiteAbortedError") return "stalled"
+    return "render"
 }
 
 // Several failure paths in here `throw` a plain string rather than an Error, and
@@ -995,14 +1065,86 @@ export function startVerifyProgress(
     }
 }
 
+/**
+ * Watches a run for the two ways a sick worker pool wastes the rest of a suite:
+ * going silent altogether (STALL_TIMEOUT_MS) and timing out job after job
+ * (MAX_CONSECUTIVE_TIMEOUTS). `aborted` resolves when either happens, so the
+ * caller can stop waiting on jobs that are never going to be worth waiting for.
+ */
+export function startRunGuard(
+    options: {
+        stallTimeoutMs?: number
+        maxConsecutiveTimeouts?: number
+    } = {}
+): {
+    recordResult: (result: VerifyResult) => void
+    aborted: Promise<SuiteAbortedError>
+    stop: () => void
+} {
+    const stallTimeoutMs = options.stallTimeoutMs ?? STALL_TIMEOUT_MS
+    const maxConsecutiveTimeouts =
+        options.maxConsecutiveTimeouts ?? MAX_CONSECUTIVE_TIMEOUTS
+
+    let lastResultAt = Date.now()
+    let consecutiveTimeouts = 0
+    let timer: NodeJS.Timeout | undefined
+    let abort: (error: SuiteAbortedError) => void
+
+    const aborted = new Promise<SuiteAbortedError>((resolve) => {
+        abort = resolve
+        // Deliberately not unref'd, unlike the progress timer: this timer is the
+        // only thing left holding the loop open in exactly the case it exists to
+        // report, and an empty event loop exits 0 - a stalled suite would go out
+        // green. `stop()` is what lets the process end.
+        timer = setInterval(() => {
+            const idleMs = Date.now() - lastResultAt
+            if (idleMs >= stallTimeoutMs)
+                resolve(
+                    new SuiteAbortedError(
+                        `No verify job reported back for ${Math.round(idleMs / 1000)}s - the worker pool is wedged`
+                    )
+                )
+        }, STALL_CHECK_INTERVAL_MS)
+    })
+
+    return {
+        recordResult: (result: VerifyResult) => {
+            lastResultAt = Date.now()
+            const isTimeout =
+                result.kind === "error" &&
+                classifyVerifyError(result.error) === "timeout"
+            consecutiveTimeouts = isTimeout ? consecutiveTimeouts + 1 : 0
+            if (consecutiveTimeouts >= maxConsecutiveTimeouts)
+                abort(
+                    new SuiteAbortedError(
+                        `${consecutiveTimeouts} verify jobs timed out in a row - the worker pool is wedged`
+                    )
+                )
+        },
+        aborted,
+        stop: () => clearInterval(timer),
+    }
+}
+
+/** How often the run guard checks for silence; well below STALL_TIMEOUT_MS */
+const STALL_CHECK_INTERVAL_MS = 10 * 1000
+
 const EXIT_CODE_DIFFERENCES = 2
 const EXIT_CODE_ERROR = 1
+// Distinct from a plain error so CI can retry a suite the pool killed rather
+// than one that genuinely found broken charts - see svg-tester.sh in owid/ops.
+const EXIT_CODE_ABORTED = 3
 
 export function verifyExitCode(summary: SvgTesterVerifyRunSummary): number {
+    if (summary.errors.some((error) => error.kind === "stalled"))
+        return EXIT_CODE_ABORTED
     if (summary.counts.errors > 0) return EXIT_CODE_ERROR
     if (summary.counts.differences > 0) return EXIT_CODE_DIFFERENCES
     return 0
 }
+
+/** Cap on how many errored views the console report names one by one */
+const MAX_ERRORS_LOGGED = 20
 
 // Human-facing output. The machine-readable version of all this is
 // verify-results.json.
@@ -1028,9 +1170,13 @@ export function reportVerifyResults(
 
     if (errorResults.length) {
         console.warn(`${errorResults.length} graphs threw errors`)
-        for (const result of errorResults) {
+        // A stalled run errors every job it never reached, which is hundreds of
+        // identical lines; the full list is in verify-results.json either way.
+        for (const result of errorResults.slice(0, MAX_ERRORS_LOGGED)) {
             console.log(`${result.viewId}: ${verifyErrorMessage(result.error)}`)
         }
+        const remaining = errorResults.length - MAX_ERRORS_LOGGED
+        if (remaining > 0) console.log(`... and ${remaining} more`)
     }
 
     if (differenceResults.length) {
