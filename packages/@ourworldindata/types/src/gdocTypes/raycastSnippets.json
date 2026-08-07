@@ -106,7 +106,7 @@
     },
     {
         "name": "key-insights",
-        "text": "{.key-insights}\nheading: \n[.insights]\ntitle: \nfilename: \n[.+content]\n\n\n[]\ntitle: \nurl: \n[.+content]\n\n\n[]\ntitle: \nnarrativeChartName: \n[.+content]\n\n\n[]\n[]\n{}",
+        "text": "{.key-insights}\nheading: \n[.insights]\ntitle: \nfilename: \n[.+content]\n\n\n[]\ntitle: \nurl: \n[.+content]\n\n\n[]\ntitle: \nnarrativeChartName: \n[.+content]\n\n\n[]\ntitle: \n[.+asset]\n{.bespoke-component}\nbundle: \nvariant: \nsize: \n{.config}\nregion: \n{}\n{}\n[]\n[.+content]\n\n[]\n[]\n{}",
         "keyword": "+key-insights"
     },
     {

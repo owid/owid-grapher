@@ -576,6 +576,9 @@ export function enrichedBlockToRawBlock(
                         filename: insight.filename,
                         url: insight.url,
                         narrativeChartName: insight.narrativeChartName,
+                        asset: insight.asset?.map((asset) =>
+                            enrichedBlockToRawBlock(asset)
+                        ),
                         content: insight.content?.map((content) =>
                             enrichedBlockToRawBlock(content)
                         ),

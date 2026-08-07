@@ -11,6 +11,7 @@ export type Container =
     | "side-by-side"
     | "datapage"
     | "key-insight"
+    | "key-insight-asset"
     | "about-page"
     | "author-header"
     | "data-insight"
@@ -161,6 +162,11 @@ const layouts: { [key in Container]: Layouts} = {
     ["key-insight"]: {
         ["default"]: "col-start-1 span-cols-5 col-md-start-1 span-md-cols-12",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-md-cols-12 grid-md-cols-12",
+    },
+    ["key-insight-asset"]: {
+        // The asset column is already sized by its wrapper, so blocks inside it
+        // just fill the width they're given - no grid placement of their own.
+        ["default"]: "",
     },
     ["latest-announcement"]: {
         ["default"]: "span-cols-8 span-sm-cols-6",
