@@ -108,6 +108,62 @@ describe("dropping labels", () => {
         expect(stateWithFocus.visibleSeriesNames).toEqual(["Mexico"])
     })
 
+    it("can disable highlighted-series priority", () => {
+        const seriesWithHighlight = series.map((s) => ({
+            ...s,
+            emphasis:
+                s.seriesName === "Mexico"
+                    ? Emphasis.Highlighted
+                    : Emphasis.Muted,
+        }))
+        const yRange: [number, number] = [0, 50]
+        const options = {
+            yAxis: () => makeAxis({ yRange }),
+            prioritizeHighlightedSeries: false,
+        }
+
+        const state = new VerticalLabelsState(series, options)
+        const stateWithHighlight = new VerticalLabelsState(
+            seriesWithHighlight,
+            options
+        )
+        const importantStateWithHighlight = new VerticalLabelsState(
+            seriesWithHighlight,
+            {
+                ...options,
+                seriesNamesSortedByImportance: ["Canada", "Mexico"],
+            }
+        )
+        const importantStateWithDefaultPriority = new VerticalLabelsState(
+            seriesWithHighlight,
+            {
+                yAxis: options.yAxis,
+                seriesNamesSortedByImportance: ["Canada", "Mexico"],
+            }
+        )
+        const uncrowdedStateWithHighlight = new VerticalLabelsState(
+            seriesWithHighlight,
+            {
+                ...options,
+                yAxis: () => makeAxis({ yRange: [0, 100] }),
+            }
+        )
+
+        expect(stateWithHighlight.visibleSeriesNames).toEqual(
+            state.visibleSeriesNames
+        )
+        expect(importantStateWithHighlight.visibleSeriesNames).toEqual([
+            "Canada",
+        ])
+        expect(importantStateWithDefaultPriority.visibleSeriesNames).toEqual([
+            "Mexico",
+        ])
+        expect(uncrowdedStateWithHighlight.visibleSeriesNames).toEqual([
+            "Canada",
+            "Mexico",
+        ])
+    })
+
     it("uses all available space", () => {
         const series = makeSeries([
             { seriesName: "Canada", yValue: 5 },

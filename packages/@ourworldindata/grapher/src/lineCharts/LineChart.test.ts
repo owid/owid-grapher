@@ -1,4 +1,4 @@
-import { expect, it, describe } from "vitest"
+import { expect, it, describe, vi } from "vitest"
 
 import {
     SampleColumnSlugs,
@@ -9,6 +9,7 @@ import {
     OwidTable,
     ErrorValueTypes,
 } from "@ourworldindata/core-table"
+import { Bounds } from "@ourworldindata/utils"
 import { ChartManager } from "../chart/ChartManager"
 import {
     ColumnTypeNames,
@@ -21,6 +22,7 @@ import { LineChartManager } from "./LineChartConstants"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { LineChart } from "./LineChart"
 import { LineChartState } from "./LineChartState"
+import { Emphasis } from "../interaction/Emphasis"
 
 it("can create a new chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
@@ -286,6 +288,77 @@ it("reverses order of plotted series to plot the first one over the others", () 
 
     expect(chart.placedSeries).toHaveLength(2)
     expect(chart.placedSeries[0].seriesName).toEqual("pop")
+})
+
+it("keeps a crowded vertical legend stable while hovering a label", () => {
+    vi.useFakeTimers()
+    vi.stubGlobal("window", { setTimeout })
+
+    try {
+        const entityNames = Array.from(
+            { length: 20 },
+            (_, index) => `Entity ${index + 1}`
+        )
+        const table = new OwidTable({
+            entityName: entityNames.flatMap((name) => [name, name]),
+            year: entityNames.flatMap(() => [2000, 2001]),
+            gdp: entityNames.flatMap((_, index) => [index, index + 1]),
+        })
+        const manager: LineChartManager = {
+            table,
+            yColumnSlugs: ["gdp"],
+            selection: entityNames,
+            showSeriesLabels: true,
+        }
+        const chartState = new LineChartState({ manager })
+        const chart = new LineChart({
+            chartState,
+            bounds: new Bounds(0, 0, 640, 180),
+        })
+        const getLegendLayout = (): {
+            seriesName: string
+            bounds: Bounds
+        }[] =>
+            chart["verticalLabelsState"].placedSeries.map((series) => ({
+                seriesName: series.seriesName,
+                bounds: series.bounds,
+            }))
+
+        const initialLayout = getLegendLayout()
+        expect(initialLayout.length).toBeLessThan(entityNames.length)
+        const hoveredSeriesName = initialLayout[1].seriesName
+
+        chart["onVerticalLabelMouseEnter"](hoveredSeriesName)
+
+        expect(getLegendLayout()).toEqual(initialLayout)
+        expect(
+            chart["verticalLabelsState"].renderSeries.find(
+                (series) => series.seriesName === hoveredSeriesName
+            )?.emphasis
+        ).toBe(Emphasis.Highlighted)
+
+        chart["onVerticalLabelMouseLeave"]()
+        vi.advanceTimersByTime(200)
+
+        expect(getLegendLayout()).toEqual(initialLayout)
+        expect(
+            chart["verticalLabelsState"].renderSeries.find(
+                (series) => series.seriesName === hoveredSeriesName
+            )?.emphasis
+        ).toBe(Emphasis.Default)
+
+        chart["onVerticalLabelMouseEnter"]("Missing series")
+
+        expect(getLegendLayout()).toEqual(initialLayout)
+        expect(
+            chart["verticalLabelsState"].renderSeries.every(
+                (series) => series.emphasis === Emphasis.Muted
+            )
+        ).toBe(true)
+    } finally {
+        vi.unstubAllGlobals()
+        vi.useRealTimers()
+    }
 })
 
 describe("externalLegendBins", () => {
