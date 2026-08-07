@@ -47,15 +47,6 @@ import { GRAPHER_BACKGROUND } from "../color/ColorConstants.js"
 import { ChartAreaContent } from "../chart/ChartAreaContent"
 import { getChartSvgProps } from "../chart/ChartUtils"
 import { StaticChartWrapper } from "../chart/StaticChartWrapper"
-import {
-    ChartNotice,
-    ChartNoticeManager,
-    StaticChartNotice,
-} from "./ChartNotice"
-
-/** Gap between the notice and the chart it sits above */
-const CHART_NOTICE_PADDING_BOTTOM = 4
-
 export interface CaptionedChartManager
     extends
         ChartManager,
@@ -63,8 +54,7 @@ export interface CaptionedChartManager
         FooterManager,
         HeaderManager,
         DataTableManager,
-        ControlsRowManager,
-        ChartNoticeManager {
+        ControlsRowManager {
     bakedGrapherURL?: string
     isReady?: boolean
     whatAreWeWaitingFor?: string
@@ -280,22 +270,6 @@ export class CaptionedChart extends AbstractCaptionedChart {
             : 0
     }
 
-    @computed protected get chartNotice(): ChartNotice {
-        return new ChartNotice({
-            manager: this.manager,
-            maxWidth: this.maxWidth,
-        })
-    }
-
-    @computed private get showChartNotice(): boolean {
-        return this.chartNotice.height > 0
-    }
-
-    @computed private get chartNoticeHeightWithPadding(): number {
-        if (!this.showChartNotice) return 0
-        return this.chartNotice.height + CHART_NOTICE_PADDING_BOTTOM
-    }
-
     @computed private get timelineHeightWithPadding(): number {
         return this.manager.hasTimeline
             ? TIMELINE_HEIGHT + this.verticalPaddingSmall
@@ -318,7 +292,6 @@ export class CaptionedChart extends AbstractCaptionedChart {
                 2 * this.framePaddingVertical -
                 this.headerHeightWithPadding -
                 this.controlsRowHeightWithPadding -
-                this.chartNoticeHeightWithPadding -
                 this.timelineHeightWithPadding -
                 this.footerHeightWithPadding -
                 this.relatedQuestionHeightWithPadding
@@ -340,12 +313,11 @@ export class CaptionedChart extends AbstractCaptionedChart {
         //            ---- vertical space
         //    #2 [Controls]
         //            ---- vertical space (small)
-        //    #3 [Tolerance notice]
-        //    #4 Chart/Map/Table
+        //    #3 Chart/Map/Table
         //            ---- vertical space (small)
-        //    #5 [Timeline]
+        //    #4 [Timeline]
         //            ---- vertical space
-        //    #6 Footer
+        //    #5 Footer
         //    #6 [Related question]
         return (
             <div
@@ -371,33 +343,20 @@ export class CaptionedChart extends AbstractCaptionedChart {
                             <VerticalSpace height={this.verticalPaddingSmall} />
                         )}
 
-                        {/* #3 [Tolerance notice] */}
-                        {this.showChartNotice && (
-                            <>
-                                <ChartNotice
-                                    manager={this.manager}
-                                    maxWidth={this.maxWidth}
-                                />
-                                <VerticalSpace
-                                    height={CHART_NOTICE_PADDING_BOTTOM}
-                                />
-                            </>
-                        )}
-
-                        {/* #4 Chart/Map/Table */}
+                        {/* #3 Chart/Map/Table */}
                         <ChartAreaContent
                             manager={this.manager}
                             bounds={this.boundsForChartArea}
                             padWidth={GRAPHER_FRAME_PADDING_HORIZONTAL}
                         />
 
-                        {/* #5 [Timeline] */}
+                        {/* #4 [Timeline] */}
                         {this.manager.hasTimeline && (
                             <VerticalSpace height={this.verticalPaddingSmall} />
                         )}
                         {this.manager.hasTimeline && this.renderTimeline()}
 
-                        {/* #6 Footer */}
+                        {/* #5 Footer */}
                         <VerticalSpace height={this.verticalPadding} />
                         <Footer
                             manager={this.manager}
@@ -456,48 +415,12 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
             .padHeight(this.framePaddingVertical)
     }
 
-    /**
-     * Height of the notice drawn above the footer. Static exports can't be
-     * scrubbed, so unlike the interactive chart they reserve nothing and this
-     * is zero whenever the exported time needs no notice.
-     */
-    @computed private get staticChartNoticeHeight(): number {
-        return new StaticChartNotice({
-            manager: this.manager,
-            maxWidth: this.maxWidth,
-            targetX: 0,
-            targetY: 0,
-        }).height
-    }
-
-    /**
-     * The notice reads as part of the small print at the bottom, so it sits the
-     * same distance above the footer as the footer's own note sits above its
-     * data source line
-     */
-    @computed private get staticChartNoticeGap(): number {
-        return this.staticFooter.verticalPadding
-    }
-
-    @computed private get staticChartNoticeY(): number {
-        return (
-            this.innerBounds.bottom -
-            this.staticFooter.height -
-            this.staticChartNoticeGap -
-            this.staticChartNoticeHeight
-        )
-    }
-
-    /** Bounds of the chart area (without header, notice and footer) */
+    /** Bounds of the chart area (without header and footer) */
     protected get boundsForChartArea(): Bounds {
-        const noticeHeight = this.staticChartNoticeHeight
         return this.innerBounds
             .padTop(this.staticHeader.height)
-            .padTop(this.manager.isOnMapTab ? 0 : this.verticalPadding)
             .padBottom(this.staticFooter.height + this.verticalPadding)
-            .padBottom(
-                noticeHeight ? noticeHeight + this.staticChartNoticeGap : 0
-            )
+            .padTop(this.manager.isOnMapTab ? 0 : this.verticalPadding)
     }
 
     @computed protected get staticFooter(): Footer {
@@ -577,12 +500,6 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
                 <ChartAreaContent
                     manager={this.manager}
                     bounds={this.boundsForChartArea}
-                />
-                <StaticChartNotice
-                    manager={manager}
-                    maxWidth={maxWidth}
-                    targetX={innerBounds.x}
-                    targetY={this.staticChartNoticeY}
                 />
                 <StaticFooter
                     manager={manager}

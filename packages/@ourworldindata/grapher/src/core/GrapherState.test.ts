@@ -1056,6 +1056,47 @@ describe("toleranceNotice", () => {
         expect(grapher.toleranceNotice).toBeUndefined()
     })
 
+    describe("appending to the authored note", () => {
+        const NOTICE =
+            "Some values are from up to 3 years before or after the year shown."
+
+        it("runs the two together as sentences", () => {
+            const grapher = makeGrapher({
+                note: "Values are adjusted for inflation.",
+            })
+            expect(grapher.effectiveNote).toEqual(
+                `Values are adjusted for inflation. ${NOTICE}`
+            )
+        })
+
+        // Run together, an unterminated note would collide with the notice
+        it("terminates an authored note that lacks a full stop", () => {
+            const grapher = makeGrapher({
+                note: "Values are adjusted for inflation",
+            })
+            expect(grapher.effectiveNote).toEqual(
+                `Values are adjusted for inflation. ${NOTICE}`
+            )
+        })
+
+        it("leaves other terminal punctuation alone", () => {
+            const grapher = makeGrapher({ note: "Is this adjusted?" })
+            expect(grapher.effectiveNote).toEqual(`Is this adjusted? ${NOTICE}`)
+        })
+
+        it("stands alone when there is no authored note", () => {
+            expect(makeGrapher().effectiveNote).toEqual(NOTICE)
+        })
+
+        it("leaves the authored note alone in a year with no tolerance", () => {
+            const grapher = makeGrapher({ note: "A note." })
+            // 2001 is the one year every country has data for
+            grapher.timelineHandleTimeBounds = [2001, 2001]
+            expect(grapher.toleranceNotice).toBeUndefined()
+            expect(grapher.effectiveNote).toEqual("A note.")
+        })
+    })
+
     describe("chart types other than the map", () => {
         const makeChartGrapher = (
             props: Partial<GrapherProgrammaticInterface>

@@ -2461,6 +2461,23 @@ export class GrapherState
         return this.chartState.toleranceNotice
     }
 
+    /**
+     * Effective note resolved from the authored note, with the tolerance
+     * notice appended when tolerance was applied to something on screen
+     */
+    @computed get effectiveNote(): string | undefined {
+        const { note, toleranceNotice } = this
+        if (!toleranceNotice) return note
+
+        const authoredNote = note?.trim()
+        if (!authoredNote) return toleranceNotice
+
+        // Run the two together as sentences, terminating the authored note if
+        // the author didn't, so the notice doesn't read as part of it
+        const separator = /[.!?]$/.test(authoredNote) ? " " : ". "
+        return `${authoredNote}${separator}${toleranceNotice}`
+    }
+
     @computed get shouldAddEntitySuffixToTitle(): boolean {
         const selectedEntityNames = this.selection.selectedEntityNames
         const showEntityAnnotation = !this.hideAnnotationFieldsInTitle?.entity
