@@ -15,5 +15,15 @@ export default defineConfig({
         ],
         pool: "threads",
         setupFiles: ["devTools/vitest-setup.ts"],
+        benchmark: {
+            // benchmarks have their own include/exclude, so the compiled .bench.js
+            // files in dist/ would get picked up without this
+            exclude: [
+                ...configDefaults.exclude,
+                "itsJustJavascript/**",
+                "**/dist/**",
+                "bespoke/**",
+            ],
+        },
     },
 })

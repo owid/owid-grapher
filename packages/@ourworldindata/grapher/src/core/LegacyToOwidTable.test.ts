@@ -1,6 +1,7 @@
 import { expect, it, describe } from "vitest"
 
 import {
+    ColumnTypeNames,
     GRAPHER_CHART_TYPES,
     OwidTableSlugs,
     StandardOwidColumnDefs,
@@ -14,8 +15,12 @@ import {
     OwidTable,
 } from "@ourworldindata/core-table"
 import {
+    buildVariableTable,
+    fullJoinTables,
+    JoinTable,
     legacyToOwidTableAndDimensions,
     legacyToOwidTableAndDimensionsWithMandatorySlug,
+    owidTableToJoinTable,
 } from "./LegacyToOwidTable"
 import {
     MultipleOwidVariableDataDimensionsMap,
@@ -1003,5 +1008,136 @@ Papua New Guinea,PNG,1983,5.5,1983,`
             config.selectedEntityColors
         ).get("3512").def
         expect(columnDef.nonRedistributable).toEqual(true)
+    })
+})
+
+describe(fullJoinTables, () => {
+    const makeOwidTable = (
+        variableId: number,
+        rows: [entityId: number, time: number, value: number][],
+        timeInterval?: TimeInterval
+    ): OwidTable => {
+        const entityIds = [...new Set(rows.map((row) => row[0]))]
+        return buildVariableTable({
+            data: {
+                entities: rows.map((row) => row[0]),
+                years: rows.map((row) => row[1]),
+                values: rows.map((row) => row[2]),
+            },
+            metadata: {
+                id: variableId,
+                display: timeInterval ? { timeInterval } : undefined,
+                dimensions: {
+                    years: { values: [] },
+                    entities: {
+                        values: entityIds.map((id) => ({
+                            id,
+                            name: `Entity ${id}`,
+                        })),
+                    },
+                },
+            },
+        })
+    }
+    const makeTable = (...args: Parameters<typeof makeOwidTable>): JoinTable =>
+        owidTableToJoinTable(makeOwidTable(...args))
+
+    it("joins by year+entity", () => {
+        const joined = fullJoinTables(
+            [
+                makeTable(2, [
+                    [1, 2000, 1],
+                    [1, 2001, 2],
+                    [2, 2001, 3],
+                ]),
+                // partial overlap, so the join has misses too
+                makeTable(3, [
+                    [1, 2001, 10],
+                    [2, 2003, 11],
+                ]),
+            ],
+            [OwidTableSlugs.Year, OwidTableSlugs.EntityId]
+        )
+
+        expect(joined.columnStore["2"]).toEqual([
+            1,
+            2,
+            3,
+            ErrorValueTypes.NoMatchingValueAfterJoin,
+        ])
+        expect(joined.columnStore["3"]).toEqual([
+            ErrorValueTypes.NoMatchingValueAfterJoin,
+            10,
+            ErrorValueTypes.NoMatchingValueAfterJoin,
+            11,
+        ])
+    })
+
+    it("joins days and years via fallbacks", () => {
+        const dayTable = owidTableToJoinTable(
+            makeOwidTable(
+                4,
+                [
+                    [1, 18992, 5],
+                    [1, 18993, 6],
+                    [2, 18992, 7],
+                ],
+                TimeInterval.Day
+            ).appendColumns([
+                {
+                    slug: OwidTableSlugs.Year,
+                    name: OwidTableSlugs.Year,
+                    type: ColumnTypeNames.Year,
+                    values: [2022, 2022, 2022],
+                },
+            ])
+        )
+        const yearTable = makeTable(5, [
+            [1, 2022, 100],
+            // only matched via the entity-only fallback
+            [2, 2015, 200],
+        ])
+        const joined = fullJoinTables(
+            [dayTable, yearTable],
+            [OwidTableSlugs.Day, OwidTableSlugs.EntityId],
+            [
+                [OwidTableSlugs.Year, OwidTableSlugs.EntityId],
+                [OwidTableSlugs.EntityId],
+            ]
+        )
+
+        expect(joined.columnStore["4"]).toEqual([5, 6, 7])
+        // entity 1 matches by year+entity, entity 2 by entity only
+        expect(joined.columnStore["5"]).toEqual([100, 100, 200])
+    })
+
+    it("throws when an entity id is too large for the composite key encoding", () => {
+        // entity ids have to be below 2^26 for the numeric composite join keys
+        const hugeId = 2 ** 26
+        const tables = [
+            makeTable(2, [[hugeId, 2000, 1]]),
+            makeTable(3, [[hugeId, 2001, 2]]),
+        ]
+        expect(() =>
+            fullJoinTables(tables, [
+                OwidTableSlugs.Year,
+                OwidTableSlugs.EntityId,
+            ])
+        ).toThrow("does not fit the composite key encoding")
+    })
+
+    it("throws when a time value is too large for the composite key encoding", () => {
+        // times have to be within ±2^26 for the numeric composite join keys
+        const hugeYear = 2 ** 26
+        const tables = [
+            makeTable(2, [[1, hugeYear, 1]]),
+            makeTable(3, [[1, 2001, 2]]),
+        ]
+        expect(() =>
+            fullJoinTables(tables, [
+                OwidTableSlugs.Year,
+                OwidTableSlugs.EntityId,
+            ])
+        ).toThrow("does not fit the composite key encoding")
     })
 })
