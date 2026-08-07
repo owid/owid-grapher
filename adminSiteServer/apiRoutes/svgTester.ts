@@ -40,6 +40,23 @@ async function headCommit(cwd?: string): Promise<string | null> {
     }
 }
 
+/** Subject line of a commit, or null when it isn't in this checkout's history */
+async function commitSubject(commit: string | null): Promise<string | null> {
+    // The sha comes out of a file on disk, so don't hand git anything shaped
+    // like an option or a revision range.
+    if (!commit || !/^[0-9a-f]{7,40}$/i.test(commit)) return null
+    try {
+        const { stdout } = await execFileAsync(
+            "git",
+            ["log", "-1", "--format=%s", commit, "--"],
+            { encoding: "utf-8" }
+        )
+        return stdout.trim() || null
+    } catch {
+        return null
+    }
+}
+
 async function readResults(suite: SvgTesterSuite): Promise<{
     results: SvgTesterVerifyRunSummary | null
     isUnreadable: boolean
@@ -77,7 +94,16 @@ export async function getSvgTesterSuites(): Promise<{
                 grapherHead &&
                 results.grapherCommit !== grapherHead
             )
-            return { suite, results, isStale, isUnreadable }
+            const grapherCommitSubject = await commitSubject(
+                results?.grapherCommit ?? null
+            )
+            return {
+                suite,
+                results,
+                grapherCommitSubject,
+                isStale,
+                isUnreadable,
+            }
         })
     )
 
@@ -98,7 +124,11 @@ export async function getSvgTesterResults(
         results.grapherCommit !== grapherHead
     )
 
-    return { suite, results, isStale, isUnreadable }
+    const grapherCommitSubject = await commitSubject(
+        results?.grapherCommit ?? null
+    )
+
+    return { suite, results, grapherCommitSubject, isStale, isUnreadable }
 }
 
 /** Serve one SVG out of the svgs checkout */

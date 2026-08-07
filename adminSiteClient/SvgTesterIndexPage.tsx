@@ -130,16 +130,23 @@ const columns: TableColumnsType<SvgTesterSuiteStatus> = [
         render: (_, status) => {
             const commit = status.results?.grapherCommit
             if (!commit) return "–"
-            const short = <code title={commit}>{commit.slice(0, 7)}</code>
-            if (ENV === "development") return short
+            const short = <code>{commit.slice(0, 7)}</code>
+            const link =
+                ENV === "development" ? (
+                    short
+                ) : (
+                    <a
+                        href={`https://github.com/owid/owid-grapher/commit/${commit}`}
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        {short}
+                    </a>
+                )
             return (
-                <a
-                    href={`https://github.com/owid/owid-grapher/commit/${commit}`}
-                    target="_blank"
-                    rel="noopener"
-                >
-                    {short}
-                </a>
+                <Tooltip title={status.grapherCommitSubject ?? commit}>
+                    {link}
+                </Tooltip>
             )
         },
     },
