@@ -649,11 +649,17 @@ function ArticleBlockInternal({
             </div>
         ))
         .with({ type: "side-by-side" }, (block) => {
-            // Use the chart info detected at the top level
+            // Use the chart info detected at the top level. The compensation
+            // offsets the multi-dim's controls row, which is only rendered
+            // when the embed's controls are visible (no hideControls=true).
+            const controlsHidden = (url: string | undefined): boolean =>
+                Url.fromURL(url ?? "").queryParams.hideControls === "true"
             const leftIsMdim =
-                leftLinkedChart?.configType === ChartConfigType.MultiDim
+                leftLinkedChart?.configType === ChartConfigType.MultiDim &&
+                !controlsHidden(leftIsChart ? leftBlock.url : undefined)
             const rightIsMdim =
-                rightLinkedChart?.configType === ChartConfigType.MultiDim
+                rightLinkedChart?.configType === ChartConfigType.MultiDim &&
+                !controlsHidden(rightIsChart ? rightBlock.url : undefined)
 
             // Check if both are charts and one is mdim and the other isn't
             const shouldApplyCompensation =
