@@ -161,7 +161,7 @@ const columns: TableColumnsType<SvgTesterSuiteStatus> = [
 function StatusTag({ status }: { status: SvgTesterSuiteStatus }) {
     const display = displayStatus(status)
     return (
-        <>
+        <span className="SvgTesterIndexPage__status">
             <Tag color={DISPLAY_STATUS_COLORS[display]}>
                 {DISPLAY_STATUS_LABELS[display]}
             </Tag>
@@ -170,6 +170,6 @@ function StatusTag({ status }: { status: SvgTesterSuiteStatus }) {
                     <Tag color="warning">Stale</Tag>
                 </Tooltip>
             )}
-        </>
+        </span>
     )
 }
