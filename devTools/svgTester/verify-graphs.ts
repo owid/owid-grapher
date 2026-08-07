@@ -102,7 +102,6 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
                 }
             })
 
-        // if verbose, log how many SVGs we're going to process
         const jobCount = verifyJobs.length
         if (jobCount === 0) {
             utils.logIfVerbose(verbose, "No matching configs found")
@@ -117,12 +116,9 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
                 })
             )
             process.exit(0)
-        } else {
-            utils.logIfVerbose(
-                verbose,
-                `Verifying ${jobCount} SVG${jobCount > 1 ? "s" : ""}...`
-            )
         }
+
+        console.log(`Verifying ${jobCount} SVG${jobCount > 1 ? "s" : ""}...`)
 
         const pool = workerpool.pool(__dirname + "/worker.ts", {
             minWorkers: 2,
@@ -132,21 +128,36 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
             },
         })
 
+        const progress = utils.startVerifyProgress(testSuite, jobCount, pool)
+
         // Parallelize the CPU heavy verification using the workerpool library
         // This call will then in parallel take the descriptions of the verifyJobs,
         // load the config and data and intialize a grapher, create the default svg output and check if it's md5 hash is the same as the one in
         // the reference csv file (from the referenceDataByChartKey lookup above). The entire parallel operation returns a promise containing an array
         // of result values.
-        const validationResults: utils.VerifyResult[] = await Promise.all(
-            verifyJobs.map((job) =>
-                pool
-                    .exec("renderAndVerifySvg", [job])
-                    .timeout(JOB_TIMEOUT_MS)
-                    .catch((err: Error) =>
-                        utils.resultError(job.dir.viewId, err)
-                    )
+        let validationResults: utils.VerifyResult[]
+        try {
+            validationResults = await Promise.all(
+                verifyJobs.map((job) =>
+                    pool
+                        .exec("renderAndVerifySvg", [job])
+                        .timeout(JOB_TIMEOUT_MS)
+                        .catch((err: Error) => {
+                            if (err?.name === "TimeoutError")
+                                console.warn(
+                                    `Timed out after ${JOB_TIMEOUT_MS}ms: ${job.dir.viewId}`
+                                )
+                            return utils.resultError(job.dir.viewId, err)
+                        })
+                        .then((result: utils.VerifyResult) => {
+                            progress.recordResult(result)
+                            return result
+                        })
+                )
             )
-        )
+        } finally {
+            progress.stop()
+        }
 
         if (validationResults.length !== verifyJobs.length)
             // This is a sanity check that should never trigger
