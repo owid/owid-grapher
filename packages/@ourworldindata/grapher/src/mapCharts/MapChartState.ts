@@ -353,8 +353,6 @@ export class MapChartState implements ChartState, ColorScaleManager {
             timeColumn: this.transformedTable.timeColumn,
             timeSpan: findTimeSpan(this.inputTable),
             timeTolerance: this.timeTolerance,
-            // A faceted map shows one target time per facet
-            hasMultipleTargetTimes: this.manager.isFaceted,
         })
     }
 

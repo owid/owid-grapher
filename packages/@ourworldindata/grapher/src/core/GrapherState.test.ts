@@ -629,7 +629,7 @@ describe("toleranceNotice", () => {
     it("explains the tolerance on the map tab", () => {
         const grapher = makeGrapher()
         expect(grapher.toleranceNotice).toEqual(
-            "Some values are from up to 3 years before or after the year shown."
+            "Where data is missing, the closest available value within 3 years is used instead."
         )
     })
 
@@ -656,7 +656,7 @@ describe("toleranceNotice", () => {
         const grapher = makeGrapher({ map: { timeTolerance: 11 } })
         for (const year of [2000, 2002]) {
             grapher.timelineHandleTimeBounds = [year, year]
-            expect(grapher.toleranceNotice).toContain("up to 11 years")
+            expect(grapher.toleranceNotice).toContain("within 11 years")
         }
     })
 
@@ -664,7 +664,7 @@ describe("toleranceNotice", () => {
         // Germany only needs a year of tolerance to reach its 2001 value
         const grapher = makeGrapher()
         grapher.timelineHandleTimeBounds = [2002, 2002]
-        expect(grapher.toleranceNotice).toContain("up to 3 years")
+        expect(grapher.toleranceNotice).toContain("within 3 years")
     })
 
     // Indicators that accept a value from any time use a sentinel tolerance,
@@ -672,7 +672,7 @@ describe("toleranceNotice", () => {
     it("drops the window when the tolerance spans the whole chart", () => {
         const grapher = makeGrapher({ map: { timeTolerance: 9999 } })
         expect(grapher.toleranceNotice).toEqual(
-            "Some values are not from the year shown, but from the nearest year with data."
+            "Where data is missing, the closest available value is used instead."
         )
     })
 
@@ -680,10 +680,10 @@ describe("toleranceNotice", () => {
         // The fixture runs from 1990 to 2002
         expect(
             makeGrapher({ map: { timeTolerance: 12 } }).toleranceNotice
-        ).not.toContain("up to")
+        ).not.toContain("within")
         expect(
             makeGrapher({ map: { timeTolerance: 11 } }).toleranceNotice
-        ).toContain("up to 11 years")
+        ).toContain("within 11 years")
     })
 
     it("gives the tolerance of sub-yearly indicators in days", () => {
@@ -706,11 +706,11 @@ describe("toleranceNotice", () => {
             map: { timeTolerance: 90 },
         })
         expect(grapher.toleranceNotice).toEqual(
-            "Some values are from up to 90 days before or after the month shown."
+            "Where data is missing, the closest available value within 90 days is used instead."
         )
     })
 
-    it("names the time interval of decades, and their tolerance in years", () => {
+    it("gives the tolerance of decadal indicators in years", () => {
         const grapher = makeGrapher({
             table: new OwidTable(
                 [
@@ -728,28 +728,28 @@ describe("toleranceNotice", () => {
             map: { timeTolerance: 10 },
         })
         expect(grapher.toleranceNotice).toEqual(
-            "Some values are from up to 10 years before or after the decade shown."
+            "Where data is missing, the closest available value within 10 years is used instead."
         )
     })
 
     it("falls back to the indicator's tolerance if the map config doesn't specify one", () => {
         const grapher = makeGrapher({ map: {} })
-        expect(grapher.toleranceNotice).toContain("up to a year")
+        expect(grapher.toleranceNotice).toContain("within a year")
     })
 
-    it("pluralizes the time interval for a faceted map", () => {
+    it("is shown on a faceted map", () => {
         const grapher = makeGrapher()
         grapher.timelineHandleTimeBounds = [2000, 2002]
         expect(grapher.isFaceted).toBe(true)
         expect(grapher.toleranceNotice).toEqual(
-            "Some values are from up to 3 years before or after the years shown."
+            "Where data is missing, the closest available value within 3 years is used instead."
         )
     })
 
     it("is included in static exports", () => {
         const grapher = makeGrapher()
         grapher.isExportingToSvgOrPng = true
-        expect(grapher.toleranceNotice).toContain("up to 3 years")
+        expect(grapher.toleranceNotice).toContain("within 3 years")
     })
 
     // Tolerance substitutes a value from another time, so a chart that covers
@@ -1058,7 +1058,7 @@ describe("toleranceNotice", () => {
 
     describe("appending to the authored note", () => {
         const NOTICE =
-            "Some values are from up to 3 years before or after the year shown."
+            "Where data is missing, the closest available value within 3 years is used instead."
 
         it("runs the two together as sentences", () => {
             const grapher = makeGrapher({
@@ -1130,16 +1130,14 @@ describe("toleranceNotice", () => {
                 ...props,
             })
 
-        const SINGLE_TIME_NOTICE =
-            "Some values are from up to 3 years before or after the year shown."
-        const TWO_TIME_NOTICE =
-            "Some values are from up to 3 years before or after the years shown."
+        const NOTICE =
+            "Where data is missing, the closest available value within 3 years is used instead."
 
         it("explains the tolerance on a stacked discrete bar chart", () => {
             const grapher = makeChartGrapher({
                 chartTypes: [GRAPHER_CHART_TYPES.StackedDiscreteBar],
             })
-            expect(grapher.toleranceNotice).toEqual(SINGLE_TIME_NOTICE)
+            expect(grapher.toleranceNotice).toEqual(NOTICE)
         })
 
         it("explains the tolerance on a Marimekko chart", () => {
@@ -1147,31 +1145,30 @@ describe("toleranceNotice", () => {
                 chartTypes: [GRAPHER_CHART_TYPES.Marimekko],
                 xSlug: "pop",
             })
-            expect(grapher.toleranceNotice).toEqual(SINGLE_TIME_NOTICE)
+            expect(grapher.toleranceNotice).toEqual(NOTICE)
         })
 
         // Slopes always run between two time points
-        it("pluralizes the time interval on a slope chart", () => {
+        it("explains the tolerance on a slope chart", () => {
             const grapher = makeChartGrapher({
                 chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
             })
-            expect(grapher.toleranceNotice).toEqual(TWO_TIME_NOTICE)
+            expect(grapher.toleranceNotice).toEqual(NOTICE)
         })
 
-        it("pluralizes the time interval on a time-range dumbbell chart", () => {
+        it("explains the tolerance on a time-range dumbbell chart", () => {
             const grapher = makeChartGrapher({
                 chartTypes: [GRAPHER_CHART_TYPES.Dumbbell],
             })
-            expect(grapher.toleranceNotice).toEqual(TWO_TIME_NOTICE)
+            expect(grapher.toleranceNotice).toEqual(NOTICE)
         })
 
-        // Comparing two columns puts both dumbbell heads at the same time
-        it("keeps the time interval singular for a two-column dumbbell", () => {
+        it("explains the tolerance on a two-column dumbbell chart", () => {
             const grapher = makeChartGrapher({
                 chartTypes: [GRAPHER_CHART_TYPES.Dumbbell],
                 ySlugs: "gdp pop",
             })
-            expect(grapher.toleranceNotice).toEqual(SINGLE_TIME_NOTICE)
+            expect(grapher.toleranceNotice).toEqual(NOTICE)
         })
 
         // Discrete bars print each bar's own year next to its value already

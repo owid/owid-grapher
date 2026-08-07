@@ -353,8 +353,6 @@ export class SlopeChartState implements ChartState {
             timeColumn: this.transformedTable.timeColumn,
             timeSpan: findTimeSpan(this.inputTable),
             timeTolerance: findConfiguredTolerance(this.yColumns),
-            // Slopes always run between two time points
-            hasMultipleTargetTimes: true,
         })
     }
 

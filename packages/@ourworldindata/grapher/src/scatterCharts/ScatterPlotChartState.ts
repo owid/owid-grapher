@@ -474,13 +474,10 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
         // time a value could be missing for
         if (this.isTimeScatter) return undefined
 
-        const { startTime, endTime } = this.manager
-
         return makeToleranceNotice({
             timeColumn: this.transformedTable.timeColumn,
             timeSpan: findTimeSpan(this.inputTable),
             timeTolerance: findConfiguredTolerance(this.toleranceColumns),
-            hasMultipleTargetTimes: startTime !== endTime,
         })
     }
 

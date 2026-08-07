@@ -9,28 +9,24 @@ import { isSubYearly } from "@ourworldindata/utils"
 
 /**
  * Explains that some of the values on screen were filled in from a nearby
- * time, e.g. "Some values are from up to 3 years before or after the year
- * shown."
+ * time, e.g. "Where data is missing, the closest available value within 3
+ * years is used instead."
  *
- * States what happened rather than the rule behind it, because it sits
- * directly under the chart and only appears when tolerance was actually
- * applied to something on screen. It quotes the configured tolerance rather
- * than the largest gap actually bridged, so that the row it lives in keeps a
- * constant height as the timeline moves.
+ * Only shown where tolerance was actually applied to something on screen, so
+ * the condition it describes is always one that occurred. It quotes the
+ * configured tolerance rather than the largest gap actually bridged, so the
+ * sentence doesn't churn as the timeline moves.
  */
 export function makeToleranceNotice({
     timeColumn,
     timeTolerance,
     timeSpan,
-    hasMultipleTargetTimes,
 }: {
     timeColumn: CoreColumn
     /** The configured tolerance, i.e. the largest gap the chart allows for */
     timeTolerance: number
     /** The chart's full time range, from findTimeSpan */
     timeSpan?: number
-    /** Whether the chart labels two time points, as a slope chart does */
-    hasMultipleTargetTimes?: boolean
 }): string | undefined {
     if (!timeTolerance || timeColumn.isMissing) return undefined
 
@@ -39,21 +35,19 @@ export function makeToleranceNotice({
     // configured, and there's nothing to caveat
     if (timeSpan === 0) return undefined
 
-    const { timeInterval } = timeColumn
-    const timesShown = hasMultipleTargetTimes
-        ? `the ${timeInterval}s shown`
-        : `the ${timeInterval} shown`
-
     // A tolerance that spans the whole chart isn't a window, it just means
     // "whenever there is data". Indicators configured that way use a sentinel
-    // like 9999, which would otherwise read as "up to 9999 years".
+    // like 9999, which would otherwise read as "within 9999 years".
     const isUnbounded = timeSpan !== undefined && timeTolerance >= timeSpan
     if (isUnbounded)
-        return `Some values are not from ${timesShown}, but from the nearest ${timeInterval} with data.`
+        return "Where data is missing, the closest available value is used instead."
 
-    const tolerance = formatTimeTolerance(timeTolerance, timeInterval)
+    const tolerance = formatTimeTolerance(
+        timeTolerance,
+        timeColumn.timeInterval
+    )
 
-    return `Some values are from up to ${tolerance} before or after ${timesShown}.`
+    return `Where data is missing, the closest available value within ${tolerance} is used instead.`
 }
 
 /**

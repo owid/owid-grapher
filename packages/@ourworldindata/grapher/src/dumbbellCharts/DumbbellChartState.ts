@@ -371,8 +371,6 @@ export class DumbbellChartState implements ChartState {
             timeColumn: this.transformedTable.timeColumn,
             timeSpan: findTimeSpan(this.inputTable),
             timeTolerance: findConfiguredTolerance(this.yColumns),
-            // Comparing two columns puts both heads at the same time
-            hasMultipleTargetTimes: this.mode === DumbbellMode.TimeRange,
         })
     }
 
