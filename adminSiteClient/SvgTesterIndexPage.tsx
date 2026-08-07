@@ -12,6 +12,7 @@ import {
     displayStatus,
     formatDuration,
     hasFindings,
+    hasReportedResult,
     SvgTesterDisplayStatus,
 } from "./svgTesterHelpers.js"
 
@@ -110,12 +111,17 @@ const columns: TableColumnsType<SvgTesterSuiteStatus> = [
     },
     {
         title: "Ran",
-        render: (_, status) =>
-            hasReportedResult(status) ? (
-                <Timeago time={status.results!.startedAt} />
-            ) : (
-                "–"
-            ),
+        render: (_, status) => {
+            const startedAt = status.results?.startedAt
+            if (!startedAt) return "–"
+            if (!hasReportedResult(status))
+                return (
+                    <>
+                        started <Timeago time={startedAt} />
+                    </>
+                )
+            return <Timeago time={startedAt} />
+        },
     },
     {
         title: "Took",
@@ -130,16 +136,23 @@ const columns: TableColumnsType<SvgTesterSuiteStatus> = [
         render: (_, status) => {
             const commit = status.results?.grapherCommit
             if (!commit) return "–"
-            const short = <code title={commit}>{commit.slice(0, 7)}</code>
-            if (ENV === "development") return short
+            const short = <code>{commit.slice(0, 7)}</code>
+            const link =
+                ENV === "development" ? (
+                    short
+                ) : (
+                    <a
+                        href={`https://github.com/owid/owid-grapher/commit/${commit}`}
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        {short}
+                    </a>
+                )
             return (
-                <a
-                    href={`https://github.com/owid/owid-grapher/commit/${commit}`}
-                    target="_blank"
-                    rel="noopener"
-                >
-                    {short}
-                </a>
+                <Tooltip title={status.grapherCommitSubject ?? commit}>
+                    {link}
+                </Tooltip>
             )
         },
     },
@@ -148,7 +161,7 @@ const columns: TableColumnsType<SvgTesterSuiteStatus> = [
 function StatusTag({ status }: { status: SvgTesterSuiteStatus }) {
     const display = displayStatus(status)
     return (
-        <>
+        <span className="SvgTesterIndexPage__status">
             <Tag color={DISPLAY_STATUS_COLORS[display]}>
                 {DISPLAY_STATUS_LABELS[display]}
             </Tag>
@@ -157,12 +170,6 @@ function StatusTag({ status }: { status: SvgTesterSuiteStatus }) {
                     <Tag color="warning">Stale</Tag>
                 </Tooltip>
             )}
-        </>
+        </span>
     )
-}
-
-/** True only when the run actually finished and reported */
-function hasReportedResult(status: SvgTesterSuiteStatus): boolean {
-    const display = displayStatus(status)
-    return display === "ok" || display === "differences" || display === "error"
 }

@@ -1918,3 +1918,8 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     margin-bottom: 16px;
     color: $gray-70;
 }
+
+.SvgTesterIndexPage__status {
+    display: inline-flex;
+    gap: 8px;
+}

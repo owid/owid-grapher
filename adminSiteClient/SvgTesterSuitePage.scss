@@ -5,11 +5,11 @@ $svg-tester-current-frame: #94c2a0;
 $svg-tester-error: #b3261e;
 $svg-tester-error-frame: #dda4a0;
 
+.AdminLayout > main.SvgTesterSuitePage {
+    height: auto;
+}
+
 .SvgTesterSuitePage__nav {
-    align-items: baseline;
-    display: flex;
-    gap: 16px;
-    justify-content: space-between;
     margin-bottom: 16px;
 }
 
@@ -38,9 +38,20 @@ $svg-tester-error-frame: #dda4a0;
 }
 
 .SvgTesterSuitePage__summary {
+    background: $white;
     border-bottom: 1px solid $gray-20;
     margin-bottom: 16px;
-    padding-bottom: 12px;
+    padding: 12px 0;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.SvgTesterSuitePage__headline-row {
+    align-items: baseline;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
 }
 
 .SvgTesterSuitePage__headline {
@@ -62,7 +73,7 @@ $svg-tester-error-frame: #dda4a0;
     color: $svg-tester-error;
 }
 
-.SvgTesterSuitePage__stale {
+.SvgTesterSuitePage__commit {
     border-bottom: 1px dotted $gray-60;
     cursor: help;
 }
@@ -76,6 +87,11 @@ $svg-tester-error-frame: #dda4a0;
     border-radius: 2px;
     margin-bottom: 20px;
     padding: 12px;
+
+    &:target {
+        border-color: $blue-40;
+        box-shadow: 0 0 0 3px $blue-10;
+    }
 }
 
 .SvgTesterSuitePage__card-header {
@@ -88,6 +104,17 @@ $svg-tester-error-frame: #dda4a0;
 .SvgTesterSuitePage__identity {
     min-width: 0;
     overflow-wrap: anywhere;
+}
+
+.SvgTesterSuitePage__anchor {
+    color: $gray-60;
+    font-weight: bold;
+    text-decoration: none;
+
+    &:hover {
+        color: $gray-100;
+        text-decoration: none;
+    }
 }
 
 .SvgTesterSuitePage__chart-type {

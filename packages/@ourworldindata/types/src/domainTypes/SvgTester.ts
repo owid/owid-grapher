@@ -52,6 +52,8 @@ export interface SvgTesterSuiteStatus {
     suite: SvgTesterSuite
     /** Null when the suite has never run */
     results: SvgTesterVerifyRunSummary | null
+    /** Subject line of `results.grapherCommit`, null when it isn't in local history */
+    grapherCommitSubject: string | null
     /** True when the results describe a different grapher commit than the one checked out */
     isStale: boolean
     /** True when the file exists but could not be parsed (killed mid-write). */
