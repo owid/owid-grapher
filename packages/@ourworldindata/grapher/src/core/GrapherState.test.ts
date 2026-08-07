@@ -595,6 +595,9 @@ describe("effectiveNote", () => {
         new OwidTable(
             [
                 ["entityName", "year", "gdp"],
+                // France reaches back to 1990 so that the configured
+                // tolerance is narrower than the chart's time range
+                ["France", 1990, 50],
                 ["France", 2000, 100],
                 ["France", 2001, 200],
                 ["France", 2002, 300],
@@ -639,14 +642,18 @@ describe("effectiveNote", () => {
     // The note sits above the timeline, so anything that made it come and go
     // as the timeline moved would shift the handle being dragged
     it("stays identical as the timeline moves", () => {
-        const grapher = makeGrapher()
-        const notes = [2000, 2001, 2002].map((year) => {
+        // A tolerance of 11 sits just inside the fixture's 1990-2002 range, so
+        // the "within" clause survives only while the range is measured on the
+        // unfiltered table. Were it measured on the table the timeline filters,
+        // the range would collapse to nothing and the clause would vanish.
+        const grapher = makeGrapher({ map: { timeTolerance: 11 } })
+        const notes = [1990, 2000, 2001, 2002].map((year) => {
             grapher.timelineHandleTimeBounds = [year, year]
             return grapher.effectiveNote
         })
         // 2001 is the one year every country has data for
         expect(new Set(notes).size).toEqual(1)
-        expect(notes[0]).toContain("within 3 years")
+        expect(notes[0]).toContain("within 11 years")
     })
 
     it("gives the configured tolerance rather than the gap actually bridged", () => {
@@ -654,6 +661,25 @@ describe("effectiveNote", () => {
         const grapher = makeGrapher()
         grapher.timelineHandleTimeBounds = [2002, 2002]
         expect(grapher.effectiveNote).toContain("within 3 years")
+    })
+
+    // Indicators that accept a value from any time use a sentinel tolerance,
+    // which would otherwise read as "within 9999 years"
+    it("drops the window when the tolerance spans the whole chart", () => {
+        const grapher = makeGrapher({ map: { timeTolerance: 9999 } })
+        expect(grapher.effectiveNote).toEqual(
+            "Where a country or region lacks data for the year shown, the closest available value is shown instead."
+        )
+    })
+
+    it("drops the window at the point the tolerance covers the range", () => {
+        // The fixture runs from 1990 to 2002
+        expect(
+            makeGrapher({ map: { timeTolerance: 12 } }).effectiveNote
+        ).not.toContain("within")
+        expect(
+            makeGrapher({ map: { timeTolerance: 11 } }).effectiveNote
+        ).toContain("within 11 years")
     })
 
     it("gives the tolerance of sub-yearly indicators in days", () => {
@@ -664,6 +690,7 @@ describe("effectiveNote", () => {
                     ["entityName", "month", "gdp"],
                     ["France", 0, 100], // Jan 2020
                     ["France", 11, 200], // Feb 2020
+                    ["France", 100, 250], // Apr 2020
                     ["Germany", 0, 300],
                 ],
                 [
@@ -683,6 +710,7 @@ describe("effectiveNote", () => {
             table: new OwidTable(
                 [
                     ["entityName", "decade", "gdp"],
+                    ["France", 2000, 50],
                     ["France", 2010, 100],
                     ["France", 2020, 200],
                     ["Germany", 2010, 300],
@@ -802,6 +830,7 @@ describe("effectiveNote", () => {
                 table: new OwidTable(
                     [
                         ["entityName", "year", "gdp", "pop"],
+                        ["France", 1990, 50, 5],
                         ["France", 2000, 100, 10],
                         ["France", 2003, 300, 30],
                         ["Germany", 2000, 400, 40],

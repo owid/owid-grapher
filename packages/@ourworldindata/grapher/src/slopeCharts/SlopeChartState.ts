@@ -43,6 +43,7 @@ import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import {
     findConfiguredTolerance,
+    findTimeSpan,
     makeToleranceNotice,
 } from "../chart/ToleranceNotice"
 
@@ -344,6 +345,7 @@ export class SlopeChartState implements ChartState {
         return makeToleranceNotice({
             timeColumn: this.transformedTable.timeColumn,
             entityType: this.manager.entityType ?? "entity",
+            timeSpan: findTimeSpan(this.inputTable),
             timeTolerance: findConfiguredTolerance(this.yColumns),
             // Slopes always run between two time points
             hasMultipleTargetTimes: true,

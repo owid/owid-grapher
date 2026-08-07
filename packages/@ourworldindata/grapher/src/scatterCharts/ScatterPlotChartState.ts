@@ -37,6 +37,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     findConfiguredTolerance,
+    findTimeSpan,
     makeToleranceNotice,
 } from "../chart/ToleranceNotice.js"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
@@ -461,6 +462,7 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
         return makeToleranceNotice({
             timeColumn: this.transformedTable.timeColumn,
             entityType: this.manager.entityType ?? "entity",
+            timeSpan: findTimeSpan(this.inputTable),
             timeTolerance: findConfiguredTolerance(this.toleranceColumns),
             hasMultipleTargetTimes: startTime !== endTime,
         })

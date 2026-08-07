@@ -16,6 +16,7 @@ import { domainExtent } from "@ourworldindata/utils"
 import { ChartState } from "../chart/ChartInterface"
 import {
     findConfiguredTolerance,
+    findTimeSpan,
     makeToleranceNotice,
 } from "../chart/ToleranceNotice"
 import {
@@ -362,6 +363,7 @@ export class DumbbellChartState implements ChartState {
         return makeToleranceNotice({
             timeColumn: this.transformedTable.timeColumn,
             entityType: this.manager.entityType ?? "entity",
+            timeSpan: findTimeSpan(this.inputTable),
             timeTolerance: findConfiguredTolerance(this.yColumns),
             // Comparing two columns puts both heads at the same time
             hasMultipleTargetTimes: this.mode === DumbbellMode.TimeRange,

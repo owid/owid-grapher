@@ -43,6 +43,7 @@ import { AxisConfig } from "../axis/AxisConfig.js"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
 import {
     findConfiguredTolerance,
+    findTimeSpan,
     makeToleranceNotice,
 } from "../chart/ToleranceNotice.js"
 
@@ -165,6 +166,7 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         return makeToleranceNotice({
             timeColumn: this.transformedTable.timeColumn,
             entityType: this.manager.entityType ?? "entity",
+            timeSpan: findTimeSpan(this.inputTable),
             timeTolerance: findConfiguredTolerance(this.toleranceColumns),
         })
     }

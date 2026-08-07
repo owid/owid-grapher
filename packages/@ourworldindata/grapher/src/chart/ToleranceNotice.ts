@@ -1,4 +1,4 @@
-import { CoreColumn } from "@ourworldindata/core-table"
+import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { TimeInterval } from "@ourworldindata/types"
 import { isSubYearly } from "@ourworldindata/utils"
 
@@ -19,12 +19,15 @@ export function makeToleranceNotice({
     timeColumn,
     entityType,
     timeTolerance,
+    timeSpan,
     hasMultipleTargetTimes,
 }: {
     timeColumn: CoreColumn
     entityType: string
     /** The configured tolerance, i.e. the largest gap the chart allows for */
     timeTolerance: number
+    /** The chart's full time range, from findTimeSpan */
+    timeSpan?: number
     /** Whether the chart labels two time points, as a slope chart does */
     hasMultipleTargetTimes?: boolean
 }): string | undefined {
@@ -35,12 +38,25 @@ export function makeToleranceNotice({
         ? `the ${timeInterval}s shown`
         : `the ${timeInterval} shown`
 
-    const formattedTimeTolerance = formatTimeTolerance(
-        timeTolerance,
-        timeInterval
-    )
+    // A tolerance that spans the whole chart isn't a window, it just means
+    // "whenever there is data". Indicators configured that way use a sentinel
+    // like 9999, which would otherwise read as "within 9999 years".
+    const isUnbounded = timeSpan !== undefined && timeTolerance >= timeSpan
+    const window = isUnbounded
+        ? ""
+        : ` within ${formatTimeTolerance(timeTolerance, timeInterval)}`
 
-    return `Where a ${entityType} lacks data for ${timesShown}, the closest available value within ${formattedTimeTolerance} is shown instead.`
+    return `Where a ${entityType} lacks data for ${timesShown}, the closest available value${window} is shown instead.`
+}
+
+/**
+ * The chart's full time range, which the tolerance is measured against. Taken
+ * from the input table so that it doesn't shrink as the timeline moves.
+ */
+export function findTimeSpan(table: OwidTable): number | undefined {
+    const { minTime, maxTime } = table
+    if (!Number.isFinite(minTime) || !Number.isFinite(maxTime)) return undefined
+    return maxTime! - minTime
 }
 
 /**

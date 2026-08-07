@@ -40,6 +40,7 @@ import { excludeUndefined } from "@ourworldindata/utils"
 import { FocusArray } from "../focus/FocusArray"
 import {
     findConfiguredTolerance,
+    findTimeSpan,
     makeToleranceNotice,
 } from "../chart/ToleranceNotice"
 
@@ -156,6 +157,7 @@ export class StackedDiscreteBarChartState implements ChartState {
         return makeToleranceNotice({
             timeColumn: this.transformedTable.timeColumn,
             entityType: this.manager.entityType ?? "entity",
+            timeSpan: findTimeSpan(this.inputTable),
             timeTolerance: findConfiguredTolerance(this.yColumns),
         })
     }

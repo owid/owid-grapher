@@ -37,7 +37,7 @@ import { getCountriesByRegion, isOnTheMap } from "./MapHelpers"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
-import { makeToleranceNotice } from "../chart/ToleranceNotice.js"
+import { findTimeSpan, makeToleranceNotice } from "../chart/ToleranceNotice.js"
 
 export type MapFormatValueForTooltip = (
     d: PrimitiveType,
@@ -330,6 +330,7 @@ export class MapChartState implements ChartState, ColorScaleManager {
         return makeToleranceNotice({
             timeColumn: this.transformedTable.timeColumn,
             entityType: this.manager.entityType ?? "entity",
+            timeSpan: findTimeSpan(this.inputTable),
             timeTolerance: this.timeTolerance,
             // A faceted map shows one target time per facet
             hasMultipleTargetTimes: this.manager.isFaceted,
