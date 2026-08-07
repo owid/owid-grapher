@@ -97,6 +97,7 @@
 }
 
 .GrapherComponent {
+    box-sizing: border-box;
     display: inline-block;
     text-align: left;
 
@@ -114,6 +115,21 @@
 
     * {
         box-sizing: border-box;
+    }
+
+    // The OWID site resets these globally (site/css/general.scss), but the
+    // standalone grapher package can't rely on a host page doing the same, so
+    // mirror the resets grapher's styles implicitly depend on. The selectors
+    // are wrapped in :where() to keep their specificity at zero, like the
+    // global element selectors they stand in for — otherwise they'd outrank
+    // component rules such as .close-button's border.
+    :where(&) :where(ul, ol) {
+        margin: 0;
+        padding: 0;
+    }
+
+    :where(&) :where(button) {
+        border: none;
     }
 
     button {
