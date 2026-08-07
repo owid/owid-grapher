@@ -168,3 +168,14 @@ $slide-content-height: $grapher-height;
         @include body-2-regular;
     }
 }
+
+// The asset column supplies its own vertical spacing (`.key-insight__asset-container`
+// in Image.scss), so blocks rendered into it must not add theirs on top. The
+// container is a grid item, i.e. a block formatting context root, so a child's
+// margins can't collapse into it and would stack instead: a bespoke component,
+// which carries `margin: 32px 0 48px 0`, would sit 32px lower than the image it
+// replaces.
+.key-insight__asset-container > [class*="article-block__"] {
+    margin-top: 0;
+    margin-bottom: 0;
+}
