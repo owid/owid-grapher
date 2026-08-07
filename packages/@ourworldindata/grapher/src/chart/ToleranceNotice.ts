@@ -33,6 +33,11 @@ export function makeToleranceNotice({
 }): string | undefined {
     if (!timeTolerance || timeColumn.isMissing) return undefined
 
+    // A chart covering a single point in time has nowhere to draw a
+    // substitute from, so its tolerance can never be applied however it's
+    // configured, and there's nothing to caveat
+    if (timeSpan === 0) return undefined
+
     const { timeInterval } = timeColumn
     const timesShown = hasMultipleTargetTimes
         ? `the ${timeInterval}s shown`

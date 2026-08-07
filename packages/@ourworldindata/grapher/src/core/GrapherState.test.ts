@@ -747,6 +747,30 @@ describe("effectiveNote", () => {
         expect(grapher.effectiveNote).toContain("within 3 years")
     })
 
+    // Tolerance substitutes a value from another time, so a chart that covers
+    // only one time can never apply it, however it's configured
+    it("is absent when the chart covers a single point in time", () => {
+        const grapher = makeGrapher({
+            table: new OwidTable(
+                [
+                    ["entityName", "year", "gdp"],
+                    ["France", 2023, 100],
+                    ["Germany", 2023, 400],
+                ],
+                [
+                    {
+                        slug: "gdp",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 5,
+                    },
+                    { slug: "year", type: ColumnTypeNames.Year },
+                ]
+            ),
+            map: { timeTolerance: 5 },
+        })
+        expect(grapher.effectiveNote).toBeUndefined()
+    })
+
     it("is absent when no tolerance is configured", () => {
         const grapher = makeGrapher({
             table: new OwidTable(
