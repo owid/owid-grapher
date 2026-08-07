@@ -1,4 +1,4 @@
-import { SvgTesterSuiteStatus } from "@ourworldindata/types"
+import { SvgTesterSuiteOverview } from "@ourworldindata/types"
 
 export type SvgTesterDisplayStatus =
     | "not-run"
@@ -18,7 +18,7 @@ export const DISPLAY_STATUS_LABELS: Record<SvgTesterDisplayStatus, string> = {
 }
 
 export function displayStatus(
-    status: SvgTesterSuiteStatus
+    status: SvgTesterSuiteOverview
 ): SvgTesterDisplayStatus {
     if (status.isUnreadable) return "unreadable"
     if (!status.results) return "not-run"
@@ -29,13 +29,13 @@ export function displayStatus(
 }
 
 /** True only when the run actually finished and reported */
-export function hasReportedResult(status: SvgTesterSuiteStatus): boolean {
+export function hasReportedResult(status: SvgTesterSuiteOverview): boolean {
     const display = displayStatus(status)
     return display === "ok" || display === "differences" || display === "error"
 }
 
 /** True when the suite page has something to show: differences or render errors */
-export function hasFindings(status: SvgTesterSuiteStatus): boolean {
+export function hasFindings(status: SvgTesterSuiteOverview): boolean {
     const counts = status.results?.counts
     if (!counts) return false
     return counts.differences > 0 || counts.errors > 0

@@ -8,8 +8,10 @@ import {
     SVG_TESTER_DIRECTORIES,
     SvgTesterDirectory,
     SvgTesterSuite,
+    SvgTesterSuiteOverview,
     SvgTesterSuiteStatus,
     SVG_TESTER_VERIFY_RESULTS_FILENAME,
+    SvgTesterVerifyRunOverview,
     SvgTesterVerifyRunSummary,
 } from "@ourworldindata/types"
 import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
@@ -81,8 +83,16 @@ async function readResults(suite: SvgTesterSuite): Promise<{
     }
 }
 
+function toOverview(
+    results: SvgTesterVerifyRunSummary | null
+): SvgTesterVerifyRunOverview | null {
+    if (!results) return null
+    const { differences: _differences, errors: _errors, ...overview } = results
+    return overview
+}
+
 export async function getSvgTesterSuites(): Promise<{
-    suites: SvgTesterSuiteStatus[]
+    suites: SvgTesterSuiteOverview[]
 }> {
     const grapherHead = await headCommit()
 
@@ -99,7 +109,7 @@ export async function getSvgTesterSuites(): Promise<{
             )
             return {
                 suite,
-                results,
+                results: toOverview(results),
                 grapherCommitSubject,
                 isStale,
                 isUnreadable,

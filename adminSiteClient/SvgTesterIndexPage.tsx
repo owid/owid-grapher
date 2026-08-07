@@ -2,7 +2,7 @@ import { useContext } from "react"
 import { Spin, Table, TableColumnsType, Tag, Tooltip, Typography } from "antd"
 import { useQuery } from "@tanstack/react-query"
 import { Link } from "react-router-dom"
-import { SvgTesterSuiteStatus } from "@ourworldindata/types"
+import { SvgTesterSuiteOverview } from "@ourworldindata/types"
 import { ENV } from "../settings/clientSettings.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
@@ -32,7 +32,7 @@ export function SvgTesterIndexPage() {
     const { data, isLoading } = useQuery({
         queryKey: ["svgtester-suites"],
         queryFn: () =>
-            admin.getJSON<{ suites: SvgTesterSuiteStatus[] }>(
+            admin.getJSON<{ suites: SvgTesterSuiteOverview[] }>(
                 "/api/svgtester/suites.json"
             ),
         refetchOnWindowFocus: true,
@@ -64,7 +64,7 @@ export function SvgTesterIndexPage() {
     )
 }
 
-const columns: TableColumnsType<SvgTesterSuiteStatus> = [
+const columns: TableColumnsType<SvgTesterSuiteOverview> = [
     {
         title: "Suite",
         dataIndex: "suite",
@@ -158,7 +158,7 @@ const columns: TableColumnsType<SvgTesterSuiteStatus> = [
     },
 ]
 
-function StatusTag({ status }: { status: SvgTesterSuiteStatus }) {
+function StatusTag({ status }: { status: SvgTesterSuiteOverview }) {
     const display = displayStatus(status)
     return (
         <span className="SvgTesterIndexPage__status">

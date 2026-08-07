@@ -16,6 +16,7 @@ import { Link, useHistory, useLocation, useParams } from "react-router-dom"
 import * as _ from "lodash-es"
 import {
     SvgTesterDirectory,
+    SvgTesterSuiteOverview,
     SvgTesterSuiteStatus,
     SvgTesterVerifyDifferenceEntry,
     SvgTesterVerifyErrorEntry,
@@ -244,7 +245,7 @@ function SuiteSwitcher({ currentSuite }: { currentSuite: string | undefined }) {
     const { data } = useQuery({
         queryKey: ["svgtester-suites"],
         queryFn: () =>
-            admin.getJSON<{ suites: SvgTesterSuiteStatus[] }>(
+            admin.getJSON<{ suites: SvgTesterSuiteOverview[] }>(
                 "/api/svgtester/suites.json"
             ),
     })
