@@ -1148,22 +1148,23 @@ export class GrapherState
     private prepareTableForDownload(table: OwidTable): OwidTable {
         const dataSlugs = this.inputColumnSlugs
 
-        // x and y column slugs
-        const xySlugs = [
+        // x, y and map column slugs
+        const primarySlugs = [
             this.inputXColumnSlug,
             ...this.inputYColumnSlugs,
+            this.inputMapColumnSlug,
         ].filter((slug) => slug !== undefined)
 
         // Time column slug to include in the downloaded table
         const timeSlug = table.timeColumn.slug
 
         // Original time column slugs to include
-        const originalTimeSlugs = xySlugs
+        const originalTimeSlugs = primarySlugs
             .map((ySlug) => makeOriginalTimeSlugFromColumnSlug(ySlug))
             .filter((slug) => table.has(slug))
 
         // Annotation columns to include
-        const annotationSlugs = xySlugs
+        const annotationSlugs = primarySlugs
             .map((slug) => makeAnnotationsSlug(slug))
             .filter((slug) => table.has(slug))
 
@@ -1177,9 +1178,9 @@ export class GrapherState
             ...annotationSlugs, // Annotation columns
         ])
 
-        // Drop rows without any x or y values
-        if (xySlugs.length > 0) {
-            table = table.dropRowsWithErrorValuesForAllColumns(xySlugs)
+        // Drop rows without any primary values
+        if (primarySlugs.length > 0) {
+            table = table.dropRowsWithErrorValuesForAllColumns(primarySlugs)
         }
 
         // Only keep original times that differ from the main time
@@ -1767,16 +1768,9 @@ export class GrapherState
     }
 
     @computed get times(): Time[] {
-        const { mapColumnSlug, projectionColumnInfoBySlug, yColumnSlugs } = this
-
         // If the map shows historical and projected data, then the time range
         // has to extend to the full range of both indicators
-        const mapColumnInfo = projectionColumnInfoBySlug.get(mapColumnSlug)
-        const mapColumnSlugs = mapColumnInfo
-            ? [mapColumnInfo.projectedSlug, mapColumnInfo.historicalSlug]
-            : [mapColumnSlug]
-
-        const columnSlugs = this.isOnMapTab ? mapColumnSlugs : yColumnSlugs
+        const columnSlugs = this.primaryColumnSlugs
 
         // Generate the times only after the chart transform has been applied, so that we don't show
         // times on the timeline for which data may not exist, e.g. when the selected entity
@@ -2221,15 +2215,20 @@ export class GrapherState
 
     /** Dimension slots appropriate for the given chart types */
     @computed get dimensionSlots(): DimensionSlot[] {
-        const dimensionProperties = getSupportedDimensionsForChartTypes(
-            this.validChartTypes
-        )
+        const dimensionProperties: DimensionProperty[] = [
+            ...getSupportedDimensionsForChartTypes(this.validChartTypes),
+        ]
+        if (this.hasMapTab) dimensionProperties.push(DimensionProperty.map)
         return dimensionProperties.map(
             (property) => new DimensionSlot(this, property)
         )
     }
 
-    @computed.struct get filledDimensions(): ChartDimension[] {
+    /**
+     * Same as `dimensions`, but empty until data for all of them has been
+     * loaded — safe to dereference `.column` on these.
+     */
+    @computed.struct get loadedDimensions(): ChartDimension[] {
         return this.isReady ? this.dimensions : []
     }
 
@@ -2357,6 +2356,18 @@ export class GrapherState
             (slug) => table.get(slug).isProjection
         )
 
+        // A dedicated map column might be a projection that needs to be
+        // stitched with a historical y column. A non-projected map column
+        // is deliberately not offered as a historical candidate since it's
+        // not plotted alongside the y columns.
+        const mapSlug = this.inputMapColumnSlug
+        if (
+            mapSlug &&
+            !projectionSlugs.includes(mapSlug) &&
+            table.get(mapSlug).isProjection
+        )
+            projectionSlugs.push(mapSlug)
+
         if (!projectionSlugs.length) return new Map()
 
         const projectionColumnInfoBySlug = new Map<
@@ -2442,6 +2453,12 @@ export class GrapherState
     @computed get currentSubtitle(): string {
         const subtitle = this.subtitle
         if (subtitle !== undefined) return subtitle
+
+        // The map tab might render a dedicated map column that is different
+        // from the y columns
+        if (this.isOnMapTab && this.mapColumnFromDimensions)
+            return this.mapColumnFromDimensions.def.descriptionShort ?? ""
+
         const yColumns = this.yColumnsFromDimensions
         if (yColumns.length === 1) return yColumns[0].def.descriptionShort ?? ""
         return ""
@@ -2582,6 +2599,11 @@ export class GrapherState
     }
 
     @computed get mapColumnSlug(): string {
+        const mapDimension = this.dimensions.find(
+            (dim) => dim.property === DimensionProperty.map
+        )
+        if (mapDimension) return mapDimension.columnSlug
+
         const mapColumnSlug = this.map.columnSlug
         // If there's no mapColumnSlug or there is one but it's not in the dimensions array, use the first ycolumn
         if (
@@ -2592,6 +2614,41 @@ export class GrapherState
         return mapColumnSlug
     }
 
+    /**
+     * Slugs of all columns the map renders data from: both the projected and
+     * the historical column if the map shows combined data
+     */
+    @computed get mapColumnSlugs(): ColumnSlug[] {
+        const mapColumnInfo = this.projectionColumnInfoBySlug.get(
+            this.mapColumnSlug
+        )
+        return mapColumnInfo
+            ? [mapColumnInfo.projectedSlug, mapColumnInfo.historicalSlug]
+            : [this.mapColumnSlug]
+    }
+
+    /**
+     * Slugs of the primary columns the given tab renders data from: the map
+     * columns on the map tab (which might differ from the y columns if the
+     * chart has a dedicated map dimension), the y columns otherwise.
+     *
+     * Prefer this over `yColumnSlugs` whenever the code asks "what data does
+     * this tab display?" rather than "what are the y dimensions?".
+     */
+    getPrimaryColumnSlugsForTab(tab: GrapherTabName): ColumnSlug[] {
+        return isMapTab(tab) ? this.mapColumnSlugs : this.yColumnSlugs
+    }
+
+    /** Slugs of the primary columns the active tab renders data from */
+    @computed get primaryColumnSlugs(): ColumnSlug[] {
+        return this.getPrimaryColumnSlugsForTab(this.activeTab)
+    }
+
+    /** Slug of the primary column the active tab renders data from */
+    @computed get primaryColumnSlug(): ColumnSlug | undefined {
+        return this.isOnMapTab ? this.mapColumnSlug : this.yColumnSlug
+    }
+
     private getSlugForProperty(
         property: DimensionProperty
     ): string | undefined {
@@ -2600,9 +2657,15 @@ export class GrapherState
     }
 
     @computed get yColumnsFromDimensions(): CoreColumn[] {
-        return this.filledDimensions
+        return this.loadedDimensions
             .filter((dim) => dim.property === DimensionProperty.y)
             .map((dim) => dim.column)
+    }
+
+    @computed private get mapColumnFromDimensions(): CoreColumn | undefined {
+        return this.loadedDimensions.find(
+            (dim) => dim.property === DimensionProperty.map
+        )?.column
     }
 
     @computed private get inputYColumnSlugs(): string[] {
@@ -2631,6 +2694,10 @@ export class GrapherState
         return (
             this.colorSlug ?? this.getSlugForProperty(DimensionProperty.color)
         )
+    }
+
+    @computed private get inputMapColumnSlug(): string | undefined {
+        return this.getSlugForProperty(DimensionProperty.map)
     }
 
     @computed private get inputNumericColorColumnSlug(): string | undefined {
@@ -2742,13 +2809,14 @@ export class GrapherState
         return this.sourceDesc ?? this.defaultSourcesLine
     }
 
-    /** All column slugs configured by the author (y, x, size, color) */
+    /** All column slugs configured by the author (y, x, size, color, map) */
     @computed get inputColumnSlugs(): ColumnSlug[] {
         return excludeUndefined([
             ...this.inputYColumnSlugs,
             this.inputXColumnSlug,
             this.inputSizeColumnSlug,
             this.inputColorColumnSlug,
+            this.inputMapColumnSlug,
         ])
     }
 
@@ -2776,6 +2844,7 @@ export class GrapherState
             xColumnSlug: this.xColumnSlug,
             sizeColumnSlug: this.sizeColumnSlug,
             colorColumnSlug: this.colorColumnSlug,
+            mapColumnSlugs: this.mapColumnSlugs,
             activeTab: this.activeTab,
         })
         const columns = this.inputTable.getColumns(columnSlugs)
@@ -2783,7 +2852,7 @@ export class GrapherState
     }
 
     @computed private get axisDimensions(): ChartDimension[] {
-        return this.filledDimensions.filter(
+        return this.loadedDimensions.filter(
             (dim) =>
                 dim.property === DimensionProperty.y ||
                 dim.property === DimensionProperty.x
@@ -2797,6 +2866,11 @@ export class GrapherState
     }
 
     @computed get defaultTitle(): string {
+        // The map tab might render a dedicated map column that is different
+        // from the y columns
+        if (this.isOnMapTab && this.mapColumnFromDimensions)
+            return this.mapColumnFromDimensions.titlePublicOrDisplayName.title
+
         const yColumns = this.yColumnsFromDimensionsOrSlugsOrAuto
 
         if (this.isScatter)
@@ -2959,9 +3033,7 @@ export class GrapherState
     }
 
     @computed private get xDimension(): ChartDimension | undefined {
-        return this.filledDimensions.find(
-            (d) => d.property === DimensionProperty.x
-        )
+        return this.dimensions.find((d) => d.property === DimensionProperty.x)
     }
 
     /** Overrides the x axis dimension to target a special year */

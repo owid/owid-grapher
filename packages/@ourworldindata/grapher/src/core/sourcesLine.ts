@@ -14,10 +14,7 @@ import {
     GRAPHER_TAB_NAMES,
 } from "@ourworldindata/types"
 import { isPopulationVariableETLPath } from "./GrapherConstants.js"
-import {
-    isChartTab,
-    getSupportedDimensionsForChartTypes,
-} from "../chart/ChartTabs.js"
+import { getDimensionPropertiesForTab } from "../chart/ChartTabs.js"
 
 export const pickColumnsForSourcesLine = ({
     table,
@@ -25,6 +22,7 @@ export const pickColumnsForSourcesLine = ({
     xColumnSlug,
     colorColumnSlug,
     sizeColumnSlug,
+    mapColumnSlugs,
     activeTab,
 }: {
     table: OwidTable
@@ -32,12 +30,11 @@ export const pickColumnsForSourcesLine = ({
     xColumnSlug?: ColumnSlug
     colorColumnSlug?: ColumnSlug
     sizeColumnSlug?: ColumnSlug
+    mapColumnSlugs?: ColumnSlug[]
     activeTab?: GrapherTabName
 }): ColumnSlug[] => {
     const activeDimensions = new Set(
-        activeTab
-            ? getDimensionPropertiesForActiveTab(activeTab)
-            : getDimensionPropertiesForActiveTab(GRAPHER_TAB_NAMES.Table)
+        getDimensionPropertiesForTab(activeTab ?? GRAPHER_TAB_NAMES.Table)
     )
 
     const columnSlugs: ColumnSlug[] = []
@@ -45,6 +42,13 @@ export const pickColumnsForSourcesLine = ({
     // Include all y-columns
     if (activeDimensions.has(DimensionProperty.y)) {
         columnSlugs.push(...yColumnSlugs)
+    }
+
+    // Include the map columns (the projected and historical column if the map
+    // shows combined data); fall back to the y columns if none are given
+    if (activeDimensions.has(DimensionProperty.map)) {
+        if (mapColumnSlugs?.length) columnSlugs.push(...mapColumnSlugs)
+        else columnSlugs.push(...yColumnSlugs)
     }
 
     // Include color dimension, excluding:
@@ -82,26 +86,6 @@ export const pickColumnsForSourcesLine = ({
     }
 
     return _.uniq(columnSlugs)
-}
-
-/**
- * Determines which dimension properties (y, x, color, size) are relevant
- * for the active tab
- */
-const getDimensionPropertiesForActiveTab = (
-    tab: GrapherTabName
-): DimensionProperty[] => {
-    const { x, y, color, size } = DimensionProperty
-
-    // Only include dimensions relevant to the active chart type
-    // (e.g. exclude x dimension for line charts)
-    if (isChartTab(tab)) return getSupportedDimensionsForChartTypes([tab])
-
-    // Only include y dimension for the map tab
-    if (tab === GRAPHER_TAB_NAMES.WorldMap) return [y]
-
-    // Include all dimensions for the table tab
-    return [y, x, color, size]
 }
 
 /**

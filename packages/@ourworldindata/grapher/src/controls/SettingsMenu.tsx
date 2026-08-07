@@ -68,7 +68,7 @@ export interface SettingsMenuManager
     isRelativeMode?: boolean
     selection?: SelectionArray | EntityName[]
     canChangeAddOrHighlightEntities?: boolean
-    filledDimensions: ChartDimension[]
+    dimensions: ChartDimension[]
     xColumnSlug?: string
     xOverrideTime?: number
     hasTimeline?: boolean
@@ -169,7 +169,7 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
 
     @computed private get showFacetControl(): boolean {
         const {
-            filledDimensions,
+            dimensions,
             availableFacetStrategies,
             hideFacetControl,
             isOnChartTab,
@@ -190,9 +190,7 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
             SlopeChart,
         ].includes(this.chartType as any)
 
-        const hasProjection = filledDimensions.some(
-            (dim) => dim.display.isProjection
-        )
+        const hasProjection = dimensions.some((dim) => dim.display.isProjection)
 
         return (
             showFacetControlChartType &&
@@ -246,15 +244,15 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
             yAxis,
             xAxis,
             // compareEndPointsOnly,
-            filledDimensions,
+            dimensions,
             isOnChartTab,
         } = manager
 
         const yLabel =
-                filledDimensions.find((d: ChartDimension) => d.property === "y")
+                dimensions.find((d: ChartDimension) => d.property === "y")
                     ?.display.name ?? "Y axis",
             xLabel =
-                filledDimensions.find((d: ChartDimension) => d.property === "x")
+                dimensions.find((d: ChartDimension) => d.property === "x")
                     ?.display.name ?? "X axis",
             omitLoneAxisLabel =
                 showYScaleToggle && !showXScaleToggle && yLabel === "Y axis"

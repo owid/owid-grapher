@@ -53,7 +53,11 @@ import * as R from "remeda"
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
     if (manager.yColumnSlugs?.length) return manager.yColumnSlugs
     if (manager.yColumnSlug) return [manager.yColumnSlug]
-    return manager.table.numericColumnSlugs
+    // A dedicated map column is only rendered by the map tab, so it
+    // shouldn't be picked up as an auto-detected y column
+    return manager.table.numericColumnSlugs.filter(
+        (slug) => slug !== manager.mapColumnSlug
+    )
 }
 
 export const getDefaultFailMessage = (manager: ChartManager): string => {

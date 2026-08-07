@@ -286,6 +286,7 @@ export class ChartEditorView<
             [DimensionProperty.color]: [],
             [DimensionProperty.size]: [],
             [DimensionProperty.table]: [], // not used
+            [DimensionProperty.map]: [],
         }
 
         this.grapherState.dimensionSlots.forEach((slot) => {

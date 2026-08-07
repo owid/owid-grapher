@@ -19,6 +19,7 @@ export class DimensionSlot {
             size: "Size",
             color: "Color",
             table: "Table",
+            map: "Map",
         }
 
         return (names as any)[this.property] || ""

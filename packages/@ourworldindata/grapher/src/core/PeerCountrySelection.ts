@@ -128,7 +128,7 @@ export async function selectPeerCountriesForGrapher(
     if (!regionInfo || !checkIsCountry(regionInfo)) return []
 
     const additionalDataLoaderFn = grapherState.additionalDataLoaderFn
-    const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
+    const dataColumn = grapherState.table.get(grapherState.primaryColumnSlug)
     const time = grapherState.endTime
 
     return selectPeerCountries({
@@ -246,7 +246,7 @@ export function prepareEntitiesForPeerSelection(
         return !(region && checkIsCountry(region) && region.isHistorical)
     })
 
-    const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
+    const dataColumn = grapherState.table.get(grapherState.primaryColumnSlug)
     if (!isDataColumnAvailable(dataColumn)) return relevantEntities
 
     const requiredTimes = grapherState.isOnSlopeChartTab

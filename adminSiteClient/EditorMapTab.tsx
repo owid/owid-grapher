@@ -10,7 +10,11 @@ import {
     MapConfig,
     MAP_REGION_LABELS,
 } from "@ourworldindata/grapher"
-import { ColumnSlug, ToleranceStrategy } from "@ourworldindata/utils"
+import {
+    ColumnSlug,
+    DimensionProperty,
+    ToleranceStrategy,
+} from "@ourworldindata/utils"
 import { action, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
@@ -23,38 +27,74 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLink } from "@fortawesome/free-solid-svg-icons"
 import { ErrorMessages } from "./ChartEditorTypes.js"
 
-interface VariableSectionProps {
-    mapConfig: MapConfig
-    filledDimensions: ChartDimension[]
+interface VariableSectionProps<Editor> {
+    editor: Editor
     parentConfig?: GrapherInterface
 }
 
 @observer
-class VariableSection extends Component<VariableSectionProps> {
-    constructor(props: VariableSectionProps) {
+class VariableSection<Editor extends AbstractChartEditor> extends Component<
+    VariableSectionProps<Editor>
+> {
+    constructor(props: VariableSectionProps<Editor>) {
         super(props)
         makeObservable(this)
     }
 
+    @computed private get grapherState() {
+        return this.props.editor.grapherState
+    }
+
+    @computed private get mapConfig(): MapConfig {
+        return this.grapherState.map
+    }
+
+    @computed private get mapDimension(): ChartDimension | undefined {
+        return this.grapherState.dimensions.find(
+            (dim) => dim.property === DimensionProperty.map
+        )
+    }
+
+    @computed private get indicatorOptions(): {
+        value: string
+        label: string
+    }[] {
+        return this.grapherState.loadedDimensions.map((d) => ({
+            value: d.columnSlug,
+            label: d.column.displayName,
+        }))
+    }
+
     @action.bound onColumnSlug(columnSlug: ColumnSlug) {
-        this.props.mapConfig.columnSlug = columnSlug
+        this.mapConfig.columnSlug = columnSlug
+        // A dedicated map dimension takes precedence over map.columnSlug,
+        // so selecting another indicator removes it
+        if (this.mapDimension && this.mapDimension.columnSlug !== columnSlug)
+            void this.removeMapDimension()
+    }
+
+    private async removeMapDimension(): Promise<void> {
+        const { editor } = this.props
+        this.grapherState.setDimensionsForProperty(DimensionProperty.map, [])
+        await editor.commitDimensionsAndReloadData()
+        if (isChartEditorInstance(editor)) void editor.updateParentConfig()
     }
 
     @action.bound onBlurColumnSlug() {
-        if (this.props.mapConfig.columnSlug === undefined) {
-            this.props.mapConfig.columnSlug =
-                this.props.parentConfig?.map?.columnSlug
+        if (this.mapConfig.columnSlug === undefined) {
+            this.mapConfig.columnSlug = this.props.parentConfig?.map?.columnSlug
         }
     }
 
     @action.bound onRegion(region: string | undefined) {
-        this.props.mapConfig.region = region as MapRegionName
+        this.mapConfig.region = region as MapRegionName
     }
 
     override render() {
-        const { mapConfig, filledDimensions } = this.props
+        const { mapConfig } = this
+        const { loadedDimensions } = this.grapherState
 
-        if (_.isEmpty(filledDimensions))
+        if (_.isEmpty(loadedDimensions))
             return (
                 <section>
                     <h2>Add some indicators on data tab first</h2>
@@ -65,11 +105,8 @@ class VariableSection extends Component<VariableSectionProps> {
             <Section name="Map">
                 <SelectField
                     label="Indicator"
-                    value={mapConfig.columnSlug}
-                    options={filledDimensions.map((d) => ({
-                        value: d.columnSlug,
-                        label: d.column.displayName,
-                    }))}
+                    value={this.grapherState.mapColumnSlug}
+                    options={this.indicatorOptions}
                     onValue={this.onColumnSlug}
                     onBlur={this.onBlurColumnSlug}
                 />
@@ -295,8 +332,7 @@ export class EditorMapTab<Editor extends AbstractChartEditor> extends Component<
         return (
             <div className="EditorMapTab tab-pane">
                 <VariableSection
-                    mapConfig={mapConfig}
-                    filledDimensions={grapherState.filledDimensions}
+                    editor={this.props.editor}
                     parentConfig={this.props.editor.activeParentConfig}
                 />
                 {isReady && (
