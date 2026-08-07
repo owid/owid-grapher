@@ -56,6 +56,8 @@ import MultiDimRedirectsIndexPage from "./MultiDimRedirectsIndexPage.js"
 import { FeaturedMetricsPage } from "./FeaturedMetricsPage.js"
 import { DodsIndexPage } from "./DodsIndexPage.js"
 import { StaticVizIndexPage } from "./StaticVizIndexPage.js"
+import { SvgTesterIndexPage } from "./SvgTesterIndexPage.js"
+import { SvgTesterSuitePage } from "./SvgTesterSuitePage.js"
 import { StaticVizEditPage } from "./StaticVizEditPage.js"
 import { SlideshowsIndexPage } from "./slideshows/SlideshowsIndexPage.js"
 import { SlideshowEditorPage } from "./slideshows/SlideshowEditorPage.js"
@@ -233,6 +235,20 @@ export class AdminApp extends React.Component<{
                                 <Route
                                     path="/files"
                                     component={FilesIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/svgtester"
+                                    component={SvgTesterIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/svgtester/:suite"
+                                    render={({ match }) => (
+                                        <SvgTesterSuitePage
+                                            key={match.params.suite}
+                                        />
+                                    )}
                                 />
                                 <Route
                                     exact

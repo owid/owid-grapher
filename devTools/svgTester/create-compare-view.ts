@@ -4,6 +4,8 @@ import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import fs from "fs-extra"
 import path from "path"
+import { SVG_TESTER_SUITES, type SvgTesterSuite } from "@ourworldindata/types"
+import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as utils from "./utils.js"
 import * as _ from "lodash-es"
 import * as Diff from "diff"
@@ -16,8 +18,8 @@ const DIFFERENCES_DIR_NAME = "differences"
 const HTML_OUTPUT_FILENAME = "differences.html"
 
 async function main(args: ReturnType<typeof parseArguments>) {
-    const testSuite = args.testSuite as utils.TestSuite
-    const workingDir = path.join(utils.SVG_REPO_PATH, testSuite)
+    const testSuite = args.testSuite as SvgTesterSuite
+    const workingDir = path.join(SVG_TESTER_REPO_PATH, testSuite)
 
     const compareUrl = args.compareUrl
 
@@ -95,7 +97,7 @@ function parseArguments() {
             type: "string",
             description: utils.TEST_SUITE_DESCRIPTION,
             default: "graphers",
-            choices: utils.TEST_SUITES,
+            choices: SVG_TESTER_SUITES,
         })
         .parserConfiguration({ "camel-case-expansion": true })
         .options({
