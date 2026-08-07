@@ -35,8 +35,11 @@ export function SvgTesterIndexPage() {
     const { data, isLoading, isFetching, isError, dataUpdatedAt } = useQuery({
         queryKey: ["svgtester-suites"],
         queryFn: () =>
-            admin.getJSON<{ suites: SvgTesterSuiteOverview[] }>(
-                "/api/svgtester/suites.json"
+            admin.requestJSON<{ suites: SvgTesterSuiteOverview[] }>(
+                "/api/svgtester/suites.json",
+                {},
+                "GET",
+                { onFailure: "continue" }
             ),
         refetchOnWindowFocus: true,
         // A hidden tab doesn't poll; refetchOnWindowFocus catches it up.
