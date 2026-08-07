@@ -647,6 +647,6 @@ async function fetchText(url: string): Promise<string> {
 }
 
 function anchorId(viewId: string, queryStr?: string): string {
-    const id = queryStr ? `${viewId}--${queryStr}` : viewId
-    return id.replaceAll(/[^\w-]+/g, "-")
+    const id = queryStr ? `${viewId}?${queryStr}` : viewId
+    return encodeURIComponent(id)
 }
