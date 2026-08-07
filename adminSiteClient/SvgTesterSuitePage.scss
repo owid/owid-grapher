@@ -5,6 +5,10 @@ $svg-tester-current-frame: #94c2a0;
 $svg-tester-error: #b3261e;
 $svg-tester-error-frame: #dda4a0;
 
+.AdminLayout > main.SvgTesterSuitePage {
+    height: auto;
+}
+
 .SvgTesterSuitePage__nav {
     align-items: baseline;
     display: flex;
@@ -38,9 +42,13 @@ $svg-tester-error-frame: #dda4a0;
 }
 
 .SvgTesterSuitePage__summary {
+    background: $white;
     border-bottom: 1px solid $gray-20;
     margin-bottom: 16px;
-    padding-bottom: 12px;
+    padding: 12px 0;
+    position: sticky;
+    top: 0;
+    z-index: 1;
 }
 
 .SvgTesterSuitePage__headline {
