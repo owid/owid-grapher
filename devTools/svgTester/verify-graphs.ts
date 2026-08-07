@@ -4,14 +4,15 @@ import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import fs from "fs-extra"
 import path from "path"
-import workerpool from "workerpool"
 import * as _ from "lodash-es"
 import { match } from "ts-pattern"
 
 import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as utils from "./utils.js"
-import { JOB_TIMEOUT_MS, MAX_WORKERS } from "./utils.js"
+import { JOB_TIMEOUT_MS } from "./utils.js"
 import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
+import { registerExitHandler } from "../../db/cleanup.js"
+import type { Pool } from "workerpool"
 import {
     ALL_GRAPHER_CHART_TYPES,
     SVG_TESTER_SUITES,
@@ -19,6 +20,9 @@ import {
 } from "@ourworldindata/types"
 
 async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
+    // Declared out here so the catch below can shut it down too: that path is a
+    // crash, which is precisely when orphaned workers are easiest to leave behind.
+    let pool: Pool | undefined
     try {
         // Test suite
         const testSuite = args.testSuite as SvgTesterSuite
@@ -125,26 +129,38 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
 
         console.log(`Verifying ${jobCount} SVG${jobCount > 1 ? "s" : ""}...`)
 
-        const pool = workerpool.pool(__dirname + "/worker.ts", {
-            minWorkers: 2,
-            maxWorkers: MAX_WORKERS,
-            workerThreadOpts: {
-                execArgv: ["--require", "tsx"],
-            },
-        })
+        // `activePool` is what the closures below use: narrowing does not
+        // survive a captured `let`, and the outer binding only exists so the
+        // catch can shut the pool down.
+        const activePool = utils.createSvgTesterPool()
+        pool = activePool
+        // Ctrl-C and a cancelled Buildkite step both kill this process without
+        // reaching the shutdown below, and child workers - unlike the threads
+        // they replaced - outlive their parent.
+        registerExitHandler(() => utils.shutDownPool(activePool))
 
-        const progress = utils.startVerifyProgress(testSuite, jobCount, pool)
+        const progress = utils.startVerifyProgress(
+            testSuite,
+            jobCount,
+            activePool
+        )
+        const guard = utils.startRunGuard()
 
         // Parallelize the CPU heavy verification using the workerpool library
         // This call will then in parallel take the descriptions of the verifyJobs,
         // load the config and data and intialize a grapher, create the default svg output and check if it's md5 hash is the same as the one in
-        // the reference csv file (from the referenceDataByChartKey lookup above). The entire parallel operation returns a promise containing an array
-        // of result values.
-        let validationResults: utils.VerifyResult[]
+        // the reference csv file (from the referenceDataByChartKey lookup above).
+        // Results land in this array as they settle rather than only at the end,
+        // so a stalled run can still report everything that did finish - the
+        // race below resolves as soon as the guard gives up, without them.
+        const settledResults: (utils.VerifyResult | undefined)[] = new Array(
+            jobCount
+        )
+        let abortError: utils.SuiteAbortedError | undefined
         try {
-            validationResults = await Promise.all(
-                verifyJobs.map((job) =>
-                    pool
+            const allSettled = Promise.all(
+                verifyJobs.map((job, index) =>
+                    activePool
                         .exec("renderAndVerifySvg", [job])
                         .timeout(JOB_TIMEOUT_MS)
                         .catch((err: Error) => {
@@ -155,18 +171,33 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
                             return utils.resultError(job.dir.viewId, err)
                         })
                         .then((result: utils.VerifyResult) => {
+                            settledResults[index] = result
                             progress.recordResult(result)
+                            guard.recordResult(result)
                             return result
                         })
                 )
             )
+            abortError = await Promise.race([
+                allSettled.then(() => undefined),
+                guard.aborted,
+            ])
         } finally {
             progress.stop()
+            guard.stop()
         }
 
-        if (validationResults.length !== verifyJobs.length)
-            // This is a sanity check that should never trigger
-            throw `Ran ${verifyJobs.length} verify jobs but only got ${validationResults.length} results!`
+        // Jobs the sick pool never got to are errored rather than dropped, so
+        // the totals still add up to the number of jobs the suite set out to run.
+        if (abortError) console.error(`Giving up: ${abortError.message}`)
+        const validationResults = verifyJobs.map(
+            (job, index) =>
+                settledResults[index] ??
+                utils.resultError(
+                    job.dir.viewId,
+                    abortError ?? new Error("Job produced no result")
+                )
+        )
 
         utils.logIfVerbose(verbose, "Verifications completed")
 
@@ -179,9 +210,10 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
 
         utils.reportVerifyResults(validationResults, verbose)
 
+        await utils.shutDownPool(activePool)
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
-        process.exit(utils.verifyExitCode(summary))
+        process.exit(utils.verifyExitCode(summary, !!abortError))
     } catch (error) {
         console.error("Encountered an error: ", error)
         // Record the failure too, so that "the suite never got to run" is
@@ -200,6 +232,7 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
                     writeError
                 )
             })
+        if (pool) await utils.shutDownPool(pool)
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
         process.exit(1)

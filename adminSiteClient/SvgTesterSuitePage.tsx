@@ -47,6 +47,7 @@ const VIEW_MODE_OPTIONS: { label: string; value: ViewMode }[] = [
 const KIND_LABELS: Record<SvgTesterVerifyErrorEntry["kind"], string> = {
     timeout: "Timed out",
     render: "Failed to render",
+    stalled: "Never ran",
 }
 
 /** Skip the diff when this much of the file changed */
@@ -97,6 +98,13 @@ export function SvgTesterSuitePage() {
         [differences, chartType]
     )
 
+    // Charts an aborted run never reached are not evidence of anything, so they
+    // stay out of the denominator
+    const checked = results
+        ? results.counts.total -
+          results.errors.filter((error) => error.kind === "stalled").length
+        : 0
+
     const status = data ? displayStatus(data) : undefined
 
     const isReported = data ? hasReportedResult(data) : false
@@ -125,9 +133,8 @@ export function SvgTesterSuitePage() {
                                             <strong>
                                                 {results.counts.differences.toLocaleString()}
                                             </strong>{" "}
-                                            of{" "}
-                                            {results.counts.total.toLocaleString()}{" "}
-                                            charts rendered differently
+                                            of {checked.toLocaleString()} charts
+                                            rendered differently
                                         </>
                                     ) : (
                                         status && DISPLAY_STATUS_LABELS[status]
@@ -438,8 +445,11 @@ function SvgTesterErrors({ errors }: { errors: SvgTesterVerifyErrorEntry[] }) {
                 not render
             </h2>
             <ul className="SvgTesterErrors__list">
-                {errors.map((error) => (
-                    <li key={error.viewId} className="SvgTesterErrors__item">
+                {errors.map((error, index) => (
+                    <li
+                        key={`${error.viewId}-${index}`}
+                        className="SvgTesterErrors__item"
+                    >
                         <div className="SvgTesterErrors__view">
                             <a
                                 className="SvgTesterErrors__slug"

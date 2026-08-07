@@ -6,11 +6,11 @@ import fs from "fs-extra"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import path from "path"
-import workerpool from "workerpool"
+import type { Pool } from "workerpool"
 
 import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as utils from "./utils.js"
-import { MAX_WORKERS } from "./utils.js"
+import { registerExitHandler } from "../../db/cleanup.js"
 import {
     ALL_GRAPHER_CHART_TYPES,
     SVG_TESTER_SUITES,
@@ -18,6 +18,9 @@ import {
 } from "@ourworldindata/types"
 
 async function exportGraphers(args: ReturnType<typeof parseArguments>) {
+    // Declared out here so the catch below can shut it down too: that path is a
+    // crash, which is precisely when orphaned workers are easiest to leave behind.
+    let pool: Pool | undefined
     try {
         // Test suite
         const testSuite = args.testSuite as SvgTesterSuite
@@ -108,42 +111,49 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
 
         let svgRecords: utils.SvgRecord[] = []
         if (!isolate) {
-            const pool = workerpool.pool(__dirname + "/worker.ts", {
-                minWorkers: 2,
-                maxWorkers: MAX_WORKERS,
-                workerThreadOpts: {
-                    execArgv: ["--require", "tsx"],
-                },
-            })
+            // `activePool` is what the closure below uses: narrowing does
+            // not survive a captured `let`, and the outer binding only exists
+            // so the catch can shut the pool down.
+            const activePool = utils.createSvgTesterPool()
+            pool = activePool
+            // Ctrl-C and a cancelled Buildkite step both kill this process
+            // without reaching the shutdown below, and child workers - unlike
+            // the threads they replaced - outlive their parent.
+            registerExitHandler(() => utils.shutDownPool(activePool))
 
-            // Parallelize the CPU heavy rendering jobs
+            // Parallelize the CPU heavy rendering jobs. Time-boxed like the
+            // verify side: a worker parked in oxfmt's native formatter never
+            // settles, and refresh.sh runs this with no `timeout` wrapper at
+            // all, so without this the export just hangs forever.
             svgRecords = await Promise.all(
                 jobDescriptions.map((job) =>
-                    pool.exec("renderSvgAndSave", [job])
+                    activePool
+                        .exec("renderSvgAndSave", [job])
+                        .timeout(utils.JOB_TIMEOUT_MS)
                 )
             )
         } else {
             let i = 1
             for (const job of jobDescriptions) {
-                const pool = workerpool.pool(__dirname + "/worker.ts", {
-                    maxWorkers: 1,
-                    workerThreadOpts: {
-                        execArgv: ["--require", "tsx"],
-                    },
-                })
+                pool = utils.createSvgTesterPool(1)
                 const svgRecord = await pool.exec("renderSvgAndSave", [job])
-                pool.terminate()
+                // Awaited, unlike before: a pool per job means an un-awaited
+                // teardown would leave a process behind on every iteration.
+                await utils.shutDownPool(pool)
+                pool = undefined
                 svgRecords.push(svgRecord)
                 console.log(i++, "/", jobCount)
             }
         }
 
         await utils.writeReferenceCsv(outDir, svgRecords)
+        if (pool) await utils.shutDownPool(pool)
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
         process.exit(0)
     } catch (error) {
         console.error("Encountered an error: ", error)
+        if (pool) await utils.shutDownPool(pool)
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
         process.exit(-1)
