@@ -749,27 +749,29 @@ describe("effectiveNote", () => {
         const NOTICE =
             "Where a country or region lacks data for the year shown, the closest available value within 3 years is shown instead."
 
-        it("keeps the two apart as sentences", () => {
+        it("puts the notice on a line of its own", () => {
             const grapher = makeGrapher({
                 note: "Values are adjusted for inflation.",
             })
             expect(grapher.effectiveNote).toEqual(
-                `Values are adjusted for inflation. ${NOTICE}`
+                `Values are adjusted for inflation.\n${NOTICE}`
             )
         })
 
-        it("terminates an authored note that lacks a full stop", () => {
+        // On its own line the notice reads fine after an unterminated note,
+        // so there's no reason to touch what the author wrote
+        it("leaves the authored note verbatim", () => {
             const grapher = makeGrapher({
                 note: "Values are adjusted for inflation",
             })
             expect(grapher.effectiveNote).toEqual(
-                `Values are adjusted for inflation. ${NOTICE}`
+                `Values are adjusted for inflation\n${NOTICE}`
             )
         })
 
-        it("leaves other terminal punctuation alone", () => {
-            const grapher = makeGrapher({ note: "Is this adjusted?" })
-            expect(grapher.effectiveNote).toEqual(`Is this adjusted? ${NOTICE}`)
+        it("stands alone when there is no authored note", () => {
+            const grapher = makeGrapher()
+            expect(grapher.effectiveNote).toEqual(NOTICE)
         })
 
         it("leaves the authored note alone when no tolerance is configured", () => {

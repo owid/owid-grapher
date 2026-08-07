@@ -2472,10 +2472,10 @@ export class GrapherState
         const authoredNote = note?.trim()
         if (!authoredNote) return toleranceNotice
 
-        // Keep the two apart as sentences, terminating the authored note if
-        // the author didn't
-        const separator = /[.!?]$/.test(authoredNote) ? " " : ". "
-        return `${authoredNote}${separator}${toleranceNotice}`
+        // Give the notice its own line so it doesn't disappear into the end of
+        // a long authored note. MarkdownTextWrap turns the newline into a hard
+        // line break, as it does for the authored notes that contain one.
+        return `${authoredNote}\n${toleranceNotice}`
     }
 
     @computed get shouldAddEntitySuffixToTitle(): boolean {
