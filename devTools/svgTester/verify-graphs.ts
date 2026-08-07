@@ -168,7 +168,11 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
                                 console.warn(
                                     `Timed out after ${JOB_TIMEOUT_MS}ms: ${job.dir.viewId}`
                                 )
-                            return utils.resultError(job.dir.viewId, err)
+                            return utils.resultError(
+                                job.dir.viewId,
+                                err,
+                                job.queryStr
+                            )
                         })
                         .then((result: utils.VerifyResult) => {
                             settledResults[index] = result
@@ -195,7 +199,8 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
                 settledResults[index] ??
                 utils.resultError(
                     job.dir.viewId,
-                    abortError ?? new Error("Job produced no result")
+                    abortError ?? new Error("Job produced no result"),
+                    job.queryStr
                 )
         )
 
