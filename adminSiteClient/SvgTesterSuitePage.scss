@@ -121,6 +121,14 @@ $svg-tester-error-frame: #dda4a0;
     margin-left: 8px;
 }
 
+.SvgTesterQueryParams {
+    margin-left: 6px;
+}
+
+.SvgTesterErrors__item .SvgTesterQueryParams {
+    font-size: 12px;
+}
+
 .SvgTesterSuitePage__modes {
     border-bottom: 1px solid $gray-10;
     display: flex;
@@ -189,13 +197,6 @@ $svg-tester-error-frame: #dda4a0;
 
 .SvgTesterErrors__slug {
     font-weight: bold;
-}
-
-.SvgTesterErrors__query {
-    color: $gray-70;
-    font-size: 12px;
-    margin-left: 6px;
-    word-break: break-all;
 }
 
 .SvgTesterErrors__kind {

@@ -337,7 +337,9 @@ function DifferenceCard({
                         #
                     </a>{" "}
                     <strong>{entry.viewId}</strong>
-                    {entry.queryStr && <code> ?{entry.queryStr}</code>}
+                    {entry.queryStr && (
+                        <SvgTesterQueryParams queryStr={entry.queryStr} />
+                    )}
                     {entry.chartType && (
                         <Tag className="SvgTesterSuitePage__chart-type">
                             {entry.chartType}
@@ -461,9 +463,9 @@ function SvgTesterErrors({ errors }: { errors: SvgTesterVerifyErrorEntry[] }) {
                                 {error.viewId}
                             </a>
                             {error.queryStr && (
-                                <code className="SvgTesterErrors__query">
-                                    ?{error.queryStr}
-                                </code>
+                                <SvgTesterQueryParams
+                                    queryStr={error.queryStr}
+                                />
                             )}
                             <span className="SvgTesterErrors__kind">
                                 {KIND_LABELS[error.kind]}
@@ -484,6 +486,18 @@ function SvgTesterErrors({ errors }: { errors: SvgTesterVerifyErrorEntry[] }) {
                 ))}
             </ul>
         </section>
+    )
+}
+
+function SvgTesterQueryParams({ queryStr }: { queryStr: string }) {
+    const decoded = [...new URLSearchParams(queryStr)]
+        .map(([key, value]) => `${key}=${value}`)
+        .join("&")
+
+    return (
+        <code className="SvgTesterQueryParams" title={queryStr}>
+            ?{decoded}
+        </code>
     )
 }
 
