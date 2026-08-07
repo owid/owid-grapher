@@ -34,6 +34,14 @@ const shared = {
     define: {
         "process.env.NODE_ENV": JSON.stringify("production"),
     },
+    // react-aria pulls in the CJS-only use-sync-external-store shim, whose
+    // `require("react")` rolldown can only turn into a runtime `__require`
+    // call that throws in ESM environments. React 19 (our peer-dependency
+    // floor) ships useSyncExternalStore natively, so resolve the shim to
+    // react itself instead.
+    alias: {
+        "use-sync-external-store/shim/index.js": "react",
+    },
     plugins: [
         pluginSwcDecorators(),
         pluginOptimizeReactAriaLocales({ locales: ["en-US"] }),
