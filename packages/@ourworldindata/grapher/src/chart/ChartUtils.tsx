@@ -43,6 +43,7 @@ import {
     CoreColumn,
     ErrorValueTypes,
     isNotErrorValueOrEmptyCell,
+    makeOriginalTimeSlugFromColumnSlug,
     OwidTable,
 } from "@ourworldindata/core-table"
 import { GRAPHER_BACKGROUND } from "../color/ColorConstants"
@@ -249,7 +250,9 @@ export function combineHistoricalAndProjectionColumns(
     const transformFn = (
         row: Record<ColumnSlug, { value: CoreValueType; time: Time }>,
         time: Time
-    ): { isProjection: boolean; value: PrimitiveType } | undefined => {
+    ):
+        | { isProjection: boolean; value: PrimitiveType; originalTime: Time }
+        | undefined => {
         // It's possible to have both a historical and a projected value
         // for a given year. In that case, we prefer the historical value.
 
@@ -266,14 +269,39 @@ export function combineHistoricalAndProjectionColumns(
             // over the actual projected value
             historicalTimeDiff <= projectionTimeDiff
         )
-            return { value: historical.value, isProjection: false }
+            return {
+                value: historical.value,
+                isProjection: false,
+                originalTime: historical.time,
+            }
 
         if (isNotErrorValueOrEmptyCell(projected.value)) {
-            return { value: projected.value, isProjection: true }
+            return {
+                value: projected.value,
+                isProjection: true,
+                originalTime: projected.time,
+            }
         }
 
         return undefined
     }
+
+    const addOriginalTimeColumn = (
+        table: OwidTable,
+        columnSlug: ColumnSlug
+    ): OwidTable =>
+        table.combineColumns(
+            [projectedSlug, historicalSlug],
+            {
+                ...table.get(columnSlug).originalTimeColumn.def,
+                slug: makeOriginalTimeSlugFromColumnSlug(columnSlug),
+                display: { includeInTable: false },
+                derivedFrom: { columnSlug, relationship: "originalTime" },
+            },
+            (row, time) =>
+                transformFn(row, time)?.originalTime ??
+                ErrorValueTypes.MissingValuePlaceholder
+        )
 
     // Combine the historical and projected values into a single column
     table = table.combineColumns(
@@ -283,9 +311,10 @@ export function combineHistoricalAndProjectionColumns(
             transformFn(row, time)?.value ??
             ErrorValueTypes.MissingValuePlaceholder
     )
+    table = addOriginalTimeColumn(table, combinedSlug)
 
     // Add a column indicating whether the value is a projection or not
-    if (options?.shouldAddIsProjectionColumn)
+    if (options?.shouldAddIsProjectionColumn) {
         table = table.combineColumns(
             [projectedSlug, historicalSlug],
             {
@@ -296,6 +325,8 @@ export function combineHistoricalAndProjectionColumns(
                 transformFn(row, time)?.isProjection ??
                 ErrorValueTypes.MissingValuePlaceholder
         )
+        table = addOriginalTimeColumn(table, slugForIsProjectionColumn)
+    }
 
     return table
 }

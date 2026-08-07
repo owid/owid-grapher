@@ -1,6 +1,8 @@
 import { expect, it } from "vitest"
 
+import { ColumnTypeNames } from "@ourworldindata/types"
 import {
+    OwidTable,
     SampleColumnSlugs,
     SynthesizeGDPTable,
     SynthesizeProjectedPopulationTable,
@@ -85,4 +87,74 @@ it("combines projected data with its historical counterpart", () => {
 
     const chartState = new MapChartState({ manager })
     expect(chartState.mapColumnSlug).toEqual(combinedSlug)
+})
+
+it("keeps the source time of combined values that tolerance was applied to", () => {
+    // France has a projected value for the target time; Germany's closest
+    // projected value is from 2003; Italy only has historical data, from 2002
+    const table = new OwidTable(
+        [
+            ["entityName", "year", "population", "projected_population"],
+            ["France", 2002, 100, ""],
+            ["France", 2003, "", 300],
+            ["France", 2004, "", 400],
+            ["Germany", 2002, 150, ""],
+            ["Germany", 2003, "", 350],
+            ["Italy", 2002, 200, ""],
+        ],
+        [
+            {
+                slug: "population",
+                type: ColumnTypeNames.Numeric,
+                tolerance: 3,
+            },
+            {
+                slug: "projected_population",
+                type: ColumnTypeNames.Numeric,
+                tolerance: 3,
+                display: { isProjection: true },
+            },
+            { slug: "year", type: ColumnTypeNames.Year },
+        ]
+    )
+
+    const combinedSlug = "projected_population-population"
+    const manager: MapChartManager = {
+        table,
+        mapColumnSlug: "projected_population",
+        targetTime: 2004,
+        projectionColumnInfoBySlug: new Map([
+            [
+                "projected_population",
+                {
+                    projectedSlug: "projected_population",
+                    historicalSlug: "population",
+                    combinedSlug,
+                    slugForIsProjectionColumn: `${combinedSlug}-isProjection`,
+                },
+            ],
+        ]),
+    }
+
+    const chartState = new MapChartState({ manager })
+    expect(chartState.series).toEqual([
+        expect.objectContaining({
+            seriesName: "France",
+            time: 2004,
+            value: 400,
+            isProjection: true,
+        }),
+        expect.objectContaining({
+            seriesName: "Germany",
+            time: 2003,
+            value: 350,
+            isProjection: true,
+        }),
+        expect.objectContaining({
+            seriesName: "Italy",
+            time: 2002,
+            value: 200,
+            isProjection: false,
+        }),
+    ])
 })
