@@ -19,9 +19,9 @@
                 "import": "./dist/grapher.js"
             },
             "./dist/grapher.css": "./dist/grapher.css",
-            "./cdn": {
+            "./standalone": {
                 "types": "./dist/grapher.d.ts",
-                "import": "./dist/grapher.bundle.js"
+                "import": "./dist/grapher.standalone.min.js"
             }
         }
     },
@@ -32,8 +32,8 @@
     "files": [
         "dist/grapher.js",
         "dist/grapher.js.map",
-        "dist/grapher.bundle.js",
-        "dist/grapher.bundle.js.map",
+        "dist/grapher.standalone.min.js",
+        "dist/grapher.standalone.min.js.map",
         "dist/grapher.css",
         "dist/grapher.d.ts",
         "dist/grapher.d.ts.map"

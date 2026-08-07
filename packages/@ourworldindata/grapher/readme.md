@@ -51,7 +51,7 @@ The same code minus the React wrapper works in any bundler environment — `moun
 
 ### Quick start: plain HTML (CDN bundle)
 
-For static sites or non-React applications, use the standalone bundle (`dist/grapher.bundle.js`), which includes React:
+For static sites or non-React applications, use the standalone bundle (`dist/grapher.standalone.min.js`), which includes React:
 
 ```html
 <!doctype html>
@@ -77,7 +77,7 @@ For static sites or non-React applications, use the standalone bundle (`dist/gra
 
         <script type="module">
             // 2. Import GrapherLoader from the standalone bundle
-            import { GrapherLoader } from "./path/to/dist/grapher.bundle.js"
+            import { GrapherLoader } from "./path/to/dist/grapher.standalone.min.js"
 
             // 3. Load from a CSV URL and mount it
             GrapherLoader.fromCsv({
@@ -196,7 +196,7 @@ One gotcha: fields like `columnDefs[].type` and `dimensions[].property` are enum
 Running the build script produces the following outputs under `dist/`:
 
 - `grapher.js`: The ES module library build. React and React DOM are marked as external peer dependencies (ideal for modern React apps or bundler environments).
-- `grapher.bundle.js`: The standalone CDN bundle. All dependencies (including React and React DOM) are bundled, enabling plug-and-play usage directly in any HTML page.
+- `grapher.standalone.min.js`: The standalone, minified CDN bundle. All dependencies (including React and React DOM) are bundled, enabling plug-and-play usage directly in any HTML page.
 - `grapher.css`: The stylesheet containing all Grapher layouts and components styles.
 - `grapher.d.ts`: TypeScript declaration entry point for the public API.
 
