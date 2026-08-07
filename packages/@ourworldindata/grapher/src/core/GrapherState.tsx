@@ -2453,29 +2453,12 @@ export class GrapherState
      * chart is labelled with, because tolerance was applied. Only chart types
      * that don't show their values' source times provide one.
      */
-    @computed private get toleranceNotice(): string | undefined {
+    @computed get toleranceNotice(): string | undefined {
         // The data table names the source time of every value it shows, and
         // the notice describes the chart, not the table
         if (!this.isReady || !this.isOnChartOrMapTab) return undefined
 
         return this.chartState.toleranceNotice
-    }
-
-    /**
-     * Effective note resolved from the authored note, with a tolerance notice
-     * appended when tolerance was applied
-     */
-    @computed get effectiveNote(): string | undefined {
-        const { note, toleranceNotice } = this
-        if (!toleranceNotice) return note
-
-        const authoredNote = note?.trim()
-        if (!authoredNote) return toleranceNotice
-
-        // Run the two together as sentences, terminating the authored note if
-        // the author didn't, so the notice doesn't read as part of it
-        const separator = /[.!?]$/.test(authoredNote) ? " " : ". "
-        return `${authoredNote}${separator}${toleranceNotice}`
     }
 
     @computed get shouldAddEntitySuffixToTitle(): boolean {

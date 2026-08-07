@@ -23,6 +23,7 @@ import {
 import {
     ChartErrorInfo,
     ColorSchemeName,
+    ColumnSlug,
     EntityName,
     ScaleType,
     ScatterPointLabelStrategy,
@@ -38,6 +39,7 @@ import {
 import {
     findConfiguredTolerance,
     findTimeSpan,
+    hasToleranceApplied,
     makeToleranceNotice,
 } from "../chart/ToleranceNotice.js"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
@@ -446,13 +448,28 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
         return this.xOverrideTime !== undefined ? ["y"] : ["x", "y"]
     }
 
+    @computed private get toleranceColumnSlugs(): ColumnSlug[] {
+        return this.toleranceProperties.map(
+            (property) => this[`${property}ColumnSlug`]
+        )
+    }
+
     @computed private get toleranceColumns(): CoreColumn[] {
         return this.toleranceProperties.map(
             (property) => this[`${property}Column`]
         )
     }
 
-    @computed get toleranceNotice(): string | undefined {
+    /** Whether any value shown right now is filled in from another time */
+    @computed private get isToleranceApplied(): boolean {
+        return hasToleranceApplied(
+            this.transformedTable,
+            this.toleranceColumnSlugs
+        )
+    }
+
+    /** The notice itself, regardless of whether it currently applies */
+    @computed private get toleranceNoticeText(): string | undefined {
         // Time scatters plot time itself on the x axis, so there's no target
         // time a value could be missing for
         if (this.isTimeScatter) return undefined
@@ -461,11 +478,14 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
 
         return makeToleranceNotice({
             timeColumn: this.transformedTable.timeColumn,
-            entityType: this.manager.entityType ?? "entity",
             timeSpan: findTimeSpan(this.inputTable),
             timeTolerance: findConfiguredTolerance(this.toleranceColumns),
             hasMultipleTargetTimes: startTime !== endTime,
         })
+    }
+
+    @computed get toleranceNotice(): string | undefined {
+        return this.isToleranceApplied ? this.toleranceNoticeText : undefined
     }
 
     @computed private get selectedPoints(): SeriesPoint[] {

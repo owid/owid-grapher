@@ -14,6 +14,7 @@ import {
     OwidChartDimensionInterface,
     GRAPHER_TAB_QUERY_PARAMS,
     TimeInterval,
+    MapRegionName,
     StackMode,
 } from "@ourworldindata/types"
 import {
@@ -588,7 +589,7 @@ describe("title", () => {
     })
 })
 
-describe("effectiveNote", () => {
+describe("toleranceNotice", () => {
     // Germany lacks data for 2002 and Italy for 2000, so tolerance fills those
     // gaps in some years but not others
     const makeTable = (extraRows: (string | number)[][] = []): OwidTable =>
@@ -627,59 +628,62 @@ describe("effectiveNote", () => {
 
     it("explains the tolerance on the map tab", () => {
         const grapher = makeGrapher()
-        expect(grapher.effectiveNote).toEqual(
-            "Where a country or region lacks data for the year shown, the closest available value within 3 years is shown instead."
+        expect(grapher.toleranceNotice).toEqual(
+            "Some values are from up to 3 years before or after the year shown."
         )
     })
 
-    it("uses the configured entity type", () => {
-        const grapher = makeGrapher({ entityType: "country" })
-        expect(grapher.effectiveNote).toEqual(
-            "Where a country lacks data for the year shown, the closest available value within 3 years is shown instead."
-        )
-    })
-
-    // The note sits above the timeline, so anything that made it come and go
-    // as the timeline moved would shift the handle being dragged
-    it("stays identical as the timeline moves", () => {
-        // A tolerance of 11 sits just inside the fixture's 1990-2002 range, so
-        // the "within" clause survives only while the range is measured on the
-        // unfiltered table. Were it measured on the table the timeline filters,
-        // the range would collapse to nothing and the clause would vanish.
-        const grapher = makeGrapher({ map: { timeTolerance: 11 } })
-        const notes = [1990, 2000, 2001, 2002].map((year) => {
+    // Whether the note shows follows the year, and the footer reserves space
+    // for it so that doesn't shift the layout -- see Footer.test.ts
+    it("follows whether tolerance applies at the year shown", () => {
+        const grapher = makeGrapher()
+        const noteAt = (year: number): string | undefined => {
             grapher.timelineHandleTimeBounds = [year, year]
-            return grapher.effectiveNote
-        })
-        // 2001 is the one year every country has data for
-        expect(new Set(notes).size).toEqual(1)
-        expect(notes[0]).toContain("within 11 years")
+            return grapher.toleranceNotice
+        }
+        // Italy has no 2000 value and Germany no 2002 one, but 2001 is the one
+        // year every country has data for
+        expect(noteAt(2000)).toBeDefined()
+        expect(noteAt(2001)).toBeUndefined()
+        expect(noteAt(2002)).toBeDefined()
+    })
+
+    // The tolerance is measured against the chart's whole range, which must be
+    // read from the unfiltered table; taken from the table the timeline
+    // filters it would collapse to nothing and the "within" clause would
+    // wrongly vanish
+    it("keeps the window steady across the years it shows", () => {
+        const grapher = makeGrapher({ map: { timeTolerance: 11 } })
+        for (const year of [2000, 2002]) {
+            grapher.timelineHandleTimeBounds = [year, year]
+            expect(grapher.toleranceNotice).toContain("up to 11 years")
+        }
     })
 
     it("gives the configured tolerance rather than the gap actually bridged", () => {
         // Germany only needs a year of tolerance to reach its 2001 value
         const grapher = makeGrapher()
         grapher.timelineHandleTimeBounds = [2002, 2002]
-        expect(grapher.effectiveNote).toContain("within 3 years")
+        expect(grapher.toleranceNotice).toContain("up to 3 years")
     })
 
     // Indicators that accept a value from any time use a sentinel tolerance,
     // which would otherwise read as "within 9999 years"
     it("drops the window when the tolerance spans the whole chart", () => {
         const grapher = makeGrapher({ map: { timeTolerance: 9999 } })
-        expect(grapher.effectiveNote).toEqual(
-            "Where a country or region lacks data for the year shown, the closest available value is shown instead."
+        expect(grapher.toleranceNotice).toEqual(
+            "Some values are not from the year shown, but from the nearest year with data."
         )
     })
 
     it("drops the window at the point the tolerance covers the range", () => {
         // The fixture runs from 1990 to 2002
         expect(
-            makeGrapher({ map: { timeTolerance: 12 } }).effectiveNote
-        ).not.toContain("within")
+            makeGrapher({ map: { timeTolerance: 12 } }).toleranceNotice
+        ).not.toContain("up to")
         expect(
-            makeGrapher({ map: { timeTolerance: 11 } }).effectiveNote
-        ).toContain("within 11 years")
+            makeGrapher({ map: { timeTolerance: 11 } }).toleranceNotice
+        ).toContain("up to 11 years")
     })
 
     it("gives the tolerance of sub-yearly indicators in days", () => {
@@ -692,6 +696,7 @@ describe("effectiveNote", () => {
                     ["France", 11, 200], // Feb 2020
                     ["France", 100, 250], // Apr 2020
                     ["Germany", 0, 300],
+                    ["Germany", 50, 320], // within tolerance of Apr 2020
                 ],
                 [
                     { slug: "gdp", type: ColumnTypeNames.Numeric },
@@ -700,8 +705,8 @@ describe("effectiveNote", () => {
             ),
             map: { timeTolerance: 90 },
         })
-        expect(grapher.effectiveNote).toEqual(
-            "Where a country or region lacks data for the month shown, the closest available value within 90 days is shown instead."
+        expect(grapher.toleranceNotice).toEqual(
+            "Some values are from up to 90 days before or after the month shown."
         )
     })
 
@@ -722,29 +727,29 @@ describe("effectiveNote", () => {
             ),
             map: { timeTolerance: 10 },
         })
-        expect(grapher.effectiveNote).toEqual(
-            "Where a country or region lacks data for the decade shown, the closest available value within 10 years is shown instead."
+        expect(grapher.toleranceNotice).toEqual(
+            "Some values are from up to 10 years before or after the decade shown."
         )
     })
 
     it("falls back to the indicator's tolerance if the map config doesn't specify one", () => {
         const grapher = makeGrapher({ map: {} })
-        expect(grapher.effectiveNote).toContain("within a year")
+        expect(grapher.toleranceNotice).toContain("up to a year")
     })
 
     it("pluralizes the time interval for a faceted map", () => {
         const grapher = makeGrapher()
         grapher.timelineHandleTimeBounds = [2000, 2002]
         expect(grapher.isFaceted).toBe(true)
-        expect(grapher.effectiveNote).toEqual(
-            "Where a country or region lacks data for the years shown, the closest available value within 3 years is shown instead."
+        expect(grapher.toleranceNotice).toEqual(
+            "Some values are from up to 3 years before or after the years shown."
         )
     })
 
     it("is included in static exports", () => {
         const grapher = makeGrapher()
         grapher.isExportingToSvgOrPng = true
-        expect(grapher.effectiveNote).toContain("within 3 years")
+        expect(grapher.toleranceNotice).toContain("up to 3 years")
     })
 
     // Tolerance substitutes a value from another time, so a chart that covers
@@ -768,7 +773,7 @@ describe("effectiveNote", () => {
             ),
             map: { timeTolerance: 5 },
         })
-        expect(grapher.effectiveNote).toBeUndefined()
+        expect(grapher.toleranceNotice).toBeUndefined()
     })
 
     it("is absent when no tolerance is configured", () => {
@@ -786,7 +791,130 @@ describe("effectiveNote", () => {
             ),
             map: {},
         })
-        expect(grapher.effectiveNote).toBeUndefined()
+        expect(grapher.toleranceNotice).toBeUndefined()
+    })
+
+    describe("only when tolerance is actually applied", () => {
+        // Every country has data for every year, so nothing is ever borrowed
+        // and the caveat would be describing something that cannot happen
+        const completeTable = (): OwidTable =>
+            new OwidTable(
+                [
+                    ["entityName", "year", "gdp"],
+                    ["France", 1990, 50],
+                    ["France", 2000, 100],
+                    ["France", 2002, 300],
+                    ["Germany", 1990, 60],
+                    ["Germany", 2000, 400],
+                    ["Germany", 2002, 600],
+                ],
+                [
+                    {
+                        slug: "gdp",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 3,
+                    },
+                    { slug: "year", type: ColumnTypeNames.Year },
+                ]
+            )
+
+        it("is absent on a map whose data has no gaps", () => {
+            const grapher = makeGrapher({ table: completeTable() })
+            expect(grapher.toleranceNotice).toBeUndefined()
+        })
+
+        it("is absent on a chart tab whose data has no gaps", () => {
+            const grapher = new GrapherState({
+                table: completeTable(),
+                ySlugs: "gdp",
+                chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+                selectedEntityNames: ["France", "Germany"],
+            })
+            expect(grapher.toleranceNotice).toBeUndefined()
+        })
+
+        it("stays absent as the timeline moves", () => {
+            const grapher = makeGrapher({ table: completeTable() })
+            for (const year of [1990, 2000, 2002]) {
+                grapher.timelineHandleTimeBounds = [year, year]
+                expect(grapher.toleranceNotice).toBeUndefined()
+            }
+        })
+
+        // A gap only counts if the entity carrying it is on screen
+        const gapInSpainTable = (): OwidTable =>
+            new OwidTable(
+                [
+                    ["entityName", "year", "gdp"],
+                    ["France", 2000, 100],
+                    ["France", 2001, 200],
+                    ["France", 2002, 300],
+                    ["Germany", 2000, 400],
+                    ["Germany", 2001, 500],
+                    ["Germany", 2002, 600],
+                    ["Spain", 2000, 700],
+                    ["Spain", 2001, 800],
+                    // Spain has no 2002 value, which is the slope's end point
+                ],
+                [
+                    {
+                        slug: "gdp",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 3,
+                    },
+                    { slug: "year", type: ColumnTypeNames.Year },
+                ]
+            )
+
+        const makeSlopeGrapher = (
+            selectedEntityNames: string[]
+        ): GrapherState =>
+            new GrapherState({
+                table: gapInSpainTable(),
+                ySlugs: "gdp",
+                chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+                selectedEntityNames,
+            })
+
+        it("ignores a gap in an entity that isn't selected", () => {
+            expect(
+                makeSlopeGrapher(["France", "Germany"]).toleranceNotice
+            ).toBeUndefined()
+            expect(
+                makeSlopeGrapher(["France", "Germany", "Spain"]).toleranceNotice
+            ).toBeDefined()
+        })
+
+        it("ignores a gap outside the selected map region", () => {
+            // Japan is the only country missing a value for the year shown,
+            // and it isn't in Europe
+            const table = new OwidTable(
+                [
+                    ["entityName", "year", "gdp"],
+                    ["France", 2000, 100],
+                    ["France", 2001, 200],
+                    ["France", 2002, 300],
+                    ["Japan", 2000, 400],
+                    ["Japan", 2001, 500],
+                    // Japan has no 2002 value, which is the year the map shows
+                ],
+                [
+                    {
+                        slug: "gdp",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 3,
+                    },
+                    { slug: "year", type: ColumnTypeNames.Year },
+                ]
+            )
+            expect(makeGrapher({ table }).toleranceNotice).toBeDefined()
+            expect(
+                makeGrapher({
+                    table,
+                    map: { timeTolerance: 3, region: MapRegionName.Europe },
+                }).toleranceNotice
+            ).toBeUndefined()
+        })
     })
 
     // The data table names the source time of every value it shows
@@ -794,60 +922,138 @@ describe("effectiveNote", () => {
         const grapher = makeGrapher({
             tab: GRAPHER_TAB_CONFIG_OPTIONS.table,
         })
-        expect(grapher.effectiveNote).toBeUndefined()
+        expect(grapher.toleranceNotice).toBeUndefined()
     })
 
-    describe("appending to the authored note", () => {
-        const NOTICE =
-            "Where a country or region lacks data for the year shown, the closest available value within 3 years is shown instead."
-
-        it("runs the two together as sentences", () => {
-            const grapher = makeGrapher({
-                note: "Values are adjusted for inflation.",
-            })
-            expect(grapher.effectiveNote).toEqual(
-                `Values are adjusted for inflation. ${NOTICE}`
+    describe("only when tolerance is actually applied", () => {
+        // Every country has data for every year, so nothing is ever borrowed
+        // and the caveat would be describing something that cannot happen
+        const completeTable = (): OwidTable =>
+            new OwidTable(
+                [
+                    ["entityName", "year", "gdp"],
+                    ["France", 1990, 50],
+                    ["France", 2000, 100],
+                    ["France", 2002, 300],
+                    ["Germany", 1990, 60],
+                    ["Germany", 2000, 400],
+                    ["Germany", 2002, 600],
+                ],
+                [
+                    {
+                        slug: "gdp",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 3,
+                    },
+                    { slug: "year", type: ColumnTypeNames.Year },
+                ]
             )
+
+        it("is absent on a map whose data has no gaps", () => {
+            const grapher = makeGrapher({ table: completeTable() })
+            expect(grapher.toleranceNotice).toBeUndefined()
         })
 
-        // Run together, an unterminated note would collide with the notice
-        it("terminates an authored note that lacks a full stop", () => {
-            const grapher = makeGrapher({
-                note: "Values are adjusted for inflation",
+        it("is absent on a chart tab whose data has no gaps", () => {
+            const grapher = new GrapherState({
+                table: completeTable(),
+                ySlugs: "gdp",
+                chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+                selectedEntityNames: ["France", "Germany"],
             })
-            expect(grapher.effectiveNote).toEqual(
-                `Values are adjusted for inflation. ${NOTICE}`
+            expect(grapher.toleranceNotice).toBeUndefined()
+        })
+
+        it("stays absent as the timeline moves", () => {
+            const grapher = makeGrapher({ table: completeTable() })
+            for (const year of [1990, 2000, 2002]) {
+                grapher.timelineHandleTimeBounds = [year, year]
+                expect(grapher.toleranceNotice).toBeUndefined()
+            }
+        })
+
+        // A gap only counts if the entity carrying it is on screen
+        const gapInSpainTable = (): OwidTable =>
+            new OwidTable(
+                [
+                    ["entityName", "year", "gdp"],
+                    ["France", 2000, 100],
+                    ["France", 2001, 200],
+                    ["France", 2002, 300],
+                    ["Germany", 2000, 400],
+                    ["Germany", 2001, 500],
+                    ["Germany", 2002, 600],
+                    ["Spain", 2000, 700],
+                    ["Spain", 2001, 800],
+                    // Spain has no 2002 value, which is the slope's end point
+                ],
+                [
+                    {
+                        slug: "gdp",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 3,
+                    },
+                    { slug: "year", type: ColumnTypeNames.Year },
+                ]
             )
-        })
 
-        it("leaves other terminal punctuation alone", () => {
-            const grapher = makeGrapher({ note: "Is this adjusted?" })
-            expect(grapher.effectiveNote).toEqual(`Is this adjusted? ${NOTICE}`)
-        })
-
-        it("stands alone when there is no authored note", () => {
-            const grapher = makeGrapher()
-            expect(grapher.effectiveNote).toEqual(NOTICE)
-        })
-
-        it("leaves the authored note alone when no tolerance is configured", () => {
-            const grapher = makeGrapher({
-                note: "A note.",
-                table: new OwidTable(
-                    [
-                        ["entityName", "year", "gdp"],
-                        ["France", 2000, 100],
-                        ["Germany", 2000, 400],
-                    ],
-                    [
-                        { slug: "gdp", type: ColumnTypeNames.Numeric },
-                        { slug: "year", type: ColumnTypeNames.Year },
-                    ]
-                ),
-                map: {},
+        const makeSlopeGrapher = (
+            selectedEntityNames: string[]
+        ): GrapherState =>
+            new GrapherState({
+                table: gapInSpainTable(),
+                ySlugs: "gdp",
+                chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+                selectedEntityNames,
             })
-            expect(grapher.effectiveNote).toEqual("A note.")
+
+        it("ignores a gap in an entity that isn't selected", () => {
+            expect(
+                makeSlopeGrapher(["France", "Germany"]).toleranceNotice
+            ).toBeUndefined()
+            expect(
+                makeSlopeGrapher(["France", "Germany", "Spain"]).toleranceNotice
+            ).toBeDefined()
         })
+
+        it("ignores a gap outside the selected map region", () => {
+            // Japan is the only country missing a value for the year shown,
+            // and it isn't in Europe
+            const table = new OwidTable(
+                [
+                    ["entityName", "year", "gdp"],
+                    ["France", 2000, 100],
+                    ["France", 2001, 200],
+                    ["France", 2002, 300],
+                    ["Japan", 2000, 400],
+                    ["Japan", 2001, 500],
+                    // Japan has no 2002 value, which is the year the map shows
+                ],
+                [
+                    {
+                        slug: "gdp",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 3,
+                    },
+                    { slug: "year", type: ColumnTypeNames.Year },
+                ]
+            )
+            expect(makeGrapher({ table }).toleranceNotice).toBeDefined()
+            expect(
+                makeGrapher({
+                    table,
+                    map: { timeTolerance: 3, region: MapRegionName.Europe },
+                }).toleranceNotice
+            ).toBeUndefined()
+        })
+    })
+
+    // The data table names the source time of every value it shows
+    it("is absent on the table tab", () => {
+        const grapher = makeGrapher({
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.table,
+        })
+        expect(grapher.toleranceNotice).toBeUndefined()
     })
 
     describe("chart types other than the map", () => {
@@ -884,15 +1090,15 @@ describe("effectiveNote", () => {
             })
 
         const SINGLE_TIME_NOTICE =
-            "Where a country or region lacks data for the year shown, the closest available value within 3 years is shown instead."
+            "Some values are from up to 3 years before or after the year shown."
         const TWO_TIME_NOTICE =
-            "Where a country or region lacks data for the years shown, the closest available value within 3 years is shown instead."
+            "Some values are from up to 3 years before or after the years shown."
 
         it("explains the tolerance on a stacked discrete bar chart", () => {
             const grapher = makeChartGrapher({
                 chartTypes: [GRAPHER_CHART_TYPES.StackedDiscreteBar],
             })
-            expect(grapher.effectiveNote).toEqual(SINGLE_TIME_NOTICE)
+            expect(grapher.toleranceNotice).toEqual(SINGLE_TIME_NOTICE)
         })
 
         it("explains the tolerance on a Marimekko chart", () => {
@@ -900,7 +1106,7 @@ describe("effectiveNote", () => {
                 chartTypes: [GRAPHER_CHART_TYPES.Marimekko],
                 xSlug: "pop",
             })
-            expect(grapher.effectiveNote).toEqual(SINGLE_TIME_NOTICE)
+            expect(grapher.toleranceNotice).toEqual(SINGLE_TIME_NOTICE)
         })
 
         // Slopes always run between two time points
@@ -908,14 +1114,14 @@ describe("effectiveNote", () => {
             const grapher = makeChartGrapher({
                 chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
             })
-            expect(grapher.effectiveNote).toEqual(TWO_TIME_NOTICE)
+            expect(grapher.toleranceNotice).toEqual(TWO_TIME_NOTICE)
         })
 
         it("pluralizes the time interval on a time-range dumbbell chart", () => {
             const grapher = makeChartGrapher({
                 chartTypes: [GRAPHER_CHART_TYPES.Dumbbell],
             })
-            expect(grapher.effectiveNote).toEqual(TWO_TIME_NOTICE)
+            expect(grapher.toleranceNotice).toEqual(TWO_TIME_NOTICE)
         })
 
         // Comparing two columns puts both dumbbell heads at the same time
@@ -924,7 +1130,7 @@ describe("effectiveNote", () => {
                 chartTypes: [GRAPHER_CHART_TYPES.Dumbbell],
                 ySlugs: "gdp pop",
             })
-            expect(grapher.effectiveNote).toEqual(SINGLE_TIME_NOTICE)
+            expect(grapher.toleranceNotice).toEqual(SINGLE_TIME_NOTICE)
         })
 
         // Discrete bars print each bar's own year next to its value already
@@ -932,7 +1138,7 @@ describe("effectiveNote", () => {
             const grapher = makeChartGrapher({
                 chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
             })
-            expect(grapher.effectiveNote).toBeUndefined()
+            expect(grapher.toleranceNotice).toBeUndefined()
         })
 
         // Line charts plot every time point, so no value stands in for another
@@ -940,7 +1146,7 @@ describe("effectiveNote", () => {
             const grapher = makeChartGrapher({
                 chartTypes: [GRAPHER_CHART_TYPES.LineChart],
             })
-            expect(grapher.effectiveNote).toBeUndefined()
+            expect(grapher.toleranceNotice).toBeUndefined()
         })
     })
 })

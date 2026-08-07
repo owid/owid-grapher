@@ -1,29 +1,30 @@
-import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
-import { TimeInterval } from "@ourworldindata/types"
+import {
+    CoreColumn,
+    getOriginalTimeColumnSlug,
+    isNotErrorValue,
+    OwidTable,
+} from "@ourworldindata/core-table"
+import { ColumnSlug, EntityName, TimeInterval } from "@ourworldindata/types"
 import { isSubYearly } from "@ourworldindata/utils"
 
 /**
- * Explains that a value shown for a time it has no data for is filled in from
- * the closest time that does, e.g. "Where a country or region lacks data for
- * the year shown, the closest available value within 3 years is shown instead."
+ * Explains that some of the values on screen were filled in from a nearby
+ * time, e.g. "Some values are from up to 3 years before or after the year
+ * shown."
  *
- * Phrased as a standing rule rather than a claim about what's on screen right
- * now ("some countries lack data for 2002..."), because the chart's note is
- * laid out above the timeline: a notice that came and went as the timeline
- * moved would resize the chart area and shift the timeline out from under the
- * handle being dragged. As a rule it holds at every point on the timeline, so
- * it never appears, disappears or rewraps. For the same reason it quotes the
- * configured tolerance rather than the largest gap actually bridged.
+ * States what happened rather than the rule behind it, because it sits
+ * directly under the chart and only appears when tolerance was actually
+ * applied to something on screen. It quotes the configured tolerance rather
+ * than the largest gap actually bridged, so that the row it lives in keeps a
+ * constant height as the timeline moves.
  */
 export function makeToleranceNotice({
     timeColumn,
-    entityType,
     timeTolerance,
     timeSpan,
     hasMultipleTargetTimes,
 }: {
     timeColumn: CoreColumn
-    entityType: string
     /** The configured tolerance, i.e. the largest gap the chart allows for */
     timeTolerance: number
     /** The chart's full time range, from findTimeSpan */
@@ -45,13 +46,72 @@ export function makeToleranceNotice({
 
     // A tolerance that spans the whole chart isn't a window, it just means
     // "whenever there is data". Indicators configured that way use a sentinel
-    // like 9999, which would otherwise read as "within 9999 years".
+    // like 9999, which would otherwise read as "up to 9999 years".
     const isUnbounded = timeSpan !== undefined && timeTolerance >= timeSpan
-    const window = isUnbounded
-        ? ""
-        : ` within ${formatTimeTolerance(timeTolerance, timeInterval)}`
+    if (isUnbounded)
+        return `Some values are not from ${timesShown}, but from the nearest ${timeInterval} with data.`
 
-    return `Where a ${entityType} lacks data for ${timesShown}, the closest available value${window} is shown instead.`
+    const tolerance = formatTimeTolerance(timeTolerance, timeInterval)
+
+    return `Some values are from up to ${tolerance} before or after ${timesShown}.`
+}
+
+/**
+ * Whether any value in the given columns is filled in from a different time
+ * than the one it's shown for.
+ *
+ * The table decides what "shown" means. Pass the transformed table to ask
+ * about the year currently on screen, which is what decides whether the notice
+ * is displayed; pass the table from before the timeline filter to ask about
+ * any year the chart could show, which is what decides whether the footer
+ * reserves space for it.
+ *
+ * Charts whose transform narrows the table to the selected entities get "only
+ * what's on screen" for free; the map passes `entityNames` to the same effect
+ * when zoomed into a continent.
+ *
+ * Reads the raw column store and stops at the first deviation, so it allocates
+ * nothing and usually touches only a handful of rows.
+ */
+export function hasToleranceApplied(
+    table: OwidTable,
+    columnSlugs: (ColumnSlug | undefined)[],
+    { entityNames }: { entityNames?: Set<EntityName> } = {}
+): boolean {
+    const { timeColumn } = table
+    if (timeColumn.isMissing) return false
+
+    const times = timeColumn.valuesIncludingErrorValues
+    const entities = entityNames
+        ? table.entityNameColumn.valuesIncludingErrorValues
+        : undefined
+
+    return columnSlugs.some((slug) => {
+        if (!slug || !table.has(slug)) return false
+
+        // Missing when the column was never interpolated, e.g. its tolerance
+        // is zero, or a scatter's two columns have mismatching time types
+        const originalTimeSlug = getOriginalTimeColumnSlug(table, slug)
+        if (!originalTimeSlug || !table.has(originalTimeSlug)) return false
+
+        const originalTimes =
+            table.get(originalTimeSlug).valuesIncludingErrorValues
+        const values = table.get(slug).valuesIncludingErrorValues
+
+        for (let i = 0; i < times.length; i++) {
+            // Compare times first: it's a plain value check, and on a column
+            // with no gaps it rejects every row without touching the costlier
+            // conditions below
+            if (times[i] === originalTimes[i]) continue
+            // A row with no value shows nothing, so it borrows nothing; its
+            // original time is an error value, which is why it lands here
+            if (!isNotErrorValue(values[i])) continue
+            if (entities && !entityNames!.has(entities[i] as EntityName))
+                continue
+            return true
+        }
+        return false
+    })
 }
 
 /**

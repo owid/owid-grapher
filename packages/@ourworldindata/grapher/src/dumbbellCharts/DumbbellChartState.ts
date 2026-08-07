@@ -17,6 +17,7 @@ import { ChartState } from "../chart/ChartInterface"
 import {
     findConfiguredTolerance,
     findTimeSpan,
+    hasToleranceApplied,
     makeToleranceNotice,
 } from "../chart/ToleranceNotice"
 import {
@@ -359,15 +360,24 @@ export class DumbbellChartState implements ChartState {
         ])
     }
 
-    @computed get toleranceNotice(): string | undefined {
+    /** Whether any value shown right now is filled in from another time */
+    @computed private get isToleranceApplied(): boolean {
+        return hasToleranceApplied(this.transformedTable, this.yColumnSlugs)
+    }
+
+    /** The notice itself, regardless of whether it currently applies */
+    @computed private get toleranceNoticeText(): string | undefined {
         return makeToleranceNotice({
             timeColumn: this.transformedTable.timeColumn,
-            entityType: this.manager.entityType ?? "entity",
             timeSpan: findTimeSpan(this.inputTable),
             timeTolerance: findConfiguredTolerance(this.yColumns),
             // Comparing two columns puts both heads at the same time
             hasMultipleTargetTimes: this.mode === DumbbellMode.TimeRange,
         })
+    }
+
+    @computed get toleranceNotice(): string | undefined {
+        return this.isToleranceApplied ? this.toleranceNoticeText : undefined
     }
 
     @computed get yDomainDefault(): [number, number] {
