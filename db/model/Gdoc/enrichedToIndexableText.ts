@@ -283,6 +283,10 @@ export function enrichedBlockToIndexableText(
                     joinBlocksAsSentences([
                         insight.title,
                         enrichedBlocksToIndexableText(insight.content, options),
+                        // Asset blocks carry authored text of their own - an
+                        // image's alt text, a chart or video caption - which is
+                        // visible on the page and so belongs in the index.
+                        enrichedBlocksToIndexableText(insight.asset, options),
                     ])
                 )
                 return (
