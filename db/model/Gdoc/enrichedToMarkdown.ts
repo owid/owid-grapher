@@ -464,7 +464,13 @@ ${items}
                               { name: insight.narrativeChartName },
                               exportComponents
                           )
-                        : undefined
+                        : insight.asset
+                          ? enrichedBlocksToMarkdown(
+                                insight.asset,
+                                exportComponents,
+                                options
+                            )
+                          : undefined
                 const content =
                     enrichedBlocksToMarkdown(
                         insight.content,

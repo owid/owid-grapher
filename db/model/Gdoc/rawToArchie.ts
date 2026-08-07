@@ -727,6 +727,13 @@ function* rawKeyInsightsToArchieMLString(
             yield* propertyToArchieMLString("filename", insight)
             yield* propertyToArchieMLString("url", insight)
             yield* propertyToArchieMLString("narrativeChartName", insight)
+            if (insight.asset) {
+                yield "[.+asset]"
+                for (const asset of insight.asset) {
+                    yield* OwidRawGdocBlockToArchieMLStringGenerator(asset)
+                }
+                yield "[]"
+            }
             if (insight.content) {
                 yield "[.+content]"
                 for (const content of insight.content) {

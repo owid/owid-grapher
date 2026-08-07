@@ -1597,6 +1597,7 @@ export function recursivelyMapArticleContent(
     } else if (node.type === "key-insights") {
         node.insights.forEach((insight) => {
             callback(insight)
+            insight.asset?.forEach(callback)
             insight.content.forEach(callback)
         })
     }
@@ -1666,11 +1667,14 @@ export function traverseEnrichedBlock(
         })
         .with({ type: "key-insights" }, (keyInsights) => {
             callback(keyInsights)
-            keyInsights.insights.forEach((insight) =>
+            keyInsights.insights.forEach((insight) => {
+                insight.asset?.forEach((node) =>
+                    traverseEnrichedBlock(node, callback, spanCallback)
+                )
                 insight.content.forEach((node) =>
                     traverseEnrichedBlock(node, callback, spanCallback)
                 )
-            )
+            })
         })
         .with({ type: "expander" }, (expander) => {
             callback(expander)

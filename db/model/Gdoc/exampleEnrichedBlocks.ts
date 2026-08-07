@@ -650,6 +650,32 @@ export const enrichedBlockExamples: Record<
                     },
                 ],
             },
+            {
+                title: "Key insight number 4",
+                type: "key-insight-slide",
+                asset: [
+                    {
+                        type: "bespoke-component",
+                        bundle: "causes-of-death",
+                        variant: "treemap",
+                        size: BlockSize.Wide,
+                        config: { region: "World" },
+                        parseErrors: [],
+                    },
+                ],
+                content: [
+                    {
+                        type: "text",
+                        parseErrors: [],
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "I am the first paragraph of the fourth insight.",
+                            },
+                        ],
+                    },
+                ],
+            },
         ],
         parseErrors: [],
     },
