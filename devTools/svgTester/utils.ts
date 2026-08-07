@@ -64,16 +64,16 @@ export interface ChartWithQueryStr {
     queryStr?: string
 }
 
-export interface VerifyResultOk {
+interface VerifyResultOk {
     kind: "ok"
 }
 
-export interface VerifyResultDifference {
+interface VerifyResultDifference {
     kind: "difference"
     difference: SvgDifference
 }
 
-export interface VerifyResultError {
+interface VerifyResultError {
     kind: "error"
     viewId: string
     error: Error
@@ -113,7 +113,7 @@ const resultDifference = (difference: SvgDifference): VerifyResult => ({
     difference: difference,
 })
 
-export type SvgRenderPerformance = {
+type SvgRenderPerformance = {
     durationReceiveData: number
     durationTotal: number
     heapUsed: number
@@ -130,7 +130,7 @@ export type SvgRecord = {
     performance?: SvgRenderPerformance
 }
 
-export interface SvgDifference {
+interface SvgDifference {
     viewId: string
     queryStr?: string
     chartType: GrapherTabName | undefined
@@ -141,12 +141,12 @@ export interface SvgDifference {
     newSvgFragment: string
 }
 
-export interface JobDirectory {
+interface JobDirectory {
     viewId: string
     pathToProcess: string
 }
 
-export interface JobConfigAndData {
+interface JobConfigAndData {
     config: GrapherInterface
     variableData: MultipleOwidVariableDataDimensionsMap
     totalDataFileSize: number
@@ -166,7 +166,7 @@ export function logIfVerbose(verbose: boolean, message: string, param?: any) {
  * reference (16k lines), diffing two renderings that differ everywhere takes
  * over 15 seconds.
  */
-export function estimateChangedRatio(before: string, after: string): number {
+function estimateChangedRatio(before: string, after: string): number {
     const beforeLines = before.split("\n")
     const afterLines = after.split("\n")
     const counts = new Map<string, number>()
@@ -191,7 +191,7 @@ function findFirstDiffIndex(a: string, b: string): number {
     return i
 }
 
-export async function verifySvg(
+async function verifySvg(
     preparedNewSvg: string,
     newSvgRecord: SvgRecord,
     referenceSvgRecord: SvgRecord,
@@ -284,7 +284,7 @@ export async function selectChartIdsToProcess(
 
 // Get available tabs from a grapher config
 // Returns tabs that should be tested (excludes table tab)
-export function getAvailableTabsFromConfig(
+function getAvailableTabsFromConfig(
     config: GrapherInterface
 ): GrapherChartOrMapType[] {
     const tabs: GrapherChartOrMapType[] = []
@@ -347,7 +347,7 @@ export async function findChartViewsToGenerate(
     return chartsToProcess
 }
 
-export async function findValidViewIds(
+async function findValidViewIds(
     inDir: string,
     {
         viewIds = [],
@@ -408,7 +408,7 @@ export async function findValidViewIds(
     return validChartIds
 }
 
-export async function parseGrapherConfig(
+async function parseGrapherConfig(
     chartId: string,
     { inDir }: { inDir: string }
 ): Promise<GrapherInterface> {
@@ -417,12 +417,12 @@ export async function parseGrapherConfig(
     return grapherConfig
 }
 
-export async function writeToFile(data: unknown, filename: string) {
+async function writeToFile(data: unknown, filename: string) {
     const json = JSON.stringify(data, null, 2)
     await fs.writeFile(filename, json)
 }
 
-export async function writeVariableDataAndMetadataFiles(
+async function writeVariableDataAndMetadataFiles(
     variableIds: number[],
     outDir: string
 ): Promise<void> {
@@ -614,11 +614,6 @@ async function formatSvg(svg: string): Promise<string> {
     return result.code
 }
 
-/** Remove all non-deterministic parts of the svg and then calculate an md5 hash */
-export async function processSvgAndCalculateHash(svg: string): Promise<string> {
-    const processed = await prepareSvgForComparison(svg)
-    return hashMd5(processed)
-}
 export interface RenderSvgAndSaveJobDescription {
     dir: JobDirectory
     outDir: string
@@ -639,12 +634,12 @@ export async function renderSvgAndSave(
     return Promise.resolve(svgRecord)
 }
 
-export async function readJsonFile(filename: string): Promise<unknown> {
+async function readJsonFile(filename: string): Promise<unknown> {
     const content = await fs.readJson(filename)
     return content
 }
 
-export async function loadReferenceSvg(
+async function loadReferenceSvg(
     referenceDir: string,
     referenceSvgRecord: SvgRecord
 ): Promise<string> {
@@ -662,7 +657,7 @@ export async function loadReferenceSvg(
     return svg
 }
 
-export async function loadGrapherConfigAndData(
+async function loadGrapherConfigAndData(
     inputDir: string
 ): Promise<JobConfigAndData> {
     if (!fs.existsSync(inputDir))
@@ -696,7 +691,7 @@ export async function loadGrapherConfigAndData(
     return { config, variableData, totalDataFileSize }
 }
 
-export function logDifferencesToConsole(
+function logDifferencesToConsole(
     svgRecord: SvgRecord,
     validationResult: VerifyResultDifference
 ): void {
@@ -889,9 +884,6 @@ export function summariseVerifyResults(
     }
 }
 
-// Written next to verify-graphs.log so both live with the suite they describe.
-// Nothing commits it: create_report/commit_differences in svg-tester.sh add
-// explicit paths only.
 export async function writeVerifyResults(
     testSuiteDir: string,
     summary: SvgTesterVerifyRunSummary
@@ -1003,8 +995,8 @@ export function startVerifyProgress(
     }
 }
 
-export const EXIT_CODE_DIFFERENCES = 2
-export const EXIT_CODE_ERROR = 1
+const EXIT_CODE_DIFFERENCES = 2
+const EXIT_CODE_ERROR = 1
 
 export function verifyExitCode(summary: SvgTesterVerifyRunSummary): number {
     if (summary.counts.errors > 0) return EXIT_CODE_ERROR
@@ -1049,18 +1041,13 @@ export function reportVerifyResults(
     }
 }
 
-export function readLinesFromFile(filename: string): string[] {
-    const content = fs.readFileSync(filename, "utf-8")
-    return content.split("\n")
-}
-
 export interface GrapherViewsManifest {
     slugs: string[]
     dataDir: string // Relative path to the data directory (e.g., "../graphers/data")
 }
 
 // Load manifest from a specific path
-export async function loadManifestFromPath(
+async function loadManifestFromPath(
     manifestPath: string
 ): Promise<GrapherViewsManifest | null> {
     if (!fs.existsSync(manifestPath)) {
