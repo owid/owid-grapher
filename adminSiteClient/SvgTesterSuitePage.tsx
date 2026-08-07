@@ -1,5 +1,14 @@
 import { useContext, useEffect, useMemo, useState } from "react"
-import { Alert, Select, Space, Spin, Tag, Tooltip, Typography } from "antd"
+import {
+    Alert,
+    FloatButton,
+    Select,
+    Space,
+    Spin,
+    Tag,
+    Tooltip,
+    Typography,
+} from "antd"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
 import cx from "clsx"
 import { useQuery } from "@tanstack/react-query"
@@ -216,6 +225,8 @@ export function SvgTesterSuitePage() {
                         </>
                     )}
                 </Spin>
+
+                <FloatButton.BackTop duration={1} />
             </main>
         </AdminLayout>
     )
