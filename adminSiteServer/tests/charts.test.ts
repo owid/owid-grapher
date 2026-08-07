@@ -44,7 +44,7 @@ describe("Charts API", { timeout: 15000 }, () => {
 
         const parentConfig = (
             await env.fetchJson(`/charts/${chartId}.parent.json`)
-        )?.config
+        )?.variableConfig
         expect(parentConfig).toBeUndefined()
 
         const fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
@@ -372,7 +372,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         // fetch the parent config of the chart and verify that it's the merged etl+admin config
         const parentConfig = (
             await env.fetchJson(`/charts/${chartId}.parent.json`)
-        )?.config
+        )?.variableConfig
         const mergedGrapherConfig = await env.fetchJson(
             `/variables/mergedGrapherConfig/${variableId}.json`
         )
@@ -430,7 +430,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         // fetch the parent config of the chart and verify there is none
         const parentConfigAfterDelete = (
             await env.fetchJson(`/charts/${chartId}.parent.json`)
-        )?.config
+        )?.variableConfig
         expect(parentConfigAfterDelete).toBeUndefined()
 
         // fetch the full config of the chart and verify that it doesn't have
@@ -525,7 +525,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         // check the parent of the chart
         const parent = await env.fetchJson(`/charts/${chartId}.parent.json`)
         expect(parent.variableId).toEqual(variableId)
-        expect(parent.config).toEqual(fullConfigETL)
+        expect(parent.variableConfig).toEqual(fullConfigETL)
 
         // verify that inheritance is enabled by default
         await checkInheritance({ shouldBeEnabled: true })
@@ -684,6 +684,662 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             body: JSON.stringify(invalidConfig),
         })
         expect(response.success).toBe(false)
+    })
+})
+
+describe("Chart-level ETL configs", { timeout: 15000 }, () => {
+    const variableId = 1
+
+    const dummyDataset = {
+        id: 1,
+        name: "Dummy dataset",
+        description: "Dataset description",
+        namespace: "owid",
+        createdByUserId: 1,
+        metadataEditedAt: new Date(),
+        metadataEditedByUserId: 1,
+        dataEditedAt: new Date(),
+        dataEditedByUserId: 1,
+    }
+
+    const dummyVariable = {
+        id: variableId,
+        unit: "kg",
+        coverage: "Global by country",
+        timespan: "2000-2020",
+        datasetId: 1,
+        display: '{ "unit": "kg", "shortUnit": "kg" }',
+    }
+
+    const testIndicatorConfig = {
+        $schema: latestGrapherConfigSchema,
+        note: "Note from the indicator",
+        hasMapTab: true,
+    }
+
+    const testChartConfig = {
+        $schema: latestGrapherConfigSchema,
+        slug: "test-chart-etl",
+        title: "Title set on chart create",
+        chartTypes: ["LineChart"],
+        dimensions: [{ variableId, property: "y" }],
+    }
+
+    const testChartEtlConfig = {
+        $schema: latestGrapherConfigSchema,
+        title: "Title from chart's ETL config",
+        subtitle: "Subtitle from chart's ETL config",
+    }
+
+    beforeEach(async () => {
+        await env.testKnex(DatasetsTableName).insert([dummyDataset])
+        await env.testKnex(VariablesTableName).insert([dummyVariable])
+    })
+
+    it("PUT inserts an etlConfig and merges it into full", async () => {
+        // create a chart
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+        const chartId = response.chartId
+        const createdChartRow = await env
+            .testKnex("charts")
+            .where("id", chartId)
+            .first()
+        const oldLastEditedAt = new Date("2000-01-01T00:00:00.000Z")
+        await env
+            .testKnex("charts")
+            .where("id", chartId)
+            .update({ lastEditedAt: oldLastEditedAt })
+
+        // push an etlConfig
+        const putResponse = await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify(testChartEtlConfig),
+        })
+        expect(putResponse.success).toBe(true)
+
+        // the ETL config is stored in its own chart_configs row, reached via
+        // charts.configIdETL
+        const chartRow = await env
+            .testKnex("charts")
+            .where("id", chartId)
+            .first()
+        expect(chartRow.configIdETL).not.toBeNull()
+        expect(chartRow.lastEditedAt.getTime()).toBeGreaterThan(
+            oldLastEditedAt.getTime()
+        )
+        expect(chartRow.lastEditedByUserId).toBe(
+            createdChartRow.lastEditedByUserId
+        )
+        const etlRow = await env
+            .testKnex(ChartConfigsTableName)
+            .where("id", chartRow.configIdETL)
+            .first()
+        const storedEtlConfig = JSON.parse(etlRow.full)
+        expect(storedEtlConfig).toMatchObject({
+            title: "Title from chart's ETL config",
+            subtitle: "Subtitle from chart's ETL config",
+        })
+
+        // full should reflect the etlConfig values that aren't overridden by
+        // the admin patch (patch.title was set at create time, so it wins)
+        const fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig).toMatchObject({
+            title: "Title set on chart create", // from patch (admin)
+            subtitle: "Subtitle from chart's ETL config", // from etlConfig
+        })
+    })
+
+    it("respects 3-layer merge precedence: variableETL → etlConfig → patch", async () => {
+        // push the indicator's grapher_config (variableETL layer)
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify(testIndicatorConfig),
+        })
+
+        // create a chart that inherits from the indicator
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "layer-test",
+                chartTypes: ["LineChart"],
+                dimensions: [{ variableId, property: "y" }],
+            }),
+        })
+        const chartId = response.chartId
+
+        // before etlConfig: note comes from indicator
+        let fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig).toHaveProperty("note", "Note from the indicator")
+        expect(fullConfig).toHaveProperty("hasMapTab", true)
+
+        // push an etlConfig that overrides note and adds subtitle
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                note: "Note from etlConfig",
+                subtitle: "Subtitle from etlConfig",
+            }),
+        })
+
+        // etlConfig should override the indicator's note; hasMapTab still
+        // comes from the indicator (not in etlConfig)
+        fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig).toHaveProperty("note", "Note from etlConfig")
+        expect(fullConfig).toHaveProperty("subtitle", "Subtitle from etlConfig")
+        expect(fullConfig).toHaveProperty("hasMapTab", true)
+
+        // now an admin edits the chart and overrides the note
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}`,
+            body: JSON.stringify({
+                ...fullConfig,
+                note: "Note overridden by admin",
+            }),
+        })
+
+        // admin patch wins over etlConfig
+        fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig).toHaveProperty("note", "Note overridden by admin")
+        expect(fullConfig).toHaveProperty("subtitle", "Subtitle from etlConfig")
+    })
+
+    it("preserves admin patch when ETL re-pushes the etlConfig", async () => {
+        // create chart + initial etlConfig
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "preserve-test",
+                chartTypes: ["LineChart"],
+                dimensions: [{ variableId, property: "y" }],
+            }),
+        })
+        const chartId = response.chartId
+
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                title: "ETL title v1",
+                subtitle: "ETL subtitle",
+            }),
+        })
+
+        // admin overrides the title in the chart editor
+        let fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}`,
+            body: JSON.stringify({
+                ...fullConfig,
+                title: "Admin title",
+            }),
+        })
+
+        fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig.title).toBe("Admin title")
+        expect(fullConfig.subtitle).toBe("ETL subtitle")
+
+        // ETL re-pushes a new etlConfig with a different title — admin's
+        // patch should still win, etlConfig's other fields should update
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                title: "ETL title v2",
+                subtitle: "New ETL subtitle",
+            }),
+        })
+
+        fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig.title).toBe("Admin title") // patch survives
+        expect(fullConfig.subtitle).toBe("New ETL subtitle") // etlConfig updates
+    })
+
+    it("DELETE detaches the ETL layer without changing the rendered chart", async () => {
+        // setup: indicator + chart + etlConfig
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify(testIndicatorConfig),
+        })
+
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "delete-test",
+                chartTypes: ["LineChart"],
+                dimensions: [{ variableId, property: "y" }],
+            }),
+        })
+        const chartId = response.chartId
+
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                note: "etlConfig note",
+                subtitle: "etlConfig subtitle",
+            }),
+        })
+        const chartRowBeforeDelete = await env
+            .testKnex("charts")
+            .where("id", chartId)
+            .first()
+        const oldLastEditedAt = new Date("2000-01-01T00:00:00.000Z")
+        await env
+            .testKnex("charts")
+            .where("id", chartId)
+            .update({ lastEditedAt: oldLastEditedAt })
+
+        // delete the etlConfig
+        const delResponse = await env.request({
+            method: "DELETE",
+            path: `/charts/${chartId}/etlConfig`,
+        })
+        expect(delResponse.success).toBe(true)
+
+        // the chart's ETL pointer is cleared and its ETL config row is deleted
+        const chartRow = await env
+            .testKnex("charts")
+            .where("id", chartId)
+            .first()
+        expect(chartRow.configIdETL).toBeNull()
+        // a render-neutral detach is not a content edit: lastEditedAt untouched
+        expect(chartRow.lastEditedAt.getTime()).toBe(oldLastEditedAt.getTime())
+        expect(chartRow.lastEditedByUserId).toBe(
+            chartRowBeforeDelete.lastEditedByUserId
+        )
+
+        // detaching is render-neutral: the ETL layer's fields survive as admin
+        // overrides, and fields matching the indicator stay inherited
+        const fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig).toHaveProperty("note", "etlConfig note")
+        expect(fullConfig).toHaveProperty("subtitle", "etlConfig subtitle")
+        expect(fullConfig).toHaveProperty("hasMapTab", true) // from indicator
+
+        const patchConfig = await env.fetchJson(
+            `/charts/${chartId}.patchConfig.json`
+        )
+        // absorbed from the departed ETL layer
+        expect(patchConfig).toHaveProperty("note", "etlConfig note")
+        expect(patchConfig).toHaveProperty("subtitle", "etlConfig subtitle")
+        // still inherited from the indicator, so not in patch
+        expect(patchConfig).not.toHaveProperty("hasMapTab")
+    })
+
+    it("DELETE preserves the grapher dimensions the patch no longer carries", async () => {
+        // The realistic state of an ETL-managed chart: after the first ETL
+        // push, `dimensions` lives only in the ETL layer (it gets stripped
+        // from the patch). Detaching must fold it back into the patch, not
+        // blank the chart.
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "detach-dims-test",
+                chartTypes: ["LineChart"],
+                dimensions: [{ variableId, property: "y" }],
+            }),
+        })
+        const chartId = response.chartId
+
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                title: "ETL-managed chart",
+                dimensions: [{ variableId, property: "y" }],
+            }),
+        })
+
+        // precondition: the ETL layer owns the dimensions, the patch doesn't
+        let patchConfig = await env.fetchJson(
+            `/charts/${chartId}.patchConfig.json`
+        )
+        expect(patchConfig.dimensions).toBeUndefined()
+
+        const delResponse = await env.request({
+            method: "DELETE",
+            path: `/charts/${chartId}/etlConfig`,
+        })
+        expect(delResponse.success).toBe(true)
+
+        // the chart still plots its indicator...
+        const fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig.dimensions).toEqual([{ variableId, property: "y" }])
+        expect(fullConfig.title).toBe("ETL-managed chart")
+
+        // ...because the patch absorbed the dimensions from the ETL layer
+        patchConfig = await env.fetchJson(`/charts/${chartId}.patchConfig.json`)
+        expect(patchConfig.dimensions).toEqual([{ variableId, property: "y" }])
+
+        // chart_dimensions stays intact
+        const dimRows = await env
+            .testKnex("chart_dimensions")
+            .where("chartId", chartId)
+        expect(dimRows.length).toBe(1)
+    })
+
+    it("re-points the chart and its inheritance when ETL changes the y-variable", async () => {
+        // A dataset re-version gives the same indicator a new id. When ETL
+        // re-pushes the chart pointing at the new variable, the chart must
+        // plot the new variable *and* inherit the new indicator's fields,
+        // not the old one's.
+        const variableB = 2
+        await env
+            .testKnex(VariablesTableName)
+            .insert([{ ...dummyVariable, id: variableB }])
+
+        // Two indicators, each with a distinct inherited note.
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                note: "Note from indicator A",
+            }),
+        })
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableB}/grapherConfigETL`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                note: "Note from indicator B",
+            }),
+        })
+
+        // Create a chart plotting indicator A.
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "reversion-test",
+                chartTypes: ["LineChart"],
+                dimensions: [{ variableId, property: "y" }],
+            }),
+        })
+        const chartId = response.chartId
+
+        // ETL's first push carries the same dimensions — this clears the
+        // bootstrap dimensions from `patch` (mirrors the real chart-upsert flow).
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                dimensions: [{ variableId, property: "y" }],
+            }),
+        })
+        let fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig).toHaveProperty("note", "Note from indicator A")
+
+        // ETL re-points the chart at indicator B (dataset re-versioning).
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                dimensions: [{ variableId: variableB, property: "y" }],
+            }),
+        })
+
+        // The chart now plots indicator B and inherits B's note, not A's.
+        fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig.dimensions?.[0]?.variableId).toBe(variableB)
+        expect(fullConfig).toHaveProperty("note", "Note from indicator B")
+    })
+
+    it("keeps inheriting from the admin's variable when patch overrides dimensions", async () => {
+        // An admin who hand-edits the plotted variable in the chart editor
+        // creates a genuine dimensions override in `patch`. A later ETL push
+        // pointing elsewhere must not re-point the chart, and the inherited
+        // fields must follow the variable the chart actually plots (the
+        // admin's), not the ETL layer's.
+        const variableB = 2
+        const variableC = 3
+        await env.testKnex(VariablesTableName).insert([
+            { ...dummyVariable, id: variableB },
+            { ...dummyVariable, id: variableC },
+        ])
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableC}/grapherConfigETL`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                note: "Note from indicator C",
+            }),
+        })
+
+        // ETL-authored chart plotting indicator A.
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "admin-dims-override-test",
+                chartTypes: ["LineChart"],
+                dimensions: [{ variableId, property: "y" }],
+            }),
+        })
+        const chartId = response.chartId
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                dimensions: [{ variableId, property: "y" }],
+            }),
+        })
+
+        // Admin re-points the chart at indicator C in the chart editor.
+        let fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}`,
+            body: JSON.stringify({
+                ...fullConfig,
+                dimensions: [{ variableId: variableC, property: "y" }],
+            }),
+        })
+
+        // ETL re-points at indicator B — the admin's override must win.
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                dimensions: [{ variableId: variableB, property: "y" }],
+            }),
+        })
+
+        fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig.dimensions?.[0]?.variableId).toBe(variableC)
+        expect(fullConfig).toHaveProperty("note", "Note from indicator C")
+    })
+
+    it("does not bump version or add a revision on a no-op ETL re-push", async () => {
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+        const chartId = response.chartId
+
+        // First ETL config push.
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify(testChartEtlConfig),
+        })
+        const afterFirst = await env.fetchJson(`/charts/${chartId}.config.json`)
+        const versionAfterFirst = afterFirst.version
+        const revisionsAfterFirst = (
+            await env.testKnex("chart_revisions").where("chartId", chartId)
+        ).length
+
+        // Identical re-push (e.g. --force, a data refresh, a bulk ETL run).
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify(testChartEtlConfig),
+        })
+        const afterRepush = await env.fetchJson(
+            `/charts/${chartId}.config.json`
+        )
+        const revisionsAfterRepush = (
+            await env.testKnex("chart_revisions").where("chartId", chartId)
+        ).length
+
+        // No change → version untouched, no new revision.
+        expect(afterRepush.version).toBe(versionAfterFirst)
+        expect(revisionsAfterRepush).toBe(revisionsAfterFirst)
+
+        // A genuine config change still bumps the version.
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                ...testChartEtlConfig,
+                subtitle: "A genuinely different subtitle",
+            }),
+        })
+        const afterChange = await env.fetchJson(
+            `/charts/${chartId}.config.json`
+        )
+        expect(afterChange.version).toBeGreaterThan(versionAfterFirst)
+    })
+
+    it("persists the rediffed patch on a no-op so ETL can later update a field it adopted", async () => {
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "adopt-test",
+                chartTypes: ["LineChart"],
+                dimensions: [{ variableId, property: "y" }],
+            }),
+        })
+        const chartId = response.chartId
+
+        // Admin sets a title in the chart editor → lands in the admin patch.
+        let fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}`,
+            body: JSON.stringify({ ...fullConfig, title: "Shared title" }),
+        })
+
+        // ETL adopts that exact title. The rendered `full` is unchanged (still
+        // "Shared title"), so this is a no-op render-wise, but `title` must be
+        // dropped from the admin patch so ETL now owns it.
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                title: "Shared title",
+            }),
+        })
+        const patchAfterAdopt = await env.fetchJson(
+            `/charts/${chartId}.patchConfig.json`
+        )
+        expect(patchAfterAdopt.title).toBeUndefined()
+
+        // ETL now changes the title it owns — it must propagate to `full`
+        // (without the patch persistence above, the stale patch entry would
+        // mask this and the title would stay "Shared title").
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                title: "ETL-owned title",
+            }),
+        })
+        fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig.title).toBe("ETL-owned title")
+    })
+
+    it("backfills catalogPath on a no-op re-push for a chart that already has an etlConfig", async () => {
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "catalogpath-test",
+                chartTypes: ["LineChart"],
+                dimensions: [{ variableId, property: "y" }],
+            }),
+        })
+        const chartId = response.chartId
+
+        // First push creates the etlConfig row; no catalogPath supplied yet.
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                subtitle: "ETL subtitle",
+            }),
+        })
+        let chartRow = await env.testKnex("charts").where("id", chartId).first()
+        expect(chartRow.catalogPath).toBeNull()
+
+        // Identical re-push (no-op for `full`) but now carrying a catalogPath —
+        // it must still be backfilled despite the early return.
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig?catalogPath=${encodeURIComponent(
+                "grapher/test/latest/x#y"
+            )}`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                subtitle: "ETL subtitle",
+            }),
+        })
+        chartRow = await env.testKnex("charts").where("id", chartId).first()
+        expect(chartRow.catalogPath).toBe("grapher/test/latest/x#y")
+    })
+
+    it("rejects an etlConfig with no $schema", async () => {
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+        const chartId = response.chartId
+
+        const putResponse = await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                // no $schema
+                title: "T",
+            }),
+        })
+        expect(putResponse.success).toBe(false)
     })
 })
 
