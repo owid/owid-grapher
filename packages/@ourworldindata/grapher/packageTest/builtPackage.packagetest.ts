@@ -104,6 +104,15 @@ describe("npm build (dist/grapher.js)", () => {
         expect(source).toMatch(/from\s*["']react-dom\/client["']/)
     })
 
+    it("contains no runtime require calls", () => {
+        const source = fs.readFileSync(npmBuildPath, "utf8")
+        // A bundled CJS dependency that `require`s an external module (like
+        // the use-sync-external-store shim requiring react, aliased away in
+        // tsdown.config.ts) ends up as a runtime `__require` call, which
+        // throws in ESM environments.
+        expect(source).not.toMatch(/__require\(/)
+    })
+
     it("mounts and disposes a chart via GrapherLoader.fromTable", async () => {
         stubImmediateIntersectionObserver()
         const { GrapherLoader, OwidTable } = await import(
@@ -193,6 +202,8 @@ describe("standalone bundle (dist/grapher.standalone.min.js)", () => {
         // import any bare module specifiers.
         expect(source).not.toMatch(/from\s*["']react["']/)
         expect(source).not.toMatch(/from\s*["'](?![./])/)
+        // ... nor call `__require` at runtime (see the npm build test).
+        expect(source).not.toMatch(/__require\(/)
     })
 })
 
