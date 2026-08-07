@@ -149,13 +149,18 @@ abstract class AbstractHeader<
                 text: this.titleText,
             }
 
+            const annotationFontSize = Math.min(
+                this.titleAnnotationFontSize,
+                fontSize
+            )
+
             const annotationFragment: TextWrapFragment = {
                 text: this.titleAnnotationText,
                 fontFamily: FontFamily.Lato,
                 fontWeight: 700,
                 // Make sure the annotation is never bigger than the title,
                 // (relevant if the title has been downsized to fit)
-                fontSize: Math.min(this.titleAnnotationFontSize, fontSize),
+                fontSize: annotationFontSize,
                 color: GRAPHER_LIGHT_TEXT,
                 inlineGap: Math.min(6, Math.round(0.4 * fontSize)),
                 newLineGap: this.verticalPadding,

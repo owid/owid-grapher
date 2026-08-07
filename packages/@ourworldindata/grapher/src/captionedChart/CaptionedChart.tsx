@@ -47,7 +47,6 @@ import { GRAPHER_BACKGROUND } from "../color/ColorConstants.js"
 import { ChartAreaContent } from "../chart/ChartAreaContent"
 import { getChartSvgProps } from "../chart/ChartUtils"
 import { StaticChartWrapper } from "../chart/StaticChartWrapper"
-
 export interface CaptionedChartManager
     extends
         ChartManager,

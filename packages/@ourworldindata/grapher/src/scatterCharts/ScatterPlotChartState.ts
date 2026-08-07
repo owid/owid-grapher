@@ -23,6 +23,7 @@ import {
 import {
     ChartErrorInfo,
     ColorSchemeName,
+    ColumnSlug,
     EntityName,
     ScaleType,
     ScatterPointLabelStrategy,
@@ -35,6 +36,12 @@ import {
     intersection,
     lowerCaseFirstLetterUnlessAbbreviation,
 } from "@ourworldindata/utils"
+import {
+    findConfiguredTolerance,
+    findTimeSpan,
+    hasToleranceApplied,
+    makeToleranceNotice,
+} from "../chart/ToleranceNotice.js"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { AxisConfig } from "../axis/AxisConfig"
@@ -430,6 +437,52 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
 
     @computed get allPoints(): SeriesPoint[] {
         return this.series.flatMap((series) => series.points)
+    }
+
+    /**
+     * The axes whose values can miss the time the chart is labelled with. When
+     * the x column is pinned to a time of its own, it's meant to come from a
+     * different time, so that isn't a tolerance caveat.
+     */
+    @computed private get toleranceProperties(): readonly ("x" | "y")[] {
+        return this.xOverrideTime !== undefined ? ["y"] : ["x", "y"]
+    }
+
+    @computed private get toleranceColumnSlugs(): ColumnSlug[] {
+        return this.toleranceProperties.map(
+            (property) => this[`${property}ColumnSlug`]
+        )
+    }
+
+    @computed private get toleranceColumns(): CoreColumn[] {
+        return this.toleranceProperties.map(
+            (property) => this[`${property}Column`]
+        )
+    }
+
+    /** Whether any value shown right now is filled in from another time */
+    @computed private get isToleranceApplied(): boolean {
+        return hasToleranceApplied(
+            this.transformedTable,
+            this.toleranceColumnSlugs
+        )
+    }
+
+    /** The notice itself, regardless of whether it currently applies */
+    @computed private get toleranceNoticeText(): string | undefined {
+        // Time scatters plot time itself on the x axis, so there's no target
+        // time a value could be missing for
+        if (this.isTimeScatter) return undefined
+
+        return makeToleranceNotice({
+            timeColumn: this.transformedTable.timeColumn,
+            timeSpan: findTimeSpan(this.inputTable),
+            timeTolerance: findConfiguredTolerance(this.toleranceColumns),
+        })
+    }
+
+    @computed get toleranceNotice(): string | undefined {
+        return this.isToleranceApplied ? this.toleranceNoticeText : undefined
     }
 
     @computed private get selectedPoints(): SeriesPoint[] {

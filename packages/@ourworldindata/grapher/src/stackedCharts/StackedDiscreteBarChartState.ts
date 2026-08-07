@@ -38,6 +38,12 @@ import { ColorScheme } from "../color/ColorScheme"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { excludeUndefined } from "@ourworldindata/utils"
 import { FocusArray } from "../focus/FocusArray"
+import {
+    findConfiguredTolerance,
+    findTimeSpan,
+    hasToleranceApplied,
+    makeToleranceNotice,
+} from "../chart/ToleranceNotice"
 
 export class StackedDiscreteBarChartState implements ChartState {
     manager: StackedDiscreteBarChartManager
@@ -146,6 +152,24 @@ export class StackedDiscreteBarChartState implements ChartState {
 
     @computed get yColumns(): CoreColumn[] {
         return this.transformedTable.getColumns(this.yColumnSlugs)
+    }
+
+    /** Whether any value shown right now is filled in from another time */
+    @computed private get isToleranceApplied(): boolean {
+        return hasToleranceApplied(this.transformedTable, this.yColumnSlugs)
+    }
+
+    /** The notice itself, regardless of whether it currently applies */
+    @computed private get toleranceNoticeText(): string | undefined {
+        return makeToleranceNotice({
+            timeColumn: this.transformedTable.timeColumn,
+            timeSpan: findTimeSpan(this.inputTable),
+            timeTolerance: findConfiguredTolerance(this.yColumns),
+        })
+    }
+
+    @computed get toleranceNotice(): string | undefined {
+        return this.isToleranceApplied ? this.toleranceNoticeText : undefined
     }
 
     @computed get formatColumn(): CoreColumn {

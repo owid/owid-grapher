@@ -56,6 +56,8 @@ import {
 import { ChartState } from "../chart/ChartInterface.js"
 import { MapConfig } from "../mapCharts/MapConfig"
 
+const LABEL_FONT_WEIGHT = 700
+
 @observer
 export class FacetMap
     extends React.Component<FacetMapProps>
@@ -575,7 +577,7 @@ export class FacetMap
                                 fill={GRAPHER_DARK_TEXT}
                                 fontSize={facetFontSize}
                                 textAnchor="middle"
-                                style={{ fontWeight: 700 }}
+                                style={{ fontWeight: LABEL_FONT_WEIGHT }}
                             >
                                 {seriesName}
                             </text>

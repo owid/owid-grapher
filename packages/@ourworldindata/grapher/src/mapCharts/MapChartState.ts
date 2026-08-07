@@ -37,6 +37,11 @@ import { getCountriesByRegion, isOnTheMap } from "./MapHelpers"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import {
+    findTimeSpan,
+    hasToleranceApplied,
+    makeToleranceNotice,
+} from "../chart/ToleranceNotice.js"
 
 export type MapFormatValueForTooltip = (
     d: PrimitiveType,
@@ -315,6 +320,44 @@ export class MapChartState implements ChartState, ColorScaleManager {
 
     @computed get targetTime(): number | undefined {
         return this.manager.targetTime ?? this.manager.endTime
+    }
+
+    @computed private get timeTolerance(): number {
+        return this.mapConfig.timeTolerance ?? this.mapColumn.tolerance
+    }
+
+    /**
+     * The countries whose values the notice speaks for: everything on the map,
+     * or just the continent when zoomed into one in 2D
+     */
+    @computed private get entityNamesOnScreen(): Set<EntityName> | undefined {
+        return this.mapConfig.is2dContinentActive()
+            ? getCountriesByRegion(MAP_REGION_LABELS[this.mapConfig.region])
+            : undefined
+    }
+
+    /** Whether any value shown right now is filled in from another time */
+    @computed private get isToleranceApplied(): boolean {
+        return hasToleranceApplied(
+            this.transformedTable,
+            [this.mapColumnSlug],
+            {
+                entityNames: this.entityNamesOnScreen,
+            }
+        )
+    }
+
+    /** The notice itself, regardless of whether it currently applies */
+    @computed private get toleranceNoticeText(): string | undefined {
+        return makeToleranceNotice({
+            timeColumn: this.transformedTable.timeColumn,
+            timeSpan: findTimeSpan(this.inputTable),
+            timeTolerance: this.timeTolerance,
+        })
+    }
+
+    @computed get toleranceNotice(): string | undefined {
+        return this.isToleranceApplied ? this.toleranceNoticeText : undefined
     }
 
     @computed get columnIsProjection(): CoreColumn | undefined {

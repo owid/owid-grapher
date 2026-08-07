@@ -2448,6 +2448,36 @@ export class GrapherState
         return ""
     }
 
+    /**
+     * Explains that some of the values on screen aren't from the time the
+     * chart is labelled with, because tolerance was applied. Only chart types
+     * that don't show their values' source times provide one.
+     */
+    @computed get toleranceNotice(): string | undefined {
+        // The data table names the source time of every value it shows, and
+        // the notice describes the chart, not the table
+        if (!this.isReady || !this.isOnChartOrMapTab) return undefined
+
+        return this.chartState.toleranceNotice
+    }
+
+    /**
+     * Effective note resolved from the authored note, with the tolerance
+     * notice appended when tolerance was applied to something on screen
+     */
+    @computed get effectiveNote(): string | undefined {
+        const { note, toleranceNotice } = this
+        if (!toleranceNotice) return note
+
+        const authoredNote = note?.trim()
+        if (!authoredNote) return toleranceNotice
+
+        // Run the two together as sentences, terminating the authored note if
+        // the author didn't, so the notice doesn't read as part of it
+        const separator = /[.!?]$/.test(authoredNote) ? " " : ". "
+        return `${authoredNote}${separator}${toleranceNotice}`
+    }
+
     @computed get shouldAddEntitySuffixToTitle(): boolean {
         const selectedEntityNames = this.selection.selectedEntityNames
         const showEntityAnnotation = !this.hideAnnotationFieldsInTitle?.entity

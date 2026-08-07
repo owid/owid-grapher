@@ -41,6 +41,12 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { FocusArray } from "../focus/FocusArray"
 import { AxisConfig } from "../axis/AxisConfig.js"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
+import {
+    findConfiguredTolerance,
+    findTimeSpan,
+    hasToleranceApplied,
+    makeToleranceNotice,
+} from "../chart/ToleranceNotice.js"
 
 export class MarimekkoChartState implements ChartState, ColorScaleManager {
     manager: MarimekkoChartManager
@@ -151,6 +157,31 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
 
     @computed get colorColumnSlug(): string | undefined {
         return this.manager.colorColumnSlug
+    }
+
+    @computed private get toleranceColumns(): (CoreColumn | undefined)[] {
+        return [...this.yColumns, this.xColumn]
+    }
+
+    /** Whether any value shown right now is filled in from another time */
+    @computed private get isToleranceApplied(): boolean {
+        return hasToleranceApplied(this.transformedTable, [
+            ...this.yColumnSlugs,
+            this.xColumnSlug,
+        ])
+    }
+
+    /** The notice itself, regardless of whether it currently applies */
+    @computed private get toleranceNoticeText(): string | undefined {
+        return makeToleranceNotice({
+            timeColumn: this.transformedTable.timeColumn,
+            timeSpan: findTimeSpan(this.inputTable),
+            timeTolerance: findConfiguredTolerance(this.toleranceColumns),
+        })
+    }
+
+    @computed get toleranceNotice(): string | undefined {
+        return this.isToleranceApplied ? this.toleranceNoticeText : undefined
     }
 
     @computed get colorColumn(): CoreColumn {
