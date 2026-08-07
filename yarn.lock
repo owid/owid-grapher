@@ -8862,7 +8862,6 @@ __metadata:
     core-js: "npm:^3.49.0"
     d3: "npm:^7.9.0"
     dayjs: "npm:^1.11.21"
-    diff: "npm:^9.0.0"
     dotenv: "npm:^16.0.1"
     embla-carousel-class-names: "npm:^8.6.0"
     embla-carousel-react: "npm:^8.6.0"
