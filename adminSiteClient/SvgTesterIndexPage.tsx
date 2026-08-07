@@ -110,12 +110,17 @@ const columns: TableColumnsType<SvgTesterSuiteStatus> = [
     },
     {
         title: "Ran",
-        render: (_, status) =>
-            hasReportedResult(status) ? (
-                <Timeago time={status.results!.startedAt} />
-            ) : (
-                "–"
-            ),
+        render: (_, status) => {
+            const startedAt = status.results?.startedAt
+            if (!startedAt) return "–"
+            if (!hasReportedResult(status))
+                return (
+                    <>
+                        started <Timeago time={startedAt} />
+                    </>
+                )
+            return <Timeago time={startedAt} />
+        },
     },
     {
         title: "Took",
