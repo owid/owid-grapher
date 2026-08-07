@@ -778,10 +778,9 @@ export class SlopeChart
 
         const actualStartTime = series.start.originalTime
         const actualEndTime = series.end.originalTime
-        const timeRange = `${formatTime(actualStartTime)} to ${formatTime(actualEndTime)}`
         const timeLabel = isRelativeMode
             ? `% change between ${formatColumn.formatTime(actualStartTime)} and ${formatColumn.formatTime(actualEndTime)}`
-            : timeRange
+            : formatColumn.formatTimeComparison(actualStartTime, actualEndTime)
 
         // The subtitle shows the original time of both values. Naming the
         // original time here only helps if the subtitle mixes a target time with

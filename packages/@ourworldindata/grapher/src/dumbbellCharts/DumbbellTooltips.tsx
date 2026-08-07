@@ -54,10 +54,10 @@ export class DumbbellTimeRangeTooltip extends React.Component<DumbbellTooltipPro
         const originalStartTime = target?.start.time ?? startTime
         const originalEndTime = target?.end.time ?? endTime
 
-        const formattedStartTime = formatColumn.formatTime(originalStartTime)
-        const formattedEndTime = formatColumn.formatTime(originalEndTime)
-
-        return `${formattedStartTime} to ${formattedEndTime}`
+        return formatColumn.formatTimeComparison(
+            originalStartTime,
+            originalEndTime
+        )
     }
 
     @computed private get toleranceNotice(): FooterItem | undefined {
