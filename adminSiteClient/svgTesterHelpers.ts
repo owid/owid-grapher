@@ -28,6 +28,12 @@ export function displayStatus(
     return "ok"
 }
 
+/** True only when the run actually finished and reported */
+export function hasReportedResult(status: SvgTesterSuiteStatus): boolean {
+    const display = displayStatus(status)
+    return display === "ok" || display === "differences" || display === "error"
+}
+
 /** True when the suite page has something to show: differences or render errors */
 export function hasFindings(status: SvgTesterSuiteStatus): boolean {
     const counts = status.results?.counts

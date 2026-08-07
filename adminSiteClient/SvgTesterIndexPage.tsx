@@ -12,6 +12,7 @@ import {
     displayStatus,
     formatDuration,
     hasFindings,
+    hasReportedResult,
     SvgTesterDisplayStatus,
 } from "./svgTesterHelpers.js"
 
@@ -171,10 +172,4 @@ function StatusTag({ status }: { status: SvgTesterSuiteStatus }) {
             )}
         </>
     )
-}
-
-/** True only when the run actually finished and reported */
-function hasReportedResult(status: SvgTesterSuiteStatus): boolean {
-    const display = displayStatus(status)
-    return display === "ok" || display === "differences" || display === "error"
 }

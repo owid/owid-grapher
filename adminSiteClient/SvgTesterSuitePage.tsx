@@ -19,6 +19,7 @@ import {
     DISPLAY_STATUS_LABELS,
     formatDuration,
     hasFindings,
+    hasReportedResult,
 } from "./svgTesterHelpers.js"
 
 const LIVE_URL = "https://ourworldindata.org"
@@ -88,6 +89,8 @@ export function SvgTesterSuitePage() {
 
     const status = data ? displayStatus(data) : undefined
 
+    const isReported = data ? hasReportedResult(data) : false
+
     // The browser jumps to the fragment before the cards it names exist: they
     // only render once the results have loaded.
     useEffect(() => {
@@ -107,16 +110,32 @@ export function SvgTesterSuitePage() {
                     {results && (
                         <div className="SvgTesterSuitePage__summary">
                             <div className="SvgTesterSuitePage__headline">
-                                <strong>
-                                    {results.counts.differences.toLocaleString()}
-                                </strong>{" "}
-                                of {results.counts.total.toLocaleString()}{" "}
-                                charts rendered differently
+                                {isReported ? (
+                                    <>
+                                        <strong>
+                                            {results.counts.differences.toLocaleString()}
+                                        </strong>{" "}
+                                        of{" "}
+                                        {results.counts.total.toLocaleString()}{" "}
+                                        charts rendered differently
+                                    </>
+                                ) : (
+                                    status && DISPLAY_STATUS_LABELS[status]
+                                )}
                             </div>
                             <div className="SvgTesterSuitePage__meta">
-                                {suite} · ran{" "}
-                                <Timeago time={results.startedAt} /> in{" "}
-                                {formatDuration(results.durationMs)}
+                                {suite} ·{" "}
+                                {isReported ? (
+                                    <>
+                                        ran <Timeago time={results.startedAt} />{" "}
+                                        in {formatDuration(results.durationMs)}
+                                    </>
+                                ) : (
+                                    <>
+                                        started{" "}
+                                        <Timeago time={results.startedAt} />
+                                    </>
+                                )}
                                 {results.counts.errors > 0 && (
                                     <>
                                         {" · "}
@@ -142,7 +161,11 @@ export function SvgTesterSuitePage() {
 
                     {results && <SvgTesterErrors errors={results.errors} />}
 
+                    {/* The headline already carries the status of a run that
+                        never reported; this is for the ones with no results
+                        file at all, and for runs that found nothing. */}
                     {status &&
+                        (isReported || !results) &&
                         !differences.length &&
                         !results?.errors.length && (
                             <Alert
