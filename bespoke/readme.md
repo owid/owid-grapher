@@ -124,6 +124,8 @@ export default defineConfig({
 })
 ```
 
+change
+
 Then render `<StylesTarget />` in your component tree:
 
 ```tsx

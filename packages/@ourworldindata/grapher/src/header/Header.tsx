@@ -73,7 +73,10 @@ abstract class AbstractHeader<
     }
 
     @computed protected get titleText(): string {
-        return this.manager.mainTitle?.trim() ?? ""
+        const title = this.manager.mainTitle?.trim() ?? ""
+        // TEMPORARY: forces every chart to render differently so the SVG
+        // tester reports diffs. Do not merge.
+        return title ? `[test] ${title}` : title
     }
 
     @computed protected get titleAnnotationText(): string {
