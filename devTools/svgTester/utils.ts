@@ -980,6 +980,40 @@ function resolveCommit(cwd?: string): string | null {
     }
 }
 
+/** How often the run reports progress */
+const PROGRESS_INTERVAL_MS = 30 * 1000
+
+/** Periodic progress while a suite runs. */
+export function startVerifyProgress(
+    suite: string, // TODO: Use type
+    total: number,
+    pool: { stats: () => { busyWorkers: number } }
+): { recordResult: (result: VerifyResult) => void; stop: () => void } {
+    const startedAt = Date.now()
+    const counts = { done: 0, ok: 0, differences: 0, errors: 0 }
+
+    const timer = setInterval(() => {
+        const elapsed = Math.round((Date.now() - startedAt) / 1000)
+        console.log(
+            `${suite}: ${counts.done}/${total} done ` +
+                `(${counts.ok} ok, ${counts.differences} differ, ${counts.errors} errored) · ` +
+                `${pool.stats().busyWorkers} in flight · ${elapsed}s elapsed`
+        )
+    }, PROGRESS_INTERVAL_MS)
+    // Never hold the process open on our account
+    timer.unref?.()
+
+    return {
+        recordResult: (result: VerifyResult) => {
+            counts.done += 1
+            if (result.kind === "ok") counts.ok += 1
+            else if (result.kind === "difference") counts.differences += 1
+            else counts.errors += 1
+        },
+        stop: () => clearInterval(timer),
+    }
+}
+
 export const EXIT_CODE_DIFFERENCES = 2
 export const EXIT_CODE_ERROR = 1
 
