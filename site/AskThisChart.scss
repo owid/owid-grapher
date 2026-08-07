@@ -1,0 +1,283 @@
+.ask-this-chart-wrapper {
+    margin-bottom: 16px;
+    background-color: $blue-5;
+    padding: 24px 0 36px;
+
+    h2 {
+        margin: 0;
+        margin-bottom: 8px;
+    }
+}
+
+.ask-this-chart__intro {
+    @include body-3-medium;
+    color: $blue-60;
+    margin: 0 0 16px;
+}
+
+.ask-this-chart__faqs-loading {
+    @include body-3-medium;
+    color: $blue-50;
+    margin: 0 0 16px;
+    animation: ask-this-chart-pulse 1.5s ease-in-out infinite;
+}
+
+.ask-this-chart__faqs {
+    background-color: $white;
+    border: 1px solid $blue-20;
+    padding: 0 16px;
+    margin-bottom: 16px;
+}
+
+.ask-this-chart__ask-toggle {
+    @include body-3-medium;
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 12px 16px;
+    background-color: $white;
+    color: $blue-90;
+    border: 1px solid $blue-20;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $blue-10;
+    }
+}
+
+.ask-this-chart__ask-panel {
+    margin-top: 16px;
+}
+
+.ask-this-chart__faq-answer {
+    @include body-3-medium;
+    color: $blue-90;
+
+    p {
+        margin: 0 0 8px;
+    }
+
+    p:last-child,
+    ul:last-child,
+    ol:last-child {
+        margin-bottom: 0;
+    }
+
+    ul,
+    ol {
+        margin: 0 0 8px;
+        padding-left: 24px;
+    }
+}
+
+.ask-this-chart__feedback {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid $blue-20;
+}
+
+.ask-this-chart__feedback-rate {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ask-this-chart__feedback-label {
+    @include note-13-medium;
+    color: $blue-60;
+}
+
+.ask-this-chart__feedback-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background-color: $white;
+    color: $blue-60;
+    border: 1px solid $blue-20;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $blue-10;
+        color: $blue-90;
+    }
+}
+
+.ask-this-chart__feedback-reason {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.ask-this-chart__feedback-reason-label {
+    @include note-13-medium;
+    color: $blue-60;
+}
+
+.ask-this-chart__feedback-reason-input {
+    @include body-3-medium;
+    width: 100%;
+    padding: 8px 12px;
+    background-color: $white;
+    border: 1px solid $blue-20;
+    color: $blue-90;
+    resize: vertical;
+
+    &:focus {
+        outline: 2px solid $blue-40;
+        outline-offset: -2px;
+    }
+}
+
+.ask-this-chart__feedback-reason-submit {
+    @include body-3-medium;
+    padding: 8px 24px;
+    background-color: $blue-90;
+    color: $white;
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $blue-60;
+    }
+}
+
+.ask-this-chart__feedback-thanks {
+    @include note-13-medium;
+    color: $blue-60;
+    margin: 16px 0 0;
+    padding-top: 12px;
+    border-top: 1px solid $blue-20;
+}
+
+.ask-this-chart__suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.ask-this-chart__suggestion {
+    @include body-3-medium;
+    padding: 8px 16px;
+    background-color: $white;
+    color: $blue-90;
+    border: 1px solid $blue-20;
+    border-radius: 24px;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+        background-color: $blue-10;
+    }
+
+    &:disabled {
+        color: $blue-40;
+        cursor: default;
+    }
+}
+
+.ask-this-chart__conversation {
+    margin-bottom: 16px;
+}
+
+.ask-this-chart__question {
+    @include body-3-medium;
+    display: inline-block;
+    background-color: $blue-10;
+    color: $blue-90;
+    border-radius: 16px 16px 16px 0;
+    padding: 8px 16px;
+    margin: 16px 0 8px;
+}
+
+.ask-this-chart__answer {
+    @include body-3-medium;
+    background-color: $white;
+    border: 1px solid $blue-20;
+    color: $blue-90;
+    padding: 16px;
+
+    p {
+        margin: 0 0 8px;
+    }
+
+    p:last-child,
+    ul:last-child,
+    ol:last-child {
+        margin-bottom: 0;
+    }
+
+    ul,
+    ol {
+        margin: 0 0 8px;
+        padding-left: 24px;
+    }
+}
+
+.ask-this-chart__thinking {
+    color: $blue-50;
+    animation: ask-this-chart-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes ask-this-chart-pulse {
+    50% {
+        opacity: 0.4;
+    }
+}
+
+.ask-this-chart__error {
+    @include body-3-medium;
+    color: $vermillion;
+    margin: 0 0 16px;
+}
+
+.ask-this-chart__form {
+    display: flex;
+    gap: 8px;
+}
+
+.ask-this-chart__input {
+    @include body-3-medium;
+    flex: 1;
+    height: 56px;
+    padding: 0 16px;
+    background-color: $white;
+    border: 1px solid $blue-20;
+    border-radius: 0;
+    color: $blue-90;
+
+    &:focus {
+        outline: 2px solid $blue-40;
+        outline-offset: -2px;
+    }
+
+    &::placeholder {
+        color: $blue-50;
+    }
+}
+
+.ask-this-chart__submit {
+    @include body-3-medium;
+    padding: 0 24px;
+    background-color: $blue-90;
+    color: $white;
+    border: none;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+        background-color: $blue-60;
+    }
+
+    &:disabled {
+        background-color: $blue-20;
+        cursor: default;
+    }
+}
+
+.ask-this-chart__disclaimer {
+    @include note-13-medium;
+    color: $blue-50;
+    margin: 8px 0 0;
+}
