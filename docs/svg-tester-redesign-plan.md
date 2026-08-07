@@ -125,6 +125,13 @@ data should stay put and the work should come to it.
 `git diff` on master are genuinely useful. Add a `refs.json` recording which
 grapher commit and DB snapshot date they came from, so staleness is visible.
 
+That last sentence turned out to be a whole design rather than a field, because
+references have two writers — a refresh and master's absorption — and a file that
+records only the first is wrong within a day. It is worked out in full, along with the
+nine ways a run can compare against the wrong references, in
+[svg-tester-reference-provenance.md](./svg-tester-reference-provenance.md): a deferred
+add-on, and the place to look before designing this again.
+
 **Results go to R2, never git.** Tooling already exists
 (`devTools/syncGraphersToR2`, `.github/workflows/sync-grapher-schema-to-r2.yml`).
 
@@ -155,7 +162,7 @@ re-derive it, which is what makes an aggressive expiry policy safe.
 {suite}/references/**          # expected SVGs (595 MB for graphers)
 {suite}/references/results.csv # the md5 index
 {suite}/top.manifest.json      # which charts a suite covers
-refs.json                      # NEW: provenance — grapher commit, DB snapshot date, refresh date
+{suite}/refs.json              # NEW: provenance — grapher commit, DB snapshot date, refresh date
 ```
 
 Written only by (a) the monthly refresh job and (b) master absorbing
