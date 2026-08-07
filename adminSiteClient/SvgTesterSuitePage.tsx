@@ -1,9 +1,9 @@
-import { useContext, useMemo, useState } from "react"
+import { useContext, useEffect, useMemo, useState } from "react"
 import { Alert, Select, Space, Spin, Tag, Tooltip, Typography } from "antd"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
 import cx from "clsx"
 import { useQuery } from "@tanstack/react-query"
-import { Link, useParams } from "react-router-dom"
+import { Link, useHistory, useLocation, useParams } from "react-router-dom"
 import * as _ from "lodash-es"
 import {
     SvgTesterDirectory,
@@ -41,10 +41,23 @@ const KIND_LABELS: Record<SvgTesterVerifyErrorEntry["kind"], string> = {
 /** Skip the diff when this much of the file changed */
 const MAX_CHANGED_RATIO = 0.25
 
+const CHART_TYPE_PARAM = "chartType"
+
 export function SvgTesterSuitePage() {
     const { admin } = useContext(AdminAppContext)
     const { suite } = useParams<{ suite: string }>()
-    const [chartType, setChartType] = useState<string>("all")
+    const location = useLocation()
+    const history = useHistory()
+
+    const chartType =
+        new URLSearchParams(location.search).get(CHART_TYPE_PARAM) ?? "all"
+
+    const setChartType = (value: string): void => {
+        const params = new URLSearchParams(location.search)
+        if (value === "all") params.delete(CHART_TYPE_PARAM)
+        else params.set(CHART_TYPE_PARAM, value)
+        history.replace({ search: params.toString(), hash: "" })
+    }
 
     const { data, isLoading } = useQuery({
         queryKey: ["svgtester-results", suite],
@@ -74,6 +87,13 @@ export function SvgTesterSuitePage() {
     )
 
     const status = data ? displayStatus(data) : undefined
+
+    // The browser jumps to the fragment before the cards it names exist: they
+    // only render once the results have loaded.
+    useEffect(() => {
+        if (!location.hash) return
+        document.getElementById(location.hash.slice(1))?.scrollIntoView()
+    }, [location.hash, results])
 
     return (
         <AdminLayout title={`SVG tester: ${suite}`}>
@@ -172,7 +192,7 @@ export function SvgTesterSuitePage() {
 
                             {visible.map((entry) => (
                                 <DifferenceCard
-                                    key={differenceKey(entry)}
+                                    key={anchorId(entry.viewId, entry.queryStr)}
                                     suite={suite}
                                     entry={entry}
                                 />
@@ -233,6 +253,7 @@ function DifferenceCard({
     const [mode, setMode] = useState<ViewMode>("side-by-side")
     const beforeUrl = svgUrl(suite, "references", entry)
     const afterUrl = svgUrl(suite, "differences", entry)
+    const anchor = anchorId(entry.viewId, entry.queryStr)
 
     // A thumbnail is a 300x160 rendering of a chart; the live chart is the full
     // one, so there is nothing for an interactive view to compare against.
@@ -242,10 +263,17 @@ function DifferenceCard({
             : VIEW_MODE_OPTIONS
 
     return (
-        <section className="SvgTesterSuitePage__card">
+        <section className="SvgTesterSuitePage__card" id={anchor}>
             <header className="SvgTesterSuitePage__card-header">
                 <span className="SvgTesterSuitePage__identity">
-                    <strong aria-hidden="true">#</strong>{" "}
+                    <a
+                        className="SvgTesterSuitePage__anchor"
+                        href={`#${anchor}`}
+                        aria-label={`Link to ${entry.viewId}`}
+                        title="Link to this chart"
+                    >
+                        #
+                    </a>{" "}
                     <strong>{entry.viewId}</strong>
                     {entry.queryStr && <code> ?{entry.queryStr}</code>}
                     {entry.chartType && (
@@ -564,7 +592,7 @@ async function fetchText(url: string): Promise<string> {
     return response.text()
 }
 
-/** Stable identifier for a difference, unique within a suite. */
-function differenceKey(entry: SvgTesterVerifyDifferenceEntry): string {
-    return entry.queryStr ? `${entry.viewId}?${entry.queryStr}` : entry.viewId
+function anchorId(viewId: string, queryStr?: string): string {
+    const id = queryStr ? `${viewId}--${queryStr}` : viewId
+    return id.replaceAll(/[^\w-]+/g, "-")
 }

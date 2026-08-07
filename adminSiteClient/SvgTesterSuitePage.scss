@@ -76,6 +76,11 @@ $svg-tester-error-frame: #dda4a0;
     border-radius: 2px;
     margin-bottom: 20px;
     padding: 12px;
+
+    &:target {
+        border-color: $blue-40;
+        box-shadow: 0 0 0 3px $blue-10;
+    }
 }
 
 .SvgTesterSuitePage__card-header {
@@ -88,6 +93,17 @@ $svg-tester-error-frame: #dda4a0;
 .SvgTesterSuitePage__identity {
     min-width: 0;
     overflow-wrap: anywhere;
+}
+
+.SvgTesterSuitePage__anchor {
+    color: $gray-60;
+    font-weight: bold;
+    text-decoration: none;
+
+    &:hover {
+        color: $gray-100;
+        text-decoration: none;
+    }
 }
 
 .SvgTesterSuitePage__chart-type {
