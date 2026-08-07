@@ -29,6 +29,12 @@ export type Attachments = {
     linkedNarrativeCharts?: Record<string, NarrativeChartInfo>
     linkedStaticViz?: Record<string, LinkedStaticViz>
     tags: MinimalTag[]
+    /**
+     * Name of the single top-level topic area this page belongs to, e.g.
+     * "Population and Demographic Change". Resolved from `tags[0]` against the
+     * tag graph on the server; undefined when the page has no area.
+     */
+    topicArea?: string
     linkedCallouts?: LinkedCallouts
 }
 

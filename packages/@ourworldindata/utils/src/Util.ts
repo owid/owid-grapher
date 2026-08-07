@@ -1306,6 +1306,7 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
         "breadcrumbs",
         "manualBreadcrumbs",
         "tags",
+        "topicArea",
     ])
 
     // Also generic properties. A separate function call because R.pick can only take so many arguments before TS complains

@@ -134,6 +134,7 @@ export function OwidGdoc({
                 linkedCallouts: _.get(props, "linkedCallouts", {}),
                 // lodash doesn't use fallback when value is null
                 tags: props.tags ?? [],
+                topicArea: props.topicArea,
             }}
         >
             <DocumentContext.Provider value={{ isPreviewing, archiveContext }}>

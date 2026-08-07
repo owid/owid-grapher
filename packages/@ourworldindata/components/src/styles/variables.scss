@@ -10,6 +10,11 @@ $vertical-spacing: 16px;
 // ToC can offset against it (see $sidebar-toc-header-gap).
 $topic-page-header-margin-bottom: 32px;
 
+// How far the indicator metadata box bleeds out of the grid on either side on
+// small screens. Shared so anything stacking with it (currently the topic
+// newsletter card below it) bleeds by exactly the same amount.
+$indicator-metadata-box-bleed-sm: 8px;
+
 :root {
     --grid-gap: 24px;
 

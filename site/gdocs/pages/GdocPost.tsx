@@ -22,6 +22,7 @@ import { getShortPageCitation } from "../utils.js"
 import { SidebarTableOfContents } from "../../SidebarTableOfContents.js"
 import { useDocumentContext } from "../DocumentContext.js"
 import { PROD_URL } from "../../SiteConstants.js"
+import TopicNewsletterCard from "../../TopicNewsletterCard.js"
 
 const BASE_URL = IS_ARCHIVE ? PROD_URL : ""
 
@@ -61,6 +62,7 @@ export function GdocPost({
     breadcrumbs,
     manualBreadcrumbs,
     tags,
+    topicArea,
 }: GdocPostProps) {
     const { archiveContext } = useDocumentContext()
     const postType = content.type ?? OwidGdocType.Article
@@ -137,6 +139,21 @@ export function GdocPost({
                     toc={content.toc}
                     blocks={content.body}
                     automaticSubscribeBanner={!shouldHideSubscribeBanner}
+                    // Both flavours of linear topic page get the topic
+                    // newsletter card in the right rail next to the intro.
+                    // Modular topic pages already have an authored right rail,
+                    // so they render it from TopicPageIntro instead. Grid
+                    // placement mirrors the subscribe-banner--right token in
+                    // gdocs/components/layout.ts.
+                    introAside={
+                        postType === OwidGdocType.LinearTopicPage ? (
+                            <TopicNewsletterCard
+                                topicArea={topicArea}
+                                variant="narrow"
+                                className="topic-newsletter-card--gdoc-aside col-start-11 span-cols-3 span-rows-3 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2"
+                            />
+                        ) : null
+                    }
                 />
             ) : null}
             {content.refs && !_.isEmpty(content.refs.definitions) ? (

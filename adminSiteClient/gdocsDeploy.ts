@@ -47,6 +47,7 @@ export const checkIsLightningUpdate = (
     > = {
         breadcrumbs: true, // automatically generated, not actually possible to change via the admin preview
         manualBreadcrumbs: true,
+        topicArea: true, // derived from the tag graph like breadcrumbs, and only rendered on this page; it can only change if tags change, which is a full-rebake prop already
         errors: true,
         linkedAuthors: false,
         linkedCharts: true,

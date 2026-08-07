@@ -73,6 +73,7 @@ export type MultiDimDataPageContentProps = {
     tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic
+    topicArea?: string
     relatedResearchCandidates: DataPageRelatedResearch[]
     imageMetadata: Record<string, ImageMetadata>
     isPreviewing?: boolean
@@ -101,6 +102,7 @@ export function DataPageContent({
     isPreviewing,
     faqEntries,
     primaryTopic,
+    topicArea,
     relatedResearchCandidates,
     tagToSlugMap,
     imageMetadata,
@@ -515,6 +517,7 @@ export function DataPageContent({
                             <AboutThisData
                                 datapageData={varDatapageData}
                                 hasFaq={!!faqEntriesForView?.length}
+                                topicArea={topicArea}
                             />
                         )}
                     </div>
@@ -560,6 +563,7 @@ export function MultiDimDataPageContent({
     isPreviewing,
     faqEntries,
     primaryTopic,
+    topicArea,
     relatedResearchCandidates,
     tagToSlugMap,
     imageMetadata,
@@ -583,6 +587,7 @@ export function MultiDimDataPageContent({
             isPreviewing={isPreviewing}
             faqEntries={faqEntries}
             primaryTopic={primaryTopic}
+            topicArea={topicArea}
             relatedResearchCandidates={relatedResearchCandidates}
             tagToSlugMap={tagToSlugMap}
             imageMetadata={imageMetadata}

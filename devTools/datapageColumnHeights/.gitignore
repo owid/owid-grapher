@@ -1,0 +1,4 @@
+# Output of a local re-run. The committed snapshot of a run is
+# DatapageColumnHeights.json; see readme.md.
+columnHeights.jsonl
+columnHeights.summary.json
