@@ -10,6 +10,7 @@ import {
     RawBlockText,
     EnrichedBlockTopicPageIntro,
     EnrichedBlockSocials,
+    EnrichedBlockKeyInsights,
     SocialLinkType,
 } from "@ourworldindata/utils"
 import { spansToHtmlString } from "./model/Gdoc/gdocUtils.js"
@@ -23,6 +24,8 @@ import {
     parseSimpleText,
 } from "./model/Gdoc/rawToEnriched.js"
 import { gdocToArchie } from "./model/Gdoc/gdocToArchie.js"
+import { enrichedBlockToMarkdown } from "./model/Gdoc/enrichedToMarkdown.js"
+import { enrichedBlockToIndexableText } from "./model/Gdoc/enrichedToIndexableText.js"
 import { docs_v1 } from "@googleapis/docs"
 import { documentContainsMixedStraightAndCurlyQuotes } from "./model/Gdoc/gdocValidation.js"
 
@@ -572,4 +575,83 @@ level: 2
             )
         }
     )
+})
+
+describe("key insight assets", () => {
+    const parseInsightWithAsset = (
+        assetBlock: string
+    ): EnrichedBlockKeyInsights => {
+        const raw = load(`[.+body]
+{.key-insights}
+heading: Key insights
+[.insights]
+title: An insight
+[.+asset]
+${assetBlock}
+[]
+[.+content]
+Some text.
+[]
+[]
+{}
+[]`)
+        return parseRawBlocksToEnrichedBlocks(
+            raw.body[0] as OwidRawGdocBlock
+        ) as EnrichedBlockKeyInsights
+    }
+
+    it("accepts a bespoke component as an asset", () => {
+        const block = parseInsightWithAsset(`{.bespoke-component}
+bundle: causes-of-death
+variant: treemap
+{.config}
+ageGroup: Children under 5
+{}
+{}`)
+
+        expect(block.parseErrors).toEqual([])
+        const asset = block.insights[0].asset
+        expect(asset).toHaveLength(1)
+        expect(asset![0]).toMatchObject({
+            type: "bespoke-component",
+            bundle: "causes-of-death",
+            variant: "treemap",
+            config: { ageGroup: "Children under 5" },
+        })
+    })
+
+    it("rejects layout containers, which would silently lay out wrong", () => {
+        const block = parseInsightWithAsset(`{.side-by-side}
+[.left]
+[]
+[.right]
+[]
+{}`)
+
+        expect(block.insights[0].asset).toBeUndefined()
+        expect(block.parseErrors[0].message).toContain(
+            `Key insight asset can't be a "side-by-side" block`
+        )
+    })
+
+    it("indexes text authored on an asset block", () => {
+        const block = parseInsightWithAsset(`{.image}
+filename: causes-of-death.png
+alt: A treemap of the causes of death worldwide
+{}`)
+
+        expect(block.parseErrors).toEqual([])
+        const indexed = enrichedBlockToIndexableText(block)
+        expect(indexed).toContain("A treemap of the causes of death worldwide")
+    })
+
+    it("does not leak 'undefined' into markdown for assets dropped from it", () => {
+        const block = parseInsightWithAsset(`{.bespoke-component}
+bundle: causes-of-death
+variant: treemap
+{}`)
+
+        const markdown = enrichedBlockToMarkdown(block, true)
+        expect(markdown).not.toContain("undefined")
+    })
 })

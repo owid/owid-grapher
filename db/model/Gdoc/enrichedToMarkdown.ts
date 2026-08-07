@@ -464,7 +464,13 @@ ${items}
                               { name: insight.narrativeChartName },
                               exportComponents
                           )
-                        : undefined
+                        : insight.asset
+                          ? enrichedBlocksToMarkdown(
+                                insight.asset,
+                                exportComponents,
+                                options
+                            )
+                          : undefined
                 const content =
                     enrichedBlocksToMarkdown(
                         insight.content,
@@ -472,9 +478,13 @@ ${items}
                         options
                     ) ?? ""
 
+                // Coalesce: blocks that are dropped from Markdown (a
+                // bespoke-component, say) leave `imageOrChart` undefined, which
+                // would otherwise interpolate as the literal string "undefined"
+                // into the Markdown we persist for querying and search.
                 const text = `### ${insight.title}
 ${content}
-${imageOrChart}`
+${imageOrChart ?? ""}`
                 return text
             })
             const allInsights = insightTexts.join("\n\n")

@@ -2410,6 +2410,22 @@ function parseExpander(raw: RawBlockExpander): EnrichedBlockExpander {
     }
 }
 
+// Blocks allowed in a key insight's asset column. It holds one visual filling
+// one slot, so layout containers (side-by-side, sticky-left/right, gray-section)
+// are deliberately excluded: their grid classes are written for the full
+// 12-column page grid, and the asset column is 7 of those columns, so they
+// would silently lay out wrong rather than fail. Extend this list when a new
+// block type genuinely works standing alone in the column.
+const KEY_INSIGHT_ASSET_BLOCK_TYPES = new Set([
+    "bespoke-component",
+    "chart",
+    "narrative-chart",
+    "image",
+    "static-viz",
+    "video",
+    "html",
+])
+
 function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
     const createError = (error: ParseError): EnrichedBlockKeyInsights => ({
         type: "key-insights",
@@ -2439,25 +2455,28 @@ function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
         if (!rawInsight.title) {
             parseErrors.push({ message: "Key insight is missing a title" })
         }
+        const hasAsset = !!rawInsight.asset?.length
         if (
             !rawInsight.url &&
             !rawInsight.filename &&
-            !rawInsight.narrativeChartName
+            !rawInsight.narrativeChartName &&
+            !hasAsset
         ) {
             parseErrors.push({
                 message:
-                    "Key insight is missing a url, filename or narrativeChartName. One of these two fields must be specified.",
+                    "Key insight is missing a url, filename, narrativeChartName or asset. One of these fields must be specified.",
             })
         }
         const hasMoreThanOneResourceField =
             Number(!!rawInsight.url) +
                 Number(!!rawInsight.filename) +
-                Number(!!rawInsight.narrativeChartName) >
+                Number(!!rawInsight.narrativeChartName) +
+                Number(hasAsset) >
             1
         if (hasMoreThanOneResourceField) {
             parseErrors.push({
                 message:
-                    "Key insight has more than just one of the fields url, filename, narrativeChartName. Only one of these fields can be specified.",
+                    "Key insight has more than just one of the fields url, filename, narrativeChartName, asset. Only one of these fields can be specified.",
             })
         }
         const url = Url.fromURL(extractUrl(rawInsight.url))
@@ -2468,6 +2487,20 @@ function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
                         "Key insight has url that isn't an explorer or grapher",
                 })
             }
+        }
+        const enrichedAsset: OwidEnrichedGdocBlock[] = []
+        for (const rawAsset of _.compact(rawInsight.asset)) {
+            const enrichedBlock = parseRawBlocksToEnrichedBlocks(rawAsset)
+            if (!enrichedBlock) continue
+            if (!KEY_INSIGHT_ASSET_BLOCK_TYPES.has(enrichedBlock.type)) {
+                parseErrors.push({
+                    message: `Key insight asset can't be a "${enrichedBlock.type}" block. Supported asset blocks are: ${[
+                        ...KEY_INSIGHT_ASSET_BLOCK_TYPES,
+                    ].join(", ")}.`,
+                })
+                continue
+            }
+            enrichedAsset.push(enrichedBlock)
         }
         const enrichedContent: OwidEnrichedGdocBlock[] = []
         if (!rawInsight.content) {
@@ -2494,6 +2527,9 @@ function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
             if (rawInsight.narrativeChartName) {
                 enrichedInsight.narrativeChartName =
                     rawInsight.narrativeChartName
+            }
+            if (enrichedAsset.length) {
+                enrichedInsight.asset = enrichedAsset
             }
             enrichedInsights.push(enrichedInsight)
         }
