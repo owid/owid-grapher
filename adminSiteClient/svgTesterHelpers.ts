@@ -10,8 +10,8 @@ export type SvgTesterDisplayStatus =
 
 export const DISPLAY_STATUS_LABELS: Record<SvgTesterDisplayStatus, string> = {
     "not-run": "Not run",
-    unreadable: "No result (file unreadable)",
-    running: "No result (killed or still running)",
+    unreadable: "Results file unreadable",
+    running: "Running (or killed mid-run)",
     error: "Error",
     differences: "Differences",
     ok: "No differences",
