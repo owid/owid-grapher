@@ -654,16 +654,16 @@ function ArticleBlockInternal({
             // when the embed's controls are visible (no hideControls=true).
             const controlsHidden = (url: string | undefined): boolean =>
                 Url.fromURL(url ?? "").queryParams.hideControls === "true"
-            const leftIsMdim =
+            const leftIsMdimWithControls =
                 leftLinkedChart?.configType === ChartConfigType.MultiDim &&
                 !controlsHidden(leftIsChart ? leftBlock.url : undefined)
-            const rightIsMdim =
+            const rightIsMdimWithControls =
                 rightLinkedChart?.configType === ChartConfigType.MultiDim &&
                 !controlsHidden(rightIsChart ? rightBlock.url : undefined)
 
             // Check if both are charts and one is mdim and the other isn't
             const shouldApplyCompensation =
-                leftIsChart && rightIsChart && leftIsMdim !== rightIsMdim
+                leftIsChart && rightIsChart && leftIsMdimWithControls !== rightIsMdimWithControls
 
             return (
                 <div className={getLayout("side-by-side", containerType)}>
@@ -672,7 +672,7 @@ function ArticleBlockInternal({
                             "grid grid-cols-6 span-cols-6 span-sm-cols-12",
                             {
                                 "mdim-compensation":
-                                    shouldApplyCompensation && !leftIsMdim,
+                                    shouldApplyCompensation && !leftIsMdimWithControls,
                             }
                         )}
                     >
@@ -689,7 +689,7 @@ function ArticleBlockInternal({
                             "grid grid-cols-6 span-cols-6 span-sm-cols-12",
                             {
                                 "mdim-compensation":
-                                    shouldApplyCompensation && !rightIsMdim,
+                                    shouldApplyCompensation && !rightIsMdimWithControls,
                             }
                         )}
                     >
