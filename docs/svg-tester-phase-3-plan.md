@@ -2,14 +2,25 @@
 
 _Execution detail for Phase 3 of [svg-tester-redesign-plan.md](./svg-tester-redesign-plan.md)._
 
-**Stage 1 is done and merging; Stages 2 and 3 have not started.** The largest
-phase, and the one that pays. Three stages, each independently valuable and
-independently stoppable: after Stage 1 there is a working viewer and nothing else
-has changed; after Stage 2 the generated HTML and the git-as-transport path are
-gone.
+**Stage 1 is done (owid-grapher#6923, merging); all of Stage 2 is open; Stage 3
+has not started.** The largest phase, and the one that pays. Three stages, each
+independently valuable and independently stoppable: after Stage 1 there is a
+working viewer and nothing else has changed; after Stage 2 the generated HTML and
+the git-as-transport path are gone.
 
-**Next action: Stage 2's PR 1** (owidbot links to the page). It gates the rest of
-Stage 2, and it is the moment the report becomes tailnet- and login-only — worth
+Stage 2's three PRs are up: etl#6629, ops#597, owid-grapher#6929. **The merge order
+is the thing to get right**, and only its last arrow is enforced by anything:
+
+```
+etl#6629 → ops#597 → owid-grapher#6923 → owid-grapher#6929
+```
+
+#6929 is based on #6923, so git holds that one. Nothing holds `ops#597 → #6929`, and
+that is the arrow that bites: merging #6929 first leaves ops `main` calling a
+`create-compare-view.ts` that no longer exists, which turns the SVG tester red on
+every open PR that has rebased onto the deletion.
+
+etl#6629 is also the moment the report becomes tailnet- and login-only — worth
 telling the team when it merges rather than when someone can't open a link.
 
 **Stage 1 is entirely `owid-grapher`.** No ops, etl or svgs changes, so none of
@@ -105,10 +116,16 @@ message, each linking to the chart on this build where it broke. They were
 counted but never shown, which is backwards: an error matters more than a
 difference.
 
-**`make svgtest` was meant to open the page** instead of the generated file. This
-did not ship: the five `svgtest*` targets still call `create-compare-view.ts`. See
-the note at the head of [Stage 2](#stage-2--retire-the-old-path-3-prs) — PR 3
-picks it up.
+**The five `svgtest*` Makefile targets stopped generating a report.** None of them
+calls `create-compare-view.ts` any more; each now only echoes `No differences` when
+a suite is clean, and `.PHONY` gained the `svgtest.full` it had always been missing.
+The readme documents `/admin/svgtester/<suite>` as the place to look.
+
+What did _not_ ship is the CLI pointing you there: nothing opens a browser, and
+nothing prints the URL either. `make svgtest` with differences now says nothing at
+all about where to see them, which is worse than the old generated file it replaced.
+Worth a one-line `echo` in each target — see
+[Loose ends](#loose-ends).
 
 ### Libraries
 
@@ -160,12 +177,13 @@ trusted before PR 2 removes the fallback, and PR 2 must precede PR 3 or the SVG
 tester step goes red on every open PR. Each constraint is restated with its PR
 below.
 
-One thing PR 3 has to fix, because Stage 1's write-up overstates what shipped:
-**the Makefile still generates the report.** `make svgtest` and its four siblings
-call `create-compare-view.ts` in eight places
-(`Makefile:419,431,440,449,458,470,482,494`), so the claim above that `make svgtest`
-opens the page is not yet true of master. Either Stage 1 lands it before merge or
-PR 3 owns it; PR 3 has to touch those exact lines anyway.
+An earlier version of this section gave PR 3 the Makefile call sites and the readme
+as well, on the belief that Stage 1 had left them behind. It had not — Stage 1 did
+both (`84b8257aa7`). PR 3 is therefore a pure deletion, and the mistake is recorded
+because of how it happened: the Makefile was read while `svgtester-viewer` was
+unapplied in the GitButler workspace, so it looked like master. **In a
+multi-branch workspace, `git log -- <path>` beats reading the file** when the
+question is "has this shipped".
 
 ### PR 1 (E) — owidbot links to the page
 
@@ -266,18 +284,23 @@ the step goes red on every open PR that has rebased onto the deletion. The rever
 harmless in the usual asymmetric way — ops simply stops invoking code that is still
 there.
 
-`git rm devTools/svgTester/create-compare-view.ts` (799 lines). Then the eight
-Makefile call sites across five targets (`svgtest`, `svgtest.full`,
-`svgtest.grapher-views`, `svgtest.mdims`, `svgtest.thumbnails`): each is an
-`if [ -n "$$(ls -A .../differences)" ]` block whose body generates the report, so
-each becomes a printed `http://localhost:3030/admin/svgtester/{suite}` line instead
-— keeping the else-branch's `No differences` echo. While in there: `.PHONY` (`:40`)
-lists every `svgtest.*` target except `svgtest.full`. And
-`devTools/svgTester/readme.md:112` and `:124` describe report generation as step 3 of
-each workflow.
+**Shipped as owid-grapher#6929**, and it is smaller than planned: `git rm
+devTools/svgTester/create-compare-view.ts` (799 lines) and nothing else in the tester.
+Stage 1 had already taken the Makefile, `.PHONY` and readme, and the script has no
+callers left anywhere — a case-insensitive sweep for `create-compare-view`,
+`compare-view`, `differences.html`, `compare-url` and `compareUrl` across every file
+type finds only mentions in `docs/`.
 
-Verify with a local `make svgtest` that has differences: it should print the admin
-URL and write no HTML into the svgs checkout.
+It also removes the `diff` dependency, which the script was the sole importer of.
+That is safe rather than merely tidy: no workspace declares `diff` and nothing else
+imports it, so there is no phantom dependent relying on the hoist, and the viewer's
+`react-diff-viewer-continued` declares `diff` as a regular dependency (not a peer),
+so it stays resolvable. The lockfile change is one descriptor line.
+
+Checked before deleting that the three `utils.ts` symbols the script used —
+`SvgRecord`, `TEST_SUITE_DESCRIPTION`, `parseReferenceCsv` — all still have consumers
+in `verify-graphs.ts`, `export-graphs.ts`, `dump-data.ts` and
+`update-reference-md5s.ts`, so nothing is stranded behind it.
 
 ### The prune (S) — maintenance, not a PR
 
@@ -376,10 +399,11 @@ loads, so the labels API call itself is fine.
 All three of Stage 1's open questions are now answered; kept here with their
 reasoning so they are not relitigated mid-implementation.
 
-**`make svgtest` may require the admin server on `:3030`.** Accepted, and shipped. Keeping a
-local-only generated report was the alternative and it is exactly the
-two-viewers failure mode. Print the URL so the run is still useful with the
-server down.
+**`make svgtest` may require the admin server on `:3030`.** Accepted: keeping a
+local-only generated report was the alternative, and that is exactly the two-viewers
+failure mode. The decision stands, but only half of it shipped — the report is gone,
+and the "print the URL so the run is still useful with the server down" half was
+never written. See [Loose ends](#loose-ends).
 
 **The text diff uses `react-diff-viewer-continued`, the slider is hand-rolled.**
 Neither unpkg script came back. See [Libraries](#libraries) above — the diff library is already a dependency and already the admin's idiom,
@@ -390,6 +414,21 @@ DOM.
 
 Still open, but for Stage 3 rather than Stage 1: whether the Run button lives on
 the index page only, or also per suite on the diff page.
+
+## Loose ends
+
+Small, known, and not blocking anything.
+
+**Nothing tells you where to look after a local run.** The `svgtest*` targets stopped
+generating a report and never gained a replacement pointer, so `make svgtest` with
+differences prints nothing about the page. One `echo` per target closes it:
+`http://localhost:$(or $(ADMIN_SERVER_PORT),3030)/admin/svgtester/<suite>` — read the
+port from the variable the Makefile already strips at `:30`, because a worktree's
+`.env` assigns a random `30xx` and a hard-coded `3030` would send you to the wrong
+checkout's admin.
+
+**The reference refresh is still due**, the open half of Phase 0 item 4. Not a
+dependency for anything here; periodic hygiene.
 
 ## Risks
 

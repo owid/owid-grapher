@@ -3,13 +3,15 @@
 _Covers `devTools/svgTester/`, the `svg-tester.sh` step in `owid/ops`, the
 `owid-grapher-svgs` repo, and the `grapher` service in `owid/etl`'s owidbot._
 
-**Status: Phases 0–2 are done, and Phase 3 has begun** (owid-grapher#6909/#6911/
-#6913/#6914, ops#594/#595/#596, etl#6623), except for the svgs-repo half of
-Phase 0 — see there. Item 19, the viewer, is complete and merging; the rest of
-Phase 3 has not started. **Next up is item 19b** — pointing owidbot's report link
-at the new page — which is Stage 2's first PR and the gate on everything else in
-that stage. The Problem section below describes the state this work started
-from — points 2, 5 and 6 are fixed, the rest still stand.
+**Status: Phases 0–2 are done, and Phase 3 is most of the way through**
+(owid-grapher#6909/#6911/#6913/#6914, ops#594/#595/#596, etl#6623), except for the
+svgs-repo half of Phase 0 — see there. Item 19, the viewer, is complete
+(owid-grapher#6923, merging). Items 19b, 20a and 18's ops half are all open as
+etl#6629, ops#597 and owid-grapher#6929; only the svgs prune and Stage 3's extras
+remain unstarted. **The merge order matters and mostly isn't enforced** — see
+[Phase 3](#phase-3--the-viewer-and-the-end-of-generated-html). The Problem section
+below describes the state this work started from — points 2, 5 and 6 are fixed, the
+rest still stand.
 
 ## Problem
 
@@ -630,11 +632,23 @@ Skip it if Phase 3 is close — it's throwaway work.
 
 ### Phase 3 — the viewer, and the end of generated HTML
 
-**Item 19 is done** — the viewer, plus the render-error list, the overlay and
-interactive views, and `make svgtest` pointing at the page. The rest of the
-phase has not started. Execution detail — three stages, the first of them a single
-`owid-grapher` PR, with the ordering constraints and open decisions — is in
+**Item 19 is done** (owid-grapher#6923) — the viewer, plus the render-error list, the
+overlay and interactive views, and the `svgtest*` Makefile targets no longer
+generating a report. **Items 19b, 20a and 18's ops half are open** as etl#6629,
+owid-grapher#6929 and ops#597; the svgs prune and Stage 3 have not started. Execution
+detail — three stages, the merge order, and the loose ends — is in
 [svg-tester-phase-3-plan.md](./svg-tester-phase-3-plan.md).
+
+**Merge order**, of which only the last arrow is enforced by anything:
+
+```
+etl#6629 → ops#597 → owid-grapher#6923 → owid-grapher#6929
+```
+
+#6929 is based on #6923, so git holds that. Nothing holds `ops#597 → #6929`, and that
+is the one that bites: land #6929 first and ops `main` still calls a
+`create-compare-view.ts` that no longer exists, turning the tester red on every open
+PR that has rebased.
 
 **Why:** this is the payoff, and it turned out not to need R2. The viewer's three
 inputs — `verify-results.json`, `references/`, `differences/` — are all already
