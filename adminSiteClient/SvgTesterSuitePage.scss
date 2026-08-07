@@ -10,10 +10,6 @@ $svg-tester-error-frame: #dda4a0;
 }
 
 .SvgTesterSuitePage__nav {
-    align-items: baseline;
-    display: flex;
-    gap: 16px;
-    justify-content: space-between;
     margin-bottom: 16px;
 }
 
@@ -49,6 +45,13 @@ $svg-tester-error-frame: #dda4a0;
     position: sticky;
     top: 0;
     z-index: 1;
+}
+
+.SvgTesterSuitePage__headline-row {
+    align-items: baseline;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
 }
 
 .SvgTesterSuitePage__headline {

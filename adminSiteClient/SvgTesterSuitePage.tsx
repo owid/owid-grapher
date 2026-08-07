@@ -112,69 +112,74 @@ export function SvgTesterSuitePage() {
             <main className="SvgTesterSuitePage">
                 <div className="SvgTesterSuitePage__nav">
                     <Link to="/svgtester">← All suites</Link>
-                    <SuiteSwitcher currentSuite={suite} />
                 </div>
 
                 <Spin spinning={isLoading}>
-                    {results && (
+                    {data && (
                         <div className="SvgTesterSuitePage__summary">
-                            <div className="SvgTesterSuitePage__headline">
-                                {isReported ? (
-                                    <>
-                                        <strong>
-                                            {results.counts.differences.toLocaleString()}
-                                        </strong>{" "}
-                                        of{" "}
-                                        {results.counts.total.toLocaleString()}{" "}
-                                        charts rendered differently
-                                    </>
-                                ) : (
-                                    status && DISPLAY_STATUS_LABELS[status]
-                                )}
+                            <div className="SvgTesterSuitePage__headline-row">
+                                <div className="SvgTesterSuitePage__headline">
+                                    {results && isReported ? (
+                                        <>
+                                            <strong>
+                                                {results.counts.differences.toLocaleString()}
+                                            </strong>{" "}
+                                            of{" "}
+                                            {results.counts.total.toLocaleString()}{" "}
+                                            charts rendered differently
+                                        </>
+                                    ) : (
+                                        status && DISPLAY_STATUS_LABELS[status]
+                                    )}
+                                </div>
+                                <SuiteSwitcher currentSuite={suite} />
                             </div>
-                            <div className="SvgTesterSuitePage__meta">
-                                {suite} ·{" "}
-                                {isReported ? (
-                                    <>
-                                        ran <Timeago time={results.startedAt} />{" "}
-                                        in {formatDuration(results.durationMs)}
-                                    </>
-                                ) : (
-                                    <>
-                                        started{" "}
-                                        <Timeago time={results.startedAt} />
-                                    </>
-                                )}
-                                {results.counts.errors > 0 && (
-                                    <>
-                                        {" · "}
-                                        <span className="SvgTesterSuitePage__errors">
-                                            {results.counts.errors.toLocaleString()}{" "}
-                                            failed to render
-                                        </span>
-                                    </>
-                                )}
-                                {results.grapherCommit && (
-                                    <>
-                                        {" · "}
-                                        <CommitLabel
-                                            commit={results.grapherCommit}
-                                            subject={data?.grapherCommitSubject}
-                                            isStale={data?.isStale}
-                                        />
-                                    </>
-                                )}
-                            </div>
+                            {results && (
+                                <div className="SvgTesterSuitePage__meta">
+                                    {suite} ·{" "}
+                                    {isReported ? (
+                                        <>
+                                            ran{" "}
+                                            <Timeago time={results.startedAt} />{" "}
+                                            in{" "}
+                                            {formatDuration(results.durationMs)}
+                                        </>
+                                    ) : (
+                                        <>
+                                            started{" "}
+                                            <Timeago time={results.startedAt} />
+                                        </>
+                                    )}
+                                    {results.counts.errors > 0 && (
+                                        <>
+                                            {" · "}
+                                            <span className="SvgTesterSuitePage__errors">
+                                                {results.counts.errors.toLocaleString()}{" "}
+                                                failed to render
+                                            </span>
+                                        </>
+                                    )}
+                                    {results.grapherCommit && (
+                                        <>
+                                            {" · "}
+                                            <CommitLabel
+                                                commit={results.grapherCommit}
+                                                subject={
+                                                    data.grapherCommitSubject
+                                                }
+                                                isStale={data.isStale}
+                                            />
+                                        </>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     )}
 
                     {results && <SvgTesterErrors errors={results.errors} />}
 
-                    {/* The headline already carries the status of a run that
-                        never reported; this is for the ones with no results
-                        file at all, and for runs that found nothing. */}
                     {status &&
-                        (isReported || !results) &&
+                        isReported &&
                         !differences.length &&
                         !results?.errors.length && (
                             <Alert
