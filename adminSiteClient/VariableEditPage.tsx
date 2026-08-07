@@ -362,6 +362,12 @@ class VariableEditor extends Component<{
                                     }
                                     textarea
                                 />
+                                <ReadOnlyField
+                                    label="Not applicable entities"
+                                    value={variable.display?.notApplicableEntities?.join(
+                                        ", "
+                                    )}
+                                />
                             </FieldsRow>
                         </section>
                     </div>

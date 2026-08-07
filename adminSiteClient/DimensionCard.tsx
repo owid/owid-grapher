@@ -2,8 +2,13 @@ import * as _ from "lodash-es"
 import { Component, Fragment } from "react"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
+import { Select } from "antd"
 import { ChartDimension } from "@ourworldindata/grapher"
-import { OwidColumnDef, OwidVariableRoundingMode } from "@ourworldindata/types"
+import {
+    EntityName,
+    OwidColumnDef,
+    OwidVariableRoundingMode,
+} from "@ourworldindata/types"
 import {
     Toggle,
     BindAutoString,
@@ -68,6 +73,20 @@ export class DimensionCard<
 
     @action.bound onColor(color: string | undefined) {
         this.props.dimension.display.color = color
+        this.onChange()
+    }
+
+    @computed get notApplicableEntityOptions(): {
+        value: EntityName
+        label: EntityName
+    }[] {
+        return this.table.availableEntityNames
+            .toSorted()
+            .map((entityName) => ({ value: entityName, label: entityName }))
+    }
+
+    @action.bound onChangeNotApplicableEntities(entityNames: EntityName[]) {
+        this.props.dimension.display.notApplicableEntities = entityNames
         this.onChange()
     }
 
@@ -255,6 +274,29 @@ export class DimensionCard<
                                 set in the Map tab, if defined, overrides the map
                                 tolerance defined here.`}
                         />
+                        <div className="form-group">
+                            <label>Not applicable entities</label>
+                            <Select
+                                style={{ width: "100%" }}
+                                placeholder="Select entities"
+                                value={
+                                    dimension.display.notApplicableEntities ??
+                                    column.display?.notApplicableEntities ??
+                                    []
+                                }
+                                options={this.notApplicableEntityOptions}
+                                onChange={this.onChangeNotApplicableEntities}
+                                mode="multiple"
+                                showSearch
+                                allowClear
+                            />
+                            <small className="form-text text-muted">
+                                Entities for which the indicator's data is not
+                                applicable, e.g. China for "China's imports as a
+                                share of GDP". Rendered on the map in a
+                                dedicated pattern.
+                            </small>
+                        </div>
                         {grapherState.isLineChart && (
                             <Toggle
                                 label="Is projection"

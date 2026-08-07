@@ -1,4 +1,5 @@
 import { OwidVariableId } from "./domainTypes/Various.js"
+import { EntityName } from "./domainTypes/CoreTableTypes.js"
 import {
     ColumnSlug,
     DimensionProperty,
@@ -18,6 +19,7 @@ export interface OwidVariableDisplayConfigInterface {
     timeInterval?: TimeInterval
     zeroDay?: string
     entityAnnotationsMap?: string
+    notApplicableEntities?: EntityName[]
     includeInTable?: boolean
     tableDisplay?: OwidVariableDataTableConfigInterface
     color?: string
