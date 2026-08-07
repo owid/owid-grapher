@@ -193,6 +193,17 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
+    logDocumentPreviewMouseover(documentUrl: string) {
+        const { path: target, pathNext: targetNext } =
+            splitPathForGA4(documentUrl)
+        this.logToGA({
+            event: EventCategory.SiteDocumentPreviewMouseover,
+            eventAction: "mouseover",
+            eventTarget: target,
+            eventTargetNext: targetNext,
+        })
+    }
+
     /**
      * Logs analytics events for static visualization downloads.
      * @param staticVizName - The unique name identifier of the static viz

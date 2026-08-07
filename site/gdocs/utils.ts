@@ -16,8 +16,10 @@ import {
 } from "@ourworldindata/types"
 
 import {
+    getCanonicalPath,
     getCanonicalUrl,
     getLinkType,
+    getSameSitePathFromUrl,
     getUrlTarget,
 } from "@ourworldindata/components"
 import {
@@ -51,6 +53,19 @@ export function isExternalUrl(
     const linkOrigin = getOrigin(url, bakedOrigin)
     if (!linkOrigin) return false
     return linkOrigin !== bakedOrigin
+}
+
+/**
+ * The path of a link that points at a page on our own site — see
+ * `getSameSitePathFromUrl`.
+ *
+ * Both the baked origin and the production origin count as our own, because
+ * gdoc authors always write out ourworldindata.org URLs even though staging and
+ * preview deploys are baked onto a different host. The baker resolves the same
+ * paths server-side using the same shared helper.
+ */
+export function getSameSitePath(url: string): string | undefined {
+    return getSameSitePathFromUrl(url, [PROD_URL, getOrigin(BAKED_BASE_URL)])
 }
 
 export const breadcrumbColorForCoverColor = (
@@ -213,6 +228,47 @@ export const useLinkedDocument = (
         },
         errorMessage,
     }
+}
+
+/**
+ * Finds the attached document a plain URL points at, e.g.
+ * "https://ourworldindata.org/international-dollars".
+ *
+ * `useLinkedDocument` can't resolve these: links are keyed by gdoc id, and a
+ * plain URL is classified as `ContentGraphLinkType.Url`, so the document is
+ * only reachable by matching the link's path against the canonical path of each
+ * attached document.
+ *
+ * This is deliberately kept separate from `useLinkedDocument`, and deliberately
+ * returns no error message. `useLinkedDocument` also governs href rewriting,
+ * unpublished-document errors and profile `?entity=` resolution, and teaching
+ * it about plain URLs would change link behaviour far beyond the hover preview
+ * this is for. Callers should use it to enrich a link, never to build one.
+ *
+ * The matching is on the whole canonical path, so it handles every type's
+ * prefix (`/team/`, `/profile/`, `/data-insights/`) and article slugs that
+ * themselves contain a slash: `/sdgs` does not match the article
+ * `sdgs/no-poverty`.
+ *
+ * Documents reachable this way are attached server-side by
+ * `GdocBase.loadDocumentsLinkedByPath`, which resolves the page's inline
+ * same-site links to published gdocs. Anything it declines to resolve — data
+ * insights, unlisted or unpublished documents, old slugs that only reach a
+ * document through a redirect — returns undefined here.
+ */
+export const useLinkedDocumentByPath = (
+    url: string
+): OwidGdocMinimalPostInterface | undefined => {
+    const { linkedDocuments } = useContext(AttachmentsContext)
+
+    const path = getSameSitePath(url)
+    if (!path) return undefined
+
+    return Object.values(linkedDocuments ?? {}).find(
+        (linkedDocument) =>
+            linkedDocument.published &&
+            getCanonicalPath(linkedDocument.slug, linkedDocument.type) === path
+    )
 }
 
 export const useLinkedChart = (
