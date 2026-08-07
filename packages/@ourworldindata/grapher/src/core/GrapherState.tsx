@@ -794,6 +794,15 @@ export class GrapherState
     @action.bound updateFromObject(obj?: GrapherProgrammaticInterface): void {
         if (!obj) return
 
+        // TODO: debug only, remove before committing.
+        // Drop the custom color and label for the "China" reference entity
+        // that are left over from the sentinel-value hack in the
+        // china-imports chart
+        if (obj.id === 8832) {
+            delete obj.map?.colorScale?.customCategoryColors?.["China"]
+            delete obj.map?.colorScale?.customCategoryLabels?.["China"]
+        }
+
         updatePersistables(this, obj)
 
         this.bindUrlToWindow = obj.bindUrlToWindow ?? false
