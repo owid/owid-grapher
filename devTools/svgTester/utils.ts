@@ -136,6 +136,9 @@ export const MAX_CONSECUTIVE_TIMEOUTS = 3 * MAX_WORKERS
  * dispatching for good. A child process is killable, so the per-job timeout can
  * actually recover the pool. Costs a slower worker start than a thread; the
  * heap was never shared between workers anyway.
+ *
+ * Killable only because worker.ts drops the SIGTERM handler it would otherwise
+ * inherit from this module - see the comment there.
  */
 export function createSvgTesterPool(
     maxWorkers: number = MAX_WORKERS
@@ -148,8 +151,12 @@ export function createSvgTesterPool(
             execArgv: ["--require", "tsx"],
             // A render error travels home inside the result rather than as a
             // rejection, and `fork`'s default JSON serialization flattens an
-            // Error to `{}` - name, message and stack all gone. Structured
-            // clone keeps them, which is what worker_threads gave us for free.
+            // Error to `{}` - message and stack gone. Structured clone keeps
+            // both, which is what worker_threads gave us for free. It does not
+            // keep a custom `name` though: anything outside the handful of
+            // built-in error types arrives as "Error", so classifyVerifyError
+            // works only because every name it matches is minted in this
+            // process rather than in a worker.
             serialization: "advanced",
         },
     })
@@ -168,10 +175,14 @@ const POOL_TERMINATE_TIMEOUT_MS = 10 * 1000
 export async function shutDownPool(pool: workerpool.Pool): Promise<void> {
     // Force, because a wedged worker is exactly the case this has to handle,
     // and time-boxed, because we are on our way out either way.
-    await pool
-        .terminate(true, POOL_TERMINATE_TIMEOUT_MS)
-        .catch((error: unknown) =>
-            console.error("Could not shut the worker pool down: ", error)
+    await pool.terminate(true, POOL_TERMINATE_TIMEOUT_MS)
+    // `terminate` resolves either way - workerpool folds a worker that failed
+    // to die back into a resolved promise - so counting what is left is the
+    // only way to notice one that outlived the deadline.
+    const stranded = pool.stats().totalWorkers
+    if (stranded > 0)
+        console.error(
+            `${stranded} worker process(es) survived ${POOL_TERMINATE_TIMEOUT_MS}ms of shutdown and are being left behind`
         )
 }
 
@@ -988,8 +999,8 @@ export async function writeVerifyRunStarted(
 }
 
 // For failures that happen before or around the run itself (missing directories,
-// an unreadable reference CSV, the job-count sanity check) rather than for a
-// single chart. Without this, such a run leaves no results file at all and is
+// an unreadable reference CSV) rather than for a single chart. Without this,
+// such a run leaves no results file at all and is
 // indistinguishable from a suite that was never started.
 export async function writeVerifyRunFailure(
     testSuiteDir: string,
@@ -1135,9 +1146,15 @@ const EXIT_CODE_ERROR = 1
 // than one that genuinely found broken charts - see svg-tester.sh in owid/ops.
 const EXIT_CODE_ABORTED = 3
 
-export function verifyExitCode(summary: SvgTesterVerifyRunSummary): number {
-    if (summary.errors.some((error) => error.kind === "stalled"))
-        return EXIT_CODE_ABORTED
+// `aborted` comes from the caller rather than being read back out of the
+// results: when the run guard trips on the last outstanding job, every job has
+// a result already, no entry is left to be marked "stalled", and an aborted run
+// would report as a plain error - the one case CI most needs to retry.
+export function verifyExitCode(
+    summary: SvgTesterVerifyRunSummary,
+    aborted: boolean
+): number {
+    if (aborted) return EXIT_CODE_ABORTED
     if (summary.counts.errors > 0) return EXIT_CODE_ERROR
     if (summary.counts.differences > 0) return EXIT_CODE_DIFFERENCES
     return 0
@@ -1171,11 +1188,19 @@ export function reportVerifyResults(
     if (errorResults.length) {
         console.warn(`${errorResults.length} graphs threw errors`)
         // A stalled run errors every job it never reached, which is hundreds of
-        // identical lines; the full list is in verify-results.json either way.
-        for (const result of errorResults.slice(0, MAX_ERRORS_LOGGED)) {
+        // identical lines worth capping. Genuine failures are all named, however
+        // many there are: the CI log is the only place a reader sees them, since
+        // verify-results.json is gitignored and not a Buildkite artifact.
+        const hasStalled = errorResults.some(
+            (result) => classifyVerifyError(result.error) === "stalled"
+        )
+        const logged = hasStalled
+            ? errorResults.slice(0, MAX_ERRORS_LOGGED)
+            : errorResults
+        for (const result of logged) {
             console.log(`${result.viewId}: ${verifyErrorMessage(result.error)}`)
         }
-        const remaining = errorResults.length - MAX_ERRORS_LOGGED
+        const remaining = errorResults.length - logged.length
         if (remaining > 0) console.log(`... and ${remaining} more`)
     }
 

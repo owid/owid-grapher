@@ -10,6 +10,7 @@ import type { Pool } from "workerpool"
 
 import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as utils from "./utils.js"
+import { registerExitHandler } from "../../db/cleanup.js"
 import {
     ALL_GRAPHER_CHART_TYPES,
     SVG_TESTER_SUITES,
@@ -115,11 +116,20 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
             // so the catch can shut the pool down.
             const activePool = utils.createSvgTesterPool()
             pool = activePool
+            // Ctrl-C and a cancelled Buildkite step both kill this process
+            // without reaching the shutdown below, and child workers - unlike
+            // the threads they replaced - outlive their parent.
+            registerExitHandler(() => utils.shutDownPool(activePool))
 
-            // Parallelize the CPU heavy rendering jobs
+            // Parallelize the CPU heavy rendering jobs. Time-boxed like the
+            // verify side: a worker parked in oxfmt's native formatter never
+            // settles, and refresh.sh runs this with no `timeout` wrapper at
+            // all, so without this the export just hangs forever.
             svgRecords = await Promise.all(
                 jobDescriptions.map((job) =>
-                    activePool.exec("renderSvgAndSave", [job])
+                    activePool
+                        .exec("renderSvgAndSave", [job])
+                        .timeout(utils.JOB_TIMEOUT_MS)
                 )
             )
         } else {

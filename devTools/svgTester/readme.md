@@ -83,7 +83,14 @@ Use `verify-graphs.ts` to check SVG outputs against the reference export. The sc
 - Compares the MD5 hash with the reference
 - If there's a difference, saves the new SVG to the differences directory and reports it
 - Writes `verify-results.json` recording the outcome: status, counts, which views differed and which errored
-- Returns a non-zero exit code only if the tester itself malfunctioned (a render crashed, a reference was missing, a job timed out). Differences are the expected output and exit 0 — read `verify-results.json` to find out how many there were
+- Returns an exit code saying what kind of outcome it was:
+
+| Code | Meaning                                                                                                                                                                   |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0    | Every chart matched its reference                                                                                                                                         |
+| 1    | At least one chart failed to render (a crash, a missing reference, a job timeout)                                                                                         |
+| 2    | Charts rendered differently — the expected outcome of a rendering change, not a failure. The Makefile targets treat it as a pass; read `verify-results.json` for the list |
+| 3    | The suite gave up part-way because the worker pool went sick, so most charts were never checked. Worth retrying: unlike 1, it says nothing about the charts               |
 
 The script works with test suites stored in the directory structure:
 

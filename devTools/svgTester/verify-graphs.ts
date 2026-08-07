@@ -11,6 +11,7 @@ import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as utils from "./utils.js"
 import { JOB_TIMEOUT_MS } from "./utils.js"
 import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
+import { registerExitHandler } from "../../db/cleanup.js"
 import type { Pool } from "workerpool"
 import {
     ALL_GRAPHER_CHART_TYPES,
@@ -133,6 +134,10 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         // catch can shut the pool down.
         const activePool = utils.createSvgTesterPool()
         pool = activePool
+        // Ctrl-C and a cancelled Buildkite step both kill this process without
+        // reaching the shutdown below, and child workers - unlike the threads
+        // they replaced - outlive their parent.
+        registerExitHandler(() => utils.shutDownPool(activePool))
 
         const progress = utils.startVerifyProgress(
             testSuite,
@@ -144,10 +149,10 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         // Parallelize the CPU heavy verification using the workerpool library
         // This call will then in parallel take the descriptions of the verifyJobs,
         // load the config and data and intialize a grapher, create the default svg output and check if it's md5 hash is the same as the one in
-        // the reference csv file (from the referenceDataByChartKey lookup above). The entire parallel operation returns a promise containing an array
-        // of result values.
+        // the reference csv file (from the referenceDataByChartKey lookup above).
         // Results land in this array as they settle rather than only at the end,
-        // so a stalled run can still report everything that did finish.
+        // so a stalled run can still report everything that did finish - the
+        // race below resolves as soon as the guard gives up, without them.
         const settledResults: (utils.VerifyResult | undefined)[] = new Array(
             jobCount
         )
@@ -208,7 +213,7 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         await utils.shutDownPool(activePool)
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
-        process.exit(utils.verifyExitCode(summary))
+        process.exit(utils.verifyExitCode(summary, !!abortError))
     } catch (error) {
         console.error("Encountered an error: ", error)
         // Record the failure too, so that "the suite never got to run" is

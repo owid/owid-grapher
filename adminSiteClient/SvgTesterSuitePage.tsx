@@ -98,6 +98,13 @@ export function SvgTesterSuitePage() {
         [differences, chartType]
     )
 
+    // Charts an aborted run never reached are not evidence of anything, so they
+    // stay out of the denominator
+    const checked = results
+        ? results.counts.total -
+          results.errors.filter((error) => error.kind === "stalled").length
+        : 0
+
     const status = data ? displayStatus(data) : undefined
 
     const isReported = data ? hasReportedResult(data) : false
@@ -126,9 +133,8 @@ export function SvgTesterSuitePage() {
                                             <strong>
                                                 {results.counts.differences.toLocaleString()}
                                             </strong>{" "}
-                                            of{" "}
-                                            {results.counts.total.toLocaleString()}{" "}
-                                            charts rendered differently
+                                            of {checked.toLocaleString()} charts
+                                            rendered differently
                                         </>
                                     ) : (
                                         status && DISPLAY_STATUS_LABELS[status]
