@@ -126,21 +126,14 @@ export function SvgTesterSuitePage() {
                                         </span>
                                     </>
                                 )}
-                                {data?.isStale && (
+                                {results.grapherCommit && (
                                     <>
                                         {" · "}
-                                        <Tooltip title="These results describe a different grapher commit than the one checked out here. Re-run the suite to be sure they still describe your working tree.">
-                                            <span className="SvgTesterSuitePage__stale">
-                                                from commit{" "}
-                                                <code>
-                                                    {results.grapherCommit?.slice(
-                                                        0,
-                                                        7
-                                                    )}
-                                                </code>
-                                                , not the one checked out
-                                            </span>
-                                        </Tooltip>
+                                        <CommitLabel
+                                            commit={results.grapherCommit}
+                                            subject={data?.grapherCommitSubject}
+                                            isStale={data?.isStale}
+                                        />
                                     </>
                                 )}
                             </div>
@@ -240,6 +233,28 @@ function SuiteSwitcher({ currentSuite }: { currentSuite: string | undefined }) {
                 </Link>
             ))}
         </nav>
+    )
+}
+
+function CommitLabel({
+    commit,
+    subject,
+    isStale,
+}: {
+    commit: string
+    subject: string | null | undefined
+    isStale: boolean | undefined
+}) {
+    return (
+        <>
+            commit{" "}
+            <Tooltip title={subject ?? commit}>
+                <code className="SvgTesterSuitePage__commit">
+                    {commit.slice(0, 7)}
+                </code>
+            </Tooltip>
+            {isStale && " (stale)"}
+        </>
     )
 }
 
