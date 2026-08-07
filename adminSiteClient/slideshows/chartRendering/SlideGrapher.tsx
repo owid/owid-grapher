@@ -98,8 +98,8 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
             () => state.isReady,
             () => {
                 onChartReadyRef.current?.({
-                    title: state.currentTitle,
-                    subtitle: state.currentSubtitle,
+                    title: state.fullTitle,
+                    subtitle: state.effectiveSubtitle,
                 })
 
                 innerDispose = reaction(

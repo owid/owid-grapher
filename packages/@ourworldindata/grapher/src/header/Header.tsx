@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import * as R from "remeda"
 import * as React from "react"
 import {
     LogoOption,
@@ -10,9 +11,8 @@ import {
     MarkdownTextWrap,
     MarkdownTextWrapHtml,
     MarkdownTextWrapSvg,
-    TextWrap,
-    TextWrapSvg,
-    TextWrapHtml,
+    TextWrapGroup,
+    type TextWrapFragment,
 } from "@ourworldindata/components"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -26,7 +26,12 @@ import {
     GRAPHER_FRAME_PADDING_VERTICAL,
     GRAPHER_HEADER_CLASS,
 } from "../core/GrapherConstants"
-import { GRAPHER_DARK_TEXT, GRAY_100 } from "../color/ColorConstants"
+import {
+    GRAPHER_DARK_TEXT,
+    GRAPHER_LIGHT_TEXT,
+    GRAY_100,
+} from "../color/ColorConstants"
+import { roundFontSize } from "../chart/ChartUtils.js"
 
 interface HeaderProps {
     manager: HeaderManager
@@ -68,11 +73,19 @@ abstract class AbstractHeader<
     }
 
     @computed protected get titleText(): string {
-        return this.manager.currentTitle?.trim() ?? ""
+        return this.manager.mainTitle?.trim() ?? ""
+    }
+
+    @computed protected get titleAnnotationText(): string {
+        return this.manager.titleAnnotation?.trim() ?? ""
+    }
+
+    @computed protected get titleAriaLabel(): string | undefined {
+        return this.manager.fullTitle?.trim() || undefined
     }
 
     @computed private get subtitleText(): string {
-        return this.manager.currentSubtitle?.trim() ?? ""
+        return this.manager.effectiveSubtitle?.trim() ?? ""
     }
 
     @computed get logo(): Logo | undefined {
@@ -104,24 +117,8 @@ abstract class AbstractHeader<
         return this.manager.isSmall ? 1.1 : 1.2
     }
 
-    @computed get title(): TextWrap {
-        const logoPadding = this.manager.isNarrow
-            ? 12
-            : this.manager.isSmall
-              ? 16
-              : 24
-
-        const makeTitle = (fontSize: number): TextWrap =>
-            new TextWrap({
-                text: this.titleText,
-                maxWidth: this.maxWidth - this.logoWidth - logoPadding,
-                fontFamily: FontFamily.PlayfairDisplay,
-                fontWeight: this.titleFontWeight,
-                lineHeight: this.titleLineHeight,
-                fontSize,
-            })
-
-        const initialFontSize = this.manager.isStaticAndSmall
+    @computed private get initialTitleFontSize(): number {
+        return this.manager.isStaticAndSmall
             ? 25
             : this.useBaseFontSize
               ? (25 / BASE_FONT_SIZE) * this.baseFontSize
@@ -130,29 +127,120 @@ abstract class AbstractHeader<
                 : this.manager.isMedium
                   ? 20
                   : 25
+    }
 
-        let title = makeTitle(Math.round(initialFontSize))
+    @computed private get titleAnnotationFontSize(): number {
+        return _.clamp(
+            roundFontSize(0.72 * this.initialTitleFontSize),
+            this.subtitleFontSize, // Never smaller than the subtitle
+            18
+        )
+    }
 
-        // if the title is already a single line, no need to decrease font size
-        if (title.lines.length <= 1) return title
+    @computed get title(): TextWrapGroup {
+        const logoPadding = this.manager.isNarrow
+            ? 12
+            : this.manager.isSmall
+              ? 16
+              : 24
 
-        const originalLineCount = title.lines.length
-        // decrease the initial font size by no more than 15% using 0.5px steps
+        const makeTitle = (fontSize: number): TextWrapGroup => {
+            const mainFragment: TextWrapFragment = {
+                text: this.titleText,
+            }
+
+            const annotationFragment: TextWrapFragment = {
+                text: this.titleAnnotationText,
+                fontFamily: FontFamily.Lato,
+                fontWeight: 700,
+                // Make sure the annotation is never bigger than the title,
+                // (relevant if the title has been downsized to fit)
+                fontSize: Math.min(this.titleAnnotationFontSize, fontSize),
+                color: GRAPHER_LIGHT_TEXT,
+                inlineGap: Math.min(6, Math.round(0.4 * fontSize)),
+                newLineGap: this.verticalPadding,
+                newLine: "avoid-wrap",
+            }
+
+            return new TextWrapGroup({
+                fragments: [mainFragment, annotationFragment],
+                maxWidth: this.maxWidth - this.logoWidth - logoPadding,
+                fontFamily: FontFamily.PlayfairDisplay,
+                fontWeight: this.titleFontWeight,
+                lineHeight: this.titleLineHeight,
+                fontSize,
+            })
+        }
+
+        // Decrease the initial font size by no more than 15% using 0.5px steps
+        const initialFontSize = roundFontSize(this.initialTitleFontSize)
         const potentialFontSizes = _.range(
             initialFontSize,
             initialFontSize * 0.85,
             -0.5
         )
-        // try to fit the title into a single line if possible-- but not if it would make the text too small
-        for (const fontSize of potentialFontSizes) {
-            title = makeTitle(fontSize)
-            const currentLineCount = title.lines.length
-            if (currentLineCount <= 1 || currentLineCount < originalLineCount)
-                break
+
+        // Laying out a title is expensive, so candidates are only created
+        // when they're actually needed
+        const candidates: (TextWrapGroup | undefined)[] = []
+        const candidateAt = (index: number): TextWrapGroup =>
+            (candidates[index] ??= makeTitle(potentialFontSizes[index]))
+
+        // The first candidate is the title at its initial font size
+        const title = candidateAt(0)
+
+        // If the title is already a single line, no need to decrease font size
+        if (title.lineCount <= 1) return title
+
+        // Use binary search to find the largest font size that satisfies
+        // the given condition, or undefined if none do
+        const findLargestFontSizeThatFits = (
+            fits: (candidate: TextWrapGroup) => boolean
+        ): TextWrapGroup | undefined => {
+            const index = R.sortedIndexWith(
+                potentialFontSizes,
+                (_fontSize, index) => !fits(candidateAt(index))
+            )
+            // Nothing fits if the check fails for every candidate
+            if (index === potentialFontSizes.length) return undefined
+            return candidateAt(index)
         }
-        // return the title at the new font size: either it now fits into a single line, or
-        // its size has been reduced so the multi-line title doesn't take up quite that much space
-        return title
+
+        // Try to fit the title (including the annotation) into a single
+        // line if possible
+        const fitsFullTitleInOneLine = (candidate: TextWrapGroup): boolean =>
+            candidate.lineCount <= 1
+        const singleLineTitle = findLargestFontSizeThatFits(
+            fitsFullTitleInOneLine
+        )
+        if (singleLineTitle) return singleLineTitle
+
+        // Try to fit the main title text alone into a single line,
+        // with the annotation on its own line
+        const fitsMainTextInOneLine = (candidate: TextWrapGroup): boolean =>
+            candidate.fragmentLineCounts[0] === 1
+        const singleLineMainText = findLargestFontSizeThatFits(
+            fitsMainTextInOneLine
+        )
+        if (singleLineMainText) return singleLineMainText
+
+        // Otherwise, return the title at a reduced font size: either it now
+        // spans fewer lines, or the multi-line title at least doesn't take
+        // up quite that much space
+        const hasFewerLinesThanTitle = (candidate: TextWrapGroup): boolean =>
+            candidate.lineCount < title.lineCount
+        const candidateWithFewerLines = findLargestFontSizeThatFits(
+            hasFewerLinesThanTitle
+        )
+        if (candidateWithFewerLines) return candidateWithFewerLines
+
+        // If none of the candidates have fewer lines than the original title,
+        // return the candidate with the smallest font size
+        return candidateAt(potentialFontSizes.length - 1)
+    }
+
+    @computed private get titleStyle(): React.CSSProperties {
+        return { ...this.title.style, overflowY: "visible" }
     }
 
     @computed get useFullWidthForSubtitle(): boolean {
@@ -235,16 +323,16 @@ abstract class AbstractHeader<
     private renderTitle(): React.ReactElement {
         const { manager } = this
 
-        // avoid linking to a grapher/data page when we're already on it
+        // Avoid linking to a grapher/data page when we're already on it
         if (manager.isOnCanonicalUrl && !this.manager.isInIFrame) {
             return (
-                <h1 style={this.title.htmlStyle}>
-                    <TextWrapHtml textWrap={this.title} />
+                <h1 style={this.titleStyle} aria-label={this.titleAriaLabel}>
+                    <MarkdownTextWrapHtml textWrap={this.title} />
                 </h1>
             )
         }
 
-        // on smaller screens, make the whole width of the header clickable
+        // On smaller screens, make the whole width of the header clickable
         if (manager.isMedium) {
             return (
                 <a
@@ -255,25 +343,29 @@ abstract class AbstractHeader<
                         rel: "noopener",
                     })}
                 >
-                    <h1 style={this.title.htmlStyle}>
-                        <TextWrapHtml textWrap={this.title} />
+                    <h1
+                        style={this.titleStyle}
+                        aria-label={this.titleAriaLabel}
+                    >
+                        <MarkdownTextWrapHtml textWrap={this.title} />
                     </h1>
                 </a>
             )
         }
 
-        // on larger screens, only make the title text itself clickable
+        // On larger screens, only make the title text itself clickable
         return (
-            <h1 style={this.title.htmlStyle}>
+            <h1 style={this.titleStyle}>
                 <a
                     href={manager.canonicalUrl}
                     data-track-note="chart_click_title"
+                    aria-label={this.titleAriaLabel}
                     {...(manager.isInIFrame && {
                         target: "_blank",
                         rel: "noopener",
                     })}
                 >
-                    <TextWrapHtml textWrap={this.title} />
+                    <MarkdownTextWrapHtml textWrap={this.title} />
                 </a>
             </h1>
         )
@@ -373,7 +465,7 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
                             rel: "noopener",
                         })}
                     >
-                        <TextWrapSvg
+                        <MarkdownTextWrapSvg
                             textWrap={title}
                             x={x}
                             y={y}
