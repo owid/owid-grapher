@@ -251,7 +251,7 @@ describe("packed package", () => {
             manifest.main,
             manifest.types,
             "dist/grapher.css",
-            "dist/grapher.bundle.js",
+            "dist/grapher.standalone.min.js",
         ]) {
             expect(
                 fs.existsSync(path.join(packedDir, file)),

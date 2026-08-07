@@ -21,7 +21,7 @@ const pkgDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const distDir = path.join(pkgDir, "dist")
 
 const npmBuildPath = path.join(distDir, "grapher.js")
-const cdnBundlePath = path.join(distDir, "grapher.bundle.js")
+const standalonePath = path.join(distDir, "grapher.standalone.min.js")
 const cssPath = path.join(distDir, "grapher.css")
 const dtsPath = path.join(distDir, "grapher.d.ts")
 
@@ -43,7 +43,7 @@ function assertHasPublicExports(mod: Record<string, unknown>): void {
 }
 
 beforeAll(() => {
-    for (const file of [npmBuildPath, cdnBundlePath, cssPath, dtsPath]) {
+    for (const file of [npmBuildPath, standalonePath, cssPath, dtsPath]) {
         if (!fs.existsSync(file))
             throw new Error(
                 `Missing build output ${path.relative(pkgDir, file)} — run \`yarn build\` in packages/@ourworldindata/grapher first.`
@@ -181,14 +181,14 @@ France,FRA,1,2020,67000000`,
     })
 })
 
-describe("CDN bundle (dist/grapher.bundle.js)", () => {
+describe("standalone bundle (dist/grapher.standalone.min.js)", () => {
     it("is importable and exports the public API", async () => {
-        const mod = await import(pathToFileURL(cdnBundlePath).href)
+        const mod = await import(pathToFileURL(standalonePath).href)
         assertHasPublicExports(mod)
     })
 
     it("has no external imports (react is bundled in)", () => {
-        const source = fs.readFileSync(cdnBundlePath, "utf8")
+        const source = fs.readFileSync(standalonePath, "utf8")
         // The bundle must be usable from a plain HTML page, so it may not
         // import any bare module specifiers.
         expect(source).not.toMatch(/from\s*["']react["']/)
