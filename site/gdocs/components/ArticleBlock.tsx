@@ -663,7 +663,9 @@ function ArticleBlockInternal({
 
             // Check if both are charts and one is mdim and the other isn't
             const shouldApplyCompensation =
-                leftIsChart && rightIsChart && leftIsMdimWithControls !== rightIsMdimWithControls
+                leftIsChart &&
+                rightIsChart &&
+                leftIsMdimWithControls !== rightIsMdimWithControls
 
             return (
                 <div className={getLayout("side-by-side", containerType)}>
@@ -672,7 +674,8 @@ function ArticleBlockInternal({
                             "grid grid-cols-6 span-cols-6 span-sm-cols-12",
                             {
                                 "mdim-compensation":
-                                    shouldApplyCompensation && !leftIsMdimWithControls,
+                                    shouldApplyCompensation &&
+                                    !leftIsMdimWithControls,
                             }
                         )}
                     >
@@ -689,7 +692,8 @@ function ArticleBlockInternal({
                             "grid grid-cols-6 span-cols-6 span-sm-cols-12",
                             {
                                 "mdim-compensation":
-                                    shouldApplyCompensation && !rightIsMdimWithControls,
+                                    shouldApplyCompensation &&
+                                    !rightIsMdimWithControls,
                             }
                         )}
                     >
