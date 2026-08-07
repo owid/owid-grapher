@@ -5,8 +5,10 @@ _Covers `devTools/svgTester/`, the `svg-tester.sh` step in `owid/ops`, the
 
 **Status: Phases 0–2 are done, and Phase 3 has begun** (owid-grapher#6909/#6911/
 #6913/#6914, ops#594/#595/#596, etl#6623), except for the svgs-repo half of
-Phase 0 — see there. Item 19, the viewer, has shipped; the rest of Phase 3 has
-not started. The Problem section below describes the state this work started
+Phase 0 — see there. Item 19, the viewer, is complete and merging; the rest of
+Phase 3 has not started. **Next up is item 19b** — pointing owidbot's report link
+at the new page — which is Stage 2's first PR and the gate on everything else in
+that stage. The Problem section below describes the state this work started
 from — points 2, 5 and 6 are fixed, the rest still stand.
 
 ## Problem
@@ -281,6 +283,28 @@ into a visible "something changed here" marker, distinct from both a clean pass
 and a failure. The magic number now couples exactly two things, the script and
 the pipeline clause, and both sides say so.
 
+#### The label also governs the Site screenshots step
+
+Once the label means "this PR intentionally changes what things look like", the
+neighbouring `Site screenshots diff` step should honour it too: on a labelled PR
+that step must never be red (item 24).
+
+Worth being precise about what this does, because it is not the same shape as the
+table above. That step doesn't compare anything — `site-screenshots` runs
+`shot-scraper multi`, which only captures, then commits `--allow-empty`, pushes,
+and prints a GitHub compare link. So it is green whether or not screenshots
+changed, and the only way it goes red is genuine breakage: a page timing out, a
+scrape failing, a push conflicting. Soft-failing it on the label therefore
+softens **breakage**, not differences — which is precisely the pattern
+[Problem 5](#problem) set out to kill for the SVG tester.
+
+That is accepted here rather than overlooked. The two cases differ in what a
+failure costs: a broken SVG tester run means "we don't know whether any chart
+changed", which is a real loss of information, whereas a flaked screenshot run
+loses nothing the reviewer can't get from the compare link — and screenshot
+scrapes flake most on exactly the PRs that are changing visuals. The trade-off is
+recorded in [Non-scope](#non-scope--accepted-trade-offs).
+
 ### The viewer: no more generated HTML
 
 **`create-compare-view.ts` goes away, and with it the whole notion of a report
@@ -481,6 +505,15 @@ routes. Getting this wrong is how you break every open PR at once.
   changes are testable by opening an ops branch with the same name as your
   grapher branch. Also: once merged to `main`, they apply to **every** open
   grapher PR immediately.
+- **O, scripts under `templates/lxc-manager/`** — a third route, and the one item
+  24 lands in. These run on the shared lxc-manager host rather than a staging
+  container, and `init.sh` copies them there (`sync_file "$HERE/site-screenshots"
+bin/site-screenshots`, `init.sh:101`). Nothing pulls them automatically: the
+  host keeps whatever was last synced, so a change needs `init.sh` re-run against
+  the host, and it then applies to every open grapher PR at once. Testable from a
+  branch — you run `init.sh` from your own checkout — but there is no per-branch
+  resolution as there is for `owid-site-staging`, so a branch's sync is visible to
+  everyone until someone syncs main back.
 - **O, `automated_staging_environment.yml`** — the pipeline is bootstrapped by a
   step in the Buildkite UI that clones ops at `--depth 1` on the default branch
   and runs `pipeline upload` (`README.md:286`). Pipeline changes therefore take
@@ -612,15 +645,22 @@ needs. So the whole of the old Phase 4 comes forward, and it drags two items out
 of the old Phase 3 with it: once nothing generates a report, nothing commits on a
 branch, and once nothing commits, the push and the 5.11 GiB pack can go.
 
-| #   | Repo  | Change                                                                                                                                                                                                                                                                                              | Depends on |
-| --- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| 19  | G     | The viewer: a React component plus `verify-results.json` types, served read-only at `/admin/svgtester`, reading results and SVGs off the local svgs checkout. Works identically for a local `make svgtest` run and a staging container's CI run. See [What the page serves](#what-the-page-serves). | 12         |
-| 19b | E     | owidbot's report link becomes `http://{container}/admin/svgtester/{suite}`, replacing the githack URL, and stops being gated on `commit_id`.                                                                                                                                                        | 19         |
-| 20a | G + O | **Delete `create-compare-view.ts`** and the generated-HTML path, and delete `create_report` from `svg-tester.sh` with it. After this a branch run commits nothing at all.                                                                                                                           | 19b        |
-| 18  | O + S | Stop pushing to svgs branches; prune the ~900 stale branches; `git gc`. Reclaims most of the 5.11 GiB pack. Was blocked on R2 holding the artifacts instead; with the viewer reading from disk they never need to leave the container.                                                              | 20a        |
-| 16  | E     | Post a check run per suite (`create_check_run`, already used by chart-diff), `details_url` → the staging viewer. Conclusion never `failure` for differences. Was blocked on R2 only because `details_url` was assumed to point there.                                                               | 6, 19b     |
-| 21  | G     | Run button plus API routes: lock file per suite, disabled while running, hard timeout, no git write access.                                                                                                                                                                                         | 19         |
-| 22  | G + O | Path-scoped default suites; retire the Buildkite block step and delete the `staging-viz` job from `.github/workflows/project-automations.yml`.                                                                                                                                                      | 21         |
+| #   | Repo  | Change                                                                                                                                                                                                                                                                                                                                     | Depends on  |
+| --- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------- |
+| 19  | G     | The viewer: a React component plus `verify-results.json` types, served read-only at `/admin/svgtester`, reading results and SVGs off the local svgs checkout. Works identically for a local `make svgtest` run and a staging container's CI run. See [What the page serves](#what-the-page-serves).                                        | 12          |
+| 19b | E     | owidbot's report link becomes `http://{container}/admin/svgtester/{suite}`, replacing the githack URL, and stops being gated on `commit_id`.                                                                                                                                                                                               | 19          |
+| 20a | G + O | **Delete `create-compare-view.ts`** and the generated-HTML path, and delete `create_report` from `svg-tester.sh` with it. After this a branch run commits nothing at all.                                                                                                                                                                  | 19b         |
+| 18  | O + S | Stop pushing to svgs branches; prune the ~900 stale branches; `git gc`. Reclaims most of the 5.11 GiB pack. Was blocked on R2 holding the artifacts instead; with the viewer reading from disk they never need to leave the container.                                                                                                     | 20a         |
+| 16  | E     | Post a check run per suite (`create_check_run`, already used by chart-diff), `details_url` → the staging viewer. Conclusion never `failure` for differences. Was blocked on R2 only because `details_url` was assumed to point there.                                                                                                      | 6, 19b      |
+| 21  | G     | Run button plus API routes: lock file per suite, disabled while running, hard timeout, no git write access.                                                                                                                                                                                                                                | 19          |
+| 22  | G + O | Path-scoped default suites; retire the Buildkite block step and delete the `staging-viz` job from `.github/workflows/project-automations.yml`. The path-inference half depends on nothing; only deleting the auto-label wants 21 shipped first, since until the button exists the label is the sole way to ask for the other three suites. | 21 (partly) |
+| 24  | O     | `Site screenshots diff` soft-fails on a `staging-viz` PR. Independent of every other item — it touches neither the tester nor the viewer. See [The label also governs the Site screenshots step](#the-label-also-governs-the-site-screenshots-step) for what it does and doesn't buy.                                                      | —           |
+
+Note that Stage 2 groups these items into PRs differently from how they are numbered
+here: the ops halves of 20a (delete `create_report`) and 18 (stop pushing on
+branches) ship as **one** ops PR, since they edit the same forty lines of
+`svg-tester.sh` and separating them means rewriting the branch/push plumbing twice.
+Item numbering tracks the changes; the phase-3 plan tracks the PRs.
 
 Three ordering constraints:
 
@@ -719,6 +759,7 @@ G5 → E6 → G7 → O8               status contract; O9 anytime
 O12                             originals gone, branches stop absorbing
 G19 → E19b → G20a/O20a → O18/S18   viewer; generated HTML and the git pack gone
 E16 → G21 → G22                 check runs, Run button, suite selection
+O24                             screenshots soft-fail on staging-viz; anytime
 G14 → O15 → O17 → G20b → O23    R2: durability, if and when it's wanted
 ```
 
@@ -798,6 +839,14 @@ CLI-driven with no webhook receiver; not worth standing one up for this.
   is public. `/admin/svgtester` is neither, which is fine for staff (every other
   link in the owidbot comment is already internal) but means a report can't be
   pasted as evidence into a public thread.
+- **On a `staging-viz` PR the `Site screenshots diff` step can no longer go red,
+  including when it genuinely broke** (item 24). We are knowingly making the
+  exception for that step that the SVG tester refuses to make for itself: the
+  label softens breakage, not just differences, because that step reports no
+  differences of its own and a flaked scrape costs the reviewer nothing the
+  compare link doesn't still give them. If screenshot scrapes start failing
+  silently and often, the fix is to detect differences in `site-screenshots` and
+  narrow the soft-fail to exit 24, as the tester does.
 - The timeout mismatch from Problem 7 stays: the 60 min step cap bounds all
   suites together and is shorter than the 7200 s per-suite `SVG_TEST_TIMEOUT`,
   so a hung suite is killed from the outside and takes its siblings' results
