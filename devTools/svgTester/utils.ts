@@ -77,6 +77,7 @@ interface VerifyResultDifference {
 interface VerifyResultError {
     kind: "error"
     viewId: string
+    queryStr?: string
     error: Error
 }
 
@@ -89,9 +90,17 @@ const resultOk = (): VerifyResult => ({
     kind: "ok",
 })
 
-export const resultError = (viewId: string, error: Error): VerifyResult => ({
+// `queryStr` identifies which view failed: a chart in the grapher-views suite
+// has up to 32 of them, and without it every one of its rows reads the same and
+// links to the same place.
+export const resultError = (
+    viewId: string,
+    error: Error,
+    queryStr?: string
+): VerifyResult => ({
     kind: "error",
     viewId,
+    queryStr: queryStr || undefined,
     error,
 })
 
@@ -887,7 +896,13 @@ export async function renderAndVerifySvg({
                 /* ignore ENOENT */
             })
         }
-        return Promise.resolve(resultError(referenceEntry.viewId, err as Error))
+        return Promise.resolve(
+            resultError(
+                referenceEntry.viewId,
+                err as Error,
+                referenceEntry.queryStr
+            )
+        )
     }
 }
 
@@ -933,6 +948,7 @@ export function summariseVerifyResults(
         .filter((result) => result.kind === "error")
         .map((result) => ({
             viewId: result.viewId,
+            queryStr: result.queryStr,
             kind: classifyVerifyError(result.error),
             // The stack stays on stderr for the CI log; this file is a status
             // report, not a crash dump.

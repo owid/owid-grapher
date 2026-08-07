@@ -447,25 +447,30 @@ function SvgTesterErrors({ errors }: { errors: SvgTesterVerifyErrorEntry[] }) {
             <ul className="SvgTesterErrors__list">
                 {errors.map((error, index) => (
                     <li
-                        key={`${error.viewId}-${index}`}
+                        key={`${anchorId(error.viewId, error.queryStr)}-${index}`}
                         className="SvgTesterErrors__item"
                     >
                         <div className="SvgTesterErrors__view">
                             <a
                                 className="SvgTesterErrors__slug"
-                                href={`/grapher/${error.viewId}`}
+                                href={`/grapher/${chartPath(error)}`}
                                 target="_blank"
                                 rel="noopener"
                                 title="Open this chart as this build renders it"
                             >
                                 {error.viewId}
                             </a>
+                            {error.queryStr && (
+                                <code className="SvgTesterErrors__query">
+                                    ?{error.queryStr}
+                                </code>
+                            )}
                             <span className="SvgTesterErrors__kind">
                                 {KIND_LABELS[error.kind]}
                             </span>
                             <a
                                 className="SvgTesterErrors__production"
-                                href={`${LIVE_URL}/grapher/${error.viewId}`}
+                                href={`${LIVE_URL}/grapher/${chartPath(error)}`}
                                 target="_blank"
                                 rel="noopener"
                             >
@@ -647,7 +652,7 @@ function svgUrl(
     return `/admin/api/svgtester/${suite}/${kind}/${encodeURIComponent(entry.svgFilename)}`
 }
 
-function chartPath(entry: SvgTesterVerifyDifferenceEntry): string {
+function chartPath(entry: { viewId: string; queryStr?: string }): string {
     return entry.queryStr ? `${entry.viewId}?${entry.queryStr}` : entry.viewId
 }
 

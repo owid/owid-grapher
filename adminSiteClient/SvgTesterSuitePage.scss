@@ -191,6 +191,13 @@ $svg-tester-error-frame: #dda4a0;
     font-weight: bold;
 }
 
+.SvgTesterErrors__query {
+    color: $gray-70;
+    font-size: 12px;
+    margin-left: 6px;
+    word-break: break-all;
+}
+
 .SvgTesterErrors__kind {
     color: $gray-70;
     font-size: 12px;
