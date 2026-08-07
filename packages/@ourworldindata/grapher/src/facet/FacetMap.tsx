@@ -1,8 +1,5 @@
-import * as _ from "lodash-es"
 import React from "react"
 import { observer } from "mobx-react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import {
     Bounds,
     GridParameters,
@@ -11,10 +8,6 @@ import {
     makeFigmaId,
     exposeInstanceOnWindow,
     SplitBoundsPadding,
-    FontFamily,
-    fontCapHeight,
-    isTouchDevice,
-    Tippy,
 } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable } from "mobx"
 import {
@@ -43,11 +36,7 @@ import {
     HorizontalNumericColorLegend,
 } from "../legend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
-import {
-    GRAPHER_DARK_TEXT,
-    GRAPHER_LIGHT_TEXT,
-    GRAY_30,
-} from "../color/ColorConstants"
+import { GRAPHER_DARK_TEXT, GRAY_30 } from "../color/ColorConstants"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import {
@@ -68,9 +57,6 @@ import { ChartState } from "../chart/ChartInterface.js"
 import { MapConfig } from "../mapCharts/MapConfig"
 
 const LABEL_FONT_WEIGHT = 700
-
-/** Gap between a facet label and its info icon */
-const LABEL_ICON_GAP = 4
 
 @observer
 export class FacetMap
@@ -370,9 +356,7 @@ export class FacetMap
         )
         return this.intermediatePlacedSeries.map((series, i) => {
             const { bounds } = gridBoundsArr[i]
-            const { toleranceNotice } =
-                this.intermediateMapInstances[i].chartState
-            return { ...series, bounds, toleranceNotice }
+            return { ...series, bounds }
         })
     }
 
@@ -537,38 +521,6 @@ export class FacetMap
         return { x: labelX, y: labelY }
     }
 
-    /**
-     * Position of the info icon that explains the tolerance applied for a
-     * facet's target time
-     */
-    private getLabelIconPosition(
-        facet: PlacedMapFacetSeries
-    ): { x: number; y: number; size: number } | undefined {
-        // Explanations are only available in interactive charts
-        if (this.isStatic || !facet.toleranceNotice) return undefined
-
-        const { facetFontSize } = this
-        const { x, y } = this.getLabelPosition(facet)
-
-        const size = _.clamp(0.6 * facetFontSize, 9, 12)
-
-        const textWidth = Bounds.forText(facet.seriesName, {
-            fontSize: facetFontSize,
-            fontWeight: LABEL_FONT_WEIGHT,
-        }).width
-
-        // Center the icon on the label's digits: the icon's bottom sits on
-        // the text baseline and the digits are one cap height tall, so raise
-        // the icon by half the height difference
-        const capHeight = fontCapHeight(FontFamily.Lato) * facetFontSize
-
-        return {
-            x: x + textWidth / 2 + LABEL_ICON_GAP,
-            y: y - (capHeight + size) / 2,
-            size,
-        }
-    }
-
     private renderMapLegend(): React.ReactElement {
         return (
             <>
@@ -640,71 +592,7 @@ export class FacetMap
                         </React.Fragment>
                     )
                 })}
-                {/* The info icons are rendered after the maps so that their
-                    hit areas aren't covered by a map */}
-                {this.placedSeries.map((series) => {
-                    const icon = this.getLabelIconPosition(series)
-                    if (!icon || !series.toleranceNotice) return null
-                    return (
-                        <FacetMapLabelInfoIcon
-                            key={series.seriesName}
-                            tooltip={series.toleranceNotice}
-                            x={icon.x}
-                            y={icon.y}
-                            size={icon.size}
-                        />
-                    )
-                })}
             </>
         )
     }
-}
-
-/**
- * An info icon rendered after a facet label, explaining the label's time
- * on hover (interactive mode only)
- */
-function FacetMapLabelInfoIcon({
-    tooltip,
-    x,
-    y,
-    size,
-}: {
-    tooltip: string
-    x: number
-    y: number
-    size: number
-}): React.ReactElement {
-    const hitAreaSize = isTouchDevice() ? 40 : 20
-    const padding = Math.ceil((hitAreaSize - size) / 2)
-    const hitAreaBounds = new Bounds(x, y, size, size).expand(padding)
-
-    return (
-        <g>
-            <g transform={`translate(${x}, ${y})`}>
-                <FontAwesomeIcon
-                    icon={faCircleInfo}
-                    width={size}
-                    height={size}
-                    color={GRAPHER_LIGHT_TEXT}
-                />
-            </g>
-
-            {/* Hit area for tooltip interaction */}
-            <Tippy
-                content={tooltip}
-                theme="grapher-explanation--short"
-                placement="top"
-                maxWidth={260}
-                appendTo={() => document.body}
-            >
-                <rect
-                    {...hitAreaBounds.toProps()}
-                    fill="transparent"
-                    style={{ pointerEvents: "auto" }}
-                    aria-label={tooltip}
-                />
-            </Tippy>
-        </g>
-    )
 }

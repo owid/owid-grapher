@@ -38,6 +38,10 @@ import { ColorScheme } from "../color/ColorScheme"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { excludeUndefined } from "@ourworldindata/utils"
 import { FocusArray } from "../focus/FocusArray"
+import {
+    findConfiguredTolerance,
+    makeToleranceNotice,
+} from "../chart/ToleranceNotice"
 
 export class StackedDiscreteBarChartState implements ChartState {
     manager: StackedDiscreteBarChartManager
@@ -146,6 +150,14 @@ export class StackedDiscreteBarChartState implements ChartState {
 
     @computed get yColumns(): CoreColumn[] {
         return this.transformedTable.getColumns(this.yColumnSlugs)
+    }
+
+    @computed get toleranceNotice(): string | undefined {
+        return makeToleranceNotice({
+            timeColumn: this.transformedTable.timeColumn,
+            entityType: this.manager.entityType ?? "entity",
+            timeTolerance: findConfiguredTolerance(this.yColumns),
+        })
     }
 
     @computed get formatColumn(): CoreColumn {

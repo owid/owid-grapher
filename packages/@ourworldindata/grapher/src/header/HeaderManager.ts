@@ -4,7 +4,6 @@ import { DetailsMarker } from "@ourworldindata/types"
 export interface HeaderManager {
     mainTitle?: string
     titleAnnotation?: string
-    titleAnnotationTooltip?: string
     fullTitle?: string
     effectiveSubtitle?: string
     hideLogo?: boolean

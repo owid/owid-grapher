@@ -5,7 +5,8 @@ import { GrapherModal } from "../core/GrapherConstants"
 
 export interface FooterManager extends TooltipManager, ActionButtonsManager {
     sourcesLine?: string
-    note?: string
+    /** The authored note, with a tolerance notice appended where applicable */
+    effectiveNote?: string
     hasOWIDLogo?: boolean
     license?: LicenseOption
     originUrlWithProtocol?: string

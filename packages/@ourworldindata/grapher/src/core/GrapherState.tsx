@@ -159,7 +159,6 @@ import {
     MAP_REGION_NAMES,
     MapChartManager,
 } from "../mapCharts/MapChartConstants.js"
-import { MapChartState } from "../mapCharts/MapChartState.js"
 import { MapConfig } from "../mapCharts/MapConfig.js"
 import { DumbbellChartConfig } from "../dumbbellCharts/DumbbellChartConfig.js"
 import { getCountriesByRegion } from "../mapCharts/MapHelpers.js"
@@ -2449,6 +2448,36 @@ export class GrapherState
         return ""
     }
 
+    /**
+     * Explains that some of the values on screen aren't from the time the
+     * chart is labelled with, because tolerance was applied. Only chart types
+     * that don't show their values' source times provide one.
+     */
+    @computed private get toleranceNotice(): string | undefined {
+        // The data table names the source time of every value it shows, and
+        // the notice describes the chart, not the table
+        if (!this.isReady || !this.isOnChartOrMapTab) return undefined
+
+        return this.chartState.toleranceNotice
+    }
+
+    /**
+     * Effective note resolved from the authored note, with a tolerance notice
+     * appended when tolerance was applied
+     */
+    @computed get effectiveNote(): string | undefined {
+        const { note, toleranceNotice } = this
+        if (!toleranceNotice) return note
+
+        const authoredNote = note?.trim()
+        if (!authoredNote) return toleranceNotice
+
+        // Keep the two apart as sentences, terminating the authored note if
+        // the author didn't
+        const separator = /[.!?]$/.test(authoredNote) ? " " : ". "
+        return `${authoredNote}${separator}${toleranceNotice}`
+    }
+
     @computed get shouldAddEntitySuffixToTitle(): boolean {
         const selectedEntityNames = this.selection.selectedEntityNames
         const showEntityAnnotation = !this.hideAnnotationFieldsInTitle?.entity
@@ -2559,19 +2588,6 @@ export class GrapherState
             parts.push(this.timeTitleSuffix)
 
         return parts.length > 0 ? parts.join(", ") : undefined
-    }
-
-    /**
-     * Tolerance explanation shown behind an info icon next to the title's time
-     * annotation (map tab only)
-     */
-    @computed get titleAnnotationTooltip(): string | undefined {
-        if (!this.isOnMapTab || this.isStatic || this.isFaceted)
-            return undefined
-        if (!this.shouldAddTimeSuffixToTitle || !this.timeTitleSuffix)
-            return undefined
-
-        return (this.chartState as MapChartState).toleranceNotice
     }
 
     /** The complete chart title: the main title plus the entity/time annotation */

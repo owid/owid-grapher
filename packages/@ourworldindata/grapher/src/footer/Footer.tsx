@@ -136,11 +136,13 @@ abstract class AbstractFooter<
     }
 
     @computed protected get noteText(): string {
-        return this.manager.note ? `Note: ${this.manager.note}` : ""
+        const note = this.manager.effectiveNote
+        return note ? `Note: ${note}` : ""
     }
 
     @computed protected get markdownNoteText(): string {
-        return this.manager.note ? `**Note:** ${this.manager.note}` : ""
+        const note = this.manager.effectiveNote
+        return note ? `**Note:** ${note}` : ""
     }
 
     @computed protected get license(): LicenseOption {

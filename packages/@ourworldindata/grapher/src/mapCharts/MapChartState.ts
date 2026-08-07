@@ -37,7 +37,7 @@ import { getCountriesByRegion, isOnTheMap } from "./MapHelpers"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
-import { makeMapToleranceNotice } from "./MapToleranceNotice.js"
+import { makeToleranceNotice } from "../chart/ToleranceNotice.js"
 
 export type MapFormatValueForTooltip = (
     d: PrimitiveType,
@@ -322,48 +322,17 @@ export class MapChartState implements ChartState, ColorScaleManager {
         return this.mapConfig.timeTolerance ?? this.mapColumn.tolerance
     }
 
+    /**
+     * The times the map is labelled with: one per facet when faceted, else
+     * just the time the timeline is set to
+     */
     @computed get toleranceNotice(): string | undefined {
-        const {
-            mapColumn,
-            targetTime,
-            transformedTable: { timeColumn },
-        } = this
-
-        if (
-            this.manager.isStatic ||
-            mapColumn.isMissing ||
-            timeColumn.isMissing ||
-            targetTime === undefined ||
-            this.timeTolerance === undefined ||
-            this.timeTolerance === 0
-        )
-            return undefined
-
-        let rows = mapColumn.owidRows
-
-        // When zoomed into a continent on the 2D map, only count the
-        // countries within that continent
-        if (this.mapConfig.is2dContinentActive()) {
-            const countriesInRegion = getCountriesByRegion(
-                MAP_REGION_LABELS[this.mapConfig.region]
-            )
-            if (countriesInRegion)
-                rows = rows.filter((row) =>
-                    countriesInRegion.has(row.entityName)
-                )
-        }
-
-        // Countries whose displayed value is from a different time than the
-        // target time, i.e. those for which tolerance was applied
-        const rowsWithTolerance = rows.filter(
-            (row) => row.originalTime !== targetTime
-        )
-        if (rowsWithTolerance.length === 0) return undefined
-
-        return makeMapToleranceNotice({
-            rowsWithTolerance,
-            targetTime,
-            timeColumn,
+        return makeToleranceNotice({
+            timeColumn: this.transformedTable.timeColumn,
+            entityType: this.manager.entityType ?? "entity",
+            timeTolerance: this.timeTolerance,
+            // A faceted map shows one target time per facet
+            hasMultipleTargetTimes: this.manager.isFaceted,
         })
     }
 

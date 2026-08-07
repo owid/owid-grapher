@@ -65,6 +65,13 @@ export interface ChartState {
 
     /** Sort keys this chart type supports */
     availableSortKeys?: SortBy[]
+
+    /**
+     * Explains that some of the values on screen aren't from the time the
+     * chart is labelled with, because tolerance was applied. Appended to the
+     * chart's note.
+     */
+    toleranceNotice?: string
 }
 
 /** Interface implemented by all chart component classes */

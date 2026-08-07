@@ -15,6 +15,10 @@ import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import { domainExtent } from "@ourworldindata/utils"
 import { ChartState } from "../chart/ChartInterface"
 import {
+    findConfiguredTolerance,
+    makeToleranceNotice,
+} from "../chart/ToleranceNotice"
+import {
     DEFAULT_DUMBBELL_TREND_COLOR_MAP,
     DUMBBELL_SORT_KEYS,
     DumbbellChartManager,
@@ -352,6 +356,16 @@ export class DumbbellChartState implements ChartState {
             series.start.value,
             series.end.value,
         ])
+    }
+
+    @computed get toleranceNotice(): string | undefined {
+        return makeToleranceNotice({
+            timeColumn: this.transformedTable.timeColumn,
+            entityType: this.manager.entityType ?? "entity",
+            timeTolerance: findConfiguredTolerance(this.yColumns),
+            // Comparing two columns puts both heads at the same time
+            hasMultipleTargetTimes: this.mode === DumbbellMode.TimeRange,
+        })
     }
 
     @computed get yDomainDefault(): [number, number] {
