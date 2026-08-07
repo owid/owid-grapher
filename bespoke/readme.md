@@ -113,6 +113,8 @@ A key insight slide normally takes an image (`filename`), a grapher/explorer cha
 
 `asset` is mutually exclusive with `filename`, `url` and `narrativeChartName` — specify exactly one.
 
+The asset column holds one visual filling one slot, so it accepts `bespoke-component`, `chart`, `narrative-chart`, `image`, `static-viz`, `video` and `html`. Layout containers (`side-by-side`, `sticky-left`, `sticky-right`, …) are rejected with a parse error: their grid classes are written for the full 12-column page grid, and the asset column is 7 of those columns, so they would lay out wrong rather than fail. The list is `KEY_INSIGHT_ASSET_BLOCK_TYPES` in `db/model/Gdoc/rawToEnriched.ts`.
+
 Two things to know when authoring one of these:
 
 - **The `size` property has no effect inside a key insight.** The asset column already sets the width (7 of 12 columns on desktop, full width on mobile), and the component fills it.
