@@ -214,10 +214,14 @@ function ArticleBlockInternal({
         .with({ type: "chart" }, (block) => {
             const resolvedUrl = linkedChart?.resolvedUrl ?? block.url
             const { isExplorer, queryParams } = Url.fromURL(resolvedUrl)
+            const isMultiDim =
+                linkedChart?.configType === ChartConfigType.MultiDim
             const areControlsHidden = queryParams.hideControls === "true"
             const size = block.size ?? BlockSize.Wide
+            // Multi-dims with visible controls render the same full-frame UI
+            // as explorers, so they get the same wide layout.
             const layoutSubtype =
-                isExplorer && !areControlsHidden
+                (isExplorer || isMultiDim) && !areControlsHidden
                     ? `explorer--${size}`
                     : `chart--${size}`
             return (
