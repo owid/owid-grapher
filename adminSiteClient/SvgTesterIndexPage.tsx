@@ -16,6 +16,9 @@ import {
     SvgTesterDisplayStatus,
 } from "./svgTesterHelpers.js"
 
+/** How often to re-read the results files while the page is open */
+const REFRESH_INTERVAL_MS = 10_000
+
 /** antd Tag colours */
 const DISPLAY_STATUS_COLORS: Record<SvgTesterDisplayStatus, string> = {
     "not-run": "default",
@@ -29,13 +32,18 @@ const DISPLAY_STATUS_COLORS: Record<SvgTesterDisplayStatus, string> = {
 export function SvgTesterIndexPage() {
     const { admin } = useContext(AdminAppContext)
 
-    const { data, isLoading } = useQuery({
+    const { data, isLoading, isFetching, isError, dataUpdatedAt } = useQuery({
         queryKey: ["svgtester-suites"],
         queryFn: () =>
-            admin.getJSON<{ suites: SvgTesterSuiteOverview[] }>(
-                "/api/svgtester/suites.json"
+            admin.requestJSON<{ suites: SvgTesterSuiteOverview[] }>(
+                "/api/svgtester/suites.json",
+                {},
+                "GET",
+                { onFailure: "continue" }
             ),
         refetchOnWindowFocus: true,
+        // A hidden tab doesn't poll; refetchOnWindowFocus catches it up.
+        refetchInterval: REFRESH_INTERVAL_MS,
     })
 
     const suites = data?.suites ?? []
@@ -59,6 +67,13 @@ export function SvgTesterIndexPage() {
                         pagination={false}
                     />
                 </Spin>
+                <p className="SvgTesterIndexPage__refreshed">
+                    <RefreshedLabel
+                        isFetching={isFetching}
+                        isError={isError}
+                        dataUpdatedAt={dataUpdatedAt}
+                    />
+                </p>
             </main>
         </AdminLayout>
     )
@@ -157,6 +172,29 @@ const columns: TableColumnsType<SvgTesterSuiteOverview> = [
         },
     },
 ]
+
+/**
+ * Says the page refreshes itself. It never goes stale: every poll re-renders
+ * this, whether or not the results changed.
+ */
+function RefreshedLabel({
+    isFetching,
+    isError,
+    dataUpdatedAt,
+}: {
+    isFetching: boolean
+    isError: boolean
+    dataUpdatedAt: number
+}) {
+    if (isFetching) return <>Refreshing…</>
+    if (isError) return <>Couldn&apos;t refresh — retrying</>
+    if (!dataUpdatedAt) return null
+    return (
+        <>
+            Refreshed <Timeago time={dataUpdatedAt} />
+        </>
+    )
+}
 
 function StatusTag({ status }: { status: SvgTesterSuiteOverview }) {
     const display = displayStatus(status)
