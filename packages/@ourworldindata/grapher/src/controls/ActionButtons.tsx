@@ -1,15 +1,15 @@
 import * as React from "react"
-import { computed, action, makeObservable } from "mobx"
+import { computed, action, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faShareNodes,
-    faExpand,
-    faCompress,
     faDownload,
     faArrowRight,
     IconDefinition,
     faHeart,
+    faCopy,
+    faCheck,
 } from "@fortawesome/free-solid-svg-icons"
 import {
     ShareMenu,
@@ -17,7 +17,7 @@ import {
     shareUsingShareApi,
     shouldShareUsingShareApi,
 } from "./ShareMenu.js"
-import { Bounds, Tippy } from "@ourworldindata/utils"
+import { Bounds, Tippy, canWriteToClipboard } from "@ourworldindata/utils"
 import classNames from "clsx"
 import {
     DEFAULT_GRAPHER_BOUNDS,
@@ -38,6 +38,7 @@ export interface ActionButtonsManager extends ShareMenuManager {
     isOnTableTab?: boolean
     hideFullScreenButton?: boolean
     hideDownloadButton?: boolean
+    hideCopyChartButton?: boolean
 }
 
 // keep in sync with sass variables in ActionButtons.scss
@@ -55,9 +56,30 @@ interface ActionButtonsProps {
 
 @observer
 export class ActionButtons extends React.Component<ActionButtonsProps> {
+    canWriteToClipboard = false
+    copiedChart = false
+    private copiedChartResetTimeout?: ReturnType<typeof setTimeout>
+
     constructor(props: ActionButtonsProps) {
         super(props)
-        makeObservable(this)
+        makeObservable(this, {
+            canWriteToClipboard: observable,
+            copiedChart: observable,
+        })
+    }
+
+    override componentDidMount(): void {
+        void canWriteToClipboard().then(
+            action((canWrite: boolean) => {
+                this.canWriteToClipboard = canWrite
+            })
+        )
+    }
+
+    override componentWillUnmount(): void {
+        if (this.copiedChartResetTimeout !== undefined) {
+            clearTimeout(this.copiedChartResetTimeout)
+        }
     }
 
     @computed private get manager(): ActionButtonsManager {
@@ -76,14 +98,14 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
         const {
             buttonCount,
             hasDownloadButton,
+            hasCopyChartButton,
             hasDonateButton,
             hasShareButton,
-            hasFullScreenButton,
             hasExploreTheDataButton,
             downloadButtonWithLabelWidth,
+            copyChartButtonWithLabelWidth,
             donateButtonWithLabelWidth,
             shareButtonWithLabelWidth,
-            fullScreenButtonWithLabelWidth,
             exploreTheDataButtonWithLabelWidth,
         } = this
 
@@ -91,11 +113,11 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
         if (hasDownloadButton) {
             width += downloadButtonWithLabelWidth
         }
+        if (hasCopyChartButton) {
+            width += copyChartButtonWithLabelWidth
+        }
         if (hasShareButton) {
             width += shareButtonWithLabelWidth
-        }
-        if (hasFullScreenButton) {
-            width += fullScreenButtonWithLabelWidth
         }
         if (hasDonateButton) {
             width += donateButtonWithLabelWidth
@@ -157,13 +179,17 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
         return ActionButtons.computeButtonWidth("Share")
     }
 
-    @computed private get fullScreenButtonLabel(): string {
-        const { isInFullScreenMode } = this.manager
-        return isInFullScreenMode ? "Exit full-screen" : "Enter full-screen"
+    @computed private get copyChartButtonLabel(): string {
+        return this.copiedChart ? "Copied!" : "Copy PNG to clipboard"
     }
 
-    @computed private get fullScreenButtonWithLabelWidth(): number {
-        return ActionButtons.computeButtonWidth(this.fullScreenButtonLabel)
+    @computed private get copyChartButtonWithLabelWidth(): number {
+        // Use the longer of the two possible labels so the layout doesn't shift when
+        // the label flips to "Copied!" after a successful copy.
+        return Math.max(
+            ActionButtons.computeButtonWidth("Copy PNG to clipboard"),
+            ActionButtons.computeButtonWidth("Copied!")
+        )
     }
 
     @computed private get donateButtonWithLabelWidth(): number {
@@ -193,15 +219,15 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
         return shareButtonWithLabelWidth
     }
 
-    @computed private get fullScreenButtonWidth(): number {
+    @computed private get copyChartButtonWidth(): number {
         const {
-            hasFullScreenButton,
+            hasCopyChartButton,
             showButtonLabels,
-            fullScreenButtonWithLabelWidth,
+            copyChartButtonWithLabelWidth,
         } = this
-        if (!hasFullScreenButton) return 0
+        if (!hasCopyChartButton) return 0
         if (!showButtonLabels) return BUTTON_WIDTH_ICON_ONLY
-        return fullScreenButtonWithLabelWidth
+        return copyChartButtonWithLabelWidth
     }
 
     @computed private get donateButtonWidth(): number {
@@ -235,6 +261,39 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
         this.manager.isInFullScreenMode = !this.manager.isInFullScreenMode
     }
 
+    @action.bound async copyChartToClipboard(): Promise<void> {
+        try {
+            const rasterizePromise = this.manager.rasterize({
+                includeDetails: false,
+            })
+
+            // Safari needs the clipboard.write call to happen without a delay after the user interaction,
+            // so it's important that we pass a promise to ClipboardItem, not await the rasterization first
+            // see https://stackoverflow.com/a/68241516/10670163
+            await navigator.clipboard.write([
+                new ClipboardItem({
+                    "image/png": rasterizePromise.then(({ blob }) => blob),
+                }),
+            ])
+
+            action(() => {
+                this.copiedChart = true
+            })()
+
+            if (this.copiedChartResetTimeout !== undefined) {
+                clearTimeout(this.copiedChartResetTimeout)
+            }
+            this.copiedChartResetTimeout = setTimeout(
+                action(() => {
+                    this.copiedChart = false
+                }),
+                2000
+            )
+        } catch (err) {
+            console.error("couldn't copy PNG to clipboard", err)
+        }
+    }
+
     @action.bound openDownloadModal(): void {
         this.manager.activeModal = GrapherModal.Download
 
@@ -260,8 +319,8 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
         )
     }
 
-    @computed private get hasFullScreenButton(): boolean {
-        return !this.manager.hideFullScreenButton && !this.manager.isInIFrame
+    @computed private get hasCopyChartButton(): boolean {
+        return !this.manager.hideCopyChartButton && this.canWriteToClipboard
     }
 
     @computed private get hasExploreTheDataButton(): boolean {
@@ -272,8 +331,8 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
     @computed private get buttonCount(): number {
         let count = 0
         if (this.hasDownloadButton) count += 1
+        if (this.hasCopyChartButton) count += 1
         if (this.hasShareButton) count += 1
-        if (this.hasFullScreenButton) count += 1
         if (this.hasDonateButton) count += 1
         if (this.hasExploreTheDataButton) count += 1
         return count
@@ -282,8 +341,6 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
     private renderShareMenu(): React.ReactElement {
         // distance between the right edge of the share button and the inner border of the frame
         let right = 0
-        if (this.hasFullScreenButton)
-            right += PADDING_BETWEEN_BUTTONS + this.fullScreenButtonWidth
         if (this.hasExploreTheDataButton)
             right += PADDING_BETWEEN_BUTTONS + this.exploreTheDataButtonWidth
 
@@ -336,18 +393,18 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
                             {isShareMenuActive && this.renderShareMenu()}
                         </li>
                     )}
-                    {this.hasFullScreenButton && (
-                        <li style={{ width: this.fullScreenButtonWidth }}>
+                    {this.hasCopyChartButton && (
+                        <li style={{ width: this.copyChartButtonWidth }}>
                             <ActionButton
-                                label={this.fullScreenButtonLabel}
-                                dataTrackNote="chart_click_fullscreen"
+                                label={this.copyChartButtonLabel}
+                                dataTrackNote="chart_click_copy"
                                 showLabel={this.showButtonLabels}
-                                icon={
-                                    manager.isInFullScreenMode
-                                        ? faCompress
-                                        : faExpand
-                                }
-                                onClick={this.toggleFullScreenMode}
+                                icon={this.copiedChart ? faCheck : faCopy}
+                                onClick={action((e): void => {
+                                    void this.copyChartToClipboard()
+                                    e.stopPropagation()
+                                })}
+                                hideTooltipOnClick={false}
                             />
                         </li>
                     )}
@@ -395,6 +452,7 @@ export function ActionButton(props: {
     isActive?: boolean
     style?: React.CSSProperties
     className?: string
+    hideTooltipOnClick?: boolean
 }): React.ReactElement {
     const buttonClassnames = classNames({
         active: props.isActive,
@@ -421,6 +479,7 @@ export function ActionButton(props: {
             trigger="mouseenter"
             touch={false}
             disabled={props.showLabel}
+            hideOnClick={props.hideTooltipOnClick ?? true}
         >
             <div
                 className={classNames("ActionButton", props.className)}
