@@ -24,7 +24,7 @@ If you are contributing on behalf of an employer or other organisation,
 please contact us before submitting a pull request so that the appropriate
 entity-level agreement can be put in place.
 
-## What can I contribute?
+## What Can I Contribute?
 
 This repository contains two closely related projects: the Grapher
 visualisation framework, and the Our World in Data site itself.
@@ -53,7 +53,7 @@ content changes will not be accepted.
 You are nonetheless welcome to report new issues with these aspects of our
 site. We look at these issues weekly and aim to solve them when we can.
 
-## Contributing code
+## Contributing Code
 
 Code contributions use [GitHub flow](https://docs.github.com/en/get-started/quickstart/github-flow).
 You should clone the repository, get it working locally on your machine,
