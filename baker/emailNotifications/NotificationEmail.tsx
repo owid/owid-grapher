@@ -1,34 +1,65 @@
-import ReactDOMServer from "react-dom/server"
 import { CSSProperties, Fragment, ReactNode } from "react"
+import {
+    Body,
+    Container,
+    Column,
+    Head,
+    Heading,
+    Html,
+    Img,
+    Link,
+    Preview,
+    Row,
+    Section,
+    Text,
+    render,
+} from "@react-email/components"
 import {
     EmailNotificationsContentType,
     EmailNotificationsFrequency,
     OwidEnrichedGdocBlock,
     Span,
 } from "@ourworldindata/types"
-import { dayjs, formatAuthors } from "@ourworldindata/utils"
+import { formatAuthors } from "@ourworldindata/utils"
 import {
     EmailNotificationsSubscriber,
     NotificationEmailItem,
+    formatItemDate,
 } from "./emailNotificationsUtils.js"
 
-// Hardcoded email template for the notification emails (an email template
-// editor is out of scope for this project). Emails need inline styles and
-// simple markup, so this deliberately doesn't reuse the site components.
+// The notification email template, implementing the design in
+// https://www.figma.com/design/tSJW2qxeaWwnfEXLmAfC5D/Subscribe?node-id=530-5592
+//
+// Email clients support a small, inconsistent subset of CSS, so this is built
+// from react-email primitives (which compile to table-based markup with
+// inlined styles) rather than reusing the site components. See
+// docs/email-rendering-plan.md for the constraints this works within — in
+// particular: no icon fonts or SVG, no flex/grid, absolute URLs only.
 
+// Design tokens, from the Figma file's shared styles.
 const COLORS = {
-    background: "#fbf9f3",
+    background: "#f7f7f7", // Website/Background/Gray 5
     card: "#ffffff",
-    navy: "#002147",
-    blue: "#1d3d63",
-    text: "#2d2e2d",
-    muted: "#616161",
-    accent: "#cf1918",
-    border: "#e7e7e7",
+    cardMuted: "#ebeef2", // Website/Background/Blue 10
+    navy: "#002147", // Website/Brand/Oxford Blue
+    text: "#1d3d63", // Website/Text/Blue 90
+    muted: "#426591", // Website/Text/Blue 60
+    headerText: "#a4b6ca", // Website/Text/Blue 30
+    vermillion: "#ce261e", // Website/Brand/Vermillion
 }
 
-const BODY_FONT = 'Lato, "Helvetica Neue", Helvetica, Arial, sans-serif'
-const SERIF_FONT = '"Playfair Display", Georgia, "Times New Roman", serif'
+const BODY_FONT = "Arial, Helvetica, sans-serif"
+const SERIF_FONT = '"Times New Roman", serif'
+
+const CONTAINER_WIDTH = 632
+const CONTENT_PADDING = 40
+
+// react-email's <Text> defaults to 14px; the design's body copy is 16px/24px,
+// so every body-copy element states it.
+const BODY_TEXT: CSSProperties = { fontSize: 16, lineHeight: "24px" }
+
+/** Placeholder name — the newsletter hasn't been named yet. */
+const EMAIL_NAME = { small: "Your", large: "OWID Update" }
 
 const CONTENT_TYPE_LABELS: Record<EmailNotificationsContentType, string> = {
     article: "Article",
@@ -53,16 +84,29 @@ export function makeNotificationEmailSubject(
     return `Your ${FREQUENCY_LABELS[frequency]} update from Our World in Data`
 }
 
-export function renderNotificationEmail(props: {
+export interface NotificationEmailProps {
     subscriber: EmailNotificationsSubscriber
     items: NotificationEmailItem[]
     baseUrl: string
     apiBaseUrl: string
-}): string {
-    return (
-        "<!doctype html>" +
-        ReactDOMServer.renderToStaticMarkup(<NotificationEmail {...props} />)
-    )
+    /** Send time, against which item dates are formatted. */
+    now: Date
+}
+
+/**
+ * Render the email to the HTML and plain-text bodies Postmark is given. The
+ * plain-text alternative is derived from the same component tree, and both
+ * are sent: it improves spam scoring and serves text-only clients.
+ */
+export async function renderNotificationEmail(
+    props: NotificationEmailProps
+): Promise<{ html: string; text: string }> {
+    const email = <NotificationEmail {...props} />
+    const [html, text] = await Promise.all([
+        render(email),
+        render(email, { plainText: true }),
+    ])
+    return { html, text }
 }
 
 function NotificationEmail({
@@ -70,261 +114,351 @@ function NotificationEmail({
     items,
     baseUrl,
     apiBaseUrl,
-}: {
-    subscriber: EmailNotificationsSubscriber
-    items: NotificationEmailItem[]
-    baseUrl: string
-    apiBaseUrl: string
-}) {
+    now,
+}: NotificationEmailProps) {
     const unsubscribeUrl = `${apiBaseUrl}/unsubscribe?token=${subscriber.token}`
     const updatePreferencesUrl = `${apiBaseUrl}/request-link?token=${subscriber.token}`
     return (
-        <html lang="en">
-            <head>
-                <meta charSet="utf-8" />
-                <meta
-                    name="viewport"
-                    content="width=device-width, initial-scale=1"
-                />
+        <Html lang="en">
+            <Head>
                 <title>
                     {makeNotificationEmailSubject(subscriber.frequency)}
                 </title>
-            </head>
-            <body
+            </Head>
+            {/* Inbox preview text: the titles readers see next to the subject. */}
+            <Preview>{items.map((item) => item.title).join(" · ")}</Preview>
+            <Body
                 style={{
                     margin: 0,
-                    padding: "24px 0",
+                    padding: 0,
                     backgroundColor: COLORS.background,
                     color: COLORS.text,
                     fontFamily: BODY_FONT,
                     fontSize: 16,
-                    lineHeight: 1.5,
+                    lineHeight: "24px",
                 }}
             >
-                <div
+                <Container
                     style={{
-                        maxWidth: 600,
+                        width: "100%",
+                        maxWidth: CONTAINER_WIDTH,
                         margin: "0 auto",
-                        backgroundColor: COLORS.card,
+                        backgroundColor: COLORS.background,
                     }}
                 >
-                    <Header frequency={subscriber.frequency} />
-                    <div style={{ padding: "8px 24px 24px" }}>
-                        <p>
-                            Here's what we published in the last{" "}
+                    <Header />
+                    <Section
+                        style={{ padding: `32px ${CONTENT_PADDING}px 40px` }}
+                    >
+                        <Text style={{ margin: "0 0 32px", fontSize: 14 }}>
+                            Here is what we published in the last{" "}
                             {FREQUENCY_PERIODS[subscriber.frequency]} across the
-                            topics you follow. You can{" "}
-                            <a
-                                href={unsubscribeUrl}
-                                style={{ color: COLORS.blue }}
-                            >
-                                unsubscribe
-                            </a>{" "}
-                            at any time, or, if this was forwarded to you,{" "}
-                            <a
-                                href={`${baseUrl}/subscribe`}
-                                style={{ color: COLORS.blue }}
-                            >
-                                subscribe here
-                            </a>
-                            .
-                        </p>
-                        {items.map((item, index) => (
-                            <Fragment key={item.url}>
-                                {index > 0 && (
-                                    <hr
-                                        style={{
-                                            border: "none",
-                                            borderTop: `1px solid ${COLORS.border}`,
-                                            margin: "24px 0",
-                                        }}
-                                    />
-                                )}
-                                <Item item={item} />
-                            </Fragment>
-                        ))}
-                        <p style={{ marginTop: 32, textAlign: "center" }}>
-                            <a
-                                href={`${baseUrl}/latest`}
+                            topics you follow.{" "}
+                            <Link
+                                href={updatePreferencesUrl}
                                 style={{
-                                    display: "inline-block",
-                                    padding: "10px 24px",
-                                    backgroundColor: COLORS.blue,
-                                    color: "#ffffff",
-                                    textDecoration: "none",
+                                    color: COLORS.text,
+                                    textDecoration: "underline",
                                 }}
                             >
-                                Browse the latest on Our World in Data
-                            </a>
-                        </p>
-                    </div>
+                                Update your preferences
+                            </Link>{" "}
+                            or, if this was forwarded to you,{" "}
+                            <Link
+                                href={`${baseUrl}/subscribe`}
+                                style={{
+                                    color: COLORS.text,
+                                    textDecoration: "underline",
+                                }}
+                            >
+                                subscribe here
+                            </Link>
+                            .
+                        </Text>
+                        {items.map((item, index) => (
+                            <Fragment key={item.url}>
+                                {index > 0 && <Spacer height={32} />}
+                                <Item item={item} now={now} />
+                            </Fragment>
+                        ))}
+                    </Section>
                     <Footer
                         email={subscriber.email}
+                        baseUrl={baseUrl}
                         unsubscribeUrl={unsubscribeUrl}
                         updatePreferencesUrl={updatePreferencesUrl}
                     />
-                </div>
-            </body>
-        </html>
+                </Container>
+            </Body>
+        </Html>
     )
 }
 
-function Header({ frequency }: { frequency: EmailNotificationsFrequency }) {
+/**
+ * Vertical space between items. A spacer row rather than a margin, because
+ * Outlook ignores margins on tables; the 1px font size stops the &nbsp; from
+ * making the row taller than asked for.
+ */
+function Spacer({ height }: { height: number }) {
     return (
-        <table
-            width="100%"
-            cellPadding={0}
-            cellSpacing={0}
-            style={{
-                backgroundColor: COLORS.navy,
-                borderBottom: `3px solid ${COLORS.accent}`,
-            }}
-        >
-            <tbody>
-                <tr>
-                    <td style={{ padding: "20px 24px" }}>
-                        <span
+        <Section style={{ height, lineHeight: `${height}px`, fontSize: 1 }}>
+            &nbsp;
+        </Section>
+    )
+}
+
+function Header() {
+    return (
+        <>
+            <Section
+                style={{
+                    backgroundColor: COLORS.navy,
+                    padding: `24px ${CONTENT_PADDING}px 28px`,
+                }}
+            >
+                <Row>
+                    <Column style={{ verticalAlign: "bottom" }}>
+                        <Text
                             style={{
+                                margin: 0,
                                 fontFamily: SERIF_FONT,
-                                fontSize: 24,
-                                color: "#ffffff",
+                                fontWeight: 600,
+                                fontSize: 18,
+                                lineHeight: "24px",
+                                color: COLORS.headerText,
                             }}
                         >
-                            Your {FREQUENCY_LABELS[frequency]} update
-                        </span>
-                    </td>
-                    <td
+                            {EMAIL_NAME.small}
+                        </Text>
+                        <Text
+                            style={{
+                                margin: 0,
+                                fontFamily: SERIF_FONT,
+                                fontWeight: 600,
+                                fontSize: 36,
+                                lineHeight: "40px",
+                                color: COLORS.headerText,
+                            }}
+                        >
+                            {EMAIL_NAME.large}
+                        </Text>
+                    </Column>
+                    <Column
                         style={{
-                            padding: "20px 24px",
+                            width: 160,
+                            verticalAlign: "bottom",
                             textAlign: "right",
-                            verticalAlign: "middle",
                         }}
                     >
-                        <span
+                        {/* The wordmark is set as text rather than an image so
+                            it survives clients that block images. */}
+                        <Text
                             style={{
+                                margin: 0,
+                                fontSize: 27,
+                                lineHeight: "30px",
                                 color: "#ffffff",
-                                fontWeight: 700,
-                                fontSize: 15,
+                                textAlign: "center",
                             }}
                         >
                             Our World
                             <br />
                             in Data
-                        </span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+                        </Text>
+                    </Column>
+                </Row>
+            </Section>
+            <Section
+                style={{
+                    height: 5,
+                    lineHeight: "5px",
+                    backgroundColor: COLORS.vermillion,
+                }}
+            >
+                &nbsp;
+            </Section>
+        </>
     )
 }
 
-function Item({ item }: { item: NotificationEmailItem }) {
+function Item({ item, now }: { item: NotificationEmailItem; now: Date }) {
     return (
-        <div>
-            <Kicker item={item} />
-            <h2
-                style={{
-                    fontFamily: SERIF_FONT,
-                    fontSize: 22,
-                    lineHeight: 1.3,
-                    color: COLORS.navy,
-                    margin: "0 0 8px",
-                }}
-            >
-                <a
-                    href={item.url}
-                    style={{ color: COLORS.navy, textDecoration: "none" }}
-                >
-                    {item.title}
-                </a>
-            </h2>
+        <Section>
+            <Kicker item={item} now={now} />
             {item.type === "data-insight" ? (
-                <DataInsightBody item={item} />
+                <DataInsightCard item={item} />
+            ) : item.type === "article" ? (
+                <ArticleCard item={item} />
             ) : (
                 <TeaserBody item={item} />
             )}
-        </div>
+        </Section>
     )
 }
 
-function Kicker({ item }: { item: NotificationEmailItem }) {
+/**
+ * Metadata row above every item: type and topic on the left, date on the
+ * right. The design pairs each with a FontAwesome icon; those can only be
+ * images in email, and clients that block images leave a broken-image box in
+ * the reserved space rather than collapsing it, so this is text-only.
+ */
+function Kicker({ item, now }: { item: NotificationEmailItem; now: Date }) {
+    // The gap below the kicker sits on the paragraphs rather than the row,
+    // because Outlook ignores margins on tables.
     const kickerStyle: CSSProperties = {
-        fontSize: 12,
+        margin: "0 0 8px",
+        fontSize: 10,
+        lineHeight: "16px",
         fontWeight: 700,
-        letterSpacing: "0.08em",
+        letterSpacing: 1,
         textTransform: "uppercase",
         color: COLORS.muted,
     }
     return (
-        <table width="100%" cellPadding={0} cellSpacing={0}>
-            <tbody>
-                <tr>
-                    <td style={{ ...kickerStyle, padding: "0 0 8px" }}>
-                        {CONTENT_TYPE_LABELS[item.type]}
-                        {item.topicLabel ? ` — ${item.topicLabel}` : null}
-                    </td>
-                    <td
-                        style={{
-                            ...kickerStyle,
-                            padding: "0 0 8px",
-                            textAlign: "right",
-                        }}
-                    >
-                        {dayjs(item.publishedAt).format("MMM D")}
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <Row>
+            <Column>
+                <Text style={kickerStyle}>
+                    {CONTENT_TYPE_LABELS[item.type]}
+                    {item.topicLabel && (
+                        <>
+                            {" — "}
+                            <span style={{ color: COLORS.text }}>
+                                {item.topicLabel}
+                            </span>
+                        </>
+                    )}
+                </Text>
+            </Column>
+            <Column style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                <Text style={kickerStyle}>
+                    {formatItemDate(item.publishedAt, now)}
+                </Text>
+            </Column>
+        </Row>
     )
 }
 
-/** Lean treatment for articles and announcements: excerpt + link. */
+function ItemTitle({
+    item,
+    serif,
+}: {
+    item: NotificationEmailItem
+    serif?: boolean
+}) {
+    return (
+        <Heading
+            as="h2"
+            style={{
+                margin: "0 0 8px",
+                fontFamily: serif ? SERIF_FONT : BODY_FONT,
+                fontSize: serif ? 24 : 20,
+                lineHeight: serif ? "32px" : "24px",
+                fontWeight: 700,
+                color: COLORS.text,
+            }}
+        >
+            <Link
+                href={item.url}
+                style={{ color: COLORS.text, textDecoration: "none" }}
+            >
+                {item.title}
+            </Link>
+        </Heading>
+    )
+}
+
+function ReadMoreLink({ href, label }: { href: string; label: string }) {
+    return (
+        <Text style={{ ...BODY_TEXT, margin: 0 }}>
+            <Link
+                href={href}
+                style={{
+                    color: COLORS.vermillion,
+                    fontWeight: 700,
+                    textDecoration: "none",
+                }}
+            >
+                {label} →
+            </Link>
+        </Text>
+    )
+}
+
+/** Data updates and announcements: plain on the page background. */
 function TeaserBody({ item }: { item: NotificationEmailItem }) {
     return (
-        <div>
+        <>
+            <ItemTitle item={item} />
+            {item.excerpt && (
+                <Text style={{ ...BODY_TEXT, margin: "0 0 8px" }}>
+                    {item.excerpt}
+                </Text>
+            )}
+            <ReadMoreLink href={item.url} label="Read more" />
+        </>
+    )
+}
+
+/** Articles: a tinted card with thumbnail, byline and excerpt. */
+function ArticleCard({ item }: { item: NotificationEmailItem }) {
+    return (
+        <Section
+            style={{
+                backgroundColor: COLORS.cardMuted,
+                padding: "16px 16px 24px",
+            }}
+        >
+            {item.thumbnailUrl && (
+                <Link href={item.url}>
+                    <Img
+                        src={item.thumbnailUrl}
+                        alt=""
+                        width={CONTAINER_WIDTH - 2 * CONTENT_PADDING - 32}
+                        style={{
+                            width: "100%",
+                            height: "auto",
+                            margin: "0 0 24px",
+                        }}
+                    />
+                </Link>
+            )}
+            <ItemTitle item={item} serif />
             {item.authors.length > 0 && (
-                <p
+                <Text
                     style={{
+                        ...BODY_TEXT,
                         margin: "0 0 8px",
                         fontStyle: "italic",
                         color: COLORS.muted,
                     }}
                 >
                     {formatAuthors(item.authors)}
-                </p>
+                </Text>
             )}
-            {item.thumbnailUrl && (
-                <a href={item.url}>
-                    <img
-                        src={item.thumbnailUrl}
-                        alt=""
-                        width={552}
-                        style={{
-                            width: "100%",
-                            height: "auto",
-                            margin: "8px 0",
-                        }}
-                    />
-                </a>
-            )}
-            {item.excerpt && (
-                <p style={{ margin: "0 0 8px" }}>{item.excerpt}</p>
-            )}
-            <p style={{ margin: 0 }}>
-                <a href={item.url} style={{ color: COLORS.blue }}>
-                    {item.type === "article"
-                        ? "Read the article →"
-                        : "Read more →"}
-                </a>
-            </p>
-        </div>
+            {item.excerptBlocks ? (
+                item.excerptBlocks.map((block, index) => (
+                    <Text
+                        key={index}
+                        style={{ ...BODY_TEXT, margin: "0 0 16px" }}
+                    >
+                        <Spans spans={block.value} />
+                    </Text>
+                ))
+            ) : item.excerpt ? (
+                <Text style={{ ...BODY_TEXT, margin: "0 0 16px" }}>
+                    {item.excerpt}
+                </Text>
+            ) : null}
+            <ReadMoreLink href={item.url} label="Read the article" />
+        </Section>
     )
 }
 
-/** Data insights ship their full content, like in the Data Insights newsletter. */
-function DataInsightBody({ item }: { item: NotificationEmailItem }) {
+/** Data insights ship their full content, like in the data insights feed. */
+function DataInsightCard({ item }: { item: NotificationEmailItem }) {
     return (
-        <div>
+        <Section style={{ backgroundColor: COLORS.card, padding: 24 }}>
+            <ItemTitle item={item} />
             {(item.body ?? []).map((block, index) => (
                 <Block
                     key={index}
@@ -333,11 +467,17 @@ function DataInsightBody({ item }: { item: NotificationEmailItem }) {
                 />
             ))}
             {item.authors.length > 0 && (
-                <p style={{ margin: "8px 0 0", color: COLORS.muted }}>
+                <Text
+                    style={{
+                        ...BODY_TEXT,
+                        margin: "16px 0 0",
+                        color: COLORS.muted,
+                    }}
+                >
                     By {formatAuthors(item.authors)}
-                </p>
+                </Text>
             )}
-        </div>
+        </Section>
     )
 }
 
@@ -356,22 +496,42 @@ function Block({
     switch (block.type) {
         case "text":
             return (
-                <p style={{ margin: "0 0 12px" }}>
+                <Text style={{ ...BODY_TEXT, margin: "0 0 16px" }}>
                     <Spans spans={block.value} />
-                </p>
+                </Text>
             )
         case "heading":
             return (
-                <h3
+                <Heading
+                    as="h3"
                     style={{
-                        fontFamily: SERIF_FONT,
-                        fontSize: 18,
-                        color: COLORS.navy,
                         margin: "16px 0 8px",
+                        fontFamily: BODY_FONT,
+                        fontSize: 18,
+                        lineHeight: "24px",
+                        fontWeight: 700,
+                        color: COLORS.text,
                     }}
                 >
                     <Spans spans={block.text} />
-                </h3>
+                </Heading>
+            )
+        // Data insights end with a call to action linking to the chart or a
+        // related article. The design gives it the emphasized treatment below.
+        case "cta":
+            return (
+                <Text style={{ ...BODY_TEXT, margin: "16px 0 0" }}>
+                    <Link
+                        href={block.url}
+                        style={{
+                            color: COLORS.text,
+                            fontWeight: 700,
+                            textDecoration: "none",
+                        }}
+                    >
+                        {block.text} →
+                    </Link>
+                </Text>
             )
         case "image": {
             const filename = block.preferSmallFilename
@@ -380,14 +540,15 @@ function Block({
             const url = imageUrlByFilename[filename]
             if (!url) return null
             return (
-                <img
+                <Img
                     src={url}
                     alt={block.alt ?? ""}
-                    width={552}
+                    width={CONTAINER_WIDTH - 2 * CONTENT_PADDING - 48}
                     style={{
                         width: "100%",
                         height: "auto",
-                        margin: "8px 0 12px",
+                        margin: "0 0 16px",
+                        border: `1px solid ${COLORS.cardMuted}`,
                     }}
                 />
             )
@@ -410,9 +571,15 @@ function SpanElement({ span }: { span: Span }): ReactNode {
         case "span-link":
         case "span-ref":
             return (
-                <a href={span.url} style={{ color: COLORS.blue }}>
+                <Link
+                    href={span.url}
+                    style={{
+                        color: "inherit",
+                        textDecoration: "underline",
+                    }}
+                >
                     <Spans spans={span.children} />
-                </a>
+                </Link>
             )
         case "span-bold":
             return (
@@ -459,45 +626,73 @@ function SpanElement({ span }: { span: Span }): ReactNode {
 
 function Footer({
     email,
+    baseUrl,
     unsubscribeUrl,
     updatePreferencesUrl,
 }: {
     email: string
+    baseUrl: string
     unsubscribeUrl: string
     updatePreferencesUrl: string
 }) {
     const footerTextStyle: CSSProperties = {
         margin: "0 0 8px",
         fontSize: 13,
+        lineHeight: "20px",
         color: COLORS.muted,
         textAlign: "center",
     }
+    const footerLinkStyle: CSSProperties = {
+        color: COLORS.muted,
+        textDecoration: "underline",
+    }
     return (
-        <div
+        <Section
             style={{
-                padding: "16px 24px 24px",
-                borderTop: `1px solid ${COLORS.border}`,
+                padding: `0 ${CONTENT_PADDING}px 40px`,
+                textAlign: "center",
             }}
         >
-            <p style={footerTextStyle}>
+            <Text
+                style={{
+                    ...BODY_TEXT,
+                    margin: "0 0 24px",
+                    textAlign: "center",
+                }}
+            >
+                <Link
+                    href={`${baseUrl}/latest`}
+                    style={{
+                        display: "inline-block",
+                        padding: "12px 24px",
+                        backgroundColor: COLORS.navy,
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        textDecoration: "none",
+                    }}
+                >
+                    Browse the latest on Our World in Data
+                </Link>
+            </Text>
+            <Text style={footerTextStyle}>
                 This email was sent to {email} because you subscribed to email
                 updates from Our World in Data.
-            </p>
-            <p style={footerTextStyle}>
+            </Text>
+            <Text style={footerTextStyle}>
                 You can{" "}
-                <a href={updatePreferencesUrl} style={{ color: COLORS.blue }}>
+                <Link href={updatePreferencesUrl} style={footerLinkStyle}>
                     update your preferences
-                </a>{" "}
+                </Link>{" "}
                 or{" "}
-                <a href={unsubscribeUrl} style={{ color: COLORS.blue }}>
+                <Link href={unsubscribeUrl} style={footerLinkStyle}>
                     unsubscribe
-                </a>{" "}
+                </Link>{" "}
                 at any time.
-            </p>
-            <p style={{ ...footerTextStyle, marginBottom: 0 }}>
+            </Text>
+            <Text style={{ ...footerTextStyle, marginBottom: 0 }}>
                 Our World in Data · Global Change Data Lab · Oxford, United
                 Kingdom
-            </p>
-        </div>
+            </Text>
+        </Section>
     )
 }
