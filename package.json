@@ -95,6 +95,7 @@
         "@ourworldindata/grapher": "workspace:^",
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
+        "@react-email/components": "^1.0.12",
         "@react-querybuilder/antd": "^8.23.1",
         "@sentry/node": "^10.70.0",
         "@sentry/profiling-node": "^10.70.0",

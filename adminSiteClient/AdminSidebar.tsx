@@ -26,6 +26,7 @@ import {
     faDisplay,
     faLinkSlash,
     faCodeCompare,
+    faEnvelope,
 } from "@fortawesome/free-solid-svg-icons"
 
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
@@ -210,6 +211,12 @@ export const AdminSidebar = (): React.ReactElement => (
                 <Link to="/callout-functions">
                     <FontAwesomeIcon icon={faCircleInfo} className="fa-fw" />{" "}
                     Callout functions
+                </Link>
+            </li>
+            <li>
+                <Link to="/email-notifications-preview">
+                    <FontAwesomeIcon icon={faEnvelope} fixedWidth /> Email
+                    preview
                 </Link>
             </li>
         </ul>
