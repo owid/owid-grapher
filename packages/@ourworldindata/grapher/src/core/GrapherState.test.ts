@@ -36,6 +36,7 @@ import {
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { setSelectedEntityNamesParam } from "./EntityUrlBuilder"
 import { MapConfig } from "../mapCharts/MapConfig"
+import { TimelineDragTarget } from "../timeline/TimelineController"
 import { SelectionArray } from "../selection/SelectionArray"
 import { latestGrapherConfigSchema } from "./GrapherConstants.js"
 import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable.js"
@@ -633,8 +634,6 @@ describe("toleranceNotice", () => {
         )
     })
 
-    // Whether the note shows follows the year, and the footer reserves space
-    // for it so that doesn't shift the layout -- see Footer.test.ts
     it("follows whether tolerance applies at the year shown", () => {
         const grapher = makeGrapher()
         const noteAt = (year: number): string | undefined => {
@@ -646,6 +645,52 @@ describe("toleranceNotice", () => {
         expect(noteAt(2000)).toBeDefined()
         expect(noteAt(2001)).toBeUndefined()
         expect(noteAt(2002)).toBeDefined()
+    })
+
+    // The notice sits in the note, which the chart is sized around, so it
+    // coming and going year by year would resize the chart under a moving
+    // handle. Whatever was showing when the interaction started is held for
+    // its duration and settles once, on release.
+    describe("held while the timeline is in motion", () => {
+        const drag = (grapher: GrapherState): void => {
+            grapher.timelineDragTarget = TimelineDragTarget.End
+            grapher.holdToleranceNotice()
+        }
+        const release = (grapher: GrapherState): void => {
+            grapher.timelineDragTarget = undefined
+            grapher.releaseToleranceNotice()
+        }
+        const goTo = (grapher: GrapherState, year: number): void => {
+            grapher.timelineHandleTimeBounds = [year, year]
+        }
+
+        it("keeps a notice that was up when the drag started", () => {
+            const grapher = makeGrapher()
+            goTo(grapher, 2000) // tolerance applies here
+            drag(grapher)
+            goTo(grapher, 2001) // but not here
+            expect(grapher.toleranceNotice).toBeDefined()
+            release(grapher)
+            expect(grapher.toleranceNotice).toBeUndefined()
+        })
+
+        it("keeps a notice that was down when the drag started", () => {
+            const grapher = makeGrapher()
+            goTo(grapher, 2001)
+            drag(grapher)
+            goTo(grapher, 2000)
+            expect(grapher.toleranceNotice).toBeUndefined()
+            release(grapher)
+            expect(grapher.toleranceNotice).toBeDefined()
+        })
+
+        it("holds nothing when the timeline is idle", () => {
+            const grapher = makeGrapher()
+            goTo(grapher, 2000)
+            grapher.holdToleranceNotice()
+            goTo(grapher, 2001)
+            expect(grapher.toleranceNotice).toBeUndefined()
+        })
     })
 
     // The tolerance is measured against the chart's whole range, which must be

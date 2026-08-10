@@ -574,6 +574,8 @@ export class GrapherState
     areHandlesOnSameTimeBeforeAnimation: boolean | undefined = undefined
     /** Which timeline element is currently being dragged */
     timelineDragTarget: TimelineDragTarget | undefined = undefined
+    /** The tolerance notice as of the start of a timeline interaction */
+    heldToleranceNotice: { notice: string | undefined } | undefined = undefined
 
     // Display flags
     hasTableTab = true
@@ -732,6 +734,7 @@ export class GrapherState
             animationStartTime: observable.ref,
             areHandlesOnSameTimeBeforeAnimation: observable.ref,
             timelineDragTarget: observable.ref,
+            heldToleranceNotice: observable.ref,
             isEntitySelectorModalOrDrawerOpen: observable.ref,
             activeModal: observable.ref,
             activeDownloadModalTab: observable.ref,
@@ -2458,7 +2461,32 @@ export class GrapherState
         // the notice describes the chart, not the table
         if (!this.isReady || !this.isOnChartOrMapTab) return undefined
 
+        // Whether the notice applies changes from one time to the next, and
+        // the note it sits in is part of the layout, so letting it come and go
+        // under a moving handle resizes the chart mid-drag. Hold whatever was
+        // showing when the interaction started and settle it once, on release.
+        if (this.heldToleranceNotice && this.isTimelineInteractionActive)
+            return this.heldToleranceNotice.notice
+
         return this.chartState.toleranceNotice
+    }
+
+    /** Whether the timeline is being dragged or is playing an animation */
+    @computed get isTimelineInteractionActive(): boolean {
+        return !!this.timelineDragTarget || this.isTimelineAnimationPlaying
+    }
+
+    /**
+     * Takes note of what the tolerance notice says at the start of a timeline
+     * interaction, so it can be held for the interaction's duration. Boxed so
+     * that a held absent notice reads differently from nothing being held.
+     */
+    @action.bound holdToleranceNotice(): void {
+        this.heldToleranceNotice = { notice: this.toleranceNotice }
+    }
+
+    @action.bound releaseToleranceNotice(): void {
+        this.heldToleranceNotice = undefined
     }
 
     /**

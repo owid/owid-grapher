@@ -727,6 +727,22 @@ export class Grapher extends React.Component<GrapherProps> {
         )
     }
 
+    private holdToleranceNoticeWhileTimelineMoves(): void {
+        // The tolerance notice comes and goes from one time to the next, and
+        // it lives in the note, which the chart is sized around. Holding it
+        // steady while the handle is in motion turns a resize per time step
+        // into a single one, when the interaction ends.
+        this.grapherState.disposers.push(
+            reaction(
+                () => this.grapherState.isTimelineInteractionActive,
+                (isActive) => {
+                    if (isActive) this.grapherState.holdToleranceNotice()
+                    else this.grapherState.releaseToleranceNotice()
+                }
+            )
+        )
+    }
+
     private clearFocusMode(): void {
         // Make it easy to exit focus mode by clearing it when the selection
         // or view changes. This is disabled in the admin to avoid clearing
@@ -760,6 +776,7 @@ export class Grapher extends React.Component<GrapherProps> {
         this.bindKeyboardShortcuts()
 
         this.clearFocusMode()
+        this.holdToleranceNoticeWhileTimelineMoves()
     }
 
     private _shortcutsBound = false
