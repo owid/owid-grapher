@@ -51,7 +51,7 @@ jobs:
           yarn pack --out "$RUNNER_TEMP/grapher.tgz"
           tar -xzf "$RUNNER_TEMP/grapher.tgz" -C "$RUNNER_TEMP"
 
-      - name: Publish to GitHub Packages
+      - name: Publish to GitHub Packages # zizmor: ignore[use-trusted-publishing] GitHub Packages uses GITHUB_TOKEN authentication, not npm OIDC
         working-directory: ${{ runner.temp }}/package
         env:
           INPUT_VERSION: ${{ inputs.version }}
