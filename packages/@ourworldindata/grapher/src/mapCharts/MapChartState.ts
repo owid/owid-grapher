@@ -393,20 +393,13 @@ export class MapChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get series(): ChoroplethSeries[] {
-        const { mapColumn, targetTime, notApplicableEntityNamesSet } = this
+        const { mapColumn, targetTime } = this
         if (mapColumn.isMissing) return []
         if (targetTime === undefined) return []
 
         return mapColumn.owidRows
             .map((row) => {
                 const { entityName, value, originalTime } = row
-
-                // Entities with not-applicable values are expected to have
-                // no data, but skip any rows they might have anyway, so that
-                // they're guaranteed to never have a series
-                if (notApplicableEntityNamesSet.has(entityName))
-                    return undefined
-
                 const color =
                     this.colorScale.getColor(value) || this.noDataColor
                 const isProjection = this.checkIsProjection(

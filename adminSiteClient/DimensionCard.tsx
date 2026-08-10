@@ -26,6 +26,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { OwidTable } from "@ourworldindata/core-table"
+import { mappableCountries } from "@ourworldindata/utils"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { SortableList } from "./SortableList.js"
 
@@ -80,7 +81,8 @@ export class DimensionCard<
         value: EntityName
         label: EntityName
     }[] {
-        return this.table.availableEntityNames
+        return mappableCountries
+            .map((country) => country.name)
             .toSorted()
             .map((entityName) => ({ value: entityName, label: entityName }))
     }

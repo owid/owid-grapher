@@ -141,9 +141,7 @@ properties:
               description: |
                 Entities for which the indicator's data is not applicable by construction,
                 e.g. China for "China's imports as a share of GDP", or any country for
-                "emigrants from that country". The map renders these in a dedicated pattern
-                with its own legend entry labeled "Not applicable", and tooltip and data
-                table show "Not applicable".
+                "emigrants from that country".
             timeInterval:
               type: string
               default: year

@@ -179,7 +179,7 @@ describe("not applicable entities", () => {
     })
 
     it("handles multiple not-applicable entities", () => {
-        const table = makeTableWithNotApplicableEntities(["France", "Germany"])
+        const table = makeTableWithNotApplicableEntities(["France", "Italy"])
         const chartState = new MapChartState({
             manager: {
                 table,
@@ -190,10 +190,10 @@ describe("not applicable entities", () => {
 
         // Both are recognized as not-applicable
         expect(chartState.notApplicableEntityNamesSet).toEqual(
-            new Set(["France", "Germany"])
+            new Set(["France", "Italy"])
         )
         expect(chartState.seriesMap.has("France")).toBe(false)
-        expect(chartState.seriesMap.has("Germany")).toBe(false)
+        expect(chartState.seriesMap.has("Italy")).toBe(false)
 
         // The shared "Not applicable" bin is injected once
         const notApplicableBins = chartState.colorScale.legendBins.filter(
