@@ -1288,6 +1288,16 @@ export class GdocBase implements OwidGdocBaseInterface {
                             message: `Grapher chart with slug "${link.target}" does not exist or is not published`,
                             type: OwidGdocErrorMessageType.Error,
                         })
+                    } else if (
+                        link.componentType === "explorer-tiles" &&
+                        !grapherRedirect &&
+                        chartIdsBySlug[link.target]
+                    ) {
+                        linkErrors.push({
+                            property: "content",
+                            message: `Explorer tiles can only link to explorers or multi-dim data pages, but "${link.target}" is a regular grapher chart`,
+                            type: OwidGdocErrorMessageType.Error,
+                        })
                     }
                 })
                 .with({ linkType: ContentGraphLinkType.Explorer }, async () => {
@@ -1630,7 +1640,7 @@ export function makeMultiDimLinkedChart(
         title,
         dimensionSlugs: config.dimensions.map((d) => d.slug),
         resolvedUrl,
-        tags: [],
+        tags: config.topicTags ?? [],
         archivedPageVersion,
     }
 }
