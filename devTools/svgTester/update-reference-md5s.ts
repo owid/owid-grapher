@@ -41,23 +41,15 @@ async function main(args: ReturnType<typeof parseArguments>): Promise<void> {
         // in the first place (renderSvg hashes the same string it writes out).
         const md5 = hashMd5(await fs.readFile(svgPath, "utf-8"))
         if (md5 !== record.md5) {
-            utils.logIfVerbose(
-                args.verbose,
-                `${record.viewId}: ${record.md5} -> ${md5}`
-            )
             record.md5 = md5
             updated += 1
         }
     }
 
-    if (missing.length) {
+    if (missing.length)
         console.warn(
-            `${missing.length} reference SVGs in results.csv do not exist on disk, left untouched`
+            `${testSuite}: ${missing.length} reference svgs in results.csv do not exist on disk, left untouched`
         )
-        for (const svgFilename of missing) {
-            utils.logIfVerbose(args.verbose, `  missing: ${svgFilename}`)
-        }
-    }
 
     if (updated === 0) {
         console.log(`${testSuite}: all ${svgRecords.length} md5s already match`)
@@ -65,8 +57,9 @@ async function main(args: ReturnType<typeof parseArguments>): Promise<void> {
     }
 
     await utils.writeReferenceCsv(referencesDir, svgRecords)
+    // Which rows changed is in `git diff results.csv`, no need to list them here
     console.log(
-        `${testSuite}: updated ${updated} of ${svgRecords.length} md5s in results.csv`
+        `${testSuite}: ${updated} of ${svgRecords.length} md5s updated in results.csv`
     )
 }
 
@@ -81,13 +74,6 @@ function parseArguments() {
             description: utils.TEST_SUITE_DESCRIPTION,
             default: "graphers",
             choices: SVG_TESTER_SUITES,
-        })
-        .options({
-            verbose: {
-                type: "boolean",
-                description: "Verbose mode",
-                default: false,
-            },
         })
         .help()
         .alias("help", "h")

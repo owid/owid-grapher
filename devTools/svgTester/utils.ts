@@ -21,7 +21,6 @@ import {
 } from "@ourworldindata/utils"
 import fs, { stat } from "fs-extra"
 import path from "path"
-import stream from "stream"
 import { execFileSync } from "child_process"
 import {
     buildSvgOutFilename,
@@ -30,7 +29,6 @@ import {
 import { getVariableData } from "../../db/model/Variable.js"
 
 import * as _ from "lodash-es"
-import util from "util"
 import { getHeapStatistics } from "v8"
 import { queryStringsByChartType } from "./chart-configurations.js"
 import * as d3 from "d3-dsv"
@@ -43,8 +41,6 @@ import {
     GRAPHER_THUMBNAIL_HEIGHT,
     mapGrapherTabNameToQueryParam,
 } from "@ourworldindata/grapher"
-import { format, type FormatConfig } from "oxfmt"
-import oxfmtConfig from "../../.oxfmtrc.json"
 import { hashMd5 } from "../../serverUtils/hash.js"
 import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as R from "remeda"
@@ -55,8 +51,6 @@ export const TEST_SUITE_DESCRIPTION =
 
 const CONFIG_FILENAME = "config.json"
 const RESULTS_FILENAME = "results.csv"
-
-export const finished = util.promisify(stream.finished) // (A)
 
 export interface ChartWithQueryStr {
     viewId: string
@@ -135,10 +129,6 @@ interface SvgDifference {
     queryStr?: string
     chartType: GrapherTabName | undefined
     svgFilename: string
-    changedRatio: number
-    startIndex: number
-    referenceSvgFragment: string
-    newSvgFragment: string
 }
 
 interface JobDirectory {
@@ -152,116 +142,45 @@ interface JobConfigAndData {
     totalDataFileSize: number
 }
 
-export function logIfVerbose(verbose: boolean, message: string, param?: any) {
-    if (verbose)
-        if (param) console.log(message, param)
-        else console.log(message)
-}
-
-/**
- * Share of lines on one side with no counterpart on the other, 0–1.
- *
- * O(n) and about a millisecond on a typical chart, so it is affordable for
- * every difference in a run. A real edit distance is not: on the largest
- * reference (16k lines), diffing two renderings that differ everywhere takes
- * over 15 seconds.
- */
-function estimateChangedRatio(before: string, after: string): number {
-    const beforeLines = before.split("\n")
-    const afterLines = after.split("\n")
-    const counts = new Map<string, number>()
-    for (const line of beforeLines)
-        counts.set(line, (counts.get(line) ?? 0) + 1)
-    let shared = 0
-    for (const line of afterLines) {
-        const remaining = counts.get(line)
-        if (remaining) {
-            counts.set(line, remaining - 1)
-            shared++
-        }
-    }
-    return 1 - shared / Math.max(beforeLines.length, afterLines.length)
-}
-
-function findFirstDiffIndex(a: string, b: string): number {
-    let i = 0
-    while (i < a.length && i < b.length && a[i] === b[i]) i++
-    // No difference found even though hash was different
-    if (a.length === b.length && a.length === i) i = -1
-    return i
+/** Seconds under a minute, whole minutes above it. */
+function formatDuration(ms: number): string {
+    const seconds = Math.round(ms / 1000)
+    if (seconds < 60) return `${seconds}s`
+    return `${Math.round(seconds / 60)}m`
 }
 
 async function verifySvg(
     preparedNewSvg: string,
     newSvgRecord: SvgRecord,
     referenceSvgRecord: SvgRecord,
-    referenceSvgsPath: string,
-    verbose: boolean
+    referenceSvgsPath: string
 ): Promise<VerifyResult> {
-    logIfVerbose(verbose, `verifying ${newSvgRecord.viewId}`)
-
     if (newSvgRecord.md5 === referenceSvgRecord.md5) {
         // if the md5 hash is unchanged then there is no difference
         return resultOk()
     }
 
-    // The stored reference .svg file is already in oxfmt-formatted canonical
-    // form - that's what wrote it in the first place (renderSvgAndSave /
-    // commit_differences), and formatting is idempotent (verified: reformatting
-    // an already-formatted reference file is a no-op). So compare the
-    // freshly-formatted new svg directly against the file's bytes first,
-    // without paying for a reformat on every single chart.
-    //
-    // Note results.csv's md5 column can go stale independently of the .svg
-    // file itself (commit_differences in svg-tester.sh updates the file but
-    // never the CSV), which is why the fast-path check above frequently
-    // misses even when there's no real difference - don't rely on md5 for
-    // anything beyond that optimistic early-exit.
-    const referenceSvgRaw = await loadReferenceSvg(
+    // The stored reference .svg file is the output of prepareSvgForComparison,
+    // same as `preparedNewSvg` - that's what wrote it in the first place
+    // (renderSvgAndSave / commit_differences) - so the two compare byte for
+    // byte.
+    const preparedReferenceSvg = await loadReferenceSvg(
         referenceSvgsPath,
         referenceSvgRecord
     )
-    let preparedReferenceSvg = referenceSvgRaw
-    let firstDiffIndex = findFirstDiffIndex(preparedNewSvg, referenceSvgRaw)
 
-    if (firstDiffIndex !== -1) {
-        // Only reached if the direct comparison found a difference. The
-        // reference file is normally already canonical (see above), but if
-        // it was written by an older oxfmt version/config than what's
-        // running now, a fresh render can look "different" purely from
-        // formatting drift rather than an actual content change. Reformat
-        // and re-compare before concluding it's a real difference - this
-        // only costs an extra format() call on charts that didn't match on
-        // the first (cheap) try.
-        preparedReferenceSvg = await prepareSvgForComparison(referenceSvgRaw)
-        firstDiffIndex = findFirstDiffIndex(
-            preparedNewSvg,
-            preparedReferenceSvg
+    if (preparedNewSvg === preparedReferenceSvg) {
+        // Same bytes, different md5 - results.csv has drifted from the references
+        console.warn(
+            `${newSvgRecord.viewId}: md5 differs but the svg is identical, run 'make svgtest.md5s'`
         )
-    }
-
-    if (firstDiffIndex === -1) {
         return resultOk()
     }
-    logIfVerbose(verbose, `${newSvgRecord.viewId} had differences`)
     return resultDifference({
         viewId: newSvgRecord.viewId,
         queryStr: newSvgRecord.resolvedQueryStr ?? newSvgRecord.queryStr,
         chartType: newSvgRecord.chartType,
         svgFilename: newSvgRecord.svgFilename,
-        changedRatio: estimateChangedRatio(
-            preparedReferenceSvg,
-            preparedNewSvg
-        ),
-        startIndex: firstDiffIndex,
-        referenceSvgFragment: preparedReferenceSvg.substring(
-            firstDiffIndex - 20,
-            firstDiffIndex + 20
-        ),
-        newSvgFragment: preparedNewSvg.substring(
-            firstDiffIndex - 20,
-            firstDiffIndex + 20
-        ),
     })
 }
 
@@ -417,6 +336,9 @@ async function parseGrapherConfig(
     return grapherConfig
 }
 
+// Not fs.writeJson: that appends a final newline, which would rewrite every
+// dumped file in the svgs repo on the next refresh and shift totalDataFileSize
+// for every chart.
 async function writeToFile(data: unknown, filename: string) {
     const json = JSON.stringify(data, null, 2)
     await fs.writeFile(filename, json)
@@ -573,11 +495,9 @@ export async function renderSvg({
     )
     const durationTotal = Date.now() - timeStart
 
-    // Formatting the SVG (to strip non-deterministic fragments before hashing)
-    // is the expensive part of this function. Compute it once here and hand it
-    // back to callers instead of letting them redundantly reformat the same
-    // raw svg again for comparison/output purposes.
-    const preparedSvg = await prepareSvgForComparison(svg)
+    // What gets hashed, written out and compared - callers take it from here
+    // rather than re-deriving it from the raw svg.
+    const preparedSvg = prepareSvgForComparison(svg)
 
     const svgRecord: SvgRecord = {
         viewId: dir.viewId,
@@ -601,17 +521,16 @@ export async function renderSvg({
 const replaceRegexes = [/id="react-select-\d+-.+"/g]
 /** Some fragments of the svgs are non-deterministic. This function is used to
     delete all such fragments */
-async function prepareSvgForComparison(svg: string): Promise<string> {
+function prepareSvgForComparison(svg: string): string {
     let current = svg
     for (const replaceRegex of replaceRegexes) {
         current = current.replace(replaceRegex, "")
     }
-    return await formatSvg(current)
-}
-
-async function formatSvg(svg: string): Promise<string> {
-    const result = await format("input.html", svg, oxfmtConfig as FormatConfig)
-    return result.code
+    // React renders the whole svg onto a single line, and the line diff in the
+    // admin needs lines to work with, so break it up one tag per line. `><`
+    // only ever occurs at a tag boundary because React escapes `>` in text and
+    // in attributes.
+    return current.replaceAll("><", ">\n<")
 }
 
 export interface RenderSvgAndSaveJobDescription {
@@ -632,11 +551,6 @@ export async function renderSvgAndSave(
     const outPath = path.join(outDir, svgRecord.svgFilename)
     await fs.writeFile(outPath, preparedSvg)
     return Promise.resolve(svgRecord)
-}
-
-async function readJsonFile(filename: string): Promise<unknown> {
-    const content = await fs.readJson(filename)
-    return content
 }
 
 async function loadReferenceSvg(
@@ -664,7 +578,7 @@ async function loadGrapherConfigAndData(
         throw `Input directory does not exist ${inputDir}`
 
     const configPath = path.join(inputDir, CONFIG_FILENAME)
-    const rawConfig = (await readJsonFile(configPath)) as GrapherInterface
+    const rawConfig = (await fs.readJson(configPath)) as GrapherInterface
     const config = migrateGrapherConfigToLatestVersion(rawConfig) // ensure the config is migrated to the latest schema version
 
     // TODO: this bakes the same commonly used variables over and over again - deduplicate
@@ -676,8 +590,8 @@ async function loadGrapherConfigAndData(
         const dataPath = path.join(inputDir, `${variableId}.data.json`)
         const metadataPath = path.join(inputDir, `${variableId}.metadata.json`)
         const dataFileSize = await stat(dataPath).then((stats) => stats.size)
-        const data = (await readJsonFile(dataPath)) as OwidVariableMixedData
-        const metadata = (await readJsonFile(
+        const data = (await fs.readJson(dataPath)) as OwidVariableMixedData
+        const metadata = (await fs.readJson(
             metadataPath
         )) as OwidVariableWithSourceAndDimension
         return { data, metadata, dataFileSize }
@@ -689,17 +603,6 @@ async function loadGrapherConfigAndData(
     const totalDataFileSize = _.sum(data.map((d) => d.dataFileSize))
 
     return { config, variableData, totalDataFileSize }
-}
-
-function logDifferencesToConsole(
-    svgRecord: SvgRecord,
-    validationResult: VerifyResultDifference
-): void {
-    console.warn(
-        `Svg was different for ${svgRecord.viewId}. The difference starts at character ${validationResult.difference.startIndex}.
-Reference: ${validationResult.difference.referenceSvgFragment}
-Current  : ${validationResult.difference.newSvgFragment}`
-    )
 }
 
 export async function parseReferenceCsv(
@@ -752,7 +655,6 @@ export interface RenderJobDescription {
     outDir: string
     queryStr?: string
     variant?: "default" | "thumbnail"
-    verbose: boolean
     rmOnError?: boolean
 }
 
@@ -763,7 +665,6 @@ export async function renderAndVerifySvg({
     outDir,
     queryStr,
     variant = "default",
-    verbose,
     rmOnError,
 }: RenderJobDescription): Promise<VerifyResult> {
     try {
@@ -782,27 +683,21 @@ export async function renderAndVerifySvg({
             preparedSvg,
             svgRecord,
             referenceEntry,
-            referenceDir,
-            verbose
+            referenceDir
         )
-        // verifySvg returns a Result type - if it is success we don't care any further
-        // but if there was an error then we write the svg and a message to stderr
-        switch (validationResult.kind) {
-            case "difference": {
-                if (verbose)
-                    logDifferencesToConsole(svgRecord, validationResult)
-                const pathFragments = path.parse(svgRecord.svgFilename)
-                const outputPath = path.join(
-                    outDir,
-                    pathFragments.name + pathFragments.ext
-                )
-                await fs.writeFile(outputPath, preparedSvg)
-                break
-            }
+        // Differing svgs get written out so the admin report can diff them
+        // against the reference
+        if (validationResult.kind === "difference") {
+            const pathFragments = path.parse(svgRecord.svgFilename)
+            const outputPath = path.join(
+                outDir,
+                pathFragments.name + pathFragments.ext
+            )
+            await fs.writeFile(outputPath, preparedSvg)
         }
         return Promise.resolve(validationResult)
     } catch (err) {
-        console.error(`Threw error for ${referenceEntry.viewId}:`, err)
+        console.error(`${referenceEntry.viewId}: render failed`, err)
         if (rmOnError) {
             const outPath = path.join(outDir, referenceEntry.svgFilename)
             await fs.unlink(outPath).catch(() => {
@@ -845,7 +740,6 @@ export function summariseVerifyResults(
             queryStr: difference.queryStr || undefined,
             chartType: difference.chartType,
             svgFilename: difference.svgFilename,
-            changedRatio: difference.changedRatio,
         }))
 
     const errors = validationResults
@@ -964,29 +858,41 @@ function resolveCommit(cwd?: string): string | null {
 /** How often the run reports progress */
 const PROGRESS_INTERVAL_MS = 30 * 1000
 
-/** Periodic progress while a suite runs. */
-export function startVerifyProgress(
+/**
+ * Periodic progress while a suite runs, shared by verify and export. Verify
+ * passes each result so the line can break the tally down by outcome; export
+ * has no outcomes to report and just counts jobs off.
+ */
+export function startProgress(
     suite: SvgTesterSuite,
     total: number,
-    pool: { stats: () => { busyWorkers: number } }
-): { recordResult: (result: VerifyResult) => void; stop: () => void } {
+    pool: { stats: () => { busyWorkers: number } },
+    options: { withOutcomes?: boolean } = {}
+): { recordResult: (result?: VerifyResult) => void; stop: () => void } {
     const startedAt = Date.now()
     const counts = { done: 0, ok: 0, differences: 0, errors: 0 }
 
     const timer = setInterval(() => {
-        const elapsed = Math.round((Date.now() - startedAt) / 1000)
-        console.log(
-            `${suite}: ${counts.done}/${total} done ` +
-                `(${counts.ok} ok, ${counts.differences} differ, ${counts.errors} errored) · ` +
-                `${pool.stats().busyWorkers} in flight · ${elapsed}s elapsed`
+        const parts = [`${counts.done}/${total}`]
+        if (options.withOutcomes)
+            parts.push(
+                `${counts.ok} ok`,
+                `${counts.differences} differ`,
+                `${counts.errors} errored`
+            )
+        parts.push(
+            `${pool.stats().busyWorkers} busy`,
+            formatDuration(Date.now() - startedAt)
         )
+        console.log(`${suite}: ${parts.join(" · ")}`)
     }, PROGRESS_INTERVAL_MS)
     // Never hold the process open on our account
     timer.unref?.()
 
     return {
-        recordResult: (result: VerifyResult) => {
+        recordResult: (result?: VerifyResult) => {
             counts.done += 1
+            if (!result) return
             if (result.kind === "ok") counts.ok += 1
             else if (result.kind === "difference") counts.differences += 1
             else counts.errors += 1
@@ -1004,41 +910,42 @@ export function verifyExitCode(summary: SvgTesterVerifyRunSummary): number {
     return 0
 }
 
-// Human-facing output. The machine-readable version of all this is
-// verify-results.json.
-export function reportVerifyResults(
-    validationResults: VerifyResult[],
-    verbose: boolean
+/** Opening line for both scripts: what is about to run, and over how many views. */
+export function logRunStart(
+    suite: SvgTesterSuite,
+    verb: string,
+    count: number,
+    manifestName?: string
 ): void {
-    const errorResults = validationResults.filter(
-        (result) => result.kind === "error"
-    )
+    const parts = [`${verb} ${count} svg${count === 1 ? "" : "s"}`]
+    if (manifestName) parts.push(`manifest ${manifestName}`)
+    console.log(`${suite}: ${parts.join(" · ")}`)
+}
 
-    const differenceResults = validationResults.filter(
-        (result) => result.kind === "difference"
-    )
+export function logExportSummary(
+    suite: SvgTesterSuite,
+    count: number,
+    durationMs: number
+): void {
+    console.log(`${suite}: ${count} exported in ${formatDuration(durationMs)}`)
+}
 
-    if (errorResults.length === 0 && differenceResults.length === 0) {
-        logIfVerbose(
-            verbose,
-            `There were no differences in all graphs processed`
-        )
-        return
+/**
+ * The run's closing line. Which views differed is not repeated here - the admin
+ * report, verify-results.json and the differences/ directory all have it, in
+ * more useful form than a list of slugs.
+ */
+export function logVerifySummary(summary: SvgTesterVerifyRunSummary): void {
+    const { suite, counts } = summary
+    const parts = [
+        `${counts.total} verified in ${formatDuration(summary.durationMs)}`,
+    ]
+    if (counts.differences === 0 && counts.errors === 0) parts.push("all match")
+    else {
+        if (counts.differences) parts.push(`${counts.differences} differ`)
+        if (counts.errors) parts.push(`${counts.errors} errored`)
     }
-
-    if (errorResults.length) {
-        console.warn(`${errorResults.length} graphs threw errors`)
-        for (const result of errorResults) {
-            console.log(`${result.viewId}: ${verifyErrorMessage(result.error)}`)
-        }
-    }
-
-    if (differenceResults.length) {
-        console.warn(`${differenceResults.length} graphs had differences`)
-        for (const result of differenceResults) {
-            console.log(result.difference.viewId)
-        }
-    }
+    console.log(`${suite}: ${parts.join(" · ")}`)
 }
 
 export interface GrapherViewsManifest {
@@ -1064,11 +971,12 @@ export async function loadManifestViewIds(
     options: {
         targetViewIds?: string[]
         manifestName?: string
-        verbose?: boolean
     }
-): Promise<{ viewIds: string[] | null; dataDir: string }> {
-    const { verbose = false } = options
-
+): Promise<{
+    viewIds: string[] | null
+    dataDir: string
+    manifestName?: string
+}> {
     const testSuiteDir = path.join(SVG_TESTER_REPO_PATH, testSuite)
     const defaultDataDir = path.join(testSuiteDir, "data")
 
@@ -1084,21 +992,9 @@ export async function loadManifestViewIds(
             const dataDir = path.join(testSuiteDir, manifest.dataDir)
 
             // viewIds are explicitly provided
-            if (options.targetViewIds) {
-                logIfVerbose(
-                    verbose,
-                    `Using data directory: ${manifest.dataDir}`
-                )
-                return { viewIds: null, dataDir }
-            }
+            if (options.targetViewIds) return { viewIds: null, dataDir }
 
-            logIfVerbose(
-                verbose,
-                `Read ${manifest.slugs.length} chart slugs from manifest: ${manifestName}`
-            )
-            logIfVerbose(verbose, `Using data directory: ${manifest.dataDir}`)
-
-            return { viewIds: manifest.slugs, dataDir }
+            return { viewIds: manifest.slugs, dataDir, manifestName }
         } else {
             throw new Error(
                 `No manifest found at ${manifestPath}. For ${testSuite}, you must either:\n` +
@@ -1120,12 +1016,11 @@ export async function loadManifestViewIds(
 
         if (manifest) {
             const dataDir = path.join(testSuiteDir, manifest.dataDir)
-            logIfVerbose(
-                verbose,
-                `Read ${manifest.slugs.length} chart slugs from manifest: ${options.manifestName}`
-            )
-            logIfVerbose(verbose, `Using data directory: ${manifest.dataDir}`)
-            return { viewIds: manifest.slugs, dataDir }
+            return {
+                viewIds: manifest.slugs,
+                dataDir,
+                manifestName: options.manifestName,
+            }
         } else {
             console.warn(`Warning: Manifest not found at ${manifestPath}`)
         }

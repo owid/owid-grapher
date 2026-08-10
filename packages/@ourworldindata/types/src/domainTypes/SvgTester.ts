@@ -22,7 +22,6 @@ export interface SvgTesterVerifyDifferenceEntry {
     queryStr?: string
     chartType?: string
     svgFilename: string
-    changedRatio?: number
 }
 
 export interface SvgTesterVerifyErrorEntry {
