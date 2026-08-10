@@ -133,7 +133,6 @@ interface SvgDifference {
     queryStr?: string
     chartType: GrapherTabName | undefined
     svgFilename: string
-    changedRatio: number
     startIndex: number
     referenceSvgFragment: string
     newSvgFragment: string
@@ -154,31 +153,6 @@ export function logIfVerbose(verbose: boolean, message: string, param?: any) {
     if (verbose)
         if (param) console.log(message, param)
         else console.log(message)
-}
-
-/**
- * Share of lines on one side with no counterpart on the other, 0–1.
- *
- * O(n) and about a millisecond on a typical chart, so it is affordable for
- * every difference in a run. A real edit distance is not: on the largest
- * reference (16k lines), diffing two renderings that differ everywhere takes
- * over 15 seconds.
- */
-function estimateChangedRatio(before: string, after: string): number {
-    const beforeLines = before.split("\n")
-    const afterLines = after.split("\n")
-    const counts = new Map<string, number>()
-    for (const line of beforeLines)
-        counts.set(line, (counts.get(line) ?? 0) + 1)
-    let shared = 0
-    for (const line of afterLines) {
-        const remaining = counts.get(line)
-        if (remaining) {
-            counts.set(line, remaining - 1)
-            shared++
-        }
-    }
-    return 1 - shared / Math.max(beforeLines.length, afterLines.length)
 }
 
 function findFirstDiffIndex(a: string, b: string): number {
@@ -231,10 +205,6 @@ async function verifySvg(
         queryStr: newSvgRecord.resolvedQueryStr ?? newSvgRecord.queryStr,
         chartType: newSvgRecord.chartType,
         svgFilename: newSvgRecord.svgFilename,
-        changedRatio: estimateChangedRatio(
-            preparedReferenceSvg,
-            preparedNewSvg
-        ),
         startIndex: firstDiffIndex,
         referenceSvgFragment: preparedReferenceSvg.substring(
             firstDiffIndex - 20,
@@ -824,7 +794,6 @@ export function summariseVerifyResults(
             queryStr: difference.queryStr || undefined,
             chartType: difference.chartType,
             svgFilename: difference.svgFilename,
-            changedRatio: difference.changedRatio,
         }))
 
     const errors = validationResults

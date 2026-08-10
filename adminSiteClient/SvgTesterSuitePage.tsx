@@ -49,9 +49,6 @@ const KIND_LABELS: Record<SvgTesterVerifyErrorEntry["kind"], string> = {
     render: "Failed to render",
 }
 
-/** Skip the diff when this much of the file changed */
-const MAX_CHANGED_RATIO = 0.25
-
 const CHART_TYPE_PARAM = "chartType"
 
 export function SvgTesterSuitePage() {
@@ -414,11 +411,7 @@ function DifferenceCard({
                 <SvgTesterOverlay beforeUrl={beforeUrl} afterUrl={afterUrl} />
             )}
             {mode === "diff" && (
-                <SvgTesterDiff
-                    beforeUrl={beforeUrl}
-                    afterUrl={afterUrl}
-                    changedRatio={entry.changedRatio}
-                />
+                <SvgTesterDiff beforeUrl={beforeUrl} afterUrl={afterUrl} />
             )}
             {mode === "interactive" && (
                 <SvgTesterInteractive chartPath={chartPath(entry)} />
@@ -543,15 +536,10 @@ function SvgTesterOverlay({
 function SvgTesterDiff({
     beforeUrl,
     afterUrl,
-    changedRatio,
 }: {
     beforeUrl: string
     afterUrl: string
-    changedRatio: number | undefined
 }) {
-    const knownTooLarge =
-        changedRatio !== undefined && changedRatio > MAX_CHANGED_RATIO
-
     // Only runs when the diff tab is opened, so the SVG text is not fetched for
     // every entry in a large report just to render its images.
     const { data, isLoading, error } = useQuery({
@@ -564,10 +552,7 @@ function SvgTesterDiff({
             return { before, after }
         },
         staleTime: Infinity,
-        enabled: !knownTooLarge,
     })
-
-    if (knownTooLarge) return <DiffSkipped ratio={changedRatio} />
 
     if (isLoading) return <Spin />
     if (error || !data)
@@ -590,17 +575,6 @@ function SvgTesterDiff({
             showDiffOnly={true}
             extraLinesSurroundingDiff={3}
             styles={{ contentText: { wordBreak: "break-all" } }}
-        />
-    )
-}
-
-function DiffSkipped({ ratio }: { ratio: number }) {
-    return (
-        <Alert
-            type="info"
-            showIcon
-            title="Too different to diff"
-            description={`About ${Math.round(ratio * 100)}% of this chart's markup changed. A line-by-line diff of two renderings that different takes many seconds to compute and is not readable — compare them side by side instead.`}
         />
     )
 }
