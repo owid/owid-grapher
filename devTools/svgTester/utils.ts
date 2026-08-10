@@ -142,19 +142,19 @@ interface JobConfigAndData {
     totalDataFileSize: number
 }
 
-export function logIfVerbose(verbose: boolean, message: string) {
-    if (verbose) console.log(message)
+/** Seconds under a minute, whole minutes above it. */
+function formatDuration(ms: number): string {
+    const seconds = Math.round(ms / 1000)
+    if (seconds < 60) return `${seconds}s`
+    return `${Math.round(seconds / 60)}m`
 }
 
 async function verifySvg(
     preparedNewSvg: string,
     newSvgRecord: SvgRecord,
     referenceSvgRecord: SvgRecord,
-    referenceSvgsPath: string,
-    verbose: boolean
+    referenceSvgsPath: string
 ): Promise<VerifyResult> {
-    logIfVerbose(verbose, `verifying ${newSvgRecord.viewId}`)
-
     if (newSvgRecord.md5 === referenceSvgRecord.md5) {
         // if the md5 hash is unchanged then there is no difference
         return resultOk()
@@ -176,7 +176,6 @@ async function verifySvg(
         )
         return resultOk()
     }
-    logIfVerbose(verbose, `${newSvgRecord.viewId} had differences`)
     return resultDifference({
         viewId: newSvgRecord.viewId,
         queryStr: newSvgRecord.resolvedQueryStr ?? newSvgRecord.queryStr,
@@ -648,7 +647,6 @@ export interface RenderJobDescription {
     outDir: string
     queryStr?: string
     variant?: "default" | "thumbnail"
-    verbose: boolean
     rmOnError?: boolean
 }
 
@@ -659,7 +657,6 @@ export async function renderAndVerifySvg({
     outDir,
     queryStr,
     variant = "default",
-    verbose,
     rmOnError,
 }: RenderJobDescription): Promise<VerifyResult> {
     try {
@@ -678,8 +675,7 @@ export async function renderAndVerifySvg({
             preparedSvg,
             svgRecord,
             referenceEntry,
-            referenceDir,
-            verbose
+            referenceDir
         )
         // Differing svgs get written out so the admin report can diff them
         // against the reference
@@ -693,7 +689,7 @@ export async function renderAndVerifySvg({
         }
         return Promise.resolve(validationResult)
     } catch (err) {
-        console.error(`Threw error for ${referenceEntry.viewId}:`, err)
+        console.error(`${referenceEntry.viewId}: render failed`, err)
         if (rmOnError) {
             const outPath = path.join(outDir, referenceEntry.svgFilename)
             await fs.unlink(outPath).catch(() => {
@@ -854,29 +850,41 @@ function resolveCommit(cwd?: string): string | null {
 /** How often the run reports progress */
 const PROGRESS_INTERVAL_MS = 30 * 1000
 
-/** Periodic progress while a suite runs. */
-export function startVerifyProgress(
+/**
+ * Periodic progress while a suite runs, shared by verify and export. Verify
+ * passes each result so the line can break the tally down by outcome; export
+ * has no outcomes to report and just counts jobs off.
+ */
+export function startProgress(
     suite: SvgTesterSuite,
     total: number,
-    pool: { stats: () => { busyWorkers: number } }
-): { recordResult: (result: VerifyResult) => void; stop: () => void } {
+    pool: { stats: () => { busyWorkers: number } },
+    options: { withOutcomes?: boolean } = {}
+): { recordResult: (result?: VerifyResult) => void; stop: () => void } {
     const startedAt = Date.now()
     const counts = { done: 0, ok: 0, differences: 0, errors: 0 }
 
     const timer = setInterval(() => {
-        const elapsed = Math.round((Date.now() - startedAt) / 1000)
-        console.log(
-            `${suite}: ${counts.done}/${total} done ` +
-                `(${counts.ok} ok, ${counts.differences} differ, ${counts.errors} errored) · ` +
-                `${pool.stats().busyWorkers} in flight · ${elapsed}s elapsed`
+        const parts = [`${counts.done}/${total}`]
+        if (options.withOutcomes)
+            parts.push(
+                `${counts.ok} ok`,
+                `${counts.differences} differ`,
+                `${counts.errors} errored`
+            )
+        parts.push(
+            `${pool.stats().busyWorkers} busy`,
+            formatDuration(Date.now() - startedAt)
         )
+        console.log(`${suite}: ${parts.join(" · ")}`)
     }, PROGRESS_INTERVAL_MS)
     // Never hold the process open on our account
     timer.unref?.()
 
     return {
-        recordResult: (result: VerifyResult) => {
+        recordResult: (result?: VerifyResult) => {
             counts.done += 1
+            if (!result) return
             if (result.kind === "ok") counts.ok += 1
             else if (result.kind === "difference") counts.differences += 1
             else counts.errors += 1
@@ -894,41 +902,42 @@ export function verifyExitCode(summary: SvgTesterVerifyRunSummary): number {
     return 0
 }
 
-// Human-facing output. The machine-readable version of all this is
-// verify-results.json.
-export function reportVerifyResults(
-    validationResults: VerifyResult[],
-    verbose: boolean
+/** Opening line for both scripts: what is about to run, and over how many views. */
+export function logRunStart(
+    suite: SvgTesterSuite,
+    verb: string,
+    count: number,
+    manifestName?: string
 ): void {
-    const errorResults = validationResults.filter(
-        (result) => result.kind === "error"
-    )
+    const parts = [`${verb} ${count} svg${count === 1 ? "" : "s"}`]
+    if (manifestName) parts.push(`manifest ${manifestName}`)
+    console.log(`${suite}: ${parts.join(" · ")}`)
+}
 
-    const differenceResults = validationResults.filter(
-        (result) => result.kind === "difference"
-    )
+export function logExportSummary(
+    suite: SvgTesterSuite,
+    count: number,
+    durationMs: number
+): void {
+    console.log(`${suite}: ${count} exported in ${formatDuration(durationMs)}`)
+}
 
-    if (errorResults.length === 0 && differenceResults.length === 0) {
-        logIfVerbose(
-            verbose,
-            `There were no differences in all graphs processed`
-        )
-        return
+/**
+ * The run's closing line. Which views differed is not repeated here - the admin
+ * report, verify-results.json and the differences/ directory all have it, in
+ * more useful form than a list of slugs.
+ */
+export function logVerifySummary(summary: SvgTesterVerifyRunSummary): void {
+    const { suite, counts } = summary
+    const parts = [
+        `${counts.total} verified in ${formatDuration(summary.durationMs)}`,
+    ]
+    if (counts.differences === 0 && counts.errors === 0) parts.push("all match")
+    else {
+        if (counts.differences) parts.push(`${counts.differences} differ`)
+        if (counts.errors) parts.push(`${counts.errors} errored`)
     }
-
-    if (errorResults.length) {
-        console.warn(`${errorResults.length} graphs threw errors`)
-        for (const result of errorResults) {
-            console.log(`${result.viewId}: ${verifyErrorMessage(result.error)}`)
-        }
-    }
-
-    if (differenceResults.length) {
-        console.warn(`${differenceResults.length} graphs had differences`)
-        for (const result of differenceResults) {
-            console.log(result.difference.viewId)
-        }
-    }
+    console.log(`${suite}: ${parts.join(" · ")}`)
 }
 
 export interface GrapherViewsManifest {
@@ -954,11 +963,12 @@ export async function loadManifestViewIds(
     options: {
         targetViewIds?: string[]
         manifestName?: string
-        verbose?: boolean
     }
-): Promise<{ viewIds: string[] | null; dataDir: string }> {
-    const { verbose = false } = options
-
+): Promise<{
+    viewIds: string[] | null
+    dataDir: string
+    manifestName?: string
+}> {
     const testSuiteDir = path.join(SVG_TESTER_REPO_PATH, testSuite)
     const defaultDataDir = path.join(testSuiteDir, "data")
 
@@ -974,21 +984,9 @@ export async function loadManifestViewIds(
             const dataDir = path.join(testSuiteDir, manifest.dataDir)
 
             // viewIds are explicitly provided
-            if (options.targetViewIds) {
-                logIfVerbose(
-                    verbose,
-                    `Using data directory: ${manifest.dataDir}`
-                )
-                return { viewIds: null, dataDir }
-            }
+            if (options.targetViewIds) return { viewIds: null, dataDir }
 
-            logIfVerbose(
-                verbose,
-                `Read ${manifest.slugs.length} chart slugs from manifest: ${manifestName}`
-            )
-            logIfVerbose(verbose, `Using data directory: ${manifest.dataDir}`)
-
-            return { viewIds: manifest.slugs, dataDir }
+            return { viewIds: manifest.slugs, dataDir, manifestName }
         } else {
             throw new Error(
                 `No manifest found at ${manifestPath}. For ${testSuite}, you must either:\n` +
@@ -1010,12 +1008,11 @@ export async function loadManifestViewIds(
 
         if (manifest) {
             const dataDir = path.join(testSuiteDir, manifest.dataDir)
-            logIfVerbose(
-                verbose,
-                `Read ${manifest.slugs.length} chart slugs from manifest: ${options.manifestName}`
-            )
-            logIfVerbose(verbose, `Using data directory: ${manifest.dataDir}`)
-            return { viewIds: manifest.slugs, dataDir }
+            return {
+                viewIds: manifest.slugs,
+                dataDir,
+                manifestName: options.manifestName,
+            }
         } else {
             console.warn(`Warning: Manifest not found at ${manifestPath}`)
         }

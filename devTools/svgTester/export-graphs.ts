@@ -31,12 +31,14 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
         const randomCount = args.random
 
         // Load manifest and determine data directory
-        const { viewIds: manifestViewIds, dataDir } =
-            await utils.loadManifestViewIds(testSuite, {
-                targetViewIds,
-                manifestName: args.manifest,
-                verbose: args.verbose,
-            })
+        const {
+            viewIds: manifestViewIds,
+            dataDir,
+            manifestName,
+        } = await utils.loadManifestViewIds(testSuite, {
+            targetViewIds,
+            manifestName: args.manifest,
+        })
 
         // Chart configurations to test
         const grapherQueryString = args.queryStr
@@ -46,23 +48,12 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
 
         // Other options
         const isolate = args.isolate
-        const verbose = args.verbose
-
-        if (isolate) {
-            utils.logIfVerbose(
-                verbose,
-                "Running in 'isolate' mode. This will be slower, but heap usage readouts will be accurate."
-            )
-        } else {
-            utils.logIfVerbose(
-                verbose,
-                "Not running in 'isolate'. Reported heap usage readouts will be inaccurate. Run in --isolate mode (way slower!) for accurate heap usage readouts."
-            )
-        }
 
         if (!fs.existsSync(dataDir))
             throw `Input directory does not exist ${dataDir}`
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
+
+        const startedAt = Date.now()
 
         const chartIdsToProcess = await utils.selectChartIdsToProcess(dataDir, {
             viewIds: targetViewIds ?? manifestViewIds ?? undefined,
@@ -93,17 +84,13 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
                 variant,
             }))
 
-        // if verbose, log how many SVGs we're going to generate
         const jobCount = jobDescriptions.length
         if (jobCount === 0) {
-            utils.logIfVerbose(verbose, "No matching configs found")
+            console.log(`${testSuite}: nothing to do, no configs matched`)
             process.exit(0)
-        } else {
-            utils.logIfVerbose(
-                verbose,
-                `Generating ${jobCount} SVG${jobCount > 1 ? "s" : ""}...`
-            )
         }
+
+        utils.logRunStart(testSuite, "exporting", jobCount, manifestName)
 
         let svgRecords: utils.SvgRecord[] = []
         if (!isolate) {
@@ -115,37 +102,63 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
                 },
             })
 
+            const progress = utils.startProgress(testSuite, jobCount, pool)
+
             // Parallelize the CPU heavy rendering jobs
-            svgRecords = await Promise.all(
-                jobDescriptions.map((job) =>
-                    pool.exec("renderSvgAndSave", [job])
+            try {
+                svgRecords = await Promise.all(
+                    jobDescriptions.map((job) =>
+                        pool
+                            .exec("renderSvgAndSave", [job])
+                            .then((svgRecord: utils.SvgRecord) => {
+                                progress.recordResult()
+                                return svgRecord
+                            })
+                    )
                 )
-            )
+            } finally {
+                progress.stop()
+            }
         } else {
-            let i = 1
-            for (const job of jobDescriptions) {
-                const pool = workerpool.pool(__dirname + "/worker.ts", {
-                    maxWorkers: 1,
-                    workerThreadOpts: {
-                        execArgv: ["--require", "tsx"],
-                    },
-                })
-                const svgRecord = await pool.exec("renderSvgAndSave", [job])
-                pool.terminate()
-                svgRecords.push(svgRecord)
-                console.log(i++, "/", jobCount)
+            console.log(
+                `${testSuite}: isolate mode, one chart per process - slower, but heap readouts are accurate`
+            )
+            // A fresh single-worker pool per chart, so one is busy by construction
+            const progress = utils.startProgress(testSuite, jobCount, {
+                stats: () => ({ busyWorkers: 1 }),
+            })
+            try {
+                for (const job of jobDescriptions) {
+                    const pool = workerpool.pool(__dirname + "/worker.ts", {
+                        maxWorkers: 1,
+                        workerThreadOpts: {
+                            execArgv: ["--require", "tsx"],
+                        },
+                    })
+                    const svgRecord = await pool.exec("renderSvgAndSave", [job])
+                    pool.terminate()
+                    svgRecords.push(svgRecord)
+                    progress.recordResult()
+                }
+            } finally {
+                progress.stop()
             }
         }
 
         await utils.writeReferenceCsv(outDir, svgRecords)
+        utils.logExportSummary(
+            testSuite,
+            svgRecords.length,
+            Date.now() - startedAt
+        )
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
         process.exit(0)
     } catch (error) {
-        console.error("Encountered an error: ", error)
+        console.error(`${args.testSuite}: export failed`, error)
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
-        process.exit(-1)
+        process.exit(1)
     }
 }
 
@@ -206,11 +219,6 @@ function parseArguments() {
                 type: "boolean",
                 description:
                     "Run each export in a separate process. This yields accurate heap usage measurements, but is slower.",
-                default: false,
-            },
-            verbose: {
-                type: "boolean",
-                description: "Verbose mode",
                 default: false,
             },
         })

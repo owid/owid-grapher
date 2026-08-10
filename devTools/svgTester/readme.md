@@ -160,7 +160,3 @@ git commit -m "chore: update reference data"
 ```
 
 This should be done periodically (e.g., monthly) or when significant data/config changes occur.
-
-## Notes
-
-For all tools use the verbose flag if you want to see what the tool is doing. Otherwise `verify-graphs.ts` prints one affected view id per line to stdout, so failing ids can be collected with a shell pipeline, and counts to stderr. That output is for humans and pipelines only — anything that needs to act on the result should read `verify-results.json` instead.
