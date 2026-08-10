@@ -52,6 +52,10 @@ import {
     getResearchAndWritingOrphans,
 } from "./apiRoutes/gdocs.js"
 import {
+    getEmailNotificationsPreview,
+    getEmailNotificationsPreviewTopics,
+} from "./apiRoutes/emailNotifications.js"
+import {
     createGdocArchieMl,
     getGdocArchieMl,
     putGdocArchieMl,
@@ -435,6 +439,16 @@ getRouteWithROTransaction(
     apiRouter,
     "/callout-functions",
     getCalloutFunctionStrings
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/email-notifications-preview",
+    getEmailNotificationsPreview
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/email-notifications-preview/topics",
+    getEmailNotificationsPreviewTopics
 )
 getRouteWithROTransaction(
     apiRouter,
