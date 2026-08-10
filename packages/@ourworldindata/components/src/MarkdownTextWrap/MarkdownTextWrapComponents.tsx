@@ -5,6 +5,7 @@ import {
     getDodUnderlineSegments,
     getLineFontSize,
     getLineGap,
+    IRFragment,
     IRToken,
 } from "./IRTokens.js"
 import { AbstractTokenTextWrap } from "./AbstractTokenTextWrap.js"
@@ -94,26 +95,29 @@ export function MarkdownTextWrapSvg({
     const getLineY = (lineIndex: number): number =>
         yOffset + _.sum(lineHeights.slice(1, lineIndex + 1))
 
+    const textRuns = lines.flatMap((line, lineIndex) =>
+        splitLineIntoTextRuns(line, x, getLineY(lineIndex))
+    )
+
     return (
         <g id={id} className="markdown-text-wrap">
-            <text
-                x={x.toFixed(1)}
-                y={yOffset.toFixed(1)}
-                style={textWrap.style}
-                {...svgTextProps}
-            >
-                {lines.map((line, lineIndex) => (
-                    <tspan
-                        key={lineIndex}
-                        x={x}
-                        y={getLineY(lineIndex).toFixed(1)}
-                    >
-                        {line.map((token, tokenIndex) =>
-                            token.toSVG(tokenIndex)
-                        )}
-                    </tspan>
-                ))}
-            </text>
+            {textRuns.map((run, runIndex) => (
+                <text
+                    key={runIndex}
+                    x={run.x.toFixed(1)}
+                    y={run.y.toFixed(1)}
+                    style={
+                        run.style
+                            ? { ...textWrap.style, ...run.style }
+                            : textWrap.style
+                    }
+                    {...svgTextProps}
+                >
+                    {run.tokens.map((token, tokenIndex) =>
+                        token.toSVG(tokenIndex)
+                    )}
+                </text>
+            ))}
             {/* SVG doesn't support dotted underlines, so we draw them manually */}
             {detailsMarker === "underline" &&
                 lines.map((line, lineIndex) => {
@@ -138,4 +142,50 @@ export function MarkdownTextWrapSvg({
                 })}
         </g>
     )
+}
+
+interface SvgTextRun {
+    tokens: IRToken[]
+    x: number
+    y: number
+    /** Style overrides on top of the text wrap's own style */
+    style?: React.CSSProperties
+}
+
+/**
+ * Splits a line into the `<text>` elements it renders as. A line is one
+ * element, except that fragments switching the font family get one of their
+ * own: resvg — which rasterises chart PNGs at the edge — silently drops a
+ * whole `<text>` element that mixes font families when the text contains
+ * certain glyph pairs (`ti`, `tt`, `tf` and `ft` in Playfair Display).
+ */
+function splitLineIntoTextRuns(
+    line: IRToken[],
+    x: number,
+    y: number
+): SvgTextRun[] {
+    const runs: SvgTextRun[] = []
+    let currentRun: SvgTextRun | undefined
+    let offset = 0
+    for (const token of line) {
+        if (token instanceof IRFragment && token.styleDelta.fontFamily) {
+            runs.push({
+                tokens: token.children,
+                // A <text> element has no dx, so the fragment's inline gap
+                // is folded into its x position
+                x: x + offset + token.inlineGap,
+                y,
+                style: token.svgStyle,
+            })
+            currentRun = undefined
+        } else {
+            if (!currentRun) {
+                currentRun = { tokens: [], x: x + offset, y }
+                runs.push(currentRun)
+            }
+            currentRun.tokens.push(token)
+        }
+        offset += token.width
+    }
+    return runs
 }
