@@ -107,6 +107,17 @@ async function updateExistingConfig(
     )
 }
 
+export async function getChartConfigsByUuids(
+    knex: db.KnexReadonlyTransaction,
+    uuids: string[]
+): Promise<Map<string, GrapherInterface>> {
+    if (uuids.length === 0) return new Map()
+    const rows = await knex<DbRawChartConfig>(ChartConfigsTableName)
+        .select("id", "full")
+        .whereIn("id", uuids)
+    return new Map(rows.map((row) => [row.id, parseChartConfig(row.full)]))
+}
+
 export async function getChartConfigByUuid(
     knex: db.KnexReadonlyTransaction,
     uuid: string
