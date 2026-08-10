@@ -30,10 +30,10 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
         const targetChartTypes = args.chartTypes
         const randomCount = args.random
 
-        // Load manifest and determine data directory
+        // Load manifest and determine configs directory
         const {
             viewIds: manifestViewIds,
-            dataDir,
+            configsDir,
             manifestName,
         } = await utils.loadManifestViewIds(testSuite, {
             targetViewIds,
@@ -49,20 +49,23 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
         // Other options
         const isolate = args.isolate
 
-        if (!fs.existsSync(dataDir))
-            throw `Input directory does not exist ${dataDir}`
+        if (!fs.existsSync(configsDir))
+            throw `Configs directory does not exist ${configsDir}`
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
 
         const startedAt = Date.now()
 
-        const chartIdsToProcess = await utils.selectChartIdsToProcess(dataDir, {
-            viewIds: targetViewIds ?? manifestViewIds ?? undefined,
-            chartTypes: targetChartTypes,
-            randomCount,
-        })
+        const chartIdsToProcess = await utils.selectChartIdsToProcess(
+            configsDir,
+            {
+                viewIds: targetViewIds ?? manifestViewIds ?? undefined,
+                chartTypes: targetChartTypes,
+                randomCount,
+            }
+        )
 
         const chartViewsToGenerate = await utils.findChartViewsToGenerate(
-            dataDir,
+            configsDir,
             chartIdsToProcess,
             {
                 queryStr: grapherQueryString,
@@ -77,7 +80,7 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
             chartViewsToGenerate.map((chart: utils.ChartWithQueryStr) => ({
                 dir: {
                     viewId: chart.viewId,
-                    pathToProcess: path.join(dataDir, chart.viewId),
+                    configPath: utils.configPathFor(configsDir, chart.viewId),
                 },
                 queryStr: chart.queryStr,
                 outDir,

@@ -50,8 +50,15 @@ import pMap from "p-map"
 export const TEST_SUITE_DESCRIPTION =
     "Test suite to run: 'graphers' for default Grapher views, 'grapher-views' for all views of a subset of Graphers. 'mdims' for all multi-dim views. 'thumbnails' for thumbnail versions (300x160) of all published graphers."
 
-const CONFIG_FILENAME = "config.json"
+const CONFIG_EXTENSION = ".json"
 const RESULTS_FILENAME = "results.csv"
+
+export function configPathFor(configsDir: string, viewId: string): string {
+    return path.join(configsDir, `${viewId}${CONFIG_EXTENSION}`)
+}
+
+// Variable data is shared by every suite
+export const VARIABLES_DIR = path.join(SVG_TESTER_REPO_PATH, "variables")
 
 // Reading one config.json per chart is ~4,500 tiny reads for the graphers suite.
 // Doing them serially costs half a second before a single svg is rendered; any
@@ -146,7 +153,7 @@ interface SvgDifference {
 
 interface JobDirectory {
     viewId: string
-    pathToProcess: string
+    configPath: string
 }
 
 interface JobConfigAndData {
@@ -198,14 +205,14 @@ async function verifySvg(
 }
 
 export async function selectChartIdsToProcess(
-    inDir: string,
+    configsDir: string,
     options: {
         viewIds?: string[]
         chartTypes?: GrapherChartType[]
         randomCount?: number
     }
 ): Promise<string[]> {
-    let validViewIds = await findValidViewIds(inDir, options)
+    let validViewIds = await findValidViewIds(configsDir, options)
 
     if (options.randomCount !== undefined) {
         validViewIds = R.sample(validViewIds, options.randomCount)
@@ -238,7 +245,7 @@ function getAvailableTabsFromConfig(
 }
 
 export async function findChartViewsToGenerate(
-    inDir: string,
+    configsDir: string,
     viewIds: string[],
     options: {
         queryStr?: string
@@ -250,7 +257,9 @@ export async function findChartViewsToGenerate(
     const chartsPerView = await pMap(
         viewIds,
         async (viewId): Promise<ChartWithQueryStr[]> => {
-            const grapherConfig = await parseGrapherConfig(viewId, { inDir })
+            const grapherConfig = await parseGrapherConfig(viewId, {
+                configsDir,
+            })
 
             const chartType =
                 grapherConfig.chartTypes?.[0] ?? GRAPHER_CHART_TYPES.LineChart
@@ -284,7 +293,7 @@ export async function findChartViewsToGenerate(
 }
 
 async function findValidViewIds(
-    inDir: string,
+    configsDir: string,
     {
         viewIds = [],
         chartTypes = [],
@@ -295,62 +304,52 @@ async function findValidViewIds(
 ): Promise<string[]> {
     const validChartIds: string[] = []
 
-    // If nothing is specified, scan all directories in the inDir folder
-    if (viewIds.length === 0 && chartTypes.length === 0) {
-        const dir = await fs.opendir(inDir)
-        for await (const entry of dir) {
-            if (entry.isDirectory()) {
-                const viewId = entry.name
-                validChartIds.push(viewId)
-            }
-        }
-        return validChartIds
-    }
+    // If nothing is specified, take every config in the folder
+    if (viewIds.length === 0 && chartTypes.length === 0)
+        return listViewIds(configsDir)
 
-    // If grapher ids were given check which ones exist in inDir and filter to those
+    // If grapher ids were given check which ones exist and filter to those
     // -> if by doing so we drop some, warn the user
     if (viewIds.length > 0) {
         const validatedChartIds = viewIds.filter((viewId) =>
-            fs.existsSync(path.join(inDir, viewId))
+            fs.existsSync(configPathFor(configsDir, viewId))
         )
         validChartIds.push(...validatedChartIds)
         if (validChartIds.length < viewIds.length) {
             const invalidChartIds = _.difference(viewIds, validatedChartIds)
             console.warn(
-                `${viewIds.length} view ids were given but only ${validChartIds.length} existed as directories. Missing ids: ${invalidChartIds}`
+                `${viewIds.length} view ids were given but only ${validChartIds.length} had a config. Missing ids: ${invalidChartIds}`
             )
         }
     }
 
-    // If chart types are given, scan all directories and add those that match a given chart type
+    // If chart types are given, read every config and keep the ones that match
     if (chartTypes.length > 0) {
-        const dir = await fs.opendir(inDir)
-        for await (const entry of dir) {
-            if (entry.isDirectory()) {
-                const viewId = entry.name
-                const grapherConfig = await parseGrapherConfig(viewId, {
-                    inDir,
-                })
-                const chartType =
-                    grapherConfig.chartTypes?.[0] ??
-                    GRAPHER_CHART_TYPES.LineChart
-                if (chartTypes.includes(chartType)) {
-                    validChartIds.push(viewId)
-                }
-            }
+        for (const viewId of await listViewIds(configsDir)) {
+            const grapherConfig = await parseGrapherConfig(viewId, {
+                configsDir,
+            })
+            const chartType =
+                grapherConfig.chartTypes?.[0] ?? GRAPHER_CHART_TYPES.LineChart
+            if (chartTypes.includes(chartType)) validChartIds.push(viewId)
         }
     }
 
     return validChartIds
 }
 
+async function listViewIds(configsDir: string): Promise<string[]> {
+    const filenames = await fs.readdir(configsDir)
+    return filenames
+        .filter((filename) => filename.endsWith(CONFIG_EXTENSION))
+        .map((filename) => filename.slice(0, -CONFIG_EXTENSION.length))
+}
+
 async function parseGrapherConfig(
-    chartId: string,
-    { inDir }: { inDir: string }
+    viewId: string,
+    { configsDir }: { configsDir: string }
 ): Promise<GrapherInterface> {
-    const grapherConfigPath = path.join(inDir, chartId, "config.json")
-    const grapherConfig = await fs.readJson(grapherConfigPath)
-    return grapherConfig
+    return fs.readJson(configPathFor(configsDir, viewId))
 }
 
 // Not fs.writeJson: that appends a final newline, which would rewrite every
@@ -361,18 +360,39 @@ async function writeToFile(data: unknown, filename: string) {
     await fs.writeFile(filename, json)
 }
 
+// Charts are dumped concurrently and share variables, so the same id is asked
+// for many times over. Keyed by the in-flight promise rather than by "does the
+// file exist yet" so two concurrent charts can't both start writing it.
+const variableWrites = new Map<number, Promise<void>>()
+
 async function writeVariableDataAndMetadataFiles(
-    variableIds: number[],
-    outDir: string
+    variableIds: number[]
 ): Promise<void> {
-    const writeVariablePromises = variableIds.map(async (variableId) => {
-        const dataPath = path.join(outDir, `${variableId}.data.json`)
-        const metadataPath = path.join(outDir, `${variableId}.metadata.json`)
+    await fs.ensureDir(VARIABLES_DIR)
 
-        const variableData = await getVariableData(variableId)
+    const writeVariablePromises = variableIds.map((variableId) => {
+        const inFlight = variableWrites.get(variableId)
+        if (inFlight) return inFlight
 
-        await writeToFile(variableData.data, dataPath)
-        await writeToFile(variableData.metadata, metadataPath)
+        const write = (async () => {
+            const variableData = await getVariableData(variableId)
+            await writeToFile(
+                variableData.data,
+                path.join(VARIABLES_DIR, `${variableId}.data.json`)
+            )
+            await writeToFile(
+                variableData.metadata,
+                path.join(VARIABLES_DIR, `${variableId}.metadata.json`)
+            )
+        })().catch((error) => {
+            // Don't let one transient failure poison every other chart that
+            // uses this variable - the next one to ask for it retries.
+            variableWrites.delete(variableId)
+            throw error
+        })
+
+        variableWrites.set(variableId, write)
+        return write
     })
 
     await Promise.allSettled(writeVariablePromises)
@@ -388,17 +408,18 @@ export async function saveGrapherSchemaAndData(
 ): Promise<void> {
     const config = jobDescription.config
     const outDir = jobDescription.outDir
-    const dataDir = path.join(outDir, jobDescription.id ?? "")
-    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir)
-    const configPath = path.join(dataDir, CONFIG_FILENAME)
-    const promise1 = writeToFile(config, configPath)
+    await fs.ensureDir(outDir)
+    const promise1 = writeToFile(
+        config,
+        configPathFor(outDir, jobDescription.id)
+    )
 
     const grapher = initGrapherForSvgExport(config)
     const variableIds = grapher.grapherState.dimensions.map((d) => d.variableId)
 
     await Promise.allSettled([
         promise1,
-        writeVariableDataAndMetadataFiles(variableIds, dataDir),
+        writeVariableDataAndMetadataFiles(variableIds),
     ])
 }
 
@@ -440,7 +461,7 @@ export async function renderSvg({
     queryStr?: string
     variant?: "default" | "thumbnail"
 }): Promise<[string, SvgRecord, string]> {
-    const configAndData = await loadGrapherConfigAndData(dir.pathToProcess)
+    const configAndData = await loadGrapherConfigAndData(dir.configPath)
 
     // Graphers sometimes need to generate ids (incrementing numbers). For this
     // they keep a stateful variable in clientutils. To minimize differences
@@ -589,23 +610,20 @@ async function loadReferenceSvg(
 }
 
 async function loadGrapherConfigAndData(
-    inputDir: string
+    configPath: string
 ): Promise<JobConfigAndData> {
-    if (!fs.existsSync(inputDir))
-        throw `Input directory does not exist ${inputDir}`
+    if (!fs.existsSync(configPath)) throw `Config does not exist ${configPath}`
 
-    const configPath = path.join(inputDir, CONFIG_FILENAME)
     const rawConfig = (await fs.readJson(configPath)) as GrapherInterface
     const config = migrateGrapherConfigToLatestVersion(rawConfig) // ensure the config is migrated to the latest schema version
 
-    // TODO: this bakes the same commonly used variables over and over again - deduplicate
-    // this on the variable level and bake those separately into a different directory.
-    // Tried an in-process per-worker-thread cache here; measured no difference (see PR
-    // description) because data loading isn't the bottleneck, so leaving this as-is.
     const variableIds = config.dimensions?.map((d) => d.variableId) ?? []
     const loadDataPromises = variableIds.map(async (variableId) => {
-        const dataPath = path.join(inputDir, `${variableId}.data.json`)
-        const metadataPath = path.join(inputDir, `${variableId}.metadata.json`)
+        const dataPath = path.join(VARIABLES_DIR, `${variableId}.data.json`)
+        const metadataPath = path.join(
+            VARIABLES_DIR,
+            `${variableId}.metadata.json`
+        )
         const dataFileSize = await stat(dataPath).then((stats) => stats.size)
         const data = (await fs.readJson(dataPath)) as OwidVariableMixedData
         const metadata = (await fs.readJson(
@@ -974,7 +992,16 @@ export function logVerifySummary(summary: SvgTesterVerifyRunSummary): void {
 
 export interface GrapherViewsManifest {
     slugs: string[]
-    dataDir: string // Relative path to the data directory (e.g., "../graphers/data")
+}
+
+// grapher-views and thumbnails have no data/ of their own - they re-test charts
+// the graphers suite already dumped.
+function configsDirForSuite(testSuite: SvgTesterSuite): string {
+    const suiteOwningTheConfigs =
+        testSuite === "grapher-views" || testSuite === "thumbnails"
+            ? "graphers"
+            : testSuite
+    return path.join(SVG_TESTER_REPO_PATH, suiteOwningTheConfigs, "configs")
 }
 
 // Load manifest from a specific path
@@ -989,7 +1016,7 @@ async function loadManifestFromPath(
 }
 
 // Load manifest with appropriate defaults for test suites that require it
-// Returns the manifest view IDs and the data directory to use
+// Returns the manifest view IDs and the configs directory to use
 export async function loadManifestViewIds(
     testSuite: SvgTesterSuite,
     options: {
@@ -998,14 +1025,14 @@ export async function loadManifestViewIds(
     }
 ): Promise<{
     viewIds: string[] | null
-    dataDir: string
+    configsDir: string
     manifestName?: string
 }> {
     const testSuiteDir = path.join(SVG_TESTER_REPO_PATH, testSuite)
-    const defaultDataDir = path.join(testSuiteDir, "data")
+    const configsDir = configsDirForSuite(testSuite)
 
-    // For grapher-views and thumbnails, load the manifest to resolve dataDir
-    // (these suites don't have their own data/ directory)
+    // grapher-views and thumbnails are defined by their manifest: without one
+    // they would fall back to every chart in the graphers suite.
     if (testSuite === "grapher-views" || testSuite === "thumbnails") {
         const defaultManifestName = "top.manifest.json"
         const manifestName = options.manifestName ?? defaultManifestName
@@ -1013,12 +1040,10 @@ export async function loadManifestViewIds(
         const manifest = await loadManifestFromPath(manifestPath)
 
         if (manifest) {
-            const dataDir = path.join(testSuiteDir, manifest.dataDir)
-
             // viewIds are explicitly provided
-            if (options.targetViewIds) return { viewIds: null, dataDir }
+            if (options.targetViewIds) return { viewIds: null, configsDir }
 
-            return { viewIds: manifest.slugs, dataDir, manifestName }
+            return { viewIds: manifest.slugs, configsDir, manifestName }
         } else {
             throw new Error(
                 `No manifest found at ${manifestPath}. For ${testSuite}, you must either:\n` +
@@ -1030,7 +1055,7 @@ export async function loadManifestViewIds(
 
     // For other test suites, skip manifest if viewIds are explicitly provided
     if (options.targetViewIds) {
-        return { viewIds: null, dataDir: defaultDataDir }
+        return { viewIds: null, configsDir }
     }
 
     // For other test suites, only load manifest if explicitly provided
@@ -1039,10 +1064,9 @@ export async function loadManifestViewIds(
         const manifest = await loadManifestFromPath(manifestPath)
 
         if (manifest) {
-            const dataDir = path.join(testSuiteDir, manifest.dataDir)
             return {
                 viewIds: manifest.slugs,
-                dataDir,
+                configsDir,
                 manifestName: options.manifestName,
             }
         } else {
@@ -1050,6 +1074,6 @@ export async function loadManifestViewIds(
         }
     }
 
-    // Default: no manifest, use default data directory
-    return { viewIds: null, dataDir: defaultDataDir }
+    // Default: no manifest, every chart in the suite's configs directory
+    return { viewIds: null, configsDir }
 }

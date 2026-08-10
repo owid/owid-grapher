@@ -133,7 +133,7 @@ async function main(args: ReturnType<typeof parseArguments>) {
     try {
         const testSuite = args.testSuite as SvgTesterSuite
         const testSuiteDir = path.join(SVG_TESTER_REPO_PATH, testSuite)
-        const outDir = path.join(testSuiteDir, "data")
+        const outDir = path.join(testSuiteDir, "configs")
         const concurrency = args.concurrency
 
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
@@ -162,10 +162,7 @@ async function main(args: ReturnType<typeof parseArguments>) {
                 const slugs = charts.map((chart) => chart.id)
 
                 // Write manifest file
-                const manifest: utils.GrapherViewsManifest = {
-                    slugs,
-                    dataDir: "../graphers/data",
-                }
+                const manifest: utils.GrapherViewsManifest = { slugs }
                 const manifestPath = path.join(
                     testSuiteDir,
                     "top.manifest.json"
@@ -198,10 +195,7 @@ async function main(args: ReturnType<typeof parseArguments>) {
                 const slugs = charts.map((chart) => chart.id)
 
                 // Write manifest file
-                const manifest: utils.GrapherViewsManifest = {
-                    slugs,
-                    dataDir: "../graphers/data",
-                }
+                const manifest: utils.GrapherViewsManifest = { slugs }
                 const manifestPath = path.join(
                     testSuiteDir,
                     "top.manifest.json"

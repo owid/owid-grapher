@@ -32,10 +32,10 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         const targetChartTypes = args.chartTypes
         const randomCount = args.random
 
-        // Load manifest and determine data directory
+        // Load manifest and determine configs directory
         const {
             viewIds: manifestViewIds,
-            dataDir,
+            configsDir,
             manifestName,
         } = await utils.loadManifestViewIds(testSuite, {
             targetViewIds,
@@ -51,8 +51,8 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         // Other options
         const rmOnError = args.rmOnError
 
-        if (!fs.existsSync(dataDir))
-            throw `Input directory does not exist ${dataDir}`
+        if (!fs.existsSync(configsDir))
+            throw `Configs directory does not exist ${configsDir}`
         if (!fs.existsSync(referencesDir))
             throw `Reference directory does not exist ${referencesDir}`
         if (!fs.existsSync(differencesDir)) fs.mkdirSync(differencesDir)
@@ -63,14 +63,17 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         const startedAt = new Date()
         await utils.writeVerifyRunStarted(testSuiteDir, testSuite, startedAt)
 
-        const chartIdsToProcess = await utils.selectChartIdsToProcess(dataDir, {
-            viewIds: targetViewIds ?? manifestViewIds ?? undefined,
-            chartTypes: targetChartTypes,
-            randomCount,
-        })
+        const chartIdsToProcess = await utils.selectChartIdsToProcess(
+            configsDir,
+            {
+                viewIds: targetViewIds ?? manifestViewIds ?? undefined,
+                chartTypes: targetChartTypes,
+                randomCount,
+            }
+        )
 
         const chartViewsToGenerate = await utils.findChartViewsToGenerate(
-            dataDir,
+            configsDir,
             chartIdsToProcess,
             {
                 queryStr: grapherQueryString,
@@ -94,9 +97,9 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
                 const { viewId, queryStr } = chart
                 const key = grapherSlugToExportFileKey(viewId, queryStr)
                 const referenceEntry = referenceDataByChartKey.get(key)!
-                const pathToProcess = path.join(dataDir, viewId)
+                const configPath = utils.configPathFor(configsDir, viewId)
                 return {
-                    dir: { viewId: chart.viewId, pathToProcess },
+                    dir: { viewId: chart.viewId, configPath },
                     referenceEntry,
                     referenceDir: referencesDir,
                     outDir: differencesDir,
