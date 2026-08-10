@@ -43,8 +43,6 @@ import {
     GRAPHER_THUMBNAIL_HEIGHT,
     mapGrapherTabNameToQueryParam,
 } from "@ourworldindata/grapher"
-import { format, type FormatConfig } from "oxfmt"
-import oxfmtConfig from "../../.oxfmtrc.json"
 import { hashMd5 } from "../../serverUtils/hash.js"
 import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as R from "remeda"
@@ -205,40 +203,24 @@ async function verifySvg(
         return resultOk()
     }
 
-    // The stored reference .svg file is already in oxfmt-formatted canonical
-    // form - that's what wrote it in the first place (renderSvgAndSave /
-    // commit_differences), and formatting is idempotent (verified: reformatting
-    // an already-formatted reference file is a no-op). So compare the
-    // freshly-formatted new svg directly against the file's bytes first,
-    // without paying for a reformat on every single chart.
+    // The stored reference .svg file is the output of prepareSvgForComparison,
+    // same as `preparedNewSvg` - that's what wrote it in the first place
+    // (renderSvgAndSave / commit_differences) - so the two compare byte for
+    // byte.
     //
     // Note results.csv's md5 column can go stale independently of the .svg
     // file itself (commit_differences in svg-tester.sh updates the file but
     // never the CSV), which is why the fast-path check above frequently
     // misses even when there's no real difference - don't rely on md5 for
     // anything beyond that optimistic early-exit.
-    const referenceSvgRaw = await loadReferenceSvg(
+    const preparedReferenceSvg = await loadReferenceSvg(
         referenceSvgsPath,
         referenceSvgRecord
     )
-    let preparedReferenceSvg = referenceSvgRaw
-    let firstDiffIndex = findFirstDiffIndex(preparedNewSvg, referenceSvgRaw)
-
-    if (firstDiffIndex !== -1) {
-        // Only reached if the direct comparison found a difference. The
-        // reference file is normally already canonical (see above), but if
-        // it was written by an older oxfmt version/config than what's
-        // running now, a fresh render can look "different" purely from
-        // formatting drift rather than an actual content change. Reformat
-        // and re-compare before concluding it's a real difference - this
-        // only costs an extra format() call on charts that didn't match on
-        // the first (cheap) try.
-        preparedReferenceSvg = await prepareSvgForComparison(referenceSvgRaw)
-        firstDiffIndex = findFirstDiffIndex(
-            preparedNewSvg,
-            preparedReferenceSvg
-        )
-    }
+    const firstDiffIndex = findFirstDiffIndex(
+        preparedNewSvg,
+        preparedReferenceSvg
+    )
 
     if (firstDiffIndex === -1) {
         return resultOk()
@@ -573,11 +555,9 @@ export async function renderSvg({
     )
     const durationTotal = Date.now() - timeStart
 
-    // Formatting the SVG (to strip non-deterministic fragments before hashing)
-    // is the expensive part of this function. Compute it once here and hand it
-    // back to callers instead of letting them redundantly reformat the same
-    // raw svg again for comparison/output purposes.
-    const preparedSvg = await prepareSvgForComparison(svg)
+    // What gets hashed, written out and compared - callers take it from here
+    // rather than re-deriving it from the raw svg.
+    const preparedSvg = prepareSvgForComparison(svg)
 
     const svgRecord: SvgRecord = {
         viewId: dir.viewId,
@@ -601,17 +581,16 @@ export async function renderSvg({
 const replaceRegexes = [/id="react-select-\d+-.+"/g]
 /** Some fragments of the svgs are non-deterministic. This function is used to
     delete all such fragments */
-async function prepareSvgForComparison(svg: string): Promise<string> {
+function prepareSvgForComparison(svg: string): string {
     let current = svg
     for (const replaceRegex of replaceRegexes) {
         current = current.replace(replaceRegex, "")
     }
-    return await formatSvg(current)
-}
-
-async function formatSvg(svg: string): Promise<string> {
-    const result = await format("input.html", svg, oxfmtConfig as FormatConfig)
-    return result.code
+    // React renders the whole svg onto a single line, and the line diff in the
+    // admin needs lines to work with, so break it up one tag per line. `><`
+    // only ever occurs at a tag boundary because React escapes `>` in text and
+    // in attributes.
+    return current.replaceAll("><", ">\n<")
 }
 
 export interface RenderSvgAndSaveJobDescription {
