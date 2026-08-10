@@ -18,7 +18,7 @@ refresh() {
     local path=$SVGS_REPO/$testSuite
 
     echo "=> Dumping configs and data ($testSuite)"
-    rm -rf $path/data
+    rm -rf $path/data $path/configs
     yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/dump-data.ts \
         $testSuite
 

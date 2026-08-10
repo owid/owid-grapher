@@ -23,7 +23,7 @@ Use `dump-data.ts` to dump configuration and data files. It needs a running grap
 
 #### Graphers
 
-For every public and published grapher (~4,500 at the time of writing), it creates one subdirectory with the grapher slug as the directory name containing a single `config.json`, the grapher's JSON configuration.
+For every public and published grapher (~4,500 at the time of writing), it writes one config file per chart, `{SVG_TESTER_REPO_PATH}/graphers/configs/{slug}.json`.
 
 The data itself goes into `{SVG_TESTER_REPO_PATH}/variables/`, shared by every test suite:
 
@@ -40,7 +40,7 @@ For the most-viewed graphers (subset of all charts), creates a manifest file lis
 
 #### Multi-dimensional views
 
-For published multi-dimensional data pages, creates subdirectories named `{slug}?{queryStr}` containing config and data for each view:
+For published multi-dimensional data pages, writes one config per view, named `{slug}?{queryStr}.json`. Those names carry the view's query string, so they are long (152 bytes at most today, against a 255-byte limit) and contain `?` and `&`, which means they need quoting in the shell and cannot be checked out on Windows:
 
 ```bash
 yarn tsx devTools/svgTester/dump-data.ts mdims
@@ -70,7 +70,7 @@ The script works with test suites stored in the directory structure:
 
 ```
 {SVG_TESTER_REPO_PATH}/variables/              # Variable data, shared by all suites
-{SVG_TESTER_REPO_PATH}/{testSuite}/data/       # Chart configs (from dump-data.ts)
+{SVG_TESTER_REPO_PATH}/{testSuite}/configs/    # Chart configs (from dump-data.ts)
 {SVG_TESTER_REPO_PATH}/{testSuite}/references/ # Output SVG references
 ```
 
@@ -94,7 +94,7 @@ The script works with test suites stored in the directory structure:
 
 ```
 {SVG_TESTER_REPO_PATH}/variables/               # Variable data, shared by all suites
-{SVG_TESTER_REPO_PATH}/{testSuite}/data/        # Chart configs (from dump-data.ts)
+{SVG_TESTER_REPO_PATH}/{testSuite}/configs/     # Chart configs (from dump-data.ts)
 {SVG_TESTER_REPO_PATH}/{testSuite}/references/  # Reference SVGs (from export-graphs.ts)
 {SVG_TESTER_REPO_PATH}/{testSuite}/differences/ # Output differences (if any)
 ```
