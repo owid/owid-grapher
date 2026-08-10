@@ -32,6 +32,7 @@ The Our World in Data monorepo: the Grapher charting library, the chart/data adm
 ### Git
 
 - When you want to create a commit, follow `docs/agent-guidelines/commit-messages.md` — it covers the pre-commit checks and the gitmoji + 🤖 message format.
+- PR descriptions are two-part. First, a **concise** human-facing part: what changed and why, important considerations and pitfalls, and anything that needs discussion — a few sentences or bullets, no padding. Then a `<details><summary>Details</summary>` block for everything only useful to an agent picking the work back up or to automated code review: implementation notes, file-by-file breakdowns, edge cases handled, test plans. If a detail doesn't change what a human reviewer does, it goes in the details block or gets cut.
 - Branch names: short and descriptive, no prefix (in particular no `claude/` prefix and no random suffix). Every branch gets a staging server named `staging-site-<branch>` with slashes turned into hyphens and the name truncated to 28 characters, so long or prefixed branch names produce unusable staging names.
 
 ## Architecture
