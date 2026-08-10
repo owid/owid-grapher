@@ -714,7 +714,7 @@ export async function renderAndVerifySvg({
             resultError(
                 referenceEntry.viewId,
                 err as Error,
-                referenceEntry.queryStr
+                referenceEntry.resolvedQueryStr || referenceEntry.queryStr
             )
         )
     }

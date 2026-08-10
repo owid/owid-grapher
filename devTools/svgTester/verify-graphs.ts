@@ -164,7 +164,8 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
                             return utils.resultError(
                                 job.dir.viewId,
                                 err,
-                                job.queryStr
+                                job.referenceEntry.resolvedQueryStr ||
+                                    job.queryStr
                             )
                         })
                         .then((result: utils.VerifyResult) => {
