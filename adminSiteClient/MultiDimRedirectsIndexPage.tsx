@@ -5,6 +5,7 @@ import {
     Button,
     Flex,
     Input,
+    Modal,
     Popconfirm,
     Space,
     Table,
@@ -14,15 +15,19 @@ import {
 } from "antd"
 import * as R from "remeda"
 import urljoin from "url-join"
+import { Json } from "@ourworldindata/utils"
+import { BulkMultiDimRedirectResponse } from "@ourworldindata/types"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
 import { Admin } from "./Admin.js"
+import { formatSourceQueryParams } from "./multiDimRedirectHelpers.js"
 
 type MultiDimRedirect = {
     id: number
     source: string
+    sourceQueryParams: Record<string, string | null> | null
     multiDimId: number
     multiDimSlug: string
     multiDimTitle: string
@@ -32,6 +37,7 @@ type MultiDimRedirect = {
 type RedirectInGroup = {
     id: number
     source: string
+    sourceQueryParams: Record<string, string | null> | null
     targetQueryStr: string | null
 }
 
@@ -61,6 +67,15 @@ async function deleteMultiDimRedirect(
     )
 }
 
+async function bulkCreateMultiDimRedirects(admin: Admin, payload: Json) {
+    return await admin.requestJSON<BulkMultiDimRedirectResponse>(
+        "/api/multi-dim-redirects/bulk",
+        payload,
+        "POST",
+        { onFailure: "continue" }
+    )
+}
+
 function groupRedirectsByMultiDim(
     redirects: MultiDimRedirect[]
 ): GroupedRedirects[] {
@@ -77,6 +92,7 @@ function groupRedirectsByMultiDim(
                 redirects: groupRedirects.map((r) => ({
                     id: r.id,
                     source: r.source,
+                    sourceQueryParams: r.sourceQueryParams,
                     targetQueryStr: r.targetQueryStr,
                 })),
             }
@@ -124,11 +140,22 @@ function createNestedColumns(
             title: "Source",
             dataIndex: "source",
             key: "source",
-            render: (source) => (
-                <Typography.Text style={{ wordBreak: "break-all" }}>
-                    {source}
-                </Typography.Text>
-            ),
+            render: (_, record) => {
+                const queryParams = formatSourceQueryParams(
+                    record.sourceQueryParams
+                )
+                return (
+                    <Typography.Text style={{ wordBreak: "break-all" }}>
+                        {record.source}
+                        {queryParams && (
+                            <Typography.Text type="secondary">
+                                {" "}
+                                (when {queryParams})
+                            </Typography.Text>
+                        )}
+                    </Typography.Text>
+                )
+            },
         },
         {
             title: "Target",
@@ -196,6 +223,11 @@ export default function MultiDimRedirectsIndexPage() {
         notification.useNotification()
     const queryClient = useQueryClient()
     const [search, setSearch] = useState("")
+    const [bulkModalOpen, setBulkModalOpen] = useState(false)
+    const [bulkJson, setBulkJson] = useState("")
+    const [bulkResult, setBulkResult] =
+        useState<BulkMultiDimRedirectResponse | null>(null)
+    const [bulkError, setBulkError] = useState<string | null>(null)
 
     useEffect(() => {
         admin.loadingIndicatorSetting = "off"
@@ -228,6 +260,40 @@ export default function MultiDimRedirectsIndexPage() {
         },
     })
 
+    const bulkMutation = useMutation({
+        mutationFn: (payload: Json) =>
+            bulkCreateMultiDimRedirects(admin, payload),
+        onSuccess: async (data) => {
+            setBulkResult(data)
+            setBulkError(null)
+            notificationApi.success({
+                title: `Created ${data.created}, skipped ${data.skipped}, ${data.errors} error(s)`,
+                placement: "bottomRight",
+            })
+            await queryClient.invalidateQueries({
+                queryKey: ["allMultiDimRedirects"],
+            })
+        },
+        onError: (error) => {
+            setBulkResult(null)
+            setBulkError(error instanceof Error ? error.message : String(error))
+        },
+    })
+
+    const handleBulkSubmit = () => {
+        let payload: Json
+        try {
+            payload = JSON.parse(bulkJson) as Json
+        } catch (error) {
+            setBulkResult(null)
+            setBulkError(
+                `Invalid JSON: ${error instanceof Error ? error.message : String(error)}`
+            )
+            return
+        }
+        bulkMutation.mutate(payload)
+    }
+
     const filteredRedirects = useMemo(() => {
         const query = search.trim().toLowerCase()
         return redirects?.filter(
@@ -248,6 +314,85 @@ export default function MultiDimRedirectsIndexPage() {
     return (
         <AdminLayout title="Multi-dim Redirects">
             {notificationContextHolder}
+            <Modal
+                title="Bulk-create redirects from JSON"
+                open={bulkModalOpen}
+                onCancel={() => setBulkModalOpen(false)}
+                width={720}
+                footer={[
+                    <Button
+                        key="clear"
+                        onClick={() => {
+                            setBulkJson("")
+                            setBulkResult(null)
+                            setBulkError(null)
+                        }}
+                        disabled={bulkMutation.isPending}
+                    >
+                        Clear
+                    </Button>,
+                    <Button key="close" onClick={() => setBulkModalOpen(false)}>
+                        Close
+                    </Button>,
+                    <Button
+                        key="submit"
+                        type="primary"
+                        onClick={handleBulkSubmit}
+                        loading={bulkMutation.isPending}
+                        disabled={!bulkJson.trim()}
+                    >
+                        Create bulk redirects
+                    </Button>,
+                ]}
+            >
+                <Typography.Paragraph type="secondary">
+                    Paste the{" "}
+                    <Typography.Text code>mapping.json</Typography.Text> file
+                    from the{" "}
+                    <Typography.Text code>
+                        /map-explorer-to-mdim
+                    </Typography.Text>{" "}
+                    skill here. Each resolvable entry becomes a redirect; the
+                    response is shown below.
+                </Typography.Paragraph>
+                <Alert
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: 12 }}
+                    title="For these redirects to take effect, each target multi-dim must be published and the source charts or explorers must be deleted afterwards, if it hasn't already."
+                />
+                <Input.TextArea
+                    value={bulkJson}
+                    onChange={(e) => setBulkJson(e.target.value)}
+                    placeholder='{ "redirects": [ … ], "catchAll": { … } }'
+                    rows={12}
+                    style={{ fontFamily: "monospace" }}
+                />
+                {bulkError && (
+                    <Alert
+                        type="error"
+                        title={bulkError}
+                        style={{ marginTop: 12 }}
+                        showIcon
+                    />
+                )}
+                {bulkResult && (
+                    <pre
+                        style={{
+                            marginTop: 12,
+                            marginBottom: 0,
+                            padding: 12,
+                            background: "#f5f5f5",
+                            borderRadius: 4,
+                            maxHeight: 320,
+                            overflow: "auto",
+                            fontSize: 12,
+                        }}
+                    >
+                        {JSON.stringify(bulkResult, null, 2)}
+                    </pre>
+                )}
+            </Modal>
             <main>
                 <Space
                     orientation="vertical"
@@ -272,6 +417,15 @@ export default function MultiDimRedirectsIndexPage() {
                         type="info"
                         showIcon
                     />
+
+                    <div>
+                        <Button
+                            type="primary"
+                            onClick={() => setBulkModalOpen(true)}
+                        >
+                            Bulk-create redirects from JSON
+                        </Button>
+                    </div>
 
                     <div>
                         <Flex align="center" justify="space-between" gap={24}>

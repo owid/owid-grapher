@@ -209,7 +209,6 @@ export class GrapherAnalytics {
             // being pushed to dataLayer, it absolutely has to be an `Arguments` object.
             // see https://stackoverflow.com/q/60400130/10670163
 
-            // eslint-disable-next-line prefer-rest-params
             window.dataLayer?.push(arguments as unknown as GAConsent)
         }
         pushToDataLayer("consent", "update", consent)

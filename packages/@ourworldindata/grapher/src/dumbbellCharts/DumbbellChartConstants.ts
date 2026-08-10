@@ -133,7 +133,6 @@ export const DUMBBELL_STYLE: Record<Emphasis, DumbbellStyle> = {
 export interface LegendLabel {
     text: string
     color: string
-    textAnchor: "center" | "outward"
 }
 
 export const DUMBBELL_SORT_KEYS = [

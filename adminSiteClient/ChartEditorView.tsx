@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import * as _ from "lodash-es"
 import * as React from "react"
 import { observer } from "mobx-react"
@@ -24,6 +23,7 @@ import {
     DimensionProperty,
     ORIGIN_URL_REGEX_PATTERNS,
 } from "@ourworldindata/types"
+import { initializeDetailsOnDemand } from "@ourworldindata/components"
 import {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
@@ -55,55 +55,13 @@ import {
 } from "./VisionDeficiencies.js"
 import { EditorMarimekkoTab } from "./EditorMarimekkoTab.js"
 import { EditorExportTab } from "./EditorExportTab.js"
-import { runDetailsOnDemand } from "../site/detailsOnDemand.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import {
     ErrorMessages,
     ErrorMessagesForDimensions,
     FieldWithDetailReferences,
 } from "./ChartEditorTypes.js"
-
-interface Variable {
-    id: number
-    name: string
-}
-
-export interface Dataset {
-    id: number
-    name: string
-    namespace: string
-    version: string | undefined
-    variables: Variable[]
-    isPrivate: boolean
-    nonRedistributable: boolean
-}
-
-export interface Namespace {
-    name: string
-    description?: string
-    isArchived: boolean
-}
-
-// This contains the dataset/variable metadata for the entire database
-// Used for variable selector interface
-export interface NamespaceData {
-    datasets: Dataset[]
-}
-
-export class EditorDatabase {
-    namespaces: Namespace[]
-    variableUsageCounts: Map<number, number> = new Map()
-    dataByNamespace: Map<string, NamespaceData> = new Map()
-
-    constructor(json: any) {
-        makeObservable(this, {
-            namespaces: observable.ref,
-            variableUsageCounts: observable.ref,
-            dataByNamespace: observable,
-        })
-        this.namespaces = json.namespaces
-    }
-}
+import { Dataset, EditorDatabase } from "./EditorDatabase.js"
 
 export type DetailReferences = Record<FieldWithDetailReferences, string[]>
 
@@ -122,6 +80,7 @@ export class ChartEditorView<
 > extends React.Component<ChartEditorViewProps<Editor>> {
     database = new EditorDatabase({})
     details: DetailDictionary = {}
+    private cleanupDetailsOnDemand: (() => void) | undefined
 
     constructor(props: ChartEditorViewProps<Editor>) {
         super(props)
@@ -195,10 +154,14 @@ export class ChartEditorView<
     }
 
     async fetchDetails(): Promise<void> {
-        await runDetailsOnDemand({ shouldFetchFromAdminApi: true })
+        const details = await this.manager.admin.getJSON<DetailDictionary>(
+            "/api/parsed-dods.json"
+        )
+
+        this.cleanupDetailsOnDemand = initializeDetailsOnDemand({ details })
 
         runInAction(() => {
-            if (window.details) this.details = window.details
+            this.details = details
         })
     }
 
@@ -223,7 +186,7 @@ export class ChartEditorView<
     get currentDetailReferences(): DetailReferences {
         const { grapherState } = this.manager.editor
         return {
-            subtitle: extractDetailsFromSyntax(grapherState.currentSubtitle),
+            subtitle: extractDetailsFromSyntax(grapherState.effectiveSubtitle),
             note: extractDetailsFromSyntax(grapherState.note ?? ""),
             axisLabelX: extractDetailsFromSyntax(
                 grapherState.xAxisConfig.label ?? ""
@@ -391,6 +354,7 @@ export class ChartEditorView<
     disposers: IReactionDisposer[] = []
     override componentWillUnmount(): void {
         this.disposers.forEach((dispose) => dispose())
+        this.cleanupDetailsOnDemand?.()
         this.editor?.dispose()
     }
 

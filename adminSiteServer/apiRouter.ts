@@ -67,6 +67,7 @@ import {
     handlePatchMultiDim,
     handleGetMultiDimRedirects,
     handlePostMultiDimRedirect,
+    handleBulkCreateMultiDimRedirects,
     handleDeleteMultiDimRedirect,
     handleGetAllMultiDimRedirects,
     getMdimRecordsJson,
@@ -163,6 +164,11 @@ import {
     refreshDataInsights,
 } from "./apiRoutes/dataInsights.js"
 import { getFigmaImageUrl } from "./apiRoutes/figma.js"
+import {
+    getSvgTesterResults,
+    getSvgTesterSuites,
+    getSvgTesterSvg,
+} from "./apiRoutes/svgTester.js"
 import { sendMessageToSlack } from "./apiRoutes/slack.js"
 import {
     createFeaturedMetric,
@@ -459,6 +465,11 @@ postRouteWithRWTransaction(
     "/multi-dims/:id/redirects",
     handlePostMultiDimRedirect
 )
+postRouteWithRWTransaction(
+    apiRouter,
+    "/multi-dim-redirects/bulk",
+    handleBulkCreateMultiDimRedirects
+)
 deleteRouteWithRWTransaction(
     apiRouter,
     "/multi-dims/:id/redirects/:redirectId",
@@ -677,6 +688,11 @@ getRouteWithROTransaction(apiRouter, "/figma/image", getFigmaImageUrl)
 
 // Slack routes
 postRouteWithRWTransaction(apiRouter, "/slack/sendMessage", sendMessageToSlack)
+
+// SVG tester
+apiRouter.get("/svgtester/suites.json", getSvgTesterSuites)
+apiRouter.get("/svgtester/:suite/results.json", getSvgTesterResults)
+apiRouter.router.get("/svgtester/:suite/:kind/:filename", getSvgTesterSvg)
 
 // Deploy helpers
 apiRouter.get("/deploys.json", async () => ({

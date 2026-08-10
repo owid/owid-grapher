@@ -27,6 +27,9 @@ endif
 ifdef TMUX_SESSION_NAME
 TMUX_SESSION_NAME := $(strip $(TMUX_SESSION_NAME))
 endif
+ifdef ADMIN_SERVER_PORT
+ADMIN_SERVER_PORT := $(strip $(ADMIN_SERVER_PORT))
+endif
 ifdef VITE_PORT
 VITE_PORT := $(strip $(VITE_PORT))
 endif
@@ -34,7 +37,7 @@ ifdef WRANGLER_PORT
 WRANGLER_PORT := $(strip $(WRANGLER_PORT))
 endif
 
-.PHONY: help up up.headless up.full down down.headless refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.graphers svgtest.grapher-views svgtest.mdims svgtest.explorers svgtest.thumbnails bdd bdd.ui check-not-prod
+.PHONY: help up up.headless up.worktree setup.worktree require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.md5s bdd bdd.ui check-not-prod
 
 help:
 	@echo 'Available commands:'
@@ -42,8 +45,11 @@ help:
 	@echo '  GRAPHER ONLY'
 	@echo '  make up                     start dev environment via docker-compose and tmux'
 	@echo '  make up.headless            start dev environment without tmux (AI agents, cloud sandboxes, CI)'
+	@echo '  make up.worktree            start this git worktree'"'"'s dev environment next to your main one'
+	@echo '  make setup.worktree         only write this checkout'"'"'s .env (random free ports, own tmux session)'
 	@echo '  make down                   stop any services still running'
 	@echo '  make down.headless          stop services started by make up.headless'
+	@echo '  make down.worktree          stop services started by make up.worktree (leaves MySQL up)'
 	@echo '  make refresh                (while up) download a new grapher snapshot and update MySQL'
 	@echo '  make refresh.private        (while up) download and load the private sidecar dump: admin keys + analytics (needs access)'
 	@echo '  make refresh.full           (while up) run refresh and refresh.private'
@@ -53,9 +59,8 @@ help:
 	@echo '  make playwright-browsers    install Playwright browsers'
 	@echo '  make bdd                    (while up) start BDD test environment'
 	@echo '  make bdd.ui                 (while up) start BDD test environment with UI'
-	@echo '  make svgtest                generate an SVG test report for graphers'
-	@echo '  make svgtest.full           generate a full SVG test report'
-	@echo '  make svgtest.explorers      generate an SVG test report for explorers only'
+	@echo '  make svgtest                run the SVG tests for graphers'
+	@echo '  make svgtest.full           run the SVG tests for all suites'
 	@echo '  make local-bake             do a full local site bake'
 	@echo '  make archive                create an archived version of our charts'
 	@echo '  make wikipedia-archive      create a Wikipedia archive (strips GTM, rewrites archive URLs)'
@@ -89,7 +94,7 @@ up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz node_module
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
-			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) yarn startAdminDevServer' \; \
+			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) yarn startAdminDevServer' \; \
 			set remain-on-exit on \; \
 		new-window -n vite 'VITE_PORT=$(VITE_PORT) yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
@@ -112,7 +117,7 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.
 	@mkdir -p logs
 	tmux new-session -s $(TMUX_SESSION_NAME) \
 		-n admin \
-			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) yarn startAdminDevServer' \; \
+			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) yarn startAdminDevServer' \; \
 			set remain-on-exit on \; \
 		new-window -n vite 'VITE_PORT=$(VITE_PORT) yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
@@ -134,6 +139,25 @@ require.headless:
 	@echo '==> Checking your environment has the necessary commands...'
 	@which docker >/dev/null 2>&1 || (echo "ERROR: docker compose is required."; exit 1)
 	@which yarn >/dev/null 2>&1 || (echo "ERROR: yarn is required."; exit 1)
+
+# `setup.worktree` writes the .env this reads, so don't export ports here: make
+# includes .env when it parses this file, i.e. before that .env exists on a
+# freshly created worktree. up-worktree.sh sources it once it is there.
+up.worktree: require.worktree setup.worktree node_modules
+	@make validate.env
+	@./devTools/docker/up-worktree.sh
+
+setup.worktree:
+	@./devTools/docker/setup-worktree-env.sh
+
+down.worktree: TMUX_SESSION_NAME ?= grapher-$(notdir $(CURDIR))
+down.worktree:
+	@echo '==> Killing the $(TMUX_SESSION_NAME) tmux session'
+	@tmux kill-session -t $(TMUX_SESSION_NAME) 2>/dev/null || echo '    (no such session, nothing to stop)'
+	@echo '==> Leaving MySQL up, your other checkouts share it (stop it with `make down`)'
+
+require.worktree: require.headless
+	@which tmux >/dev/null 2>&1 || (echo "ERROR: tmux is required."; exit 1)
 
 up.full: export DEBUG = 'knex:query'
 up.full: export COMPOSE_PROJECT_NAME ?= owid-grapher
@@ -157,7 +181,7 @@ up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz n
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
-			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) yarn startAdminDevServer' \; \
+			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) yarn startAdminDevServer' \; \
 			set remain-on-exit on \; \
 		new-window -n vite 'VITE_PORT=$(VITE_PORT) yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
@@ -382,65 +406,86 @@ unittest: node_modules
 
 svgtest.reset: ../owid-grapher-svgs
 	@echo '==> Resetting owid-grapher-svgs repo to a clean state'
-	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master && git clean -fd
+	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master && git clean -fdx
 
 svgtest: svgtest.reset node_modules
-	@echo '==> Generating SVG test report for graphers'
+	@echo '==> Running the SVG tests for graphers'
 
-	@# generate a full new set of svgs and create an HTML report if there are differences
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts \
-		|| (yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts && open ../owid-grapher-svgs/graphers/differences.html)
+	@# generate a full new set of svgs and compare them against the references
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts || [ $$? -eq 2 ]
+
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/graphers/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (graphers)'; \
+	fi
 
 svgtest.full: svgtest.reset node_modules
-	@echo '==> Generating full SVG test report'
+	@echo '==> Running all SVG test suites'
 
 	@# run test suite for stand-alone graphers
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts \
-		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts || [ $$? -eq 2 ]
+
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/graphers/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (graphers)'; \
+	fi
 
 	@# run test suite for grapher views
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts grapher-views \
-		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts grapher-views
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts grapher-views || [ $$? -eq 2 ]
+
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/grapher-views/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (grapher-views)'; \
+	fi
 
 	@# run test suite for mdims
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts mdims \
-		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts mdims
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts mdims || [ $$? -eq 2 ]
 
-	@# run test suite for explorers
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts explorers --manifest top.manifest.json \
-		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts explorers
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/mdims/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (mdims)'; \
+	fi
 
 	@# run test suite for thumbnails
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts thumbnails \
-		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts thumbnails
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts thumbnails || [ $$? -eq 2 ]
+
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/thumbnails/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (thumbnails)'; \
+	fi
 
 svgtest.grapher-views: svgtest.reset node_modules
-	@echo '==> Generating SVG test report for grapher-views'
+	@echo '==> Running the SVG tests for grapher-views'
 
-	@# run test suite for grapher-views and create an HTML report if there are differences
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts grapher-views \
-		|| (yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts grapher-views && open ../owid-grapher-svgs/grapher-views/differences.html)
+	@# run test suite for grapher-views
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts grapher-views || [ $$? -eq 2 ]
+
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/grapher-views/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (grapher-views)'; \
+	fi
 
 svgtest.mdims: svgtest.reset node_modules
-	@echo '==> Generating SVG test report for mdims'
+	@echo '==> Running the SVG tests for mdims'
 
-	@# run test suite for mdims and create an HTML report if there are differences
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts mdims \
-		|| (yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts mdims && open ../owid-grapher-svgs/mdims/differences.html)
+	@# run test suite for mdims
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts mdims || [ $$? -eq 2 ]
 
-svgtest.explorers: svgtest.reset node_modules
-	@echo '==> Generating SVG test report for explorers'
-
-	@# run test suite for explorers and create an HTML report if there are differences
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts explorers \
-		|| (yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts explorers && open ../owid-grapher-svgs/explorers/differences.html)
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/mdims/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (mdims)'; \
+	fi
 
 svgtest.thumbnails: svgtest.reset node_modules
-	@echo '==> Generating SVG test report for thumbnails'
+	@echo '==> Running the SVG tests for thumbnails'
 
-	@# run test suite for thumbnails and create an HTML report if there are differences
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts thumbnails \
-		|| (yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts thumbnails && open ../owid-grapher-svgs/thumbnails/differences.html)
+	@# run test suite for thumbnails
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts thumbnails || [ $$? -eq 2 ]
+
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/thumbnails/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (thumbnails)'; \
+	fi
+
+svgtest.md5s: ../owid-grapher-svgs node_modules
+	@echo '==> Recomputing reference md5s in ../owid-grapher-svgs'
+
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts graphers
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts grapher-views
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts mdims
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts thumbnails
 
 node_modules: package.json yarn.lock yarn.config.cjs
 	@echo '==> Installing packages'

@@ -109,6 +109,12 @@ export const enrichedBlockExamples: Record<
             {
                 image: "life-expectancy-thumbnail.png",
                 url: "/grapher/life-expectancy",
+                caption: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "Life expectancy at birth",
+                    },
+                ],
                 content: [
                     {
                         type: "text",
@@ -125,6 +131,9 @@ export const enrichedBlockExamples: Record<
             {
                 image: "gdp-per-capita-thumbnail.png",
                 url: "/grapher/gdp-per-capita",
+                caption: [
+                    { spanType: "span-simple-text", text: "GDP per capita" },
+                ],
                 content: [
                     {
                         type: "text",

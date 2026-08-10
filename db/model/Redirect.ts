@@ -3,8 +3,8 @@ import * as db from "../db"
 
 export const getSiteRedirects = async (
     knex: db.KnexReadonlyTransaction
-): Promise<Pick<DbPlainRedirect, "source" | "target" | "code">[]> => {
-    return await db.knexRaw(knex, `SELECT source, target, code FROM redirects`)
+): Promise<Pick<DbPlainRedirect, "source" | "target">[]> => {
+    return await db.knexRaw(knex, `SELECT source, target FROM redirects`)
 }
 
 export async function getRedirects(

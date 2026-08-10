@@ -89,6 +89,7 @@
 @import "./search/SearchTopicPageHit.scss";
 @import "./search/SearchResultHeader.scss";
 @import "./search/SearchNoResults.scss";
+@import "./search/SearchClosestMatchesNotice.scss";
 @import "./search/SearchDetectedFilters.scss";
 @import "./search/skeletons.scss";
 @import "./search/SearchResultHeaderSkeleton.scss";
@@ -194,7 +195,6 @@
 @import "./DownloadSection.scss";
 @import "./MetadataSection.scss";
 @import "./TopicTags.scss";
-@import "./detailsOnDemand.scss";
 
 @import "./gdocs/pages/DataInsight.scss";
 @import "./gdocs/pages/Homepage.scss";

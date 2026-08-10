@@ -491,7 +491,6 @@ async function createRedirectForSlugChangeIfNeeded(
     await trx(RedirectsTableName).insert({
         source: oldSource,
         target: newTarget,
-        code: 301, // Permanent redirect
     })
 
     console.log(`Created redirect: ${oldSource} -> ${newTarget}`)

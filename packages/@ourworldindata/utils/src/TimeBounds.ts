@@ -1,5 +1,4 @@
 import {
-    EPOCH_DATE,
     Time,
     TimeBound,
     TimeBoundValue,
@@ -7,11 +6,13 @@ import {
 } from "@ourworldindata/types"
 import {
     parseIntOrUndefined,
-    diffDateISOStringInDays,
+    diffDatesInDays,
+    epochDate,
     formatDay,
     isNegativeInfinity,
     isPositiveInfinity,
 } from "./Util.js"
+import dayjs from "./dayjs.js"
 import * as R from "remeda"
 
 export const timeFromTimebounds = (
@@ -87,7 +88,7 @@ export const timeBoundToTimeBoundString = (
 
 const parseTimeURIComponent = (param: string): TimeBound | undefined =>
     reISODate.test(param)
-        ? diffDateISOStringInDays(param, EPOCH_DATE)
+        ? diffDatesInDays(dayjs.utc(param), epochDate())
         : parseTimeBound(param)
 
 const upgradeLegacyTimeString = (time: string): string => {

@@ -27,7 +27,11 @@
     ! Cache-Control
     Cache-Control: public, max-age=31536000
 
-/favicon.ico
+/favicon*
+    ! Cache-Control
+    Cache-Control: public, max-age=604800
+
+/icon*.svg
     ! Cache-Control
     Cache-Control: public, max-age=604800
 

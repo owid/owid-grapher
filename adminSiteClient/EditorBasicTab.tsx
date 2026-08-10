@@ -48,7 +48,7 @@ import { Section, TextField } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
 import { DimensionCard } from "./DimensionCard.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import { EditorDatabase } from "./ChartEditorView.js"
+import { EditorDatabase } from "./EditorDatabase.js"
 import { isChartEditorInstance } from "./ChartEditor.js"
 import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
 import {
@@ -83,7 +83,7 @@ interface DimensionSlotViewProps<Editor> {
 }
 
 @observer
-class DimensionSlotView<
+export class DimensionSlotView<
     Editor extends AbstractChartEditor,
 > extends React.Component<DimensionSlotViewProps<Editor>> {
     disposers: IReactionDisposer[] = []
@@ -237,8 +237,9 @@ class DimensionSlotView<
 
         if (grapherState.isScatter || grapherState.isMarimekko) {
             // Chart types that display all entities shouldn't select
-            // any entity by default
-            selection.clearSelection()
+            // any entity by default, but an existing selection (e.g. one
+            // that was authored) should be left untouched
+            return
         } else if (
             nonProjectedYColumns.length > 1 &&
             !grapherState.hasStackedArea &&

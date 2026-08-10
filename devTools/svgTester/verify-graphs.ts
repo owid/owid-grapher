@@ -6,121 +6,24 @@ import fs from "fs-extra"
 import path from "path"
 import workerpool from "workerpool"
 import * as _ from "lodash-es"
-import { match } from "ts-pattern"
 
+import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as utils from "./utils.js"
 import { JOB_TIMEOUT_MS, MAX_WORKERS } from "./utils.js"
 import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
-import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
-
-async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
-    const testSuite = args.testSuite as utils.TestSuite
-    const verbose = args.verbose
-    const manifest = args.manifest
-
-    // Input and output directories
-    const dataDir = path.join(utils.SVG_REPO_PATH, testSuite, "data")
-    const referencesDir = path.join(
-        utils.SVG_REPO_PATH,
-        testSuite,
-        "references"
-    )
-    const differencesDir = path.join(
-        utils.SVG_REPO_PATH,
-        testSuite,
-        "differences"
-    )
-
-    if (!fs.existsSync(dataDir))
-        throw `Input directory does not exist ${dataDir}`
-    if (!fs.existsSync(referencesDir))
-        throw `Reference directory does not exist ${referencesDir}`
-    if (!fs.existsSync(differencesDir))
-        fs.mkdirSync(differencesDir, { recursive: true })
-
-    // Collect all explorer directories
-    const explorerJobs: {
-        explorerDir: string
-        explorerSlug: string
-        referencesDir: string
-        differencesDir: string
-        verbose: boolean
-        rmOnError: boolean
-        manifest?: string
-    }[] = []
-
-    const dir = await fs.opendir(dataDir)
-    for await (const entry of dir) {
-        if (!entry.isDirectory()) continue
-
-        const explorerDir = path.join(dataDir, entry.name)
-        const explorerSlug = entry.name
-
-        explorerJobs.push({
-            explorerDir,
-            explorerSlug,
-            referencesDir,
-            differencesDir,
-            manifest,
-            verbose: args.verbose,
-            rmOnError: args.rmOnError,
-        })
-    }
-
-    const jobCount = explorerJobs.length
-    if (jobCount === 0) {
-        utils.logIfVerbose(verbose, "No explorer directories found")
-        process.exit(0)
-    } else {
-        utils.logIfVerbose(
-            verbose,
-            `Verifying ${jobCount} explorer${jobCount > 1 ? "s" : ""}...`
-        )
-    }
-
-    const pool = workerpool.pool(__dirname + "/worker.ts", {
-        minWorkers: 2,
-        maxWorkers: MAX_WORKERS,
-        workerThreadOpts: {
-            execArgv: ["--require", "tsx"],
-        },
-    })
-
-    const validationResultsArrays: utils.VerifyResult[][] = await Promise.all(
-        explorerJobs.map((job) =>
-            // The per-view timeout lives inside renderAndVerifyExplorerViews,
-            // so we deliberately don't wrap this whole (multi-view) call in
-            // .timeout() — a large explorer with many views could legitimately
-            // exceed the per-view budget in aggregate.
-            pool
-                .exec("renderAndVerifyExplorerViews", [job])
-                .catch((err: Error) => [
-                    utils.resultError(job.explorerSlug, err),
-                ])
-        )
-    )
-
-    await pool.terminate()
-
-    // Flatten the array of arrays
-    const validationResults = validationResultsArrays.flat()
-
-    utils.logIfVerbose(verbose, "Verifications completed")
-
-    const exitCode = utils.displayVerifyResultsAndGetExitCode(
-        validationResults,
-        verbose
-    )
-    process.exit(exitCode)
-}
+import {
+    ALL_GRAPHER_CHART_TYPES,
+    SVG_TESTER_SUITES,
+    type SvgTesterSuite,
+} from "@ourworldindata/types"
 
 async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
     try {
         // Test suite
-        const testSuite = args.testSuite as utils.TestSuite
+        const testSuite = args.testSuite as SvgTesterSuite
 
         // Input and output directories
-        const testSuiteDir = path.join(utils.SVG_REPO_PATH, testSuite)
+        const testSuiteDir = path.join(SVG_TESTER_REPO_PATH, testSuite)
         const referencesDir = path.join(testSuiteDir, "references")
         const differencesDir = path.join(testSuiteDir, "differences")
 
@@ -129,13 +32,15 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         const targetChartTypes = args.chartTypes
         const randomCount = args.random
 
-        // Load manifest and determine data directory
-        const { viewIds: manifestViewIds, dataDir } =
-            await utils.loadManifestViewIds(testSuite, {
-                targetViewIds,
-                manifestName: args.manifest,
-                verbose: args.verbose,
-            })
+        // Load manifest and determine configs directory
+        const {
+            viewIds: manifestViewIds,
+            configsDir,
+            manifestName,
+        } = await utils.loadManifestViewIds(testSuite, {
+            targetViewIds,
+            manifestName: args.manifest,
+        })
 
         // Chart configurations to test
         const grapherQueryString = args.queryStr
@@ -145,22 +50,30 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
 
         // Other options
         const rmOnError = args.rmOnError
-        const verbose = args.verbose
 
-        if (!fs.existsSync(dataDir))
-            throw `Input directory does not exist ${dataDir}`
+        if (!fs.existsSync(configsDir))
+            throw `Configs directory does not exist ${configsDir}`
         if (!fs.existsSync(referencesDir))
-            throw `Reference directory does not exist ${dataDir}`
+            throw `Reference directory does not exist ${referencesDir}`
         if (!fs.existsSync(differencesDir)) fs.mkdirSync(differencesDir)
 
-        const chartIdsToProcess = await utils.selectChartIdsToProcess(dataDir, {
-            viewIds: targetViewIds ?? manifestViewIds ?? undefined,
-            chartTypes: targetChartTypes,
-            randomCount,
-        })
+        // Claim the results file up front: from here on its absence means the
+        // suite never started, and a lingering "running" status means it was
+        // killed before it could report.
+        const startedAt = new Date()
+        await utils.writeVerifyRunStarted(testSuiteDir, testSuite, startedAt)
+
+        const chartIdsToProcess = await utils.selectChartIdsToProcess(
+            configsDir,
+            {
+                viewIds: targetViewIds ?? manifestViewIds ?? undefined,
+                chartTypes: targetChartTypes,
+                randomCount,
+            }
+        )
 
         const chartViewsToGenerate = await utils.findChartViewsToGenerate(
-            dataDir,
+            configsDir,
             chartIdsToProcess,
             {
                 queryStr: grapherQueryString,
@@ -184,30 +97,35 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
                 const { viewId, queryStr } = chart
                 const key = grapherSlugToExportFileKey(viewId, queryStr)
                 const referenceEntry = referenceDataByChartKey.get(key)!
-                const pathToProcess = path.join(dataDir, viewId)
+                const configPath = utils.configPathFor(configsDir, viewId)
                 return {
-                    dir: { viewId: chart.viewId, pathToProcess },
+                    dir: { viewId: chart.viewId, configPath },
                     referenceEntry,
                     referenceDir: referencesDir,
                     outDir: differencesDir,
                     queryStr,
                     variant,
-                    verbose,
                     rmOnError,
                 }
             })
 
-        // if verbose, log how many SVGs we're going to process
         const jobCount = verifyJobs.length
         if (jobCount === 0) {
-            utils.logIfVerbose(verbose, "No matching configs found")
-            process.exit(0)
-        } else {
-            utils.logIfVerbose(
-                verbose,
-                `Verifying ${jobCount} SVG${jobCount > 1 ? "s" : ""}...`
+            console.log(`${testSuite}: nothing to do, no configs matched`)
+            // Nothing to do is a legitimate outcome, but it still has to
+            // overwrite the "running" placeholder written above.
+            await utils.writeVerifyResults(
+                testSuiteDir,
+                utils.summariseVerifyResults([], {
+                    suite: testSuite,
+                    startedAt,
+                    durationMs: Date.now() - startedAt.getTime(),
+                })
             )
+            process.exit(0)
         }
+
+        utils.logRunStart(testSuite, "verifying", jobCount, manifestName)
 
         const pool = workerpool.pool(__dirname + "/worker.ts", {
             minWorkers: 2,
@@ -217,53 +135,90 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
             },
         })
 
+        const progress = utils.startProgress(testSuite, jobCount, pool, {
+            withOutcomes: true,
+        })
+
         // Parallelize the CPU heavy verification using the workerpool library
         // This call will then in parallel take the descriptions of the verifyJobs,
         // load the config and data and intialize a grapher, create the default svg output and check if it's md5 hash is the same as the one in
         // the reference csv file (from the referenceDataByChartKey lookup above). The entire parallel operation returns a promise containing an array
         // of result values.
-        const validationResults: utils.VerifyResult[] = await Promise.all(
-            verifyJobs.map((job) =>
-                pool
-                    .exec("renderAndVerifySvg", [job])
-                    .timeout(JOB_TIMEOUT_MS)
-                    .catch((err: Error) =>
-                        utils.resultError(job.dir.viewId, err)
-                    )
+        let validationResults: utils.VerifyResult[]
+        try {
+            validationResults = await Promise.all(
+                verifyJobs.map((job) =>
+                    pool
+                        .exec("renderAndVerifySvg", [job])
+                        .timeout(JOB_TIMEOUT_MS)
+                        .catch((err: Error) => {
+                            // Only pool-level rejections reach here - a job that
+                            // throws is caught inside renderAndVerifySvg, which
+                            // logs it and resolves. So nothing else reports these.
+                            if (err?.name === "TimeoutError")
+                                console.warn(
+                                    `${job.dir.viewId}: timed out after ${JOB_TIMEOUT_MS}ms`
+                                )
+                            else
+                                console.error(
+                                    `${job.dir.viewId}: worker failed`,
+                                    err
+                                )
+                            return utils.resultError(
+                                job.dir.viewId,
+                                err,
+                                job.referenceEntry.resolvedQueryStr ||
+                                    job.queryStr
+                            )
+                        })
+                        .then((result: utils.VerifyResult) => {
+                            progress.recordResult(result)
+                            return result
+                        })
+                )
             )
-        )
+        } finally {
+            progress.stop()
+        }
 
         if (validationResults.length !== verifyJobs.length)
             // This is a sanity check that should never trigger
             throw `Ran ${verifyJobs.length} verify jobs but only got ${validationResults.length} results!`
 
-        utils.logIfVerbose(verbose, "Verifications completed")
+        const summary = utils.summariseVerifyResults(validationResults, {
+            suite: testSuite,
+            startedAt,
+            durationMs: Date.now() - startedAt.getTime(),
+        })
+        await utils.writeVerifyResults(testSuiteDir, summary)
 
-        const exitCode = utils.displayVerifyResultsAndGetExitCode(
-            validationResults,
-            verbose
-        )
+        utils.logVerifySummary(summary)
+
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
-        process.exit(exitCode)
+        process.exit(utils.verifyExitCode(summary))
     } catch (error) {
-        console.error("Encountered an error: ", error)
+        console.error(`${args.testSuite}: verify failed`, error)
+        // Record the failure too, so that "the suite never got to run" is
+        // distinguishable from "the suite ran and found nothing" by whoever
+        // reads the results file. Best-effort: if even this write fails there's
+        // nothing useful left to do but exit.
+        await utils
+            .writeVerifyRunFailure(
+                path.join(SVG_TESTER_REPO_PATH, args.testSuite),
+                args.testSuite as SvgTesterSuite,
+                error
+            )
+            .catch((writeError) => {
+                console.error(
+                    `${args.testSuite}: could not write the results file either`,
+                    writeError
+                )
+            })
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
-        process.exit(-1)
+        process.exit(1)
     }
-}
-
-async function main(args: ReturnType<typeof parseArguments>) {
-    const testSuite = args.testSuite as utils.TestSuite
-
-    await match(testSuite)
-        .with("graphers", () => verifyGraphers(args))
-        .with("grapher-views", () => verifyGraphers(args))
-        .with("mdims", () => verifyGraphers(args))
-        .with("thumbnails", () => verifyGraphers(args))
-        .with("explorers", () => verifyExplorers(args))
-        .exhaustive()
 }
 
 function parseArguments() {
@@ -276,7 +231,7 @@ function parseArguments() {
             type: "string",
             description: utils.TEST_SUITE_DESCRIPTION,
             default: "graphers",
-            choices: utils.TEST_SUITES,
+            choices: SVG_TESTER_SUITES,
         })
         .parserConfiguration({ "camel-case-expansion": true })
         .options({
@@ -327,11 +282,6 @@ function parseArguments() {
                     "Remove output files where we encounter errors, so errors are apparent in diffs",
                 default: false,
             },
-            verbose: {
-                type: "boolean",
-                description: "Verbose mode",
-                default: false,
-            },
         })
         .help()
         .alias("help", "h")
@@ -339,5 +289,4 @@ function parseArguments() {
         .parseSync()
 }
 
-const argv = parseArguments()
-void main(argv)
+void verifyGraphers(parseArguments())

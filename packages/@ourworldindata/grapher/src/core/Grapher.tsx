@@ -28,7 +28,6 @@ import {
     AnnotationFieldsInTitle,
     GrapherInterface,
     LegacyGrapherInterface,
-    DetailDictionary,
     GrapherTooltipAnchor,
     NarrativeChartInfo,
     ArchiveContext,
@@ -66,7 +65,6 @@ import { GrapherState } from "./GrapherState.js"
 
 declare global {
     interface Window {
-        details?: DetailDictionary
         admin?: any // TODO: use stricter type
     }
 }
@@ -688,7 +686,7 @@ export class Grapher extends React.Component<GrapherProps> {
             () => (this.debounceMode ? debouncedPushParams() : pushParams())
         )
 
-        autorun(() => (document.title = this.grapherState.currentTitle))
+        autorun(() => (document.title = this.grapherState.fullTitle))
     }
 
     @action.bound private setUpWindowResizeEventHandler(): void {

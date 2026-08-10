@@ -93,7 +93,7 @@ import { getPublicDonorNames } from "../db/model/Donor.js"
 import { getNarrativeChartsInfo } from "../db/model/NarrativeChart.js"
 import { getLinkedStaticVizByNames } from "../db/model/StaticViz.js"
 import {
-    getExplorerToMultiDimRedirects,
+    getExplorerRedirects,
     getGrapherToChartAndMultiDimRedirects,
 } from "./redirectsFromDb.js"
 import * as R from "remeda"
@@ -1155,7 +1155,10 @@ export class SiteBaker {
             JSON.stringify(Object.fromEntries(grapherRedirects), null, 2)
         )
 
-        const explorerRedirects = await getExplorerToMultiDimRedirects(knex, "")
+        // Per-slug explorer redirects, resolved by the explorers Cloudflare Pages
+        // Function (see functions/_common/redirectTools.ts). Each value is either
+        // a plain target slug or a query-param decision tree.
+        const explorerRedirects = await getExplorerRedirects(knex, "")
         await this.stageWrite(
             path.join(this.bakedSiteDir, `explorers/_explorerRedirects.json`),
             JSON.stringify(Object.fromEntries(explorerRedirects), null, 2)
