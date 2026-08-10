@@ -181,12 +181,6 @@ async function verifySvg(
     // same as `preparedNewSvg` - that's what wrote it in the first place
     // (renderSvgAndSave / commit_differences) - so the two compare byte for
     // byte.
-    //
-    // Note results.csv's md5 column can go stale independently of the .svg
-    // file itself (commit_differences in svg-tester.sh updates the file but
-    // never the CSV), which is why the fast-path check above frequently
-    // misses even when there's no real difference - don't rely on md5 for
-    // anything beyond that optimistic early-exit.
     const preparedReferenceSvg = await loadReferenceSvg(
         referenceSvgsPath,
         referenceSvgRecord
@@ -197,6 +191,10 @@ async function verifySvg(
     )
 
     if (firstDiffIndex === -1) {
+        // Same bytes, different md5 - results.csv has drifted from the references
+        console.warn(
+            `${newSvgRecord.viewId}: md5 differs but the svg is identical, run 'make svgtest.md5s'`
+        )
         return resultOk()
     }
     logIfVerbose(verbose, `${newSvgRecord.viewId} had differences`)
