@@ -667,7 +667,9 @@ export class SlopeChart
         return this.leftLabelsMaxLevel >= 4 && !!this.manager.showSeriesLabels
     }
 
-    private updateTooltipPosition(event: SVGMouseOrTouchEvent): void {
+    @action.bound private updateTooltipPosition(
+        event: SVGMouseOrTouchEvent
+    ): void {
         const ref = this.manager.base?.current
         if (ref) this.tooltipState.position = getRelativeMouse(ref, event)
     }
@@ -700,22 +702,29 @@ export class SlopeChart
             const toleranceSq = tolerance * tolerance
 
             if (closestSlope && distanceSq < toleranceSq) {
-                this.onSlopeMouseOver(closestSlope)
+                this.setHoveredSeries(closestSlope)
             } else {
-                this.onSlopeMouseLeave()
+                this.clearHoveredSeries()
             }
         })
     }
 
     private hoverTimer?: number
-    @action.bound onVerticalLabelMouseEnter(seriesName: SeriesName): void {
+    @action.bound private setHoveredSeries(series: SlopeChartSeries): void {
         this.chartState.focusArray.clear()
         clearTimeout(this.hoverTimer)
-        this.hoveredSeriesName = seriesName
+        this.hoveredSeriesName = series.seriesName
+        this.tooltipState.target = { series }
+    }
+
+    @action.bound onVerticalLabelMouseEnter(seriesName: SeriesName): void {
+        const series = this.series.find((s) => s.seriesName === seriesName)
+        if (series) this.setHoveredSeries(series)
     }
 
     @action.bound private clearHoveredSeries(): void {
         this.hoveredSeriesName = undefined
+        this.tooltipState.target = null
     }
 
     @action.bound private debouncedClearHoveredSeries(): void {
@@ -732,17 +741,6 @@ export class SlopeChart
         this.debouncedClearHoveredSeries()
     }
 
-    @action.bound onSlopeMouseOver(series: SlopeChartSeries): void {
-        this.chartState.focusArray.clear()
-        this.hoveredSeriesName = series.seriesName
-        this.tooltipState.target = { series }
-    }
-
-    @action.bound onSlopeMouseLeave(): void {
-        this.clearHoveredSeries()
-        this.tooltipState.target = null
-    }
-
     mouseFrame?: number
     @action.bound onMouseMove(event: SVGMouseOrTouchEvent): void {
         this.updateTooltipPosition(event)
@@ -752,7 +750,7 @@ export class SlopeChart
     @action.bound onMouseLeave(): void {
         if (this.mouseFrame !== undefined) cancelAnimationFrame(this.mouseFrame)
 
-        this.onSlopeMouseLeave()
+        this.clearHoveredSeries()
     }
 
     @computed private get renderUid(): number {
@@ -1138,14 +1136,19 @@ export class SlopeChart
 
     private renderInteractive(): React.ReactElement {
         return (
-            <>
+            <g
+                onMouseMove={this.updateTooltipPosition}
+                onTouchStart={this.updateTooltipPosition}
+                onTouchMove={this.updateTooltipPosition}
+            >
+                <rect {...this.bounds.toProps()} fillOpacity={0} />
                 {this.renderYAxis()}
                 {this.renderXAxis()}
                 {this.renderInteractiveSlopes()}
                 {this.renderVerticalLabels()}
                 {this.renderNoDataSection()}
                 {this.tooltip}
-            </>
+            </g>
         )
     }
 
