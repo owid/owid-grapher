@@ -2745,13 +2745,25 @@ export class GrapherState
         )
     }
 
+    @computed private get comparesTwoTimePoints(): boolean {
+        // Faceted maps show one map per timeline handle
+        if (this.isOnMapTab) return this.isFaceted
+
+        // Dumbbell charts compare two time points if not single-time
+        if (this.isOnDumbbellTab) return true
+
+        // Relative slope charts show the change over a period ("Change in X,
+        // 1990 to 2020"), not two snapshots side by side
+        return this.isOnSlopeChartTab && !this.isRelativeMode
+    }
+
     @computed private get timeTitleSuffix(): string | undefined {
         const { startTime, endTime, xOverrideTime } = this
 
         const timeColumn = this.table.timeColumn
-        if (timeColumn.isMissing) return undefined // Do not show year until data is loaded
 
-        const formatTime = (time: Time): string => timeColumn.formatTime(time)
+        // Do not show year until data is loaded
+        if (timeColumn.isMissing) return undefined
 
         // Add 'Time vs. Time' suffix for scatter plots with time override
         if (
@@ -2759,19 +2771,17 @@ export class GrapherState
             endTime !== undefined &&
             xOverrideTime !== undefined
         ) {
-            const times = _.sortBy([endTime, xOverrideTime])
-            return times.map((time) => formatTime(time)).join(" vs. ")
+            const [start, end] = _.sortBy([endTime, xOverrideTime])
+            return timeColumn.formatTimeComparison(start, end)
         }
 
         if (startTime === undefined || endTime === undefined) return undefined
 
-        if (startTime === endTime) return formatTime(startTime)
+        if (startTime === endTime) return timeColumn.formatTime(startTime)
 
-        // Dumbbell charts compare two points, so use "vs." instead of a range
-        if (this.isOnDumbbellTab)
-            return `${formatTime(startTime)} vs. ${formatTime(endTime)}`
-
-        return timeColumn.formatTimeRange(startTime, endTime)
+        return this.comparesTwoTimePoints
+            ? timeColumn.formatTimeComparison(startTime, endTime)
+            : timeColumn.formatTimeRange(startTime, endTime)
     }
 
     @computed get sourcesLine(): string {
