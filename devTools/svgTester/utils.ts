@@ -53,6 +53,9 @@ export const TEST_SUITE_DESCRIPTION =
 const CONFIG_FILENAME = "config.json"
 const RESULTS_FILENAME = "results.csv"
 
+// Variable data is shared by every suite
+export const VARIABLES_DIR = path.join(SVG_TESTER_REPO_PATH, "variables")
+
 // Reading one config.json per chart is ~4,500 tiny reads for the graphers suite.
 // Doing them serially costs half a second before a single svg is rendered; any
 // concurrency at all removes that, so this is kept low enough not to sit on a
@@ -361,18 +364,39 @@ async function writeToFile(data: unknown, filename: string) {
     await fs.writeFile(filename, json)
 }
 
+// Charts are dumped concurrently and share variables, so the same id is asked
+// for many times over. Keyed by the in-flight promise rather than by "does the
+// file exist yet" so two concurrent charts can't both start writing it.
+const variableWrites = new Map<number, Promise<void>>()
+
 async function writeVariableDataAndMetadataFiles(
-    variableIds: number[],
-    outDir: string
+    variableIds: number[]
 ): Promise<void> {
-    const writeVariablePromises = variableIds.map(async (variableId) => {
-        const dataPath = path.join(outDir, `${variableId}.data.json`)
-        const metadataPath = path.join(outDir, `${variableId}.metadata.json`)
+    await fs.ensureDir(VARIABLES_DIR)
 
-        const variableData = await getVariableData(variableId)
+    const writeVariablePromises = variableIds.map((variableId) => {
+        const inFlight = variableWrites.get(variableId)
+        if (inFlight) return inFlight
 
-        await writeToFile(variableData.data, dataPath)
-        await writeToFile(variableData.metadata, metadataPath)
+        const write = (async () => {
+            const variableData = await getVariableData(variableId)
+            await writeToFile(
+                variableData.data,
+                path.join(VARIABLES_DIR, `${variableId}.data.json`)
+            )
+            await writeToFile(
+                variableData.metadata,
+                path.join(VARIABLES_DIR, `${variableId}.metadata.json`)
+            )
+        })().catch((error) => {
+            // Don't let one transient failure poison every other chart that
+            // uses this variable - the next one to ask for it retries.
+            variableWrites.delete(variableId)
+            throw error
+        })
+
+        variableWrites.set(variableId, write)
+        return write
     })
 
     await Promise.allSettled(writeVariablePromises)
@@ -398,7 +422,7 @@ export async function saveGrapherSchemaAndData(
 
     await Promise.allSettled([
         promise1,
-        writeVariableDataAndMetadataFiles(variableIds, dataDir),
+        writeVariableDataAndMetadataFiles(variableIds),
     ])
 }
 
@@ -598,14 +622,13 @@ async function loadGrapherConfigAndData(
     const rawConfig = (await fs.readJson(configPath)) as GrapherInterface
     const config = migrateGrapherConfigToLatestVersion(rawConfig) // ensure the config is migrated to the latest schema version
 
-    // TODO: this bakes the same commonly used variables over and over again - deduplicate
-    // this on the variable level and bake those separately into a different directory.
-    // Tried an in-process per-worker-thread cache here; measured no difference (see PR
-    // description) because data loading isn't the bottleneck, so leaving this as-is.
     const variableIds = config.dimensions?.map((d) => d.variableId) ?? []
     const loadDataPromises = variableIds.map(async (variableId) => {
-        const dataPath = path.join(inputDir, `${variableId}.data.json`)
-        const metadataPath = path.join(inputDir, `${variableId}.metadata.json`)
+        const dataPath = path.join(VARIABLES_DIR, `${variableId}.data.json`)
+        const metadataPath = path.join(
+            VARIABLES_DIR,
+            `${variableId}.metadata.json`
+        )
         const dataFileSize = await stat(dataPath).then((stats) => stats.size)
         const data = (await fs.readJson(dataPath)) as OwidVariableMixedData
         const metadata = (await fs.readJson(
@@ -974,7 +997,16 @@ export function logVerifySummary(summary: SvgTesterVerifyRunSummary): void {
 
 export interface GrapherViewsManifest {
     slugs: string[]
-    dataDir: string // Relative path to the data directory (e.g., "../graphers/data")
+}
+
+// grapher-views and thumbnails have no data/ of their own - they re-test charts
+// the graphers suite already dumped.
+function dataDirForSuite(testSuite: SvgTesterSuite): string {
+    const suiteOwningTheData =
+        testSuite === "grapher-views" || testSuite === "thumbnails"
+            ? "graphers"
+            : testSuite
+    return path.join(SVG_TESTER_REPO_PATH, suiteOwningTheData, "data")
 }
 
 // Load manifest from a specific path
@@ -1002,10 +1034,10 @@ export async function loadManifestViewIds(
     manifestName?: string
 }> {
     const testSuiteDir = path.join(SVG_TESTER_REPO_PATH, testSuite)
-    const defaultDataDir = path.join(testSuiteDir, "data")
+    const dataDir = dataDirForSuite(testSuite)
 
-    // For grapher-views and thumbnails, load the manifest to resolve dataDir
-    // (these suites don't have their own data/ directory)
+    // grapher-views and thumbnails are defined by their manifest: without one
+    // they would fall back to every chart in the graphers suite.
     if (testSuite === "grapher-views" || testSuite === "thumbnails") {
         const defaultManifestName = "top.manifest.json"
         const manifestName = options.manifestName ?? defaultManifestName
@@ -1013,8 +1045,6 @@ export async function loadManifestViewIds(
         const manifest = await loadManifestFromPath(manifestPath)
 
         if (manifest) {
-            const dataDir = path.join(testSuiteDir, manifest.dataDir)
-
             // viewIds are explicitly provided
             if (options.targetViewIds) return { viewIds: null, dataDir }
 
@@ -1030,7 +1060,7 @@ export async function loadManifestViewIds(
 
     // For other test suites, skip manifest if viewIds are explicitly provided
     if (options.targetViewIds) {
-        return { viewIds: null, dataDir: defaultDataDir }
+        return { viewIds: null, dataDir }
     }
 
     // For other test suites, only load manifest if explicitly provided
@@ -1039,7 +1069,6 @@ export async function loadManifestViewIds(
         const manifest = await loadManifestFromPath(manifestPath)
 
         if (manifest) {
-            const dataDir = path.join(testSuiteDir, manifest.dataDir)
             return {
                 viewIds: manifest.slugs,
                 dataDir,
@@ -1050,6 +1079,6 @@ export async function loadManifestViewIds(
         }
     }
 
-    // Default: no manifest, use default data directory
-    return { viewIds: null, dataDir: defaultDataDir }
+    // Default: no manifest, every chart in the suite's data directory
+    return { viewIds: null, dataDir }
 }

@@ -162,10 +162,7 @@ async function main(args: ReturnType<typeof parseArguments>) {
                 const slugs = charts.map((chart) => chart.id)
 
                 // Write manifest file
-                const manifest: utils.GrapherViewsManifest = {
-                    slugs,
-                    dataDir: "../graphers/data",
-                }
+                const manifest: utils.GrapherViewsManifest = { slugs }
                 const manifestPath = path.join(
                     testSuiteDir,
                     "top.manifest.json"
@@ -198,10 +195,7 @@ async function main(args: ReturnType<typeof parseArguments>) {
                 const slugs = charts.map((chart) => chart.id)
 
                 // Write manifest file
-                const manifest: utils.GrapherViewsManifest = {
-                    slugs,
-                    dataDir: "../graphers/data",
-                }
+                const manifest: utils.GrapherViewsManifest = { slugs }
                 const manifestPath = path.join(
                     testSuiteDir,
                     "top.manifest.json"

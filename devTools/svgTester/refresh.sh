@@ -49,6 +49,9 @@ main() {
         && git clean -fdx \
         && cd -
 
+    echo "=> Clearing shared variable data"
+    rm -rf $SVGS_REPO/variables
+
     refresh graphers
     refresh grapher-views
     refresh mdims
