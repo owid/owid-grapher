@@ -12,7 +12,7 @@ snippet**. The production container is `GTM-N2D4V8S`.
 
 Staging bakes deliberately leave it unset so staging/crawler traffic doesn't
 pollute production GA4. (The related `CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE:
-"0"` override in `wrangler.jsonc` only silences the *server-side*
+"0"` override in `wrangler.jsonc` only silences the _server-side_
 `cf_function_invocation` events — it has nothing to do with the GTM snippet.)
 
 ## dataLayer vs. the data model, and what `_clear` does
@@ -32,7 +32,8 @@ background: [Simo Ahava, Two Simple Data Model Tricks](https://www.simoahava.com
 
 Also remember: pushing to the dataLayer sends nothing to GA4 by itself. GTM
 only forwards what its container is configured to forward (Data Layer Variable
-+ parameter/user-property mapping on the GA4 tags, set up in the GTM UI).
+
+- parameter/user-property mapping on the GA4 tags, set up in the GTM UI).
 
 Quick console checks on any page with GTM:
 
