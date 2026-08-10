@@ -6,7 +6,6 @@ import fs from "fs-extra"
 import path from "path"
 import workerpool from "workerpool"
 import * as _ from "lodash-es"
-import { match } from "ts-pattern"
 
 import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as utils from "./utils.js"
@@ -206,17 +205,6 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
     }
 }
 
-async function main(args: ReturnType<typeof parseArguments>) {
-    const testSuite = args.testSuite as SvgTesterSuite
-
-    await match(testSuite)
-        .with("graphers", () => verifyGraphers(args))
-        .with("grapher-views", () => verifyGraphers(args))
-        .with("mdims", () => verifyGraphers(args))
-        .with("thumbnails", () => verifyGraphers(args))
-        .exhaustive()
-}
-
 function parseArguments() {
     return yargs(hideBin(process.argv))
         .usage(
@@ -290,5 +278,4 @@ function parseArguments() {
         .parseSync()
 }
 
-const argv = parseArguments()
-void main(argv)
+void verifyGraphers(parseArguments())

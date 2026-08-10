@@ -1,7 +1,6 @@
 #! /usr/bin/env node
 
 import * as _ from "lodash-es"
-import { match } from "ts-pattern"
 import fs from "fs-extra"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
@@ -150,17 +149,6 @@ async function exportGraphers(args: ReturnType<typeof parseArguments>) {
     }
 }
 
-async function main(args: ReturnType<typeof parseArguments>) {
-    const testSuite = args.testSuite as SvgTesterSuite
-
-    await match(testSuite)
-        .with("graphers", () => exportGraphers(args))
-        .with("grapher-views", () => exportGraphers(args))
-        .with("mdims", () => exportGraphers(args))
-        .with("thumbnails", () => exportGraphers(args))
-        .exhaustive()
-}
-
 function parseArguments() {
     return yargs(hideBin(process.argv))
         .usage("Export Grapher SVG renderings and a summary CSV file")
@@ -232,5 +220,4 @@ function parseArguments() {
         .parseSync()
 }
 
-const argv = parseArguments()
-void main(argv)
+void exportGraphers(parseArguments())

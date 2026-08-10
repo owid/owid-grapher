@@ -21,7 +21,6 @@ import {
 } from "@ourworldindata/utils"
 import fs, { stat } from "fs-extra"
 import path from "path"
-import stream from "stream"
 import { execFileSync } from "child_process"
 import {
     buildSvgOutFilename,
@@ -30,7 +29,6 @@ import {
 import { getVariableData } from "../../db/model/Variable.js"
 
 import * as _ from "lodash-es"
-import util from "util"
 import { getHeapStatistics } from "v8"
 import { queryStringsByChartType } from "./chart-configurations.js"
 import * as d3 from "d3-dsv"
@@ -53,8 +51,6 @@ export const TEST_SUITE_DESCRIPTION =
 
 const CONFIG_FILENAME = "config.json"
 const RESULTS_FILENAME = "results.csv"
-
-export const finished = util.promisify(stream.finished) // (A)
 
 export interface ChartWithQueryStr {
     viewId: string
@@ -146,10 +142,8 @@ interface JobConfigAndData {
     totalDataFileSize: number
 }
 
-export function logIfVerbose(verbose: boolean, message: string, param?: any) {
-    if (verbose)
-        if (param) console.log(message, param)
-        else console.log(message)
+export function logIfVerbose(verbose: boolean, message: string) {
+    if (verbose) console.log(message)
 }
 
 async function verifySvg(
@@ -343,11 +337,6 @@ async function parseGrapherConfig(
     return grapherConfig
 }
 
-async function writeToFile(data: unknown, filename: string) {
-    const json = JSON.stringify(data, null, 2)
-    await fs.writeFile(filename, json)
-}
-
 async function writeVariableDataAndMetadataFiles(
     variableIds: number[],
     outDir: string
@@ -358,8 +347,8 @@ async function writeVariableDataAndMetadataFiles(
 
         const variableData = await getVariableData(variableId)
 
-        await writeToFile(variableData.data, dataPath)
-        await writeToFile(variableData.metadata, metadataPath)
+        await fs.writeJson(dataPath, variableData.data, { spaces: 2 })
+        await fs.writeJson(metadataPath, variableData.metadata, { spaces: 2 })
     })
 
     await Promise.allSettled(writeVariablePromises)
@@ -378,7 +367,7 @@ export async function saveGrapherSchemaAndData(
     const dataDir = path.join(outDir, jobDescription.id ?? "")
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir)
     const configPath = path.join(dataDir, CONFIG_FILENAME)
-    const promise1 = writeToFile(config, configPath)
+    const promise1 = fs.writeJson(configPath, config, { spaces: 2 })
 
     const grapher = initGrapherForSvgExport(config)
     const variableIds = grapher.grapherState.dimensions.map((d) => d.variableId)
@@ -557,11 +546,6 @@ export async function renderSvgAndSave(
     return Promise.resolve(svgRecord)
 }
 
-async function readJsonFile(filename: string): Promise<unknown> {
-    const content = await fs.readJson(filename)
-    return content
-}
-
 async function loadReferenceSvg(
     referenceDir: string,
     referenceSvgRecord: SvgRecord
@@ -587,7 +571,7 @@ async function loadGrapherConfigAndData(
         throw `Input directory does not exist ${inputDir}`
 
     const configPath = path.join(inputDir, CONFIG_FILENAME)
-    const rawConfig = (await readJsonFile(configPath)) as GrapherInterface
+    const rawConfig = (await fs.readJson(configPath)) as GrapherInterface
     const config = migrateGrapherConfigToLatestVersion(rawConfig) // ensure the config is migrated to the latest schema version
 
     // TODO: this bakes the same commonly used variables over and over again - deduplicate
@@ -599,8 +583,8 @@ async function loadGrapherConfigAndData(
         const dataPath = path.join(inputDir, `${variableId}.data.json`)
         const metadataPath = path.join(inputDir, `${variableId}.metadata.json`)
         const dataFileSize = await stat(dataPath).then((stats) => stats.size)
-        const data = (await readJsonFile(dataPath)) as OwidVariableMixedData
-        const metadata = (await readJsonFile(
+        const data = (await fs.readJson(dataPath)) as OwidVariableMixedData
+        const metadata = (await fs.readJson(
             metadataPath
         )) as OwidVariableWithSourceAndDimension
         return { data, metadata, dataFileSize }
