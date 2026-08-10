@@ -6,7 +6,7 @@ import {
 } from "@ourworldindata/core-table"
 import { GrapherState } from "@ourworldindata/grapher"
 import { OwidTableSlugs } from "@ourworldindata/types"
-import { rewriteJsonLdText } from "./grapherTools.js"
+import { resolveMdimViewQueryStr, rewriteJsonLdText } from "./grapherTools.js"
 
 describe("download", () => {
     const originalTable = SynthesizeGDPTable()
@@ -75,6 +75,30 @@ describe(rewriteJsonLdText, () => {
         expect(rewritten).not.toContain("&amp;")
     })
 
+    it("rewrites url and name for multi-dim views", () => {
+        const rewritten = rewriteJsonLdText(
+            JSON.stringify({
+                name: "Childhood vaccination coverage - by vaccine",
+                url: "https://ourworldindata.org/grapher/vaccination-coverage",
+            }),
+            new URL(
+                "https://ourworldindata.org/grapher/vaccination-coverage?metric=vaccinated&antigen=hepb_bd"
+            ),
+            {
+                viewQueryStr: "antigen=hepb_bd&metric=vaccinated",
+                viewTitle: "Newborns given a hepatitis B vaccine dose",
+            }
+        )
+
+        const data = JSON.parse(rewritten) as { name: string; url: string }
+        expect(data.name).toBe(
+            "Newborns given a hepatitis B vaccine dose | Childhood vaccination coverage - by vaccine"
+        )
+        expect(data.url).toBe(
+            "https://ourworldindata.org/grapher/vaccination-coverage?antigen=hepb_bd&metric=vaccinated"
+        )
+    })
+
     it("escapes inline-script breaking content in rewritten JSON-LD", () => {
         const rewritten = rewriteJsonLdText(
             JSON.stringify({
@@ -86,6 +110,33 @@ describe(rewriteJsonLdText, () => {
         expect(rewritten).toBe(
             '{"description":"\\u003c/script>\\u003cscript>alert(1)\\u003c/script>"}'
         )
+    })
+})
+
+describe(resolveMdimViewQueryStr, () => {
+    const defaultDimensions = { metric: "coverage", antigen: "dtp3" }
+
+    it("sorts dimension params and drops non-dimension params", () => {
+        expect(
+            resolveMdimViewQueryStr(
+                new URLSearchParams(
+                    "metric=vaccinated&antigen=hepb_bd&tab=map"
+                ),
+                defaultDimensions
+            )
+        ).toBe("antigen=hepb_bd&metric=vaccinated")
+    })
+
+    it("falls back to default choices for missing dimensions", () => {
+        expect(
+            resolveMdimViewQueryStr(
+                new URLSearchParams("metric=vaccinated"),
+                defaultDimensions
+            )
+        ).toBe("antigen=dtp3&metric=vaccinated")
+        expect(
+            resolveMdimViewQueryStr(new URLSearchParams(), defaultDimensions)
+        ).toBe("antigen=dtp3&metric=coverage")
     })
 })
 

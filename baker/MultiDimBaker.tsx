@@ -19,7 +19,12 @@ import {
     ArchivedPageVersion,
     DataPageRelatedResearch,
 } from "@ourworldindata/types"
-import { MultiDimDataPageConfig } from "@ourworldindata/utils"
+import {
+    merge,
+    MultiDimDataPageConfig,
+    multiDimDimensionsToViewQueryStr,
+} from "@ourworldindata/utils"
+import { GrapherState } from "@ourworldindata/grapher"
 import * as db from "../db/db.js"
 import { getImagesByFilenames } from "../db/model/Image.js"
 import { getRelatedResearchAndWritingForVariables } from "../db/model/Post.js"
@@ -31,7 +36,10 @@ import {
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
 import { deleteOldGraphers, getTagToSlugMap } from "./GrapherBakingUtils.js"
-import { getVariableMetadata } from "../db/model/Variable.js"
+import {
+    getVariableMetadata,
+    getVariableTitleMetadataByIds,
+} from "../db/model/Variable.js"
 import pMap from "p-map"
 import { fetchAndParseFaqs, getPrimaryTopic } from "./DatapageHelpers.js"
 import { getAllPublishedChartSlugs } from "../db/model/Chart.js"
@@ -43,7 +51,11 @@ import {
 import { MultiDimArchivalManifest } from "../serverUtils/archivalUtils.js"
 import { getLatestArchivedMultiDimPageVersions } from "../db/model/ArchivedMultiDimVersion.js"
 import { getDatapageDataV2 } from "../site/dataPage.js"
-import { getChartConfigByUuid } from "../db/model/ChartConfigs.js"
+import {
+    getChartConfigByUuid,
+    getChartConfigsByUuids,
+} from "../db/model/ChartConfigs.js"
+import { maybeAddChangeInPrefix } from "./algolia/utils/shared.js"
 
 const getLatestMultiDimArchivedVersionsIfEnabled = async (
     knex: db.KnexReadonlyTransaction,
@@ -115,6 +127,57 @@ const getFaqEntries = async (
     return { faqs }
 }
 
+/**
+ * Resolve the effective grapher title of every view, keyed by the view's
+ * canonical dimensions query string. The titles are baked into the page head
+ * so the Cloudflare Function can serve view-specific titles to search engines
+ * (see rewriteMetaTags). The title resolution mirrors the one used for Algolia
+ * mdim view records in baker/algolia/utils/mdimViews.ts.
+ */
+export async function getMultiDimViewTitles(
+    knex: db.KnexReadonlyTransaction,
+    config: MultiDimDataPageConfigEnriched
+): Promise<Record<string, string>> {
+    const chartConfigs = await getChartConfigsByUuids(
+        knex,
+        config.views.map((view) => view.fullConfigId)
+    )
+    const variableMetadataById = await getVariableTitleMetadataByIds(knex, [
+        ...getRelevantVariableIds(config),
+    ])
+
+    const viewTitles: Record<string, string> = {}
+    for (const view of config.views) {
+        const chartConfig = chartConfigs.get(view.fullConfigId)
+        const variableId = view.indicators.y?.[0]?.id
+        const variableMetadata = variableId
+            ? variableMetadataById.get(variableId)
+            : undefined
+        const metadata = merge(
+            {},
+            variableMetadata ?? {},
+            config.metadata ?? {},
+            view.metadata ?? {}
+        )
+        const shouldAddChangeInPrefix = chartConfig
+            ? new GrapherState(chartConfig).shouldAddChangeInPrefixToTitle
+            : false
+        const title = maybeAddChangeInPrefix(
+            metadata.presentation?.titlePublic ||
+                chartConfig?.title ||
+                metadata.display?.name ||
+                metadata.name ||
+                "",
+            shouldAddChangeInPrefix
+        )
+        if (title) {
+            viewTitles[multiDimDimensionsToViewQueryStr(view.dimensions)] =
+                title
+        }
+    }
+    return viewTitles
+}
+
 export async function renderMultiDimDataPageFromConfig({
     knex,
     slug,
@@ -159,6 +222,8 @@ export async function renderMultiDimDataPageFromConfig({
             faqs: mergedMetadata.presentation?.faqs ?? [],
         }
     }
+
+    const viewTitles = await getMultiDimViewTitles(knex, config)
 
     // PRIMARY TOPIC
     const primaryTopic = await getPrimaryTopic(knex, config.topicTags)
@@ -215,6 +280,7 @@ export async function renderMultiDimDataPageFromConfig({
         configObj: pageConfig.config,
         initialViewData,
         initialViewDimensions,
+        viewTitles,
         tagToSlugMap,
         faqEntries,
         primaryTopic,

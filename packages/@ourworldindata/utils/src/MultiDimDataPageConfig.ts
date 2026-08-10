@@ -228,6 +228,20 @@ export class MultiDimDataPageConfig {
     }
 }
 
+/**
+ * Serialize a view's dimension choices into a canonical query string, e.g.
+ * `antigen=hepb_bd&metric=vaccinated`. The parameters are sorted so the same
+ * view always produces the same string; this is used as the view's identifier
+ * in the sitemap, in canonical URLs, and in the baked view-title map.
+ */
+export function multiDimDimensionsToViewQueryStr(
+    dimensions: MultiDimDimensionChoices
+): string {
+    const searchParams = new URLSearchParams(dimensions)
+    searchParams.sort()
+    return searchParams.toString()
+}
+
 export const extractMultiDimChoicesFromSearchParams = (
     searchParams: URLSearchParams,
     config: MultiDimDataPageConfig

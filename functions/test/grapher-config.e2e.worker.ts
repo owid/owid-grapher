@@ -1,4 +1,5 @@
 import { onRequest as grapherOnRequest } from "../grapher/[slug].js"
+import { rewriteMetaTags } from "../_common/grapherTools.js"
 import type { Env } from "../_common/env.js"
 
 interface SeedR2Body {
@@ -6,6 +7,11 @@ interface SeedR2Body {
     key: string
     value: string
     contentType?: string
+}
+
+interface RewriteMetaTagsBody {
+    html: string
+    url: string
 }
 
 function getBucket(env: Env, bucket: "primary" | "fallback"): R2Bucket {
@@ -107,6 +113,26 @@ export default {
 
                 const object = await getBucket(env, bucket).head(key)
                 return Response.json({ exists: !!object })
+            }
+
+            if (
+                request.method === "POST" &&
+                url.pathname === "/__test__/rewrite-meta-tags"
+            ) {
+                const body: RewriteMetaTagsBody = await request.json()
+                const pageUrl = new URL(body.url)
+                const page = new Response(body.html, {
+                    headers: { "Content-Type": "text/html" },
+                })
+                const rewritten = rewriteMetaTags(
+                    pageUrl,
+                    `${pageUrl.pathname}.png?imType=og`,
+                    `${pageUrl.pathname}.png?imType=twitter`,
+                    page
+                )
+                return new Response(await rewritten.text(), {
+                    headers: { "Content-Type": "text/html" },
+                })
             }
 
             if (

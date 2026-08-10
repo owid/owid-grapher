@@ -3,7 +3,11 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
-import { dayjs, getEntitiesForProfile } from "@ourworldindata/utils"
+import {
+    dayjs,
+    getEntitiesForProfile,
+    multiDimDimensionsToViewQueryStr,
+} from "@ourworldindata/utils"
 import {
     DbPlainChart,
     DbPlainSlideshow,
@@ -198,11 +202,9 @@ export const makeSitemap = async (
                             return []
                         }
 
-                        const searchParams = new URLSearchParams(
+                        const queryStr = multiDimDimensionsToViewQueryStr(
                             view.dimensions
                         )
-                        searchParams.sort()
-                        const queryStr = searchParams.toString()
                         return [
                             {
                                 loc: urljoin(
