@@ -336,6 +336,14 @@ async function parseGrapherConfig(
     return grapherConfig
 }
 
+// Not fs.writeJson: that appends a final newline, which would rewrite every
+// dumped file in the svgs repo on the next refresh and shift totalDataFileSize
+// for every chart.
+async function writeToFile(data: unknown, filename: string) {
+    const json = JSON.stringify(data, null, 2)
+    await fs.writeFile(filename, json)
+}
+
 async function writeVariableDataAndMetadataFiles(
     variableIds: number[],
     outDir: string
@@ -346,8 +354,8 @@ async function writeVariableDataAndMetadataFiles(
 
         const variableData = await getVariableData(variableId)
 
-        await fs.writeJson(dataPath, variableData.data, { spaces: 2 })
-        await fs.writeJson(metadataPath, variableData.metadata, { spaces: 2 })
+        await writeToFile(variableData.data, dataPath)
+        await writeToFile(variableData.metadata, metadataPath)
     })
 
     await Promise.allSettled(writeVariablePromises)
@@ -366,7 +374,7 @@ export async function saveGrapherSchemaAndData(
     const dataDir = path.join(outDir, jobDescription.id ?? "")
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir)
     const configPath = path.join(dataDir, CONFIG_FILENAME)
-    const promise1 = fs.writeJson(configPath, config, { spaces: 2 })
+    const promise1 = writeToFile(config, configPath)
 
     const grapher = initGrapherForSvgExport(config)
     const variableIds = grapher.grapherState.dimensions.map((d) => d.variableId)

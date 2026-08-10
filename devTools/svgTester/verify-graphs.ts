@@ -149,9 +149,17 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
                         .exec("renderAndVerifySvg", [job])
                         .timeout(JOB_TIMEOUT_MS)
                         .catch((err: Error) => {
+                            // Only pool-level rejections reach here - a job that
+                            // throws is caught inside renderAndVerifySvg, which
+                            // logs it and resolves. So nothing else reports these.
                             if (err?.name === "TimeoutError")
                                 console.warn(
                                     `${job.dir.viewId}: timed out after ${JOB_TIMEOUT_MS}ms`
+                                )
+                            else
+                                console.error(
+                                    `${job.dir.viewId}: worker failed`,
+                                    err
                                 )
                             return utils.resultError(job.dir.viewId, err)
                         })
