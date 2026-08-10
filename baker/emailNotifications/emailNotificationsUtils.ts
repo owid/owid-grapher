@@ -2,8 +2,10 @@ import {
     EmailNotificationsContentType,
     EmailNotificationsFrequency,
     EmailNotificationsPreferencesTypeObject,
+    EnrichedBlockText,
     OwidEnrichedGdocBlock,
 } from "@ourworldindata/types"
+import { dayjs } from "@ourworldindata/utils"
 
 export interface EmailNotificationsSubscriber {
     userId: number
@@ -41,6 +43,10 @@ export interface NotificationEmailItem {
     topicLabel?: string
     authors: string[]
     excerpt?: string
+    // An article's authored `latest-feed-excerpt`, used in preference to the
+    // plain-text `excerpt` when set. Several paragraphs, so it's kept as
+    // blocks rather than a string.
+    excerptBlocks?: EnrichedBlockText[]
     thumbnailUrl?: string
     // Data insights carry their full content, rendered inline in the email.
     body?: OwidEnrichedGdocBlock[]
@@ -88,6 +94,19 @@ export function getWindowStart(
         subscriber.lastSentAt ??
         new Date(now.getTime() - FREQUENCY_WINDOW_MS[subscriber.frequency])
     )
+}
+
+/**
+ * The date shown in an item's kicker. Absolute rather than relative
+ * ("yesterday"), because an email may be read days after it was sent. The
+ * year is only shown when it differs from the send year, which happens in
+ * January for content from the tail of the previous year.
+ */
+export function formatItemDate(publishedAt: Date, now: Date): string {
+    const published = dayjs.utc(publishedAt)
+    const format =
+        published.year() === dayjs.utc(now).year() ? "MMMM D" : "MMMM D, YYYY"
+    return published.format(format)
 }
 
 export function filterItemsForSubscriber(

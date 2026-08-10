@@ -41,6 +41,7 @@ import { OrphanedArticlesIndexPage } from "./OrphanedArticlesIndexPage.js"
 import { GdocsMatchProps, GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsCoverageMatrixPage } from "./GdocsCoverageMatrixPage.js"
 import { CalloutFunctionsPage } from "./CalloutFunctionsPage.js"
+import { EmailNotificationsPreviewPage } from "./EmailNotificationsPreviewPage.js"
 import { GdocsStoreProvider } from "./GdocsStoreProvider.js"
 import { IndicatorChartEditorPage } from "./IndicatorChartEditorPage.js"
 import { CreateNarrativeChartEditorPage } from "./CreateNarrativeChartEditorPage.js"
@@ -425,6 +426,11 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/callout-functions"
                                     component={CalloutFunctionsPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/email-notifications-preview"
+                                    component={EmailNotificationsPreviewPage}
                                 />
                                 <Route
                                     path="/gdocs"
