@@ -134,6 +134,13 @@ export interface MultiDimDataPageProps {
     configObj: MultiDimDataPageConfigEnriched
     initialViewData?: MultiDimDataPageInitialViewData
     initialViewDimensions?: MultiDimDimensionChoices
+    /**
+     * Maps each view's canonical dimensions query string (see
+     * multiDimDimensionsToViewQueryStr) to the view's grapher title. Baked
+     * into the page head so the Cloudflare Function can serve view-specific
+     * page titles to search engines.
+     */
+    viewTitles?: Record<string, string>
     tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic

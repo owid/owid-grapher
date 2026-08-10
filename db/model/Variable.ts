@@ -21,6 +21,7 @@ import {
     OwidVariableDataMetadataDimensions,
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
+    OwidVariableDisplayConfigInterface,
     OwidVariableId,
     DimensionProperty,
     GrapherInterface,
@@ -422,6 +423,45 @@ export async function getDatapageIndicatorId(
     )
 
     return row?.variableId
+}
+
+/**
+ * Fetch the title-related metadata fields for the given variables, shaped like
+ * (a subset of) the variable metadata JSON so it can be merged with metadata
+ * overrides from multi-dim configs.
+ */
+export async function getVariableTitleMetadataByIds(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<
+    Map<
+        number,
+        {
+            name?: string
+            display?: OwidVariableDisplayConfigInterface
+            presentation?: { titlePublic?: string }
+        }
+    >
+> {
+    if (variableIds.length === 0) return new Map()
+    const rows: Pick<
+        DbRawVariable,
+        "id" | "name" | "titlePublic" | "display"
+    >[] = await knex(VariablesTableName)
+        .select("id", "name", "titlePublic", "display")
+        .whereIn("id", variableIds)
+    return new Map(
+        rows.map((row) => [
+            row.id,
+            {
+                name: row.name ?? undefined,
+                display: row.display ? JSON.parse(row.display) : undefined,
+                presentation: row.titlePublic
+                    ? { titlePublic: row.titlePublic }
+                    : undefined,
+            },
+        ])
+    )
 }
 
 // TODO: these are domain functions and should live somewhere else
