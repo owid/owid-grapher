@@ -45,12 +45,19 @@ import { hashMd5 } from "../../serverUtils/hash.js"
 import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as R from "remeda"
 import ReactDOMServer from "react-dom/server"
+import pMap from "p-map"
 
 export const TEST_SUITE_DESCRIPTION =
     "Test suite to run: 'graphers' for default Grapher views, 'grapher-views' for all views of a subset of Graphers. 'mdims' for all multi-dim views. 'thumbnails' for thumbnail versions (300x160) of all published graphers."
 
 const CONFIG_FILENAME = "config.json"
 const RESULTS_FILENAME = "results.csv"
+
+// Reading one config.json per chart is ~4,500 tiny reads for the graphers suite.
+// Doing them serially costs half a second before a single svg is rendered; any
+// concurrency at all removes that, so this is kept low enough not to sit on a
+// few thousand open file descriptors.
+const CONFIG_READ_CONCURRENCY = 32
 
 export interface ChartWithQueryStr {
     viewId: string
@@ -233,23 +240,24 @@ export async function findChartViewsToGenerate(
         shouldTestAllTabs?: boolean
     }
 ): Promise<ChartWithQueryStr[]> {
-    const chartsToProcess: ChartWithQueryStr[] = []
+    // pMap keeps the input order, so the job list stays deterministic
+    const chartsPerView = await pMap(
+        viewIds,
+        async (viewId): Promise<ChartWithQueryStr[]> => {
+            const grapherConfig = await parseGrapherConfig(viewId, { inDir })
 
-    for (const viewId of viewIds) {
-        const grapherConfig = await parseGrapherConfig(viewId, { inDir })
+            const chartType =
+                grapherConfig.chartTypes?.[0] ?? GRAPHER_CHART_TYPES.LineChart
 
-        const chartType =
-            grapherConfig.chartTypes?.[0] ?? GRAPHER_CHART_TYPES.LineChart
-
-        // If shouldTestAllTabs is true, generate entries for each available tab
-        if (options.shouldTestAllTabs) {
-            const availableTabs = getAvailableTabsFromConfig(grapherConfig)
-            for (const tab of availableTabs) {
-                const tabParam = mapGrapherTabNameToQueryParam(tab)
-                const queryStr = `tab=${tabParam}`
-                chartsToProcess.push({ viewId, chartType: tab, queryStr })
+            // If shouldTestAllTabs is true, generate entries for each available tab
+            if (options.shouldTestAllTabs) {
+                return getAvailableTabsFromConfig(grapherConfig).map((tab) => ({
+                    viewId,
+                    chartType: tab,
+                    queryStr: `tab=${mapGrapherTabNameToQueryParam(tab)}`,
+                }))
             }
-        } else {
+
             // Existing behavior for shouldTestAllViews and queryStr
             const queryStrings = options.shouldTestAllViews
                 ? queryStringsByChartType[chartType]
@@ -257,13 +265,16 @@ export async function findChartViewsToGenerate(
                   ? [options.queryStr]
                   : [undefined]
 
-            for (const queryStr of queryStrings) {
-                chartsToProcess.push({ viewId, chartType, queryStr })
-            }
-        }
-    }
+            return queryStrings.map((queryStr) => ({
+                viewId,
+                chartType,
+                queryStr,
+            }))
+        },
+        { concurrency: CONFIG_READ_CONCURRENCY }
+    )
 
-    return chartsToProcess
+    return chartsPerView.flat()
 }
 
 async function findValidViewIds(
