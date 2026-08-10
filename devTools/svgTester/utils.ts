@@ -452,6 +452,18 @@ function resolveFocusPlaceholderInQueryString(
     }
 }
 
+// Grapher internals log warnings (e.g. about ambiguous table joins) without any
+// hint of which chart triggered them, so tag every log line with the view being
+// rendered. Safe because a workerpool worker only ever renders one view at a time.
+let currentViewId: string | undefined
+for (const method of ["log", "warn", "error"] as const) {
+    const original = console[method].bind(console)
+    console[method] = (...args: unknown[]): void =>
+        currentViewId
+            ? original(`${currentViewId}:`, ...args)
+            : original(...args)
+}
+
 export async function renderSvg({
     dir,
     queryStr,
@@ -461,6 +473,7 @@ export async function renderSvg({
     queryStr?: string
     variant?: "default" | "thumbnail"
 }): Promise<[string, SvgRecord, string]> {
+    currentViewId = dir.viewId
     const configAndData = await loadGrapherConfigAndData(dir.configPath)
 
     // Graphers sometimes need to generate ids (incrementing numbers). For this
@@ -702,6 +715,7 @@ export async function renderAndVerifySvg({
     variant = "default",
     rmOnError,
 }: RenderJobDescription): Promise<VerifyResult> {
+    currentViewId = referenceEntry?.viewId
     try {
         if (!dir) throw "Dir was not defined"
         if (!referenceEntry) throw "ReferenceEntry was not defined"
@@ -732,7 +746,7 @@ export async function renderAndVerifySvg({
         }
         return Promise.resolve(validationResult)
     } catch (err) {
-        console.error(`${referenceEntry.viewId}: render failed`, err)
+        console.error("render failed", err)
         if (rmOnError) {
             const outPath = path.join(outDir, referenceEntry.svgFilename)
             await fs.unlink(outPath).catch(() => {
