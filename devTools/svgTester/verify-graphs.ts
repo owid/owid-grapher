@@ -161,7 +161,11 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
                                     `${job.dir.viewId}: worker failed`,
                                     err
                                 )
-                            return utils.resultError(job.dir.viewId, err)
+                            return utils.resultError(
+                                job.dir.viewId,
+                                err,
+                                job.queryStr
+                            )
                         })
                         .then((result: utils.VerifyResult) => {
                             progress.recordResult(result)

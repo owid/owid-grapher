@@ -125,6 +125,15 @@ export function SvgTesterSuitePage() {
                                             of{" "}
                                             {results.counts.total.toLocaleString()}{" "}
                                             charts rendered differently
+                                            {results.counts.errors > 0 && (
+                                                <span className="SvgTesterSuitePage__errors">
+                                                    {", "}
+                                                    <strong>
+                                                        {results.counts.errors.toLocaleString()}
+                                                    </strong>{" "}
+                                                    failed to render
+                                                </span>
+                                            )}
                                         </>
                                     ) : (
                                         status && DISPLAY_STATUS_LABELS[status]
@@ -146,15 +155,6 @@ export function SvgTesterSuitePage() {
                                         <>
                                             started{" "}
                                             <Timeago time={results.startedAt} />
-                                        </>
-                                    )}
-                                    {results.counts.errors > 0 && (
-                                        <>
-                                            {" · "}
-                                            <span className="SvgTesterSuitePage__errors">
-                                                {results.counts.errors.toLocaleString()}{" "}
-                                                failed to render
-                                            </span>
                                         </>
                                     )}
                                     {results.grapherCommit && (
@@ -327,31 +327,16 @@ function DifferenceCard({
                         #
                     </a>{" "}
                     <strong>{entry.viewId}</strong>
-                    {entry.queryStr && <code> ?{entry.queryStr}</code>}
+                    {entry.queryStr && (
+                        <SvgTesterQueryParams queryStr={entry.queryStr} />
+                    )}
                     {entry.chartType && (
                         <Tag className="SvgTesterSuitePage__chart-type">
                             {entry.chartType}
                         </Tag>
                     )}
                 </span>
-                <span className="SvgTesterSuitePage__links">
-                    Open chart:{" "}
-                    <a
-                        href={`${LIVE_URL}/grapher/${chartPath(entry)}`}
-                        target="_blank"
-                        rel="noopener"
-                    >
-                        production
-                    </a>{" "}
-                    ·{" "}
-                    <a
-                        href={`/grapher/${chartPath(entry)}`}
-                        target="_blank"
-                        rel="noopener"
-                    >
-                        this build
-                    </a>
-                </span>
+                <SvgTesterChartLinks entry={entry} />
             </header>
 
             <div
@@ -432,28 +417,23 @@ function SvgTesterErrors({ errors }: { errors: SvgTesterVerifyErrorEntry[] }) {
             </h2>
             <ul className="SvgTesterErrors__list">
                 {errors.map((error) => (
-                    <li key={error.viewId} className="SvgTesterErrors__item">
+                    <li
+                        key={anchorId(error.viewId, error.queryStr)}
+                        className="SvgTesterErrors__item"
+                    >
                         <div className="SvgTesterErrors__view">
-                            <a
-                                className="SvgTesterErrors__slug"
-                                href={`/grapher/${error.viewId}`}
-                                target="_blank"
-                                rel="noopener"
-                                title="Open this chart as this build renders it"
-                            >
-                                {error.viewId}
-                            </a>
-                            <span className="SvgTesterErrors__kind">
-                                {KIND_LABELS[error.kind]}
+                            <span className="SvgTesterErrors__identity">
+                                <strong>{error.viewId}</strong>
+                                {error.queryStr && (
+                                    <SvgTesterQueryParams
+                                        queryStr={error.queryStr}
+                                    />
+                                )}
+                                <span className="SvgTesterErrors__kind">
+                                    {KIND_LABELS[error.kind]}
+                                </span>
                             </span>
-                            <a
-                                className="SvgTesterErrors__production"
-                                href={`${LIVE_URL}/grapher/${error.viewId}`}
-                                target="_blank"
-                                rel="noopener"
-                            >
-                                production
-                            </a>
+                            <SvgTesterChartLinks entry={error} />
                         </div>
                         <pre className="SvgTesterErrors__message">
                             {error.message}
@@ -462,6 +442,43 @@ function SvgTesterErrors({ errors }: { errors: SvgTesterVerifyErrorEntry[] }) {
                 ))}
             </ul>
         </section>
+    )
+}
+
+function SvgTesterChartLinks({
+    entry,
+}: {
+    entry: { viewId: string; queryStr?: string }
+}) {
+    const path = chartPath(entry)
+
+    return (
+        <span className="SvgTesterChartLinks">
+            Open chart:{" "}
+            <a
+                href={`${LIVE_URL}/grapher/${path}`}
+                target="_blank"
+                rel="noopener"
+            >
+                production
+            </a>{" "}
+            ·{" "}
+            <a href={`/grapher/${path}`} target="_blank" rel="noopener">
+                this build
+            </a>
+        </span>
+    )
+}
+
+function SvgTesterQueryParams({ queryStr }: { queryStr: string }) {
+    const decoded = [...new URLSearchParams(queryStr)]
+        .map(([key, value]) => `${key}=${value}`)
+        .join("&")
+
+    return (
+        <code className="SvgTesterQueryParams" title={queryStr}>
+            ?{decoded}
+        </code>
     )
 }
 
@@ -611,7 +628,7 @@ function svgUrl(
     return `/admin/api/svgtester/${suite}/${kind}/${encodeURIComponent(entry.svgFilename)}`
 }
 
-function chartPath(entry: SvgTesterVerifyDifferenceEntry): string {
+function chartPath(entry: { viewId: string; queryStr?: string }): string {
     return entry.queryStr ? `${entry.viewId}?${entry.queryStr}` : entry.viewId
 }
 

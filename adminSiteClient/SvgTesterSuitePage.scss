@@ -121,6 +121,14 @@ $svg-tester-error-frame: #dda4a0;
     margin-left: 8px;
 }
 
+.SvgTesterQueryParams {
+    margin-left: 6px;
+}
+
+.SvgTesterErrors__item .SvgTesterQueryParams {
+    font-size: 12px;
+}
+
 .SvgTesterSuitePage__modes {
     border-bottom: 1px solid $gray-10;
     display: flex;
@@ -155,7 +163,7 @@ $svg-tester-error-frame: #dda4a0;
     }
 }
 
-.SvgTesterSuitePage__links {
+.SvgTesterChartLinks {
     color: $gray-70;
     font-size: 13px;
     white-space: nowrap;
@@ -187,17 +195,20 @@ $svg-tester-error-frame: #dda4a0;
     padding-top: 8px;
 }
 
-.SvgTesterErrors__slug {
-    font-weight: bold;
+.SvgTesterErrors__view {
+    align-items: baseline;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+}
+
+.SvgTesterErrors__identity {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .SvgTesterErrors__kind {
     color: $gray-70;
-    font-size: 12px;
-    margin-left: 8px;
-}
-
-.SvgTesterErrors__production {
     font-size: 12px;
     margin-left: 8px;
 }
