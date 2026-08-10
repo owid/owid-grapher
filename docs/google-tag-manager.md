@@ -31,9 +31,8 @@ events that omit it. Verified against the live container in
 background: [Simo Ahava, Two Simple Data Model Tricks](https://www.simoahava.com/analytics/two-simple-data-model-tricks/).
 
 Also remember: pushing to the dataLayer sends nothing to GA4 by itself. GTM
-only forwards what its container is configured to forward (Data Layer Variable
-
-- parameter/user-property mapping on the GA4 tags, set up in the GTM UI).
+only forwards what its container is configured to forward (a Data Layer Variable
+plus parameter/user-property mapping on the GA4 tags, set up in the GTM UI).
 
 Quick console checks on any page with GTM:
 
