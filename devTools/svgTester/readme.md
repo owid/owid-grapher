@@ -66,8 +66,8 @@ Use `export-graphs.ts` to generate reference SVG exports. The script uses parall
 The script works with test suites stored in the directory structure:
 
 ```
-{SVG_REPO_PATH}/{testSuite}/data/       # Input data (from dump-data.ts)
-{SVG_REPO_PATH}/{testSuite}/references/ # Output SVG references
+{SVG_TESTER_REPO_PATH}/{testSuite}/data/       # Input data (from dump-data.ts)
+{SVG_TESTER_REPO_PATH}/{testSuite}/references/ # Output SVG references
 ```
 
 This script does NOT require database access - it uses the dumped data files from `dump-data.ts`.
@@ -81,16 +81,17 @@ Use `verify-graphs.ts` to check SVG outputs against the reference export. The sc
 - Generates SVG output
 - Processes the SVG to remove non-deterministic elements
 - Compares the MD5 hash with the reference
-- If there's a difference, saves the new SVG to the differences directory and reports it
+- If there's a difference, saves the new SVG to the differences directory
 - Writes `verify-results.json` recording the outcome: status, counts, which views differed and which errored
-- Returns a non-zero exit code only if the tester itself malfunctioned (a render crashed, a reference was missing, a job timed out). Differences are the expected output and exit 0 — read `verify-results.json` to find out how many there were
+- Logs counts only — which views differed is in `verify-results.json`, the `differences/` directory, and the admin report at `/admin/svgtester/<suite>`
+- Exits 0 when everything matched, 2 when it found differences, and 1 if the tester itself malfunctioned (a render crashed, a reference was missing, a job timed out)
 
 The script works with test suites stored in the directory structure:
 
 ```
-{SVG_REPO_PATH}/{testSuite}/data/        # Input data (from dump-data.ts)
-{SVG_REPO_PATH}/{testSuite}/references/  # Reference SVGs (from export-graphs.ts)
-{SVG_REPO_PATH}/{testSuite}/differences/ # Output differences (if any)
+{SVG_TESTER_REPO_PATH}/{testSuite}/data/        # Input data (from dump-data.ts)
+{SVG_TESTER_REPO_PATH}/{testSuite}/references/  # Reference SVGs (from export-graphs.ts)
+{SVG_TESTER_REPO_PATH}/{testSuite}/differences/ # Output differences (if any)
 ```
 
 This script does NOT require database access - it uses the dumped data files from `dump-data.ts`.
@@ -109,7 +110,7 @@ This command:
 
 1. Resets `../owid-grapher-svgs` to `origin/master`
 2. Runs `verify-graphs.ts` against the reference SVGs
-3. Lists any differences it found; inspect them at `/admin/svgtester/graphers` in the admin
+3. Reports how many views differed; inspect them at `/admin/svgtester/graphers` in the admin
 
 ### Run all test suites
 
@@ -120,8 +121,21 @@ make svgtest.full
 This command:
 
 1. Resets `../owid-grapher-svgs` to `origin/master`
-2. Runs `export-graphs.ts` for all test suites (graphers, grapher-views, mdims, thumbnails)
-3. Lists any differences it found; inspect them at `/admin/svgtester/<suite>` in the admin
+2. Runs `verify-graphs.ts` for all test suites (graphers, grapher-views, mdims, thumbnails)
+3. Reports how many views differed per suite; inspect them at `/admin/svgtester/<suite>` in the admin
+
+### Resync the reference md5 index
+
+```bash
+make svgtest.md5s
+```
+
+`references/results.csv` indexes each reference SVG by md5, and verify uses it as a
+fast path: equal hash means no difference, skip reading the file. If reference SVGs
+are ever replaced without the CSV being rewritten, the index describes the previous
+references and the fast path stops working. This recomputes the column from the
+files on disk for all four suites; re-running it is a no-op. CI does this
+automatically whenever it commits new references.
 
 ## Refreshing Reference Data
 
