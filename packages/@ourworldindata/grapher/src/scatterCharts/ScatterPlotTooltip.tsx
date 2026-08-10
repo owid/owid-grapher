@@ -11,6 +11,7 @@ import {
     RequiredBy,
 } from "@ourworldindata/utils"
 import { ColumnTypeMap, CoreColumn } from "@ourworldindata/core-table"
+import { OwidColumnDef } from "@ourworldindata/types"
 import {
     Tooltip,
     TooltipState,
@@ -385,9 +386,13 @@ function hasSameVariableWithTimeOverride(
     // Check if there is exactly one point
     if (points.length !== 1) return false
 
-    // Check if both axes use the same dataset/variable
-    const isSameDataset = xColumn.def.datasetId === yColumn.def.datasetId
-    if (!isSameDataset) return false
+    // Check if both axes use the same variable
+    const xDef = xColumn.def as OwidColumnDef
+    const yDef = yColumn.def as OwidColumnDef
+    const isSameVariable =
+        xDef.owidVariableId !== undefined &&
+        xDef.owidVariableId === yDef.owidVariableId
+    if (!isSameVariable) return false
 
     // Check if the point has different time points for x and y
     const point = points[0]
