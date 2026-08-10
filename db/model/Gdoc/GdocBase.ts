@@ -1630,7 +1630,7 @@ export function makeMultiDimLinkedChart(
         title,
         dimensionSlugs: config.dimensions.map((d) => d.slug),
         resolvedUrl,
-        tags: [],
+        tags: config.topicTags ?? [],
         archivedPageVersion,
     }
 }
