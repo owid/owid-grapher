@@ -1034,10 +1034,16 @@ export class GrapherState
             return table.filterByTargetTimes(targetTimes)
         }
 
-        if (this.isOnDiscreteBarTab || this.isOnMarimekkoTab)
+        if (
+            this.isOnDiscreteBarTab ||
+            this.isOnMarimekkoTab ||
+            this.checkIsTwoColumnDumbbell(this.activeTab)
+        )
             return table.filterByTargetTimes([endTime])
 
-        if (this.isOnSlopeChartTab)
+        // Any dumbbell reaching this point plots a single indicator, and so
+        // compares it across the two times the timeline handles sit on
+        if (this.isOnSlopeChartTab || this.isOnDumbbellTab)
             return table.filterByTargetTimes([startTime, endTime])
 
         return table.filterByTimeRange(startTime, endTime)
@@ -1932,6 +1938,19 @@ export class GrapherState
         })
     }
 
+    /**
+     * Dumbbell charts plotting two indicators compare them at a single time,
+     * whereas those plotting one indicator compare it across two times
+     */
+    private readonly checkIsTwoColumnDumbbell = (
+        tabName: GrapherTabName
+    ): boolean => {
+        return (
+            tabName === GRAPHER_TAB_NAMES.Dumbbell &&
+            this.yColumnSlugs.length >= 2
+        )
+    }
+
     private readonly checkOnlySingleTimeSelectionPossible = (
         tabName: GrapherTabName
     ): boolean => {
@@ -1939,9 +1958,7 @@ export class GrapherState
             tabName === GRAPHER_TAB_NAMES.DiscreteBar ||
             tabName === GRAPHER_TAB_NAMES.StackedDiscreteBar ||
             tabName === GRAPHER_TAB_NAMES.Marimekko ||
-            // Dumbbell charts plotting two indicators use a single time
-            (tabName === GRAPHER_TAB_NAMES.Dumbbell &&
-                this.yColumnSlugs.length >= 2)
+            this.checkIsTwoColumnDumbbell(tabName)
         )
     }
 
@@ -1965,9 +1982,8 @@ export class GrapherState
         return (
             tabName === GRAPHER_TAB_NAMES.LineChart ||
             tabName === GRAPHER_TAB_NAMES.SlopeChart ||
-            // Dumbbell charts plotting a single indicator use a time range
             (tabName === GRAPHER_TAB_NAMES.Dumbbell &&
-                this.yColumnSlugs.length < 2)
+                !this.checkIsTwoColumnDumbbell(tabName))
         )
     }
 
