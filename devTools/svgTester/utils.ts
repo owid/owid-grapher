@@ -133,9 +133,6 @@ interface SvgDifference {
     queryStr?: string
     chartType: GrapherTabName | undefined
     svgFilename: string
-    startIndex: number
-    referenceSvgFragment: string
-    newSvgFragment: string
 }
 
 interface JobDirectory {
@@ -153,14 +150,6 @@ export function logIfVerbose(verbose: boolean, message: string, param?: any) {
     if (verbose)
         if (param) console.log(message, param)
         else console.log(message)
-}
-
-function findFirstDiffIndex(a: string, b: string): number {
-    let i = 0
-    while (i < a.length && i < b.length && a[i] === b[i]) i++
-    // No difference found even though hash was different
-    if (a.length === b.length && a.length === i) i = -1
-    return i
 }
 
 async function verifySvg(
@@ -185,12 +174,8 @@ async function verifySvg(
         referenceSvgsPath,
         referenceSvgRecord
     )
-    const firstDiffIndex = findFirstDiffIndex(
-        preparedNewSvg,
-        preparedReferenceSvg
-    )
 
-    if (firstDiffIndex === -1) {
+    if (preparedNewSvg === preparedReferenceSvg) {
         // Same bytes, different md5 - results.csv has drifted from the references
         console.warn(
             `${newSvgRecord.viewId}: md5 differs but the svg is identical, run 'make svgtest.md5s'`
@@ -203,15 +188,6 @@ async function verifySvg(
         queryStr: newSvgRecord.resolvedQueryStr ?? newSvgRecord.queryStr,
         chartType: newSvgRecord.chartType,
         svgFilename: newSvgRecord.svgFilename,
-        startIndex: firstDiffIndex,
-        referenceSvgFragment: preparedReferenceSvg.substring(
-            firstDiffIndex - 20,
-            firstDiffIndex + 20
-        ),
-        newSvgFragment: preparedNewSvg.substring(
-            firstDiffIndex - 20,
-            firstDiffIndex + 20
-        ),
     })
 }
 
@@ -638,17 +614,6 @@ async function loadGrapherConfigAndData(
     return { config, variableData, totalDataFileSize }
 }
 
-function logDifferencesToConsole(
-    svgRecord: SvgRecord,
-    validationResult: VerifyResultDifference
-): void {
-    console.warn(
-        `Svg was different for ${svgRecord.viewId}. The difference starts at character ${validationResult.difference.startIndex}.
-Reference: ${validationResult.difference.referenceSvgFragment}
-Current  : ${validationResult.difference.newSvgFragment}`
-    )
-}
-
 export async function parseReferenceCsv(
     referenceDir: string
 ): Promise<SvgRecord[]> {
@@ -732,20 +697,15 @@ export async function renderAndVerifySvg({
             referenceDir,
             verbose
         )
-        // verifySvg returns a Result type - if it is success we don't care any further
-        // but if there was an error then we write the svg and a message to stderr
-        switch (validationResult.kind) {
-            case "difference": {
-                if (verbose)
-                    logDifferencesToConsole(svgRecord, validationResult)
-                const pathFragments = path.parse(svgRecord.svgFilename)
-                const outputPath = path.join(
-                    outDir,
-                    pathFragments.name + pathFragments.ext
-                )
-                await fs.writeFile(outputPath, preparedSvg)
-                break
-            }
+        // Differing svgs get written out so the admin report can diff them
+        // against the reference
+        if (validationResult.kind === "difference") {
+            const pathFragments = path.parse(svgRecord.svgFilename)
+            const outputPath = path.join(
+                outDir,
+                pathFragments.name + pathFragments.ext
+            )
+            await fs.writeFile(outputPath, preparedSvg)
         }
         return Promise.resolve(validationResult)
     } catch (err) {
