@@ -15,6 +15,8 @@ const env = getAdminTestEnv()
 
 describe(validateChartSlug, { timeout: 10000 }, () => {
     it("returns true for a valid grapher URL", async () => {
+        // The slug lookup resolves through charts, so the config needs an
+        // owning chart to be a valid grapher URL.
         await insertTestChart(env.testKnex, {
             config: { isPublished: true, slug: "life-expectancy" },
             lastEditedByUserId: env.userId,
