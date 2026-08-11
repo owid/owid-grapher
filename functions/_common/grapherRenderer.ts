@@ -132,10 +132,7 @@ export async function renderSvgToPng(svg: string, options: ImageOptions) {
 
     // resvg-wasm only takes a scale factor, so compute it such that the
     // resulting png is options.pngWidth pixels wide
-    const svgWidth =
-        Number(/<svg[^>]*?\swidth="([\d.]+)"/.exec(svg)?.[1]) ||
-        options.svgWidth
-    const scale = options.pngWidth / svgWidth
+    const scale = options.pngWidth / options.svgWidth
 
     const pngLogger = new TimeLogger("png")
     const pngData = context.render(svg, scale)
