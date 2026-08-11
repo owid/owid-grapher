@@ -37,7 +37,7 @@ import {
     stripOuterParentheses,
     groupTocIntoSections,
     snapToIntervalStart,
-    findFinestTimeInterval,
+    findFinestCommonTimeInterval,
     diffDatesInDays,
     convertDateToDaysSinceEpoch,
     toStartOfDayUtc,
@@ -739,17 +739,41 @@ describe(snapToIntervalStart, () => {
     })
 })
 
-describe(findFinestTimeInterval, () => {
+describe(findFinestCommonTimeInterval, () => {
     it("picks the finest of the given intervals", () => {
         expect(
-            findFinestTimeInterval([TimeInterval.Month, TimeInterval.Day])
+            findFinestCommonTimeInterval([TimeInterval.Month, TimeInterval.Day])
         ).toEqual(TimeInterval.Day)
         expect(
-            findFinestTimeInterval([TimeInterval.Decade, TimeInterval.Year])
+            findFinestCommonTimeInterval([
+                TimeInterval.Decade,
+                TimeInterval.Year,
+            ])
         ).toEqual(TimeInterval.Year)
+        // Quarter starts are month starts, so months represent both
         expect(
-            findFinestTimeInterval([TimeInterval.Quarter, TimeInterval.Week])
-        ).toEqual(TimeInterval.Week)
+            findFinestCommonTimeInterval([
+                TimeInterval.Quarter,
+                TimeInterval.Month,
+            ])
+        ).toEqual(TimeInterval.Month)
+    })
+
+    it("falls back to days when weeks are mixed with longer periods", () => {
+        // ISO-week Mondays and month/quarter starts are different grids, so
+        // neither can represent the other's times
+        expect(
+            findFinestCommonTimeInterval([
+                TimeInterval.Quarter,
+                TimeInterval.Week,
+            ])
+        ).toEqual(TimeInterval.Day)
+        expect(
+            findFinestCommonTimeInterval([
+                TimeInterval.Week,
+                TimeInterval.Month,
+            ])
+        ).toEqual(TimeInterval.Day)
     })
 })
 

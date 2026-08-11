@@ -563,6 +563,19 @@ describe(legacyToOwidTableAndDimensions, () => {
             expect(table.timeColumn instanceof ColumnTypeMap.Year).toBeTruthy()
             expect(table.timeColumn instanceof ColumnTypeMap.Decade).toBeFalsy()
         })
+
+        it("falls back to 'day' when weeks and months are mixed, since neither grid contains the other", () => {
+            const weekly = makeVariable(6, TimeInterval.Week, [0, 7])
+            const table = buildTable([weekly, monthly])
+            expect(table.timeColumn instanceof ColumnTypeMap.Week).toBeFalsy()
+            expect(table.timeColumn instanceof ColumnTypeMap.Month).toBeFalsy()
+            // Every time stays addressable, so no two points share a label
+            const times = table.timeColumn.uniqValues as number[]
+            const labels = times.map((time) =>
+                table.timeColumn.formatValue(time)
+            )
+            expect(new Set(labels).size).toEqual(times.length)
+        })
     })
 
     describe("variables with mixed days & years", () => {

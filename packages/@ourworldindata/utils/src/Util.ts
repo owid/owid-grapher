@@ -264,14 +264,26 @@ export function isSubYearly(
     return SUB_YEARLY_TIME_INTERVALS.some((subYearly) => subYearly === interval)
 }
 
-/** The finest of the given intervals, e.g. `day` for day + month */
-export function findFinestTimeInterval(
+/**
+ * The finest interval that can represent every one of the given intervals'
+ * times, e.g. `day` for day + month. Weeks start on ISO Mondays and
+ * months/quarters on period starts, so those grids don't nest: a mix of them
+ * falls back to `day`, the grid that contains every other.
+ */
+export function findFinestCommonTimeInterval(
     intervals: TimeInterval[]
 ): TimeInterval {
-    return (
+    const finest =
         TIME_INTERVALS.find((interval) => intervals.includes(interval)) ??
         TimeInterval.Year
-    )
+    const mixesWeeksWithLongerPeriods =
+        finest === TimeInterval.Week &&
+        intervals.some(
+            (interval) =>
+                interval === TimeInterval.Month ||
+                interval === TimeInterval.Quarter
+        )
+    return mixesWeeksWithLongerPeriods ? TimeInterval.Day : finest
 }
 
 /**

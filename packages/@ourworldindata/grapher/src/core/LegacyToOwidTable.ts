@@ -37,7 +37,7 @@ import {
     OwidVariableType,
     getTimeInterval,
     isSubYearly,
-    findFinestTimeInterval,
+    findFinestCommonTimeInterval,
     snapToIntervalStart,
     dayjs,
 } from "@ourworldindata/utils"
@@ -597,8 +597,8 @@ const fullJoinTables = (
 }
 
 /**
- * Relabels the joined time column with the finest interval among the variable
- * tables that were joined into it
+ * Relabels the joined time column with the finest interval that can represent
+ * every joined variable table's times (each of their time columns knows its own)
  */
 const withFinestTimeColumnInterval = (
     joinedTable: OwidTable,
@@ -610,7 +610,7 @@ const withFinestTimeColumnInterval = (
     )
     if (new Set(intervals).size < 2) return joinedTable
     const timeColumnDef =
-        TIME_COLUMN_DEF_BY_INTERVAL[findFinestTimeInterval(intervals)]
+        TIME_COLUMN_DEF_BY_INTERVAL[findFinestCommonTimeInterval(intervals)]
     return joinedTable.updateDefs((def) =>
         def.slug === slug ? { ...def, ...timeColumnDef } : def
     )
