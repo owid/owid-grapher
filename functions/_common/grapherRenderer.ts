@@ -16,10 +16,7 @@ import {
     initGrapher,
 } from "./grapherTools.js"
 import { GRAPHER_TAB_NAMES } from "@ourworldindata/types"
-import {
-    fetchInputTableForConfig,
-    GRAPHER_BACKGROUND,
-} from "@ourworldindata/grapher"
+import { fetchInputTableForConfig } from "@ourworldindata/grapher"
 import ReactDOMServer from "react-dom/server"
 
 declare global {
@@ -133,14 +130,6 @@ function getResvgContext(): Promise<Context> {
 export async function renderSvgToPng(svg: string, options: ImageOptions) {
     const context = await getResvgContext()
 
-    // resvg-wasm renders onto a transparent canvas, and the static SVG doesn't
-    // include a background rect, so we have to paint one behind the chart
-    const svgTagEnd = svg.indexOf(">") + 1
-    const svgWithBackground =
-        svg.slice(0, svgTagEnd) +
-        `<rect width="100%" height="100%" fill="${GRAPHER_BACKGROUND}"/>` +
-        svg.slice(svgTagEnd)
-
     // resvg-wasm only takes a scale factor, so compute it such that the
     // resulting png is options.pngWidth pixels wide
     const svgWidth =
@@ -149,7 +138,7 @@ export async function renderSvgToPng(svg: string, options: ImageOptions) {
     const scale = options.pngWidth / svgWidth
 
     const pngLogger = new TimeLogger("png")
-    const pngData = context.render(svgWithBackground, scale)
+    const pngData = context.render(svg, scale)
     if (!pngData) throw new Error("Failed to render SVG to PNG")
     pngLogger.log("svg2png")
     return pngData
