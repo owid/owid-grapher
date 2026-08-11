@@ -1,8 +1,6 @@
-import { initWasm, Resvg, type ResvgRenderOptions } from "@resvg/resvg-wasm"
+import { newContext, type Context } from "resvg-wasm"
 import { TimeLogger } from "./timeLogger.js"
 import { png } from "itty-router"
-
-import resvg_wasm from "@resvg/resvg-wasm/index_bg.wasm"
 
 // these are regular .ttf files, but cloudflare needs the .bin extension to serve them correctly
 import LatoRegular from "../_common/fonts/LatoLatin-Regular.ttf.bin"
@@ -114,35 +112,45 @@ export const fetchAndRenderGrapher = async (
     }
 }
 
-let initialized = false
+let resvgContext: Promise<Context> | undefined
+
+function getResvgContext(): Promise<Context> {
+    resvgContext ??= newContext().then((context) => {
+        for (const fontData of [
+            LatoRegular,
+            LatoMedium,
+            LatoItalic,
+            LatoBold,
+            PlayfairSemiBold,
+        ]) {
+            context.registerFontData(new Uint8Array(fontData))
+        }
+        return context
+    })
+    return resvgContext
+}
 
 export async function renderSvgToPng(svg: string, options: ImageOptions) {
-    if (!initialized) {
-        await initWasm(resvg_wasm)
-        initialized = true
-    }
+    const context = await getResvgContext()
 
-    const opts: ResvgRenderOptions = {
-        fitTo: {
-            mode: "width",
-            value: options.pngWidth,
-        },
-        background: GRAPHER_BACKGROUND,
-        font: {
-            fontBuffers: [
-                LatoRegular,
-                LatoMedium,
-                LatoItalic,
-                LatoBold,
-                PlayfairSemiBold,
-            ].map((f) => new Uint8Array(f)),
-        },
-    }
+    // resvg-wasm renders onto a transparent canvas, and the static SVG doesn't
+    // include a background rect, so we have to paint one behind the chart
+    const svgTagEnd = svg.indexOf(">") + 1
+    const svgWithBackground =
+        svg.slice(0, svgTagEnd) +
+        `<rect width="100%" height="100%" fill="${GRAPHER_BACKGROUND}"/>` +
+        svg.slice(svgTagEnd)
+
+    // resvg-wasm only takes a scale factor, so compute it such that the
+    // resulting png is options.pngWidth pixels wide
+    const svgWidth =
+        Number(/<svg[^>]*?\swidth="([\d.]+)"/.exec(svg)?.[1]) ||
+        options.svgWidth
+    const scale = options.pngWidth / svgWidth
 
     const pngLogger = new TimeLogger("png")
-    const resvgJS = new Resvg(svg, opts)
-
-    const pngData = resvgJS.render().asPng()
+    const pngData = context.render(svgWithBackground, scale)
+    if (!pngData) throw new Error("Failed to render SVG to PNG")
     pngLogger.log("svg2png")
     return pngData
 }

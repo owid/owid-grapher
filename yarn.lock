@@ -3734,13 +3734,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@resvg/resvg-wasm@npm:^2.6.2":
-  version: 2.6.2
-  resolution: "@resvg/resvg-wasm@npm:2.6.2"
-  checksum: 10/11f9619e65de2248b1cd5e241cc71848fff7e3eb83f57c3fa36091956daa0146b804b5cf105d4804b77099062f89be09105271e57b67b390cd589f49f097aba4
-  languageName: node
-  linkType: hard
-
 "@rmp135/sql-ts@npm:^2.1.0":
   version: 2.1.0
   resolution: "@rmp135/sql-ts@npm:2.1.0"
@@ -11144,7 +11137,6 @@ __metadata:
     "@ourworldindata/grapher": "workspace:^"
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
-    "@resvg/resvg-wasm": "npm:^2.6.2"
     "@sentry/cloudflare": "npm:^10.62.0"
     "@types/lodash-es": "npm:^4.17.12"
     "@types/react": "npm:^19.2.14"
@@ -11158,6 +11150,7 @@ __metadata:
     react: "npm:^19.2.4"
     react-dom: "npm:^19.2.4"
     remeda: "npm:^2.32.0"
+    resvg-wasm: "patch:resvg-wasm@npm%3A0.5.0#~/.yarn/patches/resvg-wasm-npm-0.5.0-50778c75bc.patch"
     stripe: "npm:^14.20.0"
     ts-pattern: "npm:^5.8.0"
     uuid: "npm:^14.0.0"
@@ -12462,6 +12455,20 @@ __metadata:
     onetime: "npm:^7.0.0"
     signal-exit: "npm:^4.1.0"
   checksum: 10/838dd54e458d89cfbc1a923b343c1b0f170a04100b4ce1733e97531842d7b440463967e521216e8ab6c6f8e89df877acc7b7f4c18ec76e99fb9bf5a60d358d2c
+  languageName: node
+  linkType: hard
+
+"resvg-wasm@npm:0.5.0":
+  version: 0.5.0
+  resolution: "resvg-wasm@npm:0.5.0"
+  checksum: 10/ead296562225c0efc504bce5fa4545fa7cb5e053dfb0adcbc307bb071af8d910b38d9dada7825480e1e3c639d26e0b0adb4a29476df03a15a05979235c284589
+  languageName: node
+  linkType: hard
+
+"resvg-wasm@patch:resvg-wasm@npm%3A0.5.0#~/.yarn/patches/resvg-wasm-npm-0.5.0-50778c75bc.patch":
+  version: 0.5.0
+  resolution: "resvg-wasm@patch:resvg-wasm@npm%3A0.5.0#~/.yarn/patches/resvg-wasm-npm-0.5.0-50778c75bc.patch::version=0.5.0&hash=d98a5f"
+  checksum: 10/53cc6fd4da847250a977be9040f469759699449f0ab40fba5f02c49d483a1fb79631f19e90e459ed668ab7447bd21a778446c3632cdb08519bb728d61695d100
   languageName: node
   linkType: hard
 
