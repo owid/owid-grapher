@@ -34,6 +34,14 @@ Also remember: pushing to the dataLayer sends nothing to GA4 by itself. GTM
 only forwards what its container is configured to forward (a Data Layer Variable
 plus parameter/user-property mapping on the GA4 tags, set up in the GTM UI).
 
+That mapping step is also where consent gating belongs. Consent defaults to
+denied (`site/Head.tsx`), and GA4 still sends cookieless pings in that state, so
+anything mapped onto a tag rides along on pre-consent hits unless the tag has an
+additional consent check requiring `analytics_storage`. Decide that per
+parameter when wiring it up in the GTM UI — the dataLayer push itself can't
+express it. For `asn`/`as_org` we chose not to gate:
+[PR #6791](https://github.com/owid/owid-grapher/pull/6791#discussion_r3751166526).
+
 Quick console checks on any page with GTM:
 
 ```js
