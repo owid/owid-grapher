@@ -37,6 +37,7 @@ import {
     OwidVariableType,
     getTimeInterval,
     isSubYearly,
+    findFinestTimeInterval,
     snapToIntervalStart,
     dayjs,
 } from "@ourworldindata/utils"
@@ -337,6 +338,20 @@ export const legacyToOwidTableAndDimensions = (
             )
     }
 
+    // A bucket can hold several intervals (e.g. a daily and a monthly indicator
+    // both live in the day bucket), but the joined table has a single time
+    // column, which should be tagged with the finest of them
+    joinedVariablesTable = withFinestTimeColumnInterval(
+        joinedVariablesTable,
+        variableTablesToJoinByDay,
+        OwidTableSlugs.Day
+    )
+    joinedVariablesTable = withFinestTimeColumnInterval(
+        joinedVariablesTable,
+        variableTablesToJoinByYear,
+        OwidTableSlugs.Year
+    )
+
     // Inject a common "time" column that is used as the main time column for the table
     // e.g. for the timeline.
     for (const dayOrYearSlug of [OwidTableSlugs.Day, OwidTableSlugs.Year]) {
@@ -578,6 +593,26 @@ const fullJoinTables = (
     return new OwidTable(
         [],
         defsToAddPerTable.flatMap((defs) => defs)
+    )
+}
+
+/**
+ * Relabels the joined time column with the finest interval among the variable
+ * tables that were joined into it
+ */
+const withFinestTimeColumnInterval = (
+    joinedTable: OwidTable,
+    variableTables: OwidTable[],
+    slug: OwidTableSlugs.Day | OwidTableSlugs.Year
+): OwidTable => {
+    const intervals = variableTables.map(
+        (table) => table.get(slug).timeInterval
+    )
+    if (new Set(intervals).size < 2) return joinedTable
+    const timeColumnDef =
+        TIME_COLUMN_DEF_BY_INTERVAL[findFinestTimeInterval(intervals)]
+    return joinedTable.updateDefs((def) =>
+        def.slug === slug ? { ...def, ...timeColumnDef } : def
     )
 }
 

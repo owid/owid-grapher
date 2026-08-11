@@ -37,6 +37,7 @@ import {
     stripOuterParentheses,
     groupTocIntoSections,
     snapToIntervalStart,
+    findFinestTimeInterval,
     diffDatesInDays,
     convertDateToDaysSinceEpoch,
     toStartOfDayUtc,
@@ -697,6 +698,7 @@ describe(withUniformSpacing, () => {
         expect(withUniformSpacing([7, 12, 17])).toEqual([7, 12, 17])
     })
 })
+
 describe(snapToIntervalStart, () => {
     const day = (iso: string): number =>
         diffDatesInDays(dayjs.utc(iso), epochDate())
@@ -734,6 +736,20 @@ describe(snapToIntervalStart, () => {
         ).toEqual(day("2021-03-15"))
         expect(snapToIntervalStart(2021, TimeInterval.Year)).toEqual(2021)
         expect(snapToIntervalStart(2025, TimeInterval.Decade)).toEqual(2025)
+    })
+})
+
+describe(findFinestTimeInterval, () => {
+    it("picks the finest of the given intervals", () => {
+        expect(
+            findFinestTimeInterval([TimeInterval.Month, TimeInterval.Day])
+        ).toEqual(TimeInterval.Day)
+        expect(
+            findFinestTimeInterval([TimeInterval.Decade, TimeInterval.Year])
+        ).toEqual(TimeInterval.Year)
+        expect(
+            findFinestTimeInterval([TimeInterval.Quarter, TimeInterval.Week])
+        ).toEqual(TimeInterval.Week)
     })
 })
 

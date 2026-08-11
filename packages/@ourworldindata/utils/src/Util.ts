@@ -54,7 +54,10 @@ import {
     RESEARCH_AND_WRITING_DEFAULT_HEADING,
     CHRONOLOGICAL_INDEX_TYPES,
     LATEST_FEED_TYPES,
+    SUB_YEARLY_TIME_INTERVALS,
+    TIME_INTERVALS,
     TimeInterval,
+    type SubYearlyTimeInterval,
     type OwidVariableDisplayConfigInterface,
 } from "@ourworldindata/types"
 import { Point, PointVector } from "./PointVector.js"
@@ -251,28 +254,31 @@ export function getTimeInterval(
     return display?.timeInterval ?? TimeInterval.Year
 }
 
-const SUB_YEARLY_INTERVALS = new Set<TimeInterval>([
-    TimeInterval.Day,
-    TimeInterval.Week,
-    TimeInterval.Month,
-    TimeInterval.Quarter,
-])
-
 /**
  * Whether the interval is finer than a year and therefore encoded as
  * days-since-epoch (day/week/month/quarter)
  */
 export function isSubYearly(
     interval: TimeInterval
-): interval is Exclude<TimeInterval, TimeInterval.Year | TimeInterval.Decade> {
-    return SUB_YEARLY_INTERVALS.has(interval)
+): interval is SubYearlyTimeInterval {
+    return SUB_YEARLY_TIME_INTERVALS.some((subYearly) => subYearly === interval)
+}
+
+/** The finest of the given intervals, e.g. `day` for day + month */
+export function findFinestTimeInterval(
+    intervals: TimeInterval[]
+): TimeInterval {
+    return (
+        TIME_INTERVALS.find((interval) => intervals.includes(interval)) ??
+        TimeInterval.Year
+    )
 }
 
 /**
  * Snap a time to the start of its interval, so indicators that pick different
  * representative days for the same period still align: month → first of the
  * month, quarter → first of the quarter, week → the ISO-week Monday. Day and
- * year are their own start and are returned unchanged.
+ * year are returned unchanged.
  */
 export function snapToIntervalStart(
     time: number,
