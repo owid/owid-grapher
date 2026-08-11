@@ -2410,12 +2410,6 @@ function parseExpander(raw: RawBlockExpander): EnrichedBlockExpander {
     }
 }
 
-// Blocks allowed in a key insight's asset column. It holds one visual filling
-// one slot, so layout containers (side-by-side, sticky-left/right, gray-section)
-// are deliberately excluded: their grid classes are written for the full
-// 12-column page grid, and the asset column is 7 of those columns, so they
-// would silently lay out wrong rather than fail. Extend this list when a new
-// block type genuinely works standing alone in the column.
 const KEY_INSIGHT_ASSET_BLOCK_TYPES = new Set([
     "bespoke-component",
     "chart",
