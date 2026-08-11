@@ -164,10 +164,6 @@ const layouts: { [key in Container]: Layouts} = {
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-md-cols-12 grid-md-cols-12",
     },
     ["key-insight-asset"]: {
-        // The asset column is already sized by its wrapper, so blocks inside it
-        // just fill the width they're given - no grid placement of their own.
-        // Safe because KEY_INSIGHT_ASSET_BLOCK_TYPES in rawToEnriched.ts rejects
-        // layout containers, which would need the page grid this omits.
         ["default"]: "",
     },
     ["latest-announcement"]: {

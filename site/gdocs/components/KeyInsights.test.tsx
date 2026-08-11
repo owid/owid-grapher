@@ -112,9 +112,6 @@ it("renders an asset block in the asset column", () => {
                 asset: [
                     {
                         type: "bespoke-component",
-                        // Deliberately not in the registry, so the component
-                        // renders its error state synchronously rather than
-                        // trying to fetch a bundle.
                         bundle: "not-a-real-bundle",
                         size: BlockSize.Wide,
                         config: {},
