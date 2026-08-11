@@ -4,7 +4,6 @@ import {
     cssFontFamily,
     excludeUndefined,
     imemo,
-    omitUndefinedValues,
     Bounds,
     FontFamily,
 } from "@ourworldindata/utils"
@@ -327,25 +326,23 @@ export class IRFragment extends IRElement {
             </span>
         )
     }
-    /** The fragment's style overrides, as SVG-flavoured CSS */
-    @imemo get svgStyle(): React.CSSProperties {
-        const { fontSize, fontFamily, fontWeight, color } = this.styleDelta
-        return omitUndefinedValues({
-            fontSize,
-            fontWeight,
-            fontFamily: fontFamily ? cssFontFamily(fontFamily) : undefined,
-            fill: color,
-        })
-    }
     toSVG(key?: React.Key): React.ReactElement {
         const children = this.children.map((child, i) => child.toSVG(i))
         if (_.isEmpty(this.styleDelta) && !this.inlineGap)
             return <React.Fragment key={key}>{children}</React.Fragment>
+        const { fontSize, fontFamily, fontWeight, color } = this.styleDelta
         return (
             <tspan
                 key={key}
                 dx={this.inlineGap || undefined}
-                style={this.svgStyle}
+                style={{
+                    fontSize,
+                    fontWeight,
+                    fontFamily: fontFamily
+                        ? cssFontFamily(fontFamily)
+                        : undefined,
+                    fill: color,
+                }}
             >
                 {children}
             </tspan>
