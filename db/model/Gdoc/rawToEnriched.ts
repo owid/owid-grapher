@@ -2859,9 +2859,13 @@ function parseExplorerTiles(
     const parsedExplorerUrls: { url: string }[] = []
     for (const explorer of raw.value.explorers) {
         const url = extractUrl(explorer.url)
-        if (getLinkType(url) !== "explorer") {
+        // Multi-dim data pages live under /grapher/, so grapher-type URLs are
+        // accepted here; GdocBase link validation checks that they actually
+        // point to a multi-dim and not a regular chart
+        const linkType = getLinkType(url)
+        if (linkType !== "explorer" && linkType !== "grapher") {
             return createError({
-                message: `Explorer tiles contains a non-explorer URL: ${url}`,
+                message: `Explorer tiles can only link to explorers or multi-dim data pages, but got: ${url}`,
             })
         }
         parsedExplorerUrls.push({ url })
