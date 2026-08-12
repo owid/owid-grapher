@@ -225,13 +225,13 @@ getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/grapher/by-uuid/:uuid.config.json",
     async (req, res, trx) => {
-        const chartRow = await db.knexRawFirst<Pick<DbRawChartConfig, "full">>(
-            trx,
-            "SELECT full FROM chart_configs WHERE id = ?",
-            [req.params.uuid]
-        )
+        const chartRow = await db.knexRawFirst<
+            Pick<DbRawChartConfig, "config">
+        >(trx, "SELECT config FROM chart_configs WHERE id = ?", [
+            req.params.uuid,
+        ])
         if (!chartRow) throw new JsonError("No such chart", 404)
-        const config = parseChartConfig(chartRow.full)
+        const config = parseChartConfig(chartRow.config)
         res.json(config)
     }
 )
@@ -262,12 +262,12 @@ getPlainRouteWithROTransaction(
                 searchParams
             )
             const configRow = await db.knexRawFirst<
-                Pick<DbRawChartConfig, "full">
-            >(trx, "SELECT full FROM chart_configs WHERE id = ?", [
+                Pick<DbRawChartConfig, "config">
+            >(trx, "SELECT config FROM chart_configs WHERE id = ?", [
                 view.fullConfigId,
             ])
             if (configRow) {
-                res.json(parseChartConfig(configRow.full))
+                res.json(parseChartConfig(configRow.config))
                 return
             }
         }

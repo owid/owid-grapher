@@ -76,7 +76,7 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
             .testKnex(ChartConfigsTableName)
             .where({ id: chartConfigId })
             .first()
-        return JSON.parse(row.full)
+        return JSON.parse(row.config)
     }
 
     beforeEach(async () => {

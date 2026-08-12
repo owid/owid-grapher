@@ -89,11 +89,11 @@ async function getAllPublishedMultiDimViews(
 
     // Fetch all chart configs
     const rows = await trx<DbRawChartConfig>(ChartConfigsTableName)
-        .select("id", "full")
+        .select("id", "config")
         .whereIn("id", [...chartConfigIds])
 
     const chartConfigsById = new Map(
-        rows.map((row) => [row.id, parseChartConfig(row.full)])
+        rows.map((row) => [row.id, parseChartConfig(row.config)])
     )
 
     // Create a config for each view with slug + viewId as the ID

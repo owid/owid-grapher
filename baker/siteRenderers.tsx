@@ -577,11 +577,11 @@ export const renderExplorerPage = async (
     let grapherConfigRows: ChartRow[] = []
     if (requiredGrapherIds.length)
         grapherConfigRows = await knexRaw<
-            Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
+            Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["config"] }
         >(
             knex,
             `-- sql
-                SELECT c.id, cc.full as config
+                SELECT c.id, cc.config as config
                 FROM charts c
                 JOIN chart_configs cc ON c.configId=cc.id
                 WHERE c.id IN (?)
