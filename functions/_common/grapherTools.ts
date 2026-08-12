@@ -413,6 +413,7 @@ export function rewriteMetaTags(
     // If we fail to capture the origin, we end up with relative image URLs, which should also be okay.
     let origin = ""
     let mdimViewQueryStr: string | undefined = undefined
+    let mdimHasDimensionParams = false
     let mdimViewTitle: string | undefined = undefined
 
     const thumbnailUrl = `${url.pathname}.png${url.search}`
@@ -420,6 +421,7 @@ export function rewriteMetaTags(
 
     // Buffers for collecting text across chunks
     let jsonLdText = ""
+    let viewTitlesText = ""
     let titleText = ""
 
     const rewriter = new HTMLRewriter()
@@ -459,25 +461,35 @@ export function rewriteMetaTags(
                     url.searchParams,
                     mdimDimensionsObj
                 )
-
-                // Only serve a view-specific title when the URL explicitly
-                // selects a view; the bare mdim URL keeps the generic title.
-                const hasDimensionParams = Object.keys(mdimDimensionsObj).some(
+                mdimHasDimensionParams = Object.keys(mdimDimensionsObj).some(
                     (dim) => url.searchParams.has(dim)
                 )
-                const titlesAttr = element.getAttribute(
-                    "data-owid-mdim-view-titles"
-                )
-                if (hasDimensionParams && titlesAttr) {
+            },
+        })
+        .on("script[data-owid-mdim-view-titles]", {
+            // The view-title map is baked into the page in a script tag that
+            // appears before <title> (see MultiDimDataPage), so the title is
+            // known by the time the <title> handler below runs.
+            element: (element) => {
+                viewTitlesText = ""
+                element.onEndTag(() => {
+                    // Only serve a view-specific title when the URL explicitly
+                    // selects a view; the bare mdim URL keeps the generic
+                    // title.
+                    if (!mdimHasDimensionParams || !mdimViewQueryStr) return
                     try {
-                        const viewTitles = JSON.parse(
-                            decodeReactEscapedAttribute(titlesAttr)
-                        ) as Record<string, string>
+                        const viewTitles = JSON.parse(viewTitlesText) as Record<
+                            string,
+                            string
+                        >
                         mdimViewTitle = viewTitles[mdimViewQueryStr]
                     } catch (e) {
                         console.error("Error parsing view titles JSON", e)
                     }
-                }
+                })
+            },
+            text: (text) => {
+                viewTitlesText += text.text
             },
         })
         .on("title", {
