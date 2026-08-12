@@ -20,6 +20,7 @@ import {
     getAllChartsForIndicator,
     getLatestVariableIdsByCatalogPath,
     getGrapherConfigsForVariable,
+    mergeVariableChartConfigs,
     getMergedGrapherConfigForVariable,
     searchVariables,
     updateAllChartsThatInheritFromIndicator,
@@ -39,7 +40,6 @@ import {
     oldChartFieldList,
     assignTagsForCharts,
 } from "../../db/model/Chart.js"
-import { updateExistingFullConfig } from "../../db/model/ChartConfigs.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import { updateGrapherConfigsInR2 } from "./charts.js"
@@ -215,7 +215,7 @@ export async function getVariablesGrapherConfigETLPatchConfigJson(
     if (!variable) {
         throw new JsonError(`Variable with id ${variableId} not found`, 500)
     }
-    return variable.etl?.patchConfig ?? {}
+    return variable.etl?.config ?? {}
 }
 
 export async function getVariablesGrapherConfigAdminPatchConfigJson(
@@ -228,7 +228,7 @@ export async function getVariablesGrapherConfigAdminPatchConfigJson(
     if (!variable) {
         throw new JsonError(`Variable with id ${variableId} not found`, 500)
     }
-    return variable.admin?.patchConfig ?? {}
+    return variable.admin?.config ?? {}
 }
 
 export async function getVariablesMergedGrapherConfigJson(
@@ -262,17 +262,17 @@ export async function getVariablesVariableIdJson(
     const rawCharts = await db.knexRaw<
         OldChartFieldList & {
             isInheritanceEnabled: DbPlainChart["isInheritanceEnabled"]
-            config: DbRawChartConfig["full"]
+            config: DbRawChartConfig["config"]
         }
     >(
         trx,
         `-- sql
-                SELECT ${oldChartFieldList}, charts.isInheritanceEnabled, chart_configs.full AS config
+                SELECT ${oldChartFieldList}, charts.isInheritanceEnabled, chart_configs.config AS config
                 FROM charts
                 JOIN chart_configs ON chart_configs.id = charts.configId
                 JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
                 LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-                LEFT JOIN analytics_grapher_views agv ON (agv.grapher_slug = chart_configs.slug AND chart_configs.full ->> '$.isPublished' = "true")
+                LEFT JOIN analytics_grapher_views agv ON (agv.grapher_slug = chart_configs.slug AND chart_configs.config ->> '$.isPublished' = "true")
                 LEFT JOIN chart_references_view crv ON crv.chartId = charts.id
                 JOIN chart_dimensions cd ON cd.chartId = charts.id
                 WHERE cd.variableId = ?
@@ -296,11 +296,12 @@ export async function getVariablesVariableIdJson(
         trx,
         variableId
     )
-    const grapherConfigETL = variableWithConfigs?.etl?.patchConfig
-    const grapherConfigAdmin = variableWithConfigs?.admin?.patchConfig
-    const mergedGrapherConfig =
-        variableWithConfigs?.admin?.fullConfig ??
-        variableWithConfigs?.etl?.fullConfig
+    const grapherConfigETL = variableWithConfigs?.etl?.config
+    const grapherConfigAdmin = variableWithConfigs?.admin?.config
+    const mergedGrapherConfig = mergeVariableChartConfigs({
+        etl: grapherConfigETL,
+        admin: grapherConfigAdmin,
+    })
 
     // add the variable's display field to the merged grapher config
     if (mergedGrapherConfig) {
@@ -402,7 +403,7 @@ export async function deleteVariablesVariableIdGrapherConfigETL(
         trx,
         `-- sql
                 UPDATE variables
-                SET grapherConfigIdETL = NULL
+                SET patchConfigIdETL = NULL
                 WHERE id = ?
             `,
         [variableId]
@@ -418,17 +419,8 @@ export async function deleteVariablesVariableIdGrapherConfigETL(
         [variable.etl.configId]
     )
 
-    // update admin config if there is one
-    if (variable.admin) {
-        await updateExistingFullConfig(trx, {
-            configId: variable.admin.configId,
-            config: variable.admin.patchConfig,
-            updatedAt: now,
-        })
-    }
-
     const updates = {
-        patchConfigAdmin: variable.admin?.patchConfig,
+        patchConfigAdmin: variable.admin?.config,
         updatedAt: now,
     }
     const updatedCharts = await updateAllChartsThatInheritFromIndicator(
@@ -531,7 +523,7 @@ export async function deleteVariablesVariableIdGrapherConfigAdmin(
         trx,
         `-- sql
                 UPDATE variables
-                SET grapherConfigIdAdmin = NULL
+                SET patchConfigIdAdmin = NULL
                 WHERE id = ?
             `,
         [variableId]
@@ -548,7 +540,7 @@ export async function deleteVariablesVariableIdGrapherConfigAdmin(
     )
 
     const updates = {
-        patchConfigETL: variable.etl?.patchConfig,
+        patchConfigETL: variable.etl?.config,
         updatedAt: now,
     }
     const updatedCharts = await updateAllChartsThatInheritFromIndicator(

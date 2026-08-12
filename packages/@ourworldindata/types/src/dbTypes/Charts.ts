@@ -1,6 +1,7 @@
 export const ChartsTableName = "charts"
 export interface DbInsertChart {
     configId: string
+    patchConfigId: string
     createdAt?: Date
     forceDatapage?: boolean
     id?: number

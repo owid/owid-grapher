@@ -25,7 +25,7 @@ export interface TestEnv {
     // Helpers
     fetchJson(path: string): Promise<any>
     request(arg: {
-        method: "POST" | "PUT" | "DELETE"
+        method: "POST" | "PUT" | "PATCH" | "DELETE"
         path: string
         body?: string
     }): Promise<any>
@@ -146,7 +146,7 @@ export function getAdminTestEnv(): TestEnv {
     }
 
     async function request(arg: {
-        method: "POST" | "PUT" | "DELETE"
+        method: "POST" | "PUT" | "PATCH" | "DELETE"
         path: string
         body?: string
     }): Promise<any> {

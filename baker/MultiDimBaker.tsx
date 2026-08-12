@@ -43,7 +43,7 @@ import {
 import { MultiDimArchivalManifest } from "../serverUtils/archivalUtils.js"
 import { getLatestArchivedMultiDimPageVersions } from "../db/model/ArchivedMultiDimVersion.js"
 import { getDatapageDataV2 } from "../site/dataPage.js"
-import { getChartConfigByUuid } from "../db/model/ChartConfigs.js"
+import { getChartConfigByUUID } from "../db/model/ChartConfigs.js"
 
 const getLatestMultiDimArchivedVersionsIfEnabled = async (
     knex: db.KnexReadonlyTransaction,
@@ -143,7 +143,7 @@ export async function renderMultiDimDataPageFromConfig({
             getVariableMetadata(initialViewVariableId, {
                 noCache: isPreviewing,
             }),
-            getChartConfigByUuid(knex, initialView.fullConfigId),
+            getChartConfigByUUID(knex, initialView.fullConfigId),
         ])
         if (!fullGrapherConfig) {
             throw new Error(
