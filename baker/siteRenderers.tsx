@@ -30,7 +30,6 @@ import {
     OwidGdocType,
     OwidGdoc,
     TombstonePageData,
-    mergeGrapherConfigs,
     flattenNonTopicNodes,
 } from "@ourworldindata/utils"
 import {
@@ -83,6 +82,7 @@ import {
     getMinimalGdocBaseObjects,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "../db/model/ExplorerCatalogResolver.js"
+import { mergeVariableChartConfigs } from "../db/model/Variable.js"
 import {
     Attachments,
     AttachmentsContext,
@@ -600,11 +600,11 @@ export const renderExplorerPage = async (
             `-- sql
                 SELECT
                     v.id,
-                    cc_etl.patch AS grapherConfigETL,
-                    cc_admin.patch AS grapherConfigAdmin
+                    cc_etl.config AS grapherConfigETL,
+                    cc_admin.config AS grapherConfigAdmin
                 FROM variables v
-                    LEFT JOIN chart_configs cc_admin ON cc_admin.id=v.grapherConfigIdAdmin
-                    LEFT JOIN chart_configs cc_etl ON cc_etl.id=v.grapherConfigIdETL
+                    LEFT JOIN chart_configs cc_admin ON cc_admin.id=v.patchConfigIdAdmin
+                    LEFT JOIN chart_configs cc_etl ON cc_etl.id=v.patchConfigIdETL
                 WHERE v.id IN (?)
             `,
             [requiredVariableIds]
@@ -634,19 +634,21 @@ export const renderExplorerPage = async (
     const partialGrapherConfigs = partialGrapherConfigRows
         .filter((row) => row.grapherConfigAdmin || row.grapherConfigETL)
         .map((row) => {
-            const adminConfig = row.grapherConfigAdmin
-                ? parseGrapherConfigFromRow({
-                      id: row.id,
-                      config: row.grapherConfigAdmin,
-                  })
-                : {}
-            const etlConfig = row.grapherConfigETL
-                ? parseGrapherConfigFromRow({
-                      id: row.id,
-                      config: row.grapherConfigETL,
-                  })
-                : {}
-            const mergedConfig = mergeGrapherConfigs(etlConfig, adminConfig)
+            const mergedConfig =
+                mergeVariableChartConfigs({
+                    etl: row.grapherConfigETL
+                        ? parseGrapherConfigFromRow({
+                              id: row.id,
+                              config: row.grapherConfigETL,
+                          })
+                        : undefined,
+                    admin: row.grapherConfigAdmin
+                        ? parseGrapherConfigFromRow({
+                              id: row.id,
+                              config: row.grapherConfigAdmin,
+                          })
+                        : undefined,
+                }) ?? {}
             // explorers set their own dimensions, so we don't need to include them here
             const mergedConfigWithoutDimensions = _.omit(
                 mergedConfig,
