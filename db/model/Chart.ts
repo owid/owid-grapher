@@ -3,6 +3,7 @@ import * as db from "../db.js"
 import {
     getDataForMultipleVariables,
     getGrapherConfigsForVariable,
+    mergeVariableChartConfigs,
 } from "./Variable.js"
 import {
     JsonError,
@@ -357,11 +358,12 @@ export async function getParentByChartId(
     const parentVariableId = await getParentVariableIdByChartId(trx, chartId)
     if (!parentVariableId) return {}
     const variable = await getGrapherConfigsForVariable(trx, parentVariableId)
-    const parentConfig =
-        variable?.admin?.fullConfig ?? variable?.etl?.fullConfig
     return {
         variableId: parentVariableId,
-        config: parentConfig,
+        config: mergeVariableChartConfigs({
+            etl: variable?.etl?.config,
+            admin: variable?.admin?.config,
+        }),
     }
 }
 
@@ -375,11 +377,12 @@ export async function getParentByChartConfig(
     const parentVariableId = getParentVariableIdFromChartConfig(config)
     if (!parentVariableId) return {}
     const variable = await getGrapherConfigsForVariable(trx, parentVariableId)
-    const parentConfig =
-        variable?.admin?.fullConfig ?? variable?.etl?.fullConfig
     return {
         variableId: parentVariableId,
-        config: parentConfig,
+        config: mergeVariableChartConfigs({
+            etl: variable?.etl?.config,
+            admin: variable?.admin?.config,
+        }),
     }
 }
 

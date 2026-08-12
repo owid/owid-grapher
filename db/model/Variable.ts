@@ -45,16 +45,26 @@ import {
     updateExistingFullConfig,
 } from "./ChartConfigs.js"
 
-interface ChartConfigPair {
+interface VariableChartConfig {
     configId: DbEnrichedChartConfig["id"]
-    patchConfig: DbEnrichedChartConfig["patch"]
-    fullConfig: DbEnrichedChartConfig["full"]
+    config: DbEnrichedChartConfig["config"]
 }
 
 interface VariableWithGrapherConfigs {
     variableId: DbEnrichedVariable["id"]
-    admin?: ChartConfigPair
-    etl?: ChartConfigPair
+    admin?: VariableChartConfig
+    etl?: VariableChartConfig
+}
+
+export function mergeVariableChartConfigs({
+    etl,
+    admin,
+}: {
+    etl?: GrapherInterface
+    admin?: GrapherInterface
+}): GrapherInterface | undefined {
+    if (!etl && !admin) return undefined
+    return mergeGrapherConfigs(etl ?? {}, admin ?? {})
 }
 
 export async function getGrapherConfigsForVariable(
@@ -64,27 +74,23 @@ export async function getGrapherConfigsForVariable(
     const variable = await knexRawFirst<
         Pick<
             DbRawVariable,
-            "id" | "grapherConfigIdAdmin" | "grapherConfigIdETL"
+            "id" | "patchConfigIdAdmin" | "patchConfigIdETL"
         > & {
-            patchConfigAdmin?: DbRawChartConfig["patch"]
-            patchConfigETL?: DbRawChartConfig["patch"]
-            fullConfigAdmin?: DbRawChartConfig["full"]
-            fullConfigETL?: DbRawChartConfig["full"]
+            configAdmin?: DbRawChartConfig["config"]
+            configETL?: DbRawChartConfig["config"]
         }
     >(
         knex,
         `-- sql
             SELECT
                 v.id,
-                v.grapherConfigIdAdmin,
-                v.grapherConfigIdETL,
-                cc_admin.patch AS patchConfigAdmin,
-                cc_admin.full AS fullConfigAdmin,
-                cc_etl.patch AS patchConfigETL,
-                cc_etl.full AS fullConfigETL
+                v.patchConfigIdAdmin,
+                v.patchConfigIdETL,
+                cc_admin.config AS configAdmin,
+                cc_etl.config AS configETL
             FROM variables v
-            LEFT JOIN chart_configs cc_admin ON v.grapherConfigIdAdmin = cc_admin.id
-            LEFT JOIN chart_configs cc_etl ON v.grapherConfigIdETL = cc_etl.id
+            LEFT JOIN chart_configs cc_admin ON v.patchConfigIdAdmin = cc_admin.id
+            LEFT JOIN chart_configs cc_etl ON v.patchConfigIdETL = cc_etl.id
             WHERE v.id = ?
         `,
         [variableId]
@@ -96,19 +102,17 @@ export async function getGrapherConfigsForVariable(
         config: string | undefined
     ): GrapherInterface => (config ? parseChartConfig(config) : {})
 
-    const admin = variable.grapherConfigIdAdmin
+    const admin = variable.patchConfigIdAdmin
         ? {
-              configId: variable.grapherConfigIdAdmin,
-              patchConfig: maybeParseChartConfig(variable.patchConfigAdmin),
-              fullConfig: maybeParseChartConfig(variable.fullConfigAdmin),
+              configId: variable.patchConfigIdAdmin,
+              config: maybeParseChartConfig(variable.configAdmin),
           }
         : undefined
 
-    const etl = variable.grapherConfigIdETL
+    const etl = variable.patchConfigIdETL
         ? {
-              configId: variable.grapherConfigIdETL,
-              patchConfig: maybeParseChartConfig(variable.patchConfigETL),
-              fullConfig: maybeParseChartConfig(variable.fullConfigETL),
+              configId: variable.patchConfigIdETL,
+              config: maybeParseChartConfig(variable.configETL),
           }
         : undefined
 
@@ -124,7 +128,11 @@ export async function getMergedGrapherConfigForVariable(
     variableId: number
 ): Promise<GrapherInterface | undefined> {
     const variable = await getGrapherConfigsForVariable(knex, variableId)
-    return variable?.admin?.fullConfig ?? variable?.etl?.fullConfig
+    if (!variable) return undefined
+    return mergeVariableChartConfigs({
+        etl: variable.etl?.config,
+        admin: variable.admin?.config,
+    })
 }
 
 export async function getMergedGrapherConfigsForVariables(
@@ -140,8 +148,10 @@ export async function getMergedGrapherConfigsForVariables(
     const configs = new Map<number, GrapherInterface>()
     for (const variable of variables) {
         if (variable) {
-            const config =
-                variable.admin?.fullConfig ?? variable.etl?.fullConfig
+            const config = mergeVariableChartConfigs({
+                etl: variable.etl?.config,
+                admin: variable.admin?.config,
+            })
             if (config) {
                 configs.set(variable.variableId, config)
             }
