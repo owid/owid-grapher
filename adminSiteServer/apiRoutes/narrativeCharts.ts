@@ -23,7 +23,11 @@ import {
     MultiDimXChartConfigsTableName,
     DbInsertChartConfig,
 } from "@ourworldindata/types"
-import { diffGrapherConfigs, mergeGrapherConfigs } from "@ourworldindata/utils"
+import {
+    diffGrapherConfigs,
+    excludeUndefined,
+    mergeGrapherConfigs,
+} from "@ourworldindata/utils"
 import * as z from "zod"
 import {
     ApiNarrativeChartOverview,
@@ -46,7 +50,11 @@ import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import { getPublishedLinksTo } from "../../db/model/Link.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
-import { getChartConfigByUUID } from "../../db/model/ChartConfigs.js"
+import {
+    getChartConfigByUUID,
+    insertChartConfig,
+    updateChartConfig,
+} from "../../db/model/ChartConfigs.js"
 import { narrativeChartExists } from "../../db/model/NarrativeChart.js"
 import { getMultiDimDataPageById } from "../../db/model/MultiDimDataPage.js"
 
@@ -349,12 +357,18 @@ async function createNarrativeChartFromChart(
             parentConfig,
             config
         )
+    const now = new Date()
     const { chartConfigId } = await saveNewChartConfigInDbAndR2(
         trx,
         undefined,
-        patchConfig,
-        fullConfig
+        fullConfig,
+        now
     )
+    const patchConfigId = await insertChartConfig(trx, {
+        config: patchConfig,
+        createdAt: now,
+        updatedAt: now,
+    })
     const [narrativeChartId] = await trx<DbInsertNarrativeChart>(
         NarrativeChartsTableName
     ).insert({
@@ -362,6 +376,7 @@ async function createNarrativeChartFromChart(
         parentChartId,
         lastEditedByUserId: userId,
         chartConfigId,
+        patchConfigId,
         queryParamsForParentChart: JSON.stringify(queryParams),
     })
     return { narrativeChartId, success: true }
@@ -399,12 +414,18 @@ async function createNarrativeChartFromMultiDimView(
         )
     }
     const viewDimensions = await getViewDimensions(trx, multiDimXChartConfig.id)
+    const now = new Date()
     const { chartConfigId } = await saveNewChartConfigInDbAndR2(
         trx,
         undefined,
-        patchConfig,
-        fullConfig
+        fullConfig,
+        now
     )
+    const patchConfigId = await insertChartConfig(trx, {
+        config: patchConfig,
+        createdAt: now,
+        updatedAt: now,
+    })
     const [narrativeChartId] = await trx<DbInsertNarrativeChart>(
         NarrativeChartsTableName
     ).insert({
@@ -412,6 +433,7 @@ async function createNarrativeChartFromMultiDimView(
         lastEditedByUserId: userId,
         parentMultiDimXChartConfigId: multiDimXChartConfig.id,
         chartConfigId,
+        patchConfigId,
         queryParamsForParentChart: JSON.stringify({
             ...queryParams,
             ...viewDimensions,
@@ -497,6 +519,7 @@ export async function updateNarrativeChart(
             "parentChartId",
             "parentMultiDimXChartConfigId",
             "chartConfigId",
+            "patchConfigId",
             "name"
         )
         .where({ id })
@@ -504,6 +527,10 @@ export async function updateNarrativeChart(
 
     if (!existingRow) {
         throw new JsonError(`No narrative chart found for id ${id}`, 404)
+    }
+    // TODO: remove once patchConfigId is NOT NULL and the type is required.
+    if (!existingRow.patchConfigId) {
+        throw new JsonError(`Narrative chart ${id} has no patch config`, 500)
     }
 
     let parentChartConfig: GrapherInterface
@@ -538,12 +565,18 @@ export async function updateNarrativeChart(
         )
     }
 
+    const now = new Date()
     await updateChartConfigInDbAndR2(
         trx,
         existingRow.chartConfigId,
-        patchConfig,
-        fullConfig
+        fullConfig,
+        now
     )
+    await updateChartConfig(trx, {
+        configId: existingRow.patchConfigId,
+        config: patchConfig,
+        updatedAt: now,
+    })
 
     await trx
         .table(NarrativeChartsTableName)
@@ -579,19 +612,17 @@ export async function deleteNarrativeChart(
 ) {
     const id = expectInt(req.params.id)
 
-    const {
-        name,
-        chartConfigId,
-    }: { name: string | undefined; chartConfigId: string | undefined } =
-        await trx(NarrativeChartsTableName)
-            .select("name", "chartConfigId")
-            .where({ id })
-            .first()
-            .then((row) => row ?? {})
+    const narrativeChart = await trx<DbPlainNarrativeChart>(
+        NarrativeChartsTableName
+    )
+        .select("name", "chartConfigId", "patchConfigId")
+        .where({ id })
+        .first()
 
-    if (!chartConfigId || !name) {
+    if (!narrativeChart) {
         throw new JsonError(`No narrative chart found for id ${id}`, 404)
     }
+    const { name, chartConfigId, patchConfigId } = narrativeChart
 
     const references = await getPublishedLinksTo(
         trx,
@@ -610,9 +641,13 @@ export async function deleteNarrativeChart(
 
     await trx.table(NarrativeChartsTableName).where({ id }).delete()
 
+    // Only the resolved config was published
     await deleteGrapherConfigFromR2ByUUID(chartConfigId)
 
-    await trx.table(ChartConfigsTableName).where({ id: chartConfigId }).delete()
+    await trx
+        .table(ChartConfigsTableName)
+        .whereIn("id", excludeUndefined([chartConfigId, patchConfigId]))
+        .delete()
 
     return { success: true }
 }

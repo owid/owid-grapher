@@ -4,7 +4,6 @@ import {
     GrapherInterface,
     JsonError,
     DbPlainUser,
-    Base64String,
     serializeChartConfig,
     DbPlainChart,
     R2GrapherConfigDirectory,
@@ -54,6 +53,10 @@ import {
     retrieveChartConfigFromDbAndSaveToR2,
     updateChartConfigInDbAndR2,
 } from "../chartConfigHelpers.js"
+import {
+    insertChartConfig,
+    updateChartConfig,
+} from "../../db/model/ChartConfigs.js"
 import {
     deleteGrapherConfigFromR2,
     deleteGrapherConfigFromR2ByUUID,
@@ -248,7 +251,7 @@ const saveNewChart = async (
         shouldInherit?: boolean
     }
 ): Promise<{
-    chartConfigId: Base64String
+    chartConfigId: string
     patchConfig: GrapherInterface
     fullConfig: GrapherInterface
 }> => {
@@ -263,24 +266,22 @@ const saveNewChart = async (
 
     const now = new Date()
 
-    // insert patch & full configs into the chart_configs table
+    // insert the resolved and the authored config into the chart_configs table.
     // We can't quite use `saveNewChartConfigInDbAndR2` here, because
     // we need to update the chart id in the config after inserting it.
-    const chartConfigId = uuidv7() as Base64String
-    await db.knexRaw(
-        knex,
-        `-- sql
-            INSERT INTO chart_configs (id, patch, full, createdAt, updatedAt)
-            VALUES (?, ?, ?, ?, ?)
-        `,
-        [
-            chartConfigId,
-            serializeChartConfig(patchConfig),
-            serializeChartConfig(fullConfig),
-            now,
-            now,
-        ]
-    )
+    const chartConfigId = uuidv7()
+    const patchConfigId = uuidv7()
+    for (const [id, value] of [
+        [chartConfigId, fullConfig],
+        [patchConfigId, patchConfig],
+    ] as const) {
+        await insertChartConfig(knex, {
+            id,
+            config: value,
+            createdAt: now,
+            updatedAt: now,
+        })
+    }
 
     // add a new chart to the charts table
     const result = await db.knexRawInsert(
@@ -288,6 +289,7 @@ const saveNewChart = async (
         `-- sql
             INSERT INTO charts (
                 configId,
+                patchConfigId,
                 isInheritanceEnabled,
                 forceDatapage,
                 createdAt,
@@ -295,26 +297,33 @@ const saveNewChart = async (
                 lastEditedAt,
                 lastEditedByUserId
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `,
-        [chartConfigId, shouldInherit, forceDatapage, now, now, now, user.id]
+        [
+            chartConfigId,
+            patchConfigId,
+            shouldInherit,
+            forceDatapage,
+            now,
+            now,
+            now,
+            user.id,
+        ]
     )
 
-    // The chart config itself has an id field that should store the id of the chart - update the chart now so this is true
+    // The chart config itself has an id field that should store the id of the
+    // chart - update the chart now so this is true
     const chartId = result.insertId
     patchConfig.id = chartId
     fullConfig.id = chartId
     await db.knexRaw(
         knex,
         `-- sql
-            UPDATE chart_configs cc
-            JOIN charts c ON c.configId = cc.id
-            SET
-                cc.patch=JSON_SET(cc.patch, '$.id', ?),
-                cc.full=JSON_SET(cc.full, '$.id', ?)
-            WHERE c.id = ?
+            UPDATE chart_configs
+            SET config = JSON_SET(config, '$.id', ?)
+            WHERE id IN (?, ?)
         `,
-        [chartId, chartId, chartId]
+        [chartId, chartConfigId, patchConfigId]
     )
 
     await retrieveChartConfigFromDbAndSaveToR2(knex, chartConfigId)
@@ -355,22 +364,32 @@ const updateExistingChart = async (
     const patchConfig = diffGrapherConfigs(config, parent?.config ?? {})
     const fullConfig = mergeGrapherConfigs(parent?.config ?? {}, patchConfig)
 
-    const chartConfigIdRow = await db.knexRawFirst<
-        Pick<DbPlainChart, "configId">
-    >(knex, `SELECT configId FROM charts WHERE id = ?`, [chartId])
+    const chartRow = await db.knexRawFirst<
+        Pick<DbPlainChart, "configId" | "patchConfigId">
+    >(knex, `SELECT configId, patchConfigId FROM charts WHERE id = ?`, [
+        chartId,
+    ])
 
-    if (!chartConfigIdRow)
-        throw new JsonError(`No chart config found for id ${chartId}`, 404)
+    if (!chartRow) throw new JsonError(`No chart found for id ${chartId}`, 404)
+    // TODO: remove once patchConfigId is NOT NULL and the type is required.
+    // Backfilled for every chart and set on insert, so a missing one is a bug;
+    // skipping the write would silently leave the authored config stale.
+    if (!chartRow.patchConfigId)
+        throw new JsonError(`Chart ${chartId} has no patch config`, 500)
 
     const now = new Date()
 
     const { chartConfigId } = await updateChartConfigInDbAndR2(
         knex,
-        chartConfigIdRow.configId,
-        patchConfig,
+        chartRow.configId,
         fullConfig,
         now
     )
+    await updateChartConfig(knex, {
+        configId: chartRow.patchConfigId,
+        config: patchConfig,
+        updatedAt: now,
+    })
 
     const forceDatapage =
         params.forceDatapage ?? (await getForceDatapageByChartId(knex, chartId))
@@ -871,19 +890,19 @@ export async function deleteChart(
         chart.id,
     ])
 
-    const row = await db.knexRawFirst<Pick<DbPlainChart, "configId">>(
-        trx,
-        `SELECT configId FROM charts WHERE id = ?`,
-        [chart.id]
-    )
-    if (!row || !row.configId)
+    const chartRow = await db.knexRawFirst<
+        Pick<DbPlainChart, "configId" | "patchConfigId">
+    >(trx, `SELECT configId, patchConfigId FROM charts WHERE id = ?`, [
+        chart.id,
+    ])
+    if (!chartRow || !chartRow.configId)
         throw new JsonError(`No chart config found for id ${chart.id}`, 404)
-    if (row) {
-        await db.knexRaw(trx, `DELETE FROM charts WHERE id=?`, [chart.id])
-        await db.knexRaw(trx, `DELETE FROM chart_configs WHERE id=?`, [
-            row.configId,
-        ])
-    }
+
+    await db.knexRaw(trx, `DELETE FROM charts WHERE id=?`, [chart.id])
+    await db.knexRaw(trx, `DELETE FROM chart_configs WHERE id IN (?, ?)`, [
+        chartRow.configId,
+        chartRow.patchConfigId ?? chartRow.configId,
+    ])
 
     if (chart.isPublished)
         await triggerStaticBuild(
@@ -891,7 +910,7 @@ export async function deleteChart(
             `Deleting chart ${chart.slug}`
         )
 
-    await deleteGrapherConfigFromR2ByUUID(row.configId)
+    await deleteGrapherConfigFromR2ByUUID(chartRow.configId)
     if (chart.isPublished)
         await deleteGrapherConfigFromR2(
             R2GrapherConfigDirectory.publishedGrapherBySlug,
