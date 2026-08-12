@@ -217,8 +217,8 @@ Work order, so the tree compiles at each stage:
    `parseChartConfigsRow` and `serializeChartsRow`), then the owner types:
    `Charts.ts`, `MultiDimXChartConfigs.ts`, `NarrativeCharts.ts` gain
    `patchConfigId`; `Variables.ts` renames to `chartConfigIdETL`/`chartConfigIdAdmin`.
-   `ExplorerViews.ts` is unchanged. `typecheck` now lights up every real call site,
-   which is the cheapest possible inventory.
+   `ExplorerViews.ts` is unchanged. This lights up every *typed* call site — see
+   "Two inventories, not one" below, because that is only half the work.
 3. **Config-write core** — `db/model/ChartConfigs.ts` collapses its three update
    functions into one; `adminSiteServer/chartConfigHelpers.ts` writes the resolved
    and patch rows in one transaction with one `updatedAt` and one R2 object.
@@ -233,7 +233,7 @@ Work order, so the tree compiles at each stage:
    `apiRoutes/bulkUpdates.ts`, `db/model/Variable.ts` (both
    `updateAll…ThatInheritFromIndicator` loops read the patch via the pointer and
    write the resolved row).
-6. **Read sweep** — mechanical `cc.full` → `cc.config` across ~40 files, and the six
+6. **Read sweep** — mechanical `cc.full` → `cc.config` across 34 files, and the six
    `cc.patch` reads become `patchConfigId` joins.
 7. **Orphan sweep** — one `DELETE` behind a small `devTools` script; the ETL's
    `to_db.py` deletes from `multi_dim_x_chart_configs` directly, so orphans will keep
@@ -243,6 +243,38 @@ Work order, so the tree compiles at each stage:
    `adminSiteServer/tests/pageviews.test.ts`; add coverage for the three invariants
    that are new: a save writes both rows with equal `updatedAt`, a delete removes
    both, and an indicator change re-merges the resolved row from the patch row.
+
+#### Two inventories, not one
+
+`typecheck` after commit 4 finds the **typed** references — `row.full`,
+`DbRawChartConfig["full"]`, object literals. It cannot find `full` or `patch` inside
+a raw SQL template string, because that is just a string. Measured on this refactor:
+
+| | files |
+| --- | --- |
+| caught by `typecheck` | 19 |
+| containing `full`/`patch` in raw SQL | 28 |
+| **SQL-only — invisible to the compiler** | **14** |
+| union: the real sweep | 34 |
+
+The SQL-only half is the dangerous half: those files compile clean and fail at
+runtime, and `make dbtest` has been red since commit 2, so it will not flag them
+either. `baker/sitemap.ts` is the plain example — one `cc.full` in a query, zero type
+errors. The others are `apiRoutes/{charts,datasets,tags}.ts`, `baker/SiteBaker.tsx`,
+`baker/algolia/utils/{charts,explorerViews}.ts`, `baker/archival/ArchivalBaker.ts`,
+`db/db.ts`, and `db/model/{Dod,Post,NarrativeChart,Gdoc/GdocPost,archival/archivalDb}.ts`.
+(`domainTypes/Archive.ts` matches too, but only in comments.)
+
+So the sweep in commit 9 runs both passes, and these greps are its acceptance test:
+
+```sh
+# no typed or SQL reference to the old columns outside historical migrations
+grep -rnE 'cc\.(full|patch)|cc_[a-z]+\.(full|patch)|chart_configs\.(full|patch)|\b(full|patch) ?->>' \
+  --include='*.ts' --include='*.tsx' . | grep -v node_modules | grep -v '/db/migration/'
+```
+
+Historical migrations are excluded on purpose: they reference the columns as they
+were when they ran, and `make dbtest` replays them in order. Do not "fix" them.
 
 #### Commits
 
@@ -260,7 +292,7 @@ stand on their own.
 | 6 | `🔨🤖 merge the indicator config in one place` | the shared effective-indicator-config helper; `Variable.ts` drops `admin.full`; `ExplorerViews.ts:135` and `siteRenderers.tsx:649` lose their hand-rolled merges | red |
 | 7 | `🔨🤖 update chart and narrative chart write paths` | `apiRoutes/charts.ts` (create, update, delete, the `JSON_SET($.id)` stamp on both rows, the `chart_revisions` snapshot at `:493`), `apiRoutes/narrativeCharts.ts` | red |
 | 8 | `🔨🤖 update mdim, explorer and indicator write paths` | `multiDim.ts` incl. `cleanUpOrphanedChartConfigs`, `ExplorerViews.ts`, `Variable.ts` propagation loops, `datasets.ts` `$.version` bump, `bulkUpdates.ts`, `explorerJobProcessor.ts`, `refreshExplorerViews.ts` — **and** `RequirePatchConfigIdPointers` (`MODIFY … NOT NULL` ×3), now that every writer populates the column | red |
-| 9 | `🔨🤖 read config instead of full` | the mechanical sweep across ~40 files, the six `cc.patch` → `patchConfigId` joins, and the `patch: "{}"` test fixtures | **green** — and `grep -rn 'cc\.full\|chart_configs\.full'` outside `db/migration/` returns nothing |
+| 9 | `🔨🤖 read config instead of full` | the mechanical sweep across 34 files, the six `cc.patch` → `patchConfigId` joins, and the `patch: "{}"` test fixtures | **green** — and the acceptance greps below return nothing outside `db/migration/` |
 | 10 | `✅🤖 cover the two-row write invariants` | a save writes both rows with equal `updatedAt`; a delete removes both; an indicator change re-merges the resolved row from the patch row | green |
 | 11 | `📜🤖 document the single config column` | the six `db/docs/` files, plus the `chart_revisions.yml` correction | green |
 
@@ -273,12 +305,10 @@ Notes on the shape:
   be renamed before the code reads the new name, and the code cannot read it before
   the column exists. Nothing bisects usefully inside that span, so keep the span
   tight and don't reorder it.
-- **Commit 4 is the inventory.** Deleting the paired-column types makes the compiler
-  list the work, which is more reliable than any grep — the `full` grep alone returns
-  ten unrelated `"full"` string literals (download buttons, layout variants).
+- **Commit 4 produces one of the two inventories** (see below), not the whole one.
 - **Commit 9 must be boring.** If reviewing it turns up anything that isn't a
-  column rename or a pointer join, that thing belongs in 5–8 instead. The grep above
-  is the acceptance test.
+  column rename or a pointer join, that thing belongs in 5–8 instead. The greps
+  below are the acceptance test.
 - The orphan sweep script from the work order folds into commit 8, next to the
   delete paths it backstops.
 
