@@ -5,6 +5,8 @@ import {
     ChartsTableName,
     MultiDimDataPagesTableName,
     MultiDimXChartConfigsTableName,
+    GrapherInterface,
+    VariablesTableName,
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import { omitUndefinedValues } from "@ourworldindata/utils"
@@ -462,6 +464,103 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         })
     })
 
+    it("should store the authored layer, not the merged config, for an indicator", async () => {
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify(testVariableConfigETL),
+        })
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigAdmin`,
+            body: JSON.stringify(testVariableConfigAdmin),
+        })
+
+        // the two indicator rows hold what was authored; the effective config
+        // is merged in code, never stored
+        const variable = await env
+            .testKnex(VariablesTableName)
+            .where({ id: variableId })
+            .first()
+        const configAdmin = JSON.parse(
+            (
+                await env
+                    .testKnex(ChartConfigsTableName)
+                    .where({ id: variable.patchConfigIdAdmin })
+                    .first()
+            ).config
+        )
+        expect(configAdmin).toEqual({
+            ...testVariableConfigAdmin,
+            // added by makeConfigValidForIndicator
+            dimensions: [{ property: "y", variableId }],
+        })
+
+        expect(
+            await env.fetchJson(
+                `/variables/mergedGrapherConfig/${variableId}.json`
+            )
+        ).toHaveProperty("note", "Indicator note")
+    })
+
+    it("should re-merge the resolved config from the patch row when an indicator changes", async () => {
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify(testVariableConfigETL),
+        })
+
+        // create a chart that inherits from the indicator
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+        const chartId = response.chartId
+
+        const readConfigs = async (): Promise<{
+            full: GrapherInterface
+            patch: GrapherInterface
+        }> => {
+            const chart = await env
+                .testKnex(ChartsTableName)
+                .where({ id: chartId })
+                .first()
+            const rowsById = new Map(
+                (
+                    await env
+                        .testKnex(ChartConfigsTableName)
+                        .whereIn("id", [chart.configId, chart.patchConfigId])
+                ).map((row) => [row.id, JSON.parse(row.config)])
+            )
+            return {
+                full: rowsById.get(chart.configId),
+                patch: rowsById.get(chart.patchConfigId),
+            }
+        }
+
+        const before = await readConfigs()
+        expect(before.full.note).toBe("Indicator note")
+        expect(before.patch.note).toBeUndefined()
+
+        // change the indicator config
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify({
+                ...testVariableConfigETL,
+                note: "Updated indicator note",
+            }),
+        })
+
+        const after = await readConfigs()
+        // the resolved row picks up the new indicator value ...
+        expect(after.full.note).toBe("Updated indicator note")
+        expect(after.full.title).toBe("Test chart")
+        // ... while the authored layer it was merged from is untouched
+        expect(after.patch).toEqual(before.patch)
+    })
+
     it("should update chart configs when inheritance is enabled/disabled", async () => {
         const checkInheritance = async ({
             shouldBeEnabled,
@@ -620,16 +719,23 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         })
         const chartId = response.chartId
 
-        // helper functions to get the updatedAt timestamp of the chart and its config
-        const chartUpdatedAt = async (): Promise<Date> =>
-            (await env.testKnex(ChartsTableName).first()).updatedAt
-        const configUpdatedAt = async (): Promise<Date> =>
-            (await env.testKnex(ChartConfigsTableName).first()).updatedAt
+        // the chart and both of its config rows share one updatedAt
+        const expectTimestampsInSync = async (): Promise<Date> => {
+            const chart = await env
+                .testKnex(ChartsTableName)
+                .where({ id: chartId })
+                .first()
+            const configs = await env
+                .testKnex(ChartConfigsTableName)
+                .whereIn("id", [chart.configId, chart.patchConfigId])
+            expect(configs.length).toBe(2)
+            expect(chart.updatedAt).not.toBeNull()
+            for (const config of configs)
+                expect(config.updatedAt).toEqual(chart.updatedAt)
+            return chart.updatedAt
+        }
 
-        // verify that both updatedAt timestamps are initialized on create
-        expect(await chartUpdatedAt()).not.toBeNull()
-        expect(await configUpdatedAt()).not.toBeNull()
-        expect(await chartUpdatedAt()).toEqual(await configUpdatedAt())
+        const updatedAtOnCreate = await expectTimestampsInSync()
 
         // update the chart
         await env.request({
@@ -641,12 +747,10 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             }),
         })
 
-        // verify that the updatedAt timestamps are the same
-        const chartAfterUpdate = await chartUpdatedAt()
-        const configAfterUpdate = await configUpdatedAt()
-        expect(chartAfterUpdate).not.toBeNull()
-        expect(configAfterUpdate).not.toBeNull()
-        expect(chartAfterUpdate).toEqual(configAfterUpdate)
+        const updatedAtOnUpdate = await expectTimestampsInSync()
+        expect(updatedAtOnUpdate.getTime()).toBeGreaterThanOrEqual(
+            updatedAtOnCreate.getTime()
+        )
     })
 
     it("should bump the config version of a dataset's charts on republish", async () => {
