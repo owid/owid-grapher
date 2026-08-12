@@ -1285,7 +1285,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     ) {
                         linkErrors.push({
                             property: "content",
-                            message: `Grapher chart with slug "${link.target}" does not exist or is not published`,
+                            message: `Chart or multi-dim data page with slug "${link.target}" does not exist or is not published`,
                             type: OwidGdocErrorMessageType.Error,
                         })
                     } else if (
@@ -1319,7 +1319,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     ) {
                         linkErrors.push({
                             property: "content",
-                            message: `Explorer chart with slug "${link.target}" does not exist or is not published`,
+                            message: `Explorer with slug "${link.target}" does not exist or is not published`,
                             type: OwidGdocErrorMessageType.Error,
                         })
                     }
