@@ -63,6 +63,19 @@ describe("Charts API", { timeout: 15000 }, () => {
         )
         expect(patchConfig).toEqual(fullConfig)
     })
+
+    it("deletes a chart and its configs", async () => {
+        const { chartId } = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+
+        await env.request({ method: "DELETE", path: `/charts/${chartId}` })
+
+        expect(await env.getCount(ChartsTableName)).toBe(0)
+        expect(await env.getCount(ChartConfigsTableName)).toBe(0)
+    })
 })
 
 describe("Indicator-level chart configs", { timeout: 15000 }, () => {
