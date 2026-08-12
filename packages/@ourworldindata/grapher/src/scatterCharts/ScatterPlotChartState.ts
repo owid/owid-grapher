@@ -35,6 +35,11 @@ import {
     intersection,
     lowerCaseFirstLetterUnlessAbbreviation,
 } from "@ourworldindata/utils"
+import {
+    getMaxConfiguredTolerance,
+    hasToleranceApplied,
+    makeToleranceNotice,
+} from "../chart/ToleranceNotice.js"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { AxisConfig } from "../axis/AxisConfig"
@@ -430,6 +435,47 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
 
     @computed get allPoints(): SeriesPoint[] {
         return this.series.flatMap((series) => series.points)
+    }
+
+    /**
+     * The columns whose values can miss the time the chart is labelled with.
+     * When the x column is pinned to a time of its own, it's meant to come
+     * from a different time, so that isn't a tolerance caveat.
+     */
+    @computed private get toleranceColumns(): CoreColumn[] {
+        return this.xOverrideTime !== undefined
+            ? [this.yColumn]
+            : [this.xColumn, this.yColumn]
+    }
+
+    /** The notice itself, regardless of whether it currently applies */
+    @computed private get toleranceNoticeIfApplied(): string | undefined {
+        // Time scatters plot time itself on the x axis, so there's no target
+        // time a value could be missing for
+        if (this.isTimeScatter) return undefined
+
+        return makeToleranceNotice({
+            timeColumn: this.transformedTable.timeColumn,
+            timeRange: this.inputTable.timeRange,
+            timeTolerance: getMaxConfiguredTolerance(this.toleranceColumns),
+        })
+    }
+
+    /** Whether any value shown right now is filled in from another time */
+    @computed private get isToleranceApplied(): boolean {
+        // Skip the scan below when there's no notice for it to caption
+        if (!this.toleranceNoticeIfApplied) return false
+
+        return hasToleranceApplied(
+            this.transformedTable,
+            this.toleranceColumns.map((column) => column.slug)
+        )
+    }
+
+    @computed get toleranceNotice(): string | undefined {
+        return this.isToleranceApplied
+            ? this.toleranceNoticeIfApplied
+            : undefined
     }
 
     @computed private get selectedPoints(): SeriesPoint[] {

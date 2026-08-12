@@ -37,6 +37,10 @@ import { getCountriesByRegion, isOnTheMap } from "./MapHelpers"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import {
+    hasToleranceApplied,
+    makeToleranceNotice,
+} from "../chart/ToleranceNotice.js"
 
 export type MapFormatValueForTooltip = (
     d: PrimitiveType,
@@ -249,6 +253,21 @@ export class MapChartState implements ChartState, ColorScaleManager {
         return table
     }
 
+    /**
+     * The transformed table narrowed to the countries the map draws, which is
+     * only the active continent when zoomed into one in 2D
+     */
+    @computed private get transformedTableForActiveRegion(): OwidTable {
+        if (!this.mapConfig.is2dContinentActive()) return this.transformedTable
+
+        const countries = getCountriesByRegion(
+            MAP_REGION_LABELS[this.mapConfig.region]
+        )
+        if (!countries) return this.transformedTable
+
+        return this.transformedTable.filterByEntityNames([...countries])
+    }
+
     @computed get selectionArray(): MapSelectionArray {
         return this.mapConfig.selection
     }
@@ -315,6 +334,35 @@ export class MapChartState implements ChartState, ColorScaleManager {
 
     @computed get targetTime(): number | undefined {
         return this.manager.targetTime ?? this.manager.endTime
+    }
+
+    @computed private get timeTolerance(): number {
+        return this.mapConfig.timeTolerance ?? this.mapColumn.tolerance
+    }
+
+    /** The notice itself, regardless of whether it currently applies */
+    @computed private get toleranceNoticeIfApplied(): string | undefined {
+        return makeToleranceNotice({
+            timeColumn: this.transformedTable.timeColumn,
+            timeRange: this.inputTable.timeRange,
+            timeTolerance: this.timeTolerance,
+        })
+    }
+
+    /** Whether any value shown right now is filled in from another time */
+    @computed private get isToleranceApplied(): boolean {
+        // Skip the scan below when there's no notice for it to caption
+        if (!this.toleranceNoticeIfApplied) return false
+
+        return hasToleranceApplied(this.transformedTableForActiveRegion, [
+            this.mapColumnSlug,
+        ])
+    }
+
+    @computed get toleranceNotice(): string | undefined {
+        return this.isToleranceApplied
+            ? this.toleranceNoticeIfApplied
+            : undefined
     }
 
     @computed get columnIsProjection(): CoreColumn | undefined {

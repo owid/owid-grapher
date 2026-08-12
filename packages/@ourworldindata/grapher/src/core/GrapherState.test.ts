@@ -35,6 +35,7 @@ import {
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { setSelectedEntityNamesParam } from "./EntityUrlBuilder"
 import { MapConfig } from "../mapCharts/MapConfig"
+import { TimelineDragTarget } from "../timeline/TimelineController"
 import { SelectionArray } from "../selection/SelectionArray"
 import { latestGrapherConfigSchema } from "./GrapherConstants.js"
 import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable.js"
@@ -659,6 +660,215 @@ describe("title", () => {
 
         expect(grapher.titleAnnotation).toBeUndefined()
         expect(grapher.fullTitle).toEqual(grapher.mainTitle)
+    })
+})
+
+describe("toleranceNotice", () => {
+    // Germany lacks data for 2002 and Italy for 2000
+    const makeTable = (extraRows: (string | number)[][] = []): OwidTable =>
+        new OwidTable(
+            [
+                ["entityName", "year", "gdp"],
+                ["France", 1990, 50],
+                ["France", 2000, 100],
+                ["France", 2001, 200],
+                ["France", 2002, 300],
+                ["Germany", 2000, 400],
+                ["Germany", 2001, 500],
+                ["Italy", 2001, 600],
+                ["Italy", 2002, 700],
+                ...extraRows,
+            ],
+            [
+                { slug: "gdp", type: ColumnTypeNames.Numeric, tolerance: 1 },
+                { slug: "year", type: ColumnTypeNames.Year },
+            ]
+        )
+
+    const makeGrapherWithTolerance = (
+        props?: Partial<GrapherProgrammaticInterface>
+    ): GrapherState =>
+        new GrapherState({
+            table: makeTable(),
+            ySlugs: "gdp",
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+            hasMapTab: true,
+            map: { timeTolerance: 3 },
+            ...props,
+        })
+
+    it("explains the tolerance on the map tab", () => {
+        const grapher = makeGrapherWithTolerance()
+        expect(grapher.toleranceNotice).toEqual(
+            "Where data for 2002 is unavailable, the value from the closest year between 1999 and 2002 is shown instead."
+        )
+    })
+
+    it("only explains the tolerance when necessary", () => {
+        const grapher = makeGrapherWithTolerance()
+        const noteAt = (year: number): string | undefined => {
+            grapher.timelineHandleTimeBounds = [year, year]
+            return grapher.toleranceNotice
+        }
+        // Italy has no 2000 value and Germany no 2002 one, but 2001 is the one
+        // year every country has data for
+        expect(noteAt(2000)).toBeDefined()
+        expect(noteAt(2001)).toBeUndefined()
+        expect(noteAt(2002)).toBeDefined()
+    })
+
+    describe("frozen while the timeline is in motion", () => {
+        const drag = (grapher: GrapherState): void => {
+            grapher.timelineDragTarget = TimelineDragTarget.End
+            grapher.setToleranceNoticeFrozen(true)
+        }
+        const release = (grapher: GrapherState): void => {
+            grapher.timelineDragTarget = undefined
+            grapher.setToleranceNoticeFrozen(false)
+        }
+        const goTo = (grapher: GrapherState, year: number): void => {
+            grapher.timelineHandleTimeBounds = [year, year]
+        }
+
+        it("keeps a notice that was up when the drag started", () => {
+            const grapher = makeGrapherWithTolerance()
+            goTo(grapher, 2000) // tolerance applies here
+            drag(grapher)
+            goTo(grapher, 2001) // but not here
+            expect(grapher.toleranceNotice).toBeDefined()
+            release(grapher)
+            expect(grapher.toleranceNotice).toBeUndefined()
+        })
+
+        it("keeps a notice that was down when the drag started", () => {
+            const grapher = makeGrapherWithTolerance()
+            goTo(grapher, 2001)
+            drag(grapher)
+            goTo(grapher, 2000)
+            expect(grapher.toleranceNotice).toBeUndefined()
+            release(grapher)
+            expect(grapher.toleranceNotice).toBeDefined()
+        })
+
+        it("freezes nothing when the timeline is idle", () => {
+            const grapher = makeGrapherWithTolerance()
+            goTo(grapher, 2000)
+            grapher.setToleranceNoticeFrozen(true)
+            goTo(grapher, 2001)
+            expect(grapher.toleranceNotice).toBeUndefined()
+        })
+    })
+
+    describe("only when tolerance is actually applied", () => {
+        // Every country has data for every year
+        const completeTable = (): OwidTable =>
+            new OwidTable(
+                [
+                    ["entityName", "year", "gdp"],
+                    ["France", 1990, 50],
+                    ["France", 2000, 100],
+                    ["France", 2002, 300],
+                    ["Germany", 1990, 60],
+                    ["Germany", 2000, 400],
+                    ["Germany", 2002, 600],
+                ],
+                [
+                    {
+                        slug: "gdp",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 3,
+                    },
+                    { slug: "year", type: ColumnTypeNames.Year },
+                ]
+            )
+
+        it("is absent on a chart tab whose data has no gaps", () => {
+            const grapher = new GrapherState({
+                table: completeTable(),
+                ySlugs: "gdp",
+                chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+                selectedEntityNames: ["France", "Germany"],
+            })
+            expect(grapher.toleranceNotice).toBeUndefined()
+        })
+
+        // A gap only counts if the entity carrying it is on screen
+        const gapInSpainTable = (): OwidTable =>
+            new OwidTable(
+                [
+                    ["entityName", "year", "gdp"],
+                    ["France", 2000, 100],
+                    ["France", 2001, 200],
+                    ["France", 2002, 300],
+                    ["Germany", 2000, 400],
+                    ["Germany", 2001, 500],
+                    ["Germany", 2002, 600],
+                    ["Spain", 2000, 700],
+                    ["Spain", 2001, 800],
+                    // Spain has no 2002 value, which is the slope's end point
+                ],
+                [
+                    {
+                        slug: "gdp",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 3,
+                    },
+                    { slug: "year", type: ColumnTypeNames.Year },
+                ]
+            )
+
+        const makeSlopeGrapher = (
+            selectedEntityNames: string[]
+        ): GrapherState =>
+            new GrapherState({
+                table: gapInSpainTable(),
+                ySlugs: "gdp",
+                chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+                selectedEntityNames,
+            })
+
+        it("ignores a gap in an entity that isn't selected", () => {
+            expect(
+                makeSlopeGrapher(["France", "Germany"]).toleranceNotice
+            ).toBeUndefined()
+            expect(
+                makeSlopeGrapher(["France", "Germany", "Spain"]).toleranceNotice
+            ).toBeDefined()
+        })
+    })
+
+    describe("appending to the authored note", () => {
+        const NOTICE =
+            "Where data for 2002 is unavailable, the value from the closest year between 1999 and 2002 is shown instead."
+
+        it("separates the notice from a note ending in a period", () => {
+            const grapher = makeGrapherWithTolerance({
+                note: "Values are adjusted.",
+            })
+            expect(grapher.effectiveNote).toEqual(
+                `Values are adjusted. ${NOTICE}`
+            )
+        })
+
+        it("terminates a note that ends without punctuation", () => {
+            const grapher = makeGrapherWithTolerance({
+                note: "Values are adjusted",
+            })
+            expect(grapher.effectiveNote).toEqual(
+                `Values are adjusted. ${NOTICE}`
+            )
+        })
+
+        it("keeps a note's own end punctuation", () => {
+            const grapher = makeGrapherWithTolerance({
+                note: "Is this adjusted?",
+            })
+            expect(grapher.effectiveNote).toEqual(`Is this adjusted? ${NOTICE}`)
+        })
+
+        it("stands alone when there is no authored note", () => {
+            expect(makeGrapherWithTolerance().effectiveNote).toEqual(NOTICE)
+        })
     })
 })
 
