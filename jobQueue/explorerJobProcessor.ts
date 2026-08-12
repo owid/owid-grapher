@@ -163,7 +163,7 @@ export async function processExplorerViewsJob(
             // Fetch chart configs (simple read, no transaction needed)
             const chartConfigs = await knexReadonlyTransaction(async (knex) => {
                 return await knex("chart_configs")
-                    .select("id", "full", "fullMd5")
+                    .select("id", "config", "configMd5")
                     .whereIn("id", refreshResult.updatedChartConfigIds)
             })
 
@@ -172,8 +172,8 @@ export async function processExplorerViewsJob(
                 async (config) => {
                     await saveGrapherConfigToR2ByUUID(
                         config.id,
-                        config.full,
-                        config.fullMd5
+                        config.config,
+                        config.configMd5
                     )
                 },
                 { concurrency: CONCURRENCY }

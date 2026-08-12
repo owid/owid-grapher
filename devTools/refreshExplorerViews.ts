@@ -154,7 +154,7 @@ async function prepareGrapherConfigsForExplorerViews(
 
                 // Batch fetch chart configs for R2 sync
                 const chartConfigs = await knex("chart_configs")
-                    .select("id", "full", "fullMd5")
+                    .select("id", "config", "configMd5")
                     .whereIn("id", chartConfigIdsToSync)
 
                 // Sync to R2 in parallel with limited concurrency using pMap
@@ -164,8 +164,8 @@ async function prepareGrapherConfigsForExplorerViews(
                         try {
                             await saveGrapherConfigToR2ByUUID(
                                 config.id,
-                                config.full,
-                                config.fullMd5
+                                config.config,
+                                config.configMd5
                             )
                         } catch (error) {
                             void logErrorAndMaybeCaptureInSentry(
