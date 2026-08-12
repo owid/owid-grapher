@@ -389,6 +389,38 @@ Rolling back the *code* without the migration is also survivable in the write
 direction: old code doing `SET patch = ?, full = ?` fails loudly on missing
 columns rather than corrupting anything.
 
+## For the PR description: behaviour changes
+
+A running list. Most of this refactor is meant to be invisible, so anything that
+*isn't* has to be called out where a reviewer or an on-call person will see it. Add
+to this list as commits land.
+
+- **`GET /admin/api/chart-configs/:chartConfigId.config.json` returns the config
+  instead of the whole row.** The route's name always implied a config; it served a
+  `chart_configs` row and its one caller reached through for a single field.
+  Admin-authenticated, single in-repo consumer
+  (`adminSiteClient/CreateNarrativeChartEditorPage.tsx`), updated in the same commit.
+  Not verified against the ETL, which does talk to `/admin/api` — but via
+  `apps/chart_sync/admin_api.py`, documented as the write path.
+- **ETL SQL against `chart_configs` breaks between the PR 1 and PR 2 deploys.**
+  Queries naming `full`, `fullMd5`, `patch` or `variables.grapherConfigId{ETL,Admin}`
+  fail. Read-only, so it is failed steps and retries rather than damage — but hold
+  chart-sync across the window if it can fire in it.
+- **One write-blocking `ALTER` during deploy.** Rebuilding `chart_configs` to add the
+  STORED generated columns blocks writes to that table for tens of seconds. Reads
+  continue; the admin fails loudly and briefly.
+- **~14,700 new objects in R2 `config/by-uuid/`,** each an authored layer rather than
+  a whole config. Consistent with the 222,708 indicator configs already published
+  that way, and nothing links to them.
+- **Every config write now touches two rows,** so deleting an owner has to clean up
+  both. The orphan surface doubles, and one source is outside grapher entirely
+  (`etl/grapher/to_db.py` deletes from `multi_dim_x_chart_configs` directly).
+- **The effective indicator config is merged in code, not stored.**
+  `variables.grapherConfigIdAdmin`'s resolved row is gone; the value is now
+  `merge(etl, admin)` behind one shared helper. Same result, computed instead of
+  persisted — and it deletes the two hand-rolled merges that existed because there
+  were two ways to get it.
+
 ## What is being accepted
 
 **One write-blocking `ALTER`.** Step 7 is a `COPY` rebuild of a ~210 MB table:
