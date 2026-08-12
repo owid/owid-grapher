@@ -473,7 +473,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
 ) => {
     const chartsToBake = await knexRaw<
         Pick<DbPlainChart, "id"> & {
-            config: DbRawChartConfig["full"]
+            config: DbRawChartConfig["config"]
             slug: string
         }
     >(
@@ -481,11 +481,11 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
         `-- sql
         SELECT
             c.id,
-            cc.full as config,
+            cc.config as config,
             cc.slug
         FROM charts c
         JOIN chart_configs cc ON c.configId = cc.id
-        WHERE JSON_EXTRACT(cc.full, "$.isPublished")=true
+        WHERE JSON_EXTRACT(cc.config, "$.isPublished")=true
         ORDER BY cc.slug ASC`
     )
 

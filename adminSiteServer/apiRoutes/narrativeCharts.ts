@@ -118,7 +118,7 @@ async function getChartConfigByMultiDimXChartConfigId(
     multiDimXChartConfigId: number
 ) {
     const row = await trx<DbInsertChartConfig>(ChartConfigsTableName)
-        .select("full")
+        .select("config")
         .join(
             MultiDimXChartConfigsTableName,
             `${ChartConfigsTableName}.id`,
@@ -132,7 +132,7 @@ async function getChartConfigByMultiDimXChartConfigId(
             404
         )
     }
-    return parseChartConfig(row.full)
+    return parseChartConfig(row.config)
 }
 
 async function getViewDimensions(
@@ -199,14 +199,14 @@ export async function getNarrativeCharts(
             nc.updatedAt,
             u.fullName as lastEditedByUser,
             nc.chartConfigId,
-            cc.full ->> "$.title" as title,
+            cc.config ->> "$.title" as title,
             nc.parentChartId,
             nc.parentMultiDimXChartConfigId,
             nc.queryParamsForParentChart,
             CASE
-                WHEN nc.parentChartId IS NOT NULL THEN pcc1.full ->> "$.title"
+                WHEN nc.parentChartId IS NOT NULL THEN pcc1.config ->> "$.title"
                 ELSE COALESCE(
-                    pcc2.full ->> "$.title",
+                    pcc2.config ->> "$.title",
                     mddp.config ->> "$.title.title",
                     ''
                 )
@@ -291,15 +291,16 @@ export async function getNarrativeChartById(
             nc.updatedAt,
             u.fullName as lastEditedByUser,
             nc.chartConfigId,
-            cc.full as configFull,
-            cc.patch as configPatch,
+            cc.config as configFull,
+            cc_patch.config as configPatch,
             nc.parentChartId,
             nc.parentMultiDimXChartConfigId as parentChartConfigId,
-            pcc.full as parentConfigFull,
+            pcc.config as parentConfigFull,
             mddp.catalogPath as parentCatalogPath,
             nc.queryParamsForParentChart
         FROM narrative_charts nc
         JOIN chart_configs cc ON nc.chartConfigId = cc.id
+        JOIN chart_configs cc_patch ON nc.patchConfigId = cc_patch.id
         LEFT JOIN charts pc ON nc.parentChartId = pc.id
         LEFT JOIN multi_dim_x_chart_configs mdxcc ON nc.parentMultiDimXChartConfigId = mdxcc.id
         LEFT JOIN multi_dim_data_pages mddp ON mdxcc.multiDimId = mddp.id

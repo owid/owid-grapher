@@ -366,7 +366,7 @@ export const getTotalNumberOfCharts = (
             SELECT COUNT(*) AS count
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
-            WHERE cc.full ->> "$.isPublished" = "true"
+            WHERE cc.config ->> "$.isPublished" = "true"
         `
     ).then((res) => res?.count ?? 0)
 }
@@ -1443,7 +1443,7 @@ export async function validateChartSlug(
             FROM ${ChartConfigsTableName} cc
             JOIN ${ChartsTableName} c ON c.configId = cc.id
             WHERE cc.slug = ?
-            AND cc.full->>"$.isPublished" = "true"`,
+            AND cc.config->>"$.isPublished" = "true"`,
             [slug]
         ).then((rows) => rows[0])
 

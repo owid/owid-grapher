@@ -528,7 +528,7 @@ export async function getAllChartsForIndicator(
 > {
     const charts = await db.knexRaw<{
         chartId: DbPlainChart["id"]
-        config: DbRawChartConfig["full"]
+        config: DbRawChartConfig["config"]
         isPublished: boolean
         isChild: boolean
         isInheritanceEnabled: DbPlainChart["isInheritanceEnabled"]
@@ -537,8 +537,8 @@ export async function getAllChartsForIndicator(
         `-- sql
         SELECT
             c.id AS chartId,
-            cc.full AS config,
-            cc.full ->> '$.isPublished' = "true" AS isPublished,
+            cc.config AS config,
+            cc.config ->> '$.isPublished' = "true" AS isPublished,
             cxp.variableId = ? AS isChild,
             c.isInheritanceEnabled
         FROM charts c

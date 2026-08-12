@@ -97,7 +97,7 @@ export const getReferencesByChartId = async (
     const narrativeChartsPromise = db.knexRaw<NarrativeChartMinimalInformation>(
         knex,
         `-- sql
-        SELECT nc.id, nc.name, cc.full ->> "$.title" AS title
+        SELECT nc.id, nc.name, cc.config ->> "$.title" AS title
         FROM narrative_charts nc
         JOIN chart_configs cc ON cc.id = nc.chartConfigId
         WHERE nc.parentChartId = ?`,
@@ -593,10 +593,10 @@ export async function updateGrapherConfigsInR2(
         ...updatedMultiDimViews,
     ].map(({ chartConfigId }) => chartConfigId)
     const builder = knex<DbRawChartConfig>(ChartConfigsTableName)
-        .select("id", "full", "fullMd5")
+        .select("id", "config", "configMd5")
         .whereIn("id", idsToUpdate)
-    for await (const { id, full, fullMd5 } of builder.stream()) {
-        await saveGrapherConfigToR2ByUUID(id, full, fullMd5)
+    for await (const { id, config, configMd5 } of builder.stream()) {
+        await saveGrapherConfigToR2ByUUID(id, config, configMd5)
     }
 }
 
@@ -613,7 +613,7 @@ export async function getChartsJson(
             FROM charts
             JOIN chart_configs ON chart_configs.id = charts.configId
             JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-            LEFT JOIN analytics_grapher_views agv ON (agv.grapher_slug = chart_configs.slug AND chart_configs.full ->> '$.isPublished' = "true")
+            LEFT JOIN analytics_grapher_views agv ON (agv.grapher_slug = chart_configs.slug AND chart_configs.config ->> '$.isPublished' = "true")
             LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
             LEFT JOIN chart_references_view crv ON crv.chartId = charts.id
             ORDER BY charts.lastEditedAt DESC LIMIT ?
@@ -744,7 +744,7 @@ export async function getChartViewsJson(
             FROM analytics_grapher_views v
             JOIN chart_configs cc
                 ON cc.slug = v.grapher_slug
-                AND cc.full ->> "$.isPublished" = "true"
+                AND cc.config ->> "$.isPublished" = "true"
             JOIN charts c ON c.configId = cc.id
         ) ranked ON ranked.grapher_slug = v.grapher_slug
         WHERE v.grapher_slug = ?`,

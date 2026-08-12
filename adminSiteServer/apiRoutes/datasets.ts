@@ -164,7 +164,7 @@ export async function getDataset(
                     cd.variableId,
                     cd.chartId,
                     cc.slug,
-                    cc.full->>'$.title' AS title
+                    cc.config->>'$.title' AS title
                 FROM chart_dimensions cd
                 JOIN charts c ON c.id = cd.chartId
                 JOIN chart_configs cc ON cc.id = c.configId
@@ -194,7 +194,7 @@ export async function getDataset(
                 JOIN chart_configs cc ON cc.id = mdxcc.chartConfigId
                 JOIN multi_dim_data_pages mdp ON mdp.id = mdxcc.multiDimId
                 JOIN JSON_TABLE(
-                    cc.full,
+                    cc.config,
                     '$.dimensions[*]' COLUMNS (variableId INT PATH '$.variableId')
                 ) jt ON jt.variableId IS NOT NULL
                 WHERE jt.variableId IN (?)
@@ -327,7 +327,7 @@ export async function getDataset(
             JOIN variables AS v ON cd.variableId = v.id
             JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
             LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-            LEFT JOIN analytics_grapher_views agv ON (agv.grapher_slug = chart_configs.slug AND chart_configs.full ->> '$.isPublished' = "true")
+            LEFT JOIN analytics_grapher_views agv ON (agv.grapher_slug = chart_configs.slug AND chart_configs.config ->> '$.isPublished' = "true")
             LEFT JOIN chart_references_view crv ON crv.chartId = charts.id
             WHERE v.datasetId = ?
             GROUP BY charts.id, agv.views_365d, crv.narrativeChartsCount, crv.referencesCount
