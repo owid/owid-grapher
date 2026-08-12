@@ -372,6 +372,63 @@ a row rather than a column — but it is a write site that never mentions
 incorrectly; see the doc pass in
 [`chart-configs-migration.md`](./chart-configs-migration.md).
 
+## Follow-up work: can any of the new patch rows be deleted?
+
+This refactor gives every chart, mdim view and narrative chart an authored config
+row unconditionally — 14,688 of them — on the grounds that the pointer should not
+have to mean "sometimes". Worth checking afterwards how many actually earn their
+keep, because the reasons differ per owner and two of them look weak:
+
+- **~6,800 duplicate their resolved row byte for byte** (4,522 charts with
+  inheritance disabled, 2,044 mdim views whose indicator has no config, 1 narrative
+  chart). For these the authored config *is* the resolved config, so the second row
+  stores nothing new. That was accepted to keep `patchConfigId NOT NULL` and avoid a
+  nullable column whose meaning shifts on every save — but it is the largest single
+  block of new rows.
+- **mdim views may not need one at all.** The authored view config is already in
+  `multi_dim_data_pages.config` — `merge(viewYamlConfig, {$schema, dimensions,
+  defaultSelection})` plus `isPublished` — so the row is a cache of something the
+  mdim config already states. Its only reader is the indicator propagation loop.
+  9,204 rows.
+- **narrative-chart rows are read only to reopen the editor.** Nothing propagates to
+  them, so their authored config is never re-merged; see the note on whether
+  narrative charts should snapshot or inherit. 302 rows.
+
+Charts are the one owner where the case is solid: the editor's inherited-vs-overridden
+UI and the ETL's `indicator_upgrade/indicator_update.py` both read the stored chart
+patch, and re-deriving it would hand coincidental keys back to the parent.
+
+Anything dropped here also removes rows from the public metadata dump and from R2
+`config/by-uuid/`, so it is worth settling before those become something people rely
+on.
+
+## Follow-up work: why is the admin indicator layer stored as a diff?
+
+`updateGrapherConfigAdminOfVariable` does not store what the admin authored. It
+stores `diffGrapherConfigs(validConfig, etl.config)` — the delta against the ETL
+layer — even though the admin UI submits a whole config
+(`db/model/Variable.ts`). Worth understanding properly, because it makes this the
+only *stored* config in the table that is derived rather than authored, and that
+asymmetry has consequences the rest of the model deliberately avoids:
+
+- **A coincidental value disappears.** A key whose admin value happens to equal the
+  ETL value is dropped from the delta, so it silently starts following the ETL layer
+  on that layer's next change. This is the exact hazard cited as the reason *not* to
+  derive chart patches (see "Rejected alternatives"), accepted here without the same
+  scrutiny.
+- **Every other authored layer stores what was authored.** Charts, mdim views and
+  narrative charts all keep the author's own contribution; only this one is reduced.
+
+But the diff is probably load-bearing rather than incidental, which is why this
+needs looking at rather than just changing: `mergeVariableChartConfigs` merges the
+admin layer *over* the ETL one, so if the admin layer held a whole config it would
+mask everything the ETL sets, not only the keys someone changed. The diff is what
+makes partial override work at all. Any replacement has to preserve that — probably
+by recording which keys the admin set, rather than by inferring it from equality.
+
+Only 2 variables have an admin config today, so nothing is on fire; see the
+follow-up on dropping the column entirely, which would make the question moot.
+
 ## Follow-up work: delete the orphaned `chart_configs` rows
 
 **Deliberately not part of this refactor.** 7,267 rows are referenced by nothing at
