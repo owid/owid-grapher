@@ -23,6 +23,18 @@ import { Env } from "./env.js"
 // gets. Absent means "not a verified bot" — the key is omitted rather than sent
 // empty, so it costs nothing on the ~92% of requests that aren't bots.
 //
+// Treat the values as free-form strings, not an enum: Cloudflare replaced this
+// taxonomy on 2026-07-01 with behaviour-based categories (Search, Agent,
+// Training, …) and the names we get today are explicitly the backwards-
+// compatible legacy set, so they can change without a deploy on our side.
+// https://developers.cloudflare.com/bots/concepts/bot/verified-bots/
+//
+// Deliberately NOT sending the sibling `botManagement.verifiedBot` boolean: it
+// is always false on our plan, including on requests Cloudflare did give a
+// category, so it would contradict this field. The category is the field that
+// works for us (`cf.verified_bot_category` in Cloudflare's rules language —
+// note it hangs off `cf`, not off `cf.botManagement`).
+//
 // Param names (`asn`, `as_org`, `verified_bot_category`) match the sampled
 // server-side `cf_function_invocation` events in analytics.ts so they can be
 // analyzed together downstream.
