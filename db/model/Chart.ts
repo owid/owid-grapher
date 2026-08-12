@@ -3,6 +3,7 @@ import * as db from "../db.js"
 import {
     getDataForMultipleVariables,
     getGrapherConfigsForVariable,
+    mergeVariableChartConfigs,
 } from "./Variable.js"
 import {
     JsonError,
@@ -44,7 +45,7 @@ export async function mapSlugsToIds(
                     SELECT c.id, cc.slug
                     FROM charts c
                     JOIN chart_configs cc ON cc.id = c.configId
-                    WHERE cc.full ->> "$.isPublished" = "true"
+                    WHERE cc.config ->> "$.isPublished" = "true"
                 `
             ),
         ])
@@ -82,16 +83,16 @@ export async function mapSlugsToConfigs(
         }>(
             knex,
             `-- sql
-                SELECT csr.slug AS slug, cc.full AS config, c.id AS id
+                SELECT csr.slug AS slug, cc.config AS config, c.id AS id
                 FROM chart_slug_redirects csr
                 JOIN charts c ON csr.chart_id = c.id
                 JOIN chart_configs cc ON cc.id = c.configId
-                WHERE cc.full ->> "$.isPublished" = "true"
+                WHERE cc.config ->> "$.isPublished" = "true"
                 UNION
-                SELECT cc.slug, cc.full AS config, c.id AS id
+                SELECT cc.slug, cc.config AS config, c.id AS id
                 FROM charts c
                 JOIN chart_configs cc ON cc.id = c.configId
-                WHERE cc.full ->> "$.isPublished" = "true"
+                WHERE cc.config ->> "$.isPublished" = "true"
             `
         )
         .then((results) =>
@@ -105,13 +106,15 @@ export async function mapSlugsToConfigs(
 export async function getEnrichedChartBySlug(
     knex: db.KnexReadonlyTransaction,
     slug: string
-): Promise<(DbPlainChart & { config: DbEnrichedChartConfig["full"] }) | null> {
+): Promise<
+    (DbPlainChart & { config: DbEnrichedChartConfig["config"] }) | null
+> {
     let chart = await db.knexRawFirst<
-        DbPlainChart & { config: DbRawChartConfig["full"] }
+        DbPlainChart & { config: DbRawChartConfig["config"] }
     >(
         knex,
         `-- sql
-            SELECT c.*, cc.full as config
+            SELECT c.*, cc.config as config
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
             WHERE cc.slug = ?
@@ -121,12 +124,12 @@ export async function getEnrichedChartBySlug(
 
     if (!chart) {
         chart = await db.knexRawFirst<
-            DbPlainChart & { config: DbRawChartConfig["full"] }
+            DbPlainChart & { config: DbRawChartConfig["config"] }
         >(
             knex,
             `-- sql
                 SELECT
-                    c.*, cc.full as config
+                    c.*, cc.config as config
                 FROM
                     chart_slug_redirects csr
                     JOIN charts c ON csr.chart_id = c.id
@@ -148,13 +151,13 @@ export async function getEnrichedChartBySlug(
 export async function getRawChartById(
     knex: db.KnexReadonlyTransaction,
     id: number
-): Promise<(DbPlainChart & { config: DbRawChartConfig["full"] }) | null> {
+): Promise<(DbPlainChart & { config: DbRawChartConfig["config"] }) | null> {
     const chart = await db.knexRawFirst<
-        DbPlainChart & { config: DbRawChartConfig["full"] }
+        DbPlainChart & { config: DbRawChartConfig["config"] }
     >(
         knex,
         `-- sql
-            SELECT c.*, cc.full AS config
+            SELECT c.*, cc.config AS config
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
             WHERE id = ?
@@ -168,13 +171,13 @@ export async function getRawChartById(
 export async function getRawChartsByIds(
     knex: db.KnexReadonlyTransaction,
     ids: number[]
-): Promise<(DbPlainChart & { config: DbRawChartConfig["full"] })[]> {
+): Promise<(DbPlainChart & { config: DbRawChartConfig["config"] })[]> {
     const charts = await db.knexRaw<
-        DbPlainChart & { config: DbRawChartConfig["full"] }
+        DbPlainChart & { config: DbRawChartConfig["config"] }
     >(
         knex,
         `-- sql
-            SELECT c.*, cc.full AS config
+            SELECT c.*, cc.config AS config
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
             WHERE c.id IN (?)
@@ -188,24 +191,26 @@ export async function getPatchConfigByChartId(
     knex: db.KnexReadonlyTransaction,
     id: number
 ): Promise<GrapherInterface | undefined> {
-    const chart = await db.knexRawFirst<Pick<DbRawChartConfig, "patch">>(
+    const chart = await db.knexRawFirst<Pick<DbRawChartConfig, "config">>(
         knex,
         `-- sql
-            SELECT patch
+            SELECT cc.config
             FROM chart_configs cc
-            JOIN charts c ON c.configId = cc.id
+            JOIN charts c ON c.patchConfigId = cc.id
             WHERE c.id = ?
         `,
         [id]
     )
     if (!chart) return undefined
-    return parseChartConfig(chart.patch)
+    return parseChartConfig(chart.config)
 }
 
 export async function getEnrichedChartById(
     knex: db.KnexReadonlyTransaction,
     id: number
-): Promise<(DbPlainChart & { config: DbEnrichedChartConfig["full"] }) | null> {
+): Promise<
+    (DbPlainChart & { config: DbEnrichedChartConfig["config"] }) | null
+> {
     const rawChart = await getRawChartById(knex, id)
     if (!rawChart) return null
     return { ...rawChart, config: parseChartConfig(rawChart.config) }
@@ -214,7 +219,7 @@ export async function getEnrichedChartById(
 export async function getEnrichedChartsByIds(
     knex: db.KnexReadonlyTransaction,
     ids: number[]
-): Promise<(DbPlainChart & { config: DbEnrichedChartConfig["full"] })[]> {
+): Promise<(DbPlainChart & { config: DbEnrichedChartConfig["config"] })[]> {
     const charts = await getRawChartsByIds(knex, ids)
     return charts.map((rawChart) => ({
         ...rawChart,
@@ -245,18 +250,18 @@ export const getChartConfigById = async (
     grapherId: number
 ): Promise<
     | (Pick<DbPlainChart, "id" | "forceDatapage"> & {
-          config: DbEnrichedChartConfig["full"]
+          config: DbEnrichedChartConfig["config"]
       })
     | undefined
 > => {
     const grapher = await db.knexRawFirst<
         Pick<DbPlainChart, "id" | "forceDatapage"> & {
-            config: DbRawChartConfig["full"]
+            config: DbRawChartConfig["config"]
         }
     >(
         knex,
         `-- sql
-            SELECT c.id, c.forceDatapage, cc.full as config
+            SELECT c.id, c.forceDatapage, cc.config as config
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
             WHERE c.id=?
@@ -278,17 +283,17 @@ export async function getChartConfigBySlug(
     slug: string
 ): Promise<
     Pick<DbPlainChart, "id"> & {
-        config: DbEnrichedChartConfig["full"]
+        config: DbEnrichedChartConfig["config"]
     }
 > {
     const row = await db.knexRawFirst<
         Pick<DbPlainChart, "id" | "forceDatapage"> & {
-            config: DbRawChartConfig["full"]
+            config: DbRawChartConfig["config"]
         }
     >(
         knex,
         `-- sql
-            SELECT c.id, cc.full as config
+            SELECT c.id, cc.config as config
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
             WHERE cc.slug = ?`,
@@ -357,11 +362,12 @@ export async function getParentByChartId(
     const parentVariableId = await getParentVariableIdByChartId(trx, chartId)
     if (!parentVariableId) return {}
     const variable = await getGrapherConfigsForVariable(trx, parentVariableId)
-    const parentConfig =
-        variable?.admin?.fullConfig ?? variable?.etl?.fullConfig
     return {
         variableId: parentVariableId,
-        config: parentConfig,
+        config: mergeVariableChartConfigs({
+            etl: variable?.etl?.config,
+            admin: variable?.admin?.config,
+        }),
     }
 }
 
@@ -375,11 +381,12 @@ export async function getParentByChartConfig(
     const parentVariableId = getParentVariableIdFromChartConfig(config)
     if (!parentVariableId) return {}
     const variable = await getGrapherConfigsForVariable(trx, parentVariableId)
-    const parentConfig =
-        variable?.admin?.fullConfig ?? variable?.etl?.fullConfig
     return {
         variableId: parentVariableId,
-        config: parentConfig,
+        config: mergeVariableChartConfigs({
+            etl: variable?.etl?.config,
+            admin: variable?.admin?.config,
+        }),
     }
 }
 
@@ -468,7 +475,7 @@ export async function getGptTopicSuggestions(
     const chartConfigOnly = await db.knexRawFirst<{ config: string }>(
         knex,
         `-- sql
-            SELECT cc.full as config
+            SELECT cc.config as config
             FROM chart_configs cc
             JOIN charts c ON c.configId = cc.id
             WHERE c.id = ?
@@ -559,15 +566,15 @@ export interface OldChartFieldList {
 
 export const oldChartFieldList = `
         charts.id,
-        chart_configs.full->>"$.title" AS title,
-        chart_configs.full->>"$.slug" AS slug,
+        chart_configs.config->>"$.title" AS title,
+        chart_configs.config->>"$.slug" AS slug,
         chart_configs.chartType AS type,
-        chart_configs.full->>"$.internalNotes" AS internalNotes,
-        chart_configs.full->>"$.variantName" AS variantName,
-        chart_configs.full->>"$.tab" AS tab,
+        chart_configs.config->>"$.internalNotes" AS internalNotes,
+        chart_configs.config->>"$.variantName" AS variantName,
+        chart_configs.config->>"$.tab" AS tab,
         chart_configs.chartType IS NOT NULL AS hasChartTab,
-        JSON_EXTRACT(chart_configs.full, "$.hasMapTab") = true AS hasMapTab,
-        JSON_EXTRACT(chart_configs.full, "$.isPublished") = true AS isPublished,
+        JSON_EXTRACT(chart_configs.config, "$.hasMapTab") = true AS hasMapTab,
+        JSON_EXTRACT(chart_configs.config, "$.isPublished") = true AS isPublished,
         charts.lastEditedAt,
         charts.lastEditedByUserId,
         lastEditedByUser.fullName AS lastEditedBy,
@@ -606,7 +613,7 @@ export const getMostViewedGrapherIdsByChartType = async (
             JOIN charts c ON c.configId = cc.id
             WHERE a.url LIKE "https://ourworldindata.org/grapher/%"
                 AND cc.chartType = ?
-                AND cc.full ->> "$.isPublished" = "true"
+                AND cc.config ->> "$.isPublished" = "true"
             ORDER BY a.views_365d DESC
             LIMIT ?
         `,
@@ -641,15 +648,15 @@ export const getRelatedChartsForVariable = async (
             SELECT
                 charts.id AS chartId,
                 chart_configs.slug,
-                chart_configs.full->>"$.title" AS title,
-                chart_configs.full->>"$.variantName" AS variantName,
+                chart_configs.config->>"$.title" AS title,
+                chart_configs.config->>"$.variantName" AS variantName,
                 MAX(chart_tags.keyChartLevel) as keyChartLevel
             FROM charts
             JOIN chart_configs ON charts.configId=chart_configs.id
             INNER JOIN chart_tags ON charts.id=chart_tags.chartId
             INNER JOIN chart_dimensions ON charts.id=chart_dimensions.chartId
             WHERE chart_dimensions.variableId = ${variableId}
-            AND chart_configs.full->>"$.isPublished" = "true"
+            AND chart_configs.config->>"$.isPublished" = "true"
             ${filterUnlistedClause}
             ${excludeChartIds}
             GROUP BY charts.id
@@ -671,8 +678,8 @@ export const getRelatedChartsForChart = async (
             SELECT
                 charts.id AS chartId,
                 chart_configs.slug,
-                chart_configs.full->>"$.title" AS title,
-                chart_configs.full->>"$.variantName" AS variantName
+                chart_configs.config->>"$.title" AS title,
+                chart_configs.config->>"$.variantName" AS variantName
             FROM ${RelatedChartsTableName} rc
             JOIN charts ON charts.id = rc.relatedChartId
             JOIN chart_configs ON charts.configId = chart_configs.id
@@ -680,7 +687,7 @@ export const getRelatedChartsForChart = async (
                 AND rc.relatedChartId != rc.chartId
                 AND rc.reviewer = 'production'
                 AND rc.label = 'good'
-                AND chart_configs.full->>"$.isPublished" = "true"
+                AND chart_configs.config->>"$.isPublished" = "true"
                 AND NOT EXISTS (
                     SELECT 1 FROM chart_tags ct
                     JOIN tags t ON ct.tagId = t.id
@@ -722,7 +729,7 @@ export async function getAllPublishedChartSlugs(
             SELECT cc.slug
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
-            WHERE cc.full->>"$.isPublished" = "true"
+            WHERE cc.config->>"$.isPublished" = "true"
         `
     )
     return rows.map((row) => row.slug)

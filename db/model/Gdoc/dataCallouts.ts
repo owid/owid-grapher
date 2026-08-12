@@ -41,7 +41,7 @@ import { getMergedGrapherConfigForVariable } from "../Variable.js"
 import { getExplorerBySlug } from "../Explorer.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "../ExplorerCatalogResolver.js"
 import { getMultiDimDataPageBySlug } from "../MultiDimDataPage.js"
-import { getChartConfigByUuid } from "../ChartConfigs.js"
+import { getChartConfigByUUID } from "../ChartConfigs.js"
 
 /**
  * Extract all data-callout blocks from an array of enriched blocks.
@@ -115,7 +115,7 @@ export async function prepareCalloutTableForUrl(
             multiDimPage.config,
             searchParams
         )
-        config = await getChartConfigByUuid(knex, view.fullConfigId)
+        config = await getChartConfigByUUID(knex, view.fullConfigId)
         if (!config) return undefined
     }
 

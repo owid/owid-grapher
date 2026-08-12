@@ -25,9 +25,11 @@ fields:
   id:
     description: Unique identifier for the chart
   configId:
-    description: Foreign key to chart_configs table. Charts store their configuration separately to enable inheritance and efficient updates. The chart_configs table contains the actual config, the slug of the chart etc., so in many queries, these two tables have to be joined.
+    description: Foreign key to chart_configs table, pointing at the config that is actually rendered (the merge of the indicator layers and this chart's patch). The chart_configs table contains the actual config, the slug of the chart etc., so in many queries, these two tables have to be joined. This is the pointer you want unless you specifically need what a user authored.
+  patchConfigId:
+    description: Foreign key to chart_configs table, pointing at the layer authored in the chart editor, i.e. the changes made on top of the inherited indicator config. Equals the rendered config when inheritance is disabled.
   isInheritanceEnabled:
-    description: When true, chart inherits configuration from parent variable's grapherConfigIdAdmin or grapherConfigIdETL. This allows variables to define default chart settings that are automatically applied to all inheriting charts.
+    description: When true, chart inherits configuration from parent variable's patchConfigIdAdmin or patchConfigIdETL. This allows variables to define default chart settings that are automatically applied to all inheriting charts.
   forceDatapage:
     description: When true, force rendering this chart as a data page using metadata from the first Y indicator.
   createdAt:

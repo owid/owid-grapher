@@ -44,7 +44,7 @@ type DataInsightRow = Pick<
         gdocId: DbRawPostGdoc["id"]
         narrativeChartId?: DbPlainNarrativeChart["id"]
         narrativeChartConfigId?: DbPlainNarrativeChart["chartConfigId"]
-        chartConfig?: DbRawChartConfig["full"]
+        chartConfig?: DbRawChartConfig["config"]
         imageId?: DbRawImage["id"]
         tags?: MinimalTag[]
     }
@@ -106,10 +106,10 @@ async function getAllDataInsightIndexItemsOrderedByUpdatedAt(
 
         -- only consider published stand-alone charts since we join by slug which is only unique for published charts
         WITH published_charts AS (
-            SELECT cc.id, cc.slug, cc.full
+            SELECT cc.id, cc.slug, cc.config
             FROM chart_configs cc
             JOIN charts c ON c.configId = cc.id
-            WHERE cc.full ->> '$.isPublished' = 'true'
+            WHERE cc.config ->> '$.isPublished' = 'true'
         )
 
         SELECT
@@ -126,7 +126,7 @@ async function getAllDataInsightIndexItemsOrderedByUpdatedAt(
             nc.chartConfigId AS narrativeChartConfigId,
 
             -- chart config (prefer narrative charts over grapher URLs)
-            COALESCE(cc_narrativeChart.full, cc_grapherUrl.full) AS chartConfig,
+            COALESCE(cc_narrativeChart.config, cc_grapherUrl.config) AS chartConfig,
 
             -- image fields
             i.id AS imageId,

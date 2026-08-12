@@ -34,7 +34,7 @@ export async function getChartBulkUpdate(
     trx: db.KnexReadonlyTransaction
 ): Promise<BulkGrapherConfigResponse<BulkChartEditResponseRow>> {
     const context: OperationContext = {
-        grapherConfigFieldName: "chart_configs.full",
+        grapherConfigFieldName: "chart_configs.config",
         whitelistedColumnNamesAndTypes:
             chartBulkUpdateAllowedColumnNamesAndTypes,
     }
@@ -55,7 +55,7 @@ export async function getChartBulkUpdate(
         `-- sql
                 SELECT
                     charts.id as id,
-                    chart_configs.full as config,
+                    chart_configs.config as config,
                     charts.createdAt as createdAt,
                     charts.updatedAt as updatedAt,
                     charts.lastEditedAt as lastEditedAt,
@@ -98,11 +98,11 @@ export async function updateBulkChartConfigs(
     const chartIds = new Set(patchesList.map((patch) => patch.id))
 
     const configsAndIds = await db.knexRaw<
-        Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
+        Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["config"] }
     >(
         trx,
         `-- sql
-            SELECT c.id, cc.full as config
+            SELECT c.id, cc.config as config
             FROM charts c
             JOIN chart_configs cc ON cc.id = c.configId
             WHERE c.id IN (?)
@@ -163,7 +163,7 @@ export async function getVariableAnnotations(
             SELECT
                 variables.id as id,
                 variables.name as name,
-                chart_configs.patch as config,
+                chart_configs.config as config,
                 d.name as datasetname,
                 namespaces.name as namespacename,
                 variables.createdAt as createdAt,
@@ -172,7 +172,7 @@ export async function getVariableAnnotations(
             FROM variables
             LEFT JOIN active_datasets as d on variables.datasetId = d.id
             LEFT JOIN namespaces on d.namespace = namespaces.name
-            LEFT JOIN chart_configs on variables.grapherConfigIdAdmin = chart_configs.id
+            LEFT JOIN chart_configs on variables.patchConfigIdAdmin = chart_configs.id
             WHERE ${whereClause}
             ORDER BY variables.id DESC
             LIMIT 50
@@ -191,7 +191,7 @@ export async function getVariableAnnotations(
             FROM variables
             LEFT JOIN active_datasets as d on variables.datasetId = d.id
             LEFT JOIN namespaces on d.namespace = namespaces.name
-            LEFT JOIN chart_configs on variables.grapherConfigIdAdmin = chart_configs.id
+            LEFT JOIN chart_configs on variables.patchConfigIdAdmin = chart_configs.id
             WHERE ${whereClause}
         `
     )
@@ -208,14 +208,14 @@ export async function updateVariableAnnotations(
 
     const configsAndIds = await db.knexRaw<
         Pick<DbRawVariable, "id"> & {
-            grapherConfigAdmin: DbRawChartConfig["patch"]
+            grapherConfigAdmin: DbRawChartConfig["config"]
         }
     >(
         trx,
         `-- sql
-          SELECT v.id, cc.patch AS grapherConfigAdmin
+          SELECT v.id, cc.config AS grapherConfigAdmin
           FROM variables v
-          LEFT JOIN chart_configs cc ON v.grapherConfigIdAdmin = cc.id
+          LEFT JOIN chart_configs cc ON v.patchConfigIdAdmin = cc.id
           WHERE v.id IN (?)`,
         [variableIds.values().toArray()]
     )
