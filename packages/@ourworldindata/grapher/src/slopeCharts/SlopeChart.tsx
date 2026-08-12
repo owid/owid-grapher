@@ -85,7 +85,7 @@ type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
     | React.TouchEvent<SVGGElement>
 
-const DOT_RADIUS = 3.5
+const DOT_RADIUS = 8
 
 const TIME_LABEL_PADDING = 4
 const VERTICAL_LABELS_PADDING = 4
