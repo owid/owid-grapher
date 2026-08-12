@@ -39,22 +39,7 @@ export function makeToleranceNotice({
     // Tolerance can't be applied if the chart only has a single time
     if (firstTime === lastTime) return undefined
 
-    // "closest", plus the direction where the tolerance only looks one way
-    const closest =
-        toleranceStrategy === ToleranceStrategy.backwards
-            ? "closest earlier"
-            : toleranceStrategy === ToleranceStrategy.forwards
-              ? "closest later"
-              : "closest available"
-
-    // A tolerance that spans the whole chart isn't a window, it just means
-    // "whenever there is data". Indicators configured that way use a sentinel
-    // like 9999, which would otherwise read as "within 9999 years".
-    const isUnbounded = timeTolerance >= lastTime - firstTime
-    if (isUnbounded)
-        return `Where data is unavailable, the ${closest} value is shown instead.`
-
-    // Detailed notice for a chart that plots a single year,
+    // Detailed notice for a chart with yearly data that plots a single year,
     // all other cases (time range plotted, sub-yearly data) use a simpler notice
     if (targetTime !== undefined && !isSubYearly(timeColumn.timeInterval)) {
         // A one-directional strategy reaches to one side of the time shown only
@@ -73,6 +58,21 @@ export function makeToleranceNotice({
 
         return `Where data for ${timeColumn.formatTime(targetTime)} is unavailable, the value from ${window} is shown instead.`
     } else {
+        // "closest", plus the direction where the tolerance only looks one way
+        const closest =
+            toleranceStrategy === ToleranceStrategy.backwards
+                ? "closest earlier"
+                : toleranceStrategy === ToleranceStrategy.forwards
+                  ? "closest later"
+                  : "closest available"
+
+        // A tolerance that spans the whole chart isn't a window, it just means
+        // "whenever there is data". Indicators configured that way use a sentinel
+        // like 9999, which would otherwise read as "within 9999 days"
+        const isUnbounded = timeTolerance >= lastTime - firstTime
+        if (isUnbounded)
+            return `Where data is unavailable, the ${closest} value is shown instead.`
+
         const tolerance = formatTimeTolerance(
             timeTolerance,
             timeColumn.timeInterval

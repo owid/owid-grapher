@@ -149,12 +149,24 @@ describe(makeToleranceNotice, () => {
     it("drops the window when the tolerance spans the whole chart", () => {
         expect(
             makeToleranceNotice({
-                timeColumn: yearColumn([2000]),
+                timeColumn: yearColumn([1990, 2002]),
                 timeTolerance: 9999,
                 timeRange: [1990, 2002],
             })
         ).toEqual(
             "Where data is unavailable, the closest available value is shown instead."
+        )
+    })
+
+    it("names the years even where the tolerance covers all of them", () => {
+        expect(
+            makeToleranceNotice({
+                timeColumn: yearColumn([2022]),
+                timeTolerance: 3,
+                timeRange: [2019, 2022],
+            })
+        ).toEqual(
+            "Where data for 2022 is unavailable, the value from the closest year back to 2019 is shown instead."
         )
     })
 
