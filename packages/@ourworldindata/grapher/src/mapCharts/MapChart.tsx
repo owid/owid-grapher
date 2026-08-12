@@ -512,8 +512,11 @@ export class MapChart
     }
 
     @computed get legendMaxWidth(): number {
-        // it seems nice to have just a little bit of extra padding left and right
-        return this.bounds.width * MAP_LEGEND_MAX_WIDTH_RATIO
+        // Numeric tick labels are centered on bin boundaries and thus stick out
+        // past the legend's edges, so they need some padding left and right
+        return this.hasNumericLegend
+            ? this.bounds.width * MAP_LEGEND_MAX_WIDTH_RATIO
+            : this.bounds.width
     }
 
     @computed get legendX(): number {
@@ -540,10 +543,14 @@ export class MapChart
             : undefined
     }
 
+    @computed private get hasNumericLegend(): boolean {
+        return !!this.manager.showLegend && this.numericLegendData.length > 1
+    }
+
     @computed private get numericLegend():
         | HorizontalNumericColorLegend
         | undefined {
-        return this.manager.showLegend && this.numericLegendData.length > 1
+        return this.hasNumericLegend
             ? new HorizontalNumericColorLegend({ manager: this })
             : undefined
     }
@@ -559,7 +566,11 @@ export class MapChart
     }
 
     @computed get legendAlign(): HorizontalAlign {
-        return HorizontalAlign.center
+        if (this.hasNumericLegend) return HorizontalAlign.center
+        // Centered categorical legends are hard to read across multiple lines
+        return (this.categoryLegend?.numLines ?? 0) > 1
+            ? HorizontalAlign.left
+            : HorizontalAlign.center
     }
 
     @computed get numericLegendY(): number {

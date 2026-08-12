@@ -365,7 +365,7 @@ export class FacetMap
     }
 
     @computed get legendX(): number {
-        return this.bounds.x
+        return this.bounds.x + (this.bounds.width - this.legendMaxWidth) / 2
     }
 
     @computed get numericLegendY(): number {
@@ -391,11 +391,19 @@ export class FacetMap
     }
 
     @computed get legendMaxWidth(): number {
-        return this.bounds.width * MAP_LEGEND_MAX_WIDTH_RATIO
+        // Numeric tick labels are centered on bin boundaries and thus stick out
+        // past the legend's edges, so they need some padding left and right
+        return this.hasNumericLegend
+            ? this.bounds.width * MAP_LEGEND_MAX_WIDTH_RATIO
+            : this.bounds.width
     }
 
     @computed get legendAlign(): HorizontalAlign {
-        return HorizontalAlign.center
+        if (this.hasNumericLegend) return HorizontalAlign.center
+        // Centered categorical legends are hard to read across multiple lines
+        return (this.categoryLegend?.numLines ?? 0) > 1
+            ? HorizontalAlign.left
+            : HorizontalAlign.center
     }
 
     @computed get hoverColors(): Color[] | undefined {
@@ -439,10 +447,14 @@ export class FacetMap
             : undefined
     }
 
+    @computed private get hasNumericLegend(): boolean {
+        return this.numericLegendData.length > 1
+    }
+
     @computed private get numericLegend():
         | HorizontalNumericColorLegend
         | undefined {
-        return this.numericLegendData.length > 1
+        return this.hasNumericLegend
             ? new HorizontalNumericColorLegend({ manager: this })
             : undefined
     }
