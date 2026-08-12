@@ -98,6 +98,28 @@ import { SlideshowPage } from "../site/slideshows/SlideshowPage.js"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToString(element)}`
 
+/**
+ * Insert an HTML snippet into a rendered page directly before its <title>
+ * tag. React 19 hoists <title>, <meta> and <link> tags to the front of
+ * <head>, ahead of everything else, so head elements that need to precede
+ * <title> — e.g. data the Cloudflare Function's streaming HTML rewriter must
+ * have parsed before it reaches <title> — can't be placed there via JSX and
+ * have to be spliced into the rendered HTML instead.
+ *
+ * The first `<title` in the page is necessarily the head's title tag: React's
+ * hoisting moves it in front of all non-metadata head content, and SVG
+ * <title> elements can only occur later, inside <body>.
+ */
+export function injectHtmlBeforeTitle(html: string, snippet: string): string {
+    const match = /<title[\s>]/.exec(html)
+    if (!match) {
+        throw new Error(
+            "Cannot inject HTML before <title>: no <title> tag found"
+        )
+    }
+    return html.slice(0, match.index) + snippet + html.slice(match.index)
+}
+
 export const renderSearchPage = async (knex: KnexReadonlyTransaction) => {
     const topicTagGraph = await generateTopicTagGraph(knex)
     const flattenedTopicTagGraph = flattenNonTopicNodes(topicTagGraph) // no need for sub-areas
