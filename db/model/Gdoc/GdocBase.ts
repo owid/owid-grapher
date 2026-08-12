@@ -178,9 +178,10 @@ export async function loadLinkedChartsForSlugs(
     for (const [sourceSlug, targetSlugs] of explorerRedirectFanOut) {
         await logErrorAndMaybeCaptureInSentry(
             new Error(
-                `Explorer '/explorers/${sourceSlug}' is linked from a gdoc but redirects to multiple multi-dims (${targetSlugs.join(
+                `ACTION RECOMMENDED: Update all gdocs that contain links to '/explorers/${sourceSlug}' and point them to the target Mdims instead.
+Explorer '/explorers/${sourceSlug}' is linked from a gdoc, but it redirects to several multi-dims depending on query params (${targetSlugs.join(
                     ", "
-                )}) depending on query params. The gdoc link resolves by slug alone and may point at the wrong multi-dim. Point the link directly at the intended multi-dim.`
+                )}). Gdoc links are resolved by slug alone, so this link may end up pointing at the wrong one.`
             )
         )
     }
