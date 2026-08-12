@@ -1,6 +1,6 @@
 import { expect, it, describe } from "vitest"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
-import { ColumnTypeNames } from "@ourworldindata/types"
+import { ColumnTypeNames, ToleranceStrategy } from "@ourworldindata/types"
 import { makeToleranceNotice } from "./ToleranceNotice"
 
 const timeColumnOfType = (
@@ -73,6 +73,43 @@ describe(makeToleranceNotice, () => {
         )
     })
 
+    it("only looks back when the tolerance strategy is backwards", () => {
+        expect(
+            makeToleranceNotice({
+                timeColumn: yearColumn([2000]),
+                timeTolerance: 3,
+                timeRange: [1990, 2010],
+                toleranceStrategy: ToleranceStrategy.backwards,
+            })
+        ).toEqual(
+            "Where data for 2000 is unavailable, the value from the closest year back to 1997 is shown instead."
+        )
+    })
+
+    it("only looks ahead when the tolerance strategy is forwards", () => {
+        expect(
+            makeToleranceNotice({
+                timeColumn: yearColumn([2000]),
+                timeTolerance: 3,
+                timeRange: [1990, 2010],
+                toleranceStrategy: ToleranceStrategy.forwards,
+            })
+        ).toEqual(
+            "Where data for 2000 is unavailable, the value from the closest year up to 2003 is shown instead."
+        )
+    })
+
+    it("is absent when a one-directional window has no years to reach", () => {
+        expect(
+            makeToleranceNotice({
+                timeColumn: yearColumn([1990]),
+                timeTolerance: 3,
+                timeRange: [1990, 2010],
+                toleranceStrategy: ToleranceStrategy.backwards,
+            })
+        ).toBeUndefined()
+    })
+
     it("names the one year a value can come from where the window leaves just the one", () => {
         expect(
             makeToleranceNotice({
@@ -93,7 +130,7 @@ describe(makeToleranceNotice, () => {
                 timeRange: [1990, 2002],
             })
         ).toEqual(
-            "Where data is unavailable, the closest value within 3 years is shown instead."
+            "Where data is unavailable, the closest available value within 3 years is shown instead."
         )
     })
 
@@ -105,7 +142,7 @@ describe(makeToleranceNotice, () => {
                 timeRange: [0, 730],
             })
         ).toEqual(
-            "Where data is unavailable, the closest value within 90 days is shown instead."
+            "Where data is unavailable, the closest available value within 90 days is shown instead."
         )
     })
 
@@ -118,6 +155,19 @@ describe(makeToleranceNotice, () => {
             })
         ).toEqual(
             "Where data is unavailable, the closest available value is shown instead."
+        )
+    })
+
+    it("names the direction of a one-directional tolerance in the plainer sentence", () => {
+        expect(
+            makeToleranceNotice({
+                timeColumn: yearColumn([2000, 2010]),
+                timeTolerance: 3,
+                timeRange: [1990, 2010],
+                toleranceStrategy: ToleranceStrategy.backwards,
+            })
+        ).toEqual(
+            "Where data is unavailable, the closest earlier value within 3 years is shown instead."
         )
     })
 

@@ -23,6 +23,7 @@ import {
     PrimitiveType,
     TickFormattingOptions,
     Time,
+    ToleranceStrategy,
 } from "@ourworldindata/types"
 import {
     anyToString,
@@ -340,12 +341,19 @@ export class MapChartState implements ChartState, ColorScaleManager {
         return this.mapConfig.timeTolerance ?? this.mapColumn.tolerance
     }
 
+    @computed private get toleranceStrategy(): ToleranceStrategy | undefined {
+        return (
+            this.mapConfig.toleranceStrategy ?? this.mapColumn.toleranceStrategy
+        )
+    }
+
     /** The notice itself, regardless of whether it currently applies */
     @computed private get toleranceNoticeIfApplied(): string | undefined {
         return makeToleranceNotice({
             timeColumn: this.transformedTable.timeColumn,
             timeRange: this.inputTable.timeRange,
             timeTolerance: this.timeTolerance,
+            toleranceStrategy: this.toleranceStrategy,
         })
     }
 
