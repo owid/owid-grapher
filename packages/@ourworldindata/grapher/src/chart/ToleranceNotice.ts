@@ -44,7 +44,9 @@ export function makeToleranceNotice({
     if (targetTime !== undefined && !isSubYearly(timeColumn.timeInterval)) {
         const from = Math.max(targetTime - timeTolerance, firstTime)
         const to = Math.min(targetTime + timeTolerance, lastTime)
-        return `Where data for ${timeColumn.formatTime(targetTime)} is unavailable, the value from the closest year between ${timeColumn.formatTime(from)} and ${timeColumn.formatTime(to)} is shown instead.`
+        const window = formatToleranceWindow(timeColumn, targetTime, [from, to])
+
+        return `Where data for ${timeColumn.formatTime(targetTime)} is unavailable, the value from ${window} is shown instead.`
     } else {
         const tolerance = formatTimeTolerance(
             timeTolerance,
@@ -86,6 +88,30 @@ export function hasToleranceApplied(
 /** The largest tolerance configured on any of the given columns */
 export function getMaxConfiguredTolerance(columns: CoreColumn[]): number {
     return Math.max(0, ...columns.map((column) => column.tolerance))
+}
+
+/** The years a value shown for `targetTime` can come from, in words */
+function formatToleranceWindow(
+    timeColumn: CoreColumn,
+    targetTime: Time,
+    [from, to]: [Time, Time]
+): string {
+    const format = (time: Time): string => timeColumn.formatTime(time)
+
+    if (from < targetTime && to > targetTime)
+        return `the closest year between ${format(from)} and ${format(to)}`
+
+    // The window is one-sided when the chart shows the first or last year of
+    // its data, which is the norm: charts default to the latest year
+    const isLookingAhead = to > targetTime
+    const bound = isLookingAhead ? to : from
+
+    // Name the year itself where the window leaves just the one
+    if (Math.abs(bound - targetTime) === 1) return format(bound)
+
+    return isLookingAhead
+        ? `the closest year up to ${format(to)}`
+        : `the closest year back to ${format(from)}`
 }
 
 /** The tolerance in words, e.g. "3 years" or "a year" */

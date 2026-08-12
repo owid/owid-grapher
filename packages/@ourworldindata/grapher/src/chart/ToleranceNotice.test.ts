@@ -40,12 +40,48 @@ describe(makeToleranceNotice, () => {
     it("clips the window to the years the data covers", () => {
         expect(
             makeToleranceNotice({
+                timeColumn: yearColumn([2009]),
+                timeTolerance: 3,
+                timeRange: [1990, 2010],
+            })
+        ).toEqual(
+            "Where data for 2009 is unavailable, the value from the closest year between 2006 and 2010 is shown instead."
+        )
+    })
+
+    it("only looks back when the chart shows the last year of the data", () => {
+        expect(
+            makeToleranceNotice({
                 timeColumn: yearColumn([2010]),
                 timeTolerance: 3,
                 timeRange: [1990, 2010],
             })
         ).toEqual(
-            "Where data for 2010 is unavailable, the value from the closest year between 2007 and 2010 is shown instead."
+            "Where data for 2010 is unavailable, the value from the closest year back to 2007 is shown instead."
+        )
+    })
+
+    it("only looks ahead when the chart shows the first year of the data", () => {
+        expect(
+            makeToleranceNotice({
+                timeColumn: yearColumn([1990]),
+                timeTolerance: 3,
+                timeRange: [1990, 2010],
+            })
+        ).toEqual(
+            "Where data for 1990 is unavailable, the value from the closest year up to 1993 is shown instead."
+        )
+    })
+
+    it("names the one year a value can come from where the window leaves just the one", () => {
+        expect(
+            makeToleranceNotice({
+                timeColumn: yearColumn([2010]),
+                timeTolerance: 1,
+                timeRange: [1990, 2010],
+            })
+        ).toEqual(
+            "Where data for 2010 is unavailable, the value from 2009 is shown instead."
         )
     })
 

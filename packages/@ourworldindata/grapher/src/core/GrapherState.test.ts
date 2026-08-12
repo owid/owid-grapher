@@ -700,7 +700,7 @@ describe("toleranceNotice", () => {
     it("explains the tolerance on the map tab", () => {
         const grapher = makeGrapherWithTolerance()
         expect(grapher.toleranceNotice).toEqual(
-            "Where data for 2002 is unavailable, the value from the closest year between 1999 and 2002 is shown instead."
+            "Where data for 2002 is unavailable, the value from the closest year back to 1999 is shown instead."
         )
     })
 
@@ -839,7 +839,7 @@ describe("toleranceNotice", () => {
 
     describe("appending to the authored note", () => {
         const NOTICE =
-            "Where data for 2002 is unavailable, the value from the closest year between 1999 and 2002 is shown instead."
+            "Where data for 2002 is unavailable, the value from the closest year back to 1999 is shown instead."
 
         it("separates the notice from a note ending in a period", () => {
             const grapher = makeGrapherWithTolerance({
