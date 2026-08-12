@@ -4,6 +4,7 @@ import {
     ChartConfigsTableName,
     GrapherInterface,
     IndicatorsBeforePreProcessing,
+    MultiDimDataPagesTableName,
     MultiDimViewDimensionsTableName,
     MultiDimXChartConfigsTableName,
     View,
@@ -76,7 +77,19 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
             .testKnex(ChartConfigsTableName)
             .where({ id: chartConfigId })
             .first()
-        return JSON.parse(row.full)
+        return JSON.parse(row.config)
+    }
+
+    async function publishMultiDim(): Promise<void> {
+        const multiDim = await env
+            .testKnex(MultiDimDataPagesTableName)
+            .where({ catalogPath })
+            .first()
+        await env.request({
+            method: "PATCH",
+            path: `/multi-dims/${multiDim.id}`,
+            body: JSON.stringify({ published: true, slug: "energy-use" }),
+        })
     }
 
     beforeEach(async () => {
@@ -87,7 +100,8 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         await upsertMultiDim([totalView, perCapitaView])
 
         expect(await env.getCount(MultiDimXChartConfigsTableName)).toBe(2)
-        expect(await env.getCount(ChartConfigsTableName)).toBe(2)
+        // two config rows per view: the resolved one and its authored layer
+        expect(await env.getCount(ChartConfigsTableName)).toBe(4)
         expect(await env.getCount(MultiDimViewDimensionsTableName)).toBe(2)
 
         const viewConfigIds = await getViewConfigIds()
@@ -111,7 +125,8 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         expect(Object.keys(after)).toEqual(["metric=total"])
         // The surviving view keeps its config id, which is a public identity
         expect(after["metric=total"]).toBe(before["metric=total"])
-        expect(await env.getCount(ChartConfigsTableName)).toBe(1)
+        // both of the removed view's config rows are gone
+        expect(await env.getCount(ChartConfigsTableName)).toBe(2)
 
         // multi_dim_view_dimensions is an append-only log for analytics: its row
         // for the removed view deliberately outlives the config it names, so a
@@ -149,5 +164,29 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
 
         // Propagation updates the rows in place rather than replacing them
         expect(await getViewConfigIds()).toEqual(viewConfigIds)
+    })
+
+    it("keeps views published when the indicator's config changes", async () => {
+        await upsertMultiDim([totalView, perCapitaView])
+        const viewConfigIds = await getViewConfigIds()
+
+        await publishMultiDim()
+
+        for (const chartConfigId of Object.values(viewConfigIds)) {
+            expect((await getConfig(chartConfigId)).isPublished).toBe(true)
+        }
+
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                note: "Indicator note",
+            }),
+        })
+
+        const config = await getConfig(viewConfigIds["metric=total"])
+        expect(config.isPublished).toBe(true)
+        expect(config.note).toBe("Indicator note")
     })
 })

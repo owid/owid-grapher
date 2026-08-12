@@ -70,32 +70,32 @@ export async function insertTestChartConfig(
     config: GrapherInterface = {},
     id: string = uuidv7()
 ): Promise<string> {
-    const serializedConfig = JSON.stringify(config)
-    const row: DbInsertChartConfig = {
-        id,
-        patch: serializedConfig,
-        full: serializedConfig,
-    }
+    const row: DbInsertChartConfig = { id, config: JSON.stringify(config) }
     await knexInstance(ChartConfigsTableName).insert(row)
     return id
 }
 
-/** Inserts a chart_configs row together with the charts row that owns it. */
+/**
+ * Inserts the resolved and patch chart_configs rows together with the charts
+ * row that owns them.
+ */
 export async function insertTestChart(
     knexInstance: Knex<any, unknown[]>,
     {
         config,
         lastEditedByUserId,
     }: { config?: GrapherInterface; lastEditedByUserId: number }
-): Promise<{ chartId: number; configId: string }> {
+): Promise<{ chartId: number; configId: string; patchConfigId: string }> {
     const configId = await insertTestChartConfig(knexInstance, config)
+    const patchConfigId = await insertTestChartConfig(knexInstance, config)
     const row: DbInsertChart = {
         configId,
+        patchConfigId,
         lastEditedAt: new Date(),
         lastEditedByUserId,
     }
     const [chartId] = await knexInstance(ChartsTableName).insert(row)
-    return { chartId, configId }
+    return { chartId, configId, patchConfigId }
 }
 
 export function sleep(time: number, value: unknown): Promise<any> {

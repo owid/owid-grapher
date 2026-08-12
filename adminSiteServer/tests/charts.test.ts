@@ -44,7 +44,8 @@ describe("Charts API", { timeout: 15000 }, () => {
         const chartCountAfter = await env.getCount(ChartsTableName)
         expect(chartCountAfter).toBe(1)
         const chartConfigsCountAfter = await env.getCount(ChartConfigsTableName)
-        expect(chartConfigsCountAfter).toBe(1)
+        // one for the full config and one for the patch config
+        expect(chartConfigsCountAfter).toBe(2)
 
         const parentConfig = (
             await env.fetchJson(`/charts/${chartId}.parent.json`)
@@ -193,11 +194,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
 
         // get inserted configs from the database
         const row = await env.testKnex(ChartConfigsTableName).first()
-        const patchConfigETL = JSON.parse(row.patch)
-        const fullConfigETL = JSON.parse(row.full)
-
-        // for ETL configs, patch and full configs should be the same
-        expect(patchConfigETL).toEqual(fullConfigETL)
+        const patchConfigETL = JSON.parse(row.config)
 
         // check that the dimensions field were added to the config
         const processedTestVariableConfigETL = {
@@ -220,7 +217,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
 
         // since no admin-authored config exists, the merged config should be
         // the same as the ETL config
-        expect(mergedGrapherConfig).toEqual(fullConfigETL)
+        expect(mergedGrapherConfig).toEqual(patchConfigETL)
 
         // add an admin-authored config for the variable
         await env.request({
@@ -272,7 +269,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             .testKnex(ChartConfigsTableName)
             .where("id", multiDimView1.chartConfigId)
             .first()
-        expect(JSON.parse(fullViewConfig1.full)).toEqual(
+        expect(JSON.parse(fullViewConfig1.config)).toEqual(
             expectedMergedViewConfig
         )
 
@@ -293,7 +290,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             .testKnex(ChartConfigsTableName)
             .where("id", multiDimView1.chartConfigId)
             .first()
-        expect(JSON.parse(fullViewConfig1Updated.full)).toEqual(
+        expect(JSON.parse(fullViewConfig1Updated.config)).toEqual(
             expectedMergedViewConfigUpdated
         )
 
@@ -304,7 +301,9 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             .testKnex(ChartConfigsTableName)
             .whereIn("id", [
                 multiDimView1.chartConfigId,
+                multiDimView1.patchConfigId,
                 multiDimView2.chartConfigId,
+                multiDimView2.patchConfigId,
             ])
             .delete()
 
@@ -317,7 +316,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         mergedGrapherConfig = await env.fetchJson(
             `/variables/mergedGrapherConfig/${variableId}.json`
         )
-        expect(mergedGrapherConfig).toEqual(fullConfigETL)
+        expect(mergedGrapherConfig).toEqual(patchConfigETL)
 
         // delete the ETL-authored grapher config we just added
         await env.request({
@@ -510,7 +509,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
 
         // get the ETL config from the database
         const row = await env.testKnex(ChartConfigsTableName).first()
-        const fullConfigETL = JSON.parse(row.full)
+        const fullConfigETL = JSON.parse(row.config)
 
         // check the parent of the chart
         const parent = await env.fetchJson(`/charts/${chartId}.parent.json`)
@@ -621,16 +620,23 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         })
         const chartId = response.chartId
 
-        // helper functions to get the updatedAt timestamp of the chart and its config
-        const chartUpdatedAt = async (): Promise<Date> =>
-            (await env.testKnex(ChartsTableName).first()).updatedAt
-        const configUpdatedAt = async (): Promise<Date> =>
-            (await env.testKnex(ChartConfigsTableName).first()).updatedAt
+        // the chart and both of its config rows share one updatedAt
+        const expectTimestampsInSync = async (): Promise<Date> => {
+            const chart = await env
+                .testKnex(ChartsTableName)
+                .where({ id: chartId })
+                .first()
+            const configs = await env
+                .testKnex(ChartConfigsTableName)
+                .whereIn("id", [chart.configId, chart.patchConfigId])
+            expect(configs.length).toBe(2)
+            expect(chart.updatedAt).not.toBeNull()
+            for (const config of configs)
+                expect(config.updatedAt).toEqual(chart.updatedAt)
+            return chart.updatedAt
+        }
 
-        // verify that both updatedAt timestamps are initialized on create
-        expect(await chartUpdatedAt()).not.toBeNull()
-        expect(await configUpdatedAt()).not.toBeNull()
-        expect(await chartUpdatedAt()).toEqual(await configUpdatedAt())
+        const updatedAtOnCreate = await expectTimestampsInSync()
 
         // update the chart
         await env.request({
@@ -642,12 +648,10 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             }),
         })
 
-        // verify that the updatedAt timestamps are the same
-        const chartAfterUpdate = await chartUpdatedAt()
-        const configAfterUpdate = await configUpdatedAt()
-        expect(chartAfterUpdate).not.toBeNull()
-        expect(configAfterUpdate).not.toBeNull()
-        expect(chartAfterUpdate).toEqual(configAfterUpdate)
+        const updatedAtOnUpdate = await expectTimestampsInSync()
+        expect(updatedAtOnUpdate.getTime()).toBeGreaterThanOrEqual(
+            updatedAtOnCreate.getTime()
+        )
     })
 
     it("should bump the config version of a dataset's charts on republish", async () => {
