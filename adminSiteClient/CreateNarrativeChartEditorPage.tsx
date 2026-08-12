@@ -88,7 +88,7 @@ class CreateNarrativeChartEditorPageInternal
         const chartConfig = await this.context.admin.getJSON(
             `/api/chart-configs/${this.props.chartConfigId}.config.json`
         )
-        this.parentConfig = chartConfig.full
+        this.parentConfig = chartConfig
     }
 
     @computed get admin(): Admin {

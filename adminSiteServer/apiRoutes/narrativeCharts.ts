@@ -46,7 +46,7 @@ import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import { getPublishedLinksTo } from "../../db/model/Link.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
-import { getChartConfigById as _getChartConfigById } from "../../db/model/ChartConfigs.js"
+import { getChartConfigByUUID } from "../../db/model/ChartConfigs.js"
 import { narrativeChartExists } from "../../db/model/NarrativeChart.js"
 import { getMultiDimDataPageById } from "../../db/model/MultiDimDataPage.js"
 
@@ -98,16 +98,13 @@ function makeParentUrl(
     return null
 }
 
-async function getChartConfigById(
+async function expectChartConfigByUUID(
     trx: db.KnexReadonlyTransaction,
-    chartConfigId: string
+    id: string
 ) {
-    const chartConfig = await _getChartConfigById(trx, chartConfigId)
+    const chartConfig = await getChartConfigByUUID(trx, id)
     if (!chartConfig) {
-        throw new JsonError(
-            `No chart config found for id ${chartConfigId}`,
-            404
-        )
+        throw new JsonError(`No chart config found for id ${id}`, 404)
     }
     return chartConfig
 }
@@ -380,10 +377,13 @@ async function createNarrativeChartFromMultiDimView(
     | { narrativeChartId: number; success: boolean }
     | { success: false; errorMsg: string }
 > {
-    const parentChartConfig = await getChartConfigById(trx, parentChartConfigId)
+    const parentChartConfig = await expectChartConfigByUUID(
+        trx,
+        parentChartConfigId
+    )
     const { patchConfig, fullConfig, queryParams } =
         await createPatchConfigAndQueryParamsForNarrativeChart(
-            parentChartConfig.full,
+            parentChartConfig,
             config
         )
     const multiDimXChartConfig = await trx<DbPlainMultiDimXChartConfig>(
