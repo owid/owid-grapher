@@ -42,6 +42,9 @@ export const Head = (props: {
     pageDesc?: string
     imageUrl?: string
     children?: any
+    /** Rendered before the <title> tag, e.g. for data the Cloudflare
+     * Functions meta tag rewriting needs before it encounters <title>. */
+    beforeTitle?: any
     baseUrl: string
     /**
      * Ask search engines not to index the page. Also omits the canonical
@@ -86,6 +89,7 @@ export const Head = (props: {
                 name="viewport"
                 content="width=device-width, initial-scale=1, minimum-scale=1"
             />
+            {props.beforeTitle}
             <title>{fullPageTitle}</title>
             <meta name="description" content={pageDesc} />
             {props.noindex ? (

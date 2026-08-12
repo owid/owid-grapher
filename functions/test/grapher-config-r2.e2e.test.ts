@@ -200,9 +200,11 @@ function makeMdimPageHtml({ withMdimAttrs = true } = {}): string {
     const headAttrs = withMdimAttrs
         ? ` data-owid-mdim-initial-view-dimensions="${reactEscapeAttr(
               JSON.stringify(MDIM_DEFAULT_DIMENSIONS)
-          )}" data-owid-mdim-view-titles="${reactEscapeAttr(
-              JSON.stringify(MDIM_VIEW_TITLES)
           )}"`
+        : ""
+    // Must appear before <title>, like in MultiDimDataPage
+    const viewTitlesScript = withMdimAttrs
+        ? `<script type="application/json" data-owid-mdim-view-titles="">${JSON.stringify(MDIM_VIEW_TITLES)}</script>\n`
         : ""
     const jsonLd = JSON.stringify({
         "@context": "https://schema.org",
@@ -211,7 +213,7 @@ function makeMdimPageHtml({ withMdimAttrs = true } = {}): string {
         url: MDIM_BASE_URL,
     })
     return `<!DOCTYPE html><html><head${headAttrs}>
-<link rel="canonical" href="${MDIM_BASE_URL}"/>
+${viewTitlesScript}<link rel="canonical" href="${MDIM_BASE_URL}"/>
 <title>${MDIM_PAGE_TITLE} | Our World in Data</title>
 <meta property="og:title" content="${MDIM_PAGE_TITLE}"/>
 <meta name="twitter:title" content="${MDIM_PAGE_TITLE}"/>
