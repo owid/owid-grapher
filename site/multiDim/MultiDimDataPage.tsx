@@ -11,7 +11,6 @@ import {
     MultiDimDataPageConfig,
     SiteFooterContext,
     serializeJSONForHTML,
-    serializeJSONForInlineScript,
 } from "@ourworldindata/utils"
 import { MultiDimDataPageProps } from "@ourworldindata/types"
 import { DebugProvider } from "../gdocs/DebugProvider.js"
@@ -31,7 +30,6 @@ export function MultiDimDataPage({
     configObj,
     initialViewData,
     initialViewDimensions,
-    viewTitles,
     tagToSlugMap,
     faqEntries,
     primaryTopic,
@@ -94,19 +92,6 @@ export function MultiDimDataPage({
         [mdimDimensions]
     )
 
-    // The view titles need to appear before the <title> tag so the Cloudflare
-    // Function has parsed them by the time it rewrites the page title.
-    const viewTitlesScript =
-        viewTitles && Object.keys(viewTitles).length > 0 ? (
-            <script
-                type="application/json"
-                data-owid-mdim-view-titles=""
-                dangerouslySetInnerHTML={{
-                    __html: serializeJSONForInlineScript(viewTitles),
-                }}
-            />
-        ) : undefined
-
     return (
         <Html>
             <Head
@@ -118,7 +103,6 @@ export function MultiDimDataPage({
                 staticAssetMap={assetMaps?.static}
                 archiveContext={archiveContext}
                 attrs={headAttrs}
-                beforeTitle={viewTitlesScript}
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />

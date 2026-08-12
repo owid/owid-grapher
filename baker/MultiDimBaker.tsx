@@ -23,12 +23,13 @@ import {
     merge,
     MultiDimDataPageConfig,
     multiDimDimensionsToViewQueryStr,
+    serializeJSONForInlineScript,
 } from "@ourworldindata/utils"
 import { GrapherState } from "@ourworldindata/grapher"
 import * as db from "../db/db.js"
 import { getImagesByFilenames } from "../db/model/Image.js"
 import { getRelatedResearchAndWritingForVariables } from "../db/model/Post.js"
-import { renderToHtmlPage } from "./siteRenderers.js"
+import { injectHtmlBeforeTitle, renderToHtmlPage } from "./siteRenderers.js"
 import { MultiDimDataPage } from "../site/multiDim/MultiDimDataPage.js"
 import {
     ARCHIVE_BASE_URL,
@@ -340,7 +341,15 @@ export async function renderMultiDimDataPageByCatalogPath(
 export const renderMultiDimDataPageFromProps = async (
     props: MultiDimDataPageProps
 ) => {
-    return renderToHtmlPage(<MultiDimDataPage {...props} />)
+    const html = renderToHtmlPage(<MultiDimDataPage {...props} />)
+    if (!props.viewTitles || _.isEmpty(props.viewTitles)) return html
+    // The Cloudflare Function rewrites the page title to the view's title in
+    // a single streaming pass, so it must have parsed the view-title map
+    // before it encounters <title> (see rewriteMetaTags).
+    const viewTitlesScript = `<script type="application/json" data-owid-mdim-view-titles="">${serializeJSONForInlineScript(
+        props.viewTitles
+    )}</script>`
+    return injectHtmlBeforeTitle(html, viewTitlesScript)
 }
 
 export const bakeMultiDimDataPage = async (
