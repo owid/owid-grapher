@@ -9,6 +9,7 @@ import {
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import { omitUndefinedValues } from "@ourworldindata/utils"
 import {
+    datasetId,
     otherVariableId,
     seedDatasetAndVariables,
     variableId,
@@ -644,6 +645,51 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         expect(chartAfterUpdate).not.toBeNull()
         expect(configAfterUpdate).not.toBeNull()
         expect(chartAfterUpdate).toEqual(configAfterUpdate)
+    })
+
+    it("should bump the config version of a dataset's charts on republish", async () => {
+        // give the indicator a config so the chart's authored layer and its
+        // served config are not the same thing
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify(testVariableConfigETL),
+        })
+        const { chartId } = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+        const version = async (path: string): Promise<number> =>
+            (await env.fetchJson(`/charts/${chartId}.${path}.json`)).version
+        expect(await version("config")).toBe(1)
+
+        await env.request({
+            method: "POST",
+            path: `/datasets/${datasetId}/charts`,
+            body: JSON.stringify({ republish: true }),
+        })
+
+        // both the served config and the authored layer are bumped
+        expect(await version("config")).toBe(2)
+        expect(await version("patchConfig")).toBe(2)
+
+        // the chart and its config keep a single updatedAt
+        const chart = await env
+            .testKnex(ChartsTableName)
+            .where({ id: chartId })
+            .first()
+        const config = await env
+            .testKnex(ChartConfigsTableName)
+            .where({ id: chart.configId })
+            .first()
+        expect(config.updatedAt).toEqual(chart.updatedAt)
+
+        // the indicator's own config belongs to no chart and is left alone
+        const indicatorConfig = await env.fetchJson(
+            `/variables/mergedGrapherConfig/${variableId}.json`
+        )
+        expect(indicatorConfig).not.toHaveProperty("version")
     })
 
     it("should return an error if the schema is missing", async () => {
