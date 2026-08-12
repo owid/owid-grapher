@@ -3,13 +3,16 @@ import { getAdminTestEnv } from "./testEnv.js"
 import {
     ChartConfigsTableName,
     ChartsTableName,
-    DatasetsTableName,
-    VariablesTableName,
     MultiDimDataPagesTableName,
     MultiDimXChartConfigsTableName,
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import { omitUndefinedValues } from "@ourworldindata/utils"
+import {
+    otherVariableId,
+    seedDatasetAndVariables,
+    variableId,
+} from "./fixtures.js"
 
 const env = getAdminTestEnv()
 
@@ -63,30 +66,7 @@ describe("Charts API", { timeout: 15000 }, () => {
 })
 
 describe("Indicator-level chart configs", { timeout: 15000 }, () => {
-    const variableId = 1
-    const otherVariableId = 2
-
-    const dummyDataset = {
-        id: 1,
-        name: "Dummy dataset",
-        description: "Dataset description",
-        namespace: "owid",
-        createdByUserId: 1,
-        metadataEditedAt: new Date(),
-        metadataEditedByUserId: 1,
-        dataEditedAt: new Date(),
-        dataEditedByUserId: 1,
-    }
-
-    // dummy variable and its grapherConfigETL
-    const dummyVariable = {
-        id: variableId,
-        unit: "kg",
-        coverage: "Global by country",
-        timespan: "2000-2020",
-        datasetId: 1,
-        display: '{ "unit": "kg", "shortUnit": "kg" }',
-    }
+    // grapherConfigETL of the first dummy variable
     const testVariableConfigETL = {
         $schema: latestGrapherConfigSchema,
         hasMapTab: true,
@@ -100,11 +80,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         subtitle: "Admin subtitle",
     }
 
-    // second dummy variable and its grapherConfigETL
-    const otherDummyVariable = {
-        ...dummyVariable,
-        id: otherVariableId,
-    }
+    // grapherConfigETL of the second dummy variable
     const otherTestVariableConfig = {
         $schema: latestGrapherConfigSchema,
         note: "Other indicator note",
@@ -186,10 +162,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
     }
 
     beforeEach(async () => {
-        await env.testKnex(DatasetsTableName).insert([dummyDataset])
-        await env
-            .testKnex(VariablesTableName)
-            .insert([dummyVariable, otherDummyVariable])
+        await seedDatasetAndVariables(env)
     })
 
     it("should be able to edit ETL grapher configs via the api", async () => {
