@@ -23,11 +23,7 @@ import {
     MultiDimXChartConfigsTableName,
     DbInsertChartConfig,
 } from "@ourworldindata/types"
-import {
-    diffGrapherConfigs,
-    excludeUndefined,
-    mergeGrapherConfigs,
-} from "@ourworldindata/utils"
+import { diffGrapherConfigs, mergeGrapherConfigs } from "@ourworldindata/utils"
 import * as z from "zod"
 import {
     ApiNarrativeChartOverview,
@@ -528,10 +524,6 @@ export async function updateNarrativeChart(
     if (!existingRow) {
         throw new JsonError(`No narrative chart found for id ${id}`, 404)
     }
-    // TODO: remove once patchConfigId is NOT NULL and the type is required.
-    if (!existingRow.patchConfigId) {
-        throw new JsonError(`Narrative chart ${id} has no patch config`, 500)
-    }
 
     let parentChartConfig: GrapherInterface
     if (existingRow.parentChartId) {
@@ -646,7 +638,7 @@ export async function deleteNarrativeChart(
 
     await trx
         .table(ChartConfigsTableName)
-        .whereIn("id", excludeUndefined([chartConfigId, patchConfigId]))
+        .whereIn("id", _.compact([chartConfigId, patchConfigId]))
         .delete()
 
     return { success: true }

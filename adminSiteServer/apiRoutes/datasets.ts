@@ -554,10 +554,10 @@ export async function republishCharts(
             trx,
             `-- sql
                 UPDATE chart_configs cc
-                JOIN charts c ON c.configId = cc.id
+                JOIN charts c
+                    ON cc.id IN (c.configId, c.patchConfigId)
                 SET
-                    cc.patch = JSON_SET(cc.patch, "$.version", cc.patch->"$.version" + 1),
-                    cc.full = JSON_SET(cc.full, "$.version", cc.full->"$.version" + 1),
+                    cc.config = JSON_SET(cc.config, "$.version", cc.config->"$.version" + 1),
                     cc.updatedAt = ?,
                     c.updatedAt = ?
                 WHERE c.id IN (

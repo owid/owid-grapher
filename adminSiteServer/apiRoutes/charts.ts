@@ -371,11 +371,6 @@ const updateExistingChart = async (
     ])
 
     if (!chartRow) throw new JsonError(`No chart found for id ${chartId}`, 404)
-    // TODO: remove once patchConfigId is NOT NULL and the type is required.
-    // Backfilled for every chart and set on insert, so a missing one is a bug;
-    // skipping the write would silently leave the authored config stale.
-    if (!chartRow.patchConfigId)
-        throw new JsonError(`Chart ${chartId} has no patch config`, 500)
 
     const now = new Date()
 
@@ -901,7 +896,7 @@ export async function deleteChart(
     await db.knexRaw(trx, `DELETE FROM charts WHERE id=?`, [chart.id])
     await db.knexRaw(trx, `DELETE FROM chart_configs WHERE id IN (?, ?)`, [
         chartRow.configId,
-        chartRow.patchConfigId ?? chartRow.configId,
+        chartRow.patchConfigId,
     ])
 
     if (chart.isPublished)

@@ -13,7 +13,6 @@ import {
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
 import pl from "nodejs-polars"
-import { v7 as uuidv7 } from "uuid"
 import { DATA_API_URL } from "../../settings/serverSettings.js"
 import { escape } from "mysql2"
 import {
@@ -40,10 +39,7 @@ import {
     normalizeDescriptionKey,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
-import {
-    updateExistingConfigPair,
-    updateExistingFullConfig,
-} from "./ChartConfigs.js"
+import { insertChartConfig, updateChartConfig } from "./ChartConfigs.js"
 
 interface VariableChartConfig {
     configId: DbEnrichedChartConfig["id"]
@@ -161,41 +157,26 @@ export async function getMergedGrapherConfigsForVariables(
 }
 
 export async function insertNewGrapherConfigForVariable(
-    knex: db.KnexReadonlyTransaction,
+    knex: db.KnexReadWriteTransaction,
     {
         type,
         variableId,
-        patchConfig,
-        fullConfig,
+        config,
         now,
     }: {
         type: "admin" | "etl"
         variableId: number
-        patchConfig: GrapherInterface
-        fullConfig: GrapherInterface
+        config: GrapherInterface
         now: Date
     }
 ): Promise<void> {
-    // insert chart configs into the database
-    const configId = uuidv7()
-    await db.knexRaw(
-        knex,
-        `-- sql
-            INSERT INTO chart_configs (id, patch, full, createdAt, updatedAt)
-            VALUES (?, ?, ?, ?, ?)
-        `,
-        [
-            configId,
-            JSON.stringify(patchConfig),
-            JSON.stringify(fullConfig),
-            now,
-            now,
-        ]
-    )
+    const configId = await insertChartConfig(knex, {
+        config,
+        createdAt: now,
+        updatedAt: now,
+    })
 
-    // make a reference to the config from the variables table
-    const column =
-        type === "admin" ? "grapherConfigIdAdmin" : "grapherConfigIdETL"
+    const column = type === "admin" ? "patchConfigIdAdmin" : "patchConfigIdETL"
     await db.knexRaw(
         knex,
         `-- sql
@@ -251,7 +232,7 @@ async function findAllChartsThatInheritFromIndicator(
     const charts = await db.knexRaw<{
         chartId: DbPlainChart["id"]
         chartConfigId: DbRawChartConfig["id"]
-        patchConfig: DbRawChartConfig["patch"]
+        patchConfig: DbRawChartConfig["config"]
         isPublished: boolean
     }>(
         trx,
@@ -259,10 +240,11 @@ async function findAllChartsThatInheritFromIndicator(
             SELECT
                 c.id as chartId,
                 cc.id as chartConfigId,
-                cc.patch as patchConfig,
-                cc.full ->> "$.isPublished" as isPublished
+                cc_patch.config as patchConfig,
+                cc.config ->> "$.isPublished" = "true" as isPublished
             FROM charts c
                 JOIN chart_configs cc ON cc.id = c.configId
+                JOIN chart_configs cc_patch ON cc_patch.id = c.patchConfigId
                 JOIN charts_x_parents cxp ON c.id = cxp.chartId
             WHERE
                 c.isInheritanceEnabled IS TRUE
@@ -274,7 +256,7 @@ async function findAllChartsThatInheritFromIndicator(
         chartId: chart.chartId,
         chartConfigId: chart.chartConfigId,
         patchConfig: parseChartConfig(chart.patchConfig),
-        isPublished: chart.isPublished,
+        isPublished: Boolean(chart.isPublished),
     }))
 }
 
@@ -308,7 +290,7 @@ export async function updateAllChartsThatInheritFromIndicator(
                 UPDATE chart_configs cc
                 JOIN charts c ON c.configId = cc.id
                 SET
-                    cc.full = ?,
+                    cc.config = ?,
                     cc.updatedAt = ?,
                     c.updatedAt = ?
                 WHERE cc.id = ?
@@ -338,18 +320,18 @@ async function findAllMultiDimViewsThatInheritFromIndicator(
 > {
     const charts = await db.knexRaw<{
         chartConfigId: DbPlainMultiDimXChartConfig["chartConfigId"]
-        patchConfig: DbRawChartConfig["patch"]
+        patchConfig: DbRawChartConfig["config"]
         isPublished: boolean
     }>(
         trx,
         `-- sql
             SELECT
                 mdxcc.chartConfigId as chartConfigId,
-                cc.patch as patchConfig,
+                cc.config as patchConfig,
                 md.published as isPublished
             FROM multi_dim_data_pages md
                 JOIN multi_dim_x_chart_configs mdxcc ON mdxcc.multiDimId = md.id
-                JOIN chart_configs cc ON cc.id = mdxcc.chartConfigId
+                JOIN chart_configs cc ON cc.id = mdxcc.patchConfigId
             WHERE mdxcc.variableId = ?
         `,
         [variableId]
@@ -395,7 +377,7 @@ export async function updateAllMultiDimViewsThatInheritFromIndicator(
             `-- sql
                 UPDATE chart_configs
                 SET
-                    full = ?,
+                    config = ?,
                     updatedAt = ?
                 WHERE id = ?
             `,
@@ -429,38 +411,23 @@ export async function updateGrapherConfigETLOfVariable(
     const now = new Date()
 
     if (variable.etl) {
-        await updateExistingConfigPair(trx, {
+        await updateChartConfig(trx, {
             configId: variable.etl.configId,
-            patchConfig: configETL,
-            fullConfig: configETL,
+            config: configETL,
             updatedAt: now,
         })
     } else {
         await insertNewGrapherConfigForVariable(trx, {
             type: "etl",
             variableId,
-            patchConfig: configETL,
-            fullConfig: configETL,
+            config: configETL,
             now,
-        })
-    }
-
-    // update admin-authored full config it is exists
-    if (variable.admin) {
-        const fullConfig = mergeGrapherConfigs(
-            configETL,
-            variable.admin.patchConfig
-        )
-        await updateExistingFullConfig(trx, {
-            configId: variable.admin.configId,
-            config: fullConfig,
-            updatedAt: now,
         })
     }
 
     const updates = {
         patchConfigETL: configETL,
-        patchConfigAdmin: variable.admin?.patchConfig,
+        patchConfigAdmin: variable.admin?.config,
         updatedAt: now,
     }
     const updatedCharts = await updateAllChartsThatInheritFromIndicator(
@@ -500,12 +467,7 @@ export async function updateGrapherConfigAdminOfVariable(
 
     const patchConfigAdmin = diffGrapherConfigs(
         validConfig,
-        variable.etl?.fullConfig ?? {}
-    )
-
-    const fullConfigAdmin = mergeGrapherConfigs(
-        variable.etl?.patchConfig ?? {},
-        patchConfigAdmin
+        variable.etl?.config ?? {}
     )
 
     // Set the updatedAt manually instead of letting the DB do it so it is the
@@ -514,24 +476,22 @@ export async function updateGrapherConfigAdminOfVariable(
     const now = new Date()
 
     if (variable.admin) {
-        await updateExistingConfigPair(trx, {
+        await updateChartConfig(trx, {
             configId: variable.admin.configId,
-            patchConfig: patchConfigAdmin,
-            fullConfig: fullConfigAdmin,
+            config: patchConfigAdmin,
             updatedAt: now,
         })
     } else {
         await insertNewGrapherConfigForVariable(trx, {
             type: "admin",
             variableId,
-            patchConfig: patchConfigAdmin,
-            fullConfig: fullConfigAdmin,
+            config: patchConfigAdmin,
             now,
         })
     }
 
     const updates = {
-        patchConfigETL: variable.etl?.patchConfig ?? {},
+        patchConfigETL: variable.etl?.config ?? {},
         patchConfigAdmin: patchConfigAdmin,
         updatedAt: now,
     }
