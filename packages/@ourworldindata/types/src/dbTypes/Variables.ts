@@ -19,7 +19,6 @@ export interface DbInsertVariable {
     descriptionShort?: string | null
     dimensions?: JsonString | null
     display: JsonString
-    patchConfigIdAdmin?: string | null
     patchConfigIdETL?: string | null
     id?: number
     license?: JsonString | null
