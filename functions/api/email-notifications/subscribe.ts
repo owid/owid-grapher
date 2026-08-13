@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/cloudflare"
 import * as z from "zod/mini"
 import {
     EmailNotificationsPreferences,
@@ -12,20 +13,19 @@ import {
     handleOptionsRequest,
     makeJsonResponse,
     sendWelcomeEmail,
+    validateEmailNotificationsDatabase,
 } from "../../_common/emailNotifications.js"
 import { upsertOwidBriefSubscription } from "../../_common/mailchimp.js"
+import {
+    POSTMARK_REACTIVATION_USER_MESSAGE,
+    PostmarkRecipientReactivationError,
+    reactivatePostmarkRecipient,
+} from "../../_common/postmarkClient.js"
 
 export const onRequestOptions = handleOptionsRequest
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     try {
-        // Cloudflare's rate limiting binding is only available to Workers,
-        // not Pages, so until we migrate, this API needs to be rate limited
-        // with a zone-level WAF rate limiting rule instead. We still honor
-        // the binding here so that the code keeps working after the
-        // migration.
-        await enforceRateLimit(request, env)
-
         let rawPayload: unknown
         try {
             rawPayload = await request.json()
@@ -45,12 +45,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         const email = data.email.trim().toLowerCase()
 
         if (data.notifications) {
-            if (!env.EMAIL_NOTIFICATIONS_DB) {
-                throw new JsonError(
-                    "Email notifications database is not configured",
-                    500
-                )
-            }
+            validateEmailNotificationsDatabase(env)
             // Signup is single opt-in: the submission takes effect
             // immediately and the welcome email confirms it. For an address
             // that already exists (whatever its status), the chosen
@@ -62,25 +57,39 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             // welcome email's footer links let the address's owner undo a
             // submission they didn't make. The response is identical whether
             // the email was already known or not, and both branches send
-            // exactly one email, so response timing doesn't give the branch
-            // away either.
+            // exactly one email.
             const db = env.EMAIL_NOTIFICATIONS_DB
             const origin = new URL(request.url).origin
-            const user = await findUserByEmail(db, email)
+            const [user, isSuppressed] = await Promise.all([
+                findUserByEmail(db, email),
+                isPostmarkRecipientSuppressedLocally(db, email),
+            ])
+            if (isSuppressed) {
+                await reactivatePostmarkRecipient(env, email)
+            }
+            let userId: number
             let userToken: string
             let preferences: EmailNotificationsPreferences
             if (!user) {
                 preferences = data.notifications
-                userToken = await createSubscribedUser(db, email, preferences)
+                const createdUser = await createSubscribedUser(
+                    db,
+                    email,
+                    preferences
+                )
+                userId = createdUser.id
+                userToken = createdUser.token
             } else {
                 preferences = await resubscribeUser(
                     db,
                     user,
                     data.notifications
                 )
+                userId = user.id
                 userToken = user.token
             }
             await sendWelcomeEmail(env, origin, {
+                userId,
                 to: email,
                 preferences,
                 userToken,
@@ -88,33 +97,27 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         }
 
         if (data.subscribeToOwidBrief) {
-            // The OWID Brief newsletter stays in Mailchimp; Mailchimp runs
-            // its own double opt-in for new list members. A failure here
-            // propagates as-is: the outer handler reports it to Sentry and
-            // answers generically, so wrapping it would only duplicate the
-            // Sentry event.
+            // The OWID Brief newsletter stays in Mailchimp and uses single
+            // opt-in, like email notifications.
             await upsertOwidBriefSubscription(env, email, true)
         }
 
         return makeJsonResponse({ ok: true }, 200)
     } catch (error) {
+        if (error instanceof PostmarkRecipientReactivationError) {
+            Sentry.captureException(error)
+            return makeJsonResponse(
+                { error: POSTMARK_REACTIVATION_USER_MESSAGE },
+                500
+            )
+        }
         return handleJsonError(error)
-    }
-}
-
-async function enforceRateLimit(request: Request, env: Env): Promise<void> {
-    if (!env.EMAIL_NOTIFICATIONS_RATE_LIMITER) return
-    const clientIp = request.headers.get("cf-connecting-ip") ?? "unknown"
-    const { success } = await env.EMAIL_NOTIFICATIONS_RATE_LIMITER.limit({
-        key: clientIp,
-    })
-    if (!success) {
-        throw new JsonError("Too many requests. Please try again later.", 429)
     }
 }
 
 interface EmailNotificationsUser {
     id: number
+    email: string
     token: string
 }
 
@@ -123,21 +126,31 @@ async function findUserByEmail(
     email: string
 ): Promise<EmailNotificationsUser | null> {
     return await db
-        .prepare(`SELECT id, token FROM users WHERE email = ?1`)
+        .prepare(`SELECT id, email, token FROM users WHERE email = ?1`)
         .bind(email)
         .first<EmailNotificationsUser>()
 }
 
+async function isPostmarkRecipientSuppressedLocally(
+    db: D1Database,
+    email: string
+): Promise<boolean> {
+    const suppression = await db
+        .prepare(`SELECT email FROM suppressed_addresses WHERE email = ?1`)
+        .bind(email)
+        .first<{ email: string }>()
+    return suppression !== null
+}
+
 /**
  * Single opt-in for a never-seen address: create the user as 'subscribed'
- * with the chosen preferences, active immediately. Returns the permanent
- * per-user token for the welcome email's footer links.
+ * with the chosen preferences, active immediately.
  */
 async function createSubscribedUser(
     db: D1Database,
     email: string,
     preferences: EmailNotificationsPreferences
-): Promise<string> {
+): Promise<EmailNotificationsUser> {
     const token = crypto.randomUUID()
     const user = await db
         .prepare(
@@ -153,7 +166,7 @@ async function createSubscribedUser(
     await db
         .prepare(
             `INSERT INTO notification_preferences
-                 (user_id, topic_tags, content_types, frequency)
+                 (userId, topicTags, contentTypes, frequency)
              VALUES (?1, ?2, ?3, ?4)`
         )
         .bind(
@@ -163,7 +176,7 @@ async function createSubscribedUser(
             preferences.frequency
         )
         .run()
-    return token
+    return { id: user.id, email, token }
 }
 
 /**
@@ -185,20 +198,20 @@ async function resubscribeUser(
             .prepare(
                 `UPDATE users
                  SET status = 'subscribed',
-                     updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+                     updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
                  WHERE id = ?1`
             )
             .bind(user.id),
         db
             .prepare(
                 `INSERT INTO notification_preferences
-                     (user_id, topic_tags, content_types, frequency)
+                     (userId, topicTags, contentTypes, frequency)
                  VALUES (?1, ?2, ?3, ?4)
-                 ON CONFLICT (user_id) DO UPDATE SET
-                     topic_tags = excluded.topic_tags,
-                     content_types = excluded.content_types,
+                 ON CONFLICT (userId) DO UPDATE SET
+                     topicTags = excluded.topicTags,
+                     contentTypes = excluded.contentTypes,
                      frequency = excluded.frequency,
-                     updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`
+                     updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`
             )
             .bind(
                 user.id,
@@ -206,6 +219,9 @@ async function resubscribeUser(
                 JSON.stringify(merged.contentTypes),
                 merged.frequency
             ),
+        db
+            .prepare(`DELETE FROM suppressed_addresses WHERE email = ?1`)
+            .bind(user.email),
     ])
     return merged
 }
@@ -220,19 +236,19 @@ async function findPreferences(
 ): Promise<EmailNotificationsPreferences | null> {
     const row = await db
         .prepare(
-            `SELECT topic_tags, content_types, frequency
-             FROM notification_preferences WHERE user_id = ?1`
+            `SELECT topicTags, contentTypes, frequency
+             FROM notification_preferences WHERE userId = ?1`
         )
         .bind(userId)
         .first<{
-            topic_tags: string
-            content_types: string
+            topicTags: string
+            contentTypes: string
             frequency: string
         }>()
     if (!row) return null
     const { data } = EmailNotificationsPreferencesTypeObject.safeParse({
-        topicTags: JSON.parse(row.topic_tags),
-        contentTypes: JSON.parse(row.content_types),
+        topicTags: JSON.parse(row.topicTags),
+        contentTypes: JSON.parse(row.contentTypes),
         frequency: row.frequency,
     })
     return data ?? null
