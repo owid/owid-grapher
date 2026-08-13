@@ -278,9 +278,22 @@ async function main(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
         // Sync charts by UUID
         const slugsAndHashesFromDbByUuid = await knexRaw<
             Pick<DbRawChartConfig, "configMd5" | "id">
-        >(trx, `select configMd5, id from chart_configs`)
+        >(
+            trx,
+            `-- sql
+             select cc.configMd5, cc.id
+             from chart_configs cc
+             where cc.id in (
+                 select configId from charts
+                 union select chartConfigId from multi_dim_x_chart_configs
+                 union select chartConfigId from narrative_charts
+                 union select chartConfigId from explorer_views
+             )`
+        )
 
-        console.log(`Found ${slugsAndHashesFromDbByUuid.length} charts by UUID`)
+        console.log(
+            `Found ${slugsAndHashesFromDbByUuid.length} configs by UUID`
+        )
 
         slugsAndHashesFromDbByUuid.forEach((row) => {
             hashesOfFilesToToUpsertByUuid.set(
