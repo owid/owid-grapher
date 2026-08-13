@@ -4,6 +4,7 @@ import {
     ChartConfigsTableName,
     GrapherInterface,
     IndicatorsBeforePreProcessing,
+    MultiDimDataPagesTableName,
     MultiDimViewDimensionsTableName,
     MultiDimXChartConfigsTableName,
     View,
@@ -79,6 +80,18 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         return JSON.parse(row.config)
     }
 
+    async function publishMultiDim(): Promise<void> {
+        const multiDim = await env
+            .testKnex(MultiDimDataPagesTableName)
+            .where({ catalogPath })
+            .first()
+        await env.request({
+            method: "PATCH",
+            path: `/multi-dims/${multiDim.id}`,
+            body: JSON.stringify({ published: true, slug: "energy-use" }),
+        })
+    }
+
     beforeEach(async () => {
         await seedDatasetAndVariables(env)
     })
@@ -151,5 +164,29 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
 
         // Propagation updates the rows in place rather than replacing them
         expect(await getViewConfigIds()).toEqual(viewConfigIds)
+    })
+
+    it("publishes every view, and they stay published through an indicator change", async () => {
+        await upsertMultiDim([totalView, perCapitaView])
+        const viewConfigIds = await getViewConfigIds()
+
+        await publishMultiDim()
+
+        for (const chartConfigId of Object.values(viewConfigIds)) {
+            expect((await getConfig(chartConfigId)).isPublished).toBe(true)
+        }
+
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                note: "Indicator note",
+            }),
+        })
+
+        const config = await getConfig(viewConfigIds["metric=total"])
+        expect(config.isPublished).toBe(true)
+        expect(config.note).toBe("Indicator note")
     })
 })
