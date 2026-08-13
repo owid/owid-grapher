@@ -1,7 +1,10 @@
 import { expect, it, describe } from "vitest"
 import { parseJsonLogic } from "react-querybuilder/parseJsonLogic"
 import type { RuleGroupType } from "react-querybuilder"
-import { variableAnnotationAllowedColumnNamesAndTypes } from "../adminShared/AdminSessionTypes.js"
+import {
+    chartBulkUpdateAllowedColumnNamesAndTypes,
+    WHITELISTED_SQL_COLUMN_NAMES,
+} from "../adminShared/AdminSessionTypes.js"
 import {
     OperationContext,
     parseToOperation,
@@ -14,19 +17,19 @@ import {
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
 
 const context: OperationContext = {
-    grapherConfigFieldName: "chart_configs.patch",
-    whitelistedColumnNamesAndTypes:
-        variableAnnotationAllowedColumnNamesAndTypes,
+    grapherConfigFieldName: "chart_configs.config",
+    whitelistedColumnNamesAndTypes: chartBulkUpdateAllowedColumnNamesAndTypes,
 }
 
 const readOnlyColumns = new Map<string, ReadOnlyColumn>([
     [
-        "name",
+        "lastEditedByUser",
         {
-            label: "Indicator name",
-            key: "name",
+            label: "Last edited by user",
+            key: "lastEditedByUser",
             type: "string",
-            sExpressionColumnTarget: "variables.name",
+            sExpressionColumnTarget:
+                WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_LAST_EDITED_BY_USER,
         },
     ],
     [
@@ -35,7 +38,8 @@ const readOnlyColumns = new Map<string, ReadOnlyColumn>([
             label: "Created at",
             key: "createdAt",
             type: "datetime",
-            sExpressionColumnTarget: "variables.createdAt",
+            sExpressionColumnTarget:
+                WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_CREATED_AT,
         },
     ],
 ])
@@ -52,7 +56,7 @@ function sExpressionToFilterQuery(sExpressionString: string): RuleGroupType {
 
 describe("filter query round trip through react-querybuilder", () => {
     const cases = [
-        `(AND (CONTAINS variables.name "nuclear") (= /type "LineChart"))`,
+        `(AND (CONTAINS editedByUser.fullName "nuclear") (= /type "LineChart"))`,
         `(OR (< /minTime 2000) (>= /minTime 2010))`,
         `(NOT (AND (ISNULL /subtitle)))`,
         `(AND (ISNOTNULL /title) (= /hideLegend true))`,
@@ -61,7 +65,7 @@ describe("filter query round trip through react-querybuilder", () => {
         `(AND (= /subtitle ""))`,
         `(AND (<> /note ""))`,
         `(AND (<> /type "ScatterPlot"))`,
-        `(AND (CONTAINS variables.name "wildfire") (OR (ISNULL /subtitle) (> /minTime 2000)))`,
+        `(AND (CONTAINS editedByUser.fullName "wildfire") (OR (ISNULL /subtitle) (> /minTime 2000)))`,
     ]
 
     for (const sExpressionString of cases) {
@@ -82,7 +86,11 @@ describe(filterQueryToSExpression, () => {
         const query: RuleGroupType = {
             combinator: "and",
             rules: [
-                { field: "name", operator: "contains", value: "energy" },
+                {
+                    field: "lastEditedByUser",
+                    operator: "contains",
+                    value: "energy",
+                },
                 { field: "/minTime", operator: "<", value: "" },
                 { field: "/title", operator: "=", value: "" },
                 { field: "/title", operator: "!=", value: "" },
@@ -91,7 +99,7 @@ describe(filterQueryToSExpression, () => {
         }
         expect(
             filterQueryToSExpression(query, context, readOnlyColumns)?.toSExpr()
-        ).toEqual(`(AND (CONTAINS variables.name "energy"))`)
+        ).toEqual(`(AND (CONTAINS editedByUser.fullName "energy"))`)
     })
 
     it("ignores rules where no field has been selected yet", () => {
@@ -99,12 +107,16 @@ describe(filterQueryToSExpression, () => {
             combinator: "and",
             rules: [
                 { field: "~", operator: "=", value: "" },
-                { field: "name", operator: "contains", value: "energy" },
+                {
+                    field: "lastEditedByUser",
+                    operator: "contains",
+                    value: "energy",
+                },
             ],
         }
         expect(
             filterQueryToSExpression(query, context, readOnlyColumns)?.toSExpr()
-        ).toEqual(`(AND (CONTAINS variables.name "energy"))`)
+        ).toEqual(`(AND (CONTAINS editedByUser.fullName "energy"))`)
     })
 
     it("returns undefined for an empty group", () => {

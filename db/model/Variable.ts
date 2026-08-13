@@ -5,7 +5,6 @@ import {
     retryPromise,
     omitUndefinedValues,
     mergeGrapherConfigs,
-    diffGrapherConfigs,
     getOwidDataFetchUserAgent,
 } from "@ourworldindata/utils"
 import {
@@ -444,71 +443,6 @@ export async function updateGrapherConfigETLOfVariable(
 
     return {
         savedPatch: configETL,
-        updatedCharts,
-        updatedMultiDimViews,
-    }
-}
-
-export async function updateGrapherConfigAdminOfVariable(
-    trx: db.KnexReadWriteTransaction,
-    variable: VariableWithGrapherConfigs,
-    config: GrapherInterface
-): Promise<{
-    savedPatch: GrapherInterface
-    updatedCharts: UpdatedChartInheritanceRecord[]
-    updatedMultiDimViews: { chartConfigId: string; isPublished: boolean }[]
-}> {
-    const { variableId } = variable
-
-    const validConfig = makeConfigValidForIndicator({
-        config,
-        variableId,
-    })
-
-    const patchConfigAdmin = diffGrapherConfigs(
-        validConfig,
-        variable.etl?.config ?? {}
-    )
-
-    // Set the updatedAt manually instead of letting the DB do it so it is the
-    // same across different tables. The inconsistency caused issues in the
-    // past in chart-sync.
-    const now = new Date()
-
-    if (variable.admin) {
-        await updateChartConfig(trx, {
-            configId: variable.admin.configId,
-            config: patchConfigAdmin,
-            updatedAt: now,
-        })
-    } else {
-        await insertNewGrapherConfigForVariable(trx, {
-            type: "admin",
-            variableId,
-            config: patchConfigAdmin,
-            now,
-        })
-    }
-
-    const updates = {
-        patchConfigETL: variable.etl?.config ?? {},
-        patchConfigAdmin: patchConfigAdmin,
-        updatedAt: now,
-    }
-    const updatedCharts = await updateAllChartsThatInheritFromIndicator(
-        trx,
-        variableId,
-        updates
-    )
-    const updatedMultiDimViews =
-        await updateAllMultiDimViewsThatInheritFromIndicator(
-            trx,
-            variableId,
-            updates
-        )
-
-    return {
-        savedPatch: patchConfigAdmin,
         updatedCharts,
         updatedMultiDimViews,
     }
