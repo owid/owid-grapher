@@ -22,7 +22,6 @@ import {
     parseIntOrUndefined,
     omitUndefinedValues,
 } from "@ourworldindata/utils"
-import { v7 as uuidv7 } from "uuid"
 import {
     References,
     StaticVizReference,
@@ -50,13 +49,10 @@ import { UpdatedChartInheritanceRecord } from "../../db/model/Variable.js"
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
+    insertChartConfigPair,
     retrieveChartConfigFromDbAndSaveToR2,
-    updateChartConfigInDbAndR2,
+    updateChartConfigPairInDbAndR2,
 } from "../chartConfigHelpers.js"
-import {
-    insertChartConfig,
-    updateChartConfig,
-} from "../../db/model/ChartConfigs.js"
 import {
     deleteGrapherConfigFromR2,
     deleteGrapherConfigFromR2ByUUID,
@@ -266,22 +262,13 @@ const saveNewChart = async (
 
     const now = new Date()
 
-    // insert the resolved and the authored config into the chart_configs table.
-    // We can't quite use `saveNewChartConfigInDbAndR2` here, because
-    // we need to update the chart id in the config after inserting it.
-    const chartConfigId = uuidv7()
-    const patchConfigId = uuidv7()
-    for (const [id, value] of [
-        [chartConfigId, fullConfig],
-        [patchConfigId, patchConfig],
-    ] as const) {
-        await insertChartConfig(knex, {
-            id,
-            config: value,
-            createdAt: now,
-            updatedAt: now,
-        })
-    }
+    // Insert without publishing to R2 yet, because we need to update the chart
+    // id in the config after inserting it.
+    const { chartConfigId, patchConfigId } = await insertChartConfigPair(
+        knex,
+        { config: fullConfig, patchConfig },
+        now
+    )
 
     // add a new chart to the charts table
     const result = await db.knexRawInsert(
@@ -374,17 +361,16 @@ const updateExistingChart = async (
 
     const now = new Date()
 
-    const { chartConfigId } = await updateChartConfigInDbAndR2(
+    const { chartConfigId } = await updateChartConfigPairInDbAndR2(
         knex,
-        chartRow.configId,
-        fullConfig,
+        {
+            configId: chartRow.configId,
+            patchConfigId: chartRow.patchConfigId,
+            config: fullConfig,
+            patchConfig,
+        },
         now
     )
-    await updateChartConfig(knex, {
-        configId: chartRow.patchConfigId,
-        config: patchConfig,
-        updatedAt: now,
-    })
 
     const forceDatapage =
         params.forceDatapage ?? (await getForceDatapageByChartId(knex, chartId))

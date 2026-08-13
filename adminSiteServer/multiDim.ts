@@ -34,10 +34,6 @@ import * as db from "../db/db.js"
 import { upsertMultiDimDataPage } from "../db/model/MultiDimDataPage.js"
 import { upsertMultiDimXChartConfigs } from "../db/model/MultiDimXChartConfigs.js"
 import {
-    insertChartConfig,
-    updateChartConfig,
-} from "../db/model/ChartConfigs.js"
-import {
     getMergedGrapherConfigsForVariables,
     getVariableIdsByCatalogPath,
 } from "../db/model/Variable.js"
@@ -47,8 +43,8 @@ import {
     saveMultiDimConfigToR2,
 } from "../serverUtils/r2/chartConfigR2Helpers.js"
 import {
-    saveNewChartConfigInDbAndR2,
-    updateChartConfigInDbAndR2,
+    saveNewChartConfigPairInDbAndR2,
+    updateChartConfigPairInDbAndR2,
 } from "./chartConfigHelpers.js"
 
 function catalogPathFromIndicatorEntry(
@@ -321,38 +317,34 @@ export async function upsertMultiDim(
                 dimensionsToViewId(view.dimensions)
             )
             const now = new Date()
-            let chartConfigId
-            let patchConfigId
+            let chartConfigId: string
+            let patchConfigId: string
             if (existing) {
                 chartConfigId = existing.chartConfigId
                 patchConfigId = existing.patchConfigId
-                await updateChartConfigInDbAndR2(
+                await updateChartConfigPairInDbAndR2(
                     knex,
-                    chartConfigId,
-                    fullGrapherConfig,
+                    {
+                        configId: chartConfigId,
+                        patchConfigId,
+                        config: fullGrapherConfig,
+                        patchConfig: patchGrapherConfig,
+                    },
                     now
                 )
-                // Same timestamp as the resolved row: chart-sync compares them.
-                await updateChartConfig(knex, {
-                    configId: patchConfigId,
-                    config: patchGrapherConfig,
-                    updatedAt: now,
-                })
                 reusedChartConfigIds.add(chartConfigId)
                 console.debug(`Chart config updated id=${chartConfigId}`)
             } else {
-                const result = await saveNewChartConfigInDbAndR2(
+                const ids = await saveNewChartConfigPairInDbAndR2(
                     knex,
-                    undefined,
-                    fullGrapherConfig,
+                    {
+                        config: fullGrapherConfig,
+                        patchConfig: patchGrapherConfig,
+                    },
                     now
                 )
-                chartConfigId = result.chartConfigId
-                patchConfigId = await insertChartConfig(knex, {
-                    config: patchGrapherConfig,
-                    createdAt: now,
-                    updatedAt: now,
-                })
+                chartConfigId = ids.chartConfigId
+                patchConfigId = ids.patchConfigId
                 await knex(MultiDimViewDimensionsTableName).insert({
                     chartConfigId,
                     dimensions: JSON.stringify(view.dimensions),
@@ -448,17 +440,15 @@ export async function setMultiDimPublished(
                 )
             }
             const { config, patchConfig, patchConfigId } = viewConfig
-            const now = new Date()
-
-            config.isPublished = published
-            await updateChartConfigInDbAndR2(knex, chartConfigId, config, now)
 
             // The authored config carries isPublished too, so it moves with it.
+            config.isPublished = published
             patchConfig.isPublished = published
-            await updateChartConfig(knex, {
-                configId: patchConfigId,
-                config: patchConfig,
-                updatedAt: now,
+            await updateChartConfigPairInDbAndR2(knex, {
+                configId: chartConfigId,
+                patchConfigId,
+                config,
+                patchConfig,
             })
         })
     )
