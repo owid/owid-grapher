@@ -8,8 +8,6 @@ import {
     DbPlainChart,
     R2GrapherConfigDirectory,
     DbInsertChartRevision,
-    DbRawChartConfig,
-    ChartConfigsTableName,
     DbChartTagJoin,
     ContentGraphLinkType,
     StaticVizTableName,
@@ -45,7 +43,6 @@ import {
     getWordpressPostReferencesByChartId,
     getGdocsPostReferencesByChartId,
 } from "../../db/model/Post.js"
-import { UpdatedChartInheritanceRecord } from "../../db/model/Variable.js"
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
@@ -56,7 +53,6 @@ import {
 import {
     deleteGrapherConfigFromR2,
     deleteGrapherConfigFromR2ByUUID,
-    saveGrapherConfigToR2ByUUID,
 } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
@@ -566,23 +562,6 @@ export const saveGrapher = async (
     return {
         chartId,
         savedPatch: patchConfig,
-    }
-}
-
-export async function updateGrapherConfigsInR2(
-    knex: db.KnexReadonlyTransaction,
-    updatedCharts: UpdatedChartInheritanceRecord[],
-    updatedMultiDimViews: { chartConfigId: string; isPublished: boolean }[]
-) {
-    const idsToUpdate = [
-        ...updatedCharts.filter(({ isPublished }) => isPublished),
-        ...updatedMultiDimViews,
-    ].map(({ chartConfigId }) => chartConfigId)
-    const builder = knex<DbRawChartConfig>(ChartConfigsTableName)
-        .select("id", "config", "configMd5")
-        .whereIn("id", idsToUpdate)
-    for await (const { id, config, configMd5 } of builder.stream()) {
-        await saveGrapherConfigToR2ByUUID(id, config, configMd5)
     }
 }
 
