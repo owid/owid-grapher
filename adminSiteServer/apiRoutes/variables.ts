@@ -13,6 +13,8 @@ import {
     GrapherInterface,
     OwidVariableWithSource,
     parseChartConfig,
+    ChartConfigsTableName,
+    R2GrapherConfigDirectory,
 } from "@ourworldindata/types"
 import {
     fetchS3DataValuesByPath,
@@ -42,7 +44,10 @@ import {
 } from "../../db/model/Chart.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
-import { updateGrapherConfigsInR2 } from "./charts.js"
+import {
+    saveGrapherConfigToR2,
+    saveGrapherConfigToR2ByUUID,
+} from "../../serverUtils/r2/chartConfigR2Helpers.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 
@@ -589,4 +594,32 @@ export async function getVariablesVariableIdChartsJson(
         isInheritanceEnabled: chart.isInheritanceEnabled,
         isPublished: chart.isPublished,
     }))
+}
+
+async function updateGrapherConfigsInR2(
+    knex: db.KnexReadonlyTransaction,
+    updatedCharts: { chartConfigId: string; isPublished: boolean }[],
+    updatedMultiDimViews: { chartConfigId: string; isPublished: boolean }[]
+): Promise<void> {
+    const publishedChartConfigIds = new Set(
+        updatedCharts
+            .filter(({ isPublished }) => isPublished)
+            .map(({ chartConfigId }) => chartConfigId)
+    )
+    const idsToUpdate = [...updatedCharts, ...updatedMultiDimViews]
+        .filter(({ isPublished }) => isPublished)
+        .map(({ chartConfigId }) => chartConfigId)
+    const builder = knex<DbRawChartConfig>(ChartConfigsTableName)
+        .select("id", "slug", "config", "configMd5")
+        .whereIn("id", idsToUpdate)
+    for await (const { id, slug, config, configMd5 } of builder.stream()) {
+        await saveGrapherConfigToR2ByUUID(id, config, configMd5)
+        if (publishedChartConfigIds.has(id) && slug)
+            await saveGrapherConfigToR2(
+                config,
+                R2GrapherConfigDirectory.publishedGrapherBySlug,
+                `${slug}.json`,
+                configMd5
+            )
+    }
 }
