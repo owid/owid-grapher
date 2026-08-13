@@ -62,18 +62,12 @@ const NewsletterOption = ({
     </div>
 )
 
-export interface Subscription {
-    email: string
-    followTopics: boolean
-    subscribeToOwidBrief: boolean
-}
-
 export const EmailNotificationsSubscribeForm = ({
     topicAreaNames,
     onSubscribed,
 }: {
     topicAreaNames: string[]
-    onSubscribed: (subscription: Subscription) => void
+    onSubscribed: (email: string) => void
 }) => {
     const [email, setEmail] = useState("")
     const [subscribeToOwidBrief, setSubscribeToOwidBrief] = useState(true)
@@ -91,11 +85,7 @@ export const EmailNotificationsSubscribeForm = ({
                 "newsletter-subscribe",
                 "Subscribe [email-notifications]"
             )
-            onSubscribed({
-                email: request.email,
-                followTopics: request.notifications !== undefined,
-                subscribeToOwidBrief: request.subscribeToOwidBrief ?? false,
-            })
+            onSubscribed(request.email)
         },
     })
 
