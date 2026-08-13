@@ -34,7 +34,7 @@ import * as db from "../db/db.js"
 import { upsertMultiDimDataPage } from "../db/model/MultiDimDataPage.js"
 import { upsertMultiDimXChartConfigs } from "../db/model/MultiDimXChartConfigs.js"
 import {
-    getMergedGrapherConfigsForVariables,
+    getIndicatorChartConfigs,
     getVariableIdsByCatalogPath,
 } from "../db/model/Variable.js"
 import {
@@ -262,7 +262,7 @@ export async function upsertMultiDim(
         knex,
         rawConfig
     )
-    const variableConfigs = await getMergedGrapherConfigsForVariables(
+    const variableConfigs = await getIndicatorChartConfigs(
         knex,
         _.uniq(config.views.map((view) => view.indicators.y[0].id))
     )
