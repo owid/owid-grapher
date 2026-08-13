@@ -10,10 +10,8 @@ import {
 } from "./apiRoutes/slideshows.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import {
-    updateVariableAnnotations,
     getChartBulkUpdate,
     updateBulkChartConfigs,
-    getVariableAnnotations,
 } from "./apiRoutes/bulkUpdates.js"
 import {
     getNarrativeCharts,
@@ -192,21 +190,11 @@ import {
 const apiRouter = new FunctionalRouter()
 
 // Bulk chart update routes
-patchRouteWithRWTransaction(
-    apiRouter,
-    "/variable-annotations",
-    updateVariableAnnotations
-)
 getRouteWithROTransaction(apiRouter, "/chart-bulk-update", getChartBulkUpdate)
 patchRouteWithRWTransaction(
     apiRouter,
     "/chart-bulk-update",
     updateBulkChartConfigs
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/variable-annotations",
-    getVariableAnnotations
 )
 
 // Chart routes

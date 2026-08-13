@@ -11,7 +11,6 @@ import { UserEditPage } from "./UserEditPage.js"
 import { VariableEditPage } from "./VariableEditPage.js"
 import { VariablesIndexPage } from "./VariablesIndexPage.js"
 import { DatasetEditPage } from "./DatasetEditPage.js"
-import { VariablesAnnotationPage } from "./VariablesAnnotationPage.js"
 import { SourceEditPage } from "./SourceEditPage.js"
 import { RedirectsIndexPage } from "./RedirectsIndexPage.js"
 import SiteRedirectsIndexPage from "./SiteRedirectsIndexPage"
@@ -307,11 +306,6 @@ export class AdminApp extends React.Component<{
                                     render={() => (
                                         <BulkGrapherConfigEditorPage />
                                     )}
-                                />
-                                <Route
-                                    exact
-                                    path={`/variable-annotations`}
-                                    render={() => <VariablesAnnotationPage />}
                                 />
                                 <Route
                                     exact
