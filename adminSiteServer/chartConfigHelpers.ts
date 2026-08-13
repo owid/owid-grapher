@@ -10,6 +10,7 @@ import {
     updateChartConfig,
 } from "../db/model/ChartConfigs.js"
 import {
+    deleteGrapherConfigFromR2ByUUID,
     saveGrapherConfigToR2,
     saveGrapherConfigToR2ByUUID,
 } from "../serverUtils/r2/chartConfigR2Helpers.js"
@@ -128,4 +129,15 @@ export const updateChartConfigPairInDbAndR2 = async (
         updatedAt: now,
     })
     return updateChartConfigInDbAndR2(knex, configId, config, now)
+}
+
+export const deleteChartConfigPairFromDbAndR2 = async (
+    knex: db.KnexReadWriteTransaction,
+    { configId, patchConfigId }: { configId: string; patchConfigId: string }
+) => {
+    await knex(ChartConfigsTableName)
+        .whereIn("id", [configId, patchConfigId])
+        .delete()
+    // Only the resolved config was published
+    await deleteGrapherConfigFromR2ByUUID(configId)
 }

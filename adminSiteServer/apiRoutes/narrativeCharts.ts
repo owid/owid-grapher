@@ -31,10 +31,10 @@ import {
 } from "../../adminShared/AdminTypes.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
+    deleteChartConfigPairFromDbAndR2,
     saveNewChartConfigPairInDbAndR2,
     updateChartConfigPairInDbAndR2,
 } from "../chartConfigHelpers.js"
-import { deleteGrapherConfigFromR2ByUUID } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 
 import {
     isKebabCase,
@@ -618,14 +618,10 @@ export async function deleteNarrativeChart(
     }
 
     await trx.table(NarrativeChartsTableName).where({ id }).delete()
-
-    // Only the resolved config was published
-    await deleteGrapherConfigFromR2ByUUID(chartConfigId)
-
-    await trx
-        .table(ChartConfigsTableName)
-        .whereIn("id", _.compact([chartConfigId, patchConfigId]))
-        .delete()
+    await deleteChartConfigPairFromDbAndR2(trx, {
+        configId: chartConfigId,
+        patchConfigId,
+    })
 
     return { success: true }
 }
