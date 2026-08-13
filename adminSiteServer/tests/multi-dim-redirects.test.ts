@@ -1,40 +1,20 @@
 import { describe, it, expect, beforeEach } from "vitest"
 import { getAdminTestEnv } from "./testEnv.js"
 import {
-    DatasetsTableName,
-    VariablesTableName,
     MultiDimDataPagesTableName,
     MultiDimRedirectsTableName,
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
+import {
+    otherVariableId,
+    seedDatasetAndVariables,
+    variableId,
+} from "./fixtures.js"
 
 const env = getAdminTestEnv()
 
 describe("Bulk multi-dim redirects API", { timeout: 30000 }, () => {
-    const variableId = 1
-    const otherVariableId = 2
     const catalogPath = "test/catalog#path"
-
-    const dummyDataset = {
-        id: 1,
-        name: "Dummy dataset",
-        description: "Dataset description",
-        namespace: "owid",
-        createdByUserId: 1,
-        metadataEditedAt: new Date(),
-        metadataEditedByUserId: 1,
-        dataEditedAt: new Date(),
-        dataEditedByUserId: 1,
-    }
-    const dummyVariable = {
-        id: variableId,
-        unit: "kg",
-        coverage: "Global by country",
-        timespan: "2000-2020",
-        datasetId: 1,
-        display: '{ "unit": "kg", "shortUnit": "kg" }',
-    }
-    const otherDummyVariable = { ...dummyVariable, id: otherVariableId }
 
     const testMultiDimConfig = {
         grapherConfigSchema: latestGrapherConfigSchema,
@@ -81,18 +61,15 @@ describe("Bulk multi-dim redirects API", { timeout: 30000 }, () => {
             .testKnex(MultiDimDataPagesTableName)
             .where("catalogPath", catalogPath)
             .update({ slug: "energy-use", published: true })
-        const mdim = await env
+        const multiDim = await env
             .testKnex(MultiDimDataPagesTableName)
             .where("catalogPath", catalogPath)
             .first()
-        return { id: mdim.id, config: JSON.parse(mdim.config) }
+        return { id: multiDim.id, config: JSON.parse(multiDim.config) }
     }
 
     beforeEach(async () => {
-        await env.testKnex(DatasetsTableName).insert([dummyDataset])
-        await env
-            .testKnex(VariablesTableName)
-            .insert([dummyVariable, otherDummyVariable])
+        await seedDatasetAndVariables(env)
     })
 
     it("creates resolved redirects, skips null targets, and reports errors", async () => {
