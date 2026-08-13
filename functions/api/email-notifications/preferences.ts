@@ -13,11 +13,17 @@ import {
     handleOptionsRequest,
     lookupEmailToken,
     makeJsonResponse,
+    validateEmailNotificationsDatabase,
 } from "../../_common/emailNotifications.js"
 import {
     getOwidBriefStatus,
     upsertOwidBriefSubscription,
 } from "../../_common/mailchimp.js"
+import {
+    POSTMARK_REACTIVATION_USER_MESSAGE,
+    PostmarkRecipientReactivationError,
+    reactivatePostmarkRecipient,
+} from "../../_common/postmarkClient.js"
 
 export const onRequestOptions = handleOptionsRequest
 
@@ -31,28 +37,29 @@ export const onRequestOptions = handleOptionsRequest
  */
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     try {
+        validateEmailNotificationsDatabase(env)
         const db = env.EMAIL_NOTIFICATIONS_DB
         const token = new URL(request.url).searchParams.get("token")
-        if (!token || !db) return tokenErrorResponse({ state: "invalid" })
+        if (!token) return tokenErrorResponse({ state: "invalid" })
 
         const lookup = await lookupEmailToken(db, token)
         if (lookup.state !== "valid") return tokenErrorResponse(lookup)
 
         const user = await db
             .prepare(
-                `SELECT users.email, notification_preferences.topic_tags,
-                        notification_preferences.content_types,
+                `SELECT users.email, notification_preferences.topicTags,
+                        notification_preferences.contentTypes,
                         notification_preferences.frequency
                  FROM users
                  LEFT JOIN notification_preferences
-                     ON notification_preferences.user_id = users.id
+                     ON notification_preferences.userId = users.id
                  WHERE users.id = ?1`
             )
-            .bind(lookup.row.user_id)
+            .bind(lookup.row.userId)
             .first<{
                 email: string
-                topic_tags: string | null
-                content_types: string | null
+                topicTags: string | null
+                contentTypes: string | null
                 frequency: string | null
             }>()
         if (!user) return tokenErrorResponse({ state: "invalid" })
@@ -69,10 +76,10 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
             // Fail-safe: a user should always have preferences, but if the
             // row is missing the page falls back to defaults.
             preferences:
-                user.topic_tags && user.content_types && user.frequency
+                user.topicTags && user.contentTypes && user.frequency
                     ? ({
-                          topicTags: JSON.parse(user.topic_tags),
-                          contentTypes: JSON.parse(user.content_types),
+                          topicTags: JSON.parse(user.topicTags),
+                          contentTypes: JSON.parse(user.contentTypes),
                           frequency: user.frequency,
                       } as EmailNotificationsPreferences)
                     : null,
@@ -92,8 +99,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
  */
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     try {
+        validateEmailNotificationsDatabase(env)
         const db = env.EMAIL_NOTIFICATIONS_DB
-        if (!db) throw new JsonError("Database is not configured", 500)
 
         let rawPayload: unknown
         try {
@@ -114,38 +121,58 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
         const lookup = await lookupEmailToken(db, data.token)
         if (lookup.state !== "valid") return tokenErrorResponse(lookup)
-        const userId = lookup.row.user_id
+        const userId = lookup.row.userId
+        const user = await db
+            .prepare(
+                `SELECT email,
+                        EXISTS (
+                            SELECT 1
+                            FROM suppressed_addresses
+                            WHERE suppressed_addresses.email = users.email
+                        ) AS isSuppressed
+                 FROM users
+                 WHERE id = ?1`
+            )
+            .bind(userId)
+            .first<{
+                email: string
+                isSuppressed: number
+            }>()
+        if (!user) return tokenErrorResponse({ state: "invalid" })
 
         if (data.unsubscribe) {
             await db
                 .prepare(
                     `UPDATE users
                      SET status = 'unsubscribed',
-                         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+                         updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
                      WHERE id = ?1`
                 )
                 .bind(userId)
                 .run()
         } else if (data.preferences) {
+            if (user.isSuppressed) {
+                await reactivatePostmarkRecipient(env, user.email)
+            }
             await db.batch([
                 db
                     .prepare(
                         `UPDATE users
                          SET status = 'subscribed',
-                             updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+                             updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
                          WHERE id = ?1`
                     )
                     .bind(userId),
                 db
                     .prepare(
                         `INSERT INTO notification_preferences
-                             (user_id, topic_tags, content_types, frequency)
+                             (userId, topicTags, contentTypes, frequency)
                          VALUES (?1, ?2, ?3, ?4)
-                         ON CONFLICT (user_id) DO UPDATE SET
-                             topic_tags = excluded.topic_tags,
-                             content_types = excluded.content_types,
+                         ON CONFLICT (userId) DO UPDATE SET
+                             topicTags = excluded.topicTags,
+                             contentTypes = excluded.contentTypes,
                              frequency = excluded.frequency,
-                             updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`
+                             updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`
                     )
                     .bind(
                         userId,
@@ -153,32 +180,42 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
                         JSON.stringify(data.preferences.contentTypes),
                         data.preferences.frequency
                     ),
+                db
+                    .prepare(
+                        `DELETE FROM suppressed_addresses WHERE email = ?1`
+                    )
+                    .bind(user.email),
             ])
         }
 
         if (data.subscribeToOwidBrief !== undefined) {
             try {
-                const user = await db
-                    .prepare(`SELECT email FROM users WHERE id = ?1`)
-                    .bind(userId)
-                    .first<{ email: string }>()
-                if (user) {
-                    await upsertOwidBriefSubscription(
-                        env,
-                        user.email,
-                        data.subscribeToOwidBrief
-                    )
-                }
+                await upsertOwidBriefSubscription(
+                    env,
+                    user.email,
+                    data.subscribeToOwidBrief
+                )
             } catch (error) {
                 // Fail soft: the D1 preferences are saved; only the Brief
                 // toggle didn't stick.
-                console.error("OWID Brief update failed", error)
+                const errorMessage =
+                    error instanceof Error ? error.message : String(error)
+                console.error(
+                    `OWID Brief update failed error=${JSON.stringify(errorMessage)}`
+                )
                 Sentry.captureException(error)
             }
         }
 
         return makeJsonResponse({ ok: true }, 200)
     } catch (error) {
+        if (error instanceof PostmarkRecipientReactivationError) {
+            Sentry.captureException(error)
+            return makeJsonResponse(
+                { error: POSTMARK_REACTIVATION_USER_MESSAGE },
+                500
+            )
+        }
         return handleJsonError(error)
     }
 }
