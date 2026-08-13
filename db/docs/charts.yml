@@ -29,7 +29,7 @@ fields:
   patchConfigId:
     description: Foreign key to chart_configs table, pointing at the layer authored in the chart editor, i.e. the changes made on top of the inherited indicator config. Equals the rendered config when inheritance is disabled. Written together with configId in a single transaction, and only read when reopening the editor or re-merging after an indicator config change.
   isInheritanceEnabled:
-    description: When true, chart inherits configuration from parent variable's patchConfigIdAdmin or patchConfigIdETL. This allows variables to define default chart settings that are automatically applied to all inheriting charts.
+    description: When true, chart inherits configuration from parent variable's patchConfigIdETL. This allows variables to define default chart settings that are automatically applied to all inheriting charts.
   forceDatapage:
     description: When true, force rendering this chart as a data page using metadata from the first Y indicator.
   createdAt:
