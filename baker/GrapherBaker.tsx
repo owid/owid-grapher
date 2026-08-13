@@ -154,16 +154,15 @@ export async function renderDataPageV2(
     },
     knex: db.KnexReadonlyTransaction
 ) {
-    const grapherConfigForVariable = await getIndicatorChartConfig(
-        knex,
-        variableId
-    )
     // Only merge the grapher config on the indicator if the caller tells us to do so -
     // this is true for preview pages for datapages on the indicator level but false
     // if we are on Grapher pages. Once we have a good way in the grapher admin for how
     // to use indicator level defaults, we should reconsider how this works here.
     const grapher = useIndicatorGrapherConfigs
-        ? mergeGrapherConfigs(grapherConfigForVariable ?? {}, pageGrapher ?? {})
+        ? mergeGrapherConfigs(
+              (await getIndicatorChartConfig(knex, variableId)) ?? {},
+              pageGrapher ?? {}
+          )
         : (pageGrapher ?? {})
 
     const faqDocIds = _.compact(
