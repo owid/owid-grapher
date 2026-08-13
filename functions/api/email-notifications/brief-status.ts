@@ -1,7 +1,10 @@
 import * as Sentry from "@sentry/cloudflare"
 import { EmailNotificationsBriefStatusResponse } from "@ourworldindata/utils"
 import { Env } from "../../_common/env.js"
-import { lookupEmailToken } from "../../_common/emailNotifications.js"
+import {
+    lookupEmailToken,
+    validateEmailNotificationsDatabase,
+} from "../../_common/emailNotifications.js"
 import { getOwidBriefStatus } from "../../_common/mailchimp.js"
 
 const CORS_HEADERS = {
@@ -28,9 +31,10 @@ export const onRequestOptions: PagesFunction = async () => {
  */
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     try {
+        validateEmailNotificationsDatabase(env)
         const db = env.EMAIL_NOTIFICATIONS_DB
         const token = new URL(request.url).searchParams.get("token")
-        if (!token || !db) return jsonResponse({ error: "invalid" }, 404)
+        if (!token) return jsonResponse({ error: "invalid" }, 404)
 
         const lookup = await lookupEmailToken(db, token)
         if (lookup.state !== "valid") {
@@ -42,7 +46,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
         const user = await db
             .prepare(`SELECT email FROM users WHERE id = ?1`)
-            .bind(lookup.row.user_id)
+            .bind(lookup.row.userId)
             .first<{ email: string }>()
         if (!user) return jsonResponse({ error: "invalid" }, 404)
 

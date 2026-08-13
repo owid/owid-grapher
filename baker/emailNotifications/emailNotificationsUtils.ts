@@ -20,13 +20,13 @@ export interface EmailNotificationsSubscriber {
 
 /** Row shape returned by the subscribers query against D1. */
 export interface D1SubscriberRow {
-    user_id: number
+    userId: number
     email: string
     token: string
-    topic_tags: string
-    content_types: string
+    topicTags: string
+    contentTypes: string
     frequency: string
-    last_sent_at: string | null
+    lastSentAt: string | null
 }
 
 export interface NotificationEmailItem {
@@ -62,18 +62,18 @@ export function parseSubscriberRow(
     row: D1SubscriberRow
 ): EmailNotificationsSubscriber {
     const preferences = EmailNotificationsPreferencesTypeObject.parse({
-        topicTags: JSON.parse(row.topic_tags),
-        contentTypes: JSON.parse(row.content_types),
+        topicTags: JSON.parse(row.topicTags),
+        contentTypes: JSON.parse(row.contentTypes),
         frequency: row.frequency,
     })
     return {
-        userId: row.user_id,
+        userId: row.userId,
         email: row.email,
         token: row.token,
         topicTags: preferences.topicTags,
         contentTypes: preferences.contentTypes,
         frequency: preferences.frequency,
-        lastSentAt: row.last_sent_at ? new Date(row.last_sent_at) : null,
+        lastSentAt: row.lastSentAt ? new Date(row.lastSentAt) : null,
     }
 }
 
