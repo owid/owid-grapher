@@ -132,6 +132,7 @@ export {
     epochDate,
     getTimeInterval,
     isSubYearly,
+    findFinestCommonTimeInterval,
     snapToIntervalStart,
     logPerf,
     sleep,
