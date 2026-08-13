@@ -687,7 +687,7 @@ const columnDefFromOwidVariable = (
     // TODO: debug only, remove before committing
     const display =
         variable.id === 1104804
-            ? { ...variable.display, notApplicableEntities: ["China"] }
+            ? { ...variable.display, inapplicableEntities: ["China"] }
             : variable.display
 
     const isContinent = isContinentsVariableId(variable.id)
