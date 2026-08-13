@@ -149,7 +149,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         // fetch the new parent config
         let newParentConfig: GrapherInterface | undefined
         if (newParentIndicatorId) {
-            newParentConfig = await fetchMergedGrapherConfigByVariableId(
+            newParentConfig = await fetchChartConfigByIndicatorId(
                 this.manager.admin,
                 newParentIndicatorId
             )
@@ -356,12 +356,12 @@ export async function deleteChart(params: {
     if (json.success) onSuccess?.()
 }
 
-export async function fetchMergedGrapherConfigByVariableId(
+export async function fetchChartConfigByIndicatorId(
     admin: Admin,
     indicatorId: number
 ): Promise<GrapherInterface | undefined> {
     const indicatorChart = await admin.getJSON(
-        `/api/variables/mergedGrapherConfig/${indicatorId}.json`
+        `/api/variables/${indicatorId}.config.json`
     )
     return _.isEmpty(indicatorChart) ? undefined : indicatorChart
 }
