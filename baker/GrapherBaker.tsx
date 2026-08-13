@@ -38,7 +38,7 @@ import {
 import ProgressBar from "progress"
 import {
     getVariableDistribution,
-    getMergedGrapherConfigForVariable,
+    getIndicatorChartConfig,
     getVariableOfDatapageIfApplicable,
     getOwnersForVariables,
 } from "../db/model/Variable.js"
@@ -154,7 +154,7 @@ export async function renderDataPageV2(
     },
     knex: db.KnexReadonlyTransaction
 ) {
-    const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
+    const grapherConfigForVariable = await getIndicatorChartConfig(
         knex,
         variableId
     )

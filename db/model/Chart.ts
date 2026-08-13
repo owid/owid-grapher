@@ -2,8 +2,7 @@ import * as lodash from "lodash-es"
 import * as db from "../db.js"
 import {
     getDataForMultipleVariables,
-    getGrapherConfigsForVariable,
-    mergeVariableChartConfigs,
+    getIndicatorChartConfig,
 } from "./Variable.js"
 import {
     JsonError,
@@ -361,13 +360,9 @@ export async function getParentByChartId(
 ): Promise<{ variableId?: number; config?: GrapherInterface }> {
     const parentVariableId = await getParentVariableIdByChartId(trx, chartId)
     if (!parentVariableId) return {}
-    const variable = await getGrapherConfigsForVariable(trx, parentVariableId)
     return {
         variableId: parentVariableId,
-        config: mergeVariableChartConfigs({
-            etl: variable?.etl?.config,
-            admin: variable?.admin?.config,
-        }),
+        config: await getIndicatorChartConfig(trx, parentVariableId),
     }
 }
 
@@ -380,13 +375,9 @@ export async function getParentByChartConfig(
 }> {
     const parentVariableId = getParentVariableIdFromChartConfig(config)
     if (!parentVariableId) return {}
-    const variable = await getGrapherConfigsForVariable(trx, parentVariableId)
     return {
         variableId: parentVariableId,
-        config: mergeVariableChartConfigs({
-            etl: variable?.etl?.config,
-            admin: variable?.admin?.config,
-        }),
+        config: await getIndicatorChartConfig(trx, parentVariableId),
     }
 }
 
