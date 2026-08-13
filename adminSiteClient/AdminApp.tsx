@@ -43,7 +43,6 @@ import { GdocsMatchProps, GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsCoverageMatrixPage } from "./GdocsCoverageMatrixPage.js"
 import { CalloutFunctionsPage } from "./CalloutFunctionsPage.js"
 import { GdocsStoreProvider } from "./GdocsStoreProvider.js"
-import { IndicatorChartEditorPage } from "./IndicatorChartEditorPage.js"
 import { CreateNarrativeChartEditorPage } from "./CreateNarrativeChartEditorPage.js"
 import { NarrativeChartEditorPage } from "./NarrativeChartEditorPage.js"
 import { NarrativeChartIndexPage } from "./NarrativeChartIndexPage.js"
@@ -329,17 +328,6 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/users"
                                     component={UsersIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/variables/:variableId/config"
-                                    render={({ match }) => (
-                                        <IndicatorChartEditorPage
-                                            variableId={parseInt(
-                                                match.params.variableId
-                                            )}
-                                        />
-                                    )}
                                 />
                                 <Route
                                     exact

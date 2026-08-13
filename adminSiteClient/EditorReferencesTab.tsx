@@ -21,12 +21,6 @@ import {
 } from "@ourworldindata/utils"
 import { AbstractChartEditor, References } from "./AbstractChartEditor.js"
 import {
-    IndicatorChartInfo,
-    IndicatorChartEditor,
-    isIndicatorChartEditorInstance,
-} from "./IndicatorChartEditor.js"
-import { Section } from "./Forms.js"
-import {
     NarrativeChartEditor,
     isNarrativeChartEditorInstance,
 } from "./NarrativeChartEditor.js"
@@ -48,8 +42,6 @@ export class EditorReferencesTab<
         const { editor } = this.props
         if (isChartEditorInstance(editor))
             return <EditorReferencesTabForChart editor={editor} />
-        else if (isIndicatorChartEditorInstance(editor))
-            return <EditorReferencesTabForIndicator editor={editor} />
         else if (isNarrativeChartEditorInstance(editor))
             return <EditorReferencesTabForNarrativeChart editor={editor} />
         else return null
@@ -377,64 +369,6 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
                     </div>
                 )}
             </form>
-        )
-    }
-}
-
-@observer
-export class EditorReferencesTabForIndicator extends Component<{
-    editor: IndicatorChartEditor
-}> {
-    override render() {
-        const { references } = this.props.editor
-
-        const publishedChildren = references?.childCharts ?? []
-        const [chartsInheritanceEnabled, chartsInheritanceDisabled] =
-            _.partition(
-                publishedChildren,
-                (chart) => chart.isInheritanceEnabled
-            )
-
-        const renderChartList = (charts: IndicatorChartInfo[]) => (
-            <ul>
-                {charts.map((chart) => (
-                    <li key={chart.id}>
-                        <a
-                            href={`/admin/charts/${chart.id}/edit`}
-                            target="_blank"
-                            rel="noopener"
-                        >
-                            {chart.title ?? "Missing title"}
-                        </a>{" "}
-                        <span style={{ color: "#aaa" }}>
-                            {chart.variantName && `(${chart.variantName})`}
-                        </span>
-                    </li>
-                ))}
-            </ul>
-        )
-
-        return (
-            <div className="EditorReferencesTab">
-                <Section name="Inheriting charts">
-                    <p>
-                        Published charts that inherit from this indicator:{" "}
-                        {chartsInheritanceEnabled.length === 0 && <i>None</i>}
-                    </p>
-
-                    {chartsInheritanceEnabled.length > 0 &&
-                        renderChartList(chartsInheritanceEnabled)}
-
-                    <p>
-                        Published charts that may inherit from this indicator,
-                        but inheritance is currently disabled:{" "}
-                        {chartsInheritanceDisabled.length === 0 && <i>None</i>}
-                    </p>
-
-                    {chartsInheritanceDisabled.length > 0 &&
-                        renderChartList(chartsInheritanceDisabled)}
-                </Section>
-            </div>
         )
     }
 }
