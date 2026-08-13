@@ -31,8 +31,8 @@ import {
 } from "../../adminShared/AdminTypes.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
-    saveNewChartConfigInDbAndR2,
-    updateChartConfigInDbAndR2,
+    saveNewChartConfigPairInDbAndR2,
+    updateChartConfigPairInDbAndR2,
 } from "../chartConfigHelpers.js"
 import { deleteGrapherConfigFromR2ByUUID } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 
@@ -46,11 +46,7 @@ import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import { getPublishedLinksTo } from "../../db/model/Link.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
-import {
-    getChartConfigByUUID,
-    insertChartConfig,
-    updateChartConfig,
-} from "../../db/model/ChartConfigs.js"
+import { getChartConfigByUUID } from "../../db/model/ChartConfigs.js"
 import { narrativeChartExists } from "../../db/model/NarrativeChart.js"
 import { getMultiDimDataPageById } from "../../db/model/MultiDimDataPage.js"
 
@@ -355,17 +351,12 @@ async function createNarrativeChartFromChart(
             config
         )
     const now = new Date()
-    const { chartConfigId } = await saveNewChartConfigInDbAndR2(
-        trx,
-        undefined,
-        fullConfig,
-        now
-    )
-    const patchConfigId = await insertChartConfig(trx, {
-        config: patchConfig,
-        createdAt: now,
-        updatedAt: now,
-    })
+    const { chartConfigId, patchConfigId } =
+        await saveNewChartConfigPairInDbAndR2(
+            trx,
+            { config: fullConfig, patchConfig },
+            now
+        )
     const [narrativeChartId] = await trx<DbInsertNarrativeChart>(
         NarrativeChartsTableName
     ).insert({
@@ -412,17 +403,12 @@ async function createNarrativeChartFromMultiDimView(
     }
     const viewDimensions = await getViewDimensions(trx, multiDimXChartConfig.id)
     const now = new Date()
-    const { chartConfigId } = await saveNewChartConfigInDbAndR2(
-        trx,
-        undefined,
-        fullConfig,
-        now
-    )
-    const patchConfigId = await insertChartConfig(trx, {
-        config: patchConfig,
-        createdAt: now,
-        updatedAt: now,
-    })
+    const { chartConfigId, patchConfigId } =
+        await saveNewChartConfigPairInDbAndR2(
+            trx,
+            { config: fullConfig, patchConfig },
+            now
+        )
     const [narrativeChartId] = await trx<DbInsertNarrativeChart>(
         NarrativeChartsTableName
     ).insert({
@@ -559,17 +545,16 @@ export async function updateNarrativeChart(
     }
 
     const now = new Date()
-    await updateChartConfigInDbAndR2(
+    await updateChartConfigPairInDbAndR2(
         trx,
-        existingRow.chartConfigId,
-        fullConfig,
+        {
+            configId: existingRow.chartConfigId,
+            patchConfigId: existingRow.patchConfigId,
+            config: fullConfig,
+            patchConfig,
+        },
         now
     )
-    await updateChartConfig(trx, {
-        configId: existingRow.patchConfigId,
-        config: patchConfig,
-        updatedAt: now,
-    })
 
     await trx
         .table(NarrativeChartsTableName)

@@ -14,6 +14,11 @@ import {
     saveGrapherConfigToR2ByUUID,
 } from "../serverUtils/r2/chartConfigR2Helpers.js"
 
+export interface ChartConfigPair {
+    config: GrapherInterface
+    patchConfig: GrapherInterface
+}
+
 /**
  * One particular detail of of MySQL's JSON support is that MySQL _normalizes_ JSON when storing it.
  * This means that the JSON string representation of a JSON object stored in MySQL is not equivalent
@@ -68,7 +73,7 @@ export const retrieveChartConfigFromDbAndSaveToR2 = async (
     }
 }
 
-export const updateChartConfigInDbAndR2 = async (
+const updateChartConfigInDbAndR2 = async (
     knex: db.KnexReadWriteTransaction,
     configId: string,
     config: GrapherInterface,
@@ -78,17 +83,49 @@ export const updateChartConfigInDbAndR2 = async (
     return retrieveChartConfigFromDbAndSaveToR2(knex, configId)
 }
 
-export const saveNewChartConfigInDbAndR2 = async (
+/** Inserts a chart config pair without publishing */
+export const insertChartConfigPair = async (
     knex: db.KnexReadWriteTransaction,
-    configId: string | undefined,
-    config: GrapherInterface,
+    { config, patchConfig }: ChartConfigPair,
     now: Date = new Date()
-) => {
-    const id = await insertChartConfig(knex, {
-        id: configId,
+): Promise<{ chartConfigId: string; patchConfigId: string }> => {
+    const chartConfigId = await insertChartConfig(knex, {
         config,
         createdAt: now,
         updatedAt: now,
     })
-    return retrieveChartConfigFromDbAndSaveToR2(knex, id)
+    const patchConfigId = await insertChartConfig(knex, {
+        config: patchConfig,
+        createdAt: now,
+        updatedAt: now,
+    })
+    return { chartConfigId, patchConfigId }
+}
+
+export const saveNewChartConfigPairInDbAndR2 = async (
+    knex: db.KnexReadWriteTransaction,
+    pair: ChartConfigPair,
+    now: Date = new Date()
+) => {
+    const ids = await insertChartConfigPair(knex, pair, now)
+    await retrieveChartConfigFromDbAndSaveToR2(knex, ids.chartConfigId)
+    return ids
+}
+
+export const updateChartConfigPairInDbAndR2 = async (
+    knex: db.KnexReadWriteTransaction,
+    {
+        configId,
+        patchConfigId,
+        config,
+        patchConfig,
+    }: ChartConfigPair & { configId: string; patchConfigId: string },
+    now: Date = new Date()
+) => {
+    await updateChartConfig(knex, {
+        configId: patchConfigId,
+        config: patchConfig,
+        updatedAt: now,
+    })
+    return updateChartConfigInDbAndR2(knex, configId, config, now)
 }
