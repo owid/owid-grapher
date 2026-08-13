@@ -46,14 +46,12 @@ import {
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
+    deleteChartConfigPairFromDbAndR2,
     insertChartConfigPair,
     retrieveChartConfigFromDbAndSaveToR2,
     updateChartConfigPairInDbAndR2,
 } from "../chartConfigHelpers.js"
-import {
-    deleteGrapherConfigFromR2,
-    deleteGrapherConfigFromR2ByUUID,
-} from "../../serverUtils/r2/chartConfigR2Helpers.js"
+import { deleteGrapherConfigFromR2 } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import { getLogsByChartId } from "../getLogsByChartId.js"
@@ -855,27 +853,22 @@ export async function deleteChart(
     >(trx, `SELECT configId, patchConfigId FROM charts WHERE id = ?`, [
         chart.id,
     ])
-    if (!chartRow || !chartRow.configId)
+    if (!chartRow)
         throw new JsonError(`No chart config found for id ${chart.id}`, 404)
 
     await db.knexRaw(trx, `DELETE FROM charts WHERE id=?`, [chart.id])
-    await db.knexRaw(trx, `DELETE FROM chart_configs WHERE id IN (?, ?)`, [
-        chartRow.configId,
-        chartRow.patchConfigId,
-    ])
+    await deleteChartConfigPairFromDbAndR2(trx, chartRow)
 
-    if (chart.isPublished)
+    if (chart.isPublished) {
         await triggerStaticBuild(
             res.locals.user,
             `Deleting chart ${chart.slug}`
         )
-
-    await deleteGrapherConfigFromR2ByUUID(chartRow.configId)
-    if (chart.isPublished)
         await deleteGrapherConfigFromR2(
             R2GrapherConfigDirectory.publishedGrapherBySlug,
             `${chart.slug}.json`
         )
+    }
 
     return { success: true }
 }
