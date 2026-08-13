@@ -45,7 +45,6 @@ interface VariablePageData extends Omit<
     charts: ChartListItem[]
     grapherConfig: GrapherInterface | undefined
     grapherConfigETL: GrapherInterface | undefined
-    grapherConfigAdmin: GrapherInterface | undefined
     source: { id: number; name: string }
     origins: OwidOrigin[]
 }
@@ -120,10 +119,6 @@ class VariableEditor extends Component<{
             : undefined
 
         const isV2MetadataVariable = (variable?.schemaVersion ?? 1) >= 2
-
-        const grapherConfigAdminYAML = YAML.stringify(
-            variable.grapherConfigAdmin
-        )
 
         return (
             <main className="VariableEditPage">
@@ -398,56 +393,6 @@ class VariableEditor extends Component<{
                             disabled
                             rows={8}
                         />
-                        <div>
-                            <TextAreaField
-                                key={grapherConfigAdminYAML}
-                                label="Grapher Config (edited in the admin)"
-                                value={grapherConfigAdminYAML}
-                                disabled
-                                rows={8}
-                            />
-                            <a
-                                className="btn btn-primary"
-                                href={`/admin/variables/${variable.id}/config`}
-                                target="_blank"
-                                rel="noopener"
-                            >
-                                {variable.grapherConfigAdmin
-                                    ? "Edit"
-                                    : "Create"}
-                            </a>
-                            {variable.grapherConfigAdmin && (
-                                <button
-                                    type="button"
-                                    className="btn btn-danger ml-2"
-                                    onClick={async () => {
-                                        if (
-                                            !window.confirm(
-                                                `Are you sure you want to delete the admin-authored Grapher config for variable ${variable.id}? This action cannot be undone!`
-                                            )
-                                        )
-                                            return
-
-                                        const json =
-                                            await this.context.admin.requestJSON(
-                                                `/api/variables/${variable.id}/grapherConfigAdmin`,
-                                                {},
-                                                "DELETE"
-                                            )
-
-                                        if (json.success) {
-                                            runInAction(
-                                                () =>
-                                                    (this.props.variable.grapherConfigAdmin =
-                                                        undefined)
-                                            )
-                                        }
-                                    }}
-                                >
-                                    Delete
-                                </button>
-                            )}
-                        </div>
                     </FieldsRow>
                 </section>
                 <hr></hr>

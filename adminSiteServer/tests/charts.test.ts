@@ -91,11 +91,6 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         selectedEntityNames: ["France", "Italy", "Spain"],
         hideRelativeToggle: false,
     }
-    const testVariableConfigAdmin = {
-        $schema: latestGrapherConfigSchema,
-        title: "Admin title",
-        subtitle: "Admin subtitle",
-    }
 
     // grapherConfigETL of the second dummy variable
     const otherTestVariableConfig = {
@@ -212,31 +207,11 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         }
         expect(configETL).toEqual(processedTestVariableConfigETL)
 
-        // fetch the admin+etl merged grapher config
-        let mergedGrapherConfig = await env.fetchJson(
+        // the effective indicator config is the ETL config
+        const mergedGrapherConfig = await env.fetchJson(
             `/variables/mergedGrapherConfig/${variableId}.json`
         )
-
-        // since no admin-authored config exists, the merged config should be
-        // the same as the ETL config
         expect(mergedGrapherConfig).toEqual(configETL)
-
-        // add an admin-authored config for the variable
-        await env.request({
-            method: "PUT",
-            path: `/variables/${variableId}/grapherConfigAdmin`,
-            body: JSON.stringify(testVariableConfigAdmin),
-        })
-
-        // fetch the merged grapher config and verify that the admin-authored
-        // config has been merged in
-        mergedGrapherConfig = await env.fetchJson(
-            `/variables/mergedGrapherConfig/${variableId}.json`
-        )
-        expect(mergedGrapherConfig).toEqual({
-            ...processedTestVariableConfigETL,
-            ...testVariableConfigAdmin,
-        })
 
         // create multi-dim config that uses both of the variables
         await env.request({
@@ -275,12 +250,12 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             expectedMergedViewConfig
         )
 
-        // update the admin-authored config for the variable
+        // update the ETL config for the variable
         await env.request({
             method: "PUT",
-            path: `/variables/${variableId}/grapherConfigAdmin`,
+            path: `/variables/${variableId}/grapherConfigETL`,
             body: JSON.stringify({
-                ...testVariableConfigAdmin,
+                ...testVariableConfigETL,
                 subtitle: "Newly updated subtitle",
             }),
         })
@@ -309,17 +284,6 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             ])
             .delete()
 
-        // delete the admin-authored grapher config we just added
-        // and verify that the merged config is now the same as the ETL config
-        await env.request({
-            method: "DELETE",
-            path: `/variables/${variableId}/grapherConfigAdmin`,
-        })
-        mergedGrapherConfig = await env.fetchJson(
-            `/variables/mergedGrapherConfig/${variableId}.json`
-        )
-        expect(mergedGrapherConfig).toEqual(configETL)
-
         // delete the ETL-authored grapher config we just added
         await env.request({
             method: "DELETE",
@@ -345,13 +309,6 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             body: JSON.stringify(testVariableConfigETL),
         })
 
-        // add grapherConfigAdmin for the variable
-        await env.request({
-            method: "PUT",
-            path: `/variables/${variableId}/grapherConfigAdmin`,
-            body: JSON.stringify(testVariableConfigAdmin),
-        })
-
         // make a request to create a chart that inherits from the variable
         const response = await env.request({
             method: "POST",
@@ -360,7 +317,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         })
         const chartId = response.chartId
 
-        // fetch the parent config of the chart and verify that it's the merged etl+admin config
+        // fetch the parent config of the chart and verify that it's the ETL config
         const parentConfig = (
             await env.fetchJson(`/charts/${chartId}.parent.json`)
         )?.config
@@ -384,7 +341,6 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             selectedEntityNames: [],
             hideRelativeToggle: false,
             dimensions: [{ variableId, property: "y" }],
-            subtitle: "Admin subtitle", // inherited from variable
             note: "Indicator note", // inherited from variable
             hasMapTab: true, // inherited from variable
         })
@@ -410,12 +366,6 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         await env.request({
             method: "DELETE",
             path: `/variables/${variableId}/grapherConfigETL`,
-        })
-
-        // delete the admin config
-        await env.request({
-            method: "DELETE",
-            path: `/variables/${variableId}/grapherConfigAdmin`,
         })
 
         // fetch the parent config of the chart and verify there is none
@@ -464,34 +414,27 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         })
     })
 
-    it("should store the authored layer, not the merged config, for an indicator", async () => {
+    it("should store the authored config for an indicator", async () => {
         await env.request({
             method: "PUT",
             path: `/variables/${variableId}/grapherConfigETL`,
             body: JSON.stringify(testVariableConfigETL),
         })
-        await env.request({
-            method: "PUT",
-            path: `/variables/${variableId}/grapherConfigAdmin`,
-            body: JSON.stringify(testVariableConfigAdmin),
-        })
 
-        // the two indicator rows hold what was authored; the effective config
-        // is merged in code, never stored
         const variable = await env
             .testKnex(VariablesTableName)
             .where({ id: variableId })
             .first()
-        const configAdmin = JSON.parse(
+        const configETL = JSON.parse(
             (
                 await env
                     .testKnex(ChartConfigsTableName)
-                    .where({ id: variable.patchConfigIdAdmin })
+                    .where({ id: variable.patchConfigIdETL })
                     .first()
             ).config
         )
-        expect(configAdmin).toEqual({
-            ...testVariableConfigAdmin,
+        expect(configETL).toEqual({
+            ...testVariableConfigETL,
             // added by makeConfigValidForIndicator
             dimensions: [{ property: "y", variableId }],
         })

@@ -514,52 +514,6 @@ export async function updateGrapherConfigAdminOfVariable(
     }
 }
 
-export async function getAllChartsForIndicator(
-    trx: db.KnexReadonlyTransaction,
-    variableId: number
-): Promise<
-    {
-        chartId: DbPlainChart["id"]
-        config: GrapherInterface
-        isPublished: boolean
-        isChild: boolean
-        isInheritanceEnabled: DbPlainChart["isInheritanceEnabled"]
-    }[]
-> {
-    const charts = await db.knexRaw<{
-        chartId: DbPlainChart["id"]
-        config: DbRawChartConfig["config"]
-        isPublished: boolean
-        isChild: boolean
-        isInheritanceEnabled: DbPlainChart["isInheritanceEnabled"]
-    }>(
-        trx,
-        `-- sql
-        SELECT
-            c.id AS chartId,
-            cc.config AS config,
-            cc.config ->> '$.isPublished' = "true" AS isPublished,
-            cxp.variableId = ? AS isChild,
-            c.isInheritanceEnabled
-        FROM charts c
-        JOIN chart_configs cc ON cc.id = c.configId
-        JOIN chart_dimensions cd ON cd.chartId = c.id
-        LEFT JOIN charts_x_parents cxp ON c.id = cxp.chartId
-        WHERE
-            cd.variableId = ?
-        `,
-        [variableId, variableId]
-    )
-
-    return charts.map((chart) => ({
-        chartId: chart.chartId,
-        config: parseChartConfig(chart.config),
-        isPublished: !!chart.isPublished,
-        isChild: !!chart.isChild,
-        isInheritanceEnabled: !!chart.isInheritanceEnabled,
-    }))
-}
-
 /**
  * Returns the indicator ID to use for datapage metadata if the grapher is
  * eligible for a datapage, otherwise undefined.

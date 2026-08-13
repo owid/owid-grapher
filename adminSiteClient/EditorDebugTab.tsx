@@ -11,10 +11,6 @@ import {
 } from "@ourworldindata/utils"
 import YAML from "yaml"
 import { Modal, notification } from "antd"
-import {
-    IndicatorChartEditor,
-    isIndicatorChartEditorInstance,
-} from "./IndicatorChartEditor.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import {
     NarrativeChartEditor,
@@ -35,8 +31,6 @@ export class EditorDebugTab<
             return <EditorDebugTabForChart editor={editor} />
         else if (isNarrativeChartEditorInstance(editor))
             return <EditorDebugTabForNarrativeChart editor={editor} />
-        else if (isIndicatorChartEditorInstance(editor))
-            return <EditorDebugTabForIndicatorChart editor={editor} />
         else return null
     }
 }
@@ -138,14 +132,7 @@ class EditorDebugTabForChart extends Component<{
                                             {" "}
                                             But the parent indicator does not
                                             yet have an associated grapherState
-                                            config. You can{" "}
-                                            <a
-                                                href={`/admin/variables/${parentVariableId}/config`}
-                                                target="_blank"
-                                                rel="noopener"
-                                            >
-                                                create one in the admin.
-                                            </a>
+                                            config.
                                         </>
                                     )}
                                 </p>
@@ -177,15 +164,6 @@ class EditorDebugTabForChart extends Component<{
                                     className="form-control"
                                     value={YAML.stringify(parentConfig)}
                                 />
-                                <p className="mt-2">
-                                    <a
-                                        href={`/admin/variables/${parentVariableId}/config`}
-                                        target="_blank"
-                                        rel="noopener"
-                                    >
-                                        Edit parent config in the admin
-                                    </a>
-                                </p>
                             </Section>
                         )}
                     </>
@@ -346,48 +324,6 @@ class EditorDebugTabForNarrativeChart extends Component<{
                         value={YAML.stringify(fullConfig)}
                     />
                 </Section>
-            </div>
-        )
-    }
-}
-
-@observer
-class EditorDebugTabForIndicatorChart extends Component<{
-    editor: IndicatorChartEditor
-}> {
-    override render() {
-        const { patchConfig, parentConfig, fullConfig } = this.props.editor
-
-        return (
-            <div className="ConfigTab">
-                <Section name="Config">
-                    <textarea
-                        rows={7}
-                        readOnly
-                        className="form-control"
-                        value={YAML.stringify(patchConfig)}
-                    />
-                </Section>
-                {parentConfig && (
-                    <>
-                        <Section name="Parent config (authored in the ETL)">
-                            <textarea
-                                rows={7}
-                                readOnly
-                                className="form-control"
-                                value={YAML.stringify(parentConfig)}
-                            />
-                        </Section>
-                        <Section name="Merged config">
-                            <textarea
-                                rows={7}
-                                readOnly
-                                className="form-control"
-                                value={YAML.stringify(fullConfig)}
-                            />
-                        </Section>
-                    </>
-                )}
             </div>
         )
     }
