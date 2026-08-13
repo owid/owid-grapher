@@ -277,11 +277,11 @@ export async function upsertMultiDim(
         catalogPath
     )
     const reusedChartConfigIds = new Set<string>()
-    const patchConfigIdsByViewId = new Map<string, string>()
     const { grapherConfigSchema } = config
 
-    const enrichedViews = await Promise.all(
+    const upsertedViews = await Promise.all(
         config.views.map(async (view) => {
+            const viewId = dimensionsToViewId(view.dimensions)
             const variableId = view.indicators.y[0].id
             // Main config for each view.
             const mainGrapherConfig: GrapherInterface = {
@@ -312,9 +312,7 @@ export async function upsertMultiDim(
                 variableConfigs.get(variableId) ?? {},
                 patchGrapherConfig
             )
-            const existing = existingViewIdsToChartConfigIds.get(
-                dimensionsToViewId(view.dimensions)
-            )
+            const existing = existingViewIdsToChartConfigIds.get(viewId)
             const now = new Date()
             let chartConfigId: string
             let patchConfigId: string
@@ -350,11 +348,11 @@ export async function upsertMultiDim(
                 })
                 console.debug(`Chart config created id=${chartConfigId}`)
             }
-            patchConfigIdsByViewId.set(
-                dimensionsToViewId(view.dimensions),
-                patchConfigId
-            )
-            return { ...view, fullConfigId: chartConfigId }
+            return {
+                viewId,
+                patchConfigId,
+                view: { ...view, fullConfigId: chartConfigId },
+            }
         })
     )
 
@@ -364,21 +362,22 @@ export async function upsertMultiDim(
         .toArray()
     await cleanUpOrphanedChartConfigs(knex, orphanedViews)
 
-    const enrichedConfig = { ...config, views: enrichedViews }
+    const enrichedConfig = {
+        ...config,
+        views: upsertedViews.map(({ view }) => view),
+    }
     const multiDimId = await upsertMultiDimConfig(
         knex,
         catalogPath,
         enrichedConfig
     )
-    for (const view of enrichedConfig.views) {
+    for (const { viewId, patchConfigId, view } of upsertedViews) {
         await upsertMultiDimXChartConfigs(knex, {
             multiDimId,
-            viewId: dimensionsToViewId(view.dimensions),
+            viewId,
             variableId: view.indicators.y[0].id,
             chartConfigId: view.fullConfigId,
-            patchConfigId: patchConfigIdsByViewId.get(
-                dimensionsToViewId(view.dimensions)
-            ),
+            patchConfigId,
         })
     }
     return multiDimId
