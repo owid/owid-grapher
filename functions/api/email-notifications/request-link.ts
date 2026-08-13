@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as z from "zod/mini"
 import {
     EMAIL_NOTIFICATIONS_MAGIC_LINK_TTL_MS,
@@ -7,7 +8,6 @@ import {
 import { Env } from "../../_common/env.js"
 import {
     createEmailToken,
-    escapeHtml,
     handleJsonError,
     handleOptionsRequest,
     makeHtmlResponse,
@@ -15,6 +15,7 @@ import {
     renderActionPage,
     renderMessagePage,
     sendMagicLinkEmail,
+    validateEmailNotificationsDatabase,
 } from "../../_common/emailNotifications.js"
 
 export const onRequestOptions = handleOptionsRequest
@@ -29,9 +30,10 @@ const REQUEST_LINK_PATH = "/api/email-notifications/request-link"
  * requires proving control of the inbox right now via the short-lived link.
  */
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
+    validateEmailNotificationsDatabase(env)
     const db = env.EMAIL_NOTIFICATIONS_DB
     const token = new URL(request.url).searchParams.get("token")
-    if (!token || !db) return invalidLinkResponse()
+    if (!token) return invalidLinkResponse()
 
     const user = await db
         .prepare(`SELECT email FROM users WHERE token = ?1`)
@@ -42,7 +44,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     return makeHtmlResponse(
         renderActionPage({
             title: "Update your preferences",
-            message: `To keep your subscription secure, we'll email a sign-in link to ${escapeHtml(user.email)}. The link is valid for 30 minutes.`,
+            message: `To keep your subscription secure, we'll email a sign-in link to ${_.escape(user.email)}. The link is valid for 30 minutes.`,
             button: {
                 label: "Email me a link",
                 action: REQUEST_LINK_PATH,
@@ -68,8 +70,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         .get("Content-Type")
         ?.includes("application/json")
     try {
+        validateEmailNotificationsDatabase(env)
         const db = env.EMAIL_NOTIFICATIONS_DB
-        if (!db) throw new JsonError("Database is not configured", 500)
 
         let email: string | undefined
         let token: string | undefined
@@ -113,7 +115,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
                 user.id,
                 EMAIL_NOTIFICATIONS_MAGIC_LINK_TTL_MS
             )
-            await sendMagicLinkEmail(env, new URL(request.url).origin, {
+            const siteBaseUrl =
+                env.EMAIL_NOTIFICATIONS_SITE_BASE_URL ||
+                new URL(request.url).origin
+            await sendMagicLinkEmail(env, siteBaseUrl, {
+                userId: user.id,
                 to: user.email,
                 token: magicToken,
             })
@@ -178,7 +184,7 @@ async function findUserByAnyToken(
         .prepare(
             `SELECT users.id, users.email
              FROM tokens
-             JOIN users ON users.id = tokens.user_id
+             JOIN users ON users.id = tokens.userId
              WHERE tokens.token = ?1`
         )
         .bind(token)
