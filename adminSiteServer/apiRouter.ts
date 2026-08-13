@@ -118,11 +118,10 @@ import {
     getVariablesJson,
     getLatestVariableIdsByCatalogPathJson,
     getVariablesUsagesJson,
-    getVariablesGrapherConfigETLPatchConfigJson,
-    getVariablesMergedGrapherConfigJson,
-    getVariablesVariableIdJson,
-    putVariablesVariableIdGrapherConfigETL,
-    deleteVariablesVariableIdGrapherConfigETL,
+    getIndicatorChartConfigJson,
+    getVariableJson,
+    putIndicatorChartConfig,
+    deleteIndicatorChartConfig,
 } from "./apiRoutes/variables.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import {
@@ -620,30 +619,25 @@ getRouteWithROTransaction(
 )
 getRouteWithROTransaction(
     apiRouter,
-    "/variables/grapherConfigETL/:variableId.patchConfig.json",
-    getVariablesGrapherConfigETLPatchConfigJson
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables/mergedGrapherConfig/:variableId.json",
-    getVariablesMergedGrapherConfigJson
+    "/variables/:variableId/chartConfig.json",
+    getIndicatorChartConfigJson
 )
 // Used in VariableEditPage
 getRouteWithROTransaction(
     apiRouter,
     "/variables/:variableId.json",
-    getVariablesVariableIdJson
+    getVariableJson
 )
 // inserts a new config or updates an existing one
 putRouteWithRWTransaction(
     apiRouter,
     "/variables/:variableId/grapherConfigETL",
-    putVariablesVariableIdGrapherConfigETL
+    putIndicatorChartConfig
 )
 deleteRouteWithRWTransaction(
     apiRouter,
     "/variables/:variableId/grapherConfigETL",
-    deleteVariablesVariableIdGrapherConfigETL
+    deleteIndicatorChartConfig
 )
 
 // Figma routes
