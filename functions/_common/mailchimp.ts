@@ -3,18 +3,22 @@ import { Env } from "./env.js"
 /**
  * Helpers for the OWID Brief newsletter, which stays in Mailchimp: the
  * subscribe form and the magic-link preferences page manage the Brief
- * interest (group) on the Mailchimp list member. All helpers degrade
- * gracefully when the MAILCHIMP_* environment variables are not set, so the
- * rest of the email notifications flows can be tested locally without
- * Mailchimp credentials.
+ * interest (group) on the Mailchimp list member.
  */
 
-function hasMailchimpCredentials(env: Env): boolean {
-    return Boolean(
-        env.MAILCHIMP_API_KEY &&
-        env.MAILCHIMP_API_SERVER &&
-        env.MAILCHIMP_NEWSLETTER_LIST_ID
-    )
+function validateMailchimpConfiguration(env: Env): void {
+    const missingVariables: string[] = []
+    if (!env.MAILCHIMP_API_KEY) missingVariables.push("MAILCHIMP_API_KEY")
+    if (!env.MAILCHIMP_API_SERVER) missingVariables.push("MAILCHIMP_API_SERVER")
+    if (!env.MAILCHIMP_NEWSLETTER_LIST_ID)
+        missingVariables.push("MAILCHIMP_NEWSLETTER_LIST_ID")
+    if (!env.MAILCHIMP_OWID_BRIEF_INTEREST_ID)
+        missingVariables.push("MAILCHIMP_OWID_BRIEF_INTEREST_ID")
+    if (missingVariables.length > 0) {
+        throw new Error(
+            `Mailchimp configuration is missing: ${missingVariables.join(", ")}`
+        )
+    }
 }
 
 /** Mailchimp identifies list members by the MD5 hash of the lowercase email. */
@@ -43,28 +47,20 @@ function makeAuthHeader(env: Env): string {
 /**
  * Set the OWID Brief interest on the Mailchimp list member, creating the
  * member if needed. New list members are created with
- * `status_if_new: "pending"`, so Mailchimp sends them its own double-opt-in
- * confirmation email. Throws on Mailchimp errors; skips (with a console
- * warning) when Mailchimp credentials are not configured.
+ * `status_if_new: "subscribed"` because the OWID Brief uses single opt-in.
+ * Throws on missing configuration and Mailchimp errors.
  */
 export async function upsertOwidBriefSubscription(
     env: Env,
     email: string,
     enabled: boolean
 ): Promise<void> {
-    if (!hasMailchimpCredentials(env)) {
-        console.warn(
-            "Mailchimp environment variables are not set, skipping OWID Brief update"
-        )
-        return
-    }
+    validateMailchimpConfiguration(env)
 
     const member: Record<string, unknown> = {
         email_address: email,
-        status_if_new: "pending",
-    }
-    if (env.MAILCHIMP_OWID_BRIEF_INTEREST_ID) {
-        member.interests = { [env.MAILCHIMP_OWID_BRIEF_INTEREST_ID]: enabled }
+        status_if_new: "subscribed",
+        interests: { [env.MAILCHIMP_OWID_BRIEF_INTEREST_ID]: enabled },
     }
 
     const response = await fetch(
@@ -88,16 +84,16 @@ export async function upsertOwidBriefSubscription(
 }
 
 /**
- * Whether the email is subscribed to the OWID Brief in Mailchimp. Returns
- * null when the status can't be determined (no credentials, Mailchimp error)
- * — callers must fail soft, e.g. by hiding the Brief toggle.
+ * Whether the email is subscribed to the OWID Brief in Mailchimp. Throws on
+ * missing configuration and returns null when a Mailchimp error
+ * prevents the status from being determined. Callers must fail soft, e.g. by
+ * hiding the Brief toggle.
  */
 export async function getOwidBriefStatus(
     env: Env,
     email: string
 ): Promise<boolean | null> {
-    if (!hasMailchimpCredentials(env) || !env.MAILCHIMP_OWID_BRIEF_INTEREST_ID)
-        return null
+    validateMailchimpConfiguration(env)
 
     const response = await fetch(
         `${makeMemberUrl(env, await makeSubscriberHash(email))}?fields=status,interests`,
