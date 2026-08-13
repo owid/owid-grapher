@@ -7,7 +7,6 @@ import {
     faFile,
     faTable,
     faSkullCrossbones,
-    faPen,
     faDatabase,
     faTag,
     faUser,
@@ -138,11 +137,6 @@ export const AdminSidebar = (): React.ReactElement => (
                 <Link to="/bulk-grapher-config-editor">
                     <FontAwesomeIcon icon={faSkullCrossbones} fixedWidth /> Bulk
                     chart editor
-                </Link>
-            </li>
-            <li>
-                <Link to="/variable-annotations">
-                    <FontAwesomeIcon icon={faPen} fixedWidth /> Data annotation
                 </Link>
             </li>
             <li>
