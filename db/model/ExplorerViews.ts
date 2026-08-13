@@ -15,7 +15,6 @@ import {
 } from "@ourworldindata/explorer"
 import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerCatalogResolver.js"
 import { insertChartConfig, updateChartConfig } from "./ChartConfigs.js"
-import { mergeVariableChartConfigs } from "./Variable.js"
 import * as _ from "lodash-es"
 import { dimensionsToViewId } from "@ourworldindata/utils"
 import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
@@ -76,7 +75,6 @@ async function fetchExplorerDataForViews(
 
     let partialGrapherConfigRows: {
         id: number
-        grapherConfigAdmin: string | null
         grapherConfigETL: string | null
     }[] = []
     if (requiredVariableIds.length) {
@@ -85,11 +83,9 @@ async function fetchExplorerDataForViews(
             `-- sql
                 SELECT
                     v.id,
-                    cc_etl.config AS grapherConfigETL,
-                    cc_admin.config AS grapherConfigAdmin
+                    cc.config AS grapherConfigETL
                 FROM variables v
-                    LEFT JOIN chart_configs cc_admin ON cc_admin.id=v.patchConfigIdAdmin
-                    LEFT JOIN chart_configs cc_etl ON cc_etl.id=v.patchConfigIdETL
+                    LEFT JOIN chart_configs cc ON cc.id=v.patchConfigIdETL
                 WHERE v.id IN (?)
             `,
             [requiredVariableIds]
@@ -116,29 +112,14 @@ async function fetchExplorerDataForViews(
     }
     const grapherConfigs = grapherConfigRows.map(parseGrapherConfigFromRow)
     const partialGrapherConfigs = partialGrapherConfigRows
-        .filter((row) => row.grapherConfigAdmin || row.grapherConfigETL)
+        .filter((row) => row.grapherConfigETL)
         .map((row) => {
-            const mergedConfig =
-                mergeVariableChartConfigs({
-                    etl: row.grapherConfigETL
-                        ? parseGrapherConfigFromRow({
-                              id: row.id,
-                              config: row.grapherConfigETL,
-                          })
-                        : undefined,
-                    admin: row.grapherConfigAdmin
-                        ? parseGrapherConfigFromRow({
-                              id: row.id,
-                              config: row.grapherConfigAdmin,
-                          })
-                        : undefined,
-                }) ?? {}
+            const config = parseGrapherConfigFromRow({
+                id: row.id,
+                config: row.grapherConfigETL!,
+            })
             // explorers set their own dimensions, so we don't need to include them here
-            const mergedConfigWithoutDimensions = {
-                ...mergedConfig,
-                dimensions: undefined,
-            }
-            return mergedConfigWithoutDimensions
+            return { ...config, dimensions: undefined }
         })
 
     return {

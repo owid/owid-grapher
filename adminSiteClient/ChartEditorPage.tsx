@@ -14,7 +14,7 @@ import {
     ChartEditor,
     Log,
     ChartEditorManager,
-    fetchMergedGrapherConfigByVariableId,
+    fetchChartConfigByIndicatorId,
 } from "./ChartEditor.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
@@ -96,7 +96,7 @@ export class ChartEditorPage
             const parentIndicatorId =
                 getParentVariableIdFromChartConfig(grapherConfig)
             if (parentIndicatorId) {
-                this.parentConfig = await fetchMergedGrapherConfigByVariableId(
+                this.parentConfig = await fetchChartConfigByIndicatorId(
                     this.context.admin,
                     parentIndicatorId
                 )

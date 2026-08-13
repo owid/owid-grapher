@@ -206,10 +206,10 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         expect(patchConfigETL).toEqual(processedTestVariableConfigETL)
 
         // the effective indicator config is the ETL config
-        const mergedGrapherConfig = await env.fetchJson(
-            `/variables/mergedGrapherConfig/${variableId}.json`
+        const indicatorChartConfig = await env.fetchJson(
+            `/variables/${variableId}.config.json`
         )
-        expect(mergedGrapherConfig).toEqual(patchConfigETL)
+        expect(indicatorChartConfig).toEqual(patchConfigETL)
 
         // create multi-dim config that uses both of the variables
         await env.request({
@@ -236,7 +236,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
 
         // view config should override the variable config
         const expectedMergedViewConfig = {
-            ...mergedGrapherConfig,
+            ...indicatorChartConfig,
             title: "Total energy use",
             selectedEntityNames: [], // multi-dims define their own default entities
         }
@@ -319,10 +319,10 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         const parentConfig = (
             await env.fetchJson(`/charts/${chartId}.parent.json`)
         )?.config
-        const mergedGrapherConfig = await env.fetchJson(
-            `/variables/mergedGrapherConfig/${variableId}.json`
+        const indicatorChartConfig = await env.fetchJson(
+            `/variables/${variableId}.config.json`
         )
-        expect(parentConfig).toEqual(mergedGrapherConfig)
+        expect(parentConfig).toEqual(indicatorChartConfig)
 
         // fetch the full config of the chart and verify that it's been merged
         // with the indicator config
@@ -644,7 +644,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
 
         // the indicator's own config belongs to no chart and is left alone
         const indicatorConfig = await env.fetchJson(
-            `/variables/mergedGrapherConfig/${variableId}.json`
+            `/variables/${variableId}.config.json`
         )
         expect(indicatorConfig).not.toHaveProperty("version")
     })
