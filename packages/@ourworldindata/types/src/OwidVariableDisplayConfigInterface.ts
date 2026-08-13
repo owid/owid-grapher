@@ -19,7 +19,7 @@ export interface OwidVariableDisplayConfigInterface {
     timeInterval?: TimeInterval
     zeroDay?: string
     entityAnnotationsMap?: string
-    notApplicableEntities?: EntityName[]
+    inapplicableEntities?: EntityName[]
     includeInTable?: boolean
     tableDisplay?: OwidVariableDataTableConfigInterface
     color?: string

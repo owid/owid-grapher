@@ -28,7 +28,7 @@ class OwidVariableDisplayConfigDefaults {
     timeInterval: TimeInterval | undefined = undefined
     zeroDay: string | undefined = undefined
     entityAnnotationsMap: string | undefined = undefined
-    notApplicableEntities: EntityName[] | undefined = undefined
+    inapplicableEntities: EntityName[] | undefined = undefined
     includeInTable: boolean | undefined = true
     tableDisplay: OwidVariableDataTableConfigInterface | undefined = undefined
     color: string | undefined = undefined
@@ -48,7 +48,7 @@ class OwidVariableDisplayConfigDefaults {
             timeInterval: observable,
             zeroDay: observable,
             entityAnnotationsMap: observable,
-            notApplicableEntities: observable,
+            inapplicableEntities: observable,
             includeInTable: observable,
             tableDisplay: observable,
             color: observable,

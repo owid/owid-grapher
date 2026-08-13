@@ -134,7 +134,7 @@ properties:
             entityAnnotationsMap:
               type: string
               description: Entity annotations
-            notApplicableEntities:
+            inapplicableEntities:
               type: array
               items:
                 type: string

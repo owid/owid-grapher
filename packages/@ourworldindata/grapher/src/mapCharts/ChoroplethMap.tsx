@@ -37,7 +37,7 @@ import {
     InternalValueAnnotation,
     NoDataPattern,
     ProjectedDataPattern,
-    NotApplicablePattern,
+    InapplicablePattern,
 } from "./MapComponents"
 import { Patterns } from "../core/GrapherConstants"
 import {
@@ -482,7 +482,7 @@ export class ChoroplethMap extends React.Component<{
     renderFeaturesWithoutData(): React.ReactElement | undefined {
         const {
             featuresWithNoData,
-            manager: { notApplicableEntityNamesSet },
+            manager: { inapplicableEntityNamesSet },
         } = this
 
         if (featuresWithNoData.length === 0) return
@@ -497,17 +497,17 @@ export class ChoroplethMap extends React.Component<{
                         patternId={Patterns.noDataPatternForMap}
                         scale={1 / this.viewportScale} // The scale is crucial and projection specific
                     />
-                    {notApplicableEntityNamesSet &&
-                        notApplicableEntityNamesSet.size > 0 && (
+                    {inapplicableEntityNamesSet &&
+                        inapplicableEntityNamesSet.size > 0 && (
                             <>
                                 {/* Pattern used by the legend */}
-                                <NotApplicablePattern
-                                    patternId={Patterns.notApplicablePattern}
+                                <InapplicablePattern
+                                    patternId={Patterns.inapplicablePattern}
                                 />
                                 {/* Pattern used by the feature */}
-                                <NotApplicablePattern
+                                <InapplicablePattern
                                     patternId={
-                                        Patterns.notApplicablePatternForMap
+                                        Patterns.inapplicablePatternForMap
                                     }
                                     scale={1 / this.viewportScale}
                                 />
@@ -520,8 +520,8 @@ export class ChoroplethMap extends React.Component<{
                         key={feature.id}
                         feature={feature}
                         patternId={
-                            notApplicableEntityNamesSet?.has(feature.id)
-                                ? Patterns.notApplicablePatternForMap
+                            inapplicableEntityNamesSet?.has(feature.id)
+                                ? Patterns.inapplicablePatternForMap
                                 : Patterns.noDataPatternForMap
                         }
                         isSelected={this.manager.isSelected?.(feature.id)}

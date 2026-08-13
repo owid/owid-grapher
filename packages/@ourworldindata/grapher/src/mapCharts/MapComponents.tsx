@@ -174,7 +174,7 @@ export function NoDataPattern({
     )
 }
 
-export function NotApplicablePattern({
+export function InapplicablePattern({
     patternId,
     scale = 1,
 }: {

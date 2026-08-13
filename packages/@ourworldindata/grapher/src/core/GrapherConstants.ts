@@ -154,9 +154,9 @@ export enum Patterns {
     /** Viewport-scaled no-data hatch used by 2D maps */
     noDataPatternForMap = "noDataPatternForMap",
     /** Not-applicable hatch used by legends and the globe */
-    notApplicablePattern = "notApplicablePattern",
+    inapplicablePattern = "inapplicablePattern",
     /** Viewport-scaled not-applicable hatch used by 2D maps */
-    notApplicablePatternForMap = "notApplicablePatternForMap",
+    inapplicablePatternForMap = "inapplicablePatternForMap",
     /** Dot pattern for maps and the globe */
     projectedDataPattern = "projectedDataPattern",
     /** Dot pattern for the legend */

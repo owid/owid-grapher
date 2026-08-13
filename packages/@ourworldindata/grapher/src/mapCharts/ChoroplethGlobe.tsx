@@ -55,7 +55,7 @@ import {
     ExternalValueAnnotation,
     InternalValueAnnotation,
     ProjectedDataPattern,
-    NotApplicablePattern,
+    InapplicablePattern,
 } from "./MapComponents"
 import { Patterns } from "../core/GrapherConstants"
 import {
@@ -731,7 +731,7 @@ export class ChoroplethGlobe extends React.Component<{
     renderFeaturesWithNoData(): React.ReactElement | undefined {
         const {
             featuresWithNoData,
-            manager: { notApplicableEntityNamesSet },
+            manager: { inapplicableEntityNamesSet },
         } = this
 
         if (featuresWithNoData.length === 0) return
@@ -741,11 +741,11 @@ export class ChoroplethGlobe extends React.Component<{
                 id={makeFigmaId("countries-without-data")}
                 className="noDataFeatures"
             >
-                {notApplicableEntityNamesSet &&
-                    notApplicableEntityNamesSet.size > 0 && (
+                {inapplicableEntityNamesSet &&
+                    inapplicableEntityNamesSet.size > 0 && (
                         <defs>
-                            <NotApplicablePattern
-                                patternId={Patterns.notApplicablePattern}
+                            <InapplicablePattern
+                                patternId={Patterns.inapplicablePattern}
                             />
                         </defs>
                     )}
@@ -756,8 +756,8 @@ export class ChoroplethGlobe extends React.Component<{
                         feature={feature}
                         path={this.getPath(feature)}
                         patternId={
-                            notApplicableEntityNamesSet?.has(feature.id)
-                                ? Patterns.notApplicablePattern
+                            inapplicableEntityNamesSet?.has(feature.id)
+                                ? Patterns.inapplicablePattern
                                 : Patterns.noDataPattern
                         }
                         isSelected={this.manager.isSelected?.(feature.id)}

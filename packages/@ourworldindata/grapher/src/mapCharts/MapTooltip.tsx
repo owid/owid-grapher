@@ -16,7 +16,7 @@ import {
     formatTooltipRangeValues,
 } from "../tooltip/Tooltip"
 import { MapChartManager, MapColumnInfo } from "./MapChartConstants"
-import { ColorScale, NOT_APPLICABLE_LABEL } from "../color/ColorScale"
+import { ColorScale, INAPPLICABLE_LABEL } from "../color/ColorScale"
 import {
     Time,
     EntityName,
@@ -46,7 +46,7 @@ interface MapTooltipProps {
     timeSeriesTable: OwidTable
     targetTime?: Time // show tooltip values for a specific point in time
     targetTimes?: [Time, Time] // show tooltip values for a specific time range (start and end times)
-    notApplicableEntityNamesSet?: Set<EntityName>
+    inapplicableEntityNamesSet?: Set<EntityName>
     sparklineWidth?: number
     sparklineHeight?: number
     fading?: TooltipFadeMode
@@ -92,19 +92,18 @@ export class MapTooltip
         return this.props.entityName
     }
 
-    @computed get isNotApplicableEntity(): boolean {
+    @computed get isInapplicableEntity(): boolean {
         return (
-            this.props.notApplicableEntityNamesSet?.has(this.entityName) ??
-            false
+            this.props.inapplicableEntityNamesSet?.has(this.entityName) ?? false
         )
     }
 
-    @computed get notApplicableValueLabel(): string {
+    @computed get inapplicableValueLabel(): string {
         // If the custom label for "Not applicable" matches the current entity
         // name, use the default "Not applicable" text to avoid spelling the
         // entity name twice (once in the tooltip title, once in the value line)
-        const label = this.lineColorScale.notApplicableLabel
-        return label === this.entityName ? NOT_APPLICABLE_LABEL : label
+        const label = this.lineColorScale.inapplicableLabel
+        return label === this.entityName ? INAPPLICABLE_LABEL : label
     }
 
     @computed private get shouldShowValueRange(): boolean {
@@ -219,7 +218,7 @@ export class MapTooltip
 
         // Not-applicable entities' values are time-invariant,
         // so showing a time would be misleading
-        if (this.isNotApplicableEntity) return undefined
+        if (this.isInapplicableEntity) return undefined
 
         const originalStartTime = startDatum?.originalTime ?? startTime
         const originalEndTime = endDatum?.originalTime ?? endTime
@@ -352,8 +351,8 @@ export class MapTooltip
                         mapColumn={mapColumn}
                         datum={endDatum}
                         formattedValue={
-                            this.isNotApplicableEntity
-                                ? this.notApplicableValueLabel
+                            this.isInapplicableEntity
+                                ? this.inapplicableValueLabel
                                 : this.formattedEndValue?.label
                         }
                         colorScale={colorScale}

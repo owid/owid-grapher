@@ -20,15 +20,15 @@ import { runBinningStrategy } from "./BinningStrategies.js"
 
 export const NO_DATA_LABEL = "No data"
 export const PROJECTED_DATA_LABEL = "Projected data"
-export const NOT_APPLICABLE_LABEL = "Not applicable"
+export const INAPPLICABLE_LABEL = "Not applicable"
 
-export const NOT_APPLICABLE_COLOR = GRAY_90
+export const INAPPLICABLE_COLOR = GRAY_90
 
 export interface ColorScaleManager {
     colorScaleConfig?: ColorScaleConfigInterface
     hasNoDataBin?: boolean
     hasProjectedDataBin?: boolean
-    hasNotApplicableBin?: boolean
+    hasInapplicableBin?: boolean
     defaultNoDataColor?: string
     defaultBaseColorScheme?: ColorSchemeName
     colorScaleColumn?: CoreColumn
@@ -120,8 +120,8 @@ export class ColorScale {
         return this.manager.hasProjectedDataBin || false
     }
 
-    @computed private get hasNotApplicableBin(): boolean {
-        return this.manager.hasNotApplicableBin || false
+    @computed private get hasInapplicableBin(): boolean {
+        return this.manager.hasInapplicableBin || false
     }
 
     @computed get sortedNumericValues(): number[] {
@@ -197,8 +197,8 @@ export class ColorScale {
             ...(this.hasNoDataBin
                 ? { [NO_DATA_LABEL]: this.defaultNoDataColor }
                 : undefined),
-            ...(this.hasNotApplicableBin
-                ? { [NOT_APPLICABLE_LABEL]: NOT_APPLICABLE_COLOR }
+            ...(this.hasInapplicableBin
+                ? { [INAPPLICABLE_LABEL]: INAPPLICABLE_COLOR }
                 : undefined),
             ...this.config.customCategoryColors,
         }
@@ -214,10 +214,9 @@ export class ColorScale {
         return this.customCategoryLabels[NO_DATA_LABEL] ?? NO_DATA_LABEL
     }
 
-    @computed get notApplicableLabel(): string {
+    @computed get inapplicableLabel(): string {
         return (
-            this.customCategoryLabels[NOT_APPLICABLE_LABEL] ??
-            NOT_APPLICABLE_LABEL
+            this.customCategoryLabels[INAPPLICABLE_LABEL] ?? INAPPLICABLE_LABEL
         )
     }
 
@@ -304,7 +303,7 @@ export class ColorScale {
             baseColors,
             hasNoDataBin,
             hasProjectedDataBin,
-            hasNotApplicableBin,
+            hasInapplicableBin,
             categoricalValues,
             customCategoryColors,
             customCategoryLabels,
@@ -321,13 +320,10 @@ export class ColorScale {
 
         // Inject "Not applicable" bin for the indicator's reference entity
         if (
-            hasNotApplicableBin &&
-            !allCategoricalValues.includes(NOT_APPLICABLE_LABEL)
+            hasInapplicableBin &&
+            !allCategoricalValues.includes(INAPPLICABLE_LABEL)
         ) {
-            allCategoricalValues = [
-                ...allCategoricalValues,
-                NOT_APPLICABLE_LABEL,
-            ]
+            allCategoricalValues = [...allCategoricalValues, INAPPLICABLE_LABEL]
         }
 
         // Inject "No data" bin

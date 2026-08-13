@@ -364,7 +364,7 @@ class VariableEditor extends Component<{
                                 />
                                 <ReadOnlyField
                                     label="Not applicable entities"
-                                    value={variable.display?.notApplicableEntities?.join(
+                                    value={variable.display?.inapplicableEntities?.join(
                                         ", "
                                     )}
                                 />

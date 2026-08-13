@@ -32,7 +32,7 @@ import {
     MapViewport,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
-import { ColorScale, NOT_APPLICABLE_LABEL } from "../color/ColorScale"
+import { ColorScale, INAPPLICABLE_LABEL } from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -45,7 +45,7 @@ import {
     ColorScaleBin,
     isCategoricalBin,
     isNoDataBin,
-    isNotApplicableBin,
+    isInapplicableBin,
     isNumericBin,
     isProjectedDataBin,
     mergeCategoricalBinsByLabelAndColor,
@@ -136,8 +136,8 @@ export class MapChart
         return this.mapColumnInfo.type !== "historical"
     }
 
-    @computed get notApplicableEntityNamesSet(): Set<EntityName> {
-        return this.chartState.notApplicableEntityNamesSet
+    @computed get inapplicableEntityNamesSet(): Set<EntityName> {
+        return this.chartState.inapplicableEntityNamesSet
     }
 
     @computed private get targetTime(): number | undefined {
@@ -292,8 +292,8 @@ export class MapChart
     @computed private get hoverValue(): string | number | undefined {
         if (!this.mapConfig.hoverCountry) return undefined
 
-        if (this.notApplicableEntityNamesSet.has(this.mapConfig.hoverCountry))
-            return NOT_APPLICABLE_LABEL
+        if (this.inapplicableEntityNamesSet.has(this.mapConfig.hoverCountry))
+            return INAPPLICABLE_LABEL
 
         const series = this.choroplethData.get(this.mapConfig.hoverCountry)
         if (!series) return "No data"
@@ -311,10 +311,10 @@ export class MapChart
         // Check if a country is hovered
         if (mapConfig.hoverCountry === featureId) return true
 
-        if (this.notApplicableEntityNamesSet.has(featureId)) {
-            if (hoverBracket) return isNotApplicableBin(hoverBracket)
+        if (this.inapplicableEntityNamesSet.has(featureId)) {
+            if (hoverBracket) return isInapplicableBin(hoverBracket)
             if (externalLegendHoverBin)
-                return isNotApplicableBin(externalLegendHoverBin)
+                return isInapplicableBin(externalLegendHoverBin)
             return false
         }
 
@@ -385,10 +385,10 @@ export class MapChart
                 patternRef: Patterns.noDataPattern,
             }) as Bin
 
-        if (isNotApplicableBin(bin))
+        if (isInapplicableBin(bin))
             return new CategoricalBin({
                 ...bin.props,
-                patternRef: Patterns.notApplicablePattern,
+                patternRef: Patterns.inapplicablePattern,
             }) as Bin
 
         if (isProjectedDataBin(bin)) {
@@ -462,7 +462,7 @@ export class MapChart
                 return (
                     isNoDataBin(bin) ||
                     isProjectedDataBin(bin) ||
-                    isNotApplicableBin(bin) ||
+                    isInapplicableBin(bin) ||
                     memberCount > 0
                 )
             })
@@ -713,8 +713,8 @@ export class MapChart
                         lineColorScale={this.colorScale}
                         targetTime={this.targetTime}
                         targetTimes={this.manager.highlightedTimesInTooltip}
-                        notApplicableEntityNamesSet={
-                            this.chartState.notApplicableEntityNamesSet
+                        inapplicableEntityNamesSet={
+                            this.chartState.inapplicableEntityNamesSet
                         }
                         sparklineWidth={sparklineWidth}
                         dismissTooltip={action(() => {

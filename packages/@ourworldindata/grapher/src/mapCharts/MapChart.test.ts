@@ -11,7 +11,7 @@ import { MapChart } from "./MapChart"
 import { MapChartState } from "./MapChartState"
 import { MapConfig } from "./MapConfig"
 import { CategoricalBin } from "../color/ColorScaleBin"
-import { NOT_APPLICABLE_COLOR } from "../color/ColorScale"
+import { INAPPLICABLE_COLOR } from "../color/ColorScale"
 
 const table = SynthesizeGDPTable({
     timeRange: [2000, 2001],
@@ -94,20 +94,20 @@ it("combines projected data with its historical counterpart", () => {
 describe("not applicable entities", () => {
     // Not-applicable entities are expected to have no data,
     // so they're not included in the table
-    const makeTableWithNotApplicableEntities = (
-        notApplicableEntities: string[]
+    const makeTableWithInapplicableEntities = (
+        inapplicableEntities: string[]
     ): OwidTable =>
         SynthesizeGDPTable({
             timeRange: [2000, 2001],
             entityNames: ["Germany", "Spain", "World"],
         }).updateDefs((def) =>
             def.slug === SampleColumnSlugs.Population
-                ? { ...def, display: { notApplicableEntities } }
+                ? { ...def, display: { inapplicableEntities } }
                 : def
         )
 
     it("renders not-applicable entities with their own legend bin", () => {
-        const table = makeTableWithNotApplicableEntities(["France"])
+        const table = makeTableWithInapplicableEntities(["France"])
         const chartState = new MapChartState({
             manager: {
                 table,
@@ -117,7 +117,7 @@ describe("not applicable entities", () => {
         })
 
         // France is recognized as not-applicable, but has no series
-        expect(chartState.notApplicableEntityNamesSet).toEqual(
+        expect(chartState.inapplicableEntityNamesSet).toEqual(
             new Set(["France"])
         )
         expect(chartState.seriesMap.has("France")).toBe(false)
@@ -128,16 +128,16 @@ describe("not applicable entities", () => {
                 bin instanceof CategoricalBin && bin.value === "Not applicable"
         )
         expect(bin?.label).toEqual("Not applicable")
-        expect(bin?.color).toEqual(NOT_APPLICABLE_COLOR)
+        expect(bin?.color).toEqual(INAPPLICABLE_COLOR)
 
         // The tooltip also reads "Not applicable"
-        expect(chartState.colorScale.notApplicableLabel).toEqual(
+        expect(chartState.colorScale.inapplicableLabel).toEqual(
             "Not applicable"
         )
     })
 
     it("lets the color scale config override the not-applicable label", () => {
-        const table = makeTableWithNotApplicableEntities(["France"])
+        const table = makeTableWithInapplicableEntities(["France"])
         const mapConfig = new MapConfig()
         mapConfig.colorScale.customCategoryLabels = {
             "Not applicable": "Selected country",
@@ -159,13 +159,13 @@ describe("not applicable entities", () => {
         expect(bin?.label).toEqual("Selected country")
 
         // The custom label is also used in the map tooltip
-        expect(chartState.colorScale.notApplicableLabel).toEqual(
+        expect(chartState.colorScale.inapplicableLabel).toEqual(
             "Selected country"
         )
     })
 
     it("ignores not-applicable entities that aren't on the map", () => {
-        const table = makeTableWithNotApplicableEntities(["World"])
+        const table = makeTableWithInapplicableEntities(["World"])
         const chartState = new MapChartState({
             manager: {
                 table,
@@ -174,12 +174,12 @@ describe("not applicable entities", () => {
             },
         })
 
-        expect(chartState.notApplicableEntityNamesSet).toEqual(new Set())
+        expect(chartState.inapplicableEntityNamesSet).toEqual(new Set())
         expect(chartState.seriesMap.get("World")).toBeUndefined()
     })
 
     it("handles multiple not-applicable entities", () => {
-        const table = makeTableWithNotApplicableEntities(["France", "Italy"])
+        const table = makeTableWithInapplicableEntities(["France", "Italy"])
         const chartState = new MapChartState({
             manager: {
                 table,
@@ -189,18 +189,18 @@ describe("not applicable entities", () => {
         })
 
         // Both are recognized as not-applicable
-        expect(chartState.notApplicableEntityNamesSet).toEqual(
+        expect(chartState.inapplicableEntityNamesSet).toEqual(
             new Set(["France", "Italy"])
         )
         expect(chartState.seriesMap.has("France")).toBe(false)
         expect(chartState.seriesMap.has("Italy")).toBe(false)
 
         // The shared "Not applicable" bin is injected once
-        const notApplicableBins = chartState.colorScale.legendBins.filter(
+        const inapplicableBins = chartState.colorScale.legendBins.filter(
             (bin) =>
                 bin instanceof CategoricalBin && bin.value === "Not applicable"
         )
-        expect(notApplicableBins).toHaveLength(1)
-        expect(notApplicableBins[0]?.color).toEqual(NOT_APPLICABLE_COLOR)
+        expect(inapplicableBins).toHaveLength(1)
+        expect(inapplicableBins[0]?.color).toEqual(INAPPLICABLE_COLOR)
     })
 })

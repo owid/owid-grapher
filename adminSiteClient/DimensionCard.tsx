@@ -77,7 +77,7 @@ export class DimensionCard<
         this.onChange()
     }
 
-    @computed get notApplicableEntityOptions(): {
+    @computed get inapplicableEntityOptions(): {
         value: EntityName
         label: EntityName
     }[] {
@@ -87,8 +87,8 @@ export class DimensionCard<
             .map((entityName) => ({ value: entityName, label: entityName }))
     }
 
-    @action.bound onChangeNotApplicableEntities(entityNames: EntityName[]) {
-        this.props.dimension.display.notApplicableEntities = entityNames
+    @action.bound onChangeInapplicableEntities(entityNames: EntityName[]) {
+        this.props.dimension.display.inapplicableEntities = entityNames
         this.onChange()
     }
 
@@ -282,12 +282,12 @@ export class DimensionCard<
                                 style={{ width: "100%" }}
                                 placeholder="Select entities"
                                 value={
-                                    dimension.display.notApplicableEntities ??
-                                    column.display?.notApplicableEntities ??
+                                    dimension.display.inapplicableEntities ??
+                                    column.display?.inapplicableEntities ??
                                     []
                                 }
-                                options={this.notApplicableEntityOptions}
-                                onChange={this.onChangeNotApplicableEntities}
+                                options={this.inapplicableEntityOptions}
+                                onChange={this.onChangeInapplicableEntities}
                                 mode="multiple"
                                 showSearch
                                 allowClear
