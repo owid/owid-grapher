@@ -7,7 +7,6 @@ import {
     NarrativeChartsTableName,
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
-import { mergeGrapherConfigs } from "@ourworldindata/utils"
 import { seedDatasetAndVariables, variableId } from "./fixtures.js"
 import type { NarrativeChartResponse } from "../apiRoutes/narrativeCharts.js"
 
@@ -113,11 +112,21 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
             expect(narrativeChart.configPatch).not.toHaveProperty(prop)
         }
 
-        // The served config is the authored layer merged over the parent
-        expect(narrativeChart.configFull).toEqual(
-            mergeGrapherConfigs(parentConfig, narrativeChart.configPatch)
-        )
-        expect(narrativeChart.configFull.subtitle).toBe("Parent subtitle")
+        // The served config is the authored layer over the parent: the title
+        // is the narrative chart's, the subtitle comes from the parent, and the
+        // time/tab/focus props come from the default layer via the props that
+        // are always persisted
+        expect(narrativeChart.configFull).toEqual({
+            $schema: latestGrapherConfigSchema,
+            title: "Narrative title",
+            subtitle: "Parent subtitle",
+            chartTypes: ["LineChart"],
+            selectedEntityNames: ["France"],
+            tab: "chart",
+            minTime: "earliest",
+            maxTime: "latest",
+            focusedSeriesNames: [],
+        })
     })
 
     it("creates a narrative chart from a multi-dim view", async () => {
@@ -147,17 +156,18 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
 
         const narrativeChart = await getNarrativeChart(narrativeChartId)
         expect(narrativeChart.parentType).toBe("multiDim")
-        expect(narrativeChart.configFull).toEqual(
-            mergeGrapherConfigs(
-                narrativeChart.parentConfigFull,
-                narrativeChart.configPatch
-            )
-        )
-        // Inherited from the view, which got it from the mdim config
-        expect(narrativeChart.configFull.dimensions).toEqual([
-            { property: "y", variableId },
-        ])
-        expect(narrativeChart.configFull.title).toBe("Narrative title")
+        expect(narrativeChart.configFull).toEqual({
+            $schema: latestGrapherConfigSchema,
+            title: "Narrative title",
+            // inherited from the view, which got it from the multi-dim config
+            dimensions: [{ property: "y", variableId }],
+            chartTypes: ["LineChart"],
+            selectedEntityNames: [],
+            tab: "chart",
+            minTime: "earliest",
+            maxTime: "latest",
+            focusedSeriesNames: [],
+        })
     })
 
     it("updates a narrative chart in place", async () => {

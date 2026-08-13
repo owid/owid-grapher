@@ -239,38 +239,38 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             ...testVariableConfigAdmin,
         })
 
-        // create mdim config that uses both of the variables
+        // create multi-dim config that uses both of the variables
         await env.request({
             method: "PUT",
             path: "/multi-dims/test%2Fcatalog%23path",
             body: JSON.stringify({ config: testMultiDimConfig }),
         })
-        const mdim = await env.testKnex(MultiDimDataPagesTableName).first()
-        expect(mdim.catalogPath).toBe("test/catalog#path")
-        expect(mdim.slug).toBe(null)
-        const savedMdimConfig = JSON.parse(mdim.config)
+        const multiDim = await env.testKnex(MultiDimDataPagesTableName).first()
+        expect(multiDim.catalogPath).toBe("test/catalog#path")
+        expect(multiDim.slug).toBe(null)
+        const savedMultiDimConfig = JSON.parse(multiDim.config)
         // variableId should be normalized to an array
-        expect(savedMdimConfig.views[0].indicators.y).toBeInstanceOf(Array)
+        expect(savedMultiDimConfig.views[0].indicators.y).toBeInstanceOf(Array)
 
-        const [mdxcc1, mdxcc2] = await env.testKnex(
+        const [multiDimView1, multiDimView2] = await env.testKnex(
             MultiDimXChartConfigsTableName
         )
-        expect(mdxcc1.multiDimId).toBe(mdim.id)
-        expect(mdxcc1.viewId).toBe("metric=total__source=all")
-        expect(mdxcc1.variableId).toBe(variableId)
-        expect(mdxcc2.multiDimId).toBe(mdim.id)
-        expect(mdxcc2.viewId).toBe("metric=per_capita__source=all")
-        expect(mdxcc2.variableId).toBe(otherVariableId)
+        expect(multiDimView1.multiDimId).toBe(multiDim.id)
+        expect(multiDimView1.viewId).toBe("metric=total__source=all")
+        expect(multiDimView1.variableId).toBe(variableId)
+        expect(multiDimView2.multiDimId).toBe(multiDim.id)
+        expect(multiDimView2.viewId).toBe("metric=per_capita__source=all")
+        expect(multiDimView2.variableId).toBe(otherVariableId)
 
         // view config should override the variable config
         const expectedMergedViewConfig = {
             ...mergedGrapherConfig,
             title: "Total energy use",
-            selectedEntityNames: [], // mdims define their own default entities
+            selectedEntityNames: [], // multi-dims define their own default entities
         }
         const fullViewConfig1 = await env
             .testKnex(ChartConfigsTableName)
-            .where("id", mdxcc1.chartConfigId)
+            .where("id", multiDimView1.chartConfigId)
             .first()
         expect(JSON.parse(fullViewConfig1.full)).toEqual(
             expectedMergedViewConfig
@@ -291,18 +291,21 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         }
         const fullViewConfig1Updated = await env
             .testKnex(ChartConfigsTableName)
-            .where("id", mdxcc1.chartConfigId)
+            .where("id", multiDimView1.chartConfigId)
             .first()
         expect(JSON.parse(fullViewConfig1Updated.full)).toEqual(
             expectedMergedViewConfigUpdated
         )
 
-        // clean-up the mdim tables
+        // clean-up the multi-dim tables
         await env.testKnex(MultiDimXChartConfigsTableName).delete()
         await env.testKnex(MultiDimDataPagesTableName).delete()
         await env
             .testKnex(ChartConfigsTableName)
-            .whereIn("id", [mdxcc1.chartConfigId, mdxcc2.chartConfigId])
+            .whereIn("id", [
+                multiDimView1.chartConfigId,
+                multiDimView2.chartConfigId,
+            ])
             .delete()
 
         // delete the admin-authored grapher config we just added

@@ -3,8 +3,10 @@ import { getAdminTestEnv } from "./testEnv.js"
 import {
     ChartConfigsTableName,
     GrapherInterface,
+    IndicatorsBeforePreProcessing,
     MultiDimViewDimensionsTableName,
     MultiDimXChartConfigsTableName,
+    View,
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import {
@@ -18,18 +20,20 @@ const env = getAdminTestEnv()
 describe("Multi-dim views", { timeout: 20000 }, () => {
     const catalogPath = "test/catalog#path"
 
-    const totalView = {
+    const totalView: View<IndicatorsBeforePreProcessing> = {
         config: { title: "Total energy use" },
         dimensions: { metric: "total" },
         indicators: { y: variableId },
     }
-    const perCapitaView = {
+    const perCapitaView: View<IndicatorsBeforePreProcessing> = {
         config: { title: "Energy use per capita" },
         dimensions: { metric: "per_capita" },
         indicators: { y: otherVariableId },
     }
 
-    function multiDimConfig(views: (typeof totalView)[]): object {
+    function multiDimConfig(
+        views: View<IndicatorsBeforePreProcessing>[]
+    ): object {
         return {
             grapherConfigSchema: latestGrapherConfigSchema,
             title: { title: "Energy use", titleVariant: "by energy source" },
@@ -47,7 +51,9 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         }
     }
 
-    async function upsertMultiDim(views: (typeof totalView)[]): Promise<void> {
+    async function upsertMultiDim(
+        views: View<IndicatorsBeforePreProcessing>[]
+    ): Promise<void> {
         await env.request({
             method: "PUT",
             path: `/multi-dims/${encodeURIComponent(catalogPath)}`,
@@ -117,7 +123,7 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         await upsertMultiDim([totalView, perCapitaView])
         const viewConfigIds = await getViewConfigIds()
 
-        // The mdim was created before the indicator had a config, so this only
+        // The multi-dim was created before the indicator had a config, so this only
         // reaches the views through the propagation path
         await env.request({
             method: "PUT",
@@ -133,7 +139,7 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         const config = await getConfig(viewConfigIds["metric=total"])
         expect(config.note).toBe("Indicator note")
         expect(config.hasMapTab).toBe(true)
-        // …without losing what the mdim itself authored
+        // …without losing what the multi-dim itself authored
         expect(config.title).toBe("Total energy use")
 
         // The other view is built on a different indicator and is untouched

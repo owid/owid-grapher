@@ -61,11 +61,11 @@ describe("Bulk multi-dim redirects API", { timeout: 30000 }, () => {
             .testKnex(MultiDimDataPagesTableName)
             .where("catalogPath", catalogPath)
             .update({ slug: "energy-use", published: true })
-        const mdim = await env
+        const multiDim = await env
             .testKnex(MultiDimDataPagesTableName)
             .where("catalogPath", catalogPath)
             .first()
-        return { id: mdim.id, config: JSON.parse(mdim.config) }
+        return { id: multiDim.id, config: JSON.parse(multiDim.config) }
     }
 
     beforeEach(async () => {
