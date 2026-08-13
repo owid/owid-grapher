@@ -43,7 +43,6 @@ import { insertChartConfig, updateChartConfig } from "./ChartConfigs.js"
 interface IndicatorChartConfigRecord {
     variableId: DbEnrichedVariable["id"]
     configId?: DbEnrichedChartConfig["id"]
-    config?: DbEnrichedChartConfig["config"]
 }
 
 export async function getIndicatorChartConfigRecord(
@@ -51,18 +50,12 @@ export async function getIndicatorChartConfigRecord(
     variableId: number
 ): Promise<IndicatorChartConfigRecord | undefined> {
     const variable = await knexRawFirst<
-        Pick<DbRawVariable, "id" | "patchConfigIdETL"> & {
-            configETL?: DbRawChartConfig["config"]
-        }
+        Pick<DbRawVariable, "id" | "patchConfigIdETL">
     >(
         knex,
         `-- sql
-            SELECT
-                v.id,
-                v.patchConfigIdETL,
-                cc.config AS configETL
+            SELECT v.id, v.patchConfigIdETL
             FROM variables v
-            LEFT JOIN chart_configs cc ON v.patchConfigIdETL = cc.id
             WHERE v.id = ?
         `,
         [variableId]
@@ -70,14 +63,9 @@ export async function getIndicatorChartConfigRecord(
 
     if (!variable) return
 
-    const config = variable.configETL
-        ? parseChartConfig(variable.configETL)
-        : undefined
-
     return omitUndefinedValues({
         variableId: variable.id,
         configId: variable.patchConfigIdETL,
-        config,
     })
 }
 
@@ -85,27 +73,40 @@ export async function getIndicatorChartConfig(
     knex: db.KnexReadonlyTransaction,
     variableId: number
 ): Promise<GrapherInterface | undefined> {
-    const variable = await getIndicatorChartConfigRecord(knex, variableId)
-    return variable?.config
+    const row = await knexRawFirst<{ config: string }>(
+        knex,
+        `-- sql
+            SELECT cc.config
+            FROM variables v
+            JOIN chart_configs cc ON cc.id = v.patchConfigIdETL
+            WHERE v.id = ?
+        `,
+        [variableId]
+    )
+
+    return row ? parseChartConfig(row.config) : undefined
 }
 
 export async function getIndicatorChartConfigs(
     knex: db.KnexReadonlyTransaction,
     variableIds: number[]
 ): Promise<Map<number, GrapherInterface>> {
-    // FIXME: Optimize to a single query that only fetches the data we need.
-    const variables = await Promise.all(
-        variableIds.map((variableId) => {
-            return getIndicatorChartConfigRecord(knex, variableId)
-        })
+    if (!variableIds.length) return new Map()
+
+    const rows = await knexRaw<{ variableId: number; config: string }>(
+        knex,
+        `-- sql
+            SELECT v.id AS variableId, cc.config AS config
+            FROM variables v
+            JOIN chart_configs cc ON cc.id = v.patchConfigIdETL
+            WHERE v.id IN (?)
+        `,
+        [variableIds]
     )
-    const configs = new Map<number, GrapherInterface>()
-    for (const variable of variables) {
-        if (variable?.config) {
-            configs.set(variable.variableId, variable.config)
-        }
-    }
-    return configs
+
+    return new Map(
+        rows.map((row) => [row.variableId, parseChartConfig(row.config)])
+    )
 }
 
 export async function insertIndicatorChartConfig(
