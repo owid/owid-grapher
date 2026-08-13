@@ -228,26 +228,25 @@ async function upsertMultiDimConfig(
 
 async function cleanUpOrphanedChartConfigs(
     knex: db.KnexReadWriteTransaction,
-    orphanedChartConfigIds: string[]
+    orphanedViews: { chartConfigId: string; patchConfigId: string }[]
 ) {
-    // Each view also has an authored config, which should be deleted with it
-    const views = await knex<DbPlainMultiDimXChartConfig>(
-        MultiDimXChartConfigsTableName
-    )
-        .select("patchConfigId")
-        .whereIn("chartConfigId", orphanedChartConfigIds)
+    const chartConfigIds = orphanedViews.map((view) => view.chartConfigId)
 
     await knex<DbPlainMultiDimXChartConfig>(MultiDimXChartConfigsTableName)
-        .whereIn("chartConfigId", orphanedChartConfigIds)
+        .whereIn("chartConfigId", chartConfigIds)
         .delete()
 
-    const chartConfigIds = [
-        ...orphanedChartConfigIds,
-        ...views.map((view) => view.patchConfigId),
-    ]
     await knex<DbRawChartConfig>(ChartConfigsTableName)
-        .whereIn("id", chartConfigIds)
+        .whereIn(
+            "id",
+            orphanedViews.flatMap((view) => [
+                view.chartConfigId,
+                view.patchConfigId,
+            ])
+        )
         .delete()
+
+    // Only the resolved config was published
     for (const id of chartConfigIds) {
         await deleteGrapherConfigFromR2ByUUID(id)
     }
@@ -359,12 +358,11 @@ export async function upsertMultiDim(
         })
     )
 
-    const orphanedChartConfigIds = existingViewIdsToChartConfigIds
+    const orphanedViews = existingViewIdsToChartConfigIds
         .values()
         .filter((ids) => !reusedChartConfigIds.has(ids.chartConfigId))
-        .map((ids) => ids.chartConfigId)
         .toArray()
-    await cleanUpOrphanedChartConfigs(knex, orphanedChartConfigIds)
+    await cleanUpOrphanedChartConfigs(knex, orphanedViews)
 
     const enrichedConfig = { ...config, views: enrichedViews }
     const multiDimId = await upsertMultiDimConfig(
