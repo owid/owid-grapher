@@ -4,10 +4,7 @@ import { match } from "ts-pattern"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "@ourworldindata/components"
-import {
-    EmailNotificationsSubscribeForm,
-    Subscription,
-} from "./EmailNotificationsSubscribeForm.js"
+import { EmailNotificationsSubscribeForm } from "./EmailNotificationsSubscribeForm.js"
 import { OwidSocials } from "../OwidSocials.js"
 import { NewsletterSubscriptionContext } from "../newsletter.js"
 import { SiteQueryClientProvider } from "../SiteQueryClientProvider.js"
@@ -17,9 +14,7 @@ import {
     SubscribePageHero,
 } from "./SubscribePageLayout.js"
 
-type SubscribeFlowState =
-    | { name: "form" }
-    | { name: "success"; subscription: Subscription }
+type SubscribeFlowState = { name: "form" } | { name: "success"; email: string }
 
 export const SubscribeFlow = ({
     topicAreaNames,
@@ -33,21 +28,18 @@ export const SubscribeFlow = ({
             <SiteQueryClientProvider>
                 <SubscribeFormScreen
                     topicAreaNames={topicAreaNames}
-                    onSubscribed={(subscription) =>
-                        setState({ name: "success", subscription })
+                    onSubscribed={(email) =>
+                        setState({ name: "success", email })
                     }
                 />
             </SiteQueryClientProvider>
         ))
-        .with({ name: "success" }, ({ subscription }) => (
-            <SubscribePageConfirmation
-                heading={
-                    subscription.followTopics
-                        ? "You are now subscribed"
-                        : "Check your inbox"
-                }
-            >
-                <SubscribedText subscription={subscription} />
+        .with({ name: "success" }, ({ email }) => (
+            <SubscribePageConfirmation heading="You are now subscribed">
+                <p className="subscribe-page__confirmation-text">
+                    We have sent a confirmation email to{" "}
+                    <strong>{email}</strong> with a summary of your preferences.
+                </p>
                 <Button
                     className="subscribe-page__confirmation-action"
                     theme="outline-vermillion"
@@ -60,40 +52,12 @@ export const SubscribeFlow = ({
         .exhaustive()
 }
 
-/**
- * Topic updates are live as soon as the form is submitted (the welcome email
- * is just a summary), but the OWID Brief lives in Mailchimp, which sends new
- * list members its own double-opt-in email — the Brief subscription isn't
- * active until the reader confirms it there.
- */
-const SubscribedText = ({
-    subscription: { email, followTopics, subscribeToOwidBrief },
-}: {
-    subscription: Subscription
-}) => (
-    <>
-        {followTopics && (
-            <p className="subscribe-page__confirmation-text">
-                We have sent a confirmation email to <strong>{email}</strong>{" "}
-                with a summary of your preferences.
-            </p>
-        )}
-        {subscribeToOwidBrief && (
-            <p className="subscribe-page__confirmation-text">
-                To {followTopics ? "also " : ""}start receiving the OWID Brief,
-                please confirm your subscription using the link in the email we
-                have sent to <strong>{email}</strong>.
-            </p>
-        )}
-    </>
-)
-
 const SubscribeFormScreen = ({
     topicAreaNames,
     onSubscribed,
 }: {
     topicAreaNames: string[]
-    onSubscribed: (subscription: Subscription) => void
+    onSubscribed: (email: string) => void
 }) => {
     return (
         <>

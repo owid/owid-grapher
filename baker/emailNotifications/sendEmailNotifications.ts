@@ -6,6 +6,7 @@ import * as R from "remeda"
 import * as Sentry from "@sentry/node"
 import fs from "fs-extra"
 import path from "path"
+import { Errors, Models, ServerClient } from "postmark"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import {
@@ -60,7 +61,7 @@ const LOCAL_D1_DATABASE_NAME = "owid-email-notifications-staging"
 
 const PREVIEW_DIR = path.join(BASE_DIR, ".email-notifications-preview")
 
-// Never include content older than this, even if a subscriber's last_sent_at
+// Never include content older than this, even if a subscriber's lastSentAt
 // is much older (e.g. because the send job was down for a while).
 const MAX_WINDOW_MS = 30 * 24 * 60 * 60 * 1000
 
@@ -69,16 +70,20 @@ async function fetchSubscribers(
     frequency: EmailNotificationsFrequency
 ): Promise<EmailNotificationsSubscriber[]> {
     const rows = await d1.query<D1SubscriberRow>(
-        `SELECT users.id AS user_id, users.email, users.token,
-                notification_preferences.topic_tags,
-                notification_preferences.content_types,
+        `SELECT users.id AS userId, users.email, users.token,
+                notification_preferences.topicTags,
+                notification_preferences.contentTypes,
                 notification_preferences.frequency,
-                notification_preferences.last_sent_at
+                notification_preferences.lastSentAt
          FROM users
          JOIN notification_preferences
-             ON notification_preferences.user_id = users.id
+             ON notification_preferences.userId = users.id
          WHERE users.status = 'subscribed'
-             AND users.suppressed_at IS NULL
+             AND NOT EXISTS (
+                 SELECT 1
+                 FROM suppressed_addresses
+                 WHERE suppressed_addresses.email = users.email
+             )
              AND notification_preferences.frequency = ?1`,
         [frequency]
     )
@@ -206,108 +211,65 @@ async function buildNotificationItems(
         .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
 }
 
-// Postmark's API error code for sending to an address it has suppressed
-// (hard bounce, spam complaint, manual suppression).
-// https://postmarkapp.com/developer/api/overview#error-codes
-const POSTMARK_INACTIVE_RECIPIENT_ERROR_CODE = 406
-
-class PostmarkInactiveRecipientError extends Error {}
-
-/** Send an email via Postmark. Returns the Postmark message id. */
-async function sendViaPostmark(email: {
-    to: string
-    subject: string
-    htmlBody: string
-    metadata: Record<string, string>
-    unsubscribeUrl: string
-}): Promise<string | null> {
-    const response = await fetch(`${POSTMARK_API_BASE_URL}/email`, {
-        method: "POST",
-        headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            "X-Postmark-Server-Token": POSTMARK_SERVER_TOKEN,
-        },
-        body: JSON.stringify({
-            From: EMAIL_NOTIFICATIONS_FROM_ADDRESS,
-            To: email.to,
-            Subject: email.subject,
-            HtmlBody: email.htmlBody,
-            // Bulk emails must go through a Postmark broadcast stream (not
-            // the transactional "outbound" stream).
-            MessageStream: "broadcast",
-            Tag: "email-notifications",
-            Metadata: email.metadata,
-            // One-click unsubscribe (RFC 8058), required by Gmail's and
-            // Yahoo's bulk-sender rules: clients POST directly to the
-            // unsubscribe endpoint, token in the query string, no page shown.
-            Headers: [
-                {
-                    Name: "List-Unsubscribe",
-                    Value: `<${email.unsubscribeUrl}>`,
-                },
-                {
-                    Name: "List-Unsubscribe-Post",
-                    Value: "List-Unsubscribe=One-Click",
-                },
-            ],
-        }),
-    })
-    const data = (await response.json()) as {
-        MessageID?: string
-        Message?: string
-        ErrorCode?: number
+/**
+ * Postmark client for the digest sends. POSTMARK_API_BASE_URL may point at the
+ * local Postmark catcher (yarn postmarkCatcher), which the SDK expects split
+ * into scheme and host.
+ */
+function createPostmarkClient(): ServerClient {
+    if (!POSTMARK_SERVER_TOKEN) {
+        throw new Error("POSTMARK_SERVER_TOKEN is not configured")
     }
-    if (!response.ok) {
-        if (data.ErrorCode === POSTMARK_INACTIVE_RECIPIENT_ERROR_CODE) {
-            throw new PostmarkInactiveRecipientError(
-                `Postmark refused to send to ${email.to}: ${data.Message}`
-            )
-        }
-        throw new Error(
-            `Failed to send email via Postmark (${response.status}): ${data.Message}`
-        )
-    }
-    return data.MessageID ?? null
+    const { protocol, host } = new URL(POSTMARK_API_BASE_URL)
+    return new ServerClient(
+        POSTMARK_SERVER_TOKEN,
+        new Models.ClientOptions.Configuration(protocol === "https:", host)
+    )
 }
 
-/**
- * Mark a user as suppressed after Postmark refused a send to them. Normally
- * the subscription-change webhook keeps the suppression mirror current and
- * this never runs; it catches addresses the webhook missed. The reason is
- * left NULL — the send-time error doesn't say whether it was a hard bounce
- * or a spam complaint.
- */
-async function markUserSuppressed(
-    d1: D1Client,
-    userId: number,
-    at: Date
-): Promise<void> {
-    await d1.query(
-        `UPDATE users
-         SET suppressed_at = ?1, updated_at = ?1
-         WHERE id = ?2 AND suppressed_at IS NULL`,
-        [at.toISOString(), userId]
-    )
+/** Send an email via Postmark. Returns the Postmark message id. */
+async function sendViaPostmark(
+    client: ServerClient,
+    email: {
+        to: string
+        subject: string
+        htmlBody: string
+        metadata: Record<string, string>
+    }
+): Promise<string> {
+    const response = await client.sendEmail({
+        From: EMAIL_NOTIFICATIONS_FROM_ADDRESS,
+        To: email.to,
+        Subject: email.subject,
+        HtmlBody: email.htmlBody,
+        // Bulk emails must go through a Postmark broadcast stream (not the
+        // transactional "outbound" stream). Postmark adds the unsubscribe
+        // headers automatically.
+        MessageStream: "broadcast",
+        Tag: "email-notifications",
+        Metadata: email.metadata,
+    })
+    return response.MessageID
 }
 
 async function recordSentEmail(
     d1: D1Client,
     subscriber: EmailNotificationsSubscriber,
     items: NotificationEmailItem[],
-    postmarkMessageId: string | null,
+    postmarkMessageId: string,
     sentAt: Date
 ): Promise<void> {
     const sentAtIso = sentAt.toISOString()
     await d1.query(
         `UPDATE notification_preferences
-         SET last_sent_at = ?1, updated_at = ?1
-         WHERE user_id = ?2`,
+         SET lastSentAt = ?1, updatedAt = ?1
+         WHERE userId = ?2`,
         [sentAtIso, subscriber.userId]
     )
     await d1.query(
-        `INSERT INTO sent_emails (user_id, frequency, item_slugs, postmark_message_id, sent_at)
-         VALUES (?1, ?2, ?3, ?4, ?5)`,
+        `INSERT INTO messages
+             (userId, frequency, itemSlugs, messageId, status, sentAt)
+         VALUES (?1, ?2, ?3, ?4, 'sent', ?5)`,
         [
             subscriber.userId,
             subscriber.frequency,
@@ -318,21 +280,27 @@ async function recordSentEmail(
     )
 }
 
-/** Returns the emails of subscribers whose send failed. */
+interface SendFailure {
+    userId: number
+    error: unknown
+}
+
+/**
+ * Sends to every subscriber it can. Inactive Postmark recipients are collected
+ * so one bad address doesn't stop the rest of the list; all other failures are
+ * thrown immediately. Any collected failure makes the run fail afterward.
+ */
 async function sendEmailNotifications(options: {
     frequency: EmailNotificationsFrequency
     dryRun: boolean
     local: boolean
-}): Promise<string[]> {
+}): Promise<SendFailure[]> {
     const { frequency, dryRun, local } = options
     const d1 = local
         ? createLocalD1Client(LOCAL_D1_DATABASE_NAME)
         : createRemoteD1Client()
 
     const subscribers = await fetchSubscribers(d1, frequency)
-    console.log(
-        `Found ${subscribers.length} subscribers with ${frequency} frequency`
-    )
     if (subscribers.length === 0) return []
 
     const now = new Date()
@@ -352,60 +320,53 @@ async function sendEmailNotifications(options: {
         (trx) => buildNotificationItems(trx, minWindowStart),
         db.TransactionCloseMode.Close
     )
-    console.log(
-        `Found ${items.length} items published since ${minWindowStart.toISOString()}`
-    )
 
-    const failedEmails: string[] = []
+    // Constructed once, and only when we're actually sending.
+    const postmarkClient = dryRun ? undefined : createPostmarkClient()
+
+    const failures: SendFailure[] = []
     for (const subscriber of subscribers) {
-        // One bad subscriber (e.g. a Postmark 422 on an inactive address)
-        // must not starve the rest of the list, so failures are collected and
-        // reported at the end instead of aborting the run.
-        try {
-            const subscriberItems = filterItemsForSubscriber(
-                items,
-                subscriber,
-                now
+        const subscriberItems = filterItemsForSubscriber(items, subscriber, now)
+        if (subscriberItems.length === 0) {
+            console.log(
+                `Subscriber skipped because there are no new items userId=${subscriber.userId}`
             )
-            if (subscriberItems.length === 0) {
-                console.log(`${subscriber.email}: no new items, skipping`)
-                continue
-            }
+            continue
+        }
 
-            const html = renderNotificationEmail({
-                subscriber,
-                items: subscriberItems,
-                baseUrl: BAKED_BASE_URL,
-                // Links in emails must be absolute; the email notifications API
-                // is served on the same host as the baked site.
-                apiBaseUrl: `${BAKED_BASE_URL}/api/email-notifications`,
-            })
-            const slugs = subscriberItems.map((item) => item.slug).join(", ")
+        const html = renderNotificationEmail({
+            subscriber,
+            items: subscriberItems,
+            baseUrl: BAKED_BASE_URL,
+            // Links in emails must be absolute; the email notifications API
+            // is served on the same host as the baked site.
+            apiBaseUrl: `${BAKED_BASE_URL}/api/email-notifications`,
+        })
+        const slugs = subscriberItems.map((item) => item.slug).join(", ")
 
-            if (dryRun) {
-                const previewPath = path.join(
-                    PREVIEW_DIR,
-                    `${subscriber.email}-${frequency}.html`
-                )
-                await fs.outputFile(previewPath, html)
-                console.log(
-                    `${subscriber.email}: would send ${subscriberItems.length} items (${slugs}), preview written to ${previewPath}`
-                )
-                continue
-            }
+        if (dryRun) {
+            const previewPath = path.join(
+                PREVIEW_DIR,
+                `user-${subscriber.userId}-${frequency}.html`
+            )
+            await fs.outputFile(previewPath, html)
+            console.log(
+                `Email preview written userId=${subscriber.userId} itemCount=${subscriberItems.length} itemSlugs=${JSON.stringify(slugs)} previewPath=${JSON.stringify(previewPath)}`
+            )
+            continue
+        }
 
-            if (!POSTMARK_SERVER_TOKEN) {
-                console.warn(
-                    `${subscriber.email}: POSTMARK_SERVER_TOKEN is not set, skipping send (use --dry-run to render previews)`
-                )
-                continue
-            }
+        if (!postmarkClient) {
+            throw new Error("Postmark client was not initialized")
+        }
 
-            // Deliberate ordering: send first, record after. A crash between
-            // the two means the next run re-sends this email — a rare
-            // duplicate is preferable to the reverse order, where a crash
-            // would silently drop the email forever.
-            const postmarkMessageId = await sendViaPostmark({
+        // Deliberate ordering: send first, record after. A crash between
+        // the two means the next run re-sends this email — a rare
+        // duplicate is preferable to the reverse order, where a crash
+        // would silently drop the email forever.
+        let postmarkMessageId: string
+        try {
+            postmarkMessageId = await sendViaPostmark(postmarkClient, {
                 to: subscriber.email,
                 subject: makeNotificationEmailSubject(frequency),
                 htmlBody: html,
@@ -413,57 +374,48 @@ async function sendEmailNotifications(options: {
                     userId: String(subscriber.userId),
                     frequency,
                 },
-                unsubscribeUrl: `${BAKED_BASE_URL}/api/email-notifications/unsubscribe?token=${subscriber.token}`,
             })
-            try {
-                await recordSentEmail(
-                    d1,
-                    subscriber,
-                    subscriberItems,
-                    postmarkMessageId,
-                    now
-                )
-            } catch (error) {
-                // The email DID go out; failing to record it means the next
-                // run will send a duplicate. Reported separately so the two
-                // failure modes are distinguishable in the logs.
-                throw new Error(
-                    `${subscriber.email}: email sent (Postmark id ${postmarkMessageId}) but recording it failed — the next run will send a duplicate`,
-                    { cause: error }
-                )
-            }
-            console.log(
-                `${subscriber.email}: sent ${subscriberItems.length} items (${slugs})`
-            )
         } catch (error) {
-            if (error instanceof PostmarkInactiveRecipientError) {
-                // Expected and self-healing (future runs skip the address),
-                // so it doesn't count as a run failure.
-                console.warn(`${subscriber.email}: ${error.message}`)
-                try {
-                    await markUserSuppressed(d1, subscriber.userId, now)
-                    continue
-                } catch (markError) {
-                    console.error(
-                        `${subscriber.email}: marking as suppressed failed`,
-                        markError
-                    )
-                    Sentry.captureException(markError)
-                }
-            } else {
-                console.error(`${subscriber.email}: failed`, error)
-                Sentry.captureException(error)
-            }
-            failedEmails.push(subscriber.email)
-        }
-    }
+            if (!(error instanceof Errors.InactiveRecipientsError)) throw error
 
-    if (failedEmails.length > 0) {
-        console.error(
-            `${failedEmails.length}/${subscribers.length} subscribers failed: ${failedEmails.join(", ")}`
+            // We only send to subscribers absent from suppressed_addresses, so
+            // Postmark refusing one means a subscription-change webhook was
+            // missed. Leave it visible for manual reconciliation rather than
+            // guessing why it was suppressed.
+            console.error(
+                `Email send refused userId=${subscriber.userId} reason=inactiveRecipient`
+            )
+            Sentry.captureException(error)
+            failures.push({ userId: subscriber.userId, error })
+            continue
+        }
+
+        await recordSentEmail(
+            d1,
+            subscriber,
+            subscriberItems,
+            postmarkMessageId,
+            now
+        )
+        console.log(
+            `Email sent userId=${subscriber.userId} itemCount=${subscriberItems.length} itemSlugs=${JSON.stringify(slugs)}`
         )
     }
-    return failedEmails
+
+    if (failures.length > 0) {
+        console.error(
+            `Email sending failed failureCount=${failures.length} subscriberCount=${subscribers.length} failedUserIds=${failures.map(({ userId }) => userId).join(",")}`
+        )
+    }
+    const inactiveRecipientUserIds = failures
+        .filter(({ error }) => error instanceof Errors.InactiveRecipientsError)
+        .map(({ userId }) => userId)
+    if (inactiveRecipientUserIds.length > 0) {
+        console.error(
+            `Suppression reconciliation required recipientCount=${inactiveRecipientUserIds.length} userIds=${inactiveRecipientUserIds.join(",")}`
+        )
+    }
+    return failures
 }
 
 void yargs(hideBin(process.argv))
@@ -495,20 +447,24 @@ void yargs(hideBin(process.argv))
         },
         async ({ frequency, dryRun, local }) => {
             try {
-                const failedEmails = await sendEmailNotifications({
+                const failures = await sendEmailNotifications({
                     frequency,
                     dryRun,
                     local,
                 })
-                // Exit non-zero on partial failure so the scheduled Buildkite
-                // run fails and alerts (P0.7).
-                if (failedEmails.length > 0) {
+                // Exit non-zero so the scheduled Buildkite run alerts if any
+                // subscriber failed, including an inactive Postmark recipient.
+                if (failures.length > 0) {
                     await Sentry.close()
                     process.exit(1)
                 }
                 process.exit(0)
             } catch (error) {
-                console.error("Error in sendEmailNotifications:", error)
+                const errorMessage =
+                    error instanceof Error ? error.message : String(error)
+                console.error(
+                    `Email notification run failed error=${JSON.stringify(errorMessage)}`
+                )
                 Sentry.captureException(error)
                 await Sentry.close()
                 process.exit(1)

@@ -8,29 +8,24 @@
  * then point the senders at it:
  *   POSTMARK_API_BASE_URL=http://localhost:8025 (in .env and .dev.vars)
  *
- * Accepts POST /email (and /email/batch), stores the payloads in memory, and
- * serves an index at http://localhost:8025 with each email's HTML body
- * viewable, so magic links can be clicked.
+ * Accepts POST /email (and /email/batch) plus suppression deletions, stores
+ * email payloads in memory, and serves an index at http://localhost:8025 with
+ * each email's HTML body viewable, so subscription flows can be clicked.
  */
 import http from "node:http"
 import crypto from "node:crypto"
+import * as _ from "lodash-es"
+import { Message, Models } from "postmark"
 
 const PORT = parseInt(process.env.POSTMARK_CATCHER_PORT || "8025", 10)
+const UNDELETABLE_SUPPRESSION_EMAIL = "spam-complaint@postmark-catcher.test"
 
 interface CaughtEmail {
     receivedAt: Date
-    payload: Record<string, unknown>
+    payload: Message
 }
 
 const emails: CaughtEmail[] = []
-
-function escapeHtml(text: string): string {
-    return text
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-}
 
 function readBody(req: http.IncomingMessage): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -56,7 +51,7 @@ function sendHtml(res: http.ServerResponse, html: string): void {
 }
 
 /** The success response shape of Postmark's POST /email. */
-function makeSendResponse(payload: Record<string, unknown>) {
+function makeSendResponse(payload: Message): Models.MessageSendingResponse {
     return {
         To: payload.To,
         SubmittedAt: new Date().toISOString(),
@@ -66,7 +61,7 @@ function makeSendResponse(payload: Record<string, unknown>) {
     }
 }
 
-function acceptEmail(payload: Record<string, unknown>) {
+function acceptEmail(payload: Message): Models.MessageSendingResponse {
     emails.unshift({ receivedAt: new Date(), payload })
     console.log(`Caught email to ${payload.To}: "${payload.Subject}"`)
     return makeSendResponse(payload)
@@ -75,13 +70,15 @@ function acceptEmail(payload: Record<string, unknown>) {
 function renderIndexPage(): string {
     const rows = emails
         .map((email, index) => {
+            // Coerced with String(): the payload is typed for convenience but
+            // comes off the wire, so a sender bug can put anything in it.
             const { To, Subject, MessageStream, Tag } = email.payload
             return `<tr>
 <td>${email.receivedAt.toLocaleTimeString()}</td>
-<td>${escapeHtml(String(To ?? ""))}</td>
-<td><a href="/emails/${index}/html">${escapeHtml(String(Subject ?? "(no subject)"))}</a></td>
-<td>${escapeHtml(String(MessageStream ?? ""))}</td>
-<td>${escapeHtml(String(Tag ?? ""))}</td>
+<td>${_.escape(String(To ?? ""))}</td>
+<td><a href="/emails/${index}/html">${_.escape(String(Subject ?? "(no subject)"))}</a></td>
+<td>${_.escape(String(MessageStream ?? ""))}</td>
+<td>${_.escape(String(Tag ?? ""))}</td>
 <td><a href="/emails/${index}/json">json</a></td>
 </tr>`
         })
@@ -112,6 +109,53 @@ ${rows}
 const server = http.createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", `http://localhost:${PORT}`)
 
+    if (
+        req.method === "POST" &&
+        /^\/message-streams\/[^/]+\/suppressions\/delete$/.test(url.pathname)
+    ) {
+        if (!req.headers["x-postmark-server-token"]) {
+            return sendJson(res, 401, {
+                ErrorCode: 10,
+                Message:
+                    "No Account or Server API tokens were supplied in the HTTP headers.",
+            })
+        }
+        let parsed: Models.DeleteSuppressionsRequest
+        try {
+            parsed = JSON.parse(
+                await readBody(req)
+            ) as Models.DeleteSuppressionsRequest
+        } catch {
+            return sendJson(res, 422, {
+                ErrorCode: 300,
+                Message: "Invalid JSON",
+            })
+        }
+        const messageStream = url.pathname.split("/")[2]
+        const suppressions = parsed.Suppressions.map(({ EmailAddress }) =>
+            EmailAddress.toLowerCase() === UNDELETABLE_SUPPRESSION_EMAIL
+                ? {
+                      EmailAddress,
+                      Status: "Failed",
+                      Message:
+                          "You do not have the required authority to change this suppression.",
+                  }
+                : {
+                      EmailAddress,
+                      Status: "Deleted",
+                      Message: null,
+                  }
+        )
+        for (const suppression of suppressions) {
+            console.log(
+                `${suppression.Status === "Deleted" ? "Accepted" : "Rejected"} suppression deletion on ${messageStream}: ${suppression.EmailAddress}`
+            )
+        }
+        return sendJson(res, 200, {
+            Suppressions: suppressions,
+        } satisfies Models.SuppressionStatuses)
+    }
+
     if (req.method === "POST" && /^\/email(\/batch)?$/.test(url.pathname)) {
         if (!req.headers["x-postmark-server-token"]) {
             // Mimics Postmark, so a missing-token bug shows up locally too.
@@ -136,17 +180,9 @@ const server = http.createServer(async (req, res) => {
                     ErrorCode: 300,
                     Message: "Expected an array of emails",
                 })
-            return sendJson(
-                res,
-                200,
-                (parsed as Record<string, unknown>[]).map(acceptEmail)
-            )
+            return sendJson(res, 200, (parsed as Message[]).map(acceptEmail))
         }
-        return sendJson(
-            res,
-            200,
-            acceptEmail(parsed as Record<string, unknown>)
-        )
+        return sendJson(res, 200, acceptEmail(parsed as Message))
     }
 
     if (req.method === "GET") {
