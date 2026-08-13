@@ -265,9 +265,10 @@ export {
     type PadObject,
     type GridBounds,
     type SplitBoundsPadding,
-    FontFamily,
     Bounds,
 } from "./Bounds.js"
+
+export { FontFamily, cssFontFamily } from "./fonts.js"
 
 export {
     type Persistable,

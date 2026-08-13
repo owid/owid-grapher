@@ -1438,7 +1438,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
         textarea.select()
 
         try {
-            // oxlint-disable-next-line typescript/no-deprecated we're using a deprecated API only as a fallback here
+            // oxlint-disable-next-line typescript/no-deprecated -- we're using a deprecated API only as a fallback here
             return document.execCommand("copy")
         } catch (err) {
             console.error("Failed to copy text to clipboard", err)
@@ -1597,6 +1597,7 @@ export function recursivelyMapArticleContent(
     } else if (node.type === "key-insights") {
         node.insights.forEach((insight) => {
             callback(insight)
+            insight.asset?.forEach(callback)
             insight.content.forEach(callback)
         })
     }
@@ -1666,11 +1667,14 @@ export function traverseEnrichedBlock(
         })
         .with({ type: "key-insights" }, (keyInsights) => {
             callback(keyInsights)
-            keyInsights.insights.forEach((insight) =>
+            keyInsights.insights.forEach((insight) => {
+                insight.asset?.forEach((node) =>
+                    traverseEnrichedBlock(node, callback, spanCallback)
+                )
                 insight.content.forEach((node) =>
                     traverseEnrichedBlock(node, callback, spanCallback)
                 )
-            )
+            })
         })
         .with({ type: "expander" }, (expander) => {
             callback(expander)

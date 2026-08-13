@@ -122,7 +122,6 @@ export class Admin {
         // Tack params on the end if it's a GET request
         if (method === "GET" && !lodash.isEmpty(data)) {
             // The request methods only pass query parameters as data for GET requests.
-            // oxlint-disable-next-line typescript/no-unnecessary-type-assertion
             targetPath += queryParamsToStr(data as QueryParams)
         }
 

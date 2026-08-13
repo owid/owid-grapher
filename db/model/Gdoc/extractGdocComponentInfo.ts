@@ -30,6 +30,13 @@ function iterateKeyInsights<T extends EnrichedBlockKeyInsights>(
     const items: ChildIterationInfo[] = []
     for (let i = 0; i < parent.insights.length; i++) {
         const slide = parent.insights[i]
+        for (let j = 0; j < (slide.asset?.length ?? 0); j++) {
+            items.push({
+                child: slide.asset![j],
+                parentPath: `${parentPath}`,
+                path: `${parentPath}.insights[${i}].asset[${j}]`,
+            })
+        }
         for (let j = 0; j < slide.content.length; j++) {
             items.push({
                 child: slide.content[j],

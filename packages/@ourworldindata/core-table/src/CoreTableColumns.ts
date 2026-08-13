@@ -156,6 +156,11 @@ export abstract class AbstractCoreColumn<
         return `${this.formatTime(startTime)} to ${this.formatTime(endTime)}`
     }
 
+    /** Formats a start/end time pair as a comparison of two time points */
+    formatTimeComparison(startTime: number, endTime: number): string {
+        return `${this.formatTime(startTime)} vs. ${this.formatTime(endTime)}`
+    }
+
     @imemo get roundingMode(): OwidVariableRoundingMode {
         return (
             this.display?.roundingMode ?? OwidVariableRoundingMode.decimalPlaces

@@ -47,6 +47,14 @@ describe(ColumnTypeNames.Quarter, () => {
             col.formatTimeRange(day("2025-02-15"), day("2026-11-20"))
         ).toEqual("Jan 2025 to Dec 2026")
     })
+
+    it("formats a comparison as the two quarters themselves", () => {
+        const day = (iso: string): number =>
+            convertDateToDaysSinceEpoch(dayjs.utc(iso))
+        expect(
+            col.formatTimeComparison(day("2025-02-15"), day("2026-11-20"))
+        ).toEqual("Q1 2025 vs. Q4 2026")
+    })
 })
 
 describe(ColumnTypeNames.Decade, () => {
@@ -113,6 +121,14 @@ describe(ColumnTypeNames.Week, () => {
         expect(
             col.formatTimeRange(day("2026-06-03"), day("2026-07-08"))
         ).toEqual("Jun 1, 2026 to Jul 12, 2026")
+    })
+
+    it("formats a comparison as the two weeks themselves", () => {
+        const day = (iso: string): number =>
+            convertDateToDaysSinceEpoch(dayjs.utc(iso))
+        expect(
+            col.formatTimeComparison(day("2026-06-03"), day("2026-07-08"))
+        ).toEqual("Week of Jun 1, 2026 vs. Week of Jul 6, 2026")
     })
 
     it("formats the short timeline label as the plain week-start date", () => {

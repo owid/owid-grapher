@@ -336,7 +336,9 @@ export function getChartSvgProps({
         style: {
             ...SVG_STYLE_PROPS,
             fontSize: fontSize ?? BASE_FONT_SIZE,
-            // Needs to be set here or else pngs will have a black background
+            // Needs to be set here or else pngs will have a black or
+            // transparent background; resvg in the cloudflare functions
+            // relies on it to paint the png background, too
             backgroundColor: GRAPHER_BACKGROUND,
         },
     }

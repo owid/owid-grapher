@@ -327,6 +327,7 @@ export function enrichedBlockToRawBlock(
             const rawRows = b.rows.map((row) => ({
                 image: row.image,
                 url: row.url,
+                caption: row.caption ? spansToHtmlText(row.caption) : undefined,
                 content: row.content.length
                     ? row.content.map(
                           (enriched) =>
@@ -575,6 +576,9 @@ export function enrichedBlockToRawBlock(
                         filename: insight.filename,
                         url: insight.url,
                         narrativeChartName: insight.narrativeChartName,
+                        asset: insight.asset?.map((asset) =>
+                            enrichedBlockToRawBlock(asset)
+                        ),
                         content: insight.content?.map((content) =>
                             enrichedBlockToRawBlock(content)
                         ),
