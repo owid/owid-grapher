@@ -182,7 +182,7 @@ export default function Image(props: {
         isInteractive && !shouldHideDownloadButton ? (
             <FloatingDownloadButton
                 label="Download"
-                onClick={() => void handleDownload()}
+                onClick={() => handleDownload()}
             />
         ) : null
 
