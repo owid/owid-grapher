@@ -32,10 +32,10 @@ type ExportSettings = Required<
 
 type OriginalGrapher = Pick<
     GrapherState,
-    | "currentTitle"
+    | "fullTitle"
     | "shouldAddEntitySuffixToTitle"
     | "shouldAddTimeSuffixToTitle"
-    | "currentSubtitle"
+    | "effectiveSubtitle"
     | "note"
     | "originUrl"
     | "shouldIncludeDetailsInStaticExport"
@@ -155,12 +155,12 @@ export class EditorExportTab<
     // a deep clone of Grapher would be simpler and cleaner, but takes too long
     private grabRelevantPropertiesFromGrapher(): OriginalGrapher {
         return {
-            currentTitle: this.grapherState.currentTitle,
+            fullTitle: this.grapherState.fullTitle,
             shouldAddEntitySuffixToTitle:
                 this.grapherState.shouldAddEntitySuffixToTitle,
             shouldAddTimeSuffixToTitle:
                 this.grapherState.shouldAddTimeSuffixToTitle,
-            currentSubtitle: this.grapherState.currentSubtitle,
+            effectiveSubtitle: this.grapherState.effectiveSubtitle,
             note: this.grapherState.note,
             originUrl: this.grapherState.originUrl,
             shouldIncludeDetailsInStaticExport:
@@ -251,7 +251,7 @@ export class EditorExportTab<
         return (
             <div className="EditorExportTab">
                 <Section name="Displayed elements">
-                    {this.originalGrapher.currentTitle && (
+                    {this.originalGrapher.fullTitle && (
                         <Toggle
                             label="Title"
                             value={!this.settings.hideTitle}
@@ -260,7 +260,7 @@ export class EditorExportTab<
                             })}
                         />
                     )}
-                    {this.originalGrapher.currentTitle &&
+                    {this.originalGrapher.fullTitle &&
                         this.originalGrapher.shouldAddEntitySuffixToTitle && (
                             <Toggle
                                 label="Title suffix: automatic entity"
@@ -276,7 +276,7 @@ export class EditorExportTab<
                                 )}
                             />
                         )}
-                    {this.originalGrapher.currentTitle &&
+                    {this.originalGrapher.fullTitle &&
                         this.originalGrapher.shouldAddTimeSuffixToTitle && (
                             <Toggle
                                 label="Title suffix: automatic time"
@@ -291,7 +291,7 @@ export class EditorExportTab<
                                 )}
                             />
                         )}
-                    {this.originalGrapher.currentSubtitle && (
+                    {this.originalGrapher.effectiveSubtitle && (
                         <Toggle
                             label="Subtitle"
                             value={!this.settings.hideSubtitle}

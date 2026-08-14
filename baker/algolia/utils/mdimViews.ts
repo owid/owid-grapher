@@ -48,9 +48,9 @@ async function getChartConfigsByIds(
     ids: string[]
 ) {
     const rows = await knex<DbRawChartConfig>(ChartConfigsTableName)
-        .select("id", "full")
+        .select("id", "config")
         .whereIn("id", ids)
-    return new Map(rows.map((row) => [row.id, parseChartConfig(row.full)]))
+    return new Map(rows.map((row) => [row.id, parseChartConfig(row.config)]))
 }
 
 async function getDatasetDimensionsByVariableIds(

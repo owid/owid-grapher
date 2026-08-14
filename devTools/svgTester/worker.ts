@@ -9,6 +9,4 @@ import * as utils from "./utils.js"
 workerpool.worker({
     renderAndVerifySvg: utils.renderAndVerifySvg,
     renderSvgAndSave: utils.renderSvgAndSave,
-    renderExplorerViewsToSVGsAndSave: utils.renderExplorerViewsToSVGsAndSave,
-    renderAndVerifyExplorerViews: utils.renderAndVerifyExplorerViews,
 })

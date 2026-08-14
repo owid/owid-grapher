@@ -149,7 +149,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         // fetch the new parent config
         let newParentConfig: GrapherInterface | undefined
         if (newParentIndicatorId) {
-            newParentConfig = await fetchMergedGrapherConfigByVariableId(
+            newParentConfig = await fetchChartConfigByIndicatorId(
                 this.manager.admin,
                 newParentIndicatorId
             )
@@ -175,7 +175,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 
         // Chart title and slug may be autocalculated from data, in which case they won't be in props
         // But the server will need to know what we calculated in order to do its job
-        if (!patchConfig.title) patchConfig.title = grapherState.displayTitle
+        if (!patchConfig.title) patchConfig.title = grapherState.effectiveTitle
 
         // Only auto-generate slug when publishing. Drafts can have empty slugs to avoid
         // unnecessary slug collisions.
@@ -356,12 +356,12 @@ export async function deleteChart(params: {
     if (json.success) onSuccess?.()
 }
 
-export async function fetchMergedGrapherConfigByVariableId(
+export async function fetchChartConfigByIndicatorId(
     admin: Admin,
     indicatorId: number
 ): Promise<GrapherInterface | undefined> {
     const indicatorChart = await admin.getJSON(
-        `/api/variables/mergedGrapherConfig/${indicatorId}.json`
+        `/api/variables/${indicatorId}/chartConfig.json`
     )
     return _.isEmpty(indicatorChart) ? undefined : indicatorChart
 }

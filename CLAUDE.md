@@ -11,7 +11,8 @@ The Our World in Data monorepo: the Grapher charting library, the chart/data adm
 ### Dev environment
 
 - `make up` — full dev stack in tmux (Docker MySQL, admin server on :3030, Vite on :8090). First run downloads the DB snapshot (10–20 min).
-- `make up.headless` — same without tmux; servers run in the background with logs in `logs/`. Use it when you need the running site or database and no dev environment is up yet (e.g. in sandboxes/CI). The environment is ready when the output prints `Dev environment is up` — wait for that exact line; don't grep for vite/admin startup patterns, they never appear. Stop with `make down.headless`. **Never run it on a developer machine where a dev environment may already be running** (check with `pgrep -f adminSiteServer` first) — it kills existing dev servers.
+- `make up.headless` — same without tmux; servers run in the background with logs in `logs/`. Use it when you need the running site or database and no dev environment is up yet (e.g. in sandboxes/CI). The environment is ready when the output prints `Dev environment is up` — wait for that exact line; don't grep for vite/admin startup patterns, they never appear. Stop with `make down.headless`. **Never run it on a developer machine where a dev environment may already be running** (check with `pgrep -f adminSiteServer` first) — it kills existing dev servers. In a git worktree, use `make up.worktree` instead.
+- `make up.worktree` — the same stack for a git worktree, running alongside whatever the main checkout has up: its own admin/vite ports, its own detached tmux session (`grapher-<worktree>`), and the MySQL every checkout shares. Kills nothing outside its own session, so it's the safe one to run from a worktree manager (Orca) or an agent. On first run it writes the worktree's `.env` with a random free port pair (admin `30xx` and Vite `80xx`, sharing an offset), so check that `.env` rather than assuming 3030/8090; `make setup.worktree` does only that part (usable as a worktree-manager setup hook alongside `yarn install`). Ready when the output prints `Dev environment for this worktree is up`; attach with `tmux attach -t grapher-<worktree>`, stop with `make down.worktree` (leaves MySQL up).
 - `make refresh` — re-download the shared MySQL snapshot and reload the local DB.
 - `make migrate` (or `yarn runDbMigrations`) — apply pending DB migrations.
 - Admin UI: http://localhost:3030/admin/charts. MySQL is exposed on port **3307** (root / `weeniest-stretch-contaminate-gnarl`).
@@ -31,6 +32,7 @@ The Our World in Data monorepo: the Grapher charting library, the chart/data adm
 ### Git
 
 - When you want to create a commit, follow `docs/agent-guidelines/commit-messages.md` — it covers the pre-commit checks and the gitmoji + 🤖 message format.
+- PR descriptions are two-part. First, a **concise** human-facing part: what changed and why, important considerations and pitfalls, and anything that needs discussion — a few sentences or bullets, no padding. Then a `<details><summary>Details</summary>` block for everything only useful to an agent picking the work back up or to automated code review: implementation notes, file-by-file breakdowns, edge cases handled, test plans. If a detail doesn't change what a human reviewer does, it goes in the details block or gets cut.
 - Branch names: short and descriptive, no prefix (in particular no `claude/` prefix and no random suffix). Every branch gets a staging server named `staging-site-<branch>` with slashes turned into hyphens and the name truncated to 28 characters, so long or prefixed branch names produce unusable staging names.
 
 ## Architecture
@@ -116,6 +118,7 @@ Everything you post to GitHub or Slack goes out under a **human's identity**.
 - CSS: named style classes following BEM in separate `.scss` files; avoid inline styles unless the component already uses them for a similar case. Components usually have a companion scss file with the same name. Entry points: `site/owid.scss` for the site, `packages/@ourworldindata/grapher/src/core/grapher.scss` for grapher.
 - In SCSS, do NOT use the parent selector to concatenate BEM class names (`&__element`, `&--modifier`) — write out full class names (`.block__element`) so it's easy to grep between JSX and SCSS. `&` with pseudo-classes/elements or state attributes (`&:hover`, `&::before`, `&[data-selected]`) is fine.
 - Check [docs/browser-support.md](./docs/browser-support.md) before using modern JS or CSS features. It lists our supported browsers, the "most breaking" features we rely on, and features we can't yet use.
+- For inline `<script>` JSON, use `escapeJSONStringForInlineScript` from `@ourworldindata/utils` — it also escapes U+2028/U+2029.
 - package.json scripts are camelCase and descriptive: `startXXX` for long-lived processes, `buildXXX` for scripts that write output (`docs/coding-style.md`). Server-side scripts run via `tsx --tsconfig tsconfig.tsx.json`.
 
 ## Other conventions

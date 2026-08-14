@@ -1,17 +1,27 @@
 import {
     ChartConfigsTableName,
-    DbInsertChartConfig,
     DbRawChartConfig,
     GrapherInterface,
     R2GrapherConfigDirectory,
-    serializeChartConfig,
 } from "@ourworldindata/types"
-import { v7 as uuidv7 } from "uuid"
 import * as db from "../db/db.js"
 import {
+    insertChartConfig,
+    updateChartConfig,
+} from "../db/model/ChartConfigs.js"
+import {
+    deleteGrapherConfigFromR2ByUUID,
     saveGrapherConfigToR2,
     saveGrapherConfigToR2ByUUID,
 } from "../serverUtils/r2/chartConfigR2Helpers.js"
+
+export interface ChartConfigPair {
+    config: GrapherInterface
+    patchConfig: GrapherInterface
+    // callers may supply the id of the rendered config's row (e.g. the ETL,
+    // which generates a chart's identity client-side); otherwise one is minted
+    chartConfigId?: string
+}
 
 /**
  * One particular detail of of MySQL's JSON support is that MySQL _normalizes_ JSON when storing it.
@@ -30,16 +40,17 @@ export const retrieveChartConfigFromDbAndSaveToR2 = async (
     chartConfigId: string,
     r2Path?: { directory: R2GrapherConfigDirectory; filename: string }
 ) => {
-    // We need to get the full config and the md5 hash from the database instead of
+    // We need to get the config and the md5 hash from the database instead of
     // computing our own md5 hash because MySQL normalizes JSON and our
     // client computed md5 would be different from the ones computed by and stored in R2
-    const fullConfigMd5: Pick<DbRawChartConfig, "full" | "fullMd5"> =
-        await knex(ChartConfigsTableName)
-            .select("full", "fullMd5")
-            .where({ id: chartConfigId })
-            .first()
+    const row: Pick<DbRawChartConfig, "config" | "configMd5"> = await knex(
+        ChartConfigsTableName
+    )
+        .select("config", "configMd5")
+        .where({ id: chartConfigId })
+        .first()
 
-    if (!fullConfigMd5)
+    if (!row)
         throw new Error(
             `Chart config not found in the database! id=${chartConfigId}`
         )
@@ -47,59 +58,107 @@ export const retrieveChartConfigFromDbAndSaveToR2 = async (
     if (!r2Path) {
         await saveGrapherConfigToR2ByUUID(
             chartConfigId,
-            fullConfigMd5.full,
-            fullConfigMd5.fullMd5
+            row.config,
+            row.configMd5
         )
     } else {
         await saveGrapherConfigToR2(
-            fullConfigMd5.full,
+            row.config,
             r2Path.directory,
             r2Path.filename,
-            fullConfigMd5.fullMd5
+            row.configMd5
         )
     }
 
     return {
         chartConfigId,
-        fullConfig: fullConfigMd5.full,
-        fullConfigMd5: fullConfigMd5.fullMd5,
+        config: row.config,
+        configMd5: row.configMd5,
     }
 }
 
 export const updateChartConfigInDbAndR2 = async (
     knex: db.KnexReadWriteTransaction,
-    chartConfigId: string,
-    patchConfig: GrapherInterface,
-    fullConfig: GrapherInterface,
+    configId: string,
+    config: GrapherInterface,
     updatedAt: Date = new Date()
 ) => {
-    await knex<DbInsertChartConfig>(ChartConfigsTableName)
-        .update({
-            patch: serializeChartConfig(patchConfig),
-            full: serializeChartConfig(fullConfig),
-            updatedAt, // It's not updated automatically in the DB.
-        })
-        .where({ id: chartConfigId })
-
-    return retrieveChartConfigFromDbAndSaveToR2(knex, chartConfigId)
+    await updateChartConfig(knex, { configId, config, updatedAt })
+    return retrieveChartConfigFromDbAndSaveToR2(knex, configId)
 }
 
 export const saveNewChartConfigInDbAndR2 = async (
     knex: db.KnexReadWriteTransaction,
-    chartConfigId: string | undefined,
-    patchConfig: GrapherInterface,
-    fullConfig: GrapherInterface,
+    config: GrapherInterface,
     now: Date = new Date()
 ) => {
-    chartConfigId ??= uuidv7()
-
-    await knex<DbInsertChartConfig>(ChartConfigsTableName).insert({
-        id: chartConfigId,
-        patch: serializeChartConfig(patchConfig),
-        full: serializeChartConfig(fullConfig),
+    const chartConfigId = await insertChartConfig(knex, {
+        config,
         createdAt: now,
         updatedAt: now,
     })
-
     return retrieveChartConfigFromDbAndSaveToR2(knex, chartConfigId)
+}
+
+/** Inserts a chart config pair without publishing */
+export const insertChartConfigPair = async (
+    knex: db.KnexReadWriteTransaction,
+    {
+        config,
+        patchConfig,
+        chartConfigId: providedChartConfigId,
+    }: ChartConfigPair,
+    now: Date = new Date()
+): Promise<{ chartConfigId: string; patchConfigId: string }> => {
+    const chartConfigId = await insertChartConfig(knex, {
+        id: providedChartConfigId,
+        config,
+        createdAt: now,
+        updatedAt: now,
+    })
+    const patchConfigId = await insertChartConfig(knex, {
+        config: patchConfig,
+        createdAt: now,
+        updatedAt: now,
+    })
+    return { chartConfigId, patchConfigId }
+}
+
+export const saveNewChartConfigPairInDbAndR2 = async (
+    knex: db.KnexReadWriteTransaction,
+    pair: ChartConfigPair,
+    now: Date = new Date()
+) => {
+    const ids = await insertChartConfigPair(knex, pair, now)
+    await retrieveChartConfigFromDbAndSaveToR2(knex, ids.chartConfigId)
+    return ids
+}
+
+export const updateChartConfigPairInDbAndR2 = async (
+    knex: db.KnexReadWriteTransaction,
+    {
+        configId,
+        patchConfigId,
+        config,
+        patchConfig,
+    }: ChartConfigPair & { configId: string; patchConfigId: string },
+    now: Date = new Date()
+) => {
+    await updateChartConfig(knex, {
+        configId: patchConfigId,
+        config: patchConfig,
+        updatedAt: now,
+    })
+    return updateChartConfigInDbAndR2(knex, configId, config, now)
+}
+
+export const deleteChartConfigPairFromDbAndR2 = async (
+    knex: db.KnexReadWriteTransaction,
+    { configId, patchConfigId }: { configId: string; patchConfigId: string }
+) => {
+    await knex(ChartConfigsTableName)
+        .whereIn("id", [configId, patchConfigId])
+        .delete()
+    // Only the resolved config was published
+    await deleteGrapherConfigFromR2ByUUID(configId)
 }

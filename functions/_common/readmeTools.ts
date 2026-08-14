@@ -295,9 +295,9 @@ export function constructReadme(
 
     if (isSingleColumn) {
         const toleranceExplanation = `\nThe data file includes an additional column suffixed with (Original Year) or (Original Day). This column appears when we use "tolerance" to display data for time points where exact data is unavailable. For example, if a country does not have data for one or more years, we use tolerance to fill the gaps using the closest available data points. These suffix columns show you which year (or day) the value really came from, allowing you to see when the data was actually measured.`
-        readme = `# ${grapherState.displayTitle} - Data package
+        readme = `# ${grapherState.effectiveTitle} - Data package
 
-This data package contains the data that powers the chart ["${grapherState.displayTitle}"](${urlWithFilters}) on the Our World in Data website. It was downloaded on ${downloadDate}.
+This data package contains the data that powers the chart ["${grapherState.effectiveTitle}"](${urlWithFilters}) on the Our World in Data website. It was downloaded on ${downloadDate}.
 ${[...activeFilterSettings(searchParams, multiDimAvailableDimensions)].join("\n")}
 ## CSV Structure
 
@@ -325,9 +325,9 @@ ${sources.join("\n")}
     `
     } else {
         const toleranceExplanation = `\nThe data file includes additional columns suffixed with (Original Year) or (Original Day). These appear when we use "tolerance" to display data for time points where exact data is unavailable. For example, if a country does not have data for one or more years, we use tolerance to fill the gaps using the closest available data points. These suffix columns show you which year (or day) the value really came from, allowing you to see when the data was actually measured.`
-        readme = `# ${grapherState.displayTitle} - Data package
+        readme = `# ${grapherState.effectiveTitle} - Data package
 
-This data package contains the data that powers the chart ["${grapherState.displayTitle}"](${urlWithFilters}) on the Our World in Data website.
+This data package contains the data that powers the chart ["${grapherState.effectiveTitle}"](${urlWithFilters}) on the Our World in Data website.
 
 ## CSV Structure
 

@@ -10,10 +10,8 @@ import {
 } from "./apiRoutes/slideshows.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import {
-    updateVariableAnnotations,
     getChartBulkUpdate,
     updateBulkChartConfigs,
-    getVariableAnnotations,
 } from "./apiRoutes/bulkUpdates.js"
 import {
     getNarrativeCharts,
@@ -120,15 +118,10 @@ import {
     getVariablesJson,
     getLatestVariableIdsByCatalogPathJson,
     getVariablesUsagesJson,
-    getVariablesGrapherConfigETLPatchConfigJson,
-    getVariablesGrapherConfigAdminPatchConfigJson,
-    getVariablesMergedGrapherConfigJson,
-    getVariablesVariableIdJson,
-    putVariablesVariableIdGrapherConfigETL,
-    deleteVariablesVariableIdGrapherConfigETL,
-    putVariablesVariableIdGrapherConfigAdmin,
-    deleteVariablesVariableIdGrapherConfigAdmin,
-    getVariablesVariableIdChartsJson,
+    getIndicatorChartConfigJson,
+    getVariableJson,
+    putIndicatorChartConfig,
+    deleteIndicatorChartConfig,
 } from "./apiRoutes/variables.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import {
@@ -164,6 +157,11 @@ import {
     refreshDataInsights,
 } from "./apiRoutes/dataInsights.js"
 import { getFigmaImageUrl } from "./apiRoutes/figma.js"
+import {
+    getSvgTesterResults,
+    getSvgTesterSuites,
+    getSvgTesterSvg,
+} from "./apiRoutes/svgTester.js"
 import { sendMessageToSlack } from "./apiRoutes/slack.js"
 import {
     createFeaturedMetric,
@@ -191,21 +189,11 @@ import {
 const apiRouter = new FunctionalRouter()
 
 // Bulk chart update routes
-patchRouteWithRWTransaction(
-    apiRouter,
-    "/variable-annotations",
-    updateVariableAnnotations
-)
 getRouteWithROTransaction(apiRouter, "/chart-bulk-update", getChartBulkUpdate)
 patchRouteWithRWTransaction(
     apiRouter,
     "/chart-bulk-update",
     updateBulkChartConfigs
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/variable-annotations",
-    getVariableAnnotations
 )
 
 // Chart routes
@@ -631,51 +619,25 @@ getRouteWithROTransaction(
 )
 getRouteWithROTransaction(
     apiRouter,
-    "/variables/grapherConfigETL/:variableId.patchConfig.json",
-    getVariablesGrapherConfigETLPatchConfigJson
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables/grapherConfigAdmin/:variableId.patchConfig.json",
-    getVariablesGrapherConfigAdminPatchConfigJson
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables/mergedGrapherConfig/:variableId.json",
-    getVariablesMergedGrapherConfigJson
+    "/variables/:variableId/chartConfig.json",
+    getIndicatorChartConfigJson
 )
 // Used in VariableEditPage
 getRouteWithROTransaction(
     apiRouter,
     "/variables/:variableId.json",
-    getVariablesVariableIdJson
+    getVariableJson
 )
 // inserts a new config or updates an existing one
 putRouteWithRWTransaction(
     apiRouter,
     "/variables/:variableId/grapherConfigETL",
-    putVariablesVariableIdGrapherConfigETL
+    putIndicatorChartConfig
 )
 deleteRouteWithRWTransaction(
     apiRouter,
     "/variables/:variableId/grapherConfigETL",
-    deleteVariablesVariableIdGrapherConfigETL
-)
-// inserts a new config or updates an existing one
-putRouteWithRWTransaction(
-    apiRouter,
-    "/variables/:variableId/grapherConfigAdmin",
-    putVariablesVariableIdGrapherConfigAdmin
-)
-deleteRouteWithRWTransaction(
-    apiRouter,
-    "/variables/:variableId/grapherConfigAdmin",
-    deleteVariablesVariableIdGrapherConfigAdmin
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables/:variableId/charts.json",
-    getVariablesVariableIdChartsJson
+    deleteIndicatorChartConfig
 )
 
 // Figma routes
@@ -683,6 +645,11 @@ getRouteWithROTransaction(apiRouter, "/figma/image", getFigmaImageUrl)
 
 // Slack routes
 postRouteWithRWTransaction(apiRouter, "/slack/sendMessage", sendMessageToSlack)
+
+// SVG tester
+apiRouter.get("/svgtester/suites.json", getSvgTesterSuites)
+apiRouter.get("/svgtester/:suite/results.json", getSvgTesterResults)
+apiRouter.router.get("/svgtester/:suite/:kind/:filename", getSvgTesterSvg)
 
 // Deploy helpers
 apiRouter.get("/deploys.json", async () => ({

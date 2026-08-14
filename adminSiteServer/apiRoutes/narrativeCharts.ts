@@ -31,10 +31,10 @@ import {
 } from "../../adminShared/AdminTypes.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
-    saveNewChartConfigInDbAndR2,
-    updateChartConfigInDbAndR2,
+    deleteChartConfigPairFromDbAndR2,
+    saveNewChartConfigPairInDbAndR2,
+    updateChartConfigPairInDbAndR2,
 } from "../chartConfigHelpers.js"
-import { deleteGrapherConfigFromR2ByUUID } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 
 import {
     isKebabCase,
@@ -46,7 +46,7 @@ import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import { getPublishedLinksTo } from "../../db/model/Link.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
-import { getChartConfigById as _getChartConfigById } from "../../db/model/ChartConfigs.js"
+import { getChartConfigByUUID } from "../../db/model/ChartConfigs.js"
 import { narrativeChartExists } from "../../db/model/NarrativeChart.js"
 import { getMultiDimDataPageById } from "../../db/model/MultiDimDataPage.js"
 
@@ -98,16 +98,13 @@ function makeParentUrl(
     return null
 }
 
-async function getChartConfigById(
+async function expectChartConfigByUUID(
     trx: db.KnexReadonlyTransaction,
-    chartConfigId: string
+    id: string
 ) {
-    const chartConfig = await _getChartConfigById(trx, chartConfigId)
+    const chartConfig = await getChartConfigByUUID(trx, id)
     if (!chartConfig) {
-        throw new JsonError(
-            `No chart config found for id ${chartConfigId}`,
-            404
-        )
+        throw new JsonError(`No chart config found for id ${id}`, 404)
     }
     return chartConfig
 }
@@ -117,7 +114,7 @@ async function getChartConfigByMultiDimXChartConfigId(
     multiDimXChartConfigId: number
 ) {
     const row = await trx<DbInsertChartConfig>(ChartConfigsTableName)
-        .select("full")
+        .select("config")
         .join(
             MultiDimXChartConfigsTableName,
             `${ChartConfigsTableName}.id`,
@@ -131,7 +128,7 @@ async function getChartConfigByMultiDimXChartConfigId(
             404
         )
     }
-    return parseChartConfig(row.full)
+    return parseChartConfig(row.config)
 }
 
 async function getViewDimensions(
@@ -198,14 +195,14 @@ export async function getNarrativeCharts(
             nc.updatedAt,
             u.fullName as lastEditedByUser,
             nc.chartConfigId,
-            cc.full ->> "$.title" as title,
+            cc.config ->> "$.title" as title,
             nc.parentChartId,
             nc.parentMultiDimXChartConfigId,
             nc.queryParamsForParentChart,
             CASE
-                WHEN nc.parentChartId IS NOT NULL THEN pcc1.full ->> "$.title"
+                WHEN nc.parentChartId IS NOT NULL THEN pcc1.config ->> "$.title"
                 ELSE COALESCE(
-                    pcc2.full ->> "$.title",
+                    pcc2.config ->> "$.title",
                     mddp.config ->> "$.title.title",
                     ''
                 )
@@ -248,11 +245,23 @@ export async function getNarrativeCharts(
     return { narrativeCharts }
 }
 
+export type NarrativeChartResponse = Pick<
+    DbPlainNarrativeChart,
+    "id" | "name" | "updatedAt" | "chartConfigId"
+> & {
+    lastEditedByUser: DbPlainUser["fullName"]
+    configFull: GrapherInterface
+    configPatch: GrapherInterface
+    parentType: "chart" | "multiDim"
+    parentConfigFull: GrapherInterface
+    parentUrl: string | null
+}
+
 export async function getNarrativeChartById(
     req: Request,
     res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
-) {
+): Promise<NarrativeChartResponse> {
     const id = expectInt(req.params.id)
 
     type NarrativeChartRow = Pick<
@@ -278,15 +287,16 @@ export async function getNarrativeChartById(
             nc.updatedAt,
             u.fullName as lastEditedByUser,
             nc.chartConfigId,
-            cc.full as configFull,
-            cc.patch as configPatch,
+            cc.config as configFull,
+            cc_patch.config as configPatch,
             nc.parentChartId,
             nc.parentMultiDimXChartConfigId as parentChartConfigId,
-            pcc.full as parentConfigFull,
+            pcc.config as parentConfigFull,
             mddp.catalogPath as parentCatalogPath,
             nc.queryParamsForParentChart
         FROM narrative_charts nc
         JOIN chart_configs cc ON nc.chartConfigId = cc.id
+        JOIN chart_configs cc_patch ON nc.patchConfigId = cc_patch.id
         LEFT JOIN charts pc ON nc.parentChartId = pc.id
         LEFT JOIN multi_dim_x_chart_configs mdxcc ON nc.parentMultiDimXChartConfigId = mdxcc.id
         LEFT JOIN multi_dim_data_pages mddp ON mdxcc.multiDimId = mddp.id
@@ -340,12 +350,13 @@ async function createNarrativeChartFromChart(
             parentConfig,
             config
         )
-    const { chartConfigId } = await saveNewChartConfigInDbAndR2(
-        trx,
-        undefined,
-        patchConfig,
-        fullConfig
-    )
+    const now = new Date()
+    const { chartConfigId, patchConfigId } =
+        await saveNewChartConfigPairInDbAndR2(
+            trx,
+            { config: fullConfig, patchConfig },
+            now
+        )
     const [narrativeChartId] = await trx<DbInsertNarrativeChart>(
         NarrativeChartsTableName
     ).insert({
@@ -353,6 +364,7 @@ async function createNarrativeChartFromChart(
         parentChartId,
         lastEditedByUserId: userId,
         chartConfigId,
+        patchConfigId,
         queryParamsForParentChart: JSON.stringify(queryParams),
     })
     return { narrativeChartId, success: true }
@@ -368,10 +380,13 @@ async function createNarrativeChartFromMultiDimView(
     | { narrativeChartId: number; success: boolean }
     | { success: false; errorMsg: string }
 > {
-    const parentChartConfig = await getChartConfigById(trx, parentChartConfigId)
+    const parentChartConfig = await expectChartConfigByUUID(
+        trx,
+        parentChartConfigId
+    )
     const { patchConfig, fullConfig, queryParams } =
         await createPatchConfigAndQueryParamsForNarrativeChart(
-            parentChartConfig.full,
+            parentChartConfig,
             config
         )
     const multiDimXChartConfig = await trx<DbPlainMultiDimXChartConfig>(
@@ -387,12 +402,13 @@ async function createNarrativeChartFromMultiDimView(
         )
     }
     const viewDimensions = await getViewDimensions(trx, multiDimXChartConfig.id)
-    const { chartConfigId } = await saveNewChartConfigInDbAndR2(
-        trx,
-        undefined,
-        patchConfig,
-        fullConfig
-    )
+    const now = new Date()
+    const { chartConfigId, patchConfigId } =
+        await saveNewChartConfigPairInDbAndR2(
+            trx,
+            { config: fullConfig, patchConfig },
+            now
+        )
     const [narrativeChartId] = await trx<DbInsertNarrativeChart>(
         NarrativeChartsTableName
     ).insert({
@@ -400,6 +416,7 @@ async function createNarrativeChartFromMultiDimView(
         lastEditedByUserId: userId,
         parentMultiDimXChartConfigId: multiDimXChartConfig.id,
         chartConfigId,
+        patchConfigId,
         queryParamsForParentChart: JSON.stringify({
             ...queryParams,
             ...viewDimensions,
@@ -485,6 +502,7 @@ export async function updateNarrativeChart(
             "parentChartId",
             "parentMultiDimXChartConfigId",
             "chartConfigId",
+            "patchConfigId",
             "name"
         )
         .where({ id })
@@ -526,11 +544,16 @@ export async function updateNarrativeChart(
         )
     }
 
-    await updateChartConfigInDbAndR2(
+    const now = new Date()
+    await updateChartConfigPairInDbAndR2(
         trx,
-        existingRow.chartConfigId,
-        patchConfig,
-        fullConfig
+        {
+            configId: existingRow.chartConfigId,
+            patchConfigId: existingRow.patchConfigId,
+            config: fullConfig,
+            patchConfig,
+        },
+        now
     )
 
     await trx
@@ -567,19 +590,17 @@ export async function deleteNarrativeChart(
 ) {
     const id = expectInt(req.params.id)
 
-    const {
-        name,
-        chartConfigId,
-    }: { name: string | undefined; chartConfigId: string | undefined } =
-        await trx(NarrativeChartsTableName)
-            .select("name", "chartConfigId")
-            .where({ id })
-            .first()
-            .then((row) => row ?? {})
+    const narrativeChart = await trx<DbPlainNarrativeChart>(
+        NarrativeChartsTableName
+    )
+        .select("name", "chartConfigId", "patchConfigId")
+        .where({ id })
+        .first()
 
-    if (!chartConfigId || !name) {
+    if (!narrativeChart) {
         throw new JsonError(`No narrative chart found for id ${id}`, 404)
     }
+    const { name, chartConfigId, patchConfigId } = narrativeChart
 
     const references = await getPublishedLinksTo(
         trx,
@@ -597,10 +618,10 @@ export async function deleteNarrativeChart(
     }
 
     await trx.table(NarrativeChartsTableName).where({ id }).delete()
-
-    await deleteGrapherConfigFromR2ByUUID(chartConfigId)
-
-    await trx.table(ChartConfigsTableName).where({ id: chartConfigId }).delete()
+    await deleteChartConfigPairFromDbAndR2(trx, {
+        configId: chartConfigId,
+        patchConfigId,
+    })
 
     return { success: true }
 }

@@ -48,13 +48,9 @@ import { Section, TextField } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
 import { DimensionCard } from "./DimensionCard.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import { EditorDatabase } from "./ChartEditorView.js"
+import { EditorDatabase } from "./EditorDatabase.js"
 import { isChartEditorInstance } from "./ChartEditor.js"
 import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
-import {
-    IndicatorChartEditor,
-    isIndicatorChartEditorInstance,
-} from "./IndicatorChartEditor.js"
 import { EditableTags } from "./EditableTags.js"
 import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
 import {
@@ -801,12 +797,10 @@ export class EditorBasicTab<
     override render() {
         const { editor } = this.props
         const { grapherState } = editor
-        const isIndicatorChart = isIndicatorChartEditorInstance(editor)
         const isNarrativeChart = isNarrativeChartEditorInstance(editor)
 
         return (
             <div className="EditorBasicTab">
-                {isIndicatorChart && <IndicatorChartInfo editor={editor} />}
                 {isNarrativeChart &&
                     (editor.isNewGrapher ? (
                         <NarrativeChartForm editor={editor} />
@@ -866,15 +860,13 @@ export class EditorBasicTab<
                         </div>
                     </div>
                 </Section>
-                {!isIndicatorChart && (
-                    <VariablesSection
-                        editor={editor}
-                        database={this.props.database}
-                        errorMessagesForDimensions={
-                            this.props.errorMessagesForDimensions
-                        }
-                    />
-                )}
+                <VariablesSection
+                    editor={editor}
+                    database={this.props.database}
+                    errorMessagesForDimensions={
+                        this.props.errorMessagesForDimensions
+                    }
+                />
 
                 {isChartEditorInstance(editor) && (
                     <TagsSection
@@ -887,27 +879,6 @@ export class EditorBasicTab<
             </div>
         )
     }
-}
-
-function IndicatorChartInfo(props: { editor: IndicatorChartEditor }) {
-    const { variableId, grapherState } = props.editor
-
-    const column = grapherState.inputTable.get(variableId?.toString())
-    const variableLink = (
-        <a
-            href={`/admin/variables/${variableId}`}
-            target="_blank"
-            rel="noopener"
-        >
-            {column?.name ?? variableId}
-        </a>
-    )
-
-    return (
-        <Section name="Indicator chart">
-            <p>Your are editing the config of the {variableLink} indicator.</p>
-        </Section>
-    )
 }
 
 function NarrativeChartInfo(props: { editor: NarrativeChartEditor }) {

@@ -6,6 +6,7 @@ export interface DbInsertNarrativeChart {
     id?: number
     name: string
     chartConfigId: string
+    patchConfigId: string
     parentChartId?: number | null
     parentMultiDimXChartConfigId?: number | null
     queryParamsForParentChart: JsonString

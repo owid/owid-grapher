@@ -58,6 +58,7 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["data-insight"]: "100%",
     ["full-width"]: "100vw",
     ["key-insight"]: gridSpan5,
+    ["key-insight-asset"]: gridSpan7,
     ["about-page"]: gridSpan8,
     ["author-byline"]: "48px",
     ["author-header"]: gridSpan2,
@@ -181,7 +182,7 @@ export default function Image(props: {
         isInteractive && !shouldHideDownloadButton ? (
             <FloatingDownloadButton
                 label="Download"
-                onClick={() => void handleDownload()}
+                onClick={() => handleDownload()}
             />
         ) : null
 
