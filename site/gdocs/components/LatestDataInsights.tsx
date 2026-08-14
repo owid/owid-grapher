@@ -68,6 +68,14 @@ export default function LatestDataInsights({
         }
     }, [updateSelectedIndex])
 
+    // Since snapping is mandatory, the scroller always rests on a snap
+    // position, so the selected index tells us whether there's room to
+    // scroll. dataInsights.length - 1 is the last card reachable by the
+    // buttons: the "See all" card beyond it only exists on small screens,
+    // where the buttons are hidden.
+    const canScrollPrev = selectedIndex > 0
+    const canScrollNext = selectedIndex < dataInsights.length - 1
+
     const scrollToCard = (index: number): void => {
         const scroller = scrollerRef.current
         if (!scroller) return
@@ -117,7 +125,7 @@ export default function LatestDataInsights({
                     />
                 </li>
             </ul>
-            {selectedIndex > 0 && (
+            {canScrollPrev && (
                 <Button
                     ariaLabel="Scroll to the previous data insight card"
                     className="latest-data-insights__control-button latest-data-insights__control-button--prev js--hide-if-js-disabled"
@@ -127,7 +135,7 @@ export default function LatestDataInsights({
                     text=""
                 />
             )}
-            {selectedIndex < dataInsights.length - 1 && (
+            {canScrollNext && (
                 <Button
                     ariaLabel="Scroll to the next data insight card"
                     className="latest-data-insights__control-button latest-data-insights__control-button--next js--hide-if-js-disabled"
