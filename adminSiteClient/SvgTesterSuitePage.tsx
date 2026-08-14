@@ -336,9 +336,16 @@ function SuiteSwitcher({ currentSuite }: { currentSuite: string | undefined }) {
     const { data } = useQuery({
         queryKey: ["svgtester-suites"],
         queryFn: () =>
-            admin.getJSON<{ suites: SvgTesterSuiteOverview[] }>(
-                "/api/svgtester/suites.json"
+            admin.requestJSON<{ suites: SvgTesterSuiteOverview[] }>(
+                "/api/svgtester/suites.json",
+                {},
+                "GET",
+                { onFailure: "continue", isBackground: true }
             ),
+        refetchOnWindowFocus: true,
+        // Slower than the run it sits next to: these notes are a hint about the
+        // other suites, and this route asks git about every one of them.
+        refetchInterval: IDLE_REFRESH_INTERVAL_MS,
     })
 
     // The current suite stays listed even without findings, so the switcher
