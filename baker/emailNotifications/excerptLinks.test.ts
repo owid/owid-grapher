@@ -13,19 +13,18 @@ const GDOC_URL = "https://docs.google.com/document/d/abc123/edit"
 
 const makeLinkedDocument = (
     overrides: Partial<OwidGdocMinimalPostInterface> = {}
-): OwidGdocMinimalPostInterface =>
-    ({
-        id: "abc123",
-        title: "Where do migrants live?",
-        slug: "where-do-migrants-live",
-        authors: [],
-        publishedAt: "2026-08-01",
-        published: true,
-        subtitle: "",
-        excerpt: "",
-        type: OwidGdocType.Article,
-        ...overrides,
-    }) as OwidGdocMinimalPostInterface
+): OwidGdocMinimalPostInterface => ({
+    id: "abc123",
+    title: "Where do migrants live?",
+    slug: "where-do-migrants-live",
+    authors: [],
+    publishedAt: "2026-08-01",
+    published: true,
+    subtitle: "",
+    excerpt: "",
+    type: OwidGdocType.Article,
+    ...overrides,
+})
 
 const simpleText = (text: string): Span => ({
     spanType: "span-simple-text",

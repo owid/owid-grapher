@@ -54,7 +54,17 @@ const ITEMS: NotificationEmailItem[] = [
         topicNames: ["Food and Agriculture"],
         topicLabel: "Food and Agriculture",
         authors: ["Hannah Ritchie"],
+        // Data insights lead with their chart image, as every published one
+        // does, and end with a cta.
         body: [
+            {
+                type: "image",
+                filename: "cereal-yields.png",
+                alt: "Cereal yields by region",
+                size: BlockSize.Wide,
+                hasOutline: true,
+                parseErrors: [],
+            },
             textBlock([
                 simpleText("Global yields of cereal crops have tripled since "),
                 {
@@ -64,14 +74,6 @@ const ITEMS: NotificationEmailItem[] = [
                 },
                 simpleText("."),
             ]),
-            {
-                type: "image",
-                filename: "cereal-yields.png",
-                alt: "Cereal yields by region",
-                size: BlockSize.Wide,
-                hasOutline: true,
-                parseErrors: [],
-            },
             {
                 type: "cta",
                 text: "Explore this data in our interactive chart",
@@ -170,6 +172,20 @@ describe(renderNotificationEmail, () => {
         )
         // Links the excerpt carries survive into the email.
         expect(html).toContain(`href="${BASE_URL}/palm-oil"`)
+    })
+
+    it("puts a data insight's chart above its title", async () => {
+        const { html } = await renderFixture()
+        const imageIndex = html.indexOf(
+            "https://images.ourworldindata.org/abc/w=1200",
+            html.indexOf("<!--body-->")
+        )
+        const titleIndex = html.indexOf(
+            "Cereal yields have increased in all regions",
+            html.indexOf("<!--body-->")
+        )
+        expect(imageIndex).toBeGreaterThan(-1)
+        expect(imageIndex).toBeLessThan(titleIndex)
     })
 
     it("renders the data insight's cta block with the arrow treatment", async () => {
