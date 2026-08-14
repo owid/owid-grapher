@@ -5,7 +5,6 @@ export type DbInsertMultiDimXChartConfig = {
     viewId: string
     variableId: number
     chartConfigId: string
-    patchConfigId: string
     createdAt?: Date
     updatedAt?: Date
 }
