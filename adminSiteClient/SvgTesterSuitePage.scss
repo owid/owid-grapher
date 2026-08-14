@@ -37,6 +37,12 @@ $svg-tester-error-frame: #dda4a0;
     }
 }
 
+.SvgTesterSuitePage__suite-note {
+    color: $gray-60;
+    font-size: 11px;
+    margin-left: 4px;
+}
+
 .SvgTesterSuitePage__summary {
     background: $white;
     border-bottom: 1px solid $gray-20;
@@ -71,6 +77,26 @@ $svg-tester-error-frame: #dda4a0;
 
 .SvgTesterSuitePage__errors {
     color: $svg-tester-error;
+}
+
+.SvgTesterSuitePage__progress {
+    margin-top: 4px;
+    max-width: 480px;
+
+    // The bar's own bottom margin is the gap to the notes below it
+    .ant-progress {
+        margin-bottom: 0;
+    }
+}
+
+.SvgTesterSuitePage__progress-note {
+    font-size: 13px;
+}
+
+.SvgTesterSuitePage__refreshed {
+    color: $gray-60;
+    font-size: 13px;
+    margin-top: 16px;
 }
 
 .SvgTesterSuitePage__commit {
