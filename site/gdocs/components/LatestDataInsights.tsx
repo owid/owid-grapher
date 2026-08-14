@@ -40,42 +40,35 @@ export default function LatestDataInsights({
     )
     const scrollerRef = useRef<HTMLUListElement>(null)
     const [selectedIndex, setSelectedIndex] = useState(0)
-    const [snapCount, setSnapCount] = useState(0)
-    const [canScrollPrev, setCanScrollPrev] = useState(false)
-    const [canScrollNext, setCanScrollNext] = useState(false)
 
-    const updateScrollState = useCallback(() => {
+    const updateSelectedIndex = useCallback(() => {
         const scroller = scrollerRef.current
         if (!scroller) return
         const cards = getVisibleCards(scroller)
-        if (cards.length === 0) return
         const maxScroll = scroller.scrollWidth - scroller.clientWidth
-        const scrollLeft = scroller.scrollLeft
-        setCanScrollPrev(scrollLeft > 1)
-        setCanScrollNext(scrollLeft < maxScroll - 1)
-        setSnapCount(cards.length)
-        setSelectedIndex(
-            scrollLeft >= maxScroll - 1
-                ? cards.length - 1
-                : findNearestCardIndex(cards, scrollLeft)
-        )
+        if (cards.length === 0 || maxScroll <= 0) setSelectedIndex(0)
+        else if (scroller.scrollLeft >= maxScroll - 1)
+            // At the very end of the scroller the last card counts as
+            // selected even though it can't reach its snap position.
+            setSelectedIndex(cards.length - 1)
+        else setSelectedIndex(findNearestCardIndex(cards, scroller.scrollLeft))
     }, [])
 
     useEffect(() => {
         const scroller = scrollerRef.current
         if (!scroller) return
-        updateScrollState()
-        scroller.addEventListener("scroll", updateScrollState, {
+        updateSelectedIndex()
+        scroller.addEventListener("scroll", updateSelectedIndex, {
             passive: true,
         })
-        window.addEventListener("resize", updateScrollState)
+        window.addEventListener("resize", updateSelectedIndex)
         return () => {
-            scroller.removeEventListener("scroll", updateScrollState)
-            window.removeEventListener("resize", updateScrollState)
+            scroller.removeEventListener("scroll", updateSelectedIndex)
+            window.removeEventListener("resize", updateSelectedIndex)
         }
-    }, [updateScrollState])
+    }, [updateSelectedIndex])
 
-    const scrollToCard = useCallback((index: number) => {
+    const scrollToCard = (index: number): void => {
         const scroller = scrollerRef.current
         if (!scroller) return
         const cards = getVisibleCards(scroller)
@@ -85,17 +78,7 @@ export default function LatestDataInsights({
             left: card.offsetLeft - cards[0].offsetLeft,
             behavior: "smooth",
         })
-    }, [])
-
-    const scrollPrev = useCallback(
-        () => scrollToCard(selectedIndex - 1),
-        [scrollToCard, selectedIndex]
-    )
-
-    const scrollNext = useCallback(
-        () => scrollToCard(selectedIndex + 1),
-        [scrollToCard, selectedIndex]
-    )
+    }
 
     return (
         <div className={cx("latest-data-insights", className)}>
@@ -134,31 +117,35 @@ export default function LatestDataInsights({
                     />
                 </li>
             </ul>
-            {canScrollPrev && (
+            {selectedIndex > 0 && (
                 <Button
                     ariaLabel="Scroll to the previous data insight card"
-                    className="latest-data-insights__control-button latest-data-insights__control-button--prev"
+                    className="latest-data-insights__control-button latest-data-insights__control-button--prev js--hide-if-js-disabled"
                     theme="solid-blue"
-                    onClick={scrollPrev}
+                    onClick={() => scrollToCard(selectedIndex - 1)}
                     icon={faChevronLeft}
                     text=""
                 />
             )}
-            {canScrollNext && (
+            {selectedIndex < dataInsights.length - 1 && (
                 <Button
                     ariaLabel="Scroll to the next data insight card"
-                    className="latest-data-insights__control-button latest-data-insights__control-button--next"
+                    className="latest-data-insights__control-button latest-data-insights__control-button--next js--hide-if-js-disabled"
                     theme="solid-blue"
-                    onClick={scrollNext}
+                    onClick={() => scrollToCard(selectedIndex + 1)}
                     icon={faChevronRight}
                     text=""
                 />
             )}
             <div className="latest-data-insights__dots">
-                {Array.from({ length: snapCount }, (_, index) => (
+                {/* The extra dot belongs to the "See all" card; it's hidden
+                    along with its card on larger screens (see CSS). */}
+                {Array.from({ length: dataInsights.length + 1 }, (_, index) => (
                     <div
                         key={index}
                         className={cx("latest-data-insights__dot", {
+                            "latest-data-insights__dot--see-all":
+                                index === dataInsights.length,
                             "latest-data-insights__dot--selected":
                                 index === selectedIndex,
                         })}
