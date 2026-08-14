@@ -262,6 +262,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         const expectedMergedViewConfigUpdated = {
             ...expectedMergedViewConfig,
             subtitle: "Newly updated subtitle",
+            isPublished: false,
         }
         const fullViewConfig1Updated = await env
             .testKnex(ChartConfigsTableName)
@@ -278,9 +279,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             .testKnex(ChartConfigsTableName)
             .whereIn("id", [
                 multiDimView1.chartConfigId,
-                multiDimView1.patchConfigId,
                 multiDimView2.chartConfigId,
-                multiDimView2.patchConfigId,
             ])
             .delete()
 

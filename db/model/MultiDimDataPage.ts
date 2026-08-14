@@ -9,10 +9,58 @@ import {
     DbPlainMultiDimDataPage,
     DbEnrichedMultiDimDataPage,
     ContentGraphLinkType,
+    GrapherInterface,
+    IndicatorsAfterPreProcessing,
     JsonString,
     MultiDimDataPageConfigEnriched,
+    View,
 } from "@ourworldindata/types"
+import {
+    defaultGrapherConfig,
+    migrateGrapherConfigToLatestVersionAndFailOnError,
+} from "@ourworldindata/grapher"
+import {
+    mergeGrapherConfigs,
+    MultiDimDataPageConfig,
+} from "@ourworldindata/utils"
 import { buildQueryStrFromConfig } from "./MultiDimRedirects.js"
+
+/**
+ * The config layer an mdim view's authors: the view's own config
+ * with the dimensions and default entities merged over it
+ */
+export function buildMdimViewPatchConfig(
+    config: Pick<
+        MultiDimDataPageConfigEnriched,
+        "defaultSelection" | "grapherConfigSchema"
+    >,
+    view: View<IndicatorsAfterPreProcessing>,
+    published?: boolean
+): GrapherInterface {
+    const mainGrapherConfig: GrapherInterface = {
+        $schema: defaultGrapherConfig.$schema,
+        dimensions: MultiDimDataPageConfig.viewToDimensionsConfig(view),
+        selectedEntityNames: config.defaultSelection ?? [],
+    }
+    let viewGrapherConfig = {}
+    if (view.config) {
+        viewGrapherConfig = config.grapherConfigSchema
+            ? { $schema: config.grapherConfigSchema, ...view.config }
+            : view.config
+        if ("$schema" in viewGrapherConfig) {
+            viewGrapherConfig =
+                migrateGrapherConfigToLatestVersionAndFailOnError(
+                    viewGrapherConfig
+                )
+        }
+    }
+    const patchConfig = mergeGrapherConfigs(
+        viewGrapherConfig,
+        mainGrapherConfig
+    )
+    if (published !== undefined) patchConfig.isPublished = published
+    return patchConfig
+}
 
 /**
  * Returns zero if none of the inserted columns differs from the existing ones,
