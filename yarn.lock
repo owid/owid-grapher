@@ -2423,6 +2423,7 @@ __metadata:
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
     "@types/topojson-client": "npm:^3.1.5"
+    bumpp: "npm:^12.2.0"
     clsx: "npm:^2.1.1"
     colorbrewer: "npm:^1.3.0"
     d3: "npm:^7.9.0"
@@ -6518,6 +6519,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"args-tokenizer@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "args-tokenizer@npm:0.3.0"
+  checksum: 10/b1335368758f9fc9b9bfc98ac4a5ea47b89be76fbc66c12bd2cb9e8460c9126e07ac3d251c1cf799df5bfde7b3d97559c55227c633ea82511bf969f69720bf39
+  languageName: node
+  linkType: hard
+
 "aria-hidden@npm:^1.2.3":
   version: 1.2.6
   resolution: "aria-hidden@npm:1.2.6"
@@ -6753,6 +6761,25 @@ __metadata:
   version: 1.1.2
   resolution: "buffer-from@npm:1.1.2"
   checksum: 10/0448524a562b37d4d7ed9efd91685a5b77a50672c556ea254ac9a6d30e3403a517d8981f10e565db24e8339413b43c97ca2951f10e399c6125a0d8911f5679bb
+  languageName: node
+  linkType: hard
+
+"bumpp@npm:^12.2.0":
+  version: 12.2.0
+  resolution: "bumpp@npm:12.2.0"
+  dependencies:
+    args-tokenizer: "npm:^0.3.0"
+    cac: "npm:^7.0.0"
+    jsonc-parser: "npm:^3.3.1"
+    package-manager-detector: "npm:^1.8.0"
+    tinyexec: "npm:^1.3.0"
+    tinyglobby: "npm:^0.2.17"
+    unconfig: "npm:^7.5.0"
+    verkit: "npm:^0.3.2"
+    yaml: "npm:^2.9.0"
+  bin:
+    bumpp: bin/bumpp.mjs
+  checksum: 10/b5f73248e4b59335c464555119a38cde7dd621959fb43c27d885063f5c4d20b0ca494469a5fd043d0cef80de90fbaccfc2d3bfcc0f1e162c9448bcf728d459ce
   languageName: node
   linkType: hard
 
@@ -7862,7 +7889,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"defu@npm:^6.1.7":
+"defu@npm:^6.1.4, defu@npm:^6.1.7":
   version: 6.1.7
   resolution: "defu@npm:6.1.7"
   checksum: 10/09480a5fbe6318f622f30017f9386df6ae92ed895fb1ccc61e1ff0d5016b28a321c751749fdd52c996ddd4eafc2c95b77dc0c8cc109881a231c23c7fd630deb9
@@ -8223,14 +8250,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"es-module-lexer@npm:^2.0.0, es-module-lexer@npm:^2.1.0":
-  version: 2.2.0
-  resolution: "es-module-lexer@npm:2.2.0"
-  checksum: 10/076e1aacd032e218ffd99d4b58b4e875b09aba3aace089e32ed9dacc5995df914ec138571d9fde1280151f07f78e61336d9f43d241947a6ff7db26c49b9b3976
-  languageName: node
-  linkType: hard
-
-"es-module-lexer@npm:^2.3.1":
+"es-module-lexer@npm:^2.0.0, es-module-lexer@npm:^2.1.0, es-module-lexer@npm:^2.3.1":
   version: 2.3.1
   resolution: "es-module-lexer@npm:2.3.1"
   checksum: 10/15bd9f6d70ec7f046a308b7fbeb56a1fd4bde09e6a46df0015caee58bd5888fc114029754e922ca68577b761890ac95cc450683424209464530cfe54f69b8566
@@ -9998,6 +10018,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jiti@npm:^2.6.1":
+  version: 2.7.0
+  resolution: "jiti@npm:2.7.0"
+  bin:
+    jiti: lib/jiti-cli.mjs
+  checksum: 10/6d75a8dbd61dbee031aa0937fabb748ff8ddf370b971958cc704f5cf26b4c5bdc9dcd0563059b2627a2bd41d946fa0bc64f912fdc8981ca7945a9d63c74ad0f9
+  languageName: node
+  linkType: hard
+
 "jose@npm:^6.2.1":
   version: 6.2.1
   resolution: "jose@npm:6.2.1"
@@ -10112,6 +10141,13 @@ __metadata:
   version: 1.0.6
   resolution: "json8-pointer@npm:1.0.6"
   checksum: 10/86c32f50994e10375717747f95493248edc9d4a69a160230962a7fad976844a1a55e6bf9692f141e22fcca1355a1b159bb1fd81d8e875c4279f9ae98d6063555
+  languageName: node
+  linkType: hard
+
+"jsonc-parser@npm:^3.3.1":
+  version: 3.3.1
+  resolution: "jsonc-parser@npm:3.3.1"
+  checksum: 10/9b0dc391f20b47378f843ef1e877e73ec652a5bdc3c5fa1f36af0f119a55091d147a86c1ee86a232296f55c929bba174538c2bf0312610e0817a22de131cc3f4
   languageName: node
   linkType: hard
 
@@ -11876,6 +11912,13 @@ __metadata:
   version: 2.2.0
   resolution: "p-try@npm:2.2.0"
   checksum: 10/f8a8e9a7693659383f06aec604ad5ead237c7a261c18048a6e1b5b85a5f8a067e469aa24f5bc009b991ea3b058a87f5065ef4176793a200d4917349881216cae
+  languageName: node
+  linkType: hard
+
+"package-manager-detector@npm:^1.8.0":
+  version: 1.8.0
+  resolution: "package-manager-detector@npm:1.8.0"
+  checksum: 10/5d79b8bf3d0d3da312ec08749c74a3b7e4d4139c259fe3561538772c65ece8ff733e002c67a4324b5c505d2ac625c121b94cf3d5135e1b4e43fed5bced148763
   languageName: node
   linkType: hard
 
@@ -13915,10 +13958,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tinyexec@npm:^1.0.2, tinyexec@npm:^1.1.1, tinyexec@npm:^1.1.2, tinyexec@npm:^1.2.4":
-  version: 1.2.4
-  resolution: "tinyexec@npm:1.2.4"
-  checksum: 10/f20b3e6f56f24c3ebe0129d0b6e657e561d225df2cf93c1a10362996232dd6ad4b8af8c9e81d258a64d09020e723772baf6fe0be26512dba7c61bb366d67b1f9
+"tinyexec@npm:^1.0.2, tinyexec@npm:^1.1.1, tinyexec@npm:^1.1.2, tinyexec@npm:^1.2.4, tinyexec@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "tinyexec@npm:1.3.0"
+  checksum: 10/749a8c5aac2ffe3f04220b8966f414636c6c324d4ae88895dfffb2319db61cf1c01c5d7e8f0fb8ab747389ea0be1f0f80d850a9cce88a9d96cc5ebcb345db018
   languageName: node
   linkType: hard
 
@@ -14406,13 +14449,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"unconfig-core@npm:^7.5.0":
+"unconfig-core@npm:7.5.0, unconfig-core@npm:^7.5.0":
   version: 7.5.0
   resolution: "unconfig-core@npm:7.5.0"
   dependencies:
     "@quansync/fs": "npm:^1.0.0"
     quansync: "npm:^1.0.0"
   checksum: 10/2975b628788327c2dc42305b787622223b0c4afa8f9287f2ee13720bfbe6830ed8cb4751eeab9f2a7f399a2a8d6c062a304f940725451cb266641c068df226db
+  languageName: node
+  linkType: hard
+
+"unconfig@npm:^7.5.0":
+  version: 7.5.0
+  resolution: "unconfig@npm:7.5.0"
+  dependencies:
+    "@quansync/fs": "npm:^1.0.0"
+    defu: "npm:^6.1.4"
+    jiti: "npm:^2.6.1"
+    quansync: "npm:^1.0.0"
+    unconfig-core: "npm:7.5.0"
+  checksum: 10/5f06db143babd7187d49c347b74bb55ec7c2a4f9f05c38271762209d3c353c6c394ffe3acd6ab6d913710ffd6dc1f86c03e9bcdbd51497f421bf8ad4ca56ddc4
   languageName: node
   linkType: hard
 
@@ -14731,10 +14787,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"verkit@npm:^0.3.0":
-  version: 0.3.1
-  resolution: "verkit@npm:0.3.1"
-  checksum: 10/3b73764e47c5d3bcdb6f3014619ccd6f8b2044c282abe55b9d10057d056165c3873ab89039718348c5353729cc05ad0bb39c32f2bc0acb5428e0fa4450e2126d
+"verkit@npm:^0.3.0, verkit@npm:^0.3.2":
+  version: 0.3.2
+  resolution: "verkit@npm:0.3.2"
+  checksum: 10/23e57c28094da170e381e27c020cddde0543fbac377b111c325a18440da4502d21c58446ef25794ecc1f2434df1d6297edf760910245ac5b90199a9bb18d8634
   languageName: node
   linkType: hard
 
@@ -15161,7 +15217,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^2.8.3, yaml@npm:^2.8.4":
+"yaml@npm:^2.8.3, yaml@npm:^2.8.4, yaml@npm:^2.9.0":
   version: 2.9.0
   resolution: "yaml@npm:2.9.0"
   bin:
