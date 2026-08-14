@@ -759,6 +759,44 @@ describe("toleranceNotice", () => {
         })
     })
 
+    it("is only as wide as the columns that were substituted", () => {
+        const grapher = new GrapherState({
+            table: new OwidTable(
+                [
+                    ["entityName", "year", "gdp", "pop"],
+                    ["France", 1990, 10, 1],
+                    ["France", 2001, 200, 20],
+                    // Only gdp is missing its 2002 value
+                    ["France", 2002, "", 30],
+                    ["Germany", 1990, 20, 2],
+                    ["Germany", 2001, 300, 30],
+                    ["Germany", 2002, 400, 40],
+                ],
+                [
+                    {
+                        slug: "gdp",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 3,
+                    },
+                    {
+                        slug: "pop",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 10,
+                    },
+                    { slug: "year", type: ColumnTypeNames.Year },
+                ]
+            ),
+            ySlugs: "gdp pop",
+            chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+            selectedEntityNames: ["France", "Germany"],
+        })
+
+        // gdp's 3 years, not pop's 10, which isn't currently applied
+        expect(grapher.toleranceNotice).toEqual(
+            "Where data is unavailable, the closest available value within 3 years is shown instead."
+        )
+    })
+
     describe("only when tolerance is actually applied", () => {
         // Every country has data for every year
         const completeTable = (): OwidTable =>

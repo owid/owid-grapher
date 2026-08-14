@@ -4,7 +4,6 @@ import {
     OwidTable,
 } from "@ourworldindata/core-table"
 import {
-    ColumnSlug,
     Time,
     TimeInterval,
     TimeRange,
@@ -29,22 +28,28 @@ export function makeToleranceNotice({
     timeTolerance?: number
     toleranceStrategy?: ToleranceStrategy
 }): string | undefined {
-    const tolerance =
-        timeTolerance ??
-        Math.max(0, ...columns.map((column) => column.tolerance))
-    if (!tolerance) return undefined
+    const configuredTolerance =
+        timeTolerance ?? getMaxConfiguredTolerance(columns)
+    if (!configuredTolerance) return undefined
 
-    const notice = formatToleranceNotice({
+    const appliedColumns = columnsWithToleranceApplied(
+        transformedTable,
+        columns
+    )
+    if (!appliedColumns.length) return undefined
+
+    // Only take into account the tolerance configured on the columns
+    // that actually had a value filled in from another time
+    const appliedTolerance = getMaxConfiguredTolerance(appliedColumns)
+    const statedTolerance =
+        timeTolerance ?? (appliedTolerance || configuredTolerance)
+
+    return formatToleranceNotice({
         timeColumn: transformedTable.timeColumn,
         timeRange: inputTable.timeRange,
-        timeTolerance: tolerance,
+        timeTolerance: statedTolerance,
         toleranceStrategy,
     })
-    // Skip the scan below when there's no notice for it to caption
-    if (!notice) return undefined
-
-    const slugs = columns.map((column) => column.slug)
-    return hasToleranceApplied(transformedTable, slugs) ? notice : undefined
 }
 
 export function formatToleranceNotice({
@@ -126,20 +131,26 @@ export function formatToleranceNotice({
     }
 }
 
+/** The largest tolerance configured on any of the given columns */
+function getMaxConfiguredTolerance(columns: CoreColumn[]): number {
+    return Math.max(0, ...columns.map((column) => column.tolerance))
+}
+
 /**
- * Whether any value in the given columns is filled in from a different time
- * than the one it's shown for. Typically called with a `transformedTable`.
+ * Of the given columns, those with a value that is filled in from a different
+ * time than the one it's shown for. Typically called with a `transformedTable`.
  */
-function hasToleranceApplied(
+function columnsWithToleranceApplied(
     table: OwidTable,
-    columnSlugs: ColumnSlug[]
-): boolean {
+    columns: CoreColumn[]
+): CoreColumn[] {
     const { timeColumn } = table
-    if (timeColumn.isMissing) return false
+    if (timeColumn.isMissing) return []
 
     const times = timeColumn.valuesIncludingErrorValues
 
-    return columnSlugs.some((slug) => {
+    return columns.filter((column) => {
+        const { slug } = column
         const originalTimeSlug = getOriginalTimeColumnSlug(table, slug)
         if (!table.has(slug) || !table.has(originalTimeSlug)) return false
 
