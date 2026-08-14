@@ -244,14 +244,11 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "recirc" }, parseRecirc)
         .with({ type: "subscribe-banner" }, parseSubscribeBanner)
         .with({ type: "text" }, parseText)
-        .with(
-            { type: "html" },
-            (block: RawBlockHtml): EnrichedBlockHtml => ({
-                type: "html",
-                value: block.value,
-                parseErrors: [],
-            })
-        )
+        .with({ type: "html" }, (block: RawBlockHtml): EnrichedBlockHtml => ({
+            type: "html",
+            value: block.value,
+            parseErrors: [],
+        }))
         .with({ type: "heading" }, parseHeading)
         .with({ type: "sdg-grid" }, parseSdgGrid)
         .with({ type: "sticky-left" }, parseStickyLeft)
@@ -266,23 +263,17 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "cta" }, parseCta)
         .with({ type: "key-insights" }, parseKeyInsights)
         .with({ type: "research-and-writing" }, parseResearchAndWritingBlock)
-        .with(
-            { type: "sdg-toc" },
-            (b): EnrichedBlockSDGToc => ({
-                type: "sdg-toc",
-                value: b.value,
-                parseErrors: [],
-            })
-        )
+        .with({ type: "sdg-toc" }, (b): EnrichedBlockSDGToc => ({
+            type: "sdg-toc",
+            value: b.value,
+            parseErrors: [],
+        }))
         .with({ type: "ltp-toc" }, parseLtpToc)
-        .with(
-            { type: "missing-data" },
-            (b): EnrichedBlockMissingData => ({
-                type: "missing-data",
-                value: b.value,
-                parseErrors: [],
-            })
-        )
+        .with({ type: "missing-data" }, (b): EnrichedBlockMissingData => ({
+            type: "missing-data",
+            value: b.value,
+            parseErrors: [],
+        }))
         .with({ type: "expandable-paragraph" }, parseExpandableParagraph)
         .with({ type: "align" }, parseAlign)
         .with({ type: "explorer-tiles" }, parseExplorerTiles)
@@ -2953,13 +2944,11 @@ export function parseRefs({
     refErrors.push(
         ...[...refsByFirstAppearance]
             .filter((ref) => !parsedRefs[ref])
-            .map(
-                (undefinedRef): OwidGdocErrorMessage => ({
-                    message: `"${undefinedRef}" is used as a ref ID but no definition for this ref has been written.`,
-                    property: "refs",
-                    type: OwidGdocErrorMessageType.Error,
-                })
-            )
+            .map((undefinedRef): OwidGdocErrorMessage => ({
+                message: `"${undefinedRef}" is used as a ref ID but no definition for this ref has been written.`,
+                property: "refs",
+                type: OwidGdocErrorMessageType.Error,
+            }))
     )
 
     return { definitions: parsedRefs, errors: refErrors }

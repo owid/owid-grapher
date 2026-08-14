@@ -78,251 +78,182 @@ export function enrichedBlockToRawBlock(
     block: OwidEnrichedGdocBlock
 ): OwidRawGdocBlock {
     return match(block)
-        .with(
-            { type: "text" },
-            (b): RawBlockText => ({
-                type: b.type,
-                value: spansToHtmlText(b.value),
-            })
-        )
-        .with(
-            { type: "simple-text" },
-            (b): RawBlockText => ({
+        .with({ type: "text" }, (b): RawBlockText => ({
+            type: b.type,
+            value: spansToHtmlText(b.value),
+        }))
+        .with({ type: "simple-text" }, (b): RawBlockText => ({
+            type: "text",
+            value: b.value.text,
+        }))
+        .with({ type: "all-charts" }, (b): RawBlockAllCharts => ({
+            type: b.type,
+            value: {
+                heading: b.heading,
+                top: b.top,
+            },
+        }))
+        .with({ type: "additional-charts" }, (b): RawBlockAdditionalCharts => ({
+            type: b.type,
+            value: {
+                list: b.items.map(spansToHtmlText),
+            },
+        }))
+        .with({ type: "callout" }, (b): RawBlockCallout => ({
+            type: b.type,
+            value: {
+                title: b.title,
+                text: b.text.map(
+                    (enriched) =>
+                        enrichedBlockToRawBlock(enriched) as
+                            | RawBlockText
+                            | RawBlockList
+                            | RawBlockHeading
+                ),
+            },
+        }))
+        .with({ type: "chart" }, (b): RawBlockChart => ({
+            type: b.type,
+            value: {
+                url: b.url,
+                height: b.height,
+                size: b.size,
+                caption: b.caption ? spansToHtmlText(b.caption) : undefined,
+                visibility: b.visibility ? b.visibility : undefined,
+                peerCountries: b.peerCountries,
+            },
+        }))
+        .with({ type: "narrative-chart" }, (b): RawBlockNarrativeChart => ({
+            type: b.type,
+            value: {
+                name: b.name,
+                height: b.height,
+                size: b.size,
+                caption: b.caption ? spansToHtmlText(b.caption) : undefined,
+            },
+        }))
+        .with({ type: "code" }, (b): RawBlockCode => ({
+            type: b.type,
+            value: b.text.map((text) => ({
                 type: "text",
-                value: b.value.text,
-            })
-        )
-        .with(
-            { type: "all-charts" },
-            (b): RawBlockAllCharts => ({
-                type: b.type,
-                value: {
-                    heading: b.heading,
-                    top: b.top,
+                value: text.value.text,
+            })),
+        }))
+        .with({ type: "cookie-notice" }, (b): RawBlockCookieNotice => ({
+            type: b.type,
+            value: {},
+        }))
+        .with({ type: "cta" }, (b): RawBlockCta => ({
+            type: b.type,
+            value: {
+                url: b.url,
+                text: b.text,
+            },
+        }))
+        .with({ type: "donors" }, (b): RawBlockDonorList => ({
+            type: b.type,
+            value: b.value,
+        }))
+        .with({ type: "chart-story" }, (b): RawBlockChartStory => ({
+            type: b.type,
+            value: b.items.map((item) => ({
+                narrative: spansToHtmlText(item.narrative.value),
+                chart: item.chart.url,
+                technical: {
+                    list: item.technical.map((t) => spansToHtmlText(t.value)),
                 },
-            })
-        )
-        .with(
-            { type: "additional-charts" },
-            (b): RawBlockAdditionalCharts => ({
-                type: b.type,
-                value: {
-                    list: b.items.map(spansToHtmlText),
-                },
-            })
-        )
-        .with(
-            { type: "callout" },
-            (b): RawBlockCallout => ({
-                type: b.type,
-                value: {
-                    title: b.title,
-                    text: b.text.map(
-                        (enriched) =>
-                            enrichedBlockToRawBlock(enriched) as
-                                | RawBlockText
-                                | RawBlockList
-                                | RawBlockHeading
-                    ),
-                },
-            })
-        )
-        .with(
-            { type: "chart" },
-            (b): RawBlockChart => ({
-                type: b.type,
-                value: {
-                    url: b.url,
-                    height: b.height,
-                    size: b.size,
-                    caption: b.caption ? spansToHtmlText(b.caption) : undefined,
-                    visibility: b.visibility ? b.visibility : undefined,
-                    peerCountries: b.peerCountries,
-                },
-            })
-        )
-        .with(
-            { type: "narrative-chart" },
-            (b): RawBlockNarrativeChart => ({
-                type: b.type,
-                value: {
-                    name: b.name,
-                    height: b.height,
-                    size: b.size,
-                    caption: b.caption ? spansToHtmlText(b.caption) : undefined,
-                },
-            })
-        )
-        .with(
-            { type: "code" },
-            (b): RawBlockCode => ({
-                type: b.type,
-                value: b.text.map((text) => ({
-                    type: "text",
-                    value: text.value.text,
+            })),
+        }))
+        .with({ type: "image" }, (b): RawBlockImage => ({
+            type: b.type,
+            value: {
+                filename: b.filename,
+                smallFilename: b.smallFilename,
+                alt: b.alt,
+                caption: b.caption && spansToHtmlText(b.caption),
+                size: b.size,
+                hasOutline: String(b.hasOutline),
+                visibility: b.visibility ? b.visibility : undefined,
+            },
+        }))
+        .with({ type: "static-viz" }, (block): RawBlockStaticViz => ({
+            type: "static-viz",
+            value: {
+                name: block.name,
+                size: block.size,
+                hasOutline: String(block.hasOutline),
+                caption: block.caption
+                    ? spansToHtmlText(block.caption)
+                    : undefined,
+            },
+        }))
+        .with({ type: "video" }, (b): RawBlockVideo => ({
+            type: b.type,
+            value: {
+                url: b.url,
+                filename: b.filename,
+                caption: b.caption ? spansToHtmlText(b.caption) : undefined,
+                shouldLoop: String(b.shouldLoop),
+                visibility: b.visibility ? b.visibility : undefined,
+            },
+        }))
+        .with({ type: "list" }, (b): RawBlockList => ({
+            type: b.type,
+            value: b.items.map((item) => spansToHtmlText(item.value)),
+        }))
+        .with({ type: "people" }, (b): RawBlockPeople => ({
+            type: b.type,
+            value: b.items.map(enrichedBlockToRawBlock) as RawBlockPerson[],
+        }))
+        .with({ type: "people-rows" }, (b): RawBlockPeopleRows => ({
+            type: b.type,
+            value: {
+                columns: b.columns,
+                people: b.people.map(
+                    enrichedBlockToRawBlock
+                ) as RawBlockPerson[],
+            },
+        }))
+        .with({ type: "person" }, (b): RawBlockPerson => ({
+            type: "person",
+            value: {
+                image: b.image,
+                name: b.name,
+                title: b.title,
+                url: b.url,
+                text: b.text.map(enrichedBlockToRawBlock) as RawBlockText[],
+                socials: b.socials?.map((social) => ({
+                    type: social.type,
+                    url: social.url,
+                    text: social.text,
                 })),
-            })
-        )
-        .with(
-            { type: "cookie-notice" },
-            (b): RawBlockCookieNotice => ({
-                type: b.type,
-                value: {},
-            })
-        )
-        .with(
-            { type: "cta" },
-            (b): RawBlockCta => ({
-                type: b.type,
-                value: {
-                    url: b.url,
-                    text: b.text,
-                },
-            })
-        )
-        .with(
-            { type: "donors" },
-            (b): RawBlockDonorList => ({
-                type: b.type,
-                value: b.value,
-            })
-        )
-        .with(
-            { type: "chart-story" },
-            (b): RawBlockChartStory => ({
-                type: b.type,
-                value: b.items.map((item) => ({
-                    narrative: spansToHtmlText(item.narrative.value),
-                    chart: item.chart.url,
-                    technical: {
-                        list: item.technical.map((t) =>
-                            spansToHtmlText(t.value)
-                        ),
-                    },
-                })),
-            })
-        )
-        .with(
-            { type: "image" },
-            (b): RawBlockImage => ({
-                type: b.type,
-                value: {
-                    filename: b.filename,
-                    smallFilename: b.smallFilename,
-                    alt: b.alt,
-                    caption: b.caption && spansToHtmlText(b.caption),
-                    size: b.size,
-                    hasOutline: String(b.hasOutline),
-                    visibility: b.visibility ? b.visibility : undefined,
-                },
-            })
-        )
-        .with(
-            { type: "static-viz" },
-            (block): RawBlockStaticViz => ({
-                type: "static-viz",
-                value: {
-                    name: block.name,
-                    size: block.size,
-                    hasOutline: String(block.hasOutline),
-                    caption: block.caption
-                        ? spansToHtmlText(block.caption)
-                        : undefined,
-                },
-            })
-        )
-        .with(
-            { type: "video" },
-            (b): RawBlockVideo => ({
-                type: b.type,
-                value: {
-                    url: b.url,
-                    filename: b.filename,
-                    caption: b.caption ? spansToHtmlText(b.caption) : undefined,
-                    shouldLoop: String(b.shouldLoop),
-                    visibility: b.visibility ? b.visibility : undefined,
-                },
-            })
-        )
-        .with(
-            { type: "list" },
-            (b): RawBlockList => ({
-                type: b.type,
-                value: b.items.map((item) => spansToHtmlText(item.value)),
-            })
-        )
-        .with(
-            { type: "people" },
-            (b): RawBlockPeople => ({
-                type: b.type,
-                value: b.items.map(enrichedBlockToRawBlock) as RawBlockPerson[],
-            })
-        )
-        .with(
-            { type: "people-rows" },
-            (b): RawBlockPeopleRows => ({
-                type: b.type,
-                value: {
-                    columns: b.columns,
-                    people: b.people.map(
-                        enrichedBlockToRawBlock
-                    ) as RawBlockPerson[],
-                },
-            })
-        )
-        .with(
-            { type: "person" },
-            (b): RawBlockPerson => ({
-                type: "person",
-                value: {
-                    image: b.image,
-                    name: b.name,
-                    title: b.title,
-                    url: b.url,
-                    text: b.text.map(enrichedBlockToRawBlock) as RawBlockText[],
-                    socials: b.socials?.map((social) => ({
-                        type: social.type,
-                        url: social.url,
-                        text: social.text,
-                    })),
-                },
-            })
-        )
-        .with(
-            { type: "pull-quote" },
-            (b): RawBlockPullQuote => ({
-                type: b.type,
-                value: {
-                    quote: b.quote,
-                    align: b.align,
-                    content: b.content.map(
-                        (enriched) =>
-                            enrichedBlockToRawBlock(enriched) as RawBlockText
-                    ),
-                },
-            })
-        )
-        .with(
-            { type: "guided-chart" },
-            (b): RawBlockGuidedChart => ({
-                type: b.type,
-                value: b.content.map(
+            },
+        }))
+        .with({ type: "pull-quote" }, (b): RawBlockPullQuote => ({
+            type: b.type,
+            value: {
+                quote: b.quote,
+                align: b.align,
+                content: b.content.map(
                     (enriched) =>
                         enrichedBlockToRawBlock(enriched) as RawBlockText
                 ),
-            })
-        )
-        .with(
-            { type: "recirc" },
-            (b): RawBlockRecirc => ({
-                type: b.type,
-                value: {
-                    title: b.title,
-                    align: b.align,
-                    links: b.links.map(convertEnrichedHybridLinksToRaw),
-                },
-            })
-        )
+            },
+        }))
+        .with({ type: "guided-chart" }, (b): RawBlockGuidedChart => ({
+            type: b.type,
+            value: b.content.map(
+                (enriched) => enrichedBlockToRawBlock(enriched) as RawBlockText
+            ),
+        }))
+        .with({ type: "recirc" }, (b): RawBlockRecirc => ({
+            type: b.type,
+            value: {
+                title: b.title,
+                align: b.align,
+                links: b.links.map(convertEnrichedHybridLinksToRaw),
+            },
+        }))
         .with({ type: "chart-rows" }, (b): RawBlockChartRows => {
             const rawRows = b.rows.map((row) => ({
                 image: row.image,
@@ -345,89 +276,64 @@ export function enrichedBlockToRawBlock(
                 },
             }
         })
-        .with(
-            { type: "pull-chart" },
-            (b): RawBlockPullChart => ({
-                type: b.type,
-                value: {
-                    align: b.align,
-                    image: b.image,
-                    url: b.url,
-                    content: b.content.length
-                        ? b.content.map(
-                              (enriched) =>
-                                  enrichedBlockToRawBlock(
-                                      enriched
-                                  ) as RawBlockText
-                          )
-                        : undefined,
-                },
-            })
-        )
-        .with(
-            { type: "subscribe-banner" },
-            (b): RawBlockSubscribeBanner => ({
-                type: b.type,
-                value: {
-                    align: b.align,
-                },
-            })
-        )
-        .with(
-            { type: "resource-panel" },
-            (b): RawBlockResourcePanel => ({
-                type: b.type,
-                value: {
-                    icon: b.icon,
-                    kicker: b.kicker,
-                    title: b.title,
-                    links: b.links.map(convertEnrichedHybridLinksToRaw),
-                    buttonText: b.buttonText,
-                },
-            })
-        )
-        .with(
-            { type: "html" },
-            (b): RawBlockHtml => ({
-                type: b.type,
-                value: b.value,
-            })
-        )
-        .with(
-            { type: "heading" },
-            (b): RawBlockHeading => ({
-                type: b.type,
-                value: {
-                    text: b.supertitle
-                        ? [
-                              spansToHtmlText(b.supertitle),
-                              "\u000b",
-                              spansToHtmlText(b.text),
-                          ].join("")
-                        : spansToHtmlText(b.text),
-                    level: b.level.toString(),
-                },
-            })
-        )
-        .with(
-            { type: "horizontal-rule" },
-            (b): RawBlockHorizontalRule => ({
-                type: b.type,
-                value: b.value,
-            })
-        )
-        .with(
-            { type: "sdg-grid" },
-            (b): RawBlockSDGGrid => ({
-                type: b.type,
-                value: b.items.map(
-                    (item): RawSDGGridItem => ({
-                        goal: item.goal,
-                        link: item.link,
-                    })
-                ),
-            })
-        )
+        .with({ type: "pull-chart" }, (b): RawBlockPullChart => ({
+            type: b.type,
+            value: {
+                align: b.align,
+                image: b.image,
+                url: b.url,
+                content: b.content.length
+                    ? b.content.map(
+                          (enriched) =>
+                              enrichedBlockToRawBlock(enriched) as RawBlockText
+                      )
+                    : undefined,
+            },
+        }))
+        .with({ type: "subscribe-banner" }, (b): RawBlockSubscribeBanner => ({
+            type: b.type,
+            value: {
+                align: b.align,
+            },
+        }))
+        .with({ type: "resource-panel" }, (b): RawBlockResourcePanel => ({
+            type: b.type,
+            value: {
+                icon: b.icon,
+                kicker: b.kicker,
+                title: b.title,
+                links: b.links.map(convertEnrichedHybridLinksToRaw),
+                buttonText: b.buttonText,
+            },
+        }))
+        .with({ type: "html" }, (b): RawBlockHtml => ({
+            type: b.type,
+            value: b.value,
+        }))
+        .with({ type: "heading" }, (b): RawBlockHeading => ({
+            type: b.type,
+            value: {
+                text: b.supertitle
+                    ? [
+                          spansToHtmlText(b.supertitle),
+                          "\u000b",
+                          spansToHtmlText(b.text),
+                      ].join("")
+                    : spansToHtmlText(b.text),
+                level: b.level.toString(),
+            },
+        }))
+        .with({ type: "horizontal-rule" }, (b): RawBlockHorizontalRule => ({
+            type: b.type,
+            value: b.value,
+        }))
+        .with({ type: "sdg-grid" }, (b): RawBlockSDGGrid => ({
+            type: b.type,
+            value: b.items.map((item): RawSDGGridItem => ({
+                goal: item.goal,
+                link: item.link,
+            })),
+        }))
         .with(
             { type: P.union("side-by-side", "sticky-left", "sticky-right") },
             (b): OwidRawGdocBlock => ({
@@ -438,13 +344,10 @@ export function enrichedBlockToRawBlock(
                 },
             })
         )
-        .with(
-            { type: "gray-section" },
-            (b): RawBlockGraySection => ({
-                type: b.type,
-                value: b.items.map(enrichedBlockToRawBlock),
-            })
-        )
+        .with({ type: "gray-section" }, (b): RawBlockGraySection => ({
+            type: b.type,
+            value: b.items.map(enrichedBlockToRawBlock),
+        }))
         .with(
             { type: "explore-data-section" },
             (b): RawBlockExploreDataSection => ({
@@ -467,61 +370,43 @@ export function enrichedBlockToRawBlock(
                 },
             })
         )
-        .with(
-            { type: "prominent-link" },
-            (b): RawBlockProminentLink => ({
-                type: b.type,
-                value: {
-                    url: b.url,
-                    title: b.title,
-                    description: b.description,
-                    thumbnail: b.thumbnail,
-                },
-            })
-        )
-        .with(
-            { type: "sdg-toc" },
-            (b): RawBlockSDGToc => ({
-                type: b.type,
-                value: b.value,
-            })
-        )
-        .with(
-            { type: "ltp-toc" },
-            (b): RawBlockLTPToc => ({
-                type: b.type,
-                value: b.title ? { title: b.title } : undefined,
-            })
-        )
-        .with(
-            { type: "missing-data" },
-            (b): RawBlockMissingData => ({
-                type: b.type,
-                value: b.value,
-            })
-        )
-        .with(
-            { type: "numbered-list" },
-            (b): RawBlockNumberedList => ({
-                type: b.type,
-                // When going to raw blocks, include a leading "1. " so
-                // that when going the reverse way we will parse the content
-                // correctly as a numbered list again
-                value: b.items.map(
-                    (item, i) => `${i}. ${spansToHtmlText(item.value)}`
-                ),
-            })
-        )
-        .with(
-            { type: "aside" },
-            (b): RawBlockAside => ({
-                type: b.type,
-                value: {
-                    caption: spansToHtmlText(b.caption),
-                    position: b.position,
-                },
-            })
-        )
+        .with({ type: "prominent-link" }, (b): RawBlockProminentLink => ({
+            type: b.type,
+            value: {
+                url: b.url,
+                title: b.title,
+                description: b.description,
+                thumbnail: b.thumbnail,
+            },
+        }))
+        .with({ type: "sdg-toc" }, (b): RawBlockSDGToc => ({
+            type: b.type,
+            value: b.value,
+        }))
+        .with({ type: "ltp-toc" }, (b): RawBlockLTPToc => ({
+            type: b.type,
+            value: b.title ? { title: b.title } : undefined,
+        }))
+        .with({ type: "missing-data" }, (b): RawBlockMissingData => ({
+            type: b.type,
+            value: b.value,
+        }))
+        .with({ type: "numbered-list" }, (b): RawBlockNumberedList => ({
+            type: b.type,
+            // When going to raw blocks, include a leading "1. " so
+            // that when going the reverse way we will parse the content
+            // correctly as a numbered list again
+            value: b.items.map(
+                (item, i) => `${i}. ${spansToHtmlText(item.value)}`
+            ),
+        }))
+        .with({ type: "aside" }, (b): RawBlockAside => ({
+            type: b.type,
+            value: {
+                caption: spansToHtmlText(b.caption),
+                position: b.position,
+            },
+        }))
         .with(
             { type: "expandable-paragraph" },
             (b): RawBlockExpandableParagraph => ({
@@ -529,63 +414,54 @@ export function enrichedBlockToRawBlock(
                 value: b.items.map(enrichedBlockToRawBlock),
             })
         )
-        .with(
-            { type: "expander" },
-            (b): RawBlockExpander => ({
-                type: b.type,
-                value: {
-                    title: b.title,
-                    heading: b.heading,
-                    subtitle: b.subtitle,
-                    content: b.content.map(enrichedBlockToRawBlock),
-                },
-            })
-        )
-        .with(
-            { type: "topic-page-intro" },
-            (b): RawBlockTopicPageIntro => ({
-                type: b.type,
-                value: {
-                    "download-button": b.downloadButton
-                        ? {
-                              url: b.downloadButton.url,
-                              text: b.downloadButton.text,
-                          }
-                        : undefined,
-                    "related-topics": b.relatedTopics
-                        ? b.relatedTopics.map((relatedTopic) => ({
-                              text: relatedTopic.text,
-                              url: relatedTopic.url,
-                          }))
-                        : undefined,
-                    content: b.content.map((textBlock) => ({
-                        type: "text",
-                        value: spansToHtmlText(textBlock.value),
-                    })),
-                },
-            })
-        )
-        .with(
-            { type: "key-insights" },
-            (b): RawBlockKeyInsights => ({
-                type: b.type,
-                value: {
-                    heading: b.heading,
-                    insights: b.insights.map((insight) => ({
-                        title: insight.title,
-                        filename: insight.filename,
-                        url: insight.url,
-                        narrativeChartName: insight.narrativeChartName,
-                        asset: insight.asset?.map((asset) =>
-                            enrichedBlockToRawBlock(asset)
-                        ),
-                        content: insight.content?.map((content) =>
-                            enrichedBlockToRawBlock(content)
-                        ),
-                    })),
-                },
-            })
-        )
+        .with({ type: "expander" }, (b): RawBlockExpander => ({
+            type: b.type,
+            value: {
+                title: b.title,
+                heading: b.heading,
+                subtitle: b.subtitle,
+                content: b.content.map(enrichedBlockToRawBlock),
+            },
+        }))
+        .with({ type: "topic-page-intro" }, (b): RawBlockTopicPageIntro => ({
+            type: b.type,
+            value: {
+                "download-button": b.downloadButton
+                    ? {
+                          url: b.downloadButton.url,
+                          text: b.downloadButton.text,
+                      }
+                    : undefined,
+                "related-topics": b.relatedTopics
+                    ? b.relatedTopics.map((relatedTopic) => ({
+                          text: relatedTopic.text,
+                          url: relatedTopic.url,
+                      }))
+                    : undefined,
+                content: b.content.map((textBlock) => ({
+                    type: "text",
+                    value: spansToHtmlText(textBlock.value),
+                })),
+            },
+        }))
+        .with({ type: "key-insights" }, (b): RawBlockKeyInsights => ({
+            type: b.type,
+            value: {
+                heading: b.heading,
+                insights: b.insights.map((insight) => ({
+                    title: insight.title,
+                    filename: insight.filename,
+                    url: insight.url,
+                    narrativeChartName: insight.narrativeChartName,
+                    asset: insight.asset?.map((asset) =>
+                        enrichedBlockToRawBlock(asset)
+                    ),
+                    content: insight.content?.map((content) =>
+                        enrichedBlockToRawBlock(content)
+                    ),
+                })),
+            },
+        }))
         .with(
             { type: "research-and-writing" },
             (b): RawBlockResearchAndWriting => {
@@ -752,13 +628,10 @@ export function enrichedBlockToRawBlock(
                 },
             }
         })
-        .with(
-            { type: "featured-metrics" },
-            (_): RawBlockFeaturedMetrics => ({
-                type: "featured-metrics",
-                value: {},
-            })
-        )
+        .with({ type: "featured-metrics" }, (_): RawBlockFeaturedMetrics => ({
+            type: "featured-metrics",
+            value: {},
+        }))
         .with(
             { type: "featured-data-insights" },
             (_): RawBlockFeaturedDataInsights => ({
