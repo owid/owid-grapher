@@ -11,6 +11,7 @@
     "main": "src/index.ts",
     "types": "src/index.ts",
     "publishConfig": {
+        "registry": "https://packages.owid.io",
         "main": "dist/grapher.js",
         "types": "dist/grapher.d.ts",
         "exports": {
