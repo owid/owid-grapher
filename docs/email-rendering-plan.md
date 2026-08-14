@@ -72,13 +72,14 @@ These were agreed in planning; each is cheap to revisit later.
 - **Plain-text alternative**: send Postmark a `TextBody` generated via
   `render(component, { plainText: true })`. Improves spam scoring and serves
   text-only clients; today we send HTML only.
-- **Fonts: web-safe stacks**, per the design (which substitutes Arial for
-  Lato and Times New Roman for Playfair):
-    - body/UI: `Lato, Arial, Helvetica, sans-serif` (Arial is the metric
-      substitute; listing Lato first is free for readers who have it installed)
-    - serif titles (header, article titles):
-      `"Playfair Display", Georgia, "Times New Roman", serif`
-- No `@font-face` web-font loading in v1.
+- **Fonts: web-safe only**, matching the design's own substitutions (Arial
+  for Lato, Times New Roman for Playfair). Lato and Playfair Display are not
+  named in the stacks: the email is designed against the substitutes, so
+  readers who happen to have the real fonts installed would get a layout that
+  was never checked rather than the one that was.
+    - body/UI: `Arial, Helvetica, sans-serif`
+    - serif titles (header, article titles): `"Times New Roman", serif`
+- No `@font-face` web-font loading.
 
 ## The template, piece by piece
 
