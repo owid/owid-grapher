@@ -58,8 +58,15 @@ const CONTENT_PADDING = 40
 // so every body-copy element states it.
 const BODY_TEXT: CSSProperties = { fontSize: 16, lineHeight: "24px" }
 
+// react-email's <Link> defaults to a blue that a client shows on the alt text
+// when it blocks the image, so links wrapping an image override it.
+const IMAGE_LINK_STYLE: CSSProperties = {
+    color: COLORS.text,
+    textDecoration: "none",
+}
+
 /** Placeholder name — the newsletter hasn't been named yet. */
-const EMAIL_NAME = { small: "Your", large: "OWID Update" }
+const EMAIL_NAME = { small: "", large: "Your Update" }
 
 const CONTENT_TYPE_LABELS: Record<EmailNotificationsContentType, string> = {
     article: "Article",
@@ -153,7 +160,8 @@ function NotificationEmail({
                         <Text style={{ margin: "0 0 32px", fontSize: 14 }}>
                             Here is what we published in the last{" "}
                             {FREQUENCY_PERIODS[subscriber.frequency]} across the
-                            topics you follow.{" "}
+                            topics you follow.
+                            <br />
                             <Link
                                 href={updatePreferencesUrl}
                                 style={{
@@ -218,18 +226,22 @@ function Header() {
             >
                 <Row>
                     <Column style={{ verticalAlign: "bottom" }}>
-                        <Text
-                            style={{
-                                margin: 0,
-                                fontFamily: SERIF_FONT,
-                                fontWeight: 600,
-                                fontSize: 18,
-                                lineHeight: "24px",
-                                color: COLORS.headerText,
-                            }}
-                        >
-                            {EMAIL_NAME.small}
-                        </Text>
+                        {/* The small line is optional: an empty one would
+                            otherwise leave a blank row above the title. */}
+                        {EMAIL_NAME.small && (
+                            <Text
+                                style={{
+                                    margin: 0,
+                                    fontFamily: SERIF_FONT,
+                                    fontWeight: 600,
+                                    fontSize: 18,
+                                    lineHeight: "24px",
+                                    color: COLORS.headerText,
+                                }}
+                            >
+                                {EMAIL_NAME.small}
+                            </Text>
+                        )}
                         <Text
                             style={{
                                 margin: 0,
@@ -409,7 +421,7 @@ function ArticleCard({ item }: { item: NotificationEmailItem }) {
             }}
         >
             {item.thumbnailUrl && (
-                <Link href={item.url}>
+                <Link href={item.url} style={IMAGE_LINK_STYLE}>
                     <Img
                         src={item.thumbnailUrl}
                         alt=""
@@ -456,14 +468,30 @@ function ArticleCard({ item }: { item: NotificationEmailItem }) {
 
 /** Data insights ship their full content, like in the data insights feed. */
 function DataInsightCard({ item }: { item: NotificationEmailItem }) {
+    const body = item.body ?? []
+    // A data insight leads with its chart, and the design puts the title
+    // below it, so the opening image blocks are rendered above the title.
+    const firstNonImage = body.findIndex((block) => block.type !== "image")
+    const splitIndex = firstNonImage === -1 ? body.length : firstNonImage
+    const imageUrlByFilename = item.imageUrlByFilename ?? {}
     return (
         <Section style={{ backgroundColor: COLORS.card, padding: 24 }}>
-            <ItemTitle item={item} />
-            {(item.body ?? []).map((block, index) => (
+            {body.slice(0, splitIndex).map((block, index) => (
                 <Block
                     key={index}
                     block={block}
-                    imageUrlByFilename={item.imageUrlByFilename ?? {}}
+                    imageUrlByFilename={imageUrlByFilename}
+                    // The chart above the title links to the insight, as the
+                    // title itself does.
+                    imageHref={item.url}
+                />
+            ))}
+            <ItemTitle item={item} />
+            {body.slice(splitIndex).map((block, index) => (
+                <Block
+                    key={index}
+                    block={block}
+                    imageUrlByFilename={imageUrlByFilename}
                 />
             ))}
             {item.authors.length > 0 && (
@@ -489,9 +517,12 @@ function DataInsightCard({ item }: { item: NotificationEmailItem }) {
 function Block({
     block,
     imageUrlByFilename,
+    imageHref,
 }: {
     block: OwidEnrichedGdocBlock
     imageUrlByFilename: Record<string, string>
+    /** When set, image blocks link here. */
+    imageHref?: string
 }): ReactNode {
     switch (block.type) {
         case "text":
@@ -539,7 +570,7 @@ function Block({
                 : block.filename
             const url = imageUrlByFilename[filename]
             if (!url) return null
-            return (
+            const image = (
                 <Img
                     src={url}
                     alt={block.alt ?? ""}
@@ -551,6 +582,12 @@ function Block({
                         border: `1px solid ${COLORS.cardMuted}`,
                     }}
                 />
+            )
+            if (!imageHref) return image
+            return (
+                <Link href={imageHref} style={IMAGE_LINK_STYLE}>
+                    {image}
+                </Link>
             )
         }
         default:
