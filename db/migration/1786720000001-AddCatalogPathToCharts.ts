@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddCatalogPathToCharts1780587927881 implements MigrationInterface {
+export class AddCatalogPathToCharts1786720000001 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Links an ETL-authored chart to the ETL step that produced it, mirroring
         // `multi_dim_data_pages.catalogPath`. This is the chart's stable ETL identity

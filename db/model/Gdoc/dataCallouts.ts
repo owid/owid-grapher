@@ -37,11 +37,11 @@ import { match } from "ts-pattern"
 import { DATA_API_URL } from "../../../settings/serverSettings.js"
 import * as db from "../../db.js"
 import { mapSlugsToIds, getChartConfigById } from "../Chart.js"
-import { getMergedGrapherConfigForVariable } from "../Variable.js"
+import { getIndicatorChartConfig } from "../Variable.js"
 import { getExplorerBySlug } from "../Explorer.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "../ExplorerCatalogResolver.js"
 import { getMultiDimDataPageBySlug } from "../MultiDimDataPage.js"
-import { getChartConfigByUuid } from "../ChartConfigs.js"
+import { getChartConfigByUUID } from "../ChartConfigs.js"
 
 /**
  * Extract all data-callout blocks from an array of enriched blocks.
@@ -115,7 +115,7 @@ export async function prepareCalloutTableForUrl(
             multiDimPage.config,
             searchParams
         )
-        config = await getChartConfigByUuid(knex, view.fullConfigId)
+        config = await getChartConfigByUUID(knex, view.fullConfigId)
         if (!config) return undefined
     }
 
@@ -200,7 +200,7 @@ async function prepareCalloutTableForExplorer(
                 }
 
                 const variableConfig =
-                    (await getMergedGrapherConfigForVariable(
+                    (await getIndicatorChartConfig(
                         knex,
                         yVariableIdsList[0]
                     )) ?? {}

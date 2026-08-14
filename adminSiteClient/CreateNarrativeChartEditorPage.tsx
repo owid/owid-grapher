@@ -4,7 +4,11 @@ import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import type { History } from "history"
 
-import { GrapherInterface } from "@ourworldindata/utils"
+import {
+    GrapherInterface,
+    GrapherQueryParams,
+    Url,
+} from "@ourworldindata/utils"
 import {
     isKebabCase,
     NARRATIVE_CHART_KEBAB_CASE_ERROR_MSG,
@@ -24,11 +28,16 @@ export function CreateNarrativeChartEditorPage() {
     const searchParams = new URLSearchParams(search)
     const type = searchParams.get("type")
     const chartConfigId = searchParams.get("chartConfigId")
+    // The state the parent chart was in when the user hit "Create narrative
+    // chart", serialized as a nested query string.
+    const grapherQueryStr = searchParams.get("grapherQueryStr")
+
     if (type === "multiDim" && chartConfigId) {
         return (
             <CreateNarrativeChartEditorPageInternal
                 type="multiDim"
                 chartConfigId={chartConfigId}
+                grapherQueryStr={grapherQueryStr}
                 history={history}
             />
         )
@@ -39,6 +48,7 @@ export function CreateNarrativeChartEditorPage() {
 interface CreateNarrativeChartEditorPageInternalProps {
     type: "multiDim"
     chartConfigId: string
+    grapherQueryStr: string | null
     history: History
 }
 
@@ -78,7 +88,7 @@ class CreateNarrativeChartEditorPageInternal
         const chartConfig = await this.context.admin.getJSON(
             `/api/chart-configs/${this.props.chartConfigId}.config.json`
         )
-        this.parentConfig = chartConfig.full
+        this.parentConfig = chartConfig
     }
 
     @computed get admin(): Admin {
@@ -95,6 +105,12 @@ class CreateNarrativeChartEditorPageInternal
 
     @computed get parentChartConfigId(): string | undefined {
         return this.props.chartConfigId
+    }
+
+    @computed get initialQueryParams(): GrapherQueryParams | undefined {
+        const { grapherQueryStr } = this.props
+        if (!grapherQueryStr) return undefined
+        return Url.fromQueryStr(grapherQueryStr).queryParams
     }
 
     @action.bound onNameChange(value: string) {

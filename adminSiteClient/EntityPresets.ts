@@ -113,14 +113,12 @@ export const STATIC_ENTITY_PRESETS: EntityPreset[] = [
         entities: getIncomeGroups().map((r) => r.name),
     },
     // Add all region providers as separate presets (UN, WB, WHO, etc.)
-    ...getRegionDataProviders().map(
-        (provider): EntityPreset => ({
-            id: provider,
-            label: REGION_DATA_PROVIDER_LABELS[provider],
-            description: `Regions defined by ${provider.toUpperCase()}`,
-            entities: getAggregatesByProvider(provider).map((r) => r.name),
-        })
-    ),
+    ...getRegionDataProviders().map((provider): EntityPreset => ({
+        id: provider,
+        label: REGION_DATA_PROVIDER_LABELS[provider],
+        description: `Regions defined by ${provider.toUpperCase()}`,
+        entities: getAggregatesByProvider(provider).map((r) => r.name),
+    })),
 ]
 
 export interface AvailablePreset {

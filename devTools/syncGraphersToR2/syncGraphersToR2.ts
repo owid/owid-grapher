@@ -28,7 +28,7 @@ import { bytesToBase64, hexToBytes } from "../../serverUtils/serverUtil.js"
 import { HexString, R2GrapherConfigDirectory } from "@ourworldindata/types"
 import * as R from "remeda"
 
-type HashAndId = Pick<DbRawChartConfig, "fullMd5" | "id">
+type HashAndId = Pick<DbRawChartConfig, "configMd5" | "id">
 
 /** S3 list operations return at most 1000 items at a time. If there are
     more results, the NextContinueationToken is set and you have to perform
@@ -94,7 +94,7 @@ async function syncWithR2(
                 // in list of files to upsert then we don't need to upsert it
                 // so we delete it from that map
                 if (
-                    hashesOfFilesToToUpsert.get(object.Key)?.fullMd5 ===
+                    hashesOfFilesToToUpsert.get(object.Key)?.configMd5 ===
                     md5Base64
                 ) {
                     hashesOfFilesToToUpsert.delete(object.Key)
@@ -153,31 +153,31 @@ async function syncWithR2(
 
     // Chunk the inserts so that we don't need to keep all the full configs in memory
     for (const batch of R.chunk([...hashesOfFilesToToUpsert.entries()], 1000)) {
-        // Get the full configs for the batch
-        const fullConfigs = await knexRaw<
-            Pick<DbRawChartConfig, "id" | "full">
-        >(trx, `select id, full from chart_configs where id in (?)`, [
-            batch.map((entry) => entry[1].id),
-        ])
-        const fullConfigMap = new Map<string, string>(
-            fullConfigs.map(({ id, full }) => [id, full])
+        // Get the configs for the batch
+        const configs = await knexRaw<Pick<DbRawChartConfig, "id" | "config">>(
+            trx,
+            `select id, config from chart_configs where id in (?)`,
+            [batch.map((entry) => entry[1].id)]
+        )
+        const configMap = new Map<string, string>(
+            configs.map(({ id, config }) => [id, config])
         )
 
-        // Upload the full configs to R2 in parallel
+        // Upload the configs to R2 in parallel
         const uploadPromises = batch.map(async ([key, val]) => {
             const id = val.id
-            const fullMd5 = val.fullMd5
-            const full = fullConfigMap.get(id)
-            if (full === undefined) {
+            const configMd5 = val.configMd5
+            const config = configMap.get(id)
+            if (config === undefined) {
                 return Promise.reject(
-                    new Error(`Full config not found for id ${id}`)
+                    new Error(`Config not found for id ${id}`)
                 )
             }
             const putObjectCommandInput: PutObjectCommandInput = {
                 Bucket: GRAPHER_CONFIG_R2_BUCKET,
                 Key: key,
-                Body: full,
-                ContentMD5: fullMd5,
+                Body: config,
+                ContentMD5: configMd5,
                 ContentType: "application/json",
             }
             if (!dryRun)
@@ -244,13 +244,14 @@ async function main(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
         console.log("Syncing published charts")
         // Sync charts published by slug
         const slugsAndHashesFromDb = await knexRaw<
-            Pick<DbRawChartConfig, "slug" | "fullMd5" | "id">
+            Pick<DbRawChartConfig, "slug" | "configMd5" | "id">
         >(
             trx,
-            `select slug, fullMd5, id
-             from chart_configs
-             where slug is not null
-             and full ->> '$.isPublished' = "true"`
+            `select cc.slug, cc.configMd5, cc.id
+             from chart_configs cc
+             join charts c on c.configId = cc.id
+             where cc.slug is not null
+             and cc.config ->> '$.isPublished' = "true"`
         )
         console.log(`Found ${slugsAndHashesFromDb.length} published charts`)
 
@@ -258,7 +259,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
             hashesOfFilesToToUpsertBySlug.set(
                 `${pathPrefixBySlug}/${row.slug}.json`,
                 {
-                    fullMd5: row.fullMd5,
+                    configMd5: row.configMd5,
                     id: row.id,
                 }
             )
@@ -276,16 +277,29 @@ async function main(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
 
         // Sync charts by UUID
         const slugsAndHashesFromDbByUuid = await knexRaw<
-            Pick<DbRawChartConfig, "fullMd5" | "id">
-        >(trx, `select fullMd5, id from chart_configs`)
+            Pick<DbRawChartConfig, "configMd5" | "id">
+        >(
+            trx,
+            `-- sql
+             select cc.configMd5, cc.id
+             from chart_configs cc
+             where cc.id in (
+                 select configId from charts
+                 union select chartConfigId from multi_dim_x_chart_configs
+                 union select chartConfigId from narrative_charts
+                 union select chartConfigId from explorer_views
+             )`
+        )
 
-        console.log(`Found ${slugsAndHashesFromDbByUuid.length} charts by UUID`)
+        console.log(
+            `Found ${slugsAndHashesFromDbByUuid.length} configs by UUID`
+        )
 
         slugsAndHashesFromDbByUuid.forEach((row) => {
             hashesOfFilesToToUpsertByUuid.set(
                 `${pathPrefixByUuid}/${row.id}.json`,
                 {
-                    fullMd5: row.fullMd5,
+                    configMd5: row.configMd5,
                     id: row.id,
                 }
             )

@@ -1034,10 +1034,16 @@ export class GrapherState
             return table.filterByTargetTimes(targetTimes)
         }
 
-        if (this.isOnDiscreteBarTab || this.isOnMarimekkoTab)
+        if (
+            this.isOnDiscreteBarTab ||
+            this.isOnMarimekkoTab ||
+            this.checkIsTwoColumnDumbbell(this.activeTab)
+        )
             return table.filterByTargetTimes([endTime])
 
-        if (this.isOnSlopeChartTab)
+        // Any dumbbell reaching this point plots a single indicator, and so
+        // compares it across the two times the timeline handles sit on
+        if (this.isOnSlopeChartTab || this.isOnDumbbellTab)
             return table.filterByTargetTimes([startTime, endTime])
 
         return table.filterByTimeRange(startTime, endTime)
@@ -1620,10 +1626,19 @@ export class GrapherState
 
     @computed get createNarrativeChartUrl(): string | undefined {
         const adminPath = this.manager?.adminCreateNarrativeChartPath
-        if (this.showAdminControls && this.isPublished && adminPath) {
-            return `${this.adminBaseUrl}/admin/${adminPath}`
-        }
-        return undefined
+        if (!this.showAdminControls || !this.isPublished || !adminPath)
+            return undefined
+
+        const url = Url.fromURL(`${this.adminBaseUrl}/admin/${adminPath}`)
+
+        // Pass the live grapher state along so that the narrative chart starts
+        // out matching what the user is currently looking at, rather than the
+        // authored defaults. We send it as a single encoded param so that it
+        // can't collide with the params already present in `adminPath`.
+        const grapherQueryStr = this.queryStr.replace(/^\?/, "")
+        if (!grapherQueryStr) return url.fullUrl
+
+        return url.updateQueryParams({ grapherQueryStr }).fullUrl
     }
 
     @computed private get isAdminObjectAvailable(): boolean {
@@ -1932,6 +1947,19 @@ export class GrapherState
         })
     }
 
+    /**
+     * Dumbbell charts plotting two indicators compare them at a single time,
+     * whereas those plotting one indicator compare it across two times
+     */
+    private readonly checkIsTwoColumnDumbbell = (
+        tabName: GrapherTabName
+    ): boolean => {
+        return (
+            tabName === GRAPHER_TAB_NAMES.Dumbbell &&
+            this.yColumnSlugs.length >= 2
+        )
+    }
+
     private readonly checkOnlySingleTimeSelectionPossible = (
         tabName: GrapherTabName
     ): boolean => {
@@ -1939,9 +1967,7 @@ export class GrapherState
             tabName === GRAPHER_TAB_NAMES.DiscreteBar ||
             tabName === GRAPHER_TAB_NAMES.StackedDiscreteBar ||
             tabName === GRAPHER_TAB_NAMES.Marimekko ||
-            // Dumbbell charts plotting two indicators use a single time
-            (tabName === GRAPHER_TAB_NAMES.Dumbbell &&
-                this.yColumnSlugs.length >= 2)
+            this.checkIsTwoColumnDumbbell(tabName)
         )
     }
 
@@ -1965,9 +1991,8 @@ export class GrapherState
         return (
             tabName === GRAPHER_TAB_NAMES.LineChart ||
             tabName === GRAPHER_TAB_NAMES.SlopeChart ||
-            // Dumbbell charts plotting a single indicator use a time range
             (tabName === GRAPHER_TAB_NAMES.Dumbbell &&
-                this.yColumnSlugs.length < 2)
+                !this.checkIsTwoColumnDumbbell(tabName))
         )
     }
 
@@ -2261,7 +2286,7 @@ export class GrapherState
     }
 
     @computed get defaultSlug(): string {
-        return slugify(this.displayTitle)
+        return slugify(this.effectiveTitle)
     }
 
     @computed get displaySlug(): string {
@@ -2274,7 +2299,7 @@ export class GrapherState
 
         // Extract details from supporting text
         const subtitleDetails = !this.hideSubtitle
-            ? extractDetailsFromSyntax(this.currentSubtitle)
+            ? extractDetailsFromSyntax(this.effectiveSubtitle)
             : []
         const noteDetails = !this.hideNote
             ? extractDetailsFromSyntax(this.note ?? "")
@@ -2439,7 +2464,8 @@ export class GrapherState
         return this.validChartTypes.length > 1
     }
 
-    @computed get currentSubtitle(): string {
+    /** Effective subtitle resolved from authored subtitle or fallback description */
+    @computed get effectiveSubtitle(): string {
         const subtitle = this.subtitle
         if (subtitle !== undefined) return subtitle
         const yColumns = this.yColumnsFromDimensions
@@ -2511,19 +2537,21 @@ export class GrapherState
         )
     }
 
-    @computed get currentTitle(): string {
-        let text = this.displayTitle.trim()
-        if (text.length === 0) return text
+    /** Effective title resolved from authored title or default title derived from metadata */
+    @computed get effectiveTitle(): string {
+        if (this.title) return this.title
+        if (this.isReady) return this.defaultTitle
+        return ""
+    }
 
-        // Helper function to add an annotation fragment to the title;
-        // only adds a comma if the text does not end with a question mark
-        const appendAnnotationField = (
-            text: string,
-            annotation: string
-        ): string => {
-            const separator = text.endsWith("?") ? "" : ","
-            return `${text}${separator} ${annotation}`
-        }
+    /**
+     * The main line of the chart title, without the entity/time annotation,
+     * but including the "Change in" prefix and the x-indicator label where
+     * applicable.
+     */
+    @computed get mainTitle(): string {
+        let text = this.effectiveTitle.trim()
+        if (text.length === 0) return text
 
         // Add the x-axis label to the title for secondary scatter plots
         if (this.shouldAddXIndicatorLabelToTitle) {
@@ -2534,19 +2562,36 @@ export class GrapherState
             if (xAxisLabel) text += ` vs. ${xAxisLabel}`
         }
 
-        if (this.shouldAddEntitySuffixToTitle) {
-            const selectedEntityNames = this.selection.selectedEntityNames
-            const entityStr = selectedEntityNames[0]
-            if (entityStr?.length) text = appendAnnotationField(text, entityStr)
-        }
-
         if (this.shouldAddChangeInPrefixToTitle)
             text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
 
-        if (this.shouldAddTimeSuffixToTitle && this.timeTitleSuffix)
-            text = appendAnnotationField(text, this.timeTitleSuffix)
-
         return text.trim()
+    }
+
+    /** The entity/time annotation of the chart title, e.g. "World, 2020" */
+    @computed get titleAnnotation(): string | undefined {
+        if (!this.mainTitle) return undefined
+
+        const parts: string[] = []
+
+        if (this.shouldAddEntitySuffixToTitle) {
+            const entityStr = this.selection.selectedEntityNames[0]
+            if (entityStr?.length) parts.push(entityStr)
+        }
+
+        if (this.shouldAddTimeSuffixToTitle && this.timeTitleSuffix)
+            parts.push(this.timeTitleSuffix)
+
+        return parts.length > 0 ? parts.join(", ") : undefined
+    }
+
+    /** The complete chart title: the main title plus the entity/time annotation */
+    @computed get fullTitle(): string {
+        if (!this.mainTitle || !this.titleAnnotation) return this.mainTitle
+
+        // Only add a comma if the title does not end with a question mark
+        const separator = this.mainTitle.endsWith("?") ? " " : ", "
+        return `${this.mainTitle}${separator}${this.titleAnnotation}`
     }
 
     /**
@@ -2709,13 +2754,25 @@ export class GrapherState
         )
     }
 
+    @computed private get comparesTwoTimePoints(): boolean {
+        // Faceted maps show one map per timeline handle
+        if (this.isOnMapTab) return this.isFaceted
+
+        // Dumbbell charts compare two time points if not single-time
+        if (this.isOnDumbbellTab) return true
+
+        // Relative slope charts show the change over a period ("Change in X,
+        // 1990 to 2020"), not two snapshots side by side
+        return this.isOnSlopeChartTab && !this.isRelativeMode
+    }
+
     @computed private get timeTitleSuffix(): string | undefined {
         const { startTime, endTime, xOverrideTime } = this
 
         const timeColumn = this.table.timeColumn
-        if (timeColumn.isMissing) return undefined // Do not show year until data is loaded
 
-        const formatTime = (time: Time): string => timeColumn.formatTime(time)
+        // Do not show year until data is loaded
+        if (timeColumn.isMissing) return undefined
 
         // Add 'Time vs. Time' suffix for scatter plots with time override
         if (
@@ -2723,21 +2780,17 @@ export class GrapherState
             endTime !== undefined &&
             xOverrideTime !== undefined
         ) {
-            const times = _.sortBy([endTime, xOverrideTime])
-            return times.map((time) => formatTime(time)).join(" vs. ")
+            const [start, end] = _.sortBy([endTime, xOverrideTime])
+            return timeColumn.formatTimeComparison(start, end)
         }
 
         if (startTime === undefined || endTime === undefined) return undefined
 
-        // Dumbbell charts compare two points, so use "vs" instead of "to"
-        const separator = this.isOnDumbbellTab ? " vs. " : " to "
+        if (startTime === endTime) return timeColumn.formatTime(startTime)
 
-        const time =
-            startTime === endTime
-                ? formatTime(startTime)
-                : formatTime(startTime) + separator + formatTime(endTime)
-
-        return time
+        return this.comparesTwoTimePoints
+            ? timeColumn.formatTimeComparison(startTime, endTime)
+            : timeColumn.formatTimeRange(startTime, endTime)
     }
 
     @computed get sourcesLine(): string {
@@ -2826,12 +2879,6 @@ export class GrapherState
         return yColumns
             .map((col) => col.titlePublicOrDisplayName.title)
             .join(", ")
-    }
-
-    @computed get displayTitle(): string {
-        if (this.title) return this.title
-        if (this.isReady) return this.defaultTitle
-        return ""
     }
 
     @computed get isLineChart(): boolean {

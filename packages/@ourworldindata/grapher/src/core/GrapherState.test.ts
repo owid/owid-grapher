@@ -14,6 +14,7 @@ import {
     OwidChartDimensionInterface,
     GRAPHER_TAB_QUERY_PARAMS,
     TimeInterval,
+    StackMode,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -387,7 +388,7 @@ it("can serialize scaleType if it changes", () => {
     expect(grapher.changedParams.xScale).toEqual(ScaleType.log)
 })
 
-describe("currentTitle", () => {
+describe("title", () => {
     it("shows the year of the selected data in the title", () => {
         const table = SynthesizeGDPTable(
             { entityCount: 2, timeRange: [2000, 2010] },
@@ -406,21 +407,21 @@ describe("currentTitle", () => {
         })
 
         grapher.timelineHandleTimeBounds = [2001, 2005]
-        expect(grapher.currentTitle).toContain("2001")
-        expect(grapher.currentTitle).toContain("2005")
-        expect(grapher.currentTitle).not.toContain("Infinity")
+        expect(grapher.fullTitle).toContain("2001")
+        expect(grapher.fullTitle).toContain("2005")
+        expect(grapher.fullTitle).not.toContain("Infinity")
 
         grapher.timelineHandleTimeBounds = [1900, 2020]
-        expect(grapher.currentTitle).toContain("2000")
-        expect(grapher.currentTitle).toContain("2009")
+        expect(grapher.fullTitle).toContain("2000")
+        expect(grapher.fullTitle).toContain("2009")
 
         grapher.timelineHandleTimeBounds = [-Infinity, Infinity]
-        expect(grapher.currentTitle).toContain("2000")
-        expect(grapher.currentTitle).toContain("2009")
+        expect(grapher.fullTitle).toContain("2000")
+        expect(grapher.fullTitle).toContain("2009")
 
         grapher.timelineHandleTimeBounds = [Infinity, Infinity]
-        expect(grapher.currentTitle).not.toContain("2000")
-        expect(grapher.currentTitle).toContain("2009")
+        expect(grapher.fullTitle).not.toContain("2000")
+        expect(grapher.fullTitle).toContain("2009")
     })
 
     it("can generate a title when all you have is a table and ySlug", () => {
@@ -433,7 +434,231 @@ describe("currentTitle", () => {
             ySlugs: "GDP",
         })
 
-        expect(grapher.currentTitle).toContain("GDP")
+        expect(grapher.fullTitle).toContain("GDP")
+    })
+
+    it("splits the title into a base and a time annotation", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+            ],
+        })
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+
+        expect(grapher.titleAnnotation).toContain("2001")
+        expect(grapher.titleAnnotation).toContain("2005")
+        expect(grapher.mainTitle).not.toContain("2001")
+        expect(grapher.fullTitle).toEqual(
+            `${grapher.mainTitle}, ${grapher.titleAnnotation}`
+        )
+    })
+
+    it("includes a single selected entity in the annotation", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const entityName = table.availableEntityNames[0]
+        const grapher = new GrapherState({
+            table,
+            selectedEntityNames: [entityName],
+            ySlugs: `${SampleColumnSlugs.GDP} ${SampleColumnSlugs.Population}`,
+        })
+
+        expect(grapher.titleAnnotation).toContain(entityName)
+        expect(grapher.mainTitle).not.toContain(entityName)
+        expect(grapher.fullTitle).toEqual(
+            `${grapher.mainTitle}, ${grapher.titleAnnotation}`
+        )
+    })
+
+    it("combines entity and time in the annotation, entity first", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const entityName = table.availableEntityNames[0]
+        const grapher = new GrapherState({
+            table,
+            selectedEntityNames: [entityName],
+            ySlugs: `${SampleColumnSlugs.GDP} ${SampleColumnSlugs.Population}`,
+        })
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+
+        expect(grapher.titleAnnotation).toEqual(`${entityName}, 2001 to 2005`)
+        expect(grapher.fullTitle).toEqual(
+            `${grapher.mainTitle}, ${entityName}, 2001 to 2005`
+        )
+    })
+
+    it("can hide the entity annotation while keeping the time annotation", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const entityName = table.availableEntityNames[0]
+        const grapher = new GrapherState({
+            table,
+            hideAnnotationFieldsInTitle: { entity: true },
+            addCountryMode: EntitySelectionMode.Disabled,
+            selectedEntityNames: [entityName],
+            ySlugs: `${SampleColumnSlugs.GDP} ${SampleColumnSlugs.Population}`,
+        })
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+
+        expect(grapher.titleAnnotation).not.toContain(entityName)
+        expect(grapher.titleAnnotation).toEqual("2001 to 2005")
+    })
+
+    it("appends the annotation without a comma if the title ends with a question mark", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            title: "How rich are people?",
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+            ],
+        })
+
+        expect(grapher.titleAnnotation).toBeDefined()
+        expect(grapher.fullTitle).toEqual(
+            `How rich are people? ${grapher.titleAnnotation}`
+        )
+    })
+
+    it("keeps the 'Change in' prefix in the title base", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            stackMode: StackMode.relative,
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+            ],
+        })
+
+        expect(grapher.mainTitle).toContain("Change in")
+    })
+
+    it("compares the two times of a faceted map, rather than giving a range", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            ySlugs: SampleColumnSlugs.GDP,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+            hasMapTab: true,
+        })
+
+        // A single time is shown as-is
+        grapher.timelineHandleTimeBounds = [2005, 2005]
+        expect(grapher.titleAnnotation).toEqual("2005")
+
+        // Two times facet the map into two snapshots
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+        expect(grapher.isFaceted).toBe(true)
+        expect(grapher.titleAnnotation).toEqual("2001 vs. 2005")
+    })
+
+    it("compares the two times of a dumbbell chart, rather than giving a range", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            ySlugs: SampleColumnSlugs.GDP,
+            chartTypes: [GRAPHER_CHART_TYPES.Dumbbell],
+            selectedEntityNames: [...table.availableEntityNames],
+        })
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+
+        expect(grapher.titleAnnotation).toEqual("2001 vs. 2005")
+    })
+
+    it("compares the two times of a slope chart, rather than giving a range", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            ySlugs: SampleColumnSlugs.GDP,
+            chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+            selectedEntityNames: [...table.availableEntityNames],
+        })
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+
+        expect(grapher.titleAnnotation).toEqual("2001 vs. 2005")
+    })
+
+    it("gives a range for a relative slope chart, which shows a change over a period", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            ySlugs: SampleColumnSlugs.GDP,
+            chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+            selectedEntityNames: [...table.availableEntityNames],
+            stackMode: StackMode.relative,
+        })
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+
+        // The two halves of the copy belong together: "Change in …" reads as a
+        // period, so the annotation stays a range
+        expect(grapher.mainTitle).toContain("Change in")
+        expect(grapher.titleAnnotation).toEqual("2001 to 2005")
+    })
+
+    it("has no annotation when annotation fields are hidden", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            hideAnnotationFieldsInTitle: { entity: true, time: true },
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+            ],
+        })
+
+        expect(grapher.titleAnnotation).toBeUndefined()
+        expect(grapher.fullTitle).toEqual(grapher.mainTitle)
     })
 })
 
@@ -517,6 +742,41 @@ describe("urls", () => {
             hasMapTab: true,
         })
         expect(grapher.embedUrl).toEqual("/grapher/foo?tab=map")
+    })
+
+    describe("createNarrativeChartUrl", () => {
+        const adminCreateNarrativeChartPath =
+            "narrative-charts/create?type=multiDim&chartConfigId=abc"
+        const makeGrapherState = (queryStr: string): GrapherState =>
+            new GrapherState({
+                isPublished: true,
+                env: "dev", // so that admin controls are shown
+                adminBaseUrl: "https://ourworldindata.org",
+                manager: { adminCreateNarrativeChartPath, queryStr },
+            })
+
+        it("passes the live grapher state on as a single encoded param", () => {
+            const url = makeGrapherState(
+                "?tab=line&country=ETH~MDG"
+            ).createNarrativeChartUrl!
+            expect(url).toEqual(
+                "https://ourworldindata.org/admin/narrative-charts/create?type=multiDim&chartConfigId=abc&grapherQueryStr=tab%3Dline%26country%3DETH~MDG"
+            )
+            // the nested query string round-trips back into query params
+            const grapherQueryStr = new URL(url).searchParams.get(
+                "grapherQueryStr"
+            )!
+            expect(Url.fromQueryStr(grapherQueryStr).queryParams).toEqual({
+                tab: "line",
+                country: "ETH~MDG",
+            })
+        })
+
+        it("omits the param when the grapher is in its default state", () => {
+            expect(makeGrapherState("").createNarrativeChartUrl).toEqual(
+                "https://ourworldindata.org/admin/narrative-charts/create?type=multiDim&chartConfigId=abc"
+            )
+        })
     })
 
     it("can upgrade legacy urls", () => {

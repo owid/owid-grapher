@@ -5,10 +5,6 @@ import { action, computed, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { excludeUndefined, slugify } from "@ourworldindata/utils"
 import {
-    IndicatorChartEditor,
-    isIndicatorChartEditorInstance,
-} from "./IndicatorChartEditor.js"
-import {
     ErrorMessages,
     ErrorMessagesForDimensions,
 } from "./ChartEditorTypes.js"
@@ -35,13 +31,6 @@ export class SaveButtons<Editor extends AbstractChartEditor> extends Component<
         const passthroughProps = _.omit(this.props, "editor")
         if (isChartEditorInstance(editor))
             return <SaveButtonsForChart editor={editor} {...passthroughProps} />
-        else if (isIndicatorChartEditorInstance(editor))
-            return (
-                <SaveButtonsForIndicatorChart
-                    editor={editor}
-                    {...passthroughProps}
-                />
-            )
         else if (isNarrativeChartEditorInstance(editor))
             return (
                 <SaveButtonsForNarrativeChart
@@ -192,59 +181,6 @@ class SaveButtonsForChart extends Component<SaveButtonsProps<ChartEditor>> {
 }
 
 @observer
-class SaveButtonsForIndicatorChart extends Component<
-    SaveButtonsProps<IndicatorChartEditor>
-> {
-    constructor(props: SaveButtonsProps<IndicatorChartEditor>) {
-        super(props)
-        makeObservable(this)
-    }
-
-    @action.bound onSaveChart() {
-        void this.props.editor.saveGrapher()
-    }
-
-    @computed get editingErrors(): string[] {
-        const { errorMessages, errorMessagesForDimensions } = this.props
-        return excludeUndefined([
-            ...Object.values(errorMessages),
-            ...Object.values(errorMessagesForDimensions).flat(),
-        ])
-    }
-
-    override render() {
-        const { editingErrors } = this
-        const { editor } = this.props
-        const { grapherState } = editor
-
-        const isTrivial = editor.isNewGrapher && !editor.isModified
-        const hasEditingErrors = editingErrors.length > 0
-        const isSavingDisabled =
-            grapherState.hasFatalErrors || hasEditingErrors || isTrivial
-
-        return (
-            <div className="SaveButtons">
-                <button
-                    className="btn btn-success"
-                    onClick={this.onSaveChart}
-                    disabled={isSavingDisabled}
-                >
-                    {editor.isNewGrapher
-                        ? "Create indicator chart"
-                        : "Update indicator chart"}
-                </button>
-                {grapherState.isReady &&
-                    editingErrors.map((error, i) => (
-                        <div key={i} className="alert alert-danger mt-2">
-                            {error}
-                        </div>
-                    ))}
-            </div>
-        )
-    }
-}
-
-@observer
 class SaveButtonsForNarrativeChart extends Component<
     SaveButtonsProps<NarrativeChartEditor>
 > {
@@ -347,10 +283,10 @@ class SaveButtonsForNarrativeChart extends Component<
                         narrativeChart={{
                             name: editor.manager.name!,
                             configId: editor.manager.configId!,
-                            title: grapherState.currentTitle,
+                            title: grapherState.fullTitle,
                         }}
                         initialValues={{
-                            title: grapherState.currentTitle,
+                            title: grapherState.fullTitle,
                             imageFilename: editor.manager.name
                                 ? `${editor.manager.name}.png`
                                 : undefined,

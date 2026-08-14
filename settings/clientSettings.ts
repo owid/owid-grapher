@@ -64,6 +64,15 @@ export const ALGOLIA_SEARCH_KEY: string = process.env.ALGOLIA_SEARCH_KEY ?? ""
 export const ALGOLIA_INDEX_PREFIX: string =
     process.env.ALGOLIA_INDEX_PREFIX ?? ""
 
+// Endpoint of the Cloudflare function that proxies empty-query Algolia
+// searches and caches their results aggressively (see
+// functions/api/search/cached-queries.ts).
+// Set it to http://localhost:8788/api/search/cached-queries to test against
+// `yarn startLocalCloudflareFunctions`.
+export const ALGOLIA_CACHED_QUERIES_URL: string =
+    process.env.ALGOLIA_CACHED_QUERIES_URL ??
+    (ENV === "development" ? "" : `${BAKED_BASE_URL}/api/search/cached-queries`)
+
 export const CLOUDFLARE_IMAGES_URL = process.env.CLOUDFLARE_IMAGES_URL ?? ""
 
 export const DONATE_API_URL: string =

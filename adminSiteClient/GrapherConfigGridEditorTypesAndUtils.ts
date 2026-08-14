@@ -1,5 +1,3 @@
-// FIXME: Don't mix components and business logic in this file.
-/* eslint-disable react-refresh/only-export-components */
 import * as _ from "lodash-es"
 import {
     excludeUndefined,
@@ -31,14 +29,12 @@ import {
 } from "../adminShared/SqlFilterSExpression.js"
 import {
     GrapherConfigPatch,
-    VariableAnnotationsResponseRow,
+    BulkChartEditResponseRow,
 } from "../adminShared/AdminSessionTypes.js"
 import {
     EditorOption,
     FieldDescription,
 } from "../adminShared/schemaProcessing.js"
-import type { IconDefinition } from "@fortawesome/fontawesome-common-types"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 import { GrapherInterface } from "@ourworldindata/types"
 import {
@@ -55,15 +51,10 @@ import {
 import { match } from "ts-pattern"
 import * as R from "remeda"
 
-export function parseVariableAnnotationsRow(
-    row: VariableAnnotationsResponseRow
-): VariableAnnotationsRow {
-    return row // The type defintiion of VariableAnnotationsResponseRow in clientUtils can't use GrapherInterface so we type cast here for now
-}
-
-export enum GrapherConfigGridEditorSource {
-    SourceVariableAnnotation = "SourceVariableAnnotation",
-    SourceCharts = "SourceCharts",
+export function parseBulkChartEditRow(
+    row: BulkChartEditResponseRow
+): BulkChartEditRow {
+    return row // The type defintiion of BulkChartEditResponseRow in clientUtils can't use GrapherInterface so we type cast here for now
 }
 
 export interface BulkGrapherConfigRow {
@@ -71,13 +62,6 @@ export interface BulkGrapherConfigRow {
     config: GrapherInterface
     createdAt: string
     updatedAt: string
-}
-
-export interface VariableAnnotationsRow extends BulkGrapherConfigRow {
-    name: string
-    datasetname: string
-    namespacename: string
-    description: string
 }
 
 export interface BulkChartEditRow extends BulkGrapherConfigRow {
@@ -119,8 +103,9 @@ export interface SpecificColumnSet {
 
 export type ColumnSet = FullColumnSet | SpecificColumnSet
 
-/** All the parameters we need for making a fully specified request to the /variable-annotations
-    endpoint. When any of these fields change we need to trigger a new request */
+/** All the parameters we need for making a fully specified request to the
+    /chart-bulk-update endpoint. When any of these fields change we need to
+    trigger a new request */
 export interface FetchVariablesParameters {
     offset: number
     filterQuery: Operation
@@ -163,13 +148,6 @@ export function fetchVariablesParametersToQueryParametersString(
     return queryParamsToStr(fetchVariablesParametersToQueryParameters(params))
 }
 
-export interface IconToggleProps {
-    isOn: boolean
-    onIcon: IconDefinition
-    offIcon: IconDefinition
-    onClick: (newState: boolean) => void
-}
-
 export enum ColumnDataSourceType {
     FieldDescription = "FieldDescription",
     MultipleFieldDescriptions = "MultipleFieldDescriptions",
@@ -198,15 +176,6 @@ export type ColumnDataSource =
     | ColumnDataSourceFieldDescription
     | ColumnDataSourceReadOnlyColumn
     | ColumnDataSourceUnknown
-
-export const IconToggleComponent = (props: IconToggleProps) => (
-    <button
-        className="btn btn-light btn-sm"
-        onClick={() => props.onClick(!props.isOn)}
-    >
-        <FontAwesomeIcon icon={props.isOn ? props.onIcon : props.offIcon} />
-    </button>
-)
 
 /** Turns a search string like "nuclear share" into a BooleanOperation
     that AND connects a CONTAINS query for every word - i.e. it would result in
@@ -551,13 +520,11 @@ export function fieldDescriptionToFilterPanelFieldConfig(
 }
 
 export interface GrapherConfigGridEditorConfig {
-    source: GrapherConfigGridEditorSource
     sExpressionContext: OperationContext
     apiEndpoint: string
     readonlyColumns: Map<string, ReadOnlyColumn>
     hiddenColumns: Set<string>
     columnSet: ColumnSet[]
-    finalVariableLayerModificationFn: (id: number) => Partial<GrapherInterface>
 }
 export interface GrapherConfigGridEditorProps {
     config: GrapherConfigGridEditorConfig

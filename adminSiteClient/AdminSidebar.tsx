@@ -7,7 +7,6 @@ import {
     faFile,
     faTable,
     faSkullCrossbones,
-    faPen,
     faDatabase,
     faTag,
     faUser,
@@ -26,6 +25,7 @@ import {
     faMonument,
     faDisplay,
     faLinkSlash,
+    faCodeCompare,
 } from "@fortawesome/free-solid-svg-icons"
 
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
@@ -140,11 +140,6 @@ export const AdminSidebar = (): React.ReactElement => (
                 </Link>
             </li>
             <li>
-                <Link to="/variable-annotations">
-                    <FontAwesomeIcon icon={faPen} fixedWidth /> Data annotation
-                </Link>
-            </li>
-            <li>
                 <Link to="/tags">
                     <FontAwesomeIcon icon={faTag} fixedWidth /> Tags
                 </Link>
@@ -178,16 +173,22 @@ export const AdminSidebar = (): React.ReactElement => (
                     Redirects
                 </Link>
             </li>
-            <li>
-                <Link to="/test">
-                    <FontAwesomeIcon icon={faEye} fixedWidth /> Test
-                </Link>
-            </li>
             <li className="header">UTILITIES</li>
             <li>
                 <Link to="/deploys">
                     <FontAwesomeIcon icon={faSatelliteDish} fixedWidth /> Deploy
                     status
+                </Link>
+            </li>
+            <li>
+                <Link to="/svgtester">
+                    <FontAwesomeIcon icon={faCodeCompare} fixedWidth /> SVG
+                    tester
+                </Link>
+            </li>
+            <li>
+                <Link to="/test">
+                    <FontAwesomeIcon icon={faEye} fixedWidth /> Chart previews
                 </Link>
             </li>
             <li>

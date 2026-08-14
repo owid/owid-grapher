@@ -1,10 +1,6 @@
 import * as _ from "lodash-es"
 
 import {
-    defaultGrapherConfig,
-    migrateGrapherConfigToLatestVersionAndFailOnError,
-} from "@ourworldindata/grapher"
-import {
     ChartConfigsTableName,
     DbEnrichedMultiDimDataPage,
     DbPlainMultiDimDataPage,
@@ -21,20 +17,24 @@ import {
     MultiDimDataPagesTableName,
     MultiDimXChartConfigsTableName,
     MultiDimViewDimensionsTableName,
-    parseChartConfigsRow,
+    parseChartConfig,
     R2GrapherConfigDirectory,
     View,
 } from "@ourworldindata/types"
+import { mergeGrapherConfigs, dimensionsToViewId } from "@ourworldindata/utils"
 import {
-    mergeGrapherConfigs,
-    MultiDimDataPageConfig,
-    dimensionsToViewId,
-} from "@ourworldindata/utils"
+    latestGrapherConfigSchema,
+    migrateGrapherConfigToLatestVersion,
+} from "@ourworldindata/grapher"
+import * as Sentry from "@sentry/node"
 import * as db from "../db/db.js"
-import { upsertMultiDimDataPage } from "../db/model/MultiDimDataPage.js"
+import {
+    buildMdimViewPatchConfig,
+    upsertMultiDimDataPage,
+} from "../db/model/MultiDimDataPage.js"
 import { upsertMultiDimXChartConfigs } from "../db/model/MultiDimXChartConfigs.js"
 import {
-    getMergedGrapherConfigsForVariables,
+    getIndicatorChartConfigs,
     getVariableIdsByCatalogPath,
 } from "../db/model/Variable.js"
 import {
@@ -160,7 +160,7 @@ async function resolveMultiDimDataPageCatalogPathsToIndicatorIds(
 async function getViewIdToChartConfigIdMap(
     knex: db.KnexReadonlyTransaction,
     catalogPath: string
-) {
+): Promise<Map<string, string>> {
     const rows = await db.knexRaw<DbPlainMultiDimXChartConfig>(
         knex,
         `-- sql
@@ -225,6 +225,7 @@ async function cleanUpOrphanedChartConfigs(
     await knex<DbPlainMultiDimXChartConfig>(MultiDimXChartConfigsTableName)
         .whereIn("chartConfigId", orphanedChartConfigIds)
         .delete()
+
     await knex<DbRawChartConfig>(ChartConfigsTableName)
         .whereIn("id", orphanedChartConfigIds)
         .delete()
@@ -238,11 +239,10 @@ export async function upsertMultiDim(
     catalogPath: string,
     rawConfig: MultiDimDataPageConfigRaw
 ): Promise<number> {
-    const config = await resolveMultiDimDataPageCatalogPathsToIndicatorIds(
-        knex,
-        rawConfig
-    )
-    const variableConfigs = await getMergedGrapherConfigsForVariables(
+    const resolvedConfig =
+        await resolveMultiDimDataPageCatalogPathsToIndicatorIds(knex, rawConfig)
+    const config = normalizeViewConfigSchemas(catalogPath, resolvedConfig)
+    const variableConfigs = await getIndicatorChartConfigs(
         knex,
         _.uniq(config.views.map((view) => view.indicators.y[0].id))
     )
@@ -252,42 +252,23 @@ export async function upsertMultiDim(
         .select("published")
         .where({ catalogPath })
         .first()
-    const existingIsPublished = existingMultiDim?.published
+    const existingIsPublished = existingMultiDim
+        ? Boolean(existingMultiDim.published)
+        : undefined
     const existingViewIdsToChartConfigIds = await getViewIdToChartConfigIdMap(
         knex,
         catalogPath
     )
     const reusedChartConfigIds = new Set<string>()
-    const { grapherConfigSchema } = config
 
     const enrichedViews = await Promise.all(
         config.views.map(async (view) => {
             const variableId = view.indicators.y[0].id
-            // Main config for each view.
-            const mainGrapherConfig: GrapherInterface = {
-                $schema: defaultGrapherConfig.$schema,
-                dimensions: MultiDimDataPageConfig.viewToDimensionsConfig(view),
-                selectedEntityNames: config.defaultSelection ?? [],
-            }
-            let viewGrapherConfig = {}
-            if (view.config) {
-                viewGrapherConfig = grapherConfigSchema
-                    ? { $schema: grapherConfigSchema, ...view.config }
-                    : view.config
-                if ("$schema" in viewGrapherConfig) {
-                    viewGrapherConfig =
-                        migrateGrapherConfigToLatestVersionAndFailOnError(
-                            viewGrapherConfig
-                        )
-                }
-            }
-            const patchGrapherConfig = mergeGrapherConfigs(
-                viewGrapherConfig,
-                mainGrapherConfig
+            const patchGrapherConfig = buildMdimViewPatchConfig(
+                config,
+                view,
+                existingIsPublished
             )
-            if (existingIsPublished !== undefined) {
-                patchGrapherConfig.isPublished = Boolean(existingIsPublished)
-            }
             const fullGrapherConfig = mergeGrapherConfigs(
                 variableConfigs.get(variableId) ?? {},
                 patchGrapherConfig
@@ -295,23 +276,23 @@ export async function upsertMultiDim(
             const existingChartConfigId = existingViewIdsToChartConfigIds.get(
                 dimensionsToViewId(view.dimensions)
             )
+            const now = new Date()
             let chartConfigId
             if (existingChartConfigId) {
                 chartConfigId = existingChartConfigId
                 await updateChartConfigInDbAndR2(
                     knex,
                     chartConfigId,
-                    patchGrapherConfig,
-                    fullGrapherConfig
+                    fullGrapherConfig,
+                    now
                 )
                 reusedChartConfigIds.add(chartConfigId)
                 console.debug(`Chart config updated id=${chartConfigId}`)
             } else {
                 const result = await saveNewChartConfigInDbAndR2(
                     knex,
-                    undefined,
-                    patchGrapherConfig,
-                    fullGrapherConfig
+                    fullGrapherConfig,
+                    now
                 )
                 chartConfigId = result.chartConfigId
                 await knex(MultiDimViewDimensionsTableName).insert({
@@ -326,7 +307,7 @@ export async function upsertMultiDim(
 
     const orphanedChartConfigIds = existingViewIdsToChartConfigIds
         .values()
-        .filter((id) => !reusedChartConfigIds.has(id))
+        .filter((chartConfigId) => !reusedChartConfigIds.has(chartConfigId))
         .toArray()
     await cleanUpOrphanedChartConfigs(knex, orphanedChartConfigIds)
 
@@ -347,14 +328,68 @@ export async function upsertMultiDim(
     return multiDimId
 }
 
-async function getChartConfigsByIds(
+/**
+ * Migrates every view config to the latest grapher schema, so that what we store
+ * is versioned and the read path doesn't have to migrate on every propagation.
+ */
+function normalizeViewConfigSchemas(
+    catalogPath: string,
+    config: MultiDimDataPageConfigPreProcessed
+): MultiDimDataPageConfigPreProcessed {
+    const viewIdsMissingSchema: string[] = []
+    const views = config.views.map((view) => {
+        if (!view.config) return view
+        if (!config.grapherConfigSchema && !view.config.$schema)
+            viewIdsMissingSchema.push(dimensionsToViewId(view.dimensions))
+        return {
+            ...view,
+            config: migrateGrapherConfigToLatestVersion({
+                $schema:
+                    config.grapherConfigSchema ?? latestGrapherConfigSchema,
+                ...view.config,
+            }),
+        }
+    })
+
+    if (viewIdsMissingSchema.length > 0) {
+        console.warn(
+            `${viewIdsMissingSchema.length} view config(s) without a schema version, assumed latest catalogPath=${catalogPath}`
+        )
+        // Static message, so that all affected pages group into one Sentry issue
+        Sentry.captureMessage(
+            "Multi-dim view configs without a schema version, assumed latest",
+            {
+                level: "warning",
+                extra: { catalogPath, viewIds: viewIdsMissingSchema },
+            }
+        )
+    }
+
+    return { ...config, grapherConfigSchema: latestGrapherConfigSchema, views }
+}
+
+/** The config of every view of this multi-dim, keyed by its id. */
+async function getViewChartConfigs(
     knex: db.KnexReadonlyTransaction,
-    ids: string[]
-) {
-    const rows = await knex<DbRawChartConfig>(ChartConfigsTableName)
-        .select("id", "patch", "full")
-        .whereIn("id", ids)
-    return new Map(rows.map((row) => [row.id, parseChartConfigsRow(row)]))
+    multiDimId: number
+): Promise<Map<string, GrapherInterface>> {
+    const rows = await db.knexRaw<{
+        chartConfigId: string
+        config: DbRawChartConfig["config"]
+    }>(
+        knex,
+        `-- sql
+        SELECT
+            mdxcc.chartConfigId,
+            cc.config
+        FROM multi_dim_x_chart_configs mdxcc
+        JOIN chart_configs cc ON cc.id = mdxcc.chartConfigId
+        WHERE mdxcc.multiDimId = ?`,
+        [multiDimId]
+    )
+    return new Map(
+        rows.map((row) => [row.chartConfigId, parseChartConfig(row.config)])
+    )
 }
 
 export async function setMultiDimPublished(
@@ -362,25 +397,25 @@ export async function setMultiDimPublished(
     multiDim: DbEnrichedMultiDimDataPage,
     published: boolean
 ) {
-    const chartConfigs = await getChartConfigsByIds(
-        knex,
-        multiDim.config.views.map((view) => view.fullConfigId)
-    )
+    const viewConfigs = await getViewChartConfigs(knex, multiDim.id)
 
     await Promise.all(
         multiDim.config.views.map(async (view) => {
             const { fullConfigId: chartConfigId } = view
-            const chartConfig = chartConfigs.get(chartConfigId)
-            if (!chartConfig) {
+            const config = viewConfigs.get(chartConfigId)
+            if (!config) {
                 throw new JsonError(
                     `Chart config not found id=${chartConfigId}`,
                     404
                 )
             }
-            const { patch, full } = chartConfig
-            patch.isPublished = published
-            full.isPublished = published
-            await updateChartConfigInDbAndR2(knex, chartConfigId, patch, full)
+            config.isPublished = published
+            await updateChartConfigInDbAndR2(
+                knex,
+                chartConfigId,
+                config,
+                new Date()
+            )
         })
     )
 

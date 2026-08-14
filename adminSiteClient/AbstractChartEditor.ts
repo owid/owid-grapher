@@ -28,7 +28,6 @@ import {
     loadCatalogData,
 } from "@ourworldindata/grapher"
 import { NarrativeChartMinimalInformation } from "./ChartEditor.js"
-import { IndicatorChartInfo } from "./IndicatorChartEditor.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
 import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.js"
 
@@ -55,15 +54,14 @@ function isValidEditorTab(tab: string): tab is EditorTab {
 export interface AbstractChartEditorManager {
     admin: Admin
     patchConfig: GrapherInterface
-    // For the main chart editor, `parentConfig` is the indicator's resolved
-    // grapher config: variable.grapherConfigAdmin if set, else
-    // variable.grapherConfigETL, else undefined. For other editor variants
-    // (indicator/narrative) it is whatever their parent layer happens to be.
+    // For the main chart editor, `parentConfig` is the indicator's config
+    // (variables.patchConfigIdETL), if any. For other editor variants
+    // (narrative) it is whatever their parent layer happens to be.
     parentConfig?: GrapherInterface
     // For the main chart editor, the chart's own ETL-authored grapher config
-    // (stored as a separate chart_configs row, via charts.configIdETL). Always
-    // applied, independent of indicator inheritance. Undefined for editors that
-    // don't have this layer.
+    // (stored as a separate chart_configs row, via charts.patchConfigIdETL).
+    // Always applied, independent of indicator inheritance. Undefined for
+    // editors that don't have this layer.
     etlConfig?: GrapherInterface
     isInheritanceEnabled?: boolean
     variableIdsByCatalogPath?: Record<string, number | null>
@@ -74,7 +72,6 @@ export interface References {
     postsGdocs?: PostReference[]
     explorers?: string[]
     narrativeCharts?: NarrativeChartMinimalInformation[]
-    childCharts?: IndicatorChartInfo[]
     dataInsights?: DataInsightMinimalInformation[]
     staticViz?: StaticVizReference[]
 }

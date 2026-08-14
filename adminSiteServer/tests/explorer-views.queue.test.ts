@@ -482,11 +482,11 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
             name: "Dataset for variable explorer",
             description: "",
             namespace: "owid",
-            createdByUserId: 1,
+            createdByUserId: env.userId,
             metadataEditedAt: new Date(),
-            metadataEditedByUserId: 1,
+            metadataEditedByUserId: env.userId,
             dataEditedAt: new Date(),
-            dataEditedByUserId: 1,
+            dataEditedByUserId: env.userId,
         })
         await env.testKnex(VariablesTableName).insert({
             id: variableId,

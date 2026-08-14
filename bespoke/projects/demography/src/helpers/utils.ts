@@ -59,7 +59,7 @@ export function formatPopulationValueShort(value: number): string {
 export function formatPopulationValueLong(value: number): string {
     return formatValue(value, {
         roundingMode: OwidVariableRoundingMode.significantFigures,
-        numSignificantFigures: 2,
+        numSignificantFigures: 3,
         numberAbbreviation: "long",
     })
 }
@@ -79,6 +79,7 @@ export function formatPopulationAxisLabelShort(value: number): string {
         roundingMode: OwidVariableRoundingMode.decimalPlaces,
         numDecimalPlaces: 0,
         numberAbbreviation: "short",
+        abbreviationThreshold: 1e3,
     })
 }
 

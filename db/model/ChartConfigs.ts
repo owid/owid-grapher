@@ -1,45 +1,62 @@
 import {
     ChartConfigsTableName,
-    DbEnrichedChartConfig,
     DbInsertChartConfig,
     DbRawChartConfig,
     GrapherInterface,
     parseChartConfig,
-    parseChartConfigsRow,
     serializeChartConfig,
 } from "@ourworldindata/types"
 
+import { v7 as uuidv7 } from "uuid"
+
 import * as db from "../db.js"
 
-export async function getChartConfigById(
+export async function getChartConfigByUUID(
     knex: db.KnexReadonlyTransaction,
     id: string
-): Promise<DbEnrichedChartConfig | undefined> {
-    const chartConfig = await knex<DbRawChartConfig>(ChartConfigsTableName)
-        .where("id", id)
-        .first()
-    return chartConfig ? parseChartConfigsRow(chartConfig) : undefined
+): Promise<GrapherInterface | undefined> {
+    const row = await db.knexRawFirst<Pick<DbRawChartConfig, "config">>(
+        knex,
+        `SELECT config FROM chart_configs WHERE id = ?`,
+        [id]
+    )
+    return row ? parseChartConfig(row.config) : undefined
 }
 
+/** Returns the id of the new row, which it mints unless the caller supplies one. */
 export async function insertChartConfig(
     knex: db.KnexReadWriteTransaction,
-    config: DbInsertChartConfig
+    {
+        id: providedId,
+        config,
+        createdAt,
+        updatedAt,
+    }: {
+        id?: string
+        config: GrapherInterface
+        createdAt?: Date
+        updatedAt?: Date
+    }
 ): Promise<string> {
-    await knex(ChartConfigsTableName).insert(config)
-    return config.id
+    const id = providedId ?? uuidv7()
+    await knex<DbInsertChartConfig>(ChartConfigsTableName).insert({
+        id,
+        config: serializeChartConfig(config),
+        createdAt,
+        updatedAt,
+    })
+    return id
 }
 
-export async function updateExistingConfigPair(
+export async function updateChartConfig(
     knex: db.KnexReadWriteTransaction,
     {
         configId,
-        patchConfig,
-        fullConfig,
+        config,
         updatedAt,
     }: {
         configId: DbInsertChartConfig["id"]
-        patchConfig: GrapherInterface
-        fullConfig: GrapherInterface
+        config: GrapherInterface
         updatedAt: Date
     }
 ): Promise<void> {
@@ -48,74 +65,10 @@ export async function updateExistingConfigPair(
         `-- sql
             UPDATE chart_configs
             SET
-                patch = ?,
-                full = ?,
+                config = ?,
                 updatedAt = ?
             WHERE id = ?
         `,
-        [
-            serializeChartConfig(patchConfig),
-            serializeChartConfig(fullConfig),
-            updatedAt,
-            configId,
-        ]
+        [serializeChartConfig(config), updatedAt, configId]
     )
-}
-
-type ConfigId = DbInsertChartConfig["id"]
-interface UpdateFields {
-    config: GrapherInterface
-    updatedAt: Date
-}
-
-export async function updateExistingPatchConfig(
-    knex: db.KnexReadWriteTransaction,
-    params: UpdateFields & { configId: ConfigId }
-): Promise<void> {
-    await updateExistingConfig(knex, { ...params, column: "patch" })
-}
-
-export async function updateExistingFullConfig(
-    knex: db.KnexReadWriteTransaction,
-    params: UpdateFields & { configId: ConfigId }
-): Promise<void> {
-    await updateExistingConfig(knex, { ...params, column: "full" })
-}
-
-async function updateExistingConfig(
-    knex: db.KnexReadWriteTransaction,
-    {
-        column,
-        configId,
-        config,
-        updatedAt,
-    }: UpdateFields & {
-        configId: ConfigId
-        column: "patch" | "full"
-    }
-): Promise<void> {
-    await db.knexRaw(
-        knex,
-        `-- sql
-            UPDATE chart_configs
-            SET
-                ?? = ?,
-                updatedAt = ?
-            WHERE id = ?
-        `,
-        [column, serializeChartConfig(config), updatedAt, configId]
-    )
-}
-
-export async function getChartConfigByUuid(
-    knex: db.KnexReadonlyTransaction,
-    uuid: string
-): Promise<GrapherInterface | undefined> {
-    const row = await db.knexRawFirst<Pick<DbRawChartConfig, "full">>(
-        knex,
-        `SELECT full FROM chart_configs WHERE id = ?`,
-        [uuid]
-    )
-    if (!row) return undefined
-    return parseChartConfig(row.full)
 }

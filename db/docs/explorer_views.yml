@@ -20,7 +20,7 @@ fields:
       This represents the state of the explorer's controls that would produce this specific chart configuration.
   chartConfigId:
     description: |
-      Foreign key reference to chart_configs.id. Points to the complete grapher configuration JSON that should be used when this combination of explorer parameters is selected.
+      Foreign key reference to chart_configs.id. Points to the complete grapher configuration JSON that should be used when this combination of explorer parameters is selected. Explorer views are generated whole, so unlike charts, mdim views and narrative charts they have no separate authored (patch) config.
       This allows explorer views to leverage the existing chart configuration infrastructure.
       NULL when configuration extraction failed (error will be populated instead).
   error:
