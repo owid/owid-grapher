@@ -22,7 +22,7 @@ import {
 import { Button } from "@ourworldindata/components"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { useDocumentContext } from "./gdocs/DocumentContext.js"
-import { getLiteSearchClient } from "./search/searchClients.js"
+import { getDirectLiteSearchClient } from "./search/searchClients.js"
 import { queryAllCharts, searchQueryKeys } from "./search/queries.js"
 import {
     createTopicFilter,
@@ -381,7 +381,13 @@ export const AllChartsBlock = ({
     className,
     id = ALL_CHARTS_ID,
 }: AllChartsBlockProps) => {
-    const liteSearchClient = getLiteSearchClient()
+    // Deliberately the direct client rather than the shared, proxy-backed one:
+    // this block compares two result sets against each other — the typed one it
+    // renders and the unfiltered one it pins that list's order to — and only
+    // empty-query searches go through the caching proxy, which on a branch
+    // preview answers out of a different Algolia application than the typed
+    // searches reach. See getDirectLiteSearchClient.
+    const liteSearchClient = getDirectLiteSearchClient()
 
     const [query, setQuery] = useState("")
     const [debouncedQuery] = useDebounceValue(query, SEARCH_DEBOUNCE_MS)
