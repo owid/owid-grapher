@@ -127,6 +127,25 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
 
         utils.logRunStart(testSuite, "verifying", jobCount, manifestName)
 
+        // Results as they come in, so the run can report its progress as it goes
+        const completed: utils.VerifyResult[] = []
+        const reportProgress = (): Promise<void> =>
+            utils.writeVerifyResults(
+                testSuiteDir,
+                utils.summariseVerifyResults(completed, {
+                    suite: testSuite,
+                    startedAt,
+                    durationMs: Date.now() - startedAt.getTime(),
+                    total: jobCount,
+                    isRunning: true,
+                })
+            )
+
+        // Publish the job count right away: the report the placeholder above
+        // wrote has nothing to say, and a reader watching a long suite wants to
+        // know how much of it is left from the start.
+        await reportProgress()
+
         const pool = workerpool.pool(__dirname + "/worker.ts", {
             minWorkers: 2,
             maxWorkers: MAX_WORKERS,
@@ -137,6 +156,7 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
 
         const progress = utils.startProgress(testSuite, jobCount, pool, {
             withOutcomes: true,
+            onTick: reportProgress,
         })
 
         // Parallelize the CPU heavy verification using the workerpool library
@@ -173,6 +193,7 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
                         })
                         .then((result: utils.VerifyResult) => {
                             progress.recordResult(result)
+                            completed.push(result)
                             return result
                         })
                 )

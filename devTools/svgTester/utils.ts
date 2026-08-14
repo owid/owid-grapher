@@ -7,6 +7,7 @@ import {
     GRAPHER_TAB_NAMES,
     GrapherChartOrMapType,
     type SvgTesterSuite,
+    SVG_TESTER_PROGRESS_INTERVAL_MS,
     SVG_TESTER_VERIFY_RESULTS_FILENAME,
     type SvgTesterVerifyRunStatus,
     type SvgTesterVerifyErrorEntry,
@@ -784,6 +785,8 @@ export function summariseVerifyResults(
         suite: SvgTesterSuite
         startedAt: Date
         durationMs: number
+        total?: number
+        isRunning?: boolean
     }
 ): SvgTesterVerifyRunSummary {
     const differences = validationResults
@@ -810,21 +813,24 @@ export function summariseVerifyResults(
 
     // An errored suite is reported as errored even if it also found differences:
     // we can't claim to know what changed when part of the run didn't complete.
-    const status: SvgTesterVerifyRunStatus = errors.length
-        ? "error"
-        : differences.length
-          ? "differences"
-          : "ok"
+    const status: SvgTesterVerifyRunStatus = options.isRunning
+        ? "running"
+        : errors.length
+          ? "error"
+          : differences.length
+            ? "differences"
+            : "ok"
 
     return {
         suite: options.suite,
         status,
         startedAt: options.startedAt.toISOString(),
+        updatedAt: new Date().toISOString(),
         durationMs: options.durationMs,
         grapherCommit: resolveCommit(),
         svgsCommit: resolveCommit(SVG_TESTER_REPO_PATH),
         counts: {
-            total: validationResults.length,
+            total: options.total ?? validationResults.length,
             ok: validationResults.length - differences.length - errors.length,
             differences: differences.length,
             errors: errors.length,
@@ -839,7 +845,12 @@ export async function writeVerifyResults(
     summary: SvgTesterVerifyRunSummary
 ): Promise<void> {
     const outPath = path.join(testSuiteDir, SVG_TESTER_VERIFY_RESULTS_FILENAME)
-    await fs.writeFile(outPath, JSON.stringify(summary, null, 2) + "\n")
+    // Write and rename rather than write in place: a running suite rewrites this
+    // file every few seconds, and the admin polls it just as often, so a reader
+    // would otherwise catch a half-written file.
+    const tmpPath = `${outPath}.tmp`
+    await fs.writeFile(tmpPath, JSON.stringify(summary, null, 2) + "\n")
+    await fs.rename(tmpPath, outPath)
 }
 
 // Written before the first render so that the file's existence proves the suite
@@ -858,6 +869,7 @@ export async function writeVerifyRunStarted(
         suite,
         status: "running",
         startedAt: startedAt.toISOString(),
+        updatedAt: startedAt.toISOString(),
         durationMs: 0,
         grapherCommit: resolveCommit(),
         svgsCommit: resolveCommit(SVG_TESTER_REPO_PATH),
@@ -881,6 +893,7 @@ export async function writeVerifyRunFailure(
         suite,
         status: "error",
         startedAt: startedAt.toISOString(),
+        updatedAt: startedAt.toISOString(),
         durationMs: 0,
         grapherCommit: resolveCommit(),
         svgsCommit: resolveCommit(SVG_TESTER_REPO_PATH),
@@ -896,9 +909,22 @@ export async function writeVerifyRunFailure(
     })
 }
 
+// Cached because a running suite summarises itself every few seconds and neither
+// checkout can move under us mid-run.
+const commitCache = new Map<string, string | null>()
+
 // Best-effort: in CI the commit is handed to us, locally we ask git, and if
 // neither works the field is null rather than the run failing over provenance.
 function resolveCommit(cwd?: string): string | null {
+    const cached = commitCache.get(cwd ?? "")
+    if (cached !== undefined) return cached
+
+    const commit = readCommit(cwd)
+    commitCache.set(cwd ?? "", commit)
+    return commit
+}
+
+function readCommit(cwd?: string): string | null {
     if (!cwd && process.env.BUILDKITE_COMMIT)
         return process.env.BUILDKITE_COMMIT
     try {
@@ -917,13 +943,15 @@ const PROGRESS_INTERVAL_MS = 30 * 1000
 /**
  * Periodic progress while a suite runs, shared by verify and export. Verify
  * passes each result so the line can break the tally down by outcome; export
- * has no outcomes to report and just counts jobs off.
+ * has no outcomes to report and just counts jobs off. `onTick` reports the same
+ * progress somewhere other than the log - the results file, for verify - on its
+ * own cadence, because a reader wants it far more often than a CI log does.
  */
 export function startProgress(
     suite: SvgTesterSuite,
     total: number,
     pool: { stats: () => { busyWorkers: number } },
-    options: { withOutcomes?: boolean } = {}
+    options: { withOutcomes?: boolean; onTick?: () => Promise<void> } = {}
 ): { recordResult: (result?: VerifyResult) => void; stop: () => void } {
     const startedAt = Date.now()
     const counts = { done: 0, ok: 0, differences: 0, errors: 0 }
@@ -942,8 +970,28 @@ export function startProgress(
         )
         console.log(`${suite}: ${parts.join(" · ")}`)
     }, PROGRESS_INTERVAL_MS)
+
+    const { onTick } = options
+    let isTicking = false
+    const tickTimer = onTick
+        ? setInterval(() => {
+              // One tick at a time, and a failed one is not the run's problem:
+              // it only means this progress report is skipped.
+              if (isTicking) return
+              isTicking = true
+              onTick()
+                  .catch((error) =>
+                      console.warn(`${suite}: progress report failed`, error)
+                  )
+                  .finally(() => {
+                      isTicking = false
+                  })
+          }, SVG_TESTER_PROGRESS_INTERVAL_MS)
+        : undefined
+
     // Never hold the process open on our account
     timer.unref?.()
+    tickTimer?.unref?.()
 
     return {
         recordResult: (result?: VerifyResult) => {
@@ -953,7 +1001,10 @@ export function startProgress(
             else if (result.kind === "difference") counts.differences += 1
             else counts.errors += 1
         },
-        stop: () => clearInterval(timer),
+        stop: () => {
+            clearInterval(timer)
+            if (tickTimer) clearInterval(tickTimer)
+        },
     }
 }
 

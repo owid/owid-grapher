@@ -11,6 +11,24 @@ export type SvgTesterDirectory = (typeof SVG_TESTER_DIRECTORIES)[number]
 
 export const SVG_TESTER_VERIFY_RESULTS_FILENAME = "verify-results.json"
 
+/**
+ * How often a running suite rewrites its results file, and how often the admin's
+ * suite page re-reads it. One number for both, so a reader is never more than two
+ * intervals behind the run. Kept short because a whole suite can be done inside a
+ * minute: the 4,300 views of `graphers` take about 45 seconds on a warm machine.
+ */
+export const SVG_TESTER_PROGRESS_INTERVAL_MS = 5_000
+
+/**
+ * How long `updatedAt` may lag before a `running` suite is taken for dead. Once
+ * rendering starts the run rewrites the file every interval whether or not
+ * anything finished, so the only quiet stretch is the work before that - loading
+ * the manifest, scanning a few thousand configs, parsing the reference CSV. This
+ * covers a slow one with room to spare, and still calls a killed run dead in
+ * less time than a suite takes to pass.
+ */
+export const SVG_TESTER_HEARTBEAT_STALE_MS = 90_000
+
 export type SvgTesterVerifyRunStatus =
     | "running"
     | "ok"
@@ -35,6 +53,7 @@ export interface SvgTesterVerifyRunSummary {
     suite: SvgTesterSuite
     status: SvgTesterVerifyRunStatus
     startedAt: string
+    updatedAt: string
     durationMs: number
     grapherCommit: string | null
     svgsCommit: string | null
