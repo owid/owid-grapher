@@ -467,7 +467,6 @@ export const saveGrapher = async (
         // if undefined, keep inheritance as is.
         // if true or false, enable or disable inheritance
         shouldInherit?: boolean
-        // only used when creating a new chart, see `saveNewChart`
         chartConfigId?: string
     }
 ) => {

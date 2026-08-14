@@ -1180,4 +1180,22 @@ describe("Chart addressing by config UUID", { timeout: 15000 }, () => {
             )
         ).rejects.toThrow(/already exists/)
     })
+
+    it("rejects an empty config UUID", async () => {
+        const user = await env.testKnex(UsersTableName).first()
+
+        await expect(
+            knexReadWriteTransaction(
+                async (trx) => {
+                    await saveGrapher(trx, {
+                        user,
+                        newConfig: testChartConfig,
+                        chartConfigId: "",
+                    })
+                },
+                TransactionCloseMode.KeepOpen,
+                env.testKnex
+            )
+        ).rejects.toThrow(/Invalid config UUID/)
+    })
 })
