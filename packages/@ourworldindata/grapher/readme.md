@@ -130,6 +130,48 @@ United States,USA,1,2020,63544`,
 
 For `fromApi`, the config's `dimensions` array says which indicators to fetch; indicator IDs can be found via the [OWID data catalog](https://docs.owid.io/projects/etl/api/). Data loading starts at construction time, so the chart shows a loading state until the data arrives.
 
+### Providing metadata
+
+`columnDefs` carries more than display config: source and description metadata passed there feeds the chart's "Data source" footer line and the sources modal behind "Learn more about this data". Without it, the footer stays empty and the modal shows a "no source information" notice.
+
+```js
+GrapherLoader.fromCsv({
+    config: { title: "Cows per capita" },
+    csvUrl: "./cows.csv",
+    columnDefs: [
+        {
+            slug: "cows",
+            type: "Numeric",
+            name: "Cows per capita",
+            unit: "cows",
+            // description shown below the indicator title in the modal
+            descriptionShort: "The average number of cows per person.",
+            // "What you should know about this data" — a markdown string
+            // (not the legacy array of bullet points)
+            descriptionKey: "Includes dairy and beef cattle.",
+            // source information
+            sourceName: "Global Cow Census (2024)",
+            sourceLink: "https://example.org/cow-census",
+            dataPublishedBy: "Cow Census Institute",
+            timespan: "2000-2020", // shown as "Date range"
+            // citation & attribution metadata, one entry per upstream source
+            origins: [
+                {
+                    producer: "Cow Census Institute",
+                    title: "Global Cow Census",
+                    urlMain: "https://example.org/cow-census",
+                    dateAccessed: "2024-05-01", // shown as "Last updated"
+                    citationFull:
+                        "Cow Census Institute (2024). Global Cow Census.",
+                },
+            ],
+        },
+    ],
+}).mount(container)
+```
+
+The footer's attribution line is assembled from `sourceName` and the origins' producers (or set it directly via the config's `sourceDesc`). `additionalInfo`, `descriptionFromProducer`, and `presentation` (e.g. `titlePublic`, `attributionShort`) are also supported — see the `OwidColumnDef` type for the full surface.
+
 ### The chart config
 
 The `config` object accepted by all three factories is a standard Grapher config (`GrapherInterface`) — the same format OWID stores for every chart on the site. The authoritative documentation of every field is the [JSON schema](https://files.ourworldindata.org/schemas/grapher-schema.011.json) (maintained in [`src/schema/`](./src/schema/)). Commonly used fields include `title`, `subtitle`, `note`, `chartTypes`, `tab`, `hasMapTab`, and `selectedEntityNames`.

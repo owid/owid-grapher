@@ -173,7 +173,12 @@ Germany,DEU,2,2020,46468`,
 France,FRA,1,2000,59000000
 France,FRA,1,2020,67000000`,
             columnDefs: [
-                { slug: "population", type: "Numeric", name: "Population" },
+                {
+                    slug: "population",
+                    type: "Numeric",
+                    name: "Population",
+                    sourceName: "World Population Bureau",
+                },
             ],
         }).mount(container)
 
@@ -184,6 +189,12 @@ France,FRA,1,2020,67000000`,
             expect(container.querySelector("svg")).toBeTruthy()
         })
         expect(container.textContent).toContain("Population")
+
+        // Configs without dimensions/ySlugs get their y columns derived from
+        // the table, so that column metadata (sources modal, footer
+        // attribution) is picked up
+        expect(loader.grapherState.ySlugs).toBe("population")
+        expect(container.textContent).toContain("World Population Bureau")
 
         loader.dispose()
         container.remove()

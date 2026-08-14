@@ -59,7 +59,11 @@
         <div id="grapher-table" class="chart"></div>
 
         <h2>fromCsv — CSV file</h2>
-        <p>Data is fetched from <code>demo.csv</code> at runtime.</p>
+        <p>
+            Data is fetched from <code>demo.csv</code> at runtime, with source
+            metadata passed via <code>columnDefs</code> — see "Learn more about
+            this data" in the chart footer.
+        </p>
         <div id="grapher-csv" class="chart"></div>
 
         <h2>fromApi — OWID data API</h2>
@@ -114,6 +118,9 @@ Japan,JPN,3,2020,39918`,
             }).mount(document.getElementById("grapher-table"))
 
             // --- fromCsv -----------------------------------------------------
+            // This one also passes source & description metadata via
+            // columnDefs, which feeds the "Data source" footer line and the
+            // sources modal behind "Learn more about this data".
             GrapherLoader.fromCsv({
                 config: {
                     title: "Population",
@@ -127,6 +134,25 @@ Japan,JPN,3,2020,39918`,
                         name: "Population",
                         unit: "million people",
                         display: { numDecimalPlaces: 0 },
+                        descriptionShort:
+                            "The number of people living in each country.",
+                        descriptionKey:
+                            "These are made-up numbers for demo purposes.",
+                        sourceName: "Demo Population Census (2024)",
+                        sourceLink: "https://example.org/population-census",
+                        dataPublishedBy: "Demo Data Institute",
+                        timespan: "2000-2020",
+                        origins: [
+                            {
+                                producer: "Demo Data Institute",
+                                title: "Demo Population Census",
+                                urlMain:
+                                    "https://example.org/population-census",
+                                dateAccessed: "2024-05-01",
+                                citationFull:
+                                    "Demo Data Institute (2024). Demo Population Census.",
+                            },
+                        ],
                     },
                 ],
             }).mount(document.getElementById("grapher-csv"))

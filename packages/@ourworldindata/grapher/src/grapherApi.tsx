@@ -64,6 +64,19 @@ function defaultGrapherConfigOverrides(): Partial<GrapherProgrammaticInterface> 
     }
 }
 
+// A config without `dimensions` or `ySlugs` auto-detects its y columns from
+// the table's numeric columns. Config-driven features (the sources modal, the
+// footer attribution line, the data download) don't take part in that
+// auto-detection, so mirror it in the config to make them see the same
+// columns — otherwise metadata passed via columnDefs would never show up.
+function deriveYSlugs(
+    config: GrapherInterface,
+    table: OwidTable
+): string | undefined {
+    if (config.ySlugs || config.dimensions?.length) return config.ySlugs
+    return table.numericColumnSlugs.join(" ") || undefined
+}
+
 // --- Internal React component ------------------------------------------------
 
 /** Renders Grapher into the caller's container, keeping
@@ -211,6 +224,7 @@ export class GrapherLoader {
         const grapherState = new GrapherState({
             ...defaultGrapherConfigOverrides(),
             ...config,
+            ySlugs: deriveYSlugs(config, data),
             table: data,
             isConfigReady: true,
             isDataReady: true,
@@ -239,6 +253,7 @@ export class GrapherLoader {
         })
         const ready = OwidTable.fromUrl(options.csvUrl, columnDefs).then(
             (table) => {
+                grapherState.ySlugs = deriveYSlugs(config, table)
                 grapherState.inputTable = table
                 grapherState.isDataReady = true
             }
