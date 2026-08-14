@@ -41,11 +41,7 @@ import {
 import { domainExtent } from "@ourworldindata/utils"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import {
-    getMaxConfiguredTolerance,
-    hasToleranceApplied,
-    makeToleranceNotice,
-} from "../chart/ToleranceNotice"
+import { makeToleranceNotice } from "../chart/ToleranceNotice"
 
 export class SlopeChartState implements ChartState {
     manager: SlopeChartManager
@@ -341,27 +337,12 @@ export class SlopeChartState implements ChartState {
         ])
     }
 
-    /** The notice itself, regardless of whether it currently applies */
-    @computed private get toleranceNoticeIfApplied(): string | undefined {
-        return makeToleranceNotice({
-            timeColumn: this.transformedTable.timeColumn,
-            timeRange: this.inputTable.timeRange,
-            timeTolerance: getMaxConfiguredTolerance(this.yColumns),
-        })
-    }
-
-    /** Whether any value shown right now is filled in from another time */
-    @computed private get isToleranceApplied(): boolean {
-        // Skip the scan below when there's no notice for it to caption
-        if (!this.toleranceNoticeIfApplied) return false
-
-        return hasToleranceApplied(this.transformedTable, this.yColumnSlugs)
-    }
-
     @computed get toleranceNotice(): string | undefined {
-        return this.isToleranceApplied
-            ? this.toleranceNoticeIfApplied
-            : undefined
+        return makeToleranceNotice({
+            inputTable: this.inputTable,
+            transformedTable: this.transformedTable,
+            columns: this.yColumns,
+        })
     }
 
     @computed get xDomain(): [number, number] {

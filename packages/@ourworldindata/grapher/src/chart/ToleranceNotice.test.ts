@@ -1,7 +1,7 @@
 import { expect, it, describe } from "vitest"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { ColumnTypeNames, ToleranceStrategy } from "@ourworldindata/types"
-import { makeToleranceNotice } from "./ToleranceNotice"
+import { formatToleranceNotice } from "./ToleranceNotice"
 
 const timeColumnOfType = (
     slug: string,
@@ -24,10 +24,10 @@ const yearColumn = (times?: number[]): CoreColumn =>
 const monthColumn = (times?: number[]): CoreColumn =>
     timeColumnOfType("month", ColumnTypeNames.Month, times)
 
-describe(makeToleranceNotice, () => {
+describe(formatToleranceNotice, () => {
     it("names the years a value can come from", () => {
         expect(
-            makeToleranceNotice({
+            formatToleranceNotice({
                 timeColumn: yearColumn([2000]),
                 timeTolerance: 3,
                 timeRange: [1990, 2010],
@@ -39,7 +39,7 @@ describe(makeToleranceNotice, () => {
 
     it("clips the window to the years the data covers", () => {
         expect(
-            makeToleranceNotice({
+            formatToleranceNotice({
                 timeColumn: yearColumn([2009]),
                 timeTolerance: 3,
                 timeRange: [1990, 2010],
@@ -51,7 +51,7 @@ describe(makeToleranceNotice, () => {
 
     it("only looks back when the chart shows the last year of the data", () => {
         expect(
-            makeToleranceNotice({
+            formatToleranceNotice({
                 timeColumn: yearColumn([2010]),
                 timeTolerance: 3,
                 timeRange: [1990, 2010],
@@ -63,7 +63,7 @@ describe(makeToleranceNotice, () => {
 
     it("only looks ahead when the chart shows the first year of the data", () => {
         expect(
-            makeToleranceNotice({
+            formatToleranceNotice({
                 timeColumn: yearColumn([1990]),
                 timeTolerance: 3,
                 timeRange: [1990, 2010],
@@ -75,7 +75,7 @@ describe(makeToleranceNotice, () => {
 
     it("only looks back when the tolerance strategy is backwards", () => {
         expect(
-            makeToleranceNotice({
+            formatToleranceNotice({
                 timeColumn: yearColumn([2000]),
                 timeTolerance: 3,
                 timeRange: [1990, 2010],
@@ -88,7 +88,7 @@ describe(makeToleranceNotice, () => {
 
     it("only looks ahead when the tolerance strategy is forwards", () => {
         expect(
-            makeToleranceNotice({
+            formatToleranceNotice({
                 timeColumn: yearColumn([2000]),
                 timeTolerance: 3,
                 timeRange: [1990, 2010],
@@ -101,7 +101,7 @@ describe(makeToleranceNotice, () => {
 
     it("is absent when a one-directional window has no years to reach", () => {
         expect(
-            makeToleranceNotice({
+            formatToleranceNotice({
                 timeColumn: yearColumn([1990]),
                 timeTolerance: 3,
                 timeRange: [1990, 2010],
@@ -112,7 +112,7 @@ describe(makeToleranceNotice, () => {
 
     it("names the one year a value can come from where the window leaves just the one", () => {
         expect(
-            makeToleranceNotice({
+            formatToleranceNotice({
                 timeColumn: yearColumn([2010]),
                 timeTolerance: 1,
                 timeRange: [1990, 2010],
@@ -124,7 +124,7 @@ describe(makeToleranceNotice, () => {
 
     it("states the tolerance as a window when the chart covers several times", () => {
         expect(
-            makeToleranceNotice({
+            formatToleranceNotice({
                 timeColumn: yearColumn(),
                 timeTolerance: 3,
                 timeRange: [1990, 2002],
@@ -136,7 +136,7 @@ describe(makeToleranceNotice, () => {
 
     it("states the tolerance of a monthly indicator as a window of days", () => {
         expect(
-            makeToleranceNotice({
+            formatToleranceNotice({
                 timeColumn: monthColumn([100]),
                 timeTolerance: 90,
                 timeRange: [0, 730],
@@ -148,7 +148,7 @@ describe(makeToleranceNotice, () => {
 
     it("drops the window when the tolerance spans the whole chart", () => {
         expect(
-            makeToleranceNotice({
+            formatToleranceNotice({
                 timeColumn: yearColumn([1990, 2002]),
                 timeTolerance: 9999,
                 timeRange: [1990, 2002],
@@ -160,7 +160,7 @@ describe(makeToleranceNotice, () => {
 
     it("names the years even where the tolerance covers all of them", () => {
         expect(
-            makeToleranceNotice({
+            formatToleranceNotice({
                 timeColumn: yearColumn([2022]),
                 timeTolerance: 3,
                 timeRange: [2019, 2022],
@@ -172,7 +172,7 @@ describe(makeToleranceNotice, () => {
 
     it("names the direction of a one-directional tolerance in the plainer sentence", () => {
         expect(
-            makeToleranceNotice({
+            formatToleranceNotice({
                 timeColumn: yearColumn([2000, 2010]),
                 timeTolerance: 3,
                 timeRange: [1990, 2010],
@@ -185,7 +185,7 @@ describe(makeToleranceNotice, () => {
 
     it("is absent when no tolerance is configured", () => {
         expect(
-            makeToleranceNotice({
+            formatToleranceNotice({
                 timeColumn: yearColumn([2000]),
                 timeTolerance: 0,
                 timeRange: [1990, 2002],
@@ -195,7 +195,7 @@ describe(makeToleranceNotice, () => {
 
     it("is absent when the chart covers a single point in time", () => {
         expect(
-            makeToleranceNotice({
+            formatToleranceNotice({
                 timeColumn: yearColumn([2000]),
                 timeTolerance: 5,
                 timeRange: [2000, 2000],

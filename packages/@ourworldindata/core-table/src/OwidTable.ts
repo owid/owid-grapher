@@ -16,6 +16,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     Time,
+    TimeRange,
     TransformType,
     CoreColumnStore,
     Color,
@@ -109,7 +110,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     /** The first and last time in the table, undefined if it has no times */
-    @imemo get timeRange(): [Time, Time] | undefined {
+    @imemo get timeRange(): TimeRange | undefined {
         const { minTime, maxTime } = this
         if (minTime === undefined || maxTime === undefined) return undefined
         return [minTime, maxTime]

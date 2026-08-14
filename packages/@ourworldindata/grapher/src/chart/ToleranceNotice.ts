@@ -7,12 +7,47 @@ import {
     ColumnSlug,
     Time,
     TimeInterval,
+    TimeRange,
     ToleranceStrategy,
 } from "@ourworldindata/types"
 import { isSubYearly } from "@ourworldindata/utils"
 
-/** The sentence explaining the chart's tolerance, if it has one worth stating */
+/**
+ * The notice a chart should show, if it has a tolerance worth stating and any
+ * value it plots is actually filled in from another time.
+ */
 export function makeToleranceNotice({
+    inputTable,
+    transformedTable,
+    columns,
+    timeTolerance,
+    toleranceStrategy,
+}: {
+    inputTable: OwidTable
+    transformedTable: OwidTable
+    columns: CoreColumn[]
+    timeTolerance?: number
+    toleranceStrategy?: ToleranceStrategy
+}): string | undefined {
+    const tolerance =
+        timeTolerance ??
+        Math.max(0, ...columns.map((column) => column.tolerance))
+    if (!tolerance) return undefined
+
+    const notice = formatToleranceNotice({
+        timeColumn: transformedTable.timeColumn,
+        timeRange: inputTable.timeRange,
+        timeTolerance: tolerance,
+        toleranceStrategy,
+    })
+    // Skip the scan below when there's no notice for it to caption
+    if (!notice) return undefined
+
+    const slugs = columns.map((column) => column.slug)
+    return hasToleranceApplied(transformedTable, slugs) ? notice : undefined
+}
+
+export function formatToleranceNotice({
     timeColumn,
     timeTolerance,
     timeRange,
@@ -20,7 +55,7 @@ export function makeToleranceNotice({
 }: {
     timeColumn: CoreColumn
     timeTolerance: number
-    timeRange: [Time, Time] | undefined
+    timeRange: TimeRange | undefined
     toleranceStrategy?: ToleranceStrategy
 }): string | undefined {
     if (!timeTolerance || timeColumn.isMissing) return undefined
@@ -51,12 +86,21 @@ export function makeToleranceNotice({
             toleranceStrategy === ToleranceStrategy.backwards
                 ? targetTime
                 : Math.min(targetTime + timeTolerance, lastTime)
+
+        // The target year has no data, so a window ending on it stops a year short
+        const start = from === targetTime ? from + 1 : from
+        const end = to === targetTime ? to - 1 : to
+
         // A one-directional window at the edge of the data reaches nothing
-        if (from === targetTime && to === targetTime) return undefined
+        if (start > end) return undefined
 
-        const window = formatToleranceWindow(timeColumn, targetTime, [from, to])
+        const format = (time: Time): string => timeColumn.formatTime(time)
+        const window =
+            start === end
+                ? format(start)
+                : `the closest year between ${format(start)} and ${format(end)}`
 
-        return `Where data for ${timeColumn.formatTime(targetTime)} is unavailable, the value from ${window} is shown instead.`
+        return `Where data for ${format(targetTime)} is unavailable, the value from ${window} is shown instead.`
     } else {
         // "closest", plus the direction where the tolerance only looks one way
         const closest =
@@ -84,9 +128,9 @@ export function makeToleranceNotice({
 
 /**
  * Whether any value in the given columns is filled in from a different time
- * than the one it's shown for. Typically called with a `tranformedTable`.
+ * than the one it's shown for. Typically called with a `transformedTable`.
  */
-export function hasToleranceApplied(
+function hasToleranceApplied(
     table: OwidTable,
     columnSlugs: ColumnSlug[]
 ): boolean {
@@ -108,31 +152,6 @@ export function hasToleranceApplied(
 
         return false
     })
-}
-
-/** The largest tolerance configured on any of the given columns */
-export function getMaxConfiguredTolerance(columns: CoreColumn[]): number {
-    return Math.max(0, ...columns.map((column) => column.tolerance))
-}
-
-/** The years a value shown for `targetTime` can come from, in words */
-function formatToleranceWindow(
-    timeColumn: CoreColumn,
-    targetTime: Time,
-    [from, to]: [Time, Time]
-): string {
-    const format = (time: Time): string => timeColumn.formatTime(time)
-
-    // The target year has no data, so a window ending on it starts (or stops)
-    // at the year next to it. That's the one-sided case, which is the norm:
-    // charts default to the latest year of their data.
-    const start = from === targetTime ? from + 1 : from
-    const end = to === targetTime ? to - 1 : to
-
-    // Name the year itself where the window leaves just the one
-    if (start === end) return format(start)
-
-    return `the closest year between ${format(start)} and ${format(end)}`
 }
 
 /** The tolerance in words, e.g. "3 years" or "a year" */
