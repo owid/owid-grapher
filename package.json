@@ -108,7 +108,7 @@
         "core-js": "^3.49.0",
         "d3": "^7.9.0",
         "dayjs": "^1.11.21",
-        "dotenv": "^16.0.1",
+        "dotenv": "^17.4.2",
         "embla-carousel-class-names": "^8.6.0",
         "embla-carousel-react": "^8.6.0",
         "entities": "^7.0.1",
