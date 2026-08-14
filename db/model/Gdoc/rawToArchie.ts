@@ -361,6 +361,7 @@ function* rawBlockChartRowsToArchieMLString(
             for (const row of block.value.rows) {
                 yield* propertyToArchieMLString("image", row)
                 yield* propertyToArchieMLString("url", row)
+                yield* propertyToArchieMLString("caption", row)
                 if (row.content) {
                     yield "[.+content]"
                     for (const content of row.content) {
@@ -729,6 +730,13 @@ function* rawKeyInsightsToArchieMLString(
             yield* propertyToArchieMLString("filename", insight)
             yield* propertyToArchieMLString("url", insight)
             yield* propertyToArchieMLString("narrativeChartName", insight)
+            if (insight.asset) {
+                yield "[.+asset]"
+                for (const asset of insight.asset) {
+                    yield* OwidRawGdocBlockToArchieMLStringGenerator(asset)
+                }
+                yield "[]"
+            }
             if (insight.content) {
                 yield "[.+content]"
                 for (const content of insight.content) {

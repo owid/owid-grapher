@@ -61,9 +61,6 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
             outDir: `dist/${entrypointInfo.outDir}`,
             sourcemap: true,
             target: ["chrome106", "firefox110", "safari16.0"], // see docs/browser-support.md
-            commonjsOptions: {
-                strictRequires: "auto",
-            },
             rolldownOptions: {
                 input: {
                     [entrypointInfo.outName]: entrypointInfo.entryPointFile,

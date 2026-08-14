@@ -4,14 +4,27 @@ import {
     getSelectedTopic,
     getPaginationOffsetAndLength,
     getNbPaginatedItemsRequested,
+    CHARTS_INDEX,
+    PAGES_INDEX,
+    PAGES_CHRONOLOGICAL_INDEX,
 } from "./searchUtils.js"
 import { DEFAULT_SEARCH_STATE } from "./searchState.js"
 import { useSearchContext } from "./SearchContext.js"
 import { fetchJson, flattenNonTopicNodes } from "@ourworldindata/utils"
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
+import {
+    useInfiniteQuery,
+    useQuery,
+    useQueryClient,
+} from "@tanstack/react-query"
 import { LiteClient } from "algoliasearch/lite"
 import type { SearchResponse } from "algoliasearch"
-import { useEffect, useMemo, useRef } from "react"
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useSyncExternalStore,
+} from "react"
 import type { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import * as R from "remeda"
@@ -225,6 +238,57 @@ export function useInfiniteSearch<THit>({
         totalResults,
         isClosestMatches,
     }
+}
+
+// Every Algolia search this app issues keys its React Query entry off one of
+// the index names (see `searchQueryKeys` in queries.ts). Other site queries
+// (chart data, the topic tag graph) don't, and their failures must not be
+// reported as a search outage.
+function isSearchIndexQueryKey(queryKey: readonly unknown[]): boolean {
+    const [indexName] = queryKey
+    return (
+        indexName === CHARTS_INDEX ||
+        indexName === PAGES_INDEX ||
+        indexName === PAGES_CHRONOLOGICAL_INDEX
+    )
+}
+
+const getServerSnapshotForSearchError = () => false
+
+/**
+ * Whether an Algolia search backing the results currently on screen has
+ * failed. By the time a query reaches the error state React Query has already
+ * exhausted its retries, so this means the search request genuinely didn't go
+ * through — which the UI needs to tell apart from a search that legitimately
+ * found nothing.
+ *
+ * Only `active` queries are considered, so errors still cached from an earlier
+ * query or filter selection don't leak into the current one.
+ */
+export function useHasSearchError(): boolean {
+    const queryCache = useQueryClient().getQueryCache()
+
+    const subscribe = useCallback(
+        (onStoreChange: () => void) => queryCache.subscribe(onStoreChange),
+        [queryCache]
+    )
+
+    const getSnapshot = useCallback(
+        () =>
+            queryCache
+                .findAll({
+                    type: "active",
+                    predicate: (query) => isSearchIndexQueryKey(query.queryKey),
+                })
+                .some((query) => query.state.status === "error"),
+        [queryCache]
+    )
+
+    return useSyncExternalStore(
+        subscribe,
+        getSnapshot,
+        getServerSnapshotForSearchError
+    )
 }
 
 export function useTopicTagGraph({ isPreviewing }: { isPreviewing: boolean }) {

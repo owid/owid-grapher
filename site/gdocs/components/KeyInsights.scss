@@ -168,3 +168,10 @@ $slide-content-height: $grapher-height;
         @include body-2-regular;
     }
 }
+
+// The asset column supplies its own vertical spacing (`.key-insight__asset-container`
+// in Image.scss), so blocks rendered into it must not add theirs on top.
+.key-insight__asset-container > [class*="article-block__"] {
+    margin-top: 0;
+    margin-bottom: 0;
+}
