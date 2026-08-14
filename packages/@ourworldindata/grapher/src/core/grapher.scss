@@ -113,6 +113,8 @@
     border: 1px solid $frame-color;
     z-index: $zindex-chart;
 
+    font-family: $sans-serif-font-stack;
+
     * {
         box-sizing: border-box;
     }
@@ -130,6 +132,18 @@
 
     :where(&) :where(button) {
         border: none;
+    }
+
+    :where(&) :where(a) {
+        cursor: pointer;
+    }
+
+    // Form controls have `font` set by the UA stylesheet, so they never inherit
+    // the font-family above — they have to be named explicitly or they render in
+    // Arial. This is why the site needs its own copy of this rule on top of the
+    // one on `html`.
+    :where(&) :where(button, input, optgroup, select, textarea) {
+        font-family: $sans-serif-font-stack;
     }
 
     button {
