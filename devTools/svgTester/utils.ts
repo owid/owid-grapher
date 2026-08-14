@@ -840,17 +840,20 @@ export function summariseVerifyResults(
     }
 }
 
-export async function writeVerifyResults(
+// Write and rename rather than write in place: a running suite rewrites this file
+// every few seconds and the admin polls it just as often, so a reader would
+// otherwise catch a half-written file. Synchronously, because a run's last
+// progress report and its final summary would otherwise interleave over the same
+// temp file - each renaming what the other wrote, or leaving `running` on disk as
+// the final word. Nothing else can run between these two calls.
+export function writeVerifyResults(
     testSuiteDir: string,
     summary: SvgTesterVerifyRunSummary
-): Promise<void> {
+): void {
     const outPath = path.join(testSuiteDir, SVG_TESTER_VERIFY_RESULTS_FILENAME)
-    // Write and rename rather than write in place: a running suite rewrites this
-    // file every few seconds, and the admin polls it just as often, so a reader
-    // would otherwise catch a half-written file.
     const tmpPath = `${outPath}.tmp`
-    await fs.writeFile(tmpPath, JSON.stringify(summary, null, 2) + "\n")
-    await fs.rename(tmpPath, outPath)
+    fs.writeFileSync(tmpPath, JSON.stringify(summary, null, 2) + "\n")
+    fs.renameSync(tmpPath, outPath)
 }
 
 // Written before the first render so that the file's existence proves the suite
@@ -860,12 +863,12 @@ export async function writeVerifyResults(
 // not a signal handler: `timeout` signals `yarn`, not the node process underneath
 // it, and nothing can catch the SIGKILL that follows --kill-after anyway.
 // The counts are zeroed placeholders and mean nothing until the run finishes.
-export async function writeVerifyRunStarted(
+export function writeVerifyRunStarted(
     testSuiteDir: string,
     suite: SvgTesterSuite,
     startedAt: Date
-): Promise<void> {
-    await writeVerifyResults(testSuiteDir, {
+): void {
+    writeVerifyResults(testSuiteDir, {
         suite,
         status: "running",
         startedAt: startedAt.toISOString(),
@@ -883,13 +886,13 @@ export async function writeVerifyRunStarted(
 // an unreadable reference CSV, the job-count sanity check) rather than for a
 // single chart. Without this, such a run leaves no results file at all and is
 // indistinguishable from a suite that was never started.
-export async function writeVerifyRunFailure(
+export function writeVerifyRunFailure(
     testSuiteDir: string,
     suite: SvgTesterSuite,
     error: unknown
-): Promise<void> {
+): void {
     const startedAt = new Date()
-    await writeVerifyResults(testSuiteDir, {
+    writeVerifyResults(testSuiteDir, {
         suite,
         status: "error",
         startedAt: startedAt.toISOString(),
@@ -951,7 +954,7 @@ export function startProgress(
     suite: SvgTesterSuite,
     total: number,
     pool: { stats: () => { busyWorkers: number } },
-    options: { withOutcomes?: boolean; onTick?: () => Promise<void> } = {}
+    options: { withOutcomes?: boolean; onTick?: () => void } = {}
 ): { recordResult: (result?: VerifyResult) => void; stop: () => void } {
     const startedAt = Date.now()
     const counts = { done: 0, ok: 0, differences: 0, errors: 0 }
@@ -972,20 +975,15 @@ export function startProgress(
     }, PROGRESS_INTERVAL_MS)
 
     const { onTick } = options
-    let isTicking = false
     const tickTimer = onTick
         ? setInterval(() => {
-              // One tick at a time, and a failed one is not the run's problem:
-              // it only means this progress report is skipped.
-              if (isTicking) return
-              isTicking = true
-              onTick()
-                  .catch((error) =>
-                      console.warn(`${suite}: progress report failed`, error)
-                  )
-                  .finally(() => {
-                      isTicking = false
-                  })
+              // A failed progress report is not the run's problem, and an
+              // uncaught throw in here would take the whole run down with it.
+              try {
+                  onTick()
+              } catch (error) {
+                  console.warn(`${suite}: progress report failed`, error)
+              }
           }, SVG_TESTER_PROGRESS_INTERVAL_MS)
         : undefined
 

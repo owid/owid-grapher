@@ -61,7 +61,7 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         // suite never started, and a lingering "running" status means it was
         // killed before it could report.
         const startedAt = new Date()
-        await utils.writeVerifyRunStarted(testSuiteDir, testSuite, startedAt)
+        utils.writeVerifyRunStarted(testSuiteDir, testSuite, startedAt)
 
         const chartIdsToProcess = await utils.selectChartIdsToProcess(
             configsDir,
@@ -114,7 +114,7 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
             console.log(`${testSuite}: nothing to do, no configs matched`)
             // Nothing to do is a legitimate outcome, but it still has to
             // overwrite the "running" placeholder written above.
-            await utils.writeVerifyResults(
+            utils.writeVerifyResults(
                 testSuiteDir,
                 utils.summariseVerifyResults([], {
                     suite: testSuite,
@@ -129,7 +129,7 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
 
         // Results as they come in, so the run can report its progress as it goes
         const completed: utils.VerifyResult[] = []
-        const reportProgress = (): Promise<void> =>
+        const reportProgress = (): void =>
             utils.writeVerifyResults(
                 testSuiteDir,
                 utils.summariseVerifyResults(completed, {
@@ -144,7 +144,7 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         // Publish the job count right away: the report the placeholder above
         // wrote has nothing to say, and a reader watching a long suite wants to
         // know how much of it is left from the start.
-        await reportProgress()
+        reportProgress()
 
         const pool = workerpool.pool(__dirname + "/worker.ts", {
             minWorkers: 2,
@@ -211,7 +211,7 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
             startedAt,
             durationMs: Date.now() - startedAt.getTime(),
         })
-        await utils.writeVerifyResults(testSuiteDir, summary)
+        utils.writeVerifyResults(testSuiteDir, summary)
 
         utils.logVerifySummary(summary)
 
@@ -224,18 +224,18 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         // distinguishable from "the suite ran and found nothing" by whoever
         // reads the results file. Best-effort: if even this write fails there's
         // nothing useful left to do but exit.
-        await utils
-            .writeVerifyRunFailure(
+        try {
+            utils.writeVerifyRunFailure(
                 path.join(SVG_TESTER_REPO_PATH, args.testSuite),
                 args.testSuite as SvgTesterSuite,
                 error
             )
-            .catch((writeError) => {
-                console.error(
-                    `${args.testSuite}: could not write the results file either`,
-                    writeError
-                )
-            })
+        } catch (writeError) {
+            console.error(
+                `${args.testSuite}: could not write the results file either`,
+                writeError
+            )
+        }
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
         process.exit(1)
