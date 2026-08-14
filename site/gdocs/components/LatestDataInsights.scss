@@ -7,32 +7,37 @@
     }
 }
 
-.latest-data-insights__viewport {
-    overflow: hidden;
-    // Let box-shadow of the focused card overflow the container. It would
-    // happen by default with the initial value of `overflow`, which is
-    // `visible`, but we need it to be `hidden` for the carousel. We exclude
-    // the right side to keep the content clipped correctly.
-    padding: 24px 0 24px 24px;
-    margin: -24px 0 -24px -24px;
-}
-
-html:not(.js-enabled) .latest-data-insights__viewport {
-    overflow: auto;
-}
-
 .latest-data-insights__card-container {
     display: flex;
     gap: var(--grid-gap);
-    scrollbar-width: thin;
     list-style: none;
-    margin: 0;
-    padding: 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    // Let box-shadow of the focused card overflow the container: pad the
+    // scroller and pull it back out with negative margins. We exclude the
+    // right side to keep the content clipped correctly, and offset the snap
+    // positions by the extra left padding.
+    padding: 24px 0 24px 24px;
+    margin: -24px 0 -24px -24px;
+    scroll-padding-left: 24px;
+    scrollbar-width: thin;
+}
+
+html.js-enabled .latest-data-insights__card-container {
+    // Hide the scrollbar; the carousel is controlled via the arrow buttons
+    // (desktop) and swiping (mobile). Without JS there are no buttons, so we
+    // keep a thin scrollbar as a scroll affordance.
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
 }
 
 .latest-data-insights__card {
     flex: 0 0 845px;
     height: 322px;
+    scroll-snap-align: start;
     transition:
         opacity 0.2s ease-in-out,
         box-shadow 0.2s ease-in-out;
@@ -46,7 +51,7 @@ html:not(.js-enabled) .latest-data-insights__viewport {
 }
 
 html:not(.js-enabled) .latest-data-insights__card,
-.latest-data-insights__card.is-snapped {
+.latest-data-insights__card--snapped {
     opacity: 1;
 }
 
@@ -83,9 +88,14 @@ html:not(.js-enabled) .latest-data-insights__card,
     }
 }
 
-.latest-data-insights__card.is-snapped
-    .latest-data-insights__card__data-insight {
+.latest-data-insights__card--snapped .latest-data-insights__card__data-insight {
     box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.08);
+}
+
+.latest-data-insights__card--see-all {
+    @include sm-up {
+        display: none;
+    }
 }
 
 .latest-data-insights__card__see-all {

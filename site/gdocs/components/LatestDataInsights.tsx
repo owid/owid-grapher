@@ -1,5 +1,4 @@
-import { memo, useState, useCallback, useEffect, useMemo } from "react"
-import { useMediaQuery } from "usehooks-ts"
+import { memo, useState, useCallback, useEffect, useMemo, useRef } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
@@ -7,9 +6,6 @@ import {
     faChevronLeft,
 } from "@fortawesome/free-solid-svg-icons"
 import cx from "clsx"
-import useEmblaCarousel from "embla-carousel-react"
-import ClassNames from "embla-carousel-class-names"
-import type { EmblaCarouselType } from "embla-carousel"
 
 import { Button } from "@ourworldindata/components"
 import {
@@ -18,7 +14,6 @@ import {
     OwidEnrichedGdocBlock,
     LatestDataInsight,
 } from "@ourworldindata/utils"
-import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
 import { buildLatestPagePath } from "../../latest/latestUtils.js"
 import Image from "./Image.js"
 import { ArticleBlocks } from "./ArticleBlocks.js"
@@ -43,65 +38,102 @@ export default function LatestDataInsights({
             }),
         [latestDataInsights]
     )
-    const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
-    const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start" }, [
-        ClassNames(),
-    ])
-    const { selectedIndex, scrollSnaps } = useDotButton(emblaApi)
+    const scrollerRef = useRef<HTMLUListElement>(null)
+    const [selectedIndex, setSelectedIndex] = useState(0)
+    const [snapCount, setSnapCount] = useState(0)
     const [canScrollPrev, setCanScrollPrev] = useState(false)
     const [canScrollNext, setCanScrollNext] = useState(false)
 
-    const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
-        setCanScrollPrev(emblaApi.canScrollPrev())
-        setCanScrollNext(emblaApi.canScrollNext())
+    const updateScrollState = useCallback(() => {
+        const scroller = scrollerRef.current
+        if (!scroller) return
+        const cards = getVisibleCards(scroller)
+        if (cards.length === 0) return
+        const maxScroll = scroller.scrollWidth - scroller.clientWidth
+        const scrollLeft = scroller.scrollLeft
+        setCanScrollPrev(scrollLeft > 1)
+        setCanScrollNext(scrollLeft < maxScroll - 1)
+        setSnapCount(cards.length)
+        setSelectedIndex(
+            scrollLeft >= maxScroll - 1
+                ? cards.length - 1
+                : findNearestCardIndex(cards, scrollLeft)
+        )
     }, [])
 
     useEffect(() => {
-        if (!emblaApi) return
-        onSelect(emblaApi)
-        emblaApi.on("reInit", onSelect).on("select", onSelect)
+        const scroller = scrollerRef.current
+        if (!scroller) return
+        updateScrollState()
+        scroller.addEventListener("scroll", updateScrollState, {
+            passive: true,
+        })
+        window.addEventListener("resize", updateScrollState)
         return () => {
-            emblaApi.off("reInit", onSelect).off("select", onSelect)
+            scroller.removeEventListener("scroll", updateScrollState)
+            window.removeEventListener("resize", updateScrollState)
         }
-    }, [emblaApi, onSelect])
+    }, [updateScrollState])
 
-    const scrollPrev = useCallback(() => {
-        if (emblaApi) emblaApi.scrollPrev()
-    }, [emblaApi])
+    const scrollToCard = useCallback((index: number) => {
+        const scroller = scrollerRef.current
+        if (!scroller) return
+        const cards = getVisibleCards(scroller)
+        const card = cards[index]
+        if (!card) return
+        scroller.scrollTo({
+            left: card.offsetLeft - cards[0].offsetLeft,
+            behavior: "smooth",
+        })
+    }, [])
 
-    const scrollNext = useCallback(() => {
-        if (emblaApi) emblaApi.scrollNext()
-    }, [emblaApi])
+    const scrollPrev = useCallback(
+        () => scrollToCard(selectedIndex - 1),
+        [scrollToCard, selectedIndex]
+    )
+
+    const scrollNext = useCallback(
+        () => scrollToCard(selectedIndex + 1),
+        [scrollToCard, selectedIndex]
+    )
 
     return (
         <div className={cx("latest-data-insights", className)}>
-            <div className="latest-data-insights__viewport" ref={emblaRef}>
-                <ul className="latest-data-insights__card-container">
-                    {dataInsights.map((dataInsight, index) => (
-                        <DataInsightCard
-                            key={dataInsight.id}
-                            index={index}
-                            title={dataInsight.content.title}
-                            authors={dataInsight.content.authors}
-                            body={dataInsight.content.body}
-                            publishedAt={dataInsight.publishedAt}
-                            href={`/data-insights/${dataInsight.slug}`}
-                        />
-                    ))}
-                    {isSmallScreen && (
-                        // Normal way to hide the last slide would be a CSS media
-                        // query with `display: none`, but that breaks Embla.
-                        <li className="latest-data-insights__card">
-                            <Button
-                                className="latest-data-insights__card__see-all body-3-medium"
-                                href={buildLatestPagePath("data-insight")}
-                                text="See all our Data Insights"
-                                theme="outline-vermillion"
-                            />
-                        </li>
+            <ul
+                className="latest-data-insights__card-container"
+                ref={scrollerRef}
+            >
+                {dataInsights.map((dataInsight, index) => (
+                    <DataInsightCard
+                        key={dataInsight.id}
+                        index={index}
+                        isSnapped={index === selectedIndex}
+                        title={dataInsight.content.title}
+                        authors={dataInsight.content.authors}
+                        body={dataInsight.content.body}
+                        publishedAt={dataInsight.publishedAt}
+                        href={`/data-insights/${dataInsight.slug}`}
+                    />
+                ))}
+                {/* Only shown on small screens (see CSS). */}
+                <li
+                    className={cx(
+                        "latest-data-insights__card",
+                        "latest-data-insights__card--see-all",
+                        {
+                            "latest-data-insights__card--snapped":
+                                dataInsights.length === selectedIndex,
+                        }
                     )}
-                </ul>
-            </div>
+                >
+                    <Button
+                        className="latest-data-insights__card__see-all body-3-medium"
+                        href={buildLatestPagePath("data-insight")}
+                        text="See all our Data Insights"
+                        theme="outline-vermillion"
+                    />
+                </li>
+            </ul>
             {canScrollPrev && (
                 <Button
                     ariaLabel="Scroll to the previous data insight card"
@@ -123,7 +155,7 @@ export default function LatestDataInsights({
                 />
             )}
             <div className="latest-data-insights__dots">
-                {scrollSnaps.map((_, index) => (
+                {Array.from({ length: snapCount }, (_, index) => (
                     <div
                         key={index}
                         className={cx("latest-data-insights__dot", {
@@ -137,8 +169,33 @@ export default function LatestDataInsights({
     )
 }
 
+function getVisibleCards(scroller: HTMLElement): HTMLElement[] {
+    return Array.from(scroller.children).filter(
+        (card): card is HTMLElement =>
+            card instanceof HTMLElement && card.offsetWidth > 0
+    )
+}
+
+function findNearestCardIndex(
+    cards: HTMLElement[],
+    scrollLeft: number
+): number {
+    const origin = cards[0].offsetLeft
+    let nearestIndex = 0
+    let nearestDistance = Infinity
+    cards.forEach((card, index) => {
+        const distance = Math.abs(card.offsetLeft - origin - scrollLeft)
+        if (distance < nearestDistance) {
+            nearestDistance = distance
+            nearestIndex = index
+        }
+    })
+    return nearestIndex
+}
+
 const DataInsightCard = memo(function DataInsightCard({
     index,
+    isSnapped,
     title,
     authors,
     body,
@@ -146,6 +203,7 @@ const DataInsightCard = memo(function DataInsightCard({
     href,
 }: {
     index: number
+    isSnapped: boolean
     title: string
     authors: string[]
     body: OwidEnrichedGdocBlock[]
@@ -159,7 +217,11 @@ const DataInsightCard = memo(function DataInsightCard({
         | undefined
     const otherBlocks = body.filter((_, index) => index !== firstImageIndex)
     return (
-        <li className="latest-data-insights__card">
+        <li
+            className={cx("latest-data-insights__card", {
+                "latest-data-insights__card--snapped": isSnapped,
+            })}
+        >
             <a
                 className="latest-data-insights__card__data-insight"
                 href={href}
@@ -214,50 +276,3 @@ const DataInsightCard = memo(function DataInsightCard({
         </li>
     )
 })
-
-function useDotButton(emblaApi: EmblaCarouselType | undefined): {
-    selectedIndex: number
-    scrollSnaps: number[]
-    onDotButtonClick: (index: number) => void
-} {
-    const [selectedIndex, setSelectedIndex] = useState(0)
-    const [scrollSnaps, setScrollSnaps] = useState<number[]>([])
-
-    const onDotButtonClick = useCallback(
-        (index: number) => {
-            if (!emblaApi) return
-            emblaApi.scrollTo(index)
-        },
-        [emblaApi]
-    )
-
-    const onInit = useCallback((emblaApi: EmblaCarouselType) => {
-        setScrollSnaps(emblaApi.scrollSnapList())
-    }, [])
-
-    const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
-        setSelectedIndex(emblaApi.selectedScrollSnap())
-    }, [])
-
-    useEffect(() => {
-        if (!emblaApi) return
-        onInit(emblaApi)
-        onSelect(emblaApi)
-        emblaApi
-            .on("reInit", onInit)
-            .on("reInit", onSelect)
-            .on("select", onSelect)
-        return () => {
-            emblaApi
-                .off("reInit", onInit)
-                .off("reInit", onSelect)
-                .off("select", onSelect)
-        }
-    }, [emblaApi, onInit, onSelect])
-
-    return {
-        selectedIndex,
-        scrollSnaps,
-        onDotButtonClick,
-    }
-}
