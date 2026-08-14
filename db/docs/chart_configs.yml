@@ -34,7 +34,10 @@ metadata:
       column: patchConfigIdETL
 fields:
   id:
-    description: Unique identifier for the chart configuration. These ids are public — they appear in R2 object keys, thumbnail URLs and archived pages.
+    description: |
+      Unique identifier for the chart configuration: a UUIDv7, generated in application code (MySQL has no native UUIDv7 generator), stored as char(36). These ids are public — they appear in R2 object keys, thumbnail URLs and archived pages.
+
+      For standalone charts, the UUID of the rendered config's row doubles as the chart's stable external identity: charts.configId points at it 1:1, is assigned at creation and never changes over the chart's lifetime (updates modify this row in place). It is the preferred identifier for referencing charts from external systems — numeric chart ids are minted independently per environment and slugs can change — and the admin API accepts it wherever a :chartId route param is expected. It is also used as the key for config storage in R2 and served publicly at /grapher/by-uuid/:uuid.config.json.
   config:
     description: |
       The chart configuration JSON. Stored as a JSON column, so can be queried with the ->> operator. Depending on which foreign key points at this row, it is either the configuration used for rendering or an authored layer that is merged into one.
