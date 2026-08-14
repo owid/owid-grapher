@@ -9,7 +9,7 @@
         "@ourworldindata/grapher": "workspace:^",
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
-        "@sentry/cloudflare": "^10.62.0",
+        "@sentry/cloudflare": "^10.70.0",
         "algoliasearch": "^5.53.0",
         "cookie": "^1.1.1",
         "itty-router": "^5.0.23",

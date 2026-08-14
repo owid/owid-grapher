@@ -89,10 +89,10 @@
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
         "@react-awesome-query-builder/antd": "^6.6.15",
-        "@sentry/node": "^10.62.0",
-        "@sentry/profiling-node": "^10.62.0",
-        "@sentry/react": "^10.62.0",
-        "@sentry/vite-plugin": "^5.3.0",
+        "@sentry/node": "^10.70.0",
+        "@sentry/profiling-node": "^10.70.0",
+        "@sentry/react": "^10.70.0",
+        "@sentry/vite-plugin": "^5.4.0",
         "@slack/web-api": "^8.0.0",
         "@tanstack/react-query": "^5.90.6",
         "@tippyjs/react": "^4.2.6",
@@ -228,7 +228,7 @@
         "wrangler": "^4.120.0"
     },
     "resolutions": {
-        "@sentry/cli": "3.5.0",
+        "@sentry/cli": "3.6.2",
         "preact@npm:^10.13.2": "patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch",
         "preact@npm:^10.10.0": "patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch"
     },
