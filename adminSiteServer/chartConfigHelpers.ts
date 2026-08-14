@@ -74,7 +74,7 @@ export const retrieveChartConfigFromDbAndSaveToR2 = async (
     }
 }
 
-const updateChartConfigInDbAndR2 = async (
+export const updateChartConfigInDbAndR2 = async (
     knex: db.KnexReadWriteTransaction,
     configId: string,
     config: GrapherInterface,
@@ -82,6 +82,19 @@ const updateChartConfigInDbAndR2 = async (
 ) => {
     await updateChartConfig(knex, { configId, config, updatedAt })
     return retrieveChartConfigFromDbAndSaveToR2(knex, configId)
+}
+
+export const saveNewChartConfigInDbAndR2 = async (
+    knex: db.KnexReadWriteTransaction,
+    config: GrapherInterface,
+    now: Date = new Date()
+) => {
+    const chartConfigId = await insertChartConfig(knex, {
+        config,
+        createdAt: now,
+        updatedAt: now,
+    })
+    return retrieveChartConfigFromDbAndSaveToR2(knex, chartConfigId)
 }
 
 /** Inserts a chart config pair without publishing */

@@ -6,7 +6,7 @@ metadata:
 
     Here are some kinds of entities in our DB that reference rows in this table:
     - Standalone charts, shown on our website at https://ourworldindata.org/grapher/SLUG, stored in the charts table (configId = rendered, patchConfigId = editor-authored layer)
-    - Multi-dim charts, shown also at https://ourworldindata.org/grapher/SLUG, stored in the multi_dim_x_chart_configs table (chartConfigId = rendered view, patchConfigId = YAML-authored layer)
+    - Multi-dim charts, shown also at https://ourworldindata.org/grapher/SLUG, stored in the multi_dim_x_chart_configs table (chartConfigId only — the view's YAML-authored layer is derived from multi_dim_data_pages.config when needed, not stored here)
     - Narrative charts, shown only as embedded views in articles and that are based on parent standalone charts, stored in the narrative_charts table (chartConfigId = rendered, patchConfigId = editor-authored layer)
     - Explorer views, stored in the explorer_views table (chartConfigId only — the config is generated whole, there is no authored layer)
     - Indicator level charts, used in the inheritance mechanism in standalone charts and multi-dim charts, stored in the variables table (patchConfigIdETL — a single authored layer, used as stored)
@@ -26,8 +26,6 @@ metadata:
       column: viewConfigId
     - table: multi_dim_x_chart_configs
       column: chartConfigId
-    - table: multi_dim_x_chart_configs
-      column: patchConfigId
     - table: narrative_charts
       column: chartConfigId
     - table: narrative_charts
@@ -54,6 +52,6 @@ fields:
   createdAt:
     description: Timestamp when the configuration was created
   updatedAt:
-    description: Timestamp when the configuration was last updated. When an owner writes its config, its rendered row and its patch row are written together and share the same timestamp. Indicator propagation is the exception — it rewrites only the rendered row, because the authored layer doesn't change.
+    description: Timestamp when the configuration was last updated. When a chart or narrative chart writes its config, its rendered row and its patch row are written together and share the same timestamp. Indicator propagation is the exception — it rewrites only the rendered row, because the authored layer doesn't change.
   configMd5:
     description: MD5 hash of the config JSON used for change detection and caching. This column is a GENERATED STORED column, no need to update it in insert/update calls
