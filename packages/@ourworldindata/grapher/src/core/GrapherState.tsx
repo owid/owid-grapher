@@ -1762,7 +1762,7 @@ export class GrapherState
         }
         if (dimensions.length > 0 && this.loadingDimensions.length === 0)
             return ""
-        return `Waiting for dimensions ${this.loadingDimensions.join(",")}.`
+        return `Waiting for dimensions ${this.loadingDimensions.map((dim) => dim.columnSlug).join(", ")}.`
     }
 
     @computed get newSlugs(): string[] {
