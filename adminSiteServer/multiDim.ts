@@ -22,6 +22,11 @@ import {
     View,
 } from "@ourworldindata/types"
 import { mergeGrapherConfigs, dimensionsToViewId } from "@ourworldindata/utils"
+import {
+    latestGrapherConfigSchema,
+    migrateGrapherConfigToLatestVersion,
+} from "@ourworldindata/grapher"
+import * as Sentry from "@sentry/node"
 import * as db from "../db/db.js"
 import {
     buildMdimViewPatchConfig,
@@ -234,10 +239,9 @@ export async function upsertMultiDim(
     catalogPath: string,
     rawConfig: MultiDimDataPageConfigRaw
 ): Promise<number> {
-    const config = await resolveMultiDimDataPageCatalogPathsToIndicatorIds(
-        knex,
-        rawConfig
-    )
+    const resolvedConfig =
+        await resolveMultiDimDataPageCatalogPathsToIndicatorIds(knex, rawConfig)
+    const config = normalizeViewConfigSchemas(catalogPath, resolvedConfig)
     const variableConfigs = await getIndicatorChartConfigs(
         knex,
         _.uniq(config.views.map((view) => view.indicators.y[0].id))
@@ -322,6 +326,46 @@ export async function upsertMultiDim(
         })
     }
     return multiDimId
+}
+
+/**
+ * Migrates every view config to the latest grapher schema, so that what we store
+ * is versioned and the read path doesn't have to migrate on every propagation.
+ */
+function normalizeViewConfigSchemas(
+    catalogPath: string,
+    config: MultiDimDataPageConfigPreProcessed
+): MultiDimDataPageConfigPreProcessed {
+    const viewIdsMissingSchema: string[] = []
+    const views = config.views.map((view) => {
+        if (!view.config) return view
+        if (!config.grapherConfigSchema && !view.config.$schema)
+            viewIdsMissingSchema.push(dimensionsToViewId(view.dimensions))
+        return {
+            ...view,
+            config: migrateGrapherConfigToLatestVersion({
+                $schema:
+                    config.grapherConfigSchema ?? latestGrapherConfigSchema,
+                ...view.config,
+            }),
+        }
+    })
+
+    if (viewIdsMissingSchema.length > 0) {
+        console.warn(
+            `${viewIdsMissingSchema.length} view config(s) without a schema version, assumed latest catalogPath=${catalogPath}`
+        )
+        // Static message, so that all affected pages group into one Sentry issue
+        Sentry.captureMessage(
+            "Multi-dim view configs without a schema version, assumed latest",
+            {
+                level: "warning",
+                extra: { catalogPath, viewIds: viewIdsMissingSchema },
+            }
+        )
+    }
+
+    return { ...config, grapherConfigSchema: latestGrapherConfigSchema, views }
 }
 
 /** The config of every view of this multi-dim, keyed by its id. */
