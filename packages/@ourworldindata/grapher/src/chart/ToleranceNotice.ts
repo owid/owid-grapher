@@ -123,21 +123,16 @@ function formatToleranceWindow(
 ): string {
     const format = (time: Time): string => timeColumn.formatTime(time)
 
-    if (from < targetTime && to > targetTime)
-        return `the closest year between ${format(from)} and ${format(to)}`
-
-    // The window is one-sided when the chart shows the first or last year of
-    // its data, which is the norm: charts default to the latest year
-    const isLookingAhead = to > targetTime
-    const bound = isLookingAhead ? to : from
+    // The target year has no data, so a window ending on it starts (or stops)
+    // at the year next to it. That's the one-sided case, which is the norm:
+    // charts default to the latest year of their data.
+    const start = from === targetTime ? from + 1 : from
+    const end = to === targetTime ? to - 1 : to
 
     // Name the year itself where the window leaves just the one
-    if (Math.abs(bound - targetTime) === 1) return format(bound)
+    if (start === end) return format(start)
 
-    // The target year has no data, so the window starts at the year next to it
-    return isLookingAhead
-        ? `the closest year between ${format(targetTime + 1)} and ${format(to)}`
-        : `the closest year between ${format(from)} and ${format(targetTime - 1)}`
+    return `the closest year between ${format(start)} and ${format(end)}`
 }
 
 /** The tolerance in words, e.g. "3 years" or "a year" */
