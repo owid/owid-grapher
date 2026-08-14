@@ -87,6 +87,7 @@ Use `verify-graphs.ts` to check SVG outputs against the reference export. The sc
 - Compares the MD5 hash with the reference
 - If there's a difference, saves the new SVG to the differences directory
 - Writes `verify-results.json` recording the outcome: status, counts, which views differed and which errored
+- Rewrites that file every 5 seconds while it runs, so the admin report can follow along: `status` stays `running`, `counts.total` is the whole run and `ok + differences + errors` is how far it has got, and `updatedAt` is a heartbeat — if it stops moving, so did the run
 - Logs counts only — which views differed is in `verify-results.json`, the `differences/` directory, and the admin report at `/admin/svgtester/<suite>`
 - Exits 0 when everything matched, 2 when it found differences, and 1 if the tester itself malfunctioned (a render crashed, a reference was missing, a job timed out)
 

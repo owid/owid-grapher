@@ -2,6 +2,7 @@ import { useContext, useEffect, useMemo, useState } from "react"
 import {
     Alert,
     FloatButton,
+    Progress,
     Select,
     Space,
     Spin,
@@ -15,21 +16,26 @@ import { useQuery } from "@tanstack/react-query"
 import { Link, useHistory, useLocation, useParams } from "react-router-dom"
 import * as _ from "lodash-es"
 import {
+    SVG_TESTER_PROGRESS_INTERVAL_MS,
     SvgTesterDirectory,
     SvgTesterSuiteOverview,
     SvgTesterSuiteStatus,
     SvgTesterVerifyDifferenceEntry,
     SvgTesterVerifyErrorEntry,
+    SvgTesterVerifyRunSummary,
 } from "@ourworldindata/types"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Timeago } from "./Forms.js"
+import { SvgTesterRefreshedLabel } from "./SvgTesterRefreshedLabel.js"
 import {
     displayStatus,
     DISPLAY_STATUS_LABELS,
     formatDuration,
     hasFindings,
     hasReportedResult,
+    isUnderway,
+    runProgress,
 } from "./svgTesterHelpers.js"
 
 const LIVE_URL = "https://ourworldindata.org"
@@ -51,6 +57,9 @@ const KIND_LABELS: Record<SvgTesterVerifyErrorEntry["kind"], string> = {
 
 const CHART_TYPE_PARAM = "chartType"
 
+/** How often to look for a new run when the last one has already reported */
+const IDLE_REFRESH_INTERVAL_MS = 30_000
+
 export function SvgTesterSuitePage() {
     const { admin } = useContext(AdminAppContext)
     const { suite } = useParams<{ suite: string }>()
@@ -67,13 +76,22 @@ export function SvgTesterSuitePage() {
         history.replace({ search: params.toString(), hash: "" })
     }
 
-    const { data, isLoading } = useQuery({
+    const { data, isLoading, isError, dataUpdatedAt } = useQuery({
         queryKey: ["svgtester-results", suite],
         queryFn: () =>
-            admin.getJSON<SvgTesterSuiteStatus>(
-                `/api/svgtester/${suite}/results.json`
+            admin.requestJSON<SvgTesterSuiteStatus>(
+                `/api/svgtester/${suite}/results.json`,
+                {},
+                "GET",
+                { onFailure: "continue", isBackground: true }
             ),
         refetchOnWindowFocus: true,
+        // Keep pace with a live run; once it has reported, the only thing left to
+        // catch is the next run starting, which can wait.
+        refetchInterval: (query) =>
+            query.state.data && hasReportedResult(query.state.data)
+                ? IDLE_REFRESH_INTERVAL_MS
+                : SVG_TESTER_PROGRESS_INTERVAL_MS,
     })
 
     const results = data?.results
@@ -106,7 +124,7 @@ export function SvgTesterSuitePage() {
     }, [location.hash, results])
 
     return (
-        <AdminLayout title={`SVG tester: ${suite}`}>
+        <AdminLayout title={pageTitle(suite, data)}>
             <main className="SvgTesterSuitePage">
                 <div className="SvgTesterSuitePage__nav">
                     <Link to="/svgtester">← All suites</Link>
@@ -117,27 +135,7 @@ export function SvgTesterSuitePage() {
                         <div className="SvgTesterSuitePage__summary">
                             <div className="SvgTesterSuitePage__headline-row">
                                 <div className="SvgTesterSuitePage__headline">
-                                    {results && isReported ? (
-                                        <>
-                                            <strong>
-                                                {results.counts.differences.toLocaleString()}
-                                            </strong>{" "}
-                                            of{" "}
-                                            {results.counts.total.toLocaleString()}{" "}
-                                            charts rendered differently
-                                            {results.counts.errors > 0 && (
-                                                <span className="SvgTesterSuitePage__errors">
-                                                    {", "}
-                                                    <strong>
-                                                        {results.counts.errors.toLocaleString()}
-                                                    </strong>{" "}
-                                                    failed to render
-                                                </span>
-                                            )}
-                                        </>
-                                    ) : (
-                                        status && DISPLAY_STATUS_LABELS[status]
-                                    )}
+                                    <SuiteHeadline status={data} />
                                 </div>
                                 <SuiteSwitcher currentSuite={suite} />
                             </div>
@@ -170,6 +168,12 @@ export function SvgTesterSuitePage() {
                                         </>
                                     )}
                                 </div>
+                            )}
+                            {results && !isReported && (
+                                <SuiteRunProgress
+                                    results={results}
+                                    isStalled={status === "stalled"}
+                                />
                             )}
                         </div>
                     )}
@@ -229,9 +233,99 @@ export function SvgTesterSuitePage() {
                     )}
                 </Spin>
 
+                <p className="SvgTesterSuitePage__refreshed">
+                    <SvgTesterRefreshedLabel
+                        isError={isError}
+                        dataUpdatedAt={dataUpdatedAt}
+                    />
+                </p>
+
                 <FloatButton.BackTop duration={1} />
             </main>
         </AdminLayout>
+    )
+}
+
+/** What the run has found, or how far it has got if it is still going */
+function SuiteHeadline({ status }: { status: SvgTesterSuiteStatus }) {
+    const results = status.results
+    const display = displayStatus(status)
+
+    if (results && hasReportedResult(status))
+        return (
+            <>
+                <strong>{results.counts.differences.toLocaleString()}</strong>{" "}
+                of {results.counts.total.toLocaleString()} charts rendered
+                differently
+                {results.counts.errors > 0 && (
+                    <span className="SvgTesterSuitePage__errors">
+                        {", "}
+                        <strong>
+                            {results.counts.errors.toLocaleString()}
+                        </strong>{" "}
+                        failed to render
+                    </span>
+                )}
+            </>
+        )
+
+    const progress = results ? runProgress(results) : undefined
+    if (!progress) return <>{DISPLAY_STATUS_LABELS[display]}</>
+
+    return (
+        <>
+            {DISPLAY_STATUS_LABELS[display]} ·{" "}
+            <strong>{progress.done.toLocaleString()}</strong> of{" "}
+            {progress.total.toLocaleString()} charts checked
+        </>
+    )
+}
+
+/** How a run that hasn't reported yet is getting on */
+function SuiteRunProgress({
+    results,
+    isStalled,
+}: {
+    results: SvgTesterVerifyRunSummary
+    isStalled: boolean
+}) {
+    const progress = runProgress(results)
+    // Nothing to say yet: the run is still working out what it has to do, which
+    // the headline already covers.
+    if (!progress && !isStalled) return null
+
+    const { differences, errors } = results.counts
+
+    const parts = [
+        `${differences.toLocaleString()} differences so far`,
+        ...(errors > 0 ? [`${errors.toLocaleString()} failed to render`] : []),
+    ]
+
+    return (
+        <div className="SvgTesterSuitePage__progress">
+            {progress && (
+                <Progress
+                    percent={progress.percent}
+                    status={isStalled ? "exception" : "active"}
+                    size="small"
+                />
+            )}
+            {progress && (
+                <div className="SvgTesterSuitePage__progress-note">
+                    <Typography.Text type="secondary">
+                        {parts.join(" · ")}
+                    </Typography.Text>
+                </div>
+            )}
+            {isStalled && (
+                <div className="SvgTesterSuitePage__progress-note">
+                    <Typography.Text type="warning">
+                        No progress since <Timeago time={results.updatedAt} /> —
+                        the run was probably killed.
+                    </Typography.Text>
+                </div>
+            )}
+        </div>
     )
 }
 
@@ -242,35 +336,68 @@ function SuiteSwitcher({ currentSuite }: { currentSuite: string | undefined }) {
     const { data } = useQuery({
         queryKey: ["svgtester-suites"],
         queryFn: () =>
-            admin.getJSON<{ suites: SvgTesterSuiteOverview[] }>(
-                "/api/svgtester/suites.json"
+            admin.requestJSON<{ suites: SvgTesterSuiteOverview[] }>(
+                "/api/svgtester/suites.json",
+                {},
+                "GET",
+                { onFailure: "continue", isBackground: true }
             ),
+        refetchOnWindowFocus: true,
+        // Slower than the run it sits next to: these notes are a hint about the
+        // other suites, and this route asks git about every one of them.
+        refetchInterval: IDLE_REFRESH_INTERVAL_MS,
     })
 
     // The current suite stays listed even without findings, so the switcher
     // doesn't lose the page you are on.
     const suites = (data?.suites ?? []).filter(
-        (status) => hasFindings(status) || status.suite === currentSuite
+        (status) =>
+            hasFindings(status) ||
+            isUnderway(status) ||
+            status.suite === currentSuite
     )
 
     if (suites.length < 2) return null
 
     return (
         <nav className="SvgTesterSuitePage__suites" aria-label="Test suites">
-            {suites.map(({ suite }) => (
-                <Link
-                    key={suite}
-                    to={`/svgtester/${suite}`}
-                    className={cx("SvgTesterSuitePage__suite", {
-                        "is-active": suite === currentSuite,
-                    })}
-                    aria-current={suite === currentSuite ? "page" : undefined}
-                >
-                    {suite}
-                </Link>
-            ))}
+            {suites.map((status) => {
+                const note = suiteNote(status)
+                return (
+                    <Link
+                        key={status.suite}
+                        to={`/svgtester/${status.suite}`}
+                        className={cx("SvgTesterSuitePage__suite", {
+                            "is-active": status.suite === currentSuite,
+                        })}
+                        aria-current={
+                            status.suite === currentSuite ? "page" : undefined
+                        }
+                    >
+                        {status.suite}
+                        {note && (
+                            <span className="SvgTesterSuitePage__suite-note">
+                                {note}
+                            </span>
+                        )}
+                    </Link>
+                )
+            })}
         </nav>
     )
+}
+
+/**
+ * What the other suites are up to, so a run in one doesn't hide what another
+ * already found
+ */
+function suiteNote(status: SvgTesterSuiteOverview): string {
+    if (isUnderway(status))
+        return DISPLAY_STATUS_LABELS[displayStatus(status)].toLowerCase()
+    const counts = status.results?.counts
+    if (!counts) return ""
+    const findings = counts.differences + counts.errors
+    return findings ? findings.toLocaleString() : ""
 }
 
 function CommitLabel({
@@ -618,6 +745,19 @@ function SvgTesterInteractive({ chartPath }: { chartPath: string }) {
             </figure>
         </div>
     )
+}
+
+/** Readable in a browser tab: which suite, and where it stands */
+function pageTitle(
+    suite: string | undefined,
+    data: SvgTesterSuiteStatus | undefined
+): string {
+    const base = `SVG tester: ${suite}`
+    if (!data) return base
+    const display = displayStatus(data)
+    if (display === "differences")
+        return `${base} (${data.results!.counts.differences.toLocaleString()} differences)`
+    return `${base} (${DISPLAY_STATUS_LABELS[display].toLowerCase()})`
 }
 
 function svgUrl(
