@@ -793,7 +793,7 @@ describe("toleranceNotice", () => {
 
         // gdp's 3 years, not pop's 10, which isn't currently applied
         expect(grapher.toleranceNotice).toEqual(
-            "Where data is unavailable, the closest available value within 3 years is shown instead."
+            "Where data is unavailable, the closest value within 3 years is shown instead."
         )
     })
 

@@ -130,7 +130,7 @@ describe(formatToleranceNotice, () => {
                 timeRange: [1990, 2002],
             })
         ).toEqual(
-            "Where data is unavailable, the closest available value within 3 years is shown instead."
+            "Where data is unavailable, the closest value within 3 years is shown instead."
         )
     })
 
@@ -142,7 +142,7 @@ describe(formatToleranceNotice, () => {
                 timeRange: [0, 730],
             })
         ).toEqual(
-            "Where data is unavailable, the closest available value within 90 days is shown instead."
+            "Where data is unavailable, the closest value within 90 days is shown instead."
         )
     })
 
@@ -154,7 +154,7 @@ describe(formatToleranceNotice, () => {
                 timeRange: [1990, 2002],
             })
         ).toEqual(
-            "Where data is unavailable, the closest available value is shown instead."
+            "Where data is unavailable, the closest value is shown instead."
         )
     })
 

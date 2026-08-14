@@ -113,7 +113,7 @@ export function formatToleranceNotice({
                 ? "closest earlier"
                 : toleranceStrategy === ToleranceStrategy.forwards
                   ? "closest later"
-                  : "closest available"
+                  : "closest"
 
         // A tolerance that spans the whole chart isn't a window, it just means
         // "whenever there is data". Indicators configured that way use a sentinel
