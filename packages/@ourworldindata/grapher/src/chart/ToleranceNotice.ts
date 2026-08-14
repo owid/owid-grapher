@@ -134,9 +134,10 @@ function formatToleranceWindow(
     // Name the year itself where the window leaves just the one
     if (Math.abs(bound - targetTime) === 1) return format(bound)
 
+    // The target year has no data, so the window starts at the year next to it
     return isLookingAhead
-        ? `the closest year up to ${format(to)}`
-        : `the closest year back to ${format(from)}`
+        ? `the closest year between ${format(targetTime + 1)} and ${format(to)}`
+        : `the closest year between ${format(from)} and ${format(targetTime - 1)}`
 }
 
 /** The tolerance in words, e.g. "3 years" or "a year" */

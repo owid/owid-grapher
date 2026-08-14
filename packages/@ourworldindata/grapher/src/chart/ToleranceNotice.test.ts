@@ -57,7 +57,7 @@ describe(makeToleranceNotice, () => {
                 timeRange: [1990, 2010],
             })
         ).toEqual(
-            "Where data for 2010 is unavailable, the value from the closest year back to 2007 is shown instead."
+            "Where data for 2010 is unavailable, the value from the closest year between 2007 and 2009 is shown instead."
         )
     })
 
@@ -69,7 +69,7 @@ describe(makeToleranceNotice, () => {
                 timeRange: [1990, 2010],
             })
         ).toEqual(
-            "Where data for 1990 is unavailable, the value from the closest year up to 1993 is shown instead."
+            "Where data for 1990 is unavailable, the value from the closest year between 1991 and 1993 is shown instead."
         )
     })
 
@@ -82,7 +82,7 @@ describe(makeToleranceNotice, () => {
                 toleranceStrategy: ToleranceStrategy.backwards,
             })
         ).toEqual(
-            "Where data for 2000 is unavailable, the value from the closest year back to 1997 is shown instead."
+            "Where data for 2000 is unavailable, the value from the closest year between 1997 and 1999 is shown instead."
         )
     })
 
@@ -95,7 +95,7 @@ describe(makeToleranceNotice, () => {
                 toleranceStrategy: ToleranceStrategy.forwards,
             })
         ).toEqual(
-            "Where data for 2000 is unavailable, the value from the closest year up to 2003 is shown instead."
+            "Where data for 2000 is unavailable, the value from the closest year between 2001 and 2003 is shown instead."
         )
     })
 
@@ -166,7 +166,7 @@ describe(makeToleranceNotice, () => {
                 timeRange: [2019, 2022],
             })
         ).toEqual(
-            "Where data for 2022 is unavailable, the value from the closest year back to 2019 is shown instead."
+            "Where data for 2022 is unavailable, the value from the closest year between 2019 and 2021 is shown instead."
         )
     })
 
