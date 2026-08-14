@@ -176,10 +176,7 @@ export const EmailNotificationsPreviewPage = () => {
                             <Checkbox.Group
                                 value={subscription.contentTypes}
                                 onChange={(contentTypes) =>
-                                    update({
-                                        contentTypes:
-                                            contentTypes as EmailNotificationsContentType[],
-                                    })
+                                    update({ contentTypes })
                                 }
                                 options={EMAIL_NOTIFICATIONS_CONTENT_TYPES.map(
                                     (contentType) => ({
