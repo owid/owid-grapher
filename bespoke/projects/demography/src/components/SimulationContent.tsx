@@ -265,6 +265,16 @@ export function SimulationContent({
                             <ProjectionLegend
                                 modified={hasUserChanges}
                                 userTooltip="This projection is based on the fertility, life expectancy, and migration assumptions you set. Change them in the assumptions panel to see how they affect population projections."
+                                nsoLabel={
+                                    simulation.nsoForecastResults
+                                        ? "National statistics projection"
+                                        : undefined
+                                }
+                                nsoTooltip={
+                                    simulation.nsoForecastResults
+                                        ? `Projection with fertility anchored to figures published by the country's national statistics office${simulation.nsoTfr?.source ? ` (${simulation.nsoTfr.source})` : ""}, assuming the current gap to the UN's assumed path persists. Life expectancy and migration follow the UN medium scenario.`
+                                        : undefined
+                                }
                             />
                         }
                     >
@@ -404,6 +414,18 @@ export function InputChartPanel({
                         userLabel="Your assumptions"
                         benchmarkLabel="UN assumptions"
                         modified={isParameterModified}
+                        nsoLabel={
+                            variant === "fertilityRate" &&
+                            simulation.nsoTfr?.nso
+                                ? "National statistics"
+                                : undefined
+                        }
+                        nsoTooltip={
+                            variant === "fertilityRate" &&
+                            simulation.nsoTfr?.nso
+                                ? `Fertility rates published by the country's national statistics office${simulation.nsoTfr?.source ? ` (${simulation.nsoTfr.source})` : ""}, with a forward assumption that scales the UN path to the latest national figure.`
+                                : undefined
+                        }
                     />
                 ) : undefined
             }

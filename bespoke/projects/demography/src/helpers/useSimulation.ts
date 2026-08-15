@@ -47,6 +47,8 @@ import {
     type ScenarioConstants,
 } from "../model/scenarios"
 import { runProjectionResults } from "../model/projectionRunner"
+import { computeNsoScenario, type NsoScenario } from "../model/nsoScenario"
+import { useNsoTfrCountry, type NsoTfrCountry } from "./nsoTfr"
 import { isControlPointModified } from "./urlState"
 
 const SCENARIO_CONSTANTS: ScenarioConstants = {
@@ -63,6 +65,11 @@ export interface Simulation {
     benchmarkResults: Record<number, YearResult>
     forecastResults: Record<number, YearResult>
     unwppBenchmarkResults: Record<number, YearResult>
+    // PROTOTYPE: national-statistics (NSO) TFR data and the projection run
+    // with fertility anchored to it (null when no NSO data for this country)
+    nsoTfr: NsoTfrCountry | null
+    nsoScenario: NsoScenario | null
+    nsoForecastResults: Record<number, YearResult> | null
     unwppScenarioParams: ScenarioParams
     baselineParams: BaselineParams
     initialScenarioParams: ScenarioParams
@@ -203,6 +210,9 @@ export function useSimulation(
 
     const country = data.country
 
+    // PROTOTYPE: national statistics office TFR data for this country
+    const nsoTfr = useNsoTfrCountry(country)
+
     // Core simulation results (recomputed when data changes)
     const core = useMemo(() => {
         if (!data) return null
@@ -334,6 +344,31 @@ export function useSimulation(
         () => scenarioParams ?? initialCurrentScenarioParams,
         [scenarioParams, initialCurrentScenarioParams]
     )
+
+    // PROTOTYPE: projection run with fertility anchored to NSO data
+    const nsoProjection = useMemo(() => {
+        if (!data || !core || !nsoTfr?.nso?.length) return null
+        const scenario = computeNsoScenario({
+            nsoTfr,
+            unwppScenario: core.defaultScenario,
+            historicalAnchors: core.historicalAnchors,
+            historicalEndYear: HISTORICAL_END_YEAR,
+            controlYears: CONTROL_YEARS,
+        })
+        if (!scenario) return null
+        const startPop = getPopulationForYear(data, HISTORICAL_END_YEAR)
+        if (!startPop) return null
+        const results = runProjectionResults({
+            startPopulation: startPop,
+            baselineParams: core.baselineParams,
+            scenarioParams: scenario.scenarioParams,
+            historicalEndYear: HISTORICAL_END_YEAR,
+            endYear: END_YEAR,
+            controlYears: scenario.controlYears,
+            migrationOptions: core.migrationOptions,
+        })
+        return { scenario, results }
+    }, [data, core, nsoTfr])
 
     // Forecast results (recomputed when scenario changes)
     const forecastResults = useMemo(() => {
@@ -475,6 +510,9 @@ export function useSimulation(
         benchmarkResults: core.benchmarkResults,
         forecastResults,
         unwppBenchmarkResults: core.unwppBenchmarkResults,
+        nsoTfr: nsoTfr ?? null,
+        nsoScenario: nsoProjection?.scenario ?? null,
+        nsoForecastResults: nsoProjection?.results ?? null,
         unwppScenarioParams: core.defaultScenario,
         baselineParams: core.baselineParams,
         initialScenarioParams,

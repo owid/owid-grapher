@@ -26,6 +26,7 @@ import {
     USER_MODIFIED_COLOR,
     GRID_LINE_COLOR,
     GRID_LABEL_COLOR,
+    NSO_COLOR,
 } from "../helpers/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { Halo, TextWrap } from "@ourworldindata/components"
@@ -132,6 +133,29 @@ function DemographyParameterEditorContent({
 
     const controlValues = CONTROL_YEARS.map((y) => controlPoints[y])
 
+    // PROTOTYPE: national statistics office (NSO) TFR observations and the
+    // NSO-anchored forward assumption — co-plotted on the fertility chart only
+    const nsoHistoricalPoints: DataPoint[] = useMemo(
+        () =>
+            variant === "fertilityRate" && simulation.nsoTfr?.nso
+                ? simulation.nsoTfr.nso.map(([year, value]) => ({
+                      year,
+                      value,
+                  }))
+                : [],
+        [variant, simulation.nsoTfr]
+    )
+    const nsoProjectionPoints: DataPoint[] = useMemo(() => {
+        if (variant !== "fertilityRate" || !simulation.nsoScenario) return []
+        const lastObservedYear = nsoHistoricalPoints.at(-1)?.year ?? -Infinity
+        return simulation.nsoScenario.fertilityControlPoints.filter(
+            (p) => p.year >= lastObservedYear
+        )
+    }, [variant, simulation.nsoScenario, nsoHistoricalPoints])
+    const nsoValues = [...nsoHistoricalPoints, ...nsoProjectionPoints].map(
+        (d) => d.value
+    )
+
     const minValue =
         yMinOverride ??
         Math.max(
@@ -140,7 +164,8 @@ function DemographyParameterEditorContent({
                 Math.min(...unwppValues) - config.yPadding,
                 Math.min(...historicalValues),
                 Math.min(...initialControlValues) - config.yPadding,
-                Math.min(...controlValues)
+                Math.min(...controlValues),
+                ...nsoValues
             )
         )
     const maxValue = Math.min(
@@ -149,7 +174,8 @@ function DemographyParameterEditorContent({
             Math.max(...unwppValues) + config.yPadding,
             Math.max(...historicalValues),
             Math.max(...initialControlValues) + config.yPadding,
-            Math.max(...controlValues)
+            Math.max(...controlValues),
+            ...nsoValues
         )
     )
 
@@ -455,6 +481,40 @@ function DemographyParameterEditorContent({
                             strokeDasharray="1,2"
                             strokeLinecap="butt"
                         />
+                    )}
+
+                    {/* PROTOTYPE: NSO observations + NSO-anchored forward assumption */}
+                    {nsoHistoricalPoints.length > 0 && (
+                        <g style={{ pointerEvents: "none" }}>
+                            {nsoProjectionPoints.length > 1 && (
+                                <LinePath
+                                    data={nsoProjectionPoints}
+                                    x={(d) => xScale(d.year)}
+                                    y={(d) => yScale(d.value)}
+                                    stroke={NSO_COLOR}
+                                    strokeWidth={2}
+                                    strokeDasharray="1,2"
+                                    strokeLinecap="butt"
+                                />
+                            )}
+                            <LinePath
+                                data={nsoHistoricalPoints}
+                                x={(d) => xScale(d.year)}
+                                y={(d) => yScale(d.value)}
+                                stroke={NSO_COLOR}
+                                strokeWidth={1}
+                                strokeOpacity={0.6}
+                            />
+                            {nsoHistoricalPoints.map((d) => (
+                                <circle
+                                    key={d.year}
+                                    cx={xScale(d.year)}
+                                    cy={yScale(d.value)}
+                                    r={2.5}
+                                    fill={NSO_COLOR}
+                                />
+                            ))}
+                        </g>
                     )}
 
                     {/* Endpoint labels (1950, 2023, 2100) */}

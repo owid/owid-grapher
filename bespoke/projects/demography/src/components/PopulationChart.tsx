@@ -20,6 +20,7 @@ import {
     HOVER_LINE_COLOR,
     ZERO_LINE_COLOR,
     USER_MODIFIED_COLOR,
+    NSO_COLOR,
 } from "../helpers/constants"
 
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
@@ -149,16 +150,33 @@ function PopulationChartContent({
         [simulation]
     )
 
+    // PROTOTYPE: projection based on national statistics office fertility
+    const nsoDataPoints = useMemo(
+        () =>
+            R.pipe(
+                PROJECTION_TIME_RANGE,
+                R.map((year) => {
+                    const result = simulation.nsoForecastResults?.[year]
+                    if (!result) return undefined
+                    return { year, value: result.totalPop }
+                }),
+                R.filter(R.isDefined)
+            ),
+        [simulation]
+    )
+
     const allDataPoints = useMemo(
         () => [
             ...historicalDataPoints,
             ...(showCustomProjection ? projectionDataPoints : []),
             ...benchmarkDataPoints,
+            ...nsoDataPoints,
         ],
         [
             historicalDataPoints,
             projectionDataPoints,
             benchmarkDataPoints,
+            nsoDataPoints,
             showCustomProjection,
         ]
     )
@@ -239,12 +257,14 @@ function PopulationChartContent({
         const benchmark = benchmarkDataPoints.find(
             (d) => d.year === hoveredYear
         )
-        return { historical, projection, benchmark }
+        const nso = nsoDataPoints.find((d) => d.year === hoveredYear)
+        return { historical, projection, benchmark, nso }
     }, [
         hoveredYear,
         historicalDataPoints,
         projectionDataPoints,
         benchmarkDataPoints,
+        nsoDataPoints,
     ])
 
     const lastProjectionDataPoint = last(projectionDataPoints)?.value
@@ -351,6 +371,45 @@ function PopulationChartContent({
                         strokeDasharray={PROJECTION_DASHARRAY}
                         strokeLinecap="butt"
                     />
+
+                    {/* PROTOTYPE: NSO-anchored projection line */}
+                    {nsoDataPoints.length > 0 && (
+                        <>
+                            <LinePath
+                                data={nsoDataPoints}
+                                x={(d) => xScale(d.year)}
+                                y={(d) => yScale(d.value)}
+                                stroke={NSO_COLOR}
+                                strokeWidth={3}
+                                strokeDasharray={PROJECTION_DASHARRAY}
+                                strokeLinecap="butt"
+                            />
+                            <circle
+                                cx={xScale(END_YEAR)}
+                                cy={yScale(nsoDataPoints.at(-1)!.value)}
+                                r={4}
+                                fill={NSO_COLOR}
+                            />
+                            <Halo
+                                id="nso-endpoint-label"
+                                outlineWidth={3}
+                                outlineColor="white"
+                            >
+                                <text
+                                    x={xScale(END_YEAR)}
+                                    y={yScale(nsoDataPoints.at(-1)!.value) + 16}
+                                    textAnchor="end"
+                                    fontSize={fonts.pointLabel}
+                                    fill={NSO_COLOR}
+                                    fontWeight={700}
+                                >
+                                    {formatPopulationValueLong(
+                                        nsoDataPoints.at(-1)!.value
+                                    )}
+                                </text>
+                            </Halo>
+                        </>
+                    )}
 
                     {/* Custom projection line */}
                     {showCustomProjection && (
@@ -483,12 +542,24 @@ function HoverDots({
         historical: DataPoint | undefined
         projection: DataPoint | undefined
         benchmark: DataPoint | undefined
+        nso: DataPoint | undefined
     }
     showCustomProjection: boolean
     projectionColor?: string
 }) {
     return (
         <g>
+            {hoveredValues.nso && (
+                <circle
+                    cx={x}
+                    cy={yScale(hoveredValues.nso.value)}
+                    r={4}
+                    fill={NSO_COLOR}
+                    stroke="#fff"
+                    strokeWidth={1.5}
+                    pointerEvents="none"
+                />
+            )}
             {hoveredValues.historical && (
                 <circle
                     cx={x}
@@ -693,6 +764,7 @@ function PopulationTooltipContent({
         historical: DataPoint | undefined
         projection: DataPoint | undefined
         benchmark: DataPoint | undefined
+        nso: DataPoint | undefined
     }
     showCustomProjection: boolean
     hasUserChanges: boolean
@@ -712,6 +784,15 @@ function PopulationTooltipContent({
         )
     }
 
+    // PROTOTYPE: NSO-anchored projection row, shown alongside the others
+    const nsoRow = hoveredValues.nso ? (
+        <TooltipValue
+            label="National statistics projection"
+            value={formatPopulationValueLong(hoveredValues.nso.value)}
+            color={NSO_COLOR}
+        />
+    ) : null
+
     const projectionValue = showCustomProjection
         ? hoveredValues.projection
         : hoveredValues.benchmark
@@ -722,11 +803,14 @@ function PopulationTooltipContent({
     // When only the UN projection line is shown, display a single value
     if (!showCustomProjection) {
         return (
-            <TooltipValue
-                label="UN projection"
-                value={formatPopulationValueLong(benchmarkValue.value)}
-                color={DENIM_BLUE}
-            />
+            <>
+                <TooltipValue
+                    label="UN projection"
+                    value={formatPopulationValueLong(benchmarkValue.value)}
+                    color={DENIM_BLUE}
+                />
+                {nsoRow}
+            </>
         )
     }
 
@@ -740,6 +824,7 @@ function PopulationTooltipContent({
                 value={formatPopulationValueLong(benchmarkValue.value)}
                 color={showCustomProjection ? GRAPHER_LIGHT_TEXT : DENIM_BLUE}
             />
+            {nsoRow}
             <TooltipValue
                 label="Your projection"
                 value={
