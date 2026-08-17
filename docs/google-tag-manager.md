@@ -41,6 +41,8 @@ additional consent check requiring `analytics_storage`. Decide that per
 parameter when wiring it up in the GTM UI — the dataLayer push itself can't
 express it. For `asn`/`as_org` we chose not to gate:
 [PR #6791](https://github.com/owid/owid-grapher/pull/6791#discussion_r3751166526).
+`verified_bot_category` describes the client software rather than the visitor's
+network, so the question doesn't arise for it at all.
 
 Quick console checks on any page with GTM:
 
