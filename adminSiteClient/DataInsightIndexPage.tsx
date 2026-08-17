@@ -464,13 +464,16 @@ export function DataInsightIndexPage() {
                 "POST"
             )
             if (json.success) {
-                const dataInsight = dataInsights.find(
-                    (gdoc) => gdoc.id === gdocId
+                setDataInsights((dataInsights) =>
+                    dataInsights.map((dataInsight) =>
+                        dataInsight.id === gdocId
+                            ? { ...dataInsight, tags }
+                            : dataInsight
+                    )
                 )
-                if (dataInsight) dataInsight.tags = tags
             }
         },
-        [admin, dataInsights]
+        [admin, setDataInsights]
     )
 
     const columns = useMemo(() => {
