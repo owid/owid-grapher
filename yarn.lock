@@ -5300,6 +5300,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/prismjs@npm:^1.0.0":
+  version: 1.26.6
+  resolution: "@types/prismjs@npm:1.26.6"
+  checksum: 10/37c056eb7a9130ef6548d7655af78ea575c8eaa9167ea2dd64d8719384b1af4a385ffe928aa4939da607ce276703a6787bdac8ecc79a373e2a73ddf6d75bc161
+  languageName: node
+  linkType: hard
+
 "@types/progress@npm:^2.0.7":
   version: 2.0.7
   resolution: "@types/progress@npm:2.0.7"
@@ -8857,7 +8864,7 @@ __metadata:
     progress: "npm:^2.0.3"
     react: "npm:^19.2.4"
     react-aria-components: "npm:^1.20.0"
-    react-diff-viewer-continued: "npm:^4.2.2"
+    react-diff-viewer-continued: "npm:^4.4.0"
     react-dom: "npm:^19.2.4"
     react-horizontal-scrolling-menu: "npm:^8.2.0"
     react-instantsearch: "npm:^7.35.0"
@@ -8985,6 +8992,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"hast-util-parse-selector@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "hast-util-parse-selector@npm:4.0.0"
+  dependencies:
+    "@types/hast": "npm:^3.0.0"
+  checksum: 10/76087670d3b0b50b23a6cb70bca53a6176d6608307ccdbb3ed18b650b82e7c3513bfc40348f1389dc0c5ae872b9a768851f4335f44654abd7deafd6974c52402
+  languageName: node
+  linkType: hard
+
 "hast-util-to-jsx-runtime@npm:^2.0.0":
   version: 2.3.6
   resolution: "hast-util-to-jsx-runtime@npm:2.3.6"
@@ -9014,6 +9030,19 @@ __metadata:
   dependencies:
     "@types/hast": "npm:^3.0.0"
   checksum: 10/8c7e9eeb8131fc18702f3a42623eb6b0b09d470347aa8badacac70e6d91f79657ab8c6b57c4c6fee3658cff405fac30e816d1cdfb3ed1fbf6045d0a4555cf4d4
+  languageName: node
+  linkType: hard
+
+"hastscript@npm:^9.0.0":
+  version: 9.0.1
+  resolution: "hastscript@npm:9.0.1"
+  dependencies:
+    "@types/hast": "npm:^3.0.0"
+    comma-separated-tokens: "npm:^2.0.0"
+    hast-util-parse-selector: "npm:^4.0.0"
+    property-information: "npm:^7.0.0"
+    space-separated-tokens: "npm:^2.0.0"
+  checksum: 10/9aa8135faf0307807cca4075bef4e3403ae1ce959ad4b9e6720892ba957d58ff98b2f60b5eb3ac67d88ae897dc918997299cd4249d7ac602a0066dd46442c5d4
   languageName: node
   linkType: hard
 
@@ -9586,7 +9615,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-yaml@npm:^4.1.0, js-yaml@npm:^4.1.1":
+"js-yaml@npm:^4.1.0, js-yaml@npm:^4.2.0":
   version: 4.3.1
   resolution: "js-yaml@npm:4.3.1"
   dependencies:
@@ -11921,20 +11950,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-diff-viewer-continued@npm:^4.2.2":
-  version: 4.2.2
-  resolution: "react-diff-viewer-continued@npm:4.2.2"
+"react-diff-viewer-continued@npm:^4.4.0":
+  version: 4.4.0
+  resolution: "react-diff-viewer-continued@npm:4.4.0"
   dependencies:
     "@emotion/css": "npm:^11.13.5"
     "@emotion/react": "npm:^11.14.0"
     classnames: "npm:^2.5.1"
     diff: "npm:^9.0.0"
-    js-yaml: "npm:^4.1.1"
+    js-yaml: "npm:^4.2.0"
     memoize-one: "npm:^6.0.0"
+    refractor: "npm:^5.0.0"
   peerDependencies:
     react: ^15.3.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
     react-dom: ^15.3.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/38b374e10bfa47c2a3e1ea40c8baf9d57ca8e2ea0708fab5997fe5b78d3fdb7cf7f89925b3bfce1dac3bc962d5b27dc545bef1f9d56470e5a96dc2625934c3cc
+  checksum: 10/b6504d63758273f5eedd5e7a440fd51f8334bb83b2e64d1d22e799b6d5d585536a5d29b7235e67199b5f1fe01099e6d8325135a14bc2904b9ae5347b85fddf78
   languageName: node
   linkType: hard
 
@@ -12243,6 +12273,18 @@ __metadata:
   version: 0.2.2
   resolution: "reflect-metadata@npm:0.2.2"
   checksum: 10/1c93f9ac790fea1c852fde80c91b2760420069f4862f28e6fae0c00c6937a56508716b0ed2419ab02869dd488d123c4ab92d062ae84e8739ea7417fae10c4745
+  languageName: node
+  linkType: hard
+
+"refractor@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "refractor@npm:5.0.0"
+  dependencies:
+    "@types/hast": "npm:^3.0.0"
+    "@types/prismjs": "npm:^1.0.0"
+    hastscript: "npm:^9.0.0"
+    parse-entities: "npm:^4.0.0"
+  checksum: 10/a14ceb938ed6f7f17dfa44660d3f3aff33e8896710bd76af0b411778791918bf20f923a191ff197fbc6a8e3f06c4371b83882f46ce76736f804dbe2b82b0be94
   languageName: node
   linkType: hard
 

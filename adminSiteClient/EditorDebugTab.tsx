@@ -277,6 +277,7 @@ class EditorDebugTabForNarrativeChart extends Component<{
                             },
                         }}
                         extraLinesSurroundingDiff={2}
+                        highlightLanguage="json"
                     />
                 </div>
             </Modal>

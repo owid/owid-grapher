@@ -719,6 +719,7 @@ function SvgTesterDiff({
             showDiffOnly={true}
             extraLinesSurroundingDiff={3}
             styles={{ contentText: { wordBreak: "break-all" } }}
+            highlightLanguage="svg"
         />
     )
 }
