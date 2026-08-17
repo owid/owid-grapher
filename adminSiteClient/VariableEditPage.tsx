@@ -43,7 +43,6 @@ interface VariablePageData extends Omit<
 > {
     datasetNamespace: string
     charts: ChartListItem[]
-    grapherConfig: GrapherInterface | undefined
     grapherConfigETL: GrapherInterface | undefined
     source: { id: number; name: string }
     origins: OwidOrigin[]
@@ -406,7 +405,7 @@ class VariableEditor extends Component<{
 
     @computed private get grapherConfig(): GrapherInterface {
         const { variable } = this.props
-        const grapherConfig = variable.grapherConfig
+        const grapherConfig = variable.grapherConfigETL
         if (grapherConfig)
             return {
                 ...grapherConfig,

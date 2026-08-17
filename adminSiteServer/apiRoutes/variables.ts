@@ -270,34 +270,16 @@ export async function getVariableJson(
 
     const grapherConfigETL = await getIndicatorChartConfig(trx, variableId)
 
-    // add the variable's display field to the indicator config
-    const grapherConfig = grapherConfigETL && { ...grapherConfigETL }
-    if (grapherConfig) {
-        const [varDims, otherDims] = _.partition(
-            grapherConfig.dimensions ?? [],
-            (dim) => dim.variableId === variableId
-        )
-        const varDimsWithDisplay = varDims.map((dim) => ({
-            display: variable.display,
-            ...dim,
-        }))
-        grapherConfig.dimensions = [...varDimsWithDisplay, ...otherDims]
-    }
-
     const variableWithCharts: OwidVariableWithSource & {
         charts: Record<string, any>
-        grapherConfig: GrapherInterface | undefined
         grapherConfigETL: GrapherInterface | undefined
     } = {
         ...variable,
         charts,
-        grapherConfig,
         grapherConfigETL,
     }
 
-    return {
-        variable: variableWithCharts,
-    } /*, vardata: await getVariableData([variableId]) }*/
+    return { variable: variableWithCharts }
 }
 
 export async function putIndicatorChartConfig(
