@@ -420,8 +420,8 @@ export class MapChart
 
         if (this.hasCategoricalLegendData) return numericBins
 
-        // Prepend any leftover categorical bins (e.g. "No data" or the
-        // reference entity bin) to the numeric legend
+        // Prepend any leftover categorical bins (e.g. "No data" or
+        // "Not applicable") to the numeric legend
         const categoricalBins = this.legendData
             .filter((bin) => isCategoricalBin(bin))
             .map((bin) => this.maybeAddPatternRefToBin(bin))
@@ -714,7 +714,7 @@ export class MapChart
                         targetTime={this.targetTime}
                         targetTimes={this.manager.highlightedTimesInTooltip}
                         inapplicableEntityNamesSet={
-                            this.chartState.inapplicableEntityNamesSet
+                            this.inapplicableEntityNamesSet
                         }
                         sparklineWidth={sparklineWidth}
                         dismissTooltip={action(() => {
