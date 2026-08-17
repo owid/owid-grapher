@@ -574,6 +574,9 @@ export class GrapherState
     areHandlesOnSameTimeBeforeAnimation: boolean | undefined = undefined
     /** Which timeline element is currently being dragged */
     timelineDragTarget: TimelineDragTarget | undefined = undefined
+    /** The tolerance notice as of the start of a timeline interaction */
+    frozenToleranceNotice: { notice: string | undefined } | undefined =
+        undefined
 
     // Display flags
     hasTableTab = true
@@ -732,6 +735,7 @@ export class GrapherState
             animationStartTime: observable.ref,
             areHandlesOnSameTimeBeforeAnimation: observable.ref,
             timelineDragTarget: observable.ref,
+            frozenToleranceNotice: observable.ref,
             isEntitySelectorModalOrDrawerOpen: observable.ref,
             activeModal: observable.ref,
             activeDownloadModalTab: observable.ref,
@@ -2471,6 +2475,50 @@ export class GrapherState
         const yColumns = this.yColumnsFromDimensions
         if (yColumns.length === 1) return yColumns[0].def.descriptionShort ?? ""
         return ""
+    }
+
+    /**
+     * Explains that some of the values on screen aren't from the time the
+     * chart is labelled with, because tolerance was applied.
+     */
+    @computed get toleranceNotice(): string | undefined {
+        // No need to show a notice on the table tab because the table
+        // shows the original time for each value
+        if (!this.isReady || !this.isOnChartOrMapTab) return undefined
+
+        // Freeze the notice during timeline interactions so it doesn't change
+        // while the user is dragging or playing an animation
+        if (this.frozenToleranceNotice && this.isTimelineInteractionActive)
+            return this.frozenToleranceNotice.notice
+
+        return this.chartState.toleranceNotice
+    }
+
+    /** Whether the timeline is being dragged or is playing an animation */
+    @computed get isTimelineInteractionActive(): boolean {
+        return !!this.timelineDragTarget || this.isTimelineAnimationPlaying
+    }
+
+    @action.bound setToleranceNoticeFrozen(isFrozen: boolean): void {
+        this.frozenToleranceNotice = isFrozen
+            ? { notice: this.toleranceNotice }
+            : undefined
+    }
+
+    /**
+     * Effective note resolved from the authored note, with the tolerance
+     * notice appended when tolerance was applied to something on screen
+     */
+    @computed get effectiveNote(): string | undefined {
+        const { note, toleranceNotice } = this
+        if (!toleranceNotice) return note
+
+        const authoredNote = note?.trim()
+        if (!authoredNote) return toleranceNotice
+
+        // Run the two together as sentences
+        const separator = /[.!?]$/.test(authoredNote) ? " " : ". "
+        return `${authoredNote}${separator}${toleranceNotice}`
     }
 
     @computed get shouldAddEntitySuffixToTitle(): boolean {
