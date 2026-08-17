@@ -55,7 +55,6 @@ import {
     ExternalValueAnnotation,
     InternalValueAnnotation,
     ProjectedDataPattern,
-    InapplicablePattern,
 } from "./MapComponents"
 import { Patterns } from "../core/GrapherConstants"
 import {
@@ -741,15 +740,6 @@ export class ChoroplethGlobe extends React.Component<{
                 id={makeFigmaId("countries-without-data")}
                 className="noDataFeatures"
             >
-                {inapplicableEntityNamesSet &&
-                    inapplicableEntityNamesSet.size > 0 && (
-                        <defs>
-                            <InapplicablePattern
-                                patternId={Patterns.inapplicablePattern}
-                            />
-                        </defs>
-                    )}
-
                 {featuresWithNoData.map((feature) => (
                     <CountryWithNoData
                         key={feature.id}

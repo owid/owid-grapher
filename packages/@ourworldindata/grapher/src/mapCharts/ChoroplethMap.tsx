@@ -37,8 +37,8 @@ import {
     InternalValueAnnotation,
     NoDataPattern,
     ProjectedDataPattern,
-    InapplicablePattern,
 } from "./MapComponents"
+import { InapplicablePattern } from "../chart/ChartUtils"
 import { Patterns } from "../core/GrapherConstants"
 import {
     detectNearbyFeature,
@@ -497,22 +497,10 @@ export class ChoroplethMap extends React.Component<{
                         patternId={Patterns.noDataPatternForMap}
                         scale={1 / this.viewportScale} // The scale is crucial and projection specific
                     />
-                    {inapplicableEntityNamesSet &&
-                        inapplicableEntityNamesSet.size > 0 && (
-                            <>
-                                {/* Pattern used by the legend */}
-                                <InapplicablePattern
-                                    patternId={Patterns.inapplicablePattern}
-                                />
-                                {/* Pattern used by the feature */}
-                                <InapplicablePattern
-                                    patternId={
-                                        Patterns.inapplicablePatternForMap
-                                    }
-                                    scale={1 / this.viewportScale}
-                                />
-                            </>
-                        )}
+                    <InapplicablePattern
+                        patternId={Patterns.inapplicablePatternForMap}
+                        scale={1 / this.viewportScale}
+                    />
                 </defs>
 
                 {featuresWithNoData.map((feature) => (

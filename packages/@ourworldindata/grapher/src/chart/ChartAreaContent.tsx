@@ -11,7 +11,11 @@ import { DataTable } from "../dataTable/DataTable"
 import { CaptionedChartManager } from "../captionedChart/CaptionedChart"
 import { LoadingIndicator } from "@ourworldindata/components"
 import { FacetChart } from "../facet/FacetChart"
-import { getChartSvgProps, NoDataPattern } from "./ChartUtils"
+import {
+    getChartSvgProps,
+    InapplicablePattern,
+    NoDataPattern,
+} from "./ChartUtils"
 import { ChartComponent, makeChartState } from "./ChartTypeMap"
 import { GRAPHER_CHART_AREA_CLASS } from "../core/GrapherConstants"
 import { ChartState } from "./ChartInterface"
@@ -48,10 +52,11 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
         return undefined
     }
 
-    private renderNoDataPattern(): React.ReactElement {
+    private renderPatterns(): React.ReactElement {
         return (
             <defs>
                 <NoDataPattern />
+                <InapplicablePattern />
             </defs>
         )
     }
@@ -115,7 +120,7 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
                     height={height}
                     viewBox={`0 0 ${width} ${height}`}
                 >
-                    {this.renderNoDataPattern()}
+                    {this.renderPatterns()}
                     {this.manager.isReady
                         ? this.renderReadyChartOrMap()
                         : this.renderLoadingIndicatorIntoSvg()}

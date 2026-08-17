@@ -5,7 +5,11 @@ import { Bounds } from "@ourworldindata/utils"
 import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants.js"
 import { CaptionedChartManager } from "../captionedChart/CaptionedChart.js"
 import { GRAPHER_BACKGROUND } from "../color/ColorConstants.js"
-import { getChartSvgProps, NoDataPattern } from "./ChartUtils.js"
+import {
+    getChartSvgProps,
+    InapplicablePattern,
+    NoDataPattern,
+} from "./ChartUtils.js"
 
 interface StaticChartWrapperProps {
     manager: CaptionedChartManager
@@ -48,10 +52,11 @@ export class StaticChartWrapper extends React.Component<StaticChartWrapperProps>
         )
     }
 
-    @computed private get noDataPattern(): React.ReactElement {
+    @computed private get patterns(): React.ReactElement {
         return (
             <defs>
                 <NoDataPattern />
+                <InapplicablePattern />
             </defs>
         )
     }
@@ -74,7 +79,7 @@ export class StaticChartWrapper extends React.Component<StaticChartWrapperProps>
                 viewBox={`0 0 ${width} ${height}`}
             >
                 {includeFontsStyle && this.fonts}
-                {this.noDataPattern}
+                {this.patterns}
                 {includeBackgroundRect && (
                     <rect
                         className="background-fill"
