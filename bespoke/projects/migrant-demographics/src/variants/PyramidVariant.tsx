@@ -185,9 +185,9 @@ function CaptionedPyramidVariant({
     const view = useMemo(
         () =>
             pyramidData
-                ? computePyramidView(pyramidData, mode, compare)
+                ? computePyramidView(pyramidData, data.ageBands, mode, compare)
                 : undefined,
-        [pyramidData, mode, compare]
+        [pyramidData, data.ageBands, mode, compare]
     )
     // Fixed across years so the axis is stable while dragging the slider
     const xMax = useMemo(
@@ -237,7 +237,6 @@ function CaptionedPyramidVariant({
                 <div className="migrant-pyramid-captioned-chart__chart-area">
                     {view && pyramidData ? (
                         <MigrantPyramid
-                            ageBands={data.ageBands}
                             view={view}
                             xMax={xMax}
                             mode={mode}

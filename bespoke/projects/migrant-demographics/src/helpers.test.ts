@@ -14,28 +14,33 @@ import { RAW, RECORD } from "./testFixtures.js"
 
 describe(computePyramidView, () => {
     const data = computePyramidData(RECORD)
+    const ageBands = ["0-4", "5+"]
 
-    it("passes counts through in number mode", () => {
-        const view = computePyramidView(data, "number", false)
-        expect(view.migrants.men).toEqual([10, 20])
+    it("passes counts through in number mode, oldest band first", () => {
+        const view = computePyramidView(data, ageBands, "number", false)
+        expect(view.migrants).toEqual([
+            { band: "5+", men: 20, women: 40 },
+            { band: "0-4", men: 10, women: 30 },
+        ])
         expect(view.natives).toBeUndefined()
     })
 
     it("computes shares of each whole population in share mode", () => {
-        const view = computePyramidView(data, "share", true)
-        expect(view.migrants.men).toEqual([10, 20])
-        expect(view.migrants.women).toEqual([30, 40])
+        const view = computePyramidView(data, ageBands, "share", true)
+        // The record's counts already sum to 100, so shares match them
+        expect(view.migrants).toEqual([
+            { band: "5+", men: 20, women: 40 },
+            { band: "0-4", men: 10, women: 30 },
+        ])
         // All migrant shares sum to 100
-        const total = [...view.migrants.men, ...view.migrants.women].reduce(
-            (a, b) => a + b
-        )
+        const total = view.migrants.reduce((a, r) => a + r.men + r.women, 0)
         expect(total).toBeCloseTo(100)
-        expect(view.natives?.men[0]).toBeCloseTo((90 / 390) * 100)
+        // Natives are reversed too, so the 0-4 band is last
+        expect(view.natives?.at(-1)?.men).toBeCloseTo((90 / 390) * 100)
     })
 
     it("has nothing to compare while the comparison is off", () => {
-        const view = computePyramidView(data, "share", false)
-        expect(view.migrants.men).toEqual([10, 20])
+        const view = computePyramidView(data, ageBands, "share", false)
         expect(view.natives).toBeUndefined()
     })
 })

@@ -14,7 +14,7 @@ import {
 import { darkenColorForText } from "@ourworldindata/grapher/src/color/ColorUtils.js"
 
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
-import { formatAxisTick, PyramidView } from "../helpers.js"
+import { formatAxisTick, PyramidRow, PyramidView } from "../helpers.js"
 import { ShowMode } from "../types.js"
 import { MEN_COLOR, NATIVE_LINE_COLOR, WOMEN_COLOR } from "../constants.js"
 import { MigrantPyramidTooltip } from "./MigrantPyramidTooltip.js"
@@ -26,9 +26,7 @@ export interface SexHeaderLabel {
 }
 
 export interface MigrantPyramidProps {
-    /** Age bands youngest-first, as in the data file */
-    ageBands: string[]
-    /** The values the bars encode */
+    /** The values the bars encode, oldest age band first */
     view: PyramidView
     /** Upper bound of the mirrored x-axes (pre-niced by the scale) */
     xMax: number
@@ -67,7 +65,6 @@ export function MigrantPyramid(props: MigrantPyramidProps): React.ReactElement {
 }
 
 function MigrantPyramidContent({
-    ageBands,
     view,
     xMax,
     mode,
@@ -89,17 +86,19 @@ function MigrantPyramidContent({
     const marginBottom = isNarrow ? 48 : 52
     const axisLabelOffset = isNarrow ? 40 : 46
 
-    // Oldest age band at the top
-    const bandsTopDown = useMemo(() => [...ageBands].reverse(), [ageBands])
-
     const innerWidth = width
     const innerHeight = height - marginTop - marginBottom
+
+    const bands = useMemo(
+        () => view.migrants.map((row) => row.band),
+        [view.migrants]
+    )
 
     // Text measurement is comparatively costly, and neither input changes
     // when the pointer moves or the year does
     const centerGap = useMemo(
-        () => maxTextWidth(ageBands, labelFontSize) + 2 * CENTER_GAP_PADDING,
-        [ageBands, labelFontSize]
+        () => maxTextWidth(bands, labelFontSize) + 2 * CENTER_GAP_PADDING,
+        [bands, labelFontSize]
     )
     const halfWidth = Math.max((innerWidth - centerGap) / 2, 0)
     const centerX = halfWidth + centerGap / 2
@@ -125,17 +124,24 @@ function MigrantPyramidContent({
     const yScale = useMemo(
         () =>
             scaleBand({
-                domain: bandsTopDown,
+                domain: bands,
                 range: [0, innerHeight],
                 padding: 0.15,
             }),
-        [bandsTopDown, innerHeight]
+        [bands, innerHeight]
+    )
+
+    // Each band's full row, so the outline and the hit areas cover the gaps
+    // between bars rather than stopping at them
+    const rowBounds = useMemo(
+        () => computeRowBounds(bands, yScale, innerHeight),
+        [bands, yScale, innerHeight]
     )
 
     const numTicks = isNarrow ? 3 : 4
 
     const [hover, setHover] = useState<HoverTarget | null>(null)
-    const hoveredBand = hover?.band ?? null
+    const hoveredIndex = hover?.index ?? null
 
     const svgRef = useRef<SVGSVGElement>(null)
     const dismissHover = useCallback(() => setHover(null), [])
@@ -148,10 +154,10 @@ function MigrantPyramidContent({
 
     // Bound to both enter and move so the tooltip follows the cursor
     const handlePointerMove = useCallback(
-        (e: React.PointerEvent, band: string) => {
+        (e: React.PointerEvent, index: number) => {
             if (e.pointerType !== "mouse" || !svgRef.current) return
             const position = getRelativeMouse(svgRef.current, e.nativeEvent)
-            setHover({ band, position })
+            setHover({ index, position })
         },
         []
     )
@@ -159,41 +165,38 @@ function MigrantPyramidContent({
         if (e.pointerType === "mouse") setHover(null)
     }, [])
     const handlePointerDown = useCallback(
-        (e: React.PointerEvent, band: string) => {
+        (e: React.PointerEvent, index: number) => {
             if (e.pointerType !== "touch" || !svgRef.current) return
             const position = getRelativeMouse(svgRef.current, e.nativeEvent)
             setHover((prev) =>
-                prev?.band === band ? null : { band, position }
+                prev?.index === index ? null : { index, position }
             )
         },
         []
     )
 
     const halves: {
-        side: "men" | "women"
+        side: Sex
         left: number
         scale: ScaleLinear<number, number>
-        values: number[]
-        comparisonValues?: number[]
         color: string
     }[] = [
         {
             side: "men",
             left: 0,
             scale: xScale.men,
-            values: view.migrants.men,
-            comparisonValues: view.natives?.men,
             color: MEN_COLOR,
         },
         {
             side: "women",
             left: centerX + centerGap / 2,
             scale: xScale.women,
-            values: view.migrants.women,
-            comparisonValues: view.natives?.women,
             color: WOMEN_COLOR,
         },
     ]
+
+    const hoveredRow =
+        hoveredIndex !== null ? view.migrants[hoveredIndex] : undefined
 
     return (
         <div ref={chartRef} className="migrant-pyramid__chart">
@@ -203,35 +206,39 @@ function MigrantPyramidContent({
                         <PyramidHalf
                             key={half.side}
                             {...half}
-                            ageBands={ageBands}
-                            bandsTopDown={bandsTopDown}
+                            rows={view.migrants}
+                            comparisonRows={view.natives}
+                            rowBounds={rowBounds}
                             yScale={yScale}
                             innerHeight={innerHeight}
                             numTicks={numTicks}
                             mode={mode}
                             tickFontSize={labelFontSize}
-                            hoveredBand={hoveredBand}
+                            hoveredIndex={hoveredIndex}
                         />
                     ))}
 
                     {/* Age band labels in the center gap */}
-                    {bandsTopDown.map((band) => {
+                    {view.migrants.map((row, i) => {
                         // A step in gray alone is imperceptible at this size,
                         // and the surrounding bars dim at the same moment —
                         // so the hovered label goes bold as well
-                        const isHovered = band === hoveredBand
+                        const isHovered = i === hoveredIndex
                         return (
                             <text
-                                key={band}
+                                key={row.band}
                                 x={centerX}
-                                y={(yScale(band) ?? 0) + yScale.bandwidth() / 2}
+                                y={
+                                    (yScale(row.band) ?? 0) +
+                                    yScale.bandwidth() / 2
+                                }
                                 textAnchor="middle"
                                 dominantBaseline="central"
                                 fontSize={labelFontSize}
                                 fontWeight={isHovered ? 700 : 400}
                                 fill={isHovered ? GRAY_100 : GRAPHER_LIGHT_TEXT}
                             >
-                                {band}
+                                {row.band}
                             </text>
                         )
                     })}
@@ -287,43 +294,27 @@ function MigrantPyramidContent({
                     </text>
 
                     {/* Full-width hit rects for hover — one per age band */}
-                    {bandsTopDown.map((band, i) => {
-                        const bounds = bandRowBounds(
-                            band,
-                            i,
-                            bandsTopDown.length,
-                            yScale,
-                            innerHeight
-                        )
-                        return (
-                            <rect
-                                key={`hit-${band}`}
-                                x={0}
-                                y={bounds.y}
-                                width={innerWidth}
-                                height={bounds.height}
-                                fill="transparent"
-                                onPointerEnter={(e) =>
-                                    handlePointerMove(e, band)
-                                }
-                                onPointerMove={(e) =>
-                                    handlePointerMove(e, band)
-                                }
-                                onPointerLeave={handlePointerLeave}
-                                onPointerDown={(e) =>
-                                    handlePointerDown(e, band)
-                                }
-                            />
-                        )
-                    })}
+                    {rowBounds.map((bounds, i) => (
+                        <rect
+                            key={`hit-${bounds.band}`}
+                            x={0}
+                            y={bounds.y}
+                            width={innerWidth}
+                            height={bounds.height}
+                            fill="transparent"
+                            onPointerEnter={(e) => handlePointerMove(e, i)}
+                            onPointerMove={(e) => handlePointerMove(e, i)}
+                            onPointerLeave={handlePointerLeave}
+                            onPointerDown={(e) => handlePointerDown(e, i)}
+                        />
+                    ))}
                 </Group>
             </svg>
 
-            {hover && (
+            {hover && hoveredRow && (
                 <MigrantPyramidTooltip
-                    band={hover.band}
-                    bandIndex={ageBands.indexOf(hover.band)}
-                    view={view}
+                    migrants={hoveredRow}
+                    natives={view.natives?.[hover.index]}
                     mode={mode}
                     position={hover.position}
                     containerBounds={new Bounds(0, 0, width, height)}
@@ -334,62 +325,62 @@ function MigrantPyramidContent({
     )
 }
 
+type Sex = "men" | "women"
+
 interface HoverTarget {
-    band: string
+    /** Index into the view's rows */
+    index: number
     /** Pointer position relative to the SVG */
     position: { x: number; y: number }
+}
+
+/** An age band's full row, extended to cover the gaps around its bars */
+interface RowBounds {
+    band: string
+    y: number
+    height: number
 }
 
 function PyramidHalf({
     side,
     left,
     scale,
-    values,
-    comparisonValues,
     color,
-    ageBands,
-    bandsTopDown,
+    rows,
+    comparisonRows,
+    rowBounds,
     yScale,
     innerHeight,
     numTicks,
     mode,
     tickFontSize,
-    hoveredBand,
+    hoveredIndex,
 }: {
-    side: "men" | "women"
+    /** Which side of the pyramid, and which value of each row it draws */
+    side: Sex
     left: number
     scale: ScaleLinear<number, number>
-    values: number[]
-    comparisonValues?: number[]
     color: string
-    ageBands: string[]
-    bandsTopDown: string[]
+    rows: PyramidRow[]
+    comparisonRows?: PyramidRow[]
+    rowBounds: RowBounds[]
     yScale: ScaleBand<string>
     innerHeight: number
     numTicks: number
     mode: ShowMode
     tickFontSize: number
-    hoveredBand: string | null
+    hoveredIndex: number | null
 }): React.ReactElement {
     const zeroX = scale(0)
     const bandwidth = yScale.bandwidth()
-    const valueOf = (band: string): number =>
-        values[ageBands.indexOf(band)] ?? 0
 
-    // The stretch of the comparison outline that crosses the hovered row,
-    // redrawn on top so it stays legible while the rest of it dims
-    const hoveredOutlineSegment =
-        comparisonValues && hoveredBand !== null
-            ? outlineSegment(
-                  hoveredBand,
-                  comparisonValues,
-                  ageBands,
-                  bandsTopDown,
-                  scale,
-                  yScale,
-                  innerHeight
-              )
-            : undefined
+    // The vertical stroke the outline draws across one row. The whole outline
+    // and the highlighted stretch of it are built from the same segments, so
+    // they line up exactly.
+    const segment = (row: PyramidRow, bounds: RowBounds): string => {
+        const x = scale(row[side])
+        return `${x} ${bounds.y} L ${x} ${bounds.y + bounds.height}`
+    }
 
     return (
         <Group left={left}>
@@ -435,16 +426,16 @@ function PyramidHalf({
             />
 
             {/* Bars */}
-            {bandsTopDown.map((band) => {
-                const scaledValue = scale(valueOf(band))
+            {rows.map((row, i) => {
+                const scaledValue = scale(row[side])
                 const barWidth = Math.abs(scaledValue - zeroX)
                 const barX = Math.min(scaledValue, zeroX)
-                const dimmed = hoveredBand !== null && hoveredBand !== band
+                const dimmed = hoveredIndex !== null && hoveredIndex !== i
                 return (
                     <rect
-                        key={band}
+                        key={row.band}
                         x={barX}
-                        y={yScale(band) ?? 0}
+                        y={yScale(row.band) ?? 0}
                         width={barWidth}
                         height={bandwidth}
                         fill={color}
@@ -454,22 +445,27 @@ function PyramidHalf({
             })}
 
             {/* Native-born comparison outline */}
-            {comparisonValues && (
-                <CasedLine
-                    d={stepOutlinePath(
-                        comparisonValues,
-                        ageBands,
-                        bandsTopDown,
-                        scale,
-                        yScale,
-                        innerHeight
-                    )}
-                    opacity={hoveredBand !== null ? 0.4 : 1}
-                />
-            )}
+            {comparisonRows && (
+                <>
+                    <CasedLine
+                        d={comparisonRows
+                            .map(
+                                (row, i) =>
+                                    `${i === 0 ? "M" : "L"} ${segment(row, rowBounds[i])}`
+                            )
+                            .join(" ")}
+                        opacity={hoveredIndex !== null ? 0.4 : 1}
+                    />
 
-            {hoveredOutlineSegment && (
-                <CasedLine d={hoveredOutlineSegment} opacity={1} />
+                    {/* Redrawn on top so the hovered row stays legible
+                        while the rest of the outline dims */}
+                    {hoveredIndex !== null && (
+                        <CasedLine
+                            d={`M ${segment(comparisonRows[hoveredIndex], rowBounds[hoveredIndex])}`}
+                            opacity={1}
+                        />
+                    )}
+                </>
             )}
         </Group>
     )
@@ -507,79 +503,23 @@ function CasedLine({
 }
 
 /**
- * A continuous step outline through the bar ends of a population, spanning
- * the full column height (including the gaps between bars).
+ * Every band's row, spanning the full column height: the first and last reach
+ * the ends, and the rest split the gap to their neighbour.
  */
-function stepOutlinePath(
-    values: number[],
-    ageBands: string[],
-    bandsTopDown: string[],
-    scale: ScaleLinear<number, number>,
+function computeRowBounds(
+    bands: string[],
     yScale: ScaleBand<string>,
     innerHeight: number
-): string {
-    const segments: string[] = []
-    for (let i = 0; i < bandsTopDown.length; i++) {
-        const band = bandsTopDown[i]
-        const x = scale(values[ageBands.indexOf(band)] ?? 0)
-        const { y, height } = bandRowBounds(
-            band,
-            i,
-            bandsTopDown.length,
-            yScale,
-            innerHeight
-        )
-        segments.push(
-            i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`,
-            `L ${x} ${y + height}`
-        )
-    }
-    return segments.join(" ")
-}
-
-/**
- * The vertical stretch of the step outline that crosses one age band — the
- * same segment `stepOutlinePath` draws there, so highlighting it lines up
- * exactly with the dimmed outline underneath.
- */
-function outlineSegment(
-    band: string,
-    values: number[],
-    ageBands: string[],
-    bandsTopDown: string[],
-    scale: ScaleLinear<number, number>,
-    yScale: ScaleBand<string>,
-    innerHeight: number
-): string | undefined {
-    const index = bandsTopDown.indexOf(band)
-    if (index === -1) return undefined
-    const { y, height } = bandRowBounds(
-        band,
-        index,
-        bandsTopDown.length,
-        yScale,
-        innerHeight
-    )
-    const x = scale(values[ageBands.indexOf(band)] ?? 0)
-    return `M ${x} ${y} L ${x} ${y + height}`
-}
-
-/** The full row of an age band, extended to cover the gaps around its bars */
-function bandRowBounds(
-    band: string,
-    index: number,
-    numBands: number,
-    yScale: ScaleBand<string>,
-    innerHeight: number
-): { y: number; height: number } {
-    const step = yScale.step()
+): RowBounds[] {
     const bandwidth = yScale.bandwidth()
-    const halfGap = (step - bandwidth) / 2
-    const bandY = yScale(band) ?? 0
-    const y = index === 0 ? 0 : bandY - halfGap
-    const bottom =
-        index === numBands - 1 ? innerHeight : bandY + bandwidth + halfGap
-    return { y, height: bottom - y }
+    const halfGap = (yScale.step() - bandwidth) / 2
+    return bands.map((band, i) => {
+        const top = yScale(band) ?? 0
+        const y = i === 0 ? 0 : top - halfGap
+        const bottom =
+            i === bands.length - 1 ? innerHeight : top + bandwidth + halfGap
+        return { band, y, height: bottom - y }
+    })
 }
 
 function maxTextWidth(texts: string[], fontSize: number): number {
@@ -595,7 +535,7 @@ function maxTextWidth(texts: string[], fontSize: number): number {
 function edgeAwareTickAnchor(
     tick: number,
     scale: ScaleLinear<number, number>,
-    side: "men" | "women",
+    side: Sex,
     mode: ShowMode,
     fontSize: number
 ): "start" | "middle" | "end" {

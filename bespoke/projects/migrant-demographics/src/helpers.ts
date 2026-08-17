@@ -4,34 +4,43 @@ import { OwidVariableRoundingMode } from "@ourworldindata/types"
 import { MigrantDemographics } from "./data.js"
 import { PyramidData, SexValues, ShowMode } from "./types.js"
 
+/** One age band's values, as the pyramid draws them */
+export interface PyramidRow {
+    band: string
+    men: number
+    women: number
+}
+
 export interface PyramidView {
-    /** Migrant values per age band — counts, or shares (%) of all migrants */
-    migrants: SexValues
+    /** Migrant counts, or shares (%) of all migrants — oldest band first */
+    migrants: PyramidRow[]
     /**
      * Native-born shares (%) of all native-born; only set while the
      * comparison is switched on
      */
-    natives?: SexValues
+    natives?: PyramidRow[]
 }
 
 /**
- * The values the pyramid displays for one entity and year. In "share" mode
- * each bar is the age band's share of that entire population (both sexes
- * combined), so all migrant bars sum to 100% — and the native-born outline
- * is comparable even though the native population is far larger.
+ * The values the pyramid displays for one entity and year, in the order it
+ * draws them (oldest band at the top). In "share" mode each bar is the age
+ * band's share of that entire population (both sexes combined), so all migrant
+ * bars sum to 100% — and the native-born outline is comparable even though the
+ * native population is far larger.
  */
 export function computePyramidView(
     data: PyramidData,
+    ageBands: string[],
     mode: ShowMode,
     compareWithNatives: boolean
 ): PyramidView {
-    if (mode === "number") return { migrants: data.migrants }
+    if (mode === "number") return { migrants: toRows(data.migrants, ageBands) }
 
-    const migrants = toShares(data.migrants, data.migrantsTotal.total)
+    const migrants = toRows(data.migrants, ageBands, data.migrantsTotal.total)
     if (!compareWithNatives) return { migrants }
     return {
         migrants,
-        natives: toShares(data.natives, data.nativesTotal.total),
+        natives: toRows(data.natives, ageBands, data.nativesTotal.total),
     }
 }
 
@@ -49,10 +58,15 @@ export function computeAxisMax(
     for (const year of data.years) {
         const pyramidData = data.getPyramidData(entityName, year)
         if (!pyramidData) continue
-        const view = computePyramidView(pyramidData, mode, compareWithNatives)
-        for (const values of [view.migrants, view.natives]) {
-            if (!values) continue
-            max = Math.max(max, ...values.men, ...values.women)
+        const view = computePyramidView(
+            pyramidData,
+            data.ageBands,
+            mode,
+            compareWithNatives
+        )
+        for (const rows of [view.migrants, view.natives]) {
+            if (!rows) continue
+            for (const row of rows) max = Math.max(max, row.men, row.women)
         }
     }
     return max
@@ -114,10 +128,24 @@ export function formatSexShare(
     return `(${Math.round((part / total) * 100)}%)`
 }
 
-function toShares(values: SexValues, total: number): SexValues {
-    const toShare = (v: number) => (total > 0 ? (v / total) * 100 : 0)
-    return {
-        men: values.men.map(toShare),
-        women: values.women.map(toShare),
+/**
+ * Pairs the values with their age band and reverses them into display order.
+ * With a `total`, values become percentages of it.
+ */
+function toRows(
+    values: SexValues,
+    ageBands: string[],
+    total?: number
+): PyramidRow[] {
+    const scale = (v: number): number => {
+        if (total === undefined) return v
+        return total > 0 ? (v / total) * 100 : 0
     }
+    return ageBands
+        .map((band, i) => ({
+            band,
+            men: scale(values.men[i] ?? 0),
+            women: scale(values.women[i] ?? 0),
+        }))
+        .reverse()
 }

@@ -7,25 +7,23 @@ import {
     formatAgeBand,
     formatTooltipCount,
     formatTooltipShare,
-    PyramidView,
+    PyramidRow,
 } from "../helpers.js"
 import { ShowMode } from "../types.js"
 import { MEN_COLOR, WOMEN_COLOR } from "../constants.js"
 
 export function MigrantPyramidTooltip({
-    band,
-    bandIndex,
-    view,
+    migrants,
+    natives,
     mode,
     position,
     containerBounds,
     isPinned,
 }: {
-    band: string
-    /** Index into the age-band-aligned value arrays */
-    bandIndex: number
-    /** Read straight from the values the bars encode, so the two can't disagree */
-    view: PyramidView
+    /** Read straight from the rows the bars encode, so the two can't disagree */
+    migrants: PyramidRow
+    /** Only set while the comparison is switched on */
+    natives?: PyramidRow
     mode: ShowMode
     position: { x: number; y: number }
     containerBounds: Bounds
@@ -41,12 +39,10 @@ export function MigrantPyramidTooltip({
     }
 
     // One column per population; the header row only appears when comparing
-    const populations = view.natives
-        ? [
-              { label: "Immigrants", values: view.migrants },
-              { label: "Native-born", values: view.natives },
-          ]
-        : [{ label: "Immigrants", values: view.migrants }]
+    const populations = [
+        { label: "Immigrants", row: migrants },
+        ...(natives ? [{ label: "Native-born", row: natives }] : []),
+    ]
 
     return (
         <TooltipCard
@@ -55,7 +51,7 @@ export function MigrantPyramidTooltip({
             y={position.y}
             offsetX={12}
             offsetY={12}
-            title={formatAgeBand(band)}
+            title={formatAgeBand(migrants.band)}
             containerBounds={isPinned ? undefined : containerBounds}
             anchor={isPinned ? GrapherTooltipAnchor.Bottom : undefined}
         >
@@ -68,23 +64,15 @@ export function MigrantPyramidTooltip({
                     {
                         name: "Men",
                         swatch: { color: MEN_COLOR },
-                        values: populations.map(
-                            ({ values }) => values.men[bandIndex] ?? 0
-                        ),
+                        values: populations.map(({ row }) => row.men),
                     },
                     {
                         name: "Women",
                         swatch: { color: WOMEN_COLOR },
-                        values: populations.map(
-                            ({ values }) => values.women[bandIndex] ?? 0
-                        ),
+                        values: populations.map(({ row }) => row.women),
                     },
                 ]}
-                totals={populations.map(
-                    ({ values }) =>
-                        (values.men[bandIndex] ?? 0) +
-                        (values.women[bandIndex] ?? 0)
-                )}
+                totals={populations.map(({ row }) => row.men + row.women)}
             />
         </TooltipCard>
     )
