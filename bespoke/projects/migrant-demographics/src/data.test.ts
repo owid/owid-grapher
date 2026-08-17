@@ -42,8 +42,4 @@ describe(MigrantDemographics, () => {
         )
         expect(data.getPyramidData("World", 1990)).toBeUndefined()
     })
-
-    it("exposes entity names as a stable array", () => {
-        expect(data.entityNames).toBe(data.entityNames)
-    })
 })

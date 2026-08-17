@@ -2,6 +2,7 @@ import { useMemo } from "react"
 
 import { Checkbox } from "@ourworldindata/components"
 import { BasicDropdownOption } from "@ourworldindata/grapher"
+import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
 import { Tippy } from "@ourworldindata/utils"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
@@ -10,28 +11,19 @@ import {
     type DropdownCollection,
     InlineLabeledDropdown,
 } from "../../../../components/InlineLabeledDropdown/InlineLabeledDropdown.js"
-import {
-    Switcher,
-    SwitcherItem,
-} from "../../../../components/Switcher/Switcher.js"
+import { Switcher } from "../../../../components/Switcher/Switcher.js"
 import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 
 import { MigrantDemographics } from "../data.js"
 import { ShowMode } from "../types.js"
-import { WORLD_ENTITY_NAME } from "../constants.js"
-
-const SHOW_MODE_ITEMS: SwitcherItem<ShowMode>[] = [
-    { key: "number", element: "Number of immigrants" },
-    { key: "share", element: "Share of immigrants" },
-]
 
 // The switcher buttons don't wrap, so below a certain width the full labels
 // push the control out past the frame rather than compressing
-const SHOW_MODE_ITEMS_SHORT: SwitcherItem<ShowMode>[] = [
-    { key: "number", element: "Number" },
-    { key: "share", element: "Share" },
+const SHOW_MODES: { key: ShowMode; long: string; short: string }[] = [
+    { key: "number", long: "Number of immigrants", short: "Number" },
+    { key: "share", long: "Share of immigrants", short: "Share" },
 ]
 
 const SHOW_MODE_DISABLED_REASON =
@@ -41,7 +33,7 @@ export function PyramidControls({
     data,
     country,
     year,
-    show,
+    mode,
     compare,
     isNarrow,
     setCountry,
@@ -52,7 +44,7 @@ export function PyramidControls({
     data: MigrantDemographics
     country: string
     year: number
-    show: ShowMode
+    mode: ShowMode
     compare: boolean
     isNarrow: boolean
     setCountry: (name: string) => void
@@ -73,7 +65,7 @@ export function PyramidControls({
                         setCountry={setCountry}
                     />
                     <ShowModeSwitcher
-                        show={show}
+                        mode={mode}
                         compare={compare}
                         isNarrow={isNarrow}
                         setShow={setShow}
@@ -103,16 +95,20 @@ function CountryDropdown({
     setCountry: (name: string) => void
 }): React.ReactElement {
     const { data: userCountryInfo } = useUserCountryInformation()
-    const options = useMemo<DropdownCollection>(() => {
-        const flat: BasicDropdownOption[] = data.entityNames
-            .map((name) => ({ value: name, label: name }))
-            .sort((a, b) => a.label.localeCompare(b.label))
-        return orderOptionsByRelevance(flat, {
-            userCountryInfo,
-            pinnedToTop: [WORLD_ENTITY_NAME],
-            selectedValue: country,
-        })
-    }, [data, userCountryInfo, country])
+    // `orderOptionsByRelevance` sorts the remainder itself, so no pre-sort here
+    const flat = useMemo<BasicDropdownOption[]>(
+        () => data.entityNames.map((name) => ({ value: name, label: name })),
+        [data]
+    )
+    const options = useMemo<DropdownCollection>(
+        () =>
+            orderOptionsByRelevance(flat, {
+                userCountryInfo,
+                pinnedToTop: [WORLD_ENTITY_NAME],
+                selectedValue: country,
+            }),
+        [flat, userCountryInfo, country]
+    )
 
     return (
         <InlineLabeledDropdown
@@ -128,12 +124,12 @@ function CountryDropdown({
 }
 
 function ShowModeSwitcher({
-    show,
+    mode,
     compare,
     isNarrow,
     setShow,
 }: {
-    show: ShowMode
+    mode: ShowMode
     compare: boolean
     isNarrow: boolean
     setShow: (show: ShowMode) => void
@@ -150,8 +146,11 @@ function ShowModeSwitcher({
         >
             <div ref={wrapperRef} className="migrant-pyramid-controls__show">
                 <Switcher
-                    items={isNarrow ? SHOW_MODE_ITEMS_SHORT : SHOW_MODE_ITEMS}
-                    selectedKey={compare ? "share" : show}
+                    items={SHOW_MODES.map(({ key, long, short }) => ({
+                        key,
+                        element: isNarrow ? short : long,
+                    }))}
+                    selectedKey={mode}
                     onChange={setShow}
                     isDisabled={compare}
                     ariaLabel="Show numbers or shares"

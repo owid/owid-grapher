@@ -1,6 +1,4 @@
-export const VARIANT_NAMES = ["pyramid"] as const
-
-export type VariantName = (typeof VARIANT_NAMES)[number]
+export type VariantName = "pyramid"
 
 export type ShowMode = "number" | "share"
 

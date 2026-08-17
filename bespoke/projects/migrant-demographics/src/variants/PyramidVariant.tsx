@@ -1,5 +1,6 @@
 import { useMemo } from "react"
 import cx from "clsx"
+import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
 import { QueryClientProvider } from "@tanstack/react-query"
 import { NuqsAdapter } from "nuqs/adapters/react"
 import {
@@ -19,6 +20,7 @@ import {
     isUserLocationCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
+import { entityNameForSentence } from "../../../../helpers/entityNames.js"
 
 import { PyramidVariantConfig } from "../config.js"
 import { ShowMode, VariantProps } from "../types.js"
@@ -33,12 +35,7 @@ import {
     formatCountLong,
     formatSexShare,
 } from "../helpers.js"
-import { entityNameForSentence } from "../entityNames.js"
-import {
-    DEFAULT_COUNTRY,
-    NARROW_BREAKPOINT,
-    WORLD_ENTITY_NAME,
-} from "../constants.js"
+import { DEFAULT_COUNTRY, NARROW_BREAKPOINT } from "../constants.js"
 import { MigrantPyramid } from "../components/MigrantPyramid.js"
 import { PyramidControls } from "../components/PyramidControls.js"
 
@@ -123,7 +120,9 @@ function FetchingPyramidVariant({
     if (status === "pending" || !isCountryResolved) return <PyramidSkeleton />
     if (status === "error" || !data)
         return (
-            <PyramidError message="Failed to load the migrant demographics data" />
+            <div className="migrant-pyramid__error">
+                Failed to load the migrant demographics data
+            </div>
         )
 
     // Fall back gracefully when the config or URL asks for something the
@@ -213,7 +212,7 @@ function CaptionedPyramidVariant({
                     data={data}
                     country={country}
                     year={year}
-                    show={show}
+                    mode={mode}
                     compare={compare}
                     isNarrow={isNarrow}
                     setCountry={setCountry}
@@ -251,19 +250,17 @@ function CaptionedPyramidVariant({
                             }
                             menLabel={{
                                 name: "Men",
-                                annotation:
-                                    formatSexShare(
-                                        pyramidData.migrantsTotal.men,
-                                        pyramidData.migrantsTotal.total
-                                    ) || undefined,
+                                annotation: formatSexShare(
+                                    pyramidData.migrantsTotal.men,
+                                    pyramidData.migrantsTotal.total
+                                ),
                             }}
                             womenLabel={{
                                 name: "Women",
-                                annotation:
-                                    formatSexShare(
-                                        pyramidData.migrantsTotal.women,
-                                        pyramidData.migrantsTotal.total
-                                    ) || undefined,
+                                annotation: formatSexShare(
+                                    pyramidData.migrantsTotal.women,
+                                    pyramidData.migrantsTotal.total
+                                ),
                             }}
                             isNarrow={isNarrow}
                         />
@@ -301,8 +298,4 @@ function PyramidSkeleton(): React.ReactElement {
             <Spinner />
         </div>
     )
-}
-
-function PyramidError({ message }: { message: string }): React.ReactElement {
-    return <div className="migrant-pyramid__error">{message}</div>
 }

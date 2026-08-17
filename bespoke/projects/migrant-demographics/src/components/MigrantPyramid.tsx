@@ -81,32 +81,28 @@ function MigrantPyramidContent({
     width: number
     height: number
 }): React.ReactElement {
-    const fonts = {
-        tick: isNarrow ? 10 : 11,
-        ageBandLabel: isNarrow ? 10 : 11,
-        sexLabel: isNarrow ? 10 : 11,
-        axisLabel: isNarrow ? 11 : 12,
-    }
+    const labelFontSize = isNarrow ? 10 : 11
+    const axisLabelFontSize = isNarrow ? 11 : 12
     // Top fits the sex header labels; bottom fits the tick labels plus the
     // axis label, which sits closer on mobile where the fonts are smaller
-    const margin = { top: 19, right: 0, bottom: isNarrow ? 48 : 52, left: 0 }
+    const marginTop = 19
+    const marginBottom = isNarrow ? 48 : 52
     const axisLabelOffset = isNarrow ? 40 : 46
 
     // Oldest age band at the top
     const bandsTopDown = useMemo(() => [...ageBands].reverse(), [ageBands])
 
-    const innerWidth = width - margin.left - margin.right
-    const innerHeight = height - margin.top - margin.bottom
+    const innerWidth = width
+    const innerHeight = height - marginTop - marginBottom
 
     // Text measurement is comparatively costly, and neither input changes
     // when the pointer moves or the year does
     const centerGap = useMemo(
-        () =>
-            maxTextWidth(ageBands, fonts.ageBandLabel) + 2 * CENTER_GAP_PADDING,
-        [ageBands, fonts.ageBandLabel]
+        () => maxTextWidth(ageBands, labelFontSize) + 2 * CENTER_GAP_PADDING,
+        [ageBands, labelFontSize]
     )
     const halfWidth = Math.max((innerWidth - centerGap) / 2, 0)
-    const centerX = margin.left + halfWidth + centerGap / 2
+    const centerX = halfWidth + centerGap / 2
 
     const xScale = useMemo(
         () => ({
@@ -183,7 +179,7 @@ function MigrantPyramidContent({
     }[] = [
         {
             side: "men",
-            left: margin.left,
+            left: 0,
             scale: xScale.men,
             values: view.migrants.men,
             comparisonValues: view.natives?.men,
@@ -202,7 +198,7 @@ function MigrantPyramidContent({
     return (
         <div ref={chartRef} className="migrant-pyramid__chart">
             <svg ref={svgRef} width={width} height={height} overflow="visible">
-                <Group top={margin.top}>
+                <Group top={marginTop}>
                     {halves.map((half) => (
                         <PyramidHalf
                             key={half.side}
@@ -213,7 +209,7 @@ function MigrantPyramidContent({
                             innerHeight={innerHeight}
                             numTicks={numTicks}
                             mode={mode}
-                            fonts={fonts}
+                            tickFontSize={labelFontSize}
                             hoveredBand={hoveredBand}
                         />
                     ))}
@@ -231,7 +227,7 @@ function MigrantPyramidContent({
                                 y={(yScale(band) ?? 0) + yScale.bandwidth() / 2}
                                 textAnchor="middle"
                                 dominantBaseline="central"
-                                fontSize={fonts.ageBandLabel}
+                                fontSize={labelFontSize}
                                 fontWeight={isHovered ? 700 : 400}
                                 fill={isHovered ? GRAY_100 : GRAPHER_LIGHT_TEXT}
                             >
@@ -262,7 +258,7 @@ function MigrantPyramidContent({
                             x={x}
                             y={-8}
                             textAnchor={textAnchor}
-                            fontSize={fonts.sexLabel}
+                            fontSize={labelFontSize}
                         >
                             <tspan
                                 fontWeight={700}
@@ -284,7 +280,7 @@ function MigrantPyramidContent({
                         x={centerX}
                         y={innerHeight + axisLabelOffset}
                         textAnchor="middle"
-                        fontSize={fonts.axisLabel}
+                        fontSize={axisLabelFontSize}
                         fill={GRAPHER_LIGHT_TEXT}
                     >
                         {axisLabel}
@@ -344,13 +340,6 @@ interface HoverTarget {
     position: { x: number; y: number }
 }
 
-interface PyramidFonts {
-    tick: number
-    ageBandLabel: number
-    sexLabel: number
-    axisLabel: number
-}
-
 function PyramidHalf({
     side,
     left,
@@ -364,7 +353,7 @@ function PyramidHalf({
     innerHeight,
     numTicks,
     mode,
-    fonts,
+    tickFontSize,
     hoveredBand,
 }: {
     side: "men" | "women"
@@ -379,7 +368,7 @@ function PyramidHalf({
     innerHeight: number
     numTicks: number
     mode: ShowMode
-    fonts: PyramidFonts
+    tickFontSize: number
     hoveredBand: string | null
 }): React.ReactElement {
     const zeroX = scale(0)
@@ -431,7 +420,7 @@ function PyramidHalf({
                 tickStroke={GRAPHER_LIGHT_TEXT}
                 tickLength={4}
                 tickLabelProps={(tick) => ({
-                    fontSize: fonts.tick,
+                    fontSize: tickFontSize,
                     fill: GRAPHER_LIGHT_TEXT,
                     // Anchor labels inward when centering would overflow
                     // the chart's outer edge
@@ -440,7 +429,7 @@ function PyramidHalf({
                         scale,
                         side,
                         mode,
-                        fonts.tick
+                        tickFontSize
                     ),
                 })}
             />
@@ -612,10 +601,9 @@ function edgeAwareTickAnchor(
 ): "start" | "middle" | "end" {
     const halfLabelWidth =
         Bounds.forText(formatAxisTick(tick, mode), { fontSize }).width / 2
-    const x = scale(tick)
-    const range = scale.range()
-    const outerEdge = side === "men" ? Math.min(...range) : Math.max(...range)
-    if (side === "men" && x - halfLabelWidth < outerEdge) return "start"
-    if (side === "women" && x + halfLabelWidth > outerEdge) return "end"
+    // Both halves map the axis maximum to the outer edge of the chart
+    const outerEdge = scale.range()[1]
+    if (Math.abs(scale(tick) - outerEdge) < halfLabelWidth)
+        return side === "men" ? "start" : "end"
     return "middle"
 }

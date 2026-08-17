@@ -9,7 +9,7 @@ import {
     formatTooltipShare,
     PyramidView,
 } from "../helpers.js"
-import { SexValues, ShowMode } from "../types.js"
+import { ShowMode } from "../types.js"
 import { MEN_COLOR, WOMEN_COLOR } from "../constants.js"
 
 export function MigrantPyramidTooltip({
@@ -64,37 +64,28 @@ export function MigrantPyramidTooltip({
                     label,
                     formatValue: formatCell,
                 }))}
-                rows={ROW_SPECS.map(({ name, color, valueAt }) => ({
-                    name,
-                    swatch: color ? { color } : undefined,
-                    values: populations.map(({ values }) =>
-                        valueAt(values, bandIndex)
-                    ),
-                }))}
+                rows={[
+                    {
+                        name: "Men",
+                        swatch: { color: MEN_COLOR },
+                        values: populations.map(
+                            ({ values }) => values.men[bandIndex] ?? 0
+                        ),
+                    },
+                    {
+                        name: "Women",
+                        swatch: { color: WOMEN_COLOR },
+                        values: populations.map(
+                            ({ values }) => values.women[bandIndex] ?? 0
+                        ),
+                    },
+                ]}
+                totals={populations.map(
+                    ({ values }) =>
+                        (values.men[bandIndex] ?? 0) +
+                        (values.women[bandIndex] ?? 0)
+                )}
             />
         </TooltipCard>
     )
 }
-
-/** The rows every column is broken down into. `Total` gets no swatch so it
- *  reads as a summary rather than a series. */
-const ROW_SPECS: {
-    name: string
-    color?: string
-    valueAt: (values: SexValues, bandIndex: number) => number
-}[] = [
-    {
-        name: "Men",
-        color: MEN_COLOR,
-        valueAt: (values, i) => values.men[i] ?? 0,
-    },
-    {
-        name: "Women",
-        color: WOMEN_COLOR,
-        valueAt: (values, i) => values.women[i] ?? 0,
-    },
-    {
-        name: "Total",
-        valueAt: (values, i) => (values.men[i] ?? 0) + (values.women[i] ?? 0),
-    },
-]

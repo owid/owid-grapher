@@ -59,7 +59,7 @@ describe(computeAxisMax, () => {
 describe(formatSexShare, () => {
     it("formats the share of a sex", () => {
         expect(formatSexShare(48, 100)).toBe("(48%)")
-        expect(formatSexShare(1, 0)).toBe("")
+        expect(formatSexShare(1, 0)).toBeUndefined()
     })
 })
 

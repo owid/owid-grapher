@@ -6,12 +6,10 @@ import { EntityName, Time } from "@ourworldindata/types"
 
 import { DataRow } from "../helpers/CausesOfDeathConstants"
 import { ResponsiveCausesOfDeathTreemap } from "./CausesOfDeathTreemap"
-import {
-    formatEntityNameForSentence,
-    formatCount,
-} from "../helpers/CausesOfDeathHelpers.js"
+import { formatCount } from "../helpers/CausesOfDeathHelpers.js"
 import { CausesOfDeathMetadata } from "../helpers/CausesOfDeathMetadata.js"
 
+import { entityNameForSentence } from "../../../../helpers/entityNames.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
@@ -92,12 +90,12 @@ function CausesOfDeathHeader({
     const location =
         entityName === "World"
             ? "globally"
-            : `in ${formatEntityNameForSentence(entityName)}`
+            : `in ${entityNameForSentence(entityName)}`
 
     const title =
         entityName === "World"
             ? `What did ${ageGroupName} die from in ${year}?`
-            : `What did ${ageGroupName} in ${formatEntityNameForSentence(entityName)} die from in ${year}?`
+            : `What did ${ageGroupName} in ${entityNameForSentence(entityName)} die from in ${year}?`
 
     return (
         <ChartHeader

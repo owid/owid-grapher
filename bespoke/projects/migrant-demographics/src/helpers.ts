@@ -105,9 +105,12 @@ export function formatCountLong(value: number): string {
     })
 }
 
-/** "(48%)" sex header annotation */
-export function formatSexShare(part: number, total: number): string {
-    if (total <= 0) return ""
+/** "(48%)" sex header annotation, or nothing when there's no total to divide by */
+export function formatSexShare(
+    part: number,
+    total: number
+): string | undefined {
+    if (total <= 0) return undefined
     return `(${Math.round((part / total) * 100)}%)`
 }
 

@@ -6,6 +6,5 @@ export const WOMEN_COLOR = OwidDistinctColors.Maroon
 export const NATIVE_LINE_COLOR = GRAY_100
 
 export const DEFAULT_COUNTRY = "United States"
-export const WORLD_ENTITY_NAME = "World"
 
 export const NARROW_BREAKPOINT = 550

@@ -1,9 +1,4 @@
-import {
-    articulateEntity,
-    formatValue,
-    getRegionByName,
-    checkIsIncomeGroup,
-} from "@ourworldindata/utils"
+import { formatValue } from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 
 export function formatCount(
@@ -26,18 +21,6 @@ export function formatShare(value: number): string {
         numberAbbreviation: false,
         trailingZeroes: false,
     })
-}
-
-export function formatCountryName(countryName: string): string {
-    return articulateEntity(countryName)
-}
-
-export function formatEntityNameForSentence(entityName: string): string {
-    const region = getRegionByName(entityName)
-    if (region && checkIsIncomeGroup(region)) {
-        return entityName.toLowerCase()
-    }
-    return formatCountryName(entityName)
 }
 
 export const minBy = <T>(array: T[], selector: (item: T) => number): number => {

@@ -1,4 +1,5 @@
 import { QueryClient, useQuery } from "@tanstack/react-query"
+import * as R from "remeda"
 
 import { fetchJson } from "@ourworldindata/utils"
 
@@ -123,11 +124,7 @@ function isBandAligned(
 }
 
 function totalsOf(values: SexValues): PopulationTotals {
-    const men = sum(values.men)
-    const women = sum(values.women)
+    const men = R.sum(values.men)
+    const women = R.sum(values.women)
     return { men, women, total: men + women }
-}
-
-function sum(values: number[]): number {
-    return values.reduce((a, b) => a + b, 0)
 }

@@ -299,6 +299,12 @@ __metadata:
   languageName: node
   linkType: soft
 
+"@ourworldindata/utils@link:../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-helpers%40workspace%3Ahelpers":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/utils@link:../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-helpers%40workspace%3Ahelpers"
+  languageName: node
+  linkType: soft
+
 "@ourworldindata/utils@link:../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-hooks%40workspace%3Ahooks":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/utils@link:../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-hooks%40workspace%3Ahooks"
@@ -475,6 +481,16 @@ __metadata:
     typescript: "npm:^7.0.2"
     vite: "npm:^8.1.5"
     vite-plugin-css-position: "npm:^2.0.9"
+  languageName: unknown
+  linkType: soft
+
+"@owid/bespoke-helpers@workspace:helpers":
+  version: 0.0.0-use.local
+  resolution: "@owid/bespoke-helpers@workspace:helpers"
+  dependencies:
+    "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
+    typescript: "npm:^7.0.2"
+    vitest: "npm:^4.1.10"
   languageName: unknown
   linkType: soft
 
