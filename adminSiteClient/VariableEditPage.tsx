@@ -406,12 +406,7 @@ class VariableEditor extends Component<{
     @computed private get grapherConfig(): GrapherInterface {
         const { variable } = this.props
         const grapherConfig = variable.grapherConfigETL
-        if (grapherConfig)
-            return {
-                ...grapherConfig,
-                hasMapTab: true,
-                tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
-            }
+        if (grapherConfig) return grapherConfig
         else
             return {
                 yAxis: { min: 0 },
