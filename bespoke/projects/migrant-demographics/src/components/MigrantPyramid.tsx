@@ -184,9 +184,9 @@ function MigrantPyramidContent({
         },
         [dismissHover]
     )
-    // Anything that isn't a mouse — touch, stylus, unknown — taps to pin
+    // Touch taps to pin; other pointer types have no dismissal path
     const handlePointerDown = useCallback((e: React.PointerEvent) => {
-        if (e.pointerType === "mouse" || !svgRef.current) return
+        if (e.pointerType !== "touch" || !svgRef.current) return
         const index = rowIndexOf(e.target)
         if (index === null) return
         setPointerPosition(getRelativeMouse(svgRef.current, e.nativeEvent))
