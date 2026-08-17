@@ -17,7 +17,7 @@ import {
 } from "@ourworldindata/types"
 import {
     defaultGrapherConfig,
-    migrateGrapherConfigToLatestVersionAndFailOnError,
+    migrateGrapherConfigToLatestVersion,
 } from "@ourworldindata/grapher"
 import {
     mergeGrapherConfigs,
@@ -49,9 +49,7 @@ export function buildMdimViewPatchConfig(
             : view.config
         if ("$schema" in viewGrapherConfig) {
             viewGrapherConfig =
-                migrateGrapherConfigToLatestVersionAndFailOnError(
-                    viewGrapherConfig
-                )
+                migrateGrapherConfigToLatestVersion(viewGrapherConfig)
         }
     }
     const patchConfig = mergeGrapherConfigs(
