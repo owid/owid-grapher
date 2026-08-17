@@ -10,9 +10,14 @@ import { Tippy } from "@ourworldindata/utils"
 
 import { orderOptionsByRelevance } from "../../../../components/EntityDropdown/EntityDropdown.js"
 import {
+    Controls,
+    ControlsRow,
+    LabeledControl,
+} from "../../../../components/Controls/Controls.js"
+import {
     type DropdownCollection,
-    InlineLabeledDropdown,
-} from "../../../../components/InlineLabeledDropdown/InlineLabeledDropdown.js"
+    LabeledDropdown,
+} from "../../../../components/LabeledDropdown/LabeledDropdown.js"
 import {
     Switcher,
     SwitcherItem,
@@ -84,35 +89,28 @@ export function MigrationControls({
     setView: (view: MigrationView) => void
 }): React.ReactElement {
     return (
-        <div className="migration-controls">
-            <h3 className="migration-controls__title">Configure the data</h3>
-            <div className="migration-controls__content">
-                <div className="migration-controls__row">
-                    <CountryDropdown
-                        metadata={metadata}
-                        country={country}
-                        setCountry={setCountry}
-                    />
-                    <SexDropdown
-                        metadata={metadata}
-                        sex={sex}
-                        setSex={setSex}
-                    />
-                    {!hideFlowSwitcher && (
-                        <ViewSwitcher
-                            view={view}
-                            disabledReason={viewDisabledReason}
-                            setView={setView}
-                        />
-                    )}
-                </div>
-                <TimeSlider
-                    times={metadata.times}
-                    selectedTime={year}
-                    onChange={setYear}
+        <Controls className="migration-controls">
+            <ControlsRow>
+                <CountryDropdown
+                    metadata={metadata}
+                    country={country}
+                    setCountry={setCountry}
                 />
-            </div>
-        </div>
+                <SexDropdown metadata={metadata} sex={sex} setSex={setSex} />
+                {!hideFlowSwitcher && (
+                    <ViewSwitcher
+                        view={view}
+                        disabledReason={viewDisabledReason}
+                        setView={setView}
+                    />
+                )}
+            </ControlsRow>
+            <TimeSlider
+                times={metadata.times}
+                selectedTime={year}
+                onChange={setYear}
+            />
+        </Controls>
     )
 }
 
@@ -138,7 +136,7 @@ function CountryDropdown({
     }, [metadata.entities, userCountryInfo, country])
 
     return (
-        <InlineLabeledDropdown
+        <LabeledDropdown
             label="Country"
             options={options}
             selectedValue={country}
@@ -172,7 +170,7 @@ function SexDropdown({
     )
 
     return (
-        <InlineLabeledDropdown
+        <LabeledDropdown
             label="Sex"
             options={options}
             selectedValue={sex}
@@ -198,24 +196,26 @@ function ViewSwitcher({
     const isDisabled = !!disabledReason
 
     return (
-        <Tippy
-            content={disabledReason ?? ""}
-            disabled={!isDisabled}
-            appendTo={getTippyContainer}
-            maxWidth={270}
-        >
-            <div
-                ref={switcherWrapperRef}
-                className="migration-controls__switcher-wrapper"
+        <LabeledControl label="Migration flow">
+            <Tippy
+                content={disabledReason ?? ""}
+                disabled={!isDisabled}
+                appendTo={getTippyContainer}
+                maxWidth={270}
             >
-                <Switcher
-                    items={VIEW_ITEMS}
-                    selectedKey={view}
-                    onChange={setView}
-                    isDisabled={isDisabled}
-                    ariaLabel="Migration flow"
-                />
-            </div>
-        </Tippy>
+                <div
+                    ref={switcherWrapperRef}
+                    className="migration-controls__switcher-wrapper"
+                >
+                    <Switcher
+                        items={VIEW_ITEMS}
+                        selectedKey={view}
+                        onChange={setView}
+                        isDisabled={isDisabled}
+                        ariaLabel="Migration flow"
+                    />
+                </div>
+            </Tippy>
+        </LabeledControl>
     )
 }

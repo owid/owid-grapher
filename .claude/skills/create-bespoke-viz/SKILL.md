@@ -55,23 +55,20 @@ Every project structures a variant in three layers — follow this naming/altitu
 2. `Fetching<Name>Variant` — data queries, URL state, and the skeleton / error / empty-state gates;
 3. the captioned chart (`Captioned<Name>Variant` / `<Name>CaptionedChart`) — the visual composition below.
 
-For the composition, the standard is two stacked `Frame` cards — a controls card above the captioned chart (diverge when the content calls for it, see below):
+For the composition, the standard is two stacked cards — a controls box above the captioned chart:
 
 ```tsx
 <div className="my-viz-chart">
     {/* optional controls card, ABOVE the chart */}
     {!config.hideControls && (
-        <Frame className="my-viz-controls">
-            <h3 className="my-viz-controls__title">Configure the data</h3>
-            <div className="my-viz-controls__content">
-                <div className="my-viz-controls__row">
-                    {/* InlineLabeledDropdown / EntityDropdown / Switcher */}
-                </div>
-                <div className="my-viz-controls__row">
-                    {/* TimeSlider gets its own row */}
-                </div>
-            </div>
-        </Frame>
+        <Controls className="my-viz-controls">
+            <ControlsRow>
+                {/* LabeledDropdown / EntityDropdown, or a Switcher or
+                    checkbox wrapped in <LabeledControl label="…"> */}
+            </ControlsRow>
+            {/* the TimeSlider goes outside the row, unlabelled */}
+            <TimeSlider times={times} selectedTime={year} onChange={setYear} />
+        </Controls>
     )}
 
     {/* the captioned chart */}
@@ -86,10 +83,15 @@ For the composition, the standard is two stacked `Frame` cards — a controls ca
 </div>
 ```
 
-The captioned-chart Frame (header → chart area → footer) is universal, and the controls block is **wrapped in `<Frame>` by default too**. Diverge only when the content calls for it — e.g. migration's unframed controls under a page-level heading, or no controls block at all with the entity selector embedded inline in the title.
+The captioned-chart Frame (header → chart area → footer) is universal, and the controls block is a `Controls` box (a `Frame` under the hood) in every project that has one. The alternative is no controls block at all, with the entity selector embedded inline in the title (demography).
 
 Conventions that go with this:
 
+- **Controls are harmonized across all bespoke projects** — don't restyle them per project:
+    - the controls area is a box (`Controls`), with no "Configure the data" heading;
+    - every dropdown, switcher, and checkbox-style control carries a small gray uppercase label above it — `LabeledDropdown`/`EntityDropdown` render theirs from the `label` prop, anything else goes inside `<LabeledControl label="…">`;
+    - a checkbox labels itself, so it gets no label above; the row bottom-aligns its controls so it still lines up;
+    - the time slider gets no label.
 - **Titles are narrative sentences** generated from the current selection ("What did children under 5 in India die from in 2021?"), not static labels. Use `articulateEntity` for grammatical country names. An alternative to a controls bar is embedding the entity selector inline in the title (see demography's `InlineEntitySelector`) — nice when the entity is the only control.
 - **Loading UX**: skeleton on first load (a simple box with a `<Spinner />` is enough); on refetch keep the old chart visible (react-query `placeholderData`) with a `<Spinner />` overlay (its container needs `position: relative`); gate spinners behind `useDelayedLoading(isPlaceholderData, 300)` so fast loads don't flash. `<Spinner inline />` works inside text, e.g. a subtitle value that's reloading.
 - **Errors**: render a plain fallback div with a message; parse defensively (filter bad rows with a `console.warn`) rather than throwing.
@@ -97,7 +99,7 @@ Conventions that go with this:
 
 ## 3. Shared components (`bespoke/components/`) and hooks (`bespoke/hooks/`)
 
-Before building a control, tooltip helper, or sizing hook, check what already exists: **list `bespoke/components/` and `bespoke/hooks/` for the current inventory** — the names are self-explanatory — and read the prop types / signatures of whatever looks relevant. Every project uses the chart chrome (`Frame`, `ChartHeader`, `ChartFooter`, `Spinner`); beyond that expect controls (dropdowns including a geolocation-aware `EntityDropdown`, a `Switcher`, a `TimeSlider`), a full Sankey toolkit (bilateral and split-flow layouts — don't build a second Sankey), and hooks for container sizing, URL state, delayed loading, geolocation, and touch/Shadow-DOM-aware tooltips.
+Before building a control, tooltip helper, or sizing hook, check what already exists: **list `bespoke/components/` and `bespoke/hooks/` for the current inventory** — the names are self-explanatory — and read the prop types / signatures of whatever looks relevant. Every project uses the chart chrome (`Frame`, `ChartHeader`, `ChartFooter`, `Spinner`); beyond that expect the controls box (`Controls`, `ControlsRow`, `LabeledControl`) and the controls themselves (`LabeledDropdown`, the geolocation-aware `EntityDropdown`, a `Switcher`, a `TimeSlider`), a full Sankey toolkit (bilateral and split-flow layouts — don't build a second Sankey), and hooks for container sizing, URL state, delayed loading, geolocation, and touch/Shadow-DOM-aware tooltips.
 
 Entity dropdowns across projects share a **relevance ordering**: pinned aggregates (e.g. World) → current selection → the user's own country/continent marked with a location icon (via `useUserCountryInformation`) → the rest alphabetically. Reuse that pattern (and the `"userLocation"` config sentinel) rather than a flat alphabetical list.
 
@@ -200,7 +202,7 @@ Extract into `bespoke/components/` or `bespoke/hooks/` when:
 
 - **A second project actually needs it** — extraction is triggered by the second concrete use, not by anticipation. The Sankey toolkit was worth sharing because food-trade and migration both needed the same substantial machinery; a second treemap project would justify extracting a generic treemap the same way.
 - The extracted piece can be **generic and presentational**: props + callbacks + data types, no project-specific data assumptions, no fetching. Compare shared `SplitFlowSankey` (takes `flows`, `formatValue`, callbacks) with project-local `MigrationSankey` (knows about sexes, years, migration metadata). The domain-aware wrapper always stays in the project.
-- It's chart **chrome or a control** with an obvious stable contract (`Frame`, `ChartHeader`, `TimeSlider`, `Switcher`) — these are small, generic, and every project wants them.
+- It's chart **chrome or a control** with an obvious stable contract (`Frame`, `ChartHeader`, `Controls`, `TimeSlider`, `Switcher`) — these are small, generic, and every project wants them.
 
 Keep it project-local when:
 

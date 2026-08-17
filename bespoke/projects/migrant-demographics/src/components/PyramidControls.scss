@@ -1,32 +1,8 @@
-.migrant-pyramid-controls__title {
-    font-size: 10px;
-    font-weight: 900;
-    letter-spacing: 0.15em;
-    color: $light-text;
-    text-transform: uppercase;
-    margin: 0;
-    margin-bottom: 16px;
-}
-
-.migrant-pyramid-controls__content {
-    display: flex;
-    flex-direction: column;
-    row-gap: 16px;
-}
-
 // The switcher and checkbox size to their content; the country dropdown
 // takes the remaining row width
-.migrant-pyramid-controls__row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    column-gap: 16px;
-    row-gap: 16px;
-
-    > .grapher-dropdown {
-        flex: 1 1 0;
-        min-width: 220px;
-    }
+.migrant-pyramid-controls__country {
+    flex: 1 1 0;
+    min-width: 220px;
 }
 
 .migrant-pyramid-controls__show {
@@ -52,17 +28,27 @@
     line-height: 16px;
 }
 
-.migrant-pyramid--narrow .migrant-pyramid-controls__content {
+// The unlabelled checkbox bottom-aligns with the labelled controls; nudge it
+// up so it sits against the controls' text rather than their lower edge
+.migrant-pyramid-controls__compare {
+    padding-bottom: 8px;
+}
+
+.migrant-pyramid--narrow .migrant-pyramid-controls .controls__content {
     row-gap: 12px;
 }
 
-.migrant-pyramid--narrow .migrant-pyramid-controls__row {
+.migrant-pyramid--narrow .migrant-pyramid-controls .controls__row {
     flex-direction: column;
     align-items: stretch;
     row-gap: 12px;
 }
 
-.migrant-pyramid--narrow .migrant-pyramid-controls__row > * {
+.migrant-pyramid--narrow .migrant-pyramid-controls .controls__row > * {
     flex: 0 0 auto;
     width: 100%;
+}
+
+.migrant-pyramid--narrow .migrant-pyramid-controls__compare {
+    padding-bottom: 0;
 }

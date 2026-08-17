@@ -1,12 +1,14 @@
 import { ComponentProps, useCallback, useMemo } from "react"
 import { BasicDropdownOption, Dropdown } from "@ourworldindata/grapher"
 
+import { LabeledControl } from "../Controls/Controls.js"
+
 type GrapherDropdownProps = ComponentProps<typeof Dropdown<BasicDropdownOption>>
 type DropdownCollection = GrapherDropdownProps["options"]
 
-export interface InlineLabeledDropdownProps extends Omit<
+export interface LabeledDropdownProps extends Omit<
     GrapherDropdownProps,
-    "value" | "onChange" | "isClearable" | "renderTriggerValue"
+    "value" | "onChange" | "isClearable"
 > {
     options: DropdownCollection
     label: string
@@ -14,13 +16,14 @@ export interface InlineLabeledDropdownProps extends Omit<
     onChange: (value: string) => void
 }
 
-export function InlineLabeledDropdown({
+export function LabeledDropdown({
     label,
     options,
     selectedValue,
     onChange,
+    className,
     ...dropdownProps
-}: InlineLabeledDropdownProps): React.ReactElement {
+}: LabeledDropdownProps): React.ReactElement {
     const selectedOption = useMemo(
         () => findOptionByValue(options, selectedValue),
         [options, selectedValue]
@@ -35,21 +38,15 @@ export function InlineLabeledDropdown({
     )
 
     return (
-        <Dropdown
-            {...dropdownProps}
-            options={options}
-            value={selectedOption}
-            onChange={handleChange}
-            isClearable={false}
-            renderTriggerValue={(option) =>
-                option ? (
-                    <>
-                        <span className="label">{label}: </span>
-                        {option.label}
-                    </>
-                ) : null
-            }
-        />
+        <LabeledControl label={label} className={className}>
+            <Dropdown
+                {...dropdownProps}
+                options={options}
+                value={selectedOption}
+                onChange={handleChange}
+                isClearable={false}
+            />
+        </LabeledControl>
     )
 }
 

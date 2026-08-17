@@ -5,12 +5,15 @@ import { BasicDropdownOption } from "@ourworldindata/grapher"
 import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
 import { Tippy } from "@ourworldindata/utils"
 
-import { Frame } from "../../../../components/Frame/Frame.js"
+import {
+    Controls,
+    ControlsRow,
+} from "../../../../components/Controls/Controls.js"
 import { orderOptionsByRelevance } from "../../../../components/EntityDropdown/EntityDropdown.js"
 import {
     type DropdownCollection,
-    InlineLabeledDropdown,
-} from "../../../../components/InlineLabeledDropdown/InlineLabeledDropdown.js"
+    LabeledDropdown,
+} from "../../../../components/LabeledDropdown/LabeledDropdown.js"
 import { Switcher } from "../../../../components/Switcher/Switcher.js"
 import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
@@ -53,35 +56,27 @@ export function PyramidControls({
     setCompare: (compare: boolean) => void
 }): React.ReactElement {
     return (
-        <Frame className="migrant-pyramid-controls">
-            <h3 className="migrant-pyramid-controls__title">
-                Configure the data
-            </h3>
-            <div className="migrant-pyramid-controls__content">
-                <div className="migrant-pyramid-controls__row">
-                    <CountryDropdown
-                        data={data}
-                        country={country}
-                        setCountry={setCountry}
-                    />
-                    <ShowModeSwitcher
-                        mode={mode}
-                        compare={compare}
-                        isNarrow={isNarrow}
-                        setShow={setShow}
-                    />
-                    <CompareCheckbox
-                        compare={compare}
-                        setCompare={setCompare}
-                    />
-                </div>
-                <TimeSlider
-                    times={data.years}
-                    selectedTime={year}
-                    onChange={setYear}
+        <Controls className="migrant-pyramid-controls">
+            <ControlsRow>
+                <CountryDropdown
+                    data={data}
+                    country={country}
+                    setCountry={setCountry}
                 />
-            </div>
-        </Frame>
+                <ShowModeSwitcher
+                    mode={mode}
+                    compare={compare}
+                    isNarrow={isNarrow}
+                    setShow={setShow}
+                />
+                <CompareCheckbox compare={compare} setCompare={setCompare} />
+            </ControlsRow>
+            <TimeSlider
+                times={data.years}
+                selectedTime={year}
+                onChange={setYear}
+            />
+        </Controls>
     )
 }
 
@@ -111,7 +106,8 @@ function CountryDropdown({
     )
 
     return (
-        <InlineLabeledDropdown
+        <LabeledDropdown
+            className="migrant-pyramid-controls__country"
             label="Country or region"
             options={options}
             selectedValue={country}
