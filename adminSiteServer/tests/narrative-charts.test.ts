@@ -130,6 +130,27 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
         })
     })
 
+    it("snapshots always-persisted props that the parent itself inherits", async () => {
+        const { chartId } = await createParentChart()
+
+        // The editor posts the parent chart's own patch, so a prop the parent
+        // inherits from its indicator config — entity selection here — is
+        // absent from it, and has to be read off the parent's resolved config
+        const narrativeChartId = await createNarrativeChart(chartId, {
+            $schema: latestGrapherConfigSchema,
+            title: "Narrative title",
+            chartTypes: ["LineChart"],
+        })
+
+        const narrativeChart = await getNarrativeChart(narrativeChartId)
+        expect(narrativeChart.configPatch).toMatchObject({
+            selectedEntityNames: ["France"],
+        })
+        expect(narrativeChart.configFull).toMatchObject({
+            selectedEntityNames: ["France"],
+        })
+    })
+
     it("creates a narrative chart from a multi-dim view", async () => {
         await seedDatasetAndVariables(env)
         await env.request({

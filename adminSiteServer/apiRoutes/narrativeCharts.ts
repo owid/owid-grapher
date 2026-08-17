@@ -60,6 +60,7 @@ const createPatchConfigAndQueryParamsForNarrativeChart = async (
 
     const fullConfigIncludingDefaults = mergeGrapherConfigs(
         defaultGrapherConfig,
+        parentChartConfig,
         config
     )
     const patchConfigToSave = {
