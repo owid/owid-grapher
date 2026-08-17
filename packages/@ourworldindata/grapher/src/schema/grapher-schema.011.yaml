@@ -134,14 +134,6 @@ properties:
             entityAnnotationsMap:
               type: string
               description: Entity annotations
-            inapplicableEntities:
-              type: array
-              items:
-                type: string
-              description: |
-                Entities for which the indicator's data is not applicable by construction,
-                e.g. China for "China's imports as a share of GDP", or any country for
-                "emigrants from that country".
             timeInterval:
               type: string
               default: year
@@ -363,6 +355,15 @@ properties:
         type: boolean
         default: false
         description: Show the label from colorSchemeLabels in the tooltip instead of the numeric value
+      inapplicableEntities:
+        type: array
+        items:
+          type: string
+        description: |
+          Entities for which the indicator's data is not applicable by construction,
+          e.g. China for "China's imports as a share of GDP", or any country for
+          "emigrants from that country". They are excluded from the color scale and
+          rendered in a dedicated pattern, with a matching legend bin and tooltip.
       time:
         description: Select a specific time to be displayed. If startTime is given, this acts as the end time.
         default: "latest"

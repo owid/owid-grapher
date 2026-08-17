@@ -623,6 +623,7 @@ export interface MapConfigInterface {
     globe?: GlobeConfig
     colorScale?: Partial<ColorScaleConfigInterface>
     tooltipUseCustomLabels?: boolean
+    inapplicableEntities?: EntityName[]
     selectedEntityNames?: EntityName[]
 }
 

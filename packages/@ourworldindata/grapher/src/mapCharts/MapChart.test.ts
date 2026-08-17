@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest"
 
 import {
-    OwidTable,
     SampleColumnSlugs,
     SynthesizeGDPTable,
     SynthesizeProjectedPopulationTable,
@@ -94,26 +93,27 @@ it("combines projected data with its historical counterpart", () => {
 describe("not applicable entities", () => {
     // Not-applicable entities are expected to have no data,
     // so they're not included in the table
-    const makeTableWithInapplicableEntities = (
-        inapplicableEntities: string[]
-    ): OwidTable =>
-        SynthesizeGDPTable({
-            timeRange: [2000, 2001],
-            entityNames: ["Germany", "Spain", "World"],
-        }).updateDefs((def) =>
-            def.slug === SampleColumnSlugs.Population
-                ? { ...def, display: { inapplicableEntities } }
-                : def
-        )
+    const table = SynthesizeGDPTable({
+        timeRange: [2000, 2001],
+        entityNames: ["Germany", "Spain", "World"],
+    })
+
+    const makeManager = (
+        inapplicableEntities: string[],
+        mapConfig = new MapConfig()
+    ): MapChartManager => {
+        mapConfig.inapplicableEntities = inapplicableEntities
+        return {
+            table,
+            mapColumnSlug: SampleColumnSlugs.Population,
+            endTime: 2000,
+            mapConfig,
+        }
+    }
 
     it("renders not-applicable entities with their own legend bin", () => {
-        const table = makeTableWithInapplicableEntities(["France"])
         const chartState = new MapChartState({
-            manager: {
-                table,
-                mapColumnSlug: SampleColumnSlugs.Population,
-                endTime: 2000,
-            },
+            manager: makeManager(["France"]),
         })
 
         // France is recognized as not-applicable, but has no series
@@ -137,19 +137,13 @@ describe("not applicable entities", () => {
     })
 
     it("lets the color scale config override the not-applicable label", () => {
-        const table = makeTableWithInapplicableEntities(["France"])
         const mapConfig = new MapConfig()
         mapConfig.colorScale.customCategoryLabels = {
             "Not applicable": "Selected country",
         }
 
         const chartState = new MapChartState({
-            manager: {
-                table,
-                mapColumnSlug: SampleColumnSlugs.Population,
-                endTime: 2000,
-                mapConfig,
-            },
+            manager: makeManager(["France"], mapConfig),
         })
 
         const bin = chartState.colorScale.legendBins.find(
@@ -165,13 +159,8 @@ describe("not applicable entities", () => {
     })
 
     it("ignores not-applicable entities that aren't on the map", () => {
-        const table = makeTableWithInapplicableEntities(["World"])
         const chartState = new MapChartState({
-            manager: {
-                table,
-                mapColumnSlug: SampleColumnSlugs.Population,
-                endTime: 2000,
-            },
+            manager: makeManager(["World"]),
         })
 
         expect(chartState.inapplicableEntityNamesSet).toEqual(new Set())
@@ -179,13 +168,8 @@ describe("not applicable entities", () => {
     })
 
     it("handles multiple not-applicable entities", () => {
-        const table = makeTableWithInapplicableEntities(["France", "Italy"])
         const chartState = new MapChartState({
-            manager: {
-                table,
-                mapColumnSlug: SampleColumnSlugs.Population,
-                endTime: 2000,
-            },
+            manager: makeManager(["France", "Italy"]),
         })
 
         // Both are recognized as not-applicable

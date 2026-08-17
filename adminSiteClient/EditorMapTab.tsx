@@ -1,5 +1,6 @@
 import * as _ from "lodash-es"
 import {
+    EntityName,
     GrapherInterface,
     MapRegionName,
     GRAPHER_MAP_TYPE,
@@ -10,7 +11,12 @@ import {
     MapConfig,
     MAP_REGION_LABELS,
 } from "@ourworldindata/grapher"
-import { ColumnSlug, ToleranceStrategy } from "@ourworldindata/utils"
+import {
+    ColumnSlug,
+    mappableCountries,
+    ToleranceStrategy,
+} from "@ourworldindata/utils"
+import { Select } from "antd"
 import { action, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
@@ -199,6 +205,54 @@ class TooltipSection extends Component<{ mapConfig: MapConfig }> {
 }
 
 @observer
+class InapplicableEntitiesSection extends Component<{ mapConfig: MapConfig }> {
+    constructor(props: { mapConfig: MapConfig }) {
+        super(props)
+        makeObservable(this)
+    }
+
+    @computed private get options(): {
+        value: EntityName
+        label: EntityName
+    }[] {
+        return mappableCountries
+            .map((country) => country.name)
+            .toSorted()
+            .map((entityName) => ({ value: entityName, label: entityName }))
+    }
+
+    @action.bound onChange(entityNames: EntityName[]) {
+        // An empty list is stored as undefined so the config stays clean
+        this.props.mapConfig.inapplicableEntities = entityNames.length
+            ? entityNames
+            : undefined
+    }
+
+    override render() {
+        const { mapConfig } = this.props
+        return (
+            <Section name="Not applicable entities">
+                <Select
+                    style={{ width: "100%" }}
+                    placeholder="Select entities"
+                    value={mapConfig.inapplicableEntities ?? []}
+                    options={this.options}
+                    onChange={this.onChange}
+                    mode="multiple"
+                    showSearch
+                    allowClear
+                />
+                <small className="form-text text-muted">
+                    Entities the indicator's data doesn't apply to, e.g. China
+                    for "China's imports as a share of GDP". Excluded from the
+                    color scale and drawn in a dedicated pattern.
+                </small>
+            </Section>
+        )
+    }
+}
+
+@observer
 class InheritanceSection<Editor extends AbstractChartEditor> extends Component<{
     editor: Editor
 }> {
@@ -314,6 +368,7 @@ export class EditorMapTab<Editor extends AbstractChartEditor> extends Component<
                             lastEditedNote={this.lastColorScaleEditNote}
                         />
                         <TooltipSection mapConfig={mapConfig} />
+                        <InapplicableEntitiesSection mapConfig={mapConfig} />
                     </Fragment>
                 )}
                 <InheritanceSection editor={this.props.editor} />
