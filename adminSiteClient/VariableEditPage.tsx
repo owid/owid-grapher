@@ -406,26 +406,23 @@ class VariableEditor extends Component<{
     @computed private get grapherConfig(): GrapherInterface {
         const { variable } = this.props
         const grapherConfig = variable.grapherConfigETL
-        if (grapherConfig)
-            return {
-                ...grapherConfig,
-                hasMapTab: true,
-                tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
-            }
-        else
-            return {
-                yAxis: { min: 0 },
-                map: { columnSlug: this.props.variable.id.toString() },
-                tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
-                hasMapTab: true,
-                dimensions: [
-                    {
-                        property: DimensionProperty.y,
-                        variableId: this.props.variable.id,
-                        display: _.clone(variable.display),
-                    },
-                ],
-            }
+
+        // If the variable has a grapher config, use it as-is
+        if (grapherConfig) return grapherConfig
+
+        // Otherwise, create a default config with a map tab
+        return {
+            yAxis: { min: 0 },
+            map: { columnSlug: this.props.variable.id.toString() },
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+            hasMapTab: true,
+            dimensions: [
+                {
+                    property: DimensionProperty.y,
+                    variableId: this.props.variable.id,
+                },
+            ],
+        }
     }
 
     dispose!: IReactionDisposer
