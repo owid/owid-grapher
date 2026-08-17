@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react"
+import { memo, useCallback, useMemo, useRef, useState } from "react"
 import { useParentSize } from "@visx/responsive"
 import { scaleBand, scaleLinear } from "@visx/scale"
 import { AxisBottom } from "@visx/axis"
@@ -138,42 +138,66 @@ function MigrantPyramidContent({
         [bands, yScale, innerHeight]
     )
 
+    // Geometry only — kept out of the render path the pointer drives
+    const hitRects = useMemo(
+        () =>
+            rowBounds.map((bounds, i) => (
+                <rect
+                    key={bounds.band}
+                    data-row={i}
+                    x={0}
+                    y={bounds.y}
+                    width={innerWidth}
+                    height={bounds.height}
+                    fill="transparent"
+                />
+            )),
+        [rowBounds, innerWidth]
+    )
+
     const numTicks = isNarrow ? 3 : 4
 
-    const [hover, setHover] = useState<HoverTarget | null>(null)
-    const hoveredIndex = hover?.index ?? null
+    // Kept apart so a pointer move, which only ever changes the position,
+    // doesn't re-render the halves — they redraw on the hovered row alone
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+    const [pointerPosition, setPointerPosition] = useState<Position | null>(
+        null
+    )
 
     const svgRef = useRef<SVGSVGElement>(null)
-    const dismissHover = useCallback(() => setHover(null), [])
+    const dismissHover = useCallback(() => {
+        setHoveredIndex(null)
+        setPointerPosition(null)
+    }, [])
     // On touch devices this pins the tooltip to the bottom of the viewport
     // and owns dismissal (tap outside, chart scrolled out of view)
     const { ref: chartRef, isPinned } = usePinnedTooltip<HTMLDivElement>(
-        hover !== null,
+        hoveredIndex !== null,
         dismissHover
     )
 
-    // Bound to both enter and move so the tooltip follows the cursor
-    const handlePointerMove = useCallback(
-        (e: React.PointerEvent, index: number) => {
-            if (e.pointerType !== "mouse" || !svgRef.current) return
-            const position = getRelativeMouse(svgRef.current, e.nativeEvent)
-            setHover({ index, position })
-        },
-        []
-    )
-    const handlePointerLeave = useCallback((e: React.PointerEvent) => {
-        if (e.pointerType === "mouse") setHover(null)
+    // One handler set on the group rather than three closures per hit rect;
+    // the row comes off the target's data attribute
+    const handlePointerMove = useCallback((e: React.PointerEvent) => {
+        if (e.pointerType !== "mouse" || !svgRef.current) return
+        const index = rowIndexOf(e.target)
+        if (index === null) return
+        setHoveredIndex(index)
+        setPointerPosition(getRelativeMouse(svgRef.current, e.nativeEvent))
     }, [])
-    const handlePointerDown = useCallback(
-        (e: React.PointerEvent, index: number) => {
-            if (e.pointerType !== "touch" || !svgRef.current) return
-            const position = getRelativeMouse(svgRef.current, e.nativeEvent)
-            setHover((prev) =>
-                prev?.index === index ? null : { index, position }
-            )
+    const handlePointerLeave = useCallback(
+        (e: React.PointerEvent) => {
+            if (e.pointerType === "mouse") dismissHover()
         },
-        []
+        [dismissHover]
     )
+    const handlePointerDown = useCallback((e: React.PointerEvent) => {
+        if (e.pointerType !== "touch" || !svgRef.current) return
+        const index = rowIndexOf(e.target)
+        if (index === null) return
+        setPointerPosition(getRelativeMouse(svgRef.current, e.nativeEvent))
+        setHoveredIndex((prev) => (prev === index ? null : index))
+    }, [])
 
     const halves: {
         side: Sex
@@ -294,29 +318,22 @@ function MigrantPyramidContent({
                     </text>
 
                     {/* Full-width hit rects for hover — one per age band */}
-                    {rowBounds.map((bounds, i) => (
-                        <rect
-                            key={`hit-${bounds.band}`}
-                            x={0}
-                            y={bounds.y}
-                            width={innerWidth}
-                            height={bounds.height}
-                            fill="transparent"
-                            onPointerEnter={(e) => handlePointerMove(e, i)}
-                            onPointerMove={(e) => handlePointerMove(e, i)}
-                            onPointerLeave={handlePointerLeave}
-                            onPointerDown={(e) => handlePointerDown(e, i)}
-                        />
-                    ))}
+                    <g
+                        onPointerMove={handlePointerMove}
+                        onPointerLeave={handlePointerLeave}
+                        onPointerDown={handlePointerDown}
+                    >
+                        {hitRects}
+                    </g>
                 </Group>
             </svg>
 
-            {hover && hoveredRow && (
+            {hoveredIndex !== null && hoveredRow && pointerPosition && (
                 <MigrantPyramidTooltip
                     migrants={hoveredRow}
-                    natives={view.natives?.[hover.index]}
+                    natives={view.natives?.[hoveredIndex]}
                     mode={mode}
-                    position={hover.position}
+                    position={pointerPosition}
                     containerBounds={new Bounds(0, 0, width, height)}
                     isPinned={isPinned}
                 />
@@ -327,11 +344,10 @@ function MigrantPyramidContent({
 
 type Sex = "men" | "women"
 
-interface HoverTarget {
-    /** Index into the view's rows */
-    index: number
-    /** Pointer position relative to the SVG */
-    position: { x: number; y: number }
+/** Pointer position relative to the SVG */
+interface Position {
+    x: number
+    y: number
 }
 
 /** An age band's full row, extended to cover the gaps around its bars */
@@ -341,21 +357,7 @@ interface RowBounds {
     height: number
 }
 
-function PyramidHalf({
-    side,
-    left,
-    scale,
-    color,
-    rows,
-    comparisonRows,
-    rowBounds,
-    yScale,
-    innerHeight,
-    numTicks,
-    mode,
-    tickFontSize,
-    hoveredIndex,
-}: {
+interface PyramidHalfProps {
     /** Which side of the pyramid, and which value of each row it draws */
     side: Sex
     left: number
@@ -370,7 +372,27 @@ function PyramidHalf({
     mode: ShowMode
     tickFontSize: number
     hoveredIndex: number | null
-}): React.ReactElement {
+}
+
+/**
+ * Memoised: every prop is either a primitive or memoised upstream, so a
+ * pointer move that leaves the hovered row unchanged redraws nothing here.
+ */
+const PyramidHalf = memo(function PyramidHalf({
+    side,
+    left,
+    scale,
+    color,
+    rows,
+    comparisonRows,
+    rowBounds,
+    yScale,
+    innerHeight,
+    numTicks,
+    mode,
+    tickFontSize,
+    hoveredIndex,
+}: PyramidHalfProps): React.ReactElement {
     const zeroX = scale(0)
     const bandwidth = yScale.bandwidth()
 
@@ -469,7 +491,7 @@ function PyramidHalf({
             )}
         </Group>
     )
-}
+})
 
 /** The native-born outline: the line itself over a background-coloured casing */
 function CasedLine({
@@ -520,6 +542,15 @@ function computeRowBounds(
             i === bands.length - 1 ? innerHeight : top + bandwidth + halfGap
         return { band, y, height: bottom - y }
     })
+}
+
+/** The row a delegated pointer event landed on, from the hit rect's data attribute */
+function rowIndexOf(target: EventTarget): number | null {
+    if (!(target instanceof Element)) return null
+    const raw = target.getAttribute("data-row")
+    if (raw === null) return null
+    const index = Number(raw)
+    return Number.isInteger(index) ? index : null
 }
 
 function maxTextWidth(texts: string[], fontSize: number): number {
