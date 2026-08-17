@@ -1,5 +1,4 @@
 import { memo, useCallback, useMemo, useRef, useState } from "react"
-import { useParentSize } from "@visx/responsive"
 import { scaleBand, scaleLinear } from "@visx/scale"
 import { AxisBottom } from "@visx/axis"
 import { Group } from "@visx/group"
@@ -13,6 +12,7 @@ import {
 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { darkenColorForText } from "@ourworldindata/grapher/src/color/ColorUtils.js"
 
+import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import { formatAxisTick, PyramidRow, PyramidView } from "../helpers.js"
 import { ShowMode } from "../types.js"
@@ -50,17 +50,10 @@ const NATIVE_LINE_WIDTH = 1.5
 const NATIVE_LINE_CASING_WIDTH = 4
 
 export function MigrantPyramid(props: MigrantPyramidProps): React.ReactElement {
-    const { parentRef, width, height } = useParentSize()
     return (
-        <div ref={parentRef} className="responsive-container">
-            {width > 0 && height > 0 && (
-                <MigrantPyramidContent
-                    {...props}
-                    width={width}
-                    height={height}
-                />
-            )}
-        </div>
+        <ResponsiveContainer>
+            {(size) => <MigrantPyramidContent {...props} {...size} />}
+        </ResponsiveContainer>
     )
 }
 
@@ -191,8 +184,9 @@ function MigrantPyramidContent({
         },
         [dismissHover]
     )
+    // Anything that isn't a mouse — touch, stylus, unknown — taps to pin
     const handlePointerDown = useCallback((e: React.PointerEvent) => {
-        if (e.pointerType !== "touch" || !svgRef.current) return
+        if (e.pointerType === "mouse" || !svgRef.current) return
         const index = rowIndexOf(e.target)
         if (index === null) return
         setPointerPosition(getRelativeMouse(svgRef.current, e.nativeEvent))
@@ -423,11 +417,13 @@ const PyramidHalf = memo(function PyramidHalf({
                     />
                 ))}
 
-            {/* X-axis */}
+            {/* X-axis. Zero sits at the centre gap, where both halves would
+                otherwise label it — and the grid lines skip it too. */}
             <AxisBottom
                 top={innerHeight}
                 scale={scale}
                 numTicks={numTicks}
+                hideZero
                 tickFormat={(tick) => formatAxisTick(tick as number, mode)}
                 stroke="transparent"
                 tickStroke={GRAPHER_LIGHT_TEXT}
@@ -572,8 +568,10 @@ function edgeAwareTickAnchor(
 ): "start" | "middle" | "end" {
     const halfLabelWidth =
         Bounds.forText(formatAxisTick(tick, mode), { fontSize }).width / 2
-    // Both halves map the axis maximum to the outer edge of the chart
-    const outerEdge = scale.range()[1]
+    // Men run right-to-left, women left-to-right, so their outer edges are
+    // the two extremes of the range — whichever way it's written
+    const outerEdge =
+        side === "men" ? Math.min(...scale.range()) : Math.max(...scale.range())
     if (Math.abs(scale(tick) - outerEdge) < halfLabelWidth)
         return side === "men" ? "start" : "end"
     return "middle"

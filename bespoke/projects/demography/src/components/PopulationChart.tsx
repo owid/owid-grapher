@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, useCallback, useRef, useEffect } from "react"
-import { useParentSize } from "@visx/responsive"
+import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 import { scaleLinear } from "@visx/scale"
 import { LinePath } from "@visx/shape"
 import { Group } from "@visx/group"
@@ -456,17 +456,10 @@ function PopulationChartContent({
 export const PopulationChart = memo(function PopulationChart(
     props: PopulationChartProps
 ) {
-    const { parentRef, width, height } = useParentSize()
     return (
-        <div ref={parentRef} className="responsive-container">
-            {width > 0 && height > 0 && (
-                <PopulationChartContent
-                    {...props}
-                    width={width}
-                    height={height}
-                />
-            )}
-        </div>
+        <ResponsiveContainer>
+            {(size) => <PopulationChartContent {...props} {...size} />}
+        </ResponsiveContainer>
     )
 })
 

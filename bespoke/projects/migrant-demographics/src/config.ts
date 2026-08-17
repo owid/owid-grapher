@@ -1,15 +1,15 @@
 import { ShowMode } from "./types.js"
 
 export interface PyramidVariantConfig {
-    hideControls?: boolean
+    hideControls: boolean
     title?: string
     subtitle?: string
     /** Display name of the initial entity, or the "userLocation" sentinel */
     country?: string
     year?: number
     show?: ShowMode
-    compare?: boolean
-    urlSync?: boolean
+    compare: boolean
+    urlSync: boolean
 }
 
 export function parseConfig(raw: Record<string, string>): PyramidVariantConfig {

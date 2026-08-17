@@ -15,19 +15,8 @@ import type {
     AgeZone,
 } from "./types"
 import { formatValue } from "@ourworldindata/utils"
-import { entityNameForSentence as regionNameForSentence } from "../../../../helpers/entityNames.js"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 import { QueryStatus } from "@tanstack/react-query"
-
-/** Strip suffixes like " (UN)" from entity names for display */
-export function displayEntityName(name: string): string {
-    return name.replace(/\s*\(UN\)$/, "")
-}
-
-/** Like the shared helper, but on the suffix-free names this project displays */
-export function entityNameForSentence(name: string): string {
-    return regionNameForSentence(displayEntityName(name))
-}
 
 export function formatPopulationValueShort(value: number): string {
     if (Math.abs(value) < 1) {

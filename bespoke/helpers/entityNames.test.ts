@@ -9,8 +9,12 @@ describe(entityNameForSentence, () => {
         ["United States", "the United States"],
         ["Channel Islands", "the Channel Islands"],
         ["High-income countries", "high-income countries"],
-        // Suffixed aggregates aren't regions, so they pass through untouched
-        ["Africa (UN)", "Africa (UN)"],
+        // The source suffix has no place mid-sentence
+        ["Africa (UN)", "Africa"],
+        [
+            "Latin America and the Caribbean (UN)",
+            "Latin America and the Caribbean",
+        ],
     ])("%s reads as %s", (name, expected) => {
         expect(entityNameForSentence(name)).toEqual(expected)
     })

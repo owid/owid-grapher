@@ -21,7 +21,10 @@ import { useUserCountryInformation } from "../../../../hooks/useUserCountryInfor
 import { orderOptionsByRelevance } from "../../../../components/EntityDropdown/EntityDropdown.js"
 
 import { DemographyMetadata } from "../helpers/types.js"
-import { displayEntityName, entityNameForSentence } from "../helpers/utils.js"
+import {
+    entityNameForSentence,
+    stripEntityNameSuffixes,
+} from "../../../../helpers/entityNames.js"
 
 interface Option {
     value: string
@@ -98,7 +101,7 @@ function EntityListBox({
     const options: OptionCollection = useMemo(() => {
         const flat = availableCountries.map((name) => ({
             value: name,
-            label: displayEntityName(name),
+            label: stripEntityNameSuffixes(name, ["UN"]),
         }))
         return orderOptionsByRelevance(flat, {
             userCountryInfo,
@@ -150,7 +153,10 @@ function EntityListBox({
                                     className="option"
                                     key={option.value}
                                     id={option.value}
-                                    textValue={displayEntityName(option.value)}
+                                    textValue={stripEntityNameSuffixes(
+                                        option.value,
+                                        ["UN"]
+                                    )}
                                 >
                                     {option.label}
                                 </ListBoxItem>
@@ -161,7 +167,9 @@ function EntityListBox({
                             className="option"
                             key={item.value}
                             id={item.value}
-                            textValue={displayEntityName(item.value)}
+                            textValue={stripEntityNameSuffixes(item.value, [
+                                "UN",
+                            ])}
                         >
                             {item.label}
                         </ListBoxItem>

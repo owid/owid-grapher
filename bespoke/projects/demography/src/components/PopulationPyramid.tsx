@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useRef } from "react"
-import { useParentSize } from "@visx/responsive"
+import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 import { scaleLinear, scaleBand } from "@visx/scale"
 import { Bar } from "@visx/shape"
 import { AxisBottom } from "@visx/axis"
@@ -292,17 +292,10 @@ function PopulationPyramidContent({
 }
 
 export function PopulationPyramid(props: PopulationPyramidProps) {
-    const { parentRef, width, height } = useParentSize()
     return (
-        <div ref={parentRef} className="responsive-container">
-            {width > 0 && height > 0 && (
-                <PopulationPyramidContent
-                    {...props}
-                    width={width}
-                    height={height}
-                />
-            )}
-        </div>
+        <ResponsiveContainer>
+            {(size) => <PopulationPyramidContent {...props} {...size} />}
+        </ResponsiveContainer>
     )
 }
 

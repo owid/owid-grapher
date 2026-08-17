@@ -318,6 +318,7 @@ __metadata:
     "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
     "@types/d3-sankey": "npm:^0.12.5"
     "@visx/drag": "npm:^4.0.0"
+    "@visx/responsive": "npm:^4.0.0"
     clsx: "npm:^2.1.1"
     d3-sankey: "npm:^0.12.3"
     react: "npm:^19.2.7"

@@ -71,7 +71,7 @@ function FetchingPyramidVariant({
     config: PyramidVariantConfig
     isNarrow: boolean
 }): React.ReactElement {
-    const urlSync = config.urlSync ?? false
+    const urlSync = config.urlSync
 
     const initialCountry =
         !config.country || isUserLocationCountry(config.country)
@@ -99,7 +99,7 @@ function FetchingPyramidVariant({
     const [compare, setCompare] = useUrlState({
         key: "migrantPyramidCompare",
         parser: parseAsBoolean,
-        defaultValue: config.compare ?? false,
+        defaultValue: config.compare,
         enabled: urlSync,
     })
 
@@ -195,12 +195,14 @@ function CaptionedPyramidVariant({
         [data, country, mode, compare]
     )
 
+    // A year with no migrant stock at all draws an empty pyramid and makes
+    // the subtitle read "the 0 people", so it gets its own message
+    const total = pyramidData?.migrantsTotal.total ?? 0
+
     const title = config.title ?? chartTitle(country, year)
     const subtitle =
         config.subtitle ??
-        (pyramidData
-            ? chartSubtitle(country, pyramidData.migrantsTotal.total)
-            : undefined)
+        (total > 0 ? chartSubtitle(country, total) : undefined)
 
     // The outline only appears once the comparison is switched on
     const isShowingNatives = !!view?.natives
@@ -235,7 +237,7 @@ function CaptionedPyramidVariant({
                     Native-born residents
                 </div>
                 <div className="migrant-pyramid-captioned-chart__chart-area">
-                    {view && pyramidData ? (
+                    {view && pyramidData && total > 0 ? (
                         <MigrantPyramid
                             view={view}
                             xMax={xMax}
@@ -265,7 +267,9 @@ function CaptionedPyramidVariant({
                         />
                     ) : (
                         <div className="migrant-pyramid__no-data">
-                            No data for {country} in {year}.
+                            {pyramidData
+                                ? `No immigrants recorded in ${entityNameForSentence(country)} in ${year}.`
+                                : `No data for ${entityNameForSentence(country)} in ${year}.`}
                         </div>
                     )}
                 </div>

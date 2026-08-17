@@ -2,16 +2,6 @@
     color: $dark-text;
 }
 
-.responsive-container {
-    width: 100%;
-    height: 100%;
-}
-
-// Positioning context for the tooltip, which sits next to the SVG
-.migrant-pyramid__chart {
-    position: relative;
-}
-
 .migrant-pyramid-captioned-chart__chart-area {
     position: relative;
     width: 100%;

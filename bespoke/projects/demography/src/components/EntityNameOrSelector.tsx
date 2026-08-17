@@ -1,5 +1,5 @@
 import { InlineEntitySelector } from "./InlineEntitySelector.js"
-import { entityNameForSentence } from "../helpers/utils.js"
+import { entityNameForSentence } from "../../../../helpers/entityNames.js"
 import type { DemographyMetadata } from "../helpers/types.js"
 
 export function EntityNameOrSelector({

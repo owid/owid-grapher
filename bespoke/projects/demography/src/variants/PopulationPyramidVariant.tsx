@@ -13,10 +13,8 @@ import type {
     PopulationPyramidVariantConfig,
     VariantProps,
 } from "../config.js"
-import {
-    entityNameForSentence,
-    groupAgeGroupsByZone,
-} from "../helpers/utils.js"
+import { groupAgeGroupsByZone } from "../helpers/utils.js"
+import { entityNameForSentence } from "../../../../helpers/entityNames.js"
 import { CountryData, DemographyMetadata } from "../helpers/types.js"
 import {
     useSimulation,

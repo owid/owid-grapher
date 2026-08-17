@@ -40,6 +40,13 @@ export class MigrantDemographics {
     >
 
     constructor(raw: RawMigrantDemographics) {
+        // Without these the chart's geometry degenerates to NaN, so fail into
+        // the error state rather than rendering a broken pyramid
+        if (!raw.ageBands?.length || !raw.years?.length || !raw.meta?.source)
+            throw new Error(
+                "[migrant-demographics] Data file is missing its age bands, years or source"
+            )
+
         this.ageBands = raw.ageBands
         this.years = raw.years
         this.source = raw.meta.source
