@@ -368,25 +368,12 @@ function normalizeViewConfigSchemas(
 /** The config of every view of this multi-dim, keyed by its id. */
 async function getViewChartConfigs(
     knex: db.KnexReadonlyTransaction,
-    multiDimId: number
+    ids: string[]
 ): Promise<Map<string, GrapherInterface>> {
-    const rows = await db.knexRaw<{
-        chartConfigId: string
-        config: DbRawChartConfig["config"]
-    }>(
-        knex,
-        `-- sql
-        SELECT
-            mdxcc.chartConfigId,
-            cc.config
-        FROM multi_dim_x_chart_configs mdxcc
-        JOIN chart_configs cc ON cc.id = mdxcc.chartConfigId
-        WHERE mdxcc.multiDimId = ?`,
-        [multiDimId]
-    )
-    return new Map(
-        rows.map((row) => [row.chartConfigId, parseChartConfig(row.config)])
-    )
+    const rows = await knex<DbRawChartConfig>(ChartConfigsTableName)
+        .select("id", "config")
+        .whereIn("id", ids)
+    return new Map(rows.map((row) => [row.id, parseChartConfig(row.config)]))
 }
 
 export async function setMultiDimPublished(
@@ -394,7 +381,10 @@ export async function setMultiDimPublished(
     multiDim: DbEnrichedMultiDimDataPage,
     published: boolean
 ) {
-    const viewConfigs = await getViewChartConfigs(knex, multiDim.id)
+    const viewConfigs = await getViewChartConfigs(
+        knex,
+        multiDim.config.views.map((view) => view.fullConfigId)
+    )
 
     await Promise.all(
         multiDim.config.views.map(async (view) => {
