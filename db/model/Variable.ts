@@ -281,11 +281,6 @@ async function findAllMultiDimViewsThatInheritFromIndicator(
             })
         }
     }
-    if (inheritingViews.length !== rows.length) {
-        throw new Error(
-            `Multi-dim views missing from their page config variableId=${variableId}`
-        )
-    }
     return inheritingViews
 }
 
