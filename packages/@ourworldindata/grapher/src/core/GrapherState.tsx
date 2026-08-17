@@ -1618,12 +1618,8 @@ export class GrapherState
     }
 
     @computed get editUrl(): string | undefined {
-        let editPath = this.manager?.adminEditPath
-        if (!editPath && this.id) {
-            editPath = `charts/${this.id}/edit`
-        }
-        if (this.showAdminControls && this.adminBaseUrl && editPath) {
-            return `${this.adminBaseUrl}/admin/${editPath}`
+        if (this.showAdminControls && this.adminBaseUrl && this.id) {
+            return `${this.adminBaseUrl}/admin/charts/${this.id}/edit`
         }
         return undefined
     }

@@ -132,7 +132,6 @@ export interface GrapherManager {
     queryStr?: string
     selection?: SelectionArray
     focusArray?: FocusArray
-    adminEditPath?: string
     adminCreateNarrativeChartPath?: string
     analyticsContext?: AnalyticsContext
 }
