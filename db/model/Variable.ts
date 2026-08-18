@@ -35,7 +35,6 @@ import {
     DbPlainChart,
     DbPlainMultiDimXChartConfig,
     MultiDimXChartConfigsTableName,
-    DbPlainChartDimension,
     Distribution,
     DatasetOwners,
     DbPlainDataset,
@@ -1339,62 +1338,72 @@ const VARIABLE_LINK_TABLES = [
     "multi_dim_x_chart_configs",
 ] as const
 
-export interface GhostVariableCleanupPlan {
-    /** Ghost variables that can be deleted. */
-    deletable: number[]
-    /** Ghost variables still used by a chart, with the charts using them. */
-    blocked: { variableId: number; chartIds: number[] }[]
-    /**
-     * `chart_configs` rows that only exist because of the deletable variables: their own
-     * ETL- and admin-authored configs, plus the mdim view configs whose link rows go with
-     * them. Every foreign key into `chart_configs` is `ON DELETE RESTRICT`, so these have
-     * to be deleted after the rows pointing at them, not before.
-     */
+/** One ghost variable a chart still uses, and the chart using it. */
+export interface BlockedGhostVariable {
+    variableId: number
+    variableName: string | null
+    chartId: number
+    chartSlug: string | null
+}
+
+export interface GhostVariableCleanupResult {
+    /** Ghost variables that were deleted. */
+    deleted: number[]
+    /** Ghost variables still used by a chart, one row per pair. Reported, never deleted. */
+    blocked: BlockedGhostVariable[]
+    /** `chart_configs` rows deleted along with them, for the caller to remove from R2. */
     configIds: string[]
 }
 
 /**
- * Work out which of a dataset's variables are ghosts — present in the database but not
- * among the ones ETL just upserted — and which of those are safe to delete.
+ * Delete a dataset's variables that aren't among the ones the caller just upserted, along
+ * with their link rows and the chart configs they own.
  *
- * Read-only: the caller decides what to do with the plan.
+ * A ghost variable still used by a chart is left alone and reported in `blocked`: whether
+ * that should fail the caller's run depends on the caller, not on us.
+ *
+ * Does not touch R2 — the caller removes `configIds` from there once this transaction has
+ * committed.
  */
-export async function planGhostVariableCleanup(
-    trx: db.KnexReadonlyTransaction,
+export async function cleanupGhostVariables(
+    trx: db.KnexReadWriteTransaction,
     datasetId: number,
     keepVariableIds: number[]
-): Promise<GhostVariableCleanupPlan> {
+): Promise<GhostVariableCleanupResult> {
     const ghosts = await trx<DbRawVariable>(VariablesTableName)
         .where({ datasetId })
         .whereNotIn("id", keepVariableIds)
         .select("id", "grapherConfigIdETL", "grapherConfigIdAdmin")
 
-    if (ghosts.length === 0)
-        return { deletable: [], blocked: [], configIds: [] }
+    if (ghosts.length === 0) return { deleted: [], blocked: [], configIds: [] }
 
-    const ghostIds = ghosts.map((variable) => variable.id)
-
-    const usages = await trx<DbPlainChartDimension>("chart_dimensions")
-        .whereIn("variableId", ghostIds)
-        .select("variableId", "chartId")
-
-    const chartIdsByVariableId = _.mapValues(
-        _.groupBy(usages, (usage) => usage.variableId),
-        (rows) => _.uniq(rows.map((row) => row.chartId)).sort((a, b) => a - b)
+    // Names and slugs come along so that whoever reports this can show something a person
+    // can act on, rather than a list of ids.
+    const blocked = await db.knexRaw<BlockedGhostVariable>(
+        trx,
+        `-- sql
+        SELECT DISTINCT
+            cd.variableId,
+            v.name AS variableName,
+            cd.chartId,
+            cc.slug AS chartSlug
+        FROM chart_dimensions cd
+        JOIN variables v ON v.id = cd.variableId
+        JOIN charts c ON c.id = cd.chartId
+        JOIN chart_configs cc ON cc.id = c.configId
+        WHERE cd.variableId IN (?)
+        ORDER BY cd.variableId, cd.chartId
+        `,
+        [ghosts.map((variable) => variable.id)]
     )
 
-    const blocked = Object.entries(chartIdsByVariableId)
-        .map(([variableId, chartIds]) => ({
-            variableId: Number(variableId),
-            chartIds,
-        }))
-        .sort((a, b) => a.variableId - b.variableId)
-
+    const blockedVariableIds = new Set(blocked.map((row) => row.variableId))
     const deletableVariables = ghosts.filter(
-        (variable) => !chartIdsByVariableId[variable.id]
+        (variable) => !blockedVariableIds.has(variable.id)
     )
+    const deleted = deletableVariables.map((variable) => variable.id)
 
-    const deletableIds = deletableVariables.map((variable) => variable.id)
+    if (deleted.length === 0) return { deleted, blocked, configIds: [] }
 
     // The mdim view configs belonging to the link rows we are about to delete. A redirect
     // can point at one of those configs, and that foreign key is `RESTRICT` too — leaking a
@@ -1402,7 +1411,7 @@ export async function planGhostVariableCleanup(
     const mdimConfigIds = await trx<DbPlainMultiDimXChartConfig>(
         MultiDimXChartConfigsTableName
     )
-        .whereIn("variableId", deletableIds)
+        .whereIn("variableId", deleted)
         .whereNotExists(function () {
             this.select(trx.raw("1"))
                 .from("multi_dim_redirects")
@@ -1412,44 +1421,28 @@ export async function planGhostVariableCleanup(
         })
         .pluck("chartConfigId")
 
-    return {
-        deletable: deletableIds,
-        blocked,
-        // These are otherwise left behind in `chart_configs` (and in R2) when the rows
-        // referencing them go away — see https://github.com/owid/etl/pull/6672.
-        configIds: _.uniq([
-            ..._.compact(
-                deletableVariables.flatMap((variable) => [
-                    variable.grapherConfigIdETL,
-                    variable.grapherConfigIdAdmin,
-                ])
-            ),
-            ...mdimConfigIds,
-        ]),
-    }
-}
-
-/**
- * Delete the variables a {@link planGhostVariableCleanup} plan marked deletable, along
- * with their link rows and chart configs. Does not touch R2 — the caller is responsible
- * for removing the `configIds` from there once the transaction has committed.
- */
-export async function executeGhostVariableCleanup(
-    trx: db.KnexReadWriteTransaction,
-    plan: GhostVariableCleanupPlan
-): Promise<void> {
-    if (plan.deletable.length === 0) return
+    // These are otherwise left behind in `chart_configs` (and in R2) when the rows
+    // referencing them go away — see https://github.com/owid/etl/pull/6672. Every foreign
+    // key into `chart_configs` is `ON DELETE RESTRICT`, so they go last.
+    const configIds = _.uniq([
+        ..._.compact(
+            deletableVariables.flatMap((variable) => [
+                variable.grapherConfigIdETL,
+                variable.grapherConfigIdAdmin,
+            ])
+        ),
+        ...mdimConfigIds,
+    ])
 
     for (const table of VARIABLE_LINK_TABLES) {
-        await trx(table).whereIn("variableId", plan.deletable).delete()
+        await trx(table).whereIn("variableId", deleted).delete()
     }
 
-    // Deleting the variables first releases their foreign keys into `chart_configs`.
-    await trx(VariablesTableName).whereIn("id", plan.deletable).delete()
+    await trx(VariablesTableName).whereIn("id", deleted).delete()
 
-    // Same for the mdim view configs, whose link rows went in the loop above.
-
-    if (plan.configIds.length > 0) {
-        await trx("chart_configs").whereIn("id", plan.configIds).delete()
+    if (configIds.length > 0) {
+        await trx("chart_configs").whereIn("id", configIds).delete()
     }
+
+    return { deleted, blocked, configIds }
 }
