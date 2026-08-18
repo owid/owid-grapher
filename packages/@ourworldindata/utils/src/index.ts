@@ -125,7 +125,7 @@ export {
     flattenNonTopicNodes,
     formatInlineList,
     lazy,
-    getParentVariableIdFromChartConfig,
+    getParentIndicatorIdFromChartConfig,
     isArrayDifferentFromReference,
     readFromAssetMap,
     getUniqueNamesFromTagHierarchies,

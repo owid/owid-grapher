@@ -19,7 +19,7 @@ import {
 import {
     fetchS3DataValuesByPath,
     fetchS3MetadataByPath,
-    getLatestVariableIdsByCatalogPath,
+    getLatestIndicatorIdsByCatalogPath,
     getIndicatorChartConfigRecord,
     getIndicatorChartConfig,
     searchVariables,
@@ -31,7 +31,7 @@ import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explor
 import { DATA_API_URL } from "../../settings/clientSettings.js"
 import * as db from "../../db/db.js"
 import {
-    getParentVariableIdFromChartConfig,
+    getParentIndicatorIdFromChartConfig,
     parseIntOrUndefined,
 } from "@ourworldindata/utils"
 import {
@@ -123,13 +123,13 @@ export async function getVariableDataJson(
     _trx: db.KnexReadonlyTransaction
 ) {
     const variableStr = req.params.variableStr
-    if (!variableStr) throw new JsonError("No variable id given")
+    if (!variableStr) throw new JsonError("No indicator id given")
     if (variableStr.includes("+"))
         throw new JsonError(
-            "Requesting multiple variables at the same time is no longer supported"
+            "Requesting multiple indicators at the same time is no longer supported"
         )
     const variableId = parseInt(variableStr)
-    if (isNaN(variableId)) throw new JsonError("Invalid variable id")
+    if (isNaN(variableId)) throw new JsonError("Invalid indicator id")
     return await fetchS3DataValuesByPath(
         getVariableDataRoute(DATA_API_URL, variableId, { noCache: true })
     )
@@ -141,13 +141,13 @@ export async function getVariableMetadataJson(
     _trx: db.KnexReadonlyTransaction
 ) {
     const variableStr = req.params.variableStr
-    if (!variableStr) throw new JsonError("No variable id given")
+    if (!variableStr) throw new JsonError("No indicator id given")
     if (variableStr.includes("+"))
         throw new JsonError(
-            "Requesting multiple variables at the same time is no longer supported"
+            "Requesting multiple indicators at the same time is no longer supported"
         )
     const variableId = parseInt(variableStr)
-    if (isNaN(variableId)) throw new JsonError("Invalid variable id")
+    if (isNaN(variableId)) throw new JsonError("Invalid indicator id")
     return await fetchS3MetadataByPath(
         getVariableMetadataRoute(DATA_API_URL, variableId, { noCache: true })
     )
@@ -184,7 +184,7 @@ export async function getVariablesUsagesJson(
     return rows
 }
 
-export async function getLatestVariableIdsByCatalogPathJson(
+export async function getLatestIndicatorIdsByCatalogPathJson(
     req: Request,
     _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
@@ -203,7 +203,10 @@ export async function getLatestVariableIdsByCatalogPathJson(
         )
     }
 
-    const idsByPath = await getLatestVariableIdsByCatalogPath(catalogPaths, trx)
+    const idsByPath = await getLatestIndicatorIdsByCatalogPath(
+        catalogPaths,
+        trx
+    )
     return Object.fromEntries(idsByPath)
 }
 
@@ -259,7 +262,7 @@ export async function getVariableJson(
 
     // check for parent indicators
     const charts = rawCharts.map((chart) => {
-        const parentIndicatorId = getParentVariableIdFromChartConfig(
+        const parentIndicatorId = getParentIndicatorIdFromChartConfig(
             parseChartConfig(chart.config)
         )
         const hasParentIndicator = parentIndicatorId !== undefined
@@ -301,13 +304,13 @@ export async function putIndicatorChartConfig(
         }
     }
 
-    const variable = await getIndicatorChartConfigRecord(trx, variableId)
-    if (!variable) {
-        throw new JsonError(`Variable with id ${variableId} not found`, 500)
+    const indicator = await getIndicatorChartConfigRecord(trx, variableId)
+    if (!indicator) {
+        throw new JsonError(`Indicator with id ${variableId} not found`, 500)
     }
 
     const { savedPatch, updatedCharts, updatedMultiDimViews } =
-        await updateIndicatorChartConfig(trx, variable, validConfig)
+        await updateIndicatorChartConfig(trx, indicator, validConfig)
 
     await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
     const chartIdsForRefresh = Array.from(
@@ -322,7 +325,7 @@ export async function putIndicatorChartConfig(
     if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
         await triggerStaticBuild(
             res.locals.user,
-            `Updating ETL config for variable ${variableId}`
+            `Updating ETL config for indicator ${variableId}`
         )
     }
 
@@ -336,13 +339,13 @@ export async function deleteIndicatorChartConfig(
 ) {
     const variableId = expectInt(req.params.variableId)
 
-    const variable = await getIndicatorChartConfigRecord(trx, variableId)
-    if (!variable) {
-        throw new JsonError(`Variable with id ${variableId} not found`, 500)
+    const indicator = await getIndicatorChartConfigRecord(trx, variableId)
+    if (!indicator) {
+        throw new JsonError(`Indicator with id ${variableId} not found`, 500)
     }
 
-    // no-op if the variable doesn't have an ETL config
-    if (!variable.configId) return { success: true }
+    // no-op if the indicator doesn't have an ETL config
+    if (!indicator.configId) return { success: true }
 
     const now = new Date()
 
@@ -364,7 +367,7 @@ export async function deleteIndicatorChartConfig(
                 DELETE FROM chart_configs
                 WHERE id = ?
             `,
-        [variable.configId]
+        [indicator.configId]
     )
 
     const updatedCharts = await updateAllChartsThatInheritFromIndicator(
@@ -393,7 +396,7 @@ export async function deleteIndicatorChartConfig(
     if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
         await triggerStaticBuild(
             res.locals.user,
-            `Updating ETL config for variable ${variableId}`
+            `Updating ETL config for indicator ${variableId}`
         )
     }
 
