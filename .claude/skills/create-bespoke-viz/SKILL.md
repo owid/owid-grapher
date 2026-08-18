@@ -62,9 +62,12 @@ src/
 
 **Everything non-visual lives in `core/`** — `config.ts`, `types.ts`, `constants.ts`,
 `data.ts`/`fetch.ts`, `helpers.ts`, hooks, metadata classes, layout algorithms, and their
-`*.test.ts` files. Nothing but `index.tsx` sits at the `src/` root. Split `core/` into
-subfolders only when one part grows into its own layer (demography's simulation is
-`core/model/`); a project with a handful of modules keeps them flat in `core/`.
+`*.test.ts` files. Apart from `index.tsx`, the stylesheets and the boilerplate files copied
+from `example` (`dev-only-global-css.css`, `vite-env.d.ts`), nothing sits at the `src/` root.
+Split `core/` into subfolders only when one part grows into its own layer (demography's
+simulation is `core/model/`); a project with a handful of modules keeps them flat in `core/`.
+A single-variant project can skip `variants/` and keep the variant in `components/`
+(causes-of-death does), but the three layers below still apply.
 
 Every project structures a variant in three layers — follow this naming/altitude convention:
 
@@ -109,7 +112,8 @@ Conventions that go with this:
     - every dropdown, switcher, and checkbox-style control carries a small gray uppercase label above it — `LabeledDropdown`/`EntityDropdown` render theirs from the `label` prop, anything else goes inside `<LabeledControl label="…">`;
     - a checkbox labels itself, so it gets no label above; the row bottom-aligns its controls so it still lines up;
     - the time slider gets no label.
-- **Titles are narrative sentences** generated from the current selection ("What did children under 5 in India die from in 2021?"), not static labels. Use `articulateEntity` for grammatical country names. An alternative to a controls bar is embedding the entity selector inline in the title (see demography's `InlineEntitySelector`) — nice when the entity is the only control.
+- **Titles are narrative sentences** generated from the current selection ("What did children under 5 in India die from in 2021?"), not static labels. Format entity names for a sentence with `bespoke/helpers/entityNames.ts`
+  (`formatEntityNameForSentence`, `stripEntityNameSuffixes`). An alternative to a controls bar is embedding the entity selector inline in the title (see demography's `InlineEntitySelector`) — nice when the entity is the only control.
 - **Loading UX**: skeleton on first load (a simple box with a `<Spinner />` is enough); on refetch keep the old chart visible (react-query `placeholderData`) with a `<Spinner />` overlay (its container needs `position: relative`); gate spinners behind `useDelayedLoading(isPlaceholderData, 300)` so fast loads don't flash. `<Spinner inline />` works inside text, e.g. a subtitle value that's reloading.
 - **Errors**: render a plain fallback div with a message; parse defensively (filter bad rows with a `console.warn`) rather than throwing.
 - **Empty states**: when the current selection legitimately has no data, show a "no data" message div (optionally with a button switching to a selection that has data) — a third state, distinct from error and skeleton.
@@ -132,16 +136,16 @@ Non-obvious facts about consuming them:
 
 ## 4. Reusing utilities from the grapher codebase
 
-The `@ourworldindata/*` packages (`utils`, `types`, `grapher`, `components`, `core-table`) are linked into every project. **Before hand-writing any general-purpose helper — number/date formatting, entity/region names, SVG geometry or text layout, tooltips, controls, color logic — always check whether one already exists there.** Ways to check:
+The `@ourworldindata/*` packages are linked in per project (`link:../../../packages/@ourworldindata/<pkg>`) — most projects take `utils`, `types`, `grapher` and `components`; the Sankey projects add `core-table`. Add the one you need to `package.json` rather than assuming it's already there. **Before hand-writing any general-purpose helper — number/date formatting, entity/region names, SVG geometry or text layout, tooltips, controls, color logic — always check whether one already exists there.** Ways to check:
 
 - skim the package entry points (`packages/@ourworldindata/{utils,grapher,components}/src/index.ts`) for exported symbols, or grep the packages for a likely name;
 - see what existing projects already import: `grep -rh "@ourworldindata" bespoke/projects/*/src`.
 
-A non-exhaustive sample of what projects have reused, to give a sense of the breadth: `formatValue` (+ `OwidVariableRoundingMode`) for number formatting; `articulateEntity` and the region helpers (`getRegionByName`, …) for grammatical entity names and region metadata; `Bounds`, `getRelativeMouse`, `isTouchDevice` for SVG geometry and interaction; `Tippy` plus Grapher's `TooltipCard`/`TooltipValue`/`TooltipTable` for tooltips; `TextWrap`/`MarkdownTextWrap`/`Halo` for SVG text; Grapher's `Dropdown` control; `BezierArrow` for annotations (from `@ourworldindata/grapher` — `bespoke/components/BezierArrow/` is just a dev-time debug wrapper with draggable handles for finding offsets); `fetchJson` and URL-param helpers.
+A non-exhaustive sample of what projects have reused, to give a sense of the breadth: `formatValue` (+ `OwidVariableRoundingMode`) for number formatting; the region helpers (`getRegionByName`, …) for region metadata; `Bounds`, `getRelativeMouse`, `isTouchDevice` for SVG geometry and interaction; `Tippy` plus Grapher's `TooltipCard`/`TooltipValue`/`TooltipTable` for tooltips; `TextWrap`/`MarkdownTextWrap`/`Halo` for SVG text; Grapher's `Dropdown` control; `BezierArrow` for annotations (from `@ourworldindata/grapher` — `bespoke/components/BezierArrow/` is just a dev-time debug wrapper with draggable handles for finding offsets); `fetchJson` and URL-param helpers.
 
 For third-party utilities, projects lean on `remeda` (imported as `* as R`) and `ts-pattern`'s `match` — prefer these over hand-rolled loops and switch statements.
 
-Some of these are deep imports (e.g. `@ourworldindata/grapher/src/tooltip/TooltipCard.js`) rather than package-index exports — both are fine. When you deep-import a styled Grapher component, add its `.scss` (e.g. `.../controls/Dropdown.scss`, `.../tooltip/Tooltip.scss`) to your `index.scss`.
+Some of these are deep imports (e.g. `@ourworldindata/grapher/src/tooltip/TooltipCard.js`) rather than package-index exports — both are fine. When you deep-import a styled Grapher component, make sure its `.scss` is in scope; the copied `grapher.scss` already pulls in `Dropdown.scss` and (in every project but `example`) `Tooltip.scss`, so only anything beyond those needs adding.
 
 ## 5. Visual style & colors
 
