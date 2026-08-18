@@ -1,3 +1,8 @@
+import {
+    parseBoolean,
+    parseEnum,
+    parseInteger,
+} from "../../../../helpers/config.js"
 import { isValidParameterKey, type ParameterKey } from "./types.js"
 import { CONTROL_YEARS } from "./constants.js"
 
@@ -10,11 +15,9 @@ const VARIANT_NAMES = [
 
 export type VariantName = (typeof VARIANT_NAMES)[number]
 
-export type PopulationPyramidUnit = "percent" | "absolute"
+export const POPULATION_PYRAMID_UNITS = ["percent", "absolute"] as const
 
-export interface VariantProps<Config> {
-    config: Config
-}
+export type PopulationPyramidUnit = (typeof POPULATION_PYRAMID_UNITS)[number]
 
 export interface SimulationVariantConfig {
     hideEntitySelector: boolean
@@ -84,8 +87,9 @@ export function parseConfig(
                 subtitle: raw.subtitle,
                 focusParameter: parseParameterKey(raw.focusParameter),
                 hidePopulationPyramid: parseBoolean(raw.hidePopulationPyramid),
-                populationPyramidUnit: parsePyramidUnit(
-                    raw.populationPyramidUnit
+                populationPyramidUnit: parseEnum(
+                    raw.populationPyramidUnit,
+                    POPULATION_PYRAMID_UNITS
                 ),
                 urlSync: parseBoolean(raw.urlSync),
                 fertilityRateAssumptions: parseControlPoints(
@@ -133,8 +137,9 @@ export function parseConfig(
                 netMigrationRateAssumptions: parseControlPoints(
                     raw.netMigrationRateAssumptions
                 ),
-                populationPyramidUnit: parsePyramidUnit(
-                    raw.populationPyramidUnit
+                populationPyramidUnit: parseEnum(
+                    raw.populationPyramidUnit,
+                    POPULATION_PYRAMID_UNITS
                 ),
             }
         case "parameters":
@@ -164,15 +169,6 @@ function parseParameterKey(value: unknown): ParameterKey | undefined {
     return isValidParameterKey(trimmed) ? trimmed : undefined
 }
 
-function parseInteger(value: unknown): number | undefined {
-    if (typeof value === "number") return Math.round(value)
-    if (typeof value === "string") {
-        const n = parseInt(value, 10)
-        return isNaN(n) ? undefined : n
-    }
-    return undefined
-}
-
 /** Parse a comma-separated string of numbers into a Record keyed by CONTROL_YEARS.
  *  Empty entries (e.g. ",,1.5") are skipped so they fall back to UN WPP defaults. */
 function parseControlPoints(
@@ -191,13 +187,4 @@ function parseControlPoints(
         }
     }
     return Object.keys(result).length > 0 ? result : undefined
-}
-
-function parsePyramidUnit(value: unknown): PopulationPyramidUnit | undefined {
-    if (value === "absolute" || value === "percent") return value
-    return undefined
-}
-
-function parseBoolean(value: unknown): boolean {
-    return value === true || value === "true"
 }

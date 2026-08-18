@@ -1,3 +1,5 @@
+import { parseBoolean, parseNumber } from "../../../../helpers/config.js"
+
 export interface CausesOfDeathConfig {
     region?: string
     sex?: string
@@ -12,18 +14,8 @@ export function parseConfig(raw: Record<string, string>): CausesOfDeathConfig {
         region: raw.region,
         sex: raw.sex,
         ageGroup: raw.ageGroup,
-        year: parseYear(raw.year),
+        year: parseNumber(raw.year),
         hideControls: parseBoolean(raw.hideControls),
         urlSync: parseBoolean(raw.urlSync),
     }
-}
-
-function parseBoolean(value: unknown): boolean {
-    return value === true || value === "true"
-}
-
-function parseYear(value: unknown): number | undefined {
-    if (typeof value !== "string" && typeof value !== "number") return undefined
-    const n = typeof value === "string" ? Number(value) : value
-    return Number.isFinite(n) ? n : undefined
 }

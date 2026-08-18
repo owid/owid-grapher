@@ -7,7 +7,8 @@ import {
 } from "../components/DemographyLoadAndError.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { queryClient, useDemographyData } from "../core/fetch.js"
-import type { ParametersVariantConfig, VariantProps } from "../core/config.js"
+import type { ParametersVariantConfig } from "../core/config.js"
+import type { VariantProps } from "../../../../helpers/config.js"
 
 import { CountryData, DemographyMetadata } from "../core/types.js"
 import {

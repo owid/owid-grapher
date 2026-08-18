@@ -23,7 +23,8 @@ import {
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 
-import { SankeyVariantConfig, VariantProps } from "../core/config.js"
+import { SankeyVariantConfig } from "../core/config.js"
+import type { VariantProps } from "../../../../helpers/config.js"
 import {
     MigrationFlow,
     MigrationRow,

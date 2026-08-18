@@ -1,10 +1,8 @@
 export type VariantName = "pyramid"
 
-export type ShowMode = "number" | "share"
+export const SHOW_MODES = ["number", "share"] as const
 
-export interface VariantProps<Config> {
-    config: Config
-}
+export type ShowMode = (typeof SHOW_MODES)[number]
 
 /** Raw shapes of migrant-demographics.json */
 export interface RawYearRecord {

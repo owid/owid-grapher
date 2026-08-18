@@ -1,8 +1,8 @@
-export interface VariantProps<Config> {
-    config: Config
-}
+import { parseBoolean, parseEnum } from "../../../../helpers/config.js"
 
-export type Flow = "both" | "import" | "export"
+export const FLOWS = ["both", "import", "export"] as const
+
+export type Flow = (typeof FLOWS)[number]
 
 export interface SankeyVariantConfig {
     hideControls?: boolean
@@ -23,17 +23,7 @@ export function parseConfig(raw: Record<string, string>): SankeyVariantConfig {
         subtitle: raw.subtitle,
         product: raw.product,
         country: raw.country,
-        flow: parseFlow(raw.flow),
+        flow: parseEnum(raw.flow, FLOWS),
         urlSync: parseBoolean(raw.urlSync),
     }
-}
-
-function parseBoolean(value: unknown): boolean {
-    return value === true || value === "true"
-}
-
-function parseFlow(value: unknown): Flow | undefined {
-    if (value === "both" || value === "import" || value === "export")
-        return value
-    return undefined
 }

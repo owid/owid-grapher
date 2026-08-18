@@ -6,8 +6,8 @@ import { queryClient, useDemographyData } from "../core/fetch.js"
 import type {
     PopulationPyramidUnit,
     SimulationVariantConfig,
-    VariantProps,
 } from "../core/config.js"
+import type { VariantProps } from "../../../../helpers/config.js"
 import { CHART_FOOTER_SOURCES, DEFAULT_ENTITY_NAME } from "../core/constants.js"
 import { useInitialEntityName } from "../core/useInitialEntityName.js"
 import {

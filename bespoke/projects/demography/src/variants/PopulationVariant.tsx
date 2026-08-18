@@ -6,7 +6,8 @@ import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
 
-import type { PopulationVariantConfig, VariantProps } from "../core/config.js"
+import type { PopulationVariantConfig } from "../core/config.js"
+import type { VariantProps } from "../../../../helpers/config.js"
 import type { CountryData, DemographyMetadata } from "../core/types.js"
 
 import { queryClient, useDemographyData } from "../core/fetch.js"

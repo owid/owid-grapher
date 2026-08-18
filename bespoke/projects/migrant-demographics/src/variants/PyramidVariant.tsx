@@ -23,7 +23,8 @@ import {
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 
 import { PyramidVariantConfig } from "../core/config.js"
-import { ShowMode, VariantProps } from "../core/types.js"
+import { ShowMode } from "../core/types.js"
+import type { VariantProps } from "../../../../helpers/config.js"
 import {
     MigrantDemographics,
     queryClient,

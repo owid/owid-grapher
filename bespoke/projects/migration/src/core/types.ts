@@ -1,6 +1,8 @@
 export type VariantName = "sankey"
 
-export type Sex = "both" | "female" | "male"
+export const SEXES = ["both", "female", "male"] as const
+
+export type Sex = (typeof SEXES)[number]
 
 export type Entity = {
     id: number
@@ -40,7 +42,9 @@ export type MigrationFlow = {
     value: number
 }
 
-export type MigrationView = "both" | "immigrants" | "emigrants"
+export const MIGRATION_VIEWS = ["both", "immigrants", "emigrants"] as const
+
+export type MigrationView = (typeof MIGRATION_VIEWS)[number]
 
 // Raw shape returned by the metadata endpoint.
 export type RawMetadata = {

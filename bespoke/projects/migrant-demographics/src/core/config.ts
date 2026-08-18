@@ -1,4 +1,9 @@
-import { ShowMode } from "./types.js"
+import {
+    parseBoolean,
+    parseEnum,
+    parseNumber,
+} from "../../../../helpers/config.js"
+import { SHOW_MODES, ShowMode } from "./types.js"
 
 export interface PyramidVariantConfig {
     hideControls: boolean
@@ -18,24 +23,9 @@ export function parseConfig(raw: Record<string, string>): PyramidVariantConfig {
         title: raw.title,
         subtitle: raw.subtitle,
         country: raw.country,
-        year: parseYear(raw.year),
-        show: parseShowMode(raw.show),
+        year: parseNumber(raw.year),
+        show: parseEnum(raw.show, SHOW_MODES),
         compare: parseBoolean(raw.compare),
         urlSync: parseBoolean(raw.urlSync),
     }
-}
-
-function parseBoolean(value: unknown): boolean {
-    return value === true || value === "true"
-}
-
-function parseYear(value: unknown): number | undefined {
-    if (typeof value !== "string" && typeof value !== "number") return undefined
-    const n = typeof value === "string" ? Number(value) : value
-    return Number.isFinite(n) ? n : undefined
-}
-
-function parseShowMode(value: unknown): ShowMode | undefined {
-    if (value === "number" || value === "share") return value
-    return undefined
 }

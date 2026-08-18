@@ -11,8 +11,8 @@ import { queryClient, useDemographyData } from "../core/fetch.js"
 import type {
     PopulationPyramidUnit,
     PopulationPyramidVariantConfig,
-    VariantProps,
 } from "../core/config.js"
+import type { VariantProps } from "../../../../helpers/config.js"
 import { groupAgeGroupsByZone } from "../core/utils.js"
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 import { CountryData, DemographyMetadata } from "../core/types.js"

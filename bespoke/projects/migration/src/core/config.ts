@@ -1,8 +1,9 @@
-import { MigrationView, Sex } from "./types.js"
-
-export interface VariantProps<Config> {
-    config: Config
-}
+import {
+    parseBoolean,
+    parseEnum,
+    parseNumber,
+} from "../../../../helpers/config.js"
+import { MIGRATION_VIEWS, SEXES, MigrationView, Sex } from "./types.js"
 
 export interface SankeyVariantConfig {
     hideControls?: boolean
@@ -23,30 +24,9 @@ export function parseConfig(raw: Record<string, string>): SankeyVariantConfig {
         title: raw.title,
         subtitle: raw.subtitle,
         country: raw.country,
-        sex: parseSex(raw.sex),
-        year: parseYear(raw.year),
-        flow: parseMigrationFlow(raw.flow),
+        sex: parseEnum(raw.sex, SEXES),
+        year: parseNumber(raw.year),
+        flow: parseEnum(raw.flow, MIGRATION_VIEWS),
         urlSync: parseBoolean(raw.urlSync),
     }
-}
-
-function parseBoolean(value: unknown): boolean {
-    return value === true || value === "true"
-}
-
-function parseSex(value: unknown): Sex | undefined {
-    if (value === "both" || value === "female" || value === "male") return value
-    return undefined
-}
-
-function parseYear(value: unknown): number | undefined {
-    if (typeof value !== "string" && typeof value !== "number") return undefined
-    const n = typeof value === "string" ? Number(value) : value
-    return Number.isFinite(n) ? n : undefined
-}
-
-function parseMigrationFlow(value: unknown): MigrationView | undefined {
-    if (value === "both" || value === "immigrants" || value === "emigrants")
-        return value
-    return undefined
 }
