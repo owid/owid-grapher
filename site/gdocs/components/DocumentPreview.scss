@@ -1,27 +1,30 @@
+// The card is text only, so it gets its own pale surface to separate it from
+// the page rather than the stock white `light` tooltip. `light` is still
+// applied alongside it for the shadow and arrow colours, as `dod` does.
+.tippy-box[data-theme~="document-preview"] {
+    background-color: $blue-5;
+}
+
+.tippy-box[data-theme~="document-preview"] .tippy-content {
+    padding: 0;
+}
+
 .document-preview {
-    --thumbnail-width: 80px;
-    display: flex;
-    gap: 12px;
-    padding: 8px;
+    padding: 16px;
     text-align: left;
 }
 
-.document-preview__thumbnail {
-    flex-shrink: 0;
-    object-fit: contain;
-    align-self: start;
-    width: var(--thumbnail-width);
-}
-
 .document-preview__title {
-    @include h4-semibold;
-    line-height: 1.3125;
+    @include h3-semibold;
     margin: 0;
     color: $blue-90;
 }
 
 .document-preview__subtitle {
     @include note-13-medium;
-    margin: 4px 0 0;
+    // Our longest excerpts run to eight lines here, and the token's 1.23
+    // line-height is tight enough over that many to be hard to read.
+    line-height: 1.4;
+    margin: 6px 0 0;
     color: $blue-70;
 }

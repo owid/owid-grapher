@@ -39,7 +39,6 @@ export type ImageParentContainer =
     | Exclude<Container, "sticky-right-left-heading-column">
     | "author-byline"
     | "thumbnail"
-    | "document-preview"
     | "full-width"
     | "person"
     | "latest-article"
@@ -55,8 +54,6 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["sticky-left-right-column"]: gridSpan5,
     ["side-by-side"]: gridSpan6,
     ["thumbnail"]: "350px",
-    // Keep in sync with --thumbnail-width in DocumentPreview.scss
-    ["document-preview"]: "80px",
     ["datapage"]: gridSpan6,
     ["data-insight"]: "100%",
     ["full-width"]: "100vw",
