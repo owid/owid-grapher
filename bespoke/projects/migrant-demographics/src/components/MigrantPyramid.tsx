@@ -38,6 +38,9 @@ export interface MigrantPyramidProps {
 }
 
 const CENTER_GAP_PADDING = 10
+
+/** Distance between a sex header and the age band labels it sits beside */
+const SEX_HEADER_GAP = 4
 const GRID_LINE_COLOR = "#ddd"
 
 const NATIVE_LINE_WIDTH = 1.5
@@ -264,43 +267,20 @@ function MigrantPyramidContent({
                     })}
 
                     {/* Sex column headers */}
-                    {(
-                        [
-                            {
-                                label: menLabel,
-                                x: centerX - centerGap / 2 - 4,
-                                textAnchor: "end" as const,
-                                color: MEN_COLOR,
-                            },
-                            {
-                                label: womenLabel,
-                                x: centerX + centerGap / 2 + 4,
-                                textAnchor: "start" as const,
-                                color: WOMEN_COLOR,
-                            },
-                        ] as const
-                    ).map(({ label, x, textAnchor, color }) => (
-                        <text
-                            key={label.name}
-                            x={x}
-                            y={-8}
-                            textAnchor={textAnchor}
-                            fontSize={labelFontSize}
-                        >
-                            <tspan
-                                fontWeight={700}
-                                fill={darkenColorForText(color)}
-                            >
-                                {label.name}
-                            </tspan>
-                            {label.annotation && (
-                                <tspan fill={GRAPHER_LIGHT_TEXT}>
-                                    {" "}
-                                    {label.annotation}
-                                </tspan>
-                            )}
-                        </text>
-                    ))}
+                    <SexHeader
+                        label={menLabel}
+                        x={centerX - centerGap / 2 - SEX_HEADER_GAP}
+                        textAnchor="end"
+                        color={MEN_COLOR}
+                        fontSize={labelFontSize}
+                    />
+                    <SexHeader
+                        label={womenLabel}
+                        x={centerX + centerGap / 2 + SEX_HEADER_GAP}
+                        textAnchor="start"
+                        color={WOMEN_COLOR}
+                        fontSize={labelFontSize}
+                    />
 
                     {/* X-axis label */}
                     <text
@@ -490,6 +470,33 @@ const PyramidHalf = memo(function PyramidHalf({
         </Group>
     )
 })
+
+function SexHeader({
+    label,
+    x,
+    textAnchor,
+    color,
+    fontSize,
+}: {
+    label: SexHeaderLabel
+    x: number
+    textAnchor: "start" | "end"
+    color: string
+    fontSize: number
+}): React.ReactElement {
+    return (
+        <text x={x} y={-8} textAnchor={textAnchor} fontSize={fontSize}>
+            <tspan fontWeight={700} fill={darkenColorForText(color)}>
+                {label.name}
+            </tspan>
+            {label.annotation && (
+                <tspan
+                    fill={GRAPHER_LIGHT_TEXT}
+                >{` ${label.annotation}`}</tspan>
+            )}
+        </text>
+    )
+}
 
 /** The native-born outline: the line itself over a background-coloured casing */
 function CasedLine({
