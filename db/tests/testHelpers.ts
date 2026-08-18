@@ -46,7 +46,12 @@ export const TABLES_IN_USE = [
     ExplorersTableName,
     JobsTableName,
     ChartsTableName,
+    // The link tables hanging off `variables` must come before it due to foreign keys.
+    "origins_variables",
+    "tags_variables_topic_tags",
+    "posts_gdocs_variables_faqs",
     VariablesTableName,
+    "origins",
     ChartConfigsTableName,
     DatasetsTableName,
     PostsGdocsTableName,

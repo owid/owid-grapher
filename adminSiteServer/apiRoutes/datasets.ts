@@ -18,6 +18,10 @@ import {
 } from "../../db/model/Dataset.js"
 import { cleanupGhostVariables as cleanupGhostVariablesInDb } from "../../db/model/Variable.js"
 import { deleteGrapherConfigFromR2ByUUID } from "../../serverUtils/r2/chartConfigR2Helpers.js"
+import {
+    upsertVariables as upsertVariablesInDb,
+    setVariableChecksums as setVariableChecksumsInDb,
+} from "../../db/model/VariableUpsert.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
@@ -615,4 +619,72 @@ export async function cleanupGhostVariables(
     // ghost variable still used by a chart should fail the ETL run depends on which
     // environment that run is in, which is ETL's call to make.
     return { success: true, deleted, blocked }
+}
+
+export async function upsertVariables(
+    req: Request,
+    _res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+) {
+    const datasetId = expectInt(req.params.datasetId)
+    const dataset = await getDatasetById(trx, datasetId)
+    if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
+
+    const { variables } = req.body ?? {}
+    if (!Array.isArray(variables)) {
+        throw new JsonError("`variables` must be an array", 400)
+    }
+    for (const variable of variables) {
+        if (!variable?.catalogPath) {
+            throw new JsonError("every variable needs a `catalogPath`", 400)
+        }
+        if (!variable?.type) {
+            throw new JsonError(
+                `variable ${variable.catalogPath} needs a \`type\` — it is inferred from the values, which we never see`,
+                400
+            )
+        }
+    }
+
+    const upserted = await upsertVariablesInDb(
+        trx,
+        {
+            datasetId,
+            datasetName: dataset.name ?? null,
+            datasetVersion: dataset.version ?? null,
+            nonRedistributable: Boolean(dataset.nonRedistributable),
+            updatePeriodDays: dataset.updatePeriodDays ?? null,
+        },
+        variables
+    )
+
+    // The metadata JSON goes back rather than to R2: publishing it from here needs write
+    // access to the `owid-api` bucket, which the admin server doesn't have yet. ETL uploads
+    // it alongside the data file, as it did before.
+    return {
+        success: true,
+        variables: Object.fromEntries(
+            upserted.map((variable) => [
+                variable.catalogPath,
+                { id: variable.id, metadata: variable.metadata },
+            ])
+        ),
+    }
+}
+
+export async function setVariableChecksums(
+    req: Request,
+    _res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+) {
+    const datasetId = expectInt(req.params.datasetId)
+    const { checksums } = req.body ?? {}
+    if (!checksums || typeof checksums !== "object") {
+        throw new JsonError(
+            "`checksums` must be an object keyed by catalogPath",
+            400
+        )
+    }
+    const updated = await setVariableChecksumsInDb(trx, datasetId, checksums)
+    return { success: true, updated }
 }
