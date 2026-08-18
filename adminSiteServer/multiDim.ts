@@ -30,7 +30,7 @@ import {
 import { upsertMultiDimXChartConfigs } from "../db/model/MultiDimXChartConfigs.js"
 import {
     getIndicatorChartConfigs,
-    getVariableIdsByCatalogPath,
+    getIndicatorIdsByCatalogPath,
 } from "../db/model/Variable.js"
 import {
     deleteGrapherConfigFromR2,
@@ -76,7 +76,7 @@ async function resolveMultiDimDataPageCatalogPathsToIndicatorIds(
 ): Promise<MultiDimDataPageConfigPreProcessed> {
     const allCatalogPaths = getAllCatalogPaths(rawConfig.views)
 
-    const catalogPathToIndicatorIdMap = await getVariableIdsByCatalogPath(
+    const catalogPathToIndicatorIdMap = await getIndicatorIdsByCatalogPath(
         allCatalogPaths,
         knex
     )
@@ -239,7 +239,7 @@ export async function upsertMultiDim(
         rawConfig
     )
     validateViewConfigSchemas(config)
-    const variableConfigs = await getIndicatorChartConfigs(
+    const indicatorConfigs = await getIndicatorChartConfigs(
         knex,
         _.uniq(config.views.map((view) => view.indicators.y[0].id))
     )
@@ -267,7 +267,7 @@ export async function upsertMultiDim(
                 existingIsPublished
             )
             const fullGrapherConfig = mergeGrapherConfigs(
-                variableConfigs.get(variableId) ?? {},
+                indicatorConfigs.get(variableId) ?? {},
                 patchGrapherConfig
             )
             const existingChartConfigId = existingViewIdsToChartConfigIds.get(

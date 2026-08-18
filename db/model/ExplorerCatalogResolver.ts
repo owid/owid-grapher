@@ -4,7 +4,7 @@ import {
     ColumnGrammar,
 } from "@ourworldindata/explorer"
 import { KnexReadonlyTransaction } from "../db.js"
-import { getVariableIdsByCatalogPath } from "./Variable.js"
+import { getIndicatorIdsByCatalogPath } from "./Variable.js"
 import {
     CoreTable,
     ErrorValueTypes,
@@ -25,7 +25,7 @@ export const transformExplorerProgramToResolveCatalogPaths = async (
 
     if (requiredCatalogPaths.size === 0) return { program }
 
-    const catalogPathToIndicatorIdMap = await getVariableIdsByCatalogPath(
+    const catalogPathToIndicatorIdMap = await getIndicatorIdsByCatalogPath(
         [...requiredCatalogPaths],
         knex
     )

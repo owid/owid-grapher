@@ -85,21 +85,21 @@ class EditorDebugTabForChart extends Component<{
             parentConfig,
             isInheritanceEnabled,
             fullConfig,
-            parentVariableId,
+            parentIndicatorId,
             grapherState,
         } = this.props.editor
 
-        const column = parentVariableId
-            ? grapherState.inputTable.get(parentVariableId.toString())
+        const column = parentIndicatorId
+            ? grapherState.inputTable.get(parentIndicatorId.toString())
             : undefined
 
-        const variableLink = (
+        const indicatorLink = (
             <a
-                href={`/admin/variables/${parentVariableId}`}
+                href={`/admin/variables/${parentIndicatorId}`}
                 target="_blank"
                 rel="noopener"
             >
-                {column?.name ?? parentVariableId}
+                {column?.name ?? parentIndicatorId}
             </a>
         )
 
@@ -120,13 +120,13 @@ class EditorDebugTabForChart extends Component<{
                     </button>
                 </Section>
 
-                {parentVariableId && (
+                {parentIndicatorId && (
                     <>
                         <Section name="Parent indicator">
                             {isInheritanceEnabled ? (
                                 <p>
                                     This chart is configured to inherit settings
-                                    from its parent indicator, {variableLink}.
+                                    from its parent indicator, {indicatorLink}.
                                     {!parentConfig && (
                                         <>
                                             {" "}
@@ -139,7 +139,7 @@ class EditorDebugTabForChart extends Component<{
                             ) : (
                                 <p>
                                     This chart may inherit chart settings from
-                                    the indicator {variableLink}, but
+                                    the indicator {indicatorLink}, but
                                     inheritance is currently disabled. Toggle
                                     the option below to enable inheritance.
                                 </p>
