@@ -23,13 +23,14 @@ export const VARIANTS = [
     {
         name: "simulation",
         component: SimulationVariant,
-        demoConfig: {},
+        // PROTOTYPE: default to a country with national-statistics TFR data
+        demoConfig: { region: "Colombia" },
         demoSize: "widest",
     },
     {
         name: "population",
         component: PopulationVariant,
-        demoConfig: {},
+        demoConfig: { region: "Colombia" },
         demoSize: "wide",
     },
     {

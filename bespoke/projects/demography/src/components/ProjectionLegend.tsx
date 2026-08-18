@@ -4,6 +4,7 @@ import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import {
     BENCHMARK_LINE_COLOR,
     DENIM_BLUE,
+    NSO_COLOR,
     USER_MODIFIED_COLOR,
 } from "../helpers/constants.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
@@ -13,12 +14,17 @@ export function ProjectionLegend({
     benchmarkLabel = "UN medium projection",
     userTooltip,
     benchmarkTooltip,
+    nsoLabel,
+    nsoTooltip,
     modified = false,
 }: {
     userLabel?: string
     benchmarkLabel?: string
     userTooltip?: string
     benchmarkTooltip?: string
+    // PROTOTYPE: label for the national-statistics series, shown when set
+    nsoLabel?: string
+    nsoTooltip?: string
     modified?: boolean
 } = {}) {
     const userColor = modified ? USER_MODIFIED_COLOR : DENIM_BLUE
@@ -80,6 +86,37 @@ export function ProjectionLegend({
                     </Tippy>
                 )}
             </span>
+            {nsoLabel && (
+                <span className="projection-legend__item">
+                    <svg width="16" height="6">
+                        <line
+                            x1="0"
+                            y1="3"
+                            x2="16"
+                            y2="3"
+                            stroke={NSO_COLOR}
+                            strokeWidth="4"
+                            strokeDasharray="1.5,2"
+                            strokeLinecap="butt"
+                        />
+                    </svg>
+                    <span className="projection-legend__label">{nsoLabel}</span>
+                    {nsoTooltip && (
+                        <Tippy
+                            content={nsoTooltip}
+                            placement="top"
+                            appendTo={getTippyContainer}
+                        >
+                            <span className="projection-legend__info-icon">
+                                <FontAwesomeIcon
+                                    icon={faCircleInfo}
+                                    size="sm"
+                                />
+                            </span>
+                        </Tippy>
+                    )}
+                </span>
+            )}
         </div>
     )
 }

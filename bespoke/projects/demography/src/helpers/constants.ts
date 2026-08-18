@@ -56,6 +56,8 @@ export const PROJECTION_BACKGROUND = "rgba(0, 0, 0, 0.02)"
 export const PROJECTION_DASHARRAY = "1.5,3"
 
 export const BENCHMARK_LINE_COLOR = GRAY_60
+// PROTOTYPE: color for the national-statistics (NSO) series and projection
+export const NSO_COLOR = "#bf3c2c"
 export const USER_MODIFIED_COLOR = "#8c4569"
 export const USER_MODIFIED_COLOR_LIGHT = "#b87a9a"
 export const HOVER_LINE_COLOR = "rgba(180, 180, 180, 0.4)"
