@@ -14,10 +14,9 @@ container, leaving layout to the parent context.
 - For a standard team or board grid with 2- or 4-column layout — use
   `{.people-rows}` instead.
 
-## Variations
+## Notes
 
-- `items` is an array of `{.person}` blocks. See `{.person}` for the
-  fields available on each.
+See `{.person}` for the fields available on each item.
 
-Note: this block has no current usage in the content repo and no canonical
+This block has no current usage in the content repo and no canonical
 archie example. Reach for `{.people-rows}` instead for new content.

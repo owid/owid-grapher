@@ -1,0 +1,1649 @@
+// The writing reference: a master-detail docs browser for gdoc templates and
+// ArchieML components. Layout: a fixed-width navigation column with its own
+// scrollbar, and a scrolling content column.
+
+.gdocs-ref {
+    display: flex;
+    height: 100%;
+    overflow: hidden;
+    background: #fff;
+}
+
+// ---------------------------------------------------------------------------
+// Navigation column
+// ---------------------------------------------------------------------------
+
+.gdocs-ref__nav {
+    flex: 0 0 280px;
+    overflow-y: auto;
+    border-right: 1px solid $gray-20;
+    padding: 16px 12px 32px;
+    background: $gray-5;
+}
+
+.gdocs-ref__search {
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.gdocs-ref__search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: $gray-60;
+    pointer-events: none;
+}
+
+.gdocs-ref__search-input {
+    width: 100%;
+    padding: 7px 10px 7px 30px;
+    font-size: 13px;
+    border: 1px solid $gray-30;
+    border-radius: 6px;
+    background: #fff;
+
+    &:focus {
+        outline: 2px solid $blue-40;
+        outline-offset: -1px;
+        border-color: $blue-40;
+    }
+}
+
+.gdocs-ref__nav-overview {
+    display: block;
+    padding: 5px 10px;
+    margin-bottom: 4px;
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: 600;
+    color: $blue-90;
+
+    &:hover {
+        background: $gray-10;
+        text-decoration: none;
+    }
+}
+
+.gdocs-ref__nav-group {
+    margin-top: 14px;
+
+    ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+}
+
+.gdocs-ref__nav-group-title {
+    padding: 0 10px;
+    margin-bottom: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: $gray-60;
+}
+
+.gdocs-ref__nav-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 13px;
+    color: $blue-90;
+
+    &:hover {
+        background: $gray-10;
+        text-decoration: none;
+        color: $blue-90;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-60;
+        outline-offset: -2px;
+    }
+}
+
+.gdocs-ref__nav-item--active {
+    background: $blue-10;
+    color: $blue-90;
+    font-weight: 600;
+
+    &:hover {
+        background: $blue-10;
+    }
+}
+
+.gdocs-ref__nav-item-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+// Resting-state nudge under the first component group: frequency dots only
+// appear once a template gives them something to be relative to.
+.gdocs-ref__nav-hint {
+    padding: 0 10px;
+    margin-bottom: 6px;
+    font-size: 11.5px;
+    line-height: 1.45;
+    color: $gray-60;
+}
+
+// The template-as-filter banner scoping the component list below it
+.gdocs-ref__nav-filter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 7px 9px;
+    background: $blue-10;
+    border: 1px solid $blue-20;
+    border-radius: 6px;
+}
+
+.gdocs-ref__nav-filter-label {
+    font-size: 11.5px;
+    color: $blue-90;
+}
+
+.gdocs-ref__nav-filter-clear {
+    flex-shrink: 0;
+    border: none;
+    background: none;
+    padding: 0;
+    font-size: 11.5px;
+    color: $blue-60;
+    cursor: pointer;
+
+    &:hover {
+        color: $blue-90;
+        text-decoration: underline;
+    }
+}
+
+.gdocs-ref__nav-show-all {
+    display: block;
+    border: none;
+    background: none;
+    padding: 6px 10px;
+    margin-top: 4px;
+    font-size: 12px;
+    color: $gray-60;
+    cursor: pointer;
+
+    &:hover {
+        color: $blue-90;
+        text-decoration: underline;
+    }
+}
+
+.gdocs-ref__nav-empty {
+    padding: 12px 10px;
+    font-size: 13px;
+    color: $gray-70;
+    font-style: italic;
+}
+
+// ---------------------------------------------------------------------------
+// Content column
+// ---------------------------------------------------------------------------
+
+// No top padding: the detail header is sticky, and any padding on the scroll
+// container would let scrolled content show above it. The header (and the
+// overview) carry the 32px top spacing themselves instead.
+.gdocs-ref__content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 40px 80px;
+}
+
+.gdocs-ref__overview,
+.gdocs-ref__detail {
+    max-width: 860px;
+    margin: 0 auto;
+}
+
+.gdocs-ref__overview {
+    padding-top: 32px;
+}
+
+.gdocs-ref__page-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 8px;
+}
+
+.gdocs-ref__intro {
+    font-size: 14px;
+    line-height: 1.5;
+    color: $gray-80;
+    max-width: 640px;
+    margin-bottom: 32px;
+}
+
+.gdocs-ref__section {
+    margin-bottom: 36px;
+}
+
+.gdocs-ref__section-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 10px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.gdocs-ref__section-count {
+    font-size: 12px;
+    font-weight: 500;
+    color: $gray-60;
+}
+
+.gdocs-ref__section-desc {
+    font-size: 13px;
+    color: $gray-70;
+    max-width: 640px;
+    margin: -4px 0 14px;
+}
+
+.gdocs-ref__card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 12px;
+}
+
+.gdocs-ref__card {
+    display: block;
+    background: #fff;
+    border: 1px solid $gray-20;
+    border-radius: 6px;
+    padding: 14px;
+    color: inherit;
+    transition:
+        border-color 0.1s ease,
+        box-shadow 0.1s ease;
+
+    &:hover {
+        border-color: $blue-40;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-60;
+        outline-offset: 2px;
+    }
+}
+
+.gdocs-ref__card--template {
+    background: $blue-5;
+    border-color: $blue-20;
+
+    &:hover {
+        border-color: $blue-40;
+    }
+}
+
+.gdocs-ref__card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: $blue-90;
+}
+
+.gdocs-ref__card-id {
+    display: inline-block;
+    margin: 3px 0;
+    font-family: var(--font-mono, monospace);
+    font-size: 12px;
+    color: $blue-60;
+}
+
+.gdocs-ref__card-desc {
+    margin: 6px 0 0;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: $gray-80;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.gdocs-ref__footnote {
+    margin-top: 8px;
+    font-size: 12px;
+    color: $gray-60;
+    max-width: 640px;
+}
+
+// ---------------------------------------------------------------------------
+// Detail views
+// ---------------------------------------------------------------------------
+
+// Sticks to the top of the scrolling content column so the title (and, on
+// template pages, the Copy prompt button) stays at hand. Carries the
+// column's 32px top spacing as its own padding so its background covers it.
+.gdocs-ref__detail-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #fff;
+    padding-top: 32px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid $gray-20;
+}
+
+.gdocs-ref__detail-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.gdocs-ref__detail-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.gdocs-ref__category-pill {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: $gray-70;
+    background: $gray-10;
+    border-radius: 20px;
+    padding: 3px 10px;
+    white-space: nowrap;
+}
+
+// "Copy prompt" on the right edge of the template header: a ready-made
+// Claude ask that scaffolds a new doc of this type.
+.gdocs-ref__new-doc-prompt {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border: 1px solid $gray-20;
+    border-radius: 5px;
+    background: #fff;
+    font-size: 12.5px;
+    color: $gray-70;
+    cursor: pointer;
+
+    &:hover {
+        background: $gray-10;
+        color: $blue-90;
+    }
+}
+
+.gdocs-ref__detail-footer {
+    display: flex;
+    gap: 20px;
+    margin-top: 36px;
+    padding-top: 14px;
+    border-top: 1px solid $gray-20;
+    font-size: 12.5px;
+
+    a {
+        color: $gray-70;
+
+        &:hover {
+            color: $blue-60;
+        }
+    }
+}
+
+.gdocs-ref__note {
+    color: $gray-70;
+    font-style: italic;
+    font-size: 13px;
+}
+
+.gdocs-ref__empty {
+    color: $gray-70;
+    font-size: 14px;
+}
+
+.gdocs-ref__loading {
+    color: $gray-60;
+    font-size: 14px;
+    padding: 40px 0;
+    text-align: center;
+}
+
+// Markdown body typography
+
+.gdocs-ref__body {
+    font-size: 14px;
+    line-height: 1.55;
+
+    h2 {
+        font-size: 17px;
+        font-weight: 700;
+        margin: 26px 0 8px;
+    }
+
+    h3 {
+        font-size: 14px;
+        font-weight: 600;
+        margin: 22px 0 6px;
+        color: $gray-80;
+    }
+
+    ul,
+    ol {
+        padding-left: 22px;
+    }
+
+    li {
+        margin-bottom: 3px;
+    }
+
+    code {
+        font-family: var(--font-mono, monospace);
+        font-size: 0.9em;
+        background: $gray-10;
+        padding: 1px 4px;
+        border-radius: 3px;
+    }
+}
+
+.gdocs-ref__component-mention {
+    text-decoration: none;
+
+    code {
+        color: $blue-60;
+        background: $blue-5;
+        border: 1px solid $blue-10;
+    }
+
+    &:hover code {
+        border-color: $blue-40;
+        text-decoration: none;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Example widget: [Preview | ArchieML] tabs + copy
+// ---------------------------------------------------------------------------
+
+.gdocs-ref-example {
+    margin: 12px 0 20px;
+    border: 1px solid $gray-20;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.gdocs-ref-example__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    background: $gray-5;
+    border-bottom: 1px solid $gray-20;
+}
+
+.gdocs-ref-example__tabs {
+    display: flex;
+    gap: 4px;
+}
+
+.gdocs-ref-example__tab {
+    background: none;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 12.5px;
+    color: $gray-70;
+    cursor: pointer;
+
+    &:hover {
+        background: $gray-10;
+        color: $blue-90;
+    }
+}
+
+.gdocs-ref-example__tab--active {
+    background: #fff;
+    border: 1px solid $gray-20;
+    color: $blue-90;
+    font-weight: 600;
+
+    &:hover {
+        background: #fff;
+    }
+}
+
+.gdocs-ref-example__toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.gdocs-ref-example__viewports {
+    display: flex;
+    gap: 2px;
+}
+
+.gdocs-ref-example__viewport {
+    background: none;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    color: $gray-60;
+    cursor: pointer;
+
+    &:hover {
+        background: $gray-10;
+        color: $blue-90;
+    }
+}
+
+.gdocs-ref-example__viewport--active {
+    background: #fff;
+    border: 1px solid $gray-20;
+    color: $blue-90;
+}
+
+.gdocs-ref-example__copy {
+    background: none;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 12.5px;
+    color: $gray-70;
+    cursor: pointer;
+
+    &:hover {
+        background: $gray-10;
+        color: $blue-90;
+    }
+}
+
+.gdocs-ref-example__frame-wrap {
+    background: #fff;
+    overflow: hidden;
+}
+
+// The mobile viewport is narrower than the pane; show it centered on a
+// contrasting backdrop.
+.gdocs-ref-example__frame-wrap--mobile {
+    display: flex;
+    justify-content: center;
+    background: $gray-10;
+
+    .gdocs-ref-example__iframe {
+        background: #fff;
+    }
+}
+
+// The preview renders at a real site viewport width (see
+// GdocsReferenceExample) and is scaled down to fit the pane.
+.gdocs-ref-example__iframe {
+    display: block;
+    border: none;
+    transform-origin: top left;
+}
+
+.gdocs-ref-example__code {
+    background: $gray-100;
+    color: $gray-5;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 0;
+
+    code {
+        background: none;
+        padding: 0;
+        border: none;
+        color: inherit;
+        font-size: 13px;
+        font-family: var(--font-mono, monospace);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Template front-matter table
+// ---------------------------------------------------------------------------
+
+.gdocs-ref__fields-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+
+    th {
+        text-align: left;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: $gray-60;
+        border-bottom: 2px solid $gray-20;
+        padding: 6px 12px 6px 0;
+    }
+
+    td {
+        vertical-align: top;
+        border-bottom: 1px solid $gray-10;
+        padding: 7px 12px 7px 0;
+        line-height: 1.45;
+    }
+
+    code {
+        font-family: var(--font-mono, monospace);
+        font-size: 12px;
+        background: $gray-10;
+        padding: 1px 4px;
+        border-radius: 3px;
+        white-space: nowrap;
+    }
+}
+
+.gdocs-ref__field-type {
+    color: $gray-70;
+    white-space: normal !important;
+    word-break: break-word;
+}
+
+.gdocs-ref__required-badge {
+    margin-left: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: $accent-vermillion;
+}
+
+.gdocs-ref__derived-fields {
+    margin-top: 12px;
+    font-size: 12.5px;
+    color: $gray-70;
+
+    summary {
+        cursor: pointer;
+    }
+
+    p {
+        margin: 8px 0 0;
+    }
+}
+
+.gdocs-ref__admin-managed {
+    margin-top: 12px;
+    font-size: 12.5px;
+    color: $gray-70;
+}
+
+// ---------------------------------------------------------------------------
+// Overview: dual entry, usage badges, system group
+// ---------------------------------------------------------------------------
+
+.gdocs-ref__section--entry {
+    margin-bottom: 20px;
+}
+
+.gdocs-ref__section-subtitle {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: $gray-60;
+    margin: 0 0 10px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.gdocs-ref__badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    border-radius: 20px;
+    padding: 2px 8px;
+    margin-left: 8px;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.gdocs-ref__badge--new {
+    color: $accent-vermillion;
+    background: rgba($accent-vermillion, 0.08);
+}
+
+.gdocs-ref__card-context {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: $gray-60;
+    margin-top: 2px;
+}
+
+.gdocs-ref__system-details {
+    margin-bottom: 36px;
+
+    summary {
+        cursor: pointer;
+        font-size: 13px;
+        color: $gray-70;
+        margin-bottom: 12px;
+    }
+}
+
+.gdocs-ref__nav-group--system {
+    summary {
+        cursor: pointer;
+        list-style-position: outside;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Decision box ("Use it for" / "Reach for something else when")
+// ---------------------------------------------------------------------------
+
+.gdocs-ref__decision {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+    margin: 20px 0 28px;
+}
+
+.gdocs-ref__decision-panel {
+    border-radius: 6px;
+    padding: 14px 16px;
+    font-size: 13.5px;
+
+    .gdocs-ref__body {
+        max-width: none;
+
+        ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        li {
+            margin-bottom: 4px;
+        }
+    }
+}
+
+.gdocs-ref__decision-panel--use {
+    background: rgba($blue-10, 0.55);
+    border: 1px solid $blue-20;
+}
+
+.gdocs-ref__decision-panel--avoid {
+    background: $gray-5;
+    border: 1px solid $gray-20;
+}
+
+.gdocs-ref__decision-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: $gray-70;
+    margin: 0 0 8px;
+}
+
+// ---------------------------------------------------------------------------
+// Live layer: the frequency vocabulary (four-dot glyph + word)
+// ---------------------------------------------------------------------------
+
+.gdocs-ref-live__glyph {
+    flex-shrink: 0;
+}
+
+.gdocs-ref-live__glyph-dot {
+    fill: $gray-20;
+}
+
+.gdocs-ref-live__glyph-dot--filled {
+    fill: $gray-90;
+}
+
+// "new" — a curated reference form no published doc uses yet
+.gdocs-ref-live__glyph-dot--dashed {
+    fill: none;
+    stroke: $gray-50;
+    stroke-width: 1.3;
+    stroke-dasharray: 2 1.6;
+}
+
+.gdocs-ref-live__freq {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    cursor: default;
+}
+
+.gdocs-ref-live__freq-word {
+    font-size: 12px;
+    font-weight: 600;
+    color: $gray-70;
+    white-space: nowrap;
+}
+
+// Compact glyph on scoped nav rows, right of the title
+.gdocs-ref__nav-item .gdocs-ref-live__glyph {
+    width: 28px;
+    height: 7px;
+}
+
+.gdocs-ref__card-title .gdocs-ref-live__freq {
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+// ---------------------------------------------------------------------------
+// Live layer: where it's used (adoption in words)
+// ---------------------------------------------------------------------------
+
+.gdocs-ref-live__usage {
+    margin: 4px 0 28px;
+    max-width: 680px;
+}
+
+.gdocs-ref-live__usage-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: $gray-60;
+    margin-bottom: 6px;
+}
+
+.gdocs-ref-live__usage-subtitle {
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+    color: $gray-50;
+}
+
+.gdocs-ref-live__usage-sentence {
+    font-size: 13px;
+    line-height: 1.5;
+    color: $gray-70;
+    margin: 0;
+}
+
+.gdocs-ref-live__usage-never {
+    color: $gray-50;
+}
+
+// ---------------------------------------------------------------------------
+// Live layer: the forms section (form cards + long tail)
+// ---------------------------------------------------------------------------
+
+.gdocs-ref-live__loading {
+    font-size: 13px;
+    color: $gray-60;
+}
+
+.gdocs-ref-live__stale {
+    font-size: 12.5px;
+    color: $accent-vermillion;
+    background: rgba($accent-vermillion, 0.06);
+    border-radius: 6px;
+    padding: 8px 12px;
+    max-width: 680px;
+    margin-bottom: 14px;
+}
+
+.gdocs-ref-live__forms-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 4px;
+}
+
+.gdocs-ref-live__forms-scope {
+    font-size: 12.5px;
+    color: $gray-60;
+    white-space: nowrap;
+}
+
+.gdocs-ref-live__doc-type-select {
+    font-size: 12.5px;
+    padding: 4px 8px;
+    border: 1px solid $gray-30;
+    border-radius: 5px;
+    background: #fff;
+    max-width: 220px;
+}
+
+.gdocs-ref-live__form-card {
+    border: 1px solid $gray-20;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 12px 0 16px;
+}
+
+.gdocs-ref-live__form-card--synthetic {
+    border-style: dashed;
+}
+
+.gdocs-ref-live__form-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 11px 16px;
+    background: $gray-5;
+    border-bottom: 1px solid $gray-10;
+}
+
+.gdocs-ref-live__form-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: $blue-90;
+    background: $blue-10;
+    border: 1px solid $blue-20;
+    border-radius: 5px;
+    padding: 2px 10px;
+}
+
+.gdocs-ref-live__form-name--synthetic {
+    background: #fff;
+    border-style: dashed;
+    border-color: $gray-30;
+    color: $gray-70;
+
+    &::before {
+        content: "⊘ ";
+        color: $accent-vermillion;
+    }
+}
+
+.gdocs-ref-live__form-card-body {
+    display: flex;
+    align-items: stretch;
+}
+
+.gdocs-ref-live__form-sets {
+    flex: 0 0 220px;
+    padding: 14px 16px;
+    border-right: 1px solid $gray-10;
+    background: $gray-5;
+}
+
+.gdocs-ref-live__form-sets-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: $gray-60;
+    margin-bottom: 9px;
+}
+
+.gdocs-ref-live__form-sets-hint {
+    font-size: 11px;
+    color: $gray-50;
+    margin: -5px 0 9px;
+}
+
+.gdocs-ref-live__form-sets-empty {
+    font-size: 12.5px;
+    color: $gray-50;
+    line-height: 1.5;
+}
+
+.gdocs-ref-live__form-set {
+    font-family: var(--font-mono, monospace);
+    font-size: 12px;
+    color: $blue-90;
+    background: $blue-5;
+    border: 1px solid $blue-20;
+    border-radius: 5px;
+    padding: 2px 9px;
+}
+
+// ---------------------------------------------------------------------------
+// Live layer: the form builder — click-to-cycle values and the draft state.
+// Warm ("draft amber") palette throughout: the same not-an-observed-form
+// language the dashed frequency glyph speaks.
+// ---------------------------------------------------------------------------
+
+$draft-accent: #d8952b;
+$draft-text: #8a5a1a;
+$draft-text-muted: #a98a52;
+$draft-border: #ecd3a8;
+$draft-border-strong: #d8b06a;
+$draft-bg: #fdf7ec;
+$draft-bg-panel: #fefaf3;
+$draft-bg-chip: #fff5e8;
+
+.gdocs-ref-live__form-props {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 7px;
+}
+
+.gdocs-ref-live__form-prop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.gdocs-ref-live__form-prop-name {
+    font-family: var(--font-mono, monospace);
+    font-size: 12px;
+    color: $gray-60;
+}
+
+.gdocs-ref-live__form-prop-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    font-family: var(--font-mono, monospace);
+    font-size: 12px;
+    color: $blue-90;
+    background: $blue-5;
+    border: 1px solid $blue-20;
+    border-radius: 5px;
+    padding: 2px 9px;
+
+    svg {
+        font-size: 9px;
+        opacity: 0.55;
+        flex-shrink: 0;
+    }
+}
+
+// The cycle affordance: only buttons (cyclable values) invite the click
+button.gdocs-ref-live__form-prop-value {
+    cursor: pointer;
+
+    &:hover {
+        border-color: $draft-border-strong;
+        background: $draft-bg-chip;
+        color: $draft-text;
+    }
+}
+
+.gdocs-ref-live__form-prop-value--none {
+    color: $gray-50;
+    background: #fff;
+    border-color: $gray-20;
+}
+
+.gdocs-ref-live__form-prop-value--overridden {
+    color: $draft-text;
+    background: $draft-bg-chip;
+    border-color: $draft-border;
+}
+
+.gdocs-ref-live__form-prop-value-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 120px;
+}
+
+.gdocs-ref-live__form-prop-fixed {
+    font-size: 11px;
+    color: $gray-50;
+}
+
+.gdocs-ref-live__form-card--draft {
+    border-style: dashed;
+    border-color: $draft-border-strong;
+    box-shadow: 0 0 0 3px rgba($draft-accent, 0.1);
+}
+
+.gdocs-ref-live__form-card-header--draft {
+    background: $draft-bg;
+    border-bottom: 1px dashed $draft-border;
+}
+
+.gdocs-ref-live__draft-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: $draft-text;
+
+    &::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: $draft-accent;
+    }
+}
+
+.gdocs-ref-live__draft-origin {
+    font-size: 12px;
+    color: $draft-text-muted;
+}
+
+.gdocs-ref-live__draft-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    margin-left: auto;
+}
+
+.gdocs-ref-live__draft-reset {
+    border: none;
+    background: none;
+    padding: 0;
+    font-size: 12.5px;
+    color: $gray-60;
+    cursor: pointer;
+
+    &:hover {
+        color: $draft-text;
+    }
+}
+
+.gdocs-ref-live__draft-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    border: 1px solid $draft-border-strong;
+    border-radius: 6px;
+    background: #fff;
+    color: $draft-text;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+        background: $draft-bg-chip;
+    }
+}
+
+.gdocs-ref-live__form-sets--draft {
+    background: $draft-bg-panel;
+    border-right-color: $draft-border;
+
+    .gdocs-ref-live__form-sets-title,
+    .gdocs-ref-live__form-sets-hint {
+        color: $draft-text-muted;
+    }
+}
+
+.gdocs-ref-live__form-card--draft .gdocs-ref-live__form-example {
+    background: #fffdf9;
+}
+
+.gdocs-ref-live__draft-note {
+    margin: 10px 0 0;
+    font-size: 12px;
+    color: $draft-text-muted;
+
+    strong {
+        color: $draft-text;
+    }
+
+    em {
+        font-style: normal;
+        font-weight: 600;
+        color: $draft-text;
+    }
+}
+
+.gdocs-ref-live__form-example {
+    flex: 1;
+    min-width: 0;
+    padding: 4px 16px 12px;
+
+    .gdocs-ref-example {
+        margin: 12px 0 0;
+    }
+}
+
+.gdocs-ref-live__form-example-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.gdocs-ref-live__pager {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: $gray-60;
+    white-space: nowrap;
+}
+
+.gdocs-ref-live__pager-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border: 1px solid $gray-30;
+    border-radius: 5px;
+    background: #fff;
+    color: $blue-90;
+    font-size: 10px;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+        border-color: $blue-40;
+    }
+
+    &:disabled {
+        color: $gray-30;
+        border-color: $gray-10;
+        cursor: default;
+    }
+}
+
+.gdocs-ref-live__form-card-synthetic-body {
+    padding: 12px 16px;
+
+    .gdocs-ref-example {
+        margin-bottom: 0;
+    }
+}
+
+.gdocs-ref-live__form-tail {
+    margin: 4px 0 16px;
+    border: 1px solid $gray-20;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.gdocs-ref-live__form-tail-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: $gray-60;
+    padding: 10px 16px;
+    background: $gray-5;
+}
+
+.gdocs-ref-live__form-tail-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 8px 16px;
+    border: none;
+    border-top: 1px solid $gray-10;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        background: $gray-5;
+    }
+}
+
+.gdocs-ref-live__provenance {
+    margin: 6px 0 0;
+    font-size: 12.5px;
+    color: $gray-70;
+
+    a {
+        white-space: nowrap;
+    }
+
+    svg {
+        font-size: 10px;
+    }
+}
+
+.gdocs-ref-live__provenance-type {
+    color: $gray-60;
+}
+
+.gdocs-ref-live__curated-badge {
+    display: inline-block;
+    margin-right: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: $blue-90;
+    background: $blue-10;
+    border-radius: 20px;
+    padding: 2px 8px;
+}
+
+.gdocs-ref-live__synthetic-note {
+    font-size: 12.5px;
+    color: $gray-70;
+    margin: 0 0 10px;
+}
+
+// ---------------------------------------------------------------------------
+// Live layer: the derived properties table
+// ---------------------------------------------------------------------------
+
+.gdocs-ref-live__props {
+    border: 1px solid $gray-20;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.gdocs-ref-live__props-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 11px 16px;
+    background: $gray-5;
+    border-bottom: 1px solid $gray-10;
+}
+
+.gdocs-ref-live__props-title {
+    font-size: 13.5px;
+    font-weight: 700;
+}
+
+.gdocs-ref-live__props-source {
+    font-size: 11.5px;
+    color: $gray-60;
+
+    code {
+        font-family: var(--font-mono, monospace);
+        font-size: 11px;
+        background: none;
+        padding: 0;
+    }
+}
+
+.gdocs-ref-live__props-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+
+    th {
+        text-align: left;
+        font-size: 11px;
+        font-weight: 600;
+        color: $gray-60;
+        padding: 8px 16px;
+    }
+
+    td {
+        padding: 9px 16px;
+        border-top: 1px solid $gray-10;
+        vertical-align: top;
+
+        code {
+            font-family: var(--font-mono, monospace);
+            font-size: 12px;
+        }
+    }
+}
+
+// Fixed choices and booleans as value chips — what an author types, not TS
+// syntax. Every other type renders as linked type text via
+// .gdocs-ref-live__props-type-link.
+.gdocs-ref-live__props-choices {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.gdocs-ref-live__props-choice {
+    font-family: var(--font-mono, monospace);
+    font-size: 11.5px;
+    color: $blue-90;
+    background: $blue-5;
+    border: 1px solid $blue-20;
+    border-radius: 5px;
+    padding: 1px 7px;
+}
+
+.gdocs-ref-live__props-type-link {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: $gray-30;
+    text-underline-offset: 2px;
+
+    &:hover {
+        color: $blue-60;
+        text-decoration-color: $blue-40;
+    }
+}
+
+.gdocs-ref-live__props-required {
+    color: $accent-vermillion;
+}
+
+.gdocs-ref-live__props-optional {
+    color: $gray-60;
+}
+
+.gdocs-ref-live__props-used-by {
+    color: $gray-70;
+}
+
+.gdocs-ref-live__props-notes {
+    padding: 11px 16px 4px;
+    border-top: 1px solid $gray-10;
+    background: $gray-5;
+    font-size: 12.5px;
+
+    .gdocs-ref__body {
+        font-size: 13px;
+    }
+}
+
+.gdocs-ref-live__props-notes-title {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #b08a3a;
+    margin-bottom: 5px;
+}
+
+// ---------------------------------------------------------------------------
+// Live layer: template skeleton scaffold
+// ---------------------------------------------------------------------------
+
+.gdocs-ref-live__skeleton {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 680px;
+}
+
+.gdocs-ref-live__skeleton-part {
+    border: 1px solid $gray-20;
+    border-radius: 6px;
+    padding: 12px 16px;
+    background: #fff;
+}
+
+.gdocs-ref-live__skeleton-part--repeats {
+    // A stacked-cards edge hints that this part occurs multiple times.
+    box-shadow:
+        3px 3px 0 -1px #fff,
+        3px 3px 0 0 $gray-30,
+        6px 6px 0 -1px #fff,
+        6px 6px 0 0 $gray-20;
+    margin-bottom: 8px;
+}
+
+.gdocs-ref-live__skeleton-name {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: $blue-90;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.gdocs-ref-live__skeleton-repeat {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: $gray-60;
+}
+
+.gdocs-ref-live__skeleton-desc {
+    margin: 4px 0 8px;
+    font-size: 13px;
+    color: $gray-80;
+}
+
+.gdocs-ref-live__skeleton-components {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.gdocs-ref-live__component-chip {
+    font-family: var(--font-mono, monospace);
+    font-size: 11.5px;
+    color: $blue-90;
+    background: $blue-5;
+    border: 1px solid $blue-20;
+    border-radius: 4px;
+    padding: 2px 7px;
+
+    &:hover {
+        border-color: $blue-40;
+        text-decoration: none;
+        color: $blue-90;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Live layer: exemplar x-ray
+// ---------------------------------------------------------------------------
+
+.gdocs-ref-live__xray-sections {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: 680px;
+    border-left: 2px solid $blue-20;
+}
+
+.gdocs-ref-live__xray-section {
+    position: relative;
+    padding: 10px 0 10px 20px;
+
+    // Timeline dot marking each section on the spine
+    &::before {
+        content: "";
+        position: absolute;
+        left: -5px;
+        top: 17px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: $blue-40;
+    }
+}
+
+.gdocs-ref-live__xray-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.gdocs-ref-live__xray-heading {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: $blue-90;
+}
+
+.gdocs-ref-live__xray-repeats {
+    font-size: 12px;
+    color: $gray-60;
+    white-space: nowrap;
+}
+
+.gdocs-ref-live__xray-live {
+    margin-left: auto;
+    font-size: 12px;
+    white-space: nowrap;
+
+    svg {
+        font-size: 10px;
+    }
+}
+
+.gdocs-ref-live__xray-composition {
+    border: none;
+    background: none;
+    padding: 0;
+    margin-top: 2px;
+    font-size: 12.5px;
+    color: $gray-70;
+    cursor: pointer;
+    text-align: left;
+
+    &:hover {
+        color: $blue-90;
+        text-decoration: underline dotted;
+    }
+}
+
+.gdocs-ref-live__xray-blocks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+// ---------------------------------------------------------------------------
+// Live layer: template component shortlist
+// ---------------------------------------------------------------------------
+
+.gdocs-ref-live__shortlist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: 760px;
+}
+
+.gdocs-ref-live__shortlist-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid $gray-10;
+    font-size: 13px;
+}
+
+.gdocs-ref-live__shortlist-title {
+    flex: 0 0 170px;
+    font-weight: 600;
+}
+
+.gdocs-ref-live__shortlist-desc {
+    color: $gray-70;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}

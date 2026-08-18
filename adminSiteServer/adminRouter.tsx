@@ -40,6 +40,10 @@ import { renderMultiDimDataPageFromConfig } from "../baker/MultiDimBaker.js"
 import { resolveSlideChartTypes } from "../baker/SlideshowBaker.js"
 import { getImageMetadataByFilenames } from "../db/db.js"
 import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
+import {
+    renderGdocsReferenceComponentPreview,
+    renderGdocsReferenceInstancePreview,
+} from "./gdocsReferencePreview.js"
 
 const adminRouter = Router()
 
@@ -226,6 +230,41 @@ getPlainRouteWithROTransaction(
         }
 
         throw new JsonError("No such chart", 404)
+    }
+)
+
+// Live previews for the writing reference page: registry examples rendered
+// through the real gdoc pipeline, embedded in iframes on /admin/gdocs-reference.
+getPlainRouteWithROTransaction(
+    adminRouter,
+    "/gdocs-reference/components/:id/preview",
+    async (req, res, trx) => {
+        res.send(
+            await renderGdocsReferenceComponentPreview(
+                req.params.id,
+                req.query.example as string | undefined,
+                trx
+            )
+        )
+    }
+)
+
+// A real component instance — the block at ?path in the published gdoc
+// ?gdocId — rendered with that document's real context (query params because
+// JSON paths contain dots and brackets). ?overrides reshapes the block's
+// props before rendering: the live half of the form-builder draft card.
+getPlainRouteWithROTransaction(
+    adminRouter,
+    "/gdocs-reference/instance/preview",
+    async (req, res, trx) => {
+        res.send(
+            await renderGdocsReferenceInstancePreview(
+                req.query.gdocId as string | undefined,
+                req.query.path as string | undefined,
+                trx,
+                req.query.overrides as string | undefined
+            )
+        )
     }
 )
 

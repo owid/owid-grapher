@@ -1,5 +1,16 @@
+---
+pinned:
+    - slug: the-median-age-in-china-has-rapidly-caught-up-with-the-united-kingdom
+---
+
 A static image uploaded to the OWID admin. The `filename` must match an
 image registered in the admin (where default alt text is also set).
+
+```archie
+{.image}
+filename: romania-maternal-mortality-abortions.png
+{}
+```
 
 ## When to use
 
@@ -15,33 +26,13 @@ image registered in the admin (where default alt text is also set).
 - Flagship data visualizations with metadata — use `{.static-viz}`.
 - Videos — use `{.video}`.
 
-## Variations
+## Notes
 
-- `size`: `narrow` | `wide` (default) | `widest`
-- `visibility`: `mobile` | `desktop` — pair two image blocks to swap
-  aspect ratio between layouts.
-- `smallFilename`: dedicated mobile image (should be ≥1600px wide).
-- `hasOutline`: `true` | `false` — adds a 1px light-gray outline, useful
-  for images with white backgrounds.
+Prefer setting alt text on the uploaded file in the admin; the `alt`
+prop overrides it for context-specific points.
 
-### Full featured
+`size: narrow` suits images with especially tall aspect ratios.
 
-```archie
-{.image}
-filename: default-featured-image.png
-smallFilename: default-featured-image.png
-alt: my alt text that is optional
-size: narrow
-caption: I am a caption that would appear below the image
-hasOutline: true
-visibility: desktop
-{}
-```
-
-### Minimal
-
-```archie
-{.image}
-filename: default-featured-image.png
-{}
-```
+Pair two image blocks with opposite `visibility` to serve a different
+crop per layout. `smallFilename` is the mobile image — despite the name,
+keep it at least 1600px wide for high-density displays.

@@ -1,5 +1,35 @@
+---
+system: true
+---
+
 The large introduction block on the homepage: OWID mission copy
 paired with a grid of four featured tiles.
+
+```archie
+{.homepage-intro}
+[.featured-work]
+url: https://docs.google.com/document/d/1xl-Z2-QL9yhfB7lTCkxP7_aF33mUT_mG62LFwEXvsbY/edit?tab=t.kf7sqvb60cvx
+kicker: Article · 7 min read
+isNew: true
+
+ 
+url: https://docs.google.com/document/d/1XxqsuE7SyjearmUDaZS_SzGapV_G0DjNyBE9y62cLeQ/edit?tab=t.0
+kicker: From our classics
+
+ 
+url: https://docs.google.com/document/d/17-w7FZpkfqbfGlEE0d4VkkfpfKVQoYqAp7Y66RIt6o8/edit
+kicker: Article · 5 min read
+
+ 
+url: https://docs.google.com/document/d/10M5sJhpAaXXC7O9flEywoaeT3m10pDe1_sErOOe-PeI/edit?tab=t.0
+title: We published a new topic page on work and employment
+description: Explore key concepts and data on labor market participation, unemployment, and employment, and how the trends differ across countries and over time.
+kicker: Topic page
+
+ 
+[]
+{}
+```
 
 ## When to use
 
@@ -10,35 +40,10 @@ paired with a grid of four featured tiles.
 - Anywhere else. The mission text is hard-coded for the homepage
   layout.
 
-## Variations
+## Notes
 
-- Exactly four entries must be supplied under `[.featured-work]`.
-- `kicker` is free text (e.g. "Article - 10 Min Read",
-  "Announcement").
-- `isNew: true` shows a red "NEW" pill on that tile.
-- gdoc URLs auto-resolve title/description; external URLs require
-  those fields explicitly.
-
-### Four featured tiles
-
-```archie
-{.homepage-intro}
-
-[.featured-work]
-url: https://docs.google.com/document/d/1iH_m2GlsBuif80sDwfg0fNGZmpf9X0-TFM5oHQr9fPA/edit
-kicker: Article - 10 Min Read
-isNew: true
-
-url: https://docs.google.com/document/d/1KCSkpWvSml9KZaqTO7TGWsUDpACZIxBoqs9Yw62Klx8/edit
-kicker: Article - 10 Min Read
-
-url: https://docs.google.com/document/d/1PvKMIDp0Npp-t_5F-tNp-w9Y2Lq4ifjWDJHEVQQ6bNw/edit
-kicker: Article - 10 Min Read
-
-url: https://docs.google.com/document/d/11t6XP9vKLDHeiDOcfaPOoc4TeQxHRixSjEikAlbGe0A/edit
-title: We updated our topic page on Artificial Intelligence
-kicker: Announcement
-[]
-
-{}
-```
+Supply exactly four entries under `[.featured-work]`. `kicker` is free
+text (e.g. "Article - 10 Min Read", "Announcement") — no strong
+conventions yet. `isNew: true` shows a red "NEW" pill before that tile's
+kicker. gdoc URLs auto-resolve title/description; external URLs require
+those fields explicitly.

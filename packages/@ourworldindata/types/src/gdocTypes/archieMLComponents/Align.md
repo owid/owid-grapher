@@ -1,6 +1,22 @@
 Aligns a block of text horizontally. Affects text only — images, charts,
 and other visual blocks are not re-aligned by this wrapper.
 
+```archie
+{.align}
+alignment: center
+[.+content]
+{.heading}
+text: The 17 Sustainable Development Goals
+level: 2
+{}
+{.heading}
+text: Click on a Goal below to see interactive charts for available indicators
+level: 3
+{}
+[]
+{}
+```
+
 ## When to use
 
 - To center or right-align a heading or short paragraph inline with prose.
@@ -10,20 +26,3 @@ and other visual blocks are not re-aligned by this wrapper.
 - To align images, charts, or other visual blocks — those blocks have their
   own size/visibility controls.
 - For full-width styled sections; prefer `{.gray-section}`.
-
-## Variations
-
-- `alignment`: `left` | `center` | `right`
-
-### Centered text
-
-```archie
-{.align}
-alignment: center
-[.+content]
-Centered text
-
-A centered heading
-[]
-{}
-```
