@@ -34,6 +34,7 @@ import {
     DbEnrichedVariable,
     DbPlainChart,
     DbPlainMultiDimXChartConfig,
+    DbPlainChartDimension,
     Distribution,
     DatasetOwners,
     DbPlainDataset,
@@ -1318,4 +1319,108 @@ export const getLatestVariableIdsByCatalogPath = async (
     )
 
     return new Map(entries)
+}
+
+/**
+ * Tables holding one or more rows per variable that have to be cleared before the
+ * variable row itself can be deleted.
+ *
+ * This list is the reason ghost-variable cleanup lives in Grapher rather than in ETL:
+ * every table that grows a `variableId` foreign key has to be added here, and ETL has
+ * no way of knowing when that happens. `chart_dimensions` is deliberately absent — a
+ * variable used by a chart is never deleted, it is reported back as blocked.
+ */
+const VARIABLE_LINK_TABLES = [
+    "origins_variables",
+    "tags_variables_topic_tags",
+    "posts_gdocs_variables_faqs",
+    "explorer_variables",
+    "multi_dim_x_chart_configs",
+] as const
+
+export interface GhostVariableCleanupPlan {
+    /** Ghost variables that can be deleted. */
+    deletable: number[]
+    /** Ghost variables still used by a chart, with the charts using them. */
+    blocked: { variableId: number; chartIds: number[] }[]
+    /** `chart_configs` rows owned by the deletable variables (ETL- and admin-authored). */
+    configIds: string[]
+}
+
+/**
+ * Work out which of a dataset's variables are ghosts — present in the database but not
+ * among the ones ETL just upserted — and which of those are safe to delete.
+ *
+ * Read-only: the caller decides what to do with the plan.
+ */
+export async function planGhostVariableCleanup(
+    trx: db.KnexReadonlyTransaction,
+    datasetId: number,
+    keepVariableIds: number[]
+): Promise<GhostVariableCleanupPlan> {
+    const ghosts = await trx<DbRawVariable>(VariablesTableName)
+        .where({ datasetId })
+        .whereNotIn("id", keepVariableIds)
+        .select("id", "grapherConfigIdETL", "grapherConfigIdAdmin")
+
+    if (ghosts.length === 0)
+        return { deletable: [], blocked: [], configIds: [] }
+
+    const ghostIds = ghosts.map((variable) => variable.id)
+
+    const usages = await trx<DbPlainChartDimension>("chart_dimensions")
+        .whereIn("variableId", ghostIds)
+        .select("variableId", "chartId")
+
+    const chartIdsByVariableId = _.mapValues(
+        _.groupBy(usages, (usage) => usage.variableId),
+        (rows) => _.uniq(rows.map((row) => row.chartId)).sort((a, b) => a - b)
+    )
+
+    const blocked = Object.entries(chartIdsByVariableId)
+        .map(([variableId, chartIds]) => ({
+            variableId: Number(variableId),
+            chartIds,
+        }))
+        .sort((a, b) => a.variableId - b.variableId)
+
+    const deletableVariables = ghosts.filter(
+        (variable) => !chartIdsByVariableId[variable.id]
+    )
+
+    return {
+        deletable: deletableVariables.map((variable) => variable.id),
+        blocked,
+        // A ghost variable's own chart configs are otherwise left behind in
+        // `chart_configs` (and in R2) when the variable row goes away.
+        configIds: _.compact(
+            deletableVariables.flatMap((variable) => [
+                variable.grapherConfigIdETL,
+                variable.grapherConfigIdAdmin,
+            ])
+        ),
+    }
+}
+
+/**
+ * Delete the variables a {@link planGhostVariableCleanup} plan marked deletable, along
+ * with their link rows and chart configs. Does not touch R2 — the caller is responsible
+ * for removing the `configIds` from there once the transaction has committed.
+ */
+export async function executeGhostVariableCleanup(
+    trx: db.KnexReadWriteTransaction,
+    plan: GhostVariableCleanupPlan
+): Promise<void> {
+    if (plan.deletable.length === 0) return
+
+    for (const table of VARIABLE_LINK_TABLES) {
+        await trx(table).whereIn("variableId", plan.deletable).delete()
+    }
+
+    // Deleting the variables first releases their foreign keys into `chart_configs`.
+    await trx(VariablesTableName).whereIn("id", plan.deletable).delete()
+
+    if (plan.configIds.length > 0) {
+        await trx("chart_configs").whereIn("id", plan.configIds).delete()
+    }
 }
