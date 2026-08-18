@@ -8,7 +8,7 @@ import type {
 import StylesTarget from "vite-plugin-css-position/react"
 
 import { CausesOfDeathChartWithProviders } from "./components/CausesOfDeathChart.js"
-import { CausesOfDeathConfig } from "./core/CausesOfDeathConstants.js"
+import { parseConfig } from "./core/config.js"
 
 import "./index.scss"
 
@@ -33,15 +33,7 @@ export const mount: BespokeComponentMountFn = (
         return
     }
 
-    const rawConfig = opts.config ?? {}
-    const config: CausesOfDeathConfig = {
-        region: rawConfig.region,
-        sex: rawConfig.sex,
-        ageGroup: rawConfig.ageGroup,
-        year: rawConfig.year ? parseInt(rawConfig.year, 10) : undefined,
-        hideControls: rawConfig.hideControls === "true",
-        urlSync: rawConfig.urlSync === "true",
-    }
+    const config = parseConfig(opts.config ?? {})
 
     const root = createRoot(container)
     root.render(
