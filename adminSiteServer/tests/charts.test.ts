@@ -210,7 +210,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
                 },
             ],
         }
-        expect(configETL).toEqual(processedTestVariableConfigETL)
+        expect(patchConfigETL).toEqual(processedTestVariableConfigETL)
 
         // fetch the admin+etl merged grapher config
         let mergedGrapherConfig = await env.fetchJson(
@@ -219,7 +219,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
 
         // since no admin-authored config exists, the merged config should be
         // the same as the ETL config
-        expect(mergedGrapherConfig).toEqual(configETL)
+        expect(mergedGrapherConfig).toEqual(patchConfigETL)
 
         // add an admin-authored config for the variable
         await env.request({
@@ -318,7 +318,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         mergedGrapherConfig = await env.fetchJson(
             `/variables/mergedGrapherConfig/${variableId}.json`
         )
-        expect(mergedGrapherConfig).toEqual(configETL)
+        expect(mergedGrapherConfig).toEqual(patchConfigETL)
 
         // delete the ETL-authored grapher config we just added
         await env.request({
