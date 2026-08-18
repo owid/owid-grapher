@@ -19,6 +19,11 @@
     margin: 0;
 }
 
+.migration-chart--narrow .migration-controls {
+    border: none;
+    padding: 0;
+}
+
 .migration-chart--narrow .migration-controls .controls__content {
     row-gap: 8px;
 }

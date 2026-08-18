@@ -24,6 +24,11 @@
     color: $error-text-color;
 }
 
+.food-trade-chart--narrow .food-trade-controls {
+    border: none;
+    padding: 0;
+}
+
 .food-trade-chart--narrow .food-trade-controls .controls__row {
     flex-direction: column;
     row-gap: 8px;
