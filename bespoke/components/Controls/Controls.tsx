@@ -2,7 +2,6 @@ import cx from "clsx"
 
 import { Frame } from "../Frame/Frame.js"
 
-/** The boxed controls area that sits above a chart */
 export function Controls({
     children,
     className,
@@ -27,10 +26,7 @@ export function ControlsRow({
     return <div className={cx("controls__row", className)}>{children}</div>
 }
 
-/**
- * A control with a small uppercase label above it. The label is visual only —
- * controls carry their own `aria-label`.
- */
+/** A control with a small uppercase label above it */
 export function LabeledControl({
     label,
     children,

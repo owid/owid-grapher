@@ -30,10 +30,10 @@ export function usePinnedTooltip<T extends HTMLElement = HTMLElement>(
         )
         observer.observe(el)
 
-        // `composedPath`, not `contains`: inside a Shadow DOM the event is
-        // retargeted to the host by the time it reaches the document, so a
-        // containment check would treat every tap as an outside tap
         const handleDocumentTouch = (e: TouchEvent) => {
+            // `event.target` is retargeted to the Shadow DOM host by the time
+            // the event reaches the document, so use the event path to detect
+            // taps inside `el` rather than checking DOM containment
             if (!e.composedPath().includes(el)) onDismiss()
         }
         document.addEventListener("touchstart", handleDocumentTouch)
