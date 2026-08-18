@@ -315,11 +315,15 @@ export function SignificanceIcon({
 }
 
 export function makeTooltipToleranceNotice(
-    targetYear: string,
-    { plural }: { plural: boolean } = { plural: false }
+    targetTime: string,
+    {
+        plural = false,
+        originalTime,
+    }: { plural?: boolean; originalTime?: string } = {}
 ): string {
     const dataPoint = plural ? "data points" : "data point"
-    return `Data not available for ${targetYear}. Showing closest available ${dataPoint} instead`
+    const originalTimeNotice = originalTime ? ` (${originalTime})` : ""
+    return `Data not available for ${targetTime}. Showing closest available ${dataPoint}${originalTimeNotice} instead`
 }
 
 export function makeTooltipRoundingNotice(

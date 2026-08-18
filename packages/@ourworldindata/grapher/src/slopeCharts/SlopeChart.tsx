@@ -667,7 +667,9 @@ export class SlopeChart
         return this.leftLabelsMaxLevel >= 4 && !!this.manager.showSeriesLabels
     }
 
-    private updateTooltipPosition(event: SVGMouseOrTouchEvent): void {
+    @action.bound private updateTooltipPosition(
+        event: SVGMouseOrTouchEvent
+    ): void {
         const ref = this.manager.base?.current
         if (ref) this.tooltipState.position = getRelativeMouse(ref, event)
     }
@@ -700,22 +702,29 @@ export class SlopeChart
             const toleranceSq = tolerance * tolerance
 
             if (closestSlope && distanceSq < toleranceSq) {
-                this.onSlopeMouseOver(closestSlope)
+                this.setHoveredSeries(closestSlope)
             } else {
-                this.onSlopeMouseLeave()
+                this.clearHoveredSeries()
             }
         })
     }
 
     private hoverTimer?: number
-    @action.bound onVerticalLabelMouseEnter(seriesName: SeriesName): void {
+    @action.bound private setHoveredSeries(series: SlopeChartSeries): void {
         this.chartState.focusArray.clear()
         clearTimeout(this.hoverTimer)
-        this.hoveredSeriesName = seriesName
+        this.hoveredSeriesName = series.seriesName
+        this.tooltipState.target = { series }
+    }
+
+    @action.bound onVerticalLabelMouseEnter(seriesName: SeriesName): void {
+        const series = this.series.find((s) => s.seriesName === seriesName)
+        if (series) this.setHoveredSeries(series)
     }
 
     @action.bound private clearHoveredSeries(): void {
         this.hoveredSeriesName = undefined
+        this.tooltipState.target = null
     }
 
     @action.bound private debouncedClearHoveredSeries(): void {
@@ -732,17 +741,6 @@ export class SlopeChart
         this.debouncedClearHoveredSeries()
     }
 
-    @action.bound onSlopeMouseOver(series: SlopeChartSeries): void {
-        this.chartState.focusArray.clear()
-        this.hoveredSeriesName = series.seriesName
-        this.tooltipState.target = { series }
-    }
-
-    @action.bound onSlopeMouseLeave(): void {
-        this.clearHoveredSeries()
-        this.tooltipState.target = null
-    }
-
     mouseFrame?: number
     @action.bound onMouseMove(event: SVGMouseOrTouchEvent): void {
         this.updateTooltipPosition(event)
@@ -752,7 +750,7 @@ export class SlopeChart
     @action.bound onMouseLeave(): void {
         if (this.mouseFrame !== undefined) cancelAnimationFrame(this.mouseFrame)
 
-        this.onSlopeMouseLeave()
+        this.clearHoveredSeries()
     }
 
     @computed private get renderUid(): number {
@@ -778,31 +776,52 @@ export class SlopeChart
 
         const actualStartTime = series.start.originalTime
         const actualEndTime = series.end.originalTime
-        const timeRange = `${formatTime(actualStartTime)} to ${formatTime(actualEndTime)}`
         const timeLabel = isRelativeMode
             ? `% change between ${formatColumn.formatTime(actualStartTime)} and ${formatColumn.formatTime(actualEndTime)}`
-            : timeRange
+            : formatColumn.formatTimeComparison(actualStartTime, actualEndTime)
 
-        const constructTargetYearForToleranceNotice = () => {
+        // The subtitle shows the original time of both values. Naming the
+        // original time here only helps if the subtitle mixes a target time with
+        // an original time, i.e. if only one of the two values was interpolated.
+        const constructTimesForToleranceNotice = ():
+            | { target: string; original?: string; plural: boolean }
+            | undefined => {
             const isStartValueOriginal = series.start.originalTime === startTime
             const isEndValueOriginal = series.end.originalTime === endTime
 
             if (!isStartValueOriginal && !isEndValueOriginal) {
-                return `${formatTime(startTime)} and ${formatTime(endTime)}`
+                return {
+                    target: `${formatTime(startTime)} and ${formatTime(endTime)}`,
+                    plural: true,
+                }
             } else if (!isStartValueOriginal) {
-                return formatTime(startTime)
+                return {
+                    target: formatTime(startTime),
+                    original: formatTime(actualStartTime),
+                    plural: false,
+                }
             } else if (!isEndValueOriginal) {
-                return formatTime(endTime)
+                return {
+                    target: formatTime(endTime),
+                    original: formatTime(actualEndTime),
+                    plural: false,
+                }
             } else {
                 return undefined
             }
         }
 
-        const targetYear = constructTargetYearForToleranceNotice()
-        const toleranceNotice = targetYear
+        const toleranceNoticeTimes = constructTimesForToleranceNotice()
+        const toleranceNotice = toleranceNoticeTimes
             ? {
                   icon: TooltipFooterIcon.Notice,
-                  text: makeTooltipToleranceNotice(targetYear),
+                  text: makeTooltipToleranceNotice(
+                      toleranceNoticeTimes.target,
+                      {
+                          plural: toleranceNoticeTimes.plural,
+                          originalTime: toleranceNoticeTimes.original,
+                      }
+                  ),
               }
             : undefined
         const roundingNotice = series.column.roundsToSignificantFigures
@@ -832,7 +851,7 @@ export class SlopeChart
                 title={title}
                 titleAnnotation={titleAnnotation}
                 subtitle={timeLabel}
-                subtitleFormat={targetYear ? "notice" : undefined}
+                subtitleFormat={toleranceNoticeTimes ? "notice" : undefined}
                 dissolve={fading}
                 footer={footer}
                 dismiss={() => (this.tooltipState.target = null)}
@@ -1138,14 +1157,19 @@ export class SlopeChart
 
     private renderInteractive(): React.ReactElement {
         return (
-            <>
+            <g
+                onMouseMove={this.updateTooltipPosition}
+                onTouchStart={this.updateTooltipPosition}
+                onTouchMove={this.updateTooltipPosition}
+            >
+                <rect {...this.bounds.toProps()} fillOpacity={0} />
                 {this.renderYAxis()}
                 {this.renderXAxis()}
                 {this.renderInteractiveSlopes()}
                 {this.renderVerticalLabels()}
                 {this.renderNoDataSection()}
                 {this.tooltip}
-            </>
+            </g>
         )
     }
 

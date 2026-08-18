@@ -72,6 +72,7 @@ export {
     OwidDistinctLinesColors,
     EnergyColors,
     ContinentColors,
+    MapContinentColors,
 } from "./color/CustomSchemes"
 export { ColorSchemes } from "./color/ColorSchemes"
 export { DimensionSlot } from "./chart/DimensionSlot"
@@ -99,6 +100,11 @@ export {
 export { getErrorMessageRelatedQuestionUrl } from "./core/relatedQuestion"
 export { MapChartState } from "./mapCharts/MapChartState"
 export { MapConfig } from "./mapCharts/MapConfig"
+export {
+    getRegionsForKey,
+    type TooltipKey,
+} from "./seriesLabel/RegionTooltipData"
+export { regionGroupLabels } from "./core/RegionGroups"
 export {
     MAP_REGION_LABELS,
     type GeoFeature,
