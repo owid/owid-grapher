@@ -140,6 +140,13 @@ export const GRAPHER_CONFIG_R2_BUCKET: string | undefined =
 export const GRAPHER_CONFIG_R2_BUCKET_PATH: string | undefined =
     serverSettings.GRAPHER_CONFIG_R2_BUCKET_PATH
 
+// Where the indicator data API files live. ETL writes `<id>.data.json` here itself; we write
+// `<id>.metadata.json`, since we're the ones who render it.
+export const DATA_API_R2_BUCKET: string | undefined =
+    serverSettings.DATA_API_R2_BUCKET
+export const DATA_API_R2_BUCKET_PATH: string | undefined =
+    serverSettings.DATA_API_R2_BUCKET_PATH
+
 export const DATA_API_URL: string = clientSettings.DATA_API_URL
 export const CATALOG_URL: string = clientSettings.CATALOG_URL
 

@@ -1341,6 +1341,7 @@ const VARIABLE_LINK_TABLES = [
 /** One ghost variable a chart still uses, and the chart using it. */
 export interface BlockedGhostVariable {
     variableId: number
+    catalogPath: string | null
     variableName: string | null
     chartId: number
     chartSlug: string | null
@@ -1384,6 +1385,7 @@ export async function cleanupGhostVariables(
         `-- sql
         SELECT DISTINCT
             cd.variableId,
+            v.catalogPath,
             v.name AS variableName,
             cd.chartId,
             cc.slug AS chartSlug

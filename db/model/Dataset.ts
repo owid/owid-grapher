@@ -161,3 +161,58 @@ export async function checkDatasetVariablesInUse(
         },
     }
 }
+
+/**
+ * Create or update a dataset by its catalogPath, and make sure its namespace exists.
+ *
+ * ETL addresses datasets by catalogPath — the integer id is ours, not theirs.
+ */
+export async function upsertDatasetByCatalogPath(
+    trx: db.KnexReadWriteTransaction,
+    catalogPath: string,
+    metadata: {
+        name?: string
+        namespace?: string
+        version?: string
+        description?: string
+        isPrivate?: boolean
+        nonRedistributable?: boolean
+        updatePeriodDays?: number | null
+        userId?: number
+    }
+): Promise<number> {
+    const now = new Date()
+    const namespace = metadata.namespace ?? "owid"
+
+    await trx("namespaces")
+        .insert({ name: namespace, description: "", isArchived: 0 })
+        .onConflict("name")
+        .ignore()
+
+    const existing = await trx("datasets").where({ catalogPath }).first()
+    const row = {
+        name: metadata.name,
+        namespace,
+        version: metadata.version,
+        description: metadata.description ?? "",
+        isPrivate: metadata.isPrivate ?? false,
+        nonRedistributable: metadata.nonRedistributable ?? false,
+        updatePeriodDays: metadata.updatePeriodDays ?? null,
+        metadataEditedAt: now,
+        dataEditedAt: now,
+    }
+
+    if (existing) {
+        await trx("datasets").where({ id: existing.id }).update(row)
+        return existing.id
+    }
+
+    const [id] = await trx("datasets").insert({
+        ...row,
+        catalogPath,
+        createdByUserId: metadata.userId,
+        metadataEditedByUserId: metadata.userId,
+        dataEditedByUserId: metadata.userId,
+    })
+    return id
+}
