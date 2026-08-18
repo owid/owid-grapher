@@ -52,7 +52,9 @@ const NATIVE_LINE_CASING_WIDTH = 4
 export function MigrantPyramid(props: MigrantPyramidProps): React.ReactElement {
     return (
         <ResponsiveContainer>
-            {(size) => <MigrantPyramidContent {...props} {...size} />}
+            {(dimensions) => (
+                <MigrantPyramidContent {...props} {...dimensions} />
+            )}
         </ResponsiveContainer>
     )
 }

@@ -277,8 +277,11 @@ export function PopulationPyramidHorizontal(
 ) {
     return (
         <ResponsiveContainer>
-            {(size) => (
-                <PopulationPyramidHorizontalContent {...props} {...size} />
+            {(dimensions) => (
+                <PopulationPyramidHorizontalContent
+                    {...props}
+                    {...dimensions}
+                />
             )}
         </ResponsiveContainer>
     )

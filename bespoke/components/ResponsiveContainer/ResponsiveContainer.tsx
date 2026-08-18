@@ -1,15 +1,15 @@
 import { useParentSize } from "@visx/responsive"
 
 /**
- * Fills its parent and hands the measured size to its children, which only
- * render once there is one. Charts sized from props need this wrapper.
+ * Fills its parent and hands the measured dimensions to its children, which
+ * only render once there are some.
  */
 export function ResponsiveContainer({
     style,
     children,
 }: {
     style?: React.CSSProperties
-    children: (size: { width: number; height: number }) => React.ReactNode
+    children: (dimensions: { width: number; height: number }) => React.ReactNode
 }): React.ReactElement {
     const { parentRef, width, height } = useParentSize()
     return (

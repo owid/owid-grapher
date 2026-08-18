@@ -294,7 +294,9 @@ function PopulationPyramidContent({
 export function PopulationPyramid(props: PopulationPyramidProps) {
     return (
         <ResponsiveContainer>
-            {(size) => <PopulationPyramidContent {...props} {...size} />}
+            {(dimensions) => (
+                <PopulationPyramidContent {...props} {...dimensions} />
+            )}
         </ResponsiveContainer>
     )
 }

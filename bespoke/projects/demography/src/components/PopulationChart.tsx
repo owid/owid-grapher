@@ -458,7 +458,9 @@ export const PopulationChart = memo(function PopulationChart(
 ) {
     return (
         <ResponsiveContainer>
-            {(size) => <PopulationChartContent {...props} {...size} />}
+            {(dimensions) => (
+                <PopulationChartContent {...props} {...dimensions} />
+            )}
         </ResponsiveContainer>
     )
 })
