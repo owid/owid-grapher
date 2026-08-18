@@ -48,6 +48,14 @@ export function CausesOfDeathControls({
     return (
         <Controls className="causes-of-death-controls">
             <ControlsRow>
+                <EntityDropdown
+                    label="Country/region"
+                    availableEntities={entityOptions}
+                    selectedEntityName={entityName}
+                    onChange={setEntityName}
+                    placeholder="Select a country or region..."
+                    aria-label="Select a country or region"
+                />
                 <AgeGroupDropdown
                     availableAgeGroups={metadata.availableAgeGroups}
                     selectedAgeGroup={ageGroup}
@@ -57,14 +65,6 @@ export function CausesOfDeathControls({
                     availableSexes={metadata.availableSexes}
                     selectedSex={sex}
                     onChange={setSex}
-                />
-                <EntityDropdown
-                    label="Country/region"
-                    availableEntities={entityOptions}
-                    selectedEntityName={entityName}
-                    onChange={setEntityName}
-                    placeholder="Select a country or region..."
-                    aria-label="Select a country or region"
                 />
             </ControlsRow>
             <ControlsRow>
