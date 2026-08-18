@@ -8,7 +8,7 @@ import type {
 import StylesTarget from "vite-plugin-css-position/react"
 
 import { CausesOfDeathChartWithProviders } from "./components/CausesOfDeathChart.js"
-import { CausesOfDeathConfig } from "./helpers/CausesOfDeathConstants.js"
+import { CausesOfDeathConfig } from "./core/CausesOfDeathConstants.js"
 
 import "./index.scss"
 

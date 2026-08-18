@@ -17,13 +17,13 @@ import {
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
 import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 
-import { type TradeRow } from "../types.js"
+import { type TradeRow } from "../core/types.js"
 import {
     capItems,
     formatTrade,
     tradesToFlows,
     BILATERAL_LOW_VOLUME_THRESHOLD,
-} from "../helpers.js"
+} from "../core/helpers.js"
 
 type FoodTradeBilateralSankeyProps = {
     trades: TradeRow[]

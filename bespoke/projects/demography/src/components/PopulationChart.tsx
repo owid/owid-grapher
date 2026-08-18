@@ -3,8 +3,8 @@ import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/
 import { scaleLinear } from "@visx/scale"
 import { LinePath } from "@visx/shape"
 import { Group } from "@visx/group"
-import type { Simulation } from "../helpers/useSimulation.js"
-import { getPopulationForYear, getTotalPopulation } from "../helpers/utils"
+import type { Simulation } from "../core/useSimulation.js"
+import { getPopulationForYear, getTotalPopulation } from "../core/utils"
 import {
     START_YEAR,
     HISTORICAL_END_YEAR,
@@ -20,7 +20,7 @@ import {
     HOVER_LINE_COLOR,
     ZERO_LINE_COLOR,
     USER_MODIFIED_COLOR,
-} from "../helpers/constants"
+} from "../core/constants"
 
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
@@ -33,15 +33,15 @@ import { BezierArrow } from "@ourworldindata/grapher"
 import {
     formatPopulationValueLong,
     formatPopulationAxisLabel,
-} from "../helpers/utils.js"
+} from "../core/utils.js"
 import { TimeAxisX } from "./TimeAxisX.js"
 import { last } from "lodash-es"
-import { toBreakpoint, useBreakpoint } from "../helpers/useBreakpoint.js"
+import { toBreakpoint, useBreakpoint } from "../core/useBreakpoint.js"
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import {
     getPopulationChartFonts,
     type PopulationChartFonts,
-} from "../helpers/fonts.js"
+} from "../core/fonts.js"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 
 const margin = { top: 0, bottom: 16, left: 0, right: 0 }

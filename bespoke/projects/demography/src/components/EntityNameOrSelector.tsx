@@ -1,6 +1,6 @@
 import { InlineEntitySelector } from "./InlineEntitySelector.js"
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
-import type { DemographyMetadata } from "../helpers/types.js"
+import type { DemographyMetadata } from "../core/types.js"
 
 export function EntityNameOrSelector({
     hideEntitySelector,

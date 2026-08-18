@@ -45,9 +45,26 @@ Checklist:
 6. **Dev workflow**: `yarn startBespokeDevServer`, then open `http://localhost:8089/<name>/demo` — every variant mounted in its own Shadow DOM, exactly like production (`--build` serves the production build instead). For embedding in an actual article, the readme has the `{.bespoke-component}` syntax.
 7. **Production build**: `bespoke/buildBespokeProjects.sh` builds all projects and collects each `dist/` into `dist/assets-bespoke/<name>/`; the baker copies these into the site. No per-project deploy config needed.
 
-Config parsing: ArchieML config values are always **strings**. Put parsing in a dedicated `src/config.ts` exporting a `parseConfig(raw: Record<string, string>)` with small helpers for booleans/enums/numbers (see `food-trade/src/config.ts`) — this is good practice even though not every project has one yet. Support the conventional keys where they make sense: `title`, `subtitle` (override the generated ones), `hideControls`, `urlSync`, and an entity default (`country` or `region`) that accepts the sentinel `"userLocation"` (resolve it with the `useResolveUserLocation` hook).
+Config parsing: ArchieML config values are always **strings**. Put parsing in a dedicated `src/core/config.ts` exporting a `parseConfig(raw: Record<string, string>)` with small helpers for booleans/enums/numbers (see `food-trade/src/core/config.ts`) — this is good practice even though not every project has one yet. Support the conventional keys where they make sense: `title`, `subtitle` (override the generated ones), `hideControls`, `urlSync`, and an entity default (`country` or `region`) that accepts the sentinel `"userLocation"` (resolve it with the `useResolveUserLocation` hook).
 
-## 2. Layout: how a bespoke chart is composed
+## 2. Layout: where files go, and how a chart is composed
+
+`src/` holds only the entry point, the stylesheets, and three folders:
+
+```
+src/
+    index.tsx          the mount contract
+    index.scss + …     the style import hub (see §6)
+    components/        chart pieces, controls, tooltips
+    variants/          one file per entry in VARIANTS
+    core/              everything non-visual
+```
+
+**Everything non-visual lives in `core/`** — `config.ts`, `types.ts`, `constants.ts`,
+`data.ts`/`fetch.ts`, `helpers.ts`, hooks, metadata classes, layout algorithms, and their
+`*.test.ts` files. Nothing but `index.tsx` sits at the `src/` root. Split `core/` into
+subfolders only when one part grows into its own layer (demography's simulation is
+`core/model/`); a project with a handful of modules keeps them flat in `core/`.
 
 Every project structures a variant in three layers — follow this naming/altitude convention:
 
@@ -175,7 +192,7 @@ Bespoke data is **fetched at runtime, never bundled**. The established pattern a
 
 - Pre-processed JSON hosted on the public bucket `https://owid-public.owid.io` — one small `*.metadata.json` plus per-key data files (per entity, product, or whatever the primary selector is), so changing the selection fetches only one small file. The exact path and file naming vary per project — pick something sensible under a project-named directory.
 - `@tanstack/react-query` with `fetchJson` from `@ourworldindata/utils`. Namespaced query keys (`["my-viz", "data", entityId]`), `placeholderData: (prev) => prev` so the old chart stays visible while switching entities (drive the spinner from `isPlaceholderData` + `useDelayedLoading`), and `staleTime: Infinity` — the files are immutable within a session.
-- Data files are usually column-oriented parallel arrays; reshape into rows/Maps client-side, resolving IDs through the metadata. A small metadata class with lazily-built lookup maps (see `CausesOfDeathMetadata.ts`) keeps this tidy.
+- Data files are usually column-oriented parallel arrays; reshape into rows/Maps client-side, resolving IDs through the metadata. A small metadata class with lazily-built lookup maps (see `causes-of-death/src/core/CausesOfDeathMetadata.ts`) keeps this tidy.
 - **Record data anomalies in a `data-issues.md` at the project root as you find them** — what the issue is, its impact on the viz, how the code handles it, and the recommended fix. Defensive code (clamps, dedupes, guards) hides issues from the screen but not from readers of this file — it's what makes upstream fixes actionable later. See `migrant-demographics/data-issues.md` for an example.
 
 ## 9. State management — decision guide

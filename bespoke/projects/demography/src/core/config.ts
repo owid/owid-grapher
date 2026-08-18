@@ -1,5 +1,5 @@
-import { isValidParameterKey, type ParameterKey } from "./helpers/types.js"
-import { CONTROL_YEARS } from "./helpers/constants.js"
+import { isValidParameterKey, type ParameterKey } from "./types.js"
+import { CONTROL_YEARS } from "./constants.js"
 
 const VARIANT_NAMES = [
     "simulation",

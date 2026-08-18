@@ -4,14 +4,14 @@ import {
     OWID_AGE_GROUPS,
     FERTILITY_AGE_GROUPS,
     CONTROL_YEARS,
-} from "../helpers/constants"
+} from "../constants"
 import type {
     CountryData,
     PopulationBySex,
     DeathsByAgeGroup,
     MortalityRates,
-} from "../helpers/types"
-import { getAgeGroupStart } from "../helpers/utils"
+} from "../types"
+import { getAgeGroupStart } from "../utils"
 import {
     calculateTFRFromRaw,
     estimateLifeExpectancy,

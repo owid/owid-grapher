@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo, useRef } from "react"
 import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 import { scaleLinear } from "@visx/scale"
 import { Group } from "@visx/group"
-import type { Simulation } from "../helpers/useSimulation"
+import type { Simulation } from "../core/useSimulation"
 import type { ProjectionType } from "./PopulationPyramid.js"
 import {
     FEMALE_COLOR,
@@ -13,20 +13,20 @@ import {
     PYRAMID_AGE_GROUP_SIZE,
     PYRAMID_AGE_GROUPS,
     ZERO_LINE_COLOR,
-} from "../helpers/constants"
+} from "../core/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
-import { computeMaxAgeGroupPopulation } from "../model/projectionRunner"
+import { computeMaxAgeGroupPopulation } from "../core/model/projectionRunner"
 import {
     groupByAgeRange,
     parseAgeGroup,
     formatPopulationValueShort,
     formatPopulationAxisLabelShort,
-} from "../helpers/utils"
+} from "../core/utils"
 import { Bounds, formatValue } from "@ourworldindata/utils"
 import { Halo, TextWrap, TextWrapSvg } from "@ourworldindata/components"
-import { toBreakpoint, useBreakpoint } from "../helpers/useBreakpoint.js"
+import { toBreakpoint, useBreakpoint } from "../core/useBreakpoint.js"
 import { useDismissOnTouchOutside } from "../../../../hooks/useDismissOnTouchOutside.js"
-import { getHorizontalPyramidFonts } from "../helpers/fonts.js"
+import { getHorizontalPyramidFonts } from "../core/fonts.js"
 
 export interface PopulationPyramidHorizontalProps {
     simulation: Simulation

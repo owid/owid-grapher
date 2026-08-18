@@ -4,14 +4,14 @@ import { HISTORICAL_TIME_RANGE, PROJECTION_TIME_RANGE } from "./constants.js"
 import {
     calculateTFRFromRaw,
     estimateLifeExpectancy,
-} from "../model/scenarios.js"
+} from "./model/scenarios.js"
 import {
     getProjectionFertilityForYear,
     getProjectionDeathsForYear,
     getProjectionMigrationRateForYear,
     getProjectionPopulationForYear,
     calculateTFR,
-} from "../model/model.js"
+} from "./model/model.js"
 import type { Simulation } from "./useSimulation.js"
 import { getDeathsForYear, getMigrationRateForYear } from "./utils.js"
 import { ParameterKey } from "./types.js"

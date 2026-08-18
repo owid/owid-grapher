@@ -1,5 +1,5 @@
 import { Bounds } from "@ourworldindata/utils"
-import { getCategoryColor, TreeNode } from "../helpers/CausesOfDeathConstants"
+import { getCategoryColor, TreeNode } from "../core/CausesOfDeathConstants"
 
 import { CausesOfDeathTreemapTileLabels } from "./CausesOfDeathTreemapTileLabels"
 

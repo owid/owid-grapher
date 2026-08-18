@@ -20,7 +20,7 @@ import { EntityName } from "@ourworldindata/types"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 import { orderOptionsByRelevance } from "../../../../components/EntityDropdown/EntityDropdown.js"
 
-import { DemographyMetadata } from "../helpers/types.js"
+import { DemographyMetadata } from "../core/types.js"
 import {
     formatEntityNameForSentence,
     stripEntityNameSuffixes,

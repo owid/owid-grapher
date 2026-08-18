@@ -14,9 +14,9 @@ import { darkenColorForText } from "@ourworldindata/grapher/src/color/ColorUtils
 
 import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
-import { formatAxisTick, PyramidRow, PyramidView } from "../helpers.js"
-import { ShowMode } from "../types.js"
-import { MEN_COLOR, NATIVE_LINE_COLOR, WOMEN_COLOR } from "../constants.js"
+import { formatAxisTick, PyramidRow, PyramidView } from "../core/helpers.js"
+import { ShowMode } from "../core/types.js"
+import { MEN_COLOR, NATIVE_LINE_COLOR, WOMEN_COLOR } from "../core/constants.js"
 import { MigrantPyramidTooltip } from "./MigrantPyramidTooltip.js"
 
 export interface SexHeaderLabel {

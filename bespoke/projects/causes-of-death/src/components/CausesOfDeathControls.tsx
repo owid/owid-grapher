@@ -12,7 +12,7 @@ import {
     SwitcherItem,
 } from "../../../../components/Switcher/Switcher.js"
 
-import { CausesOfDeathMetadata } from "../helpers/CausesOfDeathMetadata.js"
+import { CausesOfDeathMetadata } from "../core/CausesOfDeathMetadata.js"
 import { CausesOfDeathTimeSlider } from "./CausesOfDeathTimeSlider.js"
 
 export function CausesOfDeathControls({

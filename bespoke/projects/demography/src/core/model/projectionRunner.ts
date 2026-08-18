@@ -12,15 +12,15 @@ import {
     type MigrationOptions,
     type YearResult,
 } from "./model"
-import { getPopulationForYear, groupByAgeRange } from "../helpers/utils"
-import type { CountryData, PopulationBySex } from "../helpers/types"
+import { getPopulationForYear, groupByAgeRange } from "../utils"
+import type { CountryData, PopulationBySex } from "../types"
 import type { ScenarioParams } from "./scenarios"
 import {
     START_YEAR,
     HISTORICAL_END_YEAR,
     END_YEAR,
     PYRAMID_AGE_GROUPS,
-} from "../helpers/constants"
+} from "../constants"
 
 function getInterpolatedValue(
     points: Record<number, number>,

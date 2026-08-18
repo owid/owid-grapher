@@ -2,9 +2,9 @@
  * Scenario generation helpers.
  */
 
-import { FERTILITY_AGE_GROUPS } from "../helpers/constants"
-import type { CountryData, ParameterKey } from "../helpers/types"
-import { getDeathsForYear, getMigrationRateForYear } from "../helpers/utils"
+import { FERTILITY_AGE_GROUPS } from "../constants"
+import type { CountryData, ParameterKey } from "../types"
+import { getDeathsForYear, getMigrationRateForYear } from "../utils"
 import {
     calculateMortalityRates,
     getProjectionDeathsForYear,

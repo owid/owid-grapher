@@ -11,9 +11,9 @@ import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
-import { SankeyVariantConfig, Flow, VariantProps } from "../config.js"
-import { FoodTradeMetadata, ProductTradeData, Mode } from "../types.js"
-import { useFoodTradeMetadata, useProductTradeData } from "../data.js"
+import { SankeyVariantConfig, Flow, VariantProps } from "../core/config.js"
+import { FoodTradeMetadata, ProductTradeData, Mode } from "../core/types.js"
+import { useFoodTradeMetadata, useProductTradeData } from "../core/data.js"
 import { FoodTradeControls } from "../components/FoodTradeControls.js"
 import { FoodTradeChart } from "../components/FoodTradeChart.js"
 import {
@@ -21,7 +21,7 @@ import {
     formatTrade,
     isAllCountry,
     BILATERAL_LOW_VOLUME_THRESHOLD,
-} from "../helpers.js"
+} from "../core/helpers.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"

@@ -3,17 +3,13 @@
  * Uses single-year ages (0-200) for accurate aging.
  */
 
-import {
-    MAX_AGE,
-    OWID_AGE_GROUPS,
-    FERTILITY_AGE_GROUPS,
-} from "../helpers/constants"
+import { MAX_AGE, OWID_AGE_GROUPS, FERTILITY_AGE_GROUPS } from "../constants"
 import type {
     CountryData,
     PopulationBySex,
     DeathsByAgeGroup,
     MortalityRates,
-} from "../helpers/types"
+} from "../types"
 import {
     getAgeGroupStart,
     expandToSingleYearAges,
@@ -21,7 +17,7 @@ import {
     getDeathsForYear,
     getMigrationRateForYear,
     getTotalPopulation,
-} from "../helpers/utils"
+} from "../utils"
 
 // -- Model-only data accessors --
 

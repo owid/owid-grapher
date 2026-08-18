@@ -8,9 +8,9 @@ import {
     formatTooltipCount,
     formatTooltipShare,
     PyramidRow,
-} from "../helpers.js"
-import { ShowMode } from "../types.js"
-import { MEN_COLOR, WOMEN_COLOR } from "../constants.js"
+} from "../core/helpers.js"
+import { ShowMode } from "../core/types.js"
+import { MEN_COLOR, WOMEN_COLOR } from "../core/constants.js"
 
 export function MigrantPyramidTooltip({
     migrants,

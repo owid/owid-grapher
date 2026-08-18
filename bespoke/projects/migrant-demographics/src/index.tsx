@@ -7,8 +7,8 @@ import type {
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
 
-import { VariantName } from "./types.js"
-import { parseConfig } from "./config.js"
+import { VariantName } from "./core/types.js"
+import { parseConfig } from "./core/config.js"
 import { PyramidVariant } from "./variants/PyramidVariant.js"
 
 import "./index.scss"

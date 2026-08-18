@@ -5,8 +5,8 @@ import {
     CONTROL_YEARS,
     OWID_AGE_GROUPS,
     START_YEAR,
-} from "../helpers/constants"
-import type { CountryData, PopulationBySex } from "../helpers/types"
+} from "../constants"
+import type { CountryData, PopulationBySex } from "../types"
 import type { ScenarioParams } from "./scenarios"
 import {
     getInterpolatedValue,
@@ -23,7 +23,7 @@ import {
     type BaselineParams,
     type YearResult,
 } from "./model"
-import { getAgeGroupStart } from "../helpers/utils"
+import { getAgeGroupStart } from "../utils"
 
 // -- Fixture helpers --
 

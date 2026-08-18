@@ -22,20 +22,20 @@ import {
 } from "../../../../hooks/useResolveUserLocation.js"
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 
-import { PyramidVariantConfig } from "../config.js"
-import { ShowMode, VariantProps } from "../types.js"
+import { PyramidVariantConfig } from "../core/config.js"
+import { ShowMode, VariantProps } from "../core/types.js"
 import {
     MigrantDemographics,
     queryClient,
     useMigrantDemographics,
-} from "../data.js"
+} from "../core/data.js"
 import {
     computeAxisMax,
     computePyramidView,
     formatCountLong,
     formatSexShare,
-} from "../helpers.js"
-import { DEFAULT_COUNTRY, NARROW_BREAKPOINT } from "../constants.js"
+} from "../core/helpers.js"
+import { DEFAULT_COUNTRY, NARROW_BREAKPOINT } from "../core/constants.js"
 import { MigrantPyramid } from "../components/MigrantPyramid.js"
 import { PyramidControls } from "../components/PyramidControls.js"
 

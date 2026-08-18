@@ -4,7 +4,7 @@ import { codeToEntityName, entityNameToCode } from "@ourworldindata/grapher"
 import { CONTROL_YEARS, START_YEAR, END_YEAR } from "./constants.js"
 import { isValidParameterKey, type ParameterKey } from "./types.js"
 import { parameterConfigByKey } from "./parameterConfigs.js"
-import type { ScenarioParams } from "../model/scenarios.js"
+import type { ScenarioParams } from "./model/scenarios.js"
 
 export const DEMOGRAPHY_COUNTRY_PARAM = "demographyCountry"
 export const DEMOGRAPHY_FERTILITY_PARAM = "demographyFertility"

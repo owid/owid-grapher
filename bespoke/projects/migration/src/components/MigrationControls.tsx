@@ -26,8 +26,8 @@ import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 
-import { MigrationMetadata, MigrationView, Sex } from "../types.js"
-import { sexFromName, OTHERS_ENTITY_NAME } from "../helpers.js"
+import { MigrationMetadata, MigrationView, Sex } from "../core/types.js"
+import { sexFromName, OTHERS_ENTITY_NAME } from "../core/helpers.js"
 
 const VIEW_ITEMS: SwitcherItem<MigrationView>[] = [
     {

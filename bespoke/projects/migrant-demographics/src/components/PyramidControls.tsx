@@ -19,8 +19,8 @@ import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 
-import { MigrantDemographics } from "../data.js"
-import { ShowMode } from "../types.js"
+import { MigrantDemographics } from "../core/data.js"
+import { ShowMode } from "../core/types.js"
 
 // The switcher buttons don't wrap, so below a certain width the full labels
 // push the control out past the frame rather than compressing

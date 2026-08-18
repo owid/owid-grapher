@@ -1,15 +1,11 @@
 import { describe, it, expect } from "vitest"
-import {
-    MAX_AGE,
-    OWID_AGE_GROUPS,
-    FERTILITY_AGE_GROUPS,
-} from "../helpers/constants"
+import { MAX_AGE, OWID_AGE_GROUPS, FERTILITY_AGE_GROUPS } from "../constants"
 import type {
     CountryData,
     PopulationBySex,
     DeathsByAgeGroup,
     MortalityRates,
-} from "../helpers/types"
+} from "../types"
 import {
     applyOldAgeClosure,
     calculateMortalityRates,
@@ -38,7 +34,7 @@ import {
     splitNetMigrationFlows,
     calculateMigrationDelta,
 } from "./model"
-import { getAgeGroupStart } from "../helpers/utils"
+import { getAgeGroupStart } from "../utils"
 
 // -- Fixture helpers --
 

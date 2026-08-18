@@ -27,7 +27,7 @@ import {
     SplitFlowSankey,
 } from "../../../../components/Sankey/SplitFlowSankey.js"
 
-import { MigrationFlow, MigrationView, Sex } from "../types.js"
+import { MigrationFlow, MigrationView, Sex } from "../core/types.js"
 import {
     capItems,
     formatPeople,
@@ -35,7 +35,7 @@ import {
     getSexAdjective,
     getSexNoun,
     OTHERS_ENTITY_NAME,
-} from "../helpers.js"
+} from "../core/helpers.js"
 
 // "Other countries" is a real aggregate row in the migration data, not a
 // navigable country (the country dropdown filters it out), so it must never

@@ -25,13 +25,13 @@ import {
     DEFAULT_FONT_SETTINGS,
 } from "../../../../components/Sankey/SplitFlowSankey.js"
 
-import { type TradeRow } from "../types.js"
+import { type TradeRow } from "../core/types.js"
 import {
     capItems,
     formatShare,
     formatTrade,
     tradesToFlows,
-} from "../helpers.js"
+} from "../core/helpers.js"
 import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 
 type FoodTradeSplitSankeyProps = {

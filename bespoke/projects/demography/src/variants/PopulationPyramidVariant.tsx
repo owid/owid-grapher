@@ -7,19 +7,19 @@ import {
     DemographySkeleton,
 } from "../components/DemographyLoadAndError.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
-import { queryClient, useDemographyData } from "../helpers/fetch.js"
+import { queryClient, useDemographyData } from "../core/fetch.js"
 import type {
     PopulationPyramidUnit,
     PopulationPyramidVariantConfig,
     VariantProps,
-} from "../config.js"
-import { groupAgeGroupsByZone } from "../helpers/utils.js"
+} from "../core/config.js"
+import { groupAgeGroupsByZone } from "../core/utils.js"
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
-import { CountryData, DemographyMetadata } from "../helpers/types.js"
+import { CountryData, DemographyMetadata } from "../core/types.js"
 import {
     useSimulation,
     computeScenarioOverrides,
-} from "../helpers/useSimulation.js"
+} from "../core/useSimulation.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
@@ -32,13 +32,13 @@ import {
     END_YEAR,
     FULL_TIME_RANGE,
     START_YEAR,
-} from "../helpers/constants.js"
+} from "../core/constants.js"
 import {
     BreakpointProvider,
     useContainerBreakpoint,
     breakpointClass,
-} from "../helpers/useBreakpoint.js"
-import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
+} from "../core/useBreakpoint.js"
+import { useInitialEntityName } from "../core/useInitialEntityName.js"
 import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 
 export function PopulationPyramidVariant({

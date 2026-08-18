@@ -38,15 +38,15 @@ import {
     getTotalPopulationFromArrays,
     type BaselineParams,
     type YearResult,
-} from "../model/model"
+} from "./model/model"
 import {
     calculateUNWPPScenario,
     calculateTFRFromRaw,
     estimateLifeExpectancy,
     type ScenarioParams,
     type ScenarioConstants,
-} from "../model/scenarios"
-import { runProjectionResults } from "../model/projectionRunner"
+} from "./model/scenarios"
+import { runProjectionResults } from "./model/projectionRunner"
 import { isControlPointModified } from "./urlState"
 
 const SCENARIO_CONSTANTS: ScenarioConstants = {

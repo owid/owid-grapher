@@ -11,12 +11,12 @@ import * as R from "remeda"
 import { Time } from "@ourworldindata/types"
 import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
 
-import { CausesOfDeathConfig } from "../helpers/CausesOfDeathConstants.js"
+import { CausesOfDeathConfig } from "../core/CausesOfDeathConstants.js"
 import {
     useCausesOfDeathEntityData,
     useCausesOfDeathMetadata,
-} from "../helpers/CausesOfDeathDataFetching.js"
-import { CausesOfDeathMetadata } from "../helpers/CausesOfDeathMetadata.js"
+} from "../core/CausesOfDeathDataFetching.js"
+import { CausesOfDeathMetadata } from "../core/CausesOfDeathMetadata.js"
 import { CausesOfDeathCaptionedChart } from "./CausesOfDeathCaptionedChart.js"
 import { CausesOfDeathControls } from "./CausesOfDeathControls.js"
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import type { ScenarioParams } from "../model/scenarios"
+import type { ScenarioParams } from "./model/scenarios"
 import {
     DEMOGRAPHY_COUNTRY_PARAM,
     DEMOGRAPHY_FERTILITY_PARAM,

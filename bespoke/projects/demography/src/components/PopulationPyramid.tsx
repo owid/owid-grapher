@@ -6,36 +6,36 @@ import { AxisBottom } from "@visx/axis"
 import { Group } from "@visx/group"
 import type { ScaleLinear } from "d3-scale"
 import { BezierArrow } from "@ourworldindata/grapher"
-import type { Simulation } from "../helpers/useSimulation"
+import type { Simulation } from "../core/useSimulation"
 import {
     AGE_ZONE_BACKGROUND_OPACITY,
     DENIM_BLUE,
     GRID_LINE_COLOR,
     GRID_LABEL_COLOR,
     PYRAMID_AGE_GROUPS,
-} from "../helpers/constants"
+} from "../core/constants"
 import {
     GRAPHER_DARK_TEXT,
     GRAPHER_LIGHT_TEXT,
 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { darkenColorForText } from "@ourworldindata/grapher/src/color/ColorUtils.js"
 import { TextWrap } from "@ourworldindata/components"
-import { computeMaxAgeGroupPopulation } from "../model/projectionRunner"
+import { computeMaxAgeGroupPopulation } from "../core/model/projectionRunner"
 import {
     groupByAgeRange,
     calculateMedianAge,
     findAgeGroup,
     formatPopulationValueShort,
     formatPopulationAxisLabelShort,
-} from "../helpers/utils"
+} from "../core/utils"
 import { Bounds } from "@ourworldindata/utils"
-import type { AgeZone, AgeZoneWithBounds } from "../helpers/types.js"
-import { toBreakpoint, useBreakpoint } from "../helpers/useBreakpoint.js"
+import type { AgeZone, AgeZoneWithBounds } from "../core/types.js"
+import { toBreakpoint, useBreakpoint } from "../core/useBreakpoint.js"
 import { useDismissOnTouchOutside } from "../../../../hooks/useDismissOnTouchOutside.js"
 import {
     getPopulationPyramidFonts,
     type PopulationPyramidFonts,
-} from "../helpers/fonts.js"
+} from "../core/fonts.js"
 
 // Labels reversed so 0-4 at bottom, oldest at top
 const AGE_GROUP_LABELS = [...PYRAMID_AGE_GROUPS].reverse()
