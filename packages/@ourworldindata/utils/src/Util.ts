@@ -1783,6 +1783,11 @@ export function traverseEnrichedBlock(
         })
         .with({ type: "table" }, (table) => {
             callback(table)
+            if (spanCallback && table.caption) {
+                table.caption.forEach((span) =>
+                    traverseEnrichedSpan(span, spanCallback)
+                )
+            }
             table.rows.forEach((row) => {
                 row.cells.forEach((cell) => {
                     cell.content.forEach((node) => {
@@ -1863,18 +1868,34 @@ export function traverseEnrichedBlock(
         })
         .with(
             {
+                // Blocks whose only spans live in an optional caption
                 type: P.union(
-                    "chart-story",
                     "chart",
                     "narrative-chart",
+                    "image",
+                    "video",
+                    "static-viz"
+                ),
+            },
+            (block) => {
+                callback(block)
+                if (spanCallback && block.caption) {
+                    block.caption.forEach((span) =>
+                        traverseEnrichedSpan(span, spanCallback)
+                    )
+                }
+            }
+        )
+        .with(
+            {
+                type: P.union(
+                    "chart-story",
                     "code",
                     "cookie-notice",
                     "cta",
                     "donors",
                     "horizontal-rule",
                     "html",
-                    "image",
-                    "video",
                     "missing-data",
                     "prominent-link",
                     "pull-quote",
@@ -1895,7 +1916,6 @@ export function traverseEnrichedBlock(
                     "featured-data-insights",
                     "latest-data-insights",
                     "socials",
-                    "static-viz",
                     "country-profile-selector",
                     "bespoke-component"
                 ),
@@ -1926,6 +1946,7 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
                             "span-superscript",
                             "span-subscript",
                             "span-underline",
+                            "span-strikethrough",
                             "span-ref",
                             "span-dod",
                             "span-guided-chart-link"

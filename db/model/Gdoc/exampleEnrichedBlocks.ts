@@ -43,6 +43,71 @@ const enrichedBlockText: EnrichedBlockText = {
     parseErrors: [],
 }
 
+// A text block exercising the full set of inline span types that round-trip
+// through the ArchieML serializers (see the round-trip test in gdocTests).
+// Kept separate from boldLinkExampleText, which many other examples embed.
+const richSpansExampleText: Span[] = [
+    ...boldLinkExampleText,
+    {
+        spanType: "span-simple-text",
+        text: ", ",
+    },
+    {
+        spanType: "span-italic",
+        children: [{ spanType: "span-simple-text", text: "italic" }],
+    },
+    {
+        spanType: "span-simple-text",
+        text: ", ",
+    },
+    {
+        spanType: "span-underline",
+        children: [{ spanType: "span-simple-text", text: "underlined" }],
+    },
+    {
+        spanType: "span-simple-text",
+        text: " and ",
+    },
+    {
+        spanType: "span-strikethrough",
+        children: [{ spanType: "span-simple-text", text: "struck-through" }],
+    },
+    {
+        spanType: "span-simple-text",
+        text: " text, H",
+    },
+    {
+        spanType: "span-subscript",
+        children: [{ spanType: "span-simple-text", text: "2" }],
+    },
+    {
+        spanType: "span-simple-text",
+        text: "O, E=mc",
+    },
+    {
+        spanType: "span-superscript",
+        children: [{ spanType: "span-simple-text", text: "2" }],
+    },
+    {
+        spanType: "span-simple-text",
+        text: " and ",
+    },
+    {
+        spanType: "span-quote",
+        children: [{ spanType: "span-simple-text", text: "a quote" }],
+    },
+    {
+        spanType: "span-simple-text",
+        text: ".",
+    },
+]
+
+const enrichedBlockRichText: EnrichedBlockText = {
+    type: "text",
+    value: richSpansExampleText,
+    parseErrors: [],
+}
+
 const enrichedChart: EnrichedBlockChart = {
     type: "chart",
     url: "https://ourworldindata.org/grapher/total-cases-covid-19",
@@ -91,7 +156,7 @@ export const enrichedBlockExamples: Record<
     OwidEnrichedGdocBlock["type"],
     OwidEnrichedGdocBlock
 > = {
-    text: enrichedBlockText,
+    text: enrichedBlockRichText,
     "simple-text": {
         type: "simple-text",
         value: {
@@ -228,6 +293,7 @@ export const enrichedBlockExamples: Record<
     },
     callout: {
         type: "callout",
+        icon: "info",
         parseErrors: [],
         text: [
             {
@@ -296,7 +362,7 @@ export const enrichedBlockExamples: Record<
         filename: "https://ourworldindata.org/assets/images/example-poster.jpg",
         caption: boldLinkExampleText,
         shouldLoop: true,
-        shouldAutoplay: false,
+        shouldAutoplay: true,
         visibility: "mobile",
         parseErrors: [],
     },
@@ -535,6 +601,12 @@ export const enrichedBlockExamples: Record<
             type: "topic-page-intro-download-button",
         },
         relatedTopics: [
+            {
+                // a gdoc-linked topic carries no text — it must not swallow
+                // the following topic's fields when serialized to ArchieML
+                url: "https://docs.google.com/document/d/abcd1234",
+                type: "topic-page-intro-related-topic",
+            },
             {
                 text: "Poverty",
                 url: "https://ourworldindata.org/poverty",
@@ -919,6 +991,14 @@ export const enrichedBlockExamples: Record<
         type: "homepage-intro",
         featuredWork: [
             {
+                // a title-less gdoc-linked tile, deliberately first: it must
+                // survive the ArchieML round trip as its own item instead of
+                // absorbing the next tile's title
+                url: "https://docs.google.com/document/d/abcd1234",
+                kicker: "Announcement",
+                isNew: false,
+            },
+            {
                 url: "https://ourworldindata.org/optimism-and-pessimism",
                 title: "Optimism & Pessimism",
                 description:
@@ -945,13 +1025,6 @@ export const enrichedBlockExamples: Record<
                 kicker: "Article - 10 Mins",
                 filename: "featured-image.jpg",
                 authors: ["Max Roser"],
-                isNew: false,
-            },
-            {
-                url: "https://ourworldindata.org/front-end-engineer",
-                title: "We’re looking for a front-end engineer to join our team.",
-                kicker: "Announcement",
-                authors: ["Our World In Data"],
                 isNew: false,
             },
         ],
