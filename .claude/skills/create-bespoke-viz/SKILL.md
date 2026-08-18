@@ -7,9 +7,9 @@ metadata:
 
 # Creating Bespoke Data Viz
 
-Bespoke projects are one-off, self-contained visualizations embedded in OWID articles via Shadow DOM. Each project under `bespoke/projects/` has its own `package.json`, dependencies, and Vite build; the output is an ES module exporting a `mount` function. Read [bespoke/readme.md](../../../bespoke/readme.md) first — it is the authoritative doc for the mount interface, Shadow DOM mechanics, ArchieML embedding, and jotai-based cross-variant state. This skill covers the conventions the readme doesn't: layout, controls, shared components, and what to reuse from the grapher codebase.
+Bespoke projects are one-off, self-contained visualizations embedded in OWID articles via Shadow DOM. Read [bespoke/readme.md](../../../bespoke/readme.md) first — it is the authoritative doc for the mount interface, Shadow DOM mechanics, ArchieML embedding, and jotai-based cross-variant state.
 
-Before starting, **list `bespoke/projects/` and skim the one or two existing projects closest in shape to what you're building** — real projects are the best blueprint for current conventions, and newer ones tend to reflect them best. The `example` project is special: it's the minimal starter template, maintained to be copied rather than shipped. Where the sections below cite a specific project, that's an example of where a pattern lives today, not a canon — prefer newer precedent if it diverges.
+Before starting, **list `bespoke/projects/` and skim the one or two existing projects closest in shape to what you're building** — real projects are the best blueprint for current conventions, and the newest ones reflect them best. `example` is the minimal starter template, maintained to be copied rather than shipped. Projects cited below show where a pattern lives today, not canon — prefer newer precedent if it diverges.
 
 ## 1. Scaffolding a new project
 
@@ -19,7 +19,7 @@ Two things the readme doesn't cover:
 
 **The dedupe trap.** `resolve.dedupe` in `vite.config.ts` must list every library that has to be a singleton. The linked packages (and the shared `bespoke/components`/`hooks` workspaces) resolve deps against their real paths, so without dedupe you get a second React copy (breaks hooks), a second react-query (breaks the QueryClient context), or a second react-aria (breaks overlays). Baseline is `["react", "react-dom", "@react-stately/flags"]`; existing projects extend it with `"@tanstack/react-query"` and/or the react-aria packages — check the dedupe list (and its comment) in the project closest to yours.
 
-**Config parsing.** ArchieML config values are always **strings**. Every project has a `src/core/config.ts` exporting its config interface plus a `parseConfig(raw: Record<string, string>)` (see `food-trade/src/core/config.ts`), built from the shared value parsers in `bespoke/helpers/config.ts` — `parseBoolean`, `parseNumber`, `parseInteger`, `parseEnum(value, allowed)`, and the `VariantProps<Config>` type. Don't re-roll those; do keep project-specific parsers local (demography parses a CSV of assumption control points). Readers author these values by hand, so a malformed one degrades to `undefined` rather than throwing. For an enum, declare the runtime list and derive the type from it (`const FLOWS = [...] as const; type Flow = (typeof FLOWS)[number]`) so `parseEnum` and the type can't drift apart. Support the conventional keys where they make sense: `title`, `subtitle` (override the generated ones), `hideControls`, `urlSync`, and an entity default (`country` or `region`) that accepts the sentinel `"userLocation"` (resolve it with the `useResolveUserLocation` hook).
+**Config parsing.** ArchieML config values are always **strings**. Every project has a `src/core/config.ts` exporting its config interface plus a `parseConfig(raw: Record<string, string>)` (see `food-trade/src/core/config.ts`), built from the shared value parsers in `bespoke/helpers/config.ts` — `parseBoolean`, `parseNumber`, `parseInteger`, `parseEnum(value, allowed)`, and the `VariantProps<Config>` type. Don't re-roll those; do keep project-specific parsers local. Readers author these values by hand, so a malformed one degrades to `undefined` rather than throwing. For an enum, declare the runtime list and derive the type from it (`const FLOWS = [...] as const; type Flow = (typeof FLOWS)[number]`) so `parseEnum` and the type can't drift apart. Support the conventional keys where they make sense: `title`, `subtitle` (override the generated ones), `hideControls`, `urlSync`, and an entity default (`country` or `region`) that accepts the sentinel `"userLocation"` (resolve it with the `useResolveUserLocation` hook).
 
 ## 2. Layout: where files go, and how a chart is composed
 
@@ -36,12 +36,11 @@ src/
 
 **Everything non-visual lives in `core/`** — `config.ts`, `types.ts`, `constants.ts`,
 `data.ts`/`fetch.ts`, `helpers.ts`, hooks, metadata classes, layout algorithms, and their
-`*.test.ts` files. Apart from `index.tsx`, the stylesheets and the boilerplate files copied
-from `example` (`dev-only-global-css.css`, `vite-env.d.ts`), nothing sits at the `src/` root.
-Split `core/` into subfolders only when one part grows into its own layer (demography's
-simulation is `core/model/`); a project with a handful of modules keeps them flat in `core/`.
-A single-variant project can skip `variants/` and keep the variant in `components/`
-(causes-of-death does), but the three layers below still apply.
+`*.test.ts` files. Nothing but `index.tsx`, the stylesheets and the boilerplate copied from
+`example` sits at the `src/` root. Split `core/` into subfolders only when one part grows into
+its own layer (demography's simulation is `core/model/`). A single-variant project can skip
+`variants/` and keep the variant in `components/` (causes-of-death does), but the three layers
+below still apply.
 
 Every project structures a variant in three layers — follow this naming/altitude convention:
 
@@ -49,12 +48,12 @@ Every project structures a variant in three layers — follow this naming/altitu
 2. `Fetching<Name>Variant` — data queries, URL state, and the skeleton / error / empty-state gates;
 3. the captioned chart (`Captioned<Name>Variant` / `<Name>CaptionedChart`) — the visual composition below.
 
-For the composition, the standard is two stacked cards: a `Controls` box (gated on `!config.hideControls`) above a `Frame` holding `ChartHeader` → chart area → `ChartFooter`. Inside the controls box, dropdowns/switchers/checkboxes go in a `ControlsRow` and the `TimeSlider` sits outside the row. The captioned-chart Frame is universal, and the controls block is a `Controls` box (a `Frame` under the hood) in every project that has one. The alternative is no controls block at all, with the entity selector embedded inline in the title (demography).
+For the composition, the standard is two stacked cards: a `Controls` box (gated on `!config.hideControls`) above a `Frame` holding `ChartHeader` → chart area → `ChartFooter`. Inside the controls box, dropdowns/switchers/checkboxes go in a `ControlsRow` and the `TimeSlider` sits outside the row.
 
 Conventions that go with this:
 
 - **Controls are harmonized across all bespoke projects** — don't restyle them per project:
-    - the controls area is a box (`Controls`), with no "Configure the data" heading;
+    - the controls box gets no "Configure the data" heading;
     - every dropdown, switcher, and checkbox-style control carries a small gray uppercase label above it — `LabeledDropdown`/`EntityDropdown` render theirs from the `label` prop, anything else goes inside `<LabeledControl label="…">`;
     - a checkbox labels itself, so it gets no label above; the row bottom-aligns its controls so it still lines up;
     - the time slider gets no label.
@@ -66,7 +65,7 @@ Conventions that go with this:
 
 ## 3. Shared components (`bespoke/components/`), hooks (`bespoke/hooks/`) and helpers (`bespoke/helpers/`)
 
-Before building a control, tooltip helper, sizing hook, or config/label utility, check what already exists: **list `bespoke/components/`, `bespoke/hooks/` and `bespoke/helpers/` for the current inventory** — the names are self-explanatory — and read the prop types / signatures of whatever looks relevant. Every project uses the chart chrome (`Frame`, `ChartHeader`, `ChartFooter`, `Spinner`); beyond that expect the controls box (`Controls`, `ControlsRow`, `LabeledControl`) and the controls themselves (`LabeledDropdown`, the geolocation-aware `EntityDropdown`, a `Switcher`, a `TimeSlider`), a full Sankey toolkit (bilateral and split-flow layouts — don't build a second Sankey), and hooks for container sizing, URL state, delayed loading, geolocation, and touch/Shadow-DOM-aware tooltips. `bespoke/helpers/` holds the framework-free utilities every project reaches for: the ArchieML config parsers and `VariantProps` (`config.ts`, see §1) and entity-name formatting for narrative titles (`entityNames.ts`).
+Before building a control, tooltip helper, sizing hook, or config/label utility, check what already exists: **list `bespoke/components/`, `bespoke/hooks/` and `bespoke/helpers/`** — the names are self-explanatory — and read the prop types / signatures of whatever looks relevant. Two things the filenames undersell: `EntityDropdown` is geolocation-aware (see the ordering below), and `Sankey/` is a full toolkit with bilateral and split-flow layouts — don't build a second Sankey.
 
 Entity dropdowns across projects share a **relevance ordering**: pinned aggregates (e.g. World) → current selection → the user's own country/continent marked with a location icon (via `useUserCountryInformation`) → the rest alphabetically. Reuse that pattern (and the `"userLocation"` config sentinel) rather than a flat alphabetical list.
 
@@ -78,7 +77,7 @@ Non-obvious facts about consuming them:
 - Styles are **opt-in**: component `.tsx` files never import their own styles — the consumer must `@import` the matching `.scss` partial in `index.scss`, **after** the OWID SCSS variables are in scope (the partials use `$dark-text`, `$frame-color`, etc. without defining them). See §6.
 - Hooks built on react-query (e.g. `useUserCountryInformation`) need a `<QueryClientProvider>` in the variant tree.
 
-`bespoke/shared/` is different: it's code shared with the **site rendering code** (mount types, Shadow-DOM mounting, `exportSvg.ts` for the demo page's "Download SVGs" button). Don't add project utilities there.
+`bespoke/shared/` is different: it's code shared with the **site rendering code** (mount types, Shadow-DOM mounting). Don't add project utilities there.
 
 ## 4. Reusing utilities from the grapher codebase
 
@@ -87,7 +86,7 @@ The `@ourworldindata/*` packages are linked in per project (`link:../../../packa
 - skim the package entry points (`packages/@ourworldindata/{utils,grapher,components}/src/index.ts`) for exported symbols, or grep the packages for a likely name;
 - see what existing projects already import: `grep -rh "@ourworldindata" bespoke/projects/*/src`.
 
-A non-exhaustive sample of what projects have reused, to give a sense of the breadth: `formatValue` (+ `OwidVariableRoundingMode`) for number formatting; the region helpers (`getRegionByName`, …) for region metadata; `Bounds`, `getRelativeMouse`, `isTouchDevice` for SVG geometry and interaction; `Tippy` plus Grapher's `TooltipCard`/`TooltipValue`/`TooltipTable` for tooltips; `TextWrap`/`MarkdownTextWrap`/`Halo` for SVG text; Grapher's `Dropdown` control; `BezierArrow` for annotations (from `@ourworldindata/grapher` — `bespoke/components/BezierArrow/` is just a dev-time debug wrapper with draggable handles for finding offsets); `fetchJson` and URL-param helpers.
+A non-exhaustive sample of what projects have reused: `formatValue` (+ `OwidVariableRoundingMode`) for number formatting; the region helpers (`getRegionByName`, …) for region metadata; `Bounds`, `getRelativeMouse`, `isTouchDevice` for SVG geometry and interaction; `Tippy` plus Grapher's `TooltipCard`/`TooltipValue`/`TooltipTable` for tooltips; `TextWrap`/`MarkdownTextWrap`/`Halo` for SVG text; Grapher's `Dropdown` control; `BezierArrow` for annotations (from `@ourworldindata/grapher` — `bespoke/components/BezierArrow/` is just a dev-time debug wrapper with draggable handles for finding offsets); `fetchJson` and URL-param helpers.
 
 For third-party utilities, projects lean on `remeda` (imported as `* as R`) and `ts-pattern`'s `match` — prefer these over hand-rolled loops and switch statements.
 
@@ -102,19 +101,13 @@ Default to the OWID palettes — don't invent hex values. The palettes live in `
 - **Categorical series**: `OwidDistinctColors` (`.../color/CustomSchemes.js`) — the named 24-color palette (`.Denim`, `.Maroon`, …).
 - **Text & UI grays**: `GRAPHER_LIGHT_TEXT` (the workhorse for secondary text), `GRAPHER_DARK_TEXT`, `GRAY_5`…`GRAY_100` (`.../color/ColorConstants.js`).
 - **Helpers** like `isDarkColor`/`darkenColorForText` (`.../color/ColorUtils.js`) for picking legible label colors on colored marks.
-- SCSS side: the OWID variables are in scope via `grapher.scss` (§6) — in practice mostly `$dark-text`, `$frame-color`, and the typography stacks.
 
-Hardcoding hex is acceptable only for **semantic, domain-specific colors** with no palette equivalent — e.g. causes-of-death's five category colors or demography's magenta "user-modified" color. Keep those in one constants file with a single accessor (`getCategoryColor(...)`).
+Hardcoding hex is acceptable only for **semantic, domain-specific colors** with no palette equivalent — e.g. causes-of-death's five category colors. Keep those in one constants file with a single accessor (`getCategoryColor(...)`).
 
 ## 6. Styling & Shadow DOM
 
 - `src/index.scss` is the single import hub, in this order: `normalize.css` → vendor CSS (Font Awesome's `@fortawesome/fontawesome-svg-core/styles.css`, tippy + its light theme) → `./grapher.scss` (the OWID SCSS partials) → `./base.scss` → your project styles (a single `styles.scss` or per-component partials) → each shared component's `.scss` partial you use. Copy `grapher.scss` from an existing project — it pulls the OWID SCSS partials (colors, variables, typography, mixins) from the `@ourworldindata/components` and `grapher` packages, putting `$sans-serif-font-stack`, `$serif-font-stack`, `$dark-text`, `$gray-*`, and the `sm-only` mixin in scope.
-- `base.scss` sets the host font — **use `:host`, not `:root`** inside a Shadow DOM:
-    ```scss
-    :host {
-        font-family: typography.$sans-serif-font-stack;
-    }
-    ```
+- `base.scss` sets the host font — **use `:host`, not `:root`** inside a Shadow DOM.
 - **Fonts**: don't bundle `@font-face` — Lato/Playfair are declared by the host document and `@font-face` is document-scoped, so it works inside the shadow root. Just reference the family names via the SCSS stacks.
 - Strict **BEM** with full class names written out (`.my-viz-controls__row`, never `&__row`), per repo convention.
 - **Portal gotchas**:
@@ -124,7 +117,7 @@ Hardcoding hex is acceptable only for **semantic, domain-specific colors** with 
 
 ## 7. Tooltips
 
-Two kinds of tooltips with different tooling — check how existing projects and the shared Sankey component wire them before building your own.
+Two kinds of tooltips, with different tooling.
 
 **Data tooltips** (hovering chart marks): build on Grapher's tooltip primitives instead of rolling your own chrome. `TooltipCard` (`@ourworldindata/grapher/src/tooltip/TooltipCard.js`) is the positioned card — `x`/`y`, `offsetX`/`offsetY`, `title`, `subtitle`, `containerBounds`, `anchor` — with `TooltipValue`/`TooltipTable` rows (`.../tooltip/TooltipContents.js`) inside; its `Tooltip.scss` comes in via the copied `grapher.scss` (check it's there). The established wiring:
 
@@ -132,9 +125,9 @@ Two kinds of tooltips with different tooling — check how existing projects and
 - Pass the chart's `containerBounds` to `TooltipCard` so the card flips/clamps instead of overflowing the chart.
 - If the pointer crosses gaps between adjacent marks (e.g. treemap tiles), delay hover-out (~200 ms `setTimeout` before clearing the target, cancelled on re-enter) so the tooltip doesn't flicker; for contiguous marks, clearing immediately on `mouseleave` is fine.
 - **Touch devices don't hover.** Use `usePinnedTooltip(isActive, onDismiss)`: on touch it returns `isPinned: true` and owns dismissal (tap outside, chart scrolled out of view) — skip your mouse-leave logic there (`if (isTouchDevice()) return`). When pinned, render the card with `anchor={GrapherTooltipAnchor.Bottom}` (from `@ourworldindata/types`) and **no** `containerBounds`, so it sits fixed at the bottom of the viewport instead of following a cursor that doesn't exist.
-- Content conventions: title is the hovered mark/series, subtitle adds context, `TooltipValue` rows take the mark's `color`. Richer content (e.g. inline sparklines) is fine — a tooltip is a regular React subtree.
+- Content conventions: title is the hovered mark/series, subtitle adds context, `TooltipValue` rows take the mark's `color`.
 
-**UI tooltips** (info icons, the CC BY note, "why is this control disabled"): use `Tippy` from `@ourworldindata/utils`, and always pass `useTippyContainer()`'s `getTippyContainer` as `appendTo` — inside a Shadow DOM, Tippy would otherwise portal to `document.body` where your styles don't reach. Bundle tippy's CSS (and theme) in `index.scss`.
+**UI tooltips** (info icons, "why is this control disabled"): use `Tippy` from `@ourworldindata/utils`, and always pass `useTippyContainer()`'s `getTippyContainer` as `appendTo` — inside a Shadow DOM, Tippy would otherwise portal to `document.body` where your styles don't reach. Bundle tippy's CSS (and theme) in `index.scss`.
 
 ## 8. Data loading
 
