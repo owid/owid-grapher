@@ -24,13 +24,8 @@
     padding: 0;
 }
 
-.migration-chart--narrow .migration-controls .controls__content {
-    row-gap: 8px;
-}
-
 .migration-chart--narrow .migration-controls .controls__row {
     flex-direction: column;
-    row-gap: 8px;
 }
 
 .migration-chart--narrow .migration-controls .controls__row > * {
