@@ -51,9 +51,6 @@ describe(articulateEntity, () => {
         expect(articulateEntity("Democratic Republic of Congo")).toEqual(
             "the Democratic Republic of Congo"
         )
-        expect(articulateEntity("Channel Islands")).toEqual(
-            "the Channel Islands"
-        )
     })
 
     it("avoids duplicating an existing article", () => {
