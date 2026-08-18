@@ -190,9 +190,9 @@ Instantiate the `QueryClient` once at module scope.
 
 ## 10. Responsiveness
 
-- Measure your own container: `useChartDimensions` (aspect-ratio-driven height) or `useContainerWidth`. Never assume a width — the article grid gives you 6/8/12 columns depending on the block's `size`.
+- Measure your own container — never assume a width, the article grid gives you 6/8/12 columns depending on the block's `size`. For a chart that fills the space it's given, wrap it in `ResponsiveContainer` (`bespoke/components/`): it takes a render prop, hands down the measured `{ width, height }`, and renders nothing until both are non-zero. For other needs there are hooks: `useContainerWidth` (width only, of self or parent — for variant-level breakpoints) and `useChartDimensions` (aspect-ratio-driven height).
 - Breakpoints are **JS-driven off the container width** (e.g. `const isNarrow = width < 550` — thresholds vary per project), pushed down via context or props, and can change more than fonts: causes-of-death switches tiling algorithms, the Sankeys switch to stacked layout and short number formats. SCSS `sm-only` media queries complement this for text/controls.
-- Guard against zero-size first renders: ResizeObserver can fire before layout, so bail out unless `width > 0 && height > 0`.
+- Guard against zero-size first renders: ResizeObserver can fire before layout, so bail out unless `width > 0 && height > 0` (`ResponsiveContainer` does this for you; measuring by hand doesn't).
 
 ## 11. When to extract into shared code — and when not to
 

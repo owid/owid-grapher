@@ -1,5 +1,4 @@
 import { useCallback, useMemo } from "react"
-import { useParentSize } from "@visx/responsive"
 
 import { TooltipTable } from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
 
@@ -16,6 +15,7 @@ import {
     BilateralTooltipArgs,
 } from "../../../../components/Sankey/BilateralFlowSankey.js"
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
+import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 
 import { type TradeRow } from "../types.js"
 import {
@@ -25,20 +25,37 @@ import {
     BILATERAL_LOW_VOLUME_THRESHOLD,
 } from "../helpers.js"
 
-export function FoodTradeBilateralSankey({
-    trades,
-    year,
-    onSelectEntity,
-}: {
+type FoodTradeBilateralSankeyProps = {
     trades: TradeRow[]
     year: number
     onSelectEntity?: (entity: string, side: "exporter" | "importer") => void
-}) {
-    const { parentRef, width, height } = useParentSize()
+}
 
+export function FoodTradeBilateralSankey(props: FoodTradeBilateralSankeyProps) {
+    return (
+        <div className="food-trade-sankey">
+            <ResponsiveContainer>
+                {(dimensions) => (
+                    <FoodTradeBilateralSankeyContent
+                        {...props}
+                        {...dimensions}
+                    />
+                )}
+            </ResponsiveContainer>
+        </div>
+    )
+}
+
+function FoodTradeBilateralSankeyContent({
+    trades,
+    year,
+    onSelectEntity,
+    width,
+    height,
+}: FoodTradeBilateralSankeyProps & { width: number; height: number }) {
     const flows = useMemo(() => tradesToFlows(trades), [trades])
 
-    const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
+    const isNarrow = width < MOBILE_BREAKPOINT
     const formatValue = useCallback(
         (v: number) => formatTrade(v, { short: isNarrow }),
         [isNarrow]
@@ -58,18 +75,16 @@ export function FoodTradeBilateralSankey({
         : undefined
 
     return (
-        <div ref={parentRef} className="food-trade-sankey">
-            <BilateralFlowSankey
-                flows={flows}
-                width={width}
-                height={height}
-                maxNodes={isNarrow ? 8 : 10} // show fewer nodes on mobile to avoid overcrowding
-                linkLowVolumeThreshold={BILATERAL_LOW_VOLUME_THRESHOLD}
-                formatValue={formatValue}
-                getTooltip={getTooltip}
-                onSelectEntity={handleSelectEntity}
-            />
-        </div>
+        <BilateralFlowSankey
+            flows={flows}
+            width={width}
+            height={height}
+            maxNodes={isNarrow ? 8 : 10} // show fewer nodes on mobile to avoid overcrowding
+            linkLowVolumeThreshold={BILATERAL_LOW_VOLUME_THRESHOLD}
+            formatValue={formatValue}
+            getTooltip={getTooltip}
+            onSelectEntity={handleSelectEntity}
+        />
     )
 }
 

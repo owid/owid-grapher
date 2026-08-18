@@ -1,5 +1,4 @@
 import { useMemo, type ReactNode } from "react"
-import { useParentSize } from "@visx/responsive"
 import cx from "clsx"
 import * as R from "remeda"
 import { match } from "ts-pattern"
@@ -18,6 +17,7 @@ import {
 } from "../../../../components/Sankey/SankeyHelpers.js"
 import { SankeyTooltip } from "../../../../components/Sankey/Sankey.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
+import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 import {
     DEFAULT_FONT_SETTINGS,
     MOBILE_BREAKPOINT,
@@ -42,21 +42,7 @@ import {
 // be selectable by clicking its Sankey node.
 const NON_SELECTABLE_PARTNERS = new Set([OTHERS_ENTITY_NAME])
 
-export function MigrationSankey({
-    immigrants,
-    emigrants,
-    country,
-    year,
-    sex,
-    immigrantsTotal,
-    emigrantsTotal,
-    population,
-    view = "both",
-    setView,
-    setCountry,
-    colorMap,
-    entitiesToSortLast,
-}: {
+type MigrationSankeyProps = {
     immigrants: MigrationFlow[]
     emigrants: MigrationFlow[]
     country: string
@@ -70,9 +56,52 @@ export function MigrationSankey({
     setCountry: (name: string) => void
     colorMap?: Map<string, string>
     entitiesToSortLast?: string[]
-}) {
-    const { parentRef, width, height } = useParentSize()
+}
 
+export function MigrationSankey({
+    view = "both",
+    ...props
+}: MigrationSankeyProps) {
+    return (
+        <div
+            className={cx("migration-sankey", {
+                "migration-sankey--single": view !== "both",
+            })}
+        >
+            <ResponsiveContainer>
+                {(dimensions) => (
+                    <MigrationSankeyContent
+                        {...props}
+                        view={view}
+                        {...dimensions}
+                    />
+                )}
+            </ResponsiveContainer>
+        </div>
+    )
+}
+
+function MigrationSankeyContent({
+    immigrants,
+    emigrants,
+    country,
+    year,
+    sex,
+    immigrantsTotal,
+    emigrantsTotal,
+    population,
+    view,
+    setView,
+    setCountry,
+    colorMap,
+    entitiesToSortLast,
+    width,
+    height,
+}: MigrationSankeyProps & {
+    view: MigrationView
+    width: number
+    height: number
+}) {
     const incomingFlows = useMemo(
         () =>
             immigrants.map<Flow>((f) => ({
@@ -92,7 +121,7 @@ export function MigrationSankey({
         [emigrants, country]
     )
 
-    const isStacked = view === "both" && width > 0 && width < MOBILE_BREAKPOINT
+    const isStacked = view === "both" && width < MOBILE_BREAKPOINT
     const noImmigrants = incomingFlows.length === 0
     const noEmigrants = outgoingFlows.length === 0
     const isPairedSentence =
@@ -130,33 +159,26 @@ export function MigrationSankey({
         .exhaustive()
 
     return (
-        <div
-            ref={parentRef}
-            className={cx("migration-sankey", {
-                "migration-sankey--single": view !== "both",
-            })}
-        >
-            <SplitFlowSankey
-                centralEntity={country}
-                incoming={incomingHalf}
-                outgoing={outgoingHalf}
-                width={width}
-                height={height}
-                formatValue={formatPeople}
-                view={splitView}
-                colorMap={colorMap}
-                onSelectPartner={setCountry}
-                nonSelectablePartners={NON_SELECTABLE_PARTNERS}
-                isStacked={isStacked}
-                fontSettings={
-                    isStacked ? MOBILE_FONT_SETTINGS : DEFAULT_FONT_SETTINGS
-                }
-                maxNodesToShrinkOther={
-                    isStacked ? STACKED_MAX_NODES_TO_SHRINK_OTHER : undefined
-                }
-                entitiesToSortLast={entitiesToSortLast}
-            />
-        </div>
+        <SplitFlowSankey
+            centralEntity={country}
+            incoming={incomingHalf}
+            outgoing={outgoingHalf}
+            width={width}
+            height={height}
+            formatValue={formatPeople}
+            view={splitView}
+            colorMap={colorMap}
+            onSelectPartner={setCountry}
+            nonSelectablePartners={NON_SELECTABLE_PARTNERS}
+            isStacked={isStacked}
+            fontSettings={
+                isStacked ? MOBILE_FONT_SETTINGS : DEFAULT_FONT_SETTINGS
+            }
+            maxNodesToShrinkOther={
+                isStacked ? STACKED_MAX_NODES_TO_SHRINK_OTHER : undefined
+            }
+            entitiesToSortLast={entitiesToSortLast}
+        />
     )
 }
 
