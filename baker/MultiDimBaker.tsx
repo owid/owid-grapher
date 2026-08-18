@@ -54,10 +54,10 @@ const getLatestMultiDimArchivedVersionsIfEnabled = async (
     return await getLatestArchivedMultiDimPageVersions(knex, multiDimIds)
 }
 
-export function getRelevantVariableIds(
+export function getRelevantIndicatorIds(
     config: MultiDimDataPageConfigPreProcessed
 ) {
-    // A "relevant" variable id is the first y indicator of each view
+    // A "relevant" indicator id is the first y indicator of each view
     const allIndicatorIds = config.views
         .map((view) => view.indicators.y?.[0]?.id)
         .filter((id) => id !== undefined)
@@ -65,7 +65,7 @@ export function getRelevantVariableIds(
     return new Set(allIndicatorIds)
 }
 
-export async function getRelevantVariableMetadata(
+export async function getRelevantIndicatorMetadata(
     variableIds: Iterable<number>
 ) {
     const metadata = await pMap(
@@ -131,16 +131,16 @@ export async function renderMultiDimDataPageFromConfig({
     archiveContext?: ArchiveContext
 }) {
     const pageConfig = MultiDimDataPageConfig.fromObject(config)
-    const variableIds = getRelevantVariableIds(config)
-    const faqEntries = await getFaqEntries(knex, variableIds)
+    const indicatorIds = getRelevantIndicatorIds(config)
+    const faqEntries = await getFaqEntries(knex, indicatorIds)
     const initialViewDimensions = pageConfig.getDefaultSelectedChoices()
     const initialView = pageConfig.findViewByDimensions(initialViewDimensions)
 
     let initialViewData: MultiDimDataPageInitialViewData | undefined
-    const initialViewVariableId = initialView?.indicators?.y?.[0]?.id
-    if (initialView && initialViewVariableId) {
+    const initialViewIndicatorId = initialView?.indicators?.y?.[0]?.id
+    if (initialView && initialViewIndicatorId) {
         const [variableMetadata, fullGrapherConfig] = await Promise.all([
-            getVariableMetadata(initialViewVariableId, {
+            getVariableMetadata(initialViewIndicatorId, {
                 noCache: isPreviewing,
             }),
             getChartConfigByUUID(knex, initialView.fullConfigId),
@@ -177,9 +177,9 @@ export async function renderMultiDimDataPageFromConfig({
 
         // Related research
         relatedResearchCandidates =
-            variableIds.size > 0
+            indicatorIds.size > 0
                 ? await getRelatedResearchAndWritingForVariables(knex, [
-                      ...variableIds,
+                      ...indicatorIds,
                   ])
                 : []
 

@@ -116,7 +116,7 @@ import {
     getVariableDataJson,
     getVariableMetadataJson,
     getVariablesJson,
-    getLatestVariableIdsByCatalogPathJson,
+    getLatestIndicatorIdsByCatalogPathJson,
     getVariablesUsagesJson,
     getIndicatorChartConfigJson,
     getVariableJson,
@@ -615,7 +615,7 @@ getRouteWithROTransaction(
 getRouteWithROTransaction(
     apiRouter,
     "/variables.latestByCatalogPath.json",
-    getLatestVariableIdsByCatalogPathJson
+    getLatestIndicatorIdsByCatalogPathJson
 )
 getRouteWithROTransaction(
     apiRouter,
