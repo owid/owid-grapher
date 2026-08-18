@@ -34,6 +34,7 @@ import {
     DbEnrichedVariable,
     DbPlainChart,
     DbPlainMultiDimXChartConfig,
+    MultiDimXChartConfigsTableName,
     DbPlainChartDimension,
     Distribution,
     DatasetOwners,
@@ -1343,7 +1344,12 @@ export interface GhostVariableCleanupPlan {
     deletable: number[]
     /** Ghost variables still used by a chart, with the charts using them. */
     blocked: { variableId: number; chartIds: number[] }[]
-    /** `chart_configs` rows owned by the deletable variables (ETL- and admin-authored). */
+    /**
+     * `chart_configs` rows that only exist because of the deletable variables: their own
+     * ETL- and admin-authored configs, plus the mdim view configs whose link rows go with
+     * them. Every foreign key into `chart_configs` is `ON DELETE RESTRICT`, so these have
+     * to be deleted after the rows pointing at them, not before.
+     */
     configIds: string[]
 }
 
@@ -1388,17 +1394,38 @@ export async function planGhostVariableCleanup(
         (variable) => !chartIdsByVariableId[variable.id]
     )
 
+    const deletableIds = deletableVariables.map((variable) => variable.id)
+
+    // The mdim view configs belonging to the link rows we are about to delete. A redirect
+    // can point at one of those configs, and that foreign key is `RESTRICT` too — leaking a
+    // single row is better than failing the whole grapher step over a rare case.
+    const mdimConfigIds = await trx<DbPlainMultiDimXChartConfig>(
+        MultiDimXChartConfigsTableName
+    )
+        .whereIn("variableId", deletableIds)
+        .whereNotExists(function () {
+            this.select(trx.raw("1"))
+                .from("multi_dim_redirects")
+                .whereRaw(
+                    "multi_dim_redirects.viewConfigId = multi_dim_x_chart_configs.chartConfigId"
+                )
+        })
+        .pluck("chartConfigId")
+
     return {
-        deletable: deletableVariables.map((variable) => variable.id),
+        deletable: deletableIds,
         blocked,
-        // A ghost variable's own chart configs are otherwise left behind in
-        // `chart_configs` (and in R2) when the variable row goes away.
-        configIds: _.compact(
-            deletableVariables.flatMap((variable) => [
-                variable.grapherConfigIdETL,
-                variable.grapherConfigIdAdmin,
-            ])
-        ),
+        // These are otherwise left behind in `chart_configs` (and in R2) when the rows
+        // referencing them go away — see https://github.com/owid/etl/pull/6672.
+        configIds: _.uniq([
+            ..._.compact(
+                deletableVariables.flatMap((variable) => [
+                    variable.grapherConfigIdETL,
+                    variable.grapherConfigIdAdmin,
+                ])
+            ),
+            ...mdimConfigIds,
+        ]),
     }
 }
 
@@ -1419,6 +1446,8 @@ export async function executeGhostVariableCleanup(
 
     // Deleting the variables first releases their foreign keys into `chart_configs`.
     await trx(VariablesTableName).whereIn("id", plan.deletable).delete()
+
+    // Same for the mdim view configs, whose link rows went in the loop above.
 
     if (plan.configIds.length > 0) {
         await trx("chart_configs").whereIn("id", plan.configIds).delete()
