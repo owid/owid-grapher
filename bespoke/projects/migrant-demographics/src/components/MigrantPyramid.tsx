@@ -44,12 +44,6 @@ const SEX_HEADER_GAP = 4
 const GRID_LINE_COLOR = "#ddd"
 
 const NATIVE_LINE_WIDTH = 1.5
-/**
- * The outline is drawn twice: a wider stroke in the chart background colour
- * underneath, then the line itself. Over a bar that reads as a channel cut
- * through it; over the background the casing is invisible. This is what lets
- * the bars stay at full strength — they carry the primary values.
- */
 const NATIVE_LINE_CASING_WIDTH = 4
 
 export function MigrantPyramid(props: MigrantPyramidProps): React.ReactElement {
@@ -78,8 +72,6 @@ function MigrantPyramidContent({
 }): React.ReactElement {
     const labelFontSize = isNarrow ? 10 : 11
     const axisLabelFontSize = isNarrow ? 11 : 12
-    // Top fits the sex header labels; bottom fits the tick labels plus the
-    // axis label, which sits closer on mobile where the fonts are smaller
     const marginTop = 19
     const marginBottom = isNarrow ? 48 : 52
     const axisLabelOffset = isNarrow ? 40 : 46
@@ -92,8 +84,6 @@ function MigrantPyramidContent({
         [view.migrants]
     )
 
-    // Text measurement is comparatively costly, and neither input changes
-    // when the pointer moves or the year does
     const centerGap = useMemo(
         () => maxTextWidth(bands, labelFontSize) + 2 * CENTER_GAP_PADDING,
         [bands, labelFontSize]
@@ -136,7 +126,6 @@ function MigrantPyramidContent({
         [bands, yScale, innerHeight]
     )
 
-    // Geometry only — kept out of the render path the pointer drives
     const hitRects = useMemo(
         () =>
             rowBounds.map((bounds, i) => (
@@ -167,15 +156,11 @@ function MigrantPyramidContent({
         setHoveredIndex(null)
         setPointerPosition(null)
     }, [])
-    // On touch devices this pins the tooltip to the bottom of the viewport
-    // and owns dismissal (tap outside, chart scrolled out of view)
     const { ref: chartRef, isPinned } = usePinnedTooltip<HTMLDivElement>(
         hoveredIndex !== null,
         dismissHover
     )
 
-    // One handler set on the group rather than three closures per hit rect;
-    // the row comes off the target's data attribute
     const handlePointerMove = useCallback((e: React.PointerEvent) => {
         if (e.pointerType !== "mouse" || !svgRef.current) return
         const index = rowIndexOf(e.target)
@@ -189,7 +174,6 @@ function MigrantPyramidContent({
         },
         [dismissHover]
     )
-    // Touch taps to pin; other pointer types have no dismissal path
     const handlePointerDown = useCallback((e: React.PointerEvent) => {
         if (e.pointerType !== "touch" || !svgRef.current) return
         const index = rowIndexOf(e.target)
@@ -243,9 +227,6 @@ function MigrantPyramidContent({
 
                     {/* Age band labels in the center gap */}
                     {view.migrants.map((row, i) => {
-                        // A step in gray alone is imperceptible at this size,
-                        // and the surrounding bars dim at the same moment —
-                        // so the hovered label goes bold as well
                         const isHovered = i === hoveredIndex
                         return (
                             <text
