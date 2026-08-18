@@ -1,6 +1,7 @@
 import * as R from "remeda"
 import {
     EMAIL_NOTIFICATIONS_CONTENT_TYPE_BY_LATEST_TYPE,
+    EmailNotificationsContentType,
     LatestFeedGdoc,
     OwidGdocType,
 } from "@ourworldindata/types"
@@ -31,6 +32,17 @@ import { resolveExcerptLinks } from "./excerptLinks.js"
 
 type LatestFeedGdocInstance = (GdocPost | GdocDataInsight | GdocAnnouncement) &
     LatestFeedGdoc
+
+/**
+ * The content types whose email rendering reads the gdoc body. The remaining
+ * type, "article", is summarized by its excerpt instead — an article body is
+ * far too long to travel in an email.
+ */
+const ITEM_TYPES_CARRYING_BODY = new Set<EmailNotificationsContentType>([
+    "data-insight",
+    "data-update",
+    "announcement",
+])
 
 /**
  * Like `checkIsLatestFeedGdoc`, but narrows to the Gdoc *class* instances
@@ -84,11 +96,13 @@ function buildNotificationItem(
         authors: gdoc.content.authors ?? [],
     }
 
-    if (gdoc.content.type === OwidGdocType.DataInsight) {
-        // Data insights ship their full content in the email.
-        item.body = gdoc.content.body
+    // Data insights ship their full content in the email; data updates and
+    // announcements ship their lead paragraphs, as they do on /latest.
+    if (ITEM_TYPES_CARRYING_BODY.has(item.type)) {
+        const body = "body" in gdoc.content ? gdoc.content.body : undefined
+        item.body = body
         item.imageUrlByFilename = {}
-        for (const filename of extractFilenamesFromBlocks(gdoc.content.body)) {
+        for (const filename of extractFilenamesFromBlocks(body ?? [])) {
             const cloudflareId =
                 cloudflareImagesByFilename[filename]?.cloudflareId
             if (cloudflareId) {
@@ -96,7 +110,11 @@ function buildNotificationItem(
                     `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=1200`
             }
         }
-    } else {
+    }
+
+    if (gdoc.content.type !== OwidGdocType.DataInsight) {
+        // Announcements with a top-level {.cta} have an empty body, so the
+        // excerpt stays as their fallback.
         item.excerpt =
             getExcerptFromGdoc(gdoc) || getFirstTextBlockPlainText(gdoc)
         if (gdoc.content.type === OwidGdocType.Article) {
