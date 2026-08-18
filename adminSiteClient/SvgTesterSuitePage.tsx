@@ -713,8 +713,7 @@ function SvgTesterDiff({
         <ReactDiffViewer
             oldValue={data.before}
             newValue={data.after}
-            // LINES, not the WORDS mode: word-granularity over a thousand lines of SVG markup is too slow
-            compareMethod={DiffMethod.LINES}
+            compareMethod={DiffMethod.WORDS_WITH_SPACE}
             splitView={true}
             showDiffOnly={true}
             extraLinesSurroundingDiff={3}
