@@ -2,7 +2,10 @@ import { describe, it, expect, beforeEach } from "vitest"
 import { getAdminTestEnv } from "./testEnv.js"
 import {
     ChartConfigsTableName,
+    IndicatorsBeforePreProcessing,
+    MultiDimXChartConfigsTableName,
     VariablesTableName,
+    View,
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import {
@@ -108,6 +111,55 @@ describe("Ghost variable cleanup", { timeout: 15000 }, () => {
 
         expect(response.deleted).toEqual([otherVariableId])
         expect(await env.getCount(ChartConfigsTableName)).toBe(0)
+    })
+
+    it("deletes the mdim view configs that go with a ghost variable", async () => {
+        // Predecessor of this endpoint, which found the leak: owid/etl#6672.
+        const catalogPath = "test/catalog#path"
+        const views: View<IndicatorsBeforePreProcessing>[] = [
+            {
+                config: { title: "Kept view" },
+                dimensions: { metric: "total" },
+                indicators: { y: variableId },
+            },
+            {
+                config: { title: "Ghost view" },
+                dimensions: { metric: "per_capita" },
+                indicators: { y: otherVariableId },
+            },
+        ]
+        await env.request({
+            method: "PUT",
+            path: `/multi-dims/${encodeURIComponent(catalogPath)}`,
+            body: JSON.stringify({
+                config: {
+                    grapherConfigSchema: latestGrapherConfigSchema,
+                    title: { title: "Energy use" },
+                    views,
+                    dimensions: [
+                        {
+                            name: "Metric",
+                            slug: "metric",
+                            choices: views.map((view) => ({
+                                name: view.dimensions.metric,
+                                slug: view.dimensions.metric,
+                            })),
+                        },
+                    ],
+                },
+            }),
+        })
+        const configCountBefore = await env.getCount(ChartConfigsTableName)
+        expect(await env.getCount(MultiDimXChartConfigsTableName)).toBe(2)
+
+        const response = await cleanup({ keepVariableIds: [variableId] })
+
+        expect(response.deleted).toEqual([otherVariableId])
+        expect(await env.getCount(MultiDimXChartConfigsTableName)).toBe(1)
+        // The ghost view's config goes with its link row instead of being stranded.
+        expect(await env.getCount(ChartConfigsTableName)).toBe(
+            configCountBefore - 1
+        )
     })
 
     it("dryRun reports what would go without deleting anything", async () => {
