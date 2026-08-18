@@ -14,7 +14,7 @@ import type {
     VariantProps,
 } from "../config.js"
 import { groupAgeGroupsByZone } from "../helpers/utils.js"
-import { entityNameForSentence } from "../../../../helpers/entityNames.js"
+import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 import { CountryData, DemographyMetadata } from "../helpers/types.js"
 import {
     useSimulation,
@@ -165,7 +165,7 @@ function CaptionedPopulationPyramidVariant({
     )
     const subtitle =
         subtitleOverride ??
-        `Population of ${entityNameForSentence(data.country)}, broken down by age and sex based on future projections. These are based on the user's fertility, life expectancy, and migration inputs to a demographic model.`
+        `Population of ${formatEntityNameForSentence(data.country, ["UN"])}, broken down by age and sex based on future projections. These are based on the user's fertility, life expectancy, and migration inputs to a demographic model.`
 
     return (
         <Frame className="demography-captioned-chart demography-population-pyramid">

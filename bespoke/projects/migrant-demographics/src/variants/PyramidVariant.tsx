@@ -20,7 +20,7 @@ import {
     isUserLocationCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
-import { entityNameForSentence } from "../../../../helpers/entityNames.js"
+import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 
 import { PyramidVariantConfig } from "../config.js"
 import { ShowMode, VariantProps } from "../types.js"
@@ -268,8 +268,8 @@ function CaptionedPyramidVariant({
                     ) : (
                         <div className="migrant-pyramid__no-data">
                             {pyramidData
-                                ? `No immigrants recorded in ${entityNameForSentence(country)} in ${year}.`
-                                : `No data for ${entityNameForSentence(country)} in ${year}.`}
+                                ? `No immigrants recorded in ${formatEntityNameForSentence(country, ["UN"])} in ${year}.`
+                                : `No data for ${formatEntityNameForSentence(country, ["UN"])} in ${year}.`}
                         </div>
                     )}
                 </div>
@@ -285,14 +285,14 @@ function CaptionedPyramidVariant({
 function chartTitle(country: string, year: number): string {
     if (country === WORLD_ENTITY_NAME)
         return `Population pyramid of immigrants worldwide in ${year}`
-    return `Population pyramid of immigrants living in ${entityNameForSentence(country)} in ${year}`
+    return `Population pyramid of immigrants living in ${formatEntityNameForSentence(country, ["UN"])} in ${year}`
 }
 
 function chartSubtitle(country: string, total: number): string {
     const count = formatCountLong(total)
     if (country === WORLD_ENTITY_NAME)
         return `The age and sex profile of the ${count} people worldwide living outside their country of birth.`
-    return `The age and sex profile of the ${count} people living in ${entityNameForSentence(country)} who were born elsewhere.`
+    return `The age and sex profile of the ${count} people living in ${formatEntityNameForSentence(country, ["UN"])} who were born elsewhere.`
 }
 
 function PyramidSkeleton(): React.ReactElement {

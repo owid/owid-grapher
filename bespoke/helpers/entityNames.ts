@@ -24,9 +24,16 @@ export function stripEntityNameSuffixes(
  * An entity name as it reads mid-sentence: "the United States", "the world",
  * "low-income countries", "Africa". Income groups are descriptions rather than
  * proper place names, so they lose their leading capital.
+ *
+ * Pass `suffixesToStrip` for datasets whose source suffixes are noise in a
+ * sentence (`["UN"]` turns "Africa (UN)" into "Africa"); leave it empty where
+ * the suffix disambiguates, as with the WHO and World Bank regions.
  */
-export function entityNameForSentence(rawEntityName: string): string {
-    const entityName = stripEntityNameSuffixes(rawEntityName, ["UN"])
+export function formatEntityNameForSentence(
+    rawEntityName: string,
+    suffixesToStrip: string[] = []
+): string {
+    const entityName = stripEntityNameSuffixes(rawEntityName, suffixesToStrip)
     if (entityName === "World") return "the world"
     const region = getRegionByName(entityName)
     if (region && checkIsIncomeGroup(region))

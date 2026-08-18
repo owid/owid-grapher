@@ -22,7 +22,7 @@ import { orderOptionsByRelevance } from "../../../../components/EntityDropdown/E
 
 import { DemographyMetadata } from "../helpers/types.js"
 import {
-    entityNameForSentence,
+    formatEntityNameForSentence,
     stripEntityNameSuffixes,
 } from "../../../../helpers/entityNames.js"
 
@@ -66,7 +66,7 @@ export function InlineEntitySelector({
     return (
         <DialogTrigger isOpen={isOpen} onOpenChange={setIsOpen}>
             <Button className="inline-entity-selector__trigger">
-                {entityNameForSentence(entityName)}
+                {formatEntityNameForSentence(entityName, ["UN"])}
                 <span className="inline-entity-selector__arrow">
                     {"\u00a0"}▾
                 </span>
