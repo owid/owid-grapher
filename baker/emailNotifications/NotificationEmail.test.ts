@@ -44,6 +44,32 @@ const ITEMS: NotificationEmailItem[] = [
         topicLabel: "Health",
         authors: ["Saloni Dattani"],
         excerpt: "Guinea worm disease is a painful parasitic infection.",
+        // Published data updates run to several paragraphs and end with a cta
+        // block, and the email carries all of it.
+        body: [
+            textBlock([
+                simpleText("Cases have fallen from 3.5 million a year."),
+            ]),
+            textBlock([simpleText("Only a handful of cases remain.")]),
+            textBlock([simpleText("The last cases are the hardest to reach.")]),
+            {
+                type: "cta",
+                text: "Explore our data on guinea worm",
+                url: `${BASE_URL}/grapher/guinea-worm-cases`,
+                parseErrors: [],
+            },
+            {
+                type: "image",
+                filename: "guinea-worm.png",
+                alt: "Reported guinea worm cases since 1986",
+                size: BlockSize.Wide,
+                hasOutline: true,
+                parseErrors: [],
+            },
+        ],
+        imageUrlByFilename: {
+            "guinea-worm.png": "https://images.ourworldindata.org/ghi/w=1200",
+        },
     },
     {
         type: "data-insight",
@@ -126,6 +152,11 @@ const ITEMS: NotificationEmailItem[] = [
         topicNames: [],
         authors: [],
         excerpt: "Finding a chart on our site should now be much faster.",
+        // No closing cta, so this one's only link out is its title.
+        body: [
+            textBlock([simpleText("Finding a chart should now be faster.")]),
+            textBlock([simpleText("Results are grouped by content type.")]),
+        ],
     },
 ]
 
@@ -172,6 +203,37 @@ describe(renderNotificationEmail, () => {
         )
         // Links the excerpt carries survive into the email.
         expect(html).toContain(`href="${BASE_URL}/palm-oil"`)
+    })
+
+    it("shows an announcement's whole body, not its excerpt", async () => {
+        const { html } = await renderFixture()
+        expect(html).toContain("Cases have fallen from 3.5 million a year.")
+        expect(html).toContain("Only a handful of cases remain.")
+        expect(html).toContain("The last cases are the hardest to reach.")
+        // Its closing cta block carries the link out, so nothing else does.
+        expect(html).toMatch(/Explore our data on guinea worm[\s\S]{0,40}→/)
+        expect(html).toContain("https://images.ourworldindata.org/ghi/w=1200")
+        expect(html).not.toContain(
+            "Guinea worm disease is a painful parasitic infection."
+        )
+        expect(html).not.toContain("Read more")
+    })
+
+    it("falls back to the excerpt for an announcement with no body", async () => {
+        const { html } = await renderFixture([
+            {
+                type: "announcement",
+                slug: "cta-only",
+                title: "An announcement that is only a call to action",
+                url: `${BASE_URL}/cta-only`,
+                publishedAt: new Date("2026-08-02T09:00:00Z"),
+                topicNames: [],
+                authors: [],
+                excerpt: "Pre-order our book.",
+            },
+        ])
+        expect(html).toContain("Pre-order our book.")
+        expect(html).toMatch(/Read more[\s\S]{0,40}→/)
     })
 
     it("puts a data insight's chart above its title", async () => {
