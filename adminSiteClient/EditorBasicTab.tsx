@@ -48,7 +48,7 @@ import { Section, TextField } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
 import { DimensionCard } from "./DimensionCard.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import { EditorDatabase } from "./ChartEditorView.js"
+import { EditorDatabase } from "./EditorDatabase.js"
 import { isChartEditorInstance } from "./ChartEditor.js"
 import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
 import {

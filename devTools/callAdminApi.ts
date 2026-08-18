@@ -83,7 +83,7 @@ async function main() {
         // under yargs' usage output, which is what a lazy check inside a
         // command handler would otherwise produce. As middleware it doesn't
         // run for --help, so usage stays viewable without a key.
-        .middleware(() => void getApiKey())
+        .middleware(() => getApiKey())
         .option("branch", {
             type: "string",
             describe:

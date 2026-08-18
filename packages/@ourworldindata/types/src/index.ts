@@ -323,6 +323,9 @@ export {
     type OwidVariableDataTableConfigInterface,
     OwidVariableRoundingMode,
     TimeInterval,
+    SUB_YEARLY_TIME_INTERVALS,
+    TIME_INTERVALS,
+    type SubYearlyTimeInterval,
     type OwidChartDimensionInterface,
     type OwidChartDimensionInterfaceWithMandatorySlug,
 } from "./OwidVariableDisplayConfigInterface.js"
@@ -870,3 +873,4 @@ export {
 export * from "./analyticsTypes/analyticsTypes.js"
 export * from "./domainTypes/Latest.js"
 export * from "./domainTypes/Search.js"
+export * from "./domainTypes/SvgTester.js"

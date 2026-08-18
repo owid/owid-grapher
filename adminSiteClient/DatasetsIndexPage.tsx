@@ -4,7 +4,7 @@ import { observable, computed, action, runInAction, makeObservable } from "mobx"
 import * as lodash from "lodash-es"
 
 import { AdminLayout } from "./AdminLayout.js"
-import { SearchField, FieldsRow } from "./Forms.js"
+import { TextField, FieldsRow } from "./Forms.js"
 import { DatasetList, DatasetListItem } from "./DatasetList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
@@ -91,7 +91,7 @@ export class DatasetsIndexPage extends Component {
                             Showing {datasetsToShow.length} of {numTotalRows}{" "}
                             datasets
                         </span>
-                        <SearchField
+                        <TextField
                             placeholder="Search all datasets..."
                             value={searchInput}
                             onValue={this.onSearchInput}
