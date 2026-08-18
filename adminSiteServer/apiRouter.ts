@@ -31,8 +31,9 @@ import {
     setTags,
     republishCharts,
     cleanupGhostVariables,
-    upsertVariables,
-    setVariableChecksums,
+    putDataset,
+    putIndicators,
+    putDatasetChecksum,
 } from "./apiRoutes/datasets.js"
 import {
     addExplorerTags,
@@ -330,15 +331,21 @@ postRouteWithRWTransaction(
     "/datasets/:datasetId/cleanupGhostVariables",
     cleanupGhostVariables
 )
-postRouteWithRWTransaction(
+// Addressed by catalogPath: ETL never handles our integer ids.
+putRouteWithRWTransaction(
     apiRouter,
-    "/datasets/:datasetId/variables",
-    upsertVariables
+    "/datasets/by-catalog-path/:catalogPath",
+    putDataset
 )
-postRouteWithRWTransaction(
+putRouteWithRWTransaction(
     apiRouter,
-    "/datasets/:datasetId/variables/checksums",
-    setVariableChecksums
+    "/datasets/by-catalog-path/:catalogPath/indicators",
+    putIndicators
+)
+putRouteWithRWTransaction(
+    apiRouter,
+    "/datasets/by-catalog-path/:catalogPath/checksum",
+    putDatasetChecksum
 )
 postRouteWithRWTransaction(
     apiRouter,

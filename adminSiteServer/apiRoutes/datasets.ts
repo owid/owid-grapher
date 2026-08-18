@@ -15,12 +15,14 @@ import {
     getDatasetById,
     setTagsForDataset,
     checkDatasetVariablesInUse,
+    upsertDatasetByCatalogPath,
 } from "../../db/model/Dataset.js"
 import { cleanupGhostVariables as cleanupGhostVariablesInDb } from "../../db/model/Variable.js"
 import { deleteGrapherConfigFromR2ByUUID } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 import {
-    upsertVariables as upsertVariablesInDb,
-    setVariableChecksums as setVariableChecksumsInDb,
+    reconcileDatasetIndicators,
+    upsertIndicators as upsertIndicatorsInDb,
+    recordPublishedData,
 } from "../../db/model/VariableUpsert.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
@@ -621,70 +623,139 @@ export async function cleanupGhostVariables(
     return { success: true, deleted, blocked }
 }
 
-export async function upsertVariables(
+/** The dataset a catalogPath names, or a 404. */
+async function requireDatasetByCatalogPath(
+    trx: db.KnexReadonlyTransaction,
+    catalogPath: string
+) {
+    const dataset = await trx("datasets").where({ catalogPath }).first()
+    if (!dataset)
+        throw new JsonError(`No dataset with catalogPath ${catalogPath}`, 404)
+    return dataset
+}
+
+/**
+ * Declare what a dataset is and what it should contain.
+ *
+ * The indicator list is authoritative: anything in the dataset and not on it is removed, along
+ * with its link rows and chart configs. Indicators a chart still uses are reported back rather
+ * than deleted — deciding whether that should fail the caller's run is the caller's business,
+ * since it depends on which environment they're in.
+ */
+export async function putDataset(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+) {
+    const catalogPath = req.params.catalogPath
+    if (!catalogPath) throw new JsonError("No catalogPath given", 400)
+
+    const { indicators, ...metadata } = req.body ?? {}
+    if (!Array.isArray(indicators)) {
+        throw new JsonError(
+            "`indicators` must be an array of catalogPaths — it is the dataset's authoritative membership, so omitting it would delete everything",
+            400
+        )
+    }
+
+    const datasetId = await upsertDatasetByCatalogPath(trx, catalogPath, {
+        ...metadata,
+        userId: res.locals.user.id,
+    })
+    const { removed, blocked, configIds } = await reconcileDatasetIndicators(
+        trx,
+        datasetId,
+        indicators
+    )
+
+    for (const configId of configIds) {
+        await deleteGrapherConfigFromR2ByUUID(configId)
+    }
+
+    return { success: true, removed, blocked }
+}
+
+/**
+ * Upsert a chunk of the dataset's indicators and publish the metadata they describe.
+ *
+ * Rows, origins, links, the rendered JSON in R2 and its checksum all land together. The data
+ * checksum isn't written here — the caller hasn't uploaded the values yet.
+ */
+export async function putIndicators(
     req: Request,
     _res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
-    const datasetId = expectInt(req.params.datasetId)
-    const dataset = await getDatasetById(trx, datasetId)
-    if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
+    const catalogPath = req.params.catalogPath
+    if (!catalogPath) throw new JsonError("No catalogPath given", 400)
+    const dataset = await requireDatasetByCatalogPath(trx, catalogPath)
 
-    const { variables } = req.body ?? {}
-    if (!Array.isArray(variables)) {
-        throw new JsonError("`variables` must be an array", 400)
+    const { indicators } = req.body ?? {}
+    if (!Array.isArray(indicators)) {
+        throw new JsonError("`indicators` must be an array", 400)
     }
-    for (const variable of variables) {
-        if (!variable?.catalogPath) {
-            throw new JsonError("every variable needs a `catalogPath`", 400)
-        }
-        if (!variable?.type) {
+    for (const indicator of indicators) {
+        if (!indicator?.catalogPath)
+            throw new JsonError("every indicator needs a `catalogPath`", 400)
+        if (!indicator?.type)
             throw new JsonError(
-                `variable ${variable.catalogPath} needs a \`type\` — it is inferred from the values, which we never see`,
+                `indicator ${indicator.catalogPath} needs a \`type\` — it is inferred from the values, which we never see`,
                 400
             )
-        }
+        if (!indicator?.dataChecksum)
+            throw new JsonError(
+                `indicator ${indicator.catalogPath} needs a \`dataChecksum\``,
+                400
+            )
     }
 
-    const upserted = await upsertVariablesInDb(
+    const indicatorsResult = await upsertIndicatorsInDb(
         trx,
         {
-            datasetId,
+            datasetId: dataset.id,
             datasetName: dataset.name ?? null,
             datasetVersion: dataset.version ?? null,
             nonRedistributable: Boolean(dataset.nonRedistributable),
             updatePeriodDays: dataset.updatePeriodDays ?? null,
         },
-        variables
+        indicators
     )
 
-    // The metadata JSON goes back rather than to R2: publishing it from here needs write
-    // access to the `owid-api` bucket, which the admin server doesn't have yet. ETL uploads
-    // it alongside the data file, as it did before.
-    return {
-        success: true,
-        variables: Object.fromEntries(
-            upserted.map((variable) => [
-                variable.catalogPath,
-                { id: variable.id, metadata: variable.metadata },
-            ])
-        ),
-    }
+    return { success: true, indicators: indicatorsResult }
 }
 
-export async function setVariableChecksums(
+/**
+ * Record the data files the caller has published, and the dataset's source checksum.
+ *
+ * The only writer of `dataChecksum`, deliberately: it runs after the uploads it describes, so
+ * a run that dies leaves those files looking stale and gets them re-sent rather than leaving a
+ * checksum insisting an old file is current.
+ */
+export async function putDatasetChecksum(
     req: Request,
     _res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
-    const datasetId = expectInt(req.params.datasetId)
-    const { checksums } = req.body ?? {}
-    if (!checksums || typeof checksums !== "object") {
+    const catalogPath = req.params.catalogPath
+    if (!catalogPath) throw new JsonError("No catalogPath given", 400)
+    const dataset = await requireDatasetByCatalogPath(trx, catalogPath)
+
+    const { sourceChecksum, publishedData } = req.body ?? {}
+    if (typeof sourceChecksum !== "string") {
+        throw new JsonError("`sourceChecksum` must be a string", 400)
+    }
+    if (!publishedData || typeof publishedData !== "object") {
         throw new JsonError(
-            "`checksums` must be an object keyed by catalogPath",
+            "`publishedData` must be an object keyed by catalogPath",
             400
         )
     }
-    const updated = await setVariableChecksumsInDb(trx, datasetId, checksums)
+
+    const updated = await recordPublishedData(
+        trx,
+        dataset.id,
+        publishedData,
+        sourceChecksum
+    )
     return { success: true, updated }
 }

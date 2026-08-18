@@ -54,6 +54,7 @@ export const TABLES_IN_USE = [
     "origins",
     ChartConfigsTableName,
     DatasetsTableName,
+    "namespaces",
     PostsGdocsTableName,
     AdminApiKeysTableName,
     UsersTableName,

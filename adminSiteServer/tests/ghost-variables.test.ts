@@ -83,6 +83,7 @@ describe("Ghost variable cleanup", { timeout: 15000 }, () => {
         expect(response.blocked).toEqual([
             {
                 variableId: otherVariableId,
+                catalogPath: null,
                 variableName: null,
                 chartId,
                 chartSlug: "ghost-variable-chart",

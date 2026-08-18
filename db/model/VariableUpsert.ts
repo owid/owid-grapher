@@ -5,8 +5,13 @@ import {
     DbRawVariable,
     VariablesTableName,
     OwidVariableType,
-    JsonString,
 } from "@ourworldindata/types"
+import { hashHex } from "../../serverUtils/hash.js"
+import {
+    indicatorDataPath,
+    publishIndicatorMetadata,
+} from "../../serverUtils/r2/dataApiR2Helpers.js"
+import { cleanupGhostVariables } from "./Variable.js"
 
 /**
  * Upserting a variable and building the `<id>.metadata.json` that goes with it.
@@ -72,6 +77,8 @@ export interface VariableUpsertInput {
     entityIds: number[]
     /** Distinct years present in the data. */
     years: number[]
+    /** Hash of the values, computed by ETL. We compare it; we never see the values. */
+    dataChecksum: string
 }
 
 /** Dataset-level fields the indicator JSON embeds. */
@@ -83,10 +90,11 @@ export interface DatasetMetadataFields {
     updatePeriodDays: number | null
 }
 
-export interface UpsertedVariable {
-    catalogPath: string
-    id: number
-    metadata: Record<string, any>
+export interface UpsertedIndicator {
+    /** Where ETL should PUT `<id>.data.json`. Opaque to the caller. */
+    dataPath: string
+    /** Whether the values changed since the last run.  */
+    uploadData: boolean
 }
 
 const ORIGIN_MATCH_COLUMNS = [
@@ -190,7 +198,9 @@ async function resolveTopicTagIds(
     tagNames: string[]
 ): Promise<{ id: number; name: string }[]> {
     if (tagNames.length === 0) return []
-    const rows = await trx("tags").whereIn("name", tagNames).select("id", "name")
+    const rows = await trx("tags")
+        .whereIn("name", tagNames)
+        .select("id", "name")
     const byName = new Map(rows.map((row) => [row.name, row.id]))
     return tagNames
         .filter((name) => byName.has(name))
@@ -215,7 +225,7 @@ function toVariableRow(
         // `descriptionKey` is a JSON column holding a single markdown string, so the string
         // has to be JSON-encoded on the way in and decoded again for the published metadata.
         descriptionKey: input.descriptionKey
-            ? (JSON.stringify(input.descriptionKey) as JsonString)
+            ? JSON.stringify(input.descriptionKey)
             : null,
         descriptionProcessing: input.descriptionProcessing ?? null,
         titlePublic: input.titlePublic ?? null,
@@ -224,19 +234,13 @@ function toVariableRow(
         attributionShort: input.attributionShort ?? null,
         coverage: input.coverage,
         timespan: input.timespan,
-        display: JSON.stringify(input.display ?? {}) as JsonString,
-        dimensions: input.dimensions
-            ? (JSON.stringify(input.dimensions) as JsonString)
-            : null,
+        display: JSON.stringify(input.display ?? {}),
+        dimensions: input.dimensions ? JSON.stringify(input.dimensions) : null,
         schemaVersion: input.schemaVersion ?? undefined,
         processingLevel: input.processingLevel ?? null,
-        license: input.license
-            ? (JSON.stringify(input.license) as JsonString)
-            : null,
-        licenses: input.licenses
-            ? (JSON.stringify(input.licenses) as JsonString)
-            : null,
-        sort: input.sort ? (JSON.stringify(input.sort) as JsonString) : null,
+        license: input.license ? JSON.stringify(input.license) : null,
+        licenses: input.licenses ? JSON.stringify(input.licenses) : null,
+        sort: input.sort ? JSON.stringify(input.sort) : null,
         type: input.type,
         sourceId: null,
         updatedAt: now,
@@ -332,15 +336,75 @@ function buildVariableMetadata(
 }
 
 /**
- * Upsert one dataset's variables and return the published metadata for each.
+ * Reconcile a dataset's membership against the indicators it should contain.
  *
- * Everything is keyed on `catalogPath`, so re-sending a chunk after a lost response is safe.
+ * The list is authoritative: anything in the dataset and not on it is a ghost, by definition
+ * rather than by inference from silence. Indicators a chart still uses are reported back
+ * instead of being deleted — whether that should fail the caller's run depends on the caller.
  */
-export async function upsertVariables(
+export interface ReconcileResult {
+    removed: string[]
+    blocked: {
+        catalogPath: string | null
+        charts: { id: number; slug: string | null }[]
+    }[]
+    /** `chart_configs` rows deleted with them, for the caller to remove from R2. */
+    configIds: string[]
+}
+
+export async function reconcileDatasetIndicators(
+    trx: db.KnexReadWriteTransaction,
+    datasetId: number,
+    catalogPaths: string[]
+): Promise<ReconcileResult> {
+    const existing = await trx<DbRawVariable>(VariablesTableName)
+        .where({ datasetId })
+        .select("id", "catalogPath")
+    const pathById = new Map(existing.map((row) => [row.id, row.catalogPath]))
+
+    const declared = new Set(catalogPaths)
+    const keep = existing
+        .filter((row) => row.catalogPath && declared.has(row.catalogPath))
+        .map((row) => row.id)
+
+    const { deleted, blocked, configIds } = await cleanupGhostVariables(
+        trx,
+        datasetId,
+        keep
+    )
+
+    const byPath = new Map<string | null, ReconcileResult["blocked"][number]>()
+    for (const row of blocked) {
+        const entry = byPath.get(row.catalogPath) ?? {
+            catalogPath: row.catalogPath,
+            charts: [],
+        }
+        entry.charts.push({ id: row.chartId, slug: row.chartSlug })
+        byPath.set(row.catalogPath, entry)
+    }
+
+    return {
+        removed: deleted
+            .map((id) => pathById.get(id))
+            .filter((path): path is string => !!path),
+        blocked: [...byPath.values()],
+        configIds,
+    }
+}
+
+/**
+ * Upsert a chunk of a dataset's indicators, publish the metadata each one describes, and say
+ * which data files ETL still needs to upload.
+ *
+ * Everything about metadata happens here and succeeds or fails together: the rows, the
+ * rendered JSON in R2, and the checksum that says the two agree. `dataChecksum` is
+ * deliberately *not* written — ETL hasn't uploaded the values yet, so it wouldn't be true.
+ */
+export async function upsertIndicators(
     trx: db.KnexReadWriteTransaction,
     dataset: DatasetMetadataFields,
     inputs: VariableUpsertInput[]
-): Promise<UpsertedVariable[]> {
+): Promise<Record<string, UpsertedIndicator>> {
     // Entity names and codes live here, so ETL only has to send ids.
     const entityIds = _.uniq(inputs.flatMap((input) => input.entityIds))
     const entityRows = entityIds.length
@@ -350,7 +414,7 @@ export async function upsertVariables(
         : []
     const entitiesById = new Map(entityRows.map((row) => [row.id, row]))
 
-    const results: UpsertedVariable[] = []
+    const results: Record<string, UpsertedIndicator> = {}
 
     for (const input of inputs) {
         const now = new Date()
@@ -435,43 +499,59 @@ export async function upsertVariables(
                 ),
             topicTags.map((tag) => tag.name),
             input.entityIds.map(
-                (id) =>
-                    entitiesById.get(id) ?? { id, name: null, code: null }
+                (id) => entitiesById.get(id) ?? { id, name: null, code: null }
             ),
-            existing ? saved.createdAt : now,
+            // Always the persisted value: MySQL truncates sub-second precision, so using the
+            // in-memory `now` on the insert would hash differently from every later run.
+            saved.createdAt,
             now
         )
 
-        results.push({ catalogPath: input.catalogPath, id: variableId, metadata })
+        // `updatedAt` moves every run, so hash the metadata without it — otherwise every
+        // indicator would look changed on every run and we'd republish the whole catalogue.
+        const { updatedAt: _ignored, ...stable } = metadata
+        const metadataChecksum = hashHex(JSON.stringify(stable), null)
+
+        if (metadataChecksum !== saved.metadataChecksum) {
+            await publishIndicatorMetadata(variableId, metadata)
+            await trx(VariablesTableName)
+                .where({ id: variableId })
+                .update({ metadataChecksum })
+        }
+
+        results[input.catalogPath] = {
+            dataPath: indicatorDataPath(variableId),
+            uploadData: saved.dataChecksum !== input.dataChecksum,
+        }
     }
 
     return results
 }
 
 /**
- * Record the checksums ETL uses to decide whether a variable needs rebuilding next time.
+ * Record the checksums of the data files ETL has just published, and the dataset's source
+ * checksum.
  *
- * Deliberately a separate call from the upsert: the checksums say "MySQL and both R2 files
- * are in sync", which is only true once ETL has finished uploading. Writing them with the
- * variable row would claim it before it was true, and a failed upload would then be invisible
- * until something changed again.
+ * This is the only place `dataChecksum` is written, and it happens after the upload it
+ * describes — so a run that dies leaves the file looking stale and gets it re-uploaded next
+ * time, rather than leaving a checksum that claims an old file is current.
  */
-export async function setVariableChecksums(
+export async function recordPublishedData(
     trx: db.KnexReadWriteTransaction,
     datasetId: number,
-    checksums: Record<
-        string,
-        { dataChecksum: string; metadataChecksum: string }
-    >
+    publishedData: Record<string, string>,
+    sourceChecksum: string
 ): Promise<number> {
     let updated = 0
-    for (const [catalogPath, checksum] of Object.entries(checksums)) {
+    for (const [catalogPath, dataChecksum] of Object.entries(publishedData)) {
         updated += await trx(VariablesTableName)
             .where({ catalogPath, datasetId })
-            .update({
-                dataChecksum: checksum.dataChecksum,
-                metadataChecksum: checksum.metadataChecksum,
-            })
+            .update({ dataChecksum })
     }
+    await trx("datasets").where({ id: datasetId }).update({
+        sourceChecksum,
+        dataEditedAt: new Date(),
+        metadataEditedAt: new Date(),
+    })
     return updated
 }
