@@ -15,11 +15,14 @@ A list of social / contact links. Used on author pages (as the
 
 - `type` values: `link`, `email`, `x`, `facebook`, `instagram`,
   `youtube`, `linkedin`, `threads`, `mastodon`, `bluesky`.
+- Written as `[socials]` in author-page front matter, but as
+  `[.socials]` (with the dot) when nested inside a `[+body]` or a
+  `{.person}` block — without the dot the block is silently dropped.
 
-### Author socials
+### Socials list
 
 ```archie
-[socials]
+[.socials]
 url: saloni@ourworldindata.org
 text: saloni@ourworldindata.org
 type: email

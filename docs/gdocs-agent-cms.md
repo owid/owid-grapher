@@ -1,16 +1,18 @@
 # Agent-editable gdocs CMS — visual overview
 
-One idea across a stack of PRs: **the ArchieML component types are the single
-source of truth**, and once every layer derives from them, an agent can safely
-read, edit, and create gdocs on an author's behalf — with the server as the
-only gate.
+One idea across a stack of PRs: **the gdoc TypeScript types are the single
+source of truth** — both the ArchieML block components and the per-type
+document interfaces — and once every layer derives from them, an agent can
+safely read, edit, and create gdocs on an author's behalf, with the server as
+the only gate.
 
 | PR / branch                                             | What it does                                                                                                                                                                                                                                                   |
 | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [#6543](https://github.com/owid/owid-grapher/pull/6543) | Generates a JSON registry of all components from the type definitions (JSDoc + `.md` sidecars). CI keeps it fresh.                                                                                                                                             |
 | [#6695](https://github.com/owid/owid-grapher/pull/6695) | Shows that registry in the admin at `/components` (and serves it at `/admin/api/components.json`).                                                                                                                                                             |
-| [#6544](https://github.com/owid/owid-grapher/pull/6544) | Makes the gdoc ⇄ ArchieML round trip faithful (underline, strikethrough, refs) and tests it.                                                                                                                                                                   |
-| this branch                                             | Exposes the round trip over HTTP: read/replace/create gdocs as ArchieML via the admin API, gated by `validateArchieMl`. A `gdoc-editor` skill in [owid-claude-plugins](https://github.com/owid/owid-claude-plugins) gives authors a repo-less Claude workflow. |
+| [#6544](https://github.com/owid/owid-grapher/pull/6544) | Makes the enriched → ArchieML write-back lossless — inline formatting, refs, data-insight and post front matter — and tests it.                                                                                                                                |
+| [#6702](https://github.com/owid/owid-grapher/pull/6702) | Exposes the round trip over HTTP: read/replace/create gdocs as ArchieML via the admin API, gated by `validateArchieMl`. A `gdoc-editor` skill in [owid-claude-plugins](https://github.com/owid/owid-claude-plugins) gives authors a repo-less Claude workflow. |
+| this branch                                             | Generates a second registry — the per-doc-type **template reference** — from the content interfaces, served at `/admin/api/templates.json`: front-matter fields, admin-managed properties, and a validated example per writable gdoc type.                     |
 
 ## The big picture
 
@@ -25,18 +27,19 @@ flowchart LR
     CI["⚙️ CI"] -->|"regenerate & auto-commit"| Gen
 
     subgraph SPINE["Single source of truth"]
-        Types[["ArchieML component types<br/>JSDoc + .md sidecars"]]
+        Types[["gdoc types<br/>block components + content interfaces<br/>+ .md sidecars"]]
     end
 
-    subgraph BUILD["#6543 · registry"]
-        Gen["generator"] -->|emits| Reg[("registry JSON<br/>(committed)")]
+    subgraph BUILD["#6543 · registries"]
+        Gen["generator"] -->|emits| Reg[("component registry JSON<br/>(committed)")]
+        Gen -->|emits| Tpl[("template registry JSON<br/>(this branch)")]
     end
 
     subgraph GALLERY["#6695 · gallery"]
         Page["/components admin page"]
     end
 
-    subgraph API["this branch · admin API"]
+    subgraph API["#6702 · admin API"]
         Routes["GET · PUT /gdocs/:id/archie<br/>POST /gdocs<br/>gate: validateArchieMl"]
     end
 
@@ -66,6 +69,7 @@ flowchart LR
     Types -.->|"defines block shapes"| Enr
     Reg --> Page
     Reg -.->|"block reference for agents"| Routes
+    Tpl -.->|"doc-type reference for agents"| Routes
     Enr --> DB
     Enr --> Site
 
@@ -74,8 +78,10 @@ flowchart LR
     classDef pr6695 fill:#dcfce7,stroke:#16a34a,color:#14532d;
     classDef pr6544 fill:#fef9c3,stroke:#ca8a04,color:#713f12;
     classDef prapi fill:#ffe4e6,stroke:#e11d48,color:#881337;
+    classDef prtpl fill:#e0e7ff,stroke:#4f46e5,color:#312e81;
     class Types spine;
     class Gen,Reg pr6543;
+    class Tpl prtpl;
     class Page pr6695;
     class GDoc,Archie,Raw,Enr pr6544;
     class Routes,Agent prapi;
@@ -159,14 +165,14 @@ flowchart LR
 ## CI self-heal
 
 The registry JSON is generated, never hand-edited. On every push/PR **targeting
-`master`**, the `regenerate-components-reference` job in
+`master`**, the `regenerate-gdocs-references` job in
 [`format.yml`](../.github/workflows/format.yml) reruns the generator and
 auto-commits any diff. Broken examples make the job red and skip the commit, so
 the committed registry can go stale but never corrupt.
 
 **Stacked PRs:** only the bottom PR of a Graphite stack targets `master`, so
 upstack PRs get no self-heal (and no auto-format). If you change types or
-sidecars upstack, run `yarn generateComponentsReference` locally.
+sidecars upstack, run `yarn generateGdocsReferences` locally.
 
 ## How an agent edits a gdoc
 
@@ -207,6 +213,33 @@ checkout, no Google credentials. On a tailnet machine, auth is automatic
 workflow: read (+ a `GET …/validation` baseline) → propose edits → dry run
 until `writable` → show the author a diff → apply with `expectedRevisionId` →
 report the saved doc's validation delta and the preview URL.
+
+## The template reference
+
+The component registry documents what goes _inside_ a document body. Creating a
+document also needs to know its _front matter_: which fields each doc type
+takes, and which properties aren't authored in the document at all. That's the
+**template reference**, served at `GET /admin/api/templates.json` — one entry
+per writable gdoc type (`article`, `topic-page`, `linear-topic-page`,
+`fragment`, `data-insight`), each carrying:
+
+- its **front-matter fields** — name, declared type, optionality, a
+  description, and the write-back fate (emitted / derived / not-yet-supported)
+- the **admin-managed properties** (`slug`, `tags`, `publishedAt`, …) that live
+  on the row, not in the document — so an agent relays a slug change to a human
+  instead of inventing a `slug:` line
+- prose plus a **complete example document**, validated through the same
+  `validateArchieMl` gate the write API uses, so a shipped example is
+  guaranteed writable
+
+It comes from the same generator as the component registry (renamed
+`generate-gdocs-references.ts`), which grows a branch that walks the content
+_interfaces_ (`OwidGdocPostContent`, `OwidGdocDataInsightContent`) instead of
+the block union. Field descriptions live in `.md` sidecars, not JSDoc — the
+generator fails the build if a field lacks a description or a description names
+a field that doesn't exist, so the reference can't drift from the interfaces.
+The `gdoc-editor` skill points agents here when creating a doc, instead of
+carrying hand-maintained field lists.
 
 ## The two round-trip tests
 
