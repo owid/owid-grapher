@@ -7,49 +7,23 @@ metadata:
 
 # Creating Bespoke Data Viz
 
-Bespoke projects are one-off, self-contained visualizations embedded in OWID articles via Shadow DOM. Each project under `bespoke/projects/` has its own `package.json`, dependencies, and Vite build; the output is an ES module exporting a `mount` function. Read [bespoke/readme.md](../../../bespoke/readme.md) first — it is the authoritative doc for the mount interface, Shadow DOM mechanics, ArchieML embedding, and jotai-based cross-variant state. This skill covers the conventions the readme doesn't: project scaffolding, layout, shared components, and what to reuse from the grapher codebase.
+Bespoke projects are one-off, self-contained visualizations embedded in OWID articles via Shadow DOM. Each project under `bespoke/projects/` has its own `package.json`, dependencies, and Vite build; the output is an ES module exporting a `mount` function. Read [bespoke/readme.md](../../../bespoke/readme.md) first — it is the authoritative doc for the mount interface, Shadow DOM mechanics, ArchieML embedding, and jotai-based cross-variant state. This skill covers the conventions the readme doesn't: layout, controls, shared components, and what to reuse from the grapher codebase.
 
 Before starting, **list `bespoke/projects/` and skim the one or two existing projects closest in shape to what you're building** — real projects are the best blueprint for current conventions, and newer ones tend to reflect them best. The `example` project is special: it's the minimal starter template, maintained to be copied rather than shipped. Where the sections below cite a specific project, that's an example of where a pattern lives today, not a canon — prefer newer precedent if it diverges.
 
 ## 1. Scaffolding a new project
 
-Start by copying `bespoke/projects/example/` and renaming. The yarn workspace (`bespoke/package.json` has `projects/*`) picks it up automatically — run `yarn install` from `bespoke/`.
+Copy `bespoke/projects/example/` and rename (`@owid/bespoke-<name>`); the yarn workspace picks it up — run `yarn install` from `bespoke/`. Copy `vite.config.ts`, `tsconfig.json` and `src/index.tsx` verbatim and keep every piece: the readme documents what they do and covers registering the bundle, the dev server, and the production build. Run `yarn typecheck` and `yarn test` from `bespoke/`, and check the result on the demo page. Pure helpers with real logic (layout algorithms, models, bucketing) get **vitest** tests next to the source.
 
-Checklist:
+Two things the readme doesn't cover:
 
-1. **`package.json`**: name `@owid/bespoke-<name>`, `"private": true`, `"type": "module"`. Keep the non-standard `entrypoints` field — the dev server and vite config read it:
-    ```json
-    "entrypoints": {
-        "js": "src/index.tsx",
-        "dev-only-global-css": "src/dev-only-global-css.css"
-    }
-    ```
-    Scripts are always `"dev": "vite dev"`, `"build": "vite build"`, `"typecheck": "tsc"`. The `@ourworldindata/*` packages are consumed via `link:../../../packages/@ourworldindata/<pkg>` and bundled into the output.
-2. **`vite.config.ts`**: copy from `example` verbatim. It has three load-bearing pieces:
-    - library mode (`build.lib`, `formats: ["es"]`, entry from `entrypoints.js`),
-    - `viteCssPosition({ enableDev: true })` — injects CSS into the Shadow DOM via `<StylesTarget />` (see readme),
-    - the SWC decorator plugin wrapped in `withFilter` (the linked grapher package uses MobX decorators).
+**The dedupe trap.** `resolve.dedupe` in `vite.config.ts` must list every library that has to be a singleton. The linked packages (and the shared `bespoke/components`/`hooks` workspaces) resolve deps against their real paths, so without dedupe you get a second React copy (breaks hooks), a second react-query (breaks the QueryClient context), or a second react-aria (breaks overlays). Baseline is `["react", "react-dom", "@react-stately/flags"]`; existing projects extend it with `"@tanstack/react-query"` and/or the react-aria packages — check the dedupe list (and its comment) in the project closest to yours.
 
-    **Trap**: `resolve.dedupe` must list every library that has to be a singleton. The linked packages (and the shared `bespoke/components`/`hooks` workspaces) resolve deps against their real paths, so without dedupe you get a second React copy (breaks hooks), a second react-query (breaks the QueryClient context), or a second react-aria (breaks overlays). Baseline is `["react", "react-dom", "@react-stately/flags"]`; existing projects extend it with `"@tanstack/react-query"` and/or the react-aria packages — check the dedupe list (and its comment) in the project closest to yours.
-
-3. **`tsconfig.json`**: copy from `example`. It carries the path alias for the type-only import of the mount contract:
-    ```json
-    "paths": { "owid-bespoke-types": ["../../shared/bespokeComponentTypes.ts"] }
-    ```
-4. **`src/index.tsx`** — the mount contract (copy from `example`):
-    - call `enableShadowDOM()` from `@react-stately/flags` at module load, before any react-aria component renders;
-    - export `VARIANTS` (`satisfies BespokeComponentVariantsList<VariantName>`) — the demo page renders one Shadow-DOM instance per entry, honoring `demoConfig`/`demoSize`;
-    - export `mount`: look up the variant, `createRoot(container)`, render `<StylesTarget />` as the first sibling, return `() => root.unmount()`;
-    - `import "./index.scss"` at the top.
-5. **Register** the bundle in [site/bespokeComponentRegistry.ts](../../../site/bespokeComponentRegistry.ts): `"<name>": { scriptUrl: "/<name>/index.js" }`. URLs resolve against `BESPOKE_BASE_URL` (defaults to the local dev server `http://localhost:8089`).
-6. **Dev workflow**: `yarn startBespokeDevServer`, then open `http://localhost:8089/<name>/demo` — every variant mounted in its own Shadow DOM, exactly like production (`--build` serves the production build instead). For embedding in an actual article, the readme has the `{.bespoke-component}` syntax.
-7. **Production build**: `bespoke/buildBespokeProjects.sh` builds all projects and collects each `dist/` into `dist/assets-bespoke/<name>/`; the baker copies these into the site. No per-project deploy config needed.
-
-Config parsing: ArchieML config values are always **strings**. Every project has a `src/core/config.ts` exporting its config interface plus a `parseConfig(raw: Record<string, string>)` (see `food-trade/src/core/config.ts`), built from the shared value parsers in `bespoke/helpers/config.ts` — `parseBoolean`, `parseNumber`, `parseInteger`, `parseEnum(value, allowed)`, and the `VariantProps<Config>` type. Don't re-roll those; do keep project-specific parsers local (demography parses a CSV of assumption control points). Readers author these values by hand, so a malformed one degrades to `undefined` rather than throwing. For an enum, declare the runtime list and derive the type from it (`const FLOWS = [...] as const; type Flow = (typeof FLOWS)[number]`) so `parseEnum` and the type can't drift apart. Support the conventional keys where they make sense: `title`, `subtitle` (override the generated ones), `hideControls`, `urlSync`, and an entity default (`country` or `region`) that accepts the sentinel `"userLocation"` (resolve it with the `useResolveUserLocation` hook).
+**Config parsing.** ArchieML config values are always **strings**. Every project has a `src/core/config.ts` exporting its config interface plus a `parseConfig(raw: Record<string, string>)` (see `food-trade/src/core/config.ts`), built from the shared value parsers in `bespoke/helpers/config.ts` — `parseBoolean`, `parseNumber`, `parseInteger`, `parseEnum(value, allowed)`, and the `VariantProps<Config>` type. Don't re-roll those; do keep project-specific parsers local (demography parses a CSV of assumption control points). Readers author these values by hand, so a malformed one degrades to `undefined` rather than throwing. For an enum, declare the runtime list and derive the type from it (`const FLOWS = [...] as const; type Flow = (typeof FLOWS)[number]`) so `parseEnum` and the type can't drift apart. Support the conventional keys where they make sense: `title`, `subtitle` (override the generated ones), `hideControls`, `urlSync`, and an entity default (`country` or `region`) that accepts the sentinel `"userLocation"` (resolve it with the `useResolveUserLocation` hook).
 
 ## 2. Layout: where files go, and how a chart is composed
 
-`src/` holds only the entry point, the stylesheets, and three folders:
+`src/` holds the entry point, the stylesheets, and three folders:
 
 ```
 src/
@@ -75,35 +49,7 @@ Every project structures a variant in three layers — follow this naming/altitu
 2. `Fetching<Name>Variant` — data queries, URL state, and the skeleton / error / empty-state gates;
 3. the captioned chart (`Captioned<Name>Variant` / `<Name>CaptionedChart`) — the visual composition below.
 
-For the composition, the standard is two stacked cards — a controls box above the captioned chart:
-
-```tsx
-<div className="my-viz-chart">
-    {/* optional controls card, ABOVE the chart */}
-    {!config.hideControls && (
-        <Controls className="my-viz-controls">
-            <ControlsRow>
-                {/* LabeledDropdown / EntityDropdown, or a Switcher or
-                    checkbox wrapped in <LabeledControl label="…"> */}
-            </ControlsRow>
-            {/* the TimeSlider goes outside the row, unlabelled */}
-            <TimeSlider times={times} selectedTime={year} onChange={setYear} />
-        </Controls>
-    )}
-
-    {/* the captioned chart */}
-    <Frame className="my-viz-captioned-chart">
-        <ChartHeader title={title} subtitle={subtitle} />
-        <div className="my-viz-captioned-chart__chart-area">
-            {showDelayedSpinner && <Spinner />}
-            <MyResponsiveViz {...props} />
-        </div>
-        <ChartFooter source={metadata.source} note={note} />
-    </Frame>
-</div>
-```
-
-The captioned-chart Frame (header → chart area → footer) is universal, and the controls block is a `Controls` box (a `Frame` under the hood) in every project that has one. The alternative is no controls block at all, with the entity selector embedded inline in the title (demography).
+For the composition, the standard is two stacked cards: a `Controls` box (gated on `!config.hideControls`) above a `Frame` holding `ChartHeader` → chart area → `ChartFooter`. Inside the controls box, dropdowns/switchers/checkboxes go in a `ControlsRow` and the `TimeSlider` sits outside the row. The captioned-chart Frame is universal, and the controls block is a `Controls` box (a `Frame` under the hood) in every project that has one. The alternative is no controls block at all, with the entity selector embedded inline in the title (demography).
 
 Conventions that go with this:
 
@@ -197,7 +143,7 @@ Bespoke data is **fetched at runtime, never bundled**. The established pattern a
 - Pre-processed JSON hosted on the public bucket `https://owid-public.owid.io` — one small `*.metadata.json` plus per-key data files (per entity, product, or whatever the primary selector is), so changing the selection fetches only one small file. The exact path and file naming vary per project — pick something sensible under a project-named directory.
 - `@tanstack/react-query` with `fetchJson` from `@ourworldindata/utils`. Namespaced query keys (`["my-viz", "data", entityId]`), `placeholderData: (prev) => prev` so the old chart stays visible while switching entities (drive the spinner from `isPlaceholderData` + `useDelayedLoading`), and `staleTime: Infinity` — the files are immutable within a session.
 - Data files are usually column-oriented parallel arrays; reshape into rows/Maps client-side, resolving IDs through the metadata. A small metadata class with lazily-built lookup maps (see `causes-of-death/src/core/CausesOfDeathMetadata.ts`) keeps this tidy.
-- **Record data anomalies in a `data-issues.md` at the project root as you find them** — what the issue is, its impact on the viz, how the code handles it, and the recommended fix. Defensive code (clamps, dedupes, guards) hides issues from the screen but not from readers of this file — it's what makes upstream fixes actionable later.
+- Defensive code (clamps, dedupes, guards) hides data anomalies from the screen — say what you worked around, so the upstream fix stays actionable.
 
 ## 9. State management — decision guide
 
@@ -217,26 +163,8 @@ Instantiate the `QueryClient` once at module scope.
 
 ## 11. When to extract into shared code — and when not to
 
-Bespoke projects are **one-off, standalone by design**. The bias is firmly toward keeping code project-local: a dependency-free project can be changed (or deleted) without thinking about anything else, and premature abstractions across one-off projects age badly.
+Bespoke projects are **one-off, standalone by design**, so the default is project-local. Extract into `bespoke/components/`, `bespoke/hooks/` or `bespoke/helpers/` only when a **second project actually needs it** (the second concrete use, not anticipation) and the piece is **generic and presentational** — props, callbacks and data types, no project-specific data assumptions, no fetching. Compare shared `SplitFlowSankey` with project-local `MigrationSankey` (knows about sexes, years, migration metadata): the domain-aware wrapper always stays in the project. Chart chrome and controls (`Frame`, `ChartHeader`, `Controls`, `TimeSlider`, `Switcher`) are the exception — small, stable, wanted by everyone.
 
-Extract into `bespoke/components/` or `bespoke/hooks/` when:
-
-- **A second project actually needs it** — extraction is triggered by the second concrete use, not by anticipation. The Sankey toolkit was worth sharing because food-trade and migration both needed the same substantial machinery; a second treemap project would justify extracting a generic treemap the same way.
-- The extracted piece can be **generic and presentational**: props + callbacks + data types, no project-specific data assumptions, no fetching. Compare shared `SplitFlowSankey` (takes `flows`, `formatValue`, callbacks) with project-local `MigrationSankey` (knows about sexes, years, migration metadata). The domain-aware wrapper always stays in the project.
-- It's chart **chrome or a control** with an obvious stable contract (`Frame`, `ChartHeader`, `Controls`, `TimeSlider`, `Switcher`) — these are small, generic, and every project wants them.
-
-Keep it project-local when:
-
-- Only one project uses it, even if it "feels reusable". Copying a hundred lines into a second project later is cheaper than maintaining a shared abstraction nobody else uses.
-- It encodes domain logic, data shapes, or copy (metadata classes, config parsing, narrative title builders, category colors).
-- Sharing would require config flags to cover diverging needs — if the second consumer needs a `mode` prop to reuse it, it probably isn't one component.
-
-Also don't duplicate what grapher already provides — check §3/§4 before writing a dropdown, tooltip, text-wrapper, or color palette from scratch.
+Keep it local when only one project uses it (copying it later is cheaper than a shared abstraction nobody else uses), when it encodes domain logic, data shapes or copy, or when sharing would need a `mode` flag to cover diverging needs — that's two components, not one.
 
 Shared components follow the library conventions: class names only (consumer imports the `.scss` partial), OWID SCSS variables, no data fetching, exported prop types.
-
-## 12. Testing & verification
-
-- Pure helpers with real logic (layout algorithms, models, "Other"-bucketing) get **vitest** unit tests next to the source (see the existing `*.test.ts` files under `bespoke/`). Run from `bespoke/` with `yarn test`.
-- `yarn typecheck` from `bespoke/` covers all workspaces; each project also has its own `yarn typecheck`.
-- Visual verification happens on the demo page (`http://localhost:8089/<name>/demo`), which mirrors production Shadow-DOM embedding, including per-variant `demoConfig`/`demoSize` and an SVG download button.
