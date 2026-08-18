@@ -3,9 +3,14 @@ import { useMemo } from "react"
 import {
     Controls,
     ControlsRow,
+    LabeledControl,
 } from "../../../../components/Controls/Controls.js"
 import { LabeledDropdown } from "../../../../components/LabeledDropdown/LabeledDropdown.js"
 import { EntityDropdown } from "../../../../components/EntityDropdown/EntityDropdown.js"
+import {
+    Switcher,
+    SwitcherItem,
+} from "../../../../components/Switcher/Switcher.js"
 
 import { CausesOfDeathMetadata } from "../helpers/CausesOfDeathMetadata.js"
 import { CausesOfDeathTimeSlider } from "./CausesOfDeathTimeSlider.js"
@@ -48,7 +53,7 @@ export function CausesOfDeathControls({
                     selectedAgeGroup={ageGroup}
                     onChange={setAgeGroup}
                 />
-                <SexDropdown
+                <SexSwitcher
                     availableSexes={metadata.availableSexes}
                     selectedSex={sex}
                     onChange={setSex}
@@ -111,39 +116,32 @@ function AgeGroupDropdown({
     )
 }
 
-function SexDropdown({
+function SexSwitcher({
     availableSexes,
     selectedSex,
     onChange,
-    className,
-    isLoading,
 }: {
     availableSexes: string[]
     selectedSex: string
     onChange: (sex: string) => void
-    className?: string
-    isLoading?: boolean
 }) {
-    const options = useMemo(
+    const items = useMemo<SwitcherItem[]>(
         () =>
-            availableSexes?.map((sex) => ({
-                value: sex,
-                label: sex,
-            })) ?? [],
+            availableSexes.map((sex) => ({
+                key: sex,
+                element: sex === "Both sexes" ? "Both" : sex,
+            })),
         [availableSexes]
     )
 
     return (
-        <LabeledDropdown
-            label="Sex"
-            options={options}
-            selectedValue={selectedSex}
-            onChange={onChange}
-            className={className}
-            isLoading={isLoading}
-            placeholder="Select a sex..."
-            aria-label="Select a sex"
-            isSearchable={false}
-        />
+        <LabeledControl label="Sex">
+            <Switcher
+                items={items}
+                selectedKey={selectedSex}
+                onChange={onChange}
+                ariaLabel="Select a sex"
+            />
+        </LabeledControl>
     )
 }

@@ -294,6 +294,7 @@ __metadata:
     normalize.css: "npm:^8.0.1"
     nuqs: "npm:^2.8.9"
     react: "npm:^19.2.7"
+    react-aria-components: "npm:^1.18.0"
     react-dom: "npm:^19.2.7"
     remeda: "npm:^2.39.0"
     sass: "npm:^1.101.0"

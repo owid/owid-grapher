@@ -96,7 +96,7 @@ export function MigrationControls({
                     country={country}
                     setCountry={setCountry}
                 />
-                <SexDropdown metadata={metadata} sex={sex} setSex={setSex} />
+                <SexSwitcher metadata={metadata} sex={sex} setSex={setSex} />
                 {!hideFlowSwitcher && (
                     <ViewSwitcher
                         view={view}
@@ -148,7 +148,7 @@ function CountryDropdown({
     )
 }
 
-function SexDropdown({
+function SexSwitcher({
     metadata,
     sex,
     setSex,
@@ -157,27 +157,24 @@ function SexDropdown({
     sex: Sex
     setSex: (sex: Sex) => void
 }) {
-    const options = useMemo<BasicDropdownOption[]>(
+    const items = useMemo<SwitcherItem<Sex>[]>(
         () =>
             metadata.genders.map((g) => {
-                const sex = sexFromName(g.name)
-                return {
-                    value: sex,
-                    label: sex === "both" ? "Both sexes" : g.name,
-                }
+                const key = sexFromName(g.name)
+                return { key, element: key === "both" ? "Both" : g.name }
             }),
         [metadata.genders]
     )
 
     return (
-        <LabeledDropdown
-            label="Sex"
-            options={options}
-            selectedValue={sex}
-            onChange={(v) => setSex(v as Sex)}
-            placeholder="Select sex…"
-            aria-label="Select sex"
-        />
+        <LabeledControl label="Sex">
+            <Switcher
+                items={items}
+                selectedKey={sex}
+                onChange={setSex}
+                ariaLabel="Select sex"
+            />
+        </LabeledControl>
     )
 }
 
