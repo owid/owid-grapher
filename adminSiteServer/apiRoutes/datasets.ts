@@ -16,6 +16,11 @@ import {
     setTagsForDataset,
     checkDatasetVariablesInUse,
 } from "../../db/model/Dataset.js"
+import {
+    planGhostVariableCleanup,
+    executeGhostVariableCleanup,
+} from "../../db/model/Variable.js"
+import { deleteGrapherConfigFromR2ByUUID } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
@@ -576,4 +581,48 @@ export async function republishCharts(
     )
 
     return { success: true }
+}
+
+export async function cleanupGhostVariables(
+    req: Request,
+    _res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+) {
+    const datasetId = expectInt(req.params.datasetId)
+    const dataset = await getDatasetById(trx, datasetId)
+    if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
+
+    const { keepVariableIds, dryRun = false } = req.body ?? {}
+
+    if (
+        !Array.isArray(keepVariableIds) ||
+        !keepVariableIds.every((id) => Number.isInteger(id))
+    ) {
+        throw new JsonError(
+            "`keepVariableIds` must be an array of variable ids",
+            400
+        )
+    }
+    if (typeof dryRun !== "boolean") {
+        throw new JsonError("`dryRun` must be a boolean", 400)
+    }
+
+    const plan = await planGhostVariableCleanup(trx, datasetId, keepVariableIds)
+
+    if (!dryRun) {
+        await executeGhostVariableCleanup(trx, plan)
+        for (const configId of plan.configIds) {
+            await deleteGrapherConfigFromR2ByUUID(configId)
+        }
+    }
+
+    // Blocked variables are reported, not deleted, and are not an error here: whether a
+    // ghost variable still used by a chart should fail the ETL run depends on which
+    // environment that run is in, which is ETL's call to make.
+    return {
+        success: true,
+        deleted: dryRun ? [] : plan.deletable,
+        deletable: plan.deletable,
+        blocked: plan.blocked,
+    }
 }

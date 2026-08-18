@@ -30,6 +30,7 @@ import {
     setArchived,
     setTags,
     republishCharts,
+    cleanupGhostVariables,
 } from "./apiRoutes/datasets.js"
 import {
     addExplorerTags,
@@ -322,6 +323,11 @@ postRouteWithRWTransaction(
     setArchived
 )
 postRouteWithRWTransaction(apiRouter, "/datasets/:datasetId/setTags", setTags)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/datasets/:datasetId/cleanupGhostVariables",
+    cleanupGhostVariables
+)
 postRouteWithRWTransaction(
     apiRouter,
     "/datasets/:datasetId/charts",
