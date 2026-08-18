@@ -396,17 +396,39 @@ function ReadMoreLink({ href, label }: { href: string; label: string }) {
     )
 }
 
-/** Data updates and announcements: plain on the page background. */
+/**
+ * Data updates and announcements: plain on the page background, carrying
+ * their whole body. They are short — a few paragraphs closing on a call to
+ * action — and editorial found that clipping them to a lead sold them badly,
+ * since they aren't written to hook a reader in two paragraphs.
+ */
 function TeaserBody({ item }: { item: NotificationEmailItem }) {
+    const body = item.body ?? []
     return (
         <>
             <ItemTitle item={item} />
-            {item.excerpt && (
-                <Text style={{ ...BODY_TEXT, margin: "0 0 8px" }}>
-                    {item.excerpt}
-                </Text>
+            {body.map((block, index) => (
+                <Block
+                    key={index}
+                    block={block}
+                    imageUrlByFilename={item.imageUrlByFilename ?? {}}
+                />
+            ))}
+            {/* An announcement whose body is a top-level {.cta} has no blocks
+                to show, so it falls back to its excerpt — a summary of a page
+                the email isn't reproducing, so that one keeps a link. A body
+                shown in full needs none: it ends on its own call to action,
+                and the title links to the page. */}
+            {body.length === 0 && (
+                <>
+                    {item.excerpt && (
+                        <Text style={{ ...BODY_TEXT, margin: "0 0 8px" }}>
+                            {item.excerpt}
+                        </Text>
+                    )}
+                    <ReadMoreLink href={item.url} label="Read more" />
+                </>
             )}
-            <ReadMoreLink href={item.url} label="Read more" />
         </>
     )
 }
