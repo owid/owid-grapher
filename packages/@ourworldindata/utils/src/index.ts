@@ -40,6 +40,7 @@ export {
     fetchText,
     fetchJson,
     fetchWithTimeout,
+    TimeoutError,
     getUserCountryInformation,
     stripHTML,
     getRandomNumberGenerator,

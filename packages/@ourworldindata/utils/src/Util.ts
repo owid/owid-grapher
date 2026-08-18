@@ -603,6 +603,8 @@ export async function fetchJson<TResult>(
     return response.json()
 }
 
+export class TimeoutError extends Error {}
+
 // Adapted from https://github.com/sindresorhus/ky/blob/main/source/utils/timeout.ts
 export async function fetchWithTimeout(
     url: string,
@@ -614,7 +616,7 @@ export async function fetchWithTimeout(
     return new Promise((resolve, reject) => {
         const timeoutId = setTimeout(() => {
             abortController.abort()
-            reject(new Error(`Request timed out: ${url}`))
+            reject(new TimeoutError(`Request timed out: ${url}`))
         }, timeoutMs)
 
         void fetch(url, { ...options, signal: abortController.signal })
