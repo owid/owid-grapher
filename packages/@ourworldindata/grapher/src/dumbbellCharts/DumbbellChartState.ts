@@ -14,6 +14,7 @@ import {
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import { domainExtent } from "@ourworldindata/utils"
 import { ChartState } from "../chart/ChartInterface"
+import { makeToleranceNotice } from "../chart/ToleranceNotice"
 import {
     DEFAULT_DUMBBELL_TREND_COLOR_MAP,
     DUMBBELL_SORT_KEYS,
@@ -352,6 +353,14 @@ export class DumbbellChartState implements ChartState {
             series.start.value,
             series.end.value,
         ])
+    }
+
+    @computed get toleranceNotice(): string | undefined {
+        return makeToleranceNotice({
+            inputTable: this.inputTable,
+            transformedTable: this.transformedTable,
+            columns: this.yColumns,
+        })
     }
 
     @computed get yDomainDefault(): [number, number] {

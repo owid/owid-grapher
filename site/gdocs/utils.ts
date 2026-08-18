@@ -283,7 +283,10 @@ export const useLinkedChart = (
     const linkedChart = linkedCharts?.[urlTarget]
     if (!linkedChart) {
         return {
-            errorMessage: `${linkType} chart with slug ${urlTarget} not found`,
+            errorMessage:
+                linkType === "explorer"
+                    ? `Explorer with slug "${urlTarget}" not found`
+                    : `Chart or multi-dim data page with slug "${urlTarget}" not found`,
         }
     }
 

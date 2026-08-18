@@ -34,6 +34,7 @@ import {
     AxisConfigInterface,
     ChartErrorInfo,
     GrapherVariant,
+    TickFormattingOptions,
 } from "@ourworldindata/types"
 import { ChartComponent, makeChartInstance } from "../chart/ChartTypeMap"
 import { ChartManager } from "../chart/ChartManager"
@@ -306,13 +307,16 @@ export class FacetChart
             shouldPinTooltipToBottom,
         } = manager
 
-        // Use compact labels, e.g. 50k instead of 50,000.
-        const numberAbbreviation = facetCount > 2 ? "short" : "long"
+        // Use compact labels, e.g. 50k instead of 50,000
+        const tickFormattingOptions: TickFormattingOptions =
+            facetCount > 2
+                ? { numberAbbreviation: "short", abbreviationThreshold: 1e3 }
+                : { numberAbbreviation: "long" }
         const globalXAxisConfig: AxisConfigInterface = {
-            tickFormattingOptions: { numberAbbreviation },
+            tickFormattingOptions,
         }
         const globalYAxisConfig: AxisConfigInterface = {
-            tickFormattingOptions: { numberAbbreviation },
+            tickFormattingOptions,
         }
 
         // We infer that the user cares about the trend if the axis is not uniform
@@ -540,11 +544,11 @@ export class FacetChart
                 config.min = _.min(domains.map((d) => d[0]))
                 config.max = _.max(domains.map((d) => d[1]))
 
-                // Find domain values across all facets
-                const domainValues = _.uniq(
-                    axes.flatMap((axis) => axis.config.domainValues ?? [])
+                // Find band values across all facets
+                const bandValues = _.uniq(
+                    axes.flatMap((axis) => axis.config.bandValues ?? [])
                 )
-                if (domainValues.length > 0) config.domainValues = domainValues
+                if (bandValues.length > 0) config.bandValues = bandValues
 
                 // Find ticks across all facets
                 const ticks = _.uniq(

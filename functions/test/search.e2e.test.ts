@@ -3,8 +3,11 @@ import { unstable_startWorker } from "wrangler"
 
 let worker: Awaited<ReturnType<typeof unstable_startWorker>>
 
-async function workerFetch(pathname: string) {
-    return worker.fetch(`http://example.com${pathname}`)
+async function workerFetch(
+    pathname: string,
+    init?: { method?: string; body?: string }
+) {
+    return worker.fetch(`http://example.com${pathname}`, init)
 }
 
 // Runs the real /api/search handler inside an actual Workers (workerd)
@@ -97,5 +100,63 @@ describe("search endpoint inside a real Workers runtime", () => {
         expect(body.closestMatches).toBeUndefined()
         expect(body.results).toEqual([])
         expect(body.nbHits).toBe(0)
+    })
+
+    describe("cached queries proxy", () => {
+        const emptyQueryBody = JSON.stringify({
+            requests: [
+                {
+                    indexName: "explorer-views-and-charts",
+                    query: "",
+                    hitsPerPage: 3,
+                },
+            ],
+        })
+
+        it("proxies an empty-query search to Algolia and caches it", async () => {
+            const response = await workerFetch("/api/search/cached-queries", {
+                method: "POST",
+                body: emptyQueryBody,
+            })
+            expect(response.status).toBe(200)
+            expect(response.headers.get("Cache-Control")).toBe(
+                "public, max-age=86400"
+            )
+
+            const body = (await response.json()) as {
+                results: { hits: unknown[]; nbHits: number }[]
+            }
+            expect(body.results).toHaveLength(1)
+            expect(body.results[0].hits.length).toBeGreaterThan(0)
+            expect(body.results[0].nbHits).toBeGreaterThan(0)
+
+            // The same request again should now be served from the cache
+            const cachedResponse = await workerFetch(
+                "/api/search/cached-queries",
+                { method: "POST", body: emptyQueryBody }
+            )
+            expect(cachedResponse.status).toBe(200)
+            expect(cachedResponse.headers.get("X-Cache")).toBe("HIT")
+
+            const cachedBody = (await cachedResponse.json()) as {
+                results: unknown[]
+            }
+            expect(cachedBody.results).toHaveLength(1)
+        })
+
+        it("rejects a non-empty query", async () => {
+            const response = await workerFetch("/api/search/cached-queries", {
+                method: "POST",
+                body: JSON.stringify({
+                    requests: [
+                        {
+                            indexName: "explorer-views-and-charts",
+                            query: "population",
+                        },
+                    ],
+                }),
+            })
+            expect(response.status).toBe(400)
+        })
     })
 })

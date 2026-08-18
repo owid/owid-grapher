@@ -64,7 +64,7 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
     private renderLoadingIndicatorIntoSvg(): React.ReactElement {
         return (
             <foreignObject {...this.bounds.toProps()}>
-                <LoadingIndicator title={this.manager.whatAreWeWaitingFor} />
+                <LoadingIndicator title="Loading data..." />
             </foreignObject>
         )
     }
@@ -135,9 +135,7 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
                 {this.manager.isReady ? (
                     <DataTable bounds={bounds} manager={this.manager} />
                 ) : (
-                    <LoadingIndicator
-                        title={this.manager.whatAreWeWaitingFor}
-                    />
+                    <LoadingIndicator title="Loading data..." />
                 )}
             </div>
         )
