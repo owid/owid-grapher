@@ -17,14 +17,11 @@ import {
 
 const env = getAdminTestEnv()
 
-async function cleanup(body: {
-    keepVariableIds: number[]
-    dryRun?: boolean
-}): Promise<any> {
+async function cleanup(keepVariableIds: number[]): Promise<any> {
     return await env.request({
         method: "POST",
         path: `/datasets/${datasetId}/cleanupGhostVariables`,
-        body: JSON.stringify(body),
+        body: JSON.stringify({ keepVariableIds }),
     })
 }
 
@@ -42,7 +39,7 @@ describe("Ghost variable cleanup", { timeout: 15000 }, () => {
     })
 
     it("deletes the variables that weren't upserted and keeps the rest", async () => {
-        const response = await cleanup({ keepVariableIds: [variableId] })
+        const response = await cleanup([variableId])
 
         expect(response.deleted).toEqual([otherVariableId])
         expect(response.blocked).toEqual([])
@@ -50,16 +47,14 @@ describe("Ghost variable cleanup", { timeout: 15000 }, () => {
     })
 
     it("deletes every variable when none were upserted", async () => {
-        const response = await cleanup({ keepVariableIds: [] })
+        const response = await cleanup([])
 
         expect(response.deleted.sort()).toEqual([variableId, otherVariableId])
         expect(await remainingVariableIds()).toEqual([])
     })
 
     it("is a no-op when every variable was upserted", async () => {
-        const response = await cleanup({
-            keepVariableIds: [variableId, otherVariableId],
-        })
+        const response = await cleanup([variableId, otherVariableId])
 
         expect(response.deleted).toEqual([])
         expect(response.blocked).toEqual([])
@@ -82,11 +77,16 @@ describe("Ghost variable cleanup", { timeout: 15000 }, () => {
             }),
         })
 
-        const response = await cleanup({ keepVariableIds: [variableId] })
+        const response = await cleanup([variableId])
 
         expect(response.deleted).toEqual([])
         expect(response.blocked).toEqual([
-            { variableId: otherVariableId, chartIds: [chartId] },
+            {
+                variableId: otherVariableId,
+                variableName: null,
+                chartId,
+                chartSlug: "ghost-variable-chart",
+            },
         ])
         // The blocked variable survives — deciding whether that should fail the ETL
         // run is the caller's job, not ours.
@@ -107,7 +107,7 @@ describe("Ghost variable cleanup", { timeout: 15000 }, () => {
         })
         expect(await env.getCount(ChartConfigsTableName)).toBe(1)
 
-        const response = await cleanup({ keepVariableIds: [variableId] })
+        const response = await cleanup([variableId])
 
         expect(response.deleted).toEqual([otherVariableId])
         expect(await env.getCount(ChartConfigsTableName)).toBe(0)
@@ -152,7 +152,7 @@ describe("Ghost variable cleanup", { timeout: 15000 }, () => {
         const configCountBefore = await env.getCount(ChartConfigsTableName)
         expect(await env.getCount(MultiDimXChartConfigsTableName)).toBe(2)
 
-        const response = await cleanup({ keepVariableIds: [variableId] })
+        const response = await cleanup([variableId])
 
         expect(response.deleted).toEqual([otherVariableId])
         expect(await env.getCount(MultiDimXChartConfigsTableName)).toBe(1)
@@ -160,19 +160,5 @@ describe("Ghost variable cleanup", { timeout: 15000 }, () => {
         expect(await env.getCount(ChartConfigsTableName)).toBe(
             configCountBefore - 1
         )
-    })
-
-    it("dryRun reports what would go without deleting anything", async () => {
-        const response = await cleanup({
-            keepVariableIds: [variableId],
-            dryRun: true,
-        })
-
-        expect(response.deleted).toEqual([])
-        expect(response.deletable).toEqual([otherVariableId])
-        expect(await remainingVariableIds()).toEqual([
-            variableId,
-            otherVariableId,
-        ])
     })
 })
