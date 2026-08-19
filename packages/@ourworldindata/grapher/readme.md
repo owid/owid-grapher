@@ -8,9 +8,20 @@ This readme first covers how to use Grapher as a standalone package — in a Rea
 
 ### Installation
 
-(TBD)
+The package is published as `@ourworldindata/grapher` to OWID's private npm registry at `https://packages.owid.io`, so installing it requires an auth token for that registry. Point your package manager at it — for npm, in the consuming project's `.npmrc`:
 
-`react` and `react-dom` (19) are peer dependencies of the library build; the CDN bundle described below has them baked in. The package is ESM-only.
+```
+@ourworldindata:registry=https://packages.owid.io
+//packages.owid.io/:_authToken=<your auth token>
+```
+
+(For Yarn Berry, set the equivalent `npmScopes.ourworldindata.npmRegistryServer` and `npmAuthToken` in `.yarnrc.yml`.) Then install as usual:
+
+```bash
+npm install @ourworldindata/grapher
+```
+
+`react` and `react-dom` (19) are peer dependencies of the library build; the standalone bundle described below has them baked in. The package is ESM-only.
 
 Two things to include on any page that shows a chart:
 
@@ -49,9 +60,9 @@ function LifeExpectancyChart() {
 
 The same code minus the React wrapper works in any bundler environment — `mount` just needs a sized container element.
 
-### Quick start: plain HTML (CDN bundle)
+### Quick start: plain HTML (standalone bundle)
 
-For static sites or non-React applications, use the standalone bundle (`dist/grapher.standalone.min.js`), which includes React:
+For static sites or non-React applications, use the standalone bundle (`dist/grapher.standalone.min.js`), which includes React. In an installed package it's also available as the `@ourworldindata/grapher/standalone` export; the relative paths below are for `dist/` files copied onto a static host or CDN:
 
 ```html
 <!doctype html>
@@ -238,7 +249,7 @@ One gotcha: fields like `columnDefs[].type` and `dimensions[].property` are enum
 Running the build script produces the following outputs under `dist/`:
 
 - `grapher.js`: The ES module library build. React and React DOM are marked as external peer dependencies (ideal for modern React apps or bundler environments).
-- `grapher.standalone.min.js`: The standalone, minified CDN bundle. All dependencies (including React and React DOM) are bundled, enabling plug-and-play usage directly in any HTML page.
+- `grapher.standalone.min.js`: The minified standalone bundle. All dependencies (including React and React DOM) are bundled, enabling plug-and-play usage directly in any HTML page.
 - `grapher.css`: The stylesheet containing all Grapher layouts and components styles.
 - `grapher.d.ts`: TypeScript declaration entry point for the public API.
 
@@ -255,6 +266,16 @@ Two tools help verify the built package (both expect `yarn build` to have run fi
 
 - `yarn testPackage` runs the smoke tests in `packageTest/`: they import both JS builds, mount a chart from the built code into a DOM, and pack the package (`yarn pack`, which applies `publishConfig`) to typecheck a simulated external consumer against the bundled type declarations — with `moduleResolution: bundler` and `nodenext`, plus a full check of the declaration bundle itself and an [`@arethetypeswrong/cli`](https://github.com/arethetypeswrong/arethetypeswrong.github.io) pass over the tarball's types/exports wiring. These tests are intentionally not part of the repo-wide `yarn test` since they depend on `dist/`.
 - `yarn startDemoServer` serves this directory on http://localhost:8433 via `http-server` and opens `/demo.html`, which shows the three `GrapherLoader` variants. It's a plain static server, so the demo page loads `dist/` exactly like a CDN consumer would.
+
+### Publishing a release
+
+Releases go to OWID's private registry at `https://packages.owid.io` (set as `publishConfig.registry`). From this directory, with the build verified (`yarn build` + `yarn testPackage`):
+
+```bash
+yarn bumpp
+```
+
+Once that commit & tag are pushed to `master`, a Buildkite pipeline runs a publish and will put the package release both onto our private npm registry, and will make the built files available on our Tailnet.
 
 ### Publishing a preview to GitHub Packages
 
