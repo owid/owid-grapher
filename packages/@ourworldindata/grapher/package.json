@@ -1,6 +1,6 @@
 {
     "name": "@ourworldindata/grapher",
-    "version": "0.0.0",
+    "version": "0.0.1",
     "description": "OWID's data exploration and visualization library.",
     "repository": {
         "type": "git",
