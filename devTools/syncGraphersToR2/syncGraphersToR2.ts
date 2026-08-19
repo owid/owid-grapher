@@ -247,10 +247,11 @@ async function main(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
             Pick<DbRawChartConfig, "slug" | "fullMd5" | "id">
         >(
             trx,
-            `select slug, fullMd5, id
-             from chart_configs
-             where slug is not null
-             and full ->> '$.isPublished' = "true"`
+            `select cc.slug, cc.fullMd5, cc.id
+             from chart_configs cc
+             join charts c on c.configId = cc.id
+             where cc.slug is not null
+             and cc.full ->> '$.isPublished' = "true"`
         )
         console.log(`Found ${slugsAndHashesFromDb.length} published charts`)
 
