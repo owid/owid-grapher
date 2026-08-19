@@ -1,0 +1,25 @@
+.OrphanedArticlesIndexPage {
+    header {
+        margin-bottom: 1rem;
+
+        p {
+            max-width: 60rem;
+        }
+    }
+
+    .OrphanedArticlesIndexPage__topic-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .OrphanedArticlesIndexPage__topic-name {
+        font-weight: 700;
+        margin-right: 0.25rem;
+    }
+
+    .OrphanedArticlesIndexPage__topic-links {
+        font-size: 0.85em;
+        white-space: nowrap;
+    }
+}

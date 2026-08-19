@@ -1,5 +1,5 @@
 import * as R from "remeda"
-import cx from "classnames"
+import cx from "clsx"
 import { useState } from "react"
 import {
     Button,
@@ -104,7 +104,7 @@ export const TabsWithDropdown = <TabKey extends string = string>({
                                 icon={faEllipsisVertical}
                                 aria-hidden="true"
                             />
-                            <span>More</span>
+                            <span className="label">More</span>
                         </Button>
                         {popover}
                     </MenuTrigger>

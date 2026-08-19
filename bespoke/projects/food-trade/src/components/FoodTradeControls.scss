@@ -1,0 +1,14 @@
+.food-trade-controls .controls__row > * {
+    flex: 1 1 0;
+}
+
+.food-trade-controls__switcher-wrapper {
+    display: flex;
+}
+.food-trade-controls__switcher-wrapper .switcher {
+    flex: 1 1 0;
+}
+// Keep the three trade-flow options evenly sized and wide enough to read
+.food-trade-controls__switcher-wrapper .switcher__item {
+    min-width: 64px;
+}

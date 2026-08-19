@@ -4,9 +4,10 @@ import {
     EnrichedChartRowItem,
 } from "@ourworldindata/types"
 import { useGuidedChartLinkHandler } from "@ourworldindata/grapher"
-import cx from "classnames"
+import cx from "clsx"
 import ChartThumbnail from "./ChartThumbnail.js"
 import Paragraph from "./Paragraph.js"
+import SpanElements from "./SpanElements.js"
 
 function ChartRow({ row }: { row: EnrichedChartRowItem }) {
     const onGuidedChartLinkClick = useGuidedChartLinkHandler()
@@ -25,33 +26,37 @@ function ChartRow({ row }: { row: EnrichedChartRowItem }) {
         </div>
     )
 
-    if (onGuidedChartLinkClick) {
-        return (
-            <div className="chart-rows__row">
-                <button
-                    className="chart-thumbnail"
-                    onClick={() => onGuidedChartLinkClick(row.url)}
-                    aria-label="Update chart to this view"
-                    aria-describedby={hasContent ? contentId : undefined}
-                >
-                    {thumbnail}
-                </button>
-                {content}
-            </div>
-        )
-    }
+    const thumbnailLink = onGuidedChartLinkClick ? (
+        <button
+            className="chart-thumbnail"
+            onClick={() => onGuidedChartLinkClick(row.url)}
+            aria-label="Update chart to this view"
+            aria-describedby={hasContent ? contentId : undefined}
+        >
+            {thumbnail}
+        </button>
+    ) : (
+        <a
+            href={row.url}
+            className="chart-thumbnail"
+            aria-label="See chart"
+            aria-describedby={hasContent ? contentId : undefined}
+        >
+            {thumbnail}
+        </a>
+    )
 
     return (
         <div className="chart-rows__row">
-            <a
-                href={row.url}
-                className="chart-thumbnail"
-                aria-label="See chart"
-                aria-describedby={hasContent ? contentId : undefined}
-            >
-                {thumbnail}
-            </a>
             {content}
+            <figure className="chart-rows__chart">
+                {thumbnailLink}
+                {row.caption && (
+                    <figcaption className="chart-rows__caption">
+                        <SpanElements spans={row.caption} />
+                    </figcaption>
+                )}
+            </figure>
         </div>
     )
 }

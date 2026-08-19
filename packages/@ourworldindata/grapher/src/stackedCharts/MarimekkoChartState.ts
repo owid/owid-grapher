@@ -8,7 +8,9 @@ import {
     BarShape,
     EntityColorData,
     Item,
+    MARIMEKKO_SORT_KEYS,
     MarimekkoChartManager,
+    MarimekkoSortKey,
     SimpleChartSeries,
     SimplePoint,
 } from "./MarimekkoChartConstants"
@@ -39,6 +41,7 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { FocusArray } from "../focus/FocusArray"
 import { AxisConfig } from "../axis/AxisConfig.js"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
+import { makeToleranceNotice } from "../chart/ToleranceNotice.js"
 
 export class MarimekkoChartState implements ChartState, ColorScaleManager {
     manager: MarimekkoChartManager
@@ -149,6 +152,14 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
 
     @computed get colorColumnSlug(): string | undefined {
         return this.manager.colorColumnSlug
+    }
+
+    @computed get toleranceNotice(): string | undefined {
+        return makeToleranceNotice({
+            inputTable: this.inputTable,
+            transformedTable: this.transformedTable,
+            columns: excludeUndefined([...this.yColumns, this.xColumn]),
+        })
     }
 
     @computed get colorColumn(): CoreColumn {
@@ -381,6 +392,10 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         )
 
         return [...itemsWithValues, ...itemsWithoutValues]
+    }
+
+    @computed get availableSortKeys(): MarimekkoSortKey[] {
+        return [...MARIMEKKO_SORT_KEYS]
     }
 
     @computed get selectedItems(): Item[] {

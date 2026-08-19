@@ -11,6 +11,7 @@ import {
     RequiredBy,
 } from "@ourworldindata/utils"
 import { ColumnTypeMap, CoreColumn } from "@ourworldindata/core-table"
+import { OwidColumnDef } from "@ourworldindata/types"
 import {
     Tooltip,
     TooltipState,
@@ -33,7 +34,7 @@ interface TooltipValueRangeProps {
     chartState: ScatterPlotChartState
     points?: SeriesPoint[]
     values: SeriesPoint[]
-    showSignificanceSuperscript?: boolean
+    showSignificanceSuperscriptIfApplicable?: boolean
     showOriginalTimes?: boolean
 }
 
@@ -81,7 +82,7 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
             return makeToleranceNotice({
                 startTime,
                 endTime,
-                formatTime: (time) => yColumn.formatTime(time),
+                column: yColumn,
             })
         }
 
@@ -106,7 +107,7 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
         return makeToleranceNotice({
             startTime,
             endTime,
-            formatTime: (time) => yColumn.formatTime(time),
+            column: yColumn,
         })
     }
 
@@ -144,7 +145,7 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
         }
     }
 
-    @computed private get showSignificanceSuperscript(): boolean {
+    @computed private get showSignificanceSuperscriptIfApplicable(): boolean {
         return this.roundingNotice?.icon === TooltipFooterIcon.Significance
     }
 
@@ -156,8 +157,14 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
         const { manager, yColumn, xColumn } = this.chartState
         const { startTime, endTime, isRelativeMode } = manager
 
+        const isComparison = hasSameVariableWithTimeOverride(
+            xColumn,
+            yColumn,
+            this.points
+        )
+
         let times: Time[]
-        if (hasSameVariableWithTimeOverride(xColumn, yColumn, this.points)) {
+        if (isComparison) {
             times = _.sortBy([this.points[0].time.x, this.points[0].time.y])
         } else if (this.chartState.isTimeScatter) {
             times = _.uniq(excludeNullish(this.values.map((v) => v.time.y)))
@@ -165,13 +172,13 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
             times = _.uniq(excludeNullish([startTime, endTime]))
         }
 
-        const timeRange = times.map((t) => yColumn.formatTime(t)).join(" to ")
+        const timeLabel = formatTimes(times, yColumn, { isComparison })
 
-        return timeRange + (isRelativeMode ? " (avg. annual change)" : "")
+        return timeLabel + (isRelativeMode ? " (avg. annual change)" : "")
     }
 
     override render(): React.ReactElement | null {
-        const { showSignificanceSuperscript } = this
+        const { showSignificanceSuperscriptIfApplicable } = this
         const { chartState, tooltipState } = this.props
 
         const { target, position, fading } = tooltipState
@@ -198,20 +205,26 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
                     chartState={chartState}
                     points={this.points}
                     values={this.values}
-                    showSignificanceSuperscript={showSignificanceSuperscript}
+                    showSignificanceSuperscriptIfApplicable={
+                        showSignificanceSuperscriptIfApplicable
+                    }
                     showOriginalTimes={hasToleranceNotice}
                 />
                 <TooltipValueRangeY
                     chartState={chartState}
                     points={this.points}
                     values={this.values}
-                    showSignificanceSuperscript={showSignificanceSuperscript}
+                    showSignificanceSuperscriptIfApplicable={
+                        showSignificanceSuperscriptIfApplicable
+                    }
                     showOriginalTimes={hasToleranceNotice}
                 />
                 <TooltipValueRangeSize
                     chartState={chartState}
                     values={this.values}
-                    showSignificanceSuperscript={showSignificanceSuperscript}
+                    showSignificanceSuperscriptIfApplicable={
+                        showSignificanceSuperscriptIfApplicable
+                    }
                 />
                 <TooltipValueColor
                     chartState={chartState}
@@ -226,7 +239,7 @@ function TooltipValueRangeX({
     chartState,
     points,
     values,
-    showSignificanceSuperscript,
+    showSignificanceSuperscriptIfApplicable,
     showOriginalTimes,
 }: RequiredBy<TooltipValueRangeProps, "points">): React.ReactElement | null {
     const { xColumn } = chartState
@@ -248,10 +261,14 @@ function TooltipValueRangeX({
             label={xColumn.displayName}
             unit={xColumn.displayUnit}
             values={formatTooltipRangeValues(xValues, xColumn)}
-            trend={calculateTrendDirection(...xValues)}
+            trend={calculateTrendDirection(xValues[0], xValues[1], (value) =>
+                xColumn.formatValueShort(value)
+            )}
             originalTimes={formattedOriginalTimes}
-            isRoundedToSignificantFigures={xColumn.roundsToSignificantFigures}
-            showSignificanceSuperscript={showSignificanceSuperscript}
+            showSignificanceSuperscript={
+                showSignificanceSuperscriptIfApplicable &&
+                xColumn.roundsToSignificantFigures
+            }
         />
     )
 }
@@ -260,7 +277,7 @@ function TooltipValueRangeY({
     chartState,
     points,
     values,
-    showSignificanceSuperscript,
+    showSignificanceSuperscriptIfApplicable,
     showOriginalTimes,
 }: RequiredBy<TooltipValueRangeProps, "points">): React.ReactElement | null {
     const { yColumn } = chartState
@@ -282,10 +299,18 @@ function TooltipValueRangeY({
             label={yColumn.displayName}
             unit={yColumn.displayUnit}
             values={formatTooltipRangeValues(yValues, yColumn)}
-            trend={calculateTrendDirection(...yValues)}
+            trend={
+                yValues.length === 2
+                    ? calculateTrendDirection(yValues[0], yValues[1], (value) =>
+                          yColumn.formatValueShort(value)
+                      )
+                    : undefined
+            }
             originalTimes={formattedOriginalTimes}
-            isRoundedToSignificantFigures={yColumn.roundsToSignificantFigures}
-            showSignificanceSuperscript={showSignificanceSuperscript}
+            showSignificanceSuperscript={
+                showSignificanceSuperscriptIfApplicable &&
+                yColumn.roundsToSignificantFigures
+            }
         />
     )
 }
@@ -293,7 +318,7 @@ function TooltipValueRangeY({
 function TooltipValueRangeSize({
     chartState,
     values,
-    showSignificanceSuperscript,
+    showSignificanceSuperscriptIfApplicable,
 }: TooltipValueRangeProps): React.ReactElement | null {
     const { sizeColumn } = chartState
 
@@ -306,11 +331,19 @@ function TooltipValueRangeSize({
             label={sizeColumn.displayName}
             unit={sizeColumn.displayUnit}
             values={formatTooltipRangeValues(sizeValues, sizeColumn)}
-            trend={calculateTrendDirection(...sizeValues)}
-            isRoundedToSignificantFigures={
+            trend={
+                sizeValues.length === 2
+                    ? calculateTrendDirection(
+                          sizeValues[0],
+                          sizeValues[1],
+                          (value) => sizeColumn.formatValueShort(value)
+                      )
+                    : undefined
+            }
+            showSignificanceSuperscript={
+                showSignificanceSuperscriptIfApplicable &&
                 sizeColumn.roundsToSignificantFigures
             }
-            showSignificanceSuperscript={showSignificanceSuperscript}
         />
     )
 }
@@ -353,9 +386,13 @@ function hasSameVariableWithTimeOverride(
     // Check if there is exactly one point
     if (points.length !== 1) return false
 
-    // Check if both axes use the same dataset/variable
-    const isSameDataset = xColumn.def.datasetId === yColumn.def.datasetId
-    if (!isSameDataset) return false
+    // Check if both axes use the same variable
+    const xDef = xColumn.def as OwidColumnDef
+    const yDef = yColumn.def as OwidColumnDef
+    const isSameVariable =
+        xDef.owidVariableId !== undefined &&
+        xDef.owidVariableId === yDef.owidVariableId
+    if (!isSameVariable) return false
 
     // Check if the point has different time points for x and y
     const point = points[0]
@@ -386,18 +423,33 @@ function hasTimeMismatch({
     return startTimesDiffer || endTimesDiffer
 }
 
+function formatTimes(
+    times: Time[],
+    column: CoreColumn,
+    { isComparison = false }: { isComparison?: boolean } = {}
+): string {
+    if (times.length === 0) return ""
+    if (times.length === 1) return column.formatTime(times[0])
+
+    const [startTime, endTime] = times
+    return isComparison
+        ? column.formatTimeComparison(startTime, endTime)
+        : column.formatTimeRange(startTime, endTime)
+}
+
 function makeToleranceNotice({
     startTime,
     endTime,
-    formatTime,
+    column,
 }: {
     startTime?: Time
     endTime?: Time
-    formatTime: (time: Time) => string
+    column: CoreColumn
 }): FooterItem {
-    const targetNotice = _.uniq(excludeNullish([startTime, endTime]))
-        .map((t) => formatTime(t))
-        .join(" to ")
+    const targetNotice = formatTimes(
+        _.uniq(excludeNullish([startTime, endTime])),
+        column
+    )
 
     return {
         icon: TooltipFooterIcon.Notice,

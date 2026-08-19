@@ -16,11 +16,15 @@ import {
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { EntityName } from "@ourworldindata/types"
-import { getRegionByCode } from "@ourworldindata/utils"
 
-import { DemographyMetadata } from "../helpers/types.js"
-import { useUserCountryInformation } from "../helpers/fetch.js"
-import { displayEntityName, entityNameForSentence } from "../helpers/utils.js"
+import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
+import { orderOptionsByRelevance } from "../../../../components/EntityDropdown/EntityDropdown.js"
+
+import { DemographyMetadata } from "../core/types.js"
+import {
+    formatEntityNameForSentence,
+    stripEntityNameSuffixes,
+} from "../../../../helpers/entityNames.js"
 
 interface Option {
     value: string
@@ -62,7 +66,7 @@ export function InlineEntitySelector({
     return (
         <DialogTrigger isOpen={isOpen} onOpenChange={setIsOpen}>
             <Button className="inline-entity-selector__trigger">
-                {entityNameForSentence(entityName)}
+                {formatEntityNameForSentence(entityName, ["UN"])}
                 <span className="inline-entity-selector__arrow">
                     {"\u00a0"}▾
                 </span>
@@ -95,52 +99,15 @@ function EntityListBox({
     const { contains } = useFilter({ sensitivity: "base" })
 
     const options: OptionCollection = useMemo(() => {
-        const makeOption = (name: string): Option => ({
+        const flat = availableCountries.map((name) => ({
             value: name,
-            label: displayEntityName(name),
-        })
-
-        if (!userCountryInfo) return availableCountries.map(makeOption)
-
-        const availableSet = new Set(availableCountries)
-
-        const suggestedNames: string[] = []
-        if (availableSet.has(userCountryInfo.name)) {
-            suggestedNames.push(userCountryInfo.name)
-        }
-        if (userCountryInfo.regions) {
-            for (const code of userCountryInfo.regions) {
-                const region = getRegionByCode(code)
-                if (
-                    region &&
-                    region.regionType !== "income_group" &&
-                    availableSet.has(region.name)
-                ) {
-                    suggestedNames.push(region.name)
-                }
-            }
-        }
-
-        if (suggestedNames.length === 0) {
-            return availableCountries.map(makeOption)
-        }
-
-        const suggestedSet = new Set(suggestedNames)
-        const remaining = availableCountries.filter(
-            (name) => !suggestedSet.has(name)
-        )
-
-        return [
-            {
-                label: "Suggested",
-                options: suggestedNames.map(makeOption),
-            },
-            {
-                label: "All countries and regions",
-                options: remaining.map(makeOption),
-            },
-        ]
-    }, [availableCountries, userCountryInfo])
+            label: stripEntityNameSuffixes(name, ["UN"]),
+        }))
+        return orderOptionsByRelevance(flat, {
+            userCountryInfo,
+            selectedValue: selectedEntityName,
+        }) as OptionCollection
+    }, [availableCountries, userCountryInfo, selectedEntityName])
 
     return (
         <Autocomplete filter={contains}>
@@ -186,7 +153,10 @@ function EntityListBox({
                                     className="option"
                                     key={option.value}
                                     id={option.value}
-                                    textValue={option.label}
+                                    textValue={stripEntityNameSuffixes(
+                                        option.value,
+                                        ["UN"]
+                                    )}
                                 >
                                     {option.label}
                                 </ListBoxItem>
@@ -197,7 +167,9 @@ function EntityListBox({
                             className="option"
                             key={item.value}
                             id={item.value}
-                            textValue={item.label}
+                            textValue={stripEntityNameSuffixes(item.value, [
+                                "UN",
+                            ])}
                         >
                             {item.label}
                         </ListBoxItem>

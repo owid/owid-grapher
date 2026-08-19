@@ -1,16 +1,11 @@
-import cx from "classnames"
+import cx from "clsx"
 import {
     LatestDataInsight,
     OwidGdocDataInsightInterface,
-    OwidEnrichedGdocBlock,
-    OwidGdocMinimalPostInterface,
     copyToClipboard,
     formatInlineList,
     MinimalTag,
-    Span,
 } from "@ourworldindata/utils"
-import { getLinkType, getUrlTarget } from "@ourworldindata/components"
-import { ContentGraphLinkType } from "@ourworldindata/types"
 import { useContext, useState } from "react"
 import * as React from "react"
 import {
@@ -26,8 +21,9 @@ import DataInsightDateline from "../components/DataInsightDateline.js"
 import LatestDataInsights from "../components/LatestDataInsights.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
-import { getLinkedDocumentUrl } from "../utils.js"
+import { buildSocialText } from "../socialText.js"
 import { CopySocialButton } from "../components/CopySocialButton.js"
+import { buildLatestPagePath } from "../../latest/latestUtils.js"
 
 export const LatestDataInsightCards = (props: {
     latestDataInsights?: LatestDataInsight[]
@@ -39,7 +35,10 @@ export const LatestDataInsightCards = (props: {
     return (
         <div className={cx(className, "data-insight-cards-container")}>
             <h2 className="h2-bold ">Our latest Data Insights</h2>
-            <a href="/data-insights" className="see-all-button">
+            <a
+                href={buildLatestPagePath("data-insight")}
+                className="see-all-button"
+            >
                 See all Data Insights <FontAwesomeIcon icon={faArrowRight} />
             </a>
             <LatestDataInsights
@@ -103,59 +102,9 @@ function CopyLinkButton(props: { slug: string }) {
     )
 }
 
-function spansToPlainText(spans: Span[]): string {
-    return spans
-        .map((span): string => {
-            if (span.spanType === "span-simple-text") return span.text
-            if (span.spanType === "span-newline") return "\n"
-            return spansToPlainText(span.children)
-        })
-        .join("")
-}
-
-function resolveCtaUrl(
-    rawUrl: string,
-    linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
-): string {
-    if (getLinkType(rawUrl) !== ContentGraphLinkType.Gdoc) return rawUrl
-    const target = getUrlTarget(rawUrl)
-    const doc = linkedDocuments[target]
-    if (!doc) return rawUrl
-    return getLinkedDocumentUrl(doc, rawUrl)
-}
-
-function buildSocialText(
-    title: string,
-    body: OwidEnrichedGdocBlock[],
-    authors: string[],
-    linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
-): string {
-    const paragraphs: string[] = []
-    let ctaText: string | undefined
-    let ctaUrl: string | undefined
-
-    for (const block of body) {
-        if (block.type === "text") {
-            paragraphs.push(spansToPlainText(block.value))
-        } else if (block.type === "cta") {
-            ctaText = block.text.replace(/[.:]+$/, "")
-            ctaUrl = resolveCtaUrl(block.url, linkedDocuments)
-        }
-    }
-
-    const parts = [title, paragraphs.join("\n\n")]
-
-    if (authors.length > 0) {
-        parts.push(
-            `(This Data Insight was written by ${formatInlineList(authors, "and")}.)`
-        )
-    }
-
-    if (ctaText && ctaUrl) {
-        parts.push(`${ctaText}: ${ctaUrl}`)
-    }
-
-    return parts.join("\n\n")
+function buildAuthorsNote(authors: string[]): string | undefined {
+    if (authors.length === 0) return undefined
+    return `(This Data Insight was written by ${formatInlineList(authors, "and")}.)`
 }
 
 export const DataInsightBody = (
@@ -226,12 +175,15 @@ export const DataInsightBody = (
                     <RelatedTopicsList tags={props.tags ?? undefined} />
                     <CopyLinkButton slug={props.slug} />
                     <CopySocialButton
-                        text={buildSocialText(
-                            props.content.title,
-                            props.content.body,
-                            props.content.authors,
-                            linkedDocuments
-                        )}
+                        className="data-insight-copy-link-button"
+                        text={buildSocialText({
+                            title: props.content.title,
+                            body: props.content.body,
+                            authorsNote: buildAuthorsNote(
+                                props.content.authors
+                            ),
+                            linkedDocuments,
+                        })}
                     />
                 </div>
             </div>
@@ -259,7 +211,7 @@ export const DataInsightPage = (
     return (
         <div className="grid grid-cols-12-full-width data-insight-page">
             <div className="span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 col-sm-start-2 span-sm-cols-12 data-insight-breadcrumbs">
-                <a href="/data-insights">Data Insights</a>
+                <a href={buildLatestPagePath("data-insight")}>Data Insights</a>
                 <FontAwesomeIcon icon={faChevronRight} />
                 <span>{props.content.title}</span>
             </div>

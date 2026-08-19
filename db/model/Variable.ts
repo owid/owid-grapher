@@ -6,6 +6,7 @@ import {
     omitUndefinedValues,
     mergeGrapherConfigs,
     diffGrapherConfigs,
+    getOwidDataFetchUserAgent,
 } from "@ourworldindata/utils"
 import {
     getVariableDataRoute,
@@ -25,6 +26,7 @@ import {
     GrapherInterface,
     DbRawVariable,
     VariablesTableName,
+    DatasetsTableName,
     DbRawChartConfig,
     DbPlainDatapage,
     parseChartConfig,
@@ -33,6 +35,9 @@ import {
     DbPlainChart,
     DbPlainMultiDimXChartConfig,
     Distribution,
+    DatasetOwners,
+    DbPlainDataset,
+    normalizeDescriptionKey,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 import {
@@ -834,12 +839,23 @@ const createS3JsonParseError = (
     )
 }
 
+// Tag our server-side data API fetches with a descriptive User-Agent; see
+// getOwidDataFetchUserAgent. This code only ever runs in Node (the baker and
+// admin), so a value is always present, but we guard for undefined anyway.
+const dataFetchHeaders: HeadersInit | undefined = (() => {
+    const userAgent = getOwidDataFetchUserAgent()
+    return userAgent ? { "User-Agent": userAgent } : undefined
+})()
+
 export const fetchS3DataValuesByPath = async (
     dataPath: string
 ): Promise<OwidVariableMixedData> => {
     const resp = await retryPromise(
         () =>
-            fetch(dataPath, { keepalive: true }).then((response) => {
+            fetch(dataPath, {
+                keepalive: true,
+                headers: dataFetchHeaders,
+            }).then((response) => {
                 if (!response.ok) {
                     // Trigger retry
                     throw new Error(
@@ -866,7 +882,10 @@ export const fetchS3MetadataByPath = async (
 ): Promise<OwidVariableWithSourceAndDimension> => {
     const resp = await retryPromise(
         () =>
-            fetch(metadataPath, { keepalive: true }).then((response) => {
+            fetch(metadataPath, {
+                keepalive: true,
+                headers: dataFetchHeaders,
+            }).then((response) => {
                 if (!response.ok) {
                     // Trigger retry
                     throw new Error(
@@ -882,7 +901,12 @@ export const fetchS3MetadataByPath = async (
         }
     )
     try {
-        return await resp.json()
+        const metadata = await resp.json()
+        // Metadata files written before the string migration hold arrays.
+        metadata.descriptionKey = normalizeDescriptionKey(
+            metadata.descriptionKey
+        )
+        return metadata
     } catch (error: any) {
         throw createS3JsonParseError(error, metadataPath, resp)
     }
@@ -972,6 +996,36 @@ export async function getVariableDistribution(
     }
 }
 
+export async function getOwnersForVariables(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<DatasetOwners[]> {
+    if (!variableIds.length) return []
+
+    const rows = await knexRaw<Pick<DbPlainDataset, "id" | "name" | "owners">>(
+        knex,
+        `-- sql
+            SELECT DISTINCT
+                d.id AS id,
+                d.name AS name,
+                d.owners AS owners
+            FROM variables v
+            JOIN active_datasets d ON d.id = v.datasetId
+            WHERE v.id IN (?)
+              AND d.owners IS NOT NULL
+        `,
+        [variableIds]
+    )
+
+    return rows
+        .map((row) => ({
+            datasetId: row.id,
+            datasetName: row.name,
+            owners: row.owners ? (JSON.parse(row.owners) as string[]) : [],
+        }))
+        .filter((dataset) => dataset.owners.length > 0)
+}
+
 /**
  * Perform regex search over the variables table.
  */
@@ -997,7 +1051,7 @@ export const searchVariables = async (
         SELECT
             v.id,
             v.name,
-            catalogPath,
+            v.catalogPath AS catalogPath,
             d.id AS datasetId,
             d.name AS datasetName,
             d.isPrivate AS isPrivate,
@@ -1203,4 +1257,65 @@ export const getVariableIdsByCatalogPath = async (
         // Sort for good measure and determinism.
         catalogPaths.sort().map((path) => [path, rowsByPath[path]?.id ?? null])
     )
+}
+
+/**
+ * Resolve the latest variable id for each given catalog path.
+ *
+ * Catalog paths follow the structure
+ * `channel/namespace/version/dataset/table#column`, where the version (the 3rd
+ * path segment) is an ISO date such as `2024-07-15`. This helper takes a
+ * version-agnostic catalog path (with the version segment replaced by 'latest',
+ * e.g. `grapher/worldbank_wdi/latest/wdi/wdi#ny_gdp_pcap_pp_kd`) and returns
+ * the id of the most recent version
+ */
+export const getLatestVariableIdsByCatalogPath = async (
+    catalogPaths: string[],
+    knex: db.KnexReadonlyTransaction
+): Promise<Map<string, number | null>> => {
+    const VERSION_SEGMENT_INDEX = 2 // The version is the 3rd path segment
+    const getVersion = (catalogPath: string | null): string =>
+        catalogPath?.split("/")[VERSION_SEGMENT_INDEX] ?? ""
+
+    // Escape the LIKE wildcards `%` and `_`
+    const escapeLike = (segment: string): string =>
+        segment.replace(/[\\%_]/g, "\\$&")
+
+    const entries = await Promise.all(
+        catalogPaths.map(async (catalogPath) => {
+            // Replace the version segment with a SQL wildcard so we match every
+            // published version of the indicator, and escape the rest.
+            const likePattern = catalogPath
+                .split("/")
+                .map((segment, index) =>
+                    index === VERSION_SEGMENT_INDEX ? "%" : escapeLike(segment)
+                )
+                .join("/")
+
+            const rows: Pick<DbRawVariable, "id" | "catalogPath">[] =
+                await knex(VariablesTableName)
+                    .join(
+                        DatasetsTableName,
+                        `${VariablesTableName}.datasetId`,
+                        `${DatasetsTableName}.id`
+                    )
+                    .where(
+                        `${VariablesTableName}.catalogPath`,
+                        "like",
+                        likePattern
+                    )
+                    .where(`${DatasetsTableName}.isArchived`, 0) // Ignore archived datasets
+                    .select(
+                        `${VariablesTableName}.id`,
+                        `${VariablesTableName}.catalogPath`
+                    )
+
+            // Pick the most recent version
+            const latest = _.maxBy(rows, (row) => getVersion(row.catalogPath))
+
+            return [catalogPath, latest?.id ?? null] as const
+        })
+    )
+
+    return new Map(entries)
 }

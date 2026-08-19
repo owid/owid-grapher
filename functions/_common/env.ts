@@ -1,6 +1,7 @@
 export interface Env {
     ASSETS: Fetcher
     url: URL
+    BAKED_BASE_URL?: string
     GRAPHER_CONFIG_R2_BUCKET?: R2Bucket
     GRAPHER_CONFIG_R2_BUCKET_FALLBACK?: R2Bucket
     GRAPHER_CONFIG_R2_BUCKET_PATH?: string
@@ -25,7 +26,7 @@ export interface Env {
     SLACK_ERROR_CHANNEL_ID?: string
     STRIPE_WEBHOOK_SECRET: string
     STRIPE_API_KEY: string
-    RECAPTCHA_SECRET_KEY: string
+    TURNSTILE_SECRET_KEY: string
     ALGOLIA_ID: string
     ALGOLIA_SEARCH_KEY: string
     ALGOLIA_INDEX_PREFIX?: string

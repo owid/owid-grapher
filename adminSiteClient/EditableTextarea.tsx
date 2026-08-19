@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react"
 import { Button } from "antd"
-import cx from "classnames"
+import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSave } from "@fortawesome/free-solid-svg-icons"
 import TextArea from "antd/es/input/TextArea.js"

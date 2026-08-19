@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { computed, observable, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import classnames from "classnames"
+import classnames from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowDownLong,
@@ -37,7 +37,7 @@ import {
 } from "../core/GrapherConstants"
 import * as R from "remeda"
 import { isEntityRegionGroupKey } from "../core/RegionGroups"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import {
     DataTableColumnKey,
     DisplayDataTableDimension,
@@ -369,11 +369,11 @@ export class DataTable extends React.Component<DataTableProps> {
     ): string {
         const col = dimension.coreTableColumn
 
-        if (column.key === SparklineKey.sparkline) {
-            const minTime = col.formatTime(this.timelineMinTime!)
-            const maxTime = col.formatTime(this.timelineMaxTime!)
-            return `${minTime}–${maxTime}`
-        }
+        if (column.key === SparklineKey.sparkline)
+            return col.formatTimeRange(
+                this.timelineMinTime!,
+                this.timelineMaxTime!
+            )
 
         return isDeltaColumn(column.key)
             ? columnNameByType[column.key]
@@ -617,14 +617,14 @@ export class DataTable extends React.Component<DataTableProps> {
         ) : null
     }
 
-    private renderNoDataModal(): React.ReactElement {
+    private renderNoDataMessage(): React.ReactElement {
         return (
             <svg
                 width={this.bounds.width}
                 height={this.bounds.height}
                 style={SVG_STYLE_PROPS}
             >
-                <NoDataModal
+                <NoDataMessage
                     manager={this.manager}
                     bounds={this.bounds}
                     message={`No ${this.entityType} matches this query`}
@@ -636,7 +636,8 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     override render(): React.ReactElement | null {
-        if (this.sortedDisplayRows.length === 0) return this.renderNoDataModal()
+        if (this.sortedDisplayRows.length === 0)
+            return this.renderNoDataMessage()
 
         return (
             <div className="DataTable">
@@ -714,7 +715,7 @@ export class DataTable extends React.Component<DataTableProps> {
                 })
                 .filter((col) => col)
 
-        const skips = new Set(Object.keys(OwidTableSlugs))
+        const skips = new Set<string>(Object.values(OwidTableSlugs))
         return this.table.columnsAsArray.filter(
             (column) =>
                 !skips.has(column.slug) &&
@@ -1189,9 +1190,9 @@ function getValueForEntityByKey(
     columnKey: DataTableColumnKey
 ): MinimalOwidRow | undefined {
     if (isSingleValue(dimensionValue)) {
-        return dimensionValue[columnKey as PointColumnKey] as MinimalOwidRow
+        return dimensionValue[columnKey as PointColumnKey]
     } else if (isRangeValue(dimensionValue)) {
-        return dimensionValue[columnKey as RangeColumnKey] as MinimalOwidRow
+        return dimensionValue[columnKey as RangeColumnKey]
     }
     return undefined
 }

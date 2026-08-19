@@ -1,7 +1,14 @@
-import * as _ from "lodash-es"
 import * as db from "../db/db.js"
-import { getSiteRedirects } from "../db/model/Redirect.js"
-import { getMultiDimRedirectTargets } from "../db/model/MultiDimRedirects.js"
+import {
+    buildQueryParamDecisionTree,
+    type DecisionTreeNode,
+    type ExplorerRedirectTarget,
+    type QueryParamMatchRule,
+} from "@ourworldindata/utils"
+import {
+    getMultiDimRedirectRulesBySource,
+    getMultiDimRedirectTargets,
+} from "../db/model/MultiDimRedirects.js"
 
 // Prevent Cloudflare from serving outdated pages, which can remain in the
 // cache for up to a week. This is necessary since in the Cloudflare Functions
@@ -19,7 +26,16 @@ export async function getRecentChartSlugRedirects(
         `-- sql
         SELECT
             CONCAT('/grapher/', chart_slug_redirects.slug) as source,
-            CONCAT('/grapher/', chart_configs.slug) as target
+            CONCAT(
+                '/grapher/',
+                chart_configs.slug,
+                IF(
+                    chart_slug_redirects.target_query_param IS NULL
+                    OR chart_slug_redirects.target_query_param = '',
+                    '',
+                    CONCAT(CHAR(63), chart_slug_redirects.target_query_param) -- CHAR(63) is the question mark character, which we can't write in the SQL query because it would be interpreted as a binding
+                )
+            ) as target
         FROM chart_slug_redirects
         INNER JOIN charts ON charts.id=chart_id
         INNER JOIN chart_configs ON chart_configs.id=charts.configId
@@ -53,10 +69,14 @@ export const getGrapherToChartRedirects = async (
     const chartRedirectRows = await db.knexRaw<{
         oldSlug: string
         newSlug: string
+        targetQueryParam: string | null
     }>(
         knex,
         `-- sql
-            SELECT chart_slug_redirects.slug as oldSlug, chart_configs.slug as newSlug
+            SELECT
+                chart_slug_redirects.slug as oldSlug,
+                chart_configs.slug as newSlug,
+                chart_slug_redirects.target_query_param as targetQueryParam
             FROM chart_slug_redirects
             INNER JOIN charts ON charts.id=chart_id
             INNER JOIN chart_configs ON chart_configs.id=charts.configId
@@ -68,7 +88,9 @@ export const getGrapherToChartRedirects = async (
             .filter((row) => row.oldSlug !== row.newSlug)
             .map((row) => [
                 `${urlPrefix}${row.oldSlug}`,
-                `${urlPrefix}${row.newSlug}`,
+                `${urlPrefix}${row.newSlug}${
+                    row.targetQueryParam ? `?${row.targetQueryParam}` : ""
+                }`,
             ])
     )
 }
@@ -84,59 +106,56 @@ export const getGrapherToMultiDimRedirects = async (
         "/grapher/"
     )
 
-    for (const [sourceSlug, target] of targets.entries()) {
-        const targetPath = `${urlPrefix}${target.targetSlug}${
-            target.queryStr ? `?${target.queryStr}` : ""
+    for (const [sourceSlug, redirect] of targets.entries()) {
+        const targetPath = `${urlPrefix}${redirect.targetSlug}${
+            redirect.queryStr ? `?${redirect.queryStr}` : ""
         }`
         redirects.set(`${urlPrefix}${sourceSlug}`, targetPath)
     }
     return redirects
 }
 
-export async function getExplorerToMultiDimRedirects(
+// The value baked into explorers/_explorerRedirects.json for each source slug:
+// either a plain target slug (the trivial unconditional case) or a query-param
+// decision tree resolved at request time (see functions/_common/redirectTools.ts).
+export type ExplorerRedirect = string | DecisionTreeNode<ExplorerRedirectTarget>
+
+// Builds the explorer redirect map baked to explorers/_explorerRedirects.json,
+// keyed by source slug (with `urlPrefix` prepended). A source whose single rule
+// is unconditional (no source query params) and lands on a bare target slug (no
+// query params to apply) is stored as a plain target-slug string; everything
+// that actually depends on the incoming query params is stored as a decision tree.
+export async function getExplorerRedirects(
     knex: db.KnexReadonlyTransaction,
     urlPrefix: string = "/explorers/"
-): Promise<Map<string, string>> {
-    const redirects = new Map<string, string>()
-    const targets = await getMultiDimRedirectTargets(
+): Promise<Map<string, ExplorerRedirect>> {
+    const rulesBySource = await getMultiDimRedirectRulesBySource(
         knex,
-        undefined,
         "/explorers/"
     )
 
-    for (const [sourceSlug, target] of targets.entries()) {
-        const targetPath = `/grapher/${target.targetSlug}${
-            target.queryStr ? `?${target.queryStr}` : ""
-        }`
-        redirects.set(`${urlPrefix}${sourceSlug}`, targetPath)
+    const redirects = new Map<string, ExplorerRedirect>()
+    for (const [sourceSlug, rules] of rulesBySource) {
+        const key = `${urlPrefix}${sourceSlug}`
+        // A lone unconditional rule that lands on a bare target slug (no query
+        // params to match on, none to apply) needs no decision tree — store the
+        // target slug directly as a plain string.
+        if (rules.length === 1) {
+            const [rule] = rules
+            if (
+                Object.keys(rule.sourceQueryParams).length === 0 &&
+                Object.keys(rule.target.targetQueryParams).length === 0
+            ) {
+                redirects.set(key, rule.target.targetSlug)
+                continue
+            }
+        }
+        const matchRules: QueryParamMatchRule<ExplorerRedirectTarget>[] =
+            rules.map((rule) => ({
+                condition: rule.sourceQueryParams,
+                target: rule.target,
+            }))
+        redirects.set(key, buildQueryParamDecisionTree(matchRules))
     }
     return redirects
 }
-
-export const DEPRECATED_getSiteRedirectsMap = async (
-    knex: db.KnexReadonlyTransaction
-) => {
-    const siteRedirects = await getSiteRedirects(knex)
-
-    return new Map(siteRedirects.map((row) => [row.source, row.target]))
-}
-
-export const DEPRECATED_getAllRedirectsMap = _.memoize(
-    async (knex: db.KnexReadonlyTransaction): Promise<Map<string, string>> => {
-        // source: pathnames only (e.g. /transport)
-        // target: pathnames with or without origins (e.g. /transport-new or https://ourworldindata.org/transport-new)
-
-        const grapherRedirects =
-            await getGrapherToChartAndMultiDimRedirects(knex)
-        const explorerRedirects = await getExplorerToMultiDimRedirects(knex)
-        const siteRedirects = await DEPRECATED_getSiteRedirectsMap(knex)
-
-        // The order matters: site redirects can override both grapher and
-        // explorer redirects.
-        return new Map([
-            ...grapherRedirects,
-            ...explorerRedirects,
-            ...siteRedirects,
-        ])
-    }
-)

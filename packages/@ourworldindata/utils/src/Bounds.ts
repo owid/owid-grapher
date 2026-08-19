@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import { PointVector } from "./PointVector.js"
-import { getPixelWidth, FontFamily } from "./stringWidth.js"
+import { getPixelWidth } from "./stringWidth.js"
+import { FontFamily } from "./fonts.js"
 import {
     Box,
     GridParameters,
@@ -13,7 +14,7 @@ import {
 // can't rely on the DOM to do these calculations for us, and instead must
 // calculate using geometry and first principles
 
-type PadObject = PositionMap<number>
+export type PadObject = PositionMap<number>
 
 export interface GridBounds {
     col: number
@@ -21,8 +22,6 @@ export interface GridBounds {
     cellEdges: Set<Position>
     bounds: Bounds
 }
-
-export { FontFamily }
 
 export class Bounds {
     static fromProps(props: Box): Bounds {
@@ -112,6 +111,10 @@ export class Bounds {
         }
 
         return bounds
+    }
+
+    static forDot(x: number, y: number, radius: number): Bounds {
+        return new Bounds(x - radius, y - radius, radius * 2, radius * 2)
     }
 
     readonly x: number

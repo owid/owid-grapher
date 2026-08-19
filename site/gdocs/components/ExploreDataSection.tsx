@@ -1,5 +1,5 @@
 import { PropsWithChildren } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import {
     ExploreDataSectionAlignment,
     EXPLORE_DATA_SECTION_ID,

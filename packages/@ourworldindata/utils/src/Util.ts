@@ -21,6 +21,8 @@ import {
     type EnrichedHybridLink,
     type OwidGdocPostInterface,
     type OwidGdocDataInsightInterface,
+    type ChronologicalGdoc,
+    type LatestFeedGdoc,
     type OwidGdocAuthorInterface,
     type OwidGdoc,
     OwidGdocType,
@@ -41,13 +43,22 @@ import {
     OwidGdocHomepageInterface,
     PrimitiveType,
     GrapherTrendArrowDirection,
-    TocHeadingWithTitleSupertitle,
+    TocHeadingWithSupertitle,
+    TocSidebarSection,
     ALL_CHARTS_ID,
     FEATURED_DATA_INSIGHTS_ID,
     EXPLORE_DATA_SECTION_DEFAULT_TITLE,
     EXPLORE_DATA_SECTION_ID,
-    OwidGdocAnnouncementInterface,
+    FEATURED_METRICS_ID,
+    RESEARCH_AND_WRITING_ID,
+    RESEARCH_AND_WRITING_DEFAULT_HEADING,
     CHRONOLOGICAL_INDEX_TYPES,
+    LATEST_FEED_TYPES,
+    SUB_YEARLY_TIME_INTERVALS,
+    TIME_INTERVALS,
+    TimeInterval,
+    type SubYearlyTimeInterval,
+    type OwidVariableDisplayConfigInterface,
 } from "@ourworldindata/types"
 import { Point, PointVector } from "./PointVector.js"
 import * as React from "react"
@@ -107,6 +118,8 @@ export type RequiredBy<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>
 // doesn't do anything fancy, but makes it a bit more readable by skipping one layer of angle brackets:
 // PartialRecord<A, B> = Partial<Record<A, B>>
 export type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>
+
+export type Pair<T> = [T, T]
 
 // d3 v6 changed the default minus sign used in d3-format to "−" (Unicode minus sign), which looks
 // nicer but can cause issues when copy-pasting values into a spreadsheet or script.
@@ -198,11 +211,29 @@ export function makeFigmaId(...unsafeKeys: (string | undefined)[]): string {
     return makeSafeForFigma(unsafeKeys.filter((key) => key).join("__"))
 }
 
+// The epoch, parsed once (lazily) as a dayjs object and reused across the
+// codebase so we don't repeatedly re-parse the ISO string. Uses dayjs' UTC
+// mode, which forces dayjs to format in UTC time instead of local time, making
+// dates consistent no matter what timezone the user is in.
+//
+// Parsing is deferred via `lazy` rather than done at module load so the object
+// isn't created before the `timezone-mock` used in tests is registered (a dayjs
+// object backed by a native Date created outside the mock can't be cloned once
+// the mock is active).
+
+export const epochDate = lazy(() => dayjs.utc(EPOCH_DATE))
+
+const MS_PER_DAY = 86_400_000
+export const toStartOfDayUtc = (date: dayjs.Dayjs): dayjs.Dayjs =>
+    date.valueOf() % MS_PER_DAY === 0 ? date : date.utc().startOf("day")
+
 export function convertDaysSinceEpochToDate(dayAsYear: number): dayjs.Dayjs {
-    // Use dayjs' UTC mode
-    // This will force dayjs to format in UTC time instead of local time,
-    // making dates consistent no matter what timezone the user is in.
-    return dayjs.utc(EPOCH_DATE).add(dayAsYear, "days")
+    return epochDate().add(dayAsYear, "days")
+}
+
+// Inverse of convertDaysSinceEpochToDate.
+export function convertDateToDaysSinceEpoch(date: dayjs.Dayjs): number {
+    return diffDatesInDays(date, epochDate())
 }
 
 export function formatDay(
@@ -211,6 +242,68 @@ export function formatDay(
 ): string {
     const format = options?.format ?? "MMM D, YYYY"
     return convertDaysSinceEpochToDate(dayAsYear).format(format)
+}
+
+/**
+ * Resolves the time interval of an indicator from its display config,
+ * defaulting to `year` when not set.
+ */
+export function getTimeInterval(
+    display?: OwidVariableDisplayConfigInterface
+): TimeInterval {
+    return display?.timeInterval ?? TimeInterval.Year
+}
+
+/**
+ * Whether the interval is finer than a year and therefore encoded as
+ * days-since-epoch (day/week/month/quarter)
+ */
+export function isSubYearly(
+    interval: TimeInterval
+): interval is SubYearlyTimeInterval {
+    return SUB_YEARLY_TIME_INTERVALS.some((subYearly) => subYearly === interval)
+}
+
+/**
+ * The finest interval that can represent every one of the given intervals'
+ * times, e.g. `day` for day + month. Weeks start on ISO Mondays and
+ * months/quarters on period starts, so those grids don't nest: a mix of them
+ * falls back to `day`, the grid that contains every other.
+ */
+export function findFinestCommonTimeInterval(
+    intervals: TimeInterval[]
+): TimeInterval {
+    const finest =
+        TIME_INTERVALS.find((interval) => intervals.includes(interval)) ??
+        TimeInterval.Year
+    const mixesWeeksWithLongerPeriods =
+        finest === TimeInterval.Week &&
+        intervals.some(
+            (interval) =>
+                interval === TimeInterval.Month ||
+                interval === TimeInterval.Quarter
+        )
+    return mixesWeeksWithLongerPeriods ? TimeInterval.Day : finest
+}
+
+/**
+ * Snap a time to the start of its interval, so indicators that pick different
+ * representative days for the same period still align: month → first of the
+ * month, quarter → first of the quarter, week → the ISO-week Monday. Day and
+ * year are returned unchanged.
+ */
+export function snapToIntervalStart(
+    time: number,
+    interval: TimeInterval
+): number {
+    if (!Number.isFinite(time)) return time
+    const date = convertDaysSinceEpochToDate(time)
+    let start: dayjs.Dayjs
+    if (interval === TimeInterval.Month) start = date.startOf("month")
+    else if (interval === TimeInterval.Quarter) start = date.startOf("quarter")
+    else if (interval === TimeInterval.Week) start = date.startOf("isoWeek")
+    else return time
+    return convertDateToDaysSinceEpoch(start)
 }
 
 export const formatYear = (year: number): string => {
@@ -261,13 +354,13 @@ export const roundSigFig = (num: number, sigfigs: number = 1): number => {
 }
 
 export const excludeUndefined = <T>(arr: (T | undefined)[]): T[] =>
-    arr.filter((x) => x !== undefined) as T[]
+    arr.filter((x) => x !== undefined)
 
 export const excludeNull = <T>(arr: (T | null)[]): T[] =>
-    arr.filter((x) => x !== null) as T[]
+    arr.filter((x) => x !== null)
 
 export const excludeNullish = <T>(arr: (T | null | undefined | void)[]): T[] =>
-    arr.filter((x) => x !== null && x !== undefined) as T[]
+    arr.filter((x) => x !== null && x !== undefined)
 
 export const firstOfNonEmptyArray = <T>(arr: T[]): T => {
     if (arr.length < 1) throw new Error("array is empty")
@@ -510,6 +603,8 @@ export async function fetchJson<TResult>(
     return response.json()
 }
 
+export class TimeoutError extends Error {}
+
 // Adapted from https://github.com/sindresorhus/ky/blob/main/source/utils/timeout.ts
 export async function fetchWithTimeout(
     url: string,
@@ -521,7 +616,7 @@ export async function fetchWithTimeout(
     return new Promise((resolve, reject) => {
         const timeoutId = setTimeout(() => {
             abortController.abort()
-            reject(new Error(`Request timed out: ${url}`))
+            reject(new TimeoutError(`Request timed out: ${url}`))
         }, timeoutMs)
 
         void fetch(url, { ...options, signal: abortController.signal })
@@ -700,18 +795,11 @@ export const valuesByEntityAtTimes = (
         valuesAtTimes(valueByTime, targetTimes, tolerance)
     )
 
-const MS_PER_DAY = 1000 * 60 * 60 * 24
-
-// From https://stackoverflow.com/a/15289883
-export function dateDiffInDays(a: Date, b: Date): number {
-    // Discard the time and time-zone information.
-    const utca = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate())
-    const utcb = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate())
-    return Math.floor((utca - utcb) / MS_PER_DAY)
+export const diffDatesInDays = (a: dayjs.Dayjs, b: dayjs.Dayjs): number => {
+    const aUtc = toStartOfDayUtc(a)
+    const bUtc = toStartOfDayUtc(b)
+    return Math.trunc((aUtc.valueOf() - bUtc.valueOf()) / MS_PER_DAY)
 }
-
-export const diffDateISOStringInDays = (a: string, b: string): number =>
-    dayjs.utc(a).diff(dayjs.utc(b), "day")
 
 export const getYearFromISOStringAndDayOffset = (
     epoch: string,
@@ -744,6 +832,31 @@ export async function fetchWithRetry(
         () => fetch(url, fetchOptions),
         retryOptions ?? defaultRetryOptions
     )
+}
+
+// Identify our own server-side calls to the OWID data API (e.g. the baker
+// fetching indicator data while baking, or the grapher Cloudflare functions
+// generating downloads/thumbnails) so analytics can attribute them to us rather
+// than counting them as anonymous external traffic.
+//
+// We *extend* the runtime's own identity rather than replacing it: the UA embeds
+// `navigator.userAgent` ("Node.js/<version>" in the baker, "Cloudflare-Workers"
+// in CF functions) so the two server origins stay distinguishable, and it
+// contains "Our World In Data" so the existing Cloudflare bot-classification
+// rule tags it as internal.
+//
+// Returns undefined in the browser: `User-Agent` is a forbidden header name there
+// and is mostly ignored, but Firefox does send a settable value, which would
+// mislabel real user chart loads as internal and could force a CORS preflight on
+// the cross-origin data API. `typeof window === "undefined"` is true in Node and
+// in Cloudflare Workers, false in browsers.
+export function getOwidDataFetchUserAgent(): string | undefined {
+    if (typeof window !== "undefined") return undefined
+    const runtime =
+        typeof navigator !== "undefined" && navigator.userAgent
+            ? navigator.userAgent
+            : "unknown"
+    return `owid-grapher/1.0 (Our World In Data; +https://ourworldindata.org; ${runtime})`
 }
 export async function retryPromise<T>(
     promiseGetter: () => Promise<T>,
@@ -1072,15 +1185,6 @@ export const findDOMParent = (
     return null
 }
 
-export const wrapInDiv = (el: Element, classes?: string[]): Element => {
-    if (!el.parentNode) return el
-    const wrapper = document.createElement("div")
-    if (classes) wrapper.classList.add(...classes)
-    el.parentNode.insertBefore(wrapper, el)
-    wrapper.appendChild(el)
-    return wrapper
-}
-
 export const textAnchorFromAlign = (
     align: HorizontalAlign
 ): "start" | "middle" | "end" => {
@@ -1354,7 +1458,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
         textarea.select()
 
         try {
-            // oxlint-disable-next-line typescript/no-deprecated we're using a deprecated API only as a fallback here
+            // oxlint-disable-next-line typescript/no-deprecated -- we're using a deprecated API only as a fallback here
             return document.execCommand("copy")
         } catch (err) {
             console.error("Failed to copy text to clipboard", err)
@@ -1513,6 +1617,7 @@ export function recursivelyMapArticleContent(
     } else if (node.type === "key-insights") {
         node.insights.forEach((insight) => {
             callback(insight)
+            insight.asset?.forEach(callback)
             insight.content.forEach(callback)
         })
     }
@@ -1582,11 +1687,14 @@ export function traverseEnrichedBlock(
         })
         .with({ type: "key-insights" }, (keyInsights) => {
             callback(keyInsights)
-            keyInsights.insights.forEach((insight) =>
+            keyInsights.insights.forEach((insight) => {
+                insight.asset?.forEach((node) =>
+                    traverseEnrichedBlock(node, callback, spanCallback)
+                )
                 insight.content.forEach((node) =>
                     traverseEnrichedBlock(node, callback, spanCallback)
                 )
-            )
+            })
         })
         .with({ type: "expander" }, (expander) => {
             callback(expander)
@@ -1781,7 +1889,6 @@ export function traverseEnrichedBlock(
                     "ltp-toc",
                     "topic-page-intro",
                     "all-charts",
-                    "entry-summary",
                     "explorer-tiles",
                     "pill-row",
                     "homepage-search",
@@ -1834,19 +1941,21 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
         .join("")
 }
 
+export function getResearchAndWritingId(heading?: string): string {
+    return heading ? slugify(heading) : RESEARCH_AND_WRITING_ID
+}
+
 export function generateToc(
     body: OwidEnrichedGdocBlock[] | undefined,
-    isTocForLinearTopicPage: boolean = false
-): TocHeadingWithTitleSupertitle[] {
+    isTocForSidebar: boolean = false
+): TocHeadingWithSupertitle[] {
     if (!body) return []
 
-    // For linear topic pages, we record only h1s
+    // For linear topic pages, we record h1s and h2s
     // For the sdg-toc, we record h2s & h3s (as it was developed before we decided to use h1s as our top level heading)
     // It would be nice to standardise this but it would require a migration, updating CSS, updating Gdocs, etc.
-    const [primary, secondary] = isTocForLinearTopicPage
-        ? [1, undefined]
-        : [2, 3]
-    const toc: TocHeadingWithTitleSupertitle[] = []
+    const [primary, secondary] = isTocForSidebar ? [1, 2] : [2, 3]
+    const toc: TocHeadingWithSupertitle[] = []
 
     body.forEach((block) =>
         traverseEnrichedBlock(block, (child) => {
@@ -1860,19 +1969,36 @@ export function generateToc(
                     toc.push({
                         title: titleString,
                         supertitle: supertitleString,
-                        text: titleString,
                         slug: urlSlug(`${supertitleString} ${titleString}`),
                         isSubheading: level === secondary,
                     })
                 }
             }
-            if (!isTocForLinearTopicPage) return
+            if (!isTocForSidebar) return
 
             if (child.type === "all-charts") {
                 toc.push({
-                    title: child.heading,
-                    text: child.heading,
+                    title: "Key charts",
                     slug: ALL_CHARTS_ID,
+                    isSubheading: false,
+                })
+                return
+            }
+
+            if (child.type === "featured-metrics") {
+                toc.push({
+                    title: "Featured data",
+                    slug: FEATURED_METRICS_ID,
+                    isSubheading: false,
+                })
+                return
+            }
+
+            if (child.type === "research-and-writing") {
+                const { heading } = child
+                toc.push({
+                    title: heading || RESEARCH_AND_WRITING_DEFAULT_HEADING,
+                    slug: getResearchAndWritingId(heading),
                     isSubheading: false,
                 })
                 return
@@ -1882,7 +2008,6 @@ export function generateToc(
                 const title = "Data insights"
                 toc.push({
                     title,
-                    text: title,
                     slug: FEATURED_DATA_INSIGHTS_ID,
                     isSubheading: false,
                 })
@@ -1893,7 +2018,6 @@ export function generateToc(
                 const title = child.title || EXPLORE_DATA_SECTION_DEFAULT_TITLE
                 toc.push({
                     title,
-                    text: title,
                     slug: EXPLORE_DATA_SECTION_ID,
                     isSubheading: false,
                 })
@@ -1903,6 +2027,27 @@ export function generateToc(
     )
 
     return toc
+}
+
+// The TOC arrives flat and document-ordered, with `isSubheading` marking the
+// h2s. Group it so each h1 carries its following h2s: every non-subheading
+// opens a new section, every subheading attaches to the enclosing h1's
+// section. Leading subheadings with no preceding h1 (editorially unusual)
+// each become their own section so none are dropped.
+export function groupTocIntoSections(
+    headings: TocHeadingWithSupertitle[]
+): TocSidebarSection[] {
+    const sections: TocSidebarSection[] = []
+    for (const heading of headings) {
+        const current = sections.at(-1)
+        const currentIsH1Section = current && !current.heading.isSubheading
+        if (heading.isSubheading && currentIsH1Section) {
+            current.subheadings.push(heading)
+        } else {
+            sections.push({ heading, subheadings: [] })
+        }
+    }
+    return sections
 }
 
 export function checkIsOwidGdocType(
@@ -1925,6 +2070,16 @@ export function findGreatestCommonDivisorOfArray(arr: number[]): number | null {
     if (arr.includes(1)) return 1
     return _.uniq(arr).reduce((acc, num) => greatestCommonDivisor(acc, num))
 }
+
+// Makes sure that values are evenly spaced by inserting values at the greatest
+// common divisor of the gaps between consecutive values.
+export function withUniformSpacing(values: number[]): number[] {
+    const deltas = rollingMap(values, (a, b) => b - a)
+    const gcd = findGreatestCommonDivisorOfArray(deltas)
+    if (gcd === null) return values
+    return _.range(values[0], values[values.length - 1] + gcd, gcd)
+}
+
 export function lowercaseObjectKeys(
     obj: Record<string, unknown>
 ): Record<string, unknown> {
@@ -2024,15 +2179,26 @@ export function checkIsHomepage(
 
 /**
  * Posts that should show up in the chronological algolia index
- * for dynamic RSS feeds & /latest page
+ * for dynamic RSS feeds & /latest page.
+ *
+ * See `isChronologicalGdocInstance` for a class-narrowing variant used by
+ * the bulk indexer.
  */
-export function checkIsChronologicalFeedPost(gdoc: {
+export function checkIsChronologicalGdoc(gdoc: {
     content: { type?: OwidGdocType }
-}): gdoc is
-    | OwidGdocPostInterface
-    | OwidGdocDataInsightInterface
-    | OwidGdocAnnouncementInterface {
+}): gdoc is ChronologicalGdoc {
     return CHRONOLOGICAL_INDEX_TYPES.has(gdoc.content.type as string)
+}
+
+/**
+ * Posts that should show up on /latest. Subset of `checkIsChronologicalGdoc`
+ * that excludes topic pages (which are indexed for the atom feed but
+ * filtered out of /latest by `LATEST_BASE_FILTER`).
+ */
+export function checkIsLatestFeedGdoc(gdoc: {
+    content: { type?: OwidGdocType }
+}): gdoc is LatestFeedGdoc {
+    return LATEST_FEED_TYPES.has(gdoc.content.type as string)
 }
 
 /**
@@ -2325,10 +2491,20 @@ export const merge: typeof _.merge = (
 
 export function calculateTrendDirection(
     startValue?: PrimitiveType,
-    endValue?: PrimitiveType
+    endValue?: PrimitiveType,
+    formatValue?: (value: PrimitiveType) => string
 ): GrapherTrendArrowDirection | undefined {
-    if (typeof startValue !== "number" || typeof endValue !== "number")
+    if (
+        startValue === undefined ||
+        endValue === undefined ||
+        typeof startValue !== "number" ||
+        typeof endValue !== "number"
+    )
         return undefined
+
+    if (formatValue && formatValue(startValue) === formatValue(endValue))
+        return "right"
+
     return endValue > startValue
         ? "up"
         : endValue < startValue

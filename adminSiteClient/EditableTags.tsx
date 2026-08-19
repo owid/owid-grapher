@@ -6,9 +6,15 @@ import {
     KeyChartLevel,
     TaggableType,
     DbChartTagJoin,
+    TagGraphRole,
 } from "@ourworldindata/utils"
 import { TagBadge } from "./TagBadge.js"
 import { EditTags } from "./EditTags.js"
+import {
+    getTagGraphRoleById,
+    getTagGraphRolesById,
+    MinimalTagWithMetadata,
+} from "./TagGraphMetadata.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEdit, faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons"
@@ -20,7 +26,8 @@ interface TaggableItem {
 
 interface EditableTagsProps {
     tags: DbChartTagJoin[]
-    suggestions: DbChartTagJoin[]
+    suggestions: MinimalTagWithMetadata[]
+    tagGraphRolesById?: ReadonlyMap<number, TagGraphRole>
     onSave: (tags: DbChartTagJoin[]) => void
     disabled?: boolean
     hasKeyChartSupport?: boolean
@@ -134,13 +141,9 @@ export class EditableTags extends React.Component<EditableTagsProps> {
     }
 
     override render() {
-        const { disabled, hasKeyChartSupport, hasSuggestionsSupport } =
-            this.props
-        const { tags } = this
-
-        return (
-            <div className="EditableTags">
-                {this.isEditing ? (
+        if (this.isEditing) {
+            return (
+                <div className="EditableTags">
                     <EditTags
                         tags={this.tags}
                         onAdd={this.onAddTag}
@@ -148,54 +151,67 @@ export class EditableTags extends React.Component<EditableTagsProps> {
                         onSave={this.onToggleEdit}
                         suggestions={this.props.suggestions}
                     />
-                ) : (
-                    <div>
-                        {tags.map((t, i) => (
-                            <TagBadge
-                                onToggleKey={
-                                    hasKeyChartSupport &&
-                                    filterUncategorizedTag(t) &&
-                                    filterUnlistedTag(t)
-                                        ? () => this.onToggleKey(i)
-                                        : undefined
-                                }
-                                onApprove={
-                                    hasSuggestionsSupport &&
-                                    filterUncategorizedTag(t)
-                                        ? () => this.onApprove(i)
-                                        : undefined
-                                }
-                                key={t.id}
-                                tag={t}
-                            />
-                        ))}
-                        {!disabled && (
-                            <>
-                                {hasSuggestionsSupport && (
-                                    <button
-                                        className="btn btn-link EditableTags__action"
-                                        onClick={this.onSuggest}
-                                    >
-                                        <FontAwesomeIcon
-                                            icon={faWandMagicSparkles}
-                                        />
-                                        Suggest
-                                    </button>
-                                )}
+                </div>
+            )
+        }
+
+        const { disabled, hasKeyChartSupport, hasSuggestionsSupport } =
+            this.props
+        const tagGraphRolesById =
+            this.props.tagGraphRolesById ??
+            getTagGraphRolesById(this.props.suggestions)
+        return (
+            <div className="EditableTags">
+                <div>
+                    {this.tags.map((tag, index) => (
+                        <TagBadge
+                            onToggleKey={
+                                hasKeyChartSupport &&
+                                filterUncategorizedTag(tag) &&
+                                filterUnlistedTag(tag)
+                                    ? () => this.onToggleKey(index)
+                                    : undefined
+                            }
+                            onApprove={
+                                hasSuggestionsSupport &&
+                                filterUncategorizedTag(tag)
+                                    ? () => this.onApprove(index)
+                                    : undefined
+                            }
+                            key={tag.id}
+                            tag={tag}
+                            tagGraphRole={getTagGraphRoleById(
+                                tagGraphRolesById,
+                                tag.id
+                            )}
+                        />
+                    ))}
+                    {!disabled && (
+                        <>
+                            {hasSuggestionsSupport && (
                                 <button
                                     className="btn btn-link EditableTags__action"
-                                    onClick={(e) => {
-                                        this.onToggleEdit()
-                                        e.stopPropagation()
-                                    }}
+                                    onClick={this.onSuggest}
                                 >
-                                    <FontAwesomeIcon icon={faEdit} />
-                                    Edit
+                                    <FontAwesomeIcon
+                                        icon={faWandMagicSparkles}
+                                    />
+                                    Suggest
                                 </button>
-                            </>
-                        )}
-                    </div>
-                )}
+                            )}
+                            <button
+                                className="btn btn-link EditableTags__action"
+                                onClick={(event) => {
+                                    this.onToggleEdit()
+                                    event.stopPropagation()
+                                }}
+                            >
+                                <FontAwesomeIcon icon={faEdit} />
+                                Edit tags
+                            </button>
+                        </>
+                    )}
+                </div>
             </div>
         )
     }

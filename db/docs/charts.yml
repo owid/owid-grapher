@@ -17,6 +17,10 @@ metadata:
       column: chartId
     - table: narrative_charts
       column: parentChartId
+    - table: related_charts
+      column: chartId
+    - table: related_charts
+      column: relatedChartId
 fields:
   id:
     description: Unique identifier for the chart

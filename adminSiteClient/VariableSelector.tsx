@@ -25,7 +25,7 @@ import {
     EditorDatabase,
     Namespace,
     NamespaceData,
-} from "./ChartEditorView.js"
+} from "./EditorDatabase.js"
 import { TextField, Toggle, Modal } from "./Forms.js"
 import { DimensionSlot } from "@ourworldindata/grapher"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
@@ -267,12 +267,13 @@ export class VariableSelector<
                                         (namespace) => namespace.name
                                     )}
                                     onChange={this.onNamespace}
-                                    filterOption={(inputValue, option) =>
-                                        this.filterNamespace(
-                                            option?.searchText ?? "",
-                                            inputValue
-                                        )
-                                    }
+                                    showSearch={{
+                                        filterOption: (inputValue, option) =>
+                                            this.filterNamespace(
+                                                option?.searchText ?? "",
+                                                inputValue
+                                            ),
+                                    }}
                                     mode="multiple"
                                     placement="bottomLeft"
                                     getPopupContainer={(trigger) =>

@@ -15,7 +15,7 @@ import * as z from "zod"
 const filePath = "donation/donate.ts"
 
 const hasDonateEnvVars = (env: Env) => {
-    return !!env.STRIPE_API_KEY && !!env.RECAPTCHA_SECRET_KEY
+    return !!env.STRIPE_API_KEY && !!env.TURNSTILE_SECRET_KEY
 }
 
 // This function is called when the request is a preflight request ("OPTIONS").
@@ -38,7 +38,7 @@ export const onRequestPost: PagesFunction<Env> = async ({
     try {
         if (!hasDonateEnvVars(env))
             throw new JsonError(
-                "Missing environment variables. Please check that both STRIPE_API_KEY and RECAPTCHA_SECRET_KEY are set.",
+                "Missing environment variables. Please check that both STRIPE_API_KEY and TURNSTILE_SECRET_KEY are set.",
                 500
             )
         // Parse the body of the request as JSON
@@ -56,7 +56,7 @@ export const onRequestPost: PagesFunction<Env> = async ({
         }
 
         if (
-            !(await isCaptchaValid(data.captchaToken, env.RECAPTCHA_SECRET_KEY))
+            !(await isCaptchaValid(data.captchaToken, env.TURNSTILE_SECRET_KEY))
         )
             throw new JsonError(
                 `The CAPTCHA challenge failed. ${PLEASE_TRY_AGAIN}`
@@ -97,9 +97,16 @@ export const onRequestPost: PagesFunction<Env> = async ({
 
 async function isCaptchaValid(token: string, key: string): Promise<boolean> {
     const response = await fetch(
-        `https://www.google.com/recaptcha/api/siteverify?secret=${key}&response=${token}`,
+        "https://challenges.cloudflare.com/turnstile/v0/siteverify",
         {
             method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                secret: key,
+                response: token,
+            }),
         }
     )
     const json: { success: boolean } = await response.json()

@@ -1,25 +1,37 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import {
     QueryClient,
     QueryClientProvider,
     QueryStatus,
 } from "@tanstack/react-query"
+import { NuqsAdapter } from "nuqs/adapters/react"
+import { parseAsInteger, parseAsString } from "nuqs"
+import * as R from "remeda"
 
 import { Time } from "@ourworldindata/types"
 import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
 
-import { CausesOfDeathConfig } from "../helpers/CausesOfDeathConstants.js"
+import { CausesOfDeathConfig } from "../core/config.js"
 import {
     useCausesOfDeathEntityData,
     useCausesOfDeathMetadata,
-} from "../helpers/CausesOfDeathDataFetching.js"
+} from "../core/CausesOfDeathDataFetching.js"
+import { CausesOfDeathMetadata } from "../core/CausesOfDeathMetadata.js"
 import { CausesOfDeathCaptionedChart } from "./CausesOfDeathCaptionedChart.js"
 import { CausesOfDeathControls } from "./CausesOfDeathControls.js"
-import { CausesOfDeathSpinner } from "./CausesOfDeathSpinner.js"
+
+import { useUrlState } from "../../../../hooks/useUrlState.js"
+import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
+
+import { Spinner } from "../../../../components/Spinner/Spinner.js"
 
 const DEFAULT_AGE_GROUP = "All ages"
 const DEFAULT_SEX = "Both sexes"
 const DEFAULT_ENTITY_NAME = WORLD_ENTITY_NAME
+
+// Sentinel year meaning "the latest available year"; the concrete default
+// isn't known until the metadata has loaded.
+const LATEST_YEAR = -1
 
 const queryClient = new QueryClient()
 
@@ -28,9 +40,11 @@ export function CausesOfDeathChartWithProviders(props: {
     config?: CausesOfDeathConfig
 }): React.ReactElement {
     return (
-        <QueryClientProvider client={queryClient}>
-            <CausesOfDeathChart config={props.config} />
-        </QueryClientProvider>
+        <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+                <CausesOfDeathChart config={props.config} />
+            </QueryClientProvider>
+        </NuqsAdapter>
     )
 }
 
@@ -39,15 +53,33 @@ function CausesOfDeathChart(props: {
 }): React.ReactElement {
     const { config } = props
 
-    // State
-    const [ageGroup, setAgeGroup] = useState(
-        config?.ageGroup ?? DEFAULT_AGE_GROUP
-    )
-    const [sex, setSex] = useState(config?.sex ?? DEFAULT_SEX)
-    const [entityName, setEntityName] = useState(
-        config?.region ?? DEFAULT_ENTITY_NAME
-    )
-    const [year, setYear] = useState<Time | undefined>(config?.year)
+    const urlSync = config?.urlSync ?? false
+
+    // State, synced to the URL if the urlSync flag is set
+    const [ageGroup, setAgeGroup] = useUrlState({
+        key: "causesOfDeathAge",
+        parser: parseAsString,
+        defaultValue: config?.ageGroup ?? DEFAULT_AGE_GROUP,
+        enabled: urlSync,
+    })
+    const [sex, setSex] = useUrlState({
+        key: "causesOfDeathSex",
+        parser: parseAsString,
+        defaultValue: config?.sex ?? DEFAULT_SEX,
+        enabled: urlSync,
+    })
+    const [entityName, setEntityName] = useUrlState({
+        key: "causesOfDeathRegion",
+        parser: parseAsString,
+        defaultValue: config?.region ?? DEFAULT_ENTITY_NAME,
+        enabled: urlSync,
+    })
+    const [year, setYear] = useUrlState({
+        key: "causesOfDeathYear",
+        parser: parseAsInteger,
+        defaultValue: config?.year ?? LATEST_YEAR,
+        enabled: urlSync,
+    })
 
     // Fetch the metadata and the data for the selected entity
     const metadataResponse = useCausesOfDeathMetadata()
@@ -73,7 +105,7 @@ function CausesOfDeathChart(props: {
 
     const activeAgeGroup = ageGroup
     const activeSex = sex
-    const activeYear = year ?? metadata?.availableYears.at(-1)
+    const activeYear = metadata ? resolveYear(year, metadata) : undefined
     const activeData = useMemo(
         () =>
             entityData?.filter(
@@ -139,6 +171,17 @@ function CausesOfDeathChart(props: {
     )
 }
 
+/**
+ * The year comes from the URL or the block config, so it might lie outside
+ * the available data range — clamp it. The LATEST_YEAR sentinel maps to the
+ * latest available year.
+ */
+function resolveYear(year: Time, metadata: CausesOfDeathMetadata): Time {
+    const { start, end } = metadata.timeRange
+    if (year === LATEST_YEAR) return end
+    return R.clamp(year, { min: start, max: end })
+}
+
 function CausesOfDeathChartError() {
     return <div>Causes of Death visualization can't be loaded</div>
 }
@@ -146,35 +189,9 @@ function CausesOfDeathChartError() {
 function CausesOfDeathSkeleton() {
     return (
         <div className="causes-of-death-skeleton">
-            <CausesOfDeathSpinner />
+            <Spinner />
         </div>
     )
-}
-
-/**
- * Hook that only returns true after a loading state has persisted for a minimum duration.
- * This prevents loading indicators from flashing for quick operations.
- */
-function useDelayedLoading(isLoading: boolean, delay = 300): boolean {
-    const [showLoading, setShowLoading] = useState(false)
-
-    useEffect(() => {
-        let timeoutId: NodeJS.Timeout
-
-        if (isLoading) {
-            // Start a timer to show loading after delay
-            timeoutId = setTimeout(() => setShowLoading(true), delay)
-        } else {
-            // Immediately hide loading when not loading
-            setShowLoading(false)
-        }
-
-        return () => {
-            if (timeoutId) clearTimeout(timeoutId)
-        }
-    }, [isLoading, delay])
-
-    return showLoading
 }
 
 function combineStatuses(...statuses: QueryStatus[]): QueryStatus {

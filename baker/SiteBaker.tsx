@@ -5,7 +5,6 @@ import "../serverUtils/instrument.js"
 import * as _ from "lodash-es"
 import fs from "fs-extra"
 import path from "path"
-import { glob } from "glob"
 import ProgressBar from "progress"
 import { stringify } from "safe-stable-stringify"
 import * as db from "../db/db.js"
@@ -22,7 +21,6 @@ import {
     makeAtomFeedNoTopicPages,
     renderDynamicCollectionPage,
     renderTopChartsCollectionPage,
-    renderDataInsightsIndexPage,
     renderThankYouPage,
     makeDataInsightsAtomFeed,
     renderGdocTombstone,
@@ -39,7 +37,6 @@ import {
     OwidGdocErrorMessageType,
     ImageMetadata,
     OwidGdoc,
-    DATA_INSIGHTS_INDEX_PAGE_SIZE,
     OwidGdocMinimalPostInterface,
     excludeUndefined,
     TombstonePageData,
@@ -51,10 +48,7 @@ import {
     LinkedStaticViz,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
-import {
-    getCloudflarePagesRedirects,
-    flushCache as redirectsFlushCache,
-} from "./redirects.js"
+import { getCloudflarePagesRedirects } from "./redirects.js"
 import { bakeAllChangedGrapherPagesAndDeleteRemovedGraphers } from "./GrapherBaker.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import {
@@ -75,7 +69,6 @@ import {
     prepareCalloutTablesForProfile,
     checkShouldProfileRender,
 } from "../db/model/Gdoc/dataCallouts.js"
-import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import {
     gdocFromJSON,
     getMinimalGdocBaseObjects,
@@ -100,7 +93,7 @@ import { getPublicDonorNames } from "../db/model/Donor.js"
 import { getNarrativeChartsInfo } from "../db/model/NarrativeChart.js"
 import { getLinkedStaticVizByNames } from "../db/model/StaticViz.js"
 import {
-    getExplorerToMultiDimRedirects,
+    getExplorerRedirects,
     getGrapherToChartAndMultiDimRedirects,
 } from "./redirectsFromDb.js"
 import * as R from "remeda"
@@ -108,10 +101,6 @@ import { getDods, getParsedDodsDictionary } from "../db/model/Dod.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../db/model/ArchivedChartVersion.js"
 import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../db/model/ArchivedMultiDimVersion.js"
 import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
-import {
-    getLatestPageItems,
-    enrichLatestPageItems,
-} from "../db/model/Gdoc/GdocPost.js"
 import { PostArchivalManifest } from "../serverUtils/archivalUtils.js"
 
 type PrefetchedAttachments = {
@@ -165,9 +154,7 @@ export type BakeStepConfig = Set<BakeStep>
 const defaultSteps = new Set(bakeSteps)
 
 function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
-    // There are 2 non-optional steps: flushCache at the beginning and flushCache at the end (again)
-    const minimum = 2
-    return minimum + bakeSteps.size
+    return bakeSteps.size
 }
 
 export class SiteBaker {
@@ -326,8 +313,8 @@ export class SiteBaker {
     // Among all existing slugs on the filesystem, some are not coming from WP. They are baked independently and should not
     // be deleted if WP does not list them (e.g. grapher/*).
     private getPostSlugsToRemove(postSlugsFromDb: string[]) {
-        const existingSlugs = glob
-            .sync(`${this.bakedSiteDir}/**/*.html`)
+        const existingSlugs = fs
+            .globSync(`${this.bakedSiteDir}/**/*.html`)
             .map((path) =>
                 path.replace(`${this.bakedSiteDir}/`, "").replace(".html", "")
             )
@@ -987,52 +974,7 @@ export class SiteBaker {
                     )
                 )
             }
-            // We don't need the latest data insights nor their images in the
-            // feed later, when we render the list of all data insights.
-            dataInsight.latestDataInsights = []
-            dataInsight.imageMetadata = attachments.imageMetadata
         }
-
-        const totalPageCount = calculateDataInsightIndexPageCount(
-            publishedDataInsights.length
-        )
-
-        for (let pageNumber = 1; pageNumber <= totalPageCount; pageNumber++) {
-            const html = renderDataInsightsIndexPage(
-                publishedDataInsights.slice(
-                    (pageNumber - 1) * DATA_INSIGHTS_INDEX_PAGE_SIZE,
-                    pageNumber * DATA_INSIGHTS_INDEX_PAGE_SIZE
-                ),
-                pageNumber,
-                totalPageCount
-            )
-            // Page 1 is data-insights.html, page 2 is data-insights/2.html, etc.
-            const filename = pageNumber === 1 ? "" : `/${pageNumber}`
-            const outPath = path.join(
-                this.bakedSiteDir,
-                `data-insights${filename}.html`
-            )
-            await fs.mkdirp(path.dirname(outPath))
-            await this.stageWrite(outPath, html)
-        }
-
-        // bake all data insights to dataInsights.json to allow for a topic-filtered
-        // view of the feed (temporary, for the purposes of a data pages experiment).
-        const publishedDataInsightsForJson = publishedDataInsights.map((di) => {
-            // removes fields that are omitted from <DataInsightBody /> props
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { markdown, publicationContext, revisionId, ...rest } = di
-
-            // removes data that isn't need for rendering the feed page (based on comments in DataInsightsIndexPageContent.tsx)
-            // (but we kep tags b/c we need it to filter dataInsights.json)
-            rest.linkedIndicators = {}
-            rest.latestDataInsights = []
-            return rest
-        })
-        await this.stageWrite(
-            `${this.bakedSiteDir}/dataInsights.json`,
-            JSON.stringify(publishedDataInsightsForJson)
-        )
     }
 
     private async bakeAuthors(knex: db.KnexReadonlyTransaction) {
@@ -1113,61 +1055,8 @@ export class SiteBaker {
         if (!this.bakeSteps.has("blogIndex")) return
         this.progressBar.tick({ name: "Baking blog index" })
 
-        // Fetch and render page 1
-        const indexPageData = await getLatestPageItems(knex, 1, [
-            OwidGdocType.Article,
-            OwidGdocType.DataInsight,
-            OwidGdocType.Announcement,
-        ])
-
-        const { linkedAuthors, imageMetadata, linkedCharts, linkedDocuments } =
-            await enrichLatestPageItems(knex, indexPageData.items)
-
-        const indexPageHtml = renderLatestPage(
-            indexPageData.items,
-            imageMetadata,
-            linkedAuthors,
-            linkedCharts,
-            linkedDocuments,
-            indexPageData.pagination.pageNum,
-            indexPageData.pagination.totalPages
-        )
-
-        await this.stageWrite(`${this.bakedSiteDir}/latest.html`, indexPageHtml)
-
-        // Render remaining pages
-        const totalPages = indexPageData.pagination.totalPages
-        for (let pageNum = 2; pageNum <= totalPages; pageNum++) {
-            const pageData = await getLatestPageItems(knex, pageNum, [
-                OwidGdocType.Article,
-                OwidGdocType.DataInsight,
-                OwidGdocType.Announcement,
-            ])
-
-            const {
-                linkedAuthors,
-                imageMetadata,
-                linkedCharts,
-                linkedDocuments,
-            } = await enrichLatestPageItems(knex, pageData.items)
-
-            const pageHtml = renderLatestPage(
-                pageData.items,
-                imageMetadata,
-                linkedAuthors,
-                linkedCharts,
-                linkedDocuments,
-                pageData.pagination.pageNum,
-                pageData.pagination.totalPages
-            )
-
-            const outPath = path.join(
-                this.bakedSiteDir,
-                `latest/page/${pageNum}.html`
-            )
-            await fs.mkdirp(path.dirname(outPath))
-            await this.stageWrite(outPath, pageHtml)
-        }
+        const html = await renderLatestPage(knex)
+        await this.stageWrite(`${this.bakedSiteDir}/latest.html`, html)
     }
 
     // Bake the RSS feed
@@ -1266,7 +1155,10 @@ export class SiteBaker {
             JSON.stringify(Object.fromEntries(grapherRedirects), null, 2)
         )
 
-        const explorerRedirects = await getExplorerToMultiDimRedirects(knex, "")
+        // Per-slug explorer redirects, resolved by the explorers Cloudflare Pages
+        // Function (see functions/_common/redirectTools.ts). Each value is either
+        // a plain target slug or a query-param decision tree.
+        const explorerRedirects = await getExplorerRedirects(knex, "")
         await this.stageWrite(
             path.join(this.bakedSiteDir, `explorers/_explorerRedirects.json`),
             JSON.stringify(Object.fromEntries(explorerRedirects), null, 2)
@@ -1318,12 +1210,9 @@ export class SiteBaker {
     }
 
     async bakeAll(knex: db.KnexReadonlyTransaction) {
-        // Ensure caches are correctly initialized
-        this.flushCache()
         await this.removeDeletedPosts(knex)
         await this.bakeWordpressPages(knex)
         await this._bakeNonWordpressPages(knex)
-        this.flushCache()
     }
 
     async ensureDir(relPath: string) {
@@ -1349,12 +1238,6 @@ export class SiteBaker {
 
     async endDbConnections() {
         await db.closeTypeOrmAndKnexConnections()
-    }
-
-    private flushCache() {
-        this.progressBar.tick({ name: "Flushing cache" })
-        // Clear caches to allow garbage collection while waiting for next run
-        redirectsFlushCache()
     }
 }
 

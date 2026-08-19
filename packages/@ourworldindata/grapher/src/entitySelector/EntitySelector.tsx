@@ -10,7 +10,7 @@ import {
     IReactionDisposer,
     makeObservable,
 } from "mobx"
-import cx from "classnames"
+import cx from "clsx"
 import a from "indefinite"
 import {
     isTouchDevice,
@@ -24,12 +24,13 @@ import {
     FuzzySearch,
     getUserNavigatorLanguagesNonEnglish,
     getRegionAlternativeNames,
-    convertDaysSinceEpochToDate,
     checkIsOwidIncomeGroupCode,
     checkHasMembers,
     Region,
     getRegionByName,
     makeSafeForCSS,
+    convertDaysSinceEpochToDate,
+    isSubYearly,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -54,16 +55,23 @@ import {
     isPopulationVariableETLPath,
     isWorldEntityName,
 } from "../core/GrapherConstants"
-import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
+import {
+    CoreColumn,
+    makeOriginalTimeSlugFromColumnSlug,
+    OwidTable,
+} from "@ourworldindata/core-table"
 import { SortIcon } from "../controls/SortIcon"
 import { Dropdown } from "../controls/Dropdown"
 import { scaleLinear, type ScaleLinear } from "d3-scale"
 import {
     AdditionalGrapherDataFetchFn,
+    CatalogNumericDataPoint,
     ColumnSlug,
+    ColumnTypeNames,
     EntityName,
     NumericCatalogKey,
     OwidColumnDef,
+    OwidTableSlugs,
     ProjectionColumnInfo,
     Time,
     ToleranceStrategy,
@@ -83,10 +91,11 @@ import {
 } from "../core/RegionGroups"
 import { SearchField } from "../controls/SearchField"
 import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants.js"
+import { columnDefsByCatalogKey } from "../core/loadCatalogData.js"
 import {
-    columnDefsByCatalogKey,
-    loadCatalogDataAsOwidTable,
-} from "../core/loadCatalogData.js"
+    EXTERNAL_SORT_INDICATOR_DEFINITIONS,
+    type ExternalSortIndicatorDefinition,
+} from "./EntitySelectorConstants.js"
 
 export type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
@@ -171,22 +180,6 @@ interface FilterDropdownOption {
     count: number
     trackNote?: string // unused
 }
-
-export const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
-    {
-        catalogKey: "population" satisfies NumericCatalogKey,
-        slug: columnDefsByCatalogKey["population"].slug,
-        label: "Population",
-    },
-    {
-        catalogKey: "gdp" satisfies NumericCatalogKey,
-        slug: columnDefsByCatalogKey["gdp"].slug,
-        label: "GDP per capita (int. $)",
-    },
-] as const
-
-type ExternalSortIndicatorDefinition =
-    (typeof EXTERNAL_SORT_INDICATOR_DEFINITIONS)[number]
 
 const regionNamesSet = new Set(regions.map((region) => region.name))
 
@@ -522,43 +515,55 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         })
     }
 
-    @computed private get chartHasDailyData(): boolean {
-        return this.numericalChartColumns.some(
-            (column) => column.display?.yearIsDay
+    @computed private get chartHasSubYearlyData(): boolean {
+        return this.numericalChartColumns.some((column) =>
+            isSubYearly(column.timeInterval)
+        )
+    }
+
+    private isExternalIndicator(slug: ColumnSlug): boolean {
+        return this.externalSortIndicatorDefinitions.some(
+            (external) => slug === external.slug
         )
     }
 
     /**
-     * Converts the given time to be compatible with the time format
-     * of the given column.
-     *
-     * This is necessary for external sort indicators when they're loaded
-     * for charts with daily data.
+     * Returns the time at which to look up sort values in the given column.
+     * For external catalog indicators, this is the column's max year, since
+     * those columns are collapsed to a single year on load.
      */
-    private toColumnCompatibleTime(time: Time, column: CoreColumn): Time {
-        const isExternal = this.externalSortIndicatorDefinitions.some(
-            (external) => column.slug === external.slug
-        )
+    private resolveLookupTimeForColumn(time: Time, column: CoreColumn): Time {
+        // External catalog columns are collapsed to a single year (the
+        // catalog's max year) by loadAndSetExternalSortColumn, so the lookup
+        // time is fixed regardless of the chart's endTime
+        const isExternal = this.isExternalIndicator(column.slug)
+        if (isExternal) return column.maxTime ?? time
 
-        // if the column comes from the chart, no conversion is needed
-        if (!isExternal) return time
+        return time
+    }
 
-        // assumes that external indicators have yearly data
-        const year = this.chartHasDailyData
-            ? convertDaysSinceEpochToDate(time).year()
-            : time
+    private getSortColumnLabelTime(time: Time, column: CoreColumn): Time {
+        const lookupTime = this.resolveLookupTimeForColumn(time, column)
 
-        // clamping is necessary since external indicators might not cover
-        // the entire time range of the chart
-        return R.clamp(year, { min: column.minTime, max: column.maxTime })
+        // External catalog columns use their own max year as the lookup time
+        const isExternal = this.isExternalIndicator(column.slug)
+        if (isExternal) return lookupTime
+
+        // When the chart uses day-encoded times but this column is yearly,
+        // convert the lookup time back to a year before formatting the label
+        if (this.chartHasSubYearlyData && !isSubYearly(column.timeInterval)) {
+            return convertDaysSinceEpochToDate(lookupTime).year()
+        }
+
+        return lookupTime
     }
 
     private formatTimeForSortColumnLabel(
         time: Time,
         column: CoreColumn
     ): string {
-        const compatibleTime = this.toColumnCompatibleTime(time, column)
-        return column.formatTime(compatibleTime)
+        const labelTime = this.getSortColumnLabelTime(time, column)
+        return column.formatTime(labelTime)
     }
 
     @computed private get manager(): EntitySelectorManager {
@@ -889,7 +894,10 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
 
             // Combine projected and historical data
             if (projectionInfo) {
-                const time = this.toColumnCompatibleTime(this.endTime, column)
+                const time = this.resolveLookupTimeForColumn(
+                    this.endTime,
+                    column
+                )
                 const label = this.makeSortColumnLabelForCombinedColumn(
                     projectionInfo,
                     time
@@ -997,7 +1005,10 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
             }
 
             for (const column of this.interpolatedSortColumns) {
-                const time = this.toColumnCompatibleTime(this.endTime, column)
+                const time = this.resolveLookupTimeForColumn(
+                    this.endTime,
+                    column
+                )
 
                 // If we're dealing with a mixed column that has historical and
                 // projected data for the given time, then we choose not to
@@ -1241,16 +1252,12 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                 throw new Error(
                     "additionalDataLoaderFn is not set, can't load sort variables on demand"
                 )
-            const { table } = await loadCatalogDataAsOwidTable(
-                catalogKey,
-                additionalDataLoaderFn
+            const data = await additionalDataLoaderFn(catalogKey)
+            const filteredData = data.filter((row) =>
+                this.inputTable.availableEntityNameSet.has(row.entity)
             )
-            const column = table
-                .filterByEntityNames(this.inputTable.availableEntityNames)
-                .interpolateColumnWithTolerance(slug, {
-                    toleranceOverride: Infinity,
-                })
-                .get(slug)
+            const table = buildOwidTableForCatalogData(filteredData, catalogKey)
+            const column = table?.get(slug)
             if (column) this.setInterpolatedSortColumn(column)
         } catch {
             console.error(`Failed to load data from catalog: ${catalogKey}`)
@@ -1433,7 +1440,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                             name={entity.name}
                             type={this.isMultiMode ? "checkbox" : "radio"}
                             checked={this.isEntitySelected(entity)}
-                            bar={this.getBarConfigForEntity(entity)}
+                            {...this.getBarPropsForEntity(entity)}
                             onChange={this.onChange}
                             isLocal={entity.isLocal}
                             isMuted={this.isEntityMuted(entity.name)}
@@ -1457,7 +1464,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                                 name={entity.name}
                                 type="radio"
                                 checked={this.isEntitySelected(entity)}
-                                bar={this.getBarConfigForEntity(entity)}
+                                {...this.getBarPropsForEntity(entity)}
                                 onChange={this.onChange}
                                 isLocal={entity.isLocal}
                                 isMuted={this.isEntityMuted(entity.name)}
@@ -1478,7 +1485,10 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     @computed private get selectedSortColumnMaxValue(): number | undefined {
         const { selectedSortColumn, endTime } = this
         if (!selectedSortColumn) return undefined
-        const time = this.toColumnCompatibleTime(endTime, selectedSortColumn)
+        const time = this.resolveLookupTimeForColumn(
+            endTime,
+            selectedSortColumn
+        )
         const values = selectedSortColumn.valuesByTime.get(time)
         return _.max(values)
     }
@@ -1489,25 +1499,23 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
             .range([0, 1])
     }
 
-    private getBarConfigForEntity(
-        entity: SearchableEntity
-    ): BarConfig | undefined {
+    private getBarPropsForEntity(entity: SearchableEntity): BarProps {
         const { selectedSortColumn, barScale } = this
 
-        if (!selectedSortColumn) return undefined
+        if (!selectedSortColumn) return {}
 
         const value = entity.sortColumnValues[selectedSortColumn.slug]
 
-        if (!isFiniteWithGuard(value)) return { formattedValue: "No data" }
+        if (!isFiniteWithGuard(value)) return { barFormattedValue: "No data" }
 
-        const formattedValue =
+        const barFormattedValue =
             selectedSortColumn.formatValueShortWithAbbreviations(value)
 
-        if (value < 0) return { formattedValue, width: 0 }
+        if (value < 0) return { barFormattedValue, barWidth: 0 }
 
         return {
-            formattedValue,
-            width: R.clamp(barScale(value), { min: 0, max: 1 }),
+            barFormattedValue,
+            barWidth: R.clamp(barScale(value), { min: 0, max: 1 }),
         }
     }
 
@@ -1554,24 +1562,20 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                         </Flipped>
                     )}
                     <ul>
-                        {selectedEntities.map((entity, entityIndex) => (
-                            <FlippedListItem
-                                index={entityIndex}
+                        {selectedEntities.map((entity) => (
+                            <SelectableEntityListItem
                                 key={entity.name}
                                 flipId={`selected_${makeSafeForCSS(
                                     entity.name
                                 )}`}
-                            >
-                                <SelectableEntity
-                                    name={entity.name}
-                                    type="checkbox"
-                                    checked={true}
-                                    bar={this.getBarConfigForEntity(entity)}
-                                    onChange={this.onChange}
-                                    isLocal={entity.isLocal}
-                                    isMuted={this.isEntityMuted(entity.name)}
-                                />
-                            </FlippedListItem>
+                                name={entity.name}
+                                type="checkbox"
+                                checked={true}
+                                {...this.getBarPropsForEntity(entity)}
+                                onChange={this.onChange}
+                                isLocal={entity.isLocal}
+                                isMuted={this.isEntityMuted(entity.name)}
+                            />
                         ))}
                     </ul>
                 </div>
@@ -1597,33 +1601,21 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                         )}
 
                         <ul>
-                            {filteredAvailableEntities.map(
-                                (entity, entityIndex) => (
-                                    <FlippedListItem
-                                        index={entityIndex}
-                                        key={entity.name}
-                                        flipId={`available_${makeSafeForCSS(
-                                            entity.name
-                                        )}`}
-                                    >
-                                        <SelectableEntity
-                                            name={entity.name}
-                                            type="checkbox"
-                                            checked={this.isEntitySelected(
-                                                entity
-                                            )}
-                                            bar={this.getBarConfigForEntity(
-                                                entity
-                                            )}
-                                            onChange={this.onChange}
-                                            isLocal={entity.isLocal}
-                                            isMuted={this.isEntityMuted(
-                                                entity.name
-                                            )}
-                                        />
-                                    </FlippedListItem>
-                                )
-                            )}
+                            {filteredAvailableEntities.map((entity) => (
+                                <SelectableEntityListItem
+                                    key={entity.name}
+                                    flipId={`available_${makeSafeForCSS(
+                                        entity.name
+                                    )}`}
+                                    name={entity.name}
+                                    type="checkbox"
+                                    checked={this.isEntitySelected(entity)}
+                                    {...this.getBarPropsForEntity(entity)}
+                                    onChange={this.onChange}
+                                    isLocal={entity.isLocal}
+                                    isMuted={this.isEntityMuted(entity.name)}
+                                />
+                            ))}
                         </ul>
                     </div>
                 )}
@@ -1663,33 +1655,26 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     }
 }
 
-type BarConfig = { formattedValue: string; width?: number }
+// Bar props are flattened into primitives (rather than a `bar` object) so that
+// the default `React.memo` shallow comparison works without a hand-written
+// equality function. A freshly-allocated object would fail reference equality
+// on every render and defeat memoization.
+interface BarProps {
+    barFormattedValue?: string
+    barWidth?: number
+}
 
-function SelectableEntity({
-    name,
-    checked,
-    type,
-    bar,
-    onChange,
-    isLocal,
-    isMuted,
-}: {
+interface SelectableEntityProps extends BarProps {
     name: string
     checked: boolean
     type: "checkbox" | "radio"
-    bar?: BarConfig
     onChange: (entityName: EntityName) => void
     isLocal?: boolean
     isMuted?: boolean
-}) {
-    const Input = {
-        checkbox: Checkbox,
-        radio: RadioButton,
-    }[type]
+}
 
-    const { name: displayName, suffix } = parseLabel(name)
-
-    const locationIcon = (
+function LocationIcon() {
+    return (
         <span className="location-icon">
             {/* Non-breaking space prevents the icon from wrapping to a new line alone */}
             {"\u00A0"}
@@ -1702,62 +1687,76 @@ function SelectableEntity({
             </Tippy>
         </span>
     )
+}
+
+const SelectableEntity = React.memo(function SelectableEntity({
+    name,
+    checked,
+    type,
+    barFormattedValue,
+    barWidth,
+    onChange,
+    isLocal,
+    isMuted,
+}: SelectableEntityProps) {
+    const Input = type === "checkbox" ? Checkbox : RadioButton
+    const { name: displayName, suffix } = parseLabel(name)
 
     const label = (
         <span>
             {displayName}
             {suffix && <span className="suffix"> ({suffix})</span>}
-            {isLocal && locationIcon}
+            {isLocal && <LocationIcon />}
         </span>
     )
 
     return (
         <div
             className={cx("selectable-entity", {
-                "selectable-entity--with-bar": bar && bar.width !== undefined,
+                "selectable-entity--with-bar": barWidth !== undefined,
                 "selectable-entity--muted": isMuted,
             })}
         >
-            {bar && bar.width !== undefined && (
-                <div className="bar" style={{ width: `${bar.width * 100}%` }} />
+            {barWidth !== undefined && (
+                <div className="bar" style={{ width: `${barWidth * 100}%` }} />
             )}
             <Input
                 label={label}
                 checked={checked}
                 onChange={() => onChange(name)}
             />
-            {bar && (
+            {barFormattedValue !== undefined && (
                 <span className="value grapher_label-1-regular">
-                    {bar.formattedValue}
+                    {barFormattedValue}
                 </span>
             )}
         </div>
     )
+})
+
+const flippedListItemSpring = { stiffness: 300, damping: 33 }
+
+type SelectableEntityListItemProps = SelectableEntityProps & {
+    flipId: string
 }
 
-function FlippedListItem({
+const SelectableEntityListItem = React.memo(function SelectableEntityListItem({
     flipId,
-    index = 0,
-    children,
-}: {
-    flipId: string
-    index?: number
-    children: React.ReactNode
-}) {
+    ...selectableEntityProps
+}: SelectableEntityListItemProps) {
     return (
         <Flipped
             flipId={flipId}
             translate
             opacity
-            spring={{
-                stiffness: Math.max(300 - index, 180),
-                damping: 33,
-            }}
+            spring={flippedListItemSpring}
         >
-            <li>{children}</li>
+            <li>
+                <SelectableEntity {...selectableEntityProps} />
+            </li>
         </Flipped>
     )
-}
+})
 
 function renderSortTriggerValue(
     option: SortDropdownOption | null
@@ -1843,4 +1842,42 @@ function isExternalSortIndicatorMatch(
             return matches.length > 0
         })
         .exhaustive()
+}
+
+function buildOwidTableForCatalogData(
+    data: CatalogNumericDataPoint[],
+    catalogKey: NumericCatalogKey
+): OwidTable | undefined {
+    if (data.length === 0) return undefined
+
+    const maxYear = _.max(data.map((point) => point.year))
+    if (maxYear === undefined) return undefined
+
+    const columnDef = columnDefsByCatalogKey[catalogKey]
+    const slug = columnDef.slug
+    const originalTimeSlug = makeOriginalTimeSlugFromColumnSlug(slug)
+
+    const rows = data.map((row) => ({
+        [OwidTableSlugs.EntityName]: row.entity,
+        // The catalog data's max year is used as the time for all rows
+        [OwidTableSlugs.Year]: maxYear,
+        [columnDef.slug]: row.value,
+        [originalTimeSlug]: row.year,
+    }))
+
+    // Necessary to ensure correct formatting of the year values
+    const yearColumnDef: OwidColumnDef = {
+        slug: OwidTableSlugs.Year,
+        type: ColumnTypeNames.Year,
+    }
+    const originalTimeColumnDef: OwidColumnDef = {
+        slug: originalTimeSlug,
+        type: ColumnTypeNames.Year,
+    }
+
+    return new OwidTable(rows, [
+        columnDef,
+        yearColumnDef,
+        originalTimeColumnDef,
+    ])
 }

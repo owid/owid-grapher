@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { FeedbackPrompt } from "./Feedback.js"
 import { ScrollDirection, useScrollDirection } from "./hooks.js"
 // import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"

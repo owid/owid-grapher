@@ -50,6 +50,13 @@ export class BuildkiteTrigger {
             branch: this.branch,
             message: message,
             env: { ...env, BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL },
+            // Staging deploys trigger this build for a specific branch via the API.
+            // Without this flag, the build is rejected with 422 "Branches have been
+            // disabled for this pipeline" whenever the target pipeline has the "Build
+            // branches" trigger turned off (the automated-staging pipelines are
+            // PR-triggered, so it is off). We deliberately want this branch build, so
+            // bypass the pipeline's branch trigger/filter rules.
+            ignore_pipeline_branch_filters: true,
         }
 
         const response = await fetch(url, {
@@ -64,7 +71,14 @@ export class BuildkiteTrigger {
             return resp.number
         } else {
             const errorText = await response.text()
-            throw new Error(`Error: ${response.status}\n${errorText}`)
+            const explanation = errorText.includes(
+                "Branches have been disabled"
+            )
+                ? " — likely cause: this branch no longer exists on GitHub (e.g. its PR was merged/closed) or the pipeline's branch filter is misconfigured in Buildkite"
+                : ""
+            throw new Error(
+                `Error triggering Buildkite build on pipeline "${this.pipelineSlug}" for branch "${this.branch}": ${response.status}\n${errorText}${explanation}`
+            )
         }
     }
 

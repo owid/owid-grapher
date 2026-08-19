@@ -24,8 +24,9 @@ import { match } from "ts-pattern"
 export const VALID_CHART_TYPE_COMBINATIONS: GrapherChartType[][] = [
     [
         GRAPHER_CHART_TYPES.LineChart,
-        GRAPHER_CHART_TYPES.SlopeChart,
         GRAPHER_CHART_TYPES.DiscreteBar,
+        GRAPHER_CHART_TYPES.Dumbbell,
+        GRAPHER_CHART_TYPES.SlopeChart,
         GRAPHER_CHART_TYPES.Marimekko,
         GRAPHER_CHART_TYPES.ScatterPlot,
     ],
@@ -50,6 +51,7 @@ export const CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
     [GRAPHER_CHART_TYPES.StackedArea]: "Area",
     [GRAPHER_CHART_TYPES.StackedBar]: "Column",
     [GRAPHER_CHART_TYPES.StackedDiscreteBar]: "Bar",
+    [GRAPHER_CHART_TYPES.Dumbbell]: "Dumbbell",
 }
 
 export const LONG_CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
@@ -61,6 +63,7 @@ export const LONG_CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
     [GRAPHER_CHART_TYPES.StackedArea]: "Area chart",
     [GRAPHER_CHART_TYPES.StackedBar]: "Column chart",
     [GRAPHER_CHART_TYPES.StackedDiscreteBar]: "Bar chart",
+    [GRAPHER_CHART_TYPES.Dumbbell]: "Dumbbell chart",
 }
 
 const MAP_CHART_TAB_CONFIG_OPTION_TO_CHART_TYPE_NAME: Record<
@@ -78,6 +81,7 @@ const MAP_CHART_TAB_CONFIG_OPTION_TO_CHART_TYPE_NAME: Record<
     [GRAPHER_TAB_CONFIG_OPTIONS["stacked-discrete-bar"]]:
         GRAPHER_CHART_TYPES.StackedDiscreteBar,
     [GRAPHER_TAB_CONFIG_OPTIONS.marimekko]: GRAPHER_CHART_TYPES.Marimekko,
+    [GRAPHER_TAB_CONFIG_OPTIONS.dumbbell]: GRAPHER_CHART_TYPES.Dumbbell,
 }
 
 const MAP_CHART_TYPE_NAME_TO_CHART_TAB_CONFIG_OPTION = R.invert(

@@ -1,10 +1,10 @@
 import { useAtom } from "jotai"
 import { useCallback } from "react"
-import cx from "classnames"
+import cx from "clsx"
 
-import { selectedColorAtom, selectedFoodAtom } from "../atoms"
+import { selectedColorAtom, selectedFoodAtom } from "../core/atoms"
 import { Dropdown } from "@ourworldindata/grapher/src/controls/Dropdown"
-import { COLOR_KEYS, FOOD_KEYS, FoodKey } from "../constants"
+import { COLOR_KEYS, FOOD_KEYS, FoodKey } from "../core/constants"
 
 import "./Picker.scss"
 

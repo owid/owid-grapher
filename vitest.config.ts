@@ -11,6 +11,7 @@ export default defineConfig({
             "db/tests/**",
             "adminSiteServer/app.test.ts",
             "adminSiteServer/tests/**",
+            "bespoke/**",
         ],
         pool: "threads",
         setupFiles: ["devTools/vitest-setup.ts"],

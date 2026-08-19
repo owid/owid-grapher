@@ -19,6 +19,7 @@ import { TagEditPage } from "./TagEditPage.js"
 import { TagsIndexPage } from "./TagsIndexPage.js"
 import { TagGraphPage } from "./TagGraphPage.js"
 import { TestIndexPage } from "./TestIndexPage.js"
+import { TestRegionMapsPage } from "./TestRegionMapsPage.js"
 import { NotFoundPage } from "./NotFoundPage.js"
 import { DeployStatusPage } from "./DeployStatusPage.js"
 import { ExplorerTagsPage } from "./ExplorerTagsPage.js"
@@ -37,6 +38,7 @@ import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { AdminLayout } from "./AdminLayout.js"
 import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
 import { GdocsIndexPage } from "./GdocsIndexPage.js"
+import { OrphanedArticlesIndexPage } from "./OrphanedArticlesIndexPage.js"
 import { GdocsMatchProps, GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsCoverageMatrixPage } from "./GdocsCoverageMatrixPage.js"
 import { CalloutFunctionsPage } from "./CalloutFunctionsPage.js"
@@ -54,6 +56,8 @@ import MultiDimRedirectsIndexPage from "./MultiDimRedirectsIndexPage.js"
 import { FeaturedMetricsPage } from "./FeaturedMetricsPage.js"
 import { DodsIndexPage } from "./DodsIndexPage.js"
 import { StaticVizIndexPage } from "./StaticVizIndexPage.js"
+import { SvgTesterIndexPage } from "./SvgTesterIndexPage.js"
+import { SvgTesterSuitePage } from "./SvgTesterSuitePage.js"
 import { StaticVizEditPage } from "./StaticVizEditPage.js"
 import { SlideshowsIndexPage } from "./slideshows/SlideshowsIndexPage.js"
 import { SlideshowEditorPage } from "./slideshows/SlideshowEditorPage.js"
@@ -234,6 +238,20 @@ export class AdminApp extends React.Component<{
                                 />
                                 <Route
                                     exact
+                                    path="/svgtester"
+                                    component={SvgTesterIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/svgtester/:suite"
+                                    render={({ match }) => (
+                                        <SvgTesterSuitePage
+                                            key={match.params.suite}
+                                        />
+                                    )}
+                                />
+                                <Route
+                                    exact
                                     path="/static-viz"
                                     component={StaticVizIndexPage}
                                 />
@@ -397,6 +415,11 @@ export class AdminApp extends React.Component<{
                                 />
                                 <Route
                                     exact
+                                    path="/orphaned-articles"
+                                    component={OrphanedArticlesIndexPage}
+                                />
+                                <Route
+                                    exact
                                     path="/gdocs/:id/preview"
                                     render={(props: GdocsMatchProps) => (
                                         <GdocsStoreProvider>
@@ -436,6 +459,11 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/test"
                                     component={TestIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/test-region-maps"
+                                    component={TestRegionMapsPage}
                                 />
                                 <Route
                                     exact

@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { useContext, useState, useEffect } from "react"
 
 import Callout from "./Callout.js"
@@ -19,7 +19,7 @@ import {
     EXPERIMENT_PREFIX,
     OwidEnrichedGdocBlock,
     spansToUnformattedPlainText,
-    TocHeadingWithTitleSupertitle,
+    TocHeadingWithSupertitle,
     Url,
     defaultExperimentState,
     getExperimentState,
@@ -32,7 +32,7 @@ import { match } from "ts-pattern"
 import SpanElements from "./SpanElements.js"
 import Paragraph from "./Paragraph.js"
 import People from "./People.js"
-import TableOfContents from "./TableOfContents.js"
+import SDGTableOfContents from "./SDGTableOfContents.js"
 import urlSlug from "url-slug"
 import { MissingData } from "./MissingData.js"
 import { AdditionalCharts } from "./AdditionalCharts.js"
@@ -80,7 +80,7 @@ function ArticleBlockInternal({
 }: {
     b: OwidEnrichedGdocBlock
     containerType?: Container
-    toc?: TocHeadingWithTitleSupertitle[]
+    toc?: TocHeadingWithSupertitle[]
     shouldRenderLinks?: boolean
     interactiveImages?: boolean
 }) {
@@ -649,15 +649,23 @@ function ArticleBlockInternal({
             </div>
         ))
         .with({ type: "side-by-side" }, (block) => {
-            // Use the chart info detected at the top level
-            const leftIsMdim =
-                leftLinkedChart?.configType === ChartConfigType.MultiDim
-            const rightIsMdim =
-                rightLinkedChart?.configType === ChartConfigType.MultiDim
+            // Use the chart info detected at the top level. The compensation
+            // offsets the multi-dim's controls row, which is only rendered
+            // when the embed's controls are visible (no hideControls=true).
+            const controlsHidden = (url: string | undefined): boolean =>
+                Url.fromURL(url ?? "").queryParams.hideControls === "true"
+            const leftIsMdimWithControls =
+                leftLinkedChart?.configType === ChartConfigType.MultiDim &&
+                !controlsHidden(leftIsChart ? leftBlock.url : undefined)
+            const rightIsMdimWithControls =
+                rightLinkedChart?.configType === ChartConfigType.MultiDim &&
+                !controlsHidden(rightIsChart ? rightBlock.url : undefined)
 
             // Check if both are charts and one is mdim and the other isn't
             const shouldApplyCompensation =
-                leftIsChart && rightIsChart && leftIsMdim !== rightIsMdim
+                leftIsChart &&
+                rightIsChart &&
+                leftIsMdimWithControls !== rightIsMdimWithControls
 
             return (
                 <div className={getLayout("side-by-side", containerType)}>
@@ -666,7 +674,8 @@ function ArticleBlockInternal({
                             "grid grid-cols-6 span-cols-6 span-sm-cols-12",
                             {
                                 "mdim-compensation":
-                                    shouldApplyCompensation && !leftIsMdim,
+                                    shouldApplyCompensation &&
+                                    !leftIsMdimWithControls,
                             }
                         )}
                     >
@@ -683,7 +692,8 @@ function ArticleBlockInternal({
                             "grid grid-cols-6 span-cols-6 span-sm-cols-12",
                             {
                                 "mdim-compensation":
-                                    shouldApplyCompensation && !rightIsMdim,
+                                    shouldApplyCompensation &&
+                                    !rightIsMdimWithControls,
                             }
                         )}
                     >
@@ -738,25 +748,12 @@ function ArticleBlockInternal({
         ))
         .with({ type: "sdg-toc" }, () => {
             return toc ? (
-                <TableOfContents
+                <SDGTableOfContents
                     toc={toc}
                     title="List of targets and indicators"
                     className={getLayout("toc", containerType)}
                 />
             ) : null
-        })
-        .with({ type: "entry-summary" }, (block) => {
-            return (
-                <TableOfContents
-                    title="Summary"
-                    toc={block.items.map((item) => ({
-                        ...item,
-                        title: item.text,
-                        isSubheading: false,
-                    }))}
-                    className={getLayout("toc", containerType)}
-                />
-            )
         })
         .with({ type: "ltp-toc" }, (block) => {
             const layoutClassName = getLayout("ltp-toc", containerType)
@@ -1049,7 +1046,7 @@ export default function ArticleBlock({
 }: {
     b: OwidEnrichedGdocBlock
     containerType?: Container
-    toc?: TocHeadingWithTitleSupertitle[]
+    toc?: TocHeadingWithSupertitle[]
     shouldRenderLinks?: boolean
     interactiveImages?: boolean
 }) {

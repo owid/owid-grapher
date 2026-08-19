@@ -19,3 +19,11 @@ fields:
     description: Display order ranking for this featured metric within its topic and income group
   incomeGroup:
     description: Income group classification for targeted metric display ('low', 'lower-middle', 'upper-middle', 'high', 'default')
+  boostInSearch:
+    description: >
+      When enabled (1), the non-FM version of this chart/view gets a large
+      score boost in general (non-FM-filtered) search results. This is useful
+      for charts like "GDP" that are editorially important but have low organic
+      scores due to fewer pageviews or related articles compared to variants
+      like "GDP per capita". The boost is applied per-view (matched by URL)
+      and synced across all FM rows sharing the same URL.

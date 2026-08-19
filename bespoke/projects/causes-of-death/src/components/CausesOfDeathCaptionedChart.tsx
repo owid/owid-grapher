@@ -1,18 +1,16 @@
 import { useMemo } from "react"
 import * as R from "remeda"
-import cx from "classnames"
+import cx from "clsx"
 
 import { EntityName, Time } from "@ourworldindata/types"
 
-import { DataRow } from "../helpers/CausesOfDeathConstants"
+import { DataRow } from "../core/CausesOfDeathConstants"
 import { ResponsiveCausesOfDeathTreemap } from "./CausesOfDeathTreemap"
-import {
-    formatEntityNameForSentence,
-    formatCount,
-} from "../helpers/CausesOfDeathHelpers.js"
-import { CausesOfDeathMetadata } from "../helpers/CausesOfDeathMetadata.js"
-import { CausesOfDeathSpinner } from "./CausesOfDeathSpinner.js"
+import { formatCount } from "../core/CausesOfDeathHelpers.js"
+import { CausesOfDeathMetadata } from "../core/CausesOfDeathMetadata.js"
 
+import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
+import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
@@ -56,7 +54,7 @@ export function CausesOfDeathCaptionedChart({
             />
 
             <div className="causes-of-death-captioned-chart__chart-area">
-                {isLoading && <CausesOfDeathSpinner />}
+                {isLoading && <Spinner />}
 
                 <ResponsiveCausesOfDeathTreemap
                     data={entityData}
@@ -113,7 +111,7 @@ function CausesOfDeathHeader({
                         })}
                     >
                         {formatCount(numTotalDeaths)}
-                        {isLoading && <CausesOfDeathSpinner inline />}
+                        {isLoading && <Spinner inline />}
                     </span>
                     . Each rectangle within is proportional to the share of
                     deaths due to a particular cause.

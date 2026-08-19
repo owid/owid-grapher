@@ -7,7 +7,7 @@ import {
     ExplorerChoice,
 } from "./ExplorerConstants.js"
 import { GridBoolean } from "./gridLang/GridLangConstants.js"
-import classNames from "classnames"
+import classNames from "clsx"
 import * as R from "remeda"
 
 const AVAILABLE_OPTION_CLASS = "AvailableOption"

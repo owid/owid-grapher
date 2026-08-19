@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import classnames from "classnames"
+import classnames from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle, faS } from "@fortawesome/free-solid-svg-icons"
 import { formatInlineList, GrapherTooltipAnchor } from "@ourworldindata/utils"
@@ -29,15 +29,14 @@ export function TooltipValue({
     originalTime,
     isProjection,
     labelVariant = "label+unit",
-    isRoundedToSignificantFigures,
     showSignificanceSuperscript,
+    noDataLabel = NO_DATA_LABEL,
 }: TooltipValueProps): React.ReactElement {
-    const displayValue = value || NO_DATA_LABEL
-    const displayColor = displayValue === NO_DATA_LABEL ? NO_DATA_COLOR : color
+    const hasNoData = value === undefined || value === null
+    const displayValue = value || noDataLabel
+    const displayColor = hasNoData ? NO_DATA_COLOR : color
 
-    const showSuperscript =
-        showSignificanceSuperscript && isRoundedToSignificantFigures
-    const superscript = showSuperscript ? (
+    const superscript = showSignificanceSuperscript ? (
         <SignificanceIcon asSuperscript={true} />
     ) : null
 
@@ -63,21 +62,23 @@ export function TooltipValueRange({
     unit,
     values,
     colors,
+    arrowColor,
     originalTimes,
     trend,
     labelVariant = "label+unit",
-    isRoundedToSignificantFigures,
     showSignificanceSuperscript,
 }: TooltipValueRangeProps): React.ReactElement | null {
     const [firstTerm, lastTerm] = values
 
     if (firstTerm === undefined && lastTerm === undefined) return null
 
-    const showSuperscript =
-        showSignificanceSuperscript && isRoundedToSignificantFigures
-    const superscript = showSuperscript ? (
+    const superscript = showSignificanceSuperscript ? (
         <SignificanceIcon asSuperscript={true} />
     ) : null
+
+    // Use the explicit arrow color if given; otherwise use a neutral color
+    // when the value terms are colored, or fallback to semantic coloring
+    const trendArrowColor = arrowColor ?? (colors ? "#787878" : undefined)
 
     return (
         <Variable
@@ -92,7 +93,10 @@ export function TooltipValueRange({
                     {!lastTerm && superscript}
                 </span>
                 {trend && (
-                    <GrapherTrendArrow direction={trend} isColored={!colors} />
+                    <GrapherTrendArrow
+                        direction={trend}
+                        color={trendArrowColor}
+                    />
                 )}
                 {lastTerm && (
                     <span className="term">
@@ -311,11 +315,15 @@ export function SignificanceIcon({
 }
 
 export function makeTooltipToleranceNotice(
-    targetYear: string,
-    { plural }: { plural: boolean } = { plural: false }
+    targetTime: string,
+    {
+        plural = false,
+        originalTime,
+    }: { plural?: boolean; originalTime?: string } = {}
 ): string {
     const dataPoint = plural ? "data points" : "data point"
-    return `Data not available for ${targetYear}. Showing closest available ${dataPoint} instead`
+    const originalTimeNotice = originalTime ? ` (${originalTime})` : ""
+    return `Data not available for ${targetTime}. Showing closest available ${dataPoint}${originalTimeNotice} instead`
 }
 
 export function makeTooltipRoundingNotice(
@@ -348,15 +356,22 @@ export function toTooltipTableColumns(
 
 export function formatTooltipRangeValues(
     values: TooltipValue[],
-    column: CoreColumn
+    column: CoreColumn,
+    noDataLabel: string = NO_DATA_LABEL
 ): [string, string] {
     const formatTooltipValueShort = (value: TooltipValue): string =>
-        formatTooltipValue(value, (value) => column.formatValueShort(value))
+        formatTooltipValue(
+            value,
+            (value) => column.formatValueShort(value),
+            noDataLabel
+        )
     const formatTooltipValueShortWithAbbreviations = (
         value: TooltipValue
     ): string =>
-        formatTooltipValue(value, (value) =>
-            column.formatValueShortWithAbbreviations(value)
+        formatTooltipValue(
+            value,
+            (value) => column.formatValueShortWithAbbreviations(value),
+            noDataLabel
         )
 
     const [firstValue, lastValue] = values.map((v) =>
@@ -375,9 +390,10 @@ export function formatTooltipRangeValues(
 
 function formatTooltipValue(
     value: TooltipValue,
-    formatValue: (value: number) => string
+    formatValue: (value: number) => string,
+    noDataLabel: string = NO_DATA_LABEL
 ): string {
-    if (value === undefined) return NO_DATA_LABEL
+    if (value === undefined) return noDataLabel
     if (typeof value === "string") return value
     return formatValue(value)
 }

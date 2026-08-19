@@ -6,7 +6,7 @@ import { openAIIntegration } from "@sentry/node"
 if (!process.env.VITEST) {
     // Ensure to call this before importing any other modules!
     Sentry.init({
-        sendDefaultPii: true, // fine to enable in the backend, there's no relevant user data
+        dataCollection: { userInfo: true }, // fine to enable in the backend, there's no relevant user data
         dsn: SENTRY_ADMIN_DSN,
         integrations: [
             nodeProfilingIntegration(),
@@ -18,7 +18,8 @@ if (!process.env.VITEST) {
             openAIIntegration(),
         ],
         tracesSampleRate: 0.1,
-        profilesSampleRate: 1.0, // This is relative to tracesSampleRate
+        profileLifecycle: "trace", // only profile requests that are traced
+        profileSessionSampleRate: 1.0, // This is relative to tracesSampleRate
         environment: process.env.ENV,
         release: process.env.COMMIT_SHA,
     })

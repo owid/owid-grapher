@@ -1,6 +1,8 @@
 import { expect, it } from "vitest"
 
-import { extractRefs } from "./archieToEnriched.js"
+import { load } from "archieml"
+
+import { extractRefs, stripIgnoredArchieml } from "./archieToEnriched.js"
 
 it("Can extract a ref from some text", () => {
     expect(
@@ -103,6 +105,54 @@ it("Can extract an inline ref and an ID ref and then refer back to a previous in
                 id: "796885412908186a5e57f2e753ab697b85666afe",
             },
         ],
+    })
+})
+
+it("Drops everything after a :ignore line", () => {
+    expect(
+        stripIgnoredArchieml(
+            `live text\n:ignore\nignored text{ref}ignored_id{/ref}`
+        )
+    ).toEqual(`live text\n`)
+})
+
+it("Honours :ignore even inside a :skip block", () => {
+    expect(
+        stripIgnoredArchieml(
+            `live text\n:skip\nskipped{ref}skipped_id{/ref}\n:ignore\nignored{ref}ignored_id{/ref}`
+        )
+    ).toEqual(`live text\n:skip\n`)
+})
+
+it("Empties :skip / :endskip blocks but keeps the directive lines and surrounding text", () => {
+    expect(
+        stripIgnoredArchieml(
+            `before\n:skip\nskipped{ref}skipped_id{/ref}\n:endskip\nafter`
+        )
+    ).toEqual(`before\n:skip\n:endskip\nafter`)
+})
+
+it("Empties an unterminated :skip block but keeps the :skip directive", () => {
+    expect(
+        stripIgnoredArchieml(`before\n:skip\nskipped{ref}skipped_id{/ref}`)
+    ).toEqual(`before\n:skip\n`)
+})
+
+it("Preserves ArchieML buffer-flush semantics around a :skip block", () => {
+    // ArchieML discards the buffered multi-line continuation at :skip, so `dek`
+    // is just "first". Our pre-strip must keep the directive lines so load()
+    // still does this — deleting the block would splice "draft" onto the value.
+    const input = `dek: first\ndraft continuation\n:skip\nskipped\n:endskip\n:end`
+    expect(load(input).dek).toEqual("first")
+    expect(load(stripIgnoredArchieml(input)).dek).toEqual("first")
+})
+
+it("Ignores refs that appear after :ignore so footnote numbering is unaffected", () => {
+    const text = `real{ref}some_id{/ref}\n:ignore\nfake{ref}another_id{/ref}`
+    expect(extractRefs(stripIgnoredArchieml(text))).toEqual({
+        extractedText: `real<a class="ref" href="#note-1"><sup>1</sup></a>\n`,
+        refsByFirstAppearance: new Set(["some_id"]),
+        rawInlineRefs: [],
     })
 })
 

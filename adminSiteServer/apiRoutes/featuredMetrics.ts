@@ -6,11 +6,12 @@ import {
 import { Request } from "express"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import * as db from "../../db/db.js"
+import { expectInt } from "../../serverUtils/serverUtil.js"
 
 export async function createFeaturedMetric(
     req: Request,
     _res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
+    trx: db.KnexReadWriteTransaction
 ) {
     const { url, parentTagName, ranking, incomeGroup } = req.body
 
@@ -68,7 +69,7 @@ export async function createFeaturedMetric(
 export async function rerankFeaturedMetrics(
     req: Request,
     _res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
+    trx: db.KnexReadWriteTransaction
 ) {
     const featuredMetrics = req.body
 
@@ -94,9 +95,9 @@ export async function rerankFeaturedMetrics(
 export async function deleteFeaturedMetric(
     req: Request,
     _res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
+    trx: db.KnexReadWriteTransaction
 ) {
-    const { id } = req.params
+    const id = expectInt(req.params.id)
 
     const featuredMetric = await trx(FeaturedMetricsTableName)
         .where({ id })
@@ -114,6 +115,35 @@ export async function deleteFeaturedMetric(
         })
         .andWhere("ranking", ">", featuredMetric.ranking)
         .decrement("ranking", 1)
+
+    return { success: true }
+}
+
+export async function updateFeaturedMetricBoost(
+    req: Request,
+    _res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+) {
+    const id = expectInt(req.params.id)
+    const { boostInSearch } = req.body
+
+    if (boostInSearch === undefined) {
+        throw new JsonError("Missing required field: boostInSearch", 400)
+    }
+
+    const featuredMetric = await trx(FeaturedMetricsTableName)
+        .where({ id })
+        .first()
+
+    if (!featuredMetric) {
+        throw new JsonError(`No Featured Metric found with id '${id}'`, 404)
+    }
+
+    // Update all FM rows with the same URL so the boost is consistent
+    // across income groups and topics that share this view.
+    await trx(FeaturedMetricsTableName)
+        .where({ url: featuredMetric.url })
+        .update({ boostInSearch: boostInSearch ? 1 : 0 })
 
     return { success: true }
 }

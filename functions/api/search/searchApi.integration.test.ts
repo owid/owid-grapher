@@ -322,6 +322,22 @@ describe("searchPages with real Algolia", () => {
         })
     })
 
+    it("builds type-specific URLs for non-article page types", async () => {
+        // data-insights bake to /data-insights/<slug> (see
+        // getPrefixedGdocPath), different from the bare /<slug> used by
+        // article/about-page.
+        const diResult = await searchPages(algoliaConfig, "co2", 0, 5, [
+            "data-insight",
+        ])
+        expect(diResult.results.length).toBeGreaterThan(0)
+        diResult.results.forEach((page) => {
+            expect(page.type).toBe("data-insight")
+            expect(page.url).toBe(
+                `https://ourworldindata.org/data-insights/${page.slug}`
+            )
+        })
+    })
+
     it("removes internal Algolia fields from results", async () => {
         const result = await searchPages(algoliaConfig, "population", 0, 1)
 

@@ -1,14 +1,8 @@
 import * as db from "../db/db.js"
-import { Url } from "@ourworldindata/utils"
-import { isCanonicalInternalUrl } from "./formatting.js"
-import { DEPRECATED_resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
-import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import { getSiteRedirects } from "../db/model/Redirect.js"
-import {
-    DEPRECATED_getAllRedirectsMap,
-    getRecentChartSlugRedirects,
-} from "./redirectsFromDb.js"
+import { getRecentChartSlugRedirects } from "./redirectsFromDb.js"
 import { getRecentMultiDimRedirects } from "../db/model/MultiDimRedirects.js"
+import { buildLatestPagePath } from "../site/latest/latestUtils.js"
 
 export const getCloudflarePagesRedirects = async (
     knex: db.KnexReadonlyTransaction
@@ -23,6 +17,26 @@ export const getCloudflarePagesRedirects = async (
 
         // Deprecated country index pages
         "/countries /search 301",
+
+        // Retired /data-insights index page (bare + paginated URLs only)
+        // collapses to the unified /latest feed filtered to data insights.
+        // We enumerate numeric pages explicitly rather than using a
+        // `/data-insights/*` wildcard: the wildcard would 301 any unknown
+        // slug, and if a browser or CDN cached that redirect we'd shadow
+        // the slug if we ever publish it. Unlikely, but cheap to avoid.
+        // Numeric-only slugs can't collide with real (kebab-case)
+        // permalinks. Range covers the observed historical max page
+        // count (~22) plus headroom.
+        //
+        // Per Metabase as of 2026-05-01, paginated URLs (/data-insights/2,
+        // /3, …) still get ~7.5k pageviews / 90 days combined. Re-check
+        // after 2026-08-01: if traffic has decayed to noise, drop these.
+        `/data-insights ${buildLatestPagePath("data-insight")} 301`,
+        ...Array.from(
+            { length: 25 },
+            (_unused, i) =>
+                `/data-insights/${i + 1} ${buildLatestPagePath("data-insight")} 301`
+        ),
     ]
 
     // Dynamic redirects are all redirects that contain an asterisk
@@ -45,9 +59,21 @@ export const getCloudflarePagesRedirects = async (
         "/slides/Max_PPT_presentations/* https://www.maxroser.com/slides/Max_PPT_presentations/:splat 301",
         "/slides/Max_Interactive_Presentations/* https://www.maxroser.com/slides/Max_Interactive_Presentations/:splat 301",
 
-        // Entries and blog (we should keep these for a while)
+        // Entries and blog (we should keep these for a while).
         "/entries/* /:splat 301",
-        "/blog/* /latest/:splat 301",
+
+        // The retired SSR /latest exposed /latest/page/:pageno; the SPA
+        // uses infinite scroll and has no concept of pages, so the page
+        // number is dropped on redirect.
+        "/latest/page/* /latest 301",
+
+        // Was `/blog/* /latest/:splat 301`, presumably to forward
+        // /blog/page/N to the SSR /latest's matching /latest/page/N. With
+        // those paginated routes gone (see above) and /latest having no
+        // /:slug route, the :splat lands on 404 for every input. Drop it.
+        // Specific /blog/<slug> recoveries live in DB-backed siteRedirects
+        // (emitted before this rule) and still win.
+        "/blog/* /latest 301",
 
         // Backwards compatibility-- grapher url style
         "/chart-builder/* /grapher/:splat 301",
@@ -81,7 +107,7 @@ export const getCloudflarePagesRedirects = async (
     // Split into static and dynamic: Cloudflare requires all dynamic (wildcard)
     // redirects to be at the very end of the _redirects file.
     const allSiteRedirects = (await getSiteRedirects(knex)).map(
-        (row) => `${row.source} ${row.target} ${row.code}`
+        (row) => `${row.source} ${row.target} 301`
     )
     const siteRedirects = allSiteRedirects.filter((r) => !r.includes("*"))
     const dynamicSiteRedirects = allSiteRedirects.filter((r) => r.includes("*"))
@@ -113,95 +139,4 @@ export const getCloudflarePagesRedirects = async (
         ...dynamicSiteRedirects,
         ...dynamicRedirects,
     ]
-}
-
-export const DEPRECATED_resolveRedirectFromMap = async (
-    url: Url,
-    redirectsMap: Map<string, string>
-): Promise<Url> => {
-    const MAX_RECURSION_DEPTH = 25
-    let recursionDepth = 0
-    const originalUrl = url
-
-    const _resolveRedirectFromMap = async (url: Url): Promise<Url> => {
-        ++recursionDepth
-        if (recursionDepth > MAX_RECURSION_DEPTH) {
-            void logErrorAndMaybeCaptureInSentry(
-                new Error(
-                    `A circular redirect (/a -> /b -> /a) has been detected for ${originalUrl.pathname} and is ignored.`
-                )
-            )
-            return originalUrl
-        }
-
-        if (!url.pathname || !isCanonicalInternalUrl(url)) return url
-
-        const target = redirectsMap.get(url.pathname)
-
-        if (!target) return url
-        const targetUrl = Url.fromURL(target)
-
-        if (targetUrl.pathname === url.pathname) {
-            void logErrorAndMaybeCaptureInSentry(
-                new Error(
-                    `A self redirect (/a -> /a) has been detected for ${originalUrl.pathname} and is ignored.`
-                )
-            )
-            return originalUrl
-        }
-
-        return _resolveRedirectFromMap(
-            // Merge query params: target params take precedence, but source
-            // params are preserved for keys not in target. This matches the
-            // Cloudflare runtime redirect behavior in redirectTools.ts
-            url.queryStr
-                ? targetUrl.setQueryParams({
-                      ...url.queryParams,
-                      ...targetUrl.queryParams,
-                  })
-                : targetUrl
-        )
-    }
-    return _resolveRedirectFromMap(url)
-}
-
-// Only used for prominent links in historical wordpress content (at the time of
-// writing, this is limited to topic country profiles and reusable blocks in
-// explorer pages)
-export const DEPRECATED_resolveInternalRedirectForWordpressProminentLinks =
-    async (url: Url, knex: db.KnexReadonlyTransaction): Promise<Url> => {
-        if (!isCanonicalInternalUrl(url)) return url
-
-        // Assumes that redirects in explorer code are final (in line with the
-        // current expectation). This helps keeping complexity at bay, while
-        // avoiding unnecessary processing.
-
-        // In other words, in the following hypothetical redirect chain:
-        // (1) wordpress redirect: /omicron --> /explorers/omicron
-        // (2) wordpress redirect: /explorers/omicron --> /grapher/omicron
-        // (3) grapher admin redirect: /grapher/omicron --> /grapher/omicron-v1
-        // (4) wordpress redirect: /grapher/omicron-v1 --> /grapher/omicron-v2
-        // (5) explorer code redirect: /grapher/omicron-v2 --> /explorers/coronavirus-data-explorer?omicron=true
-        // --- END OF REDIRECTS ---
-        // (6) wordpress redirect: /explorers/coronavirus-data-explorer --> /explorers/covid
-
-        // - The last redirect (6) is not executed because is comes after a redirect
-        //   stored in explorer code.
-        // - If a /grapher/omicron-v2 --> /grapher/omicron-v3 were to be defined in
-        //   wordpress (or grapher admin), it would be resolved before (5), and (5)
-        //   would never execute.
-        // - (2) does not block the redirects chain. Even though an explorer URL is
-        //   redirected, what matters here is where the redirect is stored
-        //   (wordpress), not what is redirected.
-
-        return DEPRECATED_resolveExplorerRedirect(
-            await DEPRECATED_resolveRedirectFromMap(
-                url,
-                await DEPRECATED_getAllRedirectsMap(knex)
-            )
-        )
-    }
-
-export const flushCache = () => {
-    DEPRECATED_getAllRedirectsMap.cache.clear?.()
 }

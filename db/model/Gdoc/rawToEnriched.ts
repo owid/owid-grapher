@@ -106,9 +106,6 @@ import {
     RawBlockLatestDataInsights,
     EnrichedBlockLatestDataInsights,
     EnrichedFaq,
-    RawBlockEntrySummary,
-    EnrichedBlockEntrySummary,
-    EnrichedBlockEntrySummaryItem,
     RawBlockTable,
     EnrichedBlockTable,
     EnrichedBlockTableRow,
@@ -247,14 +244,11 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "recirc" }, parseRecirc)
         .with({ type: "subscribe-banner" }, parseSubscribeBanner)
         .with({ type: "text" }, parseText)
-        .with(
-            { type: "html" },
-            (block: RawBlockHtml): EnrichedBlockHtml => ({
-                type: "html",
-                value: block.value,
-                parseErrors: [],
-            })
-        )
+        .with({ type: "html" }, (block: RawBlockHtml): EnrichedBlockHtml => ({
+            type: "html",
+            value: block.value,
+            parseErrors: [],
+        }))
         .with({ type: "heading" }, parseHeading)
         .with({ type: "sdg-grid" }, parseSdgGrid)
         .with({ type: "sticky-left" }, parseStickyLeft)
@@ -269,26 +263,19 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "cta" }, parseCta)
         .with({ type: "key-insights" }, parseKeyInsights)
         .with({ type: "research-and-writing" }, parseResearchAndWritingBlock)
-        .with(
-            { type: "sdg-toc" },
-            (b): EnrichedBlockSDGToc => ({
-                type: "sdg-toc",
-                value: b.value,
-                parseErrors: [],
-            })
-        )
+        .with({ type: "sdg-toc" }, (b): EnrichedBlockSDGToc => ({
+            type: "sdg-toc",
+            value: b.value,
+            parseErrors: [],
+        }))
         .with({ type: "ltp-toc" }, parseLtpToc)
-        .with(
-            { type: "missing-data" },
-            (b): EnrichedBlockMissingData => ({
-                type: "missing-data",
-                value: b.value,
-                parseErrors: [],
-            })
-        )
+        .with({ type: "missing-data" }, (b): EnrichedBlockMissingData => ({
+            type: "missing-data",
+            value: b.value,
+            parseErrors: [],
+        }))
         .with({ type: "expandable-paragraph" }, parseExpandableParagraph)
         .with({ type: "align" }, parseAlign)
-        .with({ type: "entry-summary" }, parseEntrySummary)
         .with({ type: "explorer-tiles" }, parseExplorerTiles)
         .with({ type: "table" }, parseTable)
         .with({ type: "key-indicator" }, parseKeyIndicator)
@@ -555,7 +542,7 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
     if (typeof val === "string") {
         return {
             type: "chart",
-            url: val,
+            url: extractUrl(val),
             size: BlockSize.Wide,
             parseErrors: [],
         }
@@ -740,7 +727,7 @@ const parseChartStory = (raw: RawBlockChartStory): EnrichedBlockChartStory => {
                 narrative: htmlToEnrichedTextBlock(item.narrative),
                 chart: {
                     type: "chart",
-                    url: chart,
+                    url: extractUrl(chart),
                     size: BlockSize.Wide,
                     parseErrors: [],
                 },
@@ -1257,9 +1244,12 @@ function parseChartRows(raw: RawBlockChartRows): EnrichedBlockChartRows {
             })
         }
 
+        const caption = htmlToSpans(row.caption ?? "")
+
         enrichedRows.push({
             image: row.image,
-            url: row.url,
+            url: extractUrl(row.url),
+            caption: caption,
             content: enrichedContent,
         })
     }
@@ -1333,7 +1323,7 @@ function parsePullChart(raw: RawBlockPullChart): EnrichedBlockPullChart {
         type: "pull-chart",
         align: validAlign,
         image,
-        url,
+        url: extractUrl(url),
         content: enrichedContent,
         parseErrors,
     }
@@ -1719,6 +1709,29 @@ export const parseSimpleText = (raw: RawBlockText): EnrichedBlockSimpleText => {
     return htmlToSimpleTextBlock(raw.value)
 }
 
+/** Not called by parseRawBlocksToEnrichedBlocks. Field-specific parser for the
+    `latest-feed-excerpt` post field, which only supports text blocks. Non-text raw
+    blocks are converted to a synthetic EnrichedBlockText carrying a parseError
+    so validation can surface them.
+*/
+export const parseLatestFeedExcerpt = (
+    raw: OwidRawGdocBlock[]
+): EnrichedBlockText[] =>
+    raw.map((block): EnrichedBlockText => {
+        if (block.type !== "text") {
+            return {
+                type: "text",
+                value: [],
+                parseErrors: [
+                    {
+                        message: `latest-feed-excerpt only supports text blocks, found "${block.type}"`,
+                    },
+                ],
+            }
+        }
+        return parseText(block)
+    })
+
 const parseHeading = (raw: RawBlockHeading): EnrichedBlockHeading => {
     const createError = (
         error: ParseError,
@@ -1816,7 +1829,7 @@ const parseSdgGrid = (raw: RawBlockSDGGrid): EnrichedBlockSDGGrid => {
                 ]
             // TODO: make the type not just a string and then parse spans here
             const goal = item.goal
-            const link = item.link
+            const link = extractUrl(item.link)
 
             //const errors = goal.parseErrors.concat(link.parseErrors)
 
@@ -2223,6 +2236,7 @@ function parseTopicPageIntro(
         downloadButton
             ? {
                   ...downloadButton,
+                  url: extractUrl(downloadButton.url),
                   type: "topic-page-intro-download-button",
               }
             : undefined
@@ -2238,7 +2252,7 @@ function parseTopicPageIntro(
             }
 
             const url = extractUrl(relatedTopic.url)
-            const { isGoogleDoc } = Url.fromURL(relatedTopic.url)
+            const { isGoogleDoc } = Url.fromURL(url)
             if (!isGoogleDoc && !relatedTopic.text) {
                 return createError({
                     message:
@@ -2387,6 +2401,16 @@ function parseExpander(raw: RawBlockExpander): EnrichedBlockExpander {
     }
 }
 
+const KEY_INSIGHT_ASSET_BLOCK_TYPES = new Set([
+    "bespoke-component",
+    "chart",
+    "narrative-chart",
+    "image",
+    "static-viz",
+    "video",
+    "html",
+])
+
 function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
     const createError = (error: ParseError): EnrichedBlockKeyInsights => ({
         type: "key-insights",
@@ -2416,25 +2440,28 @@ function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
         if (!rawInsight.title) {
             parseErrors.push({ message: "Key insight is missing a title" })
         }
+        const hasAsset = !!rawInsight.asset?.length
         if (
             !rawInsight.url &&
             !rawInsight.filename &&
-            !rawInsight.narrativeChartName
+            !rawInsight.narrativeChartName &&
+            !hasAsset
         ) {
             parseErrors.push({
                 message:
-                    "Key insight is missing a url, filename or narrativeChartName. One of these two fields must be specified.",
+                    "Key insight is missing a url, filename, narrativeChartName or asset. One of these fields must be specified.",
             })
         }
         const hasMoreThanOneResourceField =
             Number(!!rawInsight.url) +
                 Number(!!rawInsight.filename) +
-                Number(!!rawInsight.narrativeChartName) >
+                Number(!!rawInsight.narrativeChartName) +
+                Number(hasAsset) >
             1
         if (hasMoreThanOneResourceField) {
             parseErrors.push({
                 message:
-                    "Key insight has more than just one of the fields url, filename, narrativeChartName. Only one of these fields can be specified.",
+                    "Key insight has more than just one of the fields url, filename, narrativeChartName, asset. Only one of these fields can be specified.",
             })
         }
         const url = Url.fromURL(extractUrl(rawInsight.url))
@@ -2445,6 +2472,20 @@ function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
                         "Key insight has url that isn't an explorer or grapher",
                 })
             }
+        }
+        const enrichedAsset: OwidEnrichedGdocBlock[] = []
+        for (const rawAsset of _.compact(rawInsight.asset)) {
+            const enrichedBlock = parseRawBlocksToEnrichedBlocks(rawAsset)
+            if (!enrichedBlock) continue
+            if (!KEY_INSIGHT_ASSET_BLOCK_TYPES.has(enrichedBlock.type)) {
+                parseErrors.push({
+                    message: `Key insight asset can't be a "${enrichedBlock.type}" block. Supported asset blocks are: ${[
+                        ...KEY_INSIGHT_ASSET_BLOCK_TYPES,
+                    ].join(", ")}.`,
+                })
+                continue
+            }
+            enrichedAsset.push(enrichedBlock)
         }
         const enrichedContent: OwidEnrichedGdocBlock[] = []
         if (!rawInsight.content) {
@@ -2471,6 +2512,9 @@ function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
             if (rawInsight.narrativeChartName) {
                 enrichedInsight.narrativeChartName =
                     rawInsight.narrativeChartName
+            }
+            if (enrichedAsset.length) {
+                enrichedInsight.asset = enrichedAsset
             }
             enrichedInsights.push(enrichedInsight)
         }
@@ -2759,34 +2803,6 @@ function parseAlign(b: RawBlockAlign): EnrichedBlockAlign {
     }
 }
 
-function parseEntrySummary(
-    raw: RawBlockEntrySummary
-): EnrichedBlockEntrySummary {
-    const parseErrors: ParseError[] = []
-    const items: EnrichedBlockEntrySummaryItem[] = []
-
-    if (raw.value.items) {
-        raw.value.items.forEach((item, i) => {
-            if (!item.text || !item.slug) {
-                parseErrors.push({
-                    message: `entry-summary item ${i} is not valid. It must have a text and a slug property`,
-                })
-            } else {
-                items.push({
-                    text: item.text,
-                    slug: item.slug,
-                })
-            }
-        })
-    }
-
-    return {
-        type: "entry-summary",
-        items,
-        parseErrors,
-    }
-}
-
 function parseLtpToc(raw: RawBlockLTPToc): EnrichedBlockLTPToc {
     const parseErrors: ParseError[] = []
     let title: string | undefined
@@ -2834,9 +2850,13 @@ function parseExplorerTiles(
     const parsedExplorerUrls: { url: string }[] = []
     for (const explorer of raw.value.explorers) {
         const url = extractUrl(explorer.url)
-        if (getLinkType(url) !== "explorer") {
+        // Multi-dim data pages live under /grapher/, so grapher-type URLs are
+        // accepted here; GdocBase link validation checks that they actually
+        // point to a multi-dim and not a regular chart
+        const linkType = getLinkType(url)
+        if (linkType !== "explorer" && linkType !== "grapher") {
             return createError({
-                message: `Explorer tiles contains a non-explorer URL: ${url}`,
+                message: `Explorer tiles can only link to explorers or multi-dim data pages, but got: ${url}`,
             })
         }
         parsedExplorerUrls.push({ url })
@@ -2924,13 +2944,11 @@ export function parseRefs({
     refErrors.push(
         ...[...refsByFirstAppearance]
             .filter((ref) => !parsedRefs[ref])
-            .map(
-                (undefinedRef): OwidGdocErrorMessage => ({
-                    message: `"${undefinedRef}" is used as a ref ID but no definition for this ref has been written.`,
-                    property: "refs",
-                    type: OwidGdocErrorMessageType.Error,
-                })
-            )
+            .map((undefinedRef): OwidGdocErrorMessage => ({
+                message: `"${undefinedRef}" is used as a ref ID but no definition for this ref has been written.`,
+                property: "refs",
+                type: OwidGdocErrorMessageType.Error,
+            }))
     )
 
     return { definitions: parsedRefs, errors: refErrors }

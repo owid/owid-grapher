@@ -3,7 +3,7 @@ import * as React from "react"
 import { getRegionByName, checkIsCountry } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import cx from "classnames"
+import cx from "clsx"
 import {
     EntitySelectionMode,
     MissingDataStrategy,

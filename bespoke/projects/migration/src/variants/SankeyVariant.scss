@@ -1,0 +1,60 @@
+.migration-heading {
+    margin-bottom: 24px;
+}
+
+.migration-heading__title {
+    font-family: $serif-font-stack;
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: $blue-90;
+    margin: 0;
+    margin-bottom: 2px;
+}
+
+.migration-heading__description {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: $blue-90;
+    margin: 0;
+}
+
+.migration-chart--narrow .migration-controls {
+    border: none;
+    padding: 0;
+}
+
+.migration-chart--narrow .migration-controls .controls__row {
+    flex-direction: column;
+}
+
+.migration-chart--narrow .migration-controls .controls__row > * {
+    flex: 0 0 auto;
+    width: 100%;
+}
+
+.migration-chart--narrow .migration-heading__title {
+    font-size: 1.5rem;
+}
+
+.migration-chart--narrow .migration-heading__description {
+    font-size: 0.875rem;
+}
+
+.migration-chart--narrow .migration-captioned-chart {
+    border: none;
+    padding: 8px 0 0;
+}
+
+.migration-chart--narrow .migration-captioned-chart__chart-area {
+    height: 380px;
+}
+
+.migration-chart__error {
+    padding: 24px;
+    color: $error-text-color;
+}
+
+.migration-chart .tooltip-container.fixed-bottom .content-and-endmatter {
+    max-height: min(230px, 35vh);
+}

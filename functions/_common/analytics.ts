@@ -49,7 +49,7 @@ export async function sendEventToGA4(
 }
 
 export function getCommonEventParams(
-    request: Request,
+    request: Request<unknown, IncomingRequestCfProperties>,
     env: Pick<Env, "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE">
 ) {
     const url = new URL(request.url)
@@ -59,6 +59,33 @@ export function getCommonEventParams(
     const fullUserAgent = request.headers.get("user-agent") || ""
     const user_agent = fullUserAgent.slice(0, 100)
 
+    // Network operator (ASN) of the request, derived by Cloudflare on `request.cf`
+    // — same source as the country lookup. This is NOT the client IP (which we
+    // don't have/forward); it's the owning org, e.g. "Amazon.com", "Google Cloud",
+    // "Hetzner Online GmbH". A hosting/cloud ASN behind a browser user-agent is a
+    // strong bot signal, used downstream to separate datacenter scrapers from real
+    // visitors. Not PII.
+    const as_org = (request.cf?.asOrganization || "").slice(0, 100)
+    const asn = request.cf?.asn ?? 0
+
+    // Cloudflare bot-detection signals, also on `request.cf`. We're on Super Bot
+    // Fight Mode (Pro/Business), NOT Enterprise Bot Management, so the numeric
+    // `score` and JA3/JA4 fingerprints are very likely absent — these fields are
+    // captured to empirically confirm what actually populates on our plan, and
+    // would start carrying real data automatically if we ever add the Enterprise
+    // add-on. `bot_score` uses a -1 sentinel so "field absent" stays
+    // distinguishable from a real score (which is always 1–99). `verified_bot`
+    // flags Cloudflare's Verified Bots program (authoritative Googlebot/Bingbot/
+    // etc.), with the category in `verified_bot_category`. Not PII.
+    const bot_score = request.cf?.botManagement?.score ?? -1
+    const verified_bot = request.cf?.botManagement?.verifiedBot ? 1 : 0
+    // verifiedBotCategory isn't in this @cloudflare/workers-types version yet, so
+    // it surfaces via the cf index signature as `unknown`; String() keeps it
+    // type-safe without an `as` cast.
+    const verified_bot_category = String(
+        request.cf?.verifiedBotCategory ?? ""
+    ).slice(0, 100)
+
     const params: Record<string, string | number> = {
         host: url.hostname,
         pathname: url.pathname,
@@ -66,6 +93,11 @@ export function getCommonEventParams(
         user_agent,
         method: request.method,
         country: request.headers.get("cf-ipcountry") || "",
+        as_org,
+        asn,
+        bot_score,
+        verified_bot,
+        verified_bot_category,
         // Stamp the sampling rate that was active when this event fired, so periods
         // with different rates can be combined correctly downstream
         // (events / sampling ≈ unbiased request count).

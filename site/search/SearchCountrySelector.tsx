@@ -17,7 +17,7 @@ import {
 } from "react-aria-components"
 import { useMediaQuery } from "usehooks-ts"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
-import cx from "classnames"
+import cx from "clsx"
 
 const alphabetizedCountriesByName = Object.values(countriesByName()).sort(
     (a, b) => {

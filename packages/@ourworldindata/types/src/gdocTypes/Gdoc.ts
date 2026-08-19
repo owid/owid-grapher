@@ -4,7 +4,7 @@ import {
     RelatedChart,
 } from "../grapherTypes/GrapherTypes.js"
 import { BreadcrumbItem } from "../domainTypes/Site.js"
-import { TocHeadingWithTitleSupertitle } from "../domainTypes/Toc.js"
+import { TocHeadingWithSupertitle } from "../domainTypes/Toc.js"
 import { ImageMetadata } from "./Image.js"
 import {
     EnrichedBlockSocials,
@@ -14,7 +14,7 @@ import {
     OwidRawGdocBlock,
     RefDictionary,
 } from "./ArchieMlComponents.js"
-import { MinimalTag } from "../dbTypes/Tags.js"
+import { DbPlainTag, MinimalTag } from "../dbTypes/Tags.js"
 import { DbEnrichedLatestWork } from "../domainTypes/Author.js"
 import { QueryParams } from "../domainTypes/Various.js"
 import { TagGraphRoot } from "../domainTypes/ContentGraph.js"
@@ -122,9 +122,7 @@ export enum OwidGdocType {
     Profile = "profile",
 }
 
-export const ALL_GDOC_TYPES: OwidGdocType[] = Object.values(
-    OwidGdocType
-) as OwidGdocType[]
+export const ALL_GDOC_TYPES: OwidGdocType[] = Object.values(OwidGdocType)
 
 export interface OwidGdocBaseInterface {
     id: string
@@ -175,11 +173,25 @@ export interface OwidGdocMinimalPostInterface {
     availableEntityCodes?: string[] // used for profile-type docs to resolve ?country=X links
 }
 
+/** Minimal-shape announcement: the SQL in `getHomepageAnnouncements`
+ *  guarantees `type === Announcement` for every row, so we promote that to
+ *  the static type for the homepage announcement carousel. */
+export type OwidGdocMinimalAnnouncementInterface =
+    OwidGdocMinimalPostInterface & {
+        type: OwidGdocType.Announcement
+    }
+
+export type OwidGdocIndexTag = Pick<DbPlainTag, "id" | "name"> &
+    Partial<Omit<DbPlainTag, "id" | "name">>
+
 export type OwidGdocIndexItem = Pick<
     OwidGdocBaseInterface,
-    "id" | "slug" | "tags" | "published" | "publishedAt"
+    "id" | "slug" | "published" | "publishedAt"
 > &
-    Pick<OwidGdocContent, "title" | "authors" | "type">
+    Pick<OwidGdocContent, "title" | "authors" | "type"> & {
+        subtitle?: string
+        tags: OwidGdocIndexTag[]
+    }
 
 export function extractGdocIndexItem(
     gdoc: OwidGdocBaseInterface
@@ -191,9 +203,35 @@ export function extractGdocIndexItem(
         published: gdoc.published,
         publishedAt: gdoc.publishedAt,
         title: gdoc.content.title ?? "",
+        subtitle:
+            "subtitle" in gdoc.content ? gdoc.content.subtitle : undefined,
         authors: gdoc.content.authors,
         type: gdoc.content.type,
     }
+}
+
+/** A published article that is tagged to a topic but not linked from the
+    topic page's research-and-writing section. */
+export interface OrphanedTopicArticle {
+    id: string
+    slug: string
+    title: string
+    authors: string[]
+    publishedAt: Date | null
+}
+
+/** Coverage report for a single topic page: how many of its tagged articles
+    are linked from its research-and-writing section, and which are orphaned. */
+export interface TopicPageOrphanReport {
+    tagId: number
+    tagName: string
+    slug: string
+    gdocId: string
+    taggedCount: number
+    coveredCount: number
+    orphanedCount: number
+    coveragePercent: number
+    orphans: OrphanedTopicArticle[]
 }
 
 export interface OwidGdocDataInsightContent {
@@ -227,9 +265,6 @@ export type OwidGdocDataInsightIndexItem = Pick<
             originalWidth: NonNullable<DbRawImage["originalWidth"]>
         }
     }
-
-export const DATA_INSIGHTS_INDEX_PAGE_SIZE = 20
-export const LATEST_INDEX_PAGE_SIZE = 20
 
 export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
     content: OwidGdocDataInsightContent
@@ -282,7 +317,8 @@ export interface OwidGdocProfileContent {
     excerpt?: string
     "featured-image"?: string
     "sidebar-toc"?: boolean
-    toc?: TocHeadingWithTitleSupertitle[]
+    "sidebar-toc-h1-only"?: boolean
+    toc?: TocHeadingWithSupertitle[]
     body: OwidEnrichedGdocBlock[]
     refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
     instantiatedEntity?: OwidGdocProfileEntitySummary
@@ -312,8 +348,9 @@ export interface OwidGdocHomepageMetadata {
     chartCount?: number
     topicCount?: number
     explorerCount?: number
+    articleCount?: number
     tagGraph?: TagGraphRoot
-    announcements?: OwidGdocMinimalPostInterface[]
+    announcements?: OwidGdocMinimalAnnouncementInterface[]
 }
 
 export interface OwidGdocHomepageInterface extends OwidGdocBaseInterface {
@@ -379,6 +416,58 @@ export type OwidGdoc =
     | OwidGdocAnnouncementInterface
     | OwidGdocProfileInterface
 
+export const CHRONOLOGICAL_INDEX_TYPE_VALUES = [
+    OwidGdocType.Article,
+    OwidGdocType.LinearTopicPage,
+    OwidGdocType.TopicPage,
+    OwidGdocType.DataInsight,
+    OwidGdocType.Announcement,
+] as const
+
+export const LATEST_FEED_TYPE_VALUES = [
+    OwidGdocType.Article,
+    OwidGdocType.DataInsight,
+    OwidGdocType.Announcement,
+] as const satisfies readonly (typeof CHRONOLOGICAL_INDEX_TYPE_VALUES)[number][]
+
+export const CHRONOLOGICAL_INDEX_TYPES = new Set<string>(
+    CHRONOLOGICAL_INDEX_TYPE_VALUES
+)
+export const LATEST_FEED_TYPES = new Set<string>(LATEST_FEED_TYPE_VALUES)
+
+/**
+ * The subset of OwidGdoc that is indexed in the `pages-chronological` Algolia
+ * index, and so is eligible to appear on:
+ *   - the `/latest` SPA feed (filterable by topic and type), and
+ *   - the dynamic `/atom.xml` feed served by a Cloudflare Function when called
+ *     with `?topics=` or `?type=` query params (the bare `/atom.xml` URL is
+ *     served from the static bake instead).
+ *
+ * Matches the narrowing performed by `checkIsChronologicalGdoc`.
+ */
+export type ChronologicalGdoc =
+    | OwidGdocDataInsightInterface
+    | OwidGdocAnnouncementInterface
+    | (OwidGdocPostInterface & {
+          content: {
+              type:
+                  | OwidGdocType.Article
+                  | OwidGdocType.TopicPage
+                  | OwidGdocType.LinearTopicPage
+          }
+      })
+
+/**
+ * The subset of `ChronologicalGdoc` shown on /latest. Excludes
+ * `TopicPage` / `LinearTopicPage` (indexed in `pages-chronological` for the
+ * atom feed but filtered out of /latest by `LATEST_BASE_FILTER`).
+ *
+ * Matches the narrowing performed by `checkIsLatestFeedGdoc`.
+ */
+export type LatestFeedGdoc = ChronologicalGdoc & {
+    content: { type: (typeof LATEST_FEED_TYPE_VALUES)[number] }
+}
+
 export enum OwidGdocErrorMessageType {
     Error = "error",
     Warning = "warning",
@@ -437,15 +526,17 @@ export interface OwidGdocPostContent {
     dateline?: string
     excerpt?: string
     refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
-    summary?: EnrichedBlockText[]
     "deprecation-notice"?: EnrichedBlockText[]
+    "latest-feed-featured-image"?: string
+    "latest-feed-excerpt"?: EnrichedBlockText[]
     "hide-citation"?: boolean
-    toc?: TocHeadingWithTitleSupertitle[]
+    toc?: TocHeadingWithSupertitle[]
     "cover-image"?: string
     "featured-image"?: string
     "atom-title"?: string
     "atom-excerpt"?: string
     "sidebar-toc"?: boolean
+    "sidebar-toc-h1-only"?: boolean
     "heading-variant"?: "heavy" | "light"
     "hide-subscribe-banner"?: boolean
     "cover-color"?:
@@ -504,8 +595,3 @@ export type EnrichedFaq = {
 } & EnrichedBlockWithParseErrors
 
 export type FaqDictionary = Record<string, EnrichedFaq>
-
-export type LatestPageItem =
-    | { type: OwidGdocType.Article; data: OwidGdocMinimalPostInterface }
-    | { type: OwidGdocType.DataInsight; data: LatestDataInsight }
-    | { type: OwidGdocType.Announcement; data: OwidGdocAnnouncementInterface }

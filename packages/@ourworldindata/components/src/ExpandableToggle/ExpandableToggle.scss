@@ -56,6 +56,7 @@ details.ExpandableToggle {
 
     .ExpandableToggle__content,
     .ExpandableToggle__teaser {
+        scroll-margin-top: 56px;
         height: 0;
         overflow: hidden;
         color: var(--content);

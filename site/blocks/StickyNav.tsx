@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import { Component, createRef } from "react"
-import cx from "classnames"
+import cx from "clsx"
 
 function getTotalOffset(element: HTMLElement): {
     x: number

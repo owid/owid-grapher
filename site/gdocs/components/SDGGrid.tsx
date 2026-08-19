@@ -1,6 +1,6 @@
 import * as React from "react"
 import { EnrichedBlockSDGGrid } from "@ourworldindata/utils"
-import cx from "classnames"
+import cx from "clsx"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 
 export default function SDGGrid({

@@ -1,0 +1,261 @@
+.latest-topic-facets {
+    display: flex;
+    flex-direction: column;
+}
+
+.latest-topic-facets__filters {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 44px;
+
+    @include sm-only {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+}
+
+// ---------- Topic pills (horizontal scroll) ----------
+
+.latest-topic-facets__topic-pills {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    overflow: visible;
+
+    @include sm-only {
+        padding-bottom: 16px;
+        border-bottom: 1px solid $blue-20;
+        overflow: hidden;
+    }
+
+    .react-horizontal-scrolling-menu--wrapper {
+        position: relative;
+        overflow: visible;
+
+        @include sm-only {
+            overflow: hidden;
+        }
+    }
+
+    .react-horizontal-scrolling-menu--scroll-container {
+        scrollbar-width: none;
+        gap: 8px;
+        // Remove the default scroll container separator line
+        border: none !important;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+}
+
+.latest-topic-facets__topic-pill {
+    @include note-12-medium;
+    background-color: transparent;
+    border: 1px solid $blue-20;
+    border-radius: 1000px;
+    height: 32px;
+    padding: 8px 12px;
+    cursor: pointer;
+    color: $blue-90;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+
+    &:hover {
+        background-color: $blue-5;
+    }
+}
+
+.latest-topic-facets__topic-pill[data-selected] {
+    background-color: $blue-20;
+    border-color: $blue-20;
+
+    &:hover {
+        background-color: $blue-5;
+    }
+}
+
+.latest-topic-facets__topic-pill[data-disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.latest-topic-facets__topic-pill[data-focus-visible] {
+    outline: 2px solid $blue-60;
+    outline-offset: 2px;
+}
+
+.latest-topic-facets__scroll-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    z-index: 2;
+    color: $blue-90;
+    font-size: 14px;
+    width: 64px;
+
+    &:hover {
+        color: $blue-60;
+    }
+}
+
+.latest-topic-facets__scroll-arrow--left {
+    left: 0;
+    background: linear-gradient(to right, $gray-5 40%, transparent);
+    justify-content: flex-start;
+    padding-left: 4px;
+}
+
+.latest-topic-facets__scroll-arrow--right {
+    right: -36px; // do not extend to the edge of the dropdown to preserve the outline on focus
+    width: #{64px + 36px};
+    background: linear-gradient(to left, $gray-5 60%, transparent);
+    justify-content: flex-end;
+    padding-right: 44px;
+
+    @include sm-only {
+        right: 0;
+        width: 64px;
+        padding-right: 4px;
+    }
+}
+
+// ---------- Content type dropdown ----------
+
+.latest-topic-facets__content-type-dropdown {
+    flex-shrink: 0;
+}
+
+.latest-topic-facets__content-type-trigger {
+    @include note-12-medium;
+    background-color: #fff;
+    border: 1px solid $blue-20;
+    border-radius: 0;
+    height: 32px;
+    padding: 4px 8px;
+    cursor: pointer;
+    color: $blue-50;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease;
+    white-space: nowrap;
+    width: 200px;
+
+    @include sm-only {
+        width: 100%;
+    }
+
+    &:hover {
+        border-color: $blue-30;
+    }
+}
+
+// React Aria sets `data-pressed` on the trigger Button while the popover
+// is open — use that as the active state.
+.latest-topic-facets__content-type-trigger[data-pressed] {
+    border-color: $blue-30;
+}
+
+.latest-topic-facets__content-type-trigger-icon {
+    font-size: 12px;
+    color: $blue-50;
+}
+
+.latest-topic-facets__content-type-trigger-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.latest-topic-facets__content-type-trigger-chevron {
+    margin-left: auto;
+    font-size: 12px;
+    color: $blue-50;
+    transition: transform 0.15s ease;
+}
+
+.latest-topic-facets__content-type-trigger[data-pressed]
+    .latest-topic-facets__content-type-trigger-chevron {
+    transform: rotate(180deg);
+}
+
+.latest-topic-facets__content-type-dropdown-menu {
+    background-color: #fff;
+    border: 1px solid $blue-20;
+    border-radius: 0;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    max-height: 320px;
+    overflow-y: auto;
+    width: var(--trigger-width);
+    padding: 0;
+    margin: 0;
+}
+
+.latest-topic-facets__content-type-dropdown-item {
+    @include note-12-medium;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 16px;
+    cursor: pointer;
+    color: $blue-90;
+    background-color: #fff;
+    transition: background-color 0.1s ease;
+
+    &:focus-visible {
+        outline: none;
+    }
+
+    &[data-focused] {
+        background-color: $blue-5;
+    }
+
+    &[data-selected] {
+        background-color: $blue-5;
+    }
+
+    &[data-disabled] {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+}
+
+.latest-topic-facets__content-type-radio {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    border: 1px solid $blue-30;
+    border-radius: 50%;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.latest-topic-facets__content-type-radio--checked {
+    border-color: $blue-30;
+}
+
+.latest-topic-facets__content-type-radio-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: $blue-30;
+}
+
+.latest-topic-facets__content-type-dropdown-label {
+    white-space: nowrap;
+}

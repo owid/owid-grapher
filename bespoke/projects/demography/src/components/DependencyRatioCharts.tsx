@@ -12,7 +12,7 @@ import {
 import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
 import { TooltipValue } from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
-import type { Simulation } from "../helpers/useSimulation.js"
+import type { Simulation } from "../core/useSimulation.js"
 import {
     BENCHMARK_LINE_COLOR,
     COLOR_CHILDREN,
@@ -28,7 +28,7 @@ import {
     START_YEAR,
     USER_MODIFIED_COLOR_LIGHT,
     WORKING_AGE,
-} from "../helpers/constants.js"
+} from "../core/constants.js"
 import {
     clampRetirementAge,
     getDependencyBreakdownForYear,
@@ -37,14 +37,14 @@ import {
     MIN_RETIREMENT_AGE,
     type DependencyAgeBreakdown,
     type RetirementAgePoints,
-} from "../helpers/dependencyRatio.js"
-import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
-import { scaleMortalityToLE } from "../model/model.js"
-import { getInterpolatedValue } from "../model/projectionRunner.js"
+} from "../core/dependencyRatio.js"
+import { parameterConfigByKey } from "../core/parameterConfigs.js"
+import { scaleMortalityToLE } from "../core/model/model.js"
+import { getInterpolatedValue } from "../core/model/projectionRunner.js"
 import {
     useLifeExpectancyAtDifferentAges,
     type LifeExpectancyAtDifferentAgesPoint,
-} from "../helpers/fetch.js"
+} from "../core/fetch.js"
 import { TimeAxisX } from "./TimeAxisX.js"
 
 const DEPENDENT_OLD_COLOR = USER_MODIFIED_COLOR_LIGHT

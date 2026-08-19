@@ -4,7 +4,6 @@ import {
     Span,
     excludeNullish,
     EnrichedBlockResearchAndWritingLink,
-    DATA_INSIGHTS_INDEX_PAGE_SIZE,
     OwidEnrichedGdocBlock,
     traverseEnrichedBlock,
     plaintextCalloutRegex,
@@ -189,16 +188,6 @@ export function parseAuthors(authors?: string): {
     return { authors: parsed, authorRoles }
 }
 
-/**
- * Calculate the number of pages needed to display all data insights
- * e.g. if there are 61 data insights and we want to display 20 per page, we need 4 pages
- */
-export function calculateDataInsightIndexPageCount(
-    publishedDataInsightCount: number
-): number {
-    return Math.ceil(publishedDataInsightCount / DATA_INSIGHTS_INDEX_PAGE_SIZE)
-}
-
 export function extractFilenamesFromBlock(
     item: OwidEnrichedGdocBlock
 ): string[] {
@@ -262,7 +251,6 @@ export function extractFilenamesFromBlock(
                     "cta",
                     "data-callout",
                     "donors",
-                    "entry-summary",
                     "expandable-paragraph",
                     "expander",
                     "explorer-tiles",
@@ -322,6 +310,24 @@ export function extractFilenamesFromBlock(
 }
 
 /**
+ * Recursively collect every image filename referenced by a list of enriched
+ * blocks (deduped).
+ */
+export function extractFilenamesFromBlocks(
+    blocks: OwidEnrichedGdocBlock[]
+): string[] {
+    const filenames = new Set<string>()
+    for (const block of blocks) {
+        traverseEnrichedBlock(block, (node) => {
+            for (const filename of extractFilenamesFromBlock(node)) {
+                filenames.add(filename)
+            }
+        })
+    }
+    return [...filenames]
+}
+
+/**
  * Transforms plaintext callout tokens (e.g. $latestValue(shortName), $latestTime(shortName))
  * into SpanCallout spans within a span tree.
  */
@@ -331,7 +337,7 @@ function transformCalloutTokensInSpan(span: Span): Span[] {
         const transformedChildren = span.children.flatMap(
             transformCalloutTokensInSpan
         )
-        return [{ ...span, children: transformedChildren } as Span]
+        return [{ ...span, children: transformedChildren }]
     }
 
     // Only process simple text spans

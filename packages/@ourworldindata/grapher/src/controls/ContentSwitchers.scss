@@ -46,30 +46,17 @@ $active-icon: $blue-50;
 
     .Tabs.ContentSwitchers .Tabs__Tab,
     .ContentSwitchers__OverflowMenuItem {
-        $icon-width: 13px;
         $icon-padding: 6px;
 
-        .label {
-            margin-left: $icon-padding;
+        .ContentSwitchers__TabContent {
+            display: flex;
+            height: 100%;
+            align-items: center;
+            gap: $icon-padding;
         }
 
         svg {
             color: $gray-60;
-
-            &.custom-icon {
-                --size: $icon-width;
-
-                display: inline-block;
-                height: var(--size);
-                width: var(--size);
-                vertical-align: -1.625px;
-
-                &.scatter,
-                &.marimekko,
-                &.slope {
-                    --size: 14px;
-                }
-            }
         }
 
         &[data-selected] {
@@ -113,8 +100,8 @@ $active-icon: $blue-50;
         }
 
         // Hide the separator line when interacted with
-        &[data-hovered]:not(.is-open)::before,
-        &[data-pressed]:not(.is-open)::before {
+        &[data-hovered]:not([data-open])::before,
+        &[data-pressed]:not([data-open])::before {
             display: none;
         }
     }

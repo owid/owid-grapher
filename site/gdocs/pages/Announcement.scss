@@ -2,29 +2,43 @@
     background-color: $gray-10;
     min-height: calc(100vh - $header-height-md - 500px);
 }
+
 .announcement-page-content {
     background-color: #fff;
     padding: 24px;
     margin: 48px 0;
-
-    .data-insight-dateline {
-        @include h6-black-caps;
-    }
-
-    > [class*="article-block__"]:last-child {
-        margin-bottom: 0;
-    }
 }
 
-.announcement-page-header-meta {
+.announcement-page-footer {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
+    border-top: solid $blue-20 1px;
+    padding-top: 24px;
+    margin-top: 24px;
+
+    // The button inside only renders for logged-in admins, so readers would
+    // otherwise see a stray divider at the bottom of the page.
+    &:empty {
+        display: none;
+    }
 }
 
-.announcement-page-kicker {
-    color: $blue-60;
-}
+.announcement-page-copy-social-button {
+    @include light-blue-button;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 24px;
+    height: 40px;
+    color: $blue-90;
+    background-color: $blue-20;
+    border-radius: 0;
 
-.announcement-page-heading {
-    margin: 8px 0;
+    &:hover {
+        background-color: $blue-10;
+    }
+
+    @include sm-only {
+        width: 100%;
+    }
 }

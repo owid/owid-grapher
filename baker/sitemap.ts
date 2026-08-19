@@ -3,13 +3,11 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
-import { dayjs, countries, getEntitiesForProfile } from "@ourworldindata/utils"
+import { dayjs, getEntitiesForProfile } from "@ourworldindata/utils"
 import {
     DbPlainChart,
-    DbPlainMultiDimDataPage,
     DbPlainSlideshow,
     DbRawPostGdoc,
-    MultiDimDataPagesTableName,
     OwidGdocType,
     SlideshowsTableName,
 } from "@ourworldindata/types"
@@ -20,8 +18,8 @@ import {
 import * as db from "../db/db.js"
 import urljoin from "url-join"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
+import { getAllPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 
-import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import { getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
 import {
     GdocProfile,
@@ -87,14 +85,12 @@ async function getPublishedGdocPosts(knex: db.KnexReadonlyTransaction) {
     )
 }
 
-async function getPublishedMultiDims(knex: db.KnexReadonlyTransaction) {
-    // Published multi-dims must have a slug.
-    return knex<DbPlainMultiDimDataPage & { slug: string }>(
-        MultiDimDataPagesTableName
-    )
-        .select("slug", "updatedAt")
-        .where("published", true)
-        .orderBy("updatedAt", "desc")
+const MDIM_INDEX_INDIVIDUAL_VIEWS: Record<
+    string,
+    boolean | Record<string, string>
+> = {
+    "vaccination-coverage-who-unicef": true,
+    "years-of-schooling": { sex: "both" }, // only index all views with sex=both
 }
 
 export const makeSitemap = async (
@@ -108,9 +104,6 @@ export const makeSitemap = async (
         .then((gdocs) => gdocs.map(gdocFromJSON))) as GdocProfile[]
 
     const publishedDataInsights = await db.getPublishedDataInsights(knex)
-    const dataInsightFeedPageCount = calculateDataInsightIndexPageCount(
-        publishedDataInsights.length
-    )
 
     const charts = await db.knexRaw<
         Pick<DbPlainChart, "updatedAt"> & { slug: string }
@@ -133,7 +126,7 @@ export const makeSitemap = async (
     ]
 
     const explorers = await explorerAdminServer.getAllPublishedExplorers(knex)
-    const multiDims = await getPublishedMultiDims(knex)
+    const multiDims = await getAllPublishedMultiDimDataPages(knex)
     const slideshows = await knex<DbPlainSlideshow>(SlideshowsTableName)
         .select("slug", "updatedAt")
         .where("isPublished", 1)
@@ -155,16 +148,9 @@ export const makeSitemap = async (
         }))
     })
 
-    let urls = countries.map((c) => ({
-        loc: urljoin(BAKED_BASE_URL, "country", c.slug),
-    })) as SitemapUrl[]
-
-    urls = urls
-        .concat(
-            ...STATIC_PAGES.map((path) => {
-                return [{ loc: urljoin(BAKED_BASE_URL, path) }]
-            })
-        )
+    const urls: SitemapUrl[] = STATIC_PAGES.map((path) => ({
+        loc: urljoin(BAKED_BASE_URL, path),
+    }))
         .concat(
             gdocPosts.map((p) => ({
                 loc: urljoin(BAKED_BASE_URL, p.slug),
@@ -178,19 +164,6 @@ export const makeSitemap = async (
             }))
         )
         .concat(
-            // Data insight index pages: /data-insights, /data-insights/2, /data-insights/3, etc.
-            Array.from({ length: dataInsightFeedPageCount }, (_, i) => ({
-                loc: urljoin(
-                    BAKED_BASE_URL,
-                    "data-insights",
-                    i === 0 ? "" : `/${i + 1}`
-                ),
-                lastmod: dayjs(publishedDataInsights[0].updatedAt).format(
-                    "YYYY-MM-DD"
-                ),
-            }))
-        )
-        .concat(
             charts.map((c) => ({
                 loc: urljoin(BAKED_GRAPHER_URL, c.slug),
                 lastmod: dayjs(c.updatedAt).format("YYYY-MM-DD"),
@@ -198,10 +171,52 @@ export const makeSitemap = async (
         )
         .concat(explorers.map(explorerToSitemapUrl))
         .concat(
-            multiDims.map((multiDim) => ({
-                loc: urljoin(BAKED_GRAPHER_URL, multiDim.slug),
-                lastmod: dayjs(multiDim.updatedAt).format("YYYY-MM-DD"),
-            }))
+            multiDims.flatMap((multiDim) => {
+                const lastmod = dayjs(multiDim.updatedAt).format("YYYY-MM-DD")
+
+                const { slug, config } = multiDim
+                if (!slug) return []
+
+                const indexIndividualViews = MDIM_INDEX_INDIVIDUAL_VIEWS[slug]
+
+                const mdimEntry: SitemapUrl = {
+                    loc: urljoin(BAKED_GRAPHER_URL, slug),
+                    lastmod,
+                }
+
+                if (!indexIndividualViews) {
+                    return [mdimEntry]
+                } else {
+                    const individualViews = config.views.flatMap((view) => {
+                        if (
+                            typeof indexIndividualViews === "object" &&
+                            Object.entries(indexIndividualViews).some(
+                                ([dimension, value]) =>
+                                    view.dimensions[dimension] !== value
+                            )
+                        ) {
+                            return []
+                        }
+
+                        const searchParams = new URLSearchParams(
+                            view.dimensions
+                        )
+                        searchParams.sort()
+                        const queryStr = searchParams.toString()
+                        return [
+                            {
+                                loc: urljoin(
+                                    BAKED_GRAPHER_URL,
+                                    `${slug}?${queryStr}`
+                                ),
+                                lastmod,
+                            },
+                        ]
+                    })
+                    // Include the top-level entry in the sitemap in any case, too
+                    return [mdimEntry, ...individualViews]
+                }
+            })
         )
         .concat(
             authorPages.map((a) => ({

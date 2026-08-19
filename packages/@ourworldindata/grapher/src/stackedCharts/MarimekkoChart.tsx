@@ -22,7 +22,7 @@ import {
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import { DualAxisComponent } from "../axis/AxisViews"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
@@ -428,7 +428,7 @@ export class MarimekkoChart
     override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
-                <NoDataModal
+                <NoDataMessage
                     manager={this.manager}
                     bounds={this.bounds}
                     message={this.chartState.errorInfo.reason}
@@ -516,7 +516,7 @@ export class MarimekkoChart
                   }),
               }
             : undefined
-        const superscript =
+        const showSignificanceSuperscriptIfApplicable =
             !!roundingNotice && roundingNotice.icon !== TooltipFooterIcon.None
 
         const footer = excludeUndefined([toleranceNotice, roundingNotice])
@@ -570,10 +570,10 @@ export class MarimekkoChart
                                     unit={column.displayUnit}
                                     value={column.formatValueShort(value)}
                                     originalTime={originalTime}
-                                    isRoundedToSignificantFigures={
+                                    showSignificanceSuperscript={
+                                        showSignificanceSuperscriptIfApplicable &&
                                         column.roundsToSignificantFigures
                                     }
-                                    showSignificanceSuperscript={superscript}
                                 />
                             )
                         )}
@@ -583,10 +583,10 @@ export class MarimekkoChart
                                 unit={xColumn.displayUnit}
                                 value={xColumn.formatValueShort(xPoint?.value)}
                                 originalTime={xOriginalTimeFormatted}
-                                isRoundedToSignificantFigures={
+                                showSignificanceSuperscript={
+                                    showSignificanceSuperscriptIfApplicable &&
                                     xColumn.roundsToSignificantFigures
                                 }
-                                showSignificanceSuperscript={superscript}
                             />
                         )}
                         {colorColumn &&

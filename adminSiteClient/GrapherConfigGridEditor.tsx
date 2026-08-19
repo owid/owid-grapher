@@ -44,6 +44,7 @@ import {
     Grapher,
     GrapherProgrammaticInterface,
     GrapherState,
+    latestGrapherConfigSchema,
     loadCatalogData,
     MapChartState,
 } from "@ourworldindata/grapher"
@@ -68,7 +69,6 @@ import {
     ColumnSet,
     FetchVariablesParameters,
     fetchVariablesParametersToQueryParametersString,
-    IconToggleComponent,
     isConfigColumn,
     filterTreeToSExpression,
     FilterPanelState,
@@ -87,6 +87,7 @@ import {
     fetchVariablesParametersToQueryParameters,
     postprocessJsonLogicTree,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
+import { IconToggleComponent } from "./IconToggleComponent.js"
 import QueryBuilderContainer from "./QueryBuilderContainer.js"
 import {
     Query,
@@ -438,9 +439,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         )
         if (performCommit) {
             const grapherObject = { ...this.grapherState.object }
-            const newVal = currentColumnFieldDescription.getter(
-                grapherObject as Record<string, unknown>
-            )
+            const newVal = currentColumnFieldDescription.getter(grapherObject)
 
             const patch: GrapherConfigPatch = {
                 id: selectedRowContent.id,
@@ -898,7 +897,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             hiddenColumns: {
                 columns: hiddenColumnIndices,
                 copyPasteEnabled: false,
-            } as any,
+            },
             manualColumnResize: true,
             manualColumnFreeze: true,
             manualRowMove: false,
@@ -1089,9 +1088,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     row.config as Record<string, unknown>
                 )
                 const grapherObject = { ...this.grapherState.object }
-                newVal = fieldDesc.getter(
-                    grapherObject as Record<string, unknown>
-                )
+                newVal = fieldDesc.getter(grapherObject)
             }
 
             // Now construct the patch and store it
@@ -1110,9 +1107,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     }
 
     async getFieldDefinitions() {
-        const json = await fetch(
-            "https://files.ourworldindata.org/schemas/grapher-schema.010.json"
-        ).then((response) => response.json())
+        const json = await fetch(latestGrapherConfigSchema!).then((response) =>
+            response.json()
+        )
         const fieldDescriptions = extractFieldDescriptionsFromSchema(json)
         runInAction(() => {
             // Now that we have the field Definitions we can initialize everything, including
@@ -1769,7 +1766,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 cardinality: 0,
                 jsonLogic: "==",
             },
-        } as any
+        }
         config.types.number.widgets.number.operators!.push("is_latest")
         config.types.number.widgets.number.operators!.push("is_earliest")
 

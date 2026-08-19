@@ -3,13 +3,17 @@ import { getAdminTestEnv } from "./testEnv.js"
 import {
     ChartConfigsTableName,
     ChartsTableName,
-    DatasetsTableName,
-    VariablesTableName,
     MultiDimDataPagesTableName,
     MultiDimXChartConfigsTableName,
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import { omitUndefinedValues } from "@ourworldindata/utils"
+import {
+    datasetId,
+    otherVariableId,
+    seedDatasetAndVariables,
+    variableId,
+} from "./fixtures.js"
 
 const env = getAdminTestEnv()
 
@@ -60,33 +64,23 @@ describe("Charts API", { timeout: 15000 }, () => {
         )
         expect(patchConfig).toEqual(fullConfig)
     })
+
+    it("deletes a chart and its configs", async () => {
+        const { chartId } = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+
+        await env.request({ method: "DELETE", path: `/charts/${chartId}` })
+
+        expect(await env.getCount(ChartsTableName)).toBe(0)
+        expect(await env.getCount(ChartConfigsTableName)).toBe(0)
+    })
 })
 
 describe("Indicator-level chart configs", { timeout: 15000 }, () => {
-    const variableId = 1
-    const otherVariableId = 2
-
-    const dummyDataset = {
-        id: 1,
-        name: "Dummy dataset",
-        description: "Dataset description",
-        namespace: "owid",
-        createdByUserId: 1,
-        metadataEditedAt: new Date(),
-        metadataEditedByUserId: 1,
-        dataEditedAt: new Date(),
-        dataEditedByUserId: 1,
-    }
-
-    // dummy variable and its grapherConfigETL
-    const dummyVariable = {
-        id: variableId,
-        unit: "kg",
-        coverage: "Global by country",
-        timespan: "2000-2020",
-        datasetId: 1,
-        display: '{ "unit": "kg", "shortUnit": "kg" }',
-    }
+    // grapherConfigETL of the first dummy variable
     const testVariableConfigETL = {
         $schema: latestGrapherConfigSchema,
         hasMapTab: true,
@@ -100,11 +94,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         subtitle: "Admin subtitle",
     }
 
-    // second dummy variable and its grapherConfigETL
-    const otherDummyVariable = {
-        ...dummyVariable,
-        id: otherVariableId,
-    }
+    // grapherConfigETL of the second dummy variable
     const otherTestVariableConfig = {
         $schema: latestGrapherConfigSchema,
         note: "Other indicator note",
@@ -186,10 +176,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
     }
 
     beforeEach(async () => {
-        await env.testKnex(DatasetsTableName).insert([dummyDataset])
-        await env
-            .testKnex(VariablesTableName)
-            .insert([dummyVariable, otherDummyVariable])
+        await seedDatasetAndVariables(env)
     })
 
     it("should be able to edit ETL grapher configs via the api", async () => {
@@ -252,38 +239,38 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             ...testVariableConfigAdmin,
         })
 
-        // create mdim config that uses both of the variables
+        // create multi-dim config that uses both of the variables
         await env.request({
             method: "PUT",
             path: "/multi-dims/test%2Fcatalog%23path",
             body: JSON.stringify({ config: testMultiDimConfig }),
         })
-        const mdim = await env.testKnex(MultiDimDataPagesTableName).first()
-        expect(mdim.catalogPath).toBe("test/catalog#path")
-        expect(mdim.slug).toBe(null)
-        const savedMdimConfig = JSON.parse(mdim.config)
+        const multiDim = await env.testKnex(MultiDimDataPagesTableName).first()
+        expect(multiDim.catalogPath).toBe("test/catalog#path")
+        expect(multiDim.slug).toBe(null)
+        const savedMultiDimConfig = JSON.parse(multiDim.config)
         // variableId should be normalized to an array
-        expect(savedMdimConfig.views[0].indicators.y).toBeInstanceOf(Array)
+        expect(savedMultiDimConfig.views[0].indicators.y).toBeInstanceOf(Array)
 
-        const [mdxcc1, mdxcc2] = await env.testKnex(
+        const [multiDimView1, multiDimView2] = await env.testKnex(
             MultiDimXChartConfigsTableName
         )
-        expect(mdxcc1.multiDimId).toBe(mdim.id)
-        expect(mdxcc1.viewId).toBe("metric=total__source=all")
-        expect(mdxcc1.variableId).toBe(variableId)
-        expect(mdxcc2.multiDimId).toBe(mdim.id)
-        expect(mdxcc2.viewId).toBe("metric=per_capita__source=all")
-        expect(mdxcc2.variableId).toBe(otherVariableId)
+        expect(multiDimView1.multiDimId).toBe(multiDim.id)
+        expect(multiDimView1.viewId).toBe("metric=total__source=all")
+        expect(multiDimView1.variableId).toBe(variableId)
+        expect(multiDimView2.multiDimId).toBe(multiDim.id)
+        expect(multiDimView2.viewId).toBe("metric=per_capita__source=all")
+        expect(multiDimView2.variableId).toBe(otherVariableId)
 
         // view config should override the variable config
         const expectedMergedViewConfig = {
             ...mergedGrapherConfig,
             title: "Total energy use",
-            selectedEntityNames: [], // mdims define their own default entities
+            selectedEntityNames: [], // multi-dims define their own default entities
         }
         const fullViewConfig1 = await env
             .testKnex(ChartConfigsTableName)
-            .where("id", mdxcc1.chartConfigId)
+            .where("id", multiDimView1.chartConfigId)
             .first()
         expect(JSON.parse(fullViewConfig1.full)).toEqual(
             expectedMergedViewConfig
@@ -304,18 +291,21 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         }
         const fullViewConfig1Updated = await env
             .testKnex(ChartConfigsTableName)
-            .where("id", mdxcc1.chartConfigId)
+            .where("id", multiDimView1.chartConfigId)
             .first()
         expect(JSON.parse(fullViewConfig1Updated.full)).toEqual(
             expectedMergedViewConfigUpdated
         )
 
-        // clean-up the mdim tables
+        // clean-up the multi-dim tables
         await env.testKnex(MultiDimXChartConfigsTableName).delete()
         await env.testKnex(MultiDimDataPagesTableName).delete()
         await env
             .testKnex(ChartConfigsTableName)
-            .whereIn("id", [mdxcc1.chartConfigId, mdxcc2.chartConfigId])
+            .whereIn("id", [
+                multiDimView1.chartConfigId,
+                multiDimView2.chartConfigId,
+            ])
             .delete()
 
         // delete the admin-authored grapher config we just added
@@ -658,6 +648,51 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         expect(chartAfterUpdate).not.toBeNull()
         expect(configAfterUpdate).not.toBeNull()
         expect(chartAfterUpdate).toEqual(configAfterUpdate)
+    })
+
+    it("should bump the config version of a dataset's charts on republish", async () => {
+        // give the indicator a config so the chart's authored layer and its
+        // served config are not the same thing
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify(testVariableConfigETL),
+        })
+        const { chartId } = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+        const version = async (path: string): Promise<number> =>
+            (await env.fetchJson(`/charts/${chartId}.${path}.json`)).version
+        expect(await version("config")).toBe(1)
+
+        await env.request({
+            method: "POST",
+            path: `/datasets/${datasetId}/charts`,
+            body: JSON.stringify({ republish: true }),
+        })
+
+        // both the served config and the authored layer are bumped
+        expect(await version("config")).toBe(2)
+        expect(await version("patchConfig")).toBe(2)
+
+        // the chart and its config keep a single updatedAt
+        const chart = await env
+            .testKnex(ChartsTableName)
+            .where({ id: chartId })
+            .first()
+        const config = await env
+            .testKnex(ChartConfigsTableName)
+            .where({ id: chart.configId })
+            .first()
+        expect(config.updatedAt).toEqual(chart.updatedAt)
+
+        // the indicator's own config belongs to no chart and is left alone
+        const indicatorConfig = await env.fetchJson(
+            `/variables/mergedGrapherConfig/${variableId}.json`
+        )
+        expect(indicatorConfig).not.toHaveProperty("version")
     })
 
     it("should return an error if the schema is missing", async () => {

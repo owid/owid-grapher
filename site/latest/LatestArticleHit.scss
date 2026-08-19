@@ -1,0 +1,106 @@
+.latest-article-hit {
+    position: relative;
+    @include sm-only {
+        margin-left: 16px;
+        margin-right: 16px;
+    }
+}
+
+.latest-article-hit__card {
+    background-color: $blue-10;
+    padding: 16px;
+    color: $blue-90;
+    @include sm-only {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+}
+
+.latest-article-hit__title-link {
+    color: inherit;
+    text-decoration: none;
+
+    // Stretched link: covers the whole article so clicking anywhere on the
+    // card navigates to the article. Inline links inside the excerpt (z-index
+    // set below) sit above this overlay and keep their own click behavior.
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+    }
+}
+
+.latest-article-hit:hover .latest-article-hit__title-link {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+.latest-article-hit__image {
+    align-self: start;
+
+    img {
+        display: block;
+    }
+}
+
+.latest-article-hit__content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.latest-article-hit__title {
+    @include h3-bold;
+    margin: 0;
+}
+
+.latest-article-hit__authors {
+    @include body-3-medium-italic;
+    color: $blue-50;
+    margin: 0;
+}
+
+.latest-article-hit__excerpt {
+    @include body-3-medium;
+    margin: 0;
+
+    @include text-block-override {
+        @include body-3-medium;
+    }
+
+    [class*="article-block__"]:last-child {
+        margin-bottom: 0;
+    }
+}
+
+// Rich variant: inline links inside the excerpt sit above the stretched-link
+// overlay so they remain independently clickable.
+.latest-article-hit__excerpt--rich a {
+    position: relative;
+    z-index: 2;
+}
+
+.latest-article-hit__read-more {
+    @include body-3-medium;
+    color: $vermillion;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    position: relative;
+    z-index: 2;
+    margin: 8px 0;
+
+    svg {
+        width: 10px;
+        height: 10px;
+        margin-left: 2px;
+    }
+
+    &:hover {
+        text-decoration: none;
+    }
+}

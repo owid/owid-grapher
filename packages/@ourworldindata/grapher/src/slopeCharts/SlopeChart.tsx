@@ -15,7 +15,7 @@ import {
 } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -90,7 +90,7 @@ const DOT_RADIUS = 3.5
 const TIME_LABEL_PADDING = 4
 const VERTICAL_LABELS_PADDING = 4
 const SIDEBAR_MARGIN = 10
-const ZERO_LABEL_PADDING = 8
+const ZERO_LABEL_PADDING = 4
 
 export type SlopeChartProps = ChartComponentProps<SlopeChartState>
 
@@ -135,9 +135,9 @@ export class SlopeChart
     }
 
     @computed private get innerBounds(): Bounds {
-        return this.boundsWithVerticalPadding
-            .padRight(this.sidebarWidth + SIDEBAR_MARGIN)
-            .padLeft(this.zeroLineLabelWidth + ZERO_LABEL_PADDING)
+        return this.boundsWithVerticalPadding.padRight(
+            this.sidebarWidth + SIDEBAR_MARGIN
+        )
     }
 
     /**
@@ -452,9 +452,25 @@ export class SlopeChart
             : this.rightLabelsState.stableWidth
     }
 
-    // Consumed by FacetChart to align gridlines across facets
+    // Consumed by FacetChart to align chart content across facets
     @computed get verticalLabelWidths(): SideWidths {
         return { left: this.leftLabelsWidth, right: this.rightLabelsWidth }
+    }
+
+    // Consumed by FacetChart to align the facet label with the plot content
+    // (here: the slope chart's start-time label)
+    @computed get contentInset(): SideWidths | undefined {
+        if (this.chartState.errorInfo.reason) return undefined
+        const hideTimeLabels = this.xAxis.config.hideTickLabels
+        const [startLabel, endLabel] = this.xAxis.tickLabels
+        const startOverflow = hideTimeLabels
+            ? 0
+            : 0.5 * (startLabel?.width ?? 0)
+        const endOverflow = hideTimeLabels ? 0 : 0.5 * (endLabel?.width ?? 0)
+        return {
+            left: this.startX - startOverflow - this.bounds.left,
+            right: this.bounds.right - (this.endX + endOverflow),
+        }
     }
 
     @computed
@@ -651,7 +667,9 @@ export class SlopeChart
         return this.leftLabelsMaxLevel >= 4 && !!this.manager.showSeriesLabels
     }
 
-    private updateTooltipPosition(event: SVGMouseOrTouchEvent): void {
+    @action.bound private updateTooltipPosition(
+        event: SVGMouseOrTouchEvent
+    ): void {
         const ref = this.manager.base?.current
         if (ref) this.tooltipState.position = getRelativeMouse(ref, event)
     }
@@ -684,22 +702,29 @@ export class SlopeChart
             const toleranceSq = tolerance * tolerance
 
             if (closestSlope && distanceSq < toleranceSq) {
-                this.onSlopeMouseOver(closestSlope)
+                this.setHoveredSeries(closestSlope)
             } else {
-                this.onSlopeMouseLeave()
+                this.clearHoveredSeries()
             }
         })
     }
 
     private hoverTimer?: number
-    @action.bound onVerticalLabelMouseEnter(seriesName: SeriesName): void {
+    @action.bound private setHoveredSeries(series: SlopeChartSeries): void {
         this.chartState.focusArray.clear()
         clearTimeout(this.hoverTimer)
-        this.hoveredSeriesName = seriesName
+        this.hoveredSeriesName = series.seriesName
+        this.tooltipState.target = { series }
+    }
+
+    @action.bound onVerticalLabelMouseEnter(seriesName: SeriesName): void {
+        const series = this.series.find((s) => s.seriesName === seriesName)
+        if (series) this.setHoveredSeries(series)
     }
 
     @action.bound private clearHoveredSeries(): void {
         this.hoveredSeriesName = undefined
+        this.tooltipState.target = null
     }
 
     @action.bound private debouncedClearHoveredSeries(): void {
@@ -716,17 +741,6 @@ export class SlopeChart
         this.debouncedClearHoveredSeries()
     }
 
-    @action.bound onSlopeMouseOver(series: SlopeChartSeries): void {
-        this.chartState.focusArray.clear()
-        this.hoveredSeriesName = series.seriesName
-        this.tooltipState.target = { series }
-    }
-
-    @action.bound onSlopeMouseLeave(): void {
-        this.clearHoveredSeries()
-        this.tooltipState.target = null
-    }
-
     mouseFrame?: number
     @action.bound onMouseMove(event: SVGMouseOrTouchEvent): void {
         this.updateTooltipPosition(event)
@@ -736,7 +750,7 @@ export class SlopeChart
     @action.bound onMouseLeave(): void {
         if (this.mouseFrame !== undefined) cancelAnimationFrame(this.mouseFrame)
 
-        this.onSlopeMouseLeave()
+        this.clearHoveredSeries()
     }
 
     @computed private get renderUid(): number {
@@ -762,31 +776,52 @@ export class SlopeChart
 
         const actualStartTime = series.start.originalTime
         const actualEndTime = series.end.originalTime
-        const timeRange = `${formatTime(actualStartTime)} to ${formatTime(actualEndTime)}`
         const timeLabel = isRelativeMode
             ? `% change between ${formatColumn.formatTime(actualStartTime)} and ${formatColumn.formatTime(actualEndTime)}`
-            : timeRange
+            : formatColumn.formatTimeComparison(actualStartTime, actualEndTime)
 
-        const constructTargetYearForToleranceNotice = () => {
+        // The subtitle shows the original time of both values. Naming the
+        // original time here only helps if the subtitle mixes a target time with
+        // an original time, i.e. if only one of the two values was interpolated.
+        const constructTimesForToleranceNotice = ():
+            | { target: string; original?: string; plural: boolean }
+            | undefined => {
             const isStartValueOriginal = series.start.originalTime === startTime
             const isEndValueOriginal = series.end.originalTime === endTime
 
             if (!isStartValueOriginal && !isEndValueOriginal) {
-                return `${formatTime(startTime)} and ${formatTime(endTime)}`
+                return {
+                    target: `${formatTime(startTime)} and ${formatTime(endTime)}`,
+                    plural: true,
+                }
             } else if (!isStartValueOriginal) {
-                return formatTime(startTime)
+                return {
+                    target: formatTime(startTime),
+                    original: formatTime(actualStartTime),
+                    plural: false,
+                }
             } else if (!isEndValueOriginal) {
-                return formatTime(endTime)
+                return {
+                    target: formatTime(endTime),
+                    original: formatTime(actualEndTime),
+                    plural: false,
+                }
             } else {
                 return undefined
             }
         }
 
-        const targetYear = constructTargetYearForToleranceNotice()
-        const toleranceNotice = targetYear
+        const toleranceNoticeTimes = constructTimesForToleranceNotice()
+        const toleranceNotice = toleranceNoticeTimes
             ? {
                   icon: TooltipFooterIcon.Notice,
-                  text: makeTooltipToleranceNotice(targetYear),
+                  text: makeTooltipToleranceNotice(
+                      toleranceNoticeTimes.target,
+                      {
+                          plural: toleranceNoticeTimes.plural,
+                          originalTime: toleranceNoticeTimes.original,
+                      }
+                  ),
               }
             : undefined
         const roundingNotice = series.column.roundsToSignificantFigures
@@ -816,7 +851,7 @@ export class SlopeChart
                 title={title}
                 titleAnnotation={titleAnnotation}
                 subtitle={timeLabel}
-                subtitleFormat={targetYear ? "notice" : undefined}
+                subtitleFormat={toleranceNoticeTimes ? "notice" : undefined}
                 dissolve={fading}
                 footer={footer}
                 dismiss={() => (this.tooltipState.target = null)}
@@ -825,10 +860,11 @@ export class SlopeChart
                     label={series.column.displayName}
                     unit={series.column.displayUnit}
                     values={formatTooltipRangeValues(values, series.column)}
-                    trend={calculateTrendDirection(...values)}
-                    isRoundedToSignificantFigures={
-                        series.column.roundsToSignificantFigures
-                    }
+                    trend={calculateTrendDirection(
+                        values[0],
+                        values[1],
+                        (value) => series.column.formatValueShort(value)
+                    )}
                     labelVariant="unit-only"
                 />
             </Tooltip>
@@ -934,8 +970,32 @@ export class SlopeChart
     private renderZeroLine(): React.ReactElement | null {
         if (!this.shouldShowZeroLine) return null
 
-        const bounds = this.boundsWithVerticalPadding
-        const boundsForLine = bounds.padLeft(this.zeroLineLabelWidth + 2)
+        const overshoot = Math.min(1.5 * this.leftLabelsWidth, 16)
+
+        // The left end of the zero line overshoots the longest left label
+        // by a fixed amount
+        const desiredExtension =
+            VERTICAL_LABELS_PADDING + this.leftLabelsWidth + overshoot
+
+        // Ensure the zero line (and its label) don't overflow
+        const maxExtension =
+            this.startX -
+            this.bounds.left -
+            this.zeroLineLabelWidth -
+            ZERO_LABEL_PADDING
+        const extension = Math.min(desiredExtension, maxExtension)
+
+        const lineLeft = this.startX - extension
+        const lineRight = Math.min(
+            this.endX + extension,
+            this.innerBounds.right
+        )
+        const boundsForLine = this.boundsWithVerticalPadding.set({
+            x: lineLeft,
+            width: lineRight - lineLeft,
+        })
+
+        const labelX = lineLeft - ZERO_LABEL_PADDING
 
         return (
             <>
@@ -948,8 +1008,9 @@ export class SlopeChart
                     />
                 )}
                 <text
-                    x={bounds.left}
+                    x={labelX}
                     y={this.yAxis.place(0).toFixed(2)}
+                    textAnchor="end"
                     dy={dyFromAlign(VerticalAlign.middle)}
                     fontSize={this.zeroLineLabelFontSize}
                     fill={GRAPHER_DARK_TEXT}
@@ -962,6 +1023,10 @@ export class SlopeChart
 
     private renderLogNotice(): React.ReactElement | null {
         if (!this.chartState.isLogScale) return null
+
+        // The notice is rendered in line with the time labels, so if those
+        // are hidden (e.g. for inner facets), hide the notice as well
+        if (this.xAxis.config.hideTickLabels) return null
 
         const fontSize = GRAPHER_FONT_SCALE_11 * this.fontSize
 
@@ -1092,14 +1157,19 @@ export class SlopeChart
 
     private renderInteractive(): React.ReactElement {
         return (
-            <>
+            <g
+                onMouseMove={this.updateTooltipPosition}
+                onTouchStart={this.updateTooltipPosition}
+                onTouchMove={this.updateTooltipPosition}
+            >
+                <rect {...this.bounds.toProps()} fillOpacity={0} />
                 {this.renderYAxis()}
                 {this.renderXAxis()}
                 {this.renderInteractiveSlopes()}
                 {this.renderVerticalLabels()}
                 {this.renderNoDataSection()}
                 {this.tooltip}
-            </>
+            </g>
         )
     }
 
@@ -1117,7 +1187,7 @@ export class SlopeChart
     override render() {
         if (this.chartState.errorInfo.reason)
             return (
-                <NoDataModal
+                <NoDataMessage
                     manager={this.manager}
                     bounds={this.props.bounds}
                     message={this.chartState.errorInfo.reason}

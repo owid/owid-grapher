@@ -6,6 +6,9 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+
 defaults:
   run:
     working-directory: bespoke
@@ -15,7 +18,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/setup-node-yarn-deps
         with:
@@ -28,11 +33,32 @@ jobs:
       - name: Typecheck
         run: yarn typecheck
 
+  bespoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-node-yarn-deps
+        with:
+          runPostinstallScripts: false
+          cacheDependencyPath: bespoke/yarn.lock
+
+      - name: Install bespoke dependencies
+        run: yarn --immutable
+
+      - name: Test
+        run: yarn test
+
   bespoke-build:
     runs-on: ubuntu-latest
     steps:
       - name: Clone repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/setup-node-yarn-deps
         with:

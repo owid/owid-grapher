@@ -15,9 +15,8 @@ import "@fortawesome/fontawesome-svg-core/styles.css"
 import React from "react"
 import { createRoot } from "react-dom/client"
 import { runNotFoundPage } from "./NotFoundPageMain.js"
-import { runFeedbackPage } from "./Feedback.js"
+import { runFeedbackPage } from "./FeedbackPageMain.js"
 import { runDonateForm } from "./runDonateForm.js"
-import { runTableOfContents } from "./runTableOfContents.js"
 import { Explorer } from "@ourworldindata/explorer"
 import { ENV } from "../settings/clientSettings.js"
 import {
@@ -42,7 +41,6 @@ window.createRoot = createRoot
 window.runNotFoundPage = runNotFoundPage
 window.runFeedbackPage = runFeedbackPage
 window.runDonateForm = runDonateForm
-window.runTableOfContents = runTableOfContents
 window.renderSingleGrapherOnGrapherPage = renderSingleGrapherOnGrapherPage
 window.MultiEmbedderSingleton = MultiEmbedderSingleton
 

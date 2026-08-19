@@ -1,5 +1,5 @@
 import * as R from "remeda"
-import cx from "classnames"
+import cx from "clsx"
 
 export type Container =
     | "default"
@@ -9,12 +9,13 @@ export type Container =
     | "sticky-left-left-column"
     | "sticky-left-right-column"
     | "side-by-side"
-    | "summary"
     | "datapage"
     | "key-insight"
+    | "key-insight-asset"
     | "about-page"
     | "author-header"
     | "data-insight"
+    | "latest-announcement"
 
 // Each container must have a default layout, usually just full-width
 type Layouts = { default: string; [key: string]: string }
@@ -154,9 +155,6 @@ const layouts: { [key in Container]: Layouts} = {
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 grid-sm-cols-12 span-sm-cols-12 ",
         ["cookie-notice"]: "span-cols-5 col-start-2 span-md-cols-6 col-md-start-1 span-sm-cols-12 col-sm-start-1"
     },
-    ["summary"]: {
-        ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-    },
     ["data-insight"]: {
         // no grid containers or grid sizing for data insights - they're always just a single column
         ["default"]: "",
@@ -164,6 +162,16 @@ const layouts: { [key in Container]: Layouts} = {
     ["key-insight"]: {
         ["default"]: "col-start-1 span-cols-5 col-md-start-1 span-md-cols-12",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-md-cols-12 grid-md-cols-12",
+    },
+    ["key-insight-asset"]: {
+        ["default"]: "",
+    },
+    ["latest-announcement"]: {
+        ["default"]: "span-cols-8 span-sm-cols-6",
+        ["expandable-text"]: "grid grid-cols-8 grid-sm-cols-6",
+        ["image--narrow"]: "span-cols-6 span-sm-cols-5",
+        ["image--wide"]: "span-cols-6 span-sm-cols-5",
+        ["image--widest"]: "span-cols-6 span-sm-cols-5",
     },
 }
 

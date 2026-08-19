@@ -1,9 +1,24 @@
-import { OwidGdocAnnouncementInterface } from "@ourworldindata/utils"
+import {
+    AnnouncementLatestType,
+    LATEST_TYPE_LABELS,
+    OwidGdocAnnouncementInterface,
+} from "@ourworldindata/types"
+import { formatInlineList } from "@ourworldindata/utils"
+import { useContext } from "react"
 import * as React from "react"
-import { ArticleBlocks } from "../components/ArticleBlocks.js"
-import DataInsightDateline from "../components/DataInsightDateline.js"
-import LinkedAuthor from "../components/LinkedAuthor.js"
-import { Cta } from "../components/Cta.js"
+import { AnnouncementContent } from "../../latest/AnnouncementContent.js"
+import { deriveAnnouncementLatestType } from "../../latest/latestUtils.js"
+import { AttachmentsContext } from "../AttachmentsContext.js"
+import { CopySocialButton } from "../components/CopySocialButton.js"
+import { buildSocialText } from "../socialText.js"
+
+// Announcements posted on social media are data and topic updates; the other
+// kinds (website upgrades, general announcements) aren't, so they don't get
+// the button.
+const SOCIAL_LATEST_TYPES: readonly AnnouncementLatestType[] = [
+    "data-update",
+    "topic-update",
+]
 
 type AnnouncementProps = {
     className?: string
@@ -12,60 +27,59 @@ type AnnouncementProps = {
     "contentMd5" | "markdown" | "publicationContext" | "revisionId"
 >
 
-export const AnnouncementPageContent = (props: AnnouncementProps) => {
-    const { publishedAt } = props
-    return (
-        <div className="announcement-page-content span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 span-sm-cols-14 col-sm-start-1">
-            <header className="span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 span-sm-cols-14 col-sm-start-1">
-                <div className="announcement-page-header-meta">
-                    <DataInsightDateline publishedAt={publishedAt} />
-                    <span className="announcement-page-kicker h6-black-caps">
-                        {props.content.kicker}
-                    </span>
-                </div>
-                <h1 className="announcement-page-heading subtitle-2-bold">
-                    {props.content.title}
-                </h1>
-                {props.content.authors.length && (
-                    <div className="data-insight-authors body-3-medium">
-                        {props.content.authors.map((author, index) => (
-                            <LinkedAuthor
-                                className="data-insight-author"
-                                key={index}
-                                name={author}
-                                includeImage={true}
-                            />
-                        ))}
-                    </div>
-                )}
-            </header>
-            {props.content.cta &&
-            props.content.cta.url &&
-            props.content.cta.text ? (
-                <>
-                    <p>{props.content.excerpt}</p>
-                    <Cta
-                        shouldRenderLinks
-                        text={props.content.cta.text}
-                        url={props.content.cta.url}
-                    />
-                </>
-            ) : (
-                <ArticleBlocks
-                    blocks={props.content.body}
-                    interactiveImages={false}
-                />
-            )}
-        </div>
-    )
+function buildAuthorsNote(
+    latestType: AnnouncementLatestType,
+    authors: string[]
+): string | undefined {
+    if (authors.length === 0) return undefined
+    const kicker = LATEST_TYPE_LABELS[latestType].toLowerCase()
+    return `This ${kicker} was led by ${formatInlineList(authors, "and")}.`
 }
 
-export const AnnouncementPage = (
-    props: AnnouncementProps
-): React.ReactElement => {
+export const AnnouncementPage = ({
+    content,
+    publishedAt,
+    slug,
+    tags,
+}: AnnouncementProps): React.ReactElement => {
+    const { linkedDocuments } = useContext(AttachmentsContext)
+    const latestType = deriveAnnouncementLatestType(content.kicker)
+    // CTA-only announcements have an empty body (enforced by
+    // GdocAnnouncement._validateSubclass), so there's nothing to copy.
+    const shouldShowCopySocialButton =
+        SOCIAL_LATEST_TYPES.includes(latestType) && content.body.length > 0
     return (
         <div className="announcement-page grid grid-cols-12-full-width">
-            <AnnouncementPageContent {...props} />
+            <div className="announcement-page-content span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 span-sm-cols-14 col-sm-start-1">
+                <AnnouncementContent
+                    title={content.title}
+                    latestType={latestType}
+                    tags={tags?.map((t) => t.name) ?? []}
+                    slug={slug}
+                    publishedAt={publishedAt}
+                    authors={content.authors}
+                    excerpt={content.excerpt}
+                    body={content.body}
+                    cta={content.cta}
+                    isStandalone
+                />
+                {shouldShowCopySocialButton && (
+                    <div className="announcement-page-footer">
+                        <CopySocialButton
+                            className="announcement-page-copy-social-button"
+                            text={buildSocialText({
+                                title: content.title,
+                                body: content.body,
+                                authorsNote: buildAuthorsNote(
+                                    latestType,
+                                    content.authors
+                                ),
+                                linkedDocuments,
+                            })}
+                        />
+                    </div>
+                )}
+            </div>
         </div>
     )
 }

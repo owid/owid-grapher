@@ -11,13 +11,13 @@ import {
     TooltipState,
     DataRow,
     getCategoryColor,
-} from "../helpers/CausesOfDeathConstants.js"
+} from "../core/CausesOfDeathConstants.js"
 import {
     formatCount,
     formatShare,
     maxBy,
     minBy,
-} from "../helpers/CausesOfDeathHelpers.js"
+} from "../core/CausesOfDeathHelpers.js"
 
 export function CausesOfDeathTreemapTooltip({
     state,

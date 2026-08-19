@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { Input, InputProps } from "antd"
+import { Input, InputProps, Space } from "antd"
 import {
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
@@ -93,14 +93,16 @@ export const GdocsSettingsTextField = ({
     errorType?: OwidGdocErrorMessageType
     inputProps?: InputProps
 }) => (
-    <Input
-        addonBefore={`${name}:`}
-        value={value}
-        status={errorType}
-        id={name}
-        readOnly
-        {...inputProps}
-    />
+    <Space.Compact block>
+        <Space.Addon>{name}:</Space.Addon>
+        <Input
+            value={value}
+            status={errorType}
+            id={name}
+            readOnly
+            {...inputProps}
+        />
+    </Space.Compact>
 )
 
 export const GdocsSettingsTextArea = ({

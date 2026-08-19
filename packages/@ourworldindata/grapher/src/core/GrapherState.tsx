@@ -24,6 +24,7 @@ import {
     EntitySelectionMode,
     StackMode,
     LogoOption,
+    LicenseOption,
     GrapherTabConfigOption,
     GRAPHER_TAB_CONFIG_OPTIONS,
     ColorSchemeName,
@@ -159,6 +160,7 @@ import {
     MapChartManager,
 } from "../mapCharts/MapChartConstants.js"
 import { MapConfig } from "../mapCharts/MapConfig.js"
+import { DumbbellChartConfig } from "../dumbbellCharts/DumbbellChartConfig.js"
 import { getCountriesByRegion } from "../mapCharts/MapHelpers.js"
 import {
     DownloadModalManager,
@@ -282,6 +284,9 @@ export class GrapherState
     /** The page containing this chart where more context can be found */
     originUrl: string | undefined = undefined
 
+    /** The license the chart is published under, linked in the chart footer */
+    license: LicenseOption | undefined = undefined
+
     /** Short comma-separated list of source names */
     sourceDesc: string | undefined = undefined
 
@@ -358,6 +363,9 @@ export class GrapherState
 
     /** Configuration of the world map chart */
     map = new MapConfig()
+
+    /** Configuration of the dumbbell chart */
+    dumbbell = new DumbbellChartConfig()
 
     /** One of the predefined base color schemes. If not provided, a default is automatically chosen based on the chart type. */
     baseColorScheme: ColorSchemeName | undefined = undefined
@@ -506,6 +514,7 @@ export class GrapherState
 
     isEmbeddedInAnOwidPage?: boolean = false
     isEmbeddedInADataPage?: boolean = false
+    useNewDatapageMetadataLayout?: boolean = false
 
     archiveContext?: ArchiveContext
     narrativeChartInfo?: MinimalNarrativeChartInfo = undefined
@@ -556,6 +565,7 @@ export class GrapherState
     activeModal?: GrapherModal
     activeDownloadModalTab: DownloadModalTabName = DownloadModalTabName.Vis
     isShareMenuActive = false
+    isCommandPaletteOpen = false
 
     isTimelineAnimationPlaying = false
     /** True if the timeline animation is either playing or paused but not finished */
@@ -564,6 +574,9 @@ export class GrapherState
     areHandlesOnSameTimeBeforeAnimation: boolean | undefined = undefined
     /** Which timeline element is currently being dragged */
     timelineDragTarget: TimelineDragTarget | undefined = undefined
+    /** The tolerance notice as of the start of a timeline interaction */
+    frozenToleranceNotice: { notice: string | undefined } | undefined =
+        undefined
 
     // Display flags
     hasTableTab = true
@@ -641,6 +654,7 @@ export class GrapherState
             internalNotes: observable.ref,
             variantName: observable.ref,
             originUrl: observable.ref,
+            license: observable.ref,
             hideAnnotationFieldsInTitle: observable,
             minTime: observable.ref,
             maxTime: observable.ref,
@@ -677,6 +691,7 @@ export class GrapherState
             yAxis: observable.ref,
             colorScale: observable,
             map: observable,
+            dumbbell: observable,
             dimensions: observable.ref,
             ySlugs: observable,
             xSlug: observable,
@@ -720,6 +735,7 @@ export class GrapherState
             animationStartTime: observable.ref,
             areHandlesOnSameTimeBeforeAnimation: observable.ref,
             timelineDragTarget: observable.ref,
+            frozenToleranceNotice: observable.ref,
             isEntitySelectorModalOrDrawerOpen: observable.ref,
             activeModal: observable.ref,
             activeDownloadModalTab: observable.ref,
@@ -728,6 +744,7 @@ export class GrapherState
             slideShow: observable,
             _baseFontSize: observable,
             isShareMenuActive: observable,
+            isCommandPaletteOpen: observable,
             hideTitle: observable,
             hideSubtitle: observable,
             hideNote: observable,
@@ -749,6 +766,8 @@ export class GrapherState
         this.additionalDataLoaderFn = options.additionalDataLoaderFn
         this.isEmbeddedInAnOwidPage = options.isEmbeddedInAnOwidPage ?? false
         this.isEmbeddedInADataPage = options.isEmbeddedInADataPage ?? false
+        this.useNewDatapageMetadataLayout =
+            options.useNewDatapageMetadataLayout ?? false
 
         this._inputTable =
             options.table ?? BlankOwidTable(`initialGrapherTable`)
@@ -822,13 +841,13 @@ export class GrapherState
         obj.$schema = this.$schema || latestGrapherConfigSchema
 
         // JSON doesn't support Infinity, so we use strings instead
-        if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
-        if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
+        if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime)
+        if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime)
 
         if (obj.timelineMinTime)
-            obj.timelineMinTime = minTimeToJSON(this.timelineMinTime) as any
+            obj.timelineMinTime = minTimeToJSON(this.timelineMinTime)
         if (obj.timelineMaxTime)
-            obj.timelineMaxTime = maxTimeToJSON(this.timelineMaxTime) as any
+            obj.timelineMaxTime = maxTimeToJSON(this.timelineMaxTime)
 
         // Don't serialize the tab if the default chart is currently shown
         if (
@@ -1019,10 +1038,16 @@ export class GrapherState
             return table.filterByTargetTimes(targetTimes)
         }
 
-        if (this.isOnDiscreteBarTab || this.isOnMarimekkoTab)
+        if (
+            this.isOnDiscreteBarTab ||
+            this.isOnMarimekkoTab ||
+            this.checkIsTwoColumnDumbbell(this.activeTab)
+        )
             return table.filterByTargetTimes([endTime])
 
-        if (this.isOnSlopeChartTab)
+        // Any dumbbell reaching this point plots a single indicator, and so
+        // compares it across the two times the timeline handles sit on
+        if (this.isOnSlopeChartTab || this.isOnDumbbellTab)
             return table.filterByTargetTimes([startTime, endTime])
 
         return table.filterByTimeRange(startTime, endTime)
@@ -1114,11 +1139,20 @@ export class GrapherState
      * of the currently displayed data.
      */
     @computed get filteredTableForDownload(): OwidTable {
-        const table = this.isOnTableTab
-            ? this.tableForDisplay
-            : this.transformedTable
+        if (this.isOnTableTab) {
+            let table = this.tableForDisplay
 
-        return this.prepareTableForDownload(table)
+            // The data table only shows data within the selected time range,
+            // so restrict the download to that range as well
+            const { startTime, endTime } = this
+            if (startTime !== undefined && endTime !== undefined) {
+                table = table.filterByTimeRange(startTime, endTime)
+            }
+
+            return this.prepareTableForDownload(table)
+        }
+
+        return this.prepareTableForDownload(this.transformedTable)
     }
 
     private prepareTableForDownload(table: OwidTable): OwidTable {
@@ -1189,7 +1223,7 @@ export class GrapherState
         // Fill in missing entity codes
         if (table.entityCodeColumn.numErrorValues > 0) {
             table = table.replaceCells(
-                [OwidTableSlugs.entityCode],
+                [OwidTableSlugs.EntityCode],
                 (value, index) => {
                     if (isNotErrorValueOrEmptyCell(value)) return value
 
@@ -1209,7 +1243,7 @@ export class GrapherState
             (code) => code && code !== ""
         )
         if (!hasEntityCodes) {
-            table = table.dropColumns([OwidTableSlugs.entityCode])
+            table = table.dropColumns([OwidTableSlugs.EntityCode])
         }
 
         return table
@@ -1596,10 +1630,19 @@ export class GrapherState
 
     @computed get createNarrativeChartUrl(): string | undefined {
         const adminPath = this.manager?.adminCreateNarrativeChartPath
-        if (this.showAdminControls && this.isPublished && adminPath) {
-            return `${this.adminBaseUrl}/admin/${adminPath}`
-        }
-        return undefined
+        if (!this.showAdminControls || !this.isPublished || !adminPath)
+            return undefined
+
+        const url = Url.fromURL(`${this.adminBaseUrl}/admin/${adminPath}`)
+
+        // Pass the live grapher state along so that the narrative chart starts
+        // out matching what the user is currently looking at, rather than the
+        // authored defaults. We send it as a single encoded param so that it
+        // can't collide with the params already present in `adminPath`.
+        const grapherQueryStr = this.queryStr.replace(/^\?/, "")
+        if (!grapherQueryStr) return url.fullUrl
+
+        return url.updateQueryParams({ grapherQueryStr }).fullUrl
     }
 
     @computed private get isAdminObjectAvailable(): boolean {
@@ -1723,7 +1766,7 @@ export class GrapherState
         }
         if (dimensions.length > 0 && this.loadingDimensions.length === 0)
             return ""
-        return `Waiting for dimensions ${this.loadingDimensions.join(",")}.`
+        return `Waiting for dimensions ${this.loadingDimensions.map((dim) => dim.columnSlug).join(", ")}.`
     }
 
     @computed get newSlugs(): string[] {
@@ -1908,38 +1951,67 @@ export class GrapherState
         })
     }
 
+    /**
+     * Dumbbell charts plotting two indicators compare them at a single time,
+     * whereas those plotting one indicator compare it across two times
+     */
+    private readonly checkIsTwoColumnDumbbell = (
+        tabName: GrapherTabName
+    ): boolean => {
+        return (
+            tabName === GRAPHER_TAB_NAMES.Dumbbell &&
+            this.yColumnSlugs.length >= 2
+        )
+    }
+
     private readonly checkOnlySingleTimeSelectionPossible = (
         tabName: GrapherTabName
     ): boolean => {
-        // Scatters aren't included here because although single-time selection
-        // is preferred, start and end time selection is still possible
-        return [
-            GRAPHER_TAB_NAMES.DiscreteBar,
-            GRAPHER_TAB_NAMES.StackedDiscreteBar,
-            GRAPHER_TAB_NAMES.Marimekko,
-        ].includes(tabName as any)
+        return (
+            tabName === GRAPHER_TAB_NAMES.DiscreteBar ||
+            tabName === GRAPHER_TAB_NAMES.StackedDiscreteBar ||
+            tabName === GRAPHER_TAB_NAMES.Marimekko ||
+            this.checkIsTwoColumnDumbbell(tabName)
+        )
     }
 
     private readonly checkSingleTimeSelectionPreferred = (
         tabName: GrapherTabName
     ): boolean => {
         // Scatter plots can show a time range, but a single time is preferred
-        // when the scatter is not the main chart, but a secondary tab
-        return !this.isScatter && tabName === GRAPHER_TAB_NAMES.ScatterPlot
+        // when the scatter is not the main chart, but a secondary tab.
+        // In relative mode, a scatter shows the average annual change, which
+        // requires a time range, so we don't collapse to a single time then.
+        return (
+            tabName === GRAPHER_TAB_NAMES.ScatterPlot &&
+            !this.isScatter &&
+            !this.isRelativeMode
+        )
     }
 
     private readonly checkOnlyTimeRangeSelectionPossible = (
         tabName: GrapherTabName
     ): boolean => {
-        return [
-            GRAPHER_TAB_NAMES.LineChart,
-            GRAPHER_TAB_NAMES.SlopeChart,
-        ].includes(tabName as any)
+        return (
+            tabName === GRAPHER_TAB_NAMES.LineChart ||
+            tabName === GRAPHER_TAB_NAMES.SlopeChart ||
+            (tabName === GRAPHER_TAB_NAMES.Dumbbell &&
+                !this.checkIsTwoColumnDumbbell(tabName))
+        )
     }
 
     private readonly checkTimeRangeSelectionPreferred = (
         tabName: GrapherTabName
     ): boolean => {
+        // In relative mode, a scatter shows the average annual change, which
+        // requires a time range rather than a single time
+        if (
+            tabName === GRAPHER_TAB_NAMES.ScatterPlot &&
+            !this.isScatter &&
+            this.isRelativeMode
+        )
+            return true
+
         return [
             GRAPHER_TAB_NAMES.StackedArea,
             GRAPHER_TAB_NAMES.StackedBar,
@@ -1969,7 +2041,7 @@ export class GrapherState
         if (!isChartTab(tab)) return
 
         // Don't modify the selection for unusual scatters
-        if (this.isTimeScatter || this.isConnectedScatter) return
+        if (this.isOnTimeScatterTab || this.isOnConnectedScatterTab) return
 
         const isChartTypeThatShowsAllEntities =
             this.isChartTypeThatShowsAllEntities(tab)
@@ -1998,8 +2070,14 @@ export class GrapherState
                 "adjustStateForTab has been called before grapher has loaded its data, this is probably a mistake"
             )
 
-        this.ensureEntitySelectionIsSensibleForTab(tab)
-        this.ensureTimeHandlesAreSensibleForTab(tab)
+        // Skip in the editor: these adjustments mutate the entity selection
+        // and time handles as a side effect of switching tabs, and the editor
+        // persists the live state on save, which would silently alter the
+        // authored config (see #6794)
+        if (!this.isEditor) {
+            this.ensureEntitySelectionIsSensibleForTab(tab)
+            this.ensureTimeHandlesAreSensibleForTab(tab)
+        }
 
         // Stop animation when switching to a tab where playback is disabled
         if (this.disablePlay && this.isTimelineAnimationActive) {
@@ -2212,7 +2290,7 @@ export class GrapherState
     }
 
     @computed get defaultSlug(): string {
-        return slugify(this.displayTitle)
+        return slugify(this.effectiveTitle)
     }
 
     @computed get displaySlug(): string {
@@ -2225,7 +2303,7 @@ export class GrapherState
 
         // Extract details from supporting text
         const subtitleDetails = !this.hideSubtitle
-            ? extractDetailsFromSyntax(this.currentSubtitle)
+            ? extractDetailsFromSyntax(this.effectiveSubtitle)
             : []
         const noteDetails = !this.hideNote
             ? extractDetailsFromSyntax(this.note ?? "")
@@ -2390,12 +2468,57 @@ export class GrapherState
         return this.validChartTypes.length > 1
     }
 
-    @computed get currentSubtitle(): string {
+    /** Effective subtitle resolved from authored subtitle or fallback description */
+    @computed get effectiveSubtitle(): string {
         const subtitle = this.subtitle
         if (subtitle !== undefined) return subtitle
         const yColumns = this.yColumnsFromDimensions
         if (yColumns.length === 1) return yColumns[0].def.descriptionShort ?? ""
         return ""
+    }
+
+    /**
+     * Explains that some of the values on screen aren't from the time the
+     * chart is labelled with, because tolerance was applied.
+     */
+    @computed get toleranceNotice(): string | undefined {
+        // No need to show a notice on the table tab because the table
+        // shows the original time for each value
+        if (!this.isReady || !this.isOnChartOrMapTab) return undefined
+
+        // Freeze the notice during timeline interactions so it doesn't change
+        // while the user is dragging or playing an animation
+        if (this.frozenToleranceNotice && this.isTimelineInteractionActive)
+            return this.frozenToleranceNotice.notice
+
+        return this.chartState.toleranceNotice
+    }
+
+    /** Whether the timeline is being dragged or is playing an animation */
+    @computed get isTimelineInteractionActive(): boolean {
+        return !!this.timelineDragTarget || this.isTimelineAnimationPlaying
+    }
+
+    @action.bound setToleranceNoticeFrozen(isFrozen: boolean): void {
+        this.frozenToleranceNotice = isFrozen
+            ? { notice: this.toleranceNotice }
+            : undefined
+    }
+
+    /**
+     * Effective note resolved from the authored note, with the tolerance
+     * notice appended when tolerance was applied to something on screen
+     */
+    @computed get effectiveNote(): string | undefined {
+        const { note, toleranceNotice } = this
+        if (!toleranceNotice) return note
+
+        const authoredNote = note?.trim()
+        if (!authoredNote) return toleranceNotice
+
+        // Run the two together as sentences
+        const separator = /[.!?]$/.test(authoredNote) ? " " : ". "
+        return `${authoredNote}${separator}${toleranceNotice}`
     }
 
     @computed get shouldAddEntitySuffixToTitle(): boolean {
@@ -2432,8 +2555,8 @@ export class GrapherState
                         this.isOnMarimekkoTab ||
                         this.isOnMapTab ||
                         (this.isOnScatterTab &&
-                            !this.isTimeScatter &&
-                            !this.isConnectedScatter))))
+                            !this.isOnTimeScatterTab &&
+                            !this.isOnConnectedScatterTab))))
         )
     }
 
@@ -2462,19 +2585,21 @@ export class GrapherState
         )
     }
 
-    @computed get currentTitle(): string {
-        let text = this.displayTitle.trim()
-        if (text.length === 0) return text
+    /** Effective title resolved from authored title or default title derived from metadata */
+    @computed get effectiveTitle(): string {
+        if (this.title) return this.title
+        if (this.isReady) return this.defaultTitle
+        return ""
+    }
 
-        // Helper function to add an annotation fragment to the title;
-        // only adds a comma if the text does not end with a question mark
-        const appendAnnotationField = (
-            text: string,
-            annotation: string
-        ): string => {
-            const separator = text.endsWith("?") ? "" : ","
-            return `${text}${separator} ${annotation}`
-        }
+    /**
+     * The main line of the chart title, without the entity/time annotation,
+     * but including the "Change in" prefix and the x-indicator label where
+     * applicable.
+     */
+    @computed get mainTitle(): string {
+        let text = this.effectiveTitle.trim()
+        if (text.length === 0) return text
 
         // Add the x-axis label to the title for secondary scatter plots
         if (this.shouldAddXIndicatorLabelToTitle) {
@@ -2485,19 +2610,36 @@ export class GrapherState
             if (xAxisLabel) text += ` vs. ${xAxisLabel}`
         }
 
-        if (this.shouldAddEntitySuffixToTitle) {
-            const selectedEntityNames = this.selection.selectedEntityNames
-            const entityStr = selectedEntityNames[0]
-            if (entityStr?.length) text = appendAnnotationField(text, entityStr)
-        }
-
         if (this.shouldAddChangeInPrefixToTitle)
             text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
 
-        if (this.shouldAddTimeSuffixToTitle && this.timeTitleSuffix)
-            text = appendAnnotationField(text, this.timeTitleSuffix)
-
         return text.trim()
+    }
+
+    /** The entity/time annotation of the chart title, e.g. "World, 2020" */
+    @computed get titleAnnotation(): string | undefined {
+        if (!this.mainTitle) return undefined
+
+        const parts: string[] = []
+
+        if (this.shouldAddEntitySuffixToTitle) {
+            const entityStr = this.selection.selectedEntityNames[0]
+            if (entityStr?.length) parts.push(entityStr)
+        }
+
+        if (this.shouldAddTimeSuffixToTitle && this.timeTitleSuffix)
+            parts.push(this.timeTitleSuffix)
+
+        return parts.length > 0 ? parts.join(", ") : undefined
+    }
+
+    /** The complete chart title: the main title plus the entity/time annotation */
+    @computed get fullTitle(): string {
+        if (!this.mainTitle || !this.titleAnnotation) return this.mainTitle
+
+        // Only add a comma if the title does not end with a question mark
+        const separator = this.mainTitle.endsWith("?") ? " " : ", "
+        return `${this.mainTitle}${separator}${this.titleAnnotation}`
     }
 
     /**
@@ -2660,30 +2802,43 @@ export class GrapherState
         )
     }
 
+    @computed private get comparesTwoTimePoints(): boolean {
+        // Faceted maps show one map per timeline handle
+        if (this.isOnMapTab) return this.isFaceted
+
+        // Dumbbell charts compare two time points if not single-time
+        if (this.isOnDumbbellTab) return true
+
+        // Relative slope charts show the change over a period ("Change in X,
+        // 1990 to 2020"), not two snapshots side by side
+        return this.isOnSlopeChartTab && !this.isRelativeMode
+    }
+
     @computed private get timeTitleSuffix(): string | undefined {
         const { startTime, endTime, xOverrideTime } = this
 
         const timeColumn = this.table.timeColumn
-        if (timeColumn.isMissing) return undefined // Do not show year until data is loaded
+
+        // Do not show year until data is loaded
+        if (timeColumn.isMissing) return undefined
 
         // Add 'Time vs. Time' suffix for scatter plots with time override
-        if (this.isOnScatterWithTimeOverride) {
-            const times = _.sortBy([endTime, xOverrideTime])
-            return times
-                .map((time) => timeColumn.formatValue(time))
-                .join(" vs. ")
+        if (
+            this.isOnScatterWithTimeOverride &&
+            endTime !== undefined &&
+            xOverrideTime !== undefined
+        ) {
+            const [start, end] = _.sortBy([endTime, xOverrideTime])
+            return timeColumn.formatTimeComparison(start, end)
         }
 
         if (startTime === undefined || endTime === undefined) return undefined
 
-        const time =
-            startTime === endTime
-                ? timeColumn.formatValue(startTime)
-                : timeColumn.formatValue(startTime) +
-                  " to " +
-                  timeColumn.formatValue(endTime)
+        if (startTime === endTime) return timeColumn.formatTime(startTime)
 
-        return time
+        return this.comparesTwoTimePoints
+            ? timeColumn.formatTimeComparison(startTime, endTime)
+            : timeColumn.formatTimeRange(startTime, endTime)
     }
 
     @computed get sourcesLine(): string {
@@ -2774,12 +2929,6 @@ export class GrapherState
             .join(", ")
     }
 
-    @computed get displayTitle(): string {
-        if (this.title) return this.title
-        if (this.isReady) return this.defaultTitle
-        return ""
-    }
-
     @computed get isLineChart(): boolean {
         return (
             this.chartType === GRAPHER_CHART_TYPES.LineChart || !this.chartType
@@ -2814,6 +2963,10 @@ export class GrapherState
         return this.chartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
     }
 
+    @computed get isDumbbell(): boolean {
+        return this.chartType === GRAPHER_CHART_TYPES.Dumbbell
+    }
+
     @computed get isOnLineChartTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.LineChart
     }
@@ -2844,6 +2997,10 @@ export class GrapherState
 
     @computed get isOnStackedDiscreteBarTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
+    }
+
+    @computed get isOnDumbbellTab(): boolean {
+        return this.activeChartType === GRAPHER_CHART_TYPES.Dumbbell
     }
 
     @computed get hasLineChart(): boolean {
@@ -2880,17 +3037,21 @@ export class GrapherState
         )
     }
 
+    @computed get hasDumbbellChart(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.Dumbbell)
+    }
+
     @computed get supportsMultipleYColumns(): boolean {
         return !this.isScatter
     }
 
     /** Time scatters plot time on the x-axis */
-    @computed private get isTimeScatter(): boolean {
+    @computed private get isOnTimeScatterTab(): boolean {
         return !!this.isOnScatterTab && this.xColumnSlug === undefined
     }
 
     /** Connected scatters plot lines between points over time */
-    @computed private get isConnectedScatter(): boolean {
+    @computed private get isOnConnectedScatterTab(): boolean {
         return this.isOnScatterTab && !this.areHandlesOnSameTime
     }
 
@@ -2922,12 +3083,12 @@ export class GrapherState
 
         // Temporarily set isExportingToSvgOrPng to true
         const _isExportingToSvgOrPng = this.isExportingToSvgOrPng
-        this.isExportingToSvgOrPng = true
+        runInAction(() => (this.isExportingToSvgOrPng = true))
 
         const innerHTML = renderToHtmlString(<Chart manager={this} />)
 
         // Restore isExportingToSvgOrPng
-        this.isExportingToSvgOrPng = _isExportingToSvgOrPng
+        runInAction(() => (this.isExportingToSvgOrPng = _isExportingToSvgOrPng))
 
         return innerHTML
     }
@@ -3241,11 +3402,11 @@ export class GrapherState
         return this.base.current || undefined
     }
 
-    @computed private get analyticsContext(): GrapherAnalyticsContext {
+    @computed get analyticsContext(): GrapherAnalyticsContext {
         const ctx = this.manager?.analyticsContext
         return {
-            slug: ctx?.mdimSlug ?? this.slug,
-            viewConfigId: ctx?.mdimViewConfigId,
+            slug: ctx?.slug ?? this.slug,
+            viewConfigId: ctx?.viewConfigId,
             narrativeChartName: this.narrativeChartInfo?.name,
         }
     }
@@ -3277,10 +3438,6 @@ export class GrapherState
             ...this.analyticsContext,
             target,
         })
-    }
-
-    formatTimeFn(time: Time): string {
-        return this.inputTable.timeColumn.formatTime(time)
     }
 
     @computed get timeColumn(): TimeColumn | undefined {
@@ -3452,6 +3609,7 @@ export class GrapherState
             return this.selectedFacetStrategy
 
         if (
+            !this.isOnDumbbellTab &&
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
             this.selection.selectedEntityNames.length > 1
         ) {
@@ -3478,6 +3636,14 @@ export class GrapherState
             this.selection.numSelectedEntities > 1 &&
             this.yColumnSlugs.length > 1
         )
+    }
+
+    @computed get availableSortKeysAcrossChartTypes(): SortBy[] {
+        const keys = this.validChartTypes.flatMap(
+            (chartType) =>
+                makeChartState(chartType, this).availableSortKeys ?? []
+        )
+        return _.uniq(keys)
     }
 
     @computed get isInFullScreenMode(): boolean {
@@ -4008,7 +4174,11 @@ export class GrapherState
         if (this.isOnMapTab) return true
 
         if (this.numSelectableEntityNames < 2) return false
-        if (this.addCountryMode === EntitySelectionMode.MultipleEntities)
+        if (
+            this.addCountryMode === EntitySelectionMode.MultipleEntities ||
+            (this.isOnDumbbellTab &&
+                this.addCountryMode === EntitySelectionMode.SingleEntity)
+        )
             return true
 
         // If the chart is currently faceted by entity, then use multi-entity
@@ -4026,6 +4196,7 @@ export class GrapherState
         return (
             this.hasChartTab &&
             !this.isOnScatterTab &&
+            !this.isOnDumbbellTab &&
             !this.canSelectMultipleEntities &&
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
             this.numSelectableEntityNames > 1
@@ -4041,7 +4212,8 @@ export class GrapherState
                 this.isOnStackedAreaTab ||
                 this.isOnStackedBarTab ||
                 this.isOnDiscreteBarTab ||
-                this.isOnStackedDiscreteBarTab)
+                this.isOnStackedDiscreteBarTab ||
+                this.isOnDumbbellTab)
         )
     }
 
@@ -4064,14 +4236,7 @@ export class GrapherState
     }
 
     @computed get shouldShowEntitySelectorAs(): GrapherWindowType {
-        if (
-            this.frameBounds.width > 940 &&
-            // Don't use the panel if the grapher is embedded
-            ((!this.isInIFrame && !this.isEmbeddedInAnOwidPage) ||
-                // unless we're in full-screen mode
-                this.isInFullScreenMode)
-        )
-            return GrapherWindowType.panel
+        if (this.frameBounds.width > 940) return GrapherWindowType.panel
 
         return this.isSemiNarrow
             ? GrapherWindowType.modal

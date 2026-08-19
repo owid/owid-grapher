@@ -22,7 +22,7 @@ services:
       dockerfile: Dockerfile
       args:
         # [Choice] Node.js version: 16, 14, 12
-        VARIANT: 22
+        VARIANT: 24
         # On Linux, you may need to update USER_UID and USER_GID below if not your local UID is not 1000.
         #USER_UID: 1000
         #USER_GID: 1000
@@ -44,7 +44,7 @@ services:
 
   # Stock mysql database. Used for grapher database. Root password is hardcoded for now
   db:
-    image: mysql:8
+    image: mysql:8.4
     restart: always
     volumes:
       - mysql_data:/var/lib/mysql
@@ -59,7 +59,7 @@ services:
   # These init scripts check if the grapher database and users are missing, if so they create them
   # and pull the data to have a working dev environment.
   db-load-data:
-    image: mysql:8
+    image: mysql:8.4
     command: "/app/grapher-only-mysql-init.sh"
     volumes:
       - ./devTools/docker:/app

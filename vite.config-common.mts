@@ -16,7 +16,9 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
     const vitePort = parseInt(process.env.VITE_PORT || "8090", 10)
 
     return defineConfig({
-        publicDir: false, // don't copy public folder to dist
+        // Resolves absolute asset urls like /fonts/*.woff2 at build time; we
+        // don't copy the folder to dist (see build.copyPublicDir below).
+        publicDir: "public",
         css: {
             devSourcemap: true,
             preprocessorOptions: {
@@ -58,12 +60,14 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
         build: {
             manifest: true, // creates a manifest.json file, which we use to determine which files to load in prod
             emptyOutDir: true,
+            copyPublicDir: false, // don't copy the public folder to dist
+            // Our entry points are deliberately bundled into a single file each,
+            // so the default 500 kB warning only adds noise. The site bundle
+            // size is budgeted via Bundlemon instead.
+            chunkSizeWarningLimit: 10_000,
             outDir: `dist/${entrypointInfo.outDir}`,
             sourcemap: true,
             target: ["chrome106", "firefox110", "safari16.0"], // see docs/browser-support.md
-            commonjsOptions: {
-                strictRequires: "auto",
-            },
             rolldownOptions: {
                 input: {
                     [entrypointInfo.outName]: entrypointInfo.entryPointFile,

@@ -2,32 +2,35 @@
     "name": "owid-functions",
     "type": "module",
     "dependencies": {
+        "@algolia/requester-fetch": "5.53.0",
         "@ourworldindata/components": "workspace:^",
         "@ourworldindata/core-table": "workspace:^",
         "@ourworldindata/explorer": "workspace:^",
         "@ourworldindata/grapher": "workspace:^",
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
-        "@resvg/resvg-wasm": "^2.6.2",
-        "@sentry/cloudflare": "^10.51.0",
+        "@sentry/cloudflare": "^10.70.0",
+        "algoliasearch": "^5.53.0",
         "cookie": "^1.1.1",
         "itty-router": "^5.0.23",
         "littlezipper": "^0.1.5",
         "lodash-es": "^4.18.1",
+        "mobx": "^6.15.4",
         "react": "^19.2.4",
         "react-dom": "^19.2.4",
         "remeda": "^2.32.0",
+        "resvg-wasm": "patch:resvg-wasm@npm%3A0.5.0#~/.yarn/patches/resvg-wasm-npm-0.5.0-50778c75bc.patch",
         "stripe": "^14.20.0",
         "ts-pattern": "^5.8.0",
         "uuid": "^14.0.0",
-        "zod": "^4.1.11"
+        "zod": "^4.4.3"
     },
     "devDependencies": {
-        "@cloudflare/workers-types": "^4.20250510.0",
+        "@cloudflare/workers-types": "^5.20260809.1",
         "@types/lodash-es": "^4.17.12",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
-        "vitest": "^4.1.5",
-        "wrangler": "^4.75.0"
+        "vitest": "^4.1.10",
+        "wrangler": "^4.120.0"
     }
 }

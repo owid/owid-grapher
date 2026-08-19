@@ -13,11 +13,6 @@ $panel-gap: 12px;
     }
 }
 
-.responsive-container {
-    width: 100%;
-    height: 100%;
-}
-
 .nowrap {
     white-space: nowrap;
 }
@@ -214,21 +209,6 @@ $panel-gap: 12px;
     .parameters-panel .chart-panel__content {
         flex: none;
         height: 80px;
-    }
-}
-
-.demography-controls {
-    .demography-controls__title {
-        @include grapher_h5-black-caps;
-        color: $light-text;
-        margin: 0;
-        margin-bottom: 12px;
-
-        .breakpoint-medium &,
-        .breakpoint-small &,
-        .breakpoint-narrow & {
-            font-size: 0.6875rem;
-        }
     }
 }
 
@@ -506,7 +486,6 @@ $panel-gap: 12px;
     .assumptions-table__arrow {
         width: 10px;
         height: 10px;
-        fill: $modified-accent;
     }
 }
 
@@ -747,21 +726,6 @@ $panel-gap: 12px;
     font-size: 0.7em;
 }
 
-.demography-spinner {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 10;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: $gray-100;
-}
-
 .breakpoint-medium,
 .breakpoint-small,
 .breakpoint-narrow {
@@ -903,7 +867,7 @@ $panel-gap: 12px;
     height: 600px;
     border: 1px solid $frame-color;
 
-    .demography-spinner {
+    .spinner {
         color: $gray-60;
     }
 }

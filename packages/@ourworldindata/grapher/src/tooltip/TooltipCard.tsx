@@ -1,7 +1,7 @@
 import * as React from "react"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import classnames from "classnames"
+import classnames from "clsx"
 import { match } from "ts-pattern"
 import * as R from "remeda"
 import {

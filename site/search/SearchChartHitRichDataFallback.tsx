@@ -1,7 +1,7 @@
 import { useIntersectionObserver } from "usehooks-ts"
 import { SearchChartHitComponentProps } from "@ourworldindata/types"
 import { useMemo } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import {
     constructChartUrl,
     pickEntitiesForChartHit,

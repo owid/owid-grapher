@@ -217,10 +217,11 @@ export class OwidAdminApp {
         )
         this.server.timeout = 8 * 60 * 1000 // Increase server timeout for long-running uploads
 
-        if (!this.options.quiet)
+        if (!this.options.quiet) {
             console.log(
                 `owid-admin server started on http://${adminServerHost}:${adminServerPort}`
             )
+        }
     }
 
     // Server.listen does not seem to have an async/await form yet.
@@ -231,10 +232,30 @@ export class OwidAdminApp {
         adminServerPort: number,
         adminServerHost: string
     ): Promise<http.Server> {
-        return new Promise((resolve) => {
-            const server = app.listen(adminServerPort, adminServerHost, () => {
-                resolve(server)
-            })
+        return new Promise((resolve, reject) => {
+            const server: http.Server = app
+                .listen(adminServerPort, adminServerHost, () => {
+                    // Node can invoke this callback even when the bind
+                    // ultimately fails (the 'error' handler below then fires
+                    // right after) - only resolve once the server is
+                    // actually bound, or a failed bind can still resolve
+                    // this promise with a dead server.
+                    if (server.listening && server.address()) resolve(server)
+                })
+                .on("error", (err: NodeJS.ErrnoException) => {
+                    if (err.code === "EADDRINUSE") {
+                        const hint = this.options.isDev
+                            ? ` If another worktree's dev server is already running, set ADMIN_SERVER_PORT (and VITE_PORT to match) to a free port pair and restart, e.g.:\n  ADMIN_SERVER_PORT=3031 VITE_PORT=8091 yarn startAdminDevServer`
+                            : ""
+                        reject(
+                            new Error(
+                                `Port ${adminServerPort} is already in use.${hint}`
+                            )
+                        )
+                    } else {
+                        reject(err)
+                    }
+                })
         })
     }
 

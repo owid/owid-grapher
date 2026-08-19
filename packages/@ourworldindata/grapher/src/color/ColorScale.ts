@@ -189,6 +189,10 @@ export class ColorScale {
         return this.customCategoryColors[NO_DATA_LABEL]
     }
 
+    @computed get noDataLabel(): string {
+        return this.customCategoryLabels[NO_DATA_LABEL] ?? NO_DATA_LABEL
+    }
+
     @computed get baseColors(): Color[] {
         const { categoricalValues, colorScheme, isColorSchemeInverted } = this
         const numColors = this.numNumericBins + categoricalValues.length

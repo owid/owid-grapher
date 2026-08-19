@@ -1,6 +1,6 @@
 import * as R from "remeda"
 import { useMemo } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { useIntersectionObserver, useMediaQuery } from "usehooks-ts"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { match } from "ts-pattern"
@@ -233,7 +233,10 @@ export function SearchChartHitRichData({
                                 key={grapherTab}
                                 chartUrl={chartUrl}
                                 dataTableContent={data.dataTable}
-                                numAvailableEntities={availableEntities.length}
+                                numAvailableEntities={
+                                    data.numAvailableEntities ??
+                                    availableEntities.length
+                                }
                                 numRowsPerColumn={numDataTableRowsPerColumn}
                                 entityType={data.entityType}
                                 entityTypePlural={data.entityTypePlural}

@@ -4,7 +4,7 @@ import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../../core/GrapherConstants"
 import { FacetStrategy } from "@ourworldindata/utils"
-import classnames from "classnames"
+import classnames from "clsx"
 
 export interface FacetStrategySelectionManager {
     availableFacetStrategies: FacetStrategy[]

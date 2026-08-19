@@ -275,6 +275,7 @@ async function generateGdocRecords(
         let i = 0
 
         const thumbnailUrl = getThumbnailUrl(gdoc, cloudflareImagesByFilename)
+        const path = getPrefixedGdocPath("", gdoc)
 
         const originalTagNames = gdoc.tags?.map((t) => t.name) ?? []
         // Some Gdocs don't have topic tags by design (e.g. announcements)
@@ -292,10 +293,10 @@ async function generateGdocRecords(
                 importance: getPostImportance(gdoc),
                 type: gdoc.content.type,
                 slug: gdoc.slug,
+                path,
                 title: gdoc.content.title || "",
                 content: flattenToSingleLine(chunk),
-                views_7d:
-                    pageviews[getPrefixedGdocPath("", gdoc)]?.views_7d ?? 0,
+                views_7d: pageviews[path]?.views_7d ?? 0,
                 excerpt: getExcerptFromGdoc(gdoc),
                 excerptLong: getExcerptLongFromGdoc(gdoc),
                 date: gdoc.publishedAt!.toISOString(),
@@ -363,6 +364,10 @@ async function generateProfileRecords(
         const chunks = chunkParagraphs(plaintextContent, 1000)
 
         const slug = getSlugForProfileEntity(profileTemplate, entity)
+        const path = getPrefixedGdocPath("", {
+            slug,
+            content: { type: OwidGdocType.Profile },
+        })
         const thumbnailUrl = getThumbnailUrl(
             instantiatedProfile,
             cloudflareImagesByFilename
@@ -374,17 +379,12 @@ async function generateProfileRecords(
                 importance: getPostImportance(profileTemplate),
                 type: OwidGdocType.Profile,
                 slug,
+                path,
                 title: instantiatedProfile.content.title
                     ? `${instantiatedProfile.content.title} in ${articulateEntity(entity.name)}`
                     : "",
                 content: chunks[i],
-                views_7d:
-                    pageviews[
-                        getPrefixedGdocPath("", {
-                            slug,
-                            content: { type: OwidGdocType.Profile },
-                        })
-                    ]?.views_7d ?? 0,
+                views_7d: pageviews[path]?.views_7d ?? 0,
                 excerpt: instantiatedProfile.content.excerpt ?? "",
                 date: profileTemplate.publishedAt!.toISOString(),
                 modifiedDate: (
@@ -431,9 +431,8 @@ export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
         await (gdoc as GdocBase).loadAndClearLinkedCallouts(knex)
     }
 
-    const cloudflareImagesByFilename = await db
-        .getCloudflareImages(knex)
-        .then((images) => _.keyBy(images, "filename"))
+    const cloudflareImagesByFilename =
+        await db.getCloudflareImagesByFilename(knex)
 
     const gdocsRecords = await generateGdocRecords(
         gdocs,
@@ -461,27 +460,27 @@ export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
     return [...gdocsRecords, ...profileRecords]
 }
 
-async function getExistingRecordsForSlug(
+async function getExistingRecordsForPath(
     searchClient: SearchClient,
     indexName: string,
-    slug: string
+    path: string
 ): Promise<Hit[]> {
     const settings = await searchClient.getSettings({ indexName })
-    // Settings can be specified with a modifier, e.g. `filterOnly(slug)`.
-    if (!settings.attributesForFaceting?.some((a) => a.includes("slug"))) {
+    // Settings can be specified with a modifier, e.g. `filterOnly(path)`.
+    if (!settings.attributesForFaceting?.some((a) => a.includes("path"))) {
         await logErrorAndMaybeCaptureInSentry(
             new Error(
-                "Attribute 'slug' must be set in the index's attributesForFaceting " +
+                "Attribute 'path' must be set in the index's attributesForFaceting " +
                     "to get existing records in Algolia."
             )
         )
     }
     const existingRecordsForPost: Hit[] = []
-    await searchClient.browseObjects({
+    await searchClient.browseObjects<Hit>({
         indexName,
         browseParams: {
             attributesToRetrieve: ["objectID"],
-            filters: `slug:${slug}`,
+            filters: `path:"${path}"`,
         },
         // This is the way you get results from browseObjects for some reason 🤷
         aggregator: (batch) => existingRecordsForPost.push(...batch.hits),
@@ -495,13 +494,16 @@ async function getExistingRecordsForSlug(
  * If it's an existing post:
  * - existing records will be overwritten if the new post gets chunked into the same number of records (i.e. they're approx. the same length)
  * - otherwise the old records will be deleted and new ones will be created
- * To delete old records, we need to know the slug of the post before it was updated.
+ * To delete old records, we need to know the path of the post before it was updated
+ * (derived from its slug before it changed, if it changed).
  * - We can't search by objectID because it's not a queryable field
  * - We can't filter by objectID because filters require exact matches and we can't know the objectIDs beforehand
  *   - They're of the form `${gdoc.id}-c${chunkNumber}` but we don't know how many chunks exist
+ * - We filter by `path` rather than the bare `slug`, since different gdoc types can share the
+ *   same slug while resolving to different pages (e.g. a data insight and an article) - see #6591.
  */
-export async function indexIndividualGdocPost(
-    gdoc: OwidGdocPostInterface,
+export async function indexIndividualGdoc(
+    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface,
     knex: db.KnexReadonlyTransaction,
     indexedSlug: string
 ) {
@@ -531,31 +533,39 @@ export async function indexIndividualGdocPost(
     }
     const indexName = PAGES_INDEX
 
-    const existingRecordsForPost: Hit[] = await getExistingRecordsForSlug(
-        client,
-        indexName,
-        indexedSlug
-    )
+    const indexedPath = getPrefixedGdocPath("", {
+        slug: indexedSlug,
+        content: gdoc.content,
+    })
 
-    if (
-        "deprecation-notice" in gdoc.content &&
-        gdoc.content["deprecation-notice"]
-    ) {
-        console.log(
-            `Not indexing Gdoc post ${gdoc.id} because it's deprecated. Removing any existing records.`
-        )
-        if (existingRecordsForPost.length) {
-            await client.deleteObjects({
-                indexName,
-                objectIDs: existingRecordsForPost.map((r) => r.objectID),
-            })
-        }
-        return
-    }
-
-    const records = await getIndividualGdocRecords(gdoc, knex)
-
+    // Indexing is best-effort: the admin calls this from inside the read-write
+    // transaction that saves the gdoc, so anything thrown here would roll back
+    // the content edit. Log and carry on instead.
     try {
+        const existingRecordsForPost: Hit[] = await getExistingRecordsForPath(
+            client,
+            indexName,
+            indexedPath
+        )
+
+        if (
+            "deprecation-notice" in gdoc.content &&
+            gdoc.content["deprecation-notice"]
+        ) {
+            console.log(
+                `Not indexing Gdoc post ${gdoc.id} because it's deprecated. Removing any existing records.`
+            )
+            if (existingRecordsForPost.length) {
+                await client.deleteObjects({
+                    indexName,
+                    objectIDs: existingRecordsForPost.map((r) => r.objectID),
+                })
+            }
+            return
+        }
+
+        const records = await getIndividualGdocRecords(gdoc, knex, indexedSlug)
+
         if (
             existingRecordsForPost.length &&
             existingRecordsForPost.length !== records.length
@@ -575,11 +585,13 @@ export async function indexIndividualGdocPost(
         // so this will safely overwrite them or create new ones
         await client.saveObjects({
             indexName,
-            objects: records as Array<Record<string, any>>,
+            objects: records,
         })
         console.log("Updated Algolia index for Gdoc post", gdoc.slug)
     } catch (e) {
-        console.error("Error indexing Gdoc post to Algolia: ", e)
+        await logErrorAndMaybeCaptureInSentry(
+            new Error("Error indexing Gdoc post to Algolia", { cause: e })
+        )
     }
 }
 
@@ -592,19 +604,23 @@ export async function getIndividualGdocRecords(
     indexedSlug?: string
 ) {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
-    const cloudflareImagesByFilename = await db
-        .getCloudflareImages(knex)
-        .then((images) => _.keyBy(images, "filename"))
+    const cloudflareImagesByFilename =
+        await db.getCloudflareImagesByFilename(knex)
 
+    const currentPath = getPrefixedGdocPath("", gdoc)
     // Use indexedSlug if provided (for slug changes), otherwise use gdoc.slug
-    const existingPageviews = pageviews[`/${indexedSlug ?? gdoc.slug}`]
+    const indexedPath = getPrefixedGdocPath("", {
+        slug: indexedSlug ?? gdoc.slug,
+        content: gdoc.content,
+    })
+    const existingPageviews = pageviews[indexedPath]
     const pageviewsForGdoc = {
-        [gdoc.slug]: existingPageviews || {
+        [currentPath]: existingPageviews || {
             views_7d: 0,
             views_14d: 0,
             views_365d: 0,
             day: new Date(),
-            url: gdoc.slug,
+            url: currentPath,
         },
     }
 
@@ -616,9 +632,10 @@ export async function getIndividualGdocRecords(
     )
 }
 
-export async function removeIndividualGdocPostFromIndex(
-    gdoc: OwidGdocPostInterface
-) {
+export async function removeIndividualGdocFromIndex(gdoc: {
+    slug: string
+    content: { type?: OwidGdocType }
+}) {
     if (!ALGOLIA_INDEXING) return
     const client = getAlgoliaClient()
     if (!client) {
@@ -628,21 +645,28 @@ export async function removeIndividualGdocPostFromIndex(
         return
     }
     const indexName = PAGES_INDEX
-    const existingRecordsForPost: Hit[] = await getExistingRecordsForSlug(
-        client,
-        indexName,
-        gdoc.slug
-    )
+    const path = getPrefixedGdocPath("", gdoc)
 
+    // Best-effort, for the same reason as in `indexIndividualGdoc`.
     try {
-        console.log("Removing Gdoc post from Algolia index", gdoc.slug)
+        const existingRecordsForPost: Hit[] = await getExistingRecordsForPath(
+            client,
+            indexName,
+            path
+        )
+
+        console.log("Removing Gdoc post from Algolia index", path)
         await client.deleteObjects({
             indexName,
             objectIDs: existingRecordsForPost.map((r) => r.objectID),
         })
-        console.log("Removed Gdoc post from Algolia index", gdoc.slug)
+        console.log("Removed Gdoc post from Algolia index", path)
     } catch (e) {
-        console.error("Error removing Gdoc post from Algolia index: ", e)
+        await logErrorAndMaybeCaptureInSentry(
+            new Error("Error removing Gdoc post from Algolia index", {
+                cause: e,
+            })
+        )
     }
 }
 
@@ -656,7 +680,7 @@ async function getExistingRecordsForProfileTemplate(
     templateId: string
 ): Promise<Hit[]> {
     const existingRecords: Hit[] = []
-    await searchClient.browseObjects({
+    await searchClient.browseObjects<Hit>({
         indexName,
         browseParams: {
             attributesToRetrieve: ["objectID"],
@@ -708,49 +732,51 @@ export async function indexIndividualProfile(
     }
     const indexName = PAGES_INDEX
 
-    const existingRecords = await getExistingRecordsForProfileTemplate(
-        client,
-        indexName,
-        profileTemplate.id
-    )
-
-    if (existingRecords.length > 0) {
-        console.log(
-            `Deleting ${existingRecords.length} existing Algolia records for profile template`,
-            profileTemplate.slug
-        )
-        await client.deleteObjects({
-            indexName,
-            objectIDs: existingRecords.map((r) => r.objectID),
-        })
-    }
-
-    // Generate new records for all entities in scope
-    const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
-    const cloudflareImagesByFilename = await db
-        .getCloudflareImages(knex)
-        .then((images) => _.keyBy(images, "filename"))
-
-    const records = await generateProfileRecords(
-        profileTemplate,
-        pageviews,
-        cloudflareImagesByFilename,
-        knex
-    )
-
+    // Best-effort, for the same reason as in `indexIndividualGdoc`.
     try {
+        const existingRecords = await getExistingRecordsForProfileTemplate(
+            client,
+            indexName,
+            profileTemplate.id
+        )
+
+        if (existingRecords.length > 0) {
+            console.log(
+                `Deleting ${existingRecords.length} existing Algolia records for profile template`,
+                profileTemplate.slug
+            )
+            await client.deleteObjects({
+                indexName,
+                objectIDs: existingRecords.map((r) => r.objectID),
+            })
+        }
+
+        // Generate new records for all entities in scope
+        const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
+        const cloudflareImagesByFilename =
+            await db.getCloudflareImagesByFilename(knex)
+
+        const records = await generateProfileRecords(
+            profileTemplate,
+            pageviews,
+            cloudflareImagesByFilename,
+            knex
+        )
+
         console.log(
             `Updating Algolia index for profile template ${profileTemplate.slug} (${records.length} records)`
         )
         await client.saveObjects({
             indexName,
-            objects: records as Array<Record<string, any>>,
+            objects: records,
         })
         console.log(
             `Updated Algolia index for profile template ${profileTemplate.slug}`
         )
     } catch (e) {
-        console.error("Error indexing profile to Algolia: ", e)
+        await logErrorAndMaybeCaptureInSentry(
+            new Error("Error indexing profile to Algolia", { cause: e })
+        )
     }
 }
 
@@ -770,20 +796,21 @@ export async function removeIndividualProfileFromIndex(
         return
     }
 
-    const existingRecords = await getExistingRecordsForProfileTemplate(
-        client,
-        PAGES_INDEX,
-        profileTemplate.id
-    )
-
-    if (existingRecords.length === 0) {
-        console.log(
-            `No existing records found for profile template ${profileTemplate.slug}`
-        )
-        return
-    }
-
+    // Best-effort, for the same reason as in `indexIndividualGdoc`.
     try {
+        const existingRecords = await getExistingRecordsForProfileTemplate(
+            client,
+            PAGES_INDEX,
+            profileTemplate.id
+        )
+
+        if (existingRecords.length === 0) {
+            console.log(
+                `No existing records found for profile template ${profileTemplate.slug}`
+            )
+            return
+        }
+
         console.log(
             `Removing ${existingRecords.length} records for profile template from Algolia index`,
             profileTemplate.slug
@@ -797,6 +824,10 @@ export async function removeIndividualProfileFromIndex(
             profileTemplate.slug
         )
     } catch (e) {
-        console.error("Error removing profile template from Algolia index: ", e)
+        await logErrorAndMaybeCaptureInSentry(
+            new Error("Error removing profile template from Algolia index", {
+                cause: e,
+            })
+        )
     }
 }

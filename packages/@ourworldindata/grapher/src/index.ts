@@ -1,4 +1,9 @@
 export {
+    BezierArrow,
+    type BezierArrowProps,
+    type HeadAnchor,
+} from "./arrows/BezierArrow"
+export {
     NumericBin,
     CategoricalBin,
     type ColorScaleBin,
@@ -32,13 +37,12 @@ export {
     WORLD_ENTITY_NAME,
     Patterns,
     CONTINENTS_INDICATOR_ID,
-    POPULATION_INDICATOR_ID_USED_IN_ADMIN,
-    GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ADMIN,
     latestGrapherConfigSchema,
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
     ADDITIONAL_REGION_DATA_PROVIDERS,
     type AdditionalRegionDataProvider,
+    type FontSettings,
 } from "./core/GrapherConstants"
 export { OWID_LOGO_SVG, OWID_WORDMARK_SVG } from "./captionedChart/LogosSVG.js"
 export {
@@ -48,17 +52,33 @@ export {
 export { ColorScale } from "./color/ColorScale"
 export { ColorScaleConfig } from "./color/ColorScaleConfig"
 export { ColorScheme } from "./color/ColorScheme"
-export { GRAPHER_BACKGROUND } from "./color/ColorConstants"
+export {
+    GRAPHER_BACKGROUND,
+    GRAPHER_DENIM,
+    GRAPHER_DARK_TEXT,
+    GRAPHER_LIGHT_TEXT,
+    GRAY_60,
+    GRAY_70,
+    GRAY_80,
+    GRAY_90,
+    GRAY_100,
+} from "./color/ColorConstants"
+export { darkenColorForText } from "./color/ColorUtils"
 export {
     getColorNameOwidDistinctAndSemanticPalettes,
     getColorNameOwidDistinctLinesAndSemanticPalettes,
+    OwidDistinctColors,
+    OwidMapColors,
+    OwidDistinctLinesColors,
+    EnergyColors,
+    ContinentColors,
+    MapContinentColors,
 } from "./color/CustomSchemes"
 export { ColorSchemes } from "./color/ColorSchemes"
 export { DimensionSlot } from "./chart/DimensionSlot"
 export { EntityPicker } from "./controls/entityPicker/EntityPicker"
 export type { EntityPickerManager } from "./controls/entityPicker/EntityPickerConstants"
 export { getColorSchemeForChartType } from "./color/ColorSchemes"
-export { OwidMapColors } from "./color/CustomSchemes"
 export {
     isCategoricalBin,
     isNumericBin,
@@ -80,6 +100,11 @@ export {
 export { getErrorMessageRelatedQuestionUrl } from "./core/relatedQuestion"
 export { MapChartState } from "./mapCharts/MapChartState"
 export { MapConfig } from "./mapCharts/MapConfig"
+export {
+    getRegionsForKey,
+    type TooltipKey,
+} from "./seriesLabel/RegionTooltipData"
+export { regionGroupLabels } from "./core/RegionGroups"
 export {
     MAP_REGION_LABELS,
     type GeoFeature,
@@ -132,8 +157,8 @@ export {
 export { GeoFeatures } from "./mapCharts/GeoFeatures"
 export { isValidVerticalComparisonLineConfig } from "./comparisonLine/ComparisonLineHelpers"
 export { hasValidConfigForBinningStrategy } from "./color/BinningStrategies"
-export { Dropdown } from "./controls/Dropdown"
-export { EXTERNAL_SORT_INDICATOR_DEFINITIONS } from "./entitySelector/EntitySelector.js"
+export { type BasicDropdownOption, Dropdown } from "./controls/Dropdown"
+export { EXTERNAL_SORT_INDICATOR_DEFINITIONS } from "./entitySelector/EntitySelectorConstants.js"
 
 export { makeChartState } from "./chart/ChartTypeMap"
 export type { ChartState } from "./chart/ChartInterface"
@@ -147,6 +172,7 @@ export type { StackedBarChartState } from "./stackedCharts/StackedBarChartState.
 export type { StackedDiscreteBarChartState } from "./stackedCharts/StackedDiscreteBarChartState"
 export type { ScatterPlotChartState } from "./scatterCharts/ScatterPlotChartState"
 export type { MarimekkoChartState } from "./stackedCharts/MarimekkoChartState"
+export type { DumbbellChartState } from "./dumbbellCharts/DumbbellChartState"
 
 export {
     selectPeerCountriesForGrapher,
@@ -181,3 +207,10 @@ export {
     useElementBounds,
     useStateWithDebouncedClear,
 } from "./hooks.js"
+
+export { codeToEntityName, entityNameToCode } from "./core/EntityCodes.js"
+
+export {
+    DumbbellMode,
+    DEFAULT_DUMBBELL_TREND_COLOR_MAP,
+} from "./dumbbellCharts/DumbbellChartConstants"

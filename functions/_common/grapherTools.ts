@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import { runInAction } from "mobx"
 import {
     CsvDownloadType,
     type DataDownloadContextBase,
@@ -209,7 +210,7 @@ export async function fetchGrapherConfig({
     if (fetchResponse.status === 404) {
         // we throw 404 errors instead of returning a 404 response so that the router
         // catch handler can do a lookup in the redirects file and maybe send
-        // a 302 redirect response
+        // a 301 redirect response
         throw new StatusError(404)
     }
 
@@ -316,14 +317,14 @@ export async function initGrapher(
     if (grapherConfigResponse.status === 404) {
         // we throw 404 errors instad of returning a 404 response so that the router
         // catch handler can do a lookup in the redirects file and maybe send
-        // a 302 redirect response
+        // a 301 redirect response
         throw new StatusError(grapherConfigResponse.status)
     }
 
-    const additionalDataLoaderFn = ((catalogKey) =>
+    const additionalDataLoaderFn: AdditionalGrapherDataFetchFn = (catalogKey) =>
         loadCatalogData(catalogKey, {
             baseUrl: env.CATALOG_URL,
-        })) as AdditionalGrapherDataFetchFn
+        })
 
     const bounds = new Bounds(0, 0, options.svgWidth, options.svgHeight)
     const grapherState = new GrapherState({
@@ -341,8 +342,10 @@ export async function initGrapher(
         additionalDataLoaderFn,
         ...options.grapherProps,
     })
-    grapherState.isExportingToSvgOrPng = true
-    grapherState.shouldIncludeDetailsInStaticExport = options.details
+    runInAction(() => {
+        grapherState.isExportingToSvgOrPng = true
+        grapherState.shouldIncludeDetailsInStaticExport = options.details
+    })
     const grapher = new Grapher({ grapherState })
 
     return {
@@ -366,6 +369,7 @@ export function rewriteMetaTags(
     // Take the origin (e.g. https://ourworldindata.org) from the canonical URL, which should appear before the image elements.
     // If we fail to capture the origin, we end up with relative image URLs, which should also be okay.
     let origin = ""
+    let mdimDimensionsObj: Record<string, string> | undefined = undefined
 
     const thumbnailUrl = `${url.pathname}.png${url.search}`
     const downloadCtxBase = getDownloadContextBase(url)
@@ -386,6 +390,52 @@ export function rewriteMetaTags(
             element: (img) => {
                 if (thumbnailUrl) {
                     img.setAttribute("src", thumbnailUrl)
+                }
+            },
+        })
+        .on("head", {
+            element: (element) => {
+                // HTMLRewriter doesn't un-encode &quot; in attribute values, so we need to replace them before parsing the JSON.
+                const dimensionsAttr = element
+                    .getAttribute("data-owid-mdim-initial-view-dimensions")
+                    ?.replaceAll("&quot;", '"')
+
+                if (dimensionsAttr) {
+                    try {
+                        mdimDimensionsObj = JSON.parse(
+                            dimensionsAttr
+                        ) as Record<string, string>
+                    } catch (e) {
+                        console.error("Error parsing dimensions JSON", e)
+                    }
+                }
+            },
+        })
+        .on('link[rel="canonical"]', {
+            // Rewrite the canonical URL for Multi-Dim pages to preserve only the valid dimension query parameters.
+            // This ensures search engines index specific dimension configurations separately while ignoring other query parameters.
+            element: (element) => {
+                const href = element.getAttribute("href")
+                if (href && mdimDimensionsObj) {
+                    try {
+                        const searchParams = url.searchParams
+                        const newSearchParams = new URLSearchParams()
+                        for (const [dim, defaultChoice] of Object.entries(
+                            mdimDimensionsObj
+                        )) {
+                            const value = searchParams.get(dim) ?? defaultChoice
+                            newSearchParams.set(dim, value)
+                        }
+                        newSearchParams.sort() // Sort parameters for consistent ordering in the URL
+                        if (newSearchParams.toString()) {
+                            element.setAttribute(
+                                "href",
+                                href + "?" + newSearchParams.toString()
+                            )
+                        }
+                    } catch (e) {
+                        console.error("Error rewriting canonical URL", e)
+                    }
                 }
             },
         })

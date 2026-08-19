@@ -40,11 +40,10 @@ export const NarrativeChartNameModal = (props: {
             title="Save as narrative chart"
             open={props.isOpen}
             onCancel={props.onCancel}
-            onClose={props.onCancel}
             okText="Create"
             okButtonProps={{ htmlType: "submit" }}
             confirmLoading={confirmLoading}
-            destroyOnClose
+            destroyOnHidden
             modalRender={(modal) => (
                 <Form
                     form={form}

@@ -1,27 +1,17 @@
 import * as _ from "lodash-es"
-import cx from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import cx from "clsx"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
-import dayjs from "dayjs"
 
 import {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
     SimpleMarkdownText,
     ExpandableToggle,
     HtmlOrSimpleMarkdownText,
+    Button,
 } from "@ourworldindata/components"
-import { DataPageDataV2, OwidOrigin } from "@ourworldindata/types"
+import { DataPageDataV2 } from "@ourworldindata/types"
 import KeyDataTable from "./KeyDataTable.js"
-
-function getYearSuffixFromOrigin(origin: OwidOrigin) {
-    const year = origin.dateAccessed
-        ? dayjs(origin.dateAccessed, ["YYYY-MM-DD", "YYYY"]).year()
-        : origin.datePublished
-          ? dayjs(origin.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
-          : undefined
-    if (year) return ` (${year})`
-    else return ""
-}
+import { getAttributionUnshortened } from "./datapageUtils.js"
 
 export default function AboutThisData({
     datapageData,
@@ -34,15 +24,8 @@ export default function AboutThisData({
     className?: string
     id?: string
 }) {
-    const hasDescriptionKey =
-        datapageData.descriptionKey && datapageData.descriptionKey.length > 0
-    const producersWithYear = _.uniq(
-        datapageData.origins.map(
-            (o) => `${o.producer}${getYearSuffixFromOrigin(o)}`
-        )
-    )
-    const attributionFragments = datapageData.attributions ?? producersWithYear
-    const attributionUnshortened = attributionFragments.join("; ")
+    const hasDescriptionKey = !!datapageData.descriptionKey
+    const attributionUnshortened = getAttributionUnshortened(datapageData)
     const id_ = id ?? DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
 
     return (
@@ -61,40 +44,11 @@ export default function AboutThisData({
                     </h2>
                     <div className="col-start-1 span-cols-8 span-lg-cols-7 span-sm-cols-12">
                         <div className="key-info__content">
-                            {hasDescriptionKey && (
+                            {datapageData.descriptionKey && (
                                 <div className="key-info__key-description">
-                                    {datapageData.descriptionKey.length ===
-                                    1 ? (
-                                        <SimpleMarkdownText
-                                            text={datapageData.descriptionKey[0].trim()}
-                                        />
-                                    ) : (
-                                        <ul>
-                                            {datapageData.descriptionKey.map(
-                                                (text, i) => (
-                                                    <li key={i}>
-                                                        <SimpleMarkdownText
-                                                            text={text.trim()}
-                                                            useParagraphs={
-                                                                false
-                                                            }
-                                                        />
-                                                    </li>
-                                                )
-                                            )}
-                                        </ul>
-                                    )}
-                                    {hasFaq && (
-                                        <a
-                                            className="key-info__learn-more"
-                                            href="#faqs"
-                                        >
-                                            Learn more in the FAQs
-                                            <FontAwesomeIcon
-                                                icon={faArrowDown}
-                                            />
-                                        </a>
-                                    )}
+                                    <SimpleMarkdownText
+                                        text={datapageData.descriptionKey.trim()}
+                                    />
                                 </div>
                             )}
 
@@ -135,6 +89,15 @@ export default function AboutThisData({
                                 )}
                             </div>
                         </div>
+                        {hasDescriptionKey && hasFaq && (
+                            <Button
+                                className="key-info__learn-more"
+                                theme="solid-light-blue"
+                                text="Learn more in the FAQs"
+                                href="#faqs"
+                                icon={faArrowDown}
+                            />
+                        )}
                     </div>
                     <div className="key-info__right span-cols-4 span-lg-cols-5 span-sm-cols-12">
                         <KeyDataTable

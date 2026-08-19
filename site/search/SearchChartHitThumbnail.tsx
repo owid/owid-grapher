@@ -1,7 +1,7 @@
 import { faHeartBroken } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useState } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import {
     GRAPHER_THUMBNAIL_HEIGHT,
     GRAPHER_THUMBNAIL_WIDTH,

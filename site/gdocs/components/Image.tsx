@@ -6,7 +6,7 @@ import {
     readFromAssetMap,
     triggerDownloadFromBlob,
 } from "@ourworldindata/utils"
-import cx from "classnames"
+import cx from "clsx"
 import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
 import { useDocumentContext } from "../DocumentContext.js"
 import { useImage } from "../utils.js"
@@ -41,10 +41,8 @@ export type ImageParentContainer =
     | "thumbnail"
     | "full-width"
     | "person"
-    | "span-5"
-    | "span-6"
-    | "span-7"
-    | "span-8"
+    | "latest-article"
+    | "latest-data-insight"
     | "chart-rows"
     | "pull-chart"
 
@@ -55,20 +53,19 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["sticky-left-left-column"]: gridSpan7,
     ["sticky-left-right-column"]: gridSpan5,
     ["side-by-side"]: gridSpan6,
-    ["summary"]: gridSpan6,
     ["thumbnail"]: "350px",
     ["datapage"]: gridSpan6,
     ["data-insight"]: "100%",
     ["full-width"]: "100vw",
     ["key-insight"]: gridSpan5,
+    ["key-insight-asset"]: gridSpan7,
     ["about-page"]: gridSpan8,
     ["author-byline"]: "48px",
     ["author-header"]: gridSpan2,
     ["person"]: gridSpan2,
-    ["span-5"]: gridSpan5,
-    ["span-6"]: gridSpan6,
-    ["span-7"]: gridSpan7,
-    ["span-8"]: gridSpan8,
+    ["latest-article"]: gridSpan3Sm,
+    ["latest-data-insight"]: gridSpan5,
+    ["latest-announcement"]: gridSpan6,
     ["chart-rows"]: gridSpan3Sm,
     ["pull-chart"]: gridSpan3Sm,
 }
@@ -185,7 +182,7 @@ export default function Image(props: {
         isInteractive && !shouldHideDownloadButton ? (
             <FloatingDownloadButton
                 label="Download"
-                onClick={() => void handleDownload()}
+                onClick={() => handleDownload()}
             />
         ) : null
 

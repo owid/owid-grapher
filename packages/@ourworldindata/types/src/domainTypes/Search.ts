@@ -1,9 +1,4 @@
-import type {
-    SearchResponse,
-    BaseHit,
-    Hit,
-    HitHighlightResult,
-} from "instantsearch.js"
+import type { HighlightResultOption, SnippetResultOption } from "algoliasearch"
 import { OwidGdocType } from "../gdocTypes/Gdoc.js"
 import { GrapherTabName } from "../grapherTypes/GrapherTypes.js"
 import * as z from "zod/mini"
@@ -13,6 +8,11 @@ export const PagesIndexRecordSchema = z.object({
     importance: z.number(),
     type: z.enum(OwidGdocType),
     slug: z.string(),
+    // Full path to the record's page (e.g. `/data-insights/foo` vs `/foo`).
+    // Used for `attributeForDistinct` instead of `slug`, since a data
+    // insight and an article (or other gdoc) can share the same bare slug
+    // while still resolving to different pages.
+    path: z.string(),
     title: z.string(),
     content: z.string(),
     views_7d: z.number(),
@@ -29,20 +29,6 @@ export const PagesIndexRecordSchema = z.object({
 
 export type PageRecord = z.infer<typeof PagesIndexRecordSchema>
 
-// Lightweight record for the chronological pages index (one per page, no chunked content)
-export type PageChronologicalRecord = {
-    objectID: string
-    type: string
-    slug: string
-    title: string
-    excerpt: string
-    date: string
-    modifiedDate: string
-    authors: string[]
-    tags: string[]
-    thumbnailUrl: string
-}
-
 export const PagesIndexRecordsResponseSchema = z.object({
     records: z.array(PagesIndexRecordSchema),
     count: z.number(),
@@ -52,8 +38,6 @@ export const PagesIndexRecordsResponseSchema = z.object({
 export type PagesIndexRecordsResponse = z.infer<
     typeof PagesIndexRecordsResponseSchema
 >
-
-export type IPageHit = PageRecord & Hit<BaseHit>
 
 export enum ChartRecordType {
     Chart = "chart",
@@ -78,6 +62,7 @@ export interface ChartRecord {
     containerTitle?: string
     subtitle: string | undefined
     variantName: string
+    titleVariant?: string
     availableTabs: GrapherTabName[]
     keyChartForTags: string[]
     tags: string[]
@@ -114,8 +99,6 @@ export interface ChartRecord {
     id: string
 }
 
-export type IChartHit = Hit<BaseHit> & ChartRecord
-
 export enum SearchIndexName {
     Pages = "pages",
     PagesChronological = "pages-chronological",
@@ -130,11 +113,21 @@ interface BaseSearchChartHit {
     originalAvailableEntities?: string[]
     objectID: string
     variantName?: string
+    titleVariant?: string
     subtitle?: string
     availableTabs: GrapherTabName[]
+    /**
+     * Required by react-instantsearch's `<Highlight>`/`<Snippet>` components:
+     * their `hit` prop must satisfy instantsearch.js's `Hit<BaseHit>` type,
+     * which mandates `__position` (a hit's 1-based rank within an InstantSearch
+     * result set). We query Algolia with the algoliasearch lite client instead
+     * of letting InstantSearch do the fetching, so this is never populated at
+     * runtime — it exists purely to satisfy those components' types. Kept only
+     * on the hit types we actually pass to them.
+     */
     __position: number
-    _highlightResult?: HitHighlightResult
-    _snippetResult?: HitHighlightResult
+    _highlightResult?: Record<string, HighlightResultOption>
+    _snippetResult?: Record<string, SnippetResultOption>
 }
 
 type SearchChartViewHit = BaseSearchChartHit & {
@@ -172,14 +165,6 @@ export interface SearchChartHitComponentProps {
 
 export type SearchChartHitComponentVariant = "large" | "medium" | "small"
 
-// SearchResponse adds the extra fields from Algolia: page, nbHits, etc
-export type SearchChartsResponse = SearchResponse<SearchChartHit>
-
-export type SearchDataTopicsResponse = {
-    title: string
-    charts: SearchResponse<SearchChartHit>
-}
-
 export type ScoredFilter = Filter & {
     name: string
     score: number
@@ -196,10 +181,7 @@ export type DataInsightHit = {
     slug: string
     type: OwidGdocType.DataInsight
     objectID: string
-    __position: number
 }
-
-export type SearchDataInsightResponse = SearchResponse<DataInsightHit>
 
 export type FlatArticleHit = {
     title: string
@@ -207,9 +189,12 @@ export type FlatArticleHit = {
     date: string
     slug: string
     type: OwidGdocType.Article | OwidGdocType.AboutPage
-    content: string
+    content?: string
+    excerpt?: string
     authors: string[]
     objectID: string
+    // Required by react-instantsearch's `<Snippet>`; see the note on
+    // `BaseSearchChartHit.__position`.
     __position: number
 }
 
@@ -218,13 +203,9 @@ export type StackedArticleHit = {
     thumbnailUrl: string
     slug: string
     type: OwidGdocType.Article | OwidGdocType.AboutPage
-    content: string
+    excerpt: string
     objectID: string
-    __position: number
 }
-
-export type SearchStackedArticleResponse = SearchResponse<StackedArticleHit>
-export type SearchFlatArticleResponse = SearchResponse<FlatArticleHit>
 
 export type TopicPageHit = {
     title: string
@@ -233,10 +214,7 @@ export type TopicPageHit = {
     excerpt: string
     excerptLong?: string[]
     objectID: string
-    __position: number
 }
-
-export type SearchTopicPageResponse = SearchResponse<TopicPageHit>
 
 export type ProfileHit = {
     title: string
@@ -246,16 +224,6 @@ export type ProfileHit = {
     type: OwidGdocType.Profile
     availableEntities: string[]
     objectID: string
-    __position: number
-}
-
-export type SearchProfileResponse = SearchResponse<ProfileHit>
-
-export type SearchWritingTopicsResponse = {
-    title: string
-    articles: SearchStackedArticleResponse
-    topicPages: SearchTopicPageResponse
-    totalCount: number
 }
 
 export enum FilterType {
@@ -338,13 +306,15 @@ export interface WordPositioned {
 
 export type Ngram = WordPositioned[]
 
+export type ChartViewsMap = {
+    byConfigId: Map<string, number>
+    byGrapherSlug: Map<string, number>
+}
+
 /**
  * Context object containing shared enrichment data needed for Algolia indexing of chart, explorer and multi-dim views.
  */
 export interface IndexingContext {
-    /** Pageview data by URL (e.g., "/grapher/life-expectancy" -> { views_7d: 1234 }) */
-    pageviews: Record<string, { views_7d: number }>
-
     /**
      * Topic tag hierarchies for computing parent topic tags.
      * Maps tag name -> array of parent tag paths (each path is an array of tags with id, name, slug).
@@ -353,16 +323,11 @@ export interface IndexingContext {
         string,
         Array<Array<{ id: number; name: string; slug: string | null }>>
     >
+    chartViewsMap: ChartViewsMap
 }
 
 export type ChartsIndexingContext = IndexingContext & {
     redirectsByChartId: Map<number, string[]>
 }
 
-export const CHRONOLOGICAL_INDEX_TYPES = new Set<string>([
-    OwidGdocType.Article,
-    OwidGdocType.LinearTopicPage,
-    OwidGdocType.TopicPage,
-    OwidGdocType.DataInsight,
-    OwidGdocType.Announcement,
-])
+export type ExplorerIndexingContext = IndexingContext

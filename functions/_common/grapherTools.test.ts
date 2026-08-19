@@ -25,7 +25,7 @@ describe("download", () => {
         const expectedSlugs = originalTable.columnSlugs.filter(
             (slug) =>
                 !originalYColumns.includes(slug) &&
-                slug !== OwidTableSlugs.entityId
+                slug !== OwidTableSlugs.EntityId
         )
         expect(slugs).toEqual(expectedSlugs)
     })
@@ -47,7 +47,7 @@ describe("download", () => {
             const expectedSlugs = [
                 ...originalOtherColumns,
                 ...ySlugs.split(" "),
-            ].filter((slug) => slug !== OwidTableSlugs.entityId)
+            ].filter((slug) => slug !== OwidTableSlugs.EntityId)
             expectUnorderedEqual(slugs, expectedSlugs)
         }
     })

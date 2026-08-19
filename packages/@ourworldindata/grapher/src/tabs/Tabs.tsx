@@ -1,5 +1,5 @@
 import * as React from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { Tabs as AriaTabs, TabList, Tab } from "react-aria-components"
 
 export interface TabItem<TabKey extends string = string> {

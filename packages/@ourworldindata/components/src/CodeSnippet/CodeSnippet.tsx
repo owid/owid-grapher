@@ -2,7 +2,7 @@ import { HTMLAttributes, useEffect, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCopy } from "@fortawesome/free-solid-svg-icons"
 import { canWriteToClipboard, copyToClipboard } from "@ourworldindata/utils"
-import cx from "classnames"
+import cx from "clsx"
 import { SimpleMarkdownText } from "../SimpleMarkdownText"
 
 export const CodeSnippet = ({
@@ -17,6 +17,7 @@ export const CodeSnippet = ({
     // for copying to clipboard.
     forceShowCopyButton = false,
     codeAttributes,
+    onCopy,
 }: {
     className?: string
     code: string
@@ -25,6 +26,7 @@ export const CodeSnippet = ({
     useMarkdown?: boolean
     forceShowCopyButton?: boolean
     codeAttributes?: HTMLAttributes<HTMLElement> & Record<string, string>
+    onCopy?: () => void
 }) => {
     const [canCopy, setCanCopy] = useState(false)
     const [hasCopied, setHasCopied] = useState(false)
@@ -38,6 +40,7 @@ export const CodeSnippet = ({
             const success = await copyToClipboard(code)
             if (!success) return
 
+            onCopy?.()
             setHasCopied(true)
             // reset CSS animation
             setTimeout(() => setHasCopied(false), 2000)

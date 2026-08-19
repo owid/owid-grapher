@@ -28,5 +28,6 @@ export const GdocsDiff = ({
                 wordBreak: "break-word",
             },
         }}
+        highlightLanguage="json"
     />
 )

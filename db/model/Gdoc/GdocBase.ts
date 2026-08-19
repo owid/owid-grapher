@@ -53,7 +53,11 @@ import {
     getMultiDimDataPageBySlug,
     multiDimDataPageExists,
 } from "../MultiDimDataPage.js"
-import { getMultiDimRedirectTargets } from "../MultiDimRedirects.js"
+import {
+    getMultiDimRedirectSourcesWithMultipleTargets,
+    getMultiDimRedirectTargets,
+} from "../MultiDimRedirects.js"
+import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import {
     ARCHIVED_THUMBNAIL_FILENAME,
     ChartConfigType,
@@ -95,6 +99,7 @@ import { getDods } from "../Dod.js"
 import { getLatestArchivedExplorerPageVersionsIfEnabled } from "../ArchivedExplorerVersion.js"
 import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../ArchivedMultiDimVersion.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../ArchivedChartVersion.js"
+import { documentContainsMixedStraightAndCurlyQuotes } from "./gdocValidation.js"
 
 const BASE_URL = IS_ARCHIVE ? PROD_URL : BAKED_BASE_URL
 
@@ -149,6 +154,7 @@ export async function loadLinkedChartsForSlugs(
         archivedExplorerVersions,
         grapherMultiDimRedirects,
         explorerMultiDimRedirects,
+        explorerRedirectFanOut,
     ] = await Promise.all([
         getLatestArchivedChartPageVersionsIfEnabled(
             knex,
@@ -158,7 +164,27 @@ export async function loadLinkedChartsForSlugs(
         getLatestArchivedExplorerPageVersionsIfEnabled(knex, explorerSlugs),
         getMultiDimRedirectTargets(knex, grapherSlugs, "/grapher/"),
         getMultiDimRedirectTargets(knex, explorerSlugs, "/explorers/"),
+        // Fan-out redirects are fine to have, but the gdoc link layer resolves
+        // by slug only (query-param matching happens at request time), so a
+        // linked explorer that redirects to multiple multi-dims would resolve to
+        // a single, possibly-wrong target. Flag those to Sentry (see below).
+        getMultiDimRedirectSourcesWithMultipleTargets(
+            knex,
+            explorerSlugs,
+            "/explorers/"
+        ),
     ])
+
+    for (const [sourceSlug, targetSlugs] of explorerRedirectFanOut) {
+        await logErrorAndMaybeCaptureInSentry(
+            new Error(
+                `ACTION RECOMMENDED: Update all gdocs that contain links to '/explorers/${sourceSlug}' and point them to the target Mdims instead.
+Explorer '/explorers/${sourceSlug}' is linked from a gdoc, but it redirects to several multi-dims depending on query params (${targetSlugs.join(
+                    ", "
+                )}). Gdoc links are resolved by slug alone, so this link may end up pointing at the wrong one.`
+            )
+        )
+    }
 
     // TODO: rewrite this as a single query instead of N queries
     const linkedGrapherCharts = await Promise.all(
@@ -544,7 +570,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                 return links
             })
             .with({ type: "static-viz" }, (block) => {
-                return [
+                const links: DbInsertPostGdocLink[] = [
                     {
                         target: block.name,
                         linkType: ContentGraphLinkType.StaticViz,
@@ -555,6 +581,15 @@ export class GdocBase implements OwidGdocBaseInterface {
                         sourceId: this.id,
                     },
                 ]
+                if (block.caption) {
+                    for (const span of block.caption) {
+                        traverseEnrichedSpan(span, (span) => {
+                            const link = this.extractLinkFromSpan(span)
+                            if (link) links.push(link)
+                        })
+                    }
+                }
+                return links
             })
             .with({ type: "person" }, (block) => {
                 if (!block.url) return []
@@ -832,16 +867,28 @@ export class GdocBase implements OwidGdocBaseInterface {
                     text: block.title ?? "Country profile selector",
                 }),
             ])
-            .with({ type: "chart-rows" }, (block) =>
-                block.rows.map((row) =>
-                    createLinkFromUrl({
-                        url: row.url,
-                        sourceId: this.id,
-                        componentType: block.type,
-                        text: "",
-                    })
-                )
-            )
+            .with({ type: "chart-rows" }, (block) => {
+                const links: DbInsertPostGdocLink[] = []
+                block.rows.forEach((row) => {
+                    links.push(
+                        createLinkFromUrl({
+                            url: row.url,
+                            sourceId: this.id,
+                            componentType: block.type,
+                            text: "",
+                        })
+                    )
+                    if (row.caption) {
+                        for (const span of row.caption) {
+                            traverseEnrichedSpan(span, (span) => {
+                                const link = this.extractLinkFromSpan(span)
+                                if (link) links.push(link)
+                            })
+                        }
+                    }
+                })
+                return links
+            })
             .with({ type: "pull-chart" }, (block) => [
                 createLinkFromUrl({
                     url: block.url,
@@ -866,7 +913,6 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "donors",
                         "expandable-paragraph",
                         "expander",
-                        "entry-summary",
                         "gray-section",
                         "explore-data-section",
                         "heading",
@@ -1068,11 +1114,14 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async validate(knex: db.KnexReadonlyTransaction): Promise<void> {
+        const serializedContent = this.content
+            ? JSON.stringify(this.content)
+            : ""
         const whitespaceErrors: OwidGdocErrorMessage[] = []
-        const documentContainsInvalidWhitespace = this.content
-            ? // match on actual whitespace or the literal string '\u000b'
-              /[\v\t\r]|\\u000b/g.test(JSON.stringify(this.content))
-            : false
+        // match on actual whitespace or the literal string '\u000b'
+        const documentContainsInvalidWhitespace = /[\v\t\r]|\\u000b/g.test(
+            serializedContent
+        )
 
         if (documentContainsInvalidWhitespace) {
             whitespaceErrors.push({
@@ -1080,6 +1129,16 @@ export class GdocBase implements OwidGdocBaseInterface {
                 message:
                     "The gdoc contains invalid whitespace characters. To find them, try searching the gdoc for '[\\v\\t\\r\\u000b]' in the 'Find and replace' menu with the 'Use regular expressions' option enabled. Replace them with newlines (i.e. backspace them then press the enter key) or spaces.",
                 type: OwidGdocErrorMessageType.Error,
+            })
+        }
+
+        const quoteErrors: OwidGdocErrorMessage[] = []
+        if (documentContainsMixedStraightAndCurlyQuotes(serializedContent)) {
+            quoteErrors.push({
+                property: "body",
+                message:
+                    "The gdoc contains a mix of straight and curly apostrophes or quotation marks. This is sometimes intentional, but please check for inconsistent quote styles before publishing.",
+                type: OwidGdocErrorMessageType.Warning,
             })
         }
 
@@ -1227,7 +1286,17 @@ export class GdocBase implements OwidGdocBaseInterface {
                     ) {
                         linkErrors.push({
                             property: "content",
-                            message: `Grapher chart with slug "${link.target}" does not exist or is not published`,
+                            message: `Chart or multi-dim data page with slug "${link.target}" does not exist or is not published`,
+                            type: OwidGdocErrorMessageType.Error,
+                        })
+                    } else if (
+                        link.componentType === "explorer-tiles" &&
+                        !grapherRedirect &&
+                        chartIdsBySlug[link.target]
+                    ) {
+                        linkErrors.push({
+                            property: "content",
+                            message: `Explorer tiles can only link to explorers or multi-dim data pages, but "${link.target}" is a regular grapher chart`,
                             type: OwidGdocErrorMessageType.Error,
                         })
                     }
@@ -1251,7 +1320,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     ) {
                         linkErrors.push({
                             property: "content",
-                            message: `Explorer chart with slug "${link.target}" does not exist or is not published`,
+                            message: `Explorer with slug "${link.target}" does not exist or is not published`,
                             type: OwidGdocErrorMessageType.Error,
                         })
                     }
@@ -1365,6 +1434,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         const subclassErrors = await this._validateSubclass(knex, this)
         this.errors = [
             ...whitespaceErrors,
+            ...quoteErrors,
             ...authorErrors,
             ...filenameErrors,
             ...linkErrors,
@@ -1571,7 +1641,7 @@ export function makeMultiDimLinkedChart(
         title,
         dimensionSlugs: config.dimensions.map((d) => d.slug),
         resolvedUrl,
-        tags: [],
+        tags: config.topicTags ?? [],
         archivedPageVersion,
     }
 }

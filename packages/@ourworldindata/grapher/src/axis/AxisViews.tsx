@@ -13,15 +13,17 @@ import {
     Point,
 } from "@ourworldindata/utils"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
-import classNames from "classnames"
+import classNames from "clsx"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { ScaleType, DetailsMarker } from "@ourworldindata/types"
 import { MarkdownTextWrapSvg } from "@ourworldindata/components"
 import { ComparisonLine } from "../comparisonLine/ComparisonLine"
 
-const TICK_COLOR = "#ddd"
+export const TICK_COLOR = "#ddd"
 const FAINT_TICK_COLOR = "#eee"
 const SOLID_TICK_COLOR = "#999"
+
+export const GRID_LINE_DASH_PATTERN = "4,4"
 
 interface VerticalAxisGridLinesProps {
     axis: VerticalAxis
@@ -49,7 +51,8 @@ export class VerticalAxisGridLines extends React.Component<VerticalAxisGridLines
                         : t.solid
                           ? SOLID_TICK_COLOR
                           : TICK_COLOR
-                    const dasharray = this.props.dashPattern ?? "4,4"
+                    const dasharray =
+                        this.props.dashPattern ?? GRID_LINE_DASH_PATTERN
 
                     const className = t.value === 0 ? "zero-line" : undefined
 
@@ -99,7 +102,8 @@ export class HorizontalAxisGridLines extends React.Component<HorizontalAxisGridL
                         : t.solid
                           ? SOLID_TICK_COLOR
                           : TICK_COLOR
-                    const dasharray = this.props.dashPattern ?? "4,4"
+                    const dasharray =
+                        this.props.dashPattern ?? GRID_LINE_DASH_PATTERN
 
                     return (
                         <line
@@ -125,6 +129,7 @@ interface HorizontalAxisZeroLineProps {
     bounds: Bounds
     strokeWidth?: number
     align?: HorizontalAlign
+    color?: string
 }
 
 @observer
@@ -134,6 +139,7 @@ export class HorizontalAxisZeroLine extends React.Component<HorizontalAxisZeroLi
             bounds,
             align = HorizontalAlign.center,
             strokeWidth = 1,
+            color = SOLID_TICK_COLOR,
         } = this.props
 
         const axis = this.props.axis.clone()
@@ -156,7 +162,7 @@ export class HorizontalAxisZeroLine extends React.Component<HorizontalAxisZeroLi
                 y1={bounds.bottom.toFixed(2)}
                 x2={x.toFixed(2)}
                 y2={bounds.top.toFixed(2)}
-                stroke={SOLID_TICK_COLOR}
+                stroke={color}
                 strokeWidth={strokeWidth}
             />
         )
@@ -196,6 +202,34 @@ export class VerticalAxisZeroLine extends React.Component<VerticalAxisZeroLinePr
                 stroke={stroke}
                 strokeWidth={strokeWidth}
                 strokeDasharray={strokeDasharray}
+            />
+        )
+    }
+}
+
+interface VerticalAxisDomainLineProps {
+    verticalAxis: VerticalAxis
+    bounds: Bounds
+    strokeWidth?: number
+}
+
+@observer
+export class VerticalAxisDomainLine extends React.Component<VerticalAxisDomainLineProps> {
+    override render(): React.ReactElement {
+        const { bounds, verticalAxis, strokeWidth = 1 } = this.props
+
+        const axis = verticalAxis.clone()
+        axis.range = bounds.yRange()
+
+        return (
+            <line
+                id={makeFigmaId("domain-line")}
+                x1={bounds.left.toFixed(2)}
+                y1={bounds.bottom.toFixed(2)}
+                x2={bounds.right.toFixed(2)}
+                y2={bounds.bottom.toFixed(2)}
+                stroke="#ccc"
+                strokeWidth={strokeWidth}
             />
         )
     }

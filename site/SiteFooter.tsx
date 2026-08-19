@@ -1,6 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInbox, faRss } from "@fortawesome/free-solid-svg-icons"
 import { ArchiveContext, SiteFooterContext } from "@ourworldindata/types"
+import { serializeJSONForInlineScript } from "@ourworldindata/utils"
 import { viteAssetsForSite } from "./viteUtils.js"
 import { ScriptLoadErrorDetector } from "./NoJSDetector.js"
 import { ABOUT_LINKS, PROD_URL, RSS_FEEDS, SOCIALS } from "./SiteConstants.js"
@@ -9,6 +10,7 @@ import { SITE_TOOLS_CLASS } from "./SiteTools.js"
 import { OxfordAndGcdlLogos } from "./SiteLogos.js"
 import { IS_ARCHIVE } from "../settings/clientSettings.js"
 import { SEARCH_BASE_PATH } from "./search/searchUtils.js"
+import { buildLatestPagePath } from "./latest/latestUtils.js"
 
 interface SiteFooterProps {
     hideDonate?: boolean
@@ -26,11 +28,11 @@ type LinkData = { title: string; url: string }
 const EXPLORE_LINKS: LinkData[] = [
     { title: "Topics", url: "/#all-topics" },
     { title: "Data", url: SEARCH_BASE_PATH },
-    { title: "Insights", url: "/data-insights" },
+    { title: "Data Insights", url: buildLatestPagePath("data-insight") },
 ]
 
 const RESOURCE_LINKS: LinkData[] = [
-    { title: "Latest", url: "/latest" },
+    { title: "Latest", url: buildLatestPagePath() },
     { title: "SDG Tracker", url: "/sdgs" },
     { title: "Teaching with OWID", url: "/teaching" },
 ]
@@ -116,11 +118,13 @@ export const SiteFooter = (props: SiteFooterProps) => {
     const scripts: string[] = []
     if (archiveContext)
         scripts.push(
-            `window._OWID_ARCHIVE_CONTEXT = ${JSON.stringify(archiveContext)};`
+            `window._OWID_ARCHIVE_CONTEXT = ${serializeJSONForInlineScript(
+                archiveContext
+            )};`
         )
 
     scripts.push(
-        `window.runSiteFooterScripts(${JSON.stringify({
+        `window.runSiteFooterScripts(${serializeJSONForInlineScript({
             context: props.context,
             debug: props.debug,
             isPreviewing: props.isPreviewing,

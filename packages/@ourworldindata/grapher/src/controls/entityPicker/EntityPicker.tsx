@@ -24,7 +24,7 @@ import {
     CoreColumnDef,
     OwidTableSlugs,
 } from "@ourworldindata/utils"
-import classnames from "classnames"
+import classnames from "clsx"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch, faTimes } from "@fortawesome/free-solid-svg-icons"
@@ -136,7 +136,8 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
         this.searchInput = ""
         this.manager.analytics?.logEntityPickerEvent(
             checked ? "select" : "deselect",
-            name
+            name,
+            this.manager.analyticsContext?.viewConfigId
         )
 
         this.mostRecentlySelectedEntityName = name
@@ -211,7 +212,7 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
         // If the slug is "entityName", then try to get it from grapherTable first, because it might
         // not be present in pickerTable (for indicator-powered explorers, for example).
         if (
-            this.metric === OwidTableSlugs.entityName &&
+            this.metric === OwidTableSlugs.EntityName &&
             this.grapherTable?.has(this.metric)
         )
             return this.grapherTable
@@ -387,7 +388,11 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
                 const name = this.focusedOption
                 this.selectEntity(name)
                 this.clearSearchInput()
-                this.manager.analytics?.logEntityPickerEvent("enter", name)
+                this.manager.analytics?.logEntityPickerEvent(
+                    "enter",
+                    name,
+                    this.manager.analyticsContext?.viewConfigId
+                )
                 break
             }
             case "ArrowUp":
@@ -527,7 +532,11 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
                 ? SortOrder.desc
                 : SortOrder.asc,
         })
-        this.manager.analytics?.logEntityPickerEvent("sortBy", columnSlug)
+        this.manager.analytics?.logEntityPickerEvent(
+            "sortBy",
+            columnSlug,
+            this.manager.analyticsContext?.viewConfigId
+        )
     }
 
     private isColumnTypeNumeric(
@@ -538,7 +547,7 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
             // If columnSlug is undefined, we're sorting by relevance, which is (mostly) by country name.
             // If the column is currently missing (not loaded yet), assume it is numeric.
             columnSlug !== undefined &&
-            columnSlug !== OwidTableSlugs.entityName &&
+            columnSlug !== OwidTableSlugs.EntityName &&
             (col === undefined ||
                 col.isMissing ||
                 col instanceof ColumnTypeMap.Numeric)
@@ -571,7 +580,8 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
                         })
                         this.manager.analytics?.logEntityPickerEvent(
                             "sortOrder",
-                            sortOrder
+                            sortOrder,
+                            this.manager.analyticsContext?.viewConfigId
                         )
                     }}
                 >

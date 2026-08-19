@@ -47,8 +47,36 @@ _mysql() {
     fi
 }
 
+# This loads hundreds of thousands of rows in one go, which can outpace InnoDB's
+# redo log checkpointer (especially with the small default innodb_redo_log_capacity)
+# and stall every other connection on the instance. Disabling redo logging for the
+# duration is safe here: $2 is always a throwaway database (NEW_DB, or
+# GRAPHER_DB_NAME on first-time setup before it holds anything) that gets dropped
+# and retried on failure, never the live, already-swapped-in database.
 import_db() {
+    _mysql -e "ALTER INSTANCE DISABLE INNODB REDO_LOG;"
+    # Covers both a failing import (errexit off below so we reach the re-enable)
+    # and the import being killed outright (CI timeout, operator abort): the trap
+    # fires on that exit/signal too, so redo logging never stays off instance-wide.
+    trap '_mysql -e "ALTER INSTANCE ENABLE INNODB REDO_LOG;" 2>/dev/null || true' EXIT INT TERM
+    set +o errexit
     cat $1 | gunzip | sed s/.\*DEFINER\=\`.\*// | grep -vF GLOBAL.GTID_PURGED | _mysql $2
+    local status=$?
+    set -o errexit
+    trap - EXIT INT TERM
+    _mysql -e "ALTER INSTANCE ENABLE INNODB REDO_LOG;"
+    return $status
+}
+
+# Import the private sidecar dump into the replacement DB *before* the atomic
+# swap, so its tables are never empty in the live DB after a refresh.
+import_private() {
+    if [ -f "${DATA_FOLDER}/owid_private.sql.gz" ]; then
+        echo "==> Importing private sidecar dump into $1"
+        import_db $DATA_FOLDER/owid_private.sql.gz $1
+    else
+        echo "==> No private sidecar dump present — private tables stay empty in $1"
+    fi
 }
 
 swapGrapherDb() {
@@ -62,6 +90,7 @@ swapGrapherDb() {
         echo "==> First-time setup: importing directly (no tables to swap)"
         _mysql --database="" -e "DROP DATABASE IF EXISTS $GRAPHER_DB_NAME; CREATE DATABASE $GRAPHER_DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs;"
         import_db $DATA_FOLDER/owid_metadata.sql.gz $GRAPHER_DB_NAME
+        import_private $GRAPHER_DB_NAME
         echo "==> Grapher DB initial setup complete"
         return 0
     fi
@@ -77,6 +106,10 @@ swapGrapherDb() {
         _mysql --database="" -e "DROP DATABASE IF EXISTS $NEW_DB;"
         return 1
     fi
+
+    # Populate the private tables in the replacement DB before the swap, so the
+    # live DB never exposes an empty admin_api_keys (auth) after the swap.
+    import_private $NEW_DB
 
     echo "==> Preparing atomic table swap"
     # Drop old backup database if exists, create fresh one

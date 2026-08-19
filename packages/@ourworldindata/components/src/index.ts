@@ -2,15 +2,20 @@ export {
     type ITextWrap,
     TextWrap,
     shortenWithEllipsis,
+    sumTextWrapHeights,
 } from "./TextWrap/TextWrap.js"
 export { TextWrapSvg, TextWrapHtml } from "./TextWrap/TextWrapComponents.js"
 
+export { AbstractTokenTextWrap } from "./MarkdownTextWrap/AbstractTokenTextWrap.js"
 export {
     MarkdownTextWrap,
-    sumTextWrapHeights,
     toPlaintext,
     canAppendTextToLastLine,
 } from "./MarkdownTextWrap/MarkdownTextWrap.js"
+export {
+    TextWrapGroup,
+    type TextWrapFragment,
+} from "./MarkdownTextWrap/TextWrapGroup.js"
 export {
     MarkdownTextWrapSvg,
     MarkdownTextWrapHtml,
@@ -20,6 +25,12 @@ export {
     SimpleMarkdownText,
     HtmlOrSimpleMarkdownText,
 } from "./SimpleMarkdownText.js"
+export {
+    DOD_TIPPY_PROPS,
+    initializeDetailsOnDemand,
+    renderDodContentHtml,
+    type InitializeDetailsOnDemandOptions,
+} from "./detailsOnDemand.js"
 export {
     getLinkType,
     getUrlTarget,
@@ -73,6 +84,7 @@ export {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     REUSE_THIS_WORK_SECTION_ID,
+    INDICATOR_PROCESSING_SECTION_ID,
 } from "./SharedDataPageConstants.js"
 
 export { Button } from "./Button/Button.js"

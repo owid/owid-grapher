@@ -9,6 +9,7 @@ import {
     OwidChartDimensionInterface,
     DimensionProperty,
     MultiDimDataPageConfigEnriched,
+    normalizeDescriptionKey,
     OwidVariableWithSourceAndDimension,
 } from "@ourworldindata/types"
 import * as _ from "lodash-es"
@@ -155,17 +156,28 @@ export class MultiDimDataPageConfig {
         }
     }
 
+    getDefaultSelectedChoices(): MultiDimDimensionChoices {
+        return this.filterToAvailableChoices({}).selectedChoices
+    }
+
+    getDefaultView(): ViewEnriched | undefined {
+        return this.findViewByDimensions(this.getDefaultSelectedChoices())
+    }
+
     mergeViewMetadata(
         dimensions: MultiDimDimensionChoices,
         variableMetadata: OwidVariableWithSourceAndDimension
     ): OwidVariableWithSourceAndDimension {
         const mdimConfigView = this.findViewByDimensions(dimensions)
 
-        return merge(
+        const merged = merge(
             variableMetadata,
             this.config.metadata ?? {},
             mdimConfigView?.metadata ?? {}
         )
+        // Configs written before the string migration hold descriptionKey arrays.
+        merged.descriptionKey = normalizeDescriptionKey(merged.descriptionKey)
+        return merged
     }
 
     findViewDimensionsByConfigId(
@@ -234,16 +246,16 @@ export function searchParamsToMultiDimView(
     config: MultiDimDataPageConfigEnriched,
     searchParams: URLSearchParams
 ): ViewEnriched {
-    const mdimConfig = MultiDimDataPageConfig.fromObject(config)
+    const multiDimConfig = MultiDimDataPageConfig.fromObject(config)
     let dimensions = extractMultiDimChoicesFromSearchParams(
         searchParams,
-        mdimConfig
+        multiDimConfig
     )
     if (_.isEmpty(dimensions)) {
         // Get the default dimensions.
-        dimensions = mdimConfig.filterToAvailableChoices({}).selectedChoices
+        dimensions = multiDimConfig.getDefaultSelectedChoices()
     }
-    const view = mdimConfig.findViewByDimensions(dimensions)
+    const view = multiDimConfig.findViewByDimensions(dimensions)
     if (!view) {
         throw new Error(
             `No view found for dimensions ${JSON.stringify(dimensions)}`

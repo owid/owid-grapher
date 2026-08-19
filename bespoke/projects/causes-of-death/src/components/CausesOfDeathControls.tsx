@@ -1,20 +1,19 @@
-import { useCallback, useMemo } from "react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faLocationArrow } from "@fortawesome/free-solid-svg-icons"
+import { useMemo } from "react"
 
-import { EntityName } from "@ourworldindata/types"
-import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
 import {
-    BasicDropdownOption,
-    Dropdown as GrapherDropdown,
-} from "@ourworldindata/grapher/src/controls/Dropdown.js"
+    Controls,
+    ControlsRow,
+    LabeledControl,
+} from "../../../../components/Controls/Controls.js"
+import { LabeledDropdown } from "../../../../components/LabeledDropdown/LabeledDropdown.js"
+import { EntityDropdown } from "../../../../components/EntityDropdown/EntityDropdown.js"
+import {
+    Switcher,
+    SwitcherItem,
+} from "../../../../components/Switcher/Switcher.js"
 
-import { Frame } from "../../../../components/Frame/Frame.js"
-
-import { EntityMetadata } from "../helpers/CausesOfDeathConstants.js"
-import { CausesOfDeathMetadata } from "../helpers/CausesOfDeathMetadata.js"
+import { CausesOfDeathMetadata } from "../core/CausesOfDeathMetadata.js"
 import { CausesOfDeathTimeSlider } from "./CausesOfDeathTimeSlider.js"
-import { useUserCountryInformation } from "../helpers/CausesOfDeathDataFetching.js"
 
 export function CausesOfDeathControls({
     metadata,
@@ -37,142 +36,46 @@ export function CausesOfDeathControls({
     setEntityName: (entityName: string) => void
     setYear: (year: number) => void
 }): React.ReactElement {
-    return (
-        <Frame className="causes-of-death-controls">
-            <h3 className="causes-of-death-controls__title">
-                Configure the data
-            </h3>
-            <div className="causes-of-death-controls__content">
-                <div className="causes-of-death-controls__row">
-                    <AgeGroupDropdown
-                        availableAgeGroups={metadata.availableAgeGroups}
-                        selectedAgeGroup={ageGroup}
-                        onChange={setAgeGroup}
-                    />
-                    <SexDropdown
-                        availableSexes={metadata.availableSexes}
-                        selectedSex={sex}
-                        onChange={setSex}
-                    />
-                    <EntityDropdown
-                        availableEntities={metadata?.availableEntities}
-                        selectedEntityName={entityName}
-                        onChange={setEntityName}
-                    />
-                </div>
-                <div className="causes-of-death-controls__row">
-                    <CausesOfDeathTimeSlider
-                        className="causes-of-death-time-slider"
-                        years={metadata.availableYears}
-                        selectedYear={year}
-                        onChange={setYear}
-                    />
-                </div>
-            </div>
-        </Frame>
-    )
-}
-
-function Dropdown({
-    options,
-    selectedValue,
-    onChange,
-    fallbackValue,
-    ...dropdownProps
-}: {
-    options: BasicDropdownOption[]
-    selectedValue: string
-    onChange: (value: string) => void
-    fallbackValue?: string
-} & Omit<
-    React.ComponentProps<typeof GrapherDropdown>,
-    "options" | "value" | "onChange"
->) {
-    const selectedOption =
-        options.find((option) => option.value === selectedValue) || null
-
-    const handleChange = useCallback(
-        (option: BasicDropdownOption | null) => {
-            const newValue = option?.value ?? fallbackValue
-            if (newValue) {
-                onChange(newValue)
-            }
-        },
-        [onChange, fallbackValue]
-    )
-
-    return (
-        <GrapherDropdown
-            {...dropdownProps}
-            options={options}
-            value={selectedOption}
-            onChange={handleChange}
-            isClearable={false}
-        />
-    )
-}
-
-function EntityDropdown({
-    availableEntities,
-    selectedEntityName,
-    onChange,
-    className,
-    isLoading,
-}: {
-    availableEntities: EntityMetadata[]
-    selectedEntityName: EntityName
-    onChange: (entityName: EntityName) => void
-    className?: string
-    isLoading?: boolean
-}) {
-    const { data: userCountryInfo } = useUserCountryInformation()
-
-    const options = useMemo(() => {
-        const baseOptions =
-            availableEntities?.map((entity) => ({
+    const entityOptions = useMemo(
+        () =>
+            metadata.availableEntities.map((entity) => ({
                 value: entity.name,
                 label: entity.name,
-                id: entity.id,
-            })) ?? []
-
-        // Move user's country to the top of the list if it's available
-        if (!userCountryInfo) return baseOptions
-
-        const userCountryOptionIndex = baseOptions.findIndex(
-            (option) => option.label === userCountryInfo.name
-        )
-        if (userCountryOptionIndex > -1) {
-            const [userCountryOption] = baseOptions.splice(
-                userCountryOptionIndex,
-                1
-            )
-            baseOptions.unshift(userCountryOption)
-        }
-
-        return baseOptions
-    }, [availableEntities, userCountryInfo])
+            })),
+        [metadata.availableEntities]
+    )
 
     return (
-        <Dropdown
-            options={options}
-            selectedValue={selectedEntityName}
-            onChange={onChange}
-            className={className}
-            isLoading={isLoading}
-            placeholder="Select a country or region..."
-            isSearchable={true}
-            aria-label="Select a country or region"
-            renderTriggerValue={(option) => (
-                <EntityDropdownLabel option={option} />
-            )}
-            renderMenuOption={(option) => (
-                <EntityDropdownOption
-                    option={option}
-                    isUserCountry={option?.label === userCountryInfo?.name}
+        <Controls className="causes-of-death-controls">
+            <ControlsRow>
+                <EntityDropdown
+                    label="Country/region"
+                    availableEntities={entityOptions}
+                    selectedEntityName={entityName}
+                    onChange={setEntityName}
+                    placeholder="Select a country or region..."
+                    aria-label="Select a country or region"
                 />
-            )}
-            fallbackValue={WORLD_ENTITY_NAME}
-        />
+                <AgeGroupDropdown
+                    availableAgeGroups={metadata.availableAgeGroups}
+                    selectedAgeGroup={ageGroup}
+                    onChange={setAgeGroup}
+                />
+                <SexSwitcher
+                    availableSexes={metadata.availableSexes}
+                    selectedSex={sex}
+                    onChange={setSex}
+                />
+            </ControlsRow>
+            <ControlsRow>
+                <CausesOfDeathTimeSlider
+                    className="causes-of-death-time-slider"
+                    years={metadata.availableYears}
+                    selectedYear={year}
+                    onChange={setYear}
+                />
+            </ControlsRow>
+        </Controls>
     )
 }
 
@@ -194,13 +97,13 @@ function AgeGroupDropdown({
             availableAgeGroups?.map((ageGroup) => ({
                 value: ageGroup,
                 label: ageGroup,
-                id: ageGroup,
             })) ?? [],
         [availableAgeGroups]
     )
 
     return (
-        <Dropdown
+        <LabeledDropdown
+            label="Age"
             options={options}
             selectedValue={selectedAgeGroup}
             onChange={onChange}
@@ -209,109 +112,36 @@ function AgeGroupDropdown({
             placeholder="Select an age group..."
             aria-label="Select an age group"
             isSearchable={false}
-            renderTriggerValue={(option) => (
-                <AgeGroupDropdownLabel option={option} />
-            )}
         />
     )
 }
 
-function EntityDropdownLabel({
-    option,
-}: {
-    option: BasicDropdownOption | null
-}): React.ReactElement | null {
-    if (!option) return null
-    return (
-        <>
-            <span className="label">Country/region: </span>
-            {option.label}
-        </>
-    )
-}
-
-function EntityDropdownOption({
-    option,
-    isUserCountry,
-}: {
-    option: BasicDropdownOption | null
-    isUserCountry?: boolean
-}): React.ReactElement | null {
-    if (!option) return null
-    return (
-        <div className="causes-of-death-controls__entity-dropdown-option">
-            <span>{option.label}</span>
-            {isUserCountry && (
-                <FontAwesomeIcon icon={faLocationArrow} size="sm" />
-            )}
-        </div>
-    )
-}
-
-function AgeGroupDropdownLabel({
-    option,
-}: {
-    option: BasicDropdownOption | null
-}): React.ReactElement | null {
-    if (!option) return null
-    return (
-        <>
-            <span className="label">Age: </span>
-            {option.label}
-        </>
-    )
-}
-
-function SexDropdown({
+function SexSwitcher({
     availableSexes,
     selectedSex,
     onChange,
-    className,
-    isLoading,
 }: {
     availableSexes: string[]
     selectedSex: string
     onChange: (sex: string) => void
-    className?: string
-    isLoading?: boolean
 }) {
-    const options = useMemo(
+    const items = useMemo<SwitcherItem[]>(
         () =>
-            availableSexes?.map((sex) => ({
-                value: sex,
-                label: sex,
-                id: sex,
-            })) ?? [],
+            availableSexes.map((sex) => ({
+                key: sex,
+                element: sex === "Both sexes" ? "Both" : sex,
+            })),
         [availableSexes]
     )
 
     return (
-        <Dropdown
-            options={options}
-            selectedValue={selectedSex}
-            onChange={onChange}
-            className={className}
-            isLoading={isLoading}
-            placeholder="Select a sex..."
-            aria-label="Select a sex"
-            isSearchable={false}
-            renderTriggerValue={(option) => (
-                <SexDropdownLabel option={option} />
-            )}
-        />
-    )
-}
-
-function SexDropdownLabel({
-    option,
-}: {
-    option: BasicDropdownOption | null
-}): React.ReactElement | null {
-    if (!option) return null
-    return (
-        <>
-            <span className="label">Sex: </span>
-            {option.label}
-        </>
+        <LabeledControl label="Sex">
+            <Switcher
+                items={items}
+                selectedKey={selectedSex}
+                onChange={onChange}
+                ariaLabel="Select a sex"
+            />
+        </LabeledControl>
     )
 }

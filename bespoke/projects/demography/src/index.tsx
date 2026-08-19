@@ -14,7 +14,7 @@ import {
 import { PopulationVariant } from "./variants/PopulationVariant.js"
 import { PopulationPyramidVariant } from "./variants/PopulationPyramidVariant.js"
 import { ParametersVariant } from "./variants/ParametersVariant.js"
-import { parseConfig, VariantName } from "./config.js"
+import { parseConfig, VariantName } from "./core/config.js"
 
 import "./index.scss"
 

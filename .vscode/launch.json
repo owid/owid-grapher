@@ -5,44 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch site dev",
-            "program": "${workspaceFolder}/adminSiteServer/app.ts",
+            "name": "Launch admin dev server",
             "request": "launch",
-            "preLaunchTask": "start (full)",
             "type": "node",
             "runtimeExecutable": "yarn",
-            "runtimeArgs": [
-                "tsx",
-                "--tsconfig",
-                "tsconfig.tsx.json"
-            ]
-        },
-        {
-            "name": "Remote dev",
-            "program": "${workspaceFolder}/adminSiteServer/app.ts",
-            "request": "launch",
-            "preLaunchTask": "start (remote)",
-            "type": "node",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": [
-                "tsx",
-                "--tsconfig",
-                "tsconfig.tsx.json"
-            ]
-        },
-        {
-            "name": "Run migrate WP to ArchieML",
-            "program": "${workspaceFolder}/db/migrateWpPostsToArchieMl.ts",
-            "request": "launch",
+            "runtimeArgs": ["startAdminDevServer"],
             "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "type": "node",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": [
-                "tsx",
-                "--tsconfig",
-                "tsconfig.tsx.json"
+                "<node_internals>/**",
+                "${workspaceFolder}/node_modules/**"
             ]
         },
         {
@@ -64,25 +34,7 @@
                 "367"
             ]
         },
-        {
-            "name": "Launch admin server",
-            "program": "${workspaceFolder}/adminSiteServer/app.ts",
-            "request": "launch",
-            "type": "node",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": [
-                "tsx",
-                "--tsconfig",
-                "tsconfig.tsx.json"
-            ],
-            // Files to exclude from debugger (e.g. call stack)
-            "skipFiles": [
-                // Node.js internal core modules
-                "<node_internals>/**",
-                // Ignore all dependencies (optional)
-                "${workspaceFolder}/node_modules/**",
-            ],
-        },
+
         {
             "name": "Launch admin server (via fnm)",
             "program": "${workspaceFolder}/adminSiteServer/app.ts",

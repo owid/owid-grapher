@@ -1,6 +1,6 @@
 import { useState } from "react"
 import * as React from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { faTimes, faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { SiteAnalytics } from "./SiteAnalytics.js"

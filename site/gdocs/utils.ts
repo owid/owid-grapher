@@ -25,6 +25,7 @@ import {
     getCalloutValue,
     getRegionByNameOrVariantName,
     makeLinkedCalloutKey,
+    slugify,
     traverseEnrichedBlock,
     Url,
 } from "@ourworldindata/utils"
@@ -95,6 +96,39 @@ export const useLinkedAuthor = (
     return author
 }
 
+// Older gdoc content can still pass "Name (role)" through to rendering.
+const stripTrailingAuthorRole = (name: string): string =>
+    name.replace(/\s*\([^)]+\)\s*$/, "")
+
+export const getAuthorTeamAnchorId = (name: string): string => {
+    const nameWithoutRole = stripTrailingAuthorRole(name)
+    const nameWithoutTitle = nameWithoutRole
+        .replace(/^(Dr\.|Professor)\s+/, "")
+        .replace(/\s*,\s*[^,]+$/, "")
+    return slugify(
+        // Convert letters with diacritics to their base Latin letters,
+        // e.g. "é" -> "e".
+        nameWithoutTitle.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    )
+}
+
+const authorNamesWithoutTeamAnchors = new Set([
+    "guest authors",
+    "our world in data",
+    "our world in data team",
+])
+
+export const getAuthorTeamAnchorUrl = (
+    name: string,
+    baseUrl: string = ""
+): string => {
+    const nameWithoutRole = stripTrailingAuthorRole(name)
+    if (authorNamesWithoutTeamAnchors.has(nameWithoutRole.toLowerCase())) {
+        return `${baseUrl}/team`
+    }
+    return `${baseUrl}/team#${getAuthorTeamAnchorId(nameWithoutRole)}`
+}
+
 type LinkedDocument = OwidGdocMinimalPostInterface & { url: string }
 
 export const getLinkedDocumentUrl = (
@@ -139,9 +173,7 @@ export const useLinkedDocument = (
     }
 
     const urlTarget = getUrlTarget(url)
-    linkedDocument = linkedDocuments?.[urlTarget] as
-        | OwidGdocMinimalPostInterface
-        | undefined
+    linkedDocument = linkedDocuments?.[urlTarget]
 
     if (!linkedDocument) {
         errorMessage = `Google doc URL ${url} isn't registered.`
@@ -195,7 +227,10 @@ export const useLinkedChart = (
     const linkedChart = linkedCharts?.[urlTarget]
     if (!linkedChart) {
         return {
-            errorMessage: `${linkType} chart with slug ${urlTarget} not found`,
+            errorMessage:
+                linkType === "explorer"
+                    ? `Explorer with slug "${urlTarget}" not found`
+                    : `Chart or multi-dim data page with slug "${urlTarget}" not found`,
         }
     }
 

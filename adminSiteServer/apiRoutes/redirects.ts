@@ -11,6 +11,13 @@ import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 
+function normalizeTargetQueryParam(
+    targetQueryParam: string | undefined
+): string | null {
+    const normalized = targetQueryParam?.trim().replace(/^\?/, "")
+    return normalized || null
+}
+
 export async function handleGetSiteRedirects(
     req: Request,
     res: HandlerResponse,
@@ -92,6 +99,7 @@ export async function handleGetRedirects(
                     r.id,
                     r.slug,
                     r.chart_id as chartId,
+                    r.target_query_param as targetQueryParam,
                     chart_configs.slug AS chartSlug
                 FROM chart_slug_redirects AS r
                 JOIN charts ON charts.id = r.chart_id
@@ -108,16 +116,32 @@ export async function handlePostNewChartRedirect(
     trx: db.KnexReadWriteTransaction
 ) {
     const chartId = expectInt(req.params.chartId)
-    const fields = req.body as { slug: string }
+    const fields = req.body as {
+        slug: string
+        targetQueryParam?: string
+    }
+    const targetQueryParam = normalizeTargetQueryParam(fields.targetQueryParam)
     const result = await db.knexRawInsert(
         trx,
-        `INSERT INTO chart_slug_redirects (chart_id, slug) VALUES (?, ?)`,
-        [chartId, fields.slug]
+        `INSERT INTO chart_slug_redirects (chart_id, slug, target_query_param) VALUES (?, ?, ?)`,
+        [chartId, fields.slug, targetQueryParam]
     )
     const redirectId = result.insertId
-    const redirect = await db.knexRaw<DbPlainChartSlugRedirect>(
+    const redirect = await db.knexRawFirst<
+        Pick<DbPlainChartSlugRedirect, "id" | "slug"> & {
+            chartId: number
+            targetQueryParam: string | null
+        }
+    >(
         trx,
-        `SELECT * FROM chart_slug_redirects WHERE id = ?`,
+        `-- sql
+        SELECT
+            id,
+            slug,
+            chart_id as chartId,
+            target_query_param as targetQueryParam
+        FROM chart_slug_redirects
+        WHERE id = ?`,
         [redirectId]
     )
     return { success: true, redirect: redirect }

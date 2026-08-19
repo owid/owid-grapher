@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { forwardRef, useState } from "react"

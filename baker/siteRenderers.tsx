@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
-import { LongFormPage } from "../site/LongFormPage.js"
 import { LatestPage } from "../site/LatestPage.js"
+import { buildLatestPagePath } from "../site/latest/latestUtils.js"
 import { SearchPage } from "../site/search/SearchPage.js"
 import { DynamicCollectionPage } from "../site/collections/DynamicCollectionPage.js"
 import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.js"
@@ -21,22 +21,18 @@ import {
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
-    RECAPTCHA_SITE_KEY,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
     CLOUDFLARE_IMAGES_URL,
 } from "../settings/clientSettings.js"
 import { FeedbackPage } from "../site/FeedbackPage.js"
 import {
-    FullPost,
     Url,
     OwidGdocType,
     OwidGdoc,
-    OwidGdocDataInsightInterface,
     TombstonePageData,
     mergeGrapherConfigs,
     flattenNonTopicNodes,
 } from "@ourworldindata/utils"
-import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
 import {
     ArchiveContext,
     DEFAULT_THUMBNAIL_FILENAME,
@@ -46,15 +42,12 @@ import {
     ExplorerViewsTableName,
     GrapherInterface,
     ImageMetadata,
-    LatestPageItem,
     LinkedAuthor,
-    LinkedChart,
     OwidGdocMinimalPostInterface,
     OwidGdocPublicationContext,
     ResolvedSlideChartInfo,
     Slide,
 } from "@ourworldindata/types"
-import { formatPost } from "./formatWordpressPost.js"
 import {
     knexRaw,
     KnexReadonlyTransaction,
@@ -73,26 +66,20 @@ import {
 } from "@ourworldindata/explorer"
 import { ExplorerPage } from "../site/ExplorerPage.js"
 import {
-    DataInsightsIndexPage,
-    TopicTag,
-} from "../site/DataInsightsIndexPage.js"
-import {
     getChartConfigBySlug,
     getEnrichedChartById,
 } from "../db/model/Chart.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
-import { DEPRECATED_resolveInternalRedirectForWordpressProminentLinks } from "./redirects.js"
 import {
     getBlockContentFromSnapshot,
     getFullPostBySlugFromSnapshot,
-    isPostSlugCitable,
 } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import {
     getAndLoadGdocBySlug,
     getAndLoadGdocById,
-    getAndLoadPublishedDataInsightsPage,
+    getAndLoadLastPublishedDataInsights,
     getMinimalGdocBaseObjects,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "../db/model/ExplorerCatalogResolver.js"
@@ -198,36 +185,6 @@ export function renderGdocTombstone(
     )
 }
 
-export const renderPageBySlug = async (
-    slug: string,
-    knex: KnexReadonlyTransaction
-) => {
-    const post = await getFullPostBySlugFromSnapshot(knex, slug)
-    return renderPost(post, knex)
-}
-
-export const renderPost = async (
-    post: FullPost,
-    knex: KnexReadonlyTransaction,
-    baseUrl: string = BAKED_BASE_URL
-) => {
-    // Extract formatting options from post HTML comment (if any)
-    const formattingOptions = extractFormattingOptions(post.content)
-
-    const formatted = await formatPost(post, formattingOptions, knex)
-
-    const citationStatus = isPostSlugCitable(post.slug)
-
-    return renderToHtmlPage(
-        <LongFormPage
-            withCitation={citationStatus}
-            post={formatted}
-            formattingOptions={formattingOptions}
-            baseUrl={baseUrl}
-        />
-    )
-}
-
 export const renderFrontPage = async (knex: KnexReadonlyTransaction) => {
     const gdocHomepageId = await getHomepageId(knex)
 
@@ -253,11 +210,7 @@ export const renderDonatePage = async (knex: KnexReadonlyTransaction) => {
         )
 
     return renderToHtmlPage(
-        <DonatePage
-            baseUrl={BAKED_BASE_URL}
-            faqsGdoc={faqsGdoc}
-            recaptchaKey={RECAPTCHA_SITE_KEY}
-        />
+        <DonatePage baseUrl={BAKED_BASE_URL} faqsGdoc={faqsGdoc} />
     )
 }
 
@@ -265,44 +218,13 @@ export const renderThankYouPage = async () => {
     return renderToHtmlPage(<ThankYouPage baseUrl={BAKED_BASE_URL} />)
 }
 
-export const renderDataInsightsIndexPage = (
-    dataInsights: OwidGdocDataInsightInterface[],
-    page: number = 1,
-    totalPageCount: number,
-    isPreviewing: boolean = false,
-    topicTag?: TopicTag
-) => {
-    return renderToHtmlPage(
-        <DataInsightsIndexPage
-            dataInsights={dataInsights}
-            baseUrl={BAKED_BASE_URL}
-            pageNumber={page}
-            totalPageCount={totalPageCount}
-            isPreviewing={isPreviewing}
-            topicTag={topicTag}
-        />
-    )
-}
-
-export const renderLatestPage = (
-    posts: LatestPageItem[],
-    imageMetadata: Record<string, ImageMetadata>,
-    linkedAuthors: LinkedAuthor[],
-    linkedCharts: Record<string, LinkedChart>,
-    linkedDocuments: Record<string, OwidGdocMinimalPostInterface>,
-    pageNum: number,
-    totalPages: number
-) => {
+export const renderLatestPage = async (knex: KnexReadonlyTransaction) => {
+    const topicTagGraph = await generateTopicTagGraph(knex)
+    const flattenedTopicTagGraph = flattenNonTopicNodes(topicTagGraph)
     return renderToHtmlPage(
         <LatestPage
-            posts={posts}
-            imageMetadata={imageMetadata}
-            linkedAuthors={linkedAuthors}
-            linkedCharts={linkedCharts}
-            linkedDocuments={linkedDocuments}
-            pageNum={pageNum}
-            numPages={totalPages}
             baseUrl={BAKED_BASE_URL}
+            topicTagGraph={flattenedTopicTagGraph}
         />
     )
 }
@@ -329,10 +251,10 @@ export async function makeAtomFeed(knex: KnexReadonlyTransaction) {
 }
 
 export async function makeDataInsightsAtomFeed(knex: KnexReadonlyTransaction) {
-    const dataInsights = await getAndLoadPublishedDataInsightsPage(knex, 1)
+    const dataInsights = await getAndLoadLastPublishedDataInsights(knex)
     return makeAtomFeedFromDataInsights({
         dataInsights,
-        htmlUrl: `${BAKED_BASE_URL}/data-insights`,
+        htmlUrl: `${BAKED_BASE_URL}${buildLatestPagePath("data-insight")}`,
         feedUrl: `${BAKED_BASE_URL}/atom-data-insights.xml`,
     })
 }
@@ -429,7 +351,7 @@ export async function makeAtomFeedFromDataInsights({
 <feed xmlns="http://www.w3.org/2005/Atom">
 <title>Our World in Data - Data Insights</title>
 <subtitle>Bite-sized insights on how the world is changing, written by our team</subtitle>
-<id>${htmlUrl}/</id>
+<id>${feedUrl}</id>
 <link type="text/html" rel="alternate" href="${htmlUrl}"/>
 <link type="application/atom+xml" rel="self" href="${feedUrl}"/>
 <updated>${dataInsights[0].publishedAt?.toISOString()}</updated>
@@ -513,13 +435,7 @@ export const renderProminentLinks = async (
         blocks.map(async (block) => {
             const $block = $(block)
             const formattedUrlString = $block.find("link-url").text() // never empty, see prominent-link.php
-            const formattedUrl = Url.fromURL(formattedUrlString)
-
-            const resolvedUrl =
-                await DEPRECATED_resolveInternalRedirectForWordpressProminentLinks(
-                    formattedUrl,
-                    knex
-                )
+            const resolvedUrl = Url.fromURL(formattedUrlString)
             const resolvedUrlString = resolvedUrl.fullUrl
 
             const style = $block.attr("style")

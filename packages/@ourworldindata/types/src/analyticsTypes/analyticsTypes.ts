@@ -39,6 +39,9 @@ export enum EventCategory {
     SiteClick = "owid.site_click",
     SiteError = "owid.site_error",
     SiteInstantSearchClick = "owid.site_instantsearch_click",
+    SiteLatest = "owid.site_latest",
+    SiteLatestAnnouncementExpand = "owid.site_latest_announcement_expand",
+    SiteLatestResultClick = "owid.site_latest_result_click",
     SiteSearch = "owid.site_search",
     SiteSearchAutocompleteClick = "owid.site_search_autocomplete_click",
     SiteSearchResultClick = "owid.site_search_result_click",
@@ -56,6 +59,9 @@ export enum EventCategory {
 // =============================================================================
 
 export type EventParamsMap = {
+    [EventCategory.SiteLatest]: SiteLatestParams
+    [EventCategory.SiteLatestAnnouncementExpand]: SiteLatestAnnouncementExpandParams
+    [EventCategory.SiteLatestResultClick]: SiteLatestResultClickParams
     [EventCategory.SiteSearch]: SiteSearchParams
     [EventCategory.SiteSearchAutocompleteClick]: SiteSearchAutocompleteClickParams
     [EventCategory.SiteSearchResultClick]: SiteSearchResultClickParams
@@ -104,6 +110,31 @@ export interface SiteSearchParams {
     searchTopics: string
     /** Tilde-separated list of selected country names */
     searchSelectedCountries: string
+}
+
+export interface SiteLatestParams {
+    /** Always 'filter' for this event */
+    eventAction: "filter"
+    /** Tilde-separated list of selected topic names. Omitted when no topics
+     * are selected. */
+    latestTopics?: string
+    /** Selected content type. Omitted when the user hasn't picked a type
+     * (the "all" filter). */
+    latestType?: string
+}
+
+export interface SiteLatestResultClickParams {
+    /** Always 'click' for this event */
+    eventAction: "click"
+    /** Slug of the clicked result */
+    eventTarget: string
+    /** 1-indexed position of the clicked result in the /latest feed
+     * (chronological order, includes all hit types). */
+    latestPosition: number
+    /** Content type of the clicked result. Always set in practice — only
+     * topic/linear-topic pages lack `latestType`, and those never render
+     * on /latest. */
+    latestType?: string
 }
 
 export interface SiteSearchAutocompleteClickParams {
@@ -387,6 +418,8 @@ export interface ExplorerCountrySelectorParams {
     eventContext?: string
     /** Explorer path */
     explorerPath?: string
+    /** Chart config ID of the explorer view */
+    viewConfigId?: string
 }
 
 // Shared Events
@@ -411,6 +444,22 @@ export interface ExpanderParams {
     explorerPath?: string
     /** Grapher path if in grapher */
     grapherPath?: string
+}
+
+export interface SiteLatestAnnouncementExpandParams {
+    /** Always 'expand' for this event — the announcement card's Read more
+     * toggle is one-way (no collapse), so there's no 'open'/'close'
+     * distinction the way Expander has. */
+    eventAction: "expand"
+    /** Slug of the announcement that was expanded */
+    eventTarget: string
+    /** 1-indexed position of the announcement in the /latest feed at the
+     * time of expansion (chronological order, includes all hit types). */
+    latestPosition: number
+    /** Content type of the announcement. One of the announcement
+     * `LatestType` subtypes (announcement / data-update / website-upgrade)
+     * since only announcement hits render the Read more toggle. */
+    latestType?: string
 }
 
 export interface KeyboardShortcutParams {

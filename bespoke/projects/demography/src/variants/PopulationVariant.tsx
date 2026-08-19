@@ -1,36 +1,37 @@
 import { useMemo } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { QueryClientProvider } from "@tanstack/react-query"
 
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
 
-import type { PopulationVariantConfig, VariantProps } from "../config.js"
-import type { CountryData, DemographyMetadata } from "../helpers/types.js"
+import type { PopulationVariantConfig } from "../core/config.js"
+import type { VariantProps } from "../../../../helpers/config.js"
+import type { CountryData, DemographyMetadata } from "../core/types.js"
 
-import { queryClient, useDemographyData } from "../helpers/fetch.js"
+import { queryClient, useDemographyData } from "../core/fetch.js"
 import {
     START_YEAR,
     END_YEAR,
     CHART_FOOTER_SOURCES,
-} from "../helpers/constants.js"
+} from "../core/constants.js"
 import {
     useSimulation,
     computeScenarioOverrides,
-} from "../helpers/useSimulation.js"
-import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
+} from "../core/useSimulation.js"
+import { useInitialEntityName } from "../core/useInitialEntityName.js"
 import {
     BreakpointProvider,
     useContainerBreakpoint,
     breakpointClass,
-} from "../helpers/useBreakpoint.js"
+} from "../core/useBreakpoint.js"
 
 import {
     DemographyChartError,
     DemographySkeleton,
-    LoadingSpinner,
 } from "../components/DemographyLoadAndError.js"
+import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { PopulationChart } from "../components/PopulationChart.js"
 import { ParameterChartsDisclosure } from "../components/ParameterChartsDisclosure.js"
 import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
@@ -162,7 +163,7 @@ function CaptionedPopulationVariant({
             />
 
             <div className="demography-population-variant__chart-area">
-                {isLoading && <LoadingSpinner />}
+                {isLoading && <Spinner />}
                 {simulation && (
                     <PopulationChart
                         simulation={simulation}

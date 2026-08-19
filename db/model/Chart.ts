@@ -21,6 +21,7 @@ import {
     DbRawChartConfig,
     DbEnrichedChartConfig,
     GrapherChartType,
+    RelatedChartsTableName,
 } from "@ourworldindata/types"
 import { OpenAI } from "openai"
 import { zodResponseFormat } from "openai/helpers/zod"
@@ -657,6 +658,41 @@ export const getRelatedChartsForVariable = async (
     )
 }
 
+// Currently only returns charts from ETL (i.e. with "production" as reviewer)
+// Can be changed if we we want manually-added related charts
+export const getRelatedChartsForChart = async (
+    knex: db.KnexReadonlyTransaction,
+    chartId: number,
+    limit: number = 6
+): Promise<RelatedChart[]> => {
+    return db.knexRaw<RelatedChart>(
+        knex,
+        `-- sql
+            SELECT
+                charts.id AS chartId,
+                chart_configs.slug,
+                chart_configs.full->>"$.title" AS title,
+                chart_configs.full->>"$.variantName" AS variantName
+            FROM ${RelatedChartsTableName} rc
+            JOIN charts ON charts.id = rc.relatedChartId
+            JOIN chart_configs ON charts.configId = chart_configs.id
+            WHERE rc.chartId = ?
+                AND rc.relatedChartId != rc.chartId
+                AND rc.reviewer = 'production'
+                AND rc.label = 'good'
+                AND chart_configs.full->>"$.isPublished" = "true"
+                AND NOT EXISTS (
+                    SELECT 1 FROM chart_tags ct
+                    JOIN tags t ON ct.tagId = t.id
+                    WHERE ct.chartId = charts.id AND t.name = 'Unlisted'
+                )
+            ORDER BY rc.score DESC
+            LIMIT ?
+        `,
+        [chartId, limit]
+    )
+}
+
 export const getRedirectsByChartId = async (
     knex: db.KnexReadonlyTransaction,
     chartId: number
@@ -664,7 +700,11 @@ export const getRedirectsByChartId = async (
     await db.knexRaw(
         knex,
         `-- sql
-        SELECT id, slug, chart_id as chartId
+        SELECT
+            id,
+            slug,
+            chart_id as chartId,
+            target_query_param as targetQueryParam
         FROM chart_slug_redirects
         WHERE chart_id = ?
         ORDER BY id ASC`,

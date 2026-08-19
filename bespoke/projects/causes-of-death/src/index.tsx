@@ -8,7 +8,7 @@ import type {
 import StylesTarget from "vite-plugin-css-position/react"
 
 import { CausesOfDeathChartWithProviders } from "./components/CausesOfDeathChart.js"
-import { CausesOfDeathConfig } from "./helpers/CausesOfDeathConstants.js"
+import { parseConfig } from "./core/config.js"
 
 import "./index.scss"
 
@@ -20,7 +20,6 @@ export const VARIANTS = [
     {
         name: "treemap",
         component: CausesOfDeathChartWithProviders,
-        defaultConfig: {},
     },
 ] satisfies BespokeComponentVariantsList
 
@@ -34,14 +33,7 @@ export const mount: BespokeComponentMountFn = (
         return
     }
 
-    const rawConfig = opts.config ?? {}
-    const config: CausesOfDeathConfig = {
-        region: rawConfig.region,
-        sex: rawConfig.sex,
-        ageGroup: rawConfig.ageGroup,
-        year: rawConfig.year ? parseInt(rawConfig.year, 10) : undefined,
-        hideControls: rawConfig.hideControls === "true",
-    }
+    const config = parseConfig(opts.config ?? {})
 
     const root = createRoot(container)
     root.render(

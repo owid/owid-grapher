@@ -46,6 +46,12 @@ export enum SortBy {
     column = "column",
     /** Sort by the total across all columns */
     total = "total",
+    /** Sort by the change between the start and end values (dumbbell charts) */
+    change = "change",
+    /** Sort by the start value (dumbbell charts) */
+    startValue = "startValue",
+    /** Sort by the end value (dumbbell charts) */
+    endValue = "endValue",
 }
 
 export interface SortConfig {
@@ -257,6 +263,7 @@ export interface Tickmark {
     faint?: boolean
     gridLineOnly?: boolean
     solid?: boolean // mostly for labelling domain start (e.g. 0)
+    label?: string
 }
 export interface TickFormattingOptions {
     roundingMode?: OwidVariableRoundingMode
@@ -268,6 +275,10 @@ export interface TickFormattingOptions {
     useNoBreakSpace?: boolean
     showPlus?: boolean
     numberAbbreviation?: "short" | "long" | false
+    /** The magnitude at which abbreviation starts (defaults to 1 million) */
+    abbreviationThreshold?: number
+    /** Minimum precision of abbreviated values (defaults to 3) */
+    abbreviationSignificantFigures?: number
 }
 // Represents the actual entered configuration state in the editor
 export interface AxisConfigInterface {
@@ -343,11 +354,27 @@ export interface AxisConfigInterface {
     singleValueAxisPointAlign?: AxisAlign
 
     /**
-     * If given, think of the axis scale as a band scale, where each domain value
-     * occupies a fixed width. The axis is padded on both sides to reserve space
-     * for the outermost values.
+     * If given, treat the axis as a band scale: each value occupies a fixed
+     * width and the axis is padded on both sides to reserve space for the
+     * outermost values.
+     *
+     * These values also become the default tick positions (one tick per band),
+     * unless `ticks` is set explicitly or a calendar-aware tick layout applies
+     * (e.g. monthly time axes).
      */
-    domainValues?: number[]
+    bandValues?: number[]
+
+    /**
+     * Whether to offset the leftmost tick label so it doesn't overflow the axis start.
+     * Defaults to true.
+     */
+    shouldOffsetTickLabelAtStart?: boolean
+
+    /**
+     * Whether to offset the rightmost tick label so it doesn't overflow the axis end.
+     * Defaults to true.
+     */
+    shouldOffsetTickLabelAtEnd?: boolean
 }
 
 export interface VerticalComparisonLineConfig {
@@ -375,6 +402,47 @@ export enum LogoOption {
     "gv+owid" = "gv+owid",
     wordmark = "wordmark",
 }
+
+export enum LicenseOption {
+    "cc-by" = "cc-by",
+    "cc-by-sa" = "cc-by-sa",
+    "cc-by-nc" = "cc-by-nc",
+    "cc-by-nc-sa" = "cc-by-nc-sa",
+    "cc-by-nd" = "cc-by-nd",
+    "cc-by-nc-nd" = "cc-by-nc-nd",
+}
+
+export const CHART_LICENSES: Record<
+    LicenseOption,
+    { name: string; url: string }
+> = {
+    [LicenseOption["cc-by"]]: {
+        name: "CC BY",
+        url: "https://creativecommons.org/licenses/by/4.0/",
+    },
+    [LicenseOption["cc-by-sa"]]: {
+        name: "CC BY-SA",
+        url: "https://creativecommons.org/licenses/by-sa/4.0/",
+    },
+    [LicenseOption["cc-by-nc"]]: {
+        name: "CC BY-NC",
+        url: "https://creativecommons.org/licenses/by-nc/4.0/",
+    },
+    [LicenseOption["cc-by-nc-sa"]]: {
+        name: "CC BY-NC-SA",
+        url: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+    },
+    [LicenseOption["cc-by-nd"]]: {
+        name: "CC BY-ND",
+        url: "https://creativecommons.org/licenses/by-nd/4.0/",
+    },
+    [LicenseOption["cc-by-nc-nd"]]: {
+        name: "CC BY-NC-ND",
+        url: "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+    },
+}
+
+export const DEFAULT_CHART_LICENSE = LicenseOption["cc-by"]
 
 export interface ProjectionColumnInfo {
     projectedSlug: ColumnSlug
@@ -490,6 +558,7 @@ export enum ColorSchemeName {
     BinaryMapPaletteC = "BinaryMapPaletteC",
     BinaryMapPaletteD = "BinaryMapPaletteD",
     BinaryMapPaletteE = "BinaryMapPaletteE",
+    BinaryMapPaletteF = "BinaryMapPaletteF",
     SingleColorGradientDenim = "SingleColorGradientDenim",
     SingleColorGradientTeal = "SingleColorGradientTeal",
     SingleColorGradientPurple = "SingleColorGradientPurple",
@@ -515,6 +584,32 @@ export interface GlobeConfig {
     rotation: [number, number]
     zoom: number
     focusCountry?: EntityName
+}
+
+export enum DumbbellConnectorStyle {
+    Arrow = "arrow",
+    Line = "line",
+}
+
+export enum DumbbellValueLabelMode {
+    Absolute = "absolute",
+    Change = "change",
+    PercentChange = "percentChange",
+    None = "none",
+}
+
+export interface DumbbellTrendColorMap {
+    /** Color for dumbbells whose value increased over time */
+    increase?: Color
+    /** Color for dumbbells whose value decreased over time */
+    decrease?: Color
+}
+
+export interface DumbbellChartConfigInterface {
+    connectorStyle?: DumbbellConnectorStyle
+    valueLabelMode?: DumbbellValueLabelMode
+    /** Custom colors for the time-range encoding */
+    trendColorMap?: DumbbellTrendColorMap
 }
 
 export interface MapConfigInterface {
@@ -571,6 +666,7 @@ export interface GrapherInterface extends SortConfig {
     internalNotes?: string
     variantName?: string
     originUrl?: string
+    license?: LicenseOption
     isPublished?: boolean
     baseColorScheme?: ColorSchemeName
     invertColorScheme?: boolean
@@ -595,6 +691,7 @@ export interface GrapherInterface extends SortConfig {
     yAxis?: Partial<AxisConfigInterface>
     colorScale?: Partial<ColorScaleConfigInterface>
     map?: Partial<MapConfigInterface>
+    dumbbell?: Partial<DumbbellChartConfigInterface>
 
     // When we move graphers to Git, and remove dimensions, we can clean this up.
     ySlugs?: ColumnSlugs
@@ -715,6 +812,7 @@ export const grapherKeysToSerialize = [
     "internalNotes",
     "variantName",
     "originUrl",
+    "license",
     "isPublished",
     "baseColorScheme",
     "invertColorScheme",
@@ -743,6 +841,7 @@ export const grapherKeysToSerialize = [
     "relatedQuestions",
     "missingDataStrategy",
     "peerCountryStrategy",
+    "dumbbell",
 
     // Internals
     "adminBaseUrl",
@@ -771,6 +870,7 @@ export interface ChartRedirect {
     id: number
     slug: string
     chartId: number
+    targetQueryParam: string | null
 }
 
 export enum GrapherWindowType {

@@ -220,7 +220,6 @@
     },
     "jsPlugins": [
         "eslint-plugin-mobx",
-        "eslint-plugin-react-refresh",
         { "name": "import-x-js", "specifier": "eslint-plugin-import-x" }
     ],
     "overrides": [
@@ -228,6 +227,14 @@
             "files": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
             "rules": {
                 "eslint/no-undef": "off" // this is enforced by TS
+            }
+        },
+        {
+            // node scripts that may also contain browser-side callbacks (e.g. page.evaluate)
+            "files": ["devTools/**/*.mjs"],
+            "env": {
+                "node": true,
+                "browser": true
             }
         },
         {
@@ -288,7 +295,7 @@
                 "site/**/*.tsx"
             ],
             "rules": {
-                "react-refresh/only-export-components": [
+                "react/only-export-components": [
                     "error",
                     {
                         "allowConstantExport": true
@@ -298,6 +305,7 @@
         }
     ],
     "options": {
-        "typeAware": true
+        "typeAware": true,
+        "reportUnusedDisableDirectives": "error"
     }
 }

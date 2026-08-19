@@ -1,6 +1,6 @@
 import { DEFAULT_ATOM_FEED_PROPS } from "./SiteConstants.js"
 import { viteAssetsForSite } from "./viteUtils.js"
-import { GOOGLE_TAG_MANAGER_ID } from "../settings/clientSettings.js"
+import { ENV, GOOGLE_TAG_MANAGER_ID } from "../settings/clientSettings.js"
 import { NoJSDetector } from "./NoJSDetector.js"
 import {
     ArchiveContext,
@@ -43,24 +43,31 @@ export const Head = (props: {
     imageUrl?: string
     children?: any
     baseUrl: string
+    /**
+     * Ask search engines not to index the page. Also omits the canonical
+     * link, since a canonical on a noindexed page sends mixed signals.
+     */
+    noindex?: boolean
     atom?: {
         title: string
         href: string
     }
     staticAssetMap?: AssetMap
     archiveContext?: ArchiveContext
+    attrs?: Record<string, string | undefined>
 }) => {
     const { canonicalUrl, baseUrl } = props
     const pageTitle = props.pageTitle || `Our World in Data`
     const fullPageTitle = props.pageTitle
-        ? `${props.pageTitle} - Our World in Data`
+        ? `${props.pageTitle} | Our World in Data`
         : `Our World in Data`
     const pageDesc =
         props.pageDesc ||
-        "Research and data to make progress against the world’s largest problems"
+        "Research and data to make progress against the world’s largest problems."
     const imageUrl =
         props.imageUrl || `${baseUrl}/${DEFAULT_THUMBNAIL_FILENAME}`
     const atom = props.atom ?? DEFAULT_ATOM_FEED_PROPS
+    const iconSuffix = ENV === "production" ? "" : "-dev"
 
     const stylesheets = viteAssetsForSite({
         staticAssetMap: props.staticAssetMap,
@@ -74,14 +81,18 @@ export const Head = (props: {
     }
 
     return (
-        <head>
+        <head {...props.attrs}>
             <meta
                 name="viewport"
                 content="width=device-width, initial-scale=1, minimum-scale=1"
             />
             <title>{fullPageTitle}</title>
             <meta name="description" content={pageDesc} />
-            <link rel="canonical" href={canonicalUrl} />
+            {props.noindex ? (
+                <meta name="robots" content="noindex" />
+            ) : (
+                <link rel="canonical" href={canonicalUrl} />
+            )}
             <link
                 rel="alternate"
                 type="application/atom+xml"
@@ -96,11 +107,16 @@ export const Head = (props: {
                     data-archival-date={props.archiveContext.archivalDate}
                 />
             )}
+
+            {/* https://evilmartians.com/chronicles/how-to-favicon-in-2021-six-files-that-fit-most-needs */}
+            <link rel="icon" href={`/favicon${iconSuffix}.ico`} sizes="32x32" />
             <link
-                rel="apple-touch-icon"
-                sizes="180x180"
-                href="/apple-touch-icon.png"
+                rel="icon"
+                href={`/icon${iconSuffix}.svg`}
+                type="image/svg+xml"
             />
+            <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
             <link
                 rel="preload"
                 href="/fonts/LatoLatin-Regular.woff2"

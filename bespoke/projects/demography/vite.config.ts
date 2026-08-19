@@ -38,11 +38,19 @@ export default defineConfig({
         }),
     ],
     resolve: {
-        // The linked @ourworldindata/* packages resolve React relative
-        // to their real paths, which would load a second copy of React
-        // and break hooks. This forces all React imports to resolve to
-        // the single copy in this project's node_modules.
-        dedupe: ["react", "react-dom", "@react-stately/flags"],
+        // The linked @ourworldindata/* packages and the shared
+        // bespoke/{components,hooks} workspaces resolve their dependencies
+        // relative to their real paths, which would load a second copy of
+        // React (breaking hooks) or @tanstack/react-query (breaking the
+        // QueryClient context, since each copy has its own React context).
+        // This forces these to resolve to a single copy in this project's
+        // node_modules.
+        dedupe: [
+            "react",
+            "react-dom",
+            "@react-stately/flags",
+            "@tanstack/react-query",
+        ],
     },
     build: {
         lib: {

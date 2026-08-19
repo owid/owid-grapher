@@ -23,7 +23,7 @@ function getSlideName(slide: Slide, index: number): string {
         .with({ template: SlideTemplate.Cover }, (s) => s.title || fallback)
         .with(
             { template: SlideTemplate.Image },
-            (s) => s.slideTitle || s.filename || fallback
+            (s) => s.title || s.filename || fallback
         )
         .with({ template: SlideTemplate.Chart }, (s) => {
             if (s.title) return s.title

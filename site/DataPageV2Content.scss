@@ -1,0 +1,118 @@
+// Disable scroll anchoring across the datapage content region. The metadata box
+// is full of nested <details>/ExpandableToggle elements; when one expands, the
+// browser's scroll anchor can land on a section below it (search, related
+// charts, etc.) and shift scrollY to "expand up". Opting the whole region out of
+// anchoring makes every expansion push content down with scrollY preserved.
+.DataPageContent {
+    overflow-anchor: none;
+}
+
+.datapage-search-wrapper {
+    margin-bottom: 16px;
+    background-color: $blue-5;
+    padding: 24px 0 36px;
+    #datapage-autocomplete {
+        height: 56px;
+        background-color: $white;
+        margin: 0 auto;
+    }
+    h2 {
+        margin: 0;
+        margin-bottom: 24px;
+    }
+
+    .aa-DetachedFormContainer .aa-Form,
+    .aa-Autocomplete[aria-expanded="true"] .aa-Form,
+    .aa-Form {
+        background-color: $white;
+        border: 1px solid $blue-20;
+        border-radius: 0;
+        height: 56px;
+    }
+
+    // Mobile / "detached" mode: the input collapses into a
+    // button that opens a modal. Give it the same visible border
+    // as the desktop input so it doesn't disappear into the card.
+    .aa-DetachedSearchButton {
+        background-color: $white;
+        border: 1px solid $blue-20;
+        border-radius: 0;
+        justify-content: space-between;
+        cursor: text;
+        height: 56px;
+        width: 100%;
+
+        &:hover,
+        &:focus {
+            border-color: $blue-40;
+        }
+    }
+
+    .aa-DetachedSearchButtonIcon {
+        position: absolute;
+        right: 0;
+        background: $white;
+        svg {
+            fill: $blue-50;
+        }
+    }
+
+    .aa-DetachedSearchButtonPlaceholder {
+        display: block;
+        margin-left: 16px;
+        white-space: nowrap;
+        color: $blue-40;
+        width: calc(100% - 56px);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        // Explicit line-height to prevent Safari from clipping
+        // descenders (g, y, p, etc.) with overflow: hidden.
+        line-height: 1.4;
+    }
+
+    .aa-Input {
+        padding: 40px 0;
+        font-size: 1rem;
+        &::placeholder {
+            color: $blue-40;
+        }
+
+        &:placeholder-shown {
+            text-overflow: ellipsis;
+        }
+    }
+
+    .aa-InputWrapperPrefix {
+        display: initial;
+        margin-right: 8px;
+    }
+
+    .aa-Input::placeholder {
+        color: $blue-30;
+    }
+}
+
+// The autocomplete panel is portaled to document.body by the algolia library,
+// so it lives outside .DataPageContent in the DOM. Style it at the top level
+// — selectors nested under .DataPageContent would never match.
+.datapage-search__panel {
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.DataPageContent .datapage-research-and-writing-v2 {
+    .section-wrapper {
+        padding: 24px 0;
+        @include sm-up {
+            padding: 24px 0;
+        }
+    }
+    #research-and-writing {
+        grid-column-start: 1;
+        grid-column-end: span 12;
+        margin-bottom: 24px;
+    }
+}
+
+.datapage-v2__related-charts-heading {
+    color: $blue-90;
+}

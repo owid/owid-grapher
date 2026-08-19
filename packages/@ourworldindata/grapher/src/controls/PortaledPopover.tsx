@@ -1,6 +1,6 @@
 import type { ReactElement } from "react"
 import { Popover, type PopoverProps } from "react-aria-components"
-import { UNSAFE_PortalProvider } from "react-aria/PortalProvider"
+import { UNSAFE_PortalProvider } from "react-aria"
 
 export interface PortaledPopoverProps extends PopoverProps {
     portalContainer?: HTMLElement

@@ -12,7 +12,7 @@ import {
     DefaultNewExplorerSlug,
     EXPLORERS_ROUTE_FOLDER,
 } from "@ourworldindata/explorer"
-import classNames from "classnames"
+import classNames from "clsx"
 
 interface AdminLayoutProps {
     noSidebar?: boolean

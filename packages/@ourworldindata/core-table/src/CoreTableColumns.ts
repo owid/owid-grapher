@@ -4,8 +4,11 @@ import {
     csvEscape,
     formatYear,
     formatDay,
+    convertDaysSinceEpochToDate,
+    convertDateToDaysSinceEpoch,
+    EPOCH_DATE,
+    withUniformSpacing,
     sortNumeric,
-    dateDiffInDays,
     omitUndefinedValues,
     isPresent,
     dayjs,
@@ -20,6 +23,7 @@ import {
     ToleranceStrategy,
     IndicatorTitleWithFragments,
     stripOuterParentheses,
+    getTimeInterval,
 } from "@ourworldindata/utils"
 import { CoreTable } from "./CoreTable.js"
 import type { OwidTable } from "./OwidTable.js"
@@ -34,6 +38,7 @@ import {
     OwidVariableRow,
     ErrorValue,
     OwidVariableRoundingMode,
+    TimeInterval,
 } from "@ourworldindata/types"
 import { ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
 import {
@@ -105,17 +110,14 @@ export abstract class AbstractCoreColumn<
         return this.def.display
     }
 
+    @imemo get timeInterval(): TimeInterval {
+        return getTimeInterval(this.display)
+    }
+
     abstract formatValue(
         value: unknown,
         options?: TickFormattingOptions
     ): string
-
-    formatValueForMobile(
-        value: unknown,
-        options?: TickFormattingOptions
-    ): string {
-        return this.formatValue(value, options)
-    }
 
     formatValueShortWithAbbreviations(
         value: unknown,
@@ -143,6 +145,20 @@ export abstract class AbstractCoreColumn<
 
     formatTime(time: number): string {
         return this.originalTimeColumn.formatValue(time)
+    }
+
+    formatTimeShort(time: number): string {
+        return this.formatTime(time)
+    }
+
+    /** Formats a start/end time pair */
+    formatTimeRange(startTime: number, endTime: number): string {
+        return `${this.formatTime(startTime)} to ${this.formatTime(endTime)}`
+    }
+
+    /** Formats a start/end time pair as a comparison of two time points */
+    formatTimeComparison(startTime: number, endTime: number): string {
+        return `${this.formatTime(startTime)} vs. ${this.formatTime(endTime)}`
     }
 
     @imemo get roundingMode(): OwidVariableRoundingMode {
@@ -558,6 +574,22 @@ export abstract class AbstractCoreColumn<
         })
         return valueByEntityNameAndTime
     }
+
+    // Not using owidRows for performance reasons
+    @imemo get latestValueByEntityName(): Map<EntityName, JS_TYPE> {
+        const map = new Map<EntityName, JS_TYPE>()
+
+        const entityNames = this.allEntityNames
+        const values = this.values
+
+        // The table is sorted by time, so later rows overwrite earlier ones,
+        // leaving each entity mapped to its latest value
+        for (let i = 0; i < values.length; i++) {
+            map.set(entityNames[i], values[i])
+        }
+
+        return map
+    }
 }
 
 export type CoreColumn<
@@ -898,6 +930,9 @@ export abstract class TimeColumn<
 
     abstract preposition: string
 
+    // Human-readable name of the time interval (e.g. "Year", "Month")
+    abstract intervalName: string
+
     @imemo override get displayName(): string {
         return _.capitalize(this.name)
     }
@@ -909,13 +944,27 @@ export abstract class TimeColumn<
     override parse(val: unknown): number | ErrorValue {
         return parseInt(String(val))
     }
+
+    /**
+     * Given the sorted, de-duplicated times present in the data, returns them
+     * with gaps filled so that positions are uniformly spaced (one filler per
+     * missing step)
+     */
+    getUniformlySpacedTimes(sortedTimes: number[]): number[] {
+        return withUniformSpacing(sortedTimes)
+    }
 }
 
 class YearColumn<
     TABLE_TYPE extends CoreTable = CoreTable,
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
 > extends TimeColumn<TABLE_TYPE, DEF_TYPE> {
+    intervalName = "Year"
     preposition = "in"
+
+    override get timeInterval(): TimeInterval {
+        return TimeInterval.Year
+    }
 
     formatValue(value: number): string {
         // Include BCE
@@ -923,45 +972,61 @@ class YearColumn<
     }
 }
 
+// Formatting a day value goes through dayjs and is slow, and these formatters
+// run once per row in hot paths (CSV export, axis ticks, tooltips),
+// so we memoize per value
+const memoFormatDay = _.memoize(
+    (value: number): string => formatDay(value) // "Jan 21, 2020"
+)
+const memoFormatDayCsv = _.memoize(
+    (value: number): string => formatDay(value, { format: "YYYY-MM-DD" }) // "2020-01-21"
+)
+const memoFormatMonth = _.memoize(
+    (value: number): string => formatDay(value, { format: "MMM YYYY" }) // "Jan 2023"
+)
+const memoFormatMonthCsv = _.memoize(
+    (value: number): string => formatDay(value, { format: "YYYY-MM" }) // "2023-01"
+)
+const memoFormatWeek = _.memoize((value: number): string => {
+    const monday = convertDaysSinceEpochToDate(value).startOf("isoWeek")
+    return `Week of ${monday.format("MMM D, YYYY")}` // "Week of Jan 20, 2020"
+})
+const memoFormatWeekCsv = _.memoize((value: number): string => {
+    const date = convertDaysSinceEpochToDate(value)
+    const ww = String(date.isoWeek()).padStart(2, "0")
+    return `${date.isoWeekYear()}-W${ww}` // "2023-W03"
+})
+const memoFormatQuarter = _.memoize((value: number): string => {
+    const date = convertDaysSinceEpochToDate(value)
+    return `Q${date.quarter()} ${date.year()}` // "Q1 2023"
+})
+const memoFormatQuarterCsv = _.memoize((value: number): string => {
+    const date = convertDaysSinceEpochToDate(value)
+    return `${date.year()}-Q${date.quarter()}` // "2023-Q1"
+})
+const memoParseDate = _.memoize((value: string): Time =>
+    convertDateToDaysSinceEpoch(dayjs.utc(value))
+)
+
 class DayColumn<
     TABLE_TYPE extends CoreTable = CoreTable,
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
 > extends TimeColumn<TABLE_TYPE, DEF_TYPE> {
+    intervalName = "Day"
     preposition = "on"
 
-    // We cache these values because running `formatDay` thousands of times takes some time.
-    static formatValueCache = new Map<number, string>()
+    override get timeInterval(): TimeInterval {
+        return TimeInterval.Day
+    }
+
     formatValue(value: number): string {
-        if (!DayColumn.formatValueCache.has(value)) {
-            const formatted = formatDay(value)
-            DayColumn.formatValueCache.set(value, formatted)
-            return formatted
-        }
-        return DayColumn.formatValueCache.get(value)!
+        return memoFormatDay(value)
     }
 
-    static formatValueForMobileCache = new Map<number, string>()
-    override formatValueForMobile(value: number): string {
-        if (!DayColumn.formatValueForMobileCache.has(value)) {
-            const formatted = formatDay(value, { format: "MMM D, 'YY" })
-            DayColumn.formatValueForMobileCache.set(value, formatted)
-            return formatted
-        }
-        return DayColumn.formatValueForMobileCache.get(value)!
-    }
-
-    static formatForCsvCache = new Map<number, string>()
     override formatForCsv(value: number): string {
-        if (!DayColumn.formatForCsvCache.has(value)) {
-            const formatted = formatDay(value, { format: "YYYY-MM-DD" })
-            DayColumn.formatForCsvCache.set(value, formatted)
-            return formatted
-        }
-        return DayColumn.formatForCsvCache.get(value)!
+        return memoFormatDayCsv(value)
     }
 }
-
-const dateToTimeCache = new Map<string, Time>() // Cache for performance
 class DateColumn<
     TABLE_TYPE extends CoreTable = CoreTable,
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
@@ -969,54 +1034,196 @@ class DateColumn<
     override parse(val: unknown): number {
         // skip parsing if a date is a number, it's already been parsed
         if (typeof val === "number") return val
-        const valAsString = String(val)
-        if (!dateToTimeCache.has(valAsString))
-            dateToTimeCache.set(
-                valAsString,
-                dateDiffInDays(
-                    dayjs.utc(valAsString).toDate(),
-                    dayjs.utc("2020-01-21").toDate()
-                )
-            )
-        return dateToTimeCache.get(valAsString)!
+        return memoParseDate(String(val))
     }
 }
 
-class QuarterColumn<
+// A sub-yearly month column. Like all sub-yearly columns it stores
+// days-since-epoch internally (a representative day per month)
+// and only differs from DayColumn in how it formats those values.
+class MonthColumn<
     TABLE_TYPE extends CoreTable = CoreTable,
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
-> extends TimeColumn<TABLE_TYPE, DEF_TYPE> {
-    preposition = "in"
+> extends DayColumn<TABLE_TYPE, DEF_TYPE> {
+    override intervalName = "Month"
+    override preposition = "in"
 
-    private static readonly regEx = /^([+-]?\d+)-Q([1-4])$/
-
-    override parse(val: unknown): number | ErrorValue {
-        // skip parsing if a date is a number, it's already been parsed
-        if (typeof val === "number") return val
-        if (typeof val === "string") {
-            const match = val.match(QuarterColumn.regEx)
-            if (match) {
-                const [, year, quarter] = match
-                return parseInt(year) * 4 + (parseInt(quarter) - 1)
-            }
-        }
-        return ErrorValueTypes.InvalidQuarterValue
+    override get timeInterval(): TimeInterval {
+        return TimeInterval.Month
     }
 
-    private static numToQuarter(value: number): number[] {
-        const year = Math.floor(value / 4)
-        const quarter = (Math.abs(value) % 4) + 1
-        return [year, quarter]
-    }
-
-    formatValue(value: number): string {
-        const [year, quarter] = QuarterColumn.numToQuarter(value)
-        return `Q${quarter}/${year}`
+    override formatValue(value: number): string {
+        return memoFormatMonth(value) // "Jan 2023"
     }
 
     override formatForCsv(value: number): string {
-        const [year, quarter] = QuarterColumn.numToQuarter(value)
-        return `${year}-Q${quarter}`
+        return memoFormatMonthCsv(value) // "2023-01"
+    }
+
+    // The first of the epoch's month, used as the anchor for counting months.
+    private static readonly epochMonthStart = dayjs
+        .utc(EPOCH_DATE)
+        .startOf("month")
+
+    // Whole calendar months between the given day's month and the epoch's month.
+    private static monthsSinceEpoch(daysSinceEpoch: number): number {
+        return convertDaysSinceEpochToDate(daysSinceEpoch)
+            .startOf("month")
+            .diff(MonthColumn.epochMonthStart, "month")
+    }
+
+    // Inverse of monthsSinceEpoch: days-since-epoch for the first of that month.
+    private static daysAtStartOfMonth(monthsSinceEpoch: number): number {
+        const firstOfMonth = MonthColumn.epochMonthStart.add(
+            monthsSinceEpoch,
+            "month"
+        )
+        return convertDateToDaysSinceEpoch(firstOfMonth)
+    }
+
+    // Fill gaps one month at a time. We space in month-space (not the raw
+    // days-since-epoch of the base class) because months are 28–31 days apart,
+    // which would make the base GCD collapse to a daily grid. This also lets the
+    // GCD respect the cadence, so e.g. bi-monthly data isn't force-filled.
+    override getUniformlySpacedTimes(sortedTimes: number[]): number[] {
+        const months = new Set(
+            _.uniq(sortedTimes).map(MonthColumn.monthsSinceEpoch)
+        )
+        const spacedMonths = withUniformSpacing([...months])
+        return spacedMonths.map(MonthColumn.daysAtStartOfMonth)
+    }
+}
+
+// A sub-yearly week column, storing days-since-epoch
+// (a representative day per week)
+class WeekColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends DayColumn<TABLE_TYPE, DEF_TYPE> {
+    override intervalName = "Week"
+    override preposition = "in"
+
+    override get timeInterval(): TimeInterval {
+        return TimeInterval.Week
+    }
+
+    override formatValue(value: number): string {
+        return memoFormatWeek(value) // "Week of Jan 20, 2020"
+    }
+
+    override formatForCsv(value: number): string {
+        return memoFormatWeekCsv(value) // "2023-W03"
+    }
+
+    // The plain week-start date (ISO-week Monday), e.g. "Jun 1, 2026"
+    override formatTimeShort(time: number): string {
+        const monday = convertDaysSinceEpochToDate(time).startOf("isoWeek")
+        return monday.format("MMM D, YYYY")
+    }
+
+    // The span from the first day of the start week (ISO-week Monday) to the
+    // last day of the end week (Sunday), e.g. "Jun 1, 2026 to Jul 12, 2026".
+    override formatTimeRange(startTime: number, endTime: number): string {
+        const start = convertDaysSinceEpochToDate(startTime).startOf("isoWeek")
+        const end = convertDaysSinceEpochToDate(endTime).endOf("isoWeek")
+        return `${start.format("MMM D, YYYY")} to ${end.format("MMM D, YYYY")}`
+    }
+}
+
+// A sub-yearly quarter column, storing days-since-epoch
+// (a representative day per quarter)
+class QuarterColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends DayColumn<TABLE_TYPE, DEF_TYPE> {
+    override intervalName = "Quarter"
+    override preposition = "in"
+
+    override get timeInterval(): TimeInterval {
+        return TimeInterval.Quarter
+    }
+
+    override formatValue(value: number): string {
+        return memoFormatQuarter(value) // "Q1 2023"
+    }
+
+    override formatForCsv(value: number): string {
+        return memoFormatQuarterCsv(value) // "2023-Q1"
+    }
+
+    // The quarter's start month, e.g. "Jan 2026"
+    override formatTimeShort(time: number): string {
+        return convertDaysSinceEpochToDate(time)
+            .startOf("quarter")
+            .format("MMM YYYY")
+    }
+
+    // The span from the first month of the start quarter to the last month of
+    // the end quarter, e.g. "Jan 2025 to Dec 2026"
+    override formatTimeRange(startTime: number, endTime: number): string {
+        const start = convertDaysSinceEpochToDate(startTime).startOf("quarter")
+        const end = convertDaysSinceEpochToDate(endTime).endOf("quarter")
+        return `${start.format("MMM YYYY")} to ${end.format("MMM YYYY")}`
+    }
+
+    // The first of the epoch's quarter, used as the anchor for counting quarters.
+    private static readonly epochQuarterStart = dayjs
+        .utc(EPOCH_DATE)
+        .startOf("quarter")
+
+    // Whole calendar quarters between the given day's quarter and the epoch's.
+    private static quartersSinceEpoch(daysSinceEpoch: number): number {
+        return convertDaysSinceEpochToDate(daysSinceEpoch)
+            .startOf("quarter")
+            .diff(QuarterColumn.epochQuarterStart, "quarter")
+    }
+
+    // Inverse of quartersSinceEpoch: days-since-epoch for the first of that quarter.
+    private static daysAtStartOfQuarter(quartersSinceEpoch: number): number {
+        const firstOfQuarter = QuarterColumn.epochQuarterStart.add(
+            quartersSinceEpoch,
+            "quarter"
+        )
+        return convertDateToDaysSinceEpoch(firstOfQuarter)
+    }
+
+    // Fill gaps one quarter at a time. We space in quarter-space (not the raw
+    // days-since-epoch of the base class) because quarters are 90–92 days apart,
+    // which would make the base GCD collapse to a daily grid. This also lets the
+    // GCD respect the cadence, so e.g. semiannual data isn't force-filled.
+    override getUniformlySpacedTimes(sortedTimes: number[]): number[] {
+        const quarters = new Set(
+            _.uniq(sortedTimes).map(QuarterColumn.quartersSinceEpoch)
+        )
+        const spacedQuarters = withUniformSpacing([...quarters])
+        return spacedQuarters.map(QuarterColumn.daysAtStartOfQuarter)
+    }
+}
+
+// A decade column, storing literal years (a representative year per decade)
+class DecadeColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends YearColumn<TABLE_TYPE, DEF_TYPE> {
+    override intervalName = "Decade"
+    override preposition = "in the" // "in the 2020s"
+
+    override get timeInterval(): TimeInterval {
+        return TimeInterval.Decade
+    }
+
+    // The first year of the decade the given year belongs to, e.g. 2025 → 2020
+    private static startOfDecade(year: number): number {
+        return Math.floor(year / 10) * 10
+    }
+
+    override formatValue(value: number): string {
+        const decade = DecadeColumn.startOfDecade(value)
+        return decade < 0 ? `${Math.abs(decade)}s BCE` : `${decade}s` // "2020s"
+    }
+
+    override formatForCsv(value: number): string {
+        return this.formatValue(value)
     }
 }
 
@@ -1047,6 +1254,9 @@ export const ColumnTypeMap = {
     Date: DateColumn,
     Year: YearColumn,
     Quarter: QuarterColumn,
+    Month: MonthColumn,
+    Week: WeekColumn,
+    Decade: DecadeColumn,
     Time: TimeColumn,
     Boolean: BooleanColumn,
     Currency: CurrencyColumn,

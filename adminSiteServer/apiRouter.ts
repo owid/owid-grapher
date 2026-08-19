@@ -49,6 +49,7 @@ import {
     setGdocTags,
     getPreviewGdocIndexRecords,
     getPublishedGdocTopicSlugs,
+    getResearchAndWritingOrphans,
 } from "./apiRoutes/gdocs.js"
 import {
     getImagesHandler,
@@ -66,6 +67,7 @@ import {
     handlePatchMultiDim,
     handleGetMultiDimRedirects,
     handlePostMultiDimRedirect,
+    handleBulkCreateMultiDimRedirects,
     handleDeleteMultiDimRedirect,
     handleGetAllMultiDimRedirects,
     getMdimRecordsJson,
@@ -116,6 +118,7 @@ import {
     getVariableDataJson,
     getVariableMetadataJson,
     getVariablesJson,
+    getLatestVariableIdsByCatalogPathJson,
     getVariablesUsagesJson,
     getVariablesGrapherConfigETLPatchConfigJson,
     getVariablesGrapherConfigAdminPatchConfigJson,
@@ -161,12 +164,18 @@ import {
     refreshDataInsights,
 } from "./apiRoutes/dataInsights.js"
 import { getFigmaImageUrl } from "./apiRoutes/figma.js"
+import {
+    getSvgTesterResults,
+    getSvgTesterSuites,
+    getSvgTesterSvg,
+} from "./apiRoutes/svgTester.js"
 import { sendMessageToSlack } from "./apiRoutes/slack.js"
 import {
     createFeaturedMetric,
     deleteFeaturedMetric,
     fetchFeaturedMetrics,
     rerankFeaturedMetrics,
+    updateFeaturedMetricBoost,
 } from "./apiRoutes/featuredMetrics.js"
 import {
     getDods,
@@ -368,6 +377,11 @@ getRouteWithROTransaction(
     "/gdocs/publishedTopicSlugs",
     getPublishedGdocTopicSlugs
 )
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs/researchAndWritingOrphans",
+    getResearchAndWritingOrphans
+)
 getRouteNonIdempotentWithRWTransaction(
     apiRouter,
     "/gdocs/:id",
@@ -451,6 +465,11 @@ postRouteWithRWTransaction(
     "/multi-dims/:id/redirects",
     handlePostMultiDimRedirect
 )
+postRouteWithRWTransaction(
+    apiRouter,
+    "/multi-dim-redirects/bulk",
+    handleBulkCreateMultiDimRedirects
+)
 deleteRouteWithRWTransaction(
     apiRouter,
     "/multi-dims/:id/redirects/:redirectId",
@@ -486,6 +505,11 @@ postRouteWithRWTransaction(
     apiRouter,
     "/featured-metrics/rerank",
     rerankFeaturedMetrics
+)
+putRouteWithRWTransaction(
+    apiRouter,
+    "/featured-metrics/:id/boost",
+    updateFeaturedMetricBoost
 )
 deleteRouteWithRWTransaction(
     apiRouter,
@@ -607,6 +631,11 @@ getRouteWithROTransaction(
 )
 getRouteWithROTransaction(
     apiRouter,
+    "/variables.latestByCatalogPath.json",
+    getLatestVariableIdsByCatalogPathJson
+)
+getRouteWithROTransaction(
+    apiRouter,
     "/variables/grapherConfigETL/:variableId.patchConfig.json",
     getVariablesGrapherConfigETLPatchConfigJson
 )
@@ -659,6 +688,11 @@ getRouteWithROTransaction(apiRouter, "/figma/image", getFigmaImageUrl)
 
 // Slack routes
 postRouteWithRWTransaction(apiRouter, "/slack/sendMessage", sendMessageToSlack)
+
+// SVG tester
+apiRouter.get("/svgtester/suites.json", getSvgTesterSuites)
+apiRouter.get("/svgtester/:suite/results.json", getSvgTesterResults)
+apiRouter.router.get("/svgtester/:suite/:kind/:filename", getSvgTesterSvg)
 
 // Deploy helpers
 apiRouter.get("/deploys.json", async () => ({

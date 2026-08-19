@@ -10,6 +10,8 @@ import {
     type DataInsightHit,
     type StackedArticleHit,
     FilterType,
+    type LatestState,
+    type LatestPageChronologicalRecord,
     type UserSurveyExperimentArm,
     type UserSurveyRoleAnswer,
 } from "@ourworldindata/types"
@@ -29,15 +31,19 @@ export class SiteAnalytics extends GrapherAnalytics {
         query,
         url,
         position,
+        source,
     }: {
         query: string
         url: string
         position: string
+        /** Where the autocomplete was rendered, e.g. "topnav", "homepage",
+         * "datapage". Lets us distinguish which search bar was used. */
+        source?: string
     }) {
         this.logToGA({
             event: EventCategory.SiteInstantSearchClick,
             eventAction: "click",
-            eventContext: JSON.stringify({ query, position }),
+            eventContext: JSON.stringify({ query, position, source }),
             eventTarget: url,
         })
     }
@@ -47,6 +53,38 @@ export class SiteAnalytics extends GrapherAnalytics {
             event: EventCategory.DetailOnDemand,
             eventAction: "show",
             eventTarget: id,
+        })
+    }
+
+    logLatest(state: LatestState) {
+        this.logToGA({
+            event: EventCategory.SiteLatest,
+            eventAction: "filter",
+            latestTopics: state.topics.join("~") || undefined,
+            latestType: state.latestType ?? undefined,
+        })
+    }
+
+    logLatestResultClick(hit: LatestPageChronologicalRecord, position: number) {
+        this.logToGA({
+            event: EventCategory.SiteLatestResultClick,
+            eventAction: "click",
+            eventTarget: hit.slug,
+            latestPosition: position,
+            latestType: hit.latestType,
+        })
+    }
+
+    logLatestAnnouncementExpand(
+        hit: LatestPageChronologicalRecord,
+        position: number
+    ) {
+        this.logToGA({
+            event: EventCategory.SiteLatestAnnouncementExpand,
+            eventAction: "expand",
+            eventTarget: hit.slug,
+            latestPosition: position,
+            latestType: hit.latestType,
         })
     }
 
@@ -69,7 +107,7 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logSiteSearchResultClick(
+    logSearchResultClick(
         hit:
             | SearchChartHit
             | FlatArticleHit
@@ -322,6 +360,7 @@ export class SiteAnalytics extends GrapherAnalytics {
                         | {
                               grapherUrl: string
                               narrativeChartName: string
+                              viewConfigId?: string
                           }
                         | undefined
                     try {
@@ -336,6 +375,7 @@ export class SiteAnalytics extends GrapherAnalytics {
                             grapherUrl: grapherUrlObj?.grapherUrl,
                             narrativeChartName:
                                 grapherUrlObj?.narrativeChartName,
+                            viewConfigId: grapherUrlObj?.viewConfigId,
                         }
                     )
                 } else

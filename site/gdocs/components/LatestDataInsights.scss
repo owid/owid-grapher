@@ -180,6 +180,12 @@ html:not(.js-enabled) .latest-data-insights__card,
     }
 }
 
+.latest-data-insights__card-authors {
+    @include body-3-medium-italic;
+    color: $blue-50;
+    margin: 0 0 8px 0;
+}
+
 .latest-data-insights__control-button {
     --button-size: 40px;
     position: absolute;

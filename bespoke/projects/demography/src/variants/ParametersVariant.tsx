@@ -1,31 +1,32 @@
 import { useMemo } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { QueryClientProvider } from "@tanstack/react-query"
 import {
     DemographyChartError,
     DemographySkeleton,
-    LoadingSpinner,
 } from "../components/DemographyLoadAndError.js"
-import { queryClient, useDemographyData } from "../helpers/fetch.js"
-import type { ParametersVariantConfig, VariantProps } from "../config.js"
+import { Spinner } from "../../../../components/Spinner/Spinner.js"
+import { queryClient, useDemographyData } from "../core/fetch.js"
+import type { ParametersVariantConfig } from "../core/config.js"
+import type { VariantProps } from "../../../../helpers/config.js"
 
-import { CountryData, DemographyMetadata } from "../helpers/types.js"
+import { CountryData, DemographyMetadata } from "../core/types.js"
 import {
     useSimulation,
     computeScenarioOverrides,
-} from "../helpers/useSimulation.js"
-import { CHART_FOOTER_SOURCES } from "../helpers/constants.js"
+} from "../core/useSimulation.js"
+import { CHART_FOOTER_SOURCES } from "../core/constants.js"
 import { InputChartPanel } from "../components/SimulationContent.js"
 
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
-import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
+import { useInitialEntityName } from "../core/useInitialEntityName.js"
 import {
     BreakpointProvider,
     useContainerBreakpoint,
     breakpointClass,
-} from "../helpers/useBreakpoint.js"
+} from "../core/useBreakpoint.js"
 import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 
 export function ParametersVariant({
@@ -149,7 +150,7 @@ function CaptionedParametersVariant({
                 subtitle={subtitle}
             />
             <div className="demography-parameters__chart-area">
-                {isLoading && <LoadingSpinner />}
+                {isLoading && <Spinner />}
                 {simulation && (
                     <div className="demography-parameters__panels">
                         <InputChartPanel

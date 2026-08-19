@@ -70,7 +70,7 @@ fields:
   descriptionFromProducer:
     description: Description provided by the original data producer
   descriptionKey:
-    description: Key points about the variable that users should know
+    description: Key information about the variable that users should know, as markdown text (JSON-encoded string; rows written before the string migration may carry arrays of bullet points)
   descriptionProcessing:
     description: Description of any processing steps applied to the data
   licenses:

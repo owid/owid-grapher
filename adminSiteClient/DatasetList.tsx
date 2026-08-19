@@ -8,6 +8,10 @@ import { Link } from "./Link.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
+import {
+    getTagGraphRolesById,
+    MinimalTagWithMetadata,
+} from "./TagGraphMetadata.js"
 
 export interface DatasetListItem {
     id: number
@@ -28,7 +32,8 @@ export interface DatasetListItem {
 
 interface DatasetRowProps {
     dataset: DatasetListItem
-    availableTags: DbChartTagJoin[]
+    availableTags: MinimalTagWithMetadata[]
+    tagGraphRolesById: ReturnType<typeof getTagGraphRolesById>
     searchHighlight?: (text: string) => string | React.ReactElement
 }
 
@@ -59,7 +64,8 @@ class DatasetRow extends React.Component<DatasetRowProps> {
     }
 
     override render() {
-        const { dataset, searchHighlight, availableTags } = this.props
+        const { dataset, searchHighlight, availableTags, tagGraphRolesById } =
+            this.props
 
         const highlight = searchHighlight || lodash.identity
 
@@ -94,6 +100,7 @@ class DatasetRow extends React.Component<DatasetRowProps> {
                     <EditableTags
                         tags={dataset.tags}
                         suggestions={availableTags}
+                        tagGraphRolesById={tagGraphRolesById}
                         onSave={this.onSaveTags}
                         disabled={dataset.namespace !== "owid"}
                     />
@@ -113,7 +120,7 @@ export class DatasetList extends React.Component<DatasetListProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    availableTags: DbChartTagJoin[] = []
+    availableTags: MinimalTagWithMetadata[] | undefined = undefined
 
     constructor(props: DatasetListProps) {
         super(props)
@@ -133,7 +140,8 @@ export class DatasetList extends React.Component<DatasetListProps> {
     }
 
     override render() {
-        const { props } = this
+        const { props, availableTags } = this
+        const tagGraphRolesById = getTagGraphRolesById(availableTags ?? [])
         return (
             <table className="table table-bordered">
                 <thead>
@@ -149,14 +157,16 @@ export class DatasetList extends React.Component<DatasetListProps> {
                     </tr>
                 </thead>
                 <tbody>
-                    {props.datasets.map((dataset) => (
-                        <DatasetRow
-                            dataset={dataset}
-                            availableTags={this.availableTags}
-                            key={dataset.id}
-                            searchHighlight={props.searchHighlight}
-                        />
-                    ))}
+                    {availableTags &&
+                        props.datasets.map((dataset) => (
+                            <DatasetRow
+                                dataset={dataset}
+                                availableTags={availableTags}
+                                tagGraphRolesById={tagGraphRolesById}
+                                key={dataset.id}
+                                searchHighlight={props.searchHighlight}
+                            />
+                        ))}
                 </tbody>
             </table>
         )

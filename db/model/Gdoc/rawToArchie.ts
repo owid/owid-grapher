@@ -35,7 +35,6 @@ import {
     RawBlockTopicPageIntro,
     RawBlockExpandableParagraph,
     RawBlockAlign,
-    RawBlockEntrySummary,
     RawBlockTable,
     RawBlockTableRow,
     RawBlockBlockquote,
@@ -74,24 +73,6 @@ export function appendDotEndIfMultiline(
     if (typeof line === "boolean") return line ? "true" : "false"
     if (line?.includes("\n")) return line + "\n:end"
     return line ?? ""
-}
-
-export function* encloseLinesAsPropertyPossiblyMultiline(
-    key: string,
-    lines: Iterable<string>
-): Generator<string, void, unknown> {
-    let first = true
-    let multiLine = false
-    for (const line of lines) {
-        if (first) {
-            yield `${key}: ${line}`
-            first = false
-        } else {
-            yield line
-            multiLine = true
-        }
-    }
-    if (multiLine) yield ":end"
 }
 
 export function keyValueToArchieMlString(
@@ -380,6 +361,7 @@ function* rawBlockChartRowsToArchieMLString(
             for (const row of block.value.rows) {
                 yield* propertyToArchieMLString("image", row)
                 yield* propertyToArchieMLString("url", row)
+                yield* propertyToArchieMLString("caption", row)
                 if (row.content) {
                     yield "[.+content]"
                     for (const content of row.content) {
@@ -745,6 +727,13 @@ function* rawKeyInsightsToArchieMLString(
             yield* propertyToArchieMLString("filename", insight)
             yield* propertyToArchieMLString("url", insight)
             yield* propertyToArchieMLString("narrativeChartName", insight)
+            if (insight.asset) {
+                yield "[.+asset]"
+                for (const asset of insight.asset) {
+                    yield* OwidRawGdocBlockToArchieMLStringGenerator(asset)
+                }
+                yield "[]"
+            }
             if (insight.content) {
                 yield "[.+content]"
                 for (const content of insight.content) {
@@ -841,21 +830,6 @@ function* rawBlockAlignToArchieMLString(
     yield "[.+content]"
     for (const content of block.value.content) {
         yield* OwidRawGdocBlockToArchieMLStringGenerator(content)
-    }
-    yield "[]"
-    yield "{}"
-}
-
-function* rawBlockEntrySummaryToArchieMLString(
-    block: RawBlockEntrySummary
-): Generator<string, void, undefined> {
-    yield "{.entry-summary}"
-    yield "[.items]"
-    if (block.value.items) {
-        for (const item of block.value.items) {
-            yield* propertyToArchieMLString("text", item)
-            yield* propertyToArchieMLString("slug", item)
-        }
     }
     yield "[]"
     yield "{}"
@@ -1192,7 +1166,6 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             rawResearchAndWritingToArchieMLString
         )
         .with({ type: "align" }, rawBlockAlignToArchieMLString)
-        .with({ type: "entry-summary" }, rawBlockEntrySummaryToArchieMLString)
         .with({ type: "table" }, rawBlockTableToArchieMLString)
         .with({ type: "table-row" }, rawBlockRowToArchieMLString)
         .with({ type: "explorer-tiles" }, rawBlockExplorerTilesToArchieMLString)

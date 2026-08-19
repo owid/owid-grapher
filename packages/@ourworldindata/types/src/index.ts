@@ -37,16 +37,13 @@ export {
     type QueryParams,
     R2GrapherConfigDirectory,
 } from "./domainTypes/Various.js"
-export { type BreadcrumbItem, type KeyValueProps } from "./domainTypes/Site.js"
-export {
-    type FormattedPost,
-    type IndexPost,
-    type FullPost,
-} from "./domainTypes/Posts.js"
+export { type BreadcrumbItem } from "./domainTypes/Site.js"
+export { type IndexPost, type FullPost } from "./domainTypes/Posts.js"
 
 export {
     type TocHeading,
-    type TocHeadingWithTitleSupertitle,
+    type TocHeadingWithSupertitle,
+    type TocSidebarSection,
 } from "./domainTypes/Toc.js"
 
 export {
@@ -118,6 +115,9 @@ export {
     MapRegionName,
     type GlobeRegionName,
     LogoOption,
+    LicenseOption,
+    CHART_LICENSES,
+    DEFAULT_CHART_LICENSE,
     type ComparisonLineConfig,
     type VerticalComparisonLineConfig,
     type CustomComparisonLineConfig,
@@ -135,6 +135,10 @@ export {
     AxisMinMaxValueStr,
     GrapherTooltipAnchor,
     type MapConfigInterface,
+    type DumbbellChartConfigInterface,
+    type DumbbellTrendColorMap,
+    DumbbellConnectorStyle,
+    DumbbellValueLabelMode,
     type GlobeConfig,
     type ProjectionColumnInfo,
     GrapherVariant,
@@ -166,8 +170,6 @@ export {
     ContentGraphLinkType,
 } from "./domainTypes/ContentGraph.js"
 export {
-    WP_BlockClass,
-    WP_ColumnStyle,
     WP_PostType,
     type PostRestApi,
     type BlockGraphQlApi,
@@ -190,6 +192,7 @@ export {
     type OwidGdocPostContent,
     type OwidGdocPostInterface,
     type OwidGdocMinimalPostInterface,
+    type OwidGdocMinimalAnnouncementInterface,
     type OwidGdocDataInsightContent,
     type OwidGdocDataInsightInterface,
     type MinimalDataInsightInterface,
@@ -202,9 +205,13 @@ export {
     type OwidGdocProfileContent,
     type OwidGdocProfileInterface,
     type OwidGdocProfileEntitySummary,
-    DATA_INSIGHTS_INDEX_PAGE_SIZE,
-    LATEST_INDEX_PAGE_SIZE,
     type OwidGdoc,
+    type ChronologicalGdoc,
+    type LatestFeedGdoc,
+    CHRONOLOGICAL_INDEX_TYPE_VALUES,
+    LATEST_FEED_TYPE_VALUES,
+    CHRONOLOGICAL_INDEX_TYPES,
+    LATEST_FEED_TYPES,
     OwidGdocType,
     ALL_GDOC_TYPES,
     type OwidGdocStickyNavItem,
@@ -214,7 +221,6 @@ export {
     type EnrichedFaq,
     type DetailDictionary,
     GdocsContentSource,
-    type LatestPageItem,
     type LatestDataInsight,
     type LinkedAuthor,
     type LinkedChart,
@@ -225,7 +231,10 @@ export {
     DYNAMIC_COLLECTION_PAGE_CONTAINER_ID,
     type OwidGdocContent,
     type OwidGdocIndexItem,
+    type OwidGdocIndexTag,
     extractGdocIndexItem,
+    type OrphanedTopicArticle,
+    type TopicPageOrphanReport,
     type NarrativeChartInfo,
     type OwidGdocDataInsightIndexItem,
 } from "./gdocTypes/Gdoc.js"
@@ -236,6 +245,7 @@ export {
     type DataPageDataV2,
     type DataPageRelatedResearch,
     type PrimaryTopic,
+    type DatasetOwners,
     type FaqLink,
     type FaqEntryData,
     type DisplaySource,
@@ -301,6 +311,7 @@ export {
     type OwidProcessingLevel,
     type IndicatorTitleWithFragments,
     joinTitleFragments,
+    normalizeDescriptionKey,
     type OwidVariableType,
 } from "./OwidVariable.js"
 
@@ -311,6 +322,10 @@ export {
     type OwidVariableDisplayConfigInterface,
     type OwidVariableDataTableConfigInterface,
     OwidVariableRoundingMode,
+    TimeInterval,
+    SUB_YEARLY_TIME_INTERVALS,
+    TIME_INTERVALS,
+    type SubYearlyTimeInterval,
     type OwidChartDimensionInterface,
     type OwidChartDimensionInterfaceWithMandatorySlug,
 } from "./OwidVariableDisplayConfigInterface.js"
@@ -354,6 +369,11 @@ export {
     type DbPlainAnalyticsPageview,
     AnalyticsPageviewsTableName,
 } from "./dbTypes/AnalyticsPageviews.js"
+export {
+    type AnalyticsChartViewsType,
+    AnalyticsChartViewsTableName,
+    type DbPlainAnalyticsChartView,
+} from "./dbTypes/AnalyticsChartViews.js"
 export {
     type DbPlainAnalyticsGrapherView,
     type AnalyticsGrapherViewWithRank,
@@ -572,6 +592,7 @@ export {
     type DBEnrichedPostGdocWithTags,
     PostsGdocsTableName,
     parsePostGdocContent,
+    parsePostGdocsAuthors,
     serializePostGdocContent,
     parsePostsGdocsBreadcrumbs,
     serializePostsGdocsBreadcrumbs,
@@ -606,6 +627,7 @@ export {
 export {
     SlideTemplate,
     SLIDE_TEMPLATE_LABELS,
+    SLIDE_TEMPLATE_FIELDS,
     type SlideImageOnly,
     type SlideChartOnly,
     type SlideTwoCharts,
@@ -664,8 +686,9 @@ export {
 export {
     type DbInsertTag,
     type DbPlainTag,
-    type MinimalTagWithIsTopic,
+    type MinimalTagWithMetadata,
     type MinimalTag,
+    type TagGraphRole,
     TagsTableName,
 } from "./dbTypes/Tags.js"
 export {
@@ -703,9 +726,14 @@ export {
 
 export {
     RedirectsTableName,
-    RedirectCode,
     type DbPlainRedirect,
 } from "./dbTypes/Redirects.js"
+
+export {
+    RelatedChartsTableName,
+    type DbInsertRelatedChart,
+    type DbPlainRelatedChart,
+} from "./dbTypes/RelatedCharts.js"
 
 export {
     ExplorerViewsTableName,
@@ -758,6 +786,7 @@ export type {
     ChoicesEnriched,
     DimensionEnriched,
     MultiDimDimensionChoices,
+    ExplorerRedirectTarget,
     View,
     ViewEnriched,
 } from "./siteTypes/MultiDimDataPage.js"
@@ -827,6 +856,11 @@ export {
 } from "./endpointTypes/GrapherValuesJson.js"
 
 export {
+    type BulkMultiDimRedirectResult,
+    type BulkMultiDimRedirectResponse,
+} from "./endpointTypes/MultiDimRedirects.js"
+
+export {
     type SearchChartHitDataTableProps,
     type GrapherSearchResultJson,
     type SearchChartHitDataDisplayProps,
@@ -837,4 +871,6 @@ export {
 } from "./endpointTypes/GrapherSearchResultJson.js"
 
 export * from "./analyticsTypes/analyticsTypes.js"
+export * from "./domainTypes/Latest.js"
 export * from "./domainTypes/Search.js"
+export * from "./domainTypes/SvgTester.js"

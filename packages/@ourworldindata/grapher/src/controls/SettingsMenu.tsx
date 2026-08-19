@@ -1,7 +1,7 @@
 import * as React from "react"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import classnames from "classnames"
+import classnames from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faGear } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -117,6 +117,7 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
                 GRAPHER_CHART_TYPES.DiscreteBar,
                 GRAPHER_CHART_TYPES.StackedDiscreteBar,
                 GRAPHER_CHART_TYPES.Marimekko,
+                GRAPHER_CHART_TYPES.Dumbbell,
             ].includes(this.chartType as any)
         )
             return false // We currently do not have these charts with log scale
@@ -328,7 +329,7 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
                         aria-label="Chart settings"
                     >
                         <FontAwesomeIcon icon={faGear} />
-                        <span className="label"> Settings</span>
+                        <span className="label">Settings</span>
                     </Button>
                     <Popover
                         className={GRAPHER_SETTINGS_CLASS}

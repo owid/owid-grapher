@@ -45,7 +45,9 @@ class AxisConfigDefaults implements AxisConfigInterface {
     ticks: Tickmark[] | undefined = undefined
     singleValueAxisPointAlign: AxisAlign | undefined = undefined
     label: string | undefined = undefined
-    domainValues: number[] | undefined = undefined
+    bandValues: number[] | undefined = undefined
+    shouldOffsetTickLabelAtStart: boolean | undefined = undefined
+    shouldOffsetTickLabelAtEnd: boolean | undefined = undefined
 
     constructor() {
         makeObservable(this, {
@@ -68,7 +70,9 @@ class AxisConfigDefaults implements AxisConfigInterface {
             ticks: observable.ref,
             singleValueAxisPointAlign: observable.ref,
             label: observable.ref,
-            domainValues: observable.ref,
+            bandValues: observable.ref,
+            shouldOffsetTickLabelAtStart: observable.ref,
+            shouldOffsetTickLabelAtEnd: observable.ref,
         })
     }
 }
@@ -127,7 +131,7 @@ export class AxisConfig
             facetDomain: this.facetDomain,
             ticks: this.ticks,
             singleValueAxisPointAlign: this.singleValueAxisPointAlign,
-            domainValues: this.domainValues,
+            bandValues: this.bandValues,
         }) as AxisConfigInterface
 
         deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())

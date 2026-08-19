@@ -1,33 +1,26 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { QueryClientProvider } from "@tanstack/react-query"
 
-import { queryClient, useDemographyData } from "../helpers/fetch.js"
+import { queryClient, useDemographyData } from "../core/fetch.js"
 import type {
     DependencyRatioVariantConfig,
     PopulationPyramidUnit,
     SimulationVariantConfig,
-    VariantProps,
-} from "../config.js"
-import {
-    CHART_FOOTER_SOURCES,
-    DEFAULT_ENTITY_NAME,
-} from "../helpers/constants.js"
-import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
+} from "../core/config.js"
+import type { VariantProps } from "../../../../helpers/config.js"
+import { CHART_FOOTER_SOURCES, DEFAULT_ENTITY_NAME } from "../core/constants.js"
+import { useInitialEntityName } from "../core/useInitialEntityName.js"
 import {
     parseSimulationUrlState,
     type SimulationUrlState,
-} from "../helpers/urlState.js"
+} from "../core/urlState.js"
 import {
     DemographyChartError,
     DemographySkeleton,
-    LoadingSpinner,
 } from "../components/DemographyLoadAndError.js"
-import {
-    CountryData,
-    DemographyMetadata,
-    ParameterKey,
-} from "../helpers/types.js"
+import { Spinner } from "../../../../components/Spinner/Spinner.js"
+import { CountryData, DemographyMetadata, ParameterKey } from "../core/types.js"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
@@ -38,7 +31,7 @@ import {
     BreakpointProvider,
     useContainerBreakpoint,
     breakpointClass,
-} from "../helpers/useBreakpoint.js"
+} from "../core/useBreakpoint.js"
 
 type SimulationContentMode = "population" | "dependencyRatio"
 
@@ -199,6 +192,8 @@ function FetchingSimulationVariant({
                     : undefined
             }
             mode={mode}
+            urlTab={urlState.tab}
+            urlYear={urlState.year}
         />
     )
 }
@@ -251,6 +246,8 @@ function CaptionedSimulationVariant({
     retirementAgeAssumptions,
     urlRetirementAgeAssumptions,
     mode,
+    urlTab,
+    urlYear,
 }: {
     data: CountryData
     metadata: DemographyMetadata
@@ -275,6 +272,8 @@ function CaptionedSimulationVariant({
     retirementAgeAssumptions?: Record<number, number>
     urlRetirementAgeAssumptions?: Record<number, number>
     mode: SimulationContentMode
+    urlTab?: ParameterKey
+    urlYear?: number
 }) {
     const countryName = data.country
 
@@ -314,7 +313,7 @@ function CaptionedSimulationVariant({
                 subtitle={subtitle}
             />
             <div className="demography-captioned-chart__chart-area">
-                {isLoading && <LoadingSpinner />}
+                {isLoading && <Spinner />}
                 <SimulationContent
                     data={data}
                     focusParameter={focusParameter}
@@ -334,6 +333,8 @@ function CaptionedSimulationVariant({
                     retirementAgeAssumptions={retirementAgeAssumptions}
                     urlRetirementAgeAssumptions={urlRetirementAgeAssumptions}
                     mode={mode}
+                    urlTab={urlTab}
+                    urlYear={urlYear}
                 />
             </div>
             <ChartFooter

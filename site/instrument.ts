@@ -6,6 +6,7 @@
  */
 
 import * as Sentry from "@sentry/react"
+import { TimeoutError } from "@ourworldindata/utils"
 import {
     COMMIT_SHA,
     ENV,
@@ -47,6 +48,10 @@ if (LOAD_SENTRY) {
         tracesSampleRate: 0.1,
         replaysSessionSampleRate: sampleRate,
         replaysOnErrorSampleRate: 0,
+        beforeSend(event, hint) {
+            if (hint.originalException instanceof TimeoutError) return null
+            return event
+        },
     })
     updateSentryTags()
     updateSentryUser()

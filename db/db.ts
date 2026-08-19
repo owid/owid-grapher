@@ -23,7 +23,7 @@ import {
     TagGraphRootName,
     FlatTagGraph,
     FlatTagGraphNode,
-    MinimalTagWithIsTopic,
+    MinimalTagWithMetadata,
     DbPlainPostGdocLink,
     ContentGraphLinkType,
     OwidGdoc,
@@ -40,12 +40,16 @@ import {
     TagGraphRoot,
     FeaturedMetricByParentTagNameDictionary,
     ChartConfigsTableName,
+    ChartsTableName,
     FeaturedMetricsTableName,
     TagsTableName,
+    PostsGdocsXTagsTableName,
+    PostsGdocsLinksTableName,
+    TopicPageOrphanReport,
     TagGraphTableName,
     ExplorersTableName,
     MultiDimDataPagesTableName,
-    OwidGdocMinimalPostInterface,
+    OwidGdocMinimalAnnouncementInterface,
     DbRawPostGdoc,
 } from "@ourworldindata/types"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
@@ -353,39 +357,6 @@ export async function checkIfSlugCollides(
     )
 }
 
-export const getPublishedDataInsightCount = (
-    knex: KnexReadonlyTransaction,
-    topicSlug?: string
-): Promise<number> => {
-    let query
-    if (topicSlug) {
-        query = knexRawFirst<{ count: number }>(
-            knex,
-            `
-            SELECT COUNT(DISTINCT(posts_gdocs.id)) AS count
-            FROM posts_gdocs
-            JOIN posts_gdocs_x_tags as pgt ON posts_gdocs.id = pgt.gdocId
-            JOIN tags ON pgt.tagId = tags.id
-            WHERE type = '${OwidGdocType.DataInsight}'
-                AND published = TRUE
-                AND publishedAt <= NOW()
-                AND tags.slug = ?`,
-            [topicSlug]
-        )
-    } else {
-        query = knexRawFirst<{ count: number }>(
-            knex,
-            `
-            SELECT COUNT(*) AS count
-            FROM posts_gdocs
-            WHERE type = '${OwidGdocType.DataInsight}'
-                AND published = TRUE
-                AND publishedAt <= NOW()`
-        )
-    }
-    return query.then((res) => res?.count ?? 0)
-}
-
 export const getTotalNumberOfCharts = (
     knex: KnexReadonlyTransaction
 ): Promise<number> => {
@@ -436,7 +407,7 @@ export const getHomepageId = (
 
 export const getHomepageAnnouncements = (
     knex: KnexReadonlyTransaction
-): Promise<OwidGdocMinimalPostInterface[]> => {
+): Promise<OwidGdocMinimalAnnouncementInterface[]> => {
     return knexRaw<DbRawPostGdoc>(
         knex,
         `-- sql
@@ -447,10 +418,20 @@ export const getHomepageAnnouncements = (
         AND pg.publishedAt <= NOW()
         AND pg.type = '${OwidGdocType.Announcement}'
         AND pg.publicationContext = 'listed'
+        -- Topic updates are surfaced as topic pages in the homepage's featured
+        -- work column, so listing them here too would show them twice.
+        -- COALESCE because a kicker-less announcement has a JSON NULL here,
+        -- which would otherwise make the comparison NULL and drop the row.
+        AND COALESCE(pg.content ->> '$.kicker', '') != 'topic-update'
         ORDER BY pg.publishedAt DESC
         LIMIT 3
         `
-    ).then((rows) => rows.map(rawGdocToMinimalPost))
+    ).then(
+        (rows) =>
+            rows.map(
+                rawGdocToMinimalPost
+            ) as OwidGdocMinimalAnnouncementInterface[]
+    )
 }
 
 export async function checkIsImageInDB(
@@ -540,6 +521,26 @@ export const getPublishedGdocsWithTags = async (
     }).then((rows) => rows.map(parsePostsGdocsWithTagsRow))
 }
 
+// Ids of published gdocs of the given types that went live in the last
+// `withinHours`.
+export const getRecentlyPublishedGdocIds = async (
+    knex: KnexReadonlyTransaction,
+    gdocTypes: OwidGdocType[],
+    withinHours = 24
+): Promise<string[]> => {
+    const rows = await knexRaw<{ id: string }>(
+        knex,
+        `-- sql
+        SELECT id FROM posts_gdocs
+        WHERE published = 1
+          AND type IN (:gdocTypes)
+          AND publishedAt <= NOW()
+          AND publishedAt > (NOW() - INTERVAL :hours HOUR)`,
+        { gdocTypes, hours: withinHours }
+    )
+    return rows.map((r) => r.id)
+}
+
 export const getNonGrapherExplorerViewCount = (
     knex: KnexReadonlyTransaction
 ): Promise<number> => {
@@ -562,6 +563,19 @@ export const getNonGrapherExplorerViewCount = (
             AND type = "graphers"
             AND grapherId IS NULL`
     ).then((res) => res?.count ?? 0)
+}
+
+export const getMultiDimViewCount = (
+    knex: KnexReadonlyTransaction
+): Promise<number> => {
+    return knexRawFirst<{ count: number }>(
+        knex,
+        `-- sql
+        SELECT
+            COALESCE(SUM(JSON_LENGTH(config -> "$.views")), 0) AS count
+        FROM ${MultiDimDataPagesTableName}
+        WHERE published = TRUE`
+    ).then((res) => Number(res?.count ?? 0))
 }
 
 /**
@@ -801,20 +815,55 @@ export async function updateTagGraph(
     }
 }
 
-export function getMinimalTagsWithIsTopic(
+type RawMinimalTagWithMetadata = Omit<
+    MinimalTagWithMetadata,
+    "isTopic" | "isSearchable"
+> & {
+    isTopic: 0 | 1
+    isSearchable: 0 | 1
+}
+
+export function getMinimalTagsWithMetadata(
     knex: KnexReadonlyTransaction
-): Promise<MinimalTagWithIsTopic[]> {
-    return knexRaw<MinimalTagWithIsTopic>(
+): Promise<MinimalTagWithMetadata[]> {
+    return knexRaw<RawMinimalTagWithMetadata>(
         knex,
         `-- sql
+        WITH RECURSIVE tags_in_graph AS (
+            SELECT id
+            FROM tags
+            WHERE name = '${TagGraphRootName}'
+
+            UNION DISTINCT
+
+            SELECT tg.childId
+            FROM tag_graph tg
+            JOIN tags_in_graph parent ON tg.parentId = parent.id
+        )
         SELECT t.id,
         t.name,
         t.slug,
+        CASE
+            WHEN EXISTS (
+                SELECT 1
+                FROM tag_graph tg
+                JOIN tags root ON tg.parentId = root.id
+                WHERE tg.childId = t.id
+                    AND root.name = '${TagGraphRootName}'
+            ) THEN 'area'
+            WHEN NOT EXISTS (
+                SELECT 1
+                FROM tags_in_graph
+                WHERE tags_in_graph.id = t.id
+            ) THEN 'orphan'
+            ELSE 'descendant'
+        END AS tagGraphRole,
         t.slug IS NOT NULL AND MAX(IF(pg.type IN (:types), TRUE, FALSE)) AS isTopic,
         (t.slug IS NOT NULL AND MAX(IF(pg.type IN (:types), TRUE, FALSE))) OR t.searchableInAlgolia AS isSearchable
         FROM tags t
         LEFT JOIN posts_gdocs_x_tags gt ON t.id = gt.tagId
         LEFT JOIN posts_gdocs pg ON gt.gdocId = pg.id
+        WHERE t.name != '${TagGraphRootName}'
         GROUP BY t.id, t.name
         ORDER BY t.name ASC
     `,
@@ -825,6 +874,12 @@ export function getMinimalTagsWithIsTopic(
                 OwidGdocType.Article,
             ],
         }
+    ).then((tags) =>
+        tags.map((tag) => ({
+            ...tag,
+            isTopic: Boolean(tag.isTopic),
+            isSearchable: Boolean(tag.isSearchable),
+        }))
     )
 }
 
@@ -969,6 +1024,13 @@ export function getCloudflareImages(
     )
 }
 
+export async function getCloudflareImagesByFilename(
+    trx: KnexReadonlyTransaction
+): Promise<Record<string, DbEnrichedImageWithPageviews>> {
+    const images = await getCloudflareImages(trx)
+    return _.keyBy(images, "filename")
+}
+
 export function getCloudflareImage(
     trx: KnexReadonlyTransaction,
     filename: string
@@ -1102,6 +1164,185 @@ export const getAllTopicTags = async (
 }
 
 /**
+ * For every published topic page (a tag whose slug matches a published
+ * topic-page or linear-topic-page gdoc), find the published articles that are
+ * tagged to the topic but NOT linked from the topic page's research-and-writing
+ * section. These articles are "orphaned" — they belong to the topic but the
+ * topic page hasn't been updated to feature them.
+ *
+ * Coverage is measured against the topic's tagged articles: covered = tagged
+ * articles that the research-and-writing section links to, orphaned = the rest.
+ * Only topics that currently have at least one orphan are returned.
+ */
+const parseAuthorsColumn = (authors: string | string[] | null): string[] => {
+    if (!authors) return []
+    if (Array.isArray(authors)) return authors
+    try {
+        const parsed = JSON.parse(authors)
+        return Array.isArray(parsed) ? parsed : []
+    } catch {
+        return []
+    }
+}
+
+export const getResearchAndWritingOrphans = async (
+    trx: KnexReadonlyTransaction
+): Promise<TopicPageOrphanReport[]> => {
+    // 1. Topic pages: tags whose slug matches a published topic page.
+    const topicPages = await knexRaw<{
+        tagId: number
+        tagName: string
+        slug: string
+        gdocId: string
+    }>(
+        trx,
+        `-- sql
+        SELECT t.id AS tagId, t.name AS tagName, t.slug AS slug, pg.id AS gdocId
+        FROM ${TagsTableName} t
+        JOIN ${PostsGdocsTableName} pg ON pg.slug = t.slug
+        WHERE pg.published = TRUE
+        AND pg.type IN (:types)
+        AND t.slug IS NOT NULL
+        `,
+        {
+            types: [OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage],
+        }
+    )
+
+    if (!topicPages.length) return []
+
+    const tagIds = topicPages.map((topicPage) => topicPage.tagId)
+    const gdocIds = topicPages.map((topicPage) => topicPage.gdocId)
+
+    // 2. Published articles tagged to those topics.
+    const taggedArticles = await knexRaw<{
+        tagId: number
+        id: string
+        slug: string
+        title: string
+        authors: string | string[]
+        publishedAt: Date | null
+    }>(
+        trx,
+        `-- sql
+        SELECT
+            pgt.tagId AS tagId,
+            pg.id AS id,
+            pg.slug AS slug,
+            pg.content ->> '$.title' AS title,
+            pg.authors AS authors,
+            pg.publishedAt AS publishedAt
+        FROM ${PostsGdocsTableName} pg
+        JOIN ${PostsGdocsXTagsTableName} pgt ON pgt.gdocId = pg.id
+        WHERE pg.published = TRUE
+        AND pg.type = :articleType
+        AND pgt.tagId IN (:tagIds)
+        -- Exclude SDG tracker articles (slugs like "sdgs/...")
+        AND pg.slug NOT LIKE 'sdgs%'
+        `,
+        { articleType: OwidGdocType.Article, tagIds }
+    )
+
+    // 3. The links curated in each topic page's research-and-writing section.
+    // (The auto-populated "latest work" block is not recorded here, so it
+    // correctly does not count towards coverage.)
+    const researchAndWritingLinks = await knexRaw<{
+        sourceId: string
+        target: string
+        linkType: string
+    }>(
+        trx,
+        `-- sql
+        SELECT sourceId, target, linkType
+        FROM ${PostsGdocsLinksTableName}
+        WHERE componentType = 'research-and-writing'
+        AND sourceId IN (:gdocIds)
+        `,
+        { gdocIds }
+    )
+
+    // Index the links by topic page. Gdoc links target a gdoc id directly;
+    // url links target a URL, from which we extract the slug to match articles.
+    const linkedGdocIdsByGdocId = new Map<string, Set<string>>()
+    const linkedSlugsByGdocId = new Map<string, Set<string>>()
+    for (const link of researchAndWritingLinks) {
+        if (link.linkType === ContentGraphLinkType.Gdoc) {
+            if (!linkedGdocIdsByGdocId.has(link.sourceId))
+                linkedGdocIdsByGdocId.set(link.sourceId, new Set())
+            linkedGdocIdsByGdocId.get(link.sourceId)!.add(link.target)
+        } else if (link.linkType === ContentGraphLinkType.Url) {
+            const slug = Url.fromURL(link.target).slug
+            if (slug) {
+                if (!linkedSlugsByGdocId.has(link.sourceId))
+                    linkedSlugsByGdocId.set(link.sourceId, new Set())
+                linkedSlugsByGdocId.get(link.sourceId)!.add(slug)
+            }
+        }
+    }
+
+    const articlesByTagId = new Map<number, typeof taggedArticles>()
+    for (const article of taggedArticles) {
+        if (!articlesByTagId.has(article.tagId))
+            articlesByTagId.set(article.tagId, [])
+        articlesByTagId.get(article.tagId)!.push(article)
+    }
+
+    const reports: TopicPageOrphanReport[] = []
+    for (const topicPage of topicPages) {
+        const candidates = articlesByTagId.get(topicPage.tagId) ?? []
+        if (!candidates.length) continue
+
+        const linkedGdocIds =
+            linkedGdocIdsByGdocId.get(topicPage.gdocId) ?? new Set()
+        const linkedSlugs =
+            linkedSlugsByGdocId.get(topicPage.gdocId) ?? new Set()
+
+        const orphans = candidates
+            .filter(
+                (article) =>
+                    !linkedGdocIds.has(article.id) &&
+                    !linkedSlugs.has(article.slug)
+            )
+            .map((article) => ({
+                id: article.id,
+                slug: article.slug,
+                title: article.title ?? "",
+                authors: parseAuthorsColumn(article.authors),
+                publishedAt: article.publishedAt,
+            }))
+            .sort((a, b) =>
+                (a.publishedAt ? new Date(a.publishedAt).getTime() : 0) <
+                (b.publishedAt ? new Date(b.publishedAt).getTime() : 0)
+                    ? 1
+                    : -1
+            )
+
+        if (!orphans.length) continue
+
+        const taggedCount = candidates.length
+        const orphanedCount = orphans.length
+        const coveredCount = taggedCount - orphanedCount
+        reports.push({
+            tagId: topicPage.tagId,
+            tagName: topicPage.tagName,
+            slug: topicPage.slug,
+            gdocId: topicPage.gdocId,
+            taggedCount,
+            coveredCount,
+            orphanedCount,
+            coveragePercent: Math.round((coveredCount / taggedCount) * 100),
+            orphans,
+        })
+    }
+
+    return reports.sort(
+        (a, b) =>
+            b.orphanedCount - a.orphanedCount ||
+            a.tagName.localeCompare(b.tagName)
+    )
+}
+
+/**
  * Fetch all area and topic tag names from the database.
  * Areas are the top-level children of the tag graph root, and don't have a slug.
  * Topics are tags whose slug matches a published topic-page or linear-topic-page,
@@ -1198,10 +1439,11 @@ export async function validateChartSlug(
         const grapher = await knexRaw(
             trx,
             `-- sql
-            SELECT id
-            FROM ${ChartConfigsTableName}
-            WHERE slug = ?
-            AND full->>"$.isPublished" = "true"`,
+            SELECT c.id
+            FROM ${ChartConfigsTableName} cc
+            JOIN ${ChartsTableName} c ON c.configId = cc.id
+            WHERE cc.slug = ?
+            AND cc.full->>"$.isPublished" = "true"`,
             [slug]
         ).then((rows) => rows[0])
 
@@ -1249,5 +1491,27 @@ export const getUniqueTopicCount = async (
         })
     // throw on count == 0 also
     if (!count) throw new Error("Failed to get unique topic count")
+    return count
+}
+
+export const getPublishedArticleCount = async (
+    trx: KnexReadonlyTransaction
+): Promise<number> => {
+    const count = await knexRawFirst<{ count: number }>(
+        trx,
+        `-- sql
+        SELECT COUNT(*) AS count
+        FROM posts_gdocs
+        WHERE type = :type
+          AND published IS TRUE
+          AND publishedAt <= NOW()`,
+        { type: OwidGdocType.Article }
+    )
+        .then((res) => (res ? res.count : 0))
+        .catch((e) => {
+            console.error("Failed to get published article count", e)
+            throw e
+        })
+    if (!count) throw new Error("Failed to get published article count")
     return count
 }

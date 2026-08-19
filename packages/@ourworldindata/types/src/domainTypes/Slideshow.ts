@@ -1,4 +1,4 @@
-import { z } from "zod"
+import { z } from "zod/mini"
 
 export enum SlideTemplate {
     Image = "image",
@@ -22,68 +22,85 @@ export const SLIDE_TEMPLATE_LABELS: Record<SlideTemplate, string> = {
 
 const SlideImageOnlySchema = z.object({
     template: z.literal(SlideTemplate.Image),
-    filename: z.string().nullable(),
-    slideTitle: z.string().optional(),
-    text: z.string().optional(),
-    largeText: z.boolean().optional(),
-    hideLogo: z.boolean().optional(),
-    blueBackground: z.boolean().optional(),
+    filename: z.nullable(z.string()),
+    title: z.optional(z.string()),
+    text: z.optional(z.string()),
+    largeText: z.optional(z.boolean()),
+    hideLogo: z.optional(z.boolean()),
+    blueBackground: z.optional(z.boolean()),
+    /**
+     * Layout variant. "imageText" (default, when absent) gives the image
+     * most of the space; "textImage" makes the text the dominant column with
+     * a smaller image as an accent on the right.
+     */
+    variant: z.optional(z.enum(["imageText", "textImage"])),
+    /**
+     * Shrink the image so the text column can take up more of the slide's
+     * width. Only has an effect when the slide also has text.
+     */
+    smallImage: z.optional(z.boolean()),
 })
 
 const SlideChartOnlySchema = z.object({
     template: z.literal(SlideTemplate.Chart),
     /** Relative URL path, e.g. "/grapher/life-expectancy?tab=table" or "/explorers/population" */
-    url: z.string().min(1),
-    title: z.string().optional(),
-    subtitle: z.string().optional(),
-    text: z.string().optional(),
-    largeText: z.boolean().optional(),
-    hideLogo: z.boolean().optional(),
-    blueBackground: z.boolean().optional(),
+    url: z.string().check(z.minLength(1)),
+    title: z.optional(z.string()),
+    subtitle: z.optional(z.string()),
+    text: z.optional(z.string()),
+    largeText: z.optional(z.boolean()),
+    hideLogo: z.optional(z.boolean()),
+    blueBackground: z.optional(z.boolean()),
 })
 
 const SlideCoverSchema = z.object({
     template: z.literal(SlideTemplate.Cover),
     title: z.string(),
-    subtitle: z.string().optional(),
-    author: z.string().optional(),
-    date: z.string().optional(),
-    hideLogo: z.boolean().optional(),
+    subtitle: z.optional(z.string()),
+    author: z.optional(z.string()),
+    date: z.optional(z.string()),
+    hideLogo: z.optional(z.boolean()),
 })
 
 const SlideStatementSchema = z.object({
     template: z.literal(SlideTemplate.Statement),
     text: z.string(),
-    attribution: z.string().optional(),
-    hideLogo: z.boolean().optional(),
-    blueBackground: z.boolean().optional(),
+    attribution: z.optional(z.string()),
+    hideLogo: z.optional(z.boolean()),
+    blueBackground: z.optional(z.boolean()),
+    /**
+     * Layout variant. "standard" (default, when absent) keeps the text aligned
+     * to the top-left; "sectionDivider" centers the text both vertically and
+     * horizontally so the slide reads as a section break.
+     */
+    variant: z.optional(z.enum(["standard", "sectionDivider"])),
 })
 
 const SlideContentsSchema = z.object({
     template: z.literal(SlideTemplate.Outline),
-    title: z.string().optional(),
+    title: z.optional(z.string()),
     text: z.string(),
-    hideLogo: z.boolean().optional(),
-    blueBackground: z.boolean().optional(),
+    hideLogo: z.optional(z.boolean()),
+    blueBackground: z.optional(z.boolean()),
 })
 
 const SlideTextSchema = z.object({
     template: z.literal(SlideTemplate.Text),
-    title: z.string().optional(),
+    title: z.optional(z.string()),
     text: z.string(),
-    largeText: z.boolean().optional(),
-    hideLogo: z.boolean().optional(),
-    blueBackground: z.boolean().optional(),
+    largeText: z.optional(z.boolean()),
+    hideLogo: z.optional(z.boolean()),
+    blueBackground: z.optional(z.boolean()),
 })
 
 const SlideTwoChartsSchema = z.object({
     template: z.literal(SlideTemplate.TwoCharts),
-    url1: z.string().min(1),
-    url2: z.string().min(1),
-    title: z.string().optional(),
-    subtitle: z.string().optional(),
-    hideLogo: z.boolean().optional(),
-    blueBackground: z.boolean().optional(),
+    url1: z.string().check(z.minLength(1)),
+    url2: z.string().check(z.minLength(1)),
+    title: z.optional(z.string()),
+    subtitle: z.optional(z.string()),
+    hideLogo: z.optional(z.boolean()),
+    blueBackground: z.optional(z.boolean()),
 })
 
 export const SlideSchema = z.discriminatedUnion("template", [
@@ -96,25 +113,41 @@ export const SlideSchema = z.discriminatedUnion("template", [
     SlideTextSchema,
 ])
 
+/**
+ * The valid field names for each slide template, derived from the per-template
+ * zod schemas above. Kept adjacent to the schemas so it stays in sync when a
+ * field is added or removed. Used by slide-conversion logic to know which
+ * fields can be carried over when changing a slide's template.
+ */
+export const SLIDE_TEMPLATE_FIELDS: Record<SlideTemplate, string[]> = {
+    [SlideTemplate.Image]: Object.keys(SlideImageOnlySchema.shape),
+    [SlideTemplate.Chart]: Object.keys(SlideChartOnlySchema.shape),
+    [SlideTemplate.TwoCharts]: Object.keys(SlideTwoChartsSchema.shape),
+    [SlideTemplate.Cover]: Object.keys(SlideCoverSchema.shape),
+    [SlideTemplate.Statement]: Object.keys(SlideStatementSchema.shape),
+    [SlideTemplate.Outline]: Object.keys(SlideContentsSchema.shape),
+    [SlideTemplate.Text]: Object.keys(SlideTextSchema.shape),
+}
+
 export const SlideshowConfigSchema = z.object({
     slides: z.array(SlideSchema),
-    authors: z.string().optional(),
+    authors: z.optional(z.string()),
     /** If true, charts show timeline/controls in presentation mode. If false (default), charts are minimal. */
-    interactiveCharts: z.boolean().optional(),
+    interactiveCharts: z.optional(z.boolean()),
 })
 
 export const SlideshowCreateSchema = z.object({
-    slug: z.string().min(1),
-    title: z.string().min(1),
-    config: SlideshowConfigSchema.optional(),
-    isPublished: z.boolean().optional(),
+    slug: z.string().check(z.minLength(1)),
+    title: z.string().check(z.minLength(1)),
+    config: z.optional(SlideshowConfigSchema),
+    isPublished: z.optional(z.boolean()),
 })
 
 export const SlideshowUpdateSchema = z.object({
-    slug: z.string().min(1).optional(),
-    title: z.string().min(1).optional(),
-    config: SlideshowConfigSchema.optional(),
-    isPublished: z.boolean().optional(),
+    slug: z.optional(z.string().check(z.minLength(1))),
+    title: z.optional(z.string().check(z.minLength(1))),
+    config: z.optional(SlideshowConfigSchema),
+    isPublished: z.optional(z.boolean()),
 })
 
 export type SlideImageOnly = z.infer<typeof SlideImageOnlySchema>

@@ -8,7 +8,7 @@ import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import Image from "../components/Image.js"
 import ArticleBlock from "../components/ArticleBlock.js"
 import { getLayout } from "../components/layout.js"
-import cx from "classnames"
+import cx from "clsx"
 
 type AuthorProps = Omit<
     OwidGdocAuthorInterface,

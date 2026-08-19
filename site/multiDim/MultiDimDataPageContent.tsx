@@ -19,7 +19,6 @@ import {
     isInIFrame,
 } from "@ourworldindata/utils"
 import {
-    AdditionalGrapherDataFetchFn,
     ArchiveContext,
     DataPageRelatedResearch,
     FaqEntryKeyedByGdocIdAndFragmentId,
@@ -36,6 +35,7 @@ import {
 import AboutThisData from "../AboutThisData.js"
 import TopicTags from "../TopicTags.js"
 import MetadataSection from "../MetadataSection.js"
+import DownloadSection from "../DownloadSection.js"
 import GrapherImage from "../GrapherImage.js"
 import { useMobxStateToReactState } from "../hooks.js"
 import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
@@ -118,11 +118,11 @@ export function DataPageContent({
     const managerRef = useRef<GrapherManager>({ adminEditPath: "" })
     const grapherStateRef = useRef<GrapherState>(
         new GrapherState({
-            additionalDataLoaderFn: ((catalogKey) =>
+            additionalDataLoaderFn: (catalogKey) =>
                 loadCatalogData(catalogKey, {
                     baseUrl: CATALOG_URL,
                     assetMap,
-                })) as AdditionalGrapherDataFetchFn,
+                }),
             manager: managerRef.current,
             archiveContext,
             isConfigReady: false,
@@ -208,8 +208,8 @@ export function DataPageContent({
                     ? `variables/${variables[0].id}/config`
                     : undefined
             const analyticsContext = {
-                mdimSlug: slug!,
-                mdimViewConfigId: grapherConfigUuid,
+                slug: slug!,
+                viewConfigId: grapherConfigUuid,
             }
             managerRef.current.adminEditPath = adminEditPath
             managerRef.current.analyticsContext = analyticsContext
@@ -359,15 +359,24 @@ export function DataPageContent({
     }, [grapherChangedParams, settings, setSearchParams])
 
     const grapherCurrentTitle = useMobxStateToReactState(
-        useCallback(() => grapherStateRef.current?.currentTitle, []),
+        useCallback(() => grapherStateRef.current?.fullTitle, []),
         !!grapherStateRef.current
     )
 
+    const fullTitle = useMemo(() => {
+        const grapherTitle = grapherCurrentTitle
+        if (!grapherTitle) return undefined
+        const mdimTitle = titleFragments
+            ? `${config.config.title.title} - ${titleFragments}`
+            : config.config.title.title
+        return `${grapherTitle} | ${mdimTitle} | Our World in Data`
+    }, [grapherCurrentTitle, titleFragments, config.config.title.title])
+
     useEffect(() => {
-        if (grapherCurrentTitle) {
-            document.title = grapherCurrentTitle
+        if (fullTitle) {
+            document.title = fullTitle
         }
-    }, [grapherCurrentTitle])
+    }, [fullTitle])
 
     const bounds = useElementBounds(grapherFigureRef)
 
@@ -415,18 +424,19 @@ export function DataPageContent({
         !!grapherStateRef.current
     )
 
-    const downloadProps = slug
-        ? {
-              slug,
-              baseUrl: `${BAKED_GRAPHER_URL}/${slug}`,
-              searchParams: displayedSearchParams,
-              externalQueryParams: displayedSettings,
-              tableForDownload,
-              filteredTableForDownload,
-              yColumns,
-              hideRowCounts: !isClient,
-          }
-        : undefined
+    const downloadSection = slug ? (
+        <DownloadSection
+            slug={slug}
+            baseUrl={`${BAKED_GRAPHER_URL}/${slug}`}
+            searchParams={displayedSearchParams}
+            externalQueryParams={displayedSettings}
+            tableForDownload={tableForDownload}
+            filteredTableForDownload={filteredTableForDownload}
+            yColumns={yColumns}
+            hideRowCounts={!isClient}
+            archivedChartInfo={archiveContext}
+        />
+    ) : undefined
 
     return (
         <AttachmentsContext.Provider
@@ -525,6 +535,7 @@ export function DataPageContent({
                             varDatapageData.descriptionProcessing
                         }
                         faqEntries={{ faqs: faqEntriesForView }}
+                        license={varDatapageData.license}
                         origins={varDatapageData.origins}
                         owidProcessingLevel={
                             varDatapageData.owidProcessingLevel
@@ -534,7 +545,7 @@ export function DataPageContent({
                         title={varDatapageData.title}
                         titleVariant={varDatapageData.titleVariant}
                         archiveContext={archiveContext}
-                        downloadProps={downloadProps}
+                        downloadSection={downloadSection}
                     />
                 )}
             </div>

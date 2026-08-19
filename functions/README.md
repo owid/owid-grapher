@@ -21,10 +21,7 @@ Inside a file-based route we sometimes use an instance of itty-router to decide 
 - (preferred) `yarn make up.full`: starts the whole local development stack, including the functions development server
 - `yarn startLocalCloudflareFunctions`: only starts the functions development server
 
-Note: compatibility dates between local development, production and preview environments should be kept in sync:
-
-- local: defined in `package.json` -> `startLocalCloudflareFunctions`
-- production & preview : see https://dash.cloudflare.com/078fcdfed9955087315dd86792e71a7e/pages/view/owid/settings/functions
+Note: the compatibility date is defined in [`wrangler.jsonc`](../wrangler.jsonc) at the repo root, which is the authoritative source for local development, previews and production alike (not the Cloudflare dashboard). The e2e tests carry their own copy in [`test/wrangler.e2e.jsonc`](./test/wrangler.e2e.jsonc) — keep the two in sync.
 
 3. _Refer to each function's "Development" section below for further instructions._
 
@@ -151,6 +148,10 @@ This route provides a search API for both charts and pages (articles, about page
 
 For detailed API documentation, including all parameters, response schemas, and examples, see [search-api.openapi.yaml](../docs/search-api.openapi.yaml).
 
+## `/api/search/cached-queries`
+
+A caching proxy for empty-query Algolia searches. The site routes Algolia multi-query requests where every query string is empty — the "browse" requests issued by default states like the search landing page or the empty autocomplete panel — to this endpoint (see `site/search/searchClients.ts`), which forwards them to Algolia and caches the response for a day — except for payloads touching the chronological pages index (which backs /latest and sorts by date), cached for only 15 minutes so newly published articles show up quickly. Requests containing a non-empty query are rejected with a 400 and should go to Algolia directly; the client falls back to a direct Algolia request whenever this endpoint fails or rejects.
+
 ## `/deleted/:slug`
 
 This route is used to handle deleted pages. They are fully baked we just want them to return a 404 status code instead of a 200.
@@ -168,7 +169,7 @@ sequenceDiagram
     box Purple Donor flow
     participant Donor
     participant Donation Form
-    participant Recaptcha
+    participant Turnstile
     participant Cloud Functions
     participant Stripe Checkout
     participant "Thank you" page
@@ -186,14 +187,14 @@ sequenceDiagram
     break when donation parameters invalid
     Donation Form -->> Donor: Show error
     end
-    Donation Form ->>+ Recaptcha: is human?
-    Recaptcha -->>- Donation Form: yes
+    Donation Form ->>+ Turnstile: is human?
+    Turnstile -->>- Donation Form: yes
     break when bot suspected
-    Recaptcha -->> Donor: show challenge
+    Turnstile -->> Donor: show challenge
     end
     Donation Form ->>+ Cloud Functions: submits
-    Cloud Functions ->> Recaptcha: is token valid?
-    Recaptcha -->> Cloud Functions: yes
+    Cloud Functions ->> Turnstile: is token valid?
+    Turnstile -->> Cloud Functions: yes
     break when token invalid or donation parameters invalid
     Cloud Functions -->> Donor: Show error
     end

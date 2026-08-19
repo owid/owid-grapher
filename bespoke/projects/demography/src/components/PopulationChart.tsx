@@ -1,10 +1,10 @@
 import { memo, useMemo, useState, useCallback, useRef, useEffect } from "react"
-import { useParentSize } from "@visx/responsive"
+import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 import { scaleLinear } from "@visx/scale"
 import { LinePath } from "@visx/shape"
 import { Group } from "@visx/group"
-import type { Simulation } from "../helpers/useSimulation.js"
-import { getPopulationForYear, getTotalPopulation } from "../helpers/utils"
+import type { Simulation } from "../core/useSimulation.js"
+import { getPopulationForYear, getTotalPopulation } from "../core/utils"
 import {
     START_YEAR,
     HISTORICAL_END_YEAR,
@@ -20,7 +20,7 @@ import {
     HOVER_LINE_COLOR,
     ZERO_LINE_COLOR,
     USER_MODIFIED_COLOR,
-} from "../helpers/constants"
+} from "../core/constants"
 
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
@@ -28,20 +28,20 @@ import { TooltipValue } from "@ourworldindata/grapher/src/tooltip/TooltipContent
 import { formatValue, GrapherTooltipAnchor } from "@ourworldindata/utils"
 import { localPoint } from "@visx/event"
 import * as R from "remeda"
-import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow.js"
 import { Halo, TextWrap } from "@ourworldindata/components"
+import { BezierArrow } from "@ourworldindata/grapher"
 import {
     formatPopulationValueLong,
     formatPopulationAxisLabel,
-} from "../helpers/utils.js"
+} from "../core/utils.js"
 import { TimeAxisX } from "./TimeAxisX.js"
 import { last } from "lodash-es"
-import { toBreakpoint, useBreakpoint } from "../helpers/useBreakpoint.js"
+import { toBreakpoint, useBreakpoint } from "../core/useBreakpoint.js"
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import {
     getPopulationChartFonts,
     type PopulationChartFonts,
-} from "../helpers/fonts.js"
+} from "../core/fonts.js"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 
 const margin = { top: 0, bottom: 16, left: 0, right: 0 }
@@ -456,17 +456,12 @@ function PopulationChartContent({
 export const PopulationChart = memo(function PopulationChart(
     props: PopulationChartProps
 ) {
-    const { parentRef, width, height } = useParentSize()
     return (
-        <div ref={parentRef} className="responsive-container">
-            {width > 0 && height > 0 && (
-                <PopulationChartContent
-                    {...props}
-                    width={width}
-                    height={height}
-                />
+        <ResponsiveContainer>
+            {(dimensions) => (
+                <PopulationChartContent {...props} {...dimensions} />
             )}
-        </div>
+        </ResponsiveContainer>
     )
 })
 
@@ -657,8 +652,8 @@ function ChangeAnnotation({
         <>
             {/* Arrow between dots */}
             <BezierArrow
-                start={[x, benchmarkEnd]}
-                end={[x, forecastEnd]}
+                start={{ x, y: benchmarkEnd }}
+                end={{ x, y: forecastEnd }}
                 color={color}
                 width={1.5}
             />

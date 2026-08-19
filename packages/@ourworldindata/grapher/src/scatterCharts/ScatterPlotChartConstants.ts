@@ -3,7 +3,7 @@ import { Quadtree } from "d3-quadtree"
 import { OwidTable } from "@ourworldindata/core-table"
 import { DualAxis } from "../axis/Axis"
 import { ChartManager } from "../chart/ChartManager"
-import { NoDataModalManager } from "../noDataModal/NoDataModal"
+import { NoDataMessageManager } from "../noDataMessage/NoDataMessage"
 import { ColorScale } from "../color/ColorScale"
 import {
     ScatterPointLabelStrategy,
@@ -139,7 +139,7 @@ export interface ScatterPointsWithLabelsProps {
     onClick?: () => void
     isConnected: boolean
     hideConnectedScatterLines: boolean
-    noDataModalManager: NoDataModalManager
+    noDataMessageManager: NoDataMessageManager
     hideScatterLabels?: boolean
     hideEntityLabels?: boolean
     quadtree?: Quadtree<ScatterPointQuadtreeNode>

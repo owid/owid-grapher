@@ -15,6 +15,7 @@
 @import "../../../components/src/LabeledSwitch/LabeledSwitch.scss";
 @import "../../../components/src/IndicatorSources/IndicatorSources.scss";
 @import "../../../components/src/IndicatorProcessing/IndicatorProcessing.scss";
+@import "../../../components/src/detailsOnDemand.scss";
 
 @import "./typography.scss";
 @import "./variables.scss";
@@ -251,12 +252,4 @@
     .markdown-text-wrap__line:last-child {
         margin-bottom: 2px;
     }
-
-    .dod-span {
-        @include dod-span;
-    }
-}
-
-.dod-container {
-    @include dod-container;
 }

@@ -1,6 +1,6 @@
 import { useContext } from "react"
 import urljoin from "url-join"
-import cx from "classnames"
+import cx from "clsx"
 import {
     EnrichedBlockAllCharts,
     RelatedChart,

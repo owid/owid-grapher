@@ -1,6 +1,6 @@
-import cx from "classnames"
+import cx from "clsx"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { useBreakpoint } from "../helpers/useBreakpoint.js"
+import { useBreakpoint } from "../core/useBreakpoint.js"
 import { Tippy } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
@@ -11,13 +11,16 @@ import {
     CountryData,
     PARAMETER_KEYS,
     ParameterKey,
-} from "../helpers/types"
+} from "../core/types"
 import {
     useSimulation,
     computeScenarioOverrides,
     type Simulation,
-} from "../helpers/useSimulation"
-import { updateWindowUrlForSimulationState } from "../helpers/urlState.js"
+} from "../core/useSimulation"
+import {
+    updateWindowUrlForSimulationState,
+    isControlPointModified,
+} from "../core/urlState.js"
 import { PopulationChart } from "./PopulationChart.js"
 import { DemographyParameterEditor } from "./DemographyParameterEditor.js"
 import { PopulationPyramid } from "./PopulationPyramid.js"
@@ -31,9 +34,9 @@ import {
     FULL_TIME_RANGE,
     USER_MODIFIED_COLOR,
     USER_MODIFIED_COLOR_LIGHT,
-} from "../helpers/constants.js"
+} from "../core/constants.js"
 import { ProjectionLegend } from "./ProjectionLegend.js"
-import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
+import { parameterConfigByKey } from "../core/parameterConfigs.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import {
     DependencyRatioLineChart,
@@ -46,7 +49,7 @@ import {
     getRetirementAgeForYear,
     normalizeRetirementAgePoints,
     type RetirementAgePoints,
-} from "../helpers/dependencyRatio.js"
+} from "../core/dependencyRatio.js"
 
 const PARAMETER_TAB_LABELS: Record<ParameterKey, string> = {
     fertilityRate: "Fertility rate",
@@ -71,6 +74,8 @@ export function SimulationContent({
     retirementAgeAssumptions,
     urlRetirementAgeAssumptions,
     mode = "population",
+    urlTab,
+    urlYear,
 }: {
     data: CountryData
     focusParameter?: ParameterKey
@@ -88,8 +93,21 @@ export function SimulationContent({
     retirementAgeAssumptions?: Record<number, number>
     urlRetirementAgeAssumptions?: Record<number, number>
     mode?: "population" | "dependencyRatio"
+    urlTab?: ParameterKey
+    urlYear?: number
 }) {
-    const [year, setYear] = useState(END_YEAR)
+    const baselineTab: ParameterKey = focusParameter ?? "fertilityRate"
+    const baselineYear = END_YEAR
+
+    const [year, setYear] = useState(urlYear ?? baselineYear)
+    const [tab, setTab] = useState<ParameterKey>(() => {
+        const seed = urlTab ?? baselineTab
+        // netMigrationRate is hidden for World; fall back to fertilityRate
+        // if the seed isn't selectable in this country's context.
+        if (data.country === "World" && seed === "netMigrationRate")
+            return "fertilityRate"
+        return seed
+    })
 
     const scenarioOverrides = useMemo(
         () =>
@@ -162,6 +180,12 @@ export function SimulationContent({
     const resetRetirementAge = useCallback(() => {
         setRetirementAgePointsRaw(baselineRetirementAgePoints)
     }, [baselineRetirementAgePoints])
+    // Snap tab to a visible key when the country change hides the current one
+    // (only netMigrationRate is conditionally hidden — for World).
+    useEffect(() => {
+        if (data.country === "World" && tab === "netMigrationRate")
+            setTab("fertilityRate")
+    }, [data.country, tab])
 
     useEffect(() => {
         if (!urlSync || !scenarioParamsForUrl || !baselineScenarioParamsForUrl)
@@ -182,6 +206,10 @@ export function SimulationContent({
                     mode === "dependencyRatio"
                         ? baselineRetirementAgePoints
                         : undefined,
+                tab,
+                baselineTab,
+                year,
+                baselineYear,
             })
         }, 150)
 
@@ -196,6 +224,10 @@ export function SimulationContent({
         mode,
         retirementAgePoints,
         baselineRetirementAgePoints,
+        tab,
+        baselineTab,
+        year,
+        baselineYear,
     ])
 
     if (!simulation) return null
@@ -229,7 +261,8 @@ export function SimulationContent({
                 <div className="input-panels">
                     <Tabs
                         className="input-tabs"
-                        defaultSelectedKey={focusParameter ?? "fertilityRate"}
+                        selectedKey={tab}
+                        onSelectionChange={(key) => setTab(key as ParameterKey)}
                     >
                         <TabList className="input-tabs__list">
                             {visibleParameterKeys.map((key) => (
@@ -764,8 +797,11 @@ function AssumptionsTable({ simulation }: { simulation: Simulation }) {
                             const userVal = simulation.scenarioParams[key][yr]
                             const refVal =
                                 simulation.unwppScenarioParams[key][yr]
-                            const isModified =
-                                Math.abs(userVal - refVal) >= 0.01
+                            const isModified = isControlPointModified(
+                                userVal,
+                                refVal,
+                                key
+                            )
                             const direction =
                                 userVal > refVal ? "up" : ("down" as const)
                             return (
@@ -791,7 +827,9 @@ function AssumptionsTable({ simulation }: { simulation: Simulation }) {
                                                 <span className="assumptions-table__arrow-circle">
                                                     <GrapherTrendArrow
                                                         direction={direction}
-                                                        isColored={false}
+                                                        color={
+                                                            USER_MODIFIED_COLOR
+                                                        }
                                                         className="assumptions-table__arrow"
                                                     />
                                                 </span>

@@ -1,10 +1,11 @@
 import * as d3 from "d3"
 import { isDarkColor } from "@ourworldindata/grapher/src/color/ColorUtils"
 import { Bounds } from "@ourworldindata/utils"
-import { formatCount, formatShare } from "../helpers/CausesOfDeathHelpers.js"
-import { useCausesOfDeathChartContext } from "../helpers/CausesOfDeathContext.js"
-import { TreeNode } from "../helpers/CausesOfDeathConstants.js"
+import { formatCount, formatShare } from "../core/CausesOfDeathHelpers.js"
+import { useCausesOfDeathChartContext } from "../core/CausesOfDeathContext.js"
+import { TreeNode } from "../core/CausesOfDeathConstants.js"
 import { MarkdownTextWrap } from "@ourworldindata/components/src/MarkdownTextWrap/MarkdownTextWrap.js"
+import { TextWrapGroup } from "@ourworldindata/components/src/MarkdownTextWrap/TextWrapGroup.js"
 import { MarkdownTextWrapSvg } from "@ourworldindata/components/src/MarkdownTextWrap/MarkdownTextWrapComponents.js"
 
 type LabelKey = "title" | "percentage" | "description" | "perYear" | "perDay"
@@ -97,11 +98,17 @@ export function CausesOfDeathTreemapTileLabels({
     const lineHeight = 1.1
 
     const makeLabelWrapForFontSize = (fontSize: number) =>
-        MarkdownTextWrap.fromFragments({
-            main: { text: formattedPercentage, bold: true },
-            secondary: { text: labelText },
-            newLine: isLargestTile ? "continue-line" : "avoid-wrap",
-            textWrapProps: { maxWidth: availableWidth, fontSize, lineHeight },
+        new TextWrapGroup({
+            fragments: [
+                { text: formattedPercentage, fontWeight: 700 },
+                {
+                    text: labelText,
+                    newLine: isLargestTile ? "continue-line" : "avoid-wrap",
+                },
+            ],
+            maxWidth: availableWidth,
+            fontSize,
+            lineHeight,
         })
 
     const fontSize = calculateOptimalFontSize({
@@ -217,7 +224,7 @@ function createTextBounds({
     padding,
 }: {
     contentBounds: Bounds
-    textWrap: PartialLabelKeyRecord<MarkdownTextWrap>
+    textWrap: PartialLabelKeyRecord<MarkdownTextWrap | TextWrapGroup>
     padding: number
 }): PartialLabelKeyRecord<Bounds> {
     const titleBounds = new Bounds(
@@ -313,7 +320,7 @@ function calculateOptimalFontSize({
     availableHeight,
     minFontSize,
 }: {
-    makeTextWrap: (fontSize: number) => MarkdownTextWrap
+    makeTextWrap: (fontSize: number) => TextWrapGroup
     initialFontSize: number
     availableWidth: number
     availableHeight: number

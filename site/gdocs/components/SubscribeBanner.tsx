@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { EnrichedBlockSubscribeBanner } from "@ourworldindata/utils"
 import { Button } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"

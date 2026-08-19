@@ -142,10 +142,9 @@ export class ColorSchemeDropdown extends Component<ColorSchemeDropdownProps> {
                 options={selectOptions}
                 onChange={this.onSelectChange}
                 onBlur={this.props.onBlur}
-                optionFilterProp="searchLabel"
                 value={this.props.value}
                 placeholder="Select..."
-                showSearch={false}
+                showSearch={{ optionFilterProp: "searchLabel" }}
                 style={{ width: "100%" }}
             />
         )

@@ -63,24 +63,29 @@ export const regionGroupLabels: Record<RegionGroupKey, string> = {
     un_m49_2: "United Nations regions",
     un_m49_3: "United Nations regions",
     iea: "International Energy Agency regions",
+    ei: "Energy Institute regions",
+    ember: "Ember regions",
+    maddison: "Maddison Project Database regions",
+    wid: "World Inequality Database regions",
+    ilo_1: "International Labour Organization regions",
+    ilo_2: "International Labour Organization regions",
+    fao_1: "Food and Agriculture Organization regions",
+    fao_2: "Food and Agriculture Organization regions",
+    fao_sdg: "Food and Agriculture Organization regions",
 
     // Regions defined by an institution, but we don't have region definitions in regions.ts for these (we recognize them by their suffix)
-    maddison: "Maddison Project Database regions",
     unsdg: "UN Sustainable Development Goals regions",
     unm49: "United Nations M49 regions",
     unsd: "UN Statistics Division regions",
-    fao: "FAO regions", // UN's Food and Agriculture Organization
-    ei: "Education International regions",
+    fao: "Food and Agriculture Organization regions", // suffix handle; per-level defs under fao_1/fao_2
     pip: "PIP regions", // World Bank’s Poverty and Inequality Platform
-    ember: "Ember regions",
     gcp: "Global Carbon Project regions",
     niaid: "NIAID regions", // National Institute of Allergy and Infectious Diseases
     unicef: "UNICEF regions",
     unaids: "UNAIDS regions", // Joint United Nations Programme on HIV and AIDS
     undp: "UN Development Programme regions",
-    wid: "World Inequality Database regions",
     oecd: "OECD regions", // Organisation for Economic Co-operation and Development
-    ilo: "International Labour Organization regions",
+    ilo: "International Labour Organization regions", // suffix handle; per-level defs under ilo_1/ilo_2
 }
 
 function toProviderKey(

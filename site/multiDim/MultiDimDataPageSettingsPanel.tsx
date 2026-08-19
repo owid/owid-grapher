@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { useMemo } from "react"
 import { useMediaQuery } from "usehooks-ts"
 

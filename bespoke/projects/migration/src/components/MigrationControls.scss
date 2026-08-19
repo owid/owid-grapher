@@ -1,0 +1,19 @@
+.migration-controls .controls__row > * {
+    flex: 1 1 0;
+}
+
+.migration-controls__switcher-wrapper {
+    display: flex;
+}
+
+.migration-controls__switcher-wrapper .switcher {
+    flex: 1 1 0;
+}
+
+.migration-controls__switcher-wrapper .switcher__item {
+    min-width: 64px;
+}
+
+.migration-controls__switcher-wrapper .switcher__button {
+    padding: 0 18px;
+}

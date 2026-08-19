@@ -10,20 +10,18 @@ import { Html } from "./Html.js"
 export const DonatePage = (props: {
     baseUrl: string
     faqsGdoc: OwidGdocPostInterface
-    recaptchaKey: string
 }) => (
     <Html>
         <Head
             canonicalUrl={`${props.baseUrl}/donate`}
             pageTitle="Donate"
             baseUrl={props.baseUrl}
-            pageDesc="Support open data and research to make progress against the world's largest problems"
+            pageDesc="Support open data and research to make progress against the world's largest problems."
             imageUrl={`${props.baseUrl}/donate-thumbnail.png`}
         >
             <script src="https://js.stripe.com/v3/" />
-            <script
-                src={`https://www.google.com/recaptcha/api.js?render=${props.recaptchaKey}`}
-            />
+            {/* Cloudflare Turnstile optimization */}
+            <link rel="preconnect" href="https://challenges.cloudflare.com" />
         </Head>
         <body>
             <SiteHeader hideDonationFlag />

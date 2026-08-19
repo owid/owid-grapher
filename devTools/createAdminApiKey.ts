@@ -62,7 +62,7 @@ void yargs(hideBin(process.argv))
                     }
                     return true
                 }),
-        (argv) => void main({ userId: argv.userId })
+        (argv) => main({ userId: argv.userId })
     )
     .strict()
     .help().argv

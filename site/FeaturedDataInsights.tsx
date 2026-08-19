@@ -1,8 +1,6 @@
 import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import {
-    DataInsightHit,
-    SearchDataInsightResponse,
     SearchResultType,
     SearchState,
     FEATURED_DATA_INSIGHTS_ID,
@@ -13,7 +11,8 @@ import { getLiteSearchClient } from "./search/searchClients.js"
 import { SearchDataInsightsResultsSkeleton } from "./search/SearchDataInsightsResultsSkeleton.js"
 import { SearchDataInsightHit } from "./search/SearchDataInsightHit.js"
 import { Button } from "@ourworldindata/components"
-import cx from "classnames"
+import cx from "clsx"
+import { buildLatestPagePath } from "./latest/latestUtils.js"
 
 const MAX_DATA_INSIGHTS_RESULTS = 1000 // setting to maximum allowed to get all results
 
@@ -38,10 +37,7 @@ export const FeaturedDataInsights = ({
         [topicName]
     )
 
-    const { data, isError, isLoading } = useQuery<
-        SearchDataInsightResponse,
-        Error
-    >({
+    const { data, isError, isLoading } = useQuery({
         // reusing the same query key function as search for simplicity but
         // would technically collide if using the same query client instance
         queryKey: searchQueryKeys.dataInsights(searchState),
@@ -79,7 +75,7 @@ export const FeaturedDataInsights = ({
             ) : (
                 <>
                     <div className="article-block__featured-data-insights__hits">
-                        {hits.map((hit: DataInsightHit) => (
+                        {hits.map((hit) => (
                             <SearchDataInsightHit
                                 key={hit.objectID}
                                 className="article-block__featured-data-insights__hit"
@@ -92,7 +88,7 @@ export const FeaturedDataInsights = ({
                         <Button
                             theme="solid-vermillion"
                             text="See all data insights"
-                            href="/data-insights"
+                            href={buildLatestPagePath("data-insight")}
                             dataTrackNote="featured-data-insights-see-all"
                         />
                     </div>

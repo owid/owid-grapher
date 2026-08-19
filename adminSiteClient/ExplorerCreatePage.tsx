@@ -6,7 +6,7 @@ import {
     slugify,
     toRectangularMatrix,
 } from "@ourworldindata/utils"
-import classNames from "classnames"
+import classNames from "clsx"
 import Handsontable from "handsontable"
 import { registerAllModules } from "handsontable/registry"
 import { action, computed, observable, makeObservable } from "mobx"

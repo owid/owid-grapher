@@ -18,6 +18,7 @@ export interface EntityPickerManager {
     grapherTable?: OwidTable
     entityType?: string
     analytics?: GrapherAnalytics
+    analyticsContext?: { viewConfigId?: string }
     availableEntityNames?: EntityName[]
     mapConfig?: MapConfig
 }

@@ -5,7 +5,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import * as React from "react"
 import { forwardRef } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { isTouchDevice } from "@ourworldindata/utils"
 
 export const SearchField = forwardRef<

@@ -124,6 +124,11 @@
     gap: 4px;
 }
 
+.SlideshowEditorPage__convert-warning-icon {
+    margin-left: 8px;
+    color: var(--ant-color-error);
+}
+
 .SlideshowEditTab {
     fieldset {
         border: 1px solid #e8e8e8;
@@ -149,6 +154,10 @@
             flex-direction: row;
             align-items: center;
         }
+    }
+
+    .ant-segmented-item {
+        margin-bottom: 0;
     }
 
     input[type="text"],

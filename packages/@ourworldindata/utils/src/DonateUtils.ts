@@ -23,8 +23,9 @@ export const SUPPORTED_CURRENCY_CODES: DonationCurrencyCode[] = [
 export const MIN_DONATION_AMOUNT = 5
 export const MAX_DONATION_AMOUNT = 10_000
 
-export const PLEASE_TRY_AGAIN =
-    "Please try again. If the problem persists, please get in touch with us at donate@ourworldindata.org."
+export const PLEASE_GET_IN_TOUCH =
+    "If the problem persists, please get in touch with us at donate@ourworldindata.org."
+export const PLEASE_TRY_AGAIN = `Please try again. ${PLEASE_GET_IN_TOUCH}`
 
 export const getErrorMessageDonation = (
     donation: DonationRequest

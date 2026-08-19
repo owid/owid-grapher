@@ -2,10 +2,25 @@ import {
     ArchiveContext,
     AssetMap,
     MultipleOwidVariableDataDimensionsMap,
+    normalizeDescriptionKey,
     OwidVariableDataMetadataDimensions,
+    OwidVariableWithSourceAndDimension,
 } from "@ourworldindata/types"
-import { fetchWithRetry, readFromAssetMap } from "@ourworldindata/utils"
+import {
+    fetchWithRetry,
+    getOwidDataFetchUserAgent,
+    readFromAssetMap,
+} from "@ourworldindata/utils"
 import urljoin from "url-join"
+
+// Attach a descriptive User-Agent to our own server-side data API calls so
+// analytics can attribute them to OWID rather than counting them as anonymous
+// external traffic. See getOwidDataFetchUserAgent for details; it returns
+// undefined in the browser, so the shared client chart path is unaffected.
+const dataFetchUserAgent = getOwidDataFetchUserAgent()
+const dataFetchOptions: RequestInit | undefined = dataFetchUserAgent
+    ? { headers: { "User-Agent": dataFetchUserAgent } }
+    : undefined
 
 export const getVariableDataRoute = (
     dataApiUrl: string,
@@ -53,19 +68,27 @@ export async function loadVariableDataAndMetadata(
     }
 ): Promise<OwidVariableDataMetadataDimensions> {
     const metadataPromise = fetchWithRetry(
-        getVariableMetadataRoute(dataApiUrl, variableId, options)
+        getVariableMetadataRoute(dataApiUrl, variableId, options),
+        dataFetchOptions
     )
 
     if (options?.loadMetadataOnly) {
         const metadataResponse = await metadataPromise
         if (!metadataResponse.ok) throw new Error(metadataResponse.statusText)
-        const metadata = await metadataResponse.json()
+        const metadata: OwidVariableWithSourceAndDimension =
+            await metadataResponse.json()
+        // Metadata files written before the descriptionKey string migration
+        // hold arrays — normalize at the fetch boundary.
+        metadata.descriptionKey = normalizeDescriptionKey(
+            metadata.descriptionKey
+        )
         // Return empty data when only metadata is requested
         return { data: { values: [], entities: [], years: [] }, metadata }
     }
 
     const dataPromise = fetchWithRetry(
-        getVariableDataRoute(dataApiUrl, variableId, options)
+        getVariableDataRoute(dataApiUrl, variableId, options),
+        dataFetchOptions
     )
     const [dataResponse, metadataResponse] = await Promise.all([
         dataPromise,
@@ -74,7 +97,9 @@ export async function loadVariableDataAndMetadata(
     if (!dataResponse.ok) throw new Error(dataResponse.statusText)
     if (!metadataResponse.ok) throw new Error(metadataResponse.statusText)
     const data = await dataResponse.json()
-    const metadata = await metadataResponse.json()
+    const metadata: OwidVariableWithSourceAndDimension =
+        await metadataResponse.json()
+    metadata.descriptionKey = normalizeDescriptionKey(metadata.descriptionKey)
     return { data, metadata }
 }
 

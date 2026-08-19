@@ -1,4 +1,4 @@
-ARG VARIANT=22
+ARG VARIANT=24
 FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:dev-${VARIANT}
 
 COPY .tmux.conf /home/node/.tmux.conf

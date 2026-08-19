@@ -28,7 +28,8 @@ Add or update synonym entries in `site/search/synonymUtils.ts` so that our Algol
 
 4. Determine which existing synonym group the new terms belong in:
     - Find the group where the requested terms best fit and add the new terms to it.
-    - Never create a new synonym group — always add to an existing one.
+    - Prefer adding to an existing group, and **never create a new thematic _section_** (the `// Organizations`, `// Health`, … comment blocks).
+    - **Exception for producers/organizations:** in the `// Organizations` section each producer is its _own_ array (e.g. `["imf", "international monetary fund"]`). Adding a new producer means adding a new array under that section — that's expected, not a "new group" in the forbidden sense. **Never merge two distinct organizations into one array**, since every term in an array is treated as interchangeable (that would make IMF and the OECD synonyms of each other).
     - Preserve the existing formatting: each group is an array of strings, groups are separated by blank lines between sections.
 
 5. Edit the file. Use double quotes for all strings. Keep entries in the same style as surrounding code.
@@ -54,11 +55,28 @@ Add or update synonym entries in `site/search/synonymUtils.ts` so that our Algol
 
 9. Push the branch and create a PR:
     - Push with `git push -u origin HEAD`.
-    - Create a PR with `gh pr create --title "<same as commit message>" --body "" --reviewer edomt`.
+    - Create the PR with `gh pr create --title "<same as commit message>" --reviewer edomt` and a proper description (don't leave `--body` empty). The description should briefly cover:
+        - **What** terms were added and which group they went into.
+        - **Why** they're grouped that way (especially if you created a new array rather than extending an existing group).
+        - The validation results (typecheck / lint / synonym test).
+        - A note that synonyms ship to Algolia automatically on deploy via `baker/algolia/configureAlgolia.ts`.
+
+## Conventions & lessons
+
+These apply to synonyms in general (not just organizations) — apply them proactively and suggest the relevant variants to the user when you add a term:
+
+- **Beware acronyms/terms that are common English words.** A synonym expands _every_ query containing that token, so a common-word term pollutes unrelated searches. The classic case is **WHO**: don't add the bare `"who"` for the World Health Organization, since "who has the highest income" would pull WHO datasets. When a term collides with a common word, flag it to the user and prefer the full name and/or a non-colliding variant. (`"un"` is borderline but accepted; `"pip"` is a real word but low practical risk on our corpus.)
+- **Add Spanish/French variants** with an inline language comment:
+    - Same in both languages → one comment: `"oms" /* spanish, french */` (WHO), `"vih"` (HIV), `"sida"` (AIDS), `"fmi"` (IMF), `"omc"` (WTO), `"ocde"` (OECD), `"onu"` (UN), etc.
+    - Different per language → separate comments: `"acnur" /* spanish */`, `"hcr" /* french */` (UNHCR).
+- **Add British/American spelling variants** where a term is commonly typed both ways: `organization` ↔ `organisation`, `programme` ↔ `program`, `centre` ↔ `center`, `labour` ↔ `labor`. **But skip** names whose official spelling is fixed and the variant is implausible (e.g. US agencies like CDC "Centers", BLS "Bureau of Labor Statistics").
+- **A shorter query catches the longer one, so trim redundant prefixes/words.** `"bureau of labor statistics"` already matches every result of `"u.s. bureau of labor statistics"`, so don't add `us` / `u.s.` / `united states` / `united nations` / `un` prefixes — keep the shortest _distinctive_ form. Two guardrails: (a) don't trim so far the term becomes generic (`"development programme"` is too broad for UNDP — keep `"un development programme"`); (b) keep proper brand names intact (`"un tourism"` is the org's actual name; `"tourism"` is too broad).
 
 ## Important notes
 
 - Each synonym group is an array of equivalent terms — all terms in a group are treated as interchangeable for search.
+- If a same-day `add-synonym-<username>-<date>` branch and PR already exist, continue on them (commit + push to the open PR) rather than forcing a brand-new branch.
+- When adding _producer/organization_ synonyms specifically, you can validate relevance against the data: real producers live in the grapher `origins` table, and you can rank them by how many published charts they back (join `origins` → `origins_variables` → `chart_dimensions` → `charts`) to focus on high-value omissions.
 - Country name synonyms are handled separately via the `countries` utility and should NOT be added to this file. If the user asks for a country synonym, explain this and point them to the country data instead — unless it's a geographic term not covered by the countries list (like "gaza", "palestine" which are already in the file).
 - The synonyms in this file are pushed to Algolia during deployment via `baker/algolia/configureAlgolia.ts`. No manual Algolia action is needed.
 - Common typos can be included as synonyms (see existing examples like "happyness", "c02").

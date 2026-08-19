@@ -1,17 +1,20 @@
 import { expect, it, describe } from "vitest"
 
-import { FontFamily } from "@ourworldindata/utils"
+import { cssFontFamily, FontFamily, VerticalAlign } from "@ourworldindata/utils"
 import {
     IRText,
-    MarkdownTextWrap,
+    getDodUnderlineSegments,
     getLineWidth,
     lineToPlaintext,
     recursiveMergeTextTokens,
-    IRWhitespace,
     IRBold,
-    IRLink,
+    IRDetailOnDemand,
     IRLineBreak,
-} from "./MarkdownTextWrap.js"
+    IRLink,
+    IRWhitespace,
+    type IRToken,
+} from "./IRTokens.js"
+import { MarkdownTextWrap } from "./MarkdownTextWrap.js"
 
 describe(MarkdownTextWrap, () => {
     it("heavier fontWeight should be wider than plain IRText", () => {
@@ -53,7 +56,7 @@ describe(MarkdownTextWrap, () => {
         })
 
         expect(element.style).toMatchObject({
-            fontFamily: FontFamily.Lato,
+            fontFamily: cssFontFamily(FontFamily.Lato),
             fontWeight: 800,
             fontSize: 14,
         })
@@ -77,6 +80,54 @@ describe(MarkdownTextWrap, () => {
         })
 
         expect(element.height).toEqual(0)
+    })
+
+    it("should default to bottom verticalAlign", () => {
+        const defaultAligned = new MarkdownTextWrap({
+            text: "a\nb",
+            fontSize: 12,
+            lineHeight: 1.3,
+        })
+        const bottomAligned = new MarkdownTextWrap({
+            text: "a\nb",
+            fontSize: 12,
+            lineHeight: 1.3,
+            verticalAlign: VerticalAlign.bottom,
+        })
+
+        const [, defaultY] = defaultAligned.getPositionForSvgRendering(0, 100)
+        const [, bottomY] = bottomAligned.getPositionForSvgRendering(0, 100)
+
+        expect(defaultY).toEqual(bottomY)
+    })
+
+    it("should adjust SVG y-position based on verticalAlign", () => {
+        const topAligned = new MarkdownTextWrap({
+            text: "a\nb\nc",
+            fontSize: 10,
+            lineHeight: 1.2,
+            verticalAlign: VerticalAlign.top,
+        })
+        const middleAligned = new MarkdownTextWrap({
+            text: "a\nb\nc",
+            fontSize: 10,
+            lineHeight: 1.2,
+            verticalAlign: VerticalAlign.middle,
+        })
+        const bottomAligned = new MarkdownTextWrap({
+            text: "a\nb\nc",
+            fontSize: 10,
+            lineHeight: 1.2,
+            verticalAlign: VerticalAlign.bottom,
+        })
+
+        const [, topY] = topAligned.getPositionForSvgRendering(0, 50)
+        const [, middleY] = middleAligned.getPositionForSvgRendering(0, 50)
+        const [, bottomY] = bottomAligned.getPositionForSvgRendering(0, 50)
+
+        expect(bottomY - topY).toBeCloseTo(topAligned.height)
+        expect(bottomY - middleY).toBeCloseTo(topAligned.height / 2)
+        expect(middleY - topY).toBeCloseTo(topAligned.height / 2)
     })
 
     it("should split on newline", () => {
@@ -163,88 +214,45 @@ describe(MarkdownTextWrap, () => {
             ])
         })
     })
-})
 
-describe("fromFragments", () => {
-    const fontSize = 14
+    describe(getDodUnderlineSegments, () => {
+        const makeLine = (text: string): IRToken[] =>
+            new MarkdownTextWrap({ text, fontSize: 14 }).svgLines[0]
 
-    it("should place fragments in-line by default", () => {
-        const textWrap = MarkdownTextWrap.fromFragments({
-            main: { text: "Lower middle-income countries" },
-            secondary: { text: "30 million" },
-            textWrapProps: {
-                maxWidth: 500,
-                fontSize,
-            },
+        it("should find a top-level DoD", () => {
+            const line = makeLine("before [term](#dod:term) after")
+            const dodIndex = line.findIndex(
+                (token) => token instanceof IRDetailOnDemand
+            )
+
+            expect(getDodUnderlineSegments(line)).toEqual([
+                {
+                    x: getLineWidth(line.slice(0, dodIndex)),
+                    width: line[dodIndex].width,
+                },
+            ])
         })
-        expect(textWrap.svgLines.length).toEqual(1)
-        expect(textWrap.htmlLines.length).toEqual(1)
-    })
 
-    it("should place the secondary text in a new line if requested", () => {
-        const textWrap = MarkdownTextWrap.fromFragments({
-            main: { text: "Lower middle-income countries" },
-            secondary: { text: "30 million" },
-            newLine: "always",
-            textWrapProps: {
-                maxWidth: 1000,
-                fontSize,
-            },
-        })
-        expect(textWrap.svgLines.length).toEqual(2)
-        expect(textWrap.htmlLines.length).toEqual(2)
-    })
+        it("should find a DoD nested inside bold", () => {
+            const line = makeLine("**an [important](#dod:important) term**")
+            const bold = line[0] as IRBold
+            const dodIndex = bold.children.findIndex(
+                (token) => token instanceof IRDetailOnDemand
+            )
 
-    it("should place the secondary text in a new line if line breaks should be avoided", () => {
-        const textWrap = MarkdownTextWrap.fromFragments({
-            main: { text: "Lower middle-income countries" },
-            secondary: { text: "30 million" },
-            newLine: "avoid-wrap",
-            textWrapProps: {
-                maxWidth: 250,
-                fontSize,
-            },
+            expect(line).toEqual([expect.any(IRBold)])
+            expect(getDodUnderlineSegments(line)).toEqual([
+                {
+                    x: getLineWidth(bold.children.slice(0, dodIndex)),
+                    width: bold.children[dodIndex].width,
+                },
+            ])
         })
-        expect(textWrap.svgLines.length).toEqual(2)
-        expect(textWrap.htmlLines.length).toEqual(2)
-    })
 
-    it("should place the secondary text in the same line if possible", () => {
-        const textWrap = MarkdownTextWrap.fromFragments({
-            main: { text: "Lower middle-income countries" },
-            secondary: { text: "30 million" },
-            newLine: "avoid-wrap",
-            textWrapProps: {
-                maxWidth: 1000,
-                fontSize,
-            },
-        })
-        expect(textWrap.svgLines.length).toEqual(1)
-        expect(textWrap.htmlLines.length).toEqual(1)
-    })
+        it("should find no segments in a line without DoDs", () => {
+            const line = makeLine("just **plain** text")
 
-    it("should use all available space when one fragment exceeds the given max width", () => {
-        const textWrap = MarkdownTextWrap.fromFragments({
-            main: { text: "Long-word-that-can't-be-broken-up more words" },
-            secondary: { text: "30 million" },
-            textWrapProps: {
-                maxWidth: 150,
-                fontSize,
-            },
+            expect(getDodUnderlineSegments(line)).toEqual([])
         })
-        expect(textWrap.width).toBeGreaterThan(150)
-    })
-
-    it("should place very long words in a separate line", () => {
-        const textWrap = MarkdownTextWrap.fromFragments({
-            main: { text: "30 million" },
-            secondary: { text: "Long-word-that-can't-be-broken-up" },
-            textWrapProps: {
-                maxWidth: 150,
-                fontSize,
-            },
-        })
-        expect(textWrap.svgLines.length).toEqual(2)
-        expect(textWrap.htmlLines.length).toEqual(2)
     })
 })

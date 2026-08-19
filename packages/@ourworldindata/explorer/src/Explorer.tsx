@@ -59,7 +59,7 @@ import {
     MarkdownTextWrap,
     MarkdownTextWrapHtml,
 } from "@ourworldindata/components"
-import classNames from "classnames"
+import classNames from "clsx"
 import { action, computed, makeObservable, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
 import React, { useCallback, useEffect, useState } from "react"
@@ -562,6 +562,10 @@ export class Explorer
         const params = decisionMatrix.getChoiceParamsForRow(selectedRow)
         const viewId = dimensionsToViewId(params)
         return this.props.chartConfigIdByViewId?.[viewId]
+    }
+
+    @computed get analyticsContext() {
+        return { viewConfigId: this.getChartConfigIdForCurrentParams() }
     }
 
     @action.bound private setGrapherTable(table: OwidTable) {
@@ -1252,8 +1256,12 @@ export class Explorer
         } else {
             const discardColumnTypes = new Set([
                 ColumnTypeNames.Year,
+                ColumnTypeNames.Decade,
                 ColumnTypeNames.Date,
                 ColumnTypeNames.Day,
+                ColumnTypeNames.Week,
+                ColumnTypeNames.Month,
+                ColumnTypeNames.Quarter,
                 ColumnTypeNames.EntityId,
                 ColumnTypeNames.EntityCode,
             ])

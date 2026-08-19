@@ -1,0 +1,7 @@
+version: 3
+
+# Our own actions (https://github.com/owid/actions) are referenced by branch and
+# are intentionally left unpinned.
+ignore_actions:
+  - name: owid/actions/.*
+    ref: .*

@@ -11,7 +11,11 @@ import {
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../settings/clientSettings.js"
-import { ChartListItem, showChartType } from "./ChartList.js"
+import { ChartListItem } from "./ChartList.js"
+import {
+    GRAPHER_CHART_TYPES,
+    GRAPHER_TAB_CONFIG_OPTIONS,
+} from "@ourworldindata/types"
 import {
     TaggableType,
     DbChartTagJoin,
@@ -19,13 +23,36 @@ import {
     excludeUndefined,
 } from "@ourworldindata/utils"
 import { Dropdown } from "antd"
+import {
+    getTagGraphRolesById,
+    MinimalTagWithMetadata,
+} from "./TagGraphMetadata.js"
 
 interface ChartRowProps {
     chart: ChartListItem
     searchHighlight?: (text: string) => string | React.ReactElement
-    availableTags: DbChartTagJoin[]
+    availableTags: MinimalTagWithMetadata[]
+    tagGraphRolesById: ReturnType<typeof getTagGraphRolesById>
     onDelete: (chart: ChartListItem) => void
     showInheritanceColumn?: boolean
+}
+
+function showChartType(chart: ChartListItem): string {
+    const chartType = chart.type
+
+    if (!chartType) return "Map"
+
+    const displayType = GRAPHER_CHART_TYPES[chartType]
+        ? lodash.startCase(GRAPHER_CHART_TYPES[chartType])
+        : "Unknown"
+
+    if (chart.tab === GRAPHER_TAB_CONFIG_OPTIONS.map) {
+        if (chart.hasChartTab) return `Map + ${displayType}`
+        else return "Map"
+    } else {
+        if (chart.hasMapTab) return `${displayType} + Map`
+        else return displayType
+    }
 }
 
 @observer
@@ -55,8 +82,13 @@ export class ChartRow extends React.Component<ChartRowProps> {
     }
 
     override render() {
-        const { chart, searchHighlight, availableTags, showInheritanceColumn } =
-            this.props
+        const {
+            chart,
+            searchHighlight,
+            availableTags,
+            tagGraphRolesById,
+            showInheritanceColumn,
+        } = this.props
 
         const highlight = searchHighlight || lodash.identity
 
@@ -123,6 +155,7 @@ export class ChartRow extends React.Component<ChartRowProps> {
                     <EditableTags
                         tags={chart.tags}
                         suggestions={availableTags}
+                        tagGraphRolesById={tagGraphRolesById}
                         onSave={this.onSaveTags}
                         hasKeyChartSupport
                         hasSuggestionsSupport

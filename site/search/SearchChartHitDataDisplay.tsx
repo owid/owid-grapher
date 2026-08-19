@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { faLocationDot } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { GrapherTrendArrow } from "@ourworldindata/components"

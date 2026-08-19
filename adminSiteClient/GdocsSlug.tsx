@@ -43,18 +43,25 @@ export const GdocsSlug = <T extends OwidGdoc>({
             <label htmlFor="slug">Slug</label>
             <Row gutter={24}>
                 <Col span={16}>
-                    <Input
-                        addonBefore={`ourworldindata.org/${subdirectory ? subdirectory : ""}`}
-                        value={slug}
-                        onChange={(e) => setSlug(slugify(e.target.value, true))}
-                        placeholder={slugFromTitle}
-                        required
-                        status={
-                            getPropertyMostCriticalError("slug", errors)?.type
-                        }
-                        disabled={isSlugSyncing}
-                        id="slug"
-                    />
+                    <Space.Compact block>
+                        <Space.Addon>
+                            ourworldindata.org/{subdirectory}
+                        </Space.Addon>
+                        <Input
+                            value={slug}
+                            onChange={(e) =>
+                                setSlug(slugify(e.target.value, true))
+                            }
+                            placeholder={slugFromTitle}
+                            required
+                            status={
+                                getPropertyMostCriticalError("slug", errors)
+                                    ?.type
+                            }
+                            disabled={isSlugSyncing}
+                            id="slug"
+                        />
+                    </Space.Compact>
                 </Col>
                 <Col span={8}>
                     <Space>

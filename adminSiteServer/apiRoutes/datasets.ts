@@ -120,30 +120,155 @@ export async function getDataset(
 
     if (!dataset) throw new JsonError(`No dataset by id '${datasetId}'`, 404)
 
-    const variables = await db.knexRaw<
-        Pick<
-            DbRawVariable,
-            "id" | "name" | "description" | "display" | "catalogPath"
-        >
-    >(
+    // Per-source distinct usage counts plus the MDim and explorer slug lists
+    // so the admin UI can show them in a tooltip on the usage cell. Dedup uses
+    // entity ids (charts.id, multi_dim_data_pages.id) where available, since
+    // drafts can have NULL slugs.
+    interface VariableWithUsage extends Pick<
+        DbRawVariable,
+        "id" | "name" | "description" | "display" | "catalogPath"
+    > {
+        chartsCount?: number
+        multiDimCount?: number
+        explorersCount?: number
+        usageCount?: number
+        multiDims?: { id: number; slug: string }[]
+        explorerSlugs?: string[]
+    }
+
+    const variables = await db.knexRaw<VariableWithUsage>(
         trx,
         `-- sql
-        SELECT
-            v.id,
-            v.name,
-            v.description,
-            v.display,
-            v.catalogPath
-        FROM
-            variables AS v
-        WHERE
-            v.datasetId = ?
-    `,
+        SELECT id, name, description, display, catalogPath
+        FROM variables
+        WHERE datasetId = ?
+        `,
         [datasetId]
     )
 
-    for (const v of variables) {
-        v.display = JSON.parse(v.display)
+    if (variables.length > 0) {
+        const variableIds = variables.map((v) => v.id)
+
+        // 1. Fetch chart details per variable
+        const chartUsages = await db.knexRaw<{
+            variableId: number
+            chartsJson: string
+        }>(
+            trx,
+            `-- sql
+            SELECT
+                variableId,
+                JSON_ARRAYAGG(JSON_OBJECT('id', chartId, 'slug', slug, 'title', title)) AS chartsJson
+            FROM (
+                SELECT DISTINCT
+                    cd.variableId,
+                    cd.chartId,
+                    cc.slug,
+                    cc.full->>'$.title' AS title
+                FROM chart_dimensions cd
+                JOIN charts c ON c.id = cd.chartId
+                JOIN chart_configs cc ON cc.id = c.configId
+                WHERE cd.variableId IN (?)
+            ) t
+            GROUP BY variableId
+            `,
+            [variableIds]
+        )
+        const chartsMap = new Map(
+            chartUsages.map((u) => [u.variableId, u.chartsJson])
+        )
+
+        // 2. Fetch multi-dim details per variable (scan view chart configurations to catch y / x / size / color)
+        const multiDimUsages = await db.knexRaw<{
+            variableId: number
+            multiDimsJson: string
+        }>(
+            trx,
+            `-- sql
+            SELECT
+                variableId,
+                JSON_ARRAYAGG(JSON_OBJECT('id', multiDimId, 'slug', slug)) AS multiDimsJson
+            FROM (
+                SELECT DISTINCT mdxcc.multiDimId, mdp.slug, jt.variableId
+                FROM multi_dim_x_chart_configs mdxcc
+                JOIN chart_configs cc ON cc.id = mdxcc.chartConfigId
+                JOIN multi_dim_data_pages mdp ON mdp.id = mdxcc.multiDimId
+                JOIN JSON_TABLE(
+                    cc.full,
+                    '$.dimensions[*]' COLUMNS (variableId INT PATH '$.variableId')
+                ) jt ON jt.variableId IS NOT NULL
+                WHERE jt.variableId IN (?)
+            ) t
+            GROUP BY variableId
+            `,
+            [variableIds]
+        )
+        const multiDimsMap = new Map(
+            multiDimUsages.map((u) => [u.variableId, u.multiDimsJson])
+        )
+
+        // 3. Fetch explorer details per variable
+        const explorerUsages = await db.knexRaw<{
+            variableId: number
+            explorerSlugsJson: string
+        }>(
+            trx,
+            `-- sql
+            SELECT
+                variableId,
+                JSON_ARRAYAGG(explorerSlug) AS explorerSlugsJson
+            FROM (
+                SELECT DISTINCT variableId, explorerSlug
+                FROM explorer_variables
+                WHERE variableId IN (?)
+            ) t
+            GROUP BY variableId
+            `,
+            [variableIds]
+        )
+        const explorersMap = new Map(
+            explorerUsages.map((u) => [u.variableId, u.explorerSlugsJson])
+        )
+
+        const parseJsonArray = <T>(raw: unknown): T[] => {
+            if (!raw) return []
+            if (Array.isArray(raw)) return raw as T[]
+            try {
+                const parsed = JSON.parse(raw as string)
+                return Array.isArray(parsed) ? parsed : []
+            } catch {
+                return []
+            }
+        }
+
+        for (const v of variables) {
+            v.display = JSON.parse(v.display)
+
+            const chartsRaw = chartsMap.get(v.id)
+            const charts = chartsRaw
+                ? parseJsonArray<{
+                      id: number
+                      slug: string | null
+                      title: string | null
+                  }>(chartsRaw)
+                : []
+            const multiDimsRaw = multiDimsMap.get(v.id)
+            const multiDims = multiDimsRaw
+                ? parseJsonArray<{ id: number; slug: string }>(multiDimsRaw)
+                : []
+            const explorerSlugsRaw = explorersMap.get(v.id)
+            const explorerSlugs = explorerSlugsRaw
+                ? parseJsonArray<string>(explorerSlugsRaw)
+                : []
+
+            Object.assign(v, {
+                charts,
+                usageCount:
+                    charts.length + multiDims.length + explorerSlugs.length,
+                multiDims,
+                explorerSlugs,
+            })
+        }
     }
 
     dataset.variables = variables
@@ -226,16 +351,7 @@ export async function getDataset(
     )
     dataset.tags = tags
 
-    const availableTags = await db.knexRaw<{
-        id: number
-        name: string
-    }>(
-        trx,
-        `-- sql
-        SELECT t.id, t.name
-        FROM tags t
-        `
-    )
+    const availableTags = await db.getMinimalTagsWithMetadata(trx)
     dataset.availableTags = availableTags
 
     // Fetch explorers that use variables or charts from this dataset
@@ -250,7 +366,24 @@ export async function getDataset(
     }>(
         trx,
         `-- sql
-            SELECT DISTINCT
+            -- Compute the set of explorer slugs that contain variables from this dataset
+            WITH explorer_slugs AS (
+                -- Indicator-based explorers
+                SELECT ev.explorerSlug AS slug
+                FROM explorer_variables ev
+                JOIN variables v ON v.id = ev.variableId
+                WHERE v.datasetId = ?
+
+                UNION
+
+                -- Chart-based explorers
+                SELECT ec.explorerSlug AS slug
+                FROM explorer_charts ec
+                JOIN chart_dimensions cd ON cd.chartId = ec.chartId
+                JOIN variables v ON v.id = cd.variableId
+                WHERE v.datasetId = ?
+            )
+            SELECT
                 e.slug,
                 e.config->>'$.explorerTitle' as title,
                 e.isPublished,
@@ -259,25 +392,13 @@ export async function getDataset(
                 u.fullName as lastEditedByUserName,
                 ROUND(COALESCE(ap.views_365d, 0) / 365, 1) as pageviewsPerDay
             FROM explorers e
+            JOIN explorer_slugs s ON e.slug = s.slug
             LEFT JOIN users u ON u.id = e.lastEditedByUserId
-            LEFT JOIN analytics_pageviews ap ON ap.url = CONCAT('https://ourworldindata.org/explorers/', e.slug)
-            WHERE e.slug IN (
-                -- Indicator-based explorers
-                SELECT DISTINCT ev.explorerSlug
-                FROM explorer_variables ev
-                JOIN variables v ON v.id = ev.variableId
-                WHERE v.datasetId = ?
-
-                UNION
-
-                -- Chart-based explorers
-                SELECT DISTINCT ec.explorerSlug
-                FROM explorer_charts ec
-                JOIN charts c ON c.id = ec.chartId
-                JOIN chart_dimensions cd ON cd.chartId = c.id
-                JOIN variables v ON v.id = cd.variableId
-                WHERE v.datasetId = ?
-            )
+            -- analytics_pageviews has one row per url per day, so restrict to
+            -- the latest day to avoid multiplying rows per explorer.
+            LEFT JOIN analytics_pageviews ap
+                ON ap.url = CONCAT('https://ourworldindata.org/explorers/', e.slug)
+                AND ap.day = (SELECT MAX(day) FROM analytics_pageviews)
             ORDER BY pageviewsPerDay DESC
         `,
         [datasetId, datasetId]

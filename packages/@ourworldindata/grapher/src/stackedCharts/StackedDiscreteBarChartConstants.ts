@@ -1,10 +1,9 @@
-import { Color, EntityName } from "@ourworldindata/types"
+import { Color, EntityName, SortBy } from "@ourworldindata/types"
 import { StackedPoint } from "./StackedConstants.js"
 import { Emphasis } from "../interaction/Emphasis.js"
 import { InteractionState } from "../interaction/InteractionState.js"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
 import { GRAPHER_AREA_OPACITY_MUTED } from "../core/GrapherConstants.js"
-
 interface LabelStyleConfig {
     opacity: number
 }
@@ -57,3 +56,12 @@ export interface RenderBarSegment extends PlacedBarSegment {
     hover: InteractionState
     emphasis: Emphasis
 }
+
+export const STACKED_DISCRETE_BAR_SORT_KEYS = [
+    SortBy.custom,
+    SortBy.entityName,
+    SortBy.total,
+    SortBy.column,
+] as const
+export type StackedDiscreteBarSortKey =
+    (typeof STACKED_DISCRETE_BAR_SORT_KEYS)[number]

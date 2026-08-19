@@ -3,7 +3,7 @@ import { Component } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { observable, runInAction, makeObservable } from "mobx"
-import { DbPlainTag } from "@ourworldindata/types"
+import { MinimalTagWithMetadata } from "@ourworldindata/types"
 import { TagBadge } from "./TagBadge.js"
 import { Link } from "react-router-dom"
 import { Button, Modal } from "antd"
@@ -13,7 +13,7 @@ export class TagsIndexPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    tags: DbPlainTag[] = []
+    tags: MinimalTagWithMetadata[] = []
     newTagName = ""
     newTagSlug = ""
     isAddingTag = false
@@ -35,9 +35,9 @@ export class TagsIndexPage extends Component {
     }
 
     async getData() {
-        const result = await this.context.admin.getJSON<{ tags: DbPlainTag[] }>(
-            "/api/tags.json"
-        )
+        const result = await this.context.admin.getJSON<{
+            tags: MinimalTagWithMetadata[]
+        }>("/api/tags.json")
         runInAction(() => {
             this.tags = result.tags
         })
@@ -87,7 +87,7 @@ export class TagsIndexPage extends Component {
 
     override render() {
         return (
-            <AdminLayout title="Categories">
+            <AdminLayout title="Tags">
                 <main className="TagsIndexPage">
                     {this.addTagModal()}
                     <header className="TagsIndexPage__header">
@@ -107,10 +107,8 @@ export class TagsIndexPage extends Component {
                     {this.tags.map((tag) => (
                         <TagBadge
                             key={tag.id}
-                            tag={{
-                                id: tag.id,
-                                name: tag.name,
-                            }}
+                            tag={tag}
+                            tagGraphRole={tag.tagGraphRole}
                         />
                     ))}
                 </main>

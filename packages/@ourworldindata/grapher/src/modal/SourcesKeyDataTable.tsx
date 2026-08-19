@@ -1,5 +1,5 @@
 import { Fragment } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { OwidProcessingLevel, excludeNull } from "@ourworldindata/utils"
 import {
     makeSource,

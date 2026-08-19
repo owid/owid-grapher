@@ -31,6 +31,11 @@ export function TestIndexPage() {
                         </Link>
                     </li>
                     <li>
+                        <Link target="_blank" to="/test-region-maps">
+                            Region maps
+                        </Link>
+                    </li>
+                    <li>
                         <Link
                             native
                             target="_blank"
@@ -100,6 +105,15 @@ export function TestIndexPage() {
                             to="/test/embeds?type=StackedDiscreteBar"
                         >
                             Stacked Discrete Bar
+                        </Link>
+                    </li>
+                    <li>
+                        <Link
+                            native
+                            target="_blank"
+                            to="/test/embeds?type=Dumbbell"
+                        >
+                            Dumbbell
                         </Link>
                     </li>
 

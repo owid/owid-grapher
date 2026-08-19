@@ -113,39 +113,83 @@ async function main() {
         snippets.map((snippet) => [snippet.name, snippet])
     )
 
-    const missing = getAllExampleBlocks()
-        .filter((block) => !snippetsByName.has(block.type))
+    const expectedSnippets = getAllExampleBlocks()
         .filter((block) => !EXEMPT_BLOCK_TYPES.includes(block.type))
         .map(blockToSnippet)
-        .sort((a, b) => a.name.localeCompare(b.name))
+    const expectedByName = new Map(
+        expectedSnippets.map((snippet) => [snippet.name, snippet])
+    )
+
+    const missing: RaycastSnippet[] = []
+    const outdated: RaycastSnippet[] = []
+    for (const expected of expectedSnippets) {
+        const actual = snippetsByName.get(expected.name)
+        if (!actual) {
+            missing.push(expected)
+        } else if (
+            actual.text !== expected.text ||
+            actual.keyword !== expected.keyword
+        ) {
+            outdated.push(expected)
+        }
+    }
+    missing.sort((a, b) => a.name.localeCompare(b.name))
+    outdated.sort((a, b) => a.name.localeCompare(b.name))
 
     if (checkMode) {
-        if (missing.length) {
+        if (missing.length || outdated.length) {
+            if (missing.length) {
+                console.error(
+                    `Missing ${missing.length} ArchieML snippet(s): ${missing
+                        .map((snippet) => snippet.name)
+                        .join(", ")}`
+                )
+            }
+            if (outdated.length) {
+                console.error(
+                    `Outdated ${outdated.length} ArchieML snippet(s): ${outdated
+                        .map((snippet) => snippet.name)
+                        .join(", ")}`
+                )
+            }
             console.error(
-                `Missing ${missing.length} ArchieML snippet(s): ${missing
-                    .map((snippet) => snippet.name)
-                    .join(", ")}`
+                "Run 'yarn generateRaycastSnippets' to regenerate the snippets file."
             )
-            console.error("Run 'yarn generateRaycastSnippets' to add them.")
             process.exitCode = 1
             return
         }
-        console.log("All ArchieML components already have snippets.")
+        console.log("All ArchieML components have up-to-date snippets.")
         return
     }
 
-    if (missing.length === 0) {
-        console.log("No new ArchieML snippets to append.")
+    if (missing.length === 0 && outdated.length === 0) {
+        console.log("ArchieML snippets are already up to date.")
         return
     }
 
-    const updatedSnippets = [...snippets, ...missing]
-    await writeSnippetsFile(updatedSnippets)
-    console.log(
-        `Appended ${missing.length} ArchieML snippet(s): ${missing
-            .map((snippet) => snippet.name)
-            .join(", ")}`
+    // Replace outdated entries in place; append newly-missing ones at the end.
+    // Snippets whose name doesn't match any example block (e.g. custom-keyword
+    // entries like `+srwc`, `+html`) are left untouched.
+    const updatedSnippets = snippets.map(
+        (snippet) => expectedByName.get(snippet.name) ?? snippet
     )
+    updatedSnippets.push(...missing)
+    await writeSnippetsFile(updatedSnippets)
+
+    if (missing.length) {
+        console.log(
+            `Appended ${missing.length} ArchieML snippet(s): ${missing
+                .map((snippet) => snippet.name)
+                .join(", ")}`
+        )
+    }
+    if (outdated.length) {
+        console.log(
+            `Updated ${outdated.length} ArchieML snippet(s): ${outdated
+                .map((snippet) => snippet.name)
+                .join(", ")}`
+        )
+    }
 }
 
 main().catch((error) => {

@@ -1,6 +1,5 @@
 import * as _ from "lodash-es"
 import fs from "fs-extra"
-import { glob } from "glob"
 
 import * as db from "../db/db.js"
 import { DbPlainTag, DbPlainUser } from "@ourworldindata/utils"
@@ -68,8 +67,8 @@ export async function deleteOldGraphers(
     newSlugs: string[]
 ) {
     // Delete any that are missing from the database
-    const oldSlugs = glob
-        .sync(`${bakedSiteDir}/grapher/*.html`)
+    const oldSlugs = fs
+        .globSync(`${bakedSiteDir}/grapher/*.html`)
         .map((slug) =>
             slug.replace(`${bakedSiteDir}/grapher/`, "").replace(".html", "")
         )

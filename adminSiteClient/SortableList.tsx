@@ -27,7 +27,7 @@ import {
 import { CSS } from "@dnd-kit/utilities"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faGripVertical } from "@fortawesome/free-solid-svg-icons"
-import cx from "classnames"
+import cx from "clsx"
 
 interface SortableItemProps {
     id: UniqueIdentifier

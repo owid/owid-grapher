@@ -25,7 +25,7 @@ import {
     LoadingIndicator,
 } from "@ourworldindata/components"
 import * as React from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons"
@@ -459,7 +459,7 @@ export class Source extends React.Component<SourceProps> {
 
     @computed private get showDescriptions(): boolean {
         return (
-            (this.def.descriptionKey && this.def.descriptionKey.length > 0) ||
+            !!this.def.descriptionKey ||
             !!this.def.descriptionFromProducer ||
             !!this.source.additionalInfo
         )
@@ -533,7 +533,7 @@ export class Source extends React.Component<SourceProps> {
                 {this.showDescriptions && (
                     <SourcesDescriptions
                         descriptionShort={this.def.descriptionShort}
-                        descriptionKey={this.def.descriptionKey ?? []}
+                        descriptionKey={this.def.descriptionKey}
                         hasFaqEntries={this.datapageHasFAQSection}
                         descriptionFromProducer={
                             this.def.descriptionFromProducer

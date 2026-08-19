@@ -133,9 +133,7 @@ export async function renderMultiDimDataPageFromConfig({
     const pageConfig = MultiDimDataPageConfig.fromObject(config)
     const variableIds = getRelevantVariableIds(config)
     const faqEntries = await getFaqEntries(knex, variableIds)
-    const initialViewDimensions = pageConfig.filterToAvailableChoices(
-        {}
-    ).selectedChoices
+    const initialViewDimensions = pageConfig.getDefaultSelectedChoices()
     const initialView = pageConfig.findViewByDimensions(initialViewDimensions)
 
     let initialViewData: MultiDimDataPageInitialViewData | undefined

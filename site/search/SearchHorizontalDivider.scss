@@ -24,7 +24,8 @@
 }
 
 .search-horizontal-divider__button {
-    width: 124px; // Don't make the button smaller when the text changes.
-    border-left: 2px solid $white;
-    border-right: 2px solid $white;
+    min-width: 124px; // Don't make the button smaller when the text changes.
+    border: none;
+    border-left: 4px solid $white;
+    border-right: 4px solid $white;
 }

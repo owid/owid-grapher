@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { TagGraphNode, TagGraphRoot } from "@ourworldindata/utils"
-import classnames from "classnames"
+import classnames from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTimes } from "@fortawesome/free-solid-svg-icons"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
@@ -12,6 +12,7 @@ import { SiteMobileArea } from "./SiteMobileArea.js"
 import { SEARCH_BASE_PATH } from "./search/searchUtils.js"
 import { FeedbackForm } from "./Feedback.js"
 import { Button } from "@ourworldindata/components"
+import { buildLatestPagePath } from "./latest/latestUtils.js"
 
 export const SiteMobileMenu = ({
     tagGraph,
@@ -65,8 +66,8 @@ export const SiteMobileMenu = ({
                     </a>
                 </li>
                 <li>
-                    <a href="/data-insights" className="section__header">
-                        Insights
+                    <a href={buildLatestPagePath()} className="section__header">
+                        Latest
                     </a>
                 </li>
                 <li>

@@ -1,5 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
-import * as _ from "lodash-es"
 import * as React from "react"
 import { observer } from "mobx-react"
 import { runInAction, observable, computed, action, makeObservable } from "mobx"
@@ -13,11 +11,13 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
     GrapherChartType,
     GrapherInterface,
-    GRAPHER_CHART_TYPES,
-    GRAPHER_TAB_CONFIG_OPTIONS,
     SortOrder,
 } from "@ourworldindata/types"
 import { ChartRow } from "./ChartRow.js"
+import {
+    getTagGraphRolesById,
+    MinimalTagWithMetadata,
+} from "./TagGraphMetadata.js"
 import { References } from "./AbstractChartEditor.js"
 import {
     SearchWord,
@@ -79,7 +79,7 @@ export class ChartList extends React.Component<ChartListProps> {
     searchInput: string | undefined = undefined
     maxVisibleCharts = 50
     sortConfig: SortConfig | undefined = undefined
-    availableTags: DbChartTagJoin[] = []
+    availableTags: MinimalTagWithMetadata[] | undefined = undefined
 
     constructor(props: ChartListProps) {
         super(props)
@@ -225,6 +225,7 @@ export class ChartList extends React.Component<ChartListProps> {
             searchInput,
         } = this
         const { availableTags } = this
+        const tagGraphRolesById = getTagGraphRolesById(availableTags ?? [])
 
         const highlight = highlightFunctionForSearchWords(this.searchWords)
         const hasMoreCharts = this.chartsFiltered.length > this.maxVisibleCharts
@@ -338,16 +339,20 @@ export class ChartList extends React.Component<ChartListProps> {
                         </tr>
                     </thead>
                     <tbody>
-                        {chartsToShow.map((chart) => (
-                            <ChartRow
-                                chart={chart}
-                                key={chart.id}
-                                availableTags={availableTags}
-                                searchHighlight={highlight}
-                                onDelete={this.onDeleteChart}
-                                showInheritanceColumn={showInheritanceColumn}
-                            />
-                        ))}
+                        {availableTags &&
+                            chartsToShow.map((chart) => (
+                                <ChartRow
+                                    chart={chart}
+                                    key={chart.id}
+                                    availableTags={availableTags}
+                                    tagGraphRolesById={tagGraphRolesById}
+                                    searchHighlight={highlight}
+                                    onDelete={this.onDeleteChart}
+                                    showInheritanceColumn={
+                                        showInheritanceColumn
+                                    }
+                                />
+                            ))}
                     </tbody>
                 </table>
                 {hasMoreCharts && (
@@ -360,23 +365,5 @@ export class ChartList extends React.Component<ChartListProps> {
                 )}
             </div>
         )
-    }
-}
-
-export function showChartType(chart: ChartListItem): string {
-    const chartType = chart.type
-
-    if (!chartType) return "Map"
-
-    const displayType = GRAPHER_CHART_TYPES[chartType]
-        ? _.startCase(GRAPHER_CHART_TYPES[chartType])
-        : "Unknown"
-
-    if (chart.tab === GRAPHER_TAB_CONFIG_OPTIONS.map) {
-        if (chart.hasChartTab) return `Map + ${displayType}`
-        else return "Map"
-    } else {
-        if (chart.hasMapTab) return `${displayType} + Map`
-        else return displayType
     }
 }

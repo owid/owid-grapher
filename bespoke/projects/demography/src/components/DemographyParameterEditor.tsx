@@ -12,7 +12,7 @@ import { scaleLinear } from "@visx/scale"
 import { LinePath } from "@visx/shape"
 import { Group } from "@visx/group"
 import { localPoint } from "@visx/event"
-import type { Simulation } from "../helpers/useSimulation"
+import type { Simulation } from "../core/useSimulation"
 import {
     CONTROL_YEARS,
     HISTORICAL_END_YEAR,
@@ -26,16 +26,16 @@ import {
     USER_MODIFIED_COLOR,
     GRID_LINE_COLOR,
     GRID_LABEL_COLOR,
-} from "../helpers/constants"
+} from "../core/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { Halo, TextWrap } from "@ourworldindata/components"
 import { Bounds } from "@ourworldindata/utils"
-import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
+import { parameterConfigByKey } from "../core/parameterConfigs.js"
 import { TimeAxisX } from "./TimeAxisX.js"
-import { ParameterKey, type YearLabel } from "../helpers/types.js"
-import { getParameterChartFonts } from "../helpers/fonts"
-import { toBreakpoint, useBreakpoint } from "../helpers/useBreakpoint"
-import { getInterpolatedValue } from "../model/projectionRunner"
+import { ParameterKey, type YearLabel } from "../core/types.js"
+import { getParameterChartFonts } from "../core/fonts"
+import { toBreakpoint, useBreakpoint } from "../core/useBreakpoint"
+import { getInterpolatedValue } from "../core/model/projectionRunner"
 
 const SMALL_DOT_RADIUS = 3
 const CONTROL_POINT_RADIUS = 5
@@ -130,6 +130,8 @@ function DemographyParameterEditorContent({
         (y) => initialControlPoints[y]
     )
 
+    const controlValues = CONTROL_YEARS.map((y) => controlPoints[y])
+
     const minValue =
         yMinOverride ??
         Math.max(
@@ -137,7 +139,8 @@ function DemographyParameterEditorContent({
             Math.min(
                 Math.min(...unwppValues) - config.yPadding,
                 Math.min(...historicalValues),
-                Math.min(...initialControlValues) - config.yPadding
+                Math.min(...initialControlValues) - config.yPadding,
+                Math.min(...controlValues)
             )
         )
     const maxValue = Math.min(
@@ -145,7 +148,8 @@ function DemographyParameterEditorContent({
         Math.max(
             Math.max(...unwppValues) + config.yPadding,
             Math.max(...historicalValues),
-            Math.max(...initialControlValues) + config.yPadding
+            Math.max(...initialControlValues) + config.yPadding,
+            Math.max(...controlValues)
         )
     )
 
@@ -380,6 +384,7 @@ function DemographyParameterEditorContent({
                         minValue={minValue}
                         yScale={yScale}
                         axisUnit={config.axisUnit}
+                        displayScale={config.displayScale}
                         fontSize={fonts.yTick}
                     />
 
@@ -562,6 +567,8 @@ function DemographyParameterEditorContent({
                                     controlLabelFontSize={fonts.controlLabel}
                                     yScale={yScale}
                                     marginTop={margin.top}
+                                    min={config.inputMin}
+                                    max={config.inputMax}
                                     onValueChange={(value) =>
                                         handleChange({
                                             ...controlPoints,
@@ -645,9 +652,18 @@ function DemographyParameterEditorContent({
                         <ControlPointEditor
                             value={controlPoints[editing.year]}
                             step={config.step}
-                            decimals={config.decimals}
-                            min={yScale.domain()[0]}
-                            max={yScale.domain()[1]}
+                            decimals={config.displayDecimals ?? config.decimals}
+                            min={config.inputMin ?? yScale.domain()[0]}
+                            max={config.inputMax ?? yScale.domain()[1]}
+                            displayScale={config.displayScale}
+                            // Pass the unit only for scaled params (e.g. ‰→%) so
+                            // the editor renders it (natively, for "%"); unscaled
+                            // params keep a bare number.
+                            unit={
+                                config.displayScale
+                                    ? config.axisUnit
+                                    : undefined
+                            }
                             modified={isModified}
                             onCommit={(value) =>
                                 handleChange({
@@ -666,16 +682,16 @@ function DemographyParameterEditorContent({
 
 export const DemographyParameterEditor = memo(
     function DemographyParameterEditor(props: DemographyParameterEditorProps) {
-        const { parentRef, width, height } = useParentSize()
+        const { parentRef, width, height, node: parentNode } = useParentSize()
 
         // Inside a Shadow DOM, portal overlays back into the shadow root so
         // the chart's styles apply.
         const getPortalContainer = useCallback(() => {
-            const root = parentRef.current?.getRootNode()
+            const root = parentNode?.getRootNode()
             if (root instanceof ShadowRoot)
                 return root as unknown as HTMLElement
             return document.body
-        }, [parentRef])
+        }, [parentNode])
 
         return (
             <div
@@ -711,6 +727,8 @@ function DraggableControlPoint({
     formatValue,
     yScale,
     marginTop,
+    min = -Infinity,
+    max = Infinity,
     dragArrowFontSize,
     controlLabelFontSize,
     onValueChange,
@@ -728,6 +746,8 @@ function DraggableControlPoint({
     formatValue: (v: number) => string
     yScale: { invert: (y: number) => number }
     marginTop: number
+    min?: number
+    max?: number
     dragArrowFontSize: number
     controlLabelFontSize: number
     onValueChange: (value: number) => void
@@ -779,7 +799,8 @@ function DraggableControlPoint({
                         info.didMove = true
                         setIsDragging(true)
                     }
-                    onValueChange(yScale.invert(point.y - marginTop))
+                    const value = yScale.invert(point.y - marginTop)
+                    onValueChange(Math.min(max, Math.max(min, value)))
                 }}
                 onPointerUp={() => {
                     const info = pressInfoRef.current
@@ -867,6 +888,8 @@ function ControlPointEditor({
     decimals,
     min,
     max,
+    displayScale = 1,
+    unit,
     modified,
     onCommit,
     onClose,
@@ -876,6 +899,9 @@ function ControlPointEditor({
     decimals: number
     min: number
     max: number
+    // Factor to scale the internal value by for display; onCommit converts back.
+    displayScale?: number
+    unit?: string
     modified: boolean
     onCommit: (value: number) => void
     onClose: () => void
@@ -890,6 +916,31 @@ function ControlPointEditor({
         onInteractOutside: onClose,
     })
 
+    // Convert between the stored value and the value react-aria displays.
+    // For "%", Intl's "percent" style renders value×100 with a "%" suffix, so
+    // the display value is a fraction; otherwise it's the scaled value shown as
+    // a plain decimal. The transform is linear through the origin, so it applies
+    // to min/max/step too. clean() strips floating-point noise (e.g. 0.1×0.1 =
+    // 0.010000000000000002) that would otherwise corrupt react-aria's stepper,
+    // which counts a step's decimal places via step.toString().
+    const isPercent = unit === "%"
+    const clean = (n: number): number => Number(n.toPrecision(12))
+    const toDisplay = (v: number): number =>
+        clean(isPercent ? (v * displayScale) / 100 : v * displayScale)
+    const fromDisplay = (v: number): number =>
+        clean(isPercent ? (v * 100) / displayScale : v / displayScale)
+    const formatOptions: Intl.NumberFormatOptions = isPercent
+        ? {
+              style: "percent",
+              minimumFractionDigits: decimals,
+              maximumFractionDigits: decimals,
+          }
+        : {
+              minimumFractionDigits: decimals,
+              maximumFractionDigits: decimals,
+              useGrouping: false,
+          }
+
     return (
         <div
             ref={containerRef}
@@ -899,16 +950,12 @@ function ControlPointEditor({
             }
         >
             <NumberField
-                value={value}
-                onChange={onCommit}
-                minValue={min}
-                maxValue={max}
-                step={step}
-                formatOptions={{
-                    minimumFractionDigits: decimals,
-                    maximumFractionDigits: decimals,
-                    useGrouping: false,
-                }}
+                value={toDisplay(value)}
+                onChange={(v) => onCommit(fromDisplay(v))}
+                minValue={toDisplay(min)}
+                maxValue={toDisplay(max)}
+                step={toDisplay(step)}
+                formatOptions={formatOptions}
                 autoFocus
                 aria-label="Value"
                 onKeyDown={(e) => {
@@ -1132,6 +1179,7 @@ function YAxisGridLines({
     minValue,
     yScale,
     axisUnit,
+    displayScale = 1,
     fontSize,
 }: {
     maxGridLines: number | undefined
@@ -1140,6 +1188,7 @@ function YAxisGridLines({
     minValue: number
     yScale: ReturnType<typeof scaleLinear<number>>
     axisUnit: string
+    displayScale?: number
     fontSize: number
 }) {
     const defaultCount = innerHeight < 80 ? 2 : 3
@@ -1168,9 +1217,9 @@ function YAxisGridLines({
                             fontSize={fontSize}
                             fill={GRID_LABEL_COLOR}
                         >
-                            {Math.round(tick * 10) / 10}
-                            {axisUnit === "‰"
-                                ? "‰"
+                            {Math.round(tick * displayScale * 100) / 100}
+                            {axisUnit === "%"
+                                ? "%"
                                 : tick === topTick
                                   ? ` ${axisUnit}`
                                   : ""}

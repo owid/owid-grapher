@@ -24,6 +24,7 @@ import {
 } from "./model/Gdoc/rawToEnriched.js"
 import { gdocToArchie } from "./model/Gdoc/gdocToArchie.js"
 import { docs_v1 } from "@googleapis/docs"
+import { documentContainsMixedStraightAndCurlyQuotes } from "./model/Gdoc/gdocValidation.js"
 
 function getArchieMLDocWithContent(content: string): string {
     return `title: Writing OWID Articles With Google Docs
@@ -37,6 +38,30 @@ ${content}
 []
 `
 }
+
+describe(documentContainsMixedStraightAndCurlyQuotes, () => {
+    it.each([
+        [
+            "straight apostrophe with curly apostrophe",
+            `{"text":"don't mix it’s"}`,
+        ],
+        [
+            "straight double quote with curly double quote",
+            `{"text":"\\"hello”"}`,
+        ],
+        ["straight apostrophe with curly opening quote", `{"text":"'hello‘"}`],
+    ])("detects %s", (_description, content) => {
+        expect(documentContainsMixedStraightAndCurlyQuotes(content)).toBe(true)
+    })
+
+    it.each([
+        ["straight quotes only", `{"text":"don't mix \\"quotes\\""}`],
+        ["curly quotes only", `{"text":"don’t mix “quotes”"}`],
+        ["no quotes", `{"text":"plain text"}`],
+    ])("ignores %s", (_description, content) => {
+        expect(documentContainsMixedStraightAndCurlyQuotes(content)).toBe(false)
+    })
+})
 
 describe("gdoc parsing works", () => {
     it("can parse an aside block", () => {

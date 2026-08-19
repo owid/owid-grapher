@@ -1,6 +1,6 @@
 import { useId } from "react"
 import { EnrichedBlockPullChart } from "@ourworldindata/types"
-import cx from "classnames"
+import cx from "clsx"
 import ChartThumbnail from "./ChartThumbnail.js"
 import Paragraph from "./Paragraph.js"
 

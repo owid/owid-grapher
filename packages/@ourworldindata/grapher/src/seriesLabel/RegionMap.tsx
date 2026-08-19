@@ -1,5 +1,5 @@
 import React, { useMemo } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { Bounds, EntityName, MapRegionName } from "@ourworldindata/utils"
 import { getGeoFeaturesForMap } from "../mapCharts/GeoFeatures"
 import { InteractionState } from "../interaction/InteractionState.js"

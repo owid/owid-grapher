@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import urljoin from "url-join"
 
 import { TombstonePageData } from "@ourworldindata/types"
@@ -36,6 +36,7 @@ export default function TombstonePage({
                 canonicalUrl={canonicalUrl}
                 pageTitle="This page was removed"
                 baseUrl={baseUrl}
+                noindex
             />
             <body className="NotFoundPage">
                 <SiteHeader />

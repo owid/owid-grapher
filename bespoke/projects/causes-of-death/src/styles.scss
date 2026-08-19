@@ -8,36 +8,22 @@
 }
 
 .causes-of-death-controls {
-    .causes-of-death-controls__content {
-        display: flex;
-        flex-direction: column;
-        row-gap: 16px;
-
+    .controls__content {
         @include sm-only {
             row-gap: 8px;
         }
     }
 
-    .causes-of-death-controls__row {
-        display: flex;
-        column-gap: 16px;
-        row-gap: 16px;
-        align-items: center;
-
+    .controls__row {
         @include sm-only {
             flex-direction: column;
-            align-items: flex-start;
-            row-gap: 8px;
+            align-items: stretch;
+            row-gap: 12px;
             column-gap: 8px;
         }
 
         > * {
             flex: 1 1 0;
-
-            @include sm-only {
-                flex: 1 1 0;
-                width: 100%;
-            }
         }
 
         .causes-of-death-time-slider {
@@ -46,15 +32,6 @@
 
             @include sm-only {
                 width: 100%;
-            }
-        }
-    }
-
-    @at-root {
-        .causes-of-death-controls__entity-dropdown-option {
-            svg {
-                color: $gray-60;
-                margin-left: 6px;
             }
         }
     }
@@ -93,49 +70,13 @@
     }
 }
 
-.causes-of-death-controls {
-    .causes-of-death-controls__title {
-        font-size: 10px;
-        font-weight: 900;
-        letter-spacing: 0.15em;
-        color: $light-text;
-        text-transform: uppercase;
-        margin: 0;
-        margin-bottom: 12px;
-    }
-}
-
-.causes-of-death-spinner {
-    &.causes-of-death-spinner--standalone {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 10;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(255, 255, 255, 0.8);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: $gray-100;
-    }
-
-    &.causes-of-death-spinner--inline {
-        display: inline-flex;
-        margin-left: 4px;
-        font-size: 0.8em;
-        vertical-align: baseline;
-    }
-}
-
 .causes-of-death-skeleton {
     position: relative;
     width: min(100%, 900px);
     height: 600px;
     border: 1px solid $frame-color;
 
-    .causes-of-death-spinner {
+    .spinner {
         color: $gray-60;
     }
 }
