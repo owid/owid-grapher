@@ -168,10 +168,19 @@
 
 // A bubble sits next to every commentable field while comment mode is on.
 // Positioned in document coordinates from a portal, so the page's own DOM is
-// never touched and no component has to make room for it.
-.comments-bubble {
+// never touched and no component has to make room for it. The row is what gets
+// positioned: where several fields resolve to the same element they share it,
+// and laying them out with flex keeps them apart without having to know how
+// wide a bubble is before it renders.
+.comments-bubbles {
     position: absolute;
     z-index: 9998;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.comments-bubble {
     display: inline-flex;
     align-items: center;
     gap: 3px;

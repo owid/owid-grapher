@@ -57,10 +57,21 @@ interface PlacedBubble {
     count: number
     /** Comments on this same field, but on other views of a multi-dim */
     elsewhereCount: number
+}
+
+/**
+ * The bubbles pointing at one element, laid out in a row beside it. Several
+ * fields can share an element - a data page renders the indicator's short
+ * description as the chart's subtitle, so for both fields it is the same <p> -
+ * and they would otherwise be placed one on top of the other.
+ */
+interface PlacedBubbleGroup {
+    key: string
     top: number
     /** Offset from the left edge, or from the right when alignRight */
     left: number
     alignRight: boolean
+    bubbles: PlacedBubble[]
 }
 
 /**
@@ -74,8 +85,8 @@ function useBubblePlacements(
     countByKey: Map<string, number>,
     elsewhereCountByKey: Map<string, number>,
     isOn: boolean
-): PlacedBubble[] {
-    const [placements, setPlacements] = useState<PlacedBubble[]>([])
+): PlacedBubbleGroup[] {
+    const [placements, setPlacements] = useState<PlacedBubbleGroup[]>([])
 
     useEffect(() => {
         if (!isOn) {
@@ -88,32 +99,48 @@ function useBubblePlacements(
         // that feeding back on itself.
         let lastSerialized = ""
         const place = (): void => {
-            const next: PlacedBubble[] = []
+            const next: PlacedBubbleGroup[] = []
+            const groupByElement = new Map<HTMLElement, PlacedBubbleGroup>()
             for (const field of fields) {
                 const element = findFieldElement(field)
                 if (!element) continue
                 const rect = element.getBoundingClientRect()
                 if (!rect.width && !rect.height) continue
-                // Fields flush to the right edge get their bubble on the left,
-                // so it never lands outside the viewport
-                const alignRight = window.innerWidth - rect.right < 48
                 const key = fieldCountKey(targets[field.targetIndex], field.key)
-                next.push({
+                const bubble: PlacedBubble = {
                     field,
                     count: countByKey.get(key) ?? 0,
                     elsewhereCount: elsewhereCountByKey.get(key) ?? 0,
+                }
+                // Fields sharing an element join its group, so the row grows
+                // sideways instead of the bubbles piling up
+                const group = groupByElement.get(element)
+                if (group) {
+                    group.bubbles.push(bubble)
+                    continue
+                }
+                // Elements flush to the right edge get their bubbles on the
+                // left, so they never land outside the viewport
+                const alignRight = window.innerWidth - rect.right < 48
+                const created: PlacedBubbleGroup = {
+                    key: field.key,
                     top: rect.top + window.scrollY,
                     left: alignRight ? 8 : rect.right + window.scrollX + 6,
                     alignRight,
-                })
+                    bubbles: [bubble],
+                }
+                groupByElement.set(element, created)
+                next.push(created)
             }
             const serialized = JSON.stringify(
-                next.map((b) => [
-                    b.field.key,
-                    b.count,
-                    b.elsewhereCount,
-                    b.top,
-                    b.left,
+                next.map((g) => [
+                    g.top,
+                    g.left,
+                    g.bubbles.map((b) => [
+                        b.field.key,
+                        b.count,
+                        b.elsewhereCount,
+                    ]),
                 ])
             )
             if (serialized === lastSerialized) return
@@ -249,9 +276,14 @@ export function CommentsOverlay({
         return () => document.body.classList.remove(COMMENT_MODE_BODY_CLASS)
     }, [isOn])
 
-    const open = placements.find(
-        (placement) => placement.field.key === openFieldKey
-    )
+    // The group holding the field being read, and the field itself
+    const open = useMemo(() => {
+        for (const group of placements)
+            for (const bubble of group.bubbles)
+                if (bubble.field.key === openFieldKey)
+                    return { group, field: bubble.field }
+        return undefined
+    }, [placements, openFieldKey])
     // Field keys are only unique within a target - a chart and an indicator can
     // both have a "title" - so match the target as well as the key
     const threadsForOpenField = open
@@ -339,48 +371,57 @@ export function CommentsOverlay({
             {isOn &&
                 createPortal(
                     <>
-                        {placements.map((placement) => (
-                            <button
-                                key={placement.field.key}
-                                type="button"
-                                className={cx("comments-bubble", {
-                                    "comments-bubble--has-comments":
-                                        placement.count > 0 ||
-                                        placement.elsewhereCount > 0,
-                                    "comments-bubble--open":
-                                        placement.field.key === openFieldKey,
-                                })}
+                        {placements.map((group) => (
+                            <div
+                                key={group.key}
+                                className="comments-bubbles"
                                 style={{
-                                    top: placement.top,
-                                    ...(placement.alignRight
-                                        ? { right: placement.left }
-                                        : { left: placement.left }),
+                                    top: group.top,
+                                    ...(group.alignRight
+                                        ? { right: group.left }
+                                        : { left: group.left }),
                                 }}
-                                title={
-                                    placement.elsewhereCount > 0
-                                        ? `Comment on ${placement.field.label} — ${placement.elsewhereCount} on other views`
-                                        : `Comment on ${placement.field.label}`
-                                }
-                                onClick={() =>
-                                    setOpenFieldKey(
-                                        openFieldKey === placement.field.key
-                                            ? null
-                                            : placement.field.key
-                                    )
-                                }
                             >
-                                <span aria-hidden>💬</span>
-                                {placement.count > 0 && (
-                                    <span className="comments-bubble__count">
-                                        {placement.count}
-                                    </span>
-                                )}
-                                {placement.elsewhereCount > 0 && (
-                                    <span className="comments-bubble__count comments-bubble__count--other-views">
-                                        +{placement.elsewhereCount}
-                                    </span>
-                                )}
-                            </button>
+                                {group.bubbles.map((bubble) => (
+                                    <button
+                                        key={bubble.field.key}
+                                        type="button"
+                                        className={cx("comments-bubble", {
+                                            "comments-bubble--has-comments":
+                                                bubble.count > 0 ||
+                                                bubble.elsewhereCount > 0,
+                                            "comments-bubble--open":
+                                                bubble.field.key ===
+                                                openFieldKey,
+                                        })}
+                                        title={
+                                            bubble.elsewhereCount > 0
+                                                ? `Comment on ${bubble.field.label} — ${bubble.elsewhereCount} on other views`
+                                                : `Comment on ${bubble.field.label}`
+                                        }
+                                        onClick={() =>
+                                            setOpenFieldKey(
+                                                openFieldKey ===
+                                                    bubble.field.key
+                                                    ? null
+                                                    : bubble.field.key
+                                            )
+                                        }
+                                    >
+                                        <span aria-hidden>💬</span>
+                                        {bubble.count > 0 && (
+                                            <span className="comments-bubble__count">
+                                                {bubble.count}
+                                            </span>
+                                        )}
+                                        {bubble.elsewhereCount > 0 && (
+                                            <span className="comments-bubble__count comments-bubble__count--other-views">
+                                                +{bubble.elsewhereCount}
+                                            </span>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
                         ))}
                         {open && (
                             <CommentPopover
@@ -391,19 +432,19 @@ export function CommentsOverlay({
                                 currentUserId={currentUserId}
                                 viewState={viewState}
                                 position={{
-                                    top: open.top + 30,
-                                    left: open.alignRight
-                                        ? open.left
+                                    top: open.group.top + 30,
+                                    left: open.group.alignRight
+                                        ? open.group.left
                                         : Math.max(
                                               8,
                                               Math.min(
-                                                  open.left,
+                                                  open.group.left,
                                                   window.innerWidth -
                                                       POPOVER_WIDTH -
                                                       16
                                               )
                                           ),
-                                    alignRight: open.alignRight,
+                                    alignRight: open.group.alignRight,
                                 }}
                                 onClose={() => setOpenFieldKey(null)}
                             />

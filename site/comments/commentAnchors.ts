@@ -27,7 +27,7 @@ const CANDIDATE_SELECTOR =
 
 /** Our own UI must never be mistaken for page content */
 const EXCLUDED_SELECTOR =
-    ".comments-overlay__panel,.comments-overlay__toggle,.comments-anchor-badge"
+    ".comments-bubbles,.comments-overlay__toggle,.comments-popover,.comments-other-views"
 
 export function normalizeText(text: string): string {
     return text.replace(/\s+/g, " ").trim()
