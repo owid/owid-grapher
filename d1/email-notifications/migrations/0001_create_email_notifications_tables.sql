@@ -77,10 +77,15 @@ CREATE TABLE postmark_webhook_receipts (
     processedAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 
--- Mirror of Postmark's broadcast-stream suppression list. Subscription-change
--- webhooks add normalized addresses when Postmark suppresses them and remove
--- them on reactivation.
-CREATE TABLE suppressed_addresses (
-    email TEXT PRIMARY KEY,
-    createdAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+-- Latest known Postmark suppression state for each address and message stream.
+-- Reactivated addresses remain with isSuppressed = 0 so delayed older webhooks
+-- cannot restore stale suppression state.
+CREATE TABLE postmark_suppressions (
+    email TEXT NOT NULL,
+    messageStream TEXT NOT NULL,
+    isSuppressed INTEGER NOT NULL CHECK (isSuppressed IN (0, 1)),
+    -- Timestamp of the latest accepted Postmark SubscriptionChange event.
+    postmarkChangedAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    PRIMARY KEY (email, messageStream)
 );
