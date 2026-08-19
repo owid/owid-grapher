@@ -16,10 +16,12 @@ import {
 } from "../../_common/emailNotifications.js"
 import { upsertOwidBriefSubscription } from "../../_common/mailchimp.js"
 import {
+    POSTMARK_BROADCAST_MESSAGE_STREAM,
     POSTMARK_REACTIVATION_USER_MESSAGE,
     PostmarkRecipientReactivationError,
     reactivatePostmarkRecipient,
 } from "../../_common/postmarkClient.js"
+import { markReactivatedLocally } from "../../_common/postmarkSuppressions.js"
 
 const CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -127,19 +129,21 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         const userId = lookup.row.userId
         const user = await db
             .prepare(
-                `SELECT email,
-                        EXISTS (
-                            SELECT 1
-                            FROM suppressed_addresses
-                            WHERE suppressed_addresses.email = users.email
-                        ) AS isSuppressed
+                `SELECT users.email,
+                        CASE
+                            WHEN postmark_suppressions.isSuppressed = 1
+                            THEN postmark_suppressions.postmarkChangedAt
+                        END AS activeSuppressionChangedAt
                  FROM users
-                 WHERE id = ?1`
+                 LEFT JOIN postmark_suppressions
+                     ON postmark_suppressions.email = users.email
+                     AND postmark_suppressions.messageStream = ?2
+                 WHERE users.id = ?1`
             )
-            .bind(userId)
+            .bind(userId, POSTMARK_BROADCAST_MESSAGE_STREAM)
             .first<{
                 email: string
-                isSuppressed: number
+                activeSuppressionChangedAt: string | null
             }>()
         if (!user) return tokenErrorResponse({ state: "invalid" })
 
@@ -154,8 +158,13 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
                 .bind(userId)
                 .run()
         } else if (data.preferences) {
-            if (user.isSuppressed) {
+            if (user.activeSuppressionChangedAt) {
                 await reactivatePostmarkRecipient(env, user.email)
+                await markReactivatedLocally(
+                    db,
+                    user.email,
+                    user.activeSuppressionChangedAt
+                )
             }
             await db.batch([
                 db
@@ -183,11 +192,6 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
                         JSON.stringify(data.preferences.contentTypes),
                         data.preferences.frequency
                     ),
-                db
-                    .prepare(
-                        `DELETE FROM suppressed_addresses WHERE email = ?1`
-                    )
-                    .bind(user.email),
             ])
         }
 

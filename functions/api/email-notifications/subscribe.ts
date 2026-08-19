@@ -20,6 +20,10 @@ import {
     PostmarkRecipientReactivationError,
     reactivatePostmarkRecipient,
 } from "../../_common/postmarkClient.js"
+import {
+    findLocalSuppressionState,
+    markReactivatedLocally,
+} from "../../_common/postmarkSuppressions.js"
 
 const CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -81,12 +85,17 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             // exactly one email.
             const db = env.EMAIL_NOTIFICATIONS_DB
             const origin = new URL(request.url).origin
-            const [user, isSuppressed] = await Promise.all([
+            const [user, postmarkSuppression] = await Promise.all([
                 findUserByEmail(db, email),
-                isPostmarkRecipientSuppressedLocally(db, email),
+                findLocalSuppressionState(db, email),
             ])
-            if (isSuppressed) {
+            if (postmarkSuppression?.isSuppressed) {
                 await reactivatePostmarkRecipient(env, email)
+                await markReactivatedLocally(
+                    db,
+                    email,
+                    postmarkSuppression.postmarkChangedAt
+                )
             }
             let userId: number
             let userToken: string
@@ -169,17 +178,6 @@ async function findUserByEmail(
         .first<EmailNotificationsUser>()
 }
 
-async function isPostmarkRecipientSuppressedLocally(
-    db: D1Database,
-    email: string
-): Promise<boolean> {
-    const suppression = await db
-        .prepare(`SELECT email FROM suppressed_addresses WHERE email = ?1`)
-        .bind(email)
-        .first<{ email: string }>()
-    return suppression !== null
-}
-
 /**
  * Single opt-in for a never-seen address: create the user as 'subscribed'
  * with the chosen preferences, active immediately.
@@ -257,9 +255,6 @@ async function resubscribeUser(
                 JSON.stringify(merged.contentTypes),
                 merged.frequency
             ),
-        db
-            .prepare(`DELETE FROM suppressed_addresses WHERE email = ?1`)
-            .bind(user.email),
     ])
     return merged
 }

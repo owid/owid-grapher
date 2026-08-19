@@ -172,8 +172,8 @@ The central modeling rule is that **subscription intent and deliverability are
 different state**:
 
 - `users.status` records whether the reader wants OWID notifications.
-- `suppressed_addresses` mirrors whether Postmark will currently send to the
-  address.
+- `postmark_suppressions` stores Postmark's latest known suppression state for
+  each address and message stream.
 
 An address must be subscribed and unsuppressed to receive a scheduled message.
 A hard bounce can suppress an address without changing the reader's intent.

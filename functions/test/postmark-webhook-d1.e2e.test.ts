@@ -2,6 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest"
 import { createTestHarness } from "wrangler"
 import { Models } from "postmark"
 import type { Env } from "../_common/env.js"
+import { markReactivatedLocally } from "../_common/postmarkSuppressions.js"
 import type {
     PostmarkSubscriptionChangeWebhook,
     PostmarkWebhookEvent,
@@ -32,7 +33,7 @@ const clearDatabaseStatements = [
     "DELETE FROM messages",
     "DELETE FROM users",
     "DELETE FROM postmark_webhook_receipts",
-    "DELETE FROM suppressed_addresses",
+    "DELETE FROM postmark_suppressions",
     "DELETE FROM sqlite_sequence",
 ]
 
@@ -235,10 +236,10 @@ describe("Postmark webhook with local D1", () => {
             )
         ).resolves.toEqual([{ status: "unsubscribed" }])
         await expect(
-            querySql<{ email: string }>(
-                "SELECT email FROM suppressed_addresses"
+            querySql<{ email: string; isSuppressed: number }>(
+                `SELECT email, isSuppressed FROM postmark_suppressions`
             )
-        ).resolves.toEqual([{ email: "reader@example.com" }])
+        ).resolves.toEqual([{ email: "reader@example.com", isSuppressed: 1 }])
     })
 
     it("mirrors non-unsubscribe suppressions without changing user intent", async () => {
@@ -261,20 +262,22 @@ describe("Postmark webhook with local D1", () => {
             )
         ).resolves.toEqual([{ status: "subscribed" }])
         await expect(
-            querySql<{ email: string }>(
-                "SELECT email FROM suppressed_addresses"
+            querySql<{ email: string; isSuppressed: number }>(
+                `SELECT email, isSuppressed FROM postmark_suppressions`
             )
-        ).resolves.toEqual([{ email: "reader@example.com" }])
+        ).resolves.toEqual([{ email: "reader@example.com", isSuppressed: 1 }])
     })
 
-    it("clears suppression on reactivation without opting the user back in", async () => {
+    it("retains a tombstone on reactivation without opting the user back in", async () => {
         await runSql(
             `INSERT INTO users (email, token, status)
              VALUES ('reader@example.com', 'reader-token', 'unsubscribed')`
         )
         await runSql(
-            `INSERT INTO suppressed_addresses (email)
-             VALUES ('reader@example.com')`
+            `INSERT INTO postmark_suppressions
+                 (email, messageStream, isSuppressed, postmarkChangedAt)
+             VALUES
+                 ('reader@example.com', 'broadcast', 1, '2026-07-29T10:00:00Z')`
         )
 
         const response = await postWebhook(
@@ -294,15 +297,151 @@ describe("Postmark webhook with local D1", () => {
             )
         ).resolves.toEqual([{ status: "unsubscribed" }])
         await expect(
-            querySql<CountRow>(
-                "SELECT COUNT(*) AS count FROM suppressed_addresses"
+            querySql<{ isSuppressed: number; postmarkChangedAt: string }>(
+                `SELECT isSuppressed, postmarkChangedAt
+                 FROM postmark_suppressions`
             )
-        ).resolves.toEqual([{ count: 0 }])
+        ).resolves.toEqual([
+            {
+                isSuppressed: 0,
+                postmarkChangedAt: "2026-07-29T11:00:00Z",
+            },
+        ])
         await expect(
             querySql<{ messageId: string | null }>(
                 "SELECT messageId FROM postmark_webhook_receipts"
             )
         ).resolves.toEqual([{ messageId: null }])
+    })
+
+    it("locally mirrors an API reactivation without advancing Postmark's timestamp", async () => {
+        const suppressionResponse = await postWebhook(makeSubscriptionChange())
+        expect(suppressionResponse.status).toBe(200)
+
+        await markReactivatedLocally(
+            db,
+            "reader@example.com",
+            "2026-07-29T11:00:00Z"
+        )
+
+        await expect(
+            querySql<{ isSuppressed: number; postmarkChangedAt: string }>(
+                `SELECT isSuppressed, postmarkChangedAt
+                 FROM postmark_suppressions`
+            )
+        ).resolves.toEqual([
+            {
+                isSuppressed: 0,
+                postmarkChangedAt: "2026-07-29T11:00:00Z",
+            },
+        ])
+    })
+
+    it("does not let a local API reactivation overwrite a newer webhook", async () => {
+        const firstSuppressionResponse = await postWebhook(
+            makeSubscriptionChange({
+                ChangedAt: "2026-07-29T11:00:00Z",
+            })
+        )
+        const newerSuppressionResponse = await postWebhook(
+            makeSubscriptionChange({
+                ChangedAt: "2026-07-29T12:00:00Z",
+            })
+        )
+        expect(firstSuppressionResponse.status).toBe(200)
+        expect(newerSuppressionResponse.status).toBe(200)
+
+        await markReactivatedLocally(
+            db,
+            "reader@example.com",
+            "2026-07-29T11:00:00Z"
+        )
+
+        await expect(
+            querySql<{ isSuppressed: number; postmarkChangedAt: string }>(
+                `SELECT isSuppressed, postmarkChangedAt
+                 FROM postmark_suppressions`
+            )
+        ).resolves.toEqual([
+            {
+                isSuppressed: 1,
+                postmarkChangedAt: "2026-07-29T12:00:00Z",
+            },
+        ])
+    })
+
+    it("ignores a stale suppression delivered after a newer reactivation", async () => {
+        await runSql(
+            `INSERT INTO users (email, token, status)
+             VALUES ('reader@example.com', 'reader-token', 'subscribed')`
+        )
+
+        const reactivationResponse = await postWebhook(
+            makeSubscriptionChange({
+                MessageID: null,
+                ChangedAt: "2026-07-29T12:00:00Z",
+                Origin: "Customer",
+                SuppressSending: false,
+                SuppressionReason: null,
+                Tag: null,
+            })
+        )
+        const staleSuppressionResponse = await postWebhook(
+            makeSubscriptionChange({
+                ChangedAt: "2026-07-29T11:00:00Z",
+            })
+        )
+
+        expect(reactivationResponse.status).toBe(200)
+        expect(staleSuppressionResponse.status).toBe(200)
+        await expect(
+            querySql<{ status: string }>(
+                `SELECT status FROM users WHERE email = 'reader@example.com'`
+            )
+        ).resolves.toEqual([{ status: "subscribed" }])
+        await expect(
+            querySql<{ isSuppressed: number; postmarkChangedAt: string }>(
+                `SELECT isSuppressed, postmarkChangedAt
+                 FROM postmark_suppressions`
+            )
+        ).resolves.toEqual([
+            {
+                isSuppressed: 0,
+                postmarkChangedAt: "2026-07-29T12:00:00Z",
+            },
+        ])
+    })
+
+    it("ignores a stale reactivation delivered after a newer suppression", async () => {
+        const suppressionResponse = await postWebhook(
+            makeSubscriptionChange({
+                ChangedAt: "2026-07-29T12:00:00Z",
+            })
+        )
+        const staleReactivationResponse = await postWebhook(
+            makeSubscriptionChange({
+                MessageID: null,
+                ChangedAt: "2026-07-29T11:00:00Z",
+                Origin: "Customer",
+                SuppressSending: false,
+                SuppressionReason: null,
+                Tag: null,
+            })
+        )
+
+        expect(suppressionResponse.status).toBe(200)
+        expect(staleReactivationResponse.status).toBe(200)
+        await expect(
+            querySql<{ isSuppressed: number; postmarkChangedAt: string }>(
+                `SELECT isSuppressed, postmarkChangedAt
+                 FROM postmark_suppressions`
+            )
+        ).resolves.toEqual([
+            {
+                isSuppressed: 1,
+                postmarkChangedAt: "2026-07-29T12:00:00Z",
+            },
+        ])
     })
 
     it("ignores subscription changes from other message streams", async () => {
@@ -313,7 +452,7 @@ describe("Postmark webhook with local D1", () => {
         expect(response.status).toBe(200)
         await expect(
             querySql<CountRow>(
-                "SELECT COUNT(*) AS count FROM suppressed_addresses"
+                "SELECT COUNT(*) AS count FROM postmark_suppressions"
             )
         ).resolves.toEqual([{ count: 0 }])
     })
@@ -398,7 +537,7 @@ describe("Postmark webhook with local D1", () => {
     it("returns 500 and can retry after a D1 failure", async () => {
         await runSql(
             `CREATE TRIGGER fail_suppression
-             BEFORE INSERT ON suppressed_addresses
+             BEFORE INSERT ON postmark_suppressions
              BEGIN
                  SELECT RAISE(FAIL, 'simulated D1 failure');
              END`
@@ -413,7 +552,7 @@ describe("Postmark webhook with local D1", () => {
         expect(failedResponse.status).toBe(500)
         await expect(
             querySql<CountRow>(
-                "SELECT COUNT(*) AS count FROM suppressed_addresses"
+                "SELECT COUNT(*) AS count FROM postmark_suppressions"
             )
         ).resolves.toEqual([{ count: 0 }])
         await expect(
@@ -427,10 +566,10 @@ describe("Postmark webhook with local D1", () => {
 
         expect(retriedResponse.status).toBe(200)
         await expect(
-            querySql<{ email: string }>(
-                "SELECT email FROM suppressed_addresses"
+            querySql<{ email: string; isSuppressed: number }>(
+                `SELECT email, isSuppressed FROM postmark_suppressions`
             )
-        ).resolves.toEqual([{ email: "reader@example.com" }])
+        ).resolves.toEqual([{ email: "reader@example.com", isSuppressed: 1 }])
         await expect(
             querySql<CountRow>(
                 "SELECT COUNT(*) AS count FROM postmark_webhook_receipts"
