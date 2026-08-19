@@ -30,7 +30,9 @@ describe(viewStateKey, () => {
     it("keys by dimension order, not by the order the view was written in", () => {
         expect(
             viewStateKey({ gender: "girls", level: "primary" }, dimensions)
-        ).toEqual(viewStateKey({ level: "primary", gender: "girls" }, dimensions))
+        ).toEqual(
+            viewStateKey({ level: "primary", gender: "girls" }, dimensions)
+        )
     })
 
     it("distinguishes different views", () => {
@@ -42,7 +44,9 @@ describe(viewStateKey, () => {
     })
 
     it("keeps dimensions the multi-dim no longer has, so old views stay distinct", () => {
-        expect(viewStateKey({ level: "primary", dropped: "a" }, dimensions)).not.toEqual(
+        expect(
+            viewStateKey({ level: "primary", dropped: "a" }, dimensions)
+        ).not.toEqual(
             viewStateKey({ level: "primary", dropped: "b" }, dimensions)
         )
     })
@@ -81,10 +85,14 @@ describe(hrefForViewState, () => {
 
     it("replaces the dimensions already in the url", () => {
         expect(
-            hrefForViewState({ level: "secondary", gender: "boys" }, dimensions, {
-                ...url,
-                search: "?level=primary&gender=girls",
-            })
+            hrefForViewState(
+                { level: "secondary", gender: "boys" },
+                dimensions,
+                {
+                    ...url,
+                    search: "?level=primary&gender=girls",
+                }
+            )
         ).toBe("/grapher/school-enrolment?level=secondary&gender=boys")
     })
 
