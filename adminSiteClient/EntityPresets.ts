@@ -39,6 +39,8 @@ const REGION_DATA_PROVIDER_LABELS: Record<RegionDataProvider, string> = {
     fao_1: "FAO (continents)",
     fao_2: "FAO (subregions)",
     fao_sdg: "FAO (SDG regions)",
+    ihme_gbd_1: "IHME GBD (super-regions)",
+    ihme_gbd_2: "IHME GBD (regions)",
 }
 
 const ADDITIONAL_REGION_DATA_PROVIDER_LABELS: Record<
@@ -56,6 +58,7 @@ const ADDITIONAL_REGION_DATA_PROVIDER_LABELS: Record<
     unsd: "UNSD regions",
     unm49: "UN M49 regions",
     ilo: "ILO regions",
+    ihmegbd: "IHME GBD regions",
 }
 
 /** Extracts entities matching a custom source pattern like "Africa (FAO)" */
