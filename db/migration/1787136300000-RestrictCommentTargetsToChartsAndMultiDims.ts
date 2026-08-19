@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class RestrictCommentTargetsToChartsAndMultiDims1787136300000
-    implements MigrationInterface
-{
+export class RestrictCommentTargetsToChartsAndMultiDims1787136300000 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // A comment is now always attached to something a reader sees - a chart
         // or a multi-dim view - and never to an indicator. Metadata is commented
