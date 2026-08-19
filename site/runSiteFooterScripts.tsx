@@ -20,7 +20,7 @@ import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import SiteTools, { SITE_TOOLS_CLASS } from "./SiteTools.js"
 import { runDetailsOnDemand } from "./detailsOnDemand.js"
 import { hydrateCodeSnippets } from "@ourworldindata/components"
-import { hydrateDynamicCollectionPage } from "./collections/DynamicCollection.js"
+import { hydrateDynamicCollectionPage } from "./collections/DynamicCollectionPageMain.js"
 import { LatestSearchWrapper } from "./latest/LatestSearchWrapper.js"
 import { runAllGraphersLoadedListener } from "./runAllGraphersLoadedListener.js"
 import {

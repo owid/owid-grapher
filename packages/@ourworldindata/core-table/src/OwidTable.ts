@@ -16,6 +16,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     Time,
+    TimeRange,
     TransformType,
     CoreColumnStore,
     Color,
@@ -100,12 +101,19 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this.entityIdColumn.slug
     }
 
-    @imemo get minTime(): Time {
-        return _.min(this.allTimes) as Time
+    @imemo get minTime(): Time | undefined {
+        return _.min(this.allTimes)
     }
 
-    @imemo get maxTime(): number | undefined {
+    @imemo get maxTime(): Time | undefined {
         return _.max(this.allTimes)
+    }
+
+    /** The first and last time in the table, undefined if it has no times */
+    @imemo get timeRange(): TimeRange | undefined {
+        const { minTime, maxTime } = this
+        if (minTime === undefined || maxTime === undefined) return undefined
+        return [minTime, maxTime]
     }
 
     @imemo private get allTimes(): Time[] {
@@ -207,16 +215,20 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     filterByTimeRange(start: TimeBound, end: TimeBound): this {
         if (this.isBlank) return this
 
-        // We may want to do this time adjustment in Grapher instead of here.
-        const adjustedStart = start === Infinity ? this.maxTime! : start
-        const adjustedEnd = end === -Infinity ? this.minTime : end
-        // todo: we should set a time column onload so we don't have to worry about it again.
+        // Nothing to filter by if the table has no times
+        if (!this.timeRange) return this
+        const [minTime, maxTime] = this.timeRange
+
+        // We may want to do this time adjustment in Grapher instead of here
+        const adjustedStart = start === Infinity ? maxTime : start
+        const adjustedEnd = end === -Infinity ? minTime : end
+        // TODO: we should set a time column onload so we don't have to worry about it again
         const timeColumnSlug = this.timeColumn?.slug || OwidTableSlugs.Time
 
         const description = `Keep only rows with Time between ${adjustedStart} - ${adjustedEnd}`
 
         // perf: if the time range is greater than the table's time range, we can skip the filter
-        if (adjustedStart <= this.minTime && adjustedEnd >= this.maxTime!)
+        if (adjustedStart <= minTime && adjustedEnd >= maxTime)
             return this.noopTransform(description).sortedByTime
 
         return this.columnFilter(

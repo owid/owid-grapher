@@ -464,7 +464,13 @@ ${items}
                               { name: insight.narrativeChartName },
                               exportComponents
                           )
-                        : undefined
+                        : insight.asset
+                          ? enrichedBlocksToMarkdown(
+                                insight.asset,
+                                exportComponents,
+                                options
+                            )
+                          : undefined
                 const content =
                     enrichedBlocksToMarkdown(
                         insight.content,
@@ -474,7 +480,7 @@ ${items}
 
                 const text = `### ${insight.title}
 ${content}
-${imageOrChart}`
+${imageOrChart ?? ""}`
                 return text
             })
             const allInsights = insightTexts.join("\n\n")

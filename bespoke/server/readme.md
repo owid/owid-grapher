@@ -34,6 +34,8 @@ In build mode, the demo page uses the built output files (`index.js`, `index.css
 
 Visiting `/<project>/demo` serves a demo page that imports the project's `VARIANTS` list and mounts each variant inside its own Shadow DOM using `mountBespokeComponentInShadow` from `bespoke/shared`. This mirrors the production embedding behavior.
 
+`/__all` stacks every project's demo page below each other (except `example`, the starter template), one lazily loaded iframe each — iframes keep each project's Vite client, React copy and `dev-only-global-css` isolated from the others. The frames load as you scroll, which matters on staging, where each project is built on first request.
+
 ### Entrypoints
 
 The demo page reads the `entrypoints` field from each project's `package.json` to know which source files to load:
@@ -51,8 +53,13 @@ Only `js` is required. If `css` is omitted, the demo page won't load a separate 
 
 In dev mode, requests for `/<project>/index.js` and `/<project>/index.css` are redirected to the corresponding source entrypoints so Vite can serve them. In build mode, these files exist as-is in the build output.
 
+## Staging
+
+Staging servers run this server too, under pm2 as `yarn startBespokeDevServer --build`, and their `BESPOKE_BASE_URL` points at it — so the bundles a staging article embeds are the ones this server builds. Reach it at `http://staging-site-<branch>:8089/` over Tailscale. (Production is different: there `BESPOKE_BASE_URL` is the statically baked `/assets/bespoke`, and no dev server runs.)
+
 ## Files
 
 - **devServer.ts** — The dev server itself
 - **component-demo.html** — Demo page template (mounts variants inside Shadow DOM)
+- **all-demos.html** — `/__all` page template (stacks every project's demo page in an iframe)
 - **component-demo.css** / **demo-grid.css** — Styles for the demo page, served via the `/__bespoke/` Vite instance

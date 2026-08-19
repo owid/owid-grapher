@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 /* Forms.tsx
  * ================
  *
@@ -290,8 +289,6 @@ export class TextAreaField extends React.Component<TextFieldProps> {
         )
     }
 }
-
-export class SearchField extends TextField {}
 
 interface NumberFieldProps {
     label?: string
@@ -987,7 +984,7 @@ export class BindAutoString<
     ```tsx
     <BindAutoStringExt
         label={"Subtitle"}
-        readFn={(g) => g.currentSubtitle}
+        readFn={(g) => g.effectiveSubtitle}
         writeFn={(g, newVal) => (g.subtitle = newVal)}
         isAuto={grapher.subtitle === undefined}
         store={grapher}

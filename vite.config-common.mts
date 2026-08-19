@@ -21,7 +21,9 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
         // (dynamically imported chunks and their CSS) must be relative to the
         // importing module rather than to the default base "/".
         base: "./",
-        publicDir: false, // don't copy public folder to dist
+        // Resolves absolute asset urls like /fonts/*.woff2 at build time; we
+        // don't copy the folder to dist (see build.copyPublicDir below).
+        publicDir: "public",
         css: {
             devSourcemap: true,
             preprocessorOptions: {
@@ -60,9 +62,22 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                 "./loadDotenv.js": "./loadDotenv.browser.js",
             },
         },
+        experimental: {
+            // The relative base above is only meant for our own bundle output.
+            // Files from the public folder aren't copied into it (see
+            // build.copyPublicDir) and are served from the site root, so keep
+            // referencing them absolutely.
+            renderBuiltUrl: (filename, { type }) =>
+                type === "public" ? `/${filename}` : { relative: true },
+        },
         build: {
             manifest: true, // creates a manifest.json file, which we use to determine which files to load in prod
             emptyOutDir: true,
+            copyPublicDir: false, // don't copy the public folder to dist
+            // Our entry points are deliberately bundled into a single file each,
+            // so the default 500 kB warning only adds noise. The site bundle
+            // size is budgeted via Bundlemon instead.
+            chunkSizeWarningLimit: 10_000,
             outDir: `dist/${entrypointInfo.outDir}`,
             sourcemap: true,
             target: ["chrome106", "firefox110", "safari16.0"], // see docs/browser-support.md

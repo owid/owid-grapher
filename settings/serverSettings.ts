@@ -172,3 +172,6 @@ export const SEARCH_EVAL_URL: string =
     "https://pub-ec761fe0df554b02bc605610f3296000.r2.dev"
 
 export const FIGMA_API_KEY: string = process.env.FIGMA_API_KEY ?? ""
+
+export const SVG_TESTER_REPO_PATH: string =
+    serverSettings.SVG_TESTER_REPO_PATH ?? "../owid-grapher-svgs"

@@ -346,6 +346,7 @@ const regionsWithArticles = new Set([
     "Cook Islands",
     "Comoros",
     "Cayman Islands",
+    "Channel Islands",
     "Dominican Republic",
     "Western Sahara",
     "Falkland Islands",

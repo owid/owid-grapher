@@ -11,7 +11,7 @@ import {
     slugify,
     KEY_INSIGHTS_ID,
 } from "@ourworldindata/utils"
-import { BlockSize } from "@ourworldindata/types"
+import { BlockSize, OwidEnrichedGdocBlock } from "@ourworldindata/types"
 
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import Image from "./Image.js"
@@ -290,11 +290,21 @@ export const KeyInsights = ({
         filename,
         url,
         narrativeChartName,
+        asset,
     }: {
         filename?: string
         url?: string
         narrativeChartName?: string
+        asset?: OwidEnrichedGdocBlock[]
     }): React.ReactElement | null {
+        if (asset?.length) {
+            return (
+                <ArticleBlocks
+                    blocks={asset}
+                    containerType="key-insight-asset"
+                />
+            )
+        }
         if (filename) {
             return (
                 <Image
@@ -359,6 +369,7 @@ export const KeyInsights = ({
                                     filename,
                                     url,
                                     narrativeChartName,
+                                    asset,
                                 },
                                 idx
                             ) => {
@@ -397,6 +408,7 @@ export const KeyInsights = ({
                                                     filename,
                                                     url,
                                                     narrativeChartName,
+                                                    asset,
                                                 })}
                                             </div>
                                         </div>

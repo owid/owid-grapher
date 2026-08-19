@@ -9,7 +9,7 @@ import {
     autocomplete,
     getAlgoliaResults,
 } from "@algolia/autocomplete-js"
-import { LiteClient, liteClient } from "algoliasearch/lite"
+import { LiteClient } from "algoliasearch/lite"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
 import {
     ChartRecordType,
@@ -26,6 +26,7 @@ import {
     BAKED_GRAPHER_URL,
 } from "../../settings/clientSettings.js"
 import { DEFAULT_SEARCH_PLACEHOLDER } from "./searchClient.js"
+import { getLiteSearchClient } from "./searchClients.js"
 import {
     PAGES_INDEX,
     CHARTS_INDEX,
@@ -88,7 +89,7 @@ const buildRecentSearchesPlugin = () =>
 
 let liteSearchClient: LiteClient | null
 if (ALGOLIA_ID && ALGOLIA_SEARCH_KEY) {
-    liteSearchClient = liteClient(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
+    liteSearchClient = getLiteSearchClient()
 } else {
     liteSearchClient = null
     console.warn("Algolia credentials are not set")

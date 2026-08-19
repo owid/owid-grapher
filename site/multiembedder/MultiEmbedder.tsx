@@ -28,7 +28,7 @@ import {
     DATA_API_URL,
     GRAPHER_DYNAMIC_CONFIG_URL,
 } from "../../settings/clientSettings.js"
-// import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
+// import { embedDynamicCollectionGrapher } from "../collections/DynamicCollectionPageMain.js"
 import { match } from "ts-pattern"
 import { createRoot } from "react-dom/client"
 
