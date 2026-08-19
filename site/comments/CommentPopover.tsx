@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react"
-import { CommentViewState } from "@ourworldindata/types"
+import { CommentTarget, CommentViewState } from "@ourworldindata/types"
 import { CommentComposer } from "./CommentComposer.js"
 import { CommentThread } from "./CommentThread.js"
 import { CommentField } from "./commentFields.js"
-import { CommentPageTarget, OtherViewComments } from "./commentContext.js"
+import { OtherViewComments } from "./commentContext.js"
 import {
     CommentThreadData,
     useCreateComment,
@@ -28,7 +28,7 @@ export function CommentPopover({
     onClose,
 }: {
     field: CommentField
-    target: CommentPageTarget
+    target: CommentTarget
     threads: CommentThreadData[]
     /** Other multi-dim views carrying comments on this same field */
     otherViews: OtherViewComments[]
