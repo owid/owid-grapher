@@ -1726,6 +1726,45 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@hocuspocus/common@npm:^4.6.0":
+  version: 4.6.0
+  resolution: "@hocuspocus/common@npm:4.6.0"
+  dependencies:
+    lib0: "npm:^0.2.117"
+  checksum: 10/26325fbac82f6d8f92346b260eef69a20c66cb06a32f812d18adf447b3350bcf50ac6eed8bb442f762609145020e819cea0eb3802a01bb43a62e5608ec43ddce
+  languageName: node
+  linkType: hard
+
+"@hocuspocus/provider@npm:^4.3.0":
+  version: 4.6.0
+  resolution: "@hocuspocus/provider@npm:4.6.0"
+  dependencies:
+    "@hocuspocus/common": "npm:^4.6.0"
+    "@lifeomic/attempt": "npm:^3.1.0"
+    lib0: "npm:^0.2.117"
+  peerDependencies:
+    y-protocols: ^1.0.6
+    yjs: ^13.6.8
+  checksum: 10/0b1cc5b4019fe02a8edc09a9e963b8e647d4fbeef9fdf1f3fb3fbefc330c72d5e33d93c4e2a9f96834e0d7076ac98116ea86f94d4368b0b9a77d262783a9f6da
+  languageName: node
+  linkType: hard
+
+"@hocuspocus/server@npm:^4.3.0":
+  version: 4.6.0
+  resolution: "@hocuspocus/server@npm:4.6.0"
+  dependencies:
+    "@hocuspocus/common": "npm:^4.6.0"
+    async-mutex: "npm:^0.5.0"
+    crossws: "npm:^0.4.4"
+    kleur: "npm:^4.1.5"
+    lib0: "npm:^0.2.117"
+  peerDependencies:
+    y-protocols: ^1.0.6
+    yjs: ^13.6.8
+  checksum: 10/da8a6c23e25f1cea43644e9c083419b6a067fd48c268294ba9530e289f6fefdbe723f539cda4d966e56a73db04d34827145b638cf1382cc37476cccdfb7b6d97
+  languageName: node
+  linkType: hard
+
 "@humanfs/core@npm:^0.19.1":
   version: 0.19.1
   resolution: "@humanfs/core@npm:0.19.1"
@@ -2173,6 +2212,13 @@ __metadata:
     "@lezer/common": "npm:^1.5.0"
     "@lezer/highlight": "npm:^1.0.0"
   checksum: 10/aa8d728095604ceefd2f0c6625ca4c392ed232906663b9d837825efaf0896607657687118465deb7d06388befda4d09b7ff7032bd741b13e548a0adfb5c8b30e
+  languageName: node
+  linkType: hard
+
+"@lifeomic/attempt@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "@lifeomic/attempt@npm:3.1.0"
+  checksum: 10/051502a81c8aa1914d01f87989280fcf7213872851b5e0c673717d6c85ac78e9509bf916056425fafba3937079c1130823a4d95aec7c9f6ae3a22ad1e59b475e
   languageName: node
   linkType: hard
 
@@ -4687,6 +4733,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tiptap/extension-collaboration-caret@npm:^3.27.1":
+  version: 3.30.1
+  resolution: "@tiptap/extension-collaboration-caret@npm:3.30.1"
+  peerDependencies:
+    "@tiptap/core": 3.30.1
+    "@tiptap/pm": 3.30.1
+    "@tiptap/y-tiptap": ^3.0.7
+  checksum: 10/b93580844339703629b97bcfa78b85a189e4bf66fc5ac2c4cbdeb65d45511e8304a29acf656e239eb4aff2f68f8f4a1c46e84a6dbd94984731c40b9602ee2499
+  languageName: node
+  linkType: hard
+
+"@tiptap/extension-collaboration@npm:^3.27.1":
+  version: 3.30.1
+  resolution: "@tiptap/extension-collaboration@npm:3.30.1"
+  peerDependencies:
+    "@tiptap/core": 3.30.1
+    "@tiptap/pm": 3.30.1
+    "@tiptap/y-tiptap": ^3.0.7
+    yjs: ^13
+  checksum: 10/bf0b103e5b6225a2d1d05385d4f0600535d5f6409177f269fa839a32e85fd20075e3a2c7ff93a0be1f54e711afad969087ac0c945930f7cd77068cd2f7d3a06b
+  languageName: node
+  linkType: hard
+
 "@tiptap/extension-document@npm:^3.27.1":
   version: 3.27.1
   resolution: "@tiptap/extension-document@npm:3.27.1"
@@ -6670,6 +6739,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"async-mutex@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "async-mutex@npm:0.5.0"
+  dependencies:
+    tslib: "npm:^2.4.0"
+  checksum: 10/4c6bfce1cc9cd43f723c4d96403ac5f4757f885c953b839cde6956ec8817ff39623b82d67614de10c7933e21626925882fb9bac367db7d15d7cb4f84228722c9
+  languageName: node
+  linkType: hard
+
 "async@npm:^3.2.6":
   version: 3.2.6
   resolution: "async@npm:3.2.6"
@@ -7495,6 +7573,18 @@ __metadata:
     shebang-command: "npm:^2.0.0"
     which: "npm:^2.0.1"
   checksum: 10/0d52657d7ae36eb130999dffff1168ec348687b48dd38e2ff59992ed916c88d328cf1d07ff4a4a10bc78de5e1c23f04b306d569e42f7a2293915c081e4dfee86
+  languageName: node
+  linkType: hard
+
+"crossws@npm:^0.4.4":
+  version: 0.4.10
+  resolution: "crossws@npm:0.4.10"
+  peerDependencies:
+    srvx: ">=0.11.5"
+  peerDependenciesMeta:
+    srvx:
+      optional: true
+  checksum: 10/d345fbea674dea4f04786945c111130141b6b2cb2b168393531e155f5f4bf3a79e2b79ad1eb6b6cac8d979c9525d46431f48fc735db0fe8f1d707ed112fe6940
   languageName: node
   linkType: hard
 
@@ -9157,6 +9247,8 @@ __metadata:
     "@googleapis/docs": "npm:^9.2.1"
     "@googleapis/drive": "npm:^20.1.0"
     "@handsontable/react": "npm:^15.1.0"
+    "@hocuspocus/provider": "npm:^4.3.0"
+    "@hocuspocus/server": "npm:^4.3.0"
     "@marsidev/react-turnstile": "npm:^1.5.2"
     "@ourworldindata/components": "workspace:^"
     "@ourworldindata/core-table": "workspace:^"
@@ -9180,6 +9272,8 @@ __metadata:
     "@testing-library/react": "npm:^16.3.2"
     "@tippyjs/react": "npm:^4.2.6"
     "@tiptap/core": "npm:^3.27.1"
+    "@tiptap/extension-collaboration": "npm:^3.27.1"
+    "@tiptap/extension-collaboration-caret": "npm:^3.27.1"
     "@tiptap/extension-subscript": "npm:^3.27.1"
     "@tiptap/extension-superscript": "npm:^3.27.1"
     "@tiptap/pm": "npm:^3.27.1"
@@ -9261,6 +9355,7 @@ __metadata:
     mousetrap: "npm:^1.6.5"
     multer: "npm:^2.2.0"
     mysql2: "npm:^3.18.2"
+    nanoid: "npm:^5.1.16"
     nodejs-polars: "npm:^0.7.2"
     normalize.css: "npm:^8.0.1"
     openai: "npm:^7.0.0"
@@ -9311,6 +9406,7 @@ __metadata:
     y-protocols: "npm:^1.0.7"
     yaml: "npm:^2.8.3"
     yargs: "npm:^17.7.2"
+    yjs: "npm:^13.6.31"
     zod: "npm:^4.4.3"
   languageName: unknown
   linkType: soft
@@ -9965,6 +10061,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"isomorphic.js@npm:^0.2.4":
+  version: 0.2.5
+  resolution: "isomorphic.js@npm:0.2.5"
+  checksum: 10/d8d1b083f05f3c337a06628b982ac3ce6db953bbef14a9de8ad49131250c3592f864b73c12030fdc9ef138ce97b76ef55c7d96a849561ac215b1b4b9d301c8e9
+  languageName: node
+  linkType: hard
+
 "istanbul-lib-coverage@npm:^3.0.0, istanbul-lib-coverage@npm:^3.2.2":
   version: 3.2.2
   resolution: "istanbul-lib-coverage@npm:3.2.2"
@@ -10216,7 +10319,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lib0@npm:^0.2.100, lib0@npm:^0.2.109, lib0@npm:^0.2.47, lib0@npm:^0.2.85, lib0@npm:^0.2.87, lib0@npm:^0.2.99":
+"lib0@npm:^0.2.100, lib0@npm:^0.2.109, lib0@npm:^0.2.117, lib0@npm:^0.2.85, lib0@npm:^0.2.99":
   version: 0.2.117
   resolution: "lib0@npm:0.2.117"
   dependencies:
@@ -11228,6 +11331,15 @@ __metadata:
   bin:
     nanoid: bin/nanoid.cjs
   checksum: 10/1b3b4fdac831b92b56d1dbe8b1e63a372432faf86ea383134e3b53141ef8108a60b7f84343b5cefecac9550bb74edf8164da93ea07d1c4f757039bc75d8a5d9e
+  languageName: node
+  linkType: hard
+
+"nanoid@npm:^5.1.16":
+  version: 5.1.16
+  resolution: "nanoid@npm:5.1.16"
+  bin:
+    nanoid: bin/nanoid.js
+  checksum: 10/b1e702e2b7072e74ac2ae880907d0a291853a36617ec5c3d27d81ab04965ebc0d4d0f707cf9220928cf93d5370b1f561c930efee853dc9c1a3facaefdf1a42ee
   languageName: node
   linkType: hard
 
@@ -15012,6 +15124,32 @@ __metadata:
   languageName: node
   linkType: hard
 
+"y-prosemirror@npm:^1.3.7":
+  version: 1.3.7
+  resolution: "y-prosemirror@npm:1.3.7"
+  dependencies:
+    lib0: "npm:^0.2.109"
+  peerDependencies:
+    prosemirror-model: ^1.7.1
+    prosemirror-state: ^1.2.3
+    prosemirror-view: ^1.9.10
+    y-protocols: ^1.0.1
+    yjs: ^13.5.38
+  checksum: 10/339ac18b2fa6ffeffdee73862433d3c824e2378545614e872edf61b0e578c7a0b488bcda1572ff6e890089c2a1aa84011d089993d32d9c9a4f629ebcee97a1fc
+  languageName: node
+  linkType: hard
+
+"y-protocols@npm:^1.0.7":
+  version: 1.0.7
+  resolution: "y-protocols@npm:1.0.7"
+  dependencies:
+    lib0: "npm:^0.2.85"
+  peerDependencies:
+    yjs: ^13.0.0
+  checksum: 10/2c30352544e7af1026051f12158c19a077cd2d4a0c598a7f69b3a0b6841225ef8d0119b4c5edb10fc7ea0e8e9ee5642b8a2082109295d3f881a300fd9080060b
+  languageName: node
+  linkType: hard
+
 "y18n@npm:^4.0.0":
   version: 4.0.3
   resolution: "y18n@npm:4.0.3"
@@ -15124,6 +15262,15 @@ __metadata:
     y18n: "npm:^5.0.5"
     yargs-parser: "npm:^22.0.0"
   checksum: 10/5af36234871390386b31cac99f00e79fcbc2ead858a61b30a8ca381c5fde5df8af0b407c36b000d3f774bcbe4aec5833f2f1c915f6ddc49ce97b78176b651801
+  languageName: node
+  linkType: hard
+
+"yjs@npm:^13.6.31":
+  version: 13.6.32
+  resolution: "yjs@npm:13.6.32"
+  dependencies:
+    lib0: "npm:^0.2.99"
+  checksum: 10/2b34da80105f138cf65e2154ac18155e818bddc8dbca689c190f186068ded7d648aeff69ae84ccc76166f3efb4524c6146d7a4befdda6b0c0ae394f97d421d02
   languageName: node
   linkType: hard
 
