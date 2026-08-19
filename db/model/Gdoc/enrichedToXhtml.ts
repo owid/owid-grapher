@@ -489,7 +489,13 @@ function enrichedBlockContentToXhtml(block: OwidEnrichedGdocBlock): string {
                                 filename: slide.filename,
                                 narrativeChartName: slide.narrativeChartName,
                             },
-                            enrichedBlocksToXhtml(slide.content)
+                            (slide.asset?.length
+                                ? xmlElement(
+                                      "asset",
+                                      {},
+                                      enrichedBlocksToXhtml(slide.asset)
+                                  )
+                                : "") + enrichedBlocksToXhtml(slide.content)
                         )
                     )
                     .join("")
@@ -844,13 +850,17 @@ function enrichedBlockContentToXhtml(block: OwidEnrichedGdocBlock): string {
                     source: b.source || undefined,
                 },
                 b.rows
-                    .map((row) =>
-                        xmlElement(
+                    .map((row) => {
+                        const caption = optionalSpansToXhtml(row.caption)
+                        return xmlElement(
                             "row",
                             { image: row.image, url: row.url },
-                            row.content.map(enrichedBlockToXhtml).join("")
+                            (caption
+                                ? xmlElement("caption", {}, caption)
+                                : "") +
+                                row.content.map(enrichedBlockToXhtml).join("")
                         )
-                    )
+                    })
                     .join("")
             )
         )

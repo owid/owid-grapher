@@ -667,13 +667,23 @@ function elementToRawBlock(element: Element): OwidRawGdocBlock {
             type: "key-insights",
             value: {
                 heading: attribs.heading,
-                insights: getChildElements(element, "slide").map((slide) => ({
-                    title: slide.attribs.title,
-                    url: slide.attribs.url,
-                    filename: slide.attribs.filename,
-                    narrativeChartName: slide.attribs.narrativeChartName,
-                    content: getAllChildElements(slide).map(elementToRawBlock),
-                })),
+                insights: getChildElements(element, "slide").map((slide) => {
+                    const assetElement = getChildElement(slide, "asset")
+                    return {
+                        title: slide.attribs.title,
+                        url: slide.attribs.url,
+                        filename: slide.attribs.filename,
+                        narrativeChartName: slide.attribs.narrativeChartName,
+                        asset: assetElement
+                            ? getAllChildElements(assetElement).map(
+                                  elementToRawBlock
+                              )
+                            : undefined,
+                        content: getAllChildElements(slide)
+                            .filter((child) => child !== assetElement)
+                            .map(elementToRawBlock),
+                    }
+                }),
             },
         }))
         .with("key-indicator", (): RawBlockKeyIndicator => ({
@@ -979,13 +989,19 @@ function elementToRawBlock(element: Element): OwidRawGdocBlock {
                 kicker: attribs.kicker,
                 title: attribs.title,
                 source: attribs.source,
-                rows: getChildElements(element, "row").map((row) => ({
-                    image: row.attribs.image,
-                    url: row.attribs.url,
-                    content: getAllChildElements(row).map(
-                        elementToRawBlock
-                    ) as RawBlockText[],
-                })),
+                rows: getChildElements(element, "row").map((row) => {
+                    const captionElement = getChildElement(row, "caption")
+                    return {
+                        image: row.attribs.image,
+                        url: row.attribs.url,
+                        caption: captionElement
+                            ? getSpanContent(captionElement)
+                            : undefined,
+                        content: getAllChildElements(row)
+                            .filter((child) => child !== captionElement)
+                            .map(elementToRawBlock) as RawBlockText[],
+                    }
+                }),
             },
         }))
         .with("pull-chart", (): RawBlockPullChart => ({
@@ -1126,7 +1142,9 @@ function attachBlockIds(
             if (rowElements.length !== enriched.rows.length) return
             rowElements.forEach((rowElement, i) =>
                 attachIdsToChildren(
-                    childTags(rowElement),
+                    childTags(rowElement).filter(
+                        (child) => child.tagName?.toLowerCase() !== "caption"
+                    ),
                     enriched.rows[i]?.content
                 )
             )
