@@ -7,6 +7,7 @@ db.sqlite3
 .nova/
 **/.yarn/*
 !**/.yarn/patches
+!**/.yarn/plugins
 !**/.yarn/releases
 yarn-error.log
 .vscode/tags
