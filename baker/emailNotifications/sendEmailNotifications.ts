@@ -81,8 +81,10 @@ async function fetchSubscribers(
          WHERE users.status = 'subscribed'
              AND NOT EXISTS (
                  SELECT 1
-                 FROM suppressed_addresses
-                 WHERE suppressed_addresses.email = users.email
+                 FROM postmark_suppressions
+                 WHERE postmark_suppressions.email = users.email
+                     AND postmark_suppressions.messageStream = 'broadcast'
+                     AND postmark_suppressions.isSuppressed = 1
              )
              AND notification_preferences.frequency = ?1`,
         [frequency]
@@ -378,10 +380,10 @@ async function sendEmailNotifications(options: {
         } catch (error) {
             if (!(error instanceof Errors.InactiveRecipientsError)) throw error
 
-            // We only send to subscribers absent from suppressed_addresses, so
-            // Postmark refusing one means a subscription-change webhook was
-            // missed. Leave it visible for manual reconciliation rather than
-            // guessing why it was suppressed.
+            // We only send to subscribers who are not suppressed in our
+            // local Postmark state, so a refusal means a subscription-change
+            // webhook was missed. Leave it visible for manual reconciliation
+            // rather than guessing why it was suppressed.
             console.error(
                 `Email send refused userId=${subscriber.userId} reason=inactiveRecipient`
             )

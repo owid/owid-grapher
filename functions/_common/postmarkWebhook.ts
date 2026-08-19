@@ -138,14 +138,17 @@ function buildSubscriptionChangeStatements(
     if (event.MessageStream !== POSTMARK_BROADCAST_MESSAGE_STREAM) return []
 
     const email = event.Recipient.trim().toLowerCase()
-    if (!event.SuppressSending) {
-        return [buildClearSuppressionStatement(db, email, idempotencyKey)]
-    }
-
-    const statements = [buildAddSuppressionStatement(db, email, idempotencyKey)]
-    if (isRecipientUnsubscribe(event)) {
+    const statements = [
+        buildUpsertPostmarkSuppressionStatement(
+            db,
+            event,
+            email,
+            idempotencyKey
+        ),
+    ]
+    if (event.SuppressSending && isRecipientUnsubscribe(event)) {
         statements.push(
-            buildUnsubscribeUserStatement(db, email, idempotencyKey)
+            buildUnsubscribeUserStatement(db, event, email, idempotencyKey)
         )
     }
     return statements
@@ -165,45 +168,45 @@ function isRecipientUnsubscribe(
     )
 }
 
-function buildAddSuppressionStatement(
+function buildUpsertPostmarkSuppressionStatement(
     db: D1Database,
+    event: PostmarkSubscriptionChangeWebhook,
     email: string,
     idempotencyKey: string
 ): D1PreparedStatement {
     return db
         .prepare(
-            `INSERT INTO suppressed_addresses (email)
-             SELECT ?1
+            `INSERT INTO postmark_suppressions (
+                 email,
+                 messageStream,
+                 isSuppressed,
+                 postmarkChangedAt
+             )
+             SELECT ?1, ?2, ?3, ?4
              WHERE NOT EXISTS (
                  SELECT 1
                  FROM postmark_webhook_receipts
-                 WHERE idempotencyKey = ?2
+                 WHERE idempotencyKey = ?5
              )
-             ON CONFLICT (email) DO NOTHING`
+             ON CONFLICT (email, messageStream) DO UPDATE SET
+                 isSuppressed = excluded.isSuppressed,
+                 postmarkChangedAt = excluded.postmarkChangedAt,
+                 updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+             WHERE postmark_suppressions.postmarkChangedAt
+                 < excluded.postmarkChangedAt`
         )
-        .bind(email, idempotencyKey)
-}
-
-function buildClearSuppressionStatement(
-    db: D1Database,
-    email: string,
-    idempotencyKey: string
-): D1PreparedStatement {
-    return db
-        .prepare(
-            `DELETE FROM suppressed_addresses
-             WHERE email = ?1
-                 AND NOT EXISTS (
-                     SELECT 1
-                     FROM postmark_webhook_receipts
-                     WHERE idempotencyKey = ?2
-                 )`
+        .bind(
+            email,
+            event.MessageStream,
+            Number(event.SuppressSending),
+            event.ChangedAt,
+            idempotencyKey
         )
-        .bind(email, idempotencyKey)
 }
 
 function buildUnsubscribeUserStatement(
     db: D1Database,
+    event: PostmarkSubscriptionChangeWebhook,
     email: string,
     idempotencyKey: string
 ): D1PreparedStatement {
@@ -213,13 +216,21 @@ function buildUnsubscribeUserStatement(
              SET status = 'unsubscribed',
                  updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
              WHERE email = ?1
+                 AND EXISTS (
+                     SELECT 1
+                     FROM postmark_suppressions
+                     WHERE email = ?1
+                         AND messageStream = ?2
+                         AND postmarkChangedAt = ?3
+                         AND isSuppressed = 1
+                 )
                  AND NOT EXISTS (
                      SELECT 1
                      FROM postmark_webhook_receipts
-                     WHERE idempotencyKey = ?2
+                     WHERE idempotencyKey = ?4
                  )`
         )
-        .bind(email, idempotencyKey)
+        .bind(email, event.MessageStream, event.ChangedAt, idempotencyKey)
 }
 
 function buildRecordWebhookReceiptStatement(
