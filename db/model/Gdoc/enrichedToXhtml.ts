@@ -691,22 +691,6 @@ function enrichedBlockContentToXhtml(block: OwidEnrichedGdocBlock): string {
                         : "")
             )
         )
-        .with({ type: "entry-summary" }, (b) =>
-            xmlElement(
-                "entry-summary",
-                {},
-                b.items
-                    .map((item) =>
-                        xmlElement(
-                            "item",
-                            { text: item.text, slug: item.slug },
-                            "",
-                            true
-                        )
-                    )
-                    .join("")
-            )
-        )
         .with({ type: "explorer-tiles" }, (b) =>
             xmlElement(
                 "explorer-tiles",
