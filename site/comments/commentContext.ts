@@ -171,6 +171,50 @@ export function isSameViewState(
     return true
 }
 
+/** An unresolved cluster of comments sitting on a view that isn't on screen */
+export interface OtherViewComments {
+    key: string
+    /** The view in words, e.g. "Primary school · Girls" */
+    label: string
+    href: string
+    count: number
+}
+
+/**
+ * The views holding the given comments, minus the one on screen. Takes bare view
+ * states so the same grouping serves the whole page and a single field, and stays
+ * pure enough to test. Comments with no view (indicator metadata, which every
+ * view shares) are never "elsewhere".
+ */
+export function groupOtherViews(
+    viewStates: (CommentViewState | null)[],
+    currentViewState: CommentViewState | null,
+    dimensions: CommentMultiDimDimension[],
+    currentUrl: { pathname: string; search: string }
+): OtherViewComments[] {
+    if (!dimensions.length) return []
+    const byKey = new Map<string, OtherViewComments>()
+    for (const viewState of viewStates) {
+        if (!viewState) continue
+        if (isSameViewState(viewState, currentViewState)) continue
+        const key = viewStateKey(viewState, dimensions)
+        const existing = byKey.get(key)
+        if (existing) {
+            existing.count += 1
+            continue
+        }
+        byKey.set(key, {
+            key,
+            label: describeViewState(viewState, dimensions) || "Another view",
+            href: hrefForViewState(viewState, dimensions, currentUrl),
+            count: 1,
+        })
+    }
+    return [...byKey.values()].sort(
+        (a, b) => b.count - a.count || a.label.localeCompare(b.label)
+    )
+}
+
 /**
  * A stable identity for a view, so threads left on the same view group together.
  * Built in dimension order, and falls back to the raw keys for a view whose

@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
 import cx from "clsx"
-import { CommentViewState } from "@ourworldindata/types"
+import { CommentTarget, CommentViewState } from "@ourworldindata/types"
 import { findFieldElement } from "./commentAnchors.js"
 import { CommentField } from "./commentFields.js"
 import {
     CommentPageContext,
-    describeViewState,
-    hrefForViewState,
+    CommentPageTarget,
+    OtherViewComments,
+    groupOtherViews,
     isSameTarget,
     isSameViewState,
     readCurrentViewState,
     subscribeToUrlChanges,
-    viewStateKey,
 } from "./commentContext.js"
 import { CommentPopover } from "./CommentPopover.js"
 import { useCommentThreadsForTargets } from "./useComments.js"
@@ -20,19 +20,43 @@ import "./Comments.scss"
 
 const COMMENT_MODE_BODY_CLASS = "comments-mode"
 const POPOVER_WIDTH = 320
+// Jumping to another view is a real navigation, and a plain reload of a preview
+// is common while reviewing, so comment mode is remembered for the tab rather
+// than being switched off under you.
+const COMMENT_MODE_STORAGE_KEY = "owid-comments-mode"
 
-/** An unresolved cluster of comments sitting on a view that isn't on screen */
-interface OtherViewComments {
-    key: string
-    /** The view in words, e.g. "Primary school · Girls" */
-    label: string
-    href: string
-    count: number
+function readStoredCommentMode(): boolean {
+    try {
+        return window.sessionStorage.getItem(COMMENT_MODE_STORAGE_KEY) === "1"
+    } catch {
+        // Storage can be unavailable (private windows, blocked cookies); comment
+        // mode just doesn't persist then
+        return false
+    }
+}
+
+function storeCommentMode(isOn: boolean): void {
+    try {
+        if (isOn) window.sessionStorage.setItem(COMMENT_MODE_STORAGE_KEY, "1")
+        else window.sessionStorage.removeItem(COMMENT_MODE_STORAGE_KEY)
+    } catch {
+        // ignore
+    }
+}
+
+/**
+ * Counts are per field *and* per target: a chart and an indicator can both have
+ * a field called "title", and they are different fields.
+ */
+function fieldCountKey(target: CommentTarget, anchor: string): string {
+    return `${target.targetType}:${target.targetId}:${anchor}`
 }
 
 interface PlacedBubble {
     field: CommentField
     count: number
+    /** Comments on this same field, but on other views of a multi-dim */
+    elsewhereCount: number
     top: number
     /** Offset from the left edge, or from the right when alignRight */
     left: number
@@ -46,7 +70,9 @@ interface PlacedBubble {
  */
 function useBubblePlacements(
     fields: CommentField[],
+    targets: CommentPageTarget[],
     countByKey: Map<string, number>,
+    elsewhereCountByKey: Map<string, number>,
     isOn: boolean
 ): PlacedBubble[] {
     const [placements, setPlacements] = useState<PlacedBubble[]>([])
@@ -71,16 +97,24 @@ function useBubblePlacements(
                 // Fields flush to the right edge get their bubble on the left,
                 // so it never lands outside the viewport
                 const alignRight = window.innerWidth - rect.right < 48
+                const key = fieldCountKey(targets[field.targetIndex], field.key)
                 next.push({
                     field,
-                    count: countByKey.get(field.key) ?? 0,
+                    count: countByKey.get(key) ?? 0,
+                    elsewhereCount: elsewhereCountByKey.get(key) ?? 0,
                     top: rect.top + window.scrollY,
                     left: alignRight ? 8 : rect.right + window.scrollX + 6,
                     alignRight,
                 })
             }
             const serialized = JSON.stringify(
-                next.map((b) => [b.field.key, b.count, b.top, b.left])
+                next.map((b) => [
+                    b.field.key,
+                    b.count,
+                    b.elsewhereCount,
+                    b.top,
+                    b.left,
+                ])
             )
             if (serialized === lastSerialized) return
             lastSerialized = serialized
@@ -101,7 +135,7 @@ function useBubblePlacements(
             observer.disconnect()
             window.removeEventListener("resize", schedule)
         }
-    }, [fields, countByKey, isOn])
+    }, [fields, targets, countByKey, elsewhereCountByKey, isOn])
 
     return placements
 }
@@ -111,7 +145,7 @@ export function CommentsOverlay({
 }: {
     context: CommentPageContext
 }): React.ReactElement {
-    const [isOn, setIsOn] = useState(false)
+    const [isOn, setIsOn] = useState(readStoredCommentMode)
     const [openFieldKey, setOpenFieldKey] = useState<string | null>(null)
 
     const { targets, fields, multiDimDimensions } = context
@@ -150,15 +184,35 @@ export function CommentsOverlay({
         const counts = new Map<string, number>()
         for (const thread of threadsHere) {
             if (!thread.root.anchor || thread.root.resolvedAt) continue
-            counts.set(
-                thread.root.anchor,
-                (counts.get(thread.root.anchor) ?? 0) + 1
-            )
+            const key = fieldCountKey(thread.target, thread.root.anchor)
+            counts.set(key, (counts.get(key) ?? 0) + 1)
         }
         return counts
     }, [threadsHere])
 
-    const placements = useBubblePlacements(fields, countByKey, isOn)
+    // Unresolved comments on this same field but on another view. Shown on the
+    // field's own bubble, which is where you're looking when you want to know
+    // whether this bit of metadata has been discussed before.
+    const elsewhereCountByKey = useMemo(() => {
+        const counts = new Map<string, number>()
+        if (!isMultiDim) return counts
+        for (const thread of threads) {
+            const { anchor, resolvedAt, viewState: threadView } = thread.root
+            if (resolvedAt || !anchor || !threadView) continue
+            if (isSameViewState(threadView, viewState)) continue
+            const key = fieldCountKey(thread.target, anchor)
+            counts.set(key, (counts.get(key) ?? 0) + 1)
+        }
+        return counts
+    }, [threads, isMultiDim, viewState])
+
+    const placements = useBubblePlacements(
+        fields,
+        targets,
+        countByKey,
+        elsewhereCountByKey,
+        isOn
+    )
     const unresolvedHere = threadsHere.filter(
         (thread) => !thread.root.resolvedAt
     ).length
@@ -169,40 +223,19 @@ export function CommentsOverlay({
         (thread) => !thread.root.resolvedAt
     ).length
 
-    /**
-     * Unresolved comments on the views that aren't on screen, grouped by view so
-     * each one can be named and jumped to. A comment with no view (indicator
-     * metadata, which every view shares) is never "elsewhere".
-     */
-    const otherViews: OtherViewComments[] = useMemo(() => {
-        if (!isMultiDim) return []
-        const byKey = new Map<string, OtherViewComments>()
-        for (const { root } of threads) {
-            if (root.resolvedAt || !root.viewState) continue
-            if (isSameViewState(root.viewState, viewState)) continue
-            const key = viewStateKey(root.viewState, dimensions)
-            const existing = byKey.get(key)
-            if (existing) {
-                existing.count += 1
-                continue
-            }
-            byKey.set(key, {
-                key,
-                label:
-                    describeViewState(root.viewState, dimensions) ||
-                    "Another view",
-                href: hrefForViewState(
-                    root.viewState,
-                    dimensions,
-                    window.location
-                ),
-                count: 1,
-            })
-        }
-        return [...byKey.values()].sort(
-            (a, b) => b.count - a.count || a.label.localeCompare(b.label)
-        )
-    }, [threads, isMultiDim, dimensions, viewState])
+    /** The views that aren't on screen but hold comments, named and linkable */
+    const otherViews: OtherViewComments[] = useMemo(
+        () =>
+            groupOtherViews(
+                threads
+                    .filter((thread) => !thread.root.resolvedAt)
+                    .map((thread) => thread.root.viewState),
+                viewState,
+                dimensions,
+                window.location
+            ),
+        [threads, dimensions, viewState]
+    )
 
     const unresolvedElsewhere = otherViews.reduce(
         (total, view) => total + view.count,
@@ -211,6 +244,7 @@ export function CommentsOverlay({
 
     useEffect(() => {
         document.body.classList.toggle(COMMENT_MODE_BODY_CLASS, isOn)
+        storeCommentMode(isOn)
         if (!isOn) setOpenFieldKey(null)
         return () => document.body.classList.remove(COMMENT_MODE_BODY_CLASS)
     }, [isOn])
@@ -225,6 +259,27 @@ export function CommentsOverlay({
               (thread) =>
                   thread.root.anchor === open.field.key &&
                   isSameTarget(thread.target, targets[open.field.targetIndex])
+          )
+        : []
+
+    // The other views that hold comments on the field being read, so the
+    // popover can point at them rather than just saying a number exists
+    const otherViewsForOpenField = open
+        ? groupOtherViews(
+              threads
+                  .filter(
+                      (thread) =>
+                          !thread.root.resolvedAt &&
+                          thread.root.anchor === open.field.key &&
+                          isSameTarget(
+                              thread.target,
+                              targets[open.field.targetIndex]
+                          )
+                  )
+                  .map((thread) => thread.root.viewState),
+              viewState,
+              dimensions,
+              window.location
           )
         : []
 
@@ -290,7 +345,8 @@ export function CommentsOverlay({
                                 type="button"
                                 className={cx("comments-bubble", {
                                     "comments-bubble--has-comments":
-                                        placement.count > 0,
+                                        placement.count > 0 ||
+                                        placement.elsewhereCount > 0,
                                     "comments-bubble--open":
                                         placement.field.key === openFieldKey,
                                 })}
@@ -300,7 +356,11 @@ export function CommentsOverlay({
                                         ? { right: placement.left }
                                         : { left: placement.left }),
                                 }}
-                                title={`Comment on ${placement.field.label}`}
+                                title={
+                                    placement.elsewhereCount > 0
+                                        ? `Comment on ${placement.field.label} — ${placement.elsewhereCount} on other views`
+                                        : `Comment on ${placement.field.label}`
+                                }
                                 onClick={() =>
                                     setOpenFieldKey(
                                         openFieldKey === placement.field.key
@@ -315,6 +375,11 @@ export function CommentsOverlay({
                                         {placement.count}
                                     </span>
                                 )}
+                                {placement.elsewhereCount > 0 && (
+                                    <span className="comments-bubble__count comments-bubble__count--other-views">
+                                        +{placement.elsewhereCount}
+                                    </span>
+                                )}
                             </button>
                         ))}
                         {open && (
@@ -322,6 +387,7 @@ export function CommentsOverlay({
                                 field={open.field}
                                 target={targets[open.field.targetIndex]}
                                 threads={threadsForOpenField}
+                                otherViews={otherViewsForOpenField}
                                 currentUserId={currentUserId}
                                 viewState={viewState}
                                 position={{

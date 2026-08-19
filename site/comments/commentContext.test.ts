@@ -3,6 +3,7 @@ import { expect, it, describe } from "vitest"
 import {
     CommentMultiDimDimension,
     describeViewState,
+    groupOtherViews,
     hrefForViewState,
     viewStateKey,
 } from "./commentContext.js"
@@ -115,5 +116,57 @@ describe(hrefForViewState, () => {
                 search: "?level=primary&gender=girls",
             })
         ).toBe("/grapher/school-enrolment?level=secondary")
+    })
+})
+
+describe(groupOtherViews, () => {
+    const url = { pathname: "/grapher/school-enrolment", search: "" }
+    const here = { level: "primary", gender: "girls" }
+
+    it("leaves out the view on screen", () => {
+        expect(
+            groupOtherViews([here, { ...here }], here, dimensions, url)
+        ).toEqual([])
+    })
+
+    it("leaves out comments with no view, which every view shares", () => {
+        expect(groupOtherViews([null, null], here, dimensions, url)).toEqual([])
+    })
+
+    it("counts several comments on one other view once, with a count", () => {
+        const elsewhere = { level: "secondary", gender: "boys" }
+        const groups = groupOtherViews(
+            [elsewhere, { ...elsewhere }, here],
+            here,
+            dimensions,
+            url
+        )
+        expect(groups).toHaveLength(1)
+        expect(groups[0].count).toBe(2)
+        expect(groups[0].label).toBe("Secondary school · Boys")
+        expect(groups[0].href).toBe(
+            "/grapher/school-enrolment?level=secondary&gender=boys"
+        )
+    })
+
+    it("orders the busiest view first", () => {
+        const groups = groupOtherViews(
+            [
+                { level: "secondary", gender: "boys" },
+                { level: "primary", gender: "boys" },
+                { level: "primary", gender: "boys" },
+            ],
+            here,
+            dimensions,
+            url
+        )
+        expect(groups.map((g) => [g.label, g.count])).toEqual([
+            ["Primary school · Boys", 2],
+            ["Secondary school · Boys", 1],
+        ])
+    })
+
+    it("returns nothing when the page has no dimensions, i.e. isn't a multi-dim", () => {
+        expect(groupOtherViews([here], null, [], url)).toEqual([])
     })
 })

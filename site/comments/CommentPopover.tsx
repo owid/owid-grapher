@@ -3,7 +3,7 @@ import { CommentViewState } from "@ourworldindata/types"
 import { CommentComposer } from "./CommentComposer.js"
 import { CommentThread } from "./CommentThread.js"
 import { CommentField } from "./commentFields.js"
-import { CommentPageTarget } from "./commentContext.js"
+import { CommentPageTarget, OtherViewComments } from "./commentContext.js"
 import {
     CommentThreadWithTarget,
     useCreateComment,
@@ -21,6 +21,7 @@ export function CommentPopover({
     field,
     target,
     threads,
+    otherViews,
     currentUserId,
     viewState,
     position,
@@ -29,6 +30,8 @@ export function CommentPopover({
     field: CommentField
     target: CommentPageTarget
     threads: CommentThreadWithTarget[]
+    /** Other multi-dim views carrying comments on this same field */
+    otherViews: OtherViewComments[]
     currentUserId: number | undefined
     viewState: CommentViewState | null
     position: { top: number; left: number; alignRight: boolean }
@@ -118,6 +121,32 @@ export function CommentPopover({
                     })
                 }
             />
+            {otherViews.length > 0 && (
+                // This field has been discussed on views that aren't on screen.
+                // Worth saying here rather than only in the page-level list:
+                // whoever is about to comment on the field probably wants to
+                // read those first.
+                <div className="comments-popover__other-views">
+                    <div className="comments-popover__other-views-title">
+                        Also commented on
+                    </div>
+                    <ul className="comments-popover__other-views-list">
+                        {otherViews.map((view) => (
+                            <li key={view.key}>
+                                <a
+                                    className="comments-popover__other-views-link"
+                                    href={view.href}
+                                >
+                                    <span>{view.label}</span>
+                                    <span className="comments-popover__other-views-count">
+                                        {view.count}
+                                    </span>
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
         </div>
     )
 }

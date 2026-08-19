@@ -215,6 +215,13 @@
     font-size: 10px;
 }
 
+// Comments on this field but on another view of a multi-dim. Muted, so it reads
+// as context rather than as something to act on here.
+.comments-bubble__count--other-views {
+    background: #eef3f7;
+    color: #4a6b87;
+}
+
 // Opens next to the field it belongs to rather than as a full-height sidebar,
 // which used to sit on top of the page's own content.
 .comments-popover {
@@ -314,6 +321,51 @@
     border-radius: 8px;
     background: #d73c50;
     color: #fff;
+    font-size: 10px;
+    line-height: 16px;
+}
+
+// The other views that hold comments on the field this popover is about
+.comments-popover__other-views {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #e7e7e7;
+}
+
+.comments-popover__other-views-title {
+    margin-bottom: 4px;
+    font-size: 11px;
+    font-style: italic;
+    color: #777;
+}
+
+.comments-popover__other-views-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.comments-popover__other-views-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 3px 0;
+    font-size: 12px;
+    color: #0d68a8;
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.comments-popover__other-views-count {
+    flex-shrink: 0;
+    padding: 0 6px;
+    border-radius: 8px;
+    background: #eef3f7;
+    color: #4a6b87;
     font-size: 10px;
     line-height: 16px;
 }
