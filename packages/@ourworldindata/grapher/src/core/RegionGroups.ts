@@ -72,6 +72,8 @@ export const regionGroupLabels: Record<RegionGroupKey, string> = {
     fao_1: "Food and Agriculture Organization regions",
     fao_2: "Food and Agriculture Organization regions",
     fao_sdg: "Food and Agriculture Organization regions",
+    ihme_gbd_1: "IHME Global Burden of Disease regions",
+    ihme_gbd_2: "IHME Global Burden of Disease regions",
 
     // Regions defined by an institution, but we don't have region definitions in regions.ts for these (we recognize them by their suffix)
     unsdg: "UN Sustainable Development Goals regions",
@@ -86,6 +88,7 @@ export const regionGroupLabels: Record<RegionGroupKey, string> = {
     undp: "UN Development Programme regions",
     oecd: "OECD regions", // Organisation for Economic Co-operation and Development
     ilo: "International Labour Organization regions", // suffix handle; per-level defs under ilo_1/ilo_2
+    ihmegbd: "IHME Global Burden of Disease regions", // suffix handle; per-level defs under ihme_gbd_1/ihme_gbd_2
 }
 
 function toProviderKey(

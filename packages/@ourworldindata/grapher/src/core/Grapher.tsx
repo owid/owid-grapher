@@ -727,6 +727,15 @@ export class Grapher extends React.Component<GrapherProps> {
         )
     }
 
+    private freezeToleranceNoticeWhileTimelineMoves(): void {
+        this.grapherState.disposers.push(
+            reaction(
+                () => this.grapherState.isTimelineInteractionActive,
+                this.grapherState.setToleranceNoticeFrozen
+            )
+        )
+    }
+
     private clearFocusMode(): void {
         // Make it easy to exit focus mode by clearing it when the selection
         // or view changes. This is disabled in the admin to avoid clearing
@@ -760,6 +769,7 @@ export class Grapher extends React.Component<GrapherProps> {
         this.bindKeyboardShortcuts()
 
         this.clearFocusMode()
+        this.freezeToleranceNoticeWhileTimelineMoves()
     }
 
     private _shortcutsBound = false

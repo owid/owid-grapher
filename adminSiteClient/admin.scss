@@ -37,6 +37,7 @@
 @import "./slideshows/SlideshowAdmin.scss";
 // Slide content styles reused for slideshow preview
 @import "../site/slideshows/SlideContent.scss";
+@import "./SvgTesterSuitePage.scss";
 
 html {
     font-size: 14px;
@@ -1910,4 +1911,31 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
         top: 1px;
         margin-right: 6px;
     }
+}
+
+.SvgTesterIndexPage__intro {
+    max-width: 720px;
+    margin-bottom: 16px;
+    color: $gray-70;
+}
+
+.SvgTesterIndexPage__status {
+    display: inline-flex;
+    gap: 8px;
+}
+
+.SvgTesterIndexPage__charts {
+    align-items: center;
+    display: inline-flex;
+    gap: 8px;
+}
+
+.SvgTesterIndexPage__progress {
+    width: 56px;
+}
+
+.SvgTesterIndexPage__refreshed {
+    margin-top: 8px;
+    font-size: 13px;
+    color: $gray-70;
 }

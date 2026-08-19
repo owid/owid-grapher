@@ -40,6 +40,7 @@ import {
     TagGraphRoot,
     FeaturedMetricByParentTagNameDictionary,
     ChartConfigsTableName,
+    ChartsTableName,
     FeaturedMetricsTableName,
     TagsTableName,
     PostsGdocsXTagsTableName,
@@ -1438,10 +1439,11 @@ export async function validateChartSlug(
         const grapher = await knexRaw(
             trx,
             `-- sql
-            SELECT id
-            FROM ${ChartConfigsTableName}
-            WHERE slug = ?
-            AND full->>"$.isPublished" = "true"`,
+            SELECT c.id
+            FROM ${ChartConfigsTableName} cc
+            JOIN ${ChartsTableName} c ON c.configId = cc.id
+            WHERE cc.slug = ?
+            AND cc.full->>"$.isPublished" = "true"`,
             [slug]
         ).then((rows) => rows[0])
 

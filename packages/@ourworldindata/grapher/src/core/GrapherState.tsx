@@ -574,6 +574,9 @@ export class GrapherState
     areHandlesOnSameTimeBeforeAnimation: boolean | undefined = undefined
     /** Which timeline element is currently being dragged */
     timelineDragTarget: TimelineDragTarget | undefined = undefined
+    /** The tolerance notice as of the start of a timeline interaction */
+    frozenToleranceNotice: { notice: string | undefined } | undefined =
+        undefined
 
     // Display flags
     hasTableTab = true
@@ -732,6 +735,7 @@ export class GrapherState
             animationStartTime: observable.ref,
             areHandlesOnSameTimeBeforeAnimation: observable.ref,
             timelineDragTarget: observable.ref,
+            frozenToleranceNotice: observable.ref,
             isEntitySelectorModalOrDrawerOpen: observable.ref,
             activeModal: observable.ref,
             activeDownloadModalTab: observable.ref,
@@ -1034,10 +1038,16 @@ export class GrapherState
             return table.filterByTargetTimes(targetTimes)
         }
 
-        if (this.isOnDiscreteBarTab || this.isOnMarimekkoTab)
+        if (
+            this.isOnDiscreteBarTab ||
+            this.isOnMarimekkoTab ||
+            this.checkIsTwoColumnDumbbell(this.activeTab)
+        )
             return table.filterByTargetTimes([endTime])
 
-        if (this.isOnSlopeChartTab)
+        // Any dumbbell reaching this point plots a single indicator, and so
+        // compares it across the two times the timeline handles sit on
+        if (this.isOnSlopeChartTab || this.isOnDumbbellTab)
             return table.filterByTargetTimes([startTime, endTime])
 
         return table.filterByTimeRange(startTime, endTime)
@@ -1620,10 +1630,19 @@ export class GrapherState
 
     @computed get createNarrativeChartUrl(): string | undefined {
         const adminPath = this.manager?.adminCreateNarrativeChartPath
-        if (this.showAdminControls && this.isPublished && adminPath) {
-            return `${this.adminBaseUrl}/admin/${adminPath}`
-        }
-        return undefined
+        if (!this.showAdminControls || !this.isPublished || !adminPath)
+            return undefined
+
+        const url = Url.fromURL(`${this.adminBaseUrl}/admin/${adminPath}`)
+
+        // Pass the live grapher state along so that the narrative chart starts
+        // out matching what the user is currently looking at, rather than the
+        // authored defaults. We send it as a single encoded param so that it
+        // can't collide with the params already present in `adminPath`.
+        const grapherQueryStr = this.queryStr.replace(/^\?/, "")
+        if (!grapherQueryStr) return url.fullUrl
+
+        return url.updateQueryParams({ grapherQueryStr }).fullUrl
     }
 
     @computed private get isAdminObjectAvailable(): boolean {
@@ -1747,7 +1766,7 @@ export class GrapherState
         }
         if (dimensions.length > 0 && this.loadingDimensions.length === 0)
             return ""
-        return `Waiting for dimensions ${this.loadingDimensions.join(",")}.`
+        return `Waiting for dimensions ${this.loadingDimensions.map((dim) => dim.columnSlug).join(", ")}.`
     }
 
     @computed get newSlugs(): string[] {
@@ -1932,6 +1951,19 @@ export class GrapherState
         })
     }
 
+    /**
+     * Dumbbell charts plotting two indicators compare them at a single time,
+     * whereas those plotting one indicator compare it across two times
+     */
+    private readonly checkIsTwoColumnDumbbell = (
+        tabName: GrapherTabName
+    ): boolean => {
+        return (
+            tabName === GRAPHER_TAB_NAMES.Dumbbell &&
+            this.yColumnSlugs.length >= 2
+        )
+    }
+
     private readonly checkOnlySingleTimeSelectionPossible = (
         tabName: GrapherTabName
     ): boolean => {
@@ -1939,9 +1971,7 @@ export class GrapherState
             tabName === GRAPHER_TAB_NAMES.DiscreteBar ||
             tabName === GRAPHER_TAB_NAMES.StackedDiscreteBar ||
             tabName === GRAPHER_TAB_NAMES.Marimekko ||
-            // Dumbbell charts plotting two indicators use a single time
-            (tabName === GRAPHER_TAB_NAMES.Dumbbell &&
-                this.yColumnSlugs.length >= 2)
+            this.checkIsTwoColumnDumbbell(tabName)
         )
     }
 
@@ -1965,9 +1995,8 @@ export class GrapherState
         return (
             tabName === GRAPHER_TAB_NAMES.LineChart ||
             tabName === GRAPHER_TAB_NAMES.SlopeChart ||
-            // Dumbbell charts plotting a single indicator use a time range
             (tabName === GRAPHER_TAB_NAMES.Dumbbell &&
-                this.yColumnSlugs.length < 2)
+                !this.checkIsTwoColumnDumbbell(tabName))
         )
     }
 
@@ -2448,6 +2477,50 @@ export class GrapherState
         return ""
     }
 
+    /**
+     * Explains that some of the values on screen aren't from the time the
+     * chart is labelled with, because tolerance was applied.
+     */
+    @computed get toleranceNotice(): string | undefined {
+        // No need to show a notice on the table tab because the table
+        // shows the original time for each value
+        if (!this.isReady || !this.isOnChartOrMapTab) return undefined
+
+        // Freeze the notice during timeline interactions so it doesn't change
+        // while the user is dragging or playing an animation
+        if (this.frozenToleranceNotice && this.isTimelineInteractionActive)
+            return this.frozenToleranceNotice.notice
+
+        return this.chartState.toleranceNotice
+    }
+
+    /** Whether the timeline is being dragged or is playing an animation */
+    @computed get isTimelineInteractionActive(): boolean {
+        return !!this.timelineDragTarget || this.isTimelineAnimationPlaying
+    }
+
+    @action.bound setToleranceNoticeFrozen(isFrozen: boolean): void {
+        this.frozenToleranceNotice = isFrozen
+            ? { notice: this.toleranceNotice }
+            : undefined
+    }
+
+    /**
+     * Effective note resolved from the authored note, with the tolerance
+     * notice appended when tolerance was applied to something on screen
+     */
+    @computed get effectiveNote(): string | undefined {
+        const { note, toleranceNotice } = this
+        if (!toleranceNotice) return note
+
+        const authoredNote = note?.trim()
+        if (!authoredNote) return toleranceNotice
+
+        // Run the two together as sentences
+        const separator = /[.!?]$/.test(authoredNote) ? " " : ". "
+        return `${authoredNote}${separator}${toleranceNotice}`
+    }
+
     @computed get shouldAddEntitySuffixToTitle(): boolean {
         const selectedEntityNames = this.selection.selectedEntityNames
         const showEntityAnnotation = !this.hideAnnotationFieldsInTitle?.entity
@@ -2729,13 +2802,25 @@ export class GrapherState
         )
     }
 
+    @computed private get comparesTwoTimePoints(): boolean {
+        // Faceted maps show one map per timeline handle
+        if (this.isOnMapTab) return this.isFaceted
+
+        // Dumbbell charts compare two time points if not single-time
+        if (this.isOnDumbbellTab) return true
+
+        // Relative slope charts show the change over a period ("Change in X,
+        // 1990 to 2020"), not two snapshots side by side
+        return this.isOnSlopeChartTab && !this.isRelativeMode
+    }
+
     @computed private get timeTitleSuffix(): string | undefined {
         const { startTime, endTime, xOverrideTime } = this
 
         const timeColumn = this.table.timeColumn
-        if (timeColumn.isMissing) return undefined // Do not show year until data is loaded
 
-        const formatTime = (time: Time): string => timeColumn.formatTime(time)
+        // Do not show year until data is loaded
+        if (timeColumn.isMissing) return undefined
 
         // Add 'Time vs. Time' suffix for scatter plots with time override
         if (
@@ -2743,19 +2828,17 @@ export class GrapherState
             endTime !== undefined &&
             xOverrideTime !== undefined
         ) {
-            const times = _.sortBy([endTime, xOverrideTime])
-            return times.map((time) => formatTime(time)).join(" vs. ")
+            const [start, end] = _.sortBy([endTime, xOverrideTime])
+            return timeColumn.formatTimeComparison(start, end)
         }
 
         if (startTime === undefined || endTime === undefined) return undefined
 
-        if (startTime === endTime) return formatTime(startTime)
+        if (startTime === endTime) return timeColumn.formatTime(startTime)
 
-        // Dumbbell charts compare two points, so use "vs." instead of a range
-        if (this.isOnDumbbellTab)
-            return `${formatTime(startTime)} vs. ${formatTime(endTime)}`
-
-        return timeColumn.formatTimeRange(startTime, endTime)
+        return this.comparesTwoTimePoints
+            ? timeColumn.formatTimeComparison(startTime, endTime)
+            : timeColumn.formatTimeRange(startTime, endTime)
     }
 
     @computed get sourcesLine(): string {

@@ -136,6 +136,9 @@ export const ADDITIONAL_REGION_DATA_PROVIDERS = [
     // ILO entities are recognized by their "(ILO)" suffix here; the per-level region
     // definitions live under the `ilo_1`/`ilo_2` RegionDataProviders (cf. unm49 vs un_m49_*).
     "ilo",
+    // IHME GBD entities are recognized by their "(IHME GBD)" suffix here; the per-level
+    // region definitions live under the `ihme_gbd_1`/`ihme_gbd_2` RegionDataProviders.
+    "ihmegbd",
 ] as const
 
 export type AdditionalRegionDataProvider =

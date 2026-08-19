@@ -359,10 +359,6 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
         return !_.isEmpty(this.manager.detailsOrderedByReference)
     }
 
-    @computed private get showExportControls(): boolean {
-        return this.hasDetails || !!this.manager.showAdminControls
-    }
-
     @computed private get showInteractiveEmbedTip(): boolean {
         return !!(this.manager.isOnArchivalPage || this.manager.hasArchivedPage)
     }
@@ -499,44 +495,37 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                 disabled={isRegenerating}
                             />
                         </div>
-                        {this.showExportControls && (
-                            <>
-                                {this.hasDetails && (
-                                    <Checkbox
-                                        checked={this.shouldIncludeDetails}
-                                        label="Include terminology definitions at bottom of chart"
-                                        onChange={(): void => {
-                                            this.reset()
-                                            this.toggleIncludeDetails()
-                                            this.export()
-                                        }}
-                                    />
-                                )}
-                                {this.manager.showAdminControls && (
-                                    <Checkbox
-                                        checked={this.isExportingSquare}
-                                        label="Square format"
-                                        onChange={action((): void => {
-                                            this.reset()
-                                            this.toggleExportFormat()
-                                            this.export()
-                                        })}
-                                    />
-                                )}
-                                {this.manager.showAdminControls && (
-                                    <Checkbox
-                                        checked={this.isWikimediaExport}
-                                        label="Optimize SVG for Wikipedia upload"
-                                        onChange={action((): void => {
-                                            this.reset()
-                                            this.toggleExportForUseOnWikimedia()
-
-                                            this.export()
-                                        })}
-                                    />
-                                )}
-                            </>
+                        {this.hasDetails && (
+                            <Checkbox
+                                checked={this.shouldIncludeDetails}
+                                label="Include terminology definitions at bottom of chart"
+                                onChange={(): void => {
+                                    this.reset()
+                                    this.toggleIncludeDetails()
+                                    this.export()
+                                }}
+                            />
                         )}
+                        {this.manager.showAdminControls && (
+                            <Checkbox
+                                checked={this.isExportingSquare}
+                                label="Square format"
+                                onChange={action((): void => {
+                                    this.reset()
+                                    this.toggleExportFormat()
+                                    this.export()
+                                })}
+                            />
+                        )}
+                        <Checkbox
+                            checked={this.isWikimediaExport}
+                            label="Optimize SVG for Wikipedia upload"
+                            onChange={action((): void => {
+                                this.reset()
+                                this.toggleExportForUseOnWikimedia()
+                                this.export()
+                            })}
+                        />
                     </div>
                 ) : (
                     <Callout
@@ -566,12 +555,10 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
         table?.columnsAsArray
             .map((col) => col.source)
             .filter((s) => s?.dataPublishedBy !== undefined)
-            .map(
-                (s): OwidOrigin => ({
-                    producer: s.dataPublishedBy,
-                    urlMain: s.link,
-                })
-            ) ?? []
+            .map((s): OwidOrigin => ({
+                producer: s.dataPublishedBy,
+                urlMain: s.link,
+            })) ?? []
 
     const originsUniq = _.uniqBy(
         [...origins, ...otherSources],

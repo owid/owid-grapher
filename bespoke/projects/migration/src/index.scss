@@ -10,6 +10,7 @@
 
 // Shared components
 @import "../../../components/Frame/Frame.scss";
+@import "../../../components/Controls/Controls.scss";
 @import "../../../components/ChartHeader/ChartHeader.scss";
 @import "../../../components/ChartFooter/ChartFooter.scss";
 @import "../../../components/Sankey/Sankey.scss";
@@ -17,6 +18,7 @@
 @import "../../../components/Switcher/Switcher.scss";
 @import "../../../components/TimeSlider/TimeSlider.scss";
 @import "../../../components/Spinner/Spinner.scss";
+@import "../../../components/ResponsiveContainer/ResponsiveContainer.scss";
 
 // Project components
 @import "./components/MigrationChart.scss";

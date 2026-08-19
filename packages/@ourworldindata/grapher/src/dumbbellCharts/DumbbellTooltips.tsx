@@ -54,10 +54,10 @@ export class DumbbellTimeRangeTooltip extends React.Component<DumbbellTooltipPro
         const originalStartTime = target?.start.time ?? startTime
         const originalEndTime = target?.end.time ?? endTime
 
-        const formattedStartTime = formatColumn.formatTime(originalStartTime)
-        const formattedEndTime = formatColumn.formatTime(originalEndTime)
-
-        return `${formattedStartTime} to ${formattedEndTime}`
+        return formatColumn.formatTimeComparison(
+            originalStartTime,
+            originalEndTime
+        )
     }
 
     @computed private get toleranceNotice(): FooterItem | undefined {
@@ -71,17 +71,28 @@ export class DumbbellTimeRangeTooltip extends React.Component<DumbbellTooltipPro
         if (isStartOriginal && isEndOriginal) return undefined
 
         const formatTime = (t: number) => formatColumn.formatTime(t)
-        const targetYear =
+        const targetTime =
             !isStartOriginal && !isEndOriginal
                 ? `${formatTime(startTime)} and ${formatTime(endTime)}`
                 : !isStartOriginal
                   ? formatTime(startTime)
                   : formatTime(endTime)
 
+        // The subtitle shows the original time of both values. Naming the
+        // original time here only helps if the subtitle mixes a target time with
+        // an original time, i.e. if only one of the two values was interpolated.
+        const originalTime =
+            !isStartOriginal && !isEndOriginal
+                ? undefined
+                : !isStartOriginal
+                  ? formatTime(target.start.time)
+                  : formatTime(target.end.time)
+
         return {
             icon: TooltipFooterIcon.Notice,
-            text: makeTooltipToleranceNotice(targetYear, {
+            text: makeTooltipToleranceNotice(targetTime, {
                 plural: !isStartOriginal && !isEndOriginal,
+                originalTime,
             }),
         }
     }

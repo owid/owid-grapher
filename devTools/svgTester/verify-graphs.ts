@@ -6,20 +6,24 @@ import fs from "fs-extra"
 import path from "path"
 import workerpool from "workerpool"
 import * as _ from "lodash-es"
-import { match } from "ts-pattern"
 
+import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as utils from "./utils.js"
 import { JOB_TIMEOUT_MS, MAX_WORKERS } from "./utils.js"
 import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
-import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
+import {
+    ALL_GRAPHER_CHART_TYPES,
+    SVG_TESTER_SUITES,
+    type SvgTesterSuite,
+} from "@ourworldindata/types"
 
 async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
     try {
         // Test suite
-        const testSuite = args.testSuite as utils.TestSuite
+        const testSuite = args.testSuite as SvgTesterSuite
 
         // Input and output directories
-        const testSuiteDir = path.join(utils.SVG_REPO_PATH, testSuite)
+        const testSuiteDir = path.join(SVG_TESTER_REPO_PATH, testSuite)
         const referencesDir = path.join(testSuiteDir, "references")
         const differencesDir = path.join(testSuiteDir, "differences")
 
@@ -28,13 +32,15 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         const targetChartTypes = args.chartTypes
         const randomCount = args.random
 
-        // Load manifest and determine data directory
-        const { viewIds: manifestViewIds, dataDir } =
-            await utils.loadManifestViewIds(testSuite, {
-                targetViewIds,
-                manifestName: args.manifest,
-                verbose: args.verbose,
-            })
+        // Load manifest and determine configs directory
+        const {
+            viewIds: manifestViewIds,
+            configsDir,
+            manifestName,
+        } = await utils.loadManifestViewIds(testSuite, {
+            targetViewIds,
+            manifestName: args.manifest,
+        })
 
         // Chart configurations to test
         const grapherQueryString = args.queryStr
@@ -44,10 +50,9 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
 
         // Other options
         const rmOnError = args.rmOnError
-        const verbose = args.verbose
 
-        if (!fs.existsSync(dataDir))
-            throw `Input directory does not exist ${dataDir}`
+        if (!fs.existsSync(configsDir))
+            throw `Configs directory does not exist ${configsDir}`
         if (!fs.existsSync(referencesDir))
             throw `Reference directory does not exist ${referencesDir}`
         if (!fs.existsSync(differencesDir)) fs.mkdirSync(differencesDir)
@@ -56,16 +61,19 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         // suite never started, and a lingering "running" status means it was
         // killed before it could report.
         const startedAt = new Date()
-        await utils.writeVerifyRunStarted(testSuiteDir, testSuite, startedAt)
+        utils.writeVerifyRunStarted(testSuiteDir, testSuite, startedAt)
 
-        const chartIdsToProcess = await utils.selectChartIdsToProcess(dataDir, {
-            viewIds: targetViewIds ?? manifestViewIds ?? undefined,
-            chartTypes: targetChartTypes,
-            randomCount,
-        })
+        const chartIdsToProcess = await utils.selectChartIdsToProcess(
+            configsDir,
+            {
+                viewIds: targetViewIds ?? manifestViewIds ?? undefined,
+                chartTypes: targetChartTypes,
+                randomCount,
+            }
+        )
 
         const chartViewsToGenerate = await utils.findChartViewsToGenerate(
-            dataDir,
+            configsDir,
             chartIdsToProcess,
             {
                 queryStr: grapherQueryString,
@@ -89,25 +97,24 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
                 const { viewId, queryStr } = chart
                 const key = grapherSlugToExportFileKey(viewId, queryStr)
                 const referenceEntry = referenceDataByChartKey.get(key)!
-                const pathToProcess = path.join(dataDir, viewId)
+                const configPath = utils.configPathFor(configsDir, viewId)
                 return {
-                    dir: { viewId: chart.viewId, pathToProcess },
+                    dir: { viewId: chart.viewId, configPath },
                     referenceEntry,
                     referenceDir: referencesDir,
                     outDir: differencesDir,
                     queryStr,
                     variant,
-                    verbose,
                     rmOnError,
                 }
             })
 
         const jobCount = verifyJobs.length
         if (jobCount === 0) {
-            utils.logIfVerbose(verbose, "No matching configs found")
+            console.log(`${testSuite}: nothing to do, no configs matched`)
             // Nothing to do is a legitimate outcome, but it still has to
             // overwrite the "running" placeholder written above.
-            await utils.writeVerifyResults(
+            utils.writeVerifyResults(
                 testSuiteDir,
                 utils.summariseVerifyResults([], {
                     suite: testSuite,
@@ -118,7 +125,26 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
             process.exit(0)
         }
 
-        console.log(`Verifying ${jobCount} SVG${jobCount > 1 ? "s" : ""}...`)
+        utils.logRunStart(testSuite, "verifying", jobCount, manifestName)
+
+        // Results as they come in, so the run can report its progress as it goes
+        const completed: utils.VerifyResult[] = []
+        const reportProgress = (): void =>
+            utils.writeVerifyResults(
+                testSuiteDir,
+                utils.summariseVerifyResults(completed, {
+                    suite: testSuite,
+                    startedAt,
+                    durationMs: Date.now() - startedAt.getTime(),
+                    total: jobCount,
+                    isRunning: true,
+                })
+            )
+
+        // Publish the job count right away: the report the placeholder above
+        // wrote has nothing to say, and a reader watching a long suite wants to
+        // know how much of it is left from the start.
+        reportProgress()
 
         const pool = workerpool.pool(__dirname + "/worker.ts", {
             minWorkers: 2,
@@ -128,7 +154,10 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
             },
         })
 
-        const progress = utils.startVerifyProgress(testSuite, jobCount, pool)
+        const progress = utils.startProgress(testSuite, jobCount, pool, {
+            withOutcomes: true,
+            onTick: reportProgress,
+        })
 
         // Parallelize the CPU heavy verification using the workerpool library
         // This call will then in parallel take the descriptions of the verifyJobs,
@@ -143,14 +172,28 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
                         .exec("renderAndVerifySvg", [job])
                         .timeout(JOB_TIMEOUT_MS)
                         .catch((err: Error) => {
+                            // Only pool-level rejections reach here - a job that
+                            // throws is caught inside renderAndVerifySvg, which
+                            // logs it and resolves. So nothing else reports these.
                             if (err?.name === "TimeoutError")
                                 console.warn(
-                                    `Timed out after ${JOB_TIMEOUT_MS}ms: ${job.dir.viewId}`
+                                    `${job.dir.viewId}: timed out after ${JOB_TIMEOUT_MS}ms`
                                 )
-                            return utils.resultError(job.dir.viewId, err)
+                            else
+                                console.error(
+                                    `${job.dir.viewId}: worker failed`,
+                                    err
+                                )
+                            return utils.resultError(
+                                job.dir.viewId,
+                                err,
+                                job.referenceEntry.resolvedQueryStr ||
+                                    job.queryStr
+                            )
                         })
                         .then((result: utils.VerifyResult) => {
                             progress.recordResult(result)
+                            completed.push(result)
                             return result
                         })
                 )
@@ -163,53 +206,40 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
             // This is a sanity check that should never trigger
             throw `Ran ${verifyJobs.length} verify jobs but only got ${validationResults.length} results!`
 
-        utils.logIfVerbose(verbose, "Verifications completed")
-
         const summary = utils.summariseVerifyResults(validationResults, {
             suite: testSuite,
             startedAt,
             durationMs: Date.now() - startedAt.getTime(),
         })
-        await utils.writeVerifyResults(testSuiteDir, summary)
+        utils.writeVerifyResults(testSuiteDir, summary)
 
-        utils.reportVerifyResults(validationResults, verbose)
+        utils.logVerifySummary(summary)
 
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
         process.exit(utils.verifyExitCode(summary))
     } catch (error) {
-        console.error("Encountered an error: ", error)
+        console.error(`${args.testSuite}: verify failed`, error)
         // Record the failure too, so that "the suite never got to run" is
         // distinguishable from "the suite ran and found nothing" by whoever
         // reads the results file. Best-effort: if even this write fails there's
         // nothing useful left to do but exit.
-        await utils
-            .writeVerifyRunFailure(
-                path.join(utils.SVG_REPO_PATH, args.testSuite),
-                args.testSuite as utils.TestSuite,
+        try {
+            utils.writeVerifyRunFailure(
+                path.join(SVG_TESTER_REPO_PATH, args.testSuite),
+                args.testSuite as SvgTesterSuite,
                 error
             )
-            .catch((writeError) => {
-                console.error(
-                    "Could not write the results file either: ",
-                    writeError
-                )
-            })
+        } catch (writeError) {
+            console.error(
+                `${args.testSuite}: could not write the results file either`,
+                writeError
+            )
+        }
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
         process.exit(1)
     }
-}
-
-async function main(args: ReturnType<typeof parseArguments>) {
-    const testSuite = args.testSuite as utils.TestSuite
-
-    await match(testSuite)
-        .with("graphers", () => verifyGraphers(args))
-        .with("grapher-views", () => verifyGraphers(args))
-        .with("mdims", () => verifyGraphers(args))
-        .with("thumbnails", () => verifyGraphers(args))
-        .exhaustive()
 }
 
 function parseArguments() {
@@ -222,7 +252,7 @@ function parseArguments() {
             type: "string",
             description: utils.TEST_SUITE_DESCRIPTION,
             default: "graphers",
-            choices: utils.TEST_SUITES,
+            choices: SVG_TESTER_SUITES,
         })
         .parserConfiguration({ "camel-case-expansion": true })
         .options({
@@ -273,11 +303,6 @@ function parseArguments() {
                     "Remove output files where we encounter errors, so errors are apparent in diffs",
                 default: false,
             },
-            verbose: {
-                type: "boolean",
-                description: "Verbose mode",
-                default: false,
-            },
         })
         .help()
         .alias("help", "h")
@@ -285,5 +310,4 @@ function parseArguments() {
         .parseSync()
 }
 
-const argv = parseArguments()
-void main(argv)
+void verifyGraphers(parseArguments())

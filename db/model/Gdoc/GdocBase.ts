@@ -178,9 +178,10 @@ export async function loadLinkedChartsForSlugs(
     for (const [sourceSlug, targetSlugs] of explorerRedirectFanOut) {
         await logErrorAndMaybeCaptureInSentry(
             new Error(
-                `Explorer '/explorers/${sourceSlug}' is linked from a gdoc but redirects to multiple multi-dims (${targetSlugs.join(
+                `ACTION RECOMMENDED: Update all gdocs that contain links to '/explorers/${sourceSlug}' and point them to the target Mdims instead.
+Explorer '/explorers/${sourceSlug}' is linked from a gdoc, but it redirects to several multi-dims depending on query params (${targetSlugs.join(
                     ", "
-                )}) depending on query params. The gdoc link resolves by slug alone and may point at the wrong multi-dim. Point the link directly at the intended multi-dim.`
+                )}). Gdoc links are resolved by slug alone, so this link may end up pointing at the wrong one.`
             )
         )
     }
@@ -1285,7 +1286,17 @@ export class GdocBase implements OwidGdocBaseInterface {
                     ) {
                         linkErrors.push({
                             property: "content",
-                            message: `Grapher chart with slug "${link.target}" does not exist or is not published`,
+                            message: `Chart or multi-dim data page with slug "${link.target}" does not exist or is not published`,
+                            type: OwidGdocErrorMessageType.Error,
+                        })
+                    } else if (
+                        link.componentType === "explorer-tiles" &&
+                        !grapherRedirect &&
+                        chartIdsBySlug[link.target]
+                    ) {
+                        linkErrors.push({
+                            property: "content",
+                            message: `Explorer tiles can only link to explorers or multi-dim data pages, but "${link.target}" is a regular grapher chart`,
                             type: OwidGdocErrorMessageType.Error,
                         })
                     }
@@ -1309,7 +1320,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     ) {
                         linkErrors.push({
                             property: "content",
-                            message: `Explorer chart with slug "${link.target}" does not exist or is not published`,
+                            message: `Explorer with slug "${link.target}" does not exist or is not published`,
                             type: OwidGdocErrorMessageType.Error,
                         })
                     }
@@ -1630,7 +1641,7 @@ export function makeMultiDimLinkedChart(
         title,
         dimensionSlugs: config.dimensions.map((d) => d.slug),
         resolvedUrl,
-        tags: [],
+        tags: config.topicTags ?? [],
         archivedPageVersion,
     }
 }

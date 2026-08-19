@@ -32,6 +32,7 @@ The Our World in Data monorepo: the Grapher charting library, the chart/data adm
 ### Git
 
 - When you want to create a commit, follow `docs/agent-guidelines/commit-messages.md` — it covers the pre-commit checks and the gitmoji + 🤖 message format.
+- PR descriptions are two-part. First, a **concise** human-facing part: what changed and why, important considerations and pitfalls, and anything that needs discussion — a few sentences or bullets, no padding. Then a `<details><summary>Details</summary>` block for everything only useful to an agent picking the work back up or to automated code review: implementation notes, file-by-file breakdowns, edge cases handled, test plans. If a detail doesn't change what a human reviewer does, it goes in the details block or gets cut.
 - Branch names: short and descriptive, no prefix (in particular no `claude/` prefix and no random suffix). Every branch gets a staging server named `staging-site-<branch>` with slashes turned into hyphens and the name truncated to 28 characters, so long or prefixed branch names produce unusable staging names.
 
 ## Architecture
@@ -67,15 +68,21 @@ Use the `test-on-staging` skill when checking a change on `staging-site-<branch>
 
 ## Team
 
-Everything you post to GitHub or Slack goes out under a **human's identity**.
+When AI-authored text is posted through a **human's account**, it must be clearly attributed so readers do not mistake it for the human's own words.
 
-1. **Attribute the work.** Any prose you author for GitHub or Slack — PR bodies, issue and review comments (including replies to Codex/Copilot/reviewers), Slack messages or drafts — must start with this blockquote:
+1. **Attribute posts made under a human identity.** Any prose that will appear under a human user's GitHub or Slack account — PR bodies, issue and review comments (including replies to Codex/Copilot/reviewers), Slack messages, or drafts intended for a human to post — must start with this blockquote:
 
     ```
     > _Written by <model provider> <model name> — @<handle> at the wheel._
     ```
 
-    Use the actual provider and model (e.g. "Claude Sonnet 5", never "Code" or a bare version number) and the handle of the human directing the work (usually the current git user; ask if ambiguous). The only exemption is a bare mechanical token with no prose (a lone `@codex review`, a 👍); when in doubt, include the line.
+    Use the actual provider and model (e.g. "Claude Sonnet 5", never "Code" or a bare version number) and the handle of the human directing the work, usually the authenticated or current git user. Ask if it is ambiguous.
+
+    **Do not add this attribution when posting through an account that is clearly identified as an AI agent or bot**, such as the Codex GitHub user. In that case, the posting identity already provides the necessary disclosure, and claiming that a human is "at the wheel" may be inaccurate.
+
+    A bare mechanical token with no prose, such as a lone `@codex review` ping or 👍, also requires no attribution.
+
+    If the posting identity cannot be determined, assume it is a human account and include the attribution.
 
 2. **Never guess GitHub handles** — a wrong `@`-tag pings a real person. Use the exact handle from the list below; if a name isn't on it, write the plain name (e.g. "Bastian") and ask the user for the handle.
 
@@ -117,6 +124,7 @@ Everything you post to GitHub or Slack goes out under a **human's identity**.
 - CSS: named style classes following BEM in separate `.scss` files; avoid inline styles unless the component already uses them for a similar case. Components usually have a companion scss file with the same name. Entry points: `site/owid.scss` for the site, `packages/@ourworldindata/grapher/src/core/grapher.scss` for grapher.
 - In SCSS, do NOT use the parent selector to concatenate BEM class names (`&__element`, `&--modifier`) — write out full class names (`.block__element`) so it's easy to grep between JSX and SCSS. `&` with pseudo-classes/elements or state attributes (`&:hover`, `&::before`, `&[data-selected]`) is fine.
 - Check [docs/browser-support.md](./docs/browser-support.md) before using modern JS or CSS features. It lists our supported browsers, the "most breaking" features we rely on, and features we can't yet use.
+- For inline `<script>` JSON, use `escapeJSONStringForInlineScript` from `@ourworldindata/utils` — it also escapes U+2028/U+2029.
 - package.json scripts are camelCase and descriptive: `startXXX` for long-lived processes, `buildXXX` for scripts that write output (`docs/coding-style.md`). Server-side scripts run via `tsx --tsconfig tsconfig.tsx.json`.
 
 ## Other conventions

@@ -5,6 +5,8 @@ import { hideBin } from "yargs/helpers"
 import fs from "fs-extra"
 import path from "path"
 
+import { SVG_TESTER_SUITES, type SvgTesterSuite } from "@ourworldindata/types"
+import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as utils from "./utils.js"
 import { hashMd5 } from "../../serverUtils/hash.js"
 
@@ -13,9 +15,9 @@ import { hashMd5 } from "../../serverUtils/hash.js"
  * .svg files next to it.
  */
 async function main(args: ReturnType<typeof parseArguments>): Promise<void> {
-    const testSuite = args.testSuite as utils.TestSuite
+    const testSuite = args.testSuite as SvgTesterSuite
     const referencesDir = path.join(
-        utils.SVG_REPO_PATH,
+        SVG_TESTER_REPO_PATH,
         testSuite,
         "references"
     )
@@ -39,23 +41,15 @@ async function main(args: ReturnType<typeof parseArguments>): Promise<void> {
         // in the first place (renderSvg hashes the same string it writes out).
         const md5 = hashMd5(await fs.readFile(svgPath, "utf-8"))
         if (md5 !== record.md5) {
-            utils.logIfVerbose(
-                args.verbose,
-                `${record.viewId}: ${record.md5} -> ${md5}`
-            )
             record.md5 = md5
             updated += 1
         }
     }
 
-    if (missing.length) {
+    if (missing.length)
         console.warn(
-            `${missing.length} reference SVGs in results.csv do not exist on disk, left untouched`
+            `${testSuite}: ${missing.length} reference svgs in results.csv do not exist on disk, left untouched`
         )
-        for (const svgFilename of missing) {
-            utils.logIfVerbose(args.verbose, `  missing: ${svgFilename}`)
-        }
-    }
 
     if (updated === 0) {
         console.log(`${testSuite}: all ${svgRecords.length} md5s already match`)
@@ -63,8 +57,9 @@ async function main(args: ReturnType<typeof parseArguments>): Promise<void> {
     }
 
     await utils.writeReferenceCsv(referencesDir, svgRecords)
+    // Which rows changed is in `git diff results.csv`, no need to list them here
     console.log(
-        `${testSuite}: updated ${updated} of ${svgRecords.length} md5s in results.csv`
+        `${testSuite}: ${updated} of ${svgRecords.length} md5s updated in results.csv`
     )
 }
 
@@ -78,14 +73,7 @@ function parseArguments() {
             type: "string",
             description: utils.TEST_SUITE_DESCRIPTION,
             default: "graphers",
-            choices: utils.TEST_SUITES,
-        })
-        .options({
-            verbose: {
-                type: "boolean",
-                description: "Verbose mode",
-                default: false,
-            },
+            choices: SVG_TESTER_SUITES,
         })
         .help()
         .alias("help", "h")

@@ -44,6 +44,7 @@ function LogCompareModal({
                         },
                     }}
                     extraLinesSurroundingDiff={2}
+                    highlightLanguage="json"
                 />
             </div>
         </Modal>

@@ -12,7 +12,7 @@ import { scaleLinear } from "@visx/scale"
 import { LinePath } from "@visx/shape"
 import { Group } from "@visx/group"
 import { localPoint } from "@visx/event"
-import type { Simulation } from "../helpers/useSimulation"
+import type { Simulation } from "../core/useSimulation"
 import {
     CONTROL_YEARS,
     HISTORICAL_END_YEAR,
@@ -26,16 +26,16 @@ import {
     USER_MODIFIED_COLOR,
     GRID_LINE_COLOR,
     GRID_LABEL_COLOR,
-} from "../helpers/constants"
+} from "../core/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { Halo, TextWrap } from "@ourworldindata/components"
 import { Bounds } from "@ourworldindata/utils"
-import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
+import { parameterConfigByKey } from "../core/parameterConfigs.js"
 import { TimeAxisX } from "./TimeAxisX.js"
-import { ParameterKey, type YearLabel } from "../helpers/types.js"
-import { getParameterChartFonts } from "../helpers/fonts"
-import { toBreakpoint, useBreakpoint } from "../helpers/useBreakpoint"
-import { getInterpolatedValue } from "../model/projectionRunner"
+import { ParameterKey, type YearLabel } from "../core/types.js"
+import { getParameterChartFonts } from "../core/fonts"
+import { toBreakpoint, useBreakpoint } from "../core/useBreakpoint"
+import { getInterpolatedValue } from "../core/model/projectionRunner"
 
 const SMALL_DOT_RADIUS = 3
 const CONTROL_POINT_RADIUS = 5

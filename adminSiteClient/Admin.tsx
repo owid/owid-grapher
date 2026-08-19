@@ -114,7 +114,11 @@ export class Admin {
         path: string,
         data: Json | File | FormData,
         method: HTTPMethod,
-        opts: { onFailure?: "show" | "continue" } = {}
+        opts: {
+            onFailure?: "show" | "continue"
+            /** Skips the full-screen loading indicator */
+            isBackground?: boolean
+        } = {}
     ): Promise<T> {
         const onFailure = opts.onFailure || "show"
 
@@ -140,7 +144,7 @@ export class Admin {
                 method,
                 abortController
             )
-            this.addRequest(request)
+            if (!opts.isBackground) this.addRequest(request)
 
             response = await request
             text = await response.text()
@@ -162,7 +166,7 @@ export class Admin {
                 })
             throw err
         } finally {
-            if (request) {
+            if (request && !opts.isBackground) {
                 this.removeRequest(request)
             }
         }
