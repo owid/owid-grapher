@@ -6,10 +6,13 @@ import { findFieldElement } from "./commentAnchors.js"
 import { CommentField } from "./commentFields.js"
 import {
     CommentPageContext,
+    describeViewState,
+    hrefForViewState,
     isSameTarget,
     isSameViewState,
     readCurrentViewState,
     subscribeToUrlChanges,
+    viewStateKey,
 } from "./commentContext.js"
 import { CommentPopover } from "./CommentPopover.js"
 import { useCommentThreadsForTargets } from "./useComments.js"
@@ -17,6 +20,15 @@ import "./Comments.scss"
 
 const COMMENT_MODE_BODY_CLASS = "comments-mode"
 const POPOVER_WIDTH = 320
+
+/** An unresolved cluster of comments sitting on a view that isn't on screen */
+interface OtherViewComments {
+    key: string
+    /** The view in words, e.g. "Primary school · Girls" */
+    label: string
+    href: string
+    count: number
+}
 
 interface PlacedBubble {
     field: CommentField
@@ -102,8 +114,12 @@ export function CommentsOverlay({
     const [isOn, setIsOn] = useState(false)
     const [openFieldKey, setOpenFieldKey] = useState<string | null>(null)
 
-    const { targets, fields, multiDimDimensionSlugs } = context
-    const isMultiDim = !!multiDimDimensionSlugs?.length
+    const { targets, fields, multiDimDimensions } = context
+    const dimensions = useMemo(
+        () => multiDimDimensions ?? [],
+        [multiDimDimensions]
+    )
+    const isMultiDim = dimensions.length > 0
 
     const [viewState, setViewState] = useState<CommentViewState | null>(() =>
         readCurrentViewState(context)
@@ -143,9 +159,55 @@ export function CommentsOverlay({
     }, [threadsHere])
 
     const placements = useBubblePlacements(fields, countByKey, isOn)
-    const unresolved = threadsHere.filter(
+    const unresolvedHere = threadsHere.filter(
         (thread) => !thread.root.resolvedAt
     ).length
+    // Every view's threads, since the multi-dim as a whole is what's under
+    // review; the badge would otherwise read zero on a view nobody has
+    // commented on yet, with no hint that the others hold anything.
+    const unresolvedTotal = threads.filter(
+        (thread) => !thread.root.resolvedAt
+    ).length
+
+    /**
+     * Unresolved comments on the views that aren't on screen, grouped by view so
+     * each one can be named and jumped to. A comment with no view (indicator
+     * metadata, which every view shares) is never "elsewhere".
+     */
+    const otherViews: OtherViewComments[] = useMemo(() => {
+        if (!isMultiDim) return []
+        const byKey = new Map<string, OtherViewComments>()
+        for (const { root } of threads) {
+            if (root.resolvedAt || !root.viewState) continue
+            if (isSameViewState(root.viewState, viewState)) continue
+            const key = viewStateKey(root.viewState, dimensions)
+            const existing = byKey.get(key)
+            if (existing) {
+                existing.count += 1
+                continue
+            }
+            byKey.set(key, {
+                key,
+                label:
+                    describeViewState(root.viewState, dimensions) ||
+                    "Another view",
+                href: hrefForViewState(
+                    root.viewState,
+                    dimensions,
+                    window.location
+                ),
+                count: 1,
+            })
+        }
+        return [...byKey.values()].sort(
+            (a, b) => b.count - a.count || a.label.localeCompare(b.label)
+        )
+    }, [threads, isMultiDim, dimensions, viewState])
+
+    const unresolvedElsewhere = otherViews.reduce(
+        (total, view) => total + view.count,
+        0
+    )
 
     useEffect(() => {
         document.body.classList.toggle(COMMENT_MODE_BODY_CLASS, isOn)
@@ -168,17 +230,54 @@ export function CommentsOverlay({
 
     return (
         <>
+            {isOn && otherViews.length > 0 && (
+                <div className="comments-other-views">
+                    <div className="comments-other-views__title">
+                        {unresolvedElsewhere === 1
+                            ? "1 comment on another view"
+                            : `${unresolvedElsewhere} comments on other views`}
+                    </div>
+                    <ul className="comments-other-views__list">
+                        {otherViews.map((view) => (
+                            <li key={view.key}>
+                                {/* A real link, not a router push: the
+                                    multi-dim's router lives in another React
+                                    root, and loading the view afresh is what
+                                    puts its own bubbles in the right places. */}
+                                <a
+                                    className="comments-other-views__link"
+                                    href={view.href}
+                                >
+                                    <span className="comments-other-views__label">
+                                        {view.label}
+                                    </span>
+                                    <span className="comments-other-views__count">
+                                        {view.count}
+                                    </span>
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
             <button
                 type="button"
                 className={cx("comments-overlay__toggle", {
                     "comments-overlay__toggle--on": isOn,
                 })}
                 onClick={() => setIsOn(!isOn)}
+                title={
+                    unresolvedElsewhere > 0
+                        ? `${unresolvedHere} on this view, ${unresolvedTotal} across the whole multi-dim`
+                        : undefined
+                }
             >
                 {isOn ? "Exit comment mode" : "Comments"}
-                {unresolved > 0 && (
+                {unresolvedTotal > 0 && (
                     <span className="comments-overlay__count">
-                        {unresolved}
+                        {unresolvedElsewhere > 0
+                            ? `${unresolvedHere} / ${unresolvedTotal}`
+                            : unresolvedTotal}
                     </span>
                 )}
             </button>

@@ -24,6 +24,16 @@ export interface CommentPageTarget extends CommentTarget {
     label: string
 }
 
+/**
+ * A multi-dim dimension, reduced to what the overlay needs: the slug to read the
+ * view out of the URL, and names to say in words which view a comment sits on.
+ */
+export interface CommentMultiDimDimension {
+    slug: string
+    name: string
+    choices: { slug: string; name: string }[]
+}
+
 export interface CommentPageContext {
     /**
      * Everything the page can show comments for. The first entry is the page's
@@ -33,10 +43,11 @@ export interface CommentPageContext {
     /** The metadata fields on this page that can be commented on */
     fields: CommentField[]
     /**
-     * Dimension slugs of a multi-dim, used to read the current view out of the
-     * URL. Absent on charts and data pages.
+     * The dimensions of a multi-dim, used to read the current view out of the
+     * URL and to label the other views that hold comments. Absent on charts and
+     * data pages.
      */
-    multiDimDimensionSlugs?: string[]
+    multiDimDimensions?: CommentMultiDimDimension[]
     /**
      * The view a multi-dim opens on. The page only writes dimensions into the
      * URL once the reader changes one, so without this a comment left on the
@@ -70,7 +81,7 @@ export function buildCommentPageContext({
     multiDim?: {
         id: number
         label: string
-        dimensionSlugs: string[]
+        dimensions: CommentMultiDimDimension[]
         defaultView?: CommentViewState
     }
     variables?: { variableId: number; label: string }[]
@@ -115,7 +126,7 @@ export function buildCommentPageContext({
     return {
         targets,
         fields: [...chartLevel, ...indicatorLevel],
-        multiDimDimensionSlugs: multiDim?.dimensionSlugs,
+        multiDimDimensions: multiDim?.dimensions,
         multiDimDefaultView: multiDim?.defaultView,
     }
 }
@@ -138,11 +149,11 @@ export function isSameTarget(a: CommentTarget, b: CommentTarget): boolean {
 export function readCurrentViewState(
     context: CommentPageContext
 ): CommentViewState | null {
-    const { multiDimDimensionSlugs, multiDimDefaultView } = context
-    if (!multiDimDimensionSlugs?.length) return null
+    const { multiDimDimensions, multiDimDefaultView } = context
+    if (!multiDimDimensions?.length) return null
     const params = new URLSearchParams(window.location.search)
     const viewState: CommentViewState = { ...multiDimDefaultView }
-    for (const slug of multiDimDimensionSlugs) {
+    for (const { slug } of multiDimDimensions) {
         const value = params.get(slug)
         if (value !== null) viewState[slug] = value
     }
@@ -158,6 +169,64 @@ export function isSameViewState(
     const keys = new Set([...Object.keys(a), ...Object.keys(b)])
     for (const key of keys) if (a[key] !== b[key]) return false
     return true
+}
+
+/**
+ * A stable identity for a view, so threads left on the same view group together.
+ * Built in dimension order, and falls back to the raw keys for a view whose
+ * dimensions the multi-dim no longer has.
+ */
+export function viewStateKey(
+    viewState: CommentViewState,
+    dimensions: CommentMultiDimDimension[]
+): string {
+    const slugs = dimensions.map((dimension) => dimension.slug)
+    const extra = Object.keys(viewState)
+        .filter((slug) => !slugs.includes(slug))
+        .sort()
+    return [...slugs, ...extra]
+        .map((slug) => `${slug}=${viewState[slug] ?? ""}`)
+        .join("&")
+}
+
+/**
+ * A view in words, e.g. "Primary school · Girls". Uses the choice names the page
+ * itself shows; a choice the multi-dim has since dropped keeps its raw slug
+ * rather than disappearing, so an old comment can still be placed.
+ */
+export function describeViewState(
+    viewState: CommentViewState,
+    dimensions: CommentMultiDimDimension[]
+): string {
+    const parts: string[] = []
+    for (const dimension of dimensions) {
+        const value = viewState[dimension.slug]
+        if (value === undefined) continue
+        const choice = dimension.choices.find((c) => c.slug === value)
+        parts.push(choice?.name ?? value)
+    }
+    return parts.join(" · ")
+}
+
+/**
+ * A link to the same page showing the given view. Only the dimension params are
+ * replaced, so anything else in the URL (an open tab, a country selection) is
+ * carried over. Navigating for real rather than pushing state keeps the overlay
+ * decoupled from the multi-dim's router, which lives in a separate React root.
+ * Takes the current location rather than reading it, so it stays pure.
+ */
+export function hrefForViewState(
+    viewState: CommentViewState,
+    dimensions: CommentMultiDimDimension[],
+    currentUrl: { pathname: string; search: string }
+): string {
+    const params = new URLSearchParams(currentUrl.search)
+    for (const { slug } of dimensions) {
+        const value = viewState[slug]
+        if (value === undefined) params.delete(slug)
+        else params.set(slug, value)
+    }
+    return `${currentUrl.pathname}?${params.toString()}`
 }
 
 /**

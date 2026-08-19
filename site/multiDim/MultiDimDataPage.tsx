@@ -68,7 +68,16 @@ export function MultiDimDataPage({
                   multiDim: {
                       id: multiDimId,
                       label: pageTitle,
-                      dimensionSlugs: configObj.dimensions.map((d) => d.slug),
+                      // Names as well as slugs: the overlay uses them to say
+                      // which view a comment on another view was left on.
+                      dimensions: configObj.dimensions.map((d) => ({
+                          slug: d.slug,
+                          name: d.name,
+                          choices: d.choices.map((c) => ({
+                              slug: c.slug,
+                              name: c.name,
+                          })),
+                      })),
                       defaultView: initialViewDimensions,
                   },
                   // Indicator metadata shown on a multi-dim belongs to the
