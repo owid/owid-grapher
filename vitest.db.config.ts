@@ -1,8 +1,8 @@
 import { defineConfig } from "vitest/config"
 import viteConfig from "./vite.config-site.mts"
 
-export default defineConfig({
-    ...viteConfig,
+export default defineConfig((env) => ({
+    ...viteConfig(env),
     test: {
         include: [
             "db/tests/**/*.test.ts",
@@ -19,4 +19,4 @@ export default defineConfig({
             "adminSiteServer/tests/setupDbTest.ts",
         ],
     },
-})
+}))

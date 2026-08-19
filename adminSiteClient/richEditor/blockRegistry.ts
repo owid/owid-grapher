@@ -203,6 +203,25 @@ function makePropsAtomCommand(
     }
 }
 
+/** Insert a props container seeded with one empty paragraph */
+function makePropsContainerCommand(
+    nodeType: string,
+    defaultProps: Record<string, unknown>
+) {
+    return ({ editor, range }: { editor: Editor; range?: Range }): void => {
+        deleteRangeIfAny(editor, range)
+        editor
+            .chain()
+            .focus()
+            .insertContent({
+                type: nodeType,
+                attrs: { props: structuredClone(defaultProps) },
+                content: [{ type: pmNodeNames.paragraph }],
+            })
+            .run()
+    }
+}
+
 richEditorBlockItems.push(
     {
         key: "chart",
@@ -331,10 +350,24 @@ richEditorBlockItems.push(
         description: "Slide deck of key insights for a topic",
         glyph: "★",
         keywords: ["key insights", "slides", "insights"],
-        command: makePropsAtomCommand(pmNodeNames.keyInsights, {
-            heading: "Key insights",
-            insights: [],
-        }),
+        command: ({ editor, range }) => {
+            deleteRangeIfAny(editor, range)
+            editor
+                .chain()
+                .focus()
+                .insertContent({
+                    type: pmNodeNames.keyInsights,
+                    attrs: { props: { heading: "Key insights" } },
+                    content: [
+                        {
+                            type: pmNodeNames.keyInsightSlide,
+                            attrs: { props: { title: "" } },
+                            content: [{ type: pmNodeNames.paragraph }],
+                        },
+                    ],
+                })
+                .run()
+        },
     },
     {
         key: "explorerTiles",
@@ -441,6 +474,154 @@ richEditorBlockItems.push(
         glyph: "◫",
         keywords: ["side by side", "columns", "layout"],
         command: makeTwoColumnCommand(pmNodeNames.sideBySide),
+    },
+    {
+        key: "expander",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Expander",
+        description: "Titled box the reader can expand",
+        glyph: "▸",
+        keywords: ["expander", "collapse", "details", "accordion", "faq"],
+        command: makePropsContainerCommand(pmNodeNames.expander, {
+            title: "",
+        }),
+    },
+    {
+        key: "topicPageIntro",
+        docTypes: TOPIC_PAGE_TYPES,
+        title: "Topic page intro",
+        description: "Intro text with related topics and download button",
+        glyph: "¶",
+        keywords: ["topic", "intro", "introduction"],
+        command: makePropsContainerCommand(pmNodeNames.topicPageIntro, {}),
+    },
+    {
+        key: "pullChart",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Pull chart",
+        description: "Chart image with a text column beside it",
+        glyph: "◪",
+        keywords: ["pull", "chart", "image", "feature"],
+        command: makePropsContainerCommand(pmNodeNames.pullChart, {
+            image: "",
+            url: "",
+        }),
+    },
+    {
+        key: "dataCallout",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Data callout",
+        description: "Text block calling out a chart's data",
+        glyph: "◈",
+        keywords: ["data", "callout", "highlight"],
+        command: makePropsContainerCommand(pmNodeNames.dataCallout, {
+            url: "",
+        }),
+    },
+    {
+        key: "guidedChart",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Guided chart",
+        description: "Text with links that drive an embedded chart",
+        glyph: "➲",
+        keywords: ["guided", "chart", "interactive"],
+        command: makePropsContainerCommand(pmNodeNames.guidedChart, {}),
+    },
+    {
+        key: "chartStory",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Chart story",
+        description: "Step-by-step story told through charts",
+        glyph: "▶▶",
+        keywords: ["chart", "story", "steps", "slideshow"],
+        command: makePropsAtomCommand(pmNodeNames.chartStory, { items: [] }),
+    },
+    {
+        key: "staticViz",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Static visualization",
+        description: "Pre-rendered visualization by name",
+        glyph: "◍",
+        keywords: ["static", "viz", "visualization", "svg"],
+        command: makePropsAtomCommand(pmNodeNames.staticViz, {
+            name: "",
+            size: "wide",
+            hasOutline: false,
+        }),
+    },
+    {
+        key: "html",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "HTML",
+        description: "Raw HTML embed (advanced)",
+        glyph: "</>",
+        keywords: ["html", "embed", "iframe", "raw"],
+        command: makePropsAtomCommand(pmNodeNames.html, { value: "" }),
+    },
+    {
+        key: "code",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Code",
+        description: "Monospaced code block",
+        glyph: "{}",
+        keywords: ["code", "monospace", "snippet"],
+        command: makePropsAtomCommand(pmNodeNames.codeBlock, { text: [] }),
+    },
+    {
+        key: "resourcePanel",
+        docTypes: TOPIC_PAGE_TYPES,
+        title: "Resource panel",
+        description: "Sidebar panel of key resources",
+        glyph: "▤",
+        keywords: ["resource", "panel", "links", "sidebar"],
+        command: makePropsAtomCommand(pmNodeNames.resourcePanel, {
+            title: "",
+            links: [],
+        }),
+    },
+    {
+        key: "conditionalSection",
+        docTypes: [OwidGdocType.Profile],
+        title: "Conditional section",
+        description: "Section shown only for some profile entities",
+        glyph: "⋔",
+        keywords: ["conditional", "section", "profile", "include", "exclude"],
+        command: makePropsContainerCommand(pmNodeNames.conditionalSection, {
+            include: [],
+            exclude: [],
+        }),
+    },
+    {
+        key: "socials",
+        docTypes: [OwidGdocType.Author],
+        title: "Social links",
+        description: "Row of social media links",
+        glyph: "@",
+        keywords: ["social", "twitter", "mastodon", "links"],
+        command: makePropsAtomCommand(pmNodeNames.socials, { links: [] }),
+    },
+    {
+        key: "peopleRows",
+        docTypes: [OwidGdocType.AboutPage],
+        title: "People rows",
+        description: "Grid of team members",
+        glyph: "◉◉",
+        keywords: ["people", "team", "person", "staff"],
+        command: makePropsAtomCommand(pmNodeNames.peopleRows, {
+            columns: "4",
+            people: [],
+        }),
+    },
+    {
+        key: "subscribeBanner",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Subscribe banner",
+        description: "Newsletter subscription call-out",
+        glyph: "✉",
+        keywords: ["subscribe", "newsletter", "banner"],
+        command: makePropsAtomCommand(pmNodeNames.subscribeBanner, {
+            align: "left",
+        }),
     }
 )
 

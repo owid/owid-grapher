@@ -489,7 +489,13 @@ function enrichedBlockContentToXhtml(block: OwidEnrichedGdocBlock): string {
                                 filename: slide.filename,
                                 narrativeChartName: slide.narrativeChartName,
                             },
-                            enrichedBlocksToXhtml(slide.content)
+                            (slide.asset?.length
+                                ? xmlElement(
+                                      "asset",
+                                      {},
+                                      enrichedBlocksToXhtml(slide.asset)
+                                  )
+                                : "") + enrichedBlocksToXhtml(slide.content)
                         )
                     )
                     .join("")
@@ -691,22 +697,6 @@ function enrichedBlockContentToXhtml(block: OwidEnrichedGdocBlock): string {
                         : "")
             )
         )
-        .with({ type: "entry-summary" }, (b) =>
-            xmlElement(
-                "entry-summary",
-                {},
-                b.items
-                    .map((item) =>
-                        xmlElement(
-                            "item",
-                            { text: item.text, slug: item.slug },
-                            "",
-                            true
-                        )
-                    )
-                    .join("")
-            )
-        )
         .with({ type: "explorer-tiles" }, (b) =>
             xmlElement(
                 "explorer-tiles",
@@ -860,13 +850,17 @@ function enrichedBlockContentToXhtml(block: OwidEnrichedGdocBlock): string {
                     source: b.source || undefined,
                 },
                 b.rows
-                    .map((row) =>
-                        xmlElement(
+                    .map((row) => {
+                        const caption = optionalSpansToXhtml(row.caption)
+                        return xmlElement(
                             "row",
                             { image: row.image, url: row.url },
-                            row.content.map(enrichedBlockToXhtml).join("")
+                            (caption
+                                ? xmlElement("caption", {}, caption)
+                                : "") +
+                                row.content.map(enrichedBlockToXhtml).join("")
                         )
-                    )
+                    })
                     .join("")
             )
         )

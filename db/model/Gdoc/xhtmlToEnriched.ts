@@ -46,7 +46,6 @@ import {
     RawBlockChartStory,
     RawBlockTopicPageIntro,
     RawBlockResearchAndWriting,
-    RawBlockEntrySummary,
     RawBlockExplorerTiles,
     RawBlockPillRow,
     RawBlockHomepageSearch,
@@ -393,405 +392,311 @@ function elementToRawBlock(element: Element): OwidRawGdocBlock {
     const attribs = element.attribs ?? {}
 
     return match(tag)
-        .with(
-            "text",
-            (): RawBlockText => ({
-                type: "text",
-                value: getSpanContent(element),
-            })
-        )
-        .with(
-            "simple-text",
-            (): RawBlockText => ({
-                type: "text",
-                value: getDirectTextContent(element),
-            })
-        )
-        .with(
-            "heading",
-            (): RawBlockHeading => ({
-                type: "heading",
-                value: {
-                    // The raw format uses \v (vertical tab) to separate supertitle from title
-                    // Format: supertitle\vtitle (supertitle comes first)
-                    text: attribs.supertitle
-                        ? `${attribs.supertitle}\v${getSpanContent(element)}`
-                        : getSpanContent(element),
-                    level: attribs.level,
-                },
-            })
-        )
+        .with("text", (): RawBlockText => ({
+            type: "text",
+            value: getSpanContent(element),
+        }))
+        .with("simple-text", (): RawBlockText => ({
+            type: "text",
+            value: getDirectTextContent(element),
+        }))
+        .with("heading", (): RawBlockHeading => ({
+            type: "heading",
+            value: {
+                // The raw format uses \v (vertical tab) to separate supertitle from title
+                // Format: supertitle\vtitle (supertitle comes first)
+                text: attribs.supertitle
+                    ? `${attribs.supertitle}\v${getSpanContent(element)}`
+                    : getSpanContent(element),
+                level: attribs.level,
+            },
+        }))
         .with("horizontal-rule", () => ({
             type: "horizontal-rule" as const,
             value: {},
         }))
-        .with(
-            "chart",
-            (): RawBlockChart => ({
-                type: "chart",
-                value: {
-                    url: attribs.url,
-                    height: attribs.height,
-                    size: attribs.size as BlockSize | undefined,
-                    visibility: attribs.visibility,
-                    peerCountries: attribs.peerCountries,
-                    caption: getChildElement(element, "caption")
-                        ? getSpanContent(getChildElement(element, "caption")!)
-                        : undefined,
-                },
-            })
-        )
-        .with(
-            "narrative-chart",
-            (): RawBlockNarrativeChart => ({
-                type: "narrative-chart",
-                value: {
-                    name: attribs.name,
-                    height: attribs.height,
-                    size: attribs.size as BlockSize | undefined,
-                    caption: getChildElement(element, "caption")
-                        ? getSpanContent(getChildElement(element, "caption")!)
-                        : undefined,
-                },
-            })
-        )
-        .with(
-            "image",
-            (): RawBlockImage => ({
-                type: "image",
-                value: {
-                    filename: attribs.filename,
-                    smallFilename: attribs.smallFilename,
-                    alt: attribs.alt,
-                    size: attribs.size as BlockSize | undefined,
-                    // absent means "no outline" at render time, but the raw
-                    // parser defaults absent to true — pin it to false so the
-                    // round-trip preserves render semantics
-                    hasOutline: attribs.hasOutline ?? "false",
-                    visibility: attribs.visibility,
-                    caption: getChildElement(element, "caption")
-                        ? getSpanContent(getChildElement(element, "caption")!)
-                        : undefined,
-                },
-            })
-        )
-        .with(
-            "video",
-            (): RawBlockVideo => ({
-                type: "video",
-                value: {
-                    url: attribs.url,
-                    filename: attribs.filename,
-                    shouldLoop: attribs.shouldLoop,
-                    shouldAutoplay: attribs.shouldAutoplay,
-                    visibility: attribs.visibility,
-                    caption: getChildElement(element, "caption")
-                        ? getSpanContent(getChildElement(element, "caption")!)
-                        : undefined,
-                },
-            })
-        )
-        .with(
-            "static-viz",
-            (): RawBlockStaticViz => ({
-                type: "static-viz",
-                value: {
-                    name: attribs.name,
-                    size: attribs.size as BlockSize | undefined,
-                    hasOutline: attribs.hasOutline,
-                    caption: getChildElement(element, "caption")
-                        ? getSpanContent(getChildElement(element, "caption")!)
-                        : undefined,
-                },
-            })
-        )
-        .with(
-            "list",
-            (): RawBlockList => ({
-                type: "list",
-                value: getChildElements(element, "li").map((li) =>
-                    getSpanContent(li)
-                ),
-            })
-        )
-        .with(
-            "numbered-list",
-            (): RawBlockNumberedList => ({
-                type: "numbered-list",
-                value: getChildElements(element, "li").map((li) =>
-                    getSpanContent(li)
-                ),
-            })
-        )
-        .with(
-            "aside",
-            (): RawBlockAside => ({
-                type: "aside",
-                value: {
-                    position: attribs.position,
-                    caption: getSpanContent(element),
-                },
-            })
-        )
-        .with(
-            "callout",
-            (): RawBlockCallout => ({
-                type: "callout",
-                value: {
-                    icon: attribs.icon as "info" | undefined,
-                    title: attribs.title,
-                    text: getAllChildElements(element).map(
-                        elementToRawBlock
-                    ) as (RawBlockText | RawBlockHeading | RawBlockList)[],
-                },
-            })
-        )
-        .with(
-            "blockquote",
-            (): RawBlockBlockquote => ({
-                type: "blockquote",
-                value: {
-                    citation: attribs.citation,
-                    text: getAllChildElements(element).map(
-                        elementToRawBlock
-                    ) as RawBlockText[],
-                },
-            })
-        )
-        .with(
-            "pull-quote",
-            (): RawBlockPullQuote => ({
-                type: "pull-quote",
-                value: {
-                    align: attribs.align as "left" | "right" | undefined,
-                    quote: attribs.quote,
-                    content:
-                        getAllChildElements(element).map(elementToRawBlock),
-                },
-            })
-        )
-        .with(
-            "code",
-            (): RawBlockCode => ({
-                type: "code",
-                value: getChildElements(element, "line").map((line) => ({
-                    type: "text" as const,
-                    value: getDirectTextContent(line),
-                })),
-            })
-        )
-        .with(
-            "html",
-            (): RawBlockHtml => ({
-                type: "html",
-                // The HTML content is stored in the value attribute
-                value: attribs.value ?? "",
-            })
-        )
-        .with(
-            "table",
-            (): RawBlockTable => ({
-                type: "table",
-                value: {
-                    template: attribs.template as
-                        | "header-column"
-                        | "header-row"
-                        | "header-column-row"
-                        | undefined,
-                    size: attribs.size as "narrow" | "wide" | undefined,
-                    caption: getChildElement(element, "caption")
-                        ? getSpanContent(getChildElement(element, "caption")!)
-                        : undefined,
-                    rows: getChildElements(element, "row").map((row) => ({
-                        type: "table-row" as const,
-                        value: {
-                            cells: getChildElements(row, "cell").map(
-                                (cell) => ({
-                                    type: "table-cell" as const,
-                                    value: getAllChildElements(cell).map(
-                                        elementToRawBlock
-                                    ),
-                                })
+        .with("chart", (): RawBlockChart => ({
+            type: "chart",
+            value: {
+                url: attribs.url,
+                height: attribs.height,
+                size: attribs.size as BlockSize | undefined,
+                visibility: attribs.visibility,
+                peerCountries: attribs.peerCountries,
+                caption: getChildElement(element, "caption")
+                    ? getSpanContent(getChildElement(element, "caption")!)
+                    : undefined,
+            },
+        }))
+        .with("narrative-chart", (): RawBlockNarrativeChart => ({
+            type: "narrative-chart",
+            value: {
+                name: attribs.name,
+                height: attribs.height,
+                size: attribs.size as BlockSize | undefined,
+                caption: getChildElement(element, "caption")
+                    ? getSpanContent(getChildElement(element, "caption")!)
+                    : undefined,
+            },
+        }))
+        .with("image", (): RawBlockImage => ({
+            type: "image",
+            value: {
+                filename: attribs.filename,
+                smallFilename: attribs.smallFilename,
+                alt: attribs.alt,
+                size: attribs.size as BlockSize | undefined,
+                // absent means "no outline" at render time, but the raw
+                // parser defaults absent to true — pin it to false so the
+                // round-trip preserves render semantics
+                hasOutline: attribs.hasOutline ?? "false",
+                visibility: attribs.visibility,
+                caption: getChildElement(element, "caption")
+                    ? getSpanContent(getChildElement(element, "caption")!)
+                    : undefined,
+            },
+        }))
+        .with("video", (): RawBlockVideo => ({
+            type: "video",
+            value: {
+                url: attribs.url,
+                filename: attribs.filename,
+                shouldLoop: attribs.shouldLoop,
+                shouldAutoplay: attribs.shouldAutoplay,
+                visibility: attribs.visibility,
+                caption: getChildElement(element, "caption")
+                    ? getSpanContent(getChildElement(element, "caption")!)
+                    : undefined,
+            },
+        }))
+        .with("static-viz", (): RawBlockStaticViz => ({
+            type: "static-viz",
+            value: {
+                name: attribs.name,
+                size: attribs.size as BlockSize | undefined,
+                hasOutline: attribs.hasOutline,
+                caption: getChildElement(element, "caption")
+                    ? getSpanContent(getChildElement(element, "caption")!)
+                    : undefined,
+            },
+        }))
+        .with("list", (): RawBlockList => ({
+            type: "list",
+            value: getChildElements(element, "li").map((li) =>
+                getSpanContent(li)
+            ),
+        }))
+        .with("numbered-list", (): RawBlockNumberedList => ({
+            type: "numbered-list",
+            value: getChildElements(element, "li").map((li) =>
+                getSpanContent(li)
+            ),
+        }))
+        .with("aside", (): RawBlockAside => ({
+            type: "aside",
+            value: {
+                position: attribs.position,
+                caption: getSpanContent(element),
+            },
+        }))
+        .with("callout", (): RawBlockCallout => ({
+            type: "callout",
+            value: {
+                icon: attribs.icon as "info" | undefined,
+                title: attribs.title,
+                text: getAllChildElements(element).map(elementToRawBlock) as (
+                    | RawBlockText
+                    | RawBlockHeading
+                    | RawBlockList
+                )[],
+            },
+        }))
+        .with("blockquote", (): RawBlockBlockquote => ({
+            type: "blockquote",
+            value: {
+                citation: attribs.citation,
+                text: getAllChildElements(element).map(
+                    elementToRawBlock
+                ) as RawBlockText[],
+            },
+        }))
+        .with("pull-quote", (): RawBlockPullQuote => ({
+            type: "pull-quote",
+            value: {
+                align: attribs.align as "left" | "right" | undefined,
+                quote: attribs.quote,
+                content: getAllChildElements(element).map(elementToRawBlock),
+            },
+        }))
+        .with("code", (): RawBlockCode => ({
+            type: "code",
+            value: getChildElements(element, "line").map((line) => ({
+                type: "text" as const,
+                value: getDirectTextContent(line),
+            })),
+        }))
+        .with("html", (): RawBlockHtml => ({
+            type: "html",
+            // The HTML content is stored in the value attribute
+            value: attribs.value ?? "",
+        }))
+        .with("table", (): RawBlockTable => ({
+            type: "table",
+            value: {
+                template: attribs.template as
+                    | "header-column"
+                    | "header-row"
+                    | "header-column-row"
+                    | undefined,
+                size: attribs.size as "narrow" | "wide" | undefined,
+                caption: getChildElement(element, "caption")
+                    ? getSpanContent(getChildElement(element, "caption")!)
+                    : undefined,
+                rows: getChildElements(element, "row").map((row) => ({
+                    type: "table-row" as const,
+                    value: {
+                        cells: getChildElements(row, "cell").map((cell) => ({
+                            type: "table-cell" as const,
+                            value: getAllChildElements(cell).map(
+                                elementToRawBlock
                             ),
-                        },
-                    })),
-                },
-            })
-        )
-        .with(
-            "side-by-side",
-            (): RawBlockSideBySideContainer => ({
-                type: "side-by-side",
-                value: {
-                    left: getAllChildElements(
-                        getChildElement(element, "left") ?? element
-                    ).map(elementToRawBlock),
-                    right: getAllChildElements(
-                        getChildElement(element, "right") ?? element
-                    ).map(elementToRawBlock),
-                },
-            })
-        )
-        .with(
-            "sticky-left",
-            (): RawBlockStickyLeftContainer => ({
-                type: "sticky-left",
-                value: {
-                    left: getAllChildElements(
-                        getChildElement(element, "left") ?? element
-                    ).map(elementToRawBlock),
-                    right: getAllChildElements(
-                        getChildElement(element, "right") ?? element
-                    ).map(elementToRawBlock),
-                },
-            })
-        )
-        .with(
-            "sticky-right",
-            (): RawBlockStickyRightContainer => ({
-                type: "sticky-right",
-                value: {
-                    left: getAllChildElements(
-                        getChildElement(element, "left") ?? element
-                    ).map(elementToRawBlock),
-                    right: getAllChildElements(
-                        getChildElement(element, "right") ?? element
-                    ).map(elementToRawBlock),
-                },
-            })
-        )
-        .with(
-            "gray-section",
-            (): RawBlockGraySection => ({
-                type: "gray-section",
-                value: getAllChildElements(element).map(elementToRawBlock),
-            })
-        )
-        .with(
-            "explore-data-section",
-            (): RawBlockExploreDataSection => ({
-                type: "explore-data-section",
-                value: {
-                    title: attribs.title,
-                    align: attribs.align as "left" | "right" | undefined,
-                    content:
-                        getAllChildElements(element).map(elementToRawBlock),
-                },
-            })
-        )
-        .with(
-            "conditional-section",
-            (): RawBlockConditionalSection => ({
-                type: "conditional-section",
-                value: {
-                    include: attribs.include,
-                    exclude: attribs.exclude,
-                    content:
-                        getAllChildElements(element).map(elementToRawBlock),
-                },
-            })
-        )
-        .with(
-            "align",
-            (): RawBlockAlign => ({
-                type: "align",
-                value: {
-                    alignment: attribs.alignment,
-                    content:
-                        getAllChildElements(element).map(elementToRawBlock),
-                },
-            })
-        )
-        .with(
-            "expandable-paragraph",
-            (): RawBlockExpandableParagraph => ({
-                type: "expandable-paragraph",
-                value: getAllChildElements(element).map(elementToRawBlock),
-            })
-        )
-        .with(
-            "expander",
-            (): RawBlockExpander => ({
-                type: "expander",
-                value: {
-                    title: attribs.title,
-                    heading: attribs.heading,
-                    subtitle: attribs.subtitle,
-                    content:
-                        getAllChildElements(element).map(elementToRawBlock),
-                },
-            })
-        )
-        .with(
-            "guided-chart",
-            (): RawBlockGuidedChart => ({
-                type: "guided-chart",
-                value: getAllChildElements(element).map(elementToRawBlock),
-            })
-        )
-        .with(
-            "prominent-link",
-            (): RawBlockProminentLink => ({
-                type: "prominent-link",
-                value: {
-                    url: attribs.url,
-                    title: attribs.title,
-                    description: attribs.description,
-                    thumbnail: attribs.thumbnail,
-                },
-            })
-        )
-        .with(
-            "recirc",
-            (): RawBlockRecirc => ({
-                type: "recirc",
-                value: {
-                    title: attribs.title,
-                    align: attribs.align,
-                    links: getChildElements(element, "link").map((link) => ({
-                        url: link.attribs.url,
-                        title: link.attribs.title,
-                        subtitle: link.attribs.subtitle,
-                    })),
-                },
-            })
-        )
-        .with(
-            "key-insights",
-            (): RawBlockKeyInsights => ({
-                type: "key-insights",
-                value: {
-                    heading: attribs.heading,
-                    insights: getChildElements(element, "slide").map(
-                        (slide) => ({
-                            title: slide.attribs.title,
-                            url: slide.attribs.url,
-                            filename: slide.attribs.filename,
-                            narrativeChartName:
-                                slide.attribs.narrativeChartName,
-                            content:
-                                getAllChildElements(slide).map(
-                                    elementToRawBlock
-                                ),
-                        })
-                    ),
-                },
-            })
-        )
-        .with(
-            "key-indicator",
-            (): RawBlockKeyIndicator => ({
-                type: "key-indicator",
-                value: {
-                    datapageUrl: attribs.datapageUrl,
-                    title: attribs.title,
-                    source: attribs.source,
-                    text: getAllChildElements(element).map(
-                        elementToRawBlock
-                    ) as RawBlockText[],
-                },
-            })
-        )
+                        })),
+                    },
+                })),
+            },
+        }))
+        .with("side-by-side", (): RawBlockSideBySideContainer => ({
+            type: "side-by-side",
+            value: {
+                left: getAllChildElements(
+                    getChildElement(element, "left") ?? element
+                ).map(elementToRawBlock),
+                right: getAllChildElements(
+                    getChildElement(element, "right") ?? element
+                ).map(elementToRawBlock),
+            },
+        }))
+        .with("sticky-left", (): RawBlockStickyLeftContainer => ({
+            type: "sticky-left",
+            value: {
+                left: getAllChildElements(
+                    getChildElement(element, "left") ?? element
+                ).map(elementToRawBlock),
+                right: getAllChildElements(
+                    getChildElement(element, "right") ?? element
+                ).map(elementToRawBlock),
+            },
+        }))
+        .with("sticky-right", (): RawBlockStickyRightContainer => ({
+            type: "sticky-right",
+            value: {
+                left: getAllChildElements(
+                    getChildElement(element, "left") ?? element
+                ).map(elementToRawBlock),
+                right: getAllChildElements(
+                    getChildElement(element, "right") ?? element
+                ).map(elementToRawBlock),
+            },
+        }))
+        .with("gray-section", (): RawBlockGraySection => ({
+            type: "gray-section",
+            value: getAllChildElements(element).map(elementToRawBlock),
+        }))
+        .with("explore-data-section", (): RawBlockExploreDataSection => ({
+            type: "explore-data-section",
+            value: {
+                title: attribs.title,
+                align: attribs.align as "left" | "right" | undefined,
+                content: getAllChildElements(element).map(elementToRawBlock),
+            },
+        }))
+        .with("conditional-section", (): RawBlockConditionalSection => ({
+            type: "conditional-section",
+            value: {
+                include: attribs.include,
+                exclude: attribs.exclude,
+                content: getAllChildElements(element).map(elementToRawBlock),
+            },
+        }))
+        .with("align", (): RawBlockAlign => ({
+            type: "align",
+            value: {
+                alignment: attribs.alignment,
+                content: getAllChildElements(element).map(elementToRawBlock),
+            },
+        }))
+        .with("expandable-paragraph", (): RawBlockExpandableParagraph => ({
+            type: "expandable-paragraph",
+            value: getAllChildElements(element).map(elementToRawBlock),
+        }))
+        .with("expander", (): RawBlockExpander => ({
+            type: "expander",
+            value: {
+                title: attribs.title,
+                heading: attribs.heading,
+                subtitle: attribs.subtitle,
+                content: getAllChildElements(element).map(elementToRawBlock),
+            },
+        }))
+        .with("guided-chart", (): RawBlockGuidedChart => ({
+            type: "guided-chart",
+            value: getAllChildElements(element).map(elementToRawBlock),
+        }))
+        .with("prominent-link", (): RawBlockProminentLink => ({
+            type: "prominent-link",
+            value: {
+                url: attribs.url,
+                title: attribs.title,
+                description: attribs.description,
+                thumbnail: attribs.thumbnail,
+            },
+        }))
+        .with("recirc", (): RawBlockRecirc => ({
+            type: "recirc",
+            value: {
+                title: attribs.title,
+                align: attribs.align,
+                links: getChildElements(element, "link").map((link) => ({
+                    url: link.attribs.url,
+                    title: link.attribs.title,
+                    subtitle: link.attribs.subtitle,
+                })),
+            },
+        }))
+        .with("key-insights", (): RawBlockKeyInsights => ({
+            type: "key-insights",
+            value: {
+                heading: attribs.heading,
+                insights: getChildElements(element, "slide").map((slide) => {
+                    const assetElement = getChildElement(slide, "asset")
+                    return {
+                        title: slide.attribs.title,
+                        url: slide.attribs.url,
+                        filename: slide.attribs.filename,
+                        narrativeChartName: slide.attribs.narrativeChartName,
+                        asset: assetElement
+                            ? getAllChildElements(assetElement).map(
+                                  elementToRawBlock
+                              )
+                            : undefined,
+                        content: getAllChildElements(slide)
+                            .filter((child) => child !== assetElement)
+                            .map(elementToRawBlock),
+                    }
+                }),
+            },
+        }))
+        .with("key-indicator", (): RawBlockKeyIndicator => ({
+            type: "key-indicator",
+            value: {
+                datapageUrl: attribs.datapageUrl,
+                title: attribs.title,
+                source: attribs.source,
+                text: getAllChildElements(element).map(
+                    elementToRawBlock
+                ) as RawBlockText[],
+            },
+        }))
         .with(
             "key-indicator-collection",
             (): RawBlockKeyIndicatorCollection => ({
@@ -802,67 +707,46 @@ function elementToRawBlock(element: Element): OwidRawGdocBlock {
                 },
             })
         )
-        .with(
-            "additional-charts",
-            (): RawBlockAdditionalCharts => ({
-                type: "additional-charts",
-                value: {
-                    list: getChildElements(element, "item").map((item) =>
-                        getSpanContent(item)
-                    ),
-                },
-            })
-        )
-        .with(
-            "all-charts",
-            (): RawBlockAllCharts => ({
-                type: "all-charts",
-                value: {
-                    heading: attribs.heading,
-                    top: getChildElements(element, "top").map((top) => ({
-                        url: top.attribs.url,
-                    })),
-                },
-            })
-        )
-        .with(
-            "donors",
-            (): RawBlockDonorList => ({
-                type: "donors",
-                value: {},
-            })
-        )
-        .with(
-            "sdg-grid",
-            (): RawBlockSDGGrid => ({
-                type: "sdg-grid",
-                value: getChildElements(element, "item").map((item) => ({
-                    goal: item.attribs.goal,
-                    link: item.attribs.link,
+        .with("additional-charts", (): RawBlockAdditionalCharts => ({
+            type: "additional-charts",
+            value: {
+                list: getChildElements(element, "item").map((item) =>
+                    getSpanContent(item)
+                ),
+            },
+        }))
+        .with("all-charts", (): RawBlockAllCharts => ({
+            type: "all-charts",
+            value: {
+                heading: attribs.heading,
+                top: getChildElements(element, "top").map((top) => ({
+                    url: top.attribs.url,
                 })),
-            })
-        )
-        .with(
-            "sdg-toc",
-            (): RawBlockSDGToc => ({
-                type: "sdg-toc",
-                value: {},
-            })
-        )
-        .with(
-            "ltp-toc",
-            (): RawBlockLTPToc => ({
-                type: "ltp-toc",
-                value: attribs.title ? { title: attribs.title } : {},
-            })
-        )
-        .with(
-            "missing-data",
-            (): RawBlockMissingData => ({
-                type: "missing-data",
-                value: {},
-            })
-        )
+            },
+        }))
+        .with("donors", (): RawBlockDonorList => ({
+            type: "donors",
+            value: {},
+        }))
+        .with("sdg-grid", (): RawBlockSDGGrid => ({
+            type: "sdg-grid",
+            value: getChildElements(element, "item").map((item) => ({
+                goal: item.attribs.goal,
+                link: item.attribs.link,
+            })),
+        }))
+        .with("sdg-toc", (): RawBlockSDGToc => ({
+            type: "sdg-toc",
+            value: {},
+        }))
+        .with("ltp-toc", (): RawBlockLTPToc => ({
+            type: "ltp-toc",
+            value: attribs.title ? { title: attribs.title } : {},
+        }))
+        .with("missing-data", (): RawBlockMissingData => ({
+            type: "missing-data",
+            value: {},
+        }))
         .with("chart-story", (): RawBlockChartStory => {
             const items = getChildElements(element, "item").map((item) => {
                 const narrative = getChildElement(item, "narrative")
@@ -885,57 +769,86 @@ function elementToRawBlock(element: Element): OwidRawGdocBlock {
                 value: items,
             }
         })
-        .with(
-            "topic-page-intro",
-            (): RawBlockTopicPageIntro => ({
-                type: "topic-page-intro",
-                value: {
-                    "download-button": getChildElement(
-                        element,
-                        "download-button"
-                    )
-                        ? {
-                              text: getChildElement(element, "download-button")!
-                                  .attribs.text,
-                              url: getChildElement(element, "download-button")!
-                                  .attribs.url,
-                          }
-                        : undefined,
-                    "related-topics": getChildElement(element, "related-topics")
-                        ? getChildElements(
-                              getChildElement(element, "related-topics")!,
-                              "topic"
-                          ).map((topic) => ({
-                              url: topic.attribs.url,
-                              text: topic.attribs.text,
-                          }))
-                        : undefined,
-                    content: getAllChildElements(
-                        getChildElement(element, "content") ?? element
-                    ).map(elementToRawBlock) as RawBlockText[],
-                },
-            })
-        )
-        .with(
-            "research-and-writing",
-            (): RawBlockResearchAndWriting => ({
-                type: "research-and-writing",
-                value: {
-                    heading: attribs.heading,
-                    // Only include hide-authors/hide-date if they exist in the XHTML
-                    // to avoid validation errors for undefined values
-                    ...(attribs["hide-authors"] !== undefined && {
-                        "hide-authors": attribs["hide-authors"],
-                    }),
-                    ...(attribs["hide-date"] !== undefined && {
-                        "hide-date": attribs["hide-date"],
-                    }),
-                    variant: attribs.variant as
-                        | ResearchAndWritingVariant
-                        | undefined,
-                    primary: getChildElement(element, "primary")
-                        ? getChildElements(
-                              getChildElement(element, "primary")!,
+        .with("topic-page-intro", (): RawBlockTopicPageIntro => ({
+            type: "topic-page-intro",
+            value: {
+                "download-button": getChildElement(element, "download-button")
+                    ? {
+                          text: getChildElement(element, "download-button")!
+                              .attribs.text,
+                          url: getChildElement(element, "download-button")!
+                              .attribs.url,
+                      }
+                    : undefined,
+                "related-topics": getChildElement(element, "related-topics")
+                    ? getChildElements(
+                          getChildElement(element, "related-topics")!,
+                          "topic"
+                      ).map((topic) => ({
+                          url: topic.attribs.url,
+                          text: topic.attribs.text,
+                      }))
+                    : undefined,
+                content: getAllChildElements(
+                    getChildElement(element, "content") ?? element
+                ).map(elementToRawBlock) as RawBlockText[],
+            },
+        }))
+        .with("research-and-writing", (): RawBlockResearchAndWriting => ({
+            type: "research-and-writing",
+            value: {
+                heading: attribs.heading,
+                // Only include hide-authors/hide-date if they exist in the XHTML
+                // to avoid validation errors for undefined values
+                ...(attribs["hide-authors"] !== undefined && {
+                    "hide-authors": attribs["hide-authors"],
+                }),
+                ...(attribs["hide-date"] !== undefined && {
+                    "hide-date": attribs["hide-date"],
+                }),
+                variant: attribs.variant as
+                    | ResearchAndWritingVariant
+                    | undefined,
+                primary: getChildElement(element, "primary")
+                    ? getChildElements(
+                          getChildElement(element, "primary")!,
+                          "link"
+                      ).map((link) => ({
+                          url: link.attribs.url,
+                          title: link.attribs.title,
+                          subtitle: link.attribs.subtitle,
+                          authors: link.attribs.authors,
+                          filename: link.attribs.filename,
+                      }))
+                    : undefined,
+                secondary: getChildElement(element, "secondary")
+                    ? getChildElements(
+                          getChildElement(element, "secondary")!,
+                          "link"
+                      ).map((link) => ({
+                          url: link.attribs.url,
+                          title: link.attribs.title,
+                          subtitle: link.attribs.subtitle,
+                          authors: link.attribs.authors,
+                          filename: link.attribs.filename,
+                      }))
+                    : undefined,
+                rows: getChildElements(element, "row").map((row) => ({
+                    heading: row.attribs.heading,
+                    articles: getChildElements(row, "link").map((link) => ({
+                        url: link.attribs.url,
+                        title: link.attribs.title,
+                        subtitle: link.attribs.subtitle,
+                        authors: link.attribs.authors,
+                        filename: link.attribs.filename,
+                    })),
+                })),
+                more: getChildElement(element, "more")
+                    ? {
+                          heading: getChildElement(element, "more")!.attribs
+                              .heading,
+                          articles: getChildElements(
+                              getChildElement(element, "more")!,
                               "link"
                           ).map((link) => ({
                               url: link.attribs.url,
@@ -943,111 +856,46 @@ function elementToRawBlock(element: Element): OwidRawGdocBlock {
                               subtitle: link.attribs.subtitle,
                               authors: link.attribs.authors,
                               filename: link.attribs.filename,
-                          }))
-                        : undefined,
-                    secondary: getChildElement(element, "secondary")
-                        ? getChildElements(
-                              getChildElement(element, "secondary")!,
-                              "link"
-                          ).map((link) => ({
-                              url: link.attribs.url,
-                              title: link.attribs.title,
-                              subtitle: link.attribs.subtitle,
-                              authors: link.attribs.authors,
-                              filename: link.attribs.filename,
-                          }))
-                        : undefined,
-                    rows: getChildElements(element, "row").map((row) => ({
-                        heading: row.attribs.heading,
-                        articles: getChildElements(row, "link").map((link) => ({
-                            url: link.attribs.url,
-                            title: link.attribs.title,
-                            subtitle: link.attribs.subtitle,
-                            authors: link.attribs.authors,
-                            filename: link.attribs.filename,
-                        })),
-                    })),
-                    more: getChildElement(element, "more")
-                        ? {
-                              heading: getChildElement(element, "more")!.attribs
-                                  .heading,
-                              articles: getChildElements(
-                                  getChildElement(element, "more")!,
-                                  "link"
-                              ).map((link) => ({
-                                  url: link.attribs.url,
-                                  title: link.attribs.title,
-                                  subtitle: link.attribs.subtitle,
-                                  authors: link.attribs.authors,
-                                  filename: link.attribs.filename,
-                              })),
-                          }
-                        : undefined,
-                    latest: getChildElement(element, "latest")
-                        ? {
-                              heading: getChildElement(element, "latest")!
-                                  .attribs.heading,
-                          }
-                        : undefined,
-                },
-            })
-        )
-        .with(
-            "entry-summary",
-            (): RawBlockEntrySummary => ({
-                type: "entry-summary",
-                value: {
-                    items: getChildElements(element, "item").map((item) => ({
-                        text: item.attribs.text,
-                        slug: item.attribs.slug,
-                    })),
-                },
-            })
-        )
-        .with(
-            "explorer-tiles",
-            (): RawBlockExplorerTiles => ({
-                type: "explorer-tiles",
-                value: {
-                    title: attribs.title,
-                    subtitle: attribs.subtitle,
-                    explorers: getChildElements(element, "explorer").map(
-                        (e) => ({
-                            url: e.attribs.url,
-                        })
-                    ),
-                },
-            })
-        )
-        .with(
-            "pill-row",
-            (): RawBlockPillRow => ({
-                type: "pill-row",
-                value: {
-                    title: attribs.title,
-                    pills: getChildElements(element, "pill").map((pill) => ({
-                        url: pill.attribs.url,
-                        text: pill.attribs.text,
-                    })),
-                },
-            })
-        )
-        .with(
-            "homepage-search",
-            (): RawBlockHomepageSearch => ({
-                type: "homepage-search",
-                value: {},
-            })
-        )
-        .with(
-            "homepage-intro",
-            (): RawBlockHomepageIntro => ({
-                type: "homepage-intro",
-                value: {
-                    "featured-work": getChildElements(
-                        element,
-                        "featured-work"
-                    ).map((post) => ({
+                          })),
+                      }
+                    : undefined,
+                latest: getChildElement(element, "latest")
+                    ? {
+                          heading: getChildElement(element, "latest")!.attribs
+                              .heading,
+                      }
+                    : undefined,
+            },
+        }))
+        .with("explorer-tiles", (): RawBlockExplorerTiles => ({
+            type: "explorer-tiles",
+            value: {
+                title: attribs.title,
+                subtitle: attribs.subtitle,
+                explorers: getChildElements(element, "explorer").map((e) => ({
+                    url: e.attribs.url,
+                })),
+            },
+        }))
+        .with("pill-row", (): RawBlockPillRow => ({
+            type: "pill-row",
+            value: {
+                title: attribs.title,
+                pills: getChildElements(element, "pill").map((pill) => ({
+                    url: pill.attribs.url,
+                    text: pill.attribs.text,
+                })),
+            },
+        }))
+        .with("homepage-search", (): RawBlockHomepageSearch => ({
+            type: "homepage-search",
+            value: {},
+        }))
+        .with("homepage-intro", (): RawBlockHomepageIntro => ({
+            type: "homepage-intro",
+            value: {
+                "featured-work": getChildElements(element, "featured-work").map(
+                    (post) => ({
                         url: post.attribs.url,
                         title: post.attribs.title,
                         description: post.attribs.description,
@@ -1055,158 +903,118 @@ function elementToRawBlock(element: Element): OwidRawGdocBlock {
                         kicker: post.attribs.kicker,
                         authors: post.attribs.authors,
                         isNew: post.attribs.isNew,
-                    })),
-                },
-            })
-        )
-        .with(
-            "featured-metrics",
-            (): RawBlockFeaturedMetrics => ({
-                type: "featured-metrics",
-                value: {},
-            })
-        )
-        .with(
-            "featured-data-insights",
-            (): RawBlockFeaturedDataInsights => ({
-                type: "featured-data-insights",
-                value: {},
-            })
-        )
-        .with(
-            "latest-data-insights",
-            (): RawBlockLatestDataInsights => ({
-                type: "latest-data-insights",
-                value: {},
-            })
-        )
-        .with(
-            "cookie-notice",
-            (): RawBlockCookieNotice => ({
-                type: "cookie-notice",
-                value: {},
-            })
-        )
-        .with(
-            "subscribe-banner",
-            (): RawBlockSubscribeBanner => ({
-                type: "subscribe-banner",
-                value: attribs.align ? { align: attribs.align } : {},
-            })
-        )
-        .with(
-            "cta",
-            (): RawBlockCta => ({
-                type: "cta",
-                value: {
-                    text: attribs.text,
-                    url: attribs.url,
-                },
-            })
-        )
-        .with(
-            "socials",
-            (): RawBlockSocials => ({
-                type: "socials",
-                value: getChildElements(element, "link").map((link) => ({
-                    url: link.attribs.url,
-                    text: link.attribs.text,
-                    type: link.attribs.type,
-                })) as RawSocialLink[],
-            })
-        )
-        .with(
-            "people",
-            (): RawBlockPeople => ({
-                type: "people",
-                value: getChildElements(element, "person").map(
+                    })
+                ),
+            },
+        }))
+        .with("featured-metrics", (): RawBlockFeaturedMetrics => ({
+            type: "featured-metrics",
+            value: {},
+        }))
+        .with("featured-data-insights", (): RawBlockFeaturedDataInsights => ({
+            type: "featured-data-insights",
+            value: {},
+        }))
+        .with("latest-data-insights", (): RawBlockLatestDataInsights => ({
+            type: "latest-data-insights",
+            value: {},
+        }))
+        .with("cookie-notice", (): RawBlockCookieNotice => ({
+            type: "cookie-notice",
+            value: {},
+        }))
+        .with("subscribe-banner", (): RawBlockSubscribeBanner => ({
+            type: "subscribe-banner",
+            value: attribs.align ? { align: attribs.align } : {},
+        }))
+        .with("cta", (): RawBlockCta => ({
+            type: "cta",
+            value: {
+                text: attribs.text,
+                url: attribs.url,
+            },
+        }))
+        .with("socials", (): RawBlockSocials => ({
+            type: "socials",
+            value: getChildElements(element, "link").map((link) => ({
+                url: link.attribs.url,
+                text: link.attribs.text,
+                type: link.attribs.type,
+            })) as RawSocialLink[],
+        }))
+        .with("people", (): RawBlockPeople => ({
+            type: "people",
+            value: getChildElements(element, "person").map(elementToRawPerson),
+        }))
+        .with("people-rows", (): RawBlockPeopleRows => ({
+            type: "people-rows",
+            value: {
+                columns: attribs.columns as "2" | "4",
+                people: getChildElements(element, "person").map(
                     elementToRawPerson
                 ),
-            })
-        )
-        .with(
-            "people-rows",
-            (): RawBlockPeopleRows => ({
-                type: "people-rows",
-                value: {
-                    columns: attribs.columns as "2" | "4",
-                    people: getChildElements(element, "person").map(
-                        elementToRawPerson
-                    ),
-                },
-            })
-        )
+            },
+        }))
         .with("person", (): RawBlockPerson => elementToRawPerson(element))
-        .with(
-            "resource-panel",
-            (): RawBlockResourcePanel => ({
-                type: "resource-panel",
-                value: {
-                    icon: attribs.icon as "link" | "download" | undefined,
-                    kicker: attribs.kicker,
-                    title: attribs.title,
-                    buttonText: attribs.buttonText,
-                    links: getChildElements(element, "link").map((link) => ({
-                        url: link.attribs.url,
-                        title: link.attribs.title,
-                        subtitle: link.attribs.subtitle,
-                    })),
-                },
-            })
-        )
-        .with(
-            "data-callout",
-            (): RawBlockDataCallout => ({
-                type: "data-callout",
-                value: {
-                    url: attribs.url,
-                    content:
-                        getAllChildElements(element).map(elementToRawBlock),
-                },
-            })
-        )
-        .with(
-            "data-callout-group",
-            (): RawBlockDataCalloutGroup => ({
-                type: "data-callout-group",
-                value: {
-                    content:
-                        getAllChildElements(element).map(elementToRawBlock),
-                },
-            })
-        )
-        .with(
-            "chart-rows",
-            (): RawBlockChartRows => ({
-                type: "chart-rows",
-                value: {
-                    kicker: attribs.kicker,
-                    title: attribs.title,
-                    source: attribs.source,
-                    rows: getChildElements(element, "row").map((row) => ({
+        .with("resource-panel", (): RawBlockResourcePanel => ({
+            type: "resource-panel",
+            value: {
+                icon: attribs.icon as "link" | "download" | undefined,
+                kicker: attribs.kicker,
+                title: attribs.title,
+                buttonText: attribs.buttonText,
+                links: getChildElements(element, "link").map((link) => ({
+                    url: link.attribs.url,
+                    title: link.attribs.title,
+                    subtitle: link.attribs.subtitle,
+                })),
+            },
+        }))
+        .with("data-callout", (): RawBlockDataCallout => ({
+            type: "data-callout",
+            value: {
+                url: attribs.url,
+                content: getAllChildElements(element).map(elementToRawBlock),
+            },
+        }))
+        .with("data-callout-group", (): RawBlockDataCalloutGroup => ({
+            type: "data-callout-group",
+            value: {
+                content: getAllChildElements(element).map(elementToRawBlock),
+            },
+        }))
+        .with("chart-rows", (): RawBlockChartRows => ({
+            type: "chart-rows",
+            value: {
+                kicker: attribs.kicker,
+                title: attribs.title,
+                source: attribs.source,
+                rows: getChildElements(element, "row").map((row) => {
+                    const captionElement = getChildElement(row, "caption")
+                    return {
                         image: row.attribs.image,
                         url: row.attribs.url,
-                        content: getAllChildElements(row).map(
-                            elementToRawBlock
-                        ) as RawBlockText[],
-                    })),
-                },
-            })
-        )
-        .with(
-            "pull-chart",
-            (): RawBlockPullChart => ({
-                type: "pull-chart",
-                value: {
-                    align: attribs.align,
-                    image: attribs.image,
-                    url: attribs.url,
-                    content: getAllChildElements(element).map(
-                        elementToRawBlock
-                    ) as RawBlockText[],
-                },
-            })
-        )
+                        caption: captionElement
+                            ? getSpanContent(captionElement)
+                            : undefined,
+                        content: getAllChildElements(row)
+                            .filter((child) => child !== captionElement)
+                            .map(elementToRawBlock) as RawBlockText[],
+                    }
+                }),
+            },
+        }))
+        .with("pull-chart", (): RawBlockPullChart => ({
+            type: "pull-chart",
+            value: {
+                align: attribs.align,
+                image: attribs.image,
+                url: attribs.url,
+                content: getAllChildElements(element).map(
+                    elementToRawBlock
+                ) as RawBlockText[],
+            },
+        }))
         .with(
             "country-profile-selector",
             (): RawBlockCountryProfileSelector => ({
@@ -1219,22 +1027,19 @@ function elementToRawBlock(element: Element): OwidRawGdocBlock {
                 },
             })
         )
-        .with(
-            "bespoke-component",
-            (): RawBlockBespokeComponent => ({
-                type: "bespoke-component",
-                value: {
-                    bundle: attribs.bundle,
-                    variant: attribs.variant,
-                    size: attribs.size as BlockSize | undefined,
-                    config: Object.fromEntries(
-                        Object.entries(attribs)
-                            .filter(([k]) => k.startsWith("config-"))
-                            .map(([k, v]) => [k.slice(7), v])
-                    ),
-                },
-            })
-        )
+        .with("bespoke-component", (): RawBlockBespokeComponent => ({
+            type: "bespoke-component",
+            value: {
+                bundle: attribs.bundle,
+                variant: attribs.variant,
+                size: attribs.size as BlockSize | undefined,
+                config: Object.fromEntries(
+                    Object.entries(attribs)
+                        .filter(([k]) => k.startsWith("config-"))
+                        .map(([k, v]) => [k.slice(7), v])
+                ),
+            },
+        }))
         .otherwise(() => {
             throw new XhtmlParseError(`Unknown block type: <${tag}>`)
         })
@@ -1337,7 +1142,9 @@ function attachBlockIds(
             if (rowElements.length !== enriched.rows.length) return
             rowElements.forEach((rowElement, i) =>
                 attachIdsToChildren(
-                    childTags(rowElement),
+                    childTags(rowElement).filter(
+                        (child) => child.tagName?.toLowerCase() !== "caption"
+                    ),
                     enriched.rows[i]?.content
                 )
             )
