@@ -85,17 +85,14 @@ export const DataPageV2 = (props: {
     )
 
     // Only previews get a comment context, which is what gates the overlay:
-    // public visitors never receive it, so nothing about comments loads.
+    // public visitors never receive it, so nothing about comments loads. An
+    // indicator's own preview has no chart, so it gets no context either -
+    // comments always hang off a chart or a multi-dim view.
     const commentPageContext = isPreviewing
         ? buildCommentPageContext({
               chartId: grapher?.id,
-              chartLabel: pageTitle,
               grapher,
               datapageData,
-              variables: variableIds.map((variableId) => ({
-                  variableId,
-                  label: datapageData.title.title,
-              })),
           })
         : undefined
 

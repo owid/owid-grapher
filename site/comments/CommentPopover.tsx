@@ -5,7 +5,7 @@ import { CommentThread } from "./CommentThread.js"
 import { CommentField } from "./commentFields.js"
 import { CommentPageTarget, OtherViewComments } from "./commentContext.js"
 import {
-    CommentThreadWithTarget,
+    CommentThreadData,
     useCreateComment,
     useDeleteComment,
     useSetThreadResolved,
@@ -29,7 +29,7 @@ export function CommentPopover({
 }: {
     field: CommentField
     target: CommentPageTarget
-    threads: CommentThreadWithTarget[]
+    threads: CommentThreadData[]
     /** Other multi-dim views carrying comments on this same field */
     otherViews: OtherViewComments[]
     currentUserId: number | undefined

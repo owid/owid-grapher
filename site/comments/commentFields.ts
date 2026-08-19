@@ -22,18 +22,15 @@ export interface CommentField {
      * there is no server-side value to match against.
      */
     grapherPart?: "title" | "subtitle" | "note"
-    /** Index into CommentPageContext.targets */
-    targetIndex: number
 }
 
 function textField(
     key: string,
     label: string,
-    value: string | number | undefined | null,
-    targetIndex: number
+    value: string | number | undefined | null
 ): CommentField | undefined {
     if (value === undefined || value === null || value === "") return undefined
-    return { key, label, value: String(value), targetIndex }
+    return { key, label, value: String(value) }
 }
 
 /**
@@ -42,103 +39,74 @@ function textField(
  * change as the reader switches dimensions - work without the server knowing
  * which view is on screen.
  */
-export function chartCommentFields(targetIndex: number): CommentField[] {
+export function chartCommentFields(): CommentField[] {
     return [
-        {
-            key: "title",
-            label: "Chart title",
-            grapherPart: "title",
-            targetIndex,
-        },
-        {
-            key: "subtitle",
-            label: "Chart subtitle",
-            grapherPart: "subtitle",
-            targetIndex,
-        },
-        { key: "note", label: "Chart note", grapherPart: "note", targetIndex },
+        { key: "title", label: "Chart title", grapherPart: "title" },
+        { key: "subtitle", label: "Chart subtitle", grapherPart: "subtitle" },
+        { key: "note", label: "Chart note", grapherPart: "note" },
     ]
 }
 
-/** Indicator metadata, as shown on a data page */
+/**
+ * The indicator metadata a data page puts on screen. These describe an
+ * indicator, but a comment on one is recorded against the chart or multi-dim
+ * view showing it - it says "the unit on this chart is wrong", not "indicator
+ * 1234's unit is wrong".
+ */
 export function indicatorCommentFields(
-    datapageData: DataPageDataV2,
-    targetIndex: number
+    datapageData: DataPageDataV2
 ): CommentField[] {
     const attribution = datapageData.attributions?.join("; ")
     return [
         textField(
             "indicatorTitle",
             "Indicator title",
-            datapageData.title?.title,
-            targetIndex
+            datapageData.title?.title
         ),
-        textField(
-            "titleVariant",
-            "Title variant",
-            datapageData.titleVariant,
-            targetIndex
-        ),
+        textField("titleVariant", "Title variant", datapageData.titleVariant),
         textField(
             "descriptionShort",
             "Short description",
-            datapageData.descriptionShort,
-            targetIndex
+            datapageData.descriptionShort
         ),
         textField(
             "descriptionKey",
             "What you should know",
-            datapageData.descriptionKey,
-            targetIndex
+            datapageData.descriptionKey
         ),
         textField(
             "descriptionFromProducer",
             "Description from producer",
-            datapageData.descriptionFromProducer,
-            targetIndex
+            datapageData.descriptionFromProducer
         ),
         textField(
             "descriptionProcessing",
             "How we process this data",
-            datapageData.descriptionProcessing,
-            targetIndex
+            datapageData.descriptionProcessing
         ),
-        textField("source", "Data source", attribution, targetIndex),
-        textField("unit", "Unit", datapageData.unit, targetIndex),
+        textField("source", "Data source", attribution),
+        textField("unit", "Unit", datapageData.unit),
         textField(
             "unitConversionFactor",
             "Unit conversion factor",
-            datapageData.unitConversionFactor,
-            targetIndex
+            datapageData.unitConversionFactor
         ),
-        textField(
-            "dateRange",
-            "Date range",
-            datapageData.dateRange,
-            targetIndex
-        ),
-        textField(
-            "lastUpdated",
-            "Last updated",
-            datapageData.lastUpdated,
-            targetIndex
-        ),
+        textField("dateRange", "Date range", datapageData.dateRange),
+        textField("lastUpdated", "Last updated", datapageData.lastUpdated),
         textField(
             "nextUpdate",
             "Next expected update",
-            datapageData.nextUpdate,
-            targetIndex
+            datapageData.nextUpdate
         ),
     ].filter((field): field is CommentField => field !== undefined)
 }
 
 /** Chart-level fields taken from a grapher config, for pages without a data page */
 export function chartFieldsFromConfig(
-    grapher: GrapherInterface | undefined,
-    targetIndex: number
+    grapher: GrapherInterface | undefined
 ): CommentField[] {
     if (!grapher) return []
-    return chartCommentFields(targetIndex).filter((field) => {
+    return chartCommentFields().filter((field) => {
         if (field.grapherPart === "title") return !!grapher.title
         if (field.grapherPart === "subtitle") return !!grapher.subtitle
         if (field.grapherPart === "note") return !!grapher.note

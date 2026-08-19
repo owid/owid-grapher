@@ -95,11 +95,27 @@ describe("Comments API", { timeout: 15000 }, () => {
             method: "POST",
             path: "/comments",
             body: JSON.stringify({
-                targetType: CommentTargetType.Variable,
+                targetType: CommentTargetType.MultiDim,
                 targetId: chartId,
-                content: "Chart ids are not variable ids",
+                content: "Chart ids are not multi-dim ids",
             }),
             expectedStatus: 404,
+        })
+    })
+
+    it("refuses to attach a comment to an indicator", async () => {
+        // Metadata is commented on as a chart or multi-dim view presents it, so
+        // that a comment never spreads to unrelated charts using the same
+        // indicator. Indicator targets are rejected before they reach the table.
+        await requestExpectingError({
+            method: "POST",
+            path: "/comments",
+            body: JSON.stringify({
+                targetType: "variable",
+                targetId: 1,
+                content: "Indicators are not commentable",
+            }),
+            expectedStatus: 400,
         })
     })
 

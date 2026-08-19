@@ -2,9 +2,14 @@ import { JsonString } from "../domainTypes/Various.js"
 
 export const CommentsTableName = "comments"
 
+/**
+ * A comment is always attached to something a reader sees: a chart or a
+ * multi-dim view. Indicators are deliberately not commentable - metadata is
+ * commented on as the chart presents it, and working out that a value comes
+ * from an indicator is left to whoever triages the comment.
+ */
 export enum CommentTargetType {
     Chart = "chart",
-    Variable = "variable",
     MultiDim = "multiDim",
 }
 

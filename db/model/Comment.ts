@@ -11,7 +11,6 @@ import * as db from "../db.js"
 
 const TABLE_BY_TARGET_TYPE: Record<CommentTargetType, string> = {
     [CommentTargetType.Chart]: "charts",
-    [CommentTargetType.Variable]: "variables",
     [CommentTargetType.MultiDim]: "multi_dim_data_pages",
 }
 
@@ -31,10 +30,10 @@ export async function commentTargetExists(
  * The target's identity outside this database. Auto-increment ids only mean
  * something in the database that issued them, and staging is a clone of
  * production that then diverges, so a comment records a portable key too:
- * a chart's config UUID, or an indicator's or multi-dim's catalog path.
+ * a chart's config UUID, or a multi-dim's catalog path.
  *
- * Null when the target has none - some legacy indicators have no catalogPath -
- * which costs portability for that comment but never blocks writing it.
+ * Null when the target has none, which costs portability for that comment but
+ * never blocks writing it.
  */
 export async function getCommentTargetKey(
     knex: db.KnexReadonlyTransaction,
@@ -43,8 +42,6 @@ export async function getCommentTargetKey(
     const queryByType: Record<CommentTargetType, string> = {
         [CommentTargetType.Chart]:
             "SELECT configId AS `key` FROM charts WHERE id = ?",
-        [CommentTargetType.Variable]:
-            "SELECT catalogPath AS `key` FROM variables WHERE id = ?",
         [CommentTargetType.MultiDim]:
             "SELECT catalogPath AS `key` FROM multi_dim_data_pages WHERE id = ?",
     }

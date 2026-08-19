@@ -13,18 +13,6 @@ import {
 } from "./commentFields.js"
 
 /**
- * What a page lets staff comment on. Serialized by the page renderers (only
- * when previewing) so the overlay never has to infer targets from the grapher
- * config, and so a page can expose several targets at once: a chart page also
- * carries the indicators it draws on, so indicator-level feedback left
- * elsewhere still surfaces here.
- */
-export interface CommentPageTarget extends CommentTarget {
-    /** Shown in the panel to say which thing a thread hangs off */
-    label: string
-}
-
-/**
  * A multi-dim dimension, reduced to what the overlay needs: the slug to read the
  * view out of the URL, and names to say in words which view a comment sits on.
  */
@@ -34,12 +22,18 @@ export interface CommentMultiDimDimension {
     choices: { slug: string; name: string }[]
 }
 
+/**
+ * What a page lets staff comment on. Serialized by the page renderers (only when
+ * previewing) so the overlay never has to infer it from the grapher config.
+ *
+ * Indicators are deliberately not targets. Every field on the page - including
+ * the indicator metadata a data page shows - is commented on as this chart or
+ * view presents it, so a comment never spreads to unrelated charts that happen
+ * to use the same indicator.
+ */
 export interface CommentPageContext {
-    /**
-     * Everything the page can show comments for. The first entry is the page's
-     * subject and receives newly created comments.
-     */
-    targets: CommentPageTarget[]
+    /** The chart or multi-dim every comment on this page is attached to */
+    target: CommentTarget
     /** The metadata fields on this page that can be commented on */
     fields: CommentField[]
     /**
@@ -68,63 +62,44 @@ declare global {
  */
 export function buildCommentPageContext({
     chartId,
-    chartLabel,
     grapher,
     multiDim,
-    variables,
     datapageData,
 }: {
     chartId?: number
-    chartLabel?: string
     /** Used only to tell which chart-level fields the page actually shows */
     grapher?: GrapherInterface
     multiDim?: {
         id: number
-        label: string
         dimensions: CommentMultiDimDimension[]
         defaultView?: CommentViewState
     }
-    variables?: { variableId: number; label: string }[]
     datapageData?: DataPageDataV2
 }): CommentPageContext | undefined {
-    const targets: CommentPageTarget[] = []
-    // The page's subject goes first and receives new comments
+    // Without a chart or a multi-dim there is nothing a comment could attach
+    // to, so the page gets no commenting at all. That is the case for an
+    // indicator's own data page preview.
+    let target: CommentTarget
     if (multiDim)
-        targets.push({
+        target = {
             targetType: CommentTargetType.MultiDim,
             targetId: multiDim.id,
-            label: multiDim.label,
-        })
+        }
     else if (chartId !== undefined)
-        targets.push({
-            targetType: CommentTargetType.Chart,
-            targetId: chartId,
-            label: chartLabel ?? "This chart",
-        })
-    const firstVariableIndex = targets.length
-    for (const variable of variables ?? []) {
-        targets.push({
-            targetType: CommentTargetType.Variable,
-            targetId: variable.variableId,
-            label: variable.label,
-        })
-    }
-    if (!targets.length) return undefined
+        target = { targetType: CommentTargetType.Chart, targetId: chartId }
+    else return undefined
 
-    // Chart-level fields belong to the chart or multi-dim when the page has
-    // one. An indicator preview has neither, so they fall to the indicator,
-    // whose own default config is what's being rendered anyway.
+    // A multi-dim's title, subtitle and note change per view, so they are always
+    // offered; a plain chart only shows the ones its config actually sets.
     const chartLevel = multiDim
-        ? chartCommentFields(0)
-        : chartId !== undefined
-          ? chartFieldsFromConfig(grapher, 0)
-          : chartFieldsFromConfig(grapher, firstVariableIndex)
+        ? chartCommentFields()
+        : chartFieldsFromConfig(grapher)
     const indicatorLevel = datapageData
-        ? indicatorCommentFields(datapageData, firstVariableIndex)
+        ? indicatorCommentFields(datapageData)
         : []
 
     return {
-        targets,
+        target,
         fields: [...chartLevel, ...indicatorLevel],
         multiDimDimensions: multiDim?.dimensions,
         multiDimDefaultView: multiDim?.defaultView,
@@ -133,11 +108,7 @@ export function buildCommentPageContext({
 
 export function getCommentPageContext(): CommentPageContext | undefined {
     const context = window._OWID_COMMENT_CONTEXT
-    return context?.targets.length ? context : undefined
-}
-
-export function isSameTarget(a: CommentTarget, b: CommentTarget): boolean {
-    return a.targetType === b.targetType && a.targetId === b.targetId
+    return context?.target ? context : undefined
 }
 
 /**

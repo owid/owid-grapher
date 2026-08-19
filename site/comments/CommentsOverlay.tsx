@@ -1,21 +1,19 @@
 import { useEffect, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
 import cx from "clsx"
-import { CommentTarget, CommentViewState } from "@ourworldindata/types"
+import { CommentViewState } from "@ourworldindata/types"
 import { findFieldElement } from "./commentAnchors.js"
 import { CommentField } from "./commentFields.js"
 import {
     CommentPageContext,
-    CommentPageTarget,
     OtherViewComments,
     groupOtherViews,
-    isSameTarget,
     isSameViewState,
     readCurrentViewState,
     subscribeToUrlChanges,
 } from "./commentContext.js"
 import { CommentPopover } from "./CommentPopover.js"
-import { useCommentThreadsForTargets } from "./useComments.js"
+import { useCommentThreadsForTarget } from "./useComments.js"
 import "./Comments.scss"
 
 const COMMENT_MODE_BODY_CLASS = "comments-mode"
@@ -42,14 +40,6 @@ function storeCommentMode(isOn: boolean): void {
     } catch {
         // ignore
     }
-}
-
-/**
- * Counts are per field *and* per target: a chart and an indicator can both have
- * a field called "title", and they are different fields.
- */
-function fieldCountKey(target: CommentTarget, anchor: string): string {
-    return `${target.targetType}:${target.targetId}:${anchor}`
 }
 
 interface PlacedBubble {
@@ -81,7 +71,6 @@ interface PlacedBubbleGroup {
  */
 function useBubblePlacements(
     fields: CommentField[],
-    targets: CommentPageTarget[],
     countByKey: Map<string, number>,
     elsewhereCountByKey: Map<string, number>,
     isOn: boolean
@@ -106,11 +95,10 @@ function useBubblePlacements(
                 if (!element) continue
                 const rect = element.getBoundingClientRect()
                 if (!rect.width && !rect.height) continue
-                const key = fieldCountKey(targets[field.targetIndex], field.key)
                 const bubble: PlacedBubble = {
                     field,
-                    count: countByKey.get(key) ?? 0,
-                    elsewhereCount: elsewhereCountByKey.get(key) ?? 0,
+                    count: countByKey.get(field.key) ?? 0,
+                    elsewhereCount: elsewhereCountByKey.get(field.key) ?? 0,
                 }
                 // Fields sharing an element join its group, so the row grows
                 // sideways instead of the bubbles piling up
@@ -162,7 +150,7 @@ function useBubblePlacements(
             observer.disconnect()
             window.removeEventListener("resize", schedule)
         }
-    }, [fields, targets, countByKey, elsewhereCountByKey, isOn])
+    }, [fields, countByKey, elsewhereCountByKey, isOn])
 
     return placements
 }
@@ -175,7 +163,7 @@ export function CommentsOverlay({
     const [isOn, setIsOn] = useState(readStoredCommentMode)
     const [openFieldKey, setOpenFieldKey] = useState<string | null>(null)
 
-    const { targets, fields, multiDimDimensions } = context
+    const { target, fields, multiDimDimensions } = context
     const dimensions = useMemo(
         () => multiDimDimensions ?? [],
         [multiDimDimensions]
@@ -192,7 +180,7 @@ export function CommentsOverlay({
         )
     }, [isMultiDim, context])
 
-    const { threads, currentUserId } = useCommentThreadsForTargets(targets)
+    const { threads, currentUserId } = useCommentThreadsForTarget(target)
 
     // A thread belongs to the view it was left on, so on a multi-dim the other
     // views' threads stay out of this one.
@@ -210,9 +198,9 @@ export function CommentsOverlay({
     const countByKey = useMemo(() => {
         const counts = new Map<string, number>()
         for (const thread of threadsHere) {
-            if (!thread.root.anchor || thread.root.resolvedAt) continue
-            const key = fieldCountKey(thread.target, thread.root.anchor)
-            counts.set(key, (counts.get(key) ?? 0) + 1)
+            const { anchor, resolvedAt } = thread.root
+            if (!anchor || resolvedAt) continue
+            counts.set(anchor, (counts.get(anchor) ?? 0) + 1)
         }
         return counts
     }, [threadsHere])
@@ -227,15 +215,13 @@ export function CommentsOverlay({
             const { anchor, resolvedAt, viewState: threadView } = thread.root
             if (resolvedAt || !anchor || !threadView) continue
             if (isSameViewState(threadView, viewState)) continue
-            const key = fieldCountKey(thread.target, anchor)
-            counts.set(key, (counts.get(key) ?? 0) + 1)
+            counts.set(anchor, (counts.get(anchor) ?? 0) + 1)
         }
         return counts
     }, [threads, isMultiDim, viewState])
 
     const placements = useBubblePlacements(
         fields,
-        targets,
         countByKey,
         elsewhereCountByKey,
         isOn
@@ -287,11 +273,7 @@ export function CommentsOverlay({
     // Field keys are only unique within a target - a chart and an indicator can
     // both have a "title" - so match the target as well as the key
     const threadsForOpenField = open
-        ? threadsHere.filter(
-              (thread) =>
-                  thread.root.anchor === open.field.key &&
-                  isSameTarget(thread.target, targets[open.field.targetIndex])
-          )
+        ? threadsHere.filter((thread) => thread.root.anchor === open.field.key)
         : []
 
     // The other views that hold comments on the field being read, so the
@@ -302,11 +284,7 @@ export function CommentsOverlay({
                   .filter(
                       (thread) =>
                           !thread.root.resolvedAt &&
-                          thread.root.anchor === open.field.key &&
-                          isSameTarget(
-                              thread.target,
-                              targets[open.field.targetIndex]
-                          )
+                          thread.root.anchor === open.field.key
                   )
                   .map((thread) => thread.root.viewState),
               viewState,
@@ -426,7 +404,7 @@ export function CommentsOverlay({
                         {open && (
                             <CommentPopover
                                 field={open.field}
-                                target={targets[open.field.targetIndex]}
+                                target={target}
                                 threads={threadsForOpenField}
                                 otherViews={otherViewsForOpenField}
                                 currentUserId={currentUserId}

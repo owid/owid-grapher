@@ -1,6 +1,6 @@
 import {
     useMutation,
-    useQueries,
+    useQuery,
     useQueryClient,
     UseMutationResult,
 } from "@tanstack/react-query"
@@ -9,7 +9,6 @@ import {
     CommentViewState,
     CommentWithAuthor,
 } from "@ourworldindata/types"
-import { CommentPageTarget } from "./commentContext.js"
 
 // Both the admin SPA and the admin-served preview pages are same-origin with
 // the admin API, so relative paths work in every host of this hook.
@@ -47,13 +46,8 @@ function commentsQueryKey(target: CommentTarget): (string | number)[] {
     return ["comments", target.targetType, target.targetId]
 }
 
-/** A thread plus the target it hangs off, for pages that show several */
-export interface CommentThreadWithTarget extends CommentThreadData {
-    target: CommentPageTarget
-}
-
 export interface PageCommentsData {
-    threads: CommentThreadWithTarget[]
+    threads: CommentThreadData[]
     currentUserId: number | undefined
     isLoading: boolean
     error: Error | undefined
@@ -71,41 +65,28 @@ function fetchCommentsForTarget(
 }
 
 /**
- * Comments for every target a page exposes. A chart page asks for the chart and
- * for each indicator it draws on, so metadata feedback left on an indicator's
- * own data page still shows up wherever that indicator is used.
+ * Every comment on the page's subject - the chart or the multi-dim. There is
+ * only ever one, since indicators are not commentable: metadata is commented on
+ * as this chart or view shows it.
  */
-export function useCommentThreadsForTargets(
-    targets: CommentPageTarget[],
+export function useCommentThreadsForTarget(
+    target: CommentTarget,
     { includeResolved = false }: { includeResolved?: boolean } = {}
 ): PageCommentsData {
-    const results = useQueries({
-        queries: targets.map((target) => ({
-            queryKey: [...commentsQueryKey(target), { includeResolved }],
-            queryFn: () => fetchCommentsForTarget(target, includeResolved),
-        })),
-    })
-
-    const threads: CommentThreadWithTarget[] = []
-    results.forEach((result, index) => {
-        if (!result.data) return
-        for (const thread of groupIntoThreads(result.data.comments)) {
-            threads.push({ ...thread, target: targets[index] })
-        }
+    const result = useQuery({
+        queryKey: [...commentsQueryKey(target), { includeResolved }],
+        queryFn: () => fetchCommentsForTarget(target, includeResolved),
     })
 
     return {
-        threads,
-        currentUserId: results.find((r) => r.data)?.data?.currentUserId,
-        isLoading: results.some((result) => result.isLoading),
-        error: results.find((result) => result.error)?.error ?? undefined,
+        threads: result.data ? groupIntoThreads(result.data.comments) : [],
+        currentUserId: result.data?.currentUserId,
+        isLoading: result.isLoading,
+        error: result.error ?? undefined,
     }
 }
 
-/**
- * Invalidates every target's comments, not just one: a reply or a resolve can
- * affect a thread the page is showing under a different target.
- */
+/** Invalidates the comment queries after a write */
 function useInvalidateComments(): () => Promise<void> {
     const queryClient = useQueryClient()
     return () => queryClient.invalidateQueries({ queryKey: ["comments"] })
