@@ -263,13 +263,7 @@ export async function upsertMultiDim(
     const enrichedViews = await Promise.all(
         config.views.map(async (view) => {
             const variableId = view.indicators.y[0].id
-            // Main config for each view.
-            const mainGrapherConfig: GrapherInterface = {
-                $schema: defaultGrapherConfig.$schema,
-                dimensions: MultiDimDataPageConfig.viewToDimensionsConfig(view),
-                selectedEntityNames: config.defaultSelection ?? [],
-            }
-            let viewGrapherConfig = {}
+            let viewGrapherConfig: GrapherInterface = {}
             if (view.config) {
                 viewGrapherConfig = grapherConfigSchema
                     ? { $schema: grapherConfigSchema, ...view.config }
@@ -280,6 +274,19 @@ export async function upsertMultiDim(
                             viewGrapherConfig
                         )
                 }
+            }
+            // Main config for each view. The collection-wide default selection
+            // applies only to views that don't define their own; a view-level
+            // selectedEntityNames sets that view's initial selection, while a
+            // reader's own selection still carries across views as before.
+            // https://github.com/owid/owid-grapher/issues/4928
+            const mainGrapherConfig: GrapherInterface = {
+                $schema: defaultGrapherConfig.$schema,
+                dimensions: MultiDimDataPageConfig.viewToDimensionsConfig(view),
+            }
+            if (viewGrapherConfig.selectedEntityNames === undefined) {
+                mainGrapherConfig.selectedEntityNames =
+                    config.defaultSelection ?? []
             }
             const patchGrapherConfig = mergeGrapherConfigs(
                 viewGrapherConfig,
