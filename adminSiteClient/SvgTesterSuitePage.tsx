@@ -42,6 +42,7 @@ import pMap from "p-map"
 import {
     compareSvgsVisually,
     VISUAL_DIFF_CONCURRENCY,
+    type VisualVerdict,
 } from "./svgVisualDiff.js"
 
 const LIVE_URL = "https://ourworldindata.org"
@@ -63,15 +64,25 @@ const KIND_LABELS: Record<SvgTesterVerifyErrorEntry["kind"], string> = {
 
 const CHART_TYPE_PARAM = "chartType"
 
+/** Ordered as the list shows them: what to review first comes first */
+const VISUAL_VERDICT_LABELS: Record<VisualVerdict, string> = {
+    changed: "Visible change",
+    unknown: "Couldn't check",
+    identical: "No visible change",
+}
+
+const VISUAL_VERDICTS = Object.keys(VISUAL_VERDICT_LABELS) as VisualVerdict[]
+
 /** Which differences to list, once we know which ones only changed in markup */
-type VisualFilter = "changed" | "identical" | "all"
+type VisualFilter = VisualVerdict | "all"
 
 const DEFAULT_VISUAL_FILTER: VisualFilter = "changed"
 
 /** How many of a run's differences turned out to be markup-only */
 interface VisualSummary {
     total: number
-    identicalCount: number
+    /** Partial while the check is still going, empty before it starts */
+    counts: Partial<Record<VisualVerdict, number>>
     remainingCount: number
     /** False while the check is still going, when the counts are partial */
     isComplete: boolean
@@ -84,7 +95,7 @@ const IDLE_REFRESH_INTERVAL_MS = 30_000
 const VISUAL_DIFF_PROGRESS_MS = 250
 
 /** Stable identity, so holding results back doesn't itself rebuild the list */
-const NO_VISUAL_RESULTS: Record<string, boolean> = {}
+const NO_VISUAL_RESULTS: Record<string, VisualVerdict> = {}
 
 export function SvgTesterSuitePage() {
     const { admin } = useContext(AdminAppContext)
@@ -154,45 +165,57 @@ export function SvgTesterSuitePage() {
     const isReported = data ? hasReportedResult(data) : false
 
     // Check visual differences once the run has reported
-    const { identicalBySvg, remainingCount } = useVisualDiffs(
+    const { verdictBySvg, remainingCount } = useVisualDiffs(
         suite,
         differences,
         isReported ? results?.startedAt : undefined
     )
 
-    const applied = identicalBySvg ?? NO_VISUAL_RESULTS
+    const applied = verdictBySvg ?? NO_VISUAL_RESULTS
 
-    const [looksDifferent, rendersIdentically] = useMemo(
-        () => _.partition(visible, (entry) => !applied[entry.svgFilename]),
-        [visible, applied]
+    const grouped = useMemo(() => {
+        const byVerdict = _.groupBy(
+            visible,
+            (entry) => applied[entry.svgFilename] ?? "changed"
+        )
+        return {
+            changed: byVerdict.changed ?? [],
+            unknown: byVerdict.unknown ?? [],
+            identical: byVerdict.identical ?? [],
+        }
+    }, [visible, applied])
+
+    const populatedVerdicts = VISUAL_VERDICTS.filter(
+        (verdict) => grouped[verdict].length > 0
     )
-
-    const showVisualFilter =
-        looksDifferent.length > 0 && rendersIdentically.length > 0
-    const effectiveVisualFilter: VisualFilter = showVisualFilter
-        ? visualFilter
-        : "all"
-
-    const shown = useMemo(() => {
-        if (effectiveVisualFilter === "changed") return looksDifferent
-        if (effectiveVisualFilter === "identical") return rendersIdentically
-        return [...looksDifferent, ...rendersIdentically]
-    }, [effectiveVisualFilter, looksDifferent, rendersIdentically])
+    // Nothing to filter when every difference is in the same bucket
+    const showVisualFilter = populatedVerdicts.length > 1
 
     const visualFilterOptions = [
-        {
-            value: "changed" as const,
-            label: `Visible change (${looksDifferent.length.toLocaleString()})`,
-        },
-        {
-            value: "identical" as const,
-            label: `No visible change (${rendersIdentically.length.toLocaleString()})`,
-        },
+        ...populatedVerdicts.map((verdict) => ({
+            value: verdict,
+            label: `${VISUAL_VERDICT_LABELS[verdict]} (${grouped[verdict].length.toLocaleString()})`,
+        })),
         {
             value: "all" as const,
             label: `All (${visible.length.toLocaleString()})`,
         },
     ]
+
+    // The selection sticks, so it can name a bucket since emptied
+    const effectiveVisualFilter: VisualFilter = visualFilterOptions.some(
+        (option) => option.value === visualFilter
+    )
+        ? visualFilter
+        : "all"
+
+    const shown = useMemo(
+        () =>
+            effectiveVisualFilter === "all"
+                ? VISUAL_VERDICTS.flatMap((verdict) => grouped[verdict])
+                : grouped[effectiveVisualFilter],
+        [effectiveVisualFilter, grouped]
+    )
 
     const cards = useMemo(
         () =>
@@ -201,7 +224,7 @@ export function SvgTesterSuitePage() {
                     key={anchorId(entry.viewId, entry.queryStr)}
                     suite={suite}
                     entry={entry}
-                    visuallyIdentical={applied[entry.svgFilename]}
+                    verdict={applied[entry.svgFilename] ?? "changed"}
                 />
             )),
         [shown, suite, applied]
@@ -210,9 +233,11 @@ export function SvgTesterSuitePage() {
     const visualSummary = differences.length
         ? {
               total: differences.length,
-              identicalCount: Object.values(applied).filter(Boolean).length,
+              counts: _.countBy(Object.values(applied)) as Partial<
+                  Record<VisualVerdict, number>
+              >,
               remainingCount,
-              isComplete: identicalBySvg !== undefined,
+              isComplete: verdictBySvg !== undefined,
           }
         : undefined
 
@@ -409,17 +434,28 @@ function VisualHeadlineClause({
         return (
             <span className="SvgTesterSuitePage__visual-note">
                 {" · "}
-                {visual.remainingCount.toLocaleString()} left to check for
-                visible changes…
+                {visual.remainingCount > 0
+                    ? `${visual.remainingCount.toLocaleString()} left to check for visible changes…`
+                    : "rechecking what couldn't be checked…"}
             </span>
         )
 
-    const changedCount = visual.total - visual.identicalCount
+    const changedCount = visual.counts.changed ?? 0
+    const unknownCount = visual.counts.unknown ?? 0
+
+    // "none changed visibly" would be a finding, and there isn't one to report
+    if (unknownCount === visual.total)
+        return (
+            <span className="SvgTesterSuitePage__visual-note">
+                {" — "}
+                none could be checked for visible changes
+            </span>
+        )
 
     return (
         <>
             {" — "}
-            {!visual.identicalCount ? (
+            {changedCount === visual.total ? (
                 "all changed visibly"
             ) : changedCount ? (
                 <>
@@ -428,6 +464,12 @@ function VisualHeadlineClause({
                 </>
             ) : (
                 "none changed visibly"
+            )}
+            {unknownCount > 0 && (
+                <span className="SvgTesterSuitePage__visual-note">
+                    {", "}
+                    {unknownCount.toLocaleString()} couldn't be checked
+                </span>
             )}
         </>
     )
@@ -577,11 +619,11 @@ function CommitLabel({
 function DifferenceCard({
     suite,
     entry,
-    visuallyIdentical,
+    verdict,
 }: {
     suite: string
     entry: SvgTesterVerifyDifferenceEntry
-    visuallyIdentical: boolean | undefined
+    verdict: VisualVerdict
 }) {
     const [mode, setMode] = useState<ViewMode>("side-by-side")
     const beforeUrl = svgUrl(suite, "references", entry)
@@ -616,9 +658,16 @@ function DifferenceCard({
                             {entry.chartType}
                         </Tag>
                     )}
-                    {visuallyIdentical && (
-                        <Tag className="SvgTesterSuitePage__chart-type">
-                            No visible change
+                    {verdict !== "changed" && (
+                        <Tag
+                            className="SvgTesterSuitePage__chart-type"
+                            title={
+                                verdict === "unknown"
+                                    ? "The comparison failed or timed out, so this chart may not have changed at all"
+                                    : undefined
+                            }
+                        >
+                            {VISUAL_VERDICT_LABELS[verdict]}
                         </Tag>
                     )}
                 </span>
@@ -925,22 +974,22 @@ function useVisualDiffs(
     differences: SvgTesterVerifyDifferenceEntry[],
     runKey: string | undefined
 ): {
-    identicalBySvg: Record<string, boolean> | undefined
+    verdictBySvg: Record<string, VisualVerdict> | undefined
     remainingCount: number
 } {
-    const [identicalBySvg, setIdenticalBySvg] =
-        useState<Record<string, boolean>>()
+    const [verdictBySvg, setVerdictBySvg] =
+        useState<Record<string, VisualVerdict>>()
     const [checkedCount, setCheckedCount] = useState(0)
 
     useEffect(() => {
-        setIdenticalBySvg(undefined)
+        setVerdictBySvg(undefined)
         setCheckedCount(0)
         if (!suite || !runKey || !differences.length) return
 
         // Leaving the suite abandons whatever has not started: those answers are
         // for a report nobody is looking at any more.
         const abandon = new AbortController()
-        const identical: Record<string, boolean> = {}
+        const verdicts: Record<string, VisualVerdict> = {}
         let checked = 0
         // Thousands of answers, and only the countdown shows them arriving
         const publishProgress = _.throttle(
@@ -949,27 +998,50 @@ function useVisualDiffs(
             { leading: false }
         )
 
+        const check = async (
+            entry: SvgTesterVerifyDifferenceEntry
+        ): Promise<void> => {
+            verdicts[entry.svgFilename] = await compareSvgsVisually(
+                svgUrl(suite, "references", entry),
+                svgUrl(suite, "differences", entry),
+                runKey
+            )
+        }
+        const options = {
+            concurrency: VISUAL_DIFF_CONCURRENCY,
+            signal: abandon.signal,
+        }
+
         void pMap(
             differences,
             async (entry) => {
-                identical[entry.svgFilename] = await compareSvgsVisually(
-                    svgUrl(suite, "references", entry),
-                    svgUrl(suite, "differences", entry),
-                    runKey
-                )
+                await check(entry)
                 checked++
                 publishProgress()
             },
-            { concurrency: VISUAL_DIFF_CONCURRENCY, signal: abandon.signal }
-        ).then(
-            () => {
-                publishProgress.cancel()
-                setIdenticalBySvg(identical)
-            },
-            () => {
-                // Abandoned, so there is nothing to report
-            }
+            options
         )
+            // Whatever couldn't be checked gets one more go once the rest has
+            // drained: a pair that stalled behind the check's own traffic says
+            // nothing about the chart, and this is the quiet moment to ask again
+            .then(() =>
+                pMap(
+                    differences.filter(
+                        (entry) => verdicts[entry.svgFilename] === "unknown"
+                    ),
+                    check,
+                    options
+                )
+            )
+            .then(
+                () => {
+                    publishProgress.cancel()
+                    setVerdictBySvg(verdicts)
+                },
+                () => {
+                    // Abandoned, so there is nothing to report
+                }
+            )
 
         return () => {
             publishProgress.cancel()
@@ -978,7 +1050,7 @@ function useVisualDiffs(
     }, [suite, runKey, differences])
 
     return {
-        identicalBySvg,
+        verdictBySvg,
         remainingCount: differences.length - checkedCount,
     }
 }

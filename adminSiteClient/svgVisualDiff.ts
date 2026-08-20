@@ -21,6 +21,14 @@ export const VISUAL_DIFF_CONCURRENCY = 8
 const COMPARISON_TIMEOUT_MS = 20_000
 
 /**
+ * How long a yield may wait for an idle moment before going ahead anyway. The
+ * report re-renders throughout the check, so idle moments are scarce, and a pair
+ * needs several yields to get through: without a deadline one can sit long
+ * enough to be given up on even though nothing is wrong with it.
+ */
+const IDLE_DEADLINE_MS = 100
+
+/**
  * How many runs' worth of answers to keep. Revisiting the suite you just left is
  * then free, without holding every answer for every run the tab has ever shown.
  */
@@ -39,33 +47,31 @@ export type LoadPixels = (
 ) => Promise<RasterizedSvg | undefined>
 
 /**
- * A pair nothing could be said about — it failed, or it never came back. Kept
- * apart from "changed" so it can be shown as one without being remembered as
- * one.
+ * What a comparison came to. Not a boolean plus undefined: `!identical` would
+ * read a pair nothing is known about as one that changed.
  */
-const UNANSWERED = "unanswered"
-type Outcome = boolean | typeof UNANSWERED
+export type VisualVerdict = "identical" | "changed" | "unknown"
 
 export function createVisualDiffChecker(loadPixels: LoadPixels): {
     /**
-     * Whether the two SVGs paint the same pixels. Never rejects, and never
-     * hangs: a pair that can't be answered for resolves false, which leaves the
-     * chart in plain view. `runKey` scopes the cache, since the next run serves
-     * different files from the same URLs.
+     * What the two SVGs' pixels came to. Never rejects, and never hangs.
+     * `runKey` scopes the cache, since the next run serves different files from
+     * the same URLs. A pair that couldn't be checked isn't remembered, so asking
+     * again does the work again.
      */
     compare: (
         beforeUrl: string,
         afterUrl: string,
         runKey: string
-    ) => Promise<boolean>
+    ) => Promise<VisualVerdict>
 } {
-    const cachesByRun = new Map<string, Map<string, Promise<boolean>>>()
+    const cachesByRun = new Map<string, Map<string, Promise<VisualVerdict>>>()
 
-    function cacheFor(runKey: string): Map<string, Promise<boolean>> {
+    function cacheFor(runKey: string): Map<string, Promise<VisualVerdict>> {
         const existing = cachesByRun.get(runKey)
         if (existing) return existing
 
-        const cache = new Map<string, Promise<boolean>>()
+        const cache = new Map<string, Promise<VisualVerdict>>()
         cachesByRun.set(runKey, cache)
         // Insertion-ordered, so this drops the runs left longest ago
         for (const stale of [...cachesByRun.keys()].slice(0, -MAX_CACHED_RUNS))
@@ -77,27 +83,27 @@ export function createVisualDiffChecker(loadPixels: LoadPixels): {
         beforeUrl: string,
         afterUrl: string,
         abandoned: AbortSignal
-    ): Promise<Outcome> {
+    ): Promise<VisualVerdict> {
         const [before, after] = await Promise.all([
             loadPixels(beforeUrl, abandoned),
             loadPixels(afterUrl, abandoned),
         ])
-        if (!before || !after) return UNANSWERED
+        if (!before || !after) return "unknown"
         // A chart that changed size has visibly changed
         if (before.width !== after.width || before.height !== after.height)
-            return false
+            return "changed"
         // Comparing a few million bytes is the one long stretch left, so let
         // anything the user is doing go first
         await yieldToPage()
-        if (abandoned.aborted) return UNANSWERED
-        return pixelsEqual(before.data, after.data)
+        if (abandoned.aborted) return "unknown"
+        return pixelsEqual(before.data, after.data) ? "identical" : "changed"
     }
 
     function compare(
         beforeUrl: string,
         afterUrl: string,
         runKey: string
-    ): Promise<boolean> {
+    ): Promise<VisualVerdict> {
         const cache = cacheFor(runKey)
         const key = `${beforeUrl}\n${afterUrl}`
 
@@ -112,12 +118,11 @@ export function createVisualDiffChecker(loadPixels: LoadPixels): {
         const result = withTimeout(
             compareNow(beforeUrl, afterUrl, giveUp.signal),
             () => giveUp.abort()
-        ).then((outcome) => {
-            if (outcome !== UNANSWERED) return outcome
-            // Forgotten rather than remembered as changed: never hold a pair to
-            // an answer that never arrived
-            cache.delete(key)
-            return false
+        ).then((verdict) => {
+            // Forgotten rather than remembered: never hold a pair to an answer
+            // that never arrived
+            if (verdict === "unknown") cache.delete(key)
+            return verdict
         })
         cache.set(key, result)
         return result
@@ -136,22 +141,22 @@ function pixelsEqual(a: Uint8ClampedArray, b: Uint8ClampedArray): boolean {
 
 /** Reports a comparison that never came back, rather than never resolving */
 function withTimeout(
-    comparison: Promise<Outcome>,
+    comparison: Promise<VisualVerdict>,
     onTimeout: () => void
-): Promise<Outcome> {
-    return new Promise<Outcome>((resolve) => {
+): Promise<VisualVerdict> {
+    return new Promise<VisualVerdict>((resolve) => {
         const timer = setTimeout(() => {
             onTimeout()
-            resolve(UNANSWERED)
+            resolve("unknown")
         }, COMPARISON_TIMEOUT_MS)
         void comparison.then(
-            (outcome) => {
+            (verdict) => {
                 clearTimeout(timer)
-                resolve(outcome)
+                resolve(verdict)
             },
             () => {
                 clearTimeout(timer)
-                resolve(UNANSWERED)
+                resolve("unknown")
             }
         )
     })
@@ -171,7 +176,7 @@ function yieldToPage(): Promise<void> {
         return nextMacrotask()
     return new Promise((resolve) => {
         if (typeof requestIdleCallback === "function")
-            requestIdleCallback(() => resolve())
+            requestIdleCallback(() => resolve(), { timeout: IDLE_DEADLINE_MS })
         else setTimeout(resolve, 0)
     })
 }
