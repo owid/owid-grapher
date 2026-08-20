@@ -280,8 +280,8 @@ const customRegionDisplayOrder: Partial<Record<TooltipKey, string[]>> = {
     ],
     ihme_gbd_2: [
         "High-income North America (IHME GBD)",
-        "Central Latin America (IHME GBD)",
         "Caribbean (IHME GBD)",
+        "Central Latin America (IHME GBD)",
         "Andean Latin America (IHME GBD)",
         "Tropical Latin America (IHME GBD)",
         "Southern Latin America (IHME GBD)",
