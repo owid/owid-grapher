@@ -16,7 +16,7 @@
  * Exits non-zero on: missing sidecar, missing "type:" discriminator, an
  * archie example that fails to parse/validate, or a field description that
  * does not match the content interface. The registries are committed; the
- * "gdocs-references" CI workflow re-runs this generator and fails the build
+ * "gdocs-references" CI job re-runs this generator and fails the build
  * when the committed output is stale or a sidecar is invalid — run the
  * generator locally and commit the result.
  *
