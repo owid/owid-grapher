@@ -67,7 +67,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const response = await fetch(url)
         if (!response.ok)
             throw new Error(
-                `Failed to fetch CSV from ${url}: ${response.statusText}`
+                `Failed to fetch CSV from ${url}: ${response.status} ${response.statusText}`
             )
         const csv = await response.text()
         return new OwidTable(csv, columnDefs)

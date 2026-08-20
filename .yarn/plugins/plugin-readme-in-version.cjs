@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- CommonJS globals in a .cjs yarn plugin */
 // Puts the workspace readme into the manifest yarn sends to the npm registry.
 //
 // `yarn npm publish` attaches the readme to the packument root (`readme`), while

@@ -14,8 +14,6 @@ import {
     ViteEntryPoint,
 } from "./site/viteConstants.js"
 
-export { BUILD_TARGET }
-
 export const commonPlugins = (): PluginOption[] => [
     pluginSwcDecorators(),
     pluginReact(),

@@ -19,7 +19,7 @@
                 "types": "./dist/grapher.d.ts",
                 "import": "./dist/grapher.js"
             },
-            "./dist/grapher.css": "./dist/grapher.css",
+            "./grapher.css": "./dist/grapher.css",
             "./standalone": {
                 "types": "./dist/grapher.d.ts",
                 "import": "./dist/grapher.standalone.min.js"
