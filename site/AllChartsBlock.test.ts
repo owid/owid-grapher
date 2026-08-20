@@ -8,7 +8,7 @@ import {
 const makeHits = (...texts: string[]): SearchChartHit[] =>
     texts.map((title) => ({ title }) as SearchChartHit)
 
-describe(rankSuggestedKeywords.name, () => {
+describe(rankSuggestedKeywords, () => {
     const hits = makeHits(
         "Share of women in parliament",
         "Women in managerial positions",
@@ -153,7 +153,7 @@ describe(rankSuggestedKeywords.name, () => {
     })
 })
 
-describe(indexTopicVocabularyByName.name, () => {
+describe(indexTopicVocabularyByName, () => {
     const published = {
         "gender-ratio": {
             topic_name: "Gender Ratio",
