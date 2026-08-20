@@ -11,6 +11,7 @@ export type RawBlockStaticViz = {
     }
 }
 
+/** @see ./StaticViz.md */
 export type EnrichedBlockStaticViz = {
     type: "static-viz"
     name: string

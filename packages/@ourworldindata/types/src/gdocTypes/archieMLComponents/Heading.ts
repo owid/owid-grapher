@@ -13,6 +13,7 @@ export type RawBlockHeading = {
     value: RawBlockHeadingValue | ArchieMLUnexpectedNonObjectValue
 }
 
+/** @see ./Heading.md */
 export type EnrichedBlockHeading = {
     type: "heading"
     text: Span[]

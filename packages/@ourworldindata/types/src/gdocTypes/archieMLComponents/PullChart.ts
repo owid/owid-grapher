@@ -14,6 +14,7 @@ export type RawBlockPullChart = {
     }
 }
 
+/** @see ./PullChart.md */
 export type EnrichedBlockPullChart = {
     type: "pull-chart"
     align?: PullChartAlignment

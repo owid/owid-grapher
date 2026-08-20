@@ -354,7 +354,6 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockExpandableParagraph
     | EnrichedBlockTopicPageIntro
     | EnrichedBlockKeyInsights
-    | EnrichedBlockResearchAndWriting
     | EnrichedBlockAlign
     | EnrichedBlockTable
     | EnrichedBlockBlockquote

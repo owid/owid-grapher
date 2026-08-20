@@ -12,6 +12,7 @@ export type RawBlockList = {
     value: string[] | ArchieMLUnexpectedNonObjectValue
 }
 
+/** @see ./List.md */
 export type EnrichedBlockList = {
     type: "list"
     items: EnrichedBlockText[]

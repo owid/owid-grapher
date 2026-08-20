@@ -5,6 +5,7 @@ export type RawBlockLatestDataInsights = {
     value: Record<string, never>
 }
 
+/** @see ./LatestDataInsights.md */
 export type EnrichedBlockLatestDataInsights = {
     type: "latest-data-insights"
 } & EnrichedBlockWithParseErrors

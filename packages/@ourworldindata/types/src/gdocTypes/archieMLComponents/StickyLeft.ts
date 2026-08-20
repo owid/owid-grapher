@@ -12,6 +12,7 @@ export type RawBlockStickyLeftContainer = {
     }
 }
 
+/** @see ./StickyLeftContainer.md */
 export type EnrichedBlockStickyLeftContainer = {
     type: "sticky-left"
     left: OwidEnrichedGdocBlock[]

@@ -12,6 +12,7 @@ export type RawBlockCallout = {
     }
 }
 
+/** @see ./Callout.md */
 export type EnrichedBlockCallout = {
     type: "callout"
     icon?: "info"
