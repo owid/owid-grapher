@@ -50,7 +50,7 @@ export default function KeyDataTable({
                             )
                         }
                     </div>
-                    <div>
+                    <div data-comment-field="descriptionShort">
                         <SimpleMarkdownText
                             text={datapageData.descriptionShort}
                             useParagraphs={false}

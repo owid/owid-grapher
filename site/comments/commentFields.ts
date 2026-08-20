@@ -7,15 +7,14 @@ import { DataPageDataV2, GrapherInterface } from "@ourworldindata/types"
  * this typo" must stay attached after the typo is fixed) and the page being
  * laid out differently.
  *
- * Values travel alongside only so the overlay can find where to put a pin. They
- * are never used to identify a comment.
+ * Field values are never sent to the client. A field is located by the marker
+ * the rendering component puts on it, so the page never has to be searched for
+ * matching text.
  */
 export interface CommentField {
     /** Stored in comments.anchor. Stable across edits and redesigns. */
     key: string
     label: string
-    /** Current value, used to locate the field on the page. May be absent. */
-    value?: string
     /**
      * Chart-level fields are rendered by grapher and located exactly through
      * its data-grapher-part hooks; on a multi-dim they change per view, so
@@ -24,13 +23,18 @@ export interface CommentField {
     grapherPart?: "title" | "subtitle" | "note"
 }
 
+/**
+ * A field is only offered when the page actually has a value for it - an empty
+ * one is rendered nowhere, so it could never be located. The value itself is
+ * not kept.
+ */
 function textField(
     key: string,
     label: string,
     value: string | number | undefined | null
 ): CommentField | undefined {
     if (value === undefined || value === null || value === "") return undefined
-    return { key, label, value: String(value) }
+    return { key, label }
 }
 
 /**

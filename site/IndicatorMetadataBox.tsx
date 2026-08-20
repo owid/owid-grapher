@@ -251,7 +251,10 @@ function ExpandableSection({
                     </section>
                 }
                 {datapageData.descriptionFromProducer && (
-                    <section className="meta-expander__section">
+                    <section
+                        className="meta-expander__section"
+                        data-comment-field="descriptionFromProducer"
+                    >
                         <h2 className="meta-expander__section-title">
                             Documentation from data sources
                         </h2>
@@ -463,7 +466,10 @@ export default function IndicatorMetadataBox({
                 {datapageData.descriptionShort && (
                     <div className="meta-description-table__pair meta-description-table__pair--full-width">
                         <dt className="sr-only">Description</dt>
-                        <dd className="meta-description-table__value">
+                        <dd
+                            className="meta-description-table__value"
+                            data-comment-field="descriptionShort"
+                        >
                             <SimpleMarkdownText
                                 text={datapageData.descriptionShort}
                             />

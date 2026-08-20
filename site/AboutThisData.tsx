@@ -64,7 +64,10 @@ export default function AboutThisData({
                                                 : "How is this data described by its producer?"
                                         }
                                         content={
-                                            <div className="article-block__text">
+                                            <div
+                                                className="article-block__text"
+                                                data-comment-field="descriptionFromProducer"
+                                            >
                                                 <SimpleMarkdownText
                                                     text={
                                                         datapageData.descriptionFromProducer
