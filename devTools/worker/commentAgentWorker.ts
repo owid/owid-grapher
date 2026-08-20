@@ -49,7 +49,9 @@ async function processJob(): Promise<boolean> {
                     await markJobFailed(
                         trx,
                         currentJob!.id,
-                        error instanceof Error ? error : new Error(String(error))
+                        error instanceof Error
+                            ? error
+                            : new Error(String(error))
                     )
                 })
             } catch (fallbackError) {
