@@ -16,6 +16,7 @@ import {
     setCommentResolved,
 } from "../../db/model/Comment.js"
 import { enqueueCommentAgentJob } from "../../db/model/Jobs.js"
+import { notifyMentionedUsers } from "../commentMentions.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
@@ -120,6 +121,15 @@ export async function createComment(
             userId: res.locals.user.id,
         })
         await maybeQueueAgentRun(trx, id, content, res.locals.user.id)
+        await notifyMentionedUsers({
+            trx,
+            content,
+            authorName: res.locals.user.fullName,
+            authorUserId: res.locals.user.id,
+            targetType: parent.targetType,
+            targetId: parent.targetId,
+            anchor: parent.anchor,
+        })
         return { success: true, id }
     }
 
@@ -142,6 +152,15 @@ export async function createComment(
         userId: res.locals.user.id,
     })
     await maybeQueueAgentRun(trx, id, content, res.locals.user.id)
+    await notifyMentionedUsers({
+        trx,
+        content,
+        authorName: res.locals.user.fullName,
+        authorUserId: res.locals.user.id,
+        targetType,
+        targetId,
+        anchor: anchor ?? null,
+    })
     return { success: true, id }
 }
 

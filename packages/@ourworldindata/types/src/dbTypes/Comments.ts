@@ -49,6 +49,30 @@ export function invokesAgent(content: string): boolean {
     return AGENT_MENTION_PATTERN.test(content)
 }
 
+/**
+ * The GitHub handles mentioned in a comment, lowercased and deduplicated.
+ *
+ * GitHub handles rather than names: two people on the team share a first name,
+ * and a mention that quietly picks the wrong person is worse than one that
+ * matches nobody. They are also what the users table already stores and what we
+ * write in pull requests, so there is one spelling of a person to learn.
+ *
+ * Same shape as the agent mention - not preceded by a word character, so an
+ * email address doesn't match - except that a handle may contain dashes.
+ */
+export function parseUserMentions(content: string): string[] {
+    const matches = content.matchAll(
+        /(^|[^\w@])@([A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)/g
+    )
+    const handles = new Set<string>()
+    for (const match of matches) {
+        const handle = match[2].toLowerCase()
+        // The agent has its own path; it is not a person to notify
+        if (handle !== "claude") handles.add(handle)
+    }
+    return [...handles]
+}
+
 export interface DbInsertComment {
     id?: number
     targetType: CommentTargetType

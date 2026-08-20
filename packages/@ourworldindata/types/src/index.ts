@@ -469,6 +469,7 @@ export {
     type CommentWithAuthor,
     AGENT_MENTION,
     invokesAgent,
+    parseUserMentions,
     parseCommentViewState,
     serializeCommentViewState,
     parseCommentRow,

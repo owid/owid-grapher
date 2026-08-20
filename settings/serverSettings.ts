@@ -157,6 +157,18 @@ export const BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL: string =
 
 export const OPENAI_API_KEY: string = serverSettings.OPENAI_API_KEY ?? ""
 
+/**
+ * Whether a comment mentioning someone actually sends them a Slack message.
+ *
+ * Off by default, everywhere. Slack ids now reach staging (see
+ * exportPrivateData.ts), which means a staging server is perfectly capable of
+ * DMing the whole team while someone tries the feature out. When this is off the
+ * message is logged instead of sent, which is what you want while developing and
+ * what you want on a staging box you didn't think about.
+ */
+export const COMMENT_MENTION_NOTIFICATIONS: boolean =
+    serverSettings.COMMENT_MENTION_NOTIFICATIONS === "true"
+
 export const SLACK_BOT_OAUTH_TOKEN: string =
     serverSettings.SLACK_BOT_OAUTH_TOKEN ?? ""
 
