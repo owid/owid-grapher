@@ -26,9 +26,8 @@ import {
     updateAllMultiDimViewsThatInheritFromIndicator,
     updateGrapherConfigAdminOfVariable,
     updateGrapherConfigETLOfVariable,
-    deleteVariables,
+    deleteIndicators,
 } from "../../db/model/Variable.js"
-import { deleteGrapherConfigFromR2ByUUID } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
 import * as db from "../../db/db.js"
@@ -602,16 +601,13 @@ export async function getVariablesVariableIdChartsJson(
 }
 
 /**
- * Delete a set of variables.
+ * Delete a set of indicators.
  *
- * ETL uses this to remove the indicators a grapher step no longer produces, but nothing about
- * it is ETL-specific: the caller names variables, and we take care of everything hanging off
- * them — the link tables, and the chart configs they own in `chart_configs` and in R2.
- *
- * A variable a chart still uses is never deleted; it comes back in `blocked` instead. Whether
- * that should fail the caller's run depends on where they're running, which we can't know.
+ * An indicator a chart, a published explorer or a live multi-dim view still uses is
+ * never deleted; it comes back in `blocked` instead (but it doesn't fail the
+ * whole request).
  */
-export async function deleteVariablesHandler(
+export async function postVariablesDelete(
     req: Request,
     _res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
@@ -623,22 +619,12 @@ export async function deleteVariablesHandler(
         !variableIds.every((id) => Number.isInteger(id))
     ) {
         throw new JsonError(
-            "`variableIds` must be an array of variable ids",
+            "`variableIds` must be an array of indicator ids",
             400
         )
     }
 
-    const { deleted, blocked, configIds } = await deleteVariables(
-        trx,
-        variableIds
-    )
-
-    // A variable's chart configs live in `chart_configs` and, mirrored, in R2. Deleting the
-    // rows is `deleteVariables`' job; clearing R2 is ours, since `db/` does no network I/O.
-    // Leaving this out is what stranded ~1,600 config rows before this endpoint existed.
-    for (const configId of configIds) {
-        await deleteGrapherConfigFromR2ByUUID(configId)
-    }
+    const { deleted, blocked } = await deleteIndicators(trx, variableIds)
 
     return { success: true, deleted, blocked }
 }

@@ -15,6 +15,8 @@ import {
 import pl from "nodejs-polars"
 import { v7 as uuidv7 } from "uuid"
 import { DATA_API_URL } from "../../settings/serverSettings.js"
+import { deleteGrapherConfigFromR2ByUUID } from "../../serverUtils/r2/chartConfigR2Helpers.js"
+import pMap from "p-map"
 import { escape } from "mysql2"
 import {
     MultipleOwidVariableDataDimensionsMap,
@@ -1322,15 +1324,10 @@ export const getLatestVariableIdsByCatalogPath = async (
 }
 
 /**
- * Tables holding one or more rows per variable that have to be cleared before the
- * variable row itself can be deleted.
- *
- * This list is the reason ghost-variable cleanup lives in Grapher rather than in ETL:
- * every table that grows a `variableId` foreign key has to be added here, and ETL has
- * no way of knowing when that happens. `chart_dimensions` is deliberately absent — a
- * variable used by a chart is never deleted, it is reported back as blocked.
+ * Tables holding one or more rows per indicator that have to be cleared before
+ * the indicator row itself can be deleted
  */
-const VARIABLE_LINK_TABLES = [
+const INDICATOR_CHILD_TABLES = [
     "origins_variables",
     "tags_variables_topic_tags",
     "posts_gdocs_variables_faqs",
@@ -1338,117 +1335,174 @@ const VARIABLE_LINK_TABLES = [
     "multi_dim_x_chart_configs",
 ] as const
 
-/** One variable a chart still uses, and the chart using it. */
-export interface BlockedVariable {
+/** One indicator a chart, an explorer or a multi-dim view still uses, and what uses it. */
+export interface BlockedIndicator {
     variableId: number
     variableName: string | null
-    chartId: number
-    chartSlug: string | null
+    usedBy: "chart" | "explorer" | "multiDimView"
+    /** Chart slug, explorer slug, or `catalogPath#viewId` */
+    ref: string | null
 }
 
-export interface DeleteVariablesResult {
-    /** Variables that were deleted. */
+export interface DeleteIndicatorsResult {
+    /** Indicators that were deleted. */
     deleted: number[]
-    /** Variables still used by a chart, one row per pair. Reported, never deleted. */
-    blocked: BlockedVariable[]
-    /**
-     * `chart_configs` rows deleted along with the variables. Each is also mirrored in R2 at
-     * `config/by-uuid/<id>.json`, and this file can't delete those — nothing under `db/` does
-     * network I/O — so the route handler does it. See `deleteVariablesHandler`.
-     */
-    configIds: string[]
+    /** Indicators still in use, one row per use. Reported, never deleted. */
+    blocked: BlockedIndicator[]
 }
 
 /**
- * Delete variables, refusing any a chart still uses.
+ * Delete indicators, refusing any a chart, an explorer or a multi-dim view
+ * still uses.
  *
- * The caller says which variables to remove; we work out everything that hangs off them —
- * the link tables, the chart configs they own in `chart_configs` and R2 — because that part
- * is our schema knowledge, not theirs.
- *
- * A variable a chart still references is never deleted. It comes back in `blocked` instead:
- * whether that should fail the caller's run depends on which environment the caller is in,
- * which is not something we can work out here.
+ * An indicator in use is never deleted, but it also doesn't result in a failed
+ * transaction: the caller can report the blocked indicators to the user and
+ * let them decide what to do.
  */
-export async function deleteVariables(
+export async function deleteIndicators(
     trx: db.KnexReadWriteTransaction,
-    variableIds: number[]
-): Promise<DeleteVariablesResult> {
-    if (variableIds.length === 0)
-        return { deleted: [], blocked: [], configIds: [] }
+    indicatorIds: number[]
+): Promise<DeleteIndicatorsResult> {
+    if (indicatorIds.length === 0) return { deleted: [], blocked: [] }
 
-    const ghosts = await trx<DbRawVariable>(VariablesTableName)
-        .whereIn("id", variableIds)
-        .select("id", "grapherConfigIdETL", "grapherConfigIdAdmin")
+    const existingIndicators = await trx<DbRawVariable>(VariablesTableName)
+        .whereIn("id", indicatorIds)
+        .select("id", "sourceId", "grapherConfigIdETL", "grapherConfigIdAdmin")
 
-    if (ghosts.length === 0) return { deleted: [], blocked: [], configIds: [] }
+    if (existingIndicators.length === 0) return { deleted: [], blocked: [] }
+    const existingIds = existingIndicators.map((indicator) => indicator.id)
 
-    // Names and slugs come along so that whoever reports this can show something a person
-    // can act on, rather than a list of ids.
-    const blocked = await db.knexRaw<BlockedVariable>(
+    // Check if any of the indicators are still in use by a chart, an explorer
+    // or a multi-dim view. If so, we don't delete them and report them back.
+    const blocked = await db.knexRaw<BlockedIndicator>(
         trx,
         `-- sql
         SELECT DISTINCT
             cd.variableId,
             v.name AS variableName,
-            cd.chartId,
-            cc.slug AS chartSlug
+            'chart' AS usedBy,
+            -- Fall back to the chart ID if the slug is missing
+            COALESCE(cc.slug, CONCAT('charts/', c.id)) AS ref
         FROM chart_dimensions cd
         JOIN variables v ON v.id = cd.variableId
         JOIN charts c ON c.id = cd.chartId
         JOIN chart_configs cc ON cc.id = c.configId
         WHERE cd.variableId IN (?)
-        ORDER BY cd.variableId, cd.chartId
+
+        UNION ALL
+
+        SELECT DISTINCT
+            ev.variableId,
+            v.name AS variableName,
+            'explorer' AS usedBy,
+            ev.explorerSlug AS ref
+        FROM explorer_variables ev
+        JOIN variables v ON v.id = ev.variableId
+        JOIN explorers e ON e.slug = ev.explorerSlug
+        WHERE ev.variableId IN (?) AND e.isPublished
+
+        UNION ALL
+
+        SELECT DISTINCT
+            mdxcc.variableId,
+            v.name AS variableName,
+            'multiDimView' AS usedBy,
+            CONCAT(mddp.catalogPath, '#', mdxcc.viewId) AS ref
+        FROM multi_dim_x_chart_configs mdxcc
+        JOIN variables v ON v.id = mdxcc.variableId
+        JOIN multi_dim_data_pages mddp ON mddp.id = mdxcc.multiDimId
+        WHERE mdxcc.variableId IN (?) AND (
+            mddp.published
+            -- Both of these reference the view (or its config) with a RESTRICT foreign key:
+            -- deleting it throws and takes the whole transaction with it.
+            OR EXISTS (
+                SELECT 1 FROM narrative_charts nc
+                WHERE nc.parentMultiDimXChartConfigId = mdxcc.id
+            )
+            OR EXISTS (
+                SELECT 1 FROM multi_dim_redirects mdr
+                WHERE mdr.viewConfigId = mdxcc.chartConfigId
+            )
+        )
+
+        ORDER BY variableId, usedBy, ref
         `,
-        [ghosts.map((variable) => variable.id)]
+        [existingIds, existingIds, existingIds]
     )
 
-    const blockedVariableIds = new Set(blocked.map((row) => row.variableId))
-    const deletableVariables = ghosts.filter(
-        (variable) => !blockedVariableIds.has(variable.id)
+    const blockedIndicatorIds = new Set(blocked.map((row) => row.variableId))
+    const deletableIndicators = existingIndicators.filter(
+        (indicator) => !blockedIndicatorIds.has(indicator.id)
     )
-    const deleted = deletableVariables.map((variable) => variable.id)
+    const deleted = deletableIndicators.map((indicator) => indicator.id)
 
-    if (deleted.length === 0) return { deleted, blocked, configIds: [] }
+    if (deleted.length === 0) return { deleted, blocked }
 
-    // The mdim view configs belonging to the link rows we are about to delete. A redirect
-    // can point at one of those configs, and that foreign key is `RESTRICT` too — leaking a
-    // single row is better than failing the whole grapher step over a rare case.
-    const mdimConfigIds = await trx<DbPlainMultiDimXChartConfig>(
-        MultiDimXChartConfigsTableName
+    // Delete the chart configs for the indicators being deleted
+    const indicatorChartConfigsToDelete = _.compact(
+        deletableIndicators.flatMap((indicator) => [
+            indicator.grapherConfigIdETL,
+            indicator.grapherConfigIdAdmin,
+        ])
     )
-        .whereIn("variableId", deleted)
-        .whereNotExists(function () {
-            this.select(trx.raw("1"))
-                .from("multi_dim_redirects")
-                .whereRaw(
-                    "multi_dim_redirects.viewConfigId = multi_dim_x_chart_configs.chartConfigId"
-                )
-        })
-        .pluck("chartConfigId")
-
-    // These are otherwise left behind in `chart_configs` (and in R2) when the rows
-    // referencing them go away — see https://github.com/owid/etl/pull/6672. Every foreign
-    // key into `chart_configs` is `ON DELETE RESTRICT`, so they go last.
+    const multiDimChartConfigIdsToDelete =
+        await trx<DbPlainMultiDimXChartConfig>(MultiDimXChartConfigsTableName)
+            .whereIn("variableId", deleted)
+            .pluck("chartConfigId")
     const configIds = _.uniq([
-        ..._.compact(
-            deletableVariables.flatMap((variable) => [
-                variable.grapherConfigIdETL,
-                variable.grapherConfigIdAdmin,
-            ])
-        ),
-        ...mdimConfigIds,
+        ...indicatorChartConfigsToDelete,
+        ...multiDimChartConfigIdsToDelete,
     ])
 
-    for (const table of VARIABLE_LINK_TABLES) {
+    const originIds = await trx("origins_variables")
+        .whereIn("variableId", deleted)
+        .pluck("originId")
+
+    const sourceIds = _.compact(
+        deletableIndicators.map((indicator) => indicator.sourceId)
+    )
+
+    // Delete all child rows of the indicators being deleted
+    for (const table of INDICATOR_CHILD_TABLES) {
         await trx(table).whereIn("variableId", deleted).delete()
     }
 
+    // Delete the indicators themselves
     await trx(VariablesTableName).whereIn("id", deleted).delete()
 
-    if (configIds.length > 0) {
-        await trx("chart_configs").whereIn("id", configIds).delete()
+    // An origin whose last link row we are about to delete becomes unreachable
+    if (originIds.length > 0) {
+        await db.knexRaw(
+            trx,
+            `-- sql
+            DELETE o FROM origins o
+            LEFT JOIN origins_variables ov ON ov.originId = o.id
+            WHERE o.id IN (?) AND ov.originId IS NULL
+            `,
+            [originIds]
+        )
     }
 
-    return { deleted, blocked, configIds }
+    // A source whose last variable we are about to delete becomes unreachable
+    if (sourceIds.length > 0) {
+        await db.knexRaw(
+            trx,
+            `-- sql
+            DELETE s FROM sources s
+            LEFT JOIN variables v ON v.sourceId = s.id
+            WHERE s.id IN (?) AND v.sourceId IS NULL
+            `,
+            [sourceIds]
+        )
+    }
+
+    // Delete chart configs from the DB and R2
+    if (configIds.length > 0) {
+        await trx("chart_configs").whereIn("id", configIds).delete()
+        await pMap(configIds, deleteGrapherConfigFromR2ByUUID, {
+            concurrency: 20,
+        })
+    }
+
+    return { deleted, blocked }
 }
