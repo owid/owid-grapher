@@ -46,7 +46,7 @@ import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import { getPublishedLinksTo } from "../../db/model/Link.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
-import { getChartConfigByUUID } from "../../db/model/ChartConfigs.js"
+import { getChartConfigByUuid } from "../../db/model/ChartConfigs.js"
 import { narrativeChartExists } from "../../db/model/NarrativeChart.js"
 import { getMultiDimDataPageById } from "../../db/model/MultiDimDataPage.js"
 
@@ -98,11 +98,11 @@ function makeParentUrl(
     return null
 }
 
-async function expectChartConfigByUUID(
+async function expectChartConfigByUuid(
     trx: db.KnexReadonlyTransaction,
     id: string
 ) {
-    const chartConfig = await getChartConfigByUUID(trx, id)
+    const chartConfig = await getChartConfigByUuid(trx, id)
     if (!chartConfig) {
         throw new JsonError(`No chart config found for id ${id}`, 404)
     }
@@ -378,7 +378,7 @@ async function createNarrativeChartFromMultiDimView(
     | { narrativeChartId: number; success: boolean }
     | { success: false; errorMsg: string }
 > {
-    const parentChartConfig = await expectChartConfigByUUID(
+    const parentChartConfig = await expectChartConfigByUuid(
         trx,
         parentChartConfigId
     )

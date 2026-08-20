@@ -9,8 +9,8 @@ import {
 import { refreshExplorerViewsForSlug } from "../db/model/ExplorerViews.js"
 import { knexReadWriteTransaction, knexReadonlyTransaction } from "../db/db.js"
 import {
-    saveGrapherConfigToR2ByUUID,
-    deleteGrapherConfigFromR2ByUUID,
+    saveGrapherConfigToR2ByUuid,
+    deleteGrapherConfigFromR2ByUuid,
 } from "../serverUtils/r2/chartConfigR2Helpers.js"
 import { triggerStaticBuild } from "../baker/GrapherBakingUtils.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
@@ -152,7 +152,7 @@ export async function processExplorerViewsJob(
             await pMap(
                 refreshResult.removedChartConfigIds,
                 async (configId) => {
-                    await deleteGrapherConfigFromR2ByUUID(configId)
+                    await deleteGrapherConfigFromR2ByUuid(configId)
                 },
                 { concurrency: CONCURRENCY }
             )
@@ -170,7 +170,7 @@ export async function processExplorerViewsJob(
             await pMap(
                 chartConfigs,
                 async (config) => {
-                    await saveGrapherConfigToR2ByUUID(
+                    await saveGrapherConfigToR2ByUuid(
                         config.id,
                         config.config,
                         config.configMd5

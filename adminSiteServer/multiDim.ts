@@ -34,7 +34,7 @@ import {
 } from "../db/model/Variable.js"
 import {
     deleteGrapherConfigFromR2,
-    deleteGrapherConfigFromR2ByUUID,
+    deleteGrapherConfigFromR2ByUuid,
     saveMultiDimConfigToR2,
 } from "../serverUtils/r2/chartConfigR2Helpers.js"
 import {
@@ -225,7 +225,7 @@ async function cleanUpOrphanedChartConfigs(
         .whereIn("id", orphanedChartConfigIds)
         .delete()
     for (const id of orphanedChartConfigIds) {
-        await deleteGrapherConfigFromR2ByUUID(id)
+        await deleteGrapherConfigFromR2ByUuid(id)
     }
 }
 
