@@ -347,6 +347,15 @@ export function InapplicablePattern({
     )
 }
 
+export function ChartPatternDefs(): React.ReactElement {
+    return (
+        <defs>
+            <NoDataPattern />
+            <InapplicablePattern />
+        </defs>
+    )
+}
+
 export function getChartSvgProps({
     fontSize,
 }: {
