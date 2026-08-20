@@ -14,10 +14,10 @@ import {
 } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
+import { featuredMetricsQuery } from "./queries.js"
 import {
     DbPlainFeaturedMetric,
     Json,
-    FeaturedMetricByParentTagNameDictionary,
     FeaturedMetricIncomeGroup,
     Url,
     GRAPHER_QUERY_PARAM_KEYS,
@@ -494,15 +494,7 @@ function FeaturedMetricsExplainer() {
 
 function useFeaturedMetrics() {
     const { admin } = useContext(AdminAppContext)
-    return useQuery({
-        queryKey: ["featuredMetrics"],
-        queryFn: async () => {
-            const { featuredMetrics } = await admin.getJSONInBackground<{
-                featuredMetrics: FeaturedMetricByParentTagNameDictionary
-            }>("/api/featured-metrics.json")
-            return featuredMetrics
-        },
-    })
+    return useQuery(featuredMetricsQuery(admin))
 }
 
 function useAddFeaturedMetric() {

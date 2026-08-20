@@ -29,17 +29,7 @@ import {
 } from "../settings/clientSettings.mjs"
 import { dayjs, Json } from "@ourworldindata/utils"
 import { Link } from "./Link.js"
-
-type ApiMultiDim = {
-    id: number
-    catalogPath: string
-    title: string
-    slug: string | null
-    updatedAt: string
-    published: boolean
-    mdimViews: number
-    pageviews: number
-}
+import { ApiMultiDim, multiDimsQuery } from "./queries.js"
 
 type MultiDim = Omit<ApiMultiDim, "updatedAt"> & {
     updatedAt: Date
@@ -283,13 +273,6 @@ function deserializeMultiDim(mdim: ApiMultiDim): MultiDim {
     }
 }
 
-async function fetchMultiDims(admin: Admin) {
-    const { multiDims } = await admin.getJSONInBackground<{
-        multiDims: ApiMultiDim[]
-    }>("/api/multi-dims.json")
-    return multiDims.map(deserializeMultiDim)
-}
-
 async function patchMultiDim(admin: Admin, id: number, data: Json) {
     const { multiDim } = await admin.requestJSON<{ multiDim: ApiMultiDim }>(
         `/api/multi-dims/${id}`,
@@ -307,8 +290,8 @@ export function MultiDimIndexPage() {
     const queryClient = useQueryClient()
 
     const { data } = useQuery({
-        queryKey: ["multiDims"],
-        queryFn: () => fetchMultiDims(admin),
+        ...multiDimsQuery(admin),
+        select: (multiDims) => multiDims.map(deserializeMultiDim),
     })
 
     const publishMutation = useMutation({

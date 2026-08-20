@@ -190,9 +190,13 @@ export class Admin {
 
     async getJSON<T extends Json = Json>(
         path: string,
-        params: Json = {}
+        params: Json = {},
+        opts: {
+            onFailure?: "show" | "continue"
+            isBackground?: boolean
+        } = {}
     ): Promise<T> {
-        return this.requestJSON<T>(path, params, "GET")
+        return this.requestJSON<T>(path, params, "GET", opts)
     }
 
     /**

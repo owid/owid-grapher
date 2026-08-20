@@ -20,6 +20,7 @@ import { ColumnsType } from "antd/es/table/InternalTable.js"
 import { EditableTextarea } from "./EditableTextarea.js"
 import * as R from "remeda"
 import { Admin } from "./Admin.js"
+import { dodsQuery, dodUsageQuery, usersQuery } from "./queries.js"
 import { fromMarkdown } from "mdast-util-from-markdown"
 import { PhrasingContent, RootContent } from "mdast"
 import {
@@ -297,28 +298,6 @@ function showDodPreviewTooltip(text: string, element: Element): void {
     })
 }
 
-async function fetchDods(admin: Admin) {
-    const { dods } = await admin.getJSONInBackground<{
-        dods: DbPlainDod[]
-    }>("/api/dods.json")
-    return R.indexBy(dods, (d) => d.name)
-}
-
-async function fetchDodUsage(admin: Admin) {
-    const usageDictionary = await admin.getJSONInBackground<
-        Record<string, DodUsageRecord[]>
-    >("/api/dods-usage.json")
-
-    return usageDictionary
-}
-
-async function fetchUsers(admin: Admin) {
-    const { users } = await admin.getJSONInBackground<{
-        users: DbPlainUser[]
-    }>("/api/users.json")
-    return R.indexBy(users, (u) => u.id)
-}
-
 type DodMutation<T> = UseMutationResult<DbPlainDod, unknown, T, unknown>
 
 type PatchDodMutationType = DodMutation<{ id: number; content: string }>
@@ -545,18 +524,17 @@ export function DodsIndexPage() {
     const queryClient = useQueryClient()
 
     const { data: dods } = useQuery({
-        queryKey: ["dods"],
-        queryFn: () => fetchDods(admin),
+        ...dodsQuery(admin),
+        select: (dods) => R.indexBy(dods, (d) => d.name),
     })
 
     const { data: dodUsage } = useQuery({
-        queryKey: ["dod-usage"],
-        queryFn: () => fetchDodUsage(admin),
+        ...dodUsageQuery(admin),
     })
 
     const { data: users } = useQuery({
-        queryKey: ["users"],
-        queryFn: () => fetchUsers(admin),
+        ...usersQuery(admin),
+        select: (users) => R.indexBy(users, (u) => u.id),
     })
 
     const patchDodMutation = useMutation({

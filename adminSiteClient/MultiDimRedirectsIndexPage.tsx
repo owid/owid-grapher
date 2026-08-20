@@ -23,16 +23,7 @@ import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
 import { Admin } from "./Admin.js"
 import { formatSourceQueryParams } from "./multiDimRedirectHelpers.js"
-
-type MultiDimRedirect = {
-    id: number
-    source: string
-    sourceQueryParams: Record<string, string | null> | null
-    multiDimId: number
-    multiDimSlug: string
-    multiDimTitle: string
-    targetQueryStr: string | null
-}
+import { MultiDimRedirect, multiDimRedirectsQuery } from "./queries.js"
 
 type RedirectInGroup = {
     id: number
@@ -46,13 +37,6 @@ type GroupedRedirects = {
     multiDimSlug: string
     multiDimTitle: string
     redirects: RedirectInGroup[]
-}
-
-async function fetchAllMultiDimRedirects(admin: Admin) {
-    const { redirects } = await admin.getJSONInBackground<{
-        redirects: MultiDimRedirect[]
-    }>("/api/multi-dim-redirects.json")
-    return redirects
 }
 
 async function deleteMultiDimRedirect(
@@ -230,8 +214,7 @@ export default function MultiDimRedirectsIndexPage() {
     const [bulkError, setBulkError] = useState<string | null>(null)
 
     const { data: redirects } = useQuery({
-        queryKey: ["allMultiDimRedirects"],
-        queryFn: () => fetchAllMultiDimRedirects(admin),
+        ...multiDimRedirectsQuery(admin),
     })
 
     const deleteMutation = useMutation({

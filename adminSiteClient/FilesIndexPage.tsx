@@ -7,7 +7,7 @@ import { AdminAppContext } from "./AdminAppContext.js"
 import { DbPlainFile } from "@ourworldindata/types"
 import cx from "clsx"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Admin } from "./Admin.js"
+import { filesQuery } from "./queries.js"
 import urlJoin from "url-join"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCopy, faSpinner, faTimes } from "@fortawesome/free-solid-svg-icons"
@@ -24,10 +24,7 @@ type FileMap = {
     [key: string]: FileMapOrFile
 }
 
-async function fetchFiles(admin: Admin): Promise<FileMap> {
-    const { files } = await admin.getJSONInBackground<{
-        files: DbPlainFile[]
-    }>("/api/files.json")
+function buildFileMap(files: DbPlainFile[]): FileMap {
     return files.reduce((acc, file) => {
         const pathSegments = file.path.split("/")
         let current = acc
@@ -307,8 +304,8 @@ export function FilesIndexPage() {
     const [searchValue, setSearchValue] = useState("")
 
     const { data } = useQuery({
-        queryKey: ["files"],
-        queryFn: () => fetchFiles(admin),
+        ...filesQuery(admin),
+        select: buildFileMap,
     })
 
     // Get current path from URL query params

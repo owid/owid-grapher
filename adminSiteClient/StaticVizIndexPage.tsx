@@ -22,6 +22,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { makeImageSrc } from "./imagesHelpers.js"
+import { staticVizQuery } from "./queries.js"
 
 function ImagePreviewGallery({
     cloudflareId,
@@ -202,12 +203,7 @@ export function StaticVizIndexPage() {
     const [searchValue, setSearchValue] = useState("")
 
     const { data: staticVizResponse, isLoading } = useQuery({
-        queryKey: ["static-viz"],
-        queryFn: () => {
-            return admin.getJSONInBackground<DbEnrichedStaticViz[]>(
-                "/api/static-viz.json"
-            )
-        },
+        ...staticVizQuery(admin),
     })
 
     // Delete mutation

@@ -18,6 +18,7 @@ import { AdminAppContext } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
 import { Admin } from "./Admin.js"
+import { SiteRedirect, siteRedirectsQuery } from "./queries.js"
 
 const SOURCE_PATTERN = /^\/$|^\/.*[^/]+$/
 const INVALID_SOURCE_MESSAGE =
@@ -26,22 +27,11 @@ const TARGET_PATTERN = /^\/$|^(https?:\/\/|\/).*[^/]+$/
 const INVALID_TARGET_MESSAGE =
     "URL must start with a slash or http(s):// and cannot end with a slash, unless it's the root."
 
-type Redirect = {
-    id: number
-    source: string
-    target: string
-}
+type Redirect = SiteRedirect
 
 type FormData = {
     source: string
     target: string
-}
-
-async function fetchRedirects(admin: Admin) {
-    const { redirects } = await admin.getJSONInBackground<{
-        redirects: Redirect[]
-    }>("/api/site-redirects.json")
-    return redirects
 }
 
 async function createRedirect(
@@ -136,8 +126,7 @@ export default function SiteRedirectsIndexPage() {
     const [search, setSearch] = useState("")
 
     const { data: redirects } = useQuery({
-        queryKey: ["siteRedirects"],
-        queryFn: () => fetchRedirects(admin),
+        ...siteRedirectsQuery(admin),
     })
 
     const createMutation = useMutation({
