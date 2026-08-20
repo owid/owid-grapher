@@ -25,7 +25,7 @@ npm install @ourworldindata/grapher
 
 Two things to include on any page that shows a chart:
 
-- **Styles**: import `@ourworldindata/grapher/dist/grapher.css` (or link it as a stylesheet).
+- **Styles**: import `@ourworldindata/grapher/grapher.css` (or link it as a stylesheet).
 - **Fonts** (optional but recommended): charts are designed for **Lato** and **Playfair Display** and fall back to system fonts if they're absent. Load them yourself, or include OWID's font stylesheet like the demo pages do: `<link rel="stylesheet" href="https://ourworldindata.org/fonts.css" />`.
 
 ### Quick start: React / bundler
@@ -35,7 +35,7 @@ Two things to include on any page that shows a chart:
 ```tsx
 import { useEffect, useRef } from "react"
 import { DimensionProperty, GrapherLoader } from "@ourworldindata/grapher"
-import "@ourworldindata/grapher/dist/grapher.css"
+import "@ourworldindata/grapher/grapher.css"
 
 function LifeExpectancyChart() {
     const ref = useRef<HTMLDivElement>(null)

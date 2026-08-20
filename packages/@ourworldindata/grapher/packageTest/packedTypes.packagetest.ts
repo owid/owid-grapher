@@ -328,7 +328,7 @@ describe("packed package", () => {
                 // The stylesheet export isn't a resolvable module; consumers'
                 // bundlers handle it.
                 "--exclude-entrypoints",
-                "./dist/grapher.css",
+                "./grapher.css",
                 "--",
                 tarballPath,
             ],
