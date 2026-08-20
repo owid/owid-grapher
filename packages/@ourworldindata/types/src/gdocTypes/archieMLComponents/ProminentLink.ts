@@ -12,6 +12,7 @@ export type RawBlockProminentLink = {
     value: ProminentLinkValue
 }
 
+/** @see [ProminentLink.md](./ProminentLink.md) */
 export type EnrichedBlockProminentLink = {
     type: "prominent-link"
     url: string
