@@ -52,7 +52,6 @@ export async function notifyMentionedUsers({
     trx,
     content,
     authorName,
-    authorUserId,
     targetType,
     targetId,
     anchor,
@@ -60,7 +59,6 @@ export async function notifyMentionedUsers({
     trx: db.KnexReadonlyTransaction
     content: string
     authorName: string
-    authorUserId: number
     targetType: CommentTargetType
     targetId: number
     anchor: string | null
@@ -80,8 +78,9 @@ export async function notifyMentionedUsers({
     const origin = ADMIN_BASE_URL.replace(/^https?:\/\//, "").replace(/\/$/, "")
 
     for (const user of users) {
-        // Mentioning yourself shouldn't ping you
-        if (user.id === authorUserId) continue
+        // Mentioning yourself notifies you, same as mentioning anyone else.
+        // Quietly skipping it would be one more mention that does nothing and
+        // says nothing about why.
         if (!user.slackId) {
             console.log(
                 `[comment mentions] no Slack id for ${user.fullName}; not notified`
