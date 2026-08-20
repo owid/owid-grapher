@@ -42,7 +42,10 @@
     "scripts": {
         "build": "tsdown",
         "startDemoServer": "http-server . -p 8433 -c-1 -o /demo.html",
-        "testPackage": "vitest run --config vitest.package.config.ts"
+        "testPackage": "yarn testPackage:pack && yarn testPackage:vitest && yarn testPackage:attw",
+        "testPackage:pack": "yarn pack --out dist-package/grapher.tgz",
+        "testPackage:vitest": "vitest run --config vitest.package.config.ts",
+        "testPackage:attw": "attw --profile esm-only --exclude-entrypoints ./grapher.css -- dist-package/grapher.tgz"
     },
     "directories": {
         "lib": "src"
@@ -89,6 +92,7 @@
         "mobx": "^6.15.4",
         "mobx-react": "^7.6.0",
         "mousetrap": "^1.6.5",
+        "publint": "^0.3.23",
         "react": "^19.2.4",
         "react-aria": "^3.51.0",
         "react-aria-components": "^1.20.0",

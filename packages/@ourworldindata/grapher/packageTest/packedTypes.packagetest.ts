@@ -1,6 +1,6 @@
-// Tests that the package, as it would be published (`yarn pack` applies
-// publishConfig), resolves and typechecks for an external TypeScript
-// consumer — both with `moduleResolution: "bundler"` (Vite & friends) and
+// Tests that the package, as it would be published (the tarball from
+// `yarn testPackage:pack` has publishConfig applied), resolves and typechecks
+// for an external TypeScript consumer — both with `moduleResolution: "bundler"` (Vite & friends) and
 // `moduleResolution: "nodenext"` (plain Node ESM).
 //
 // The packed tarball is extracted into a throwaway consumer project whose
@@ -13,7 +13,10 @@
 // files, so the copy is fully checked while third-party declarations stay
 // skipped.
 //
-// Requires `yarn build` to have run first; execute via `yarn testPackage`.
+// Requires `yarn build` and `yarn testPackage:pack` to have run first;
+// execute via `yarn testPackage` (or just this vitest part via
+// `yarn testPackage:vitest`). The @arethetypeswrong/cli check over the same
+// tarball runs separately via `yarn testPackage:attw`.
 
 import { spawnSync } from "node:child_process"
 import * as fs from "node:fs"
@@ -103,7 +106,7 @@ console.log(Grapher.name)
 
 let tmpDir: string
 let consumerDir: string
-let tarballPath: string
+const tarballPath = path.join(pkgDir, "dist-package/grapher.tgz")
 
 function writeTsconfig(
     fileName: string,
@@ -148,19 +151,15 @@ beforeAll(() => {
         throw new Error(
             "Missing dist/grapher.d.ts — run `yarn build` in packages/@ourworldindata/grapher first."
         )
+    if (!fs.existsSync(tarballPath))
+        throw new Error(
+            "Missing dist-package/grapher.tgz — run `yarn testPackage:pack` in packages/@ourworldindata/grapher first."
+        )
 
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "grapher-package-test-"))
 
-    // Pack the package exactly as `yarn npm publish` would.
-    tarballPath = path.join(tmpDir, "grapher.tgz")
-    const packResult = spawnSync("yarn", ["pack", "--out", tarballPath], {
-        cwd: pkgDir,
-        encoding: "utf8",
-    })
-    if (packResult.status !== 0)
-        throw new Error(
-            `yarn pack failed:\n${packResult.stdout}${packResult.stderr}`
-        )
+    // The tarball is packed by `yarn testPackage:pack` exactly as
+    // `yarn npm publish` would.
     const tarResult = spawnSync("tar", ["-xzf", tarballPath, "-C", tmpDir], {
         encoding: "utf8",
     })
@@ -315,28 +314,5 @@ describe("packed package", () => {
 
     it("ships an internally valid declaration bundle", () => {
         runTsc("tsconfig.dtscheck.json")
-    })
-
-    it("passes @arethetypeswrong/cli's resolution checks", () => {
-        const result = spawnSync(
-            path.join(repoRoot, "node_modules/.bin/attw"),
-            [
-                // The package is ESM-only, so node10 resolution and require()
-                // from CJS are out of scope.
-                "--profile",
-                "esm-only",
-                // The stylesheet export isn't a resolvable module; consumers'
-                // bundlers handle it.
-                "--exclude-entrypoints",
-                "./grapher.css",
-                "--",
-                tarballPath,
-            ],
-            { encoding: "utf8" }
-        )
-        expect(
-            result.status,
-            `attw failed:\n${result.stdout}${result.stderr}`
-        ).toBe(0)
     })
 })

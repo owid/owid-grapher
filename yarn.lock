@@ -2436,6 +2436,7 @@ __metadata:
     mobx: "npm:^6.15.4"
     mobx-react: "npm:^7.6.0"
     mousetrap: "npm:^1.6.5"
+    publint: "npm:^0.3.23"
     react: "npm:^19.2.4"
     react-aria: "npm:^3.51.0"
     react-aria-components: "npm:^1.20.0"
@@ -3007,6 +3008,15 @@ __metadata:
   version: 1.2.2
   resolution: "@poppinss/exception@npm:1.2.2"
   checksum: 10/16744b580063c82ba4f0f3a50e0180ebb213f01d629368e750fc15e8353dd39a49be9c9e465e727a12ebdc5ca0c3c7d58d6c6fbd8ebbde4449987546cecc85d0
+  languageName: node
+  linkType: hard
+
+"@publint/pack@npm:^0.1.6":
+  version: 0.1.6
+  resolution: "@publint/pack@npm:0.1.6"
+  dependencies:
+    tinyexec: "npm:^1.2.4"
+  checksum: 10/f1348e48c5926bfeab37b155670c774e89896d9b337f24b8802279fd52e0ae178d2c8207da54e29011ddeb75bbb3daaf75627f886ba1df25d7be5dfca84b9a28
   languageName: node
   linkType: hard
 
@@ -11209,6 +11219,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mri@npm:^1.1.0":
+  version: 1.2.0
+  resolution: "mri@npm:1.2.0"
+  checksum: 10/6775a1d2228bb9d191ead4efc220bd6be64f943ad3afd4dcb3b3ac8fc7b87034443f666e38805df38e8d047b29f910c3cc7810da0109af83e42c82c73bd3f6bc
+  languageName: node
+  linkType: hard
+
 "ms@npm:2.1.2":
   version: 2.1.2
   resolution: "ms@npm:2.1.2"
@@ -11915,7 +11932,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"package-manager-detector@npm:^1.8.0":
+"package-manager-detector@npm:^1.7.0, package-manager-detector@npm:^1.8.0":
   version: 1.8.0
   resolution: "package-manager-detector@npm:1.8.0"
   checksum: 10/5d79b8bf3d0d3da312ec08749c74a3b7e4d4139c259fe3561538772c65ece8ff733e002c67a4324b5c505d2ac625c121b94cf3d5135e1b4e43fed5bced148763
@@ -12335,6 +12352,20 @@ __metadata:
   version: 2.1.0
   resolution: "proxy-from-env@npm:2.1.0"
   checksum: 10/fbbaf4dab2a6231dc9e394903a5f66f20475e36b734335790b46feb9da07c37d6b32e2c02e3e2ea4d4b23774c53d8562e5b7cc73282cb43f4a597b7eacaee2ee
+  languageName: node
+  linkType: hard
+
+"publint@npm:^0.3.23":
+  version: 0.3.23
+  resolution: "publint@npm:0.3.23"
+  dependencies:
+    "@publint/pack": "npm:^0.1.6"
+    package-manager-detector: "npm:^1.7.0"
+    picocolors: "npm:^1.1.1"
+    sade: "npm:^1.8.1"
+  bin:
+    publint: ./src/cli.js
+  checksum: 10/a9c52dd8680327f0cff79a7357c7c7e54db603fc76e008bf531866bbba1203d6686565df6036fb6c8c951af787897e3377e59849585e4aee15364cf2abf46714
   languageName: node
   linkType: hard
 
@@ -13171,6 +13202,15 @@ __metadata:
   version: 3.1.1
   resolution: "s-expression@npm:3.1.1"
   checksum: 10/6dbc9ccd29daf5f4ed518e968a8ad07af1dd7825623f9378cb818b62aa3695b9bafeeef98da49e8ea62b4eb0a58ee42f50ff755f6e698dd9214f5426e378b81b
+  languageName: node
+  linkType: hard
+
+"sade@npm:^1.8.1":
+  version: 1.8.1
+  resolution: "sade@npm:1.8.1"
+  dependencies:
+    mri: "npm:^1.1.0"
+  checksum: 10/1c67ba03c94083e0ae307ff5564ecb86c2104c0f558042fdaa40ea0054f91a63a9783f14069870f2f784336adabb70f90f22a84dc457b5a25e859aaadefe0910
   languageName: node
   linkType: hard
 

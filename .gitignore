@@ -38,6 +38,7 @@ tmp-uploads
 tmp-logs
 /data_files_checksums
 packages/@ourworldindata/*/dist/
+packages/@ourworldindata/*/dist-package/
 packages/@ourworldindata/*/node_modules
 wpmigration
 dist/
