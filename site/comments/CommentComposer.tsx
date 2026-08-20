@@ -141,8 +141,8 @@ export function CommentComposer({
             )}
             {willInvokeAgent && (
                 <p className="comment-composer__agent-notice">
-                    Mentions {AGENT_MENTION}, so posting this will ask it to
-                    work on the field, and it will reply here.
+                    Mentions {AGENT_MENTION}, so posting this will invoke it and
+                    it will reply here. It can't make changes yet.
                 </p>
             )}
             <div className="comment-composer__actions">

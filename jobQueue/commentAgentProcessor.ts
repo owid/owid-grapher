@@ -72,23 +72,19 @@ export interface CommentAgentResult {
  * is the last step, not the first.
  */
 export async function runAgentStub(
-    context: CommentAgentContext
+    _context: CommentAgentContext
 ): Promise<CommentAgentResult> {
-    const where = context.targetKey
-        ? `${context.targetType} \`${context.targetKey}\``
-        : `${context.targetType} ${context.targetId}`
-    const field = context.anchor ? ` field \`${context.anchor}\`` : ""
-    const view = context.viewState
-        ? `\nView: ${JSON.stringify(context.viewState)}`
-        : ""
-
+    // Says only what is true. It used to echo the target and the thread, which
+    // was useful exactly once - while proving the job arrived with them - and
+    // read like debug output spilled into a conversation; and it promised a pull
+    // request, which nothing here can open. A stub that describes work it didn't
+    // do is worse than one that says it did nothing.
     return {
         success: true,
         reply:
-            `This is a test, and will create a testing PR in ETL.\n\n` +
-            `Asked: ${context.instruction || "(no instruction given)"}\n` +
-            `Target: ${where}${field}${view}\n` +
-            `Thread: ${context.thread.length} comment(s) in context`,
+            "No agent is connected yet, so nothing was read and nothing was " +
+            "changed. This reply only shows that the invocation reached the " +
+            "worker and can answer in the thread.",
     }
 }
 
