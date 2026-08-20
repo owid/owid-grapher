@@ -3,6 +3,7 @@ import {
     QueryClientProvider,
     useIsFetching,
 } from "@tanstack/react-query"
+import { PaletteHost } from "./commandPalette/PaletteHost.js"
 import * as React from "react"
 import { Admin } from "./Admin.js"
 import { ChartEditorPage } from "./ChartEditorPage.js"
@@ -158,6 +159,7 @@ export class AdminApp extends React.Component<{
                         <div className="AdminApp">
                             <AdminErrorMessage admin={admin} />
                             <AdminLoader admin={admin} />
+                            <PaletteHost />
                             <Switch>
                                 <Route
                                     exact
