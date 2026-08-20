@@ -311,24 +311,20 @@ export class MapChart
         // Check if a country is hovered
         if (mapConfig.hoverCountry === featureId) return true
 
-        if (this.inapplicableEntityNamesSet.has(featureId)) {
-            if (hoverBracket) return isInapplicableBin(hoverBracket)
-            if (externalLegendHoverBin)
-                return isInapplicableBin(externalLegendHoverBin)
-            return false
-        }
-
         // Check if the legend bracket of a country is hovered
         const series = this.choroplethData.get(featureId)
+        const isInapplicable = this.inapplicableEntityNamesSet.has(featureId)
         if (
             hoverBracket?.contains(series?.value, {
                 isProjection: series?.isProjection,
+                isInapplicable,
             })
         )
             return true
 
         // Check if the external legend bracket of a country is hovered (used in faceted maps)
-        if (externalLegendHoverBin?.contains(series?.value)) return true
+        if (externalLegendHoverBin?.contains(series?.value, { isInapplicable }))
+            return true
 
         return false
     }

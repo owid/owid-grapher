@@ -122,8 +122,10 @@ export class CategoricalBin extends AbstractColorScaleBin<CategoricalBinProps> {
 
     contains(
         value: CoreValueType | undefined,
-        { isProjection = false } = {}
+        { isProjection = false, isInapplicable = false } = {}
     ): boolean {
+        if (isInapplicable) return this.props.value === INAPPLICABLE_LABEL
+
         return (
             (value === undefined && this.props.value === NO_DATA_LABEL) ||
             (value !== undefined &&
