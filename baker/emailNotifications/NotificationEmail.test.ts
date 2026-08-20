@@ -36,6 +36,7 @@ const textBlock = (spans: Span[]): EnrichedBlockText => ({
 const ITEMS: NotificationEmailItem[] = [
     {
         type: "data-update",
+        latestType: "data-update",
         slug: "guinea-worm",
         title: "How close is the world to eradicating guinea worm disease?",
         url: `${BASE_URL}/guinea-worm`,
@@ -73,6 +74,7 @@ const ITEMS: NotificationEmailItem[] = [
     },
     {
         type: "data-insight",
+        latestType: "data-insight",
         slug: "cereal-yields",
         title: "Cereal yields have increased in all regions",
         url: `${BASE_URL}/data-insights/cereal-yields`,
@@ -113,6 +115,7 @@ const ITEMS: NotificationEmailItem[] = [
     },
     {
         type: "article",
+        latestType: "article",
         slug: "deforestation-drivers",
         title: "What has driven deforestation in the 21st century?",
         url: `${BASE_URL}/deforestation-drivers`,
@@ -145,6 +148,7 @@ const ITEMS: NotificationEmailItem[] = [
         // Announcements are usually untagged, so this one has no topic label
         // and, being an announcement, no thumbnail either.
         type: "announcement",
+        latestType: "announcement",
         slug: "new-site-search",
         title: "We've rebuilt our site search",
         url: `${BASE_URL}/new-site-search`,
@@ -155,7 +159,33 @@ const ITEMS: NotificationEmailItem[] = [
         // No closing cta, so this one's only link out is its title.
         body: [
             textBlock([simpleText("Finding a chart should now be faster.")]),
+            {
+                type: "list",
+                items: [
+                    textBlock([simpleText("Results are grouped by type.")]),
+                    textBlock([simpleText("Filters are remembered.")]),
+                ],
+                parseErrors: [],
+            },
             textBlock([simpleText("Results are grouped by content type.")]),
+        ],
+    },
+    {
+        // Topic updates are announcements that subscribers receive under the
+        // "article" content type, but they are laid out like announcements.
+        type: "article",
+        latestType: "topic-update",
+        slug: "malaria-topic-update",
+        title: "We've updated our work on malaria",
+        url: `${BASE_URL}/malaria-topic-update`,
+        publishedAt: new Date("2026-07-31T09:00:00Z"),
+        topicNames: ["Malaria", "Health"],
+        topicLabel: "Malaria",
+        authors: ["Saloni Dattani"],
+        excerpt: "Our malaria topic page now covers the new vaccines.",
+        body: [
+            textBlock([simpleText("The topic page now covers the vaccines.")]),
+            textBlock([simpleText("We have also refreshed every chart.")]),
         ],
     },
 ]
@@ -223,6 +253,7 @@ describe(renderNotificationEmail, () => {
         const { html } = await renderFixture([
             {
                 type: "announcement",
+                latestType: "announcement",
                 slug: "cta-only",
                 title: "An announcement that is only a call to action",
                 url: `${BASE_URL}/cta-only`,
@@ -234,6 +265,56 @@ describe(renderNotificationEmail, () => {
         ])
         expect(html).toContain("Pre-order our book.")
         expect(html).toMatch(/Read more[\s\S]{0,40}→/)
+    })
+
+    it("links a cta-only announcement with its own call to action", async () => {
+        const { html } = await renderFixture([
+            {
+                type: "announcement",
+                latestType: "announcement",
+                slug: "cta-only",
+                title: "An announcement that is only a call to action",
+                url: `${BASE_URL}/cta-only`,
+                publishedAt: new Date("2026-08-02T09:00:00Z"),
+                topicNames: [],
+                authors: [],
+                excerpt: "Our book is out this autumn.",
+                cta: {
+                    text: "Pre-order the book",
+                    url: "https://example.com/book",
+                },
+            },
+        ])
+        expect(html).toContain("Our book is out this autumn.")
+        expect(html).toMatch(
+            /href="https:\/\/example\.com\/book"[^>]*>Pre-order the book[\s\S]{0,40}→/
+        )
+        expect(html).not.toContain("Read more")
+    })
+
+    it("renders list blocks", async () => {
+        const { html, text } = await renderFixture()
+        expect(html).toMatch(
+            /<ul[^>]*><li[^>]*>Results are grouped by type\.<\/li><li[^>]*>Filters are remembered\.<\/li><\/ul>/
+        )
+        expect(text).toContain("Filters are remembered.")
+    })
+
+    it("lays a topic update out like an announcement", async () => {
+        const { html } = await renderFixture()
+        expect(html).toMatch(/Topic update[\s\S]{0,200}Malaria/)
+        expect(html).toContain("The topic page now covers the vaccines.")
+        expect(html).toContain("We have also refreshed every chart.")
+        expect(html).not.toContain(
+            "Our malaria topic page now covers the new vaccines."
+        )
+        // It's the last item, so nothing after its title should be an
+        // article card's link.
+        const topicUpdate = html.slice(
+            html.indexOf("updated our work on malaria")
+        )
+        expect(topicUpdate).not.toContain("Read the article")
+        expect(topicUpdate).not.toContain("Read more")
     })
 
     it("puts a data insight's chart above its title", async () => {
@@ -268,6 +349,7 @@ describe(renderNotificationEmail, () => {
         const { html } = await renderFixture([
             {
                 type: "article",
+                latestType: "article",
                 slug: "bare",
                 title: "An article with nothing optional set",
                 url: `${BASE_URL}/bare`,
@@ -277,7 +359,9 @@ describe(renderNotificationEmail, () => {
             },
         ])
         expect(html).toContain("An article with nothing optional set")
-        expect(html).not.toContain("<img")
+        // The only image is the header wordmark.
+        expect(html.match(/<img/g)).toHaveLength(1)
+        expect(html).toContain("owid-email-header.png")
     })
 
     it("stays well clear of Gmail's ~102KB clipping threshold", async () => {
