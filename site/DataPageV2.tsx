@@ -91,7 +91,6 @@ export const DataPageV2 = (props: {
     const commentPageContext = isPreviewing
         ? buildCommentPageContext({
               chartId: grapher?.id,
-              grapher,
               datapageData,
           })
         : undefined

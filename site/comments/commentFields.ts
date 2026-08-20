@@ -1,4 +1,4 @@
-import { DataPageDataV2, GrapherInterface } from "@ourworldindata/types"
+import { DataPageDataV2 } from "@ourworldindata/types"
 
 /**
  * A comment is attached to a metadata *field*, not to the text that field
@@ -38,10 +38,21 @@ function textField(
 }
 
 /**
- * Chart-level metadata: what the chart editor controls. Located through
- * grapher's own markup rather than by value, so multi-dim views - where these
- * change as the reader switches dimensions - work without the server knowing
- * which view is on screen.
+ * Chart-level metadata: the title, subtitle and note as the chart shows them.
+ * Located through grapher's own markup rather than by value, so multi-dim views
+ * - where these change as the reader switches dimensions - work without the
+ * server knowing which view is on screen.
+ *
+ * All three are offered whenever the chart draws them, even when the text is
+ * not authored on the chart but inherited (grapher falls back to the
+ * indicator's title for a missing title, and to its short description for a
+ * missing subtitle). Someone commenting shouldn't have to know which: they see
+ * a subtitle, so they can comment on it. Which underlying field a comment
+ * concerns is a question for whoever triages it, and is decidable from what the
+ * comment already records - see db/docs/comments.yml, `anchor`.
+ *
+ * Nothing needs to suppress a field the chart has no text for: grapher only
+ * marks up the parts it actually draws, so an absent one is simply not found.
  */
 export function chartCommentFields(): CommentField[] {
     return [
@@ -103,17 +114,4 @@ export function indicatorCommentFields(
             datapageData.nextUpdate
         ),
     ].filter((field): field is CommentField => field !== undefined)
-}
-
-/** Chart-level fields taken from a grapher config, for pages without a data page */
-export function chartFieldsFromConfig(
-    grapher: GrapherInterface | undefined
-): CommentField[] {
-    if (!grapher) return []
-    return chartCommentFields().filter((field) => {
-        if (field.grapherPart === "title") return !!grapher.title
-        if (field.grapherPart === "subtitle") return !!grapher.subtitle
-        if (field.grapherPart === "note") return !!grapher.note
-        return true
-    })
 }

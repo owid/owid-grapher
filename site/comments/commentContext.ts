@@ -3,12 +3,10 @@ import {
     CommentTargetType,
     CommentViewState,
     DataPageDataV2,
-    GrapherInterface,
 } from "@ourworldindata/types"
 import {
     CommentField,
     chartCommentFields,
-    chartFieldsFromConfig,
     indicatorCommentFields,
 } from "./commentFields.js"
 
@@ -62,13 +60,10 @@ declare global {
  */
 export function buildCommentPageContext({
     chartId,
-    grapher,
     multiDim,
     datapageData,
 }: {
     chartId?: number
-    /** Used only to tell which chart-level fields the page actually shows */
-    grapher?: GrapherInterface
     multiDim?: {
         id: number
         dimensions: CommentMultiDimDimension[]
@@ -89,11 +84,7 @@ export function buildCommentPageContext({
         target = { targetType: CommentTargetType.Chart, targetId: chartId }
     else return undefined
 
-    // A multi-dim's title, subtitle and note change per view, so they are always
-    // offered; a plain chart only shows the ones its config actually sets.
-    const chartLevel = multiDim
-        ? chartCommentFields()
-        : chartFieldsFromConfig(grapher)
+    const chartLevel = chartCommentFields()
     const indicatorLevel = datapageData
         ? indicatorCommentFields(datapageData)
         : []

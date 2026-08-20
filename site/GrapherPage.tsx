@@ -110,7 +110,6 @@ window.renderSingleGrapherOnGrapherPage({ config: jsonConfig, dataApiUrl: "${DAT
     const commentPageContext = isPreviewing
         ? buildCommentPageContext({
               chartId: grapher.id,
-              grapher,
           })
         : undefined
 
