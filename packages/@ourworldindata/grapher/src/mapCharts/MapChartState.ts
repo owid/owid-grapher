@@ -301,8 +301,8 @@ export class MapChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get inapplicableEntityNamesSet(): Set<EntityName> {
-        const { inapplicableEntities = [] } = this.mapConfig
-        return new Set(inapplicableEntities.filter(isOnTheMap))
+        const { inapplicableEntityNames = [] } = this.manager
+        return new Set(inapplicableEntityNames.filter(isOnTheMap))
     }
 
     @computed get mapColumnSlug(): ColumnSlug {

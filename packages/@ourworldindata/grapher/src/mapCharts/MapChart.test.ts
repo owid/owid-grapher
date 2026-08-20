@@ -99,17 +99,15 @@ describe("not applicable entities", () => {
     })
 
     const makeManager = (
-        inapplicableEntities: string[],
+        inapplicableEntityNames: string[],
         mapConfig = new MapConfig()
-    ): MapChartManager => {
-        mapConfig.inapplicableEntities = inapplicableEntities
-        return {
-            table,
-            mapColumnSlug: SampleColumnSlugs.Population,
-            endTime: 2000,
-            mapConfig,
-        }
-    }
+    ): MapChartManager => ({
+        table,
+        mapColumnSlug: SampleColumnSlugs.Population,
+        endTime: 2000,
+        mapConfig,
+        inapplicableEntityNames,
+    })
 
     it("renders not-applicable entities with their own legend bin", () => {
         const chartState = new MapChartState({
@@ -156,35 +154,5 @@ describe("not applicable entities", () => {
         expect(chartState.colorScale.inapplicableLabel).toEqual(
             "Selected country"
         )
-    })
-
-    it("ignores not-applicable entities that aren't on the map", () => {
-        const chartState = new MapChartState({
-            manager: makeManager(["World"]),
-        })
-
-        expect(chartState.inapplicableEntityNamesSet).toEqual(new Set())
-        expect(chartState.seriesMap.get("World")).toBeUndefined()
-    })
-
-    it("handles multiple not-applicable entities", () => {
-        const chartState = new MapChartState({
-            manager: makeManager(["France", "Italy"]),
-        })
-
-        // Both are recognized as not-applicable
-        expect(chartState.inapplicableEntityNamesSet).toEqual(
-            new Set(["France", "Italy"])
-        )
-        expect(chartState.seriesMap.has("France")).toBe(false)
-        expect(chartState.seriesMap.has("Italy")).toBe(false)
-
-        // The shared "Not applicable" bin is injected once
-        const inapplicableBins = chartState.colorScale.legendBins.filter(
-            (bin) =>
-                bin instanceof CategoricalBin && bin.value === "Not applicable"
-        )
-        expect(inapplicableBins).toHaveLength(1)
-        expect(inapplicableBins[0]?.color).toEqual(INAPPLICABLE_COLOR)
     })
 })

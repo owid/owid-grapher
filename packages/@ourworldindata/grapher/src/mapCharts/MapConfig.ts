@@ -47,9 +47,6 @@ class MapConfigDefaults {
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
     tooltipUseCustomLabels: boolean | undefined = undefined
 
-    // Entities the map's indicator doesn't apply to by construction
-    inapplicableEntities: EntityName[] | undefined = undefined
-
     constructor() {
         makeObservable(this, {
             columnSlug: observable,
@@ -62,7 +59,6 @@ class MapConfigDefaults {
             globe: observable,
             colorScale: observable,
             tooltipUseCustomLabels: observable,
-            inapplicableEntities: observable,
         })
     }
 }

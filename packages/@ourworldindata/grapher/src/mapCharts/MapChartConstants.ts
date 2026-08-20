@@ -139,6 +139,7 @@ export interface GlobeRenderFeature extends RenderFeature {
 export interface MapChartManager extends ChartManager {
     mapColumnSlug?: ColumnSlug
     mapConfig?: MapConfig
+    inapplicableEntityNames?: EntityName[]
     targetTime?: Time
     globeController?: GlobeController
     isMapSelectionEnabled?: boolean

@@ -623,7 +623,6 @@ export interface MapConfigInterface {
     globe?: GlobeConfig
     colorScale?: Partial<ColorScaleConfigInterface>
     tooltipUseCustomLabels?: boolean
-    inapplicableEntities?: EntityName[]
     selectedEntityNames?: EntityName[]
 }
 
@@ -679,6 +678,7 @@ export interface GrapherInterface extends SortConfig {
     hideTotalValueLabel?: boolean
     excludedEntityNames?: EntityName[]
     includedEntityNames?: EntityName[]
+    inapplicableEntityNames?: EntityName[]
     selectedEntityNames?: EntityName[]
     selectedEntityColors?: { [entityName: string]: string | undefined }
     focusedSeriesNames?: SeriesName[]
@@ -836,6 +836,7 @@ export const grapherKeysToSerialize = [
     "sortColumnSlug",
     "excludedEntityNames",
     "includedEntityNames",
+    "inapplicableEntityNames",
     "selectedFacetStrategy",
     "hideFacetControl",
     "comparisonLines",

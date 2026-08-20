@@ -221,6 +221,15 @@ properties:
     default: []
     items:
       type: string
+  inapplicableEntityNames:
+    type: array
+    description: |
+      Entities the indicator's data can't apply to by construction, e.g. Mexico for
+      "Where do Mexican emigrants live?". On the map, they are excluded from the
+      color scale and rendered in a dedicated pattern.
+    default: []
+    items:
+      type: string
   selectedEntityColors:
     type: object
     description: Colors for selected entities
@@ -355,15 +364,6 @@ properties:
         type: boolean
         default: false
         description: Show the label from colorSchemeLabels in the tooltip instead of the numeric value
-      inapplicableEntities:
-        type: array
-        items:
-          type: string
-        description: |
-          Entities for which the indicator's data is not applicable by construction,
-          e.g. China for "China's imports as a share of GDP", or any country for
-          "emigrants from that country". They are excluded from the color scale and
-          rendered in a dedicated pattern, with a matching legend bin and tooltip.
       time:
         description: Select a specific time to be displayed. If startTime is given, this acts as the end time.
         default: "latest"

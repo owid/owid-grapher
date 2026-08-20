@@ -7,6 +7,7 @@ import {
 } from "@ourworldindata/types"
 import {
     ChartDimension,
+    GrapherState,
     MapChartState,
     MapConfig,
     MAP_REGION_LABELS,
@@ -205,8 +206,10 @@ class TooltipSection extends Component<{ mapConfig: MapConfig }> {
 }
 
 @observer
-class InapplicableEntitiesSection extends Component<{ mapConfig: MapConfig }> {
-    constructor(props: { mapConfig: MapConfig }) {
+class InapplicableEntitiesSection extends Component<{
+    grapherState: GrapherState
+}> {
+    constructor(props: { grapherState: GrapherState }) {
         super(props)
         makeObservable(this)
     }
@@ -222,20 +225,17 @@ class InapplicableEntitiesSection extends Component<{ mapConfig: MapConfig }> {
     }
 
     @action.bound onChange(entityNames: EntityName[]) {
-        // An empty list is stored as undefined so the config stays clean
-        this.props.mapConfig.inapplicableEntities = entityNames.length
-            ? entityNames
-            : undefined
+        this.props.grapherState.inapplicableEntityNames = entityNames
     }
 
     override render() {
-        const { mapConfig } = this.props
+        const { grapherState } = this.props
         return (
             <Section name="Not applicable entities">
                 <Select
                     style={{ width: "100%" }}
                     placeholder="Select entities"
-                    value={mapConfig.inapplicableEntities ?? []}
+                    value={grapherState.inapplicableEntityNames ?? []}
                     options={this.options}
                     onChange={this.onChange}
                     mode="multiple"
@@ -243,9 +243,10 @@ class InapplicableEntitiesSection extends Component<{ mapConfig: MapConfig }> {
                     allowClear
                 />
                 <small className="form-text text-muted">
-                    Entities the indicator's data doesn't apply to, e.g. China
-                    for "China's imports as a share of GDP". Excluded from the
-                    color scale and drawn in a dedicated pattern.
+                    Entities the indicator's data can't apply to by
+                    construction, e.g. Mexico for "Where do Mexican emigrants
+                    live?". Excluded from the color scale and drawn in a
+                    dedicated pattern.
                 </small>
             </Section>
         )
@@ -368,7 +369,9 @@ export class EditorMapTab<Editor extends AbstractChartEditor> extends Component<
                             lastEditedNote={this.lastColorScaleEditNote}
                         />
                         <TooltipSection mapConfig={mapConfig} />
-                        <InapplicableEntitiesSection mapConfig={mapConfig} />
+                        <InapplicableEntitiesSection
+                            grapherState={grapherState}
+                        />
                     </Fragment>
                 )}
                 <InheritanceSection editor={this.props.editor} />
