@@ -2,7 +2,26 @@ import { expect, it, describe } from "vitest"
 
 import { CommentTargetType } from "@ourworldindata/types"
 import { CommentAgentContext } from "./commentAgentProcessor.js"
+import { CommentTargetMetadata } from "./commentAgentMetadata.js"
 import { buildEtlPrompt, parseCliResult } from "./commentAgentEtl.js"
+
+const METADATA: CommentTargetMetadata = {
+    chart: { title: "Enrolment rates", subtitle: "Share of children enrolled" },
+    slug: "school-enrolment",
+    indicator: {
+        catalogPath:
+            "grapher/education/latest/enrolment_rates/enrolment_rates#gross_enrolment",
+        name: "Gross enrolment ratio",
+        titlePublic: null,
+        titleVariant: null,
+        unit: "%",
+        shortUnit: "%",
+        descriptionShort: "Enrolment as a share of the official age group.",
+        descriptionKey: null,
+        descriptionFromProducer: null,
+        descriptionProcessing: null,
+    },
+}
 
 function context(
     overrides: Partial<CommentAgentContext> = {}
@@ -29,14 +48,25 @@ function context(
 }
 
 describe(buildEtlPrompt, () => {
-    it("says which indicator, view and field, since the checkout can't know", () => {
-        const prompt = buildEtlPrompt(context())
+    it("says which view and field the comment is on", () => {
+        const prompt = buildEtlPrompt(context(), METADATA)
 
-        expect(prompt).toContain(
-            "education/latest/enrolment_rates#enrolment_rates"
-        )
         expect(prompt).toContain("level = preprimary")
         expect(prompt).toContain("Field commented on: subtitle")
+    })
+
+    // The failure this fixes: the checkout has no database, so with only a chart
+    // config UUID the agent asked for the slug instead of answering. The catalog
+    // path is what turns the chart into a place in the repo.
+    it("carries the catalog path and the current values into the prompt", () => {
+        const prompt = buildEtlPrompt(context(), METADATA)
+
+        expect(prompt).toContain(
+            "grapher/education/latest/enrolment_rates/enrolment_rates#gross_enrolment"
+        )
+        expect(prompt).toContain("school-enrolment")
+        expect(prompt).toContain("Share of children enrolled")
+        expect(prompt).toContain("you cannot query for more")
     })
 
     it("marks which comment is the one asking", () => {
@@ -56,7 +86,8 @@ describe(buildEtlPrompt, () => {
                         isInvocation: true,
                     },
                 ],
-            })
+            }),
+            METADATA
         )
 
         expect(prompt).toContain("Marcel Gerber [the comment asking you]")
@@ -74,7 +105,8 @@ describe(buildEtlPrompt, () => {
                         isInvocation: false,
                     },
                 ],
-            })
+            }),
+            METADATA
         )
 
         expect(prompt).toContain("You (Claude): It reads as a share.")

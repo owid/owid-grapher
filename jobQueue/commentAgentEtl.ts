@@ -5,10 +5,15 @@ import {
     ANTHROPIC_API_KEY,
     COMMENT_AGENT_ETL_DIR,
 } from "../settings/serverSettings.js"
+import * as db from "../db/db.js"
 import {
     CommentAgentContext,
     CommentAgentResult,
 } from "./commentAgentProcessor.js"
+import {
+    CommentTargetMetadata,
+    readCommentTargetMetadata,
+} from "./commentAgentMetadata.js"
 
 const execFileAsync = promisify(execFile)
 
@@ -31,6 +36,8 @@ const ALLOWED_TOOLS = ["Read", "Grep", "Glob"]
 
 const AGENT_INSTRUCTIONS = `You are answering an internal comment left by Our World in Data staff on a chart's metadata, from inside a checkout of the ETL.
 
+You have no database access and cannot reach the network, so the chart is not something you can look up. Everything the grapher database holds about it is given to you in the prompt, including the indicator's catalog path. That path is your way into this repo: it names the step that produced the indicator, so it is what to search the DAG and the *.meta.yml files for. Don't ask for the slug or title - they are already there.
+
 You can read the ETL to find out how the metadata is produced - which step writes it, what the YAML says, how it is derived. Use that.
 
 You cannot change anything: this checkout is shared with running processes and you have no way to push. Never say or imply that you have made a change, edited a file, or opened a pull request. If asked for a change, say what you would change and in which file, and that you can't do it yet.
@@ -48,11 +55,14 @@ function threadTranscript(context: CommentAgentContext): string {
         .join("\n\n")
 }
 
-export function buildEtlPrompt(context: CommentAgentContext): string {
+export function buildEtlPrompt(
+    context: CommentAgentContext,
+    metadata: CommentTargetMetadata
+): string {
     const target =
         context.targetType === "multiDim"
-            ? `multi-dimensional chart ${context.targetKey ?? context.targetId}`
-            : `chart ${context.targetKey ?? context.targetId}`
+            ? "a multi-dimensional chart"
+            : "a chart"
     const view = context.viewState
         ? `\nView: ${Object.entries(context.viewState)
               .map(([key, value]) => `${key} = ${value}`)
@@ -62,7 +72,15 @@ export function buildEtlPrompt(context: CommentAgentContext): string {
         ? `\nField commented on: ${context.anchor}`
         : "\nThe comment is on the chart as a whole, not one field."
 
+    // Everything the checkout cannot find out for itself. Without this the agent
+    // has only a config UUID, which resolves to an indicator solely through the
+    // grapher database - so it asks for the slug instead of answering, which is
+    // exactly what it did before this was passed.
     return `A comment was left on ${target}.${view}${field}
+
+What the grapher database holds about it (you cannot query for more):
+
+${JSON.stringify(metadata, null, 2)}
 
 Thread:
 
@@ -81,9 +99,19 @@ Answer the last comment.`
 export async function runAgentInEtlCheckout(
     context: CommentAgentContext
 ): Promise<CommentAgentResult> {
+    // Read first: the checkout has no way to reach the database, and the
+    // indicator's catalog path is what turns a chart into a place in this repo.
+    const metadata = await db.knexReadonlyTransaction((trx) =>
+        readCommentTargetMetadata(trx, {
+            targetType: context.targetType,
+            targetId: context.targetId,
+            viewState: context.viewState,
+        })
+    )
+
     const args = [
         "--print",
-        buildEtlPrompt(context),
+        buildEtlPrompt(context, metadata),
         "--output-format",
         "json",
         "--model",
@@ -106,9 +134,11 @@ export async function runAgentInEtlCheckout(
     } catch (error) {
         // Includes the timeout kill, a missing CLI and a non-zero exit. The
         // message reaches the thread, so it has to say which.
-        const message =
-            error instanceof Error ? error.message : String(error)
-        throw new Error(`Claude in ${COMMENT_AGENT_ETL_DIR} failed: ${message}`)
+        const message = error instanceof Error ? error.message : String(error)
+        throw new Error(
+            `Claude in ${COMMENT_AGENT_ETL_DIR} failed: ${message}`,
+            { cause: error }
+        )
     }
 
     return { success: true, reply: parseCliResult(stdout) }

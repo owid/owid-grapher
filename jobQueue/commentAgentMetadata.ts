@@ -23,6 +23,8 @@ export interface CommentTargetMetadata {
         subtitle?: string
         note?: string
     }
+    /** The chart's or multi-dim's slug, which is how a person refers to it */
+    slug?: string | null
     /**
      * The indicator behind the chart, or behind this view of a multi-dim. Only
      * the fields a data page shows, since those are the ones commentable.
@@ -97,10 +99,10 @@ async function chartMetadata(
     trx: db.KnexReadonlyTransaction,
     chartId: number
 ): Promise<CommentTargetMetadata> {
-    const config = await db.knexRawFirst<{ full: string }>(
+    const config = await db.knexRawFirst<{ full: string; slug: string | null }>(
         trx,
         `-- sql
-        SELECT cc.full
+        SELECT cc.full, cc.slug
         FROM charts c
         JOIN chart_configs cc ON cc.id = c.configId
         WHERE c.id = ?
@@ -125,6 +127,7 @@ async function chartMetadata(
         chart: chartText(
             config ? (JSON.parse(config.full) as GrapherInterface) : undefined
         ),
+        slug: config?.slug ?? null,
         indicator: indicatorFrom(variable),
     }
 }
@@ -144,6 +147,11 @@ async function multiDimMetadata(
     // The same identifier the multi-dim itself keys its views by, built from the
     // dimension choices the comment stored.
     const viewId = dimensionsToViewId(viewState)
+    const page = await db.knexRawFirst<{ slug: string | null }>(
+        trx,
+        `SELECT slug FROM multi_dim_data_pages WHERE id = ?`,
+        [multiDimId]
+    )
     const row = await db.knexRawFirst<{ full: string; variableId: number }>(
         trx,
         `-- sql
@@ -159,6 +167,7 @@ async function multiDimMetadata(
         // is better than answering about a different view.
         return {
             chart: {},
+            slug: page?.slug ?? null,
             unresolved: `No view "${viewId}" exists on this multi-dim any more.`,
         }
     }
@@ -169,6 +178,7 @@ async function multiDimMetadata(
     )
     return {
         chart: chartText(JSON.parse(row.full) as GrapherInterface),
+        slug: page?.slug ?? null,
         indicator: indicatorFrom(variable),
     }
 }
