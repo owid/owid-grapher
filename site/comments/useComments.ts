@@ -112,6 +112,31 @@ export function useCommentThreadsForTarget(
     }
 }
 
+export interface MentionableUser {
+    fullName: string
+}
+
+/**
+ * People a comment can mention. Reuses the admin's existing users endpoint - a
+ * few dozen active names, fetched once and reused, so the picker needs nothing
+ * built for it.
+ */
+export function useMentionableUsers(): MentionableUser[] {
+    const result = useQuery({
+        queryKey: ["mentionable-users"],
+        queryFn: () =>
+            fetchJson<{
+                users: { fullName: string; isActive: number | boolean }[]
+            }>("/admin/api/users.json"),
+        // The team changes rarely; no need to ask again this session
+        staleTime: Infinity,
+    })
+    return (result.data?.users ?? [])
+        .filter((user) => !!user.isActive)
+        .map((user) => ({ fullName: user.fullName }))
+        .sort((a, b) => a.fullName.localeCompare(b.fullName))
+}
+
 /** Invalidates the comment queries after a write */
 function useInvalidateComments(): () => Promise<void> {
     const queryClient = useQueryClient()

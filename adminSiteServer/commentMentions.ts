@@ -1,11 +1,11 @@
 import {
     CommentTargetType,
     JsonError,
-    parseUserMentions,
+    findMentionedCandidates,
 } from "@ourworldindata/types"
 
 import * as db from "../db/db.js"
-import { getUsersByGithubHandle } from "../db/model/Comment.js"
+import { getMentionableUsers } from "../db/model/Comment.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import {
     ADMIN_BASE_URL,
@@ -63,10 +63,14 @@ export async function notifyMentionedUsers({
     targetId: number
     anchor: string | null
 }): Promise<void> {
-    const handles = parseUserMentions(content)
-    if (!handles.length) return
+    // Matched against the actual list of people: a name has spaces, so there is
+    // no telling where "@Pablo Rosado" ends without knowing the names.
+    const users = findMentionedCandidates(
+        content,
+        await getMentionableUsers(trx)
+    )
+    if (!users.length) return
 
-    const users = await getUsersByGithubHandle(trx, handles)
     const url = await previewUrl(trx, targetType, targetId)
     const where = anchor ? `the ${anchor} field` : "a chart"
 

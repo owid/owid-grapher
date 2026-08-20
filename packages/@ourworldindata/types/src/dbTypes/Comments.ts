@@ -49,28 +49,45 @@ export function invokesAgent(content: string): boolean {
     return AGENT_MENTION_PATTERN.test(content)
 }
 
+/** Someone a comment could mention. Handle is optional; a name is always there. */
+export interface MentionCandidate {
+    fullName: string
+    /** GitHub handle, for people who type one from memory rather than picking */
+    handle?: string | null
+}
+
+function escapeForRegex(text: string): string {
+    return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
 /**
- * The GitHub handles mentioned in a comment, lowercased and deduplicated.
+ * Which of the given people a comment mentions.
  *
- * GitHub handles rather than names: two people on the team share a first name,
- * and a mention that quietly picks the wrong person is worse than one that
- * matches nobody. They are also what the users table already stores and what we
- * write in pull requests, so there is one spelling of a person to learn.
+ * Matched against the real list of people rather than by pattern, which is what
+ * lets "@Pablo Rosado" work: a name has spaces, so there is no way to know where
+ * a mention ends without knowing the names. That matters because the picker
+ * inserts a name - typing a GitHub handle to reach someone on Slack reads
+ * strangely, and a name is what you want to see when reading the thread back.
  *
- * Same shape as the agent mention - not preceded by a word character, so an
- * email address doesn't match - except that a handle may contain dashes.
+ * Handles still match, for anyone typing from memory instead of picking. Both
+ * are case-insensitive, and a mention must not run into a word character so
+ * "@Pablo Rosadoism" doesn't count.
  */
-export function parseUserMentions(content: string): string[] {
-    const matches = content.matchAll(
-        /(^|[^\w@])@([A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)/g
-    )
-    const handles = new Set<string>()
-    for (const match of matches) {
-        const handle = match[2].toLowerCase()
-        // The agent has its own path; it is not a person to notify
-        if (handle !== "claude") handles.add(handle)
-    }
-    return [...handles]
+export function findMentionedCandidates<T extends MentionCandidate>(
+    content: string,
+    candidates: T[]
+): T[] {
+    return candidates.filter((candidate) => {
+        const forms = [candidate.fullName, candidate.handle]
+            .filter((form): form is string => !!form)
+            .map(escapeForRegex)
+        if (!forms.length) return false
+        const pattern = new RegExp(
+            `(^|[^\\w@])@(${forms.join("|")})(?![\\w-])`,
+            "i"
+        )
+        return pattern.test(content)
+    })
 }
 
 export interface DbInsertComment {

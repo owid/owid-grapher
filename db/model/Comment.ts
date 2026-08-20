@@ -53,37 +53,35 @@ export async function getCommentTargetKey(
     return row?.key ?? null
 }
 
-/** Someone a comment mentioned, and how to reach them */
+/** Someone a comment could mention, and how to reach them */
 export interface MentionedUser {
     id: number
     fullName: string
+    /** GitHub handle, absent for anyone with no Tailscale identity recorded */
+    handle: string | null
     /** Null when we hold no Slack id for them, so they can't be notified */
     slackId: string | null
 }
 
 /**
- * Resolves mentioned GitHub handles to active users.
+ * Everyone a comment could mention: active users, with the GitHub handle pulled
+ * out of the Tailscale identity githubUsername stores ("edomt@github").
  *
- * githubUsername is stored as the Tailscale identity - "edomt@github" - so the
- * handle is what precedes the @. Matching is case-insensitive because handles are
- * written however people remember them (CGiattino, eoo-owid), and only active
- * users are considered: mentioning someone who has left should do nothing rather
- * than fail.
+ * Only active users, so mentioning someone who has left does nothing rather than
+ * failing, and there are a few dozen rows, so this is cheap to match against in
+ * full rather than guessing at handles first.
  */
-export async function getUsersByGithubHandle(
-    knex: db.KnexReadonlyTransaction,
-    handles: string[]
+export async function getMentionableUsers(
+    knex: db.KnexReadonlyTransaction
 ): Promise<MentionedUser[]> {
-    if (!handles.length) return []
     return await db.knexRaw<MentionedUser>(
         knex,
         `-- sql
-        SELECT id, fullName, slackId
+        SELECT id, fullName, slackId,
+               SUBSTRING_INDEX(githubUsername, '@', 1) AS handle
         FROM users
         WHERE isActive = 1
-          AND LOWER(SUBSTRING_INDEX(githubUsername, '@', 1)) IN (?)
-        `,
-        [handles.map((handle) => handle.toLowerCase())]
+        `
     )
 }
 

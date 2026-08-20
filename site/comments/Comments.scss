@@ -378,3 +378,33 @@
     font-style: italic;
     color: #4a6b87;
 }
+
+// Picking a person to mention. Names rather than handles: a mention that reads
+// "@Pablo Rosado" in the thread is clearer than one that reads "@pabloarosado",
+// and picking from a list is what makes a name with spaces typeable at all.
+.comment-composer__mentions {
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+    max-height: 140px;
+    overflow-y: auto;
+    border: 1px solid #d4d9de;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.comment-composer__mention {
+    display: block;
+    width: 100%;
+    padding: 5px 8px;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        background: #f2f6fa;
+    }
+}
