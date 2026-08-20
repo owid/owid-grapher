@@ -15,13 +15,15 @@ import {
     FilterType,
     ALL_CHARTS_ID,
 } from "@ourworldindata/types"
-import {
-    getRegionByNameOrVariantName,
-    listedRegionsNames,
-} from "@ourworldindata/utils"
+import { listedRegionsNames } from "@ourworldindata/utils"
 import { Button } from "@ourworldindata/components"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { useDocumentContext } from "./gdocs/DocumentContext.js"
+import {
+    fetchTopicVocabulary,
+    rankSuggestedKeywords,
+    topicVocabularyQueryKey,
+} from "./search/topicVocabulary.js"
 import { getDirectLiteSearchClient } from "./search/searchClients.js"
 import { queryAllCharts, searchQueryKeys } from "./search/queries.js"
 import {
@@ -49,6 +51,7 @@ import { SearchDataResultsSkeleton } from "./search/SearchDataResultsSkeleton.js
 import { SearchFilterPill } from "./search/SearchFilterPill.js"
 import { useVisibleChartHits } from "./useVisibleChartHits.js"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "./SiteConstants.js"
+import { TOPIC_VOCABULARY_URL } from "../settings/clientSettings.js"
 
 const SEARCH_DEBOUNCE_MS = 200
 
@@ -61,308 +64,17 @@ const ACCORDION_LAYOUT_MEDIA_QUERY = MEDIUM_BREAKPOINT_MEDIA_QUERY
 const SEARCH_PLACEHOLDER =
     "Search indicators by name, keyword, country, or source…"
 
-// A "suggested" chip must recur across at least this many charts on the
-// topic to be worth surfacing — otherwise it's just noise from a single
-// indicator rather than a genuine shortcut into the topic's chart list.
-const MIN_SUGGESTED_CHIP_COUNT = 2
-const MAX_SUGGESTED_CHIPS = 5
-
-// Shortest a keyword must be to be worth suggesting on its own (drops noise
-// like short acronyms picked up mid-title).
-const MIN_KEYWORD_LENGTH = 3
-
-// General English stop words, plus words that are technically accurate but
-// too generic/boilerplate in OWID chart titles & subtitles to read as a
-// meaningful search suggestion on their own (e.g. every chart on a topic
-// might say "rate" or "number", but that's not a useful way to search
-// within it — "deaths" or "fertility" is). Deliberately erring towards
-// excluding borderline words: a shorter, higher-signal chip list beats a
-// longer, noisier one.
-const KEYWORD_STOP_WORDS = new Set([
-    // general English stop words / connectives
-    "the",
-    "a",
-    "an",
-    "of",
-    "and",
-    "or",
-    "in",
-    "on",
-    "at",
-    "by",
-    "to",
-    "for",
-    "with",
-    "from",
-    "per",
-    "vs",
-    "is",
-    "are",
-    "was",
-    "were",
-    "be",
-    "been",
-    "being",
-    "as",
-    "it",
-    "its",
-    "this",
-    "that",
-    "these",
-    "those",
-    "than",
-    "then",
-    "so",
-    "such",
-    "which",
-    "who",
-    "whom",
-    "what",
-    "when",
-    "where",
-    "how",
-    "why",
-    "all",
-    "any",
-    "each",
-    "other",
-    "some",
-    "most",
-    "more",
-    "less",
-    "least",
-    "much",
-    "many",
-    "few",
-    "between",
-    "among",
-    "during",
-    "after",
-    "before",
-    "above",
-    "below",
-    "up",
-    "down",
-    "out",
-    "off",
-    "over",
-    "under",
-    "again",
-    "further",
-    "once",
-    "here",
-    "there",
-    "own",
-    "same",
-    "if",
-    "because",
-    "while",
-    "about",
-    "not",
-    "no",
-    "yes",
-    "their",
-    "our",
-    "you",
-    "your",
-    // OWID chart-title/subtitle boilerplate: technically descriptive, but too
-    // generic to be a useful search shortcut within an already-filtered topic
-    "rate",
-    "rates",
-    "number",
-    "numbers",
-    "share",
-    "shares",
-    "total",
-    "totals",
-    "average",
-    "averages",
-    "annual",
-    "annually",
-    "data",
-    "world",
-    "global",
-    "country",
-    "countries",
-    "region",
-    "regions",
-    "population",
-    "level",
-    "levels",
-    "value",
-    "values",
-    "index",
-    "indicator",
-    "indicators",
-    "estimate",
-    "estimates",
-    "estimated",
-    "projection",
-    "projections",
-    "projected",
-    "million",
-    "millions",
-    "thousand",
-    "thousands",
-    "billion",
-    "billions",
-    "measure",
-    "measured",
-    "measurement",
-    "capita",
-    "year",
-    "years",
-    "group",
-    "groups",
-    "type",
-    "types",
-])
-
-type SuggestedChipCandidate = {
-    dimension: "producer" | "keyword"
-    name: string
-    count: number
-}
-
-// True for anything that names a place: a country, a continent, an aggregate
-// like "World", or a variant name for one of those ("US", "UK", "Czech
-// Republic"). Suggested searches deliberately don't include places — see
-// computeAutoSuggestedChips — and this is the same lookup the rest of the site
-// uses to recognise one, so variants and non-country regions are covered
-// without a hand-written list of names here.
-function isPlaceName(name: string): boolean {
-    return getRegionByNameOrVariantName(name) !== undefined
-}
-
-// Splits free text into lowercase word tokens, keeping only alphabetic runs
-// (numbers/punctuation are dropped entirely, so "1950-2023" or "(%)" never
-// become spurious "tokens").
-function splitIntoLowercaseWords(text: string): string[] {
-    return text.toLowerCase().match(/[a-z]+/g) ?? []
-}
-
 export type SuggestedChip = {
     key: string
     label: string
     onClick: () => void
 }
 
-function rankByFrequency(
-    counts: Map<string, number>,
-    dimension: SuggestedChipCandidate["dimension"]
-): SuggestedChipCandidate[] {
-    return Array.from(counts.entries())
-        .filter(([, count]) => count >= MIN_SUGGESTED_CHIP_COUNT)
-        .sort(
-            ([nameA, countA], [nameB, countB]) =>
-                countB - countA || nameA.localeCompare(nameB)
-        )
-        .map(([name, count]) => ({ dimension, name, count }))
-}
-
-/**
- * Client-side pass over a topic's full chart list, deriving ~4-5 "suggested
- * search" chips from per-chart data Algolia already returns for this block (see
- * DATA_CATALOG_ATTRIBUTES): significant keywords pulled from each chart's
- * `title`/`subtitle` text, plus its data producers (`datasetProducers`).
- *
- * An earlier version of this used the chart's topic `tags` for its chips, but
- * those tend to read as generic category labels (dataset/producer names, broad
- * sub-topics) rather than the kind of specific, human search term a visitor
- * would actually type — the design brief's own examples ("deaths", "births")
- * are words you'd find in a chart *title*, not in its tag list. Extracting
- * frequent significant words straight from titles/subtitles gets much closer
- * to that: for a topic like "Population Growth", a chart titled "Births and
- * deaths per year" now contributes "births" and "deaths" as candidate chips,
- * rather than a tag like "Life Expectancy" or a producer like "UN WPP".
- *
- * Places are deliberately not suggested. Chips used to include up to two of
- * the countries a topic's charts have data for, which put names like "China"
- * or "Finland" in a line that otherwise offers ways of narrowing *what* the
- * charts are about, and — being derived from the whole topic rather than from
- * the current query — left an unrelated country sitting there while the
- * visitor searched for a different one. Country entities are no longer counted
- * at all, and any candidate that happens to name a place is dropped (see
- * isPlaceName), so a title mentioning "China" can't reintroduce one through
- * the keyword route either. Searching by country still works — typing one
- * filters the list and preselects that entity in the chart — it just isn't
- * suggested here.
- *
- * Keywords fill the chip budget first, most frequent first, with producers only
- * used to top the list up when there isn't enough keyword variety. That budget
- * is unchanged at MAX_SUGGESTED_CHIPS, so dropping places doesn't shorten the
- * line: the slots the countries used to occupy are backfilled with the next
- * ranked keywords instead. If a topic is small enough that nothing clears the
- * frequency threshold the list comes back empty, and the caller renders no
- * "Suggested:" line at all.
- */
-function computeAutoSuggestedChips(
-    hits: SearchChartHit[],
-    topicName: string
-): SuggestedChipCandidate[] {
-    if (hits.length === 0) return []
-
-    const producerCounts = new Map<string, number>()
-    const keywordCounts = new Map<string, number>()
-
-    // Words already in the topic's own name shouldn't turn back around as a
-    // suggested chip — searching "Age" on the "Age Structure" topic page
-    // wouldn't narrow anything down.
-    const topicNameWords = new Set(splitIntoLowercaseWords(topicName))
-
-    for (const hit of hits) {
-        const producersOnChart = new Set(hit.datasetProducers ?? [])
-        for (const producer of producersOnChart) {
-            if (isPlaceName(producer)) continue
-            producerCounts.set(
-                producer,
-                (producerCounts.get(producer) ?? 0) + 1
-            )
-        }
-
-        // Significant words from the chart's own title/subtitle — the most
-        // specific, human-readable description of what the chart actually
-        // shows. Counted as a set per chart (like the producers above) so a
-        // single title repeating a word doesn't outweigh many different
-        // charts mentioning it once each.
-        const text = [hit.title, hit.subtitle].filter(Boolean).join(" ")
-        const keywordsOnChart = new Set(
-            splitIntoLowercaseWords(text).filter(
-                (word) =>
-                    word.length >= MIN_KEYWORD_LENGTH &&
-                    !KEYWORD_STOP_WORDS.has(word) &&
-                    !topicNameWords.has(word) &&
-                    !isPlaceName(word)
-            )
-        )
-        for (const keyword of keywordsOnChart) {
-            keywordCounts.set(keyword, (keywordCounts.get(keyword) ?? 0) + 1)
-        }
-    }
-
-    const topProducers = rankByFrequency(producerCounts, "producer")
-    const topKeywords = rankByFrequency(keywordCounts, "keyword")
-
-    const chips: SuggestedChipCandidate[] = []
-
-    for (const keyword of topKeywords) {
-        if (chips.length >= MAX_SUGGESTED_CHIPS) break
-        chips.push(keyword)
-    }
-
-    for (const producer of topProducers) {
-        if (chips.length >= MAX_SUGGESTED_CHIPS) break
-        chips.push(producer)
-    }
-
-    return chips
-}
-
 export type AllChartsBlockProps = {
     topicName: string
     // Editorially curated search-suggestion chips (from the gdoc block).
-    // Optional — when omitted, chips are auto-generated from the topic's
-    // chart data instead (see `computeAutoSuggestedChips`).
+    // Optional — when omitted, chips come from the topic's OWID vocabulary
+    // terms instead (see `rankSuggestedKeywords`).
     suggested?: string[]
     className?: string
     id?: string
@@ -395,10 +107,9 @@ export const AllChartsBlock = ({
     // Active producer ("source") filters, mirroring the global search's
     // `datasetProducers` facet as a removable pill below the search input.
     // Nothing in this block currently adds to this list — suggested chips
-    // (including producer-derived ones) now populate the search input
-    // instead of applying a structured filter — but the state and its
-    // removal handler stay in place in case a future manually-applied
-    // filter UI needs them.
+    // populate the search input instead of applying a structured filter, and
+    // no longer offer producers at all — but the state and its removal handler
+    // stay in place in case a future manually-applied filter UI needs them.
     const [producerFilters, setProducerFilters] = useState<string[]>([])
     const removeProducerFilter = (producer: string) =>
         setProducerFilters((prev) => prev.filter((p) => p !== producer))
@@ -497,8 +208,8 @@ export const AllChartsBlock = ({
 
     const { data: baseHits, isError: isBaseError } = useQuery({
         queryKey: searchQueryKeys.charts(baseSearchState),
-        // `title`/`subtitle` (used by computeAutoSuggestedChips for its
-        // keyword chips) are already part of the shared
+        // `title`/`subtitle` (used by rankSuggestedKeywords to rank the
+        // topic's vocabulary terms) are already part of the shared
         // DATA_CATALOG_ATTRIBUTES, so no extra attributes need requesting
         // here (contrast the old tag-based chips, which needed an explicit
         // extra `tags` attribute).
@@ -507,9 +218,25 @@ export const AllChartsBlock = ({
         placeholderData: keepPreviousData,
     })
 
-    const autoSuggestedChips = useMemo(
-        () => computeAutoSuggestedChips(baseHits ?? [], topicName),
-        [baseHits, topicName]
+    // The vocabulary is a single file shared by every topic, fetched rather than
+    // bundled so that regenerating it is an upload rather than a deploy (and so
+    // a staging server can be pointed at its own copy). One request per page
+    // load at most: react-query dedupes it across blocks, and the CDN in front
+    // of it caches for 5 minutes.
+    const { data: vocabulary } = useQuery({
+        queryKey: topicVocabularyQueryKey(TOPIC_VOCABULARY_URL),
+        queryFn: fetchTopicVocabulary,
+        staleTime: Infinity,
+    })
+
+    const vocabularyChips = useMemo(
+        () =>
+            rankSuggestedKeywords(
+                vocabulary?.[topicName] ?? [],
+                baseHits ?? [],
+                topicName
+            ),
+        [vocabulary, baseHits, topicName]
     )
 
     // Searching must narrow this list without ever re-ordering it.
@@ -562,37 +289,26 @@ export const AllChartsBlock = ({
 
     // Editorially curated suggestions (set on the gdoc block) take precedence
     // when present, preserving the pre-existing authoring workflow — including
-    // any place name an author has deliberately listed there, which the
-    // auto-generated chips no longer offer (see computeAutoSuggestedChips).
-    // Every chip — curated or auto-generated, keyword or producer — does
-    // exactly one thing when clicked:
-    // populate the search input with its label, so it drives the same
-    // full-text search path as if the visitor had typed it themselves. This
-    // used to differ by dimension (a producer chip applied a structured
-    // `datasetProducers` filter shown as a separate pill below the input
-    // instead), which made suggestion clicks behave inconsistently; now
-    // they're uniform. Chips whose term is already reflected in the current
-    // query/filters are hidden rather than shown a second time.
+    // any term an author has deliberately listed there that the vocabulary
+    // wouldn't offer, a place name among them. Every chip, curated or from the
+    // vocabulary, does exactly one thing when clicked: populate the search
+    // input with its label, so it drives the same full-text search path as if
+    // the visitor had typed it themselves. A vocabulary chip whose term the
+    // visitor has already typed is hidden rather than offered back to them.
     const suggestedChips: SuggestedChip[] = useMemo(() => {
-        if (suggested.length > 0) {
-            return suggested.map((text) => ({
-                key: `query:${text}`,
-                label: text,
-                onClick: () => setQuery(text),
-            }))
-        }
-        return autoSuggestedChips
-            .filter((chip) => {
-                if (chip.dimension === "producer")
-                    return !producerFilters.includes(chip.name)
-                return query.trim().toLowerCase() !== chip.name.toLowerCase()
-            })
-            .map((chip) => ({
-                key: `${chip.dimension}:${chip.name}`,
-                label: chip.name,
-                onClick: () => setQuery(chip.name),
-            }))
-    }, [suggested, autoSuggestedChips, producerFilters, query])
+        const labels =
+            suggested.length > 0
+                ? suggested
+                : vocabularyChips.filter(
+                      (keyword) =>
+                          query.trim().toLowerCase() !== keyword.toLowerCase()
+                  )
+        return labels.map((label) => ({
+            key: `query:${label}`,
+            label,
+            onClick: () => setQuery(label),
+        }))
+    }, [suggested, vocabularyChips, query])
 
     // The heading and the search bar stick to the top of the viewport as a
     // single unit on desktop (see .all-charts-block__sticky-header), which means

@@ -59,6 +59,22 @@ export const DATA_API_URL: string =
 export const CATALOG_URL: string =
     process.env.CATALOG_URL ?? "https://catalog.ourworldindata.org"
 
+// The OWID topic vocabulary: per-topic search terms, used for the suggested
+// searches in the all-charts block. It lives in the `owid-public` R2 bucket and
+// is served through files.ourworldindata.org, whose worker adds CORS and a
+// 5-minute edge cache (see the owid-public worker in the cloudflare-workers
+// repo), so the browser can read it directly.
+export const DEFAULT_TOPIC_VOCABULARY_URL =
+    "https://files.ourworldindata.org/topic_vocabulary.json"
+
+// Point this at a different key in that bucket to try a freshly generated
+// vocabulary on a staging server without overwriting the production one, e.g.
+// TOPIC_VOCABULARY_URL=https://files.ourworldindata.org/topic_vocabulary/my-branch.json
+// If that key isn't there, suggestions fall back to the production vocabulary
+// rather than disappearing.
+export const TOPIC_VOCABULARY_URL: string =
+    process.env.TOPIC_VOCABULARY_URL ?? DEFAULT_TOPIC_VOCABULARY_URL
+
 export const ALGOLIA_ID: string = process.env.ALGOLIA_ID ?? ""
 export const ALGOLIA_SEARCH_KEY: string = process.env.ALGOLIA_SEARCH_KEY ?? ""
 export const ALGOLIA_INDEX_PREFIX: string =
