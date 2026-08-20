@@ -41,6 +41,7 @@
     ],
     "scripts": {
         "build": "tsdown",
+        "clean": "rm -rf dist dist-package",
         "startDemoServer": "http-server . -p 8433 -c-1 -o /demo.html",
         "testPackage": "yarn testPackage:pack && yarn testPackage:vitest && yarn testPackage:attw",
         "testPackage:pack": "yarn pack --out dist-package/grapher.tgz",
