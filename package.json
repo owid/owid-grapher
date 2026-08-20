@@ -54,6 +54,7 @@
         "checkRaycastSnippets": "tsx --tsconfig tsconfig.tsx.json devTools/gdocs/raycastSnippets/generateRaycastSnippets.ts --check",
         "typecheck": "tsc -b",
         "generateDbTypes": "npx @rmp135/sql-ts -c db/sql-ts/sql-ts-config.json",
+        "generateGdocsReferences": "tsx --tsconfig tsconfig.tsx.json devTools/gdocs/generate-gdocs-references.ts",
         "generateRaycastSnippets": "tsx --tsconfig tsconfig.tsx.json devTools/gdocs/raycastSnippets/generateRaycastSnippets.ts",
         "syncGraphersToR2": "tsx --tsconfig tsconfig.tsx.json devTools/syncGraphersToR2/syncGraphersToR2.ts",
         "syncCloudflareImages": "tsx --tsconfig tsconfig.tsx.json devTools/cloudflareImagesSync/cloudflareImagesSync.ts",
