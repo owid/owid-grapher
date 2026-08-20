@@ -34,6 +34,7 @@ import {
 } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
 import { getFullReferencesCount, isChartEditorInstance } from "./ChartEditor.js"
+import { ChartEditorCommands } from "./ChartEditorCommands.js"
 import { EditorBasicTab } from "./EditorBasicTab.js"
 import { EditorDataTab } from "./EditorDataTab.js"
 import { EditorTextTab } from "./EditorTextTab.js"
@@ -406,6 +407,7 @@ export class ChartEditorView<
 
         return (
             <>
+                <ChartEditorCommands editor={editor} />
                 {!editor.isNewGrapher && (
                     <Prompt
                         when={editor.isModified && !chartEditor?.newChartId}
