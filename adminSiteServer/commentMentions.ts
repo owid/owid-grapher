@@ -9,7 +9,7 @@ import { getMentionableUsers } from "../db/model/Comment.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import {
     ADMIN_BASE_URL,
-    COMMENT_MENTION_NOTIFICATIONS,
+    SLACK_BOT_OAUTH_TOKEN,
 } from "../settings/serverSettings.js"
 import { postToSlack } from "./apiRoutes/slack.js"
 
@@ -37,10 +37,12 @@ async function previewUrl(
 /**
  * Tells the people a comment mentioned, over Slack.
  *
- * Sending is opt-in per environment (COMMENT_MENTION_NOTIFICATIONS). When it is
- * off the message is logged instead, which is the right default now that Slack
- * ids reach staging: a staging server is otherwise perfectly able to DM the
- * whole team while someone tries the feature out.
+ * Sends wherever a Slack token is configured, and logs the message where one
+ * isn't - local dev, mainly. That is not a safety gate: the comment API is only
+ * reachable by staff over Tailscale, so the only person who can trigger a
+ * message is a colleague. The message names where it came from, because a DM
+ * from a branch's staging server otherwise looks exactly like one from
+ * production while linking somewhere that may not exist next week.
  *
  * A mention nobody can deliver is not an error - someone may have no Slack id
  * recorded, or the handle may match nobody - so this reports what it did rather
@@ -73,6 +75,9 @@ export async function notifyMentionedUsers({
 
     const url = await previewUrl(trx, targetType, targetId)
     const where = anchor ? `the ${anchor} field` : "a chart"
+    // e.g. "staging-site-internal-comments-2" - tells you which environment
+    // you are being sent to before you click
+    const origin = ADMIN_BASE_URL.replace(/^https?:\/\//, "").replace(/\/$/, "")
 
     for (const user of users) {
         // Mentioning yourself shouldn't ping you
@@ -85,12 +90,13 @@ export async function notifyMentionedUsers({
         }
 
         const text =
-            `*${authorName}* mentioned you in a comment on ${where}:\n` +
+            `*${authorName}* mentioned you in a comment on ${where}` +
+            ` (${origin}):\n` +
             `> ${content.replace(/\n/g, "\n> ")}\n${url}`
 
-        if (!COMMENT_MENTION_NOTIFICATIONS) {
+        if (!SLACK_BOT_OAUTH_TOKEN) {
             console.log(
-                `[comment mentions] would notify ${user.fullName} (${user.slackId}): ${url}`
+                `[comment mentions] no Slack token configured; would have sent to ${user.fullName}: ${url}`
             )
             continue
         }
