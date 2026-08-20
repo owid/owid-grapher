@@ -587,9 +587,7 @@ export const ContinentColors = {
     "Southern Africa (UN M49)": OwidDistinctColors.DarkMauve,
     "Western Africa (UN M49)": OwidDistinctColors.Fuchsia,
 
-    // IHME GBD super-regions. High-income is not a geographic band but spans Western Europe,
-    // North America, Australasia, High-income Asia Pacific and Southern Latin America; it takes the
-    // Europe hue because Western Europe is 24 of its 36 countries.
+    // IHME GBD super-regions
     "High-income (IHME GBD)": OwidDistinctColors.Denim,
     "Latin America and Caribbean (IHME GBD)": OwidDistinctColors.Maroon,
     "Sub-Saharan Africa (IHME GBD)": OwidDistinctColors.DarkMauve,
@@ -600,15 +598,7 @@ export const ContinentColors = {
     "Southeast Asia, East Asia, and Oceania (IHME GBD)":
         OwidDistinctColors.Lime,
 
-    // IHME GBD regions (level 2), in legend order. This tier is a 21-way split that lines up
-    // almost one-to-one with the FAO subregions, so each region takes the hue that fao_2 and
-    // un_m49 already use for its counterpart: Northern America, Caribbean, Central America and
-    // South America for the Americas; Western/Middle/Eastern/Southern Africa for the four
-    // Sub-Saharan splits; Western and Eastern Europe; Central, Southern and Eastern Asia and
-    // South-eastern Asia. Andean and Tropical Latin America, Central Europe, High-income Asia
-    // Pacific and Australasia have no counterpart and stay within their region's hue family.
-    // North Africa and Middle East and South Asia are pinned above: each is a super-region with
-    // no finer breakdown, so it is one region at both levels and shares the single key.
+    // IHME GBD regions (level 2)
     "High-income North America (IHME GBD)": OwidDistinctColors.Peach,
     "Caribbean (IHME GBD)": OwidDistinctColors.Coral,
     "Central Latin America (IHME GBD)": OwidDistinctColors.DustyCoral,
@@ -1171,9 +1161,7 @@ export const MapContinentColors = {
     "Southern Africa (UN M49)": OwidMapColors.MutedPlum,
     "Western Africa (UN M49)": OwidMapColors.LightPlum,
 
-    // IHME GBD super-regions. High-income is not a geographic band but spans Western Europe,
-    // North America, Australasia, High-income Asia Pacific and Southern Latin America; it takes the
-    // Europe hue because Western Europe is 24 of its 36 countries.
+    // IHME GBD super-regions
     "High-income (IHME GBD)": OwidMapColors.MutedDenim,
     "Latin America and Caribbean (IHME GBD)": OwidMapColors.MutedCherry,
     "Sub-Saharan Africa (IHME GBD)": OwidMapColors.LightPurple,
@@ -1184,13 +1172,7 @@ export const MapContinentColors = {
     "Southeast Asia, East Asia, and Oceania (IHME GBD)":
         OwidMapColors.LeafGreen,
 
-    // IHME GBD regions (level 2), in legend order. Mirrors the fao_2 subregion hues region by
-    // region, so the 21 regions use 21 of the 23 map colors; SoftPurple and Taupe are left over.
-    // Every low-contrast neighbour this introduces — MutedDenim/LightDenim across Central and
-    // Eastern Europe, LightPurple/MutedPlum across Eastern and Southern Sub-Saharan Africa,
-    // LightGreen/Olive/LeafGreen across Central, South and East Asia — already ships in fao_2
-    // between the same pairs of neighbours. North Africa and Middle East and South Asia are
-    // pinned above and shared with this tier.
+    // IHME GBD regions (level 2)
     "High-income North America (IHME GBD)": OwidMapColors.SoftOrange,
     "Caribbean (IHME GBD)": OwidMapColors.Mustard,
     "Central Latin America (IHME GBD)": OwidMapColors.MutedCherry,
