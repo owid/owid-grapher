@@ -25,6 +25,27 @@ export interface CommentTarget {
  */
 export type CommentViewState = Record<string, string>
 
+/** How a comment asks the agent to act */
+export const AGENT_MENTION = "@claude"
+
+/**
+ * The instruction in a comment that invokes the agent, or null if it doesn't.
+ *
+ * Deliberately strict: the mention has to open the comment. Someone writing "I
+ * think @claude got this wrong" is discussing the agent, not summoning it, and a
+ * comment box that spends money and opens pull requests on a substring match is
+ * a trap. Opening with the mention is a thing you can only do on purpose.
+ */
+export function parseAgentInvocation(content: string): string | null {
+    const trimmed = content.trimStart()
+    if (!trimmed.toLowerCase().startsWith(AGENT_MENTION)) return null
+    const instruction = trimmed.slice(AGENT_MENTION.length)
+    // Require a break after the mention so "@claudette" isn't a match
+    if (instruction && !/^[\s,:.!?]/.test(instruction)) return null
+    // Drop whatever separates the mention from the instruction
+    return instruction.replace(/^[\s,:.!?]+/, "").trim()
+}
+
 export interface DbInsertComment {
     id?: number
     targetType: CommentTargetType

@@ -11,7 +11,10 @@ import { isValidSlug } from "../../serverUtils/serverUtil.js"
 import * as db from "../../db/db.js"
 
 import { upsertExplorer, getExplorerBySlug } from "../../db/model/Explorer.js"
-import { enqueueJob, updateExplorerRefreshStatus } from "../../db/model/Jobs.js"
+import {
+    enqueueExplorerRefreshJob,
+    updateExplorerRefreshStatus,
+} from "../../db/model/Jobs.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import { getExplorerViewRecords } from "../../baker/algolia/utils/explorerViews.js"
 
@@ -101,7 +104,7 @@ export async function handlePutExplorer(
         await updateExplorerRefreshStatus(trx, slug, "queued")
 
         // Enqueue a job to refresh explorer views asynchronously
-        await enqueueJob(trx, {
+        await enqueueExplorerRefreshJob(trx, {
             type: "refresh_explorer_views",
             payload: {
                 slug,

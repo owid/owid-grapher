@@ -467,6 +467,8 @@ export {
     type DbRawComment,
     type DbEnrichedComment,
     type CommentWithAuthor,
+    AGENT_MENTION,
+    parseAgentInvocation,
     parseCommentViewState,
     serializeCommentViewState,
     parseCommentRow,
@@ -524,6 +526,9 @@ export {
     type DbPlainJob,
     type JobState,
     type JobType,
+    type JobPayload,
+    type ExplorerRefreshJobPayload,
+    type CommentAgentJobPayload,
     JobsTableName,
 } from "./dbTypes/Jobs.js"
 export {
