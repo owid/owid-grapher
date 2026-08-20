@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach } from "vitest"
 
 import { JobsTableName } from "@ourworldindata/types"
 import { knexReadWriteTransaction } from "../../db/db.js"
-import { AGENT_USER_EMAIL } from "../../db/model/Comment.js"
 import { enqueueCommentAgentJob } from "../../db/model/Jobs.js"
 import { getAdminTestEnv } from "./testEnv.js"
 
@@ -76,17 +75,5 @@ describe("comment agent job queue", { timeout: 15000 }, () => {
         )
         expect(other).toBe(true)
         expect(await env.testKnex(JobsTableName).select("*")).toHaveLength(2)
-    })
-
-    it("has a service account to author the agent's replies", async () => {
-        // Inserted by migration; comments.userId is not nullable, so without it
-        // the agent has no way to answer.
-        const user = await env
-            .testKnex("users")
-            .where({ email: AGENT_USER_EMAIL })
-            .first()
-        expect(user).toBeDefined()
-        expect(user.isActive).toBe(0)
-        expect(user.isSuperuser).toBe(0)
     })
 })

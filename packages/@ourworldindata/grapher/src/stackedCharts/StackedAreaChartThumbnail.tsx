@@ -246,11 +246,13 @@ export class StackedAreaChartThumbnail
                     axis={this.dualAxis.verticalAxis}
                     bounds={this.dualAxis.innerBounds}
                 />
-                <HorizontalAxisComponent
-                    axis={this.dualAxis.horizontalAxis}
-                    bounds={this.dualAxis.bounds}
-                    showEndpointsOnly
-                />
+                {!this.dualAxis.horizontalAxis.hideAxis && (
+                    <HorizontalAxisComponent
+                        axis={this.dualAxis.horizontalAxis}
+                        bounds={this.dualAxis.bounds}
+                        showEndpointsOnly
+                    />
+                )}
                 <StackedAreas series={this.renderSeries} />
                 {this.anchoredLabelsState && (
                     <AnchoredLabels state={this.anchoredLabelsState} />

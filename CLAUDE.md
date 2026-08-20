@@ -68,15 +68,21 @@ Use the `test-on-staging` skill when checking a change on `staging-site-<branch>
 
 ## Team
 
-Everything you post to GitHub or Slack goes out under a **human's identity**.
+When AI-authored text is posted through a **human's account**, it must be clearly attributed so readers do not mistake it for the human's own words.
 
-1. **Attribute the work.** Any prose you author for GitHub or Slack — PR bodies, issue and review comments (including replies to Codex/Copilot/reviewers), Slack messages or drafts — must start with this blockquote:
+1. **Attribute posts made under a human identity.** Any prose that will appear under a human user's GitHub or Slack account — PR bodies, issue and review comments (including replies to Codex/Copilot/reviewers), Slack messages, or drafts intended for a human to post — must start with this blockquote:
 
     ```
     > _Written by <model provider> <model name> — @<handle> at the wheel._
     ```
 
-    Use the actual provider and model (e.g. "Claude Sonnet 5", never "Code" or a bare version number) and the handle of the human directing the work (usually the current git user; ask if ambiguous). The only exemption is a bare mechanical token with no prose (a lone `@codex review`, a 👍); when in doubt, include the line.
+    Use the actual provider and model (e.g. "Claude Sonnet 5", never "Code" or a bare version number) and the handle of the human directing the work, usually the authenticated or current git user. Ask if it is ambiguous.
+
+    **Do not add this attribution when posting through an account that is clearly identified as an AI agent or bot**, such as the Codex GitHub user. In that case, the posting identity already provides the necessary disclosure, and claiming that a human is "at the wheel" may be inaccurate.
+
+    A bare mechanical token with no prose, such as a lone `@codex review` ping or 👍, also requires no attribution.
+
+    If the posting identity cannot be determined, assume it is a human account and include the attribution.
 
 2. **Never guess GitHub handles** — a wrong `@`-tag pings a real person. Use the exact handle from the list below; if a name isn't on it, write the plain name (e.g. "Bastian") and ask the user for the handle.
 

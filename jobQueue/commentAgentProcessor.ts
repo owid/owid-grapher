@@ -7,6 +7,7 @@ import {
 
 import * as db from "../db/db.js"
 import {
+    AGENT_USER_EMAIL,
     getAgentUserId,
     getCommentById,
     getCommentsForTarget,
@@ -98,9 +99,13 @@ async function postReply(
 ): Promise<void> {
     await db.knexReadWriteTransaction(async (trx) => {
         const agentUserId = await getAgentUserId(trx)
-        // Absent only if the migration hasn't run, in which case the agent has
-        // no identity to answer under and staying quiet is all that's left
-        if (agentUserId === undefined) return
+        // Absent only if the migration that adds it hasn't run. Say so loudly:
+        // the job then fails with a readable reason, where returning quietly
+        // would leave someone waiting on an answer that was never coming.
+        if (agentUserId === undefined)
+            throw new Error(
+                `No agent user (${AGENT_USER_EMAIL}) to post the reply as; has the migration run?`
+            )
         await insertComment(trx, {
             targetType: context.targetType,
             targetId: context.targetId,
@@ -183,7 +188,12 @@ export async function processCommentAgentJob(
         // waiting can't act on. The job is marked failed by the caller, and that
         // is terminal, so this reply can't be written twice.
         const message = error instanceof Error ? error.message : String(error)
-        await postReply(context, `I couldn't do this.\n\n${message}`)
+        try {
+            await postReply(context, `I couldn't do this.\n\n${message}`)
+        } catch {
+            // Saying so failed too. The original error is the useful one, and
+            // the job still records it.
+        }
         throw error
     }
 
