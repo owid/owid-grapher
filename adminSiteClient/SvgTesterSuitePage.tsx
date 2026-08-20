@@ -663,7 +663,7 @@ function DifferenceCard({
                             className="SvgTesterSuitePage__chart-type"
                             title={
                                 verdict === "unknown"
-                                    ? "The comparison failed or timed out, so this chart may not have changed at all"
+                                    ? "This chart's pixels can't be read — an embedded <foreignObject> taints the canvas — so it may not have changed at all"
                                     : undefined
                             }
                         >
@@ -1022,8 +1022,9 @@ function useVisualDiffs(
             options
         )
             // Whatever couldn't be checked gets one more go once the rest has
-            // drained: a pair that stalled behind the check's own traffic says
-            // nothing about the chart, and this is the quiet moment to ask again
+            // drained. Nothing else will ask again: a run that has reported
+            // keeps handing back the same results, so the check doesn't run
+            // again until the page is reloaded.
             .then(() =>
                 pMap(
                     differences.filter(

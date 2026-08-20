@@ -21,10 +21,9 @@ export const VISUAL_DIFF_CONCURRENCY = 8
 const COMPARISON_TIMEOUT_MS = 20_000
 
 /**
- * How long a yield may wait for an idle moment before going ahead anyway. The
- * report re-renders throughout the check, so idle moments are scarce, and a pair
- * needs several yields to get through: without a deadline one can sit long
- * enough to be given up on even though nothing is wrong with it.
+ * How long a yield may wait for an idle moment before going ahead anyway. An
+ * idle callback has no deadline of its own, so on a page that stays busy it can
+ * sit indefinitely, and a pair needs several yields to get through.
  */
 const IDLE_DEADLINE_MS = 100
 
@@ -49,6 +48,10 @@ export type LoadPixels = (
 /**
  * What a comparison came to. Not a boolean plus undefined: `!identical` would
  * read a pair nothing is known about as one that changed.
+ *
+ * "unknown" is a real outcome, not just a hiccup: an SVG containing a
+ * `<foreignObject>` taints the canvas, since it could embed arbitrary HTML, so
+ * its pixels can never be read back.
  */
 export type VisualVerdict = "identical" | "changed" | "unknown"
 
@@ -231,7 +234,8 @@ async function loadPixelsFromDom(
         }
     } catch (error) {
         // Logged rather than swallowed, so a check that is failing can't pass
-        // for one that found nothing
+        // for one that found nothing. A SecurityError here is the canvas
+        // refusing to be read: see VisualVerdict.
         console.warn("[svg visual diff] could not rasterize", url, error)
         return undefined
     }
