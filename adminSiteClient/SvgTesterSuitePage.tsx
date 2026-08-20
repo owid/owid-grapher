@@ -41,8 +41,11 @@ import {
 import pMap from "p-map"
 import {
     compareSvgsVisually,
+    encodeVerdicts,
+    readVerdicts,
     VISUAL_DIFF_CONCURRENCY,
     type VisualVerdict,
+    writeVerdicts,
 } from "./svgVisualDiff.js"
 
 const LIVE_URL = "https://ourworldindata.org"
@@ -93,6 +96,13 @@ const IDLE_REFRESH_INTERVAL_MS = 30_000
 
 /** How often the countdown is allowed to move, out of thousands of answers */
 const VISUAL_DIFF_PROGRESS_MS = 250
+
+/**
+ * How often the answers so far are written down. Rarer than the countdown: this
+ * one touches storage, and its point is only that leaving mid-check shouldn't
+ * cost minutes of work.
+ */
+const VISUAL_DIFF_SAVE_MS = 2_000
 
 /** Stable identity, so holding results back doesn't itself rebuild the list */
 const NO_VISUAL_RESULTS: Record<string, VisualVerdict> = {}
@@ -165,10 +175,14 @@ export function SvgTesterSuitePage() {
     const isReported = data ? hasReportedResult(data) : false
 
     // Check visual differences once the run has reported
-    const { verdictBySvg, remainingCount } = useVisualDiffs(
+    const { verdictBySvg, remainingCount, isComplete } = useVisualDiffs(
         suite,
         differences,
-        isReported ? results?.startedAt : undefined
+        isReported ? results?.startedAt : undefined,
+        {
+            grapherCommit: results?.grapherCommit ?? null,
+            svgsCommit: results?.svgsCommit ?? null,
+        }
     )
 
     const applied = verdictBySvg ?? NO_VISUAL_RESULTS
@@ -237,7 +251,7 @@ export function SvgTesterSuitePage() {
                   Record<VisualVerdict, number>
               >,
               remainingCount,
-              isComplete: verdictBySvg !== undefined,
+              isComplete,
           }
         : undefined
 
@@ -972,24 +986,57 @@ function pageTitle(
 function useVisualDiffs(
     suite: string | undefined,
     differences: SvgTesterVerifyDifferenceEntry[],
-    runKey: string | undefined
+    runKey: string | undefined,
+    commits: { grapherCommit: string | null; svgsCommit: string | null }
 ): {
     verdictBySvg: Record<string, VisualVerdict> | undefined
     remainingCount: number
+    isComplete: boolean
 } {
     const [verdictBySvg, setVerdictBySvg] =
         useState<Record<string, VisualVerdict>>()
+    const [isComplete, setIsComplete] = useState(false)
     const [checkedCount, setCheckedCount] = useState(0)
+    const [todoCount, setTodoCount] = useState(0)
+
+    // Pulled out so the effect depends on the values rather than the object
+    const { grapherCommit, svgsCommit } = commits
 
     useEffect(() => {
         setVerdictBySvg(undefined)
+        setIsComplete(false)
         setCheckedCount(0)
+        setTodoCount(0)
         if (!suite || !runKey || !differences.length) return
+
+        const svgFilenames = differences.map((entry) => entry.svgFilename)
+
+        // Whatever this run was already checked for, so a reopened report
+        // doesn't rasterize thousands of pairs to reach the same answers
+        const verdicts: Record<string, VisualVerdict> =
+            readVerdicts(suite, runKey, svgFilenames) ?? {}
+
+        // A stored "unknown" is worth asking about again: it says the pair
+        // couldn't be read, not that it was read and found to differ
+        const todo = differences.filter(
+            (entry) =>
+                !verdicts[entry.svgFilename] ||
+                verdicts[entry.svgFilename] === "unknown"
+        )
+
+        // Shown straight away, so the report reads correctly while the rest of
+        // the work goes on behind it. A copy, since `verdicts` goes on being
+        // written to and state that mutates under React renders inconsistently.
+        setVerdictBySvg({ ...verdicts })
+        setTodoCount(todo.length)
+        if (!todo.length) {
+            setIsComplete(true)
+            return
+        }
 
         // Leaving the suite abandons whatever has not started: those answers are
         // for a report nobody is looking at any more.
         const abandon = new AbortController()
-        const verdicts: Record<string, VisualVerdict> = {}
         let checked = 0
         // Thousands of answers, and only the countdown shows them arriving
         const publishProgress = _.throttle(
@@ -998,13 +1045,27 @@ function useVisualDiffs(
             { leading: false }
         )
 
+        const saveVerdicts = (): void =>
+            writeVerdicts(
+                suite,
+                encodeVerdicts({
+                    runKey,
+                    svgFilenames,
+                    verdicts,
+                    grapherCommit,
+                    svgsCommit,
+                })
+            )
+        const saveProgress = _.throttle(saveVerdicts, VISUAL_DIFF_SAVE_MS, {
+            leading: false,
+        })
+
         const check = async (
             entry: SvgTesterVerifyDifferenceEntry
         ): Promise<void> => {
             verdicts[entry.svgFilename] = await compareSvgsVisually(
                 svgUrl(suite, "references", entry),
-                svgUrl(suite, "differences", entry),
-                runKey
+                svgUrl(suite, "differences", entry)
             )
         }
         const options = {
@@ -1013,11 +1074,12 @@ function useVisualDiffs(
         }
 
         void pMap(
-            differences,
+            todo,
             async (entry) => {
                 await check(entry)
                 checked++
                 publishProgress()
+                saveProgress()
             },
             options
         )
@@ -1027,7 +1089,7 @@ function useVisualDiffs(
             // again until the page is reloaded.
             .then(() =>
                 pMap(
-                    differences.filter(
+                    todo.filter(
                         (entry) => verdicts[entry.svgFilename] === "unknown"
                     ),
                     check,
@@ -1037,7 +1099,10 @@ function useVisualDiffs(
             .then(
                 () => {
                     publishProgress.cancel()
-                    setVerdictBySvg(verdicts)
+                    saveProgress.cancel()
+                    setVerdictBySvg({ ...verdicts })
+                    setIsComplete(true)
+                    saveVerdicts()
                 },
                 () => {
                     // Abandoned, so there is nothing to report
@@ -1046,13 +1111,17 @@ function useVisualDiffs(
 
         return () => {
             publishProgress.cancel()
+            saveProgress.cancel()
+            // Leaving shouldn't cost the answers already in hand
+            saveVerdicts()
             abandon.abort()
         }
-    }, [suite, runKey, differences])
+    }, [suite, runKey, differences, grapherCommit, svgsCommit])
 
     return {
         verdictBySvg,
-        remainingCount: differences.length - checkedCount,
+        remainingCount: todoCount - checkedCount,
+        isComplete,
     }
 }
 

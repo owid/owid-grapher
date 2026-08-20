@@ -5,6 +5,10 @@
  * flags charts that paint identically all the same — reordered attributes,
  * generated ids, an empty group. This is what tells those apart, so the report
  * can set them aside.
+ *
+ * Answers belong to a run rather than to whichever tab did the work, so the
+ * bottom half of this file keeps them against the run's identity — a reopened
+ * report then doesn't rasterize everything again.
  */
 
 /**
@@ -26,12 +30,6 @@ const COMPARISON_TIMEOUT_MS = 20_000
  * sit indefinitely, and a pair needs several yields to get through.
  */
 const IDLE_DEADLINE_MS = 100
-
-/**
- * How many runs' worth of answers to keep. Revisiting the suite you just left is
- * then free, without holding every answer for every run the tab has ever shown.
- */
-const MAX_CACHED_RUNS = 4
 
 /** An SVG's pixels, ready to compare */
 export interface RasterizedSvg {
@@ -57,31 +55,12 @@ export type VisualVerdict = "identical" | "changed" | "unknown"
 
 export function createVisualDiffChecker(loadPixels: LoadPixels): {
     /**
-     * What the two SVGs' pixels came to. Never rejects, and never hangs.
-     * `runKey` scopes the cache, since the next run serves different files from
-     * the same URLs. A pair that couldn't be checked isn't remembered, so asking
-     * again does the work again.
+     * What the two SVGs' pixels came to. Never rejects, and never hangs, and
+     * does the work every time it is asked — nothing here remembers an answer,
+     * least of all one that never arrived.
      */
-    compare: (
-        beforeUrl: string,
-        afterUrl: string,
-        runKey: string
-    ) => Promise<VisualVerdict>
+    compare: (beforeUrl: string, afterUrl: string) => Promise<VisualVerdict>
 } {
-    const cachesByRun = new Map<string, Map<string, Promise<VisualVerdict>>>()
-
-    function cacheFor(runKey: string): Map<string, Promise<VisualVerdict>> {
-        const existing = cachesByRun.get(runKey)
-        if (existing) return existing
-
-        const cache = new Map<string, Promise<VisualVerdict>>()
-        cachesByRun.set(runKey, cache)
-        // Insertion-ordered, so this drops the runs left longest ago
-        for (const stale of [...cachesByRun.keys()].slice(0, -MAX_CACHED_RUNS))
-            cachesByRun.delete(stale)
-        return cache
-    }
-
     async function compareNow(
         beforeUrl: string,
         afterUrl: string,
@@ -104,31 +83,14 @@ export function createVisualDiffChecker(loadPixels: LoadPixels): {
 
     function compare(
         beforeUrl: string,
-        afterUrl: string,
-        runKey: string
+        afterUrl: string
     ): Promise<VisualVerdict> {
-        const cache = cacheFor(runKey)
-        const key = `${beforeUrl}\n${afterUrl}`
-
-        const cached = cache.get(key)
-        // Caching the promise rather than the answer also collapses duplicate
-        // requests for a pair that is still being compared
-        if (cached) return cached
-
         // Giving up on a pair stops the work behind it too, so a decode that
         // stalled doesn't carry on rasterizing once its slot has moved on
         const giveUp = new AbortController()
-        const result = withTimeout(
-            compareNow(beforeUrl, afterUrl, giveUp.signal),
-            () => giveUp.abort()
-        ).then((verdict) => {
-            // Forgotten rather than remembered: never hold a pair to an answer
-            // that never arrived
-            if (verdict === "unknown") cache.delete(key)
-            return verdict
-        })
-        cache.set(key, result)
-        return result
+        return withTimeout(compareNow(beforeUrl, afterUrl, giveUp.signal), () =>
+            giveUp.abort()
+        )
     }
 
     return { compare }
@@ -244,3 +206,152 @@ async function loadPixelsFromDom(
 /** Whether the two SVGs paint the same pixels */
 export const { compare: compareSvgsVisually } =
     createVisualDiffChecker(loadPixelsFromDom)
+
+// ————— Remembering what a run came to —————
+//
+// Checking a suite means rasterizing both SVGs of every difference — thousands
+// of pairs, minutes of work — so the answers are written down as they arrive.
+
+/** Bump when the stored shape changes: older entries are then never read */
+const STORAGE_KEY_PREFIX = "svgtester-visual-diff:v2:"
+
+/**
+ * One run's answers, as the exceptions rather than the map: within the stretch
+ * that has been checked, anything neither list names came out identical.
+ *
+ * How far the check got is a single index rather than a list of what's done,
+ * which is what keeps this to a few hundred bytes however far along it is —
+ * small enough to keep writing as the answers arrive, so switching away
+ * mid-check doesn't cost the work.
+ */
+export interface StoredVerdicts {
+    /** The run these answers are about, and the only thing matched on */
+    runKey: string
+    /** How many differences the run reported, as a guard against a stale list */
+    total: number
+    /** Everything before this, in the run's own order, has been answered */
+    checkedPrefix: number
+    changed: string[]
+    unknown: string[]
+    /** Recorded to make a puzzling report diagnosable, never matched on */
+    grapherCommit: string | null
+    svgsCommit: string | null
+}
+
+export function encodeVerdicts({
+    runKey,
+    svgFilenames,
+    verdicts,
+    grapherCommit,
+    svgsCommit,
+}: {
+    runKey: string
+    /** In the order the run reported them, which is what the prefix indexes */
+    svgFilenames: string[]
+    verdicts: Record<string, VisualVerdict>
+    grapherCommit: string | null
+    svgsCommit: string | null
+}): StoredVerdicts {
+    // Answers past the first unanswered chart are dropped rather than tracked
+    // one by one. Only a handful are ever lost: the check runs a few pairs at a
+    // time, so it can only be that far out of order.
+    let checkedPrefix = 0
+    while (
+        checkedPrefix < svgFilenames.length &&
+        verdicts[svgFilenames[checkedPrefix]]
+    )
+        checkedPrefix++
+
+    const checked = svgFilenames.slice(0, checkedPrefix)
+    const named = (wanted: VisualVerdict): string[] =>
+        checked.filter((name) => verdicts[name] === wanted)
+
+    return {
+        runKey,
+        total: svgFilenames.length,
+        checkedPrefix,
+        changed: named("changed"),
+        unknown: named("unknown"),
+        grapherCommit,
+        svgsCommit,
+    }
+}
+
+/**
+ * The answers for these filenames, or undefined for answers that aren't about
+ * the run in front of us. Unknowns come back as unknowns rather than being
+ * dropped: the report should say a chart couldn't be checked, and the caller can
+ * decide to ask again.
+ */
+export function decodeVerdicts(
+    stored: StoredVerdicts | undefined,
+    runKey: string,
+    svgFilenames: string[]
+): Record<string, VisualVerdict> | undefined {
+    if (!stored || stored.runKey !== runKey) return undefined
+    // A run's difference list can't change under it, so this only fires if
+    // something has gone wrong enough that the answers can't be trusted
+    if (stored.total !== svgFilenames.length) return undefined
+    if (!Array.isArray(stored.changed) || !Array.isArray(stored.unknown))
+        return undefined
+    if (typeof stored.checkedPrefix !== "number") return undefined
+
+    const changed = new Set(stored.changed)
+    const unknown = new Set(stored.unknown)
+
+    // Past the prefix nothing is claimed, so the caller checks those itself
+    return Object.fromEntries(
+        svgFilenames
+            .slice(0, stored.checkedPrefix)
+            .map((name) => [
+                name,
+                changed.has(name)
+                    ? "changed"
+                    : unknown.has(name)
+                      ? "unknown"
+                      : "identical",
+            ])
+    )
+}
+
+/**
+ * One entry per suite, holding whichever run it was last checked for. A new run
+ * overwrites it, which is all the pruning this needs: an earlier run's answers
+ * are worthless once it has been superseded.
+ *
+ * Nothing here is allowed to break the report, so a store that can't be read or
+ * written just means doing the work again. `localStorage` is stricter than it
+ * looks: writing throws once the origin's quota is used up — shared with
+ * everything else the admin keeps there — and historically throws outright in
+ * Safari's private browsing.
+ */
+export function readVerdicts(
+    suite: string,
+    runKey: string,
+    svgFilenames: string[]
+): Record<string, VisualVerdict> | undefined {
+    if (typeof localStorage === "undefined") return undefined
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY_PREFIX + suite)
+        if (!raw) return undefined
+        return decodeVerdicts(JSON.parse(raw), runKey, svgFilenames)
+    } catch {
+        return undefined
+    }
+}
+
+export function writeVerdicts(suite: string, stored: StoredVerdicts): void {
+    if (typeof localStorage === "undefined") return
+    const key = STORAGE_KEY_PREFIX + suite
+    try {
+        localStorage.setItem(key, JSON.stringify(stored))
+    } catch {
+        // Half-written is worse than absent: an entry that failed to save could
+        // be an older run's, which would then be read as this one's
+        try {
+            localStorage.removeItem(key)
+        } catch {
+            // Nothing left to try, and nothing that depends on it
+        }
+    }
+}
