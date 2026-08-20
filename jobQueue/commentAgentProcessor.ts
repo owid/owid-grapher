@@ -88,6 +88,21 @@ export async function runAgentStub(
     }
 }
 
+/**
+ * The real agent where a key is configured, the stub where none is. Imported
+ * lazily so an environment without a key never loads the client, and so this
+ * module stays importable by the queue tests.
+ */
+async function defaultRunAgent(
+    context: CommentAgentContext
+): Promise<CommentAgentResult> {
+    const { isAgentConnected, runAgentWithClaude } =
+        await import("./commentAgentClaude.js")
+    return isAgentConnected()
+        ? await runAgentWithClaude(context)
+        : await runAgentStub(context)
+}
+
 /** Answers in the thread, as a reply to the comment that asked */
 async function postReply(
     context: CommentAgentContext,
@@ -121,7 +136,7 @@ export async function processCommentAgentJob(
     job: DbPlainJob<CommentAgentJobPayload>,
     runAgent: (
         context: CommentAgentContext
-    ) => Promise<CommentAgentResult> = runAgentStub
+    ) => Promise<CommentAgentResult> = defaultRunAgent
 ): Promise<{ success: boolean }> {
     const { commentId } = job.payload
 

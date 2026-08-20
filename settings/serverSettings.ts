@@ -157,6 +157,10 @@ export const BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL: string =
 
 export const OPENAI_API_KEY: string = serverSettings.OPENAI_API_KEY ?? ""
 
+// Absent means the comment agent answers with a stub saying it isn't connected,
+// which is what local dev and any environment without a key should do.
+export const ANTHROPIC_API_KEY: string = serverSettings.ANTHROPIC_API_KEY ?? ""
+
 export const SLACK_BOT_OAUTH_TOKEN: string =
     serverSettings.SLACK_BOT_OAUTH_TOKEN ?? ""
 
