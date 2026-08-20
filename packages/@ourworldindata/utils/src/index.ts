@@ -94,6 +94,7 @@ export {
     imemo,
     recursivelyMapArticleContent,
     traverseEnrichedBlock,
+    getParseFindings,
     checkNodeIsSpan,
     generateToc,
     toSentenceCase,

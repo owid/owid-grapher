@@ -5,7 +5,7 @@ import {
     OwidGdocErrorMessageType,
     OwidGdocType,
     checkIsOwidGdocType,
-    traverseEnrichedBlock,
+    getParseFindings,
     OwidGdocErrorMessageProperty,
     OwidGdoc,
     checkIsGdocPost,
@@ -59,19 +59,19 @@ function getEmbedUrlsFromBlock(block: OwidEnrichedGdocBlock): string[] {
     return []
 }
 
-function validateEmbedUrls(
-    block: OwidEnrichedGdocBlock,
-    errors: OwidGdocErrorMessage[]
-) {
-    for (const url of getEmbedUrlsFromBlock(block)) {
-        if (isInternalAdminUrl(url)) {
-            errors.push({
-                property: "body",
-                type: OwidGdocErrorMessageType.Error,
-                message: `This gdoc contains an embed pointing at an internal admin URL (${url}) — this will be blocked by Cloudflare Access for readers. Use the public URL instead.`,
-            })
-        }
-    }
+// Returns rather than pushes so that getParseFindings can interleave these
+// with the parse errors of the same block, keeping the admin's error list in
+// document order.
+function getEmbedUrlErrors(
+    block: OwidEnrichedGdocBlock
+): OwidGdocErrorMessage[] {
+    return getEmbedUrlsFromBlock(block)
+        .filter(isInternalAdminUrl)
+        .map((url) => ({
+            property: "body" as const,
+            type: OwidGdocErrorMessageType.Error,
+            message: `This gdoc contains an embed pointing at an internal admin URL (${url}) — this will be blocked by Cloudflare Access for readers. Use the public URL instead.`,
+        }))
 }
 
 function validateTitle(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
@@ -132,51 +132,20 @@ function validateBody(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
     if (!gdoc.content.body) {
         errors.push(getMissingContentPropertyError("body"))
     } else {
-        for (const block of gdoc.content.body) {
-            traverseEnrichedBlock(block, (block) => {
-                errors.push(
-                    ...block.parseErrors.map((parseError) => ({
-                        message: parseError.message,
-                        type: parseError.isWarning
-                            ? OwidGdocErrorMessageType.Warning
-                            : OwidGdocErrorMessageType.Error,
-                        property: "body" as const,
-                    }))
-                )
-                validateEmbedUrls(block, errors)
-            })
-        }
+        // Findings the parser recorded while parsing, transcribed by the same
+        // shared function the writing-reference generator uses. The embed
+        // check rides along on that traversal rather than walking the body
+        // again — getErrors re-runs on every edit to the settings form.
+        errors.push(
+            ...getParseFindings({ body: gdoc.content.body }, getEmbedUrlErrors)
+        )
     }
 }
 
 function validateRefs(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
-    if ("refs" in gdoc.content && gdoc.content.refs) {
-        const { refs } = gdoc.content
-        // Errors due to refs being unused / undefined / malformed
-        if (refs.errors.length) {
-            errors.push(...refs.errors)
-        }
-        // Errors due to the content of the refs having parse errors
-        if (refs.definitions) {
-            Object.values(refs.definitions).map((definition) => {
-                definition.content.map((block) => {
-                    traverseEnrichedBlock(block, (node) => {
-                        if (node.parseErrors.length) {
-                            for (const parseError of node.parseErrors) {
-                                errors.push({
-                                    message: `Parse error in "${definition.id}" ref content: ${parseError.message}`,
-                                    property: "refs",
-                                    type: parseError.isWarning
-                                        ? OwidGdocErrorMessageType.Warning
-                                        : OwidGdocErrorMessageType.Error,
-                                })
-                            }
-                        }
-                    })
-                })
-            })
-        }
-    }
+    // Unused/undefined/malformed refs, and parse errors inside ref contents
+    if ("refs" in gdoc.content)
+        errors.push(...getParseFindings({ refs: gdoc.content.refs }))
 }
 
 // Kind of arbitrary, see https://github.com/owid/owid-grapher/issues/2983
