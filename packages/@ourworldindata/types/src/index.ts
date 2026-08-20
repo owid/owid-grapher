@@ -179,6 +179,22 @@ export {
 export * from "./gdocTypes/ArchieMlComponents.js"
 
 export {
+    COMPONENT_CATEGORIES,
+    type ComponentCategory,
+    type ComponentReference,
+    type ComponentExample,
+    type ComponentProp,
+    type ComponentRegistry,
+    type PinnedExampleRef,
+} from "./gdocTypes/ComponentReference.js"
+
+export type {
+    TemplateReference,
+    TemplateField,
+    TemplateSkeletonPart,
+} from "./gdocTypes/TemplateReference.js"
+
+export {
     ChartConfigType,
     OwidGdocPublicationContext,
     type OwidGdocErrorMessageProperty,
@@ -237,6 +253,16 @@ export {
     type TopicPageOrphanReport,
     type NarrativeChartInfo,
     type OwidGdocDataInsightIndexItem,
+    type GdocContentKeyKind,
+    OWID_GDOC_POST_CONTENT_KEY_KINDS,
+    OWID_GDOC_DATA_INSIGHT_CONTENT_KEY_KINDS,
+    OWID_GDOC_ANNOUNCEMENT_CONTENT_KEY_KINDS,
+    OWID_GDOC_AUTHOR_CONTENT_KEY_KINDS,
+    OWID_GDOC_PROFILE_CONTENT_KEY_KINDS,
+    OWID_GDOC_ABOUT_CONTENT_KEY_KINDS,
+    OWID_GDOC_HOMEPAGE_CONTENT_KEY_KINDS,
+    GDOC_TEMPLATE_CONTENT_INTERFACES,
+    OWID_GDOC_ADMIN_MANAGED_KEYS,
 } from "./gdocTypes/Gdoc.js"
 
 export {
