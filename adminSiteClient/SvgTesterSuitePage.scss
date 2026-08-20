@@ -79,6 +79,12 @@ $svg-tester-error-frame: #dda4a0;
     color: $svg-tester-error;
 }
 
+.SvgTesterSuitePage__visual-note {
+    color: $gray-70;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+}
+
 .SvgTesterSuitePage__progress {
     margin-top: 4px;
     max-width: 480px;
@@ -106,6 +112,10 @@ $svg-tester-error-frame: #dda4a0;
 
 .SvgTesterSuitePage__controls {
     margin-bottom: 20px;
+
+    .ant-segmented-item {
+        margin-bottom: 0;
+    }
 }
 
 .SvgTesterSuitePage__card {
@@ -113,6 +123,11 @@ $svg-tester-error-frame: #dda4a0;
     border-radius: 2px;
     margin-bottom: 20px;
     padding: 12px;
+
+    // Skip rendering off-screen cards
+    content-visibility: auto;
+    // Roughly a card's height, so the scrollbar doesn't lurch as they render
+    contain-intrinsic-size: auto 700px;
 
     &:target {
         border-color: $blue-40;

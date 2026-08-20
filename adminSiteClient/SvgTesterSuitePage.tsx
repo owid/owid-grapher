@@ -3,6 +3,7 @@ import {
     Alert,
     FloatButton,
     Progress,
+    Segmented,
     Select,
     Space,
     Spin,
@@ -37,6 +38,11 @@ import {
     isUnderway,
     runProgress,
 } from "./svgTesterHelpers.js"
+import pMap from "p-map"
+import {
+    compareSvgsVisually,
+    VISUAL_DIFF_CONCURRENCY,
+} from "./svgVisualDiff.js"
 
 const LIVE_URL = "https://ourworldindata.org"
 
@@ -57,8 +63,28 @@ const KIND_LABELS: Record<SvgTesterVerifyErrorEntry["kind"], string> = {
 
 const CHART_TYPE_PARAM = "chartType"
 
+/** Which differences to list, once we know which ones only changed in markup */
+type VisualFilter = "changed" | "identical" | "all"
+
+const DEFAULT_VISUAL_FILTER: VisualFilter = "changed"
+
+/** How many of a run's differences turned out to be markup-only */
+interface VisualSummary {
+    total: number
+    identicalCount: number
+    remainingCount: number
+    /** False while the check is still going, when the counts are partial */
+    isComplete: boolean
+}
+
 /** How often to look for a new run when the last one has already reported */
 const IDLE_REFRESH_INTERVAL_MS = 30_000
+
+/** How often the countdown is allowed to move, out of thousands of answers */
+const VISUAL_DIFF_PROGRESS_MS = 250
+
+/** Stable identity, so holding results back doesn't itself rebuild the list */
+const NO_VISUAL_RESULTS: Record<string, boolean> = {}
 
 export function SvgTesterSuitePage() {
     const { admin } = useContext(AdminAppContext)
@@ -75,6 +101,12 @@ export function SvgTesterSuitePage() {
         else params.set(CHART_TYPE_PARAM, value)
         history.replace({ search: params.toString(), hash: "" })
     }
+
+    // Not in the URL, unlike the chart type: which differences render
+    // identically is only known once this session has checked them
+    const [visualFilter, setVisualFilter] = useState<VisualFilter>(
+        DEFAULT_VISUAL_FILTER
+    )
 
     const { data, isLoading, isError, dataUpdatedAt } = useQuery({
         queryKey: ["svgtester-results", suite],
@@ -95,7 +127,14 @@ export function SvgTesterSuitePage() {
     })
 
     const results = data?.results
-    const differences = useMemo(() => results?.differences ?? [], [results])
+
+    // Deduplicated: the pipeline lists some views twice, and rows that are equal
+    // collide on their React key. Remove once it stops emitting them.
+    const differences = useMemo(
+        () =>
+            _.uniqBy(results?.differences ?? [], (entry) => entry.svgFilename),
+        [results?.differences]
+    )
 
     const chartTypeCounts = useMemo(
         () => _.countBy(differences, (entry) => entry.chartType ?? "Unknown"),
@@ -112,16 +151,79 @@ export function SvgTesterSuitePage() {
         [differences, chartType]
     )
 
-    const status = data ? displayStatus(data) : undefined
-
     const isReported = data ? hasReportedResult(data) : false
+
+    // Check visual differences once the run has reported
+    const { identicalBySvg, remainingCount } = useVisualDiffs(
+        suite,
+        differences,
+        isReported ? results?.startedAt : undefined
+    )
+
+    const applied = identicalBySvg ?? NO_VISUAL_RESULTS
+
+    const [looksDifferent, rendersIdentically] = useMemo(
+        () => _.partition(visible, (entry) => !applied[entry.svgFilename]),
+        [visible, applied]
+    )
+
+    const showVisualFilter =
+        looksDifferent.length > 0 && rendersIdentically.length > 0
+    const effectiveVisualFilter: VisualFilter = showVisualFilter
+        ? visualFilter
+        : "all"
+
+    const shown = useMemo(() => {
+        if (effectiveVisualFilter === "changed") return looksDifferent
+        if (effectiveVisualFilter === "identical") return rendersIdentically
+        return [...looksDifferent, ...rendersIdentically]
+    }, [effectiveVisualFilter, looksDifferent, rendersIdentically])
+
+    const visualFilterOptions = [
+        {
+            value: "changed" as const,
+            label: `Visible change (${looksDifferent.length.toLocaleString()})`,
+        },
+        {
+            value: "identical" as const,
+            label: `No visible change (${rendersIdentically.length.toLocaleString()})`,
+        },
+        {
+            value: "all" as const,
+            label: `All (${visible.length.toLocaleString()})`,
+        },
+    ]
+
+    const cards = useMemo(
+        () =>
+            shown.map((entry) => (
+                <DifferenceCard
+                    key={anchorId(entry.viewId, entry.queryStr)}
+                    suite={suite}
+                    entry={entry}
+                    visuallyIdentical={applied[entry.svgFilename]}
+                />
+            )),
+        [shown, suite, applied]
+    )
+
+    const visualSummary = differences.length
+        ? {
+              total: differences.length,
+              identicalCount: Object.values(applied).filter(Boolean).length,
+              remainingCount,
+              isComplete: identicalBySvg !== undefined,
+          }
+        : undefined
+
+    const status = data ? displayStatus(data) : undefined
 
     // The browser jumps to the fragment before the cards it names exist: they
     // only render once the results have loaded.
     useEffect(() => {
         if (!location.hash) return
         document.getElementById(location.hash.slice(1))?.scrollIntoView()
-    }, [location.hash, results])
+    }, [location.hash, differences])
 
     return (
         <AdminLayout title={pageTitle(suite, data)}>
@@ -135,7 +237,10 @@ export function SvgTesterSuitePage() {
                         <div className="SvgTesterSuitePage__summary">
                             <div className="SvgTesterSuitePage__headline-row">
                                 <div className="SvgTesterSuitePage__headline">
-                                    <SuiteHeadline status={data} />
+                                    <SuiteHeadline
+                                        status={data}
+                                        visual={visualSummary}
+                                    />
                                 </div>
                                 <SuiteSwitcher currentSuite={suite} />
                             </div>
@@ -195,7 +300,7 @@ export function SvgTesterSuitePage() {
                     {!!differences.length && (
                         <>
                             <div className="SvgTesterSuitePage__controls">
-                                <Space size="middle" wrap>
+                                <Space size="middle" align="center" wrap>
                                     <Select
                                         value={chartType}
                                         onChange={setChartType}
@@ -214,21 +319,21 @@ export function SvgTesterSuitePage() {
                                             })),
                                         ]}
                                     />
+                                    {showVisualFilter && (
+                                        <Segmented<VisualFilter>
+                                            value={effectiveVisualFilter}
+                                            onChange={setVisualFilter}
+                                            options={visualFilterOptions}
+                                        />
+                                    )}
                                     <Typography.Text type="secondary">
-                                        Showing{" "}
-                                        {visible.length.toLocaleString()} of{" "}
-                                        {differences.length.toLocaleString()}
+                                        Showing {shown.length.toLocaleString()}{" "}
+                                        of {differences.length.toLocaleString()}
                                     </Typography.Text>
                                 </Space>
                             </div>
 
-                            {visible.map((entry) => (
-                                <DifferenceCard
-                                    key={anchorId(entry.viewId, entry.queryStr)}
-                                    suite={suite}
-                                    entry={entry}
-                                />
-                            ))}
+                            {cards}
                         </>
                     )}
                 </Spin>
@@ -247,7 +352,13 @@ export function SvgTesterSuitePage() {
 }
 
 /** What the run has found, or how far it has got if it is still going */
-function SuiteHeadline({ status }: { status: SvgTesterSuiteStatus }) {
+function SuiteHeadline({
+    status,
+    visual,
+}: {
+    status: SvgTesterSuiteStatus
+    visual: VisualSummary | undefined
+}) {
     const results = status.results
     const display = displayStatus(status)
 
@@ -257,6 +368,7 @@ function SuiteHeadline({ status }: { status: SvgTesterSuiteStatus }) {
                 <strong>{results.counts.differences.toLocaleString()}</strong>{" "}
                 of {results.counts.total.toLocaleString()} charts rendered
                 differently
+                <VisualHeadlineClause visual={visual} />
                 {results.counts.errors > 0 && (
                     <span className="SvgTesterSuitePage__errors">
                         {", "}
@@ -277,6 +389,46 @@ function SuiteHeadline({ status }: { status: SvgTesterSuiteStatus }) {
             {DISPLAY_STATUS_LABELS[display]} ·{" "}
             <strong>{progress.done.toLocaleString()}</strong> of{" "}
             {progress.total.toLocaleString()} charts checked
+        </>
+    )
+}
+
+/**
+ * How many of the flagged charts actually look different. Markup can change
+ * without moving a pixel, so this is the number that says how much there is to
+ * review.
+ */
+function VisualHeadlineClause({
+    visual,
+}: {
+    visual: VisualSummary | undefined
+}) {
+    if (!visual) return null
+
+    if (!visual.isComplete)
+        return (
+            <span className="SvgTesterSuitePage__visual-note">
+                {" · "}
+                {visual.remainingCount.toLocaleString()} left to check for
+                visible changes…
+            </span>
+        )
+
+    const changedCount = visual.total - visual.identicalCount
+
+    return (
+        <>
+            {" — "}
+            {!visual.identicalCount ? (
+                "all changed visibly"
+            ) : changedCount ? (
+                <>
+                    only <strong>{changedCount.toLocaleString()}</strong>{" "}
+                    changed visibly
+                </>
+            ) : (
+                "none changed visibly"
+            )}
         </>
     )
 }
@@ -425,9 +577,11 @@ function CommitLabel({
 function DifferenceCard({
     suite,
     entry,
+    visuallyIdentical,
 }: {
     suite: string
     entry: SvgTesterVerifyDifferenceEntry
+    visuallyIdentical: boolean | undefined
 }) {
     const [mode, setMode] = useState<ViewMode>("side-by-side")
     const beforeUrl = svgUrl(suite, "references", entry)
@@ -460,6 +614,11 @@ function DifferenceCard({
                     {entry.chartType && (
                         <Tag className="SvgTesterSuitePage__chart-type">
                             {entry.chartType}
+                        </Tag>
+                    )}
+                    {visuallyIdentical && (
+                        <Tag className="SvgTesterSuitePage__chart-type">
+                            No visible change
                         </Tag>
                     )}
                 </span>
@@ -758,6 +917,70 @@ function pageTitle(
     if (display === "differences")
         return `${base} (${data.results!.counts.differences.toLocaleString()} differences)`
     return `${base} (${DISPLAY_STATUS_LABELS[display].toLowerCase()})`
+}
+
+/** Checks every difference for a real visual change */
+function useVisualDiffs(
+    suite: string | undefined,
+    differences: SvgTesterVerifyDifferenceEntry[],
+    runKey: string | undefined
+): {
+    identicalBySvg: Record<string, boolean> | undefined
+    remainingCount: number
+} {
+    const [identicalBySvg, setIdenticalBySvg] =
+        useState<Record<string, boolean>>()
+    const [checkedCount, setCheckedCount] = useState(0)
+
+    useEffect(() => {
+        setIdenticalBySvg(undefined)
+        setCheckedCount(0)
+        if (!suite || !runKey || !differences.length) return
+
+        // Leaving the suite abandons whatever has not started: those answers are
+        // for a report nobody is looking at any more.
+        const abandon = new AbortController()
+        const identical: Record<string, boolean> = {}
+        let checked = 0
+        // Thousands of answers, and only the countdown shows them arriving
+        const publishProgress = _.throttle(
+            () => setCheckedCount(checked),
+            VISUAL_DIFF_PROGRESS_MS,
+            { leading: false }
+        )
+
+        void pMap(
+            differences,
+            async (entry) => {
+                identical[entry.svgFilename] = await compareSvgsVisually(
+                    svgUrl(suite, "references", entry),
+                    svgUrl(suite, "differences", entry),
+                    runKey
+                )
+                checked++
+                publishProgress()
+            },
+            { concurrency: VISUAL_DIFF_CONCURRENCY, signal: abandon.signal }
+        ).then(
+            () => {
+                publishProgress.cancel()
+                setIdenticalBySvg(identical)
+            },
+            () => {
+                // Abandoned, so there is nothing to report
+            }
+        )
+
+        return () => {
+            publishProgress.cancel()
+            abandon.abort()
+        }
+    }, [suite, runKey, differences])
+
+    return {
+        identicalBySvg,
+        remainingCount: differences.length - checkedCount,
+    }
 }
 
 function svgUrl(
