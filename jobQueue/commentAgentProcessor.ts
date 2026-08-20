@@ -89,18 +89,30 @@ export async function runAgentStub(
 }
 
 /**
- * The real agent where a key is configured, the stub where none is. Imported
- * lazily so an environment without a key never loads the client, and so this
- * module stays importable by the queue tests.
+ * Which agent answers, best context first:
+ *
+ * 1. Claude in a checkout of the ETL, where one is configured. It reads the repo
+ *    for itself, so it answers with the ETL's own instructions and skills.
+ * 2. Claude with the metadata this database holds, where there is a key but no
+ *    checkout - enough to talk about a value, not about how it is produced.
+ * 3. The stub, where there is no key at all. Local dev, and anywhere the key
+ *    hasn't been set.
+ *
+ * Imported lazily so an environment without a key never loads a client, and so
+ * this module stays importable by the queue tests.
  */
 async function defaultRunAgent(
     context: CommentAgentContext
 ): Promise<CommentAgentResult> {
     const { isAgentConnected, runAgentWithClaude } =
         await import("./commentAgentClaude.js")
-    return isAgentConnected()
-        ? await runAgentWithClaude(context)
-        : await runAgentStub(context)
+    if (!isAgentConnected()) return await runAgentStub(context)
+
+    const { hasEtlCheckout, runAgentInEtlCheckout } =
+        await import("./commentAgentEtl.js")
+    return hasEtlCheckout()
+        ? await runAgentInEtlCheckout(context)
+        : await runAgentWithClaude(context)
 }
 
 /** Answers in the thread, as a reply to the comment that asked */

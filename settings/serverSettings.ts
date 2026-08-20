@@ -161,6 +161,12 @@ export const OPENAI_API_KEY: string = serverSettings.OPENAI_API_KEY ?? ""
 // which is what local dev and any environment without a key should do.
 export const ANTHROPIC_API_KEY: string = serverSettings.ANTHROPIC_API_KEY ?? ""
 
+// A checkout of the ETL for the comment agent to answer from, so it has the
+// repo's own instructions and skills rather than a prompt we assembled. Absent
+// means it answers from the metadata in this database alone.
+export const COMMENT_AGENT_ETL_DIR: string =
+    serverSettings.COMMENT_AGENT_ETL_DIR ?? ""
+
 export const SLACK_BOT_OAUTH_TOKEN: string =
     serverSettings.SLACK_BOT_OAUTH_TOKEN ?? ""
 
