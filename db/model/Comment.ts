@@ -53,6 +53,24 @@ export async function getCommentTargetKey(
     return row?.key ?? null
 }
 
+/** The account that owns the agent's replies; see the migration that inserts it */
+export const AGENT_USER_EMAIL = "claude-agent@owid.invalid"
+
+/**
+ * The agent's user id. Absent only if the migration hasn't run, which the caller
+ * should treat as "agent replies are not available here" rather than crashing.
+ */
+export async function getAgentUserId(
+    knex: db.KnexReadonlyTransaction
+): Promise<number | undefined> {
+    const row = await db.knexRawFirst<{ id: number }>(
+        knex,
+        `SELECT id FROM users WHERE email = ?`,
+        [AGENT_USER_EMAIL]
+    )
+    return row?.id
+}
+
 export async function getCommentsForTarget(
     knex: db.KnexReadonlyTransaction,
     target: CommentTarget,

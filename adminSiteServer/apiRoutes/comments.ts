@@ -1,6 +1,7 @@
 import {
     CommentTargetType,
     JsonError,
+    parseAgentInvocation,
     serializeCommentViewState,
 } from "@ourworldindata/types"
 import * as z from "zod"
@@ -8,11 +9,13 @@ import * as db from "../../db/db.js"
 import {
     commentTargetExists,
     deleteComment,
+    getAgentUserId,
     getCommentById,
     getCommentsForTarget,
     insertComment,
     setCommentResolved,
 } from "../../db/model/Comment.js"
+import { enqueueCommentAgentJob } from "../../db/model/Jobs.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
@@ -53,6 +56,26 @@ function parseOrThrow<T extends z.ZodType>(
         throw new JsonError(`Invalid request: ${result.error.message}`, 400)
     }
     return result.data
+}
+
+/**
+ * Queues a run when a comment invokes the agent.
+ *
+ * Two things keep this from feeding on itself. The queue holds at most one job
+ * per comment, so a request is never acted on twice however often the worker
+ * looks. And the agent's own replies are skipped: they quote the instruction
+ * back, so without this an answer would read as a fresh request.
+ */
+async function maybeQueueAgentRun(
+    trx: db.KnexReadWriteTransaction,
+    commentId: number,
+    content: string,
+    authorUserId: number
+): Promise<void> {
+    if (parseAgentInvocation(content) === null) return
+    const agentUserId = await getAgentUserId(trx)
+    if (agentUserId === undefined || authorUserId === agentUserId) return
+    await enqueueCommentAgentJob(trx, { commentId })
 }
 
 export async function getComments(
@@ -96,6 +119,7 @@ export async function createComment(
             content,
             userId: res.locals.user.id,
         })
+        await maybeQueueAgentRun(trx, id, content, res.locals.user.id)
         return { success: true, id }
     }
 
@@ -117,6 +141,7 @@ export async function createComment(
         content,
         userId: res.locals.user.id,
     })
+    await maybeQueueAgentRun(trx, id, content, res.locals.user.id)
     return { success: true, id }
 }
 
