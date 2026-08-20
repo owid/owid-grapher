@@ -30,7 +30,6 @@ import {
     setArchived,
     setTags,
     republishCharts,
-    cleanupGhostVariables,
 } from "./apiRoutes/datasets.js"
 import {
     addExplorerTags,
@@ -130,6 +129,7 @@ import {
     putVariablesVariableIdGrapherConfigAdmin,
     deleteVariablesVariableIdGrapherConfigAdmin,
     getVariablesVariableIdChartsJson,
+    deleteVariablesHandler,
 } from "./apiRoutes/variables.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import {
@@ -323,11 +323,6 @@ postRouteWithRWTransaction(
     setArchived
 )
 postRouteWithRWTransaction(apiRouter, "/datasets/:datasetId/setTags", setTags)
-postRouteWithRWTransaction(
-    apiRouter,
-    "/datasets/:datasetId/cleanupGhostVariables",
-    cleanupGhostVariables
-)
 postRouteWithRWTransaction(
     apiRouter,
     "/datasets/:datasetId/charts",
@@ -630,6 +625,11 @@ getRouteWithROTransaction(
     getVariableMetadataJson
 )
 getRouteWithROTransaction(apiRouter, "/variables.json", getVariablesJson)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/variables/delete",
+    deleteVariablesHandler
+)
 getRouteWithROTransaction(
     apiRouter,
     "/variables.usages.json",

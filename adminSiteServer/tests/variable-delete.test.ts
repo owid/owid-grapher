@@ -17,11 +17,11 @@ import {
 
 const env = getAdminTestEnv()
 
-async function cleanup(keepVariableIds: number[]): Promise<any> {
+async function deleteVariables(variableIds: number[]): Promise<any> {
     return await env.request({
         method: "POST",
-        path: `/datasets/${datasetId}/cleanupGhostVariables`,
-        body: JSON.stringify({ keepVariableIds }),
+        path: "/variables/delete",
+        body: JSON.stringify({ variableIds }),
     })
 }
 
@@ -33,28 +33,28 @@ async function remainingVariableIds(): Promise<number[]> {
     return rows.sort((a: number, b: number) => a - b)
 }
 
-describe("Ghost variable cleanup", { timeout: 15000 }, () => {
+describe("Bulk variable deletion", { timeout: 15000 }, () => {
     beforeEach(async () => {
         await seedDatasetAndVariables(env)
     })
 
-    it("deletes the variables that weren't upserted and keeps the rest", async () => {
-        const response = await cleanup([variableId])
+    it("deletes the variables it is given and leaves the rest", async () => {
+        const response = await deleteVariables([otherVariableId])
 
         expect(response.deleted).toEqual([otherVariableId])
         expect(response.blocked).toEqual([])
         expect(await remainingVariableIds()).toEqual([variableId])
     })
 
-    it("deletes every variable when none were upserted", async () => {
-        const response = await cleanup([])
+    it("deletes every variable it is given", async () => {
+        const response = await deleteVariables([variableId, otherVariableId])
 
         expect(response.deleted.sort()).toEqual([variableId, otherVariableId])
         expect(await remainingVariableIds()).toEqual([])
     })
 
-    it("is a no-op when every variable was upserted", async () => {
-        const response = await cleanup([variableId, otherVariableId])
+    it("is a no-op when given nothing", async () => {
+        const response = await deleteVariables([])
 
         expect(response.deleted).toEqual([])
         expect(response.blocked).toEqual([])
@@ -64,7 +64,7 @@ describe("Ghost variable cleanup", { timeout: 15000 }, () => {
         ])
     })
 
-    it("reports variables used by a chart as blocked instead of deleting them", async () => {
+    it("reports a variable a chart still uses as blocked instead of deleting it", async () => {
         const { chartId } = await env.request({
             method: "POST",
             path: "/charts",
@@ -77,7 +77,7 @@ describe("Ghost variable cleanup", { timeout: 15000 }, () => {
             }),
         })
 
-        const response = await cleanup([variableId])
+        const response = await deleteVariables([otherVariableId])
 
         expect(response.deleted).toEqual([])
         expect(response.blocked).toEqual([
@@ -107,7 +107,7 @@ describe("Ghost variable cleanup", { timeout: 15000 }, () => {
         })
         expect(await env.getCount(ChartConfigsTableName)).toBe(1)
 
-        const response = await cleanup([variableId])
+        const response = await deleteVariables([otherVariableId])
 
         expect(response.deleted).toEqual([otherVariableId])
         expect(await env.getCount(ChartConfigsTableName)).toBe(0)
@@ -152,7 +152,7 @@ describe("Ghost variable cleanup", { timeout: 15000 }, () => {
         const configCountBefore = await env.getCount(ChartConfigsTableName)
         expect(await env.getCount(MultiDimXChartConfigsTableName)).toBe(2)
 
-        const response = await cleanup([variableId])
+        const response = await deleteVariables([otherVariableId])
 
         expect(response.deleted).toEqual([otherVariableId])
         expect(await env.getCount(MultiDimXChartConfigsTableName)).toBe(1)

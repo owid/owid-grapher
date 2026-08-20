@@ -1338,48 +1338,50 @@ const VARIABLE_LINK_TABLES = [
     "multi_dim_x_chart_configs",
 ] as const
 
-/** One ghost variable a chart still uses, and the chart using it. */
-export interface BlockedGhostVariable {
+/** One variable a chart still uses, and the chart using it. */
+export interface BlockedVariable {
     variableId: number
     variableName: string | null
     chartId: number
     chartSlug: string | null
 }
 
-export interface GhostVariableCleanupResult {
-    /** Ghost variables that were deleted. */
+export interface DeleteVariablesResult {
+    /** Variables that were deleted. */
     deleted: number[]
-    /** Ghost variables still used by a chart, one row per pair. Reported, never deleted. */
-    blocked: BlockedGhostVariable[]
+    /** Variables still used by a chart, one row per pair. Reported, never deleted. */
+    blocked: BlockedVariable[]
     /** `chart_configs` rows deleted along with them, for the caller to remove from R2. */
     configIds: string[]
 }
 
 /**
- * Delete a dataset's variables that aren't among the ones the caller just upserted, along
- * with their link rows and the chart configs they own.
+ * Delete variables, refusing any a chart still uses.
  *
- * A ghost variable still used by a chart is left alone and reported in `blocked`: whether
- * that should fail the caller's run depends on the caller, not on us.
+ * The caller says which variables to remove; we work out everything that hangs off them —
+ * the link tables, the chart configs they own in `chart_configs` and R2 — because that part
+ * is our schema knowledge, not theirs.
  *
- * Does not touch R2 — the caller removes `configIds` from there once this transaction has
- * committed.
+ * A variable a chart still references is never deleted. It comes back in `blocked` instead:
+ * whether that should fail the caller's run depends on which environment the caller is in,
+ * which is not something we can work out here.
  */
-export async function cleanupGhostVariables(
+export async function deleteVariables(
     trx: db.KnexReadWriteTransaction,
-    datasetId: number,
-    keepVariableIds: number[]
-): Promise<GhostVariableCleanupResult> {
+    variableIds: number[]
+): Promise<DeleteVariablesResult> {
+    if (variableIds.length === 0)
+        return { deleted: [], blocked: [], configIds: [] }
+
     const ghosts = await trx<DbRawVariable>(VariablesTableName)
-        .where({ datasetId })
-        .whereNotIn("id", keepVariableIds)
+        .whereIn("id", variableIds)
         .select("id", "grapherConfigIdETL", "grapherConfigIdAdmin")
 
     if (ghosts.length === 0) return { deleted: [], blocked: [], configIds: [] }
 
     // Names and slugs come along so that whoever reports this can show something a person
     // can act on, rather than a list of ids.
-    const blocked = await db.knexRaw<BlockedGhostVariable>(
+    const blocked = await db.knexRaw<BlockedVariable>(
         trx,
         `-- sql
         SELECT DISTINCT

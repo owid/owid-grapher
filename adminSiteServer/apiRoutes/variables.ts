@@ -26,7 +26,9 @@ import {
     updateAllMultiDimViewsThatInheritFromIndicator,
     updateGrapherConfigAdminOfVariable,
     updateGrapherConfigETLOfVariable,
+    deleteVariables,
 } from "../../db/model/Variable.js"
+import { deleteGrapherConfigFromR2ByUUID } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
 import * as db from "../../db/db.js"
@@ -597,4 +599,43 @@ export async function getVariablesVariableIdChartsJson(
         isInheritanceEnabled: chart.isInheritanceEnabled,
         isPublished: chart.isPublished,
     }))
+}
+
+/**
+ * Delete a set of variables.
+ *
+ * ETL uses this to remove the indicators a grapher step no longer produces, but nothing about
+ * it is ETL-specific: the caller names variables, and we take care of everything hanging off
+ * them — the link tables, and the chart configs they own in `chart_configs` and in R2.
+ *
+ * A variable a chart still uses is never deleted; it comes back in `blocked` instead. Whether
+ * that should fail the caller's run depends on where they're running, which we can't know.
+ */
+export async function deleteVariablesHandler(
+    req: Request,
+    _res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+) {
+    const { variableIds } = req.body ?? {}
+
+    if (
+        !Array.isArray(variableIds) ||
+        !variableIds.every((id) => Number.isInteger(id))
+    ) {
+        throw new JsonError(
+            "`variableIds` must be an array of variable ids",
+            400
+        )
+    }
+
+    const { deleted, blocked, configIds } = await deleteVariables(
+        trx,
+        variableIds
+    )
+
+    for (const configId of configIds) {
+        await deleteGrapherConfigFromR2ByUUID(configId)
+    }
+
+    return { success: true, deleted, blocked }
 }
