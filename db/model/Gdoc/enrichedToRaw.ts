@@ -71,7 +71,12 @@ import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
 import * as R from "remeda"
 
-function spansToHtmlText(spans: Span[]): string {
+function spansToHtmlText(spans: Span[] | string): string {
+    // Stored posts_gdocs_components configs are enriched blocks with their
+    // spans already flattened to plain text (see extractGdocComponentInfo);
+    // minimizeConfig in apiRoutes/gdocsReference.ts runs those through this
+    // converter. Real enriched blocks always carry Span[] here.
+    if (typeof spans === "string") return spans
     return spans.map(spanToHtmlString).join("")
 }
 export function enrichedBlockToRawBlock(
