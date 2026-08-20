@@ -633,6 +633,9 @@ export async function deleteVariablesHandler(
         variableIds
     )
 
+    // A variable's chart configs live in `chart_configs` and, mirrored, in R2. Deleting the
+    // rows is `deleteVariables`' job; clearing R2 is ours, since `db/` does no network I/O.
+    // Leaving this out is what stranded ~1,600 config rows before this endpoint existed.
     for (const configId of configIds) {
         await deleteGrapherConfigFromR2ByUUID(configId)
     }

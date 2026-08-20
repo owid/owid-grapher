@@ -1351,7 +1351,11 @@ export interface DeleteVariablesResult {
     deleted: number[]
     /** Variables still used by a chart, one row per pair. Reported, never deleted. */
     blocked: BlockedVariable[]
-    /** `chart_configs` rows deleted along with them, for the caller to remove from R2. */
+    /**
+     * `chart_configs` rows deleted along with the variables. Each is also mirrored in R2 at
+     * `config/by-uuid/<id>.json`, and this file can't delete those — nothing under `db/` does
+     * network I/O — so the route handler does it. See `deleteVariablesHandler`.
+     */
     configIds: string[]
 }
 
