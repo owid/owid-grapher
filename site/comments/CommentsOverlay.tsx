@@ -22,6 +22,27 @@ const POPOVER_WIDTH = 320
 // is common while reviewing, so comment mode is remembered for the tab rather
 // than being switched off under you.
 const COMMENT_MODE_STORAGE_KEY = "owid-comments-mode"
+/**
+ * Set on links that exist to show someone a comment - the one in a Slack
+ * notification, for now. Its value is the comment's id, which nothing reads yet;
+ * what matters is that arriving this way means comment mode should be on, rather
+ * than the reader having to find the button to see what they were sent.
+ */
+const COMMENT_LINK_PARAM = "comment"
+
+/** Whether the URL we arrived on was a link to a comment */
+function arrivedFromCommentLink(): boolean {
+    try {
+        // Read once, at mount: grapher replaces the whole query string with its
+        // own params when the view changes, so this param is a hand-off rather
+        // than durable state. Comment mode itself persists in sessionStorage.
+        return new URLSearchParams(window.location.search).has(
+            COMMENT_LINK_PARAM
+        )
+    } catch {
+        return false
+    }
+}
 
 function readStoredCommentMode(): boolean {
     try {
@@ -162,7 +183,9 @@ export function CommentsOverlay({
 }: {
     context: CommentPageContext
 }): React.ReactElement {
-    const [isOn, setIsOn] = useState(readStoredCommentMode)
+    const [isOn, setIsOn] = useState(
+        () => arrivedFromCommentLink() || readStoredCommentMode()
+    )
     const [openFieldKey, setOpenFieldKey] = useState<string | null>(null)
 
     const { target, fields, multiDimDimensions } = context

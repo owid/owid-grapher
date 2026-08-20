@@ -1,5 +1,6 @@
 import {
     CommentTargetType,
+    CommentViewState,
     JsonError,
     findMentionedCandidates,
 } from "@ourworldindata/types"
@@ -13,14 +14,34 @@ import {
 } from "../settings/serverSettings.js"
 import { postToSlack } from "./apiRoutes/slack.js"
 
-/** Where to send someone so they land on the comment, not just the page */
+/**
+ * Where to send someone so they land on the comment, not just the page.
+ *
+ * The view matters as much as the page: a multi-dim comment lives on one view,
+ * and a link without the dimension params opens the default one, where the
+ * comment isn't shown at all. `comment` marks the link as one that exists to
+ * show a comment, which is what turns comment mode on at the other end.
+ */
 async function previewUrl(
     trx: db.KnexReadonlyTransaction,
-    targetType: CommentTargetType,
-    targetId: number
+    {
+        commentId,
+        targetType,
+        targetId,
+        viewState,
+    }: {
+        commentId: number
+        targetType: CommentTargetType
+        targetId: number
+        viewState: CommentViewState | null
+    }
 ): Promise<string> {
+    const params = new URLSearchParams(viewState ?? {})
+    params.set("comment", String(commentId))
+    const query = `?${params.toString()}`
+
     if (targetType === CommentTargetType.Chart) {
-        return `${ADMIN_BASE_URL}/admin/charts/${targetId}/preview`
+        return `${ADMIN_BASE_URL}/admin/charts/${targetId}/preview${query}`
     }
     // One admin route resolves both chart and multi-dim slugs, and a multi-dim
     // has no id-based preview, so it goes by slug.
@@ -30,7 +51,7 @@ async function previewUrl(
         [targetId]
     )
     return row
-        ? `${ADMIN_BASE_URL}/admin/grapher/${row.slug}`
+        ? `${ADMIN_BASE_URL}/admin/grapher/${row.slug}${query}`
         : `${ADMIN_BASE_URL}/admin`
 }
 
@@ -50,18 +71,23 @@ async function previewUrl(
  */
 export async function notifyMentionedUsers({
     trx,
+    commentId,
     content,
     authorName,
     targetType,
     targetId,
     anchor,
+    viewState,
 }: {
     trx: db.KnexReadonlyTransaction
+    commentId: number
     content: string
     authorName: string
     targetType: CommentTargetType
     targetId: number
     anchor: string | null
+    /** For a multi-dim, the view the comment hangs off; on a reply, the root's */
+    viewState: CommentViewState | null
 }): Promise<void> {
     // Matched against the actual list of people: a name has spaces, so there is
     // no telling where "@Pablo Rosado" ends without knowing the names.
@@ -71,7 +97,12 @@ export async function notifyMentionedUsers({
     )
     if (!users.length) return
 
-    const url = await previewUrl(trx, targetType, targetId)
+    const url = await previewUrl(trx, {
+        commentId,
+        targetType,
+        targetId,
+        viewState,
+    })
     const where = anchor ? `the ${anchor} field` : "a chart"
     // e.g. "staging-site-internal-comments-2" - tells you which environment
     // you are being sent to before you click

@@ -2,6 +2,7 @@ import {
     CommentTargetType,
     JsonError,
     invokesAgent,
+    parseCommentViewState,
     serializeCommentViewState,
 } from "@ourworldindata/types"
 import * as z from "zod"
@@ -123,11 +124,14 @@ export async function createComment(
         await maybeQueueAgentRun(trx, id, content, res.locals.user.id)
         await notifyMentionedUsers({
             trx,
+            commentId: id,
             content,
             authorName: res.locals.user.fullName,
             targetType: parent.targetType,
             targetId: parent.targetId,
             anchor: parent.anchor,
+            // A reply carries no view of its own; the thread's is on the root
+            viewState: parseCommentViewState(parent.viewState),
         })
         return { success: true, id }
     }
@@ -153,11 +157,13 @@ export async function createComment(
     await maybeQueueAgentRun(trx, id, content, res.locals.user.id)
     await notifyMentionedUsers({
         trx,
+        commentId: id,
         content,
         authorName: res.locals.user.fullName,
         targetType,
         targetId,
         anchor: anchor ?? null,
+        viewState: viewState ?? null,
     })
     return { success: true, id }
 }
