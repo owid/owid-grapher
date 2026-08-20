@@ -97,10 +97,11 @@ padding → 552px content column. Fluid below 632px (`width: 100%; max-width:
 | Vermillion             | `#ce261e` | header rule, "Read …" CTAs             |
 | Gray 5                 | `#f7f7f7` | page background                        |
 
-1. **Header**: `#002147` block, ~120px tall; left: "Your" (18px) over "OWID
-   Update" (36px), Playfair-stack semibold, `#a4b6ca`; right: the text-based
-   OWID logo (white "Our World in Data" on navy — pure HTML/text, no image);
-   a 5px `#ce261e` rule underneath.
+1. **Header**: a full-width image (`public/owid-email-header.png`, 1200x250,
+   shown at the 632px container width) carrying the title and wordmark in
+   the brand typeface, with styled white-on-navy alt text for clients that
+   block images. Sized via the img's width/height attributes at display size
+   so Outlook on Windows doesn't overflow the container.
 2. **Intro** (14px, `#1d3d63`): "Here is what we published in the last
    {day|week} across the topics you follow. Update your preferences or, if
    this was forwarded to you, subscribe here." — "Update your preferences"
