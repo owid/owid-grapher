@@ -37,7 +37,7 @@ import {
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import {
-    GRAPHER_LOADED_EVENT_NAME,
+    GRAPHER_LOADING_STATE_EVENT_NAME,
     GrapherModal,
 } from "../core/GrapherConstants"
 
@@ -702,23 +702,30 @@ export class Grapher extends React.Component<GrapherProps> {
         }
     }
 
-    private setUpGrapherLoadedEventDispatcher(): void {
-        // Emit a custom event when the grapher is ready
-        // We can use this in global scripts that depend on the grapher e.g. the site-screenshots tool
+    private setUpGrapherLoadingStateEventDispatcher(): void {
+        // Announce whether this grapher is loading, for global scripts that need to wait
+        // for the charts on a page to be drawn e.g. the site-screenshots tool
+        const dispatchLoadingState = (isLoading: boolean): void => {
+            document.dispatchEvent(
+                new CustomEvent(GRAPHER_LOADING_STATE_EVENT_NAME, {
+                    detail: { grapher: this, isLoading },
+                })
+            )
+        }
+
         this.grapherState.disposers.push(
             reaction(
                 () => this.grapherState.isReady,
-                () => {
-                    if (this.grapherState.isReady) {
-                        document.dispatchEvent(
-                            new CustomEvent(GRAPHER_LOADED_EVENT_NAME, {
-                                detail: { grapher: this },
-                            })
-                        )
-                    }
-                }
+                (isReady) => dispatchLoadingState(!isReady),
+                // A grapher whose config and data are already at hand is ready by the
+                // time it mounts, and would otherwise never announce itself at all
+                { fireImmediately: true }
             )
         )
+
+        // A grapher torn down mid-load must not leave the page looking as if a chart
+        // were still on its way in
+        this.grapherState.disposers.push(() => dispatchLoadingState(false))
     }
 
     private freezeToleranceNoticeWhileTimelineMoves(): void {
@@ -757,7 +764,7 @@ export class Grapher extends React.Component<GrapherProps> {
         this.setBaseFontSize()
         this.setUpIntersectionObserver()
         this.setUpWindowResizeEventHandler()
-        this.setUpGrapherLoadedEventDispatcher()
+        this.setUpGrapherLoadingStateEventDispatcher()
 
         this.bindToWindow()
         this.bindKeyboardShortcuts()
