@@ -33,7 +33,18 @@ export interface RasterizedSvg {
     data: Uint8ClampedArray
 }
 
-export type LoadPixels = (url: string) => Promise<RasterizedSvg | undefined>
+export type LoadPixels = (
+    url: string,
+    abandoned?: AbortSignal
+) => Promise<RasterizedSvg | undefined>
+
+/**
+ * A pair nothing could be said about — it failed, or it never came back. Kept
+ * apart from "changed" so it can be shown as one without being remembered as
+ * one.
+ */
+const UNANSWERED = "unanswered"
+type Outcome = boolean | typeof UNANSWERED
 
 export function createVisualDiffChecker(loadPixels: LoadPixels): {
     /**
@@ -64,19 +75,21 @@ export function createVisualDiffChecker(loadPixels: LoadPixels): {
 
     async function compareNow(
         beforeUrl: string,
-        afterUrl: string
-    ): Promise<boolean> {
+        afterUrl: string,
+        abandoned: AbortSignal
+    ): Promise<Outcome> {
         const [before, after] = await Promise.all([
-            loadPixels(beforeUrl),
-            loadPixels(afterUrl),
+            loadPixels(beforeUrl, abandoned),
+            loadPixels(afterUrl, abandoned),
         ])
-        if (!before || !after) return false
+        if (!before || !after) return UNANSWERED
         // A chart that changed size has visibly changed
         if (before.width !== after.width || before.height !== after.height)
             return false
         // Comparing a few million bytes is the one long stretch left, so let
         // anything the user is doing go first
         await yieldToPage()
+        if (abandoned.aborted) return UNANSWERED
         return pixelsEqual(before.data, after.data)
     }
 
@@ -93,15 +106,19 @@ export function createVisualDiffChecker(loadPixels: LoadPixels): {
         // requests for a pair that is still being compared
         if (cached) return cached
 
-        const result = withTimeout(compareNow(beforeUrl, afterUrl))
-            .then((outcome) => {
-                if (outcome !== "timeout") return outcome
-                // Forgotten rather than remembered as changed: never hold a pair
-                // to an answer that never arrived
-                cache.delete(key)
-                return false
-            })
-            .catch(() => false)
+        // Giving up on a pair stops the work behind it too, so a decode that
+        // stalled doesn't carry on rasterizing once its slot has moved on
+        const giveUp = new AbortController()
+        const result = withTimeout(
+            compareNow(beforeUrl, afterUrl, giveUp.signal),
+            () => giveUp.abort()
+        ).then((outcome) => {
+            if (outcome !== UNANSWERED) return outcome
+            // Forgotten rather than remembered as changed: never hold a pair to
+            // an answer that never arrived
+            cache.delete(key)
+            return false
+        })
         cache.set(key, result)
         return result
     }
@@ -119,21 +136,22 @@ function pixelsEqual(a: Uint8ClampedArray, b: Uint8ClampedArray): boolean {
 
 /** Reports a comparison that never came back, rather than never resolving */
 function withTimeout(
-    comparison: Promise<boolean>
-): Promise<boolean | "timeout"> {
-    return new Promise<boolean | "timeout">((resolve) => {
-        const timer = setTimeout(
-            () => resolve("timeout"),
-            COMPARISON_TIMEOUT_MS
-        )
+    comparison: Promise<Outcome>,
+    onTimeout: () => void
+): Promise<Outcome> {
+    return new Promise<Outcome>((resolve) => {
+        const timer = setTimeout(() => {
+            onTimeout()
+            resolve(UNANSWERED)
+        }, COMPARISON_TIMEOUT_MS)
         void comparison.then(
-            (identical) => {
+            (outcome) => {
                 clearTimeout(timer)
-                resolve(identical)
+                resolve(outcome)
             },
             () => {
                 clearTimeout(timer)
-                resolve(false)
+                resolve(UNANSWERED)
             }
         )
     })
@@ -177,13 +195,15 @@ function nextMacrotask(): Promise<void> {
 
 /** Draws an SVG to a canvas and reads its pixels back */
 async function loadPixelsFromDom(
-    url: string
+    url: string,
+    abandoned?: AbortSignal
 ): Promise<RasterizedSvg | undefined> {
     try {
         const image = new Image()
         image.src = url
         // Yields on its own, and doesn't block while it decodes
         await image.decode()
+        if (abandoned?.aborted) return undefined
 
         const { naturalWidth: width, naturalHeight: height } = image
         if (!width || !height) return undefined
@@ -194,8 +214,10 @@ async function loadPixelsFromDom(
         const ctx = canvas.getContext("2d", { willReadFrequently: true })
         if (!ctx) return undefined
 
-        // Drawing is where the SVG actually gets rasterized, so yield first
+        // Drawing is where the SVG actually gets rasterized, so yield first —
+        // and check afterwards, since this is the expensive part to skip
         await yieldToPage()
+        if (abandoned?.aborted) return undefined
         ctx.drawImage(image, 0, 0)
         return {
             width,

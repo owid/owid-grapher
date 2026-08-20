@@ -15,6 +15,7 @@ function pixels(width: number, height: number, fill = 0): RasterizedSvg {
 
 interface PendingLoad {
     url: string
+    abandoned?: AbortSignal
     resolve: (svg: RasterizedSvg) => void
 }
 
@@ -23,9 +24,9 @@ function deferredLoader(): { pending: PendingLoad[]; loadPixels: LoadPixels } {
     const pending: PendingLoad[] = []
     return {
         pending,
-        loadPixels: (url) =>
+        loadPixels: (url, abandoned) =>
             new Promise<RasterizedSvg>((resolve) =>
-                pending.push({ url, resolve })
+                pending.push({ url, abandoned, resolve })
             ),
     }
 }
@@ -79,6 +80,40 @@ describe("the visual diff checker", () => {
         await expect(
             checker.compare("before.svg", "after.svg", "run-1")
         ).resolves.toBe(false)
+    })
+
+    it("does not remember a pair it could not rasterize as changed", async () => {
+        let attempts = 0
+        // Fails once, the way a transient error would, then works
+        const checker = createVisualDiffChecker(() =>
+            Promise.resolve(attempts++ < 2 ? undefined : pixels(2, 2))
+        )
+
+        await expect(
+            checker.compare("before.svg", "after.svg", "run-1")
+        ).resolves.toBe(false)
+
+        const retried = checker.compare("before.svg", "after.svg", "run-1")
+        await runIdleWork()
+        await expect(retried).resolves.toBe(true)
+    })
+
+    it("stops the work behind a pair it has given up on", async () => {
+        const { pending, loadPixels } = deferredLoader()
+        const checker = createVisualDiffChecker(loadPixels)
+
+        const timedOut = checker.compare("before.svg", "after.svg", "run-1")
+        expect(pending.map(({ abandoned }) => abandoned?.aborted)).toEqual([
+            false,
+            false,
+        ])
+
+        await vi.advanceTimersByTimeAsync(20_000)
+        await expect(timedOut).resolves.toBe(false)
+        expect(pending.map(({ abandoned }) => abandoned?.aborted)).toEqual([
+            true,
+            true,
+        ])
     })
 
     it("reuses the answer for a pair it has already compared", async () => {
