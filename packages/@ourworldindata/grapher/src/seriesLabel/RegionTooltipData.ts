@@ -59,9 +59,6 @@ const descriptions: Record<TooltipKey, string> = {
     fao_2: "The **Food and Agriculture Organization of the United Nations (FAO)** reports data for [world regions](https://ourworldindata.org/world-region-map-definitions#food-and-agriculture-organization-fao) at several levels of detail. This map shows its subregions:",
     fao_sdg:
         "The **Food and Agriculture Organization of the United Nations (FAO)** groups countries into [world regions](https://ourworldindata.org/world-region-map-definitions#food-and-agriculture-organization-fao) for its Sustainable Development Goals reporting:",
-    // Unlike every other provider here, these two deliberately do not link to
-    // world-region-map-definitions: that article has no IHME GBD section yet, so a link would
-    // land on the page top. Add one once a heading exists, matching its anchor.
     ihme_gbd_1:
         "The **Institute for Health Metrics and Evaluation (IHME)** groups countries into seven super-regions for its Global Burden of Disease (GBD) study:",
     ihme_gbd_2:
