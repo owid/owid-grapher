@@ -4,7 +4,7 @@
     "description": "OWID's data exploration and visualization library.",
     "repository": {
         "type": "git",
-        "url": "https://github.com/owid/owid-grapher.git",
+        "url": "git+https://github.com/owid/owid-grapher.git",
         "directory": "packages/@ourworldindata/grapher"
     },
     "type": "module",
