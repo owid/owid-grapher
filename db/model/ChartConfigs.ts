@@ -11,7 +11,7 @@ import { v7 as uuidv7 } from "uuid"
 
 import * as db from "../db.js"
 
-export async function getChartConfigByUUID(
+export async function getChartConfigByUuid(
     knex: db.KnexReadonlyTransaction,
     id: string
 ): Promise<GrapherInterface | undefined> {
