@@ -2,7 +2,7 @@ import {
     CommentAgentJobPayload,
     CommentTargetType,
     DbPlainJob,
-    parseAgentInvocation,
+    invokesAgent,
 } from "@ourworldindata/types"
 
 import * as db from "../db/db.js"
@@ -21,6 +21,7 @@ import { markJobDone } from "../db/model/Jobs.js"
  */
 export interface CommentAgentContext {
     commentId: number
+    /** The comment in full, mention included */
     instruction: string
     targetType: CommentTargetType
     targetId: number
@@ -82,13 +83,14 @@ export async function processCommentAgentJob(
     const context = await db.knexReadonlyTransaction(async (trx) => {
         const comment = await getCommentById(trx, commentId)
         if (!comment) return undefined
-        const instruction = parseAgentInvocation(comment.content)
         // The comment must still be an invocation: it could have been edited or
         // deleted between being queued and being run.
-        if (instruction === null) return undefined
+        if (!invokesAgent(comment.content)) return undefined
         return {
             commentId,
-            instruction,
+            // The whole comment, since the mention can sit anywhere in it and
+            // the surrounding sentence is usually the point
+            instruction: comment.content.trim(),
             targetType: comment.targetType,
             targetId: comment.targetId,
             targetKey: comment.targetKey,

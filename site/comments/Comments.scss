@@ -369,3 +369,12 @@
     font-size: 10px;
     line-height: 16px;
 }
+
+// Says a comment will invoke the agent, before it is posted. The matching is
+// loose on purpose, so this is what keeps it from being a surprise either way.
+.comment-composer__agent-notice {
+    margin: 6px 0 0;
+    font-size: 11px;
+    font-style: italic;
+    color: #4a6b87;
+}

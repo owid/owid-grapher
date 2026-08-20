@@ -468,7 +468,7 @@ export {
     type DbEnrichedComment,
     type CommentWithAuthor,
     AGENT_MENTION,
-    parseAgentInvocation,
+    invokesAgent,
     parseCommentViewState,
     serializeCommentViewState,
     parseCommentRow,

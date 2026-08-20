@@ -29,21 +29,24 @@ export type CommentViewState = Record<string, string>
 export const AGENT_MENTION = "@claude"
 
 /**
- * The instruction in a comment that invokes the agent, or null if it doesn't.
+ * Matches the mention anywhere in a comment - "can @claude fix this?" invokes it
+ * just as "@claude fix this" does. Requiring it to open the comment would have
+ * been safer against a stray run, but the failure it creates is worse: you write
+ * a perfectly reasonable sentence, nothing happens, and nothing tells you why.
+ * Silence is the one outcome a person can't debug.
  *
- * Deliberately strict: the mention has to open the comment. Someone writing "I
- * think @claude got this wrong" is discussing the agent, not summoning it, and a
- * comment box that spends money and opens pull requests on a substring match is
- * a trap. Opening with the mention is a thing you can only do on purpose.
+ * The composer says whether a comment will invoke the agent before it is posted,
+ * so a mention that merely discusses the agent is visible as such rather than
+ * being guessed at here.
+ *
+ * Not preceded by a word character, so an email address doesn't match, and not
+ * followed by one, so "@claudette" doesn't either.
  */
-export function parseAgentInvocation(content: string): string | null {
-    const trimmed = content.trimStart()
-    if (!trimmed.toLowerCase().startsWith(AGENT_MENTION)) return null
-    const instruction = trimmed.slice(AGENT_MENTION.length)
-    // Require a break after the mention so "@claudette" isn't a match
-    if (instruction && !/^[\s,:.!?]/.test(instruction)) return null
-    // Drop whatever separates the mention from the instruction
-    return instruction.replace(/^[\s,:.!?]+/, "").trim()
+const AGENT_MENTION_PATTERN = /(^|[^\w@])@claude(?![\w-])/i
+
+/** Whether a comment asks the agent to act */
+export function invokesAgent(content: string): boolean {
+    return AGENT_MENTION_PATTERN.test(content)
 }
 
 export interface DbInsertComment {

@@ -1,7 +1,7 @@
 import {
     CommentTargetType,
     JsonError,
-    parseAgentInvocation,
+    invokesAgent,
     serializeCommentViewState,
 } from "@ourworldindata/types"
 import * as z from "zod"
@@ -72,7 +72,7 @@ async function maybeQueueAgentRun(
     content: string,
     authorUserId: number
 ): Promise<void> {
-    if (parseAgentInvocation(content) === null) return
+    if (!invokesAgent(content)) return
     const agentUserId = await getAgentUserId(trx)
     if (agentUserId === undefined || authorUserId === agentUserId) return
     await enqueueCommentAgentJob(trx, { commentId })
