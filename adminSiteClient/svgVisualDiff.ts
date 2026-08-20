@@ -315,41 +315,73 @@ export function decodeVerdicts(
 }
 
 /**
+ * Where a suite's answers are kept, or nowhere at all.
+ *
+ * Reaching for storage is itself allowed to fail: an origin that can't have any
+ * — sandboxed, or a browser told to block it — throws on the getter rather than
+ * leaving it undefined, so even asking whether it exists has to be guarded.
+ */
+function storage(): Storage | undefined {
+    try {
+        return typeof localStorage === "undefined" ? undefined : localStorage
+    } catch {
+        return undefined
+    }
+}
+
+/** Whatever is on record for a suite, in whatever shape it turns out to be */
+function readStored(store: Storage, suite: string): StoredVerdicts | undefined {
+    try {
+        const raw = store.getItem(STORAGE_KEY_PREFIX + suite)
+        return raw ? JSON.parse(raw) : undefined
+    } catch {
+        return undefined
+    }
+}
+
+/**
  * One entry per suite, holding whichever run it was last checked for. A new run
  * overwrites it, which is all the pruning this needs: an earlier run's answers
  * are worthless once it has been superseded.
  *
  * Nothing here is allowed to break the report, so a store that can't be read or
- * written just means doing the work again. `localStorage` is stricter than it
- * looks: writing throws once the origin's quota is used up — shared with
- * everything else the admin keeps there — and historically throws outright in
- * Safari's private browsing.
+ * written just means doing the work again. Writing throws once the origin's
+ * quota is used up — shared with everything else the admin keeps there — and
+ * historically throws outright in Safari's private browsing.
  */
 export function readVerdicts(
     suite: string,
     runKey: string,
     svgFilenames: string[]
 ): Record<string, VisualVerdict> | undefined {
-    if (typeof localStorage === "undefined") return undefined
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY_PREFIX + suite)
-        if (!raw) return undefined
-        return decodeVerdicts(JSON.parse(raw), runKey, svgFilenames)
-    } catch {
-        return undefined
-    }
+    const store = storage()
+    if (!store) return undefined
+    return decodeVerdicts(readStored(store, suite), runKey, svgFilenames)
 }
 
 export function writeVerdicts(suite: string, stored: StoredVerdicts): void {
-    if (typeof localStorage === "undefined") return
+    const store = storage()
+    if (!store) return
+
+    // Two tabs can be checking the same run, and the entry is shared: a save
+    // from the one that is behind — its parting save on the way out, most
+    // likely — must not undo the progress the other has made. A save for a
+    // different run always wins, since that one supersedes it.
+    const onRecord = readStored(store, suite)
+    if (
+        onRecord?.runKey === stored.runKey &&
+        onRecord.checkedPrefix > stored.checkedPrefix
+    )
+        return
+
     const key = STORAGE_KEY_PREFIX + suite
     try {
-        localStorage.setItem(key, JSON.stringify(stored))
+        store.setItem(key, JSON.stringify(stored))
     } catch {
         // Half-written is worse than absent: an entry that failed to save could
         // be an older run's, which would then be read as this one's
         try {
-            localStorage.removeItem(key)
+            store.removeItem(key)
         } catch {
             // Nothing left to try, and nothing that depends on it
         }
