@@ -1,63 +1,48 @@
-import {
-    GRAPHER_EMBEDDED_FIGURE_ATTR,
-    GRAPHER_LOADED_EVENT_NAME,
-} from "@ourworldindata/grapher"
-import {
-    EXPLORER_EMBEDDED_FIGURE_SELECTOR,
-    ExplorerContainerId,
-} from "@ourworldindata/explorer"
+import { GRAPHER_LOADING_STATE_EVENT_NAME } from "@ourworldindata/grapher"
 
 declare global {
     interface Window {
+        _OWID_GRAPHERS_LOADING?: number
         _OWID_HAVE_ALL_GRAPHERS_LOADED?: boolean
     }
 }
 
+interface GrapherLoadingStateEventDetail {
+    grapher: unknown
+    isLoading: boolean
+}
+
 /**
- * Counts the number of visible chart embeds in the page and sets a boolean on the window once all of them have loaded
- * We set a boolean instead of dispatching a second event, because grapher pages can sometimes finish loading faster than others scripts can execute
- * See Grapher.tsx for the mobx reaction that is dispatched when a grapher is loaded
+ * Tracks how many graphers on the page are loading right now, for tools that drive the
+ * page and need to wait until the charts have been drawn - the site-screenshots tool,
+ * mainly. We expose this on the window instead of dispatching an event, because a page
+ * can finish loading before the script that would listen for it has run.
+ *
+ * Graphers load lazily as they scroll into view, so a count of zero means "nothing that
+ * has started loading is still loading", not "every chart on the page has drawn". There
+ * is no way to know the latter up front: a chart is baked as a static fallback and only
+ * becomes a grapher once something hydrates it, and some fallbacks (the thumbnails in a
+ * key indicator collection, say) stay static until the reader interacts with them. A
+ * caller that wants every chart drawn therefore has to scroll the page and then wait for
+ * the count to stay at zero.
  */
-export function runAllGraphersLoadedListener() {
-    const grapherEmbeds = [
-        ...document.querySelectorAll<HTMLElement>(
-            [
-                // embedded graphers
-                `[${GRAPHER_EMBEDDED_FIGURE_ATTR}]`,
-                // embedded explorers
-                `[${EXPLORER_EMBEDDED_FIGURE_SELECTOR}]`,
-                // explorers in explorer pages
-                `#${ExplorerContainerId}`,
-            ].join()
-        ),
-        // filter out embeds that have a parent with display:none e.g. inside expandable paragraphs
-    ].filter((el) => {
-        let parent = el.parentElement
-        while (parent) {
-            const computedStyle = window.getComputedStyle(parent)
-            if (
-                computedStyle.display === "none" ||
-                computedStyle.visibility === "hidden"
-            )
-                return false
+export function runAllGraphersLoadedListener(): void {
+    const loadingGraphers = new Set<unknown>()
+    window._OWID_GRAPHERS_LOADING = 0
+    window._OWID_HAVE_ALL_GRAPHERS_LOADED = true
 
-            // Parent height is so small that the child is not visible, e.g. inside expandable paragraph
-            if (parent.offsetTop + parent.offsetHeight < el.offsetTop)
-                return false
+    document.addEventListener(GRAPHER_LOADING_STATE_EVENT_NAME, (event) => {
+        const { grapher, isLoading } = (
+            event as CustomEvent<GrapherLoadingStateEventDetail>
+        ).detail
 
-            parent = parent.parentElement
-        }
-        return true
-    })
+        // Count graphers rather than events: a grapher announces itself again every time
+        // it is re-rendered, which the ResizeObserver in GrapherUseHelpers does whenever
+        // it measures the container again
+        if (isLoading) loadingGraphers.add(grapher)
+        else loadingGraphers.delete(grapher)
 
-    if (grapherEmbeds.length === 0) {
-        window._OWID_HAVE_ALL_GRAPHERS_LOADED = true
-    }
-    let loadedEmbeds = 0
-    document.addEventListener(GRAPHER_LOADED_EVENT_NAME, () => {
-        loadedEmbeds++
-        if (loadedEmbeds === grapherEmbeds.length) {
-            window._OWID_HAVE_ALL_GRAPHERS_LOADED = true
-        }
+        window._OWID_GRAPHERS_LOADING = loadingGraphers.size
+        window._OWID_HAVE_ALL_GRAPHERS_LOADED = loadingGraphers.size === 0
     })
 }
