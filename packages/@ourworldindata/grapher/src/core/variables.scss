@@ -5,6 +5,9 @@ $frame-color: $gray-10;
 // keep in sync with CONTROLS_ROW_HEIGHT in CaptionedChart.tsx
 $controlRowHeight: 32px;
 
+// Height of the timeline control
+$timelineHeight: 32px;
+
 // Text
 $dark-text: $gray-80;
 $light-text: $gray-70;

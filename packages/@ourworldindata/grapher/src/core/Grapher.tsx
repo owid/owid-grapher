@@ -464,6 +464,9 @@ export class Grapher extends React.Component<GrapherProps> {
     private renderGrapherComponent(): React.ReactElement {
         const containerClasses = classnames({
             GrapherComponent: true,
+            // scopes the sources styles, which the page-level sources panel
+            // shares even though it renders outside .GrapherComponent
+            "grapher-sources-scope": true,
             GrapherPortraitClass: this.grapherState.isPortrait,
             isStatic: this.grapherState.isStatic,
             isExportingToSvgOrPng: this.grapherState.isExportingToSvgOrPng,

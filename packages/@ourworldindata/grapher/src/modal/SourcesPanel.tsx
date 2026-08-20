@@ -15,6 +15,9 @@ const PANEL_PADDING_NARROW = 16
 // mirrors GrapherState's isNarrow breakpoint, applied to the panel width
 const NARROW_PANEL_WIDTH = 420
 
+// defined by the host page (site/css/general.scss), like in full-screen mode
+const NO_SCROLL_CLASS = "no-scroll"
+
 export interface SourcesPanelManager extends SourcesModalManager {
     /** Used to size the panel; the grapher's own bounds are irrelevant here */
     windowInnerWidth?: number
@@ -35,6 +38,9 @@ interface SourcesPanelProps {
 @observer
 export class SourcesPanel extends React.Component<SourcesPanelProps> {
     private readonly panel = React.createRef<HTMLDivElement>()
+
+    /** Whether this panel is the one holding the page's scroll lock */
+    private heldScrollLock = false
 
     constructor(props: SourcesPanelProps) {
         super(props)
@@ -92,10 +98,21 @@ export class SourcesPanel extends React.Component<SourcesPanelProps> {
 
     override componentDidMount(): void {
         document.addEventListener("keydown", this.onDocumentKeyDown)
+
+        // Stop the page behind the panel from scrolling, the same way
+        // full-screen mode and the site's own overlays do. Something else may
+        // already hold the lock (e.g. grapher is in full-screen mode), in which
+        // case it's not ours to release again.
+        this.heldScrollLock =
+            !document.documentElement.classList.contains(NO_SCROLL_CLASS)
+        document.documentElement.classList.add(NO_SCROLL_CLASS)
     }
 
     override componentWillUnmount(): void {
         document.removeEventListener("keydown", this.onDocumentKeyDown)
+
+        if (this.heldScrollLock)
+            document.documentElement.classList.remove(NO_SCROLL_CLASS)
     }
 
     override render(): React.ReactElement {
@@ -106,17 +123,21 @@ export class SourcesPanel extends React.Component<SourcesPanelProps> {
                     onClick={this.onOverlayClick}
                 >
                     <div
-                        className={cx("grapher-sources-panel", {
-                            "grapher-sources-panel--narrow": this.isNarrow,
-                            // The sources styles are shared with the in-frame
-                            // modal, which keys its responsive treatment off
-                            // these two classes (see grapher.scss). They only
-                            // ever appear in `.GrapherComponent`-scoped rules
-                            // alongside the sources ones, so reusing them here
-                            // pulls in no grapher layout.
-                            GrapherComponentSmall: this.isNarrow,
-                            GrapherComponentSemiNarrow: this.isNarrow,
-                        })}
+                        className={cx(
+                            "grapher-sources-panel",
+                            // the sources styles are shared with the in-frame
+                            // modal and scoped to this class (see grapher.scss)
+                            "grapher-sources-scope",
+                            {
+                                "grapher-sources-panel--narrow": this.isNarrow,
+                                // The modal keys its responsive treatment off
+                                // these two classes (see grapher.scss). They
+                                // only ever appear alongside the sources rules,
+                                // so reusing them pulls in no grapher layout.
+                                GrapherComponentSmall: this.isNarrow,
+                                GrapherComponentSemiNarrow: this.isNarrow,
+                            }
+                        )}
                         role="dialog"
                         aria-modal="true"
                         aria-label="Sources and methodology"
