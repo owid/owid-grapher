@@ -16,11 +16,6 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
     const vitePort = parseInt(process.env.VITE_PORT || "8090", 10)
 
     return defineConfig({
-        // Our bundles are served from a path prefix (/assets, /assets-admin, ...)
-        // that differs from the build output root, so runtime-resolved URLs
-        // (dynamically imported chunks and their CSS) must be relative to the
-        // importing module rather than to the default base "/".
-        base: "./",
         // Resolves absolute asset urls like /fonts/*.woff2 at build time; we
         // don't copy the folder to dist (see build.copyPublicDir below).
         publicDir: "public",
@@ -63,12 +58,21 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
             },
         },
         experimental: {
-            // The relative base above is only meant for our own bundle output.
-            // Files from the public folder aren't copied into it (see
-            // build.copyPublicDir) and are served from the site root, so keep
-            // referencing them absolutely.
+            // A dynamically imported module is the one url vite has to resolve
+            // in the browser rather than write into the html, and it builds it
+            // from `base`. Our bundles are served from a path prefix (/assets,
+            // /assets-admin, ...) that isn't the build output root, so those
+            // urls came out missing the prefix and 404ed. Name the prefix here
+            // instead of moving `base`, which would also rewrite the urls of
+            // every asset on every page.
+            //
+            // Public files are exempt: they aren't copied into the bundle (see
+            // build.copyPublicDir) and are served from the site root, so
+            // returning undefined leaves their absolute urls alone.
             renderBuiltUrl: (filename, { type }) =>
-                type === "public" ? `/${filename}` : { relative: true },
+                type === "public"
+                    ? undefined
+                    : `/${entrypointInfo.outDir}/${filename}`,
         },
         build: {
             manifest: true, // creates a manifest.json file, which we use to determine which files to load in prod
