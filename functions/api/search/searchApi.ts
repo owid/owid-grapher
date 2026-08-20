@@ -11,6 +11,7 @@ import {
     getFilterNamesOfType,
     buildChartsFacetFilters,
     searchSingleForHitsWithClosestMatches,
+    MAX_FACET_VALUES,
 } from "@ourworldindata/utils"
 import {
     getIndexName,
@@ -114,9 +115,6 @@ const DATA_CATALOG_ATTRIBUTES = [
 /**
  * Fetches available topics from Algolia
  */
-// Algolia's hard ceiling for facet values in one response.
-const MAX_FACET_VALUES = 1000
-
 async function getAvailableTopics(config: AlgoliaConfig): Promise<string[]> {
     const indexName = getIndexName(
         SearchIndexName.ExplorerViewsMdimViewsAndCharts,

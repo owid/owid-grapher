@@ -402,6 +402,7 @@ export {
     formatCountryFacetFilters,
     formatTopicFacetFilters,
     buildChartsFacetFilters,
+    MAX_FACET_VALUES,
 } from "./search/searchFacetFilters.js"
 
 export {
