@@ -30,7 +30,7 @@ import {
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import { getChartConfigBySlug } from "../db/model/Chart.js"
-import { getChartConfigByUUID } from "../db/model/ChartConfigs.js"
+import { getChartConfigByUuid } from "../db/model/ChartConfigs.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { getVariableData, getVariableMetadata } from "../db/model/Variable.js"
 import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage.js"
@@ -224,7 +224,7 @@ getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/grapher/by-uuid/:uuid.config.json",
     async (req, res, trx) => {
-        const config = await getChartConfigByUUID(trx, req.params.uuid)
+        const config = await getChartConfigByUuid(trx, req.params.uuid)
         if (!config) throw new JsonError("No such chart", 404)
         res.json(config)
     }
@@ -255,7 +255,7 @@ getPlainRouteWithROTransaction(
                 multiDim.config,
                 searchParams
             )
-            const config = await getChartConfigByUUID(trx, view.fullConfigId)
+            const config = await getChartConfigByUuid(trx, view.fullConfigId)
             if (config) {
                 res.json(config)
                 return

@@ -43,7 +43,7 @@ import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import {
     saveGrapherConfigToR2,
-    saveGrapherConfigToR2ByUUID,
+    saveGrapherConfigToR2ByUuid,
 } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
@@ -420,7 +420,7 @@ async function updateGrapherConfigsInR2(
         .select("id", "slug", "config", "configMd5")
         .whereIn("id", idsToUpdate)
     for await (const { id, slug, config, configMd5 } of builder.stream()) {
-        await saveGrapherConfigToR2ByUUID(id, config, configMd5)
+        await saveGrapherConfigToR2ByUuid(id, config, configMd5)
         if (publishedChartConfigIds.has(id) && slug)
             await saveGrapherConfigToR2(
                 config,
