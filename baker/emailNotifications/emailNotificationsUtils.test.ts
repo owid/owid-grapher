@@ -27,6 +27,7 @@ const makeItem = (
     overrides: Partial<NotificationEmailItem> = {}
 ): NotificationEmailItem => ({
     type: "article",
+    latestType: "article",
     slug: "test-article",
     title: "Test article",
     url: "https://ourworldindata.org/test-article",
