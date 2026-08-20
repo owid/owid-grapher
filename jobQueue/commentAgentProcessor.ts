@@ -9,6 +9,7 @@ import * as db from "../db/db.js"
 import {
     getAgentUserId,
     getCommentById,
+    getCommentsForTarget,
     insertComment,
 } from "../db/model/Comment.js"
 import { markJobDone } from "../db/model/Jobs.js"
@@ -19,10 +20,32 @@ import { markJobDone } from "../db/model/Jobs.js"
  * chart or multi-dim, which metadata field, which view - so the instruction is
  * the only free text involved.
  */
+/** One comment in the thread the agent was called into */
+export interface CommentAgentThreadEntry {
+    author: string
+    content: string
+    /** Whether the agent wrote it, so it can tell its own words apart */
+    isAgent: boolean
+    /** Whether this is the comment that invoked the run */
+    isInvocation: boolean
+}
+
 export interface CommentAgentContext {
     commentId: number
+    /**
+     * The thread's root. Answers attach here, not to the comment that asked: a
+     * thread is one level deep, and a reply whose parent is itself a reply is
+     * rendered by nothing - it would be stored and then never seen.
+     */
+    rootCommentId: number
     /** The comment in full, mention included */
     instruction: string
+    /**
+     * The whole thread in order, the agent's own replies included. Without it a
+     * follow-up starts cold: "I meant per capita" makes no sense on its own, and
+     * the agent would have no idea what it had just said.
+     */
+    thread: CommentAgentThreadEntry[]
     targetType: CommentTargetType
     targetId: number
     /** The target's identity outside this database, e.g. a catalog path */
@@ -63,8 +86,29 @@ export async function runAgentStub(
         reply:
             `This is a test, and will create a testing PR in ETL.\n\n` +
             `Asked: ${context.instruction || "(no instruction given)"}\n` +
-            `Target: ${where}${field}${view}`,
+            `Target: ${where}${field}${view}\n` +
+            `Thread: ${context.thread.length} comment(s) in context`,
     }
+}
+
+/** Answers in the thread, as a reply to the comment that asked */
+async function postReply(
+    context: CommentAgentContext,
+    content: string
+): Promise<void> {
+    await db.knexReadWriteTransaction(async (trx) => {
+        const agentUserId = await getAgentUserId(trx)
+        // Absent only if the migration hasn't run, in which case the agent has
+        // no identity to answer under and staying quiet is all that's left
+        if (agentUserId === undefined) return
+        await insertComment(trx, {
+            targetType: context.targetType,
+            targetId: context.targetId,
+            parentId: context.rootCommentId,
+            content,
+            userId: agentUserId,
+        })
+    })
 }
 
 /**
@@ -86,11 +130,31 @@ export async function processCommentAgentJob(
         // The comment must still be an invocation: it could have been edited or
         // deleted between being queued and being run.
         if (!invokesAgent(comment.content)) return undefined
+        // A thread is a root plus its replies - the schema allows no deeper
+        // nesting - so this is every comment hanging off the same root.
+        const rootId = comment.parentId ?? comment.id
+        const agentUserId = await getAgentUserId(trx)
+        const all = await getCommentsForTarget(
+            trx,
+            { targetType: comment.targetType, targetId: comment.targetId },
+            { includeResolved: true }
+        )
+        const thread: CommentAgentThreadEntry[] = all
+            .filter((c) => c.id === rootId || c.parentId === rootId)
+            .map((c) => ({
+                author: c.authorFullName,
+                content: c.content,
+                isAgent: c.userId === agentUserId,
+                isInvocation: c.id === commentId,
+            }))
+
         return {
             commentId,
+            rootCommentId: rootId,
             // The whole comment, since the mention can sit anywhere in it and
             // the surrounding sentence is usually the point
             instruction: comment.content.trim(),
+            thread,
             targetType: comment.targetType,
             targetId: comment.targetId,
             targetKey: comment.targetKey,
@@ -110,21 +174,23 @@ export async function processCommentAgentJob(
         return { success: true }
     }
 
-    const result = await runAgent(context)
+    let result: CommentAgentResult
+    try {
+        result = await runAgent(context)
+    } catch (error) {
+        // Say so in the thread. A run that fails quietly is indistinguishable
+        // from one nobody ever picked up, which is the one outcome the person
+        // waiting can't act on. The job is marked failed by the caller, and that
+        // is terminal, so this reply can't be written twice.
+        const message = error instanceof Error ? error.message : String(error)
+        await postReply(context, `I couldn't do this.\n\n${message}`)
+        throw error
+    }
 
     await db.knexReadWriteTransaction(async (trx) => {
-        const agentUserId = await getAgentUserId(trx)
-        if (agentUserId !== undefined) {
-            await insertComment(trx, {
-                targetType: context.targetType,
-                targetId: context.targetId,
-                parentId: commentId,
-                content: result.reply,
-                userId: agentUserId,
-            })
-        }
         await markJobDone(trx, job.id)
     })
+    await postReply(context, result.reply)
 
     return { success: result.success }
 }

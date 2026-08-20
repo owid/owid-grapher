@@ -14,6 +14,14 @@ import {
 // the admin API, so relative paths work in every host of this hook.
 const COMMENTS_API_PATH = "/admin/api/comments"
 
+/**
+ * How often the overlay looks for comments it didn't write. Only ever runs on an
+ * admin preview, for one target, so it is a cheap request; a few seconds is
+ * quick enough to feel live when two people are reviewing the same chart, and
+ * slow enough to be unnoticeable.
+ */
+const COMMENT_POLL_INTERVAL_MS = 5000
+
 export interface CommentThreadData {
     root: CommentWithAuthor
     replies: CommentWithAuthor[]
@@ -76,6 +84,16 @@ export function useCommentThreadsForTarget(
     const result = useQuery({
         queryKey: [...commentsQueryKey(target), { includeResolved }],
         queryFn: () => fetchCommentsForTarget(target, includeResolved),
+        // Comments arrive from outside this browser - a colleague reviewing the
+        // same page, or the agent answering from a worker - so invalidating on
+        // our own writes can't be the only thing that refreshes them. Polling
+        // pauses while the tab is in the background, which is react-query's
+        // default for an interval.
+        refetchInterval: COMMENT_POLL_INTERVAL_MS,
+        // Set per query rather than on the shared client: the site-wide default
+        // is an hour, which is right for the static config most site queries
+        // read and would hold this poll's answer back.
+        staleTime: 0,
     })
 
     return {
