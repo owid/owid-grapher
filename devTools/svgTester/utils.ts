@@ -7,6 +7,7 @@ import {
     GRAPHER_TAB_NAMES,
     GrapherChartOrMapType,
     type SvgTesterSuite,
+    SVG_TESTER_PROGRESS_INTERVAL_MS,
     SVG_TESTER_VERIFY_RESULTS_FILENAME,
     type SvgTesterVerifyRunStatus,
     type SvgTesterVerifyErrorEntry,
@@ -784,6 +785,8 @@ export function summariseVerifyResults(
         suite: SvgTesterSuite
         startedAt: Date
         durationMs: number
+        total?: number
+        isRunning?: boolean
     }
 ): SvgTesterVerifyRunSummary {
     const differences = validationResults
@@ -810,21 +813,24 @@ export function summariseVerifyResults(
 
     // An errored suite is reported as errored even if it also found differences:
     // we can't claim to know what changed when part of the run didn't complete.
-    const status: SvgTesterVerifyRunStatus = errors.length
-        ? "error"
-        : differences.length
-          ? "differences"
-          : "ok"
+    const status: SvgTesterVerifyRunStatus = options.isRunning
+        ? "running"
+        : errors.length
+          ? "error"
+          : differences.length
+            ? "differences"
+            : "ok"
 
     return {
         suite: options.suite,
         status,
         startedAt: options.startedAt.toISOString(),
+        updatedAt: new Date().toISOString(),
         durationMs: options.durationMs,
         grapherCommit: resolveCommit(),
         svgsCommit: resolveCommit(SVG_TESTER_REPO_PATH),
         counts: {
-            total: validationResults.length,
+            total: options.total ?? validationResults.length,
             ok: validationResults.length - differences.length - errors.length,
             differences: differences.length,
             errors: errors.length,
@@ -834,12 +840,20 @@ export function summariseVerifyResults(
     }
 }
 
-export async function writeVerifyResults(
+// Write and rename rather than write in place: a running suite rewrites this file
+// every few seconds and the admin polls it just as often, so a reader would
+// otherwise catch a half-written file. Synchronously, because a run's last
+// progress report and its final summary would otherwise interleave over the same
+// temp file - each renaming what the other wrote, or leaving `running` on disk as
+// the final word. Nothing else can run between these two calls.
+export function writeVerifyResults(
     testSuiteDir: string,
     summary: SvgTesterVerifyRunSummary
-): Promise<void> {
+): void {
     const outPath = path.join(testSuiteDir, SVG_TESTER_VERIFY_RESULTS_FILENAME)
-    await fs.writeFile(outPath, JSON.stringify(summary, null, 2) + "\n")
+    const tmpPath = `${outPath}.tmp`
+    fs.writeFileSync(tmpPath, JSON.stringify(summary, null, 2) + "\n")
+    fs.renameSync(tmpPath, outPath)
 }
 
 // Written before the first render so that the file's existence proves the suite
@@ -849,15 +863,16 @@ export async function writeVerifyResults(
 // not a signal handler: `timeout` signals `yarn`, not the node process underneath
 // it, and nothing can catch the SIGKILL that follows --kill-after anyway.
 // The counts are zeroed placeholders and mean nothing until the run finishes.
-export async function writeVerifyRunStarted(
+export function writeVerifyRunStarted(
     testSuiteDir: string,
     suite: SvgTesterSuite,
     startedAt: Date
-): Promise<void> {
-    await writeVerifyResults(testSuiteDir, {
+): void {
+    writeVerifyResults(testSuiteDir, {
         suite,
         status: "running",
         startedAt: startedAt.toISOString(),
+        updatedAt: startedAt.toISOString(),
         durationMs: 0,
         grapherCommit: resolveCommit(),
         svgsCommit: resolveCommit(SVG_TESTER_REPO_PATH),
@@ -871,16 +886,17 @@ export async function writeVerifyRunStarted(
 // an unreadable reference CSV, the job-count sanity check) rather than for a
 // single chart. Without this, such a run leaves no results file at all and is
 // indistinguishable from a suite that was never started.
-export async function writeVerifyRunFailure(
+export function writeVerifyRunFailure(
     testSuiteDir: string,
     suite: SvgTesterSuite,
     error: unknown
-): Promise<void> {
+): void {
     const startedAt = new Date()
-    await writeVerifyResults(testSuiteDir, {
+    writeVerifyResults(testSuiteDir, {
         suite,
         status: "error",
         startedAt: startedAt.toISOString(),
+        updatedAt: startedAt.toISOString(),
         durationMs: 0,
         grapherCommit: resolveCommit(),
         svgsCommit: resolveCommit(SVG_TESTER_REPO_PATH),
@@ -896,9 +912,22 @@ export async function writeVerifyRunFailure(
     })
 }
 
+// Cached because a running suite summarises itself every few seconds and neither
+// checkout can move under us mid-run.
+const commitCache = new Map<string, string | null>()
+
 // Best-effort: in CI the commit is handed to us, locally we ask git, and if
 // neither works the field is null rather than the run failing over provenance.
 function resolveCommit(cwd?: string): string | null {
+    const cached = commitCache.get(cwd ?? "")
+    if (cached !== undefined) return cached
+
+    const commit = readCommit(cwd)
+    commitCache.set(cwd ?? "", commit)
+    return commit
+}
+
+function readCommit(cwd?: string): string | null {
     if (!cwd && process.env.BUILDKITE_COMMIT)
         return process.env.BUILDKITE_COMMIT
     try {
@@ -917,13 +946,15 @@ const PROGRESS_INTERVAL_MS = 30 * 1000
 /**
  * Periodic progress while a suite runs, shared by verify and export. Verify
  * passes each result so the line can break the tally down by outcome; export
- * has no outcomes to report and just counts jobs off.
+ * has no outcomes to report and just counts jobs off. `onTick` reports the same
+ * progress somewhere other than the log - the results file, for verify - on its
+ * own cadence, because a reader wants it far more often than a CI log does.
  */
 export function startProgress(
     suite: SvgTesterSuite,
     total: number,
     pool: { stats: () => { busyWorkers: number } },
-    options: { withOutcomes?: boolean } = {}
+    options: { withOutcomes?: boolean; onTick?: () => void } = {}
 ): { recordResult: (result?: VerifyResult) => void; stop: () => void } {
     const startedAt = Date.now()
     const counts = { done: 0, ok: 0, differences: 0, errors: 0 }
@@ -942,8 +973,23 @@ export function startProgress(
         )
         console.log(`${suite}: ${parts.join(" · ")}`)
     }, PROGRESS_INTERVAL_MS)
+
+    const { onTick } = options
+    const tickTimer = onTick
+        ? setInterval(() => {
+              // A failed progress report is not the run's problem, and an
+              // uncaught throw in here would take the whole run down with it.
+              try {
+                  onTick()
+              } catch (error) {
+                  console.warn(`${suite}: progress report failed`, error)
+              }
+          }, SVG_TESTER_PROGRESS_INTERVAL_MS)
+        : undefined
+
     // Never hold the process open on our account
     timer.unref?.()
+    tickTimer?.unref?.()
 
     return {
         recordResult: (result?: VerifyResult) => {
@@ -953,7 +999,10 @@ export function startProgress(
             else if (result.kind === "difference") counts.differences += 1
             else counts.errors += 1
         },
-        stop: () => clearInterval(timer),
+        stop: () => {
+            clearInterval(timer)
+            if (tickTimer) clearInterval(tickTimer)
+        },
     }
 }
 

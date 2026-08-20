@@ -1,0 +1,42 @@
+import {
+    articulateEntity,
+    checkIsIncomeGroup,
+    getRegionByName,
+} from "@ourworldindata/utils"
+
+/**
+ * Strip the parenthesised source suffixes some OWID names carry:
+ * `stripEntityNameSuffixes("Africa (UN)", ["UN"])` → "Africa"
+ */
+export function stripEntityNameSuffixes(
+    entityName: string,
+    suffixes: string[]
+): string {
+    for (const suffix of suffixes) {
+        const marker = ` (${suffix})`
+        if (entityName.endsWith(marker))
+            return entityName.slice(0, -marker.length)
+    }
+    return entityName
+}
+
+/**
+ * An entity name as it reads mid-sentence: "the United States", "the world",
+ * "low-income countries", "Africa". Income groups are descriptions rather than
+ * proper place names, so they lose their leading capital.
+ *
+ * Pass `suffixesToStrip` for datasets whose source suffixes are noise in a
+ * sentence (`["UN"]` turns "Africa (UN)" into "Africa"); leave it empty where
+ * the suffix disambiguates, as with the WHO and World Bank regions.
+ */
+export function formatEntityNameForSentence(
+    rawEntityName: string,
+    suffixesToStrip: string[] = []
+): string {
+    const entityName = stripEntityNameSuffixes(rawEntityName, suffixesToStrip)
+    if (entityName === "World") return "the world"
+    const region = getRegionByName(entityName)
+    if (region && checkIsIncomeGroup(region))
+        return entityName.charAt(0).toLowerCase() + entityName.slice(1)
+    return articulateEntity(entityName)
+}

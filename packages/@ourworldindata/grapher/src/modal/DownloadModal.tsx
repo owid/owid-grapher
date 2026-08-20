@@ -555,12 +555,10 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
         table?.columnsAsArray
             .map((col) => col.source)
             .filter((s) => s?.dataPublishedBy !== undefined)
-            .map(
-                (s): OwidOrigin => ({
-                    producer: s.dataPublishedBy,
-                    urlMain: s.link,
-                })
-            ) ?? []
+            .map((s): OwidOrigin => ({
+                producer: s.dataPublishedBy,
+                urlMain: s.link,
+            })) ?? []
 
     const originsUniq = _.uniqBy(
         [...origins, ...otherSources],

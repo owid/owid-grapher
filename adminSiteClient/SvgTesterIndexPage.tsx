@@ -1,5 +1,13 @@
 import { useContext } from "react"
-import { Spin, Table, TableColumnsType, Tag, Tooltip, Typography } from "antd"
+import {
+    Progress,
+    Spin,
+    Table,
+    TableColumnsType,
+    Tag,
+    Tooltip,
+    Typography,
+} from "antd"
 import { useQuery } from "@tanstack/react-query"
 import { Link } from "react-router-dom"
 import { SvgTesterSuiteOverview } from "@ourworldindata/types"
@@ -7,12 +15,15 @@ import { ENV } from "../settings/clientSettings.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Timeago } from "./Forms.js"
+import { SvgTesterRefreshedLabel } from "./SvgTesterRefreshedLabel.js"
 import {
     DISPLAY_STATUS_LABELS,
     displayStatus,
     formatDuration,
     hasFindings,
     hasReportedResult,
+    isUnderway,
+    runProgress,
     SvgTesterDisplayStatus,
 } from "./svgTesterHelpers.js"
 
@@ -23,7 +34,8 @@ const REFRESH_INTERVAL_MS = 10_000
 const DISPLAY_STATUS_COLORS: Record<SvgTesterDisplayStatus, string> = {
     "not-run": "default",
     unreadable: "warning",
-    running: "warning",
+    running: "processing",
+    stalled: "warning",
     error: "error",
     differences: "processing",
     ok: "success",
@@ -32,14 +44,14 @@ const DISPLAY_STATUS_COLORS: Record<SvgTesterDisplayStatus, string> = {
 export function SvgTesterIndexPage() {
     const { admin } = useContext(AdminAppContext)
 
-    const { data, isLoading, isFetching, isError, dataUpdatedAt } = useQuery({
+    const { data, isLoading, isError, dataUpdatedAt } = useQuery({
         queryKey: ["svgtester-suites"],
         queryFn: () =>
             admin.requestJSON<{ suites: SvgTesterSuiteOverview[] }>(
                 "/api/svgtester/suites.json",
                 {},
                 "GET",
-                { onFailure: "continue" }
+                { onFailure: "continue", isBackground: true }
             ),
         refetchOnWindowFocus: true,
         // A hidden tab doesn't poll; refetchOnWindowFocus catches it up.
@@ -68,8 +80,7 @@ export function SvgTesterIndexPage() {
                     />
                 </Spin>
                 <p className="SvgTesterIndexPage__refreshed">
-                    <RefreshedLabel
-                        isFetching={isFetching}
+                    <SvgTesterRefreshedLabel
                         isError={isError}
                         dataUpdatedAt={dataUpdatedAt}
                     />
@@ -83,8 +94,10 @@ const columns: TableColumnsType<SvgTesterSuiteOverview> = [
     {
         title: "Suite",
         dataIndex: "suite",
+        // A running suite is worth opening even before it has found anything:
+        // that page follows the run.
         render: (suite: string, status) =>
-            hasFindings(status) ? (
+            hasFindings(status) || isUnderway(status) ? (
                 <Link to={`/svgtester/${suite}`}>{suite}</Link>
             ) : (
                 suite
@@ -98,7 +111,7 @@ const columns: TableColumnsType<SvgTesterSuiteOverview> = [
         title: "Differences",
         align: "right",
         render: (_, status) =>
-            hasReportedResult(status)
+            hasCounts(status)
                 ? status.results!.counts.differences.toLocaleString()
                 : "–",
     },
@@ -106,7 +119,7 @@ const columns: TableColumnsType<SvgTesterSuiteOverview> = [
         title: "Errors",
         align: "right",
         render: (_, status) => {
-            if (!hasReportedResult(status)) return "–"
+            if (!hasCounts(status)) return "–"
             const errors = status.results!.counts.errors
             if (!errors) return 0
             return (
@@ -119,10 +132,27 @@ const columns: TableColumnsType<SvgTesterSuiteOverview> = [
     {
         title: "Charts",
         align: "right",
-        render: (_, status) =>
-            hasReportedResult(status)
-                ? status.results!.counts.total.toLocaleString()
-                : "–",
+        // A run in flight counts off the views it has checked, so the row reads
+        // as a report in progress rather than a finished one.
+        render: (_, status) => {
+            if (!hasCounts(status)) return "–"
+            const progress = isUnderway(status)
+                ? runProgress(status.results!)
+                : undefined
+            if (!progress) return status.results!.counts.total.toLocaleString()
+            return (
+                <span className="SvgTesterIndexPage__charts">
+                    <Progress
+                        className="SvgTesterIndexPage__progress"
+                        percent={progress.percent}
+                        size="small"
+                        showInfo={false}
+                    />
+                    {progress.done.toLocaleString()} /{" "}
+                    {progress.total.toLocaleString()}
+                </span>
+            )
+        },
     },
     {
         title: "Ran",
@@ -173,27 +203,10 @@ const columns: TableColumnsType<SvgTesterSuiteOverview> = [
     },
 ]
 
-/**
- * Says the page refreshes itself. It never goes stale: every poll re-renders
- * this, whether or not the results changed.
- */
-function RefreshedLabel({
-    isFetching,
-    isError,
-    dataUpdatedAt,
-}: {
-    isFetching: boolean
-    isError: boolean
-    dataUpdatedAt: number
-}) {
-    if (isFetching) return <>Refreshing…</>
-    if (isError) return <>Couldn&apos;t refresh — retrying</>
-    if (!dataUpdatedAt) return null
-    return (
-        <>
-            Refreshed <Timeago time={dataUpdatedAt} />
-        </>
-    )
+/** Whether the counts are worth printing: a run reports them as it goes */
+function hasCounts(status: SvgTesterSuiteOverview): boolean {
+    if (!status.results) return false
+    return hasReportedResult(status) || status.results.counts.total > 0
 }
 
 function StatusTag({ status }: { status: SvgTesterSuiteOverview }) {

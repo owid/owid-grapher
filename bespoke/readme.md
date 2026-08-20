@@ -278,7 +278,7 @@ A dev server at [bespoke/server/](server/) provides a local environment for work
 yarn startBespokeDevServer
 ```
 
-Visit `http://localhost:8089/<project>/demo` to see a demo page that mounts all of a project's variants inside Shadow DOM — matching the production embedding behavior.
+Visit `http://localhost:8089/<project>/demo` to see a demo page that mounts all of a project's variants inside Shadow DOM — matching the production embedding behavior. `http://localhost:8089/__all` stacks every project's demo page below each other (except `example`), for comparing across projects.
 
 Pass `--build` to build each project and serve the production output via `vite preview` instead of `vite dev`:
 

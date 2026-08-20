@@ -6,7 +6,6 @@ export {
 } from "./TextWrap/TextWrap.js"
 export { TextWrapSvg, TextWrapHtml } from "./TextWrap/TextWrapComponents.js"
 
-export { IRFragment } from "./MarkdownTextWrap/IRTokens.js"
 export { AbstractTokenTextWrap } from "./MarkdownTextWrap/AbstractTokenTextWrap.js"
 export {
     MarkdownTextWrap,

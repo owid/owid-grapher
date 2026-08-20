@@ -7,13 +7,13 @@ import { getRegionByCode, UserCountryInformation } from "@ourworldindata/utils"
 import * as R from "remeda"
 
 import { useUserCountryInformation } from "../../hooks/useUserCountryInformation.js"
-import { InlineLabeledDropdown } from "../InlineLabeledDropdown/InlineLabeledDropdown.js"
+import { LabeledDropdown } from "../LabeledDropdown/LabeledDropdown.js"
 
 type GrapherDropdownProps = ComponentProps<typeof Dropdown<BasicDropdownOption>>
 type DropdownCollection = GrapherDropdownProps["options"]
 
 export interface EntityDropdownProps extends Omit<
-    ComponentProps<typeof InlineLabeledDropdown>,
+    ComponentProps<typeof LabeledDropdown>,
     "label" | "options" | "selectedValue"
 > {
     label: string
@@ -39,7 +39,7 @@ export function EntityDropdown({
     )
 
     return (
-        <InlineLabeledDropdown
+        <LabeledDropdown
             {...dropdownProps}
             label={label}
             options={options}

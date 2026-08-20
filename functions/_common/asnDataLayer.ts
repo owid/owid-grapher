@@ -14,24 +14,56 @@ import { Env } from "./env.js"
 // for impact evaluation (universities, governments, NGOs) that rarely respond
 // to surveys. Not PII.
 //
-// Param names (`asn`, `as_org`) match the sampled server-side
-// `cf_function_invocation` events in analytics.ts so they can be analyzed
-// together downstream.
+// `verified_bot_category` rides along for a different reason: GA4's web events
+// carry no user-agent string at all, so on this channel there is no way to tell
+// a crawler that renders our JS from a human — `as_org` can't do it, because
+// e.g. "Google LLC" covers Googlebot, Google Cloud and Googlers alike. This is
+// Cloudflare's authoritative Verified Bots label ("Search Engine Crawler",
+// "AI Assistant", "AI Crawler", …), and it's the only bot signal this channel
+// gets. Absent means "not a verified bot" — the key is omitted rather than sent
+// empty, so it costs nothing on the ~92% of requests that aren't bots.
+//
+// Treat the values as free-form strings, not an enum: Cloudflare replaced this
+// taxonomy on 2026-07-01 with behaviour-based categories (Search, Agent,
+// Training, …) and the names we get today are explicitly the backwards-
+// compatible legacy set, so they can change without a deploy on our side.
+// https://developers.cloudflare.com/bots/concepts/bot/verified-bots/
+//
+// Deliberately NOT sending the sibling `botManagement.verifiedBot` boolean: it
+// is always false on our plan, including on requests Cloudflare did give a
+// category, so it would contradict this field. The category is the field that
+// works for us (`cf.verified_bot_category` in Cloudflare's rules language —
+// note it hangs off `cf`, not off `cf.botManagement`).
+//
+// Param names (`asn`, `as_org`, `verified_bot_category`) match the sampled
+// server-side `cf_function_invocation` events in analytics.ts so they can be
+// analyzed together downstream.
+
+type AsnDataLayerCfProperties = Partial<
+    Pick<IncomingRequestCfProperties, "asn" | "asOrganization">
+> & {
+    // Not in this @cloudflare/workers-types version yet, so it reaches us via
+    // the cf index signature as `unknown` (same as in analytics.ts); String()
+    // below keeps it type-safe without a cast.
+    verifiedBotCategory?: unknown
+}
 
 export function buildDataLayerScript(
-    cf:
-        | Partial<Pick<IncomingRequestCfProperties, "asn" | "asOrganization">>
-        | undefined
+    cf: AsnDataLayerCfProperties | undefined
 ): string | undefined {
     if (!cf) return undefined
-    if (!cf.asn && !cf.asOrganization) return undefined
+    const verifiedBotCategory = String(cf.verifiedBotCategory ?? "")
     const params = {
         ...(cf.asn ? { asn: cf.asn } : {}),
         // GA4 param values must be 100 characters or less
         ...(cf.asOrganization
             ? { as_org: cf.asOrganization.slice(0, 100) }
             : {}),
+        ...(verifiedBotCategory
+            ? { verified_bot_category: verifiedBotCategory.slice(0, 100) }
+            : {}),
     }
+    if (Object.keys(params).length === 0) return undefined
     const json = escapeJSONStringForInlineScript(JSON.stringify(params))
     return `<script>window.dataLayer=window.dataLayer||[];window.dataLayer.push(${json});</script>`
 }

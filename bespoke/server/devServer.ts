@@ -6,7 +6,7 @@
  *
  * Requests to /<project>/* are routed to the corresponding Vite instance.
  * WebSocket upgrades (for Vite HMR) are proxied at the TCP level.
- * Visiting / lists all available projects.
+ * Visiting / lists all available projects, /__all stacks every project's demo page.
  *
  * Usage:  npx tsx devServer.ts
  * Port:   defaults to 8089, override with PORT env var
@@ -327,6 +327,11 @@ const demoTemplate = fs.readFileSync(
     path.join(dirname, "component-demo.html"),
     "utf-8"
 )
+const allDemosTemplate = fs.readFileSync(
+    path.join(dirname, "all-demos.html"),
+    "utf-8"
+)
+
 function serveDemoPage(
     projectName: string,
     res: http.ServerResponse,
@@ -426,11 +431,12 @@ function getProjectName(rawUrl: string): string | null {
     }
 }
 
+function listProjects(): string[] {
+    return fs.readdirSync(PROJECTS_DIR).filter((d: string) => isProject(d))
+}
+
 function listProjectsPage(): string {
-    const dirs = fs
-        .readdirSync(PROJECTS_DIR)
-        .filter((d: string) => isProject(d))
-    const links = dirs
+    const links = listProjects()
         .map((p: string) => `<li><a href="/${p}/demo">${p}</a></li>`)
         .join("\n")
     return `<!doctype html>
@@ -439,8 +445,22 @@ function listProjectsPage(): string {
 <body>
   <h2>Bespoke Projects</h2>
   <ul>${links}</ul>
+  <p><a href="/__all">View all demos on one page</a></p>
 </body>
 </html>`
+}
+
+// Serve a page that stacks every project's demo page in a lazily loaded
+// iframe. Starts no Vite instance itself; each project boots when its own
+// frame loads. "example" is left out: it's the starter template, not a viz.
+function serveAllDemosPage(res: http.ServerResponse): void {
+    const projects = listProjects().filter((p: string) => p !== "example")
+    const html = allDemosTemplate.replaceAll(
+        "{{PROJECTS_JSON}}",
+        JSON.stringify(projects)
+    )
+    res.writeHead(200, { "Content-Type": "text/html" })
+    res.end(html)
 }
 
 const CORS_HEADERS: Record<string, string> = {
@@ -467,6 +487,11 @@ const server = http.createServer(
         if (rawPathname.startsWith("/__bespoke/")) {
             const internal = await getOrStartBespokeInternalServer()
             await proxyRequest(req, res, internal.port)
+            return
+        }
+
+        if (rawPathname === "/__all" || rawPathname === "/__all/") {
+            serveAllDemosPage(res)
             return
         }
 

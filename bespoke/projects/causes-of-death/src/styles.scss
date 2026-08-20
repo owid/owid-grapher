@@ -8,36 +8,22 @@
 }
 
 .causes-of-death-controls {
-    .causes-of-death-controls__content {
-        display: flex;
-        flex-direction: column;
-        row-gap: 16px;
-
+    .controls__content {
         @include sm-only {
             row-gap: 8px;
         }
     }
 
-    .causes-of-death-controls__row {
-        display: flex;
-        column-gap: 16px;
-        row-gap: 16px;
-        align-items: center;
-
+    .controls__row {
         @include sm-only {
             flex-direction: column;
-            align-items: flex-start;
-            row-gap: 8px;
+            align-items: stretch;
+            row-gap: 12px;
             column-gap: 8px;
         }
 
         > * {
             flex: 1 1 0;
-
-            @include sm-only {
-                flex: 1 1 0;
-                width: 100%;
-            }
         }
 
         .causes-of-death-time-slider {
@@ -81,18 +67,6 @@
 
     @include sm-only {
         font-size: 0.75rem;
-    }
-}
-
-.causes-of-death-controls {
-    .causes-of-death-controls__title {
-        font-size: 10px;
-        font-weight: 900;
-        letter-spacing: 0.15em;
-        color: $light-text;
-        text-transform: uppercase;
-        margin: 0;
-        margin-bottom: 12px;
     }
 }
 

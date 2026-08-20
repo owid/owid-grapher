@@ -63,12 +63,6 @@ import { Chart } from "../chart/Chart.js"
 import { flushSync } from "react-dom"
 import { GrapherState } from "./GrapherState.js"
 
-declare global {
-    interface Window {
-        admin?: any // TODO: use stricter type
-    }
-}
-
 // Exactly the same as GrapherInterface, but contains options that developers want but authors won't be touching.
 export interface GrapherProgrammaticInterface extends GrapherInterface {
     queryStr?: string
@@ -727,6 +721,15 @@ export class Grapher extends React.Component<GrapherProps> {
         )
     }
 
+    private freezeToleranceNoticeWhileTimelineMoves(): void {
+        this.grapherState.disposers.push(
+            reaction(
+                () => this.grapherState.isTimelineInteractionActive,
+                this.grapherState.setToleranceNoticeFrozen
+            )
+        )
+    }
+
     private clearFocusMode(): void {
         // Make it easy to exit focus mode by clearing it when the selection
         // or view changes. This is disabled in the admin to avoid clearing
@@ -760,6 +763,7 @@ export class Grapher extends React.Component<GrapherProps> {
         this.bindKeyboardShortcuts()
 
         this.clearFocusMode()
+        this.freezeToleranceNoticeWhileTimelineMoves()
     }
 
     private _shortcutsBound = false

@@ -53,7 +53,8 @@
         margin: var(--modal-padding);
     }
 
-    .note-multiple-indicators {
+    .note-multiple-indicators,
+    .note-no-sources {
         margin-top: 0;
         color: $light-text;
         font-size: 14px;
