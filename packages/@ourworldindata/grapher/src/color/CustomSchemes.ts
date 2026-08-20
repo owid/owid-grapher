@@ -589,11 +589,7 @@ export const ContinentColors = {
 
     // IHME GBD super-regions. High-income is not a geographic band but spans Western Europe,
     // North America, Australasia, High-income Asia Pacific and Southern Latin America; it takes the
-    // Europe hue because Western Europe is 24 of its 36 countries. Its 21 nested regions
-    // (ihme_gbd_2) are left unpinned for now, so they fall back to the positional palette;
-    // OwidMapColors has since grown to 23 colors, so pinning them is possible as a follow-up.
-    // North Africa and Middle East and South Asia are pinned here and also appear in that tier,
-    // since each is a super-region with no finer breakdown.
+    // Europe hue because Western Europe is 24 of its 36 countries.
     "High-income (IHME GBD)": OwidDistinctColors.Denim,
     "Latin America and Caribbean (IHME GBD)": OwidDistinctColors.Maroon,
     "Sub-Saharan Africa (IHME GBD)": OwidDistinctColors.DarkMauve,
@@ -603,6 +599,35 @@ export const ContinentColors = {
     "South Asia (IHME GBD)": OwidDistinctColors.OliveGreen,
     "Southeast Asia, East Asia, and Oceania (IHME GBD)":
         OwidDistinctColors.Lime,
+
+    // IHME GBD regions (level 2), in legend order. This tier is a 21-way split that lines up
+    // almost one-to-one with the FAO subregions, so each region takes the hue that fao_2 and
+    // un_m49 already use for its counterpart: Northern America, Caribbean, Central America and
+    // South America for the Americas; Western/Middle/Eastern/Southern Africa for the four
+    // Sub-Saharan splits; Western and Eastern Europe; Central, Southern and Eastern Asia and
+    // South-eastern Asia. Andean and Tropical Latin America, Central Europe, High-income Asia
+    // Pacific and Australasia have no counterpart and stay within their region's hue family.
+    // North Africa and Middle East and South Asia are pinned above: each is a super-region with
+    // no finer breakdown, so it is one region at both levels and shares the single key.
+    "High-income North America (IHME GBD)": OwidDistinctColors.Peach,
+    "Caribbean (IHME GBD)": OwidDistinctColors.Coral,
+    "Central Latin America (IHME GBD)": OwidDistinctColors.DustyCoral,
+    "Andean Latin America (IHME GBD)": OwidDistinctColors.RustyOrange,
+    "Tropical Latin America (IHME GBD)": OwidDistinctColors.Maroon,
+    "Southern Latin America (IHME GBD)": OwidDistinctColors.Copper,
+    "Western Sub-Saharan Africa (IHME GBD)": OwidDistinctColors.Fuchsia,
+    "Central Sub-Saharan Africa (IHME GBD)": OwidDistinctColors.Cherry,
+    "Eastern Sub-Saharan Africa (IHME GBD)": OwidDistinctColors.Mauve,
+    "Southern Sub-Saharan Africa (IHME GBD)": OwidDistinctColors.DarkMauve,
+    "Western Europe (IHME GBD)": OwidDistinctColors.Blue,
+    "Central Europe (IHME GBD)": OwidDistinctColors.Denim,
+    "Eastern Europe (IHME GBD)": OwidDistinctColors.MidnightBlue,
+    "Central Asia (IHME GBD)": OwidDistinctColors.TealishGreen,
+    "East Asia (IHME GBD)": OwidDistinctColors.Lime,
+    "Southeast Asia (IHME GBD)": OwidDistinctColors.DarkOrange,
+    "High-income Asia Pacific (IHME GBD)": OwidDistinctColors.LightTeal,
+    "Australasia (IHME GBD)": OwidDistinctColors.Teal,
+    "Oceania (IHME GBD)": OwidDistinctColors.Turquoise,
 
     // Income groups
     "High-income countries": IncomeGroupColors.HighIncome,
@@ -1148,11 +1173,7 @@ export const MapContinentColors = {
 
     // IHME GBD super-regions. High-income is not a geographic band but spans Western Europe,
     // North America, Australasia, High-income Asia Pacific and Southern Latin America; it takes the
-    // Europe hue because Western Europe is 24 of its 36 countries. Its 21 nested regions
-    // (ihme_gbd_2) are left unpinned for now, so they fall back to the positional palette;
-    // OwidMapColors has since grown to 23 colors, so pinning them is possible as a follow-up.
-    // North Africa and Middle East and South Asia are pinned here and also appear in that tier,
-    // since each is a super-region with no finer breakdown.
+    // Europe hue because Western Europe is 24 of its 36 countries.
     "High-income (IHME GBD)": OwidMapColors.MutedDenim,
     "Latin America and Caribbean (IHME GBD)": OwidMapColors.MutedCherry,
     "Sub-Saharan Africa (IHME GBD)": OwidMapColors.LightPurple,
@@ -1162,6 +1183,33 @@ export const MapContinentColors = {
     "South Asia (IHME GBD)": OwidMapColors.Olive,
     "Southeast Asia, East Asia, and Oceania (IHME GBD)":
         OwidMapColors.LeafGreen,
+
+    // IHME GBD regions (level 2), in legend order. Mirrors the fao_2 subregion hues region by
+    // region, so the 21 regions use 21 of the 23 map colors; SoftPurple and Taupe are left over.
+    // Every low-contrast neighbour this introduces — MutedDenim/LightDenim across Central and
+    // Eastern Europe, LightPurple/MutedPlum across Eastern and Southern Sub-Saharan Africa,
+    // LightGreen/Olive/LeafGreen across Central, South and East Asia — already ships in fao_2
+    // between the same pairs of neighbours. North Africa and Middle East and South Asia are
+    // pinned above and shared with this tier.
+    "High-income North America (IHME GBD)": OwidMapColors.SoftOrange,
+    "Caribbean (IHME GBD)": OwidMapColors.Mustard,
+    "Central Latin America (IHME GBD)": OwidMapColors.MutedCherry,
+    "Andean Latin America (IHME GBD)": OwidMapColors.LightCherry,
+    "Tropical Latin America (IHME GBD)": OwidMapColors.Tomato,
+    "Southern Latin America (IHME GBD)": OwidMapColors.LightSand,
+    "Western Sub-Saharan Africa (IHME GBD)": OwidMapColors.LightPlum,
+    "Central Sub-Saharan Africa (IHME GBD)": OwidMapColors.SoftMagenta,
+    "Eastern Sub-Saharan Africa (IHME GBD)": OwidMapColors.LightPurple,
+    "Southern Sub-Saharan Africa (IHME GBD)": OwidMapColors.MutedPlum,
+    "Western Europe (IHME GBD)": OwidMapColors.Lavendar,
+    "Central Europe (IHME GBD)": OwidMapColors.MutedDenim,
+    "Eastern Europe (IHME GBD)": OwidMapColors.LightDenim,
+    "Central Asia (IHME GBD)": OwidMapColors.LightGreen,
+    "East Asia (IHME GBD)": OwidMapColors.LeafGreen,
+    "Southeast Asia (IHME GBD)": OwidMapColors.LightOrange,
+    "High-income Asia Pacific (IHME GBD)": OwidMapColors.LightTeal,
+    "Australasia (IHME GBD)": OwidMapColors.MutedTeal,
+    "Oceania (IHME GBD)": OwidMapColors.SkyTurquoise,
 } as const
 
 /**
