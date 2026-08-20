@@ -197,6 +197,21 @@ export type {
 } from "./gdocTypes/TemplateReference.js"
 
 export {
+    COMPONENT_USAGE_LABELS,
+    componentUsageLabel,
+    type ComponentUsageLabel,
+    type ComponentUsageByDocType,
+    type ComponentUsage,
+    type GdocsReferenceUsage,
+    type ComponentInstance,
+    type ComponentVariation,
+    type ComponentInstancesResponse,
+    type SyntheticExampleInfo,
+    type ExemplarOutline,
+    type TemplateExemplarsResponse,
+} from "./gdocTypes/GdocsReferenceApi.js"
+
+export {
     ChartConfigType,
     OwidGdocPublicationContext,
     type OwidGdocErrorMessageProperty,

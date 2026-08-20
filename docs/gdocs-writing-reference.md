@@ -61,7 +61,8 @@ and every gdoc type they can create. It lives in the admin at
    `/admin/api/gdocs-reference/{components,templates}.json` and enriches them
    at request time with live data from the database: how often each component
    is used per document type, real published instances of each component, and
-   section outlines of exemplar documents.
+   section outlines of exemplar documents. Profile exemplar
+   outlines link to the first entity in the profile's scope.
 
 ## Editing the reference
 
