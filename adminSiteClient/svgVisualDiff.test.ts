@@ -47,20 +47,20 @@ describe("the visual diff checker", () => {
 
         const result = checker.compare("before.svg", "after.svg", "run-1")
         await runIdleWork()
-        await expect(result).resolves.toBe(true)
+        await expect(result).resolves.toBe("identical")
     })
 
-    it("reports a pair whose pixels differ as different", async () => {
+    it("reports a pair whose pixels differ as changed", async () => {
         const checker = createVisualDiffChecker((url) =>
             Promise.resolve(pixels(2, 2, url.startsWith("before") ? 7 : 9))
         )
 
         const result = checker.compare("before.svg", "after.svg", "run-1")
         await runIdleWork()
-        await expect(result).resolves.toBe(false)
+        await expect(result).resolves.toBe("changed")
     })
 
-    it("reports a pair as different when the chart changed size", async () => {
+    it("reports a pair as changed when the chart changed size", async () => {
         const checker = createVisualDiffChecker((url) =>
             Promise.resolve(
                 url.startsWith("before") ? pixels(2, 2) : pixels(4, 4)
@@ -69,33 +69,36 @@ describe("the visual diff checker", () => {
 
         await expect(
             checker.compare("before.svg", "after.svg", "run-1")
-        ).resolves.toBe(false)
+        ).resolves.toBe("changed")
     })
 
-    it("reports a pair as different when an SVG cannot be rasterized", async () => {
+    it("says nothing about a pair it cannot rasterize", async () => {
         const checker = createVisualDiffChecker(() =>
             Promise.resolve(undefined)
         )
 
+        // Not "changed": a chart nothing is known about is not one that changed
         await expect(
             checker.compare("before.svg", "after.svg", "run-1")
-        ).resolves.toBe(false)
+        ).resolves.toBe("unknown")
     })
 
-    it("does not remember a pair it could not rasterize as changed", async () => {
-        let attempts = 0
+    it("does not remember a pair it could not rasterize", async () => {
+        let loads = 0
         // Fails once, the way a transient error would, then works
         const checker = createVisualDiffChecker(() =>
-            Promise.resolve(attempts++ < 2 ? undefined : pixels(2, 2))
+            Promise.resolve(loads++ < 2 ? undefined : pixels(2, 2))
         )
 
         await expect(
             checker.compare("before.svg", "after.svg", "run-1")
-        ).resolves.toBe(false)
+        ).resolves.toBe("unknown")
 
+        // Asking again does the work again, which is what the caller's retry
+        // pass relies on
         const retried = checker.compare("before.svg", "after.svg", "run-1")
         await runIdleWork()
-        await expect(retried).resolves.toBe(true)
+        await expect(retried).resolves.toBe("identical")
     })
 
     it("stops the work behind a pair it has given up on", async () => {
@@ -109,7 +112,7 @@ describe("the visual diff checker", () => {
         ])
 
         await vi.advanceTimersByTimeAsync(20_000)
-        await expect(timedOut).resolves.toBe(false)
+        await expect(timedOut).resolves.toBe("unknown")
         expect(pending.map(({ abandoned }) => abandoned?.aborted)).toEqual([
             true,
             true,
@@ -125,12 +128,12 @@ describe("the visual diff checker", () => {
 
         const first = checker.compare("before.svg", "after.svg", "run-1")
         await runIdleWork()
-        await expect(first).resolves.toBe(true)
+        await expect(first).resolves.toBe("identical")
         expect(loads).toBe(2)
 
         await expect(
             checker.compare("before.svg", "after.svg", "run-1")
-        ).resolves.toBe(true)
+        ).resolves.toBe("identical")
         expect(loads).toBe(2)
     })
 
@@ -154,16 +157,16 @@ describe("the visual diff checker", () => {
 
         const timedOut = checker.compare("before.svg", "after.svg", "run-1")
         await vi.advanceTimersByTimeAsync(20_000)
-        await expect(timedOut).resolves.toBe(false)
+        await expect(timedOut).resolves.toBe("unknown")
     })
 
-    it("does not remember a pair that timed out as changed", async () => {
+    it("does not remember a pair that timed out", async () => {
         const { pending, loadPixels } = deferredLoader()
         const checker = createVisualDiffChecker(loadPixels)
 
         const timedOut = checker.compare("before.svg", "after.svg", "run-1")
         await vi.advanceTimersByTimeAsync(20_000)
-        await expect(timedOut).resolves.toBe(false)
+        await expect(timedOut).resolves.toBe("unknown")
 
         // Asked again it has to do the work, rather than repeat a non-answer
         pending.length = 0
@@ -172,7 +175,7 @@ describe("the visual diff checker", () => {
         expect(pending).toHaveLength(2)
         pending.forEach(({ resolve }) => resolve(pixels(2, 2)))
         await runIdleWork()
-        await expect(retried).resolves.toBe(true)
+        await expect(retried).resolves.toBe("identical")
     })
 
     it("forgets the answers for runs nobody is looking at any more", async () => {
@@ -184,7 +187,7 @@ describe("the visual diff checker", () => {
 
         const first = checker.compare("before.svg", "after.svg", "run-1")
         await runIdleWork()
-        await expect(first).resolves.toBe(true)
+        await expect(first).resolves.toBe("identical")
         expect(loads).toBe(2)
 
         // Four more runs push run-1 out of the cache, so it is checked again
