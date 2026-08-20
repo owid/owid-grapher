@@ -1,8 +1,9 @@
 import * as R from "remeda"
 import {
+    ANNOUNCEMENT_LATEST_TYPES,
     EMAIL_NOTIFICATIONS_CONTENT_TYPE_BY_LATEST_TYPE,
-    EmailNotificationsContentType,
     LatestFeedGdoc,
+    LatestType,
     OwidGdocType,
 } from "@ourworldindata/types"
 import {
@@ -24,7 +25,11 @@ import {
     CLOUDFLARE_IMAGES_URL,
 } from "../../settings/serverSettings.js"
 import { NotificationEmailItem } from "./emailNotificationsUtils.js"
-import { resolveExcerptLinks } from "./excerptLinks.js"
+import {
+    resolveBodyLinks,
+    resolveExcerptLinks,
+    resolveLinkUrl,
+} from "./excerptLinks.js"
 
 // Turns recently published gdocs into the items the notification email
 // renders. Kept out of sendEmailNotifications.ts so the dev-only email
@@ -34,14 +39,13 @@ type LatestFeedGdocInstance = (GdocPost | GdocDataInsight | GdocAnnouncement) &
     LatestFeedGdoc
 
 /**
- * The content types whose email rendering reads the gdoc body. The remaining
- * type, "article", is summarized by its excerpt instead — an article body is
- * far too long to travel in an email.
+ * The latest types whose email rendering reads the gdoc body: data insights
+ * and every kind of announcement. Articles are summarized by their excerpt
+ * instead — an article body is far too long to travel in an email.
  */
-const ITEM_TYPES_CARRYING_BODY = new Set<EmailNotificationsContentType>([
+const LATEST_TYPES_CARRYING_BODY = new Set<LatestType>([
     "data-insight",
-    "data-update",
-    "announcement",
+    ...ANNOUNCEMENT_LATEST_TYPES,
 ])
 
 /**
@@ -81,12 +85,11 @@ function buildNotificationItem(
             topicHierarchiesByChildName
         ),
     ])
+    // Announcement gdocs split into latest types via their kicker.
+    const latestType = deriveLatestType(gdoc)
     const item: NotificationEmailItem = {
-        // Announcement gdocs split into "data-update" / "article" /
-        // "announcement" content types via their kicker.
-        type: EMAIL_NOTIFICATIONS_CONTENT_TYPE_BY_LATEST_TYPE[
-            deriveLatestType(gdoc)
-        ],
+        type: EMAIL_NOTIFICATIONS_CONTENT_TYPE_BY_LATEST_TYPE[latestType],
+        latestType,
         slug: gdoc.slug,
         title: gdoc.content.title ?? "",
         url: getCanonicalUrl(BAKED_BASE_URL, gdoc),
@@ -98,9 +101,15 @@ function buildNotificationItem(
 
     // Data insights ship their full content in the email; data updates and
     // announcements ship their lead paragraphs, as they do on /latest.
-    if (ITEM_TYPES_CARRYING_BODY.has(item.type)) {
+    if (LATEST_TYPES_CARRYING_BODY.has(latestType)) {
         const body = "body" in gdoc.content ? gdoc.content.body : undefined
-        item.body = body
+        // Body links are stored as authored, so Google Doc links are resolved
+        // against the gdoc's linked documents, loaded by the caller.
+        item.body = resolveBodyLinks(
+            body ?? [],
+            gdoc.linkedDocuments,
+            BAKED_BASE_URL
+        )
         item.imageUrlByFilename = {}
         for (const filename of extractFilenamesFromBlocks(body ?? [])) {
             const cloudflareId =
@@ -134,6 +143,18 @@ function buildNotificationItem(
                 gdoc,
                 cloudflareImagesByFilename
             )
+        }
+        if (gdoc.content.type === OwidGdocType.Announcement) {
+            const cta = gdoc.content.cta
+            const url =
+                cta?.url && cta.text
+                    ? resolveLinkUrl(
+                          cta.url,
+                          gdoc.linkedDocuments,
+                          BAKED_BASE_URL
+                      )
+                    : undefined
+            if (url) item.cta = { text: cta!.text, url }
         }
     }
 
@@ -169,14 +190,17 @@ export async function buildNotificationItems(
     const cloudflareImagesByFilename =
         await db.getCloudflareImagesByFilename(knex)
 
-    // Articles with an authored /latest excerpt can link to other gdocs, and
-    // those links are stored as Google Doc URLs. Load the linked documents so
-    // the excerpt's links can be resolved to public URLs.
+    // Everything the email reproduces — the bodies of data insights and
+    // announcements, an article's authored /latest excerpt — can link to
+    // other gdocs, and those links are stored as Google Doc URLs. Load the
+    // linked documents so they can be resolved to public URLs. (Articles
+    // without an excerpt are skipped: their body never reaches the email, and
+    // they tend to link widely.)
     await Promise.all(
         recentGdocs
             .filter(
                 (gdoc) =>
-                    gdoc.content.type === OwidGdocType.Article &&
+                    gdoc.content.type !== OwidGdocType.Article ||
                     gdoc.content["latest-feed-excerpt"]?.length
             )
             .map((gdoc) => gdoc.loadLinkedDocuments(knex))
