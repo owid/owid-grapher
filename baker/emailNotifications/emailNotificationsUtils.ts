@@ -4,6 +4,7 @@ import {
     EmailNotificationsPreferencesTypeObject,
     EnrichedBlockText,
     OwidEnrichedGdocBlock,
+    LatestType,
 } from "@ourworldindata/types"
 import { dayjs } from "@ourworldindata/utils"
 
@@ -30,7 +31,11 @@ export interface D1SubscriberRow {
 }
 
 export interface NotificationEmailItem {
+    // The content type subscribers opt into. Several latest types fold into
+    // one of these (a topic update counts as an article).
     type: EmailNotificationsContentType
+    // The /latest type, which decides the item's kicker and layout.
+    latestType: LatestType
     slug: string
     title: string
     url: string
@@ -48,6 +53,9 @@ export interface NotificationEmailItem {
     // blocks rather than a string.
     excerptBlocks?: EnrichedBlockText[]
     thumbnailUrl?: string
+    // An announcement written as a single call to action (a top-level {.cta}
+    // and no body) links out with its own wording.
+    cta?: { text: string; url: string }
     // Data insights carry their full content, rendered inline in the email.
     body?: OwidEnrichedGdocBlock[]
     // Cloudflare image URLs for the image blocks in `body`.

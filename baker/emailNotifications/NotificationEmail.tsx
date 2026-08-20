@@ -15,8 +15,8 @@ import {
     render,
 } from "@react-email/components"
 import {
-    EmailNotificationsContentType,
     EmailNotificationsFrequency,
+    LATEST_TYPE_LABELS,
     OwidEnrichedGdocBlock,
     Span,
 } from "@ourworldindata/types"
@@ -27,25 +27,15 @@ import {
     formatItemDate,
 } from "./emailNotificationsUtils.js"
 
-// The notification email template, implementing the design in
-// https://www.figma.com/design/tSJW2qxeaWwnfEXLmAfC5D/Subscribe?node-id=530-5592
-//
-// Email clients support a small, inconsistent subset of CSS, so this is built
-// from react-email primitives (which compile to table-based markup with
-// inlined styles) rather than reusing the site components. See
-// docs/email-rendering-plan.md for the constraints this works within — in
-// particular: no icon fonts or SVG, no flex/grid, absolute URLs only.
-
-// Design tokens, from the Figma file's shared styles.
 const COLORS = {
-    background: "#f7f7f7", // Website/Background/Gray 5
+    background: "#f7f7f7",
     card: "#ffffff",
-    cardMuted: "#ebeef2", // Website/Background/Blue 10
-    navy: "#002147", // Website/Brand/Oxford Blue
-    text: "#1d3d63", // Website/Text/Blue 90
-    muted: "#426591", // Website/Text/Blue 60
-    headerText: "#a4b6ca", // Website/Text/Blue 30
-    vermillion: "#ce261e", // Website/Brand/Vermillion
+    cardMuted: "#ebeef2",
+    navy: "#002147",
+    text: "#1d3d63",
+    muted: "#426591",
+    headerText: "#a4b6ca",
+    vermillion: "#ce261e",
 }
 
 const BODY_FONT = "Arial, Helvetica, sans-serif"
@@ -63,16 +53,6 @@ const BODY_TEXT: CSSProperties = { fontSize: 16, lineHeight: "24px" }
 const IMAGE_LINK_STYLE: CSSProperties = {
     color: COLORS.text,
     textDecoration: "none",
-}
-
-/** Placeholder name — the newsletter hasn't been named yet. */
-const EMAIL_NAME = { small: "", large: "Your Update" }
-
-const CONTENT_TYPE_LABELS: Record<EmailNotificationsContentType, string> = {
-    article: "Article",
-    "data-insight": "Data insight",
-    "data-update": "Data update",
-    announcement: "Announcement",
 }
 
 const FREQUENCY_LABELS: Record<EmailNotificationsFrequency, string> = {
@@ -100,11 +80,6 @@ export interface NotificationEmailProps {
     now: Date
 }
 
-/**
- * Render the email to the HTML and plain-text bodies Postmark is given. The
- * plain-text alternative is derived from the same component tree, and both
- * are sent: it improves spam scoring and serves text-only clients.
- */
 export async function renderNotificationEmail(
     props: NotificationEmailProps
 ): Promise<{ html: string; text: string }> {
@@ -153,7 +128,7 @@ function NotificationEmail({
                         backgroundColor: COLORS.background,
                     }}
                 >
-                    <Header />
+                    <Header baseUrl={baseUrl} />
                     <Section
                         style={{ padding: `32px ${CONTENT_PADDING}px 40px` }}
                     >
@@ -215,81 +190,43 @@ function Spacer({ height }: { height: number }) {
     )
 }
 
-function Header() {
+/**
+ * The header image is a 1200x250 PNG, shown at the container width so it's
+ * crisp on high-density screens. The width/height attributes state the
+ * display size rather than the asset's because Outlook on Windows sizes
+ * images by their attributes (ignoring CSS)
+ */
+const HEADER_IMAGE_WIDTH = CONTAINER_WIDTH
+const HEADER_IMAGE_HEIGHT = Math.round((CONTAINER_WIDTH * 250) / 1200)
+
+function Header({ baseUrl }: { baseUrl: string }) {
     return (
-        <>
-            <Section
-                style={{
-                    backgroundColor: COLORS.navy,
-                    padding: `24px ${CONTENT_PADDING}px 28px`,
-                }}
-            >
-                <Row>
-                    <Column style={{ verticalAlign: "bottom" }}>
-                        {/* The small line is optional: an empty one would
-                            otherwise leave a blank row above the title. */}
-                        {EMAIL_NAME.small && (
-                            <Text
-                                style={{
-                                    margin: 0,
-                                    fontFamily: SERIF_FONT,
-                                    fontWeight: 600,
-                                    fontSize: 18,
-                                    lineHeight: "24px",
-                                    color: COLORS.headerText,
-                                }}
-                            >
-                                {EMAIL_NAME.small}
-                            </Text>
-                        )}
-                        <Text
-                            style={{
-                                margin: 0,
-                                fontFamily: SERIF_FONT,
-                                fontWeight: 600,
-                                fontSize: 36,
-                                lineHeight: "40px",
-                                color: COLORS.headerText,
-                            }}
-                        >
-                            {EMAIL_NAME.large}
-                        </Text>
-                    </Column>
-                    <Column
-                        style={{
-                            width: 160,
-                            verticalAlign: "bottom",
-                            textAlign: "right",
-                        }}
-                    >
-                        {/* The wordmark is set as text rather than an image so
-                            it survives clients that block images. */}
-                        <Text
-                            style={{
-                                margin: 0,
-                                fontSize: 27,
-                                lineHeight: "30px",
-                                color: "#ffffff",
-                                textAlign: "center",
-                            }}
-                        >
-                            Our World
-                            <br />
-                            in Data
-                        </Text>
-                    </Column>
-                </Row>
-            </Section>
-            <Section
-                style={{
-                    height: 5,
-                    lineHeight: "5px",
-                    backgroundColor: COLORS.vermillion,
-                }}
-            >
-                &nbsp;
-            </Section>
-        </>
+        <Section style={{ backgroundColor: COLORS.navy }}>
+            {/* The header is an image so it gets the brand typeface in every
+                client. Most clients render the alt text, styled by the img's
+                own text styles, in its place when images are blocked; the
+                navy background keeps it legible there. */}
+            <Link href={baseUrl} style={IMAGE_LINK_STYLE}>
+                <Img
+                    src={`${baseUrl}/owid-email-header.png`}
+                    alt="Our World in Data Update"
+                    width={HEADER_IMAGE_WIDTH}
+                    height={HEADER_IMAGE_HEIGHT}
+                    style={{
+                        display: "block",
+                        width: "100%",
+                        height: "auto",
+                        backgroundColor: COLORS.navy,
+                        fontFamily: BODY_FONT,
+                        fontSize: 16,
+                        lineHeight: "20px",
+                        fontWeight: 700,
+                        color: "#ffffff",
+                        textAlign: "center",
+                    }}
+                />
+            </Link>
+        </Section>
     )
 }
 
@@ -297,9 +234,9 @@ function Item({ item, now }: { item: NotificationEmailItem; now: Date }) {
     return (
         <Section>
             <Kicker item={item} now={now} />
-            {item.type === "data-insight" ? (
+            {item.latestType === "data-insight" ? (
                 <DataInsightCard item={item} />
-            ) : item.type === "article" ? (
+            ) : item.latestType === "article" ? (
                 <ArticleCard item={item} />
             ) : (
                 <TeaserBody item={item} />
@@ -308,12 +245,6 @@ function Item({ item, now }: { item: NotificationEmailItem; now: Date }) {
     )
 }
 
-/**
- * Metadata row above every item: type and topic on the left, date on the
- * right. The design pairs each with a FontAwesome icon; those can only be
- * images in email, and clients that block images leave a broken-image box in
- * the reserved space rather than collapsing it, so this is text-only.
- */
 function Kicker({ item, now }: { item: NotificationEmailItem; now: Date }) {
     // The gap below the kicker sits on the paragraphs rather than the row,
     // because Outlook ignores margins on tables.
@@ -330,7 +261,7 @@ function Kicker({ item, now }: { item: NotificationEmailItem; now: Date }) {
         <Row>
             <Column>
                 <Text style={kickerStyle}>
-                    {CONTENT_TYPE_LABELS[item.type]}
+                    {LATEST_TYPE_LABELS[item.latestType]}
                     {item.topicLabel && (
                         <>
                             {" — "}
@@ -396,12 +327,6 @@ function ReadMoreLink({ href, label }: { href: string; label: string }) {
     )
 }
 
-/**
- * Data updates and announcements: plain on the page background, carrying
- * their whole body. They are short — a few paragraphs closing on a call to
- * action — and editorial found that clipping them to a lead sold them badly,
- * since they aren't written to hook a reader in two paragraphs.
- */
 function TeaserBody({ item }: { item: NotificationEmailItem }) {
     const body = item.body ?? []
     return (
@@ -414,11 +339,7 @@ function TeaserBody({ item }: { item: NotificationEmailItem }) {
                     imageUrlByFilename={item.imageUrlByFilename ?? {}}
                 />
             ))}
-            {/* An announcement whose body is a top-level {.cta} has no blocks
-                to show, so it falls back to its excerpt — a summary of a page
-                the email isn't reproducing, so that one keeps a link. A body
-                shown in full needs none: it ends on its own call to action,
-                and the title links to the page. */}
+            {/* For (rarely-used) cta announcements, just show the excerpt and CTA*/}
             {body.length === 0 && (
                 <>
                     {item.excerpt && (
@@ -426,14 +347,20 @@ function TeaserBody({ item }: { item: NotificationEmailItem }) {
                             {item.excerpt}
                         </Text>
                     )}
-                    <ReadMoreLink href={item.url} label="Read more" />
+                    {item.cta ? (
+                        <ReadMoreLink
+                            href={item.cta.url}
+                            label={item.cta.text}
+                        />
+                    ) : (
+                        <ReadMoreLink href={item.url} label="Read more" />
+                    )}
                 </>
             )}
         </>
     )
 }
 
-/** Articles: a tinted card with thumbnail, byline and excerpt. */
 function ArticleCard({ item }: { item: NotificationEmailItem }) {
     return (
         <Section
@@ -488,11 +415,9 @@ function ArticleCard({ item }: { item: NotificationEmailItem }) {
     )
 }
 
-/** Data insights ship their full content, like in the data insights feed. */
 function DataInsightCard({ item }: { item: NotificationEmailItem }) {
     const body = item.body ?? []
-    // A data insight leads with its chart, and the design puts the title
-    // below it, so the opening image blocks are rendered above the title.
+    // Render the image (which is by convention always first)
     const firstNonImage = body.findIndex((block) => block.type !== "image")
     const splitIndex = firstNonImage === -1 ? body.length : firstNonImage
     const imageUrlByFilename = item.imageUrlByFilename ?? {}
@@ -532,9 +457,9 @@ function DataInsightCard({ item }: { item: NotificationEmailItem }) {
 }
 
 /**
- * Render the subset of ArchieML blocks that data insight bodies use by
- * convention (image + text, occasionally a heading). Other block types are
- * skipped.
+ * Render the subset of ArchieML blocks that data insight and announcement
+ * bodies use by convention (image + text, occasionally a heading or list).
+ * Other block types are skipped.
  */
 function Block({
     block,
@@ -569,11 +494,29 @@ function Block({
                     <Spans spans={block.text} />
                 </Heading>
             )
-        // Data insights end with a call to action linking to the chart or a
-        // related article. The design gives it the emphasized treatment below.
+        case "list":
+        case "numbered-list": {
+            const ListTag = block.type === "list" ? "ul" : "ol"
+            return (
+                <ListTag
+                    style={{
+                        ...BODY_TEXT,
+                        margin: "0 0 16px 24px",
+                        padding: 0,
+                        color: COLORS.text,
+                    }}
+                >
+                    {block.items.map((item, index) => (
+                        <li key={index} style={{ margin: "0 0 4px" }}>
+                            <Spans spans={item.value} />
+                        </li>
+                    ))}
+                </ListTag>
+            )
+        }
         case "cta":
             return (
-                <Text style={{ ...BODY_TEXT, margin: "16px 0 0" }}>
+                <Text style={{ ...BODY_TEXT, margin: "16px 0" }}>
                     <Link
                         href={block.url}
                         style={{
