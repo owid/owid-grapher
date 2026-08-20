@@ -25,8 +25,8 @@ describe(AdminPreviewLink, () => {
 
     it("renders nothing without a slug to point at", () => {
         expect(renderToStaticMarkup(<AdminPreviewLink slug={null} />)).toBe("")
-        expect(renderToStaticMarkup(<AdminPreviewLink slug={undefined} />)).toBe(
-            ""
-        )
+        expect(
+            renderToStaticMarkup(<AdminPreviewLink slug={undefined} />)
+        ).toBe("")
     })
 })
