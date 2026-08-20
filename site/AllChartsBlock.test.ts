@@ -5,7 +5,6 @@ import {
     rankSuggestedKeywords,
 } from "./search/topicVocabulary.js"
 
-
 const makeHits = (...texts: string[]): SearchChartHit[] =>
     texts.map((title) => ({ title }) as SearchChartHit)
 
@@ -55,9 +54,9 @@ describe(rankSuggestedKeywords.name, () => {
             "Missing women",
             "Infanticide",
         ]
-        expect(rankSuggestedKeywords(keywords, hits, "Gender Ratio")).toHaveLength(
-            5
-        )
+        expect(
+            rankSuggestedKeywords(keywords, hits, "Gender Ratio")
+        ).toHaveLength(5)
     })
 
     it("ignores candidates past the head of the vocabulary list, so a broad term deep in it can't outrank a specific one", () => {
@@ -81,6 +80,52 @@ describe(rankSuggestedKeywords.name, () => {
         ).not.toContain(broad)
     })
 
+    it("drops a term that only reaches charts an earlier term already reached", () => {
+        // The real failure: Gender Ratio offered "missing women",
+        // "sex-selective abortion" and "excess female mortality" — three chips,
+        // the same two charts.
+        const hits = makeHits(
+            "Number of 'missing women' in the world",
+            "Annual number of missing female births and excess mortality",
+            "Representation of women in the judiciary"
+        )
+        expect(
+            rankSuggestedKeywords(
+                ["missing", "excess mortality", "judiciary"],
+                hits,
+                "Gender Ratio"
+            )
+        ).toEqual(["missing", "judiciary", "excess mortality"])
+    })
+
+    it("prefers an unproven term over a known duplicate when filling the line", () => {
+        const hits = makeHits("Sex ratio at birth", "Sex ratio by age")
+        // "sex ratio" covers both charts, so "at birth" is a duplicate;
+        // "infanticide" matches nothing here but Algolia may still find it.
+        expect(
+            rankSuggestedKeywords(
+                ["sex ratio", "sex ratio at birth", "infanticide"],
+                hits,
+                "Gender Ratio"
+            )
+        ).toEqual(["sex ratio", "infanticide", "sex ratio at birth"])
+    })
+
+    it("never suggests a place, however the vocabulary names it", () => {
+        const hits = makeHits(
+            "Child labor in the United States",
+            "Child labor in the UK",
+            "School attendance"
+        )
+        expect(
+            rankSuggestedKeywords(
+                ["United States", "UK", "Africa", "World", "school attendance"],
+                hits,
+                "Child Labor"
+            )
+        ).toEqual(["school attendance"])
+    })
+
     it("drops terms the topic's own name already contains", () => {
         expect(
             rankSuggestedKeywords(
@@ -98,9 +143,9 @@ describe(rankSuggestedKeywords.name, () => {
     })
 
     it("suggests nothing before the topic's charts have loaded", () => {
-        expect(rankSuggestedKeywords(["Sex ratio"], [], "Gender Ratio")).toEqual(
-            []
-        )
+        expect(
+            rankSuggestedKeywords(["Sex ratio"], [], "Gender Ratio")
+        ).toEqual([])
     })
 
     it("suggests nothing for a topic the vocabulary doesn't cover", () => {
