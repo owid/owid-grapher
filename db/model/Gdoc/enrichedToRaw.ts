@@ -71,7 +71,12 @@ import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
 import * as R from "remeda"
 
-function spansToHtmlText(spans: Span[]): string {
+function spansToHtmlText(spans: Span[] | string): string {
+    // Stored posts_gdocs_components configs are enriched blocks with their
+    // spans already flattened to plain text (see extractGdocComponentInfo);
+    // passing those through lets such blocks run through this converter too.
+    // Real enriched blocks always carry Span[] here.
+    if (typeof spans === "string") return spans
     return spans.map(spanToHtmlString).join("")
 }
 export function enrichedBlockToRawBlock(
@@ -102,6 +107,7 @@ export function enrichedBlockToRawBlock(
         .with({ type: "callout" }, (b): RawBlockCallout => ({
             type: b.type,
             value: {
+                icon: b.icon,
                 title: b.title,
                 text: b.text.map(
                     (enriched) =>
@@ -194,6 +200,7 @@ export function enrichedBlockToRawBlock(
                 filename: b.filename,
                 caption: b.caption ? spansToHtmlText(b.caption) : undefined,
                 shouldLoop: String(b.shouldLoop),
+                shouldAutoplay: String(b.shouldAutoplay),
                 visibility: b.visibility ? b.visibility : undefined,
             },
         }))
