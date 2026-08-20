@@ -39,15 +39,23 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
     return json
 }
 
-function groupIntoThreads(comments: CommentWithAuthor[]): CommentThreadData[] {
+/**
+ * Threads oldest first, and replies within them likewise - the order the API
+ * returns them in.
+ *
+ * Roots used to be reversed while replies were not, so you read down inside a
+ * thread and up between them. Whichever direction you prefer, a conversation
+ * that runs both ways at once is hard to follow, and the composer sits below
+ * the threads, so reading down and then writing is the coherent one.
+ */
+export function groupIntoThreads(
+    comments: CommentWithAuthor[]
+): CommentThreadData[] {
     const roots = comments.filter((comment) => comment.parentId === null)
-    // Roots newest-first, replies in chronological order (as returned)
-    return roots
-        .map((root) => ({
-            root,
-            replies: comments.filter((comment) => comment.parentId === root.id),
-        }))
-        .reverse()
+    return roots.map((root) => ({
+        root,
+        replies: comments.filter((comment) => comment.parentId === root.id),
+    }))
 }
 
 function commentsQueryKey(target: CommentTarget): (string | number)[] {
