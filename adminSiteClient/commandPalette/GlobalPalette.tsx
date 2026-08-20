@@ -1,22 +1,77 @@
 import * as React from "react"
-import { useMemo } from "react"
-import { faTerminal } from "@fortawesome/free-solid-svg-icons"
+import { useContext, useMemo } from "react"
+import { keepPreviousData, useQueries, useQuery } from "@tanstack/react-query"
+import { faStar, faTerminal } from "@fortawesome/free-solid-svg-icons"
 import { FuzzySearch } from "@ourworldindata/utils"
+import { useDebounceValue } from "usehooks-ts"
+import { AdminAppContext } from "../AdminAppContext.js"
 import {
-    AdminCommand,
-    COMMAND_CATEGORY_ORDER,
-} from "./commandRegistry.js"
+    chartRedirectsQuery,
+    chartsQuery,
+    dataInsightsQuery,
+    datasetsQuery,
+    dodsQuery,
+    explorersQuery,
+    filesQuery,
+    gdocsQuery,
+    imagesQuery,
+    indicatorSearchQuery,
+    multiDimRedirectsQuery,
+    multiDimsQuery,
+    narrativeChartsQuery,
+    siteRedirectsQuery,
+    slideshowsQuery,
+    staticVizQuery,
+    tagsQuery,
+    usersQuery,
+} from "../queries.js"
+import { Admin } from "../Admin.js"
+import { AdminCommand, COMMAND_CATEGORY_ORDER } from "./commandRegistry.js"
 import { useCommandRegistry } from "./commandRegistryReact.js"
 import { getRecents } from "./recents.js"
-import {
-    deriveActions,
-    PaletteItem,
-    PaletteSection,
-} from "./paletteTypes.js"
+import { deriveActions, PaletteItem, PaletteSection } from "./paletteTypes.js"
+import { fallbackSection, rankResults, SourceData } from "./paletteSources.js"
 import { PaletteShell } from "./PaletteShell.js"
 
-const FUZZY_OPTIONS = { threshold: 0.75 }
+const FUZZY_OPTIONS = { threshold: 0.5 }
 const MAX_RECENTS_SHOWN = 5
+const DEBOUNCE_MS = 150
+const MIN_SERVER_QUERY_LENGTH = 2
+const INDICATOR_LIMIT = 5
+/** Collections are stable enough that a few minutes of staleness is fine */
+const STALE_TIME = 5 * 60 * 1000
+
+/** Client-side sources: fetched whole, then fuzzy-matched in the browser. */
+function clientSourceQueries(admin: Admin, enabled: boolean) {
+    const quiet = { quiet: true }
+    const entries = [
+        ["charts", chartsQuery(admin, quiet)],
+        ["gdocs", gdocsQuery(admin, quiet)],
+        ["dataInsights", dataInsightsQuery(admin, quiet)],
+        ["narrativeCharts", narrativeChartsQuery(admin, quiet)],
+        ["multiDims", multiDimsQuery(admin, quiet)],
+        ["explorers", explorersQuery(admin, quiet)],
+        ["datasets", datasetsQuery(admin, quiet)],
+        ["dods", dodsQuery(admin, quiet)],
+        ["images", imagesQuery(admin, quiet)],
+        ["files", filesQuery(admin, quiet)],
+        ["staticViz", staticVizQuery(admin, quiet)],
+        ["slideshows", slideshowsQuery(admin, quiet)],
+        ["tags", tagsQuery(admin, quiet)],
+        ["users", usersQuery(admin, quiet)],
+        ["chartRedirects", chartRedirectsQuery(admin, quiet)],
+        ["siteRedirects", siteRedirectsQuery(admin, quiet)],
+        ["multiDimRedirects", multiDimRedirectsQuery(admin, quiet)],
+    ] as const
+    return {
+        sourceIds: entries.map(([id]) => id),
+        queries: entries.map(([, options]) => ({
+            ...options,
+            enabled,
+            staleTime: STALE_TIME,
+        })),
+    }
+}
 
 function commandToItem(command: AdminCommand): PaletteItem {
     return {
@@ -60,12 +115,46 @@ export function GlobalPalette({
     onClose,
     onSelect,
 }: GlobalPaletteProps): React.ReactElement {
+    const { admin } = useContext(AdminAppContext)
     const commands = useCommandRegistry()
 
     const isCommandMode = inputValue.startsWith(">")
-    const query = (
-        isCommandMode ? inputValue.slice(1) : inputValue
-    ).trim()
+    const query = (isCommandMode ? inputValue.slice(1) : inputValue).trim()
+    // Client-side matching runs on every keystroke: fuzzysort over prepared
+    // targets is sub-millisecond, and debouncing it would replace the result
+    // collection after react-aria has already moved focus to the first item,
+    // losing that focus. Only the server-side indicator query is debounced.
+    const [debouncedQuery] = useDebounceValue(query, DEBOUNCE_MS)
+
+    // Content sources are only needed in search mode
+    const wantContent = isOpen && !isCommandMode
+    const { sourceIds, queries } = useMemo(
+        () => clientSourceQueries(admin, wantContent),
+        [admin, wantContent]
+    )
+    const results = useQueries({ queries })
+
+    const { data: indicators } = useQuery({
+        ...indicatorSearchQuery(admin, debouncedQuery, INDICATOR_LIMIT, {
+            quiet: true,
+        }),
+        enabled:
+            wantContent && debouncedQuery.length >= MIN_SERVER_QUERY_LENGTH,
+        placeholderData: keepPreviousData,
+        staleTime: STALE_TIME,
+    })
+
+    const sourceData = useMemo((): SourceData => {
+        const data: SourceData = {}
+        sourceIds.forEach((id, index) => {
+            const rows = results[index]?.data
+            if (Array.isArray(rows)) data[id] = rows
+        })
+        if (indicators?.length) data.indicators = indicators
+        return data
+        // results is a new array identity each render; its contents are what matter
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sourceIds, indicators, ...results.map((result) => result.data)])
 
     const commandSearch = useMemo(
         () =>
@@ -78,24 +167,60 @@ export function GlobalPalette({
     )
 
     const sections = useMemo((): PaletteSection[] => {
-        if (query) return groupCommandsByCategory(commandSearch.search(query))
+        if (isCommandMode)
+            return groupCommandsByCategory(
+                query ? commandSearch.search(query) : commands
+            )
 
-        const allSections = groupCommandsByCategory(commands)
-        if (isCommandMode) return allSections
+        if (!query) {
+            const recentItems = getRecents()
+                .filter((recent) => recent.kind === "command")
+                .map((recent) => commands.find((c) => c.id === recent.id))
+                .filter((command) => command !== undefined)
+                .slice(0, MAX_RECENTS_SHOWN)
+                .map(commandToItem)
+            const recentSections: PaletteSection[] = recentItems.length
+                ? [
+                      {
+                          id: "recent",
+                          label: "Recent",
+                          items: recentItems,
+                      },
+                  ]
+                : []
+            return [...recentSections, ...groupCommandsByCategory(commands)]
+        }
 
-        // Empty query: recently used items first (only registry-resolvable
-        // ones, so page commands from other pages don't show up)
-        const recentItems = getRecents()
-            .filter((recent) => recent.kind === "command")
-            .map((recent) => commands.find((c) => c.id === recent.id))
-            .filter((command) => command !== undefined)
-            .slice(0, MAX_RECENTS_SHOWN)
-            .map(commandToItem)
-        const recentSections: PaletteSection[] = recentItems.length
-            ? [{ id: "recent", label: "Recent", items: recentItems }]
+        const { topHit, sections: contentSections } = rankResults({
+            data: sourceData,
+            query,
+            preSearchedSourceIds: ["indicators"],
+        })
+        const topHitSection: PaletteSection[] = topHit
+            ? [
+                  {
+                      id: "top-hit",
+                      label: "Top hit",
+                      items: [{ ...topHit, icon: topHit.icon ?? faStar }],
+                  },
+              ]
             : []
-        return [...recentSections, ...allSections]
-    }, [query, isCommandMode, commands, commandSearch])
+        const commandSections = groupCommandsByCategory(
+            commandSearch.search(query)
+        )
+        const allSections = [
+            ...topHitSection,
+            ...contentSections,
+            ...commandSections,
+        ]
+        if (allSections.length) return allSections
+
+        const fallback = fallbackSection(query)
+        return fallback ? [fallback] : []
+    }, [isCommandMode, query, commands, commandSearch, sourceData])
+
+    const isLoadingSources =
+        wantContent && !!query && results.some((result) => result.isLoading)
 
     return (
         <PaletteShell
@@ -110,7 +235,12 @@ export function GlobalPalette({
             }
             sections={sections}
             onSelect={onSelect}
-            emptyMessage={`No results for "${query}"`}
+            emptyMessage={
+                isLoadingSources
+                    ? "Loading…"
+                    : `No results for "${query || inputValue}"`
+            }
+            footerHint={isCommandMode ? undefined : "⌘⇧K for commands"}
         />
     )
 }
