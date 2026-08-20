@@ -1,11 +1,15 @@
 import { expect, it, describe } from "vitest"
 import {
+    BlockSize,
+    EnrichedBlockCta,
+    EnrichedBlockHeading,
     EnrichedBlockText,
+    OwidEnrichedGdocBlock,
     OwidGdocMinimalPostInterface,
     OwidGdocType,
     Span,
 } from "@ourworldindata/types"
-import { resolveExcerptLinks } from "./excerptLinks.js"
+import { resolveBodyLinks, resolveExcerptLinks } from "./excerptLinks.js"
 
 const BASE_URL = "https://ourworldindata.org"
 
@@ -141,5 +145,93 @@ describe(resolveExcerptLinks, () => {
             simpleText(" was the largest driver."),
         ]
         expect(resolve(spans)).toEqual(spans)
+    })
+})
+
+describe(resolveBodyLinks, () => {
+    const linkedDocuments = { abc123: makeLinkedDocument() }
+
+    it("resolves links in text and heading blocks", () => {
+        const heading: EnrichedBlockHeading = {
+            type: "heading",
+            level: 2,
+            text: [link(GDOC_URL, "Migrants")],
+            parseErrors: [],
+        }
+        expect(
+            resolveBodyLinks(
+                [block([link(GDOC_URL, "our article")]), heading],
+                linkedDocuments,
+                BASE_URL
+            )
+        ).toEqual([
+            block([link(`${BASE_URL}/where-do-migrants-live`, "our article")]),
+            {
+                ...heading,
+                text: [link(`${BASE_URL}/where-do-migrants-live`, "Migrants")],
+            },
+        ])
+    })
+
+    it("resolves links in list items", () => {
+        const list: OwidEnrichedGdocBlock = {
+            type: "list",
+            items: [block([link(GDOC_URL, "our article")])],
+            parseErrors: [],
+        }
+        expect(resolveBodyLinks([list], linkedDocuments, BASE_URL)).toEqual([
+            {
+                ...list,
+                items: [
+                    block([
+                        link(
+                            `${BASE_URL}/where-do-migrants-live`,
+                            "our article"
+                        ),
+                    ]),
+                ],
+            },
+        ])
+    })
+
+    it("resolves a cta block's link", () => {
+        const cta: EnrichedBlockCta = {
+            type: "cta",
+            text: "Read the article",
+            url: GDOC_URL,
+            parseErrors: [],
+        }
+        expect(resolveBodyLinks([cta], linkedDocuments, BASE_URL)).toEqual([
+            { ...cta, url: `${BASE_URL}/where-do-migrants-live` },
+        ])
+    })
+
+    it("drops a cta block whose link can't be resolved", () => {
+        const cta: EnrichedBlockCta = {
+            type: "cta",
+            text: "Read the article",
+            url: GDOC_URL,
+            parseErrors: [],
+        }
+        expect(
+            resolveBodyLinks(
+                [cta],
+                { abc123: makeLinkedDocument({ published: false }) },
+                BASE_URL
+            )
+        ).toEqual([])
+    })
+
+    it("passes other blocks through untouched", () => {
+        const image: OwidEnrichedGdocBlock = {
+            type: "image",
+            filename: "chart.png",
+            size: BlockSize.Wide,
+            hasOutline: true,
+            parseErrors: [],
+        }
+        expect(resolveBodyLinks([image], linkedDocuments, BASE_URL)).toEqual([
+            image,
+        ])
     })
 })
