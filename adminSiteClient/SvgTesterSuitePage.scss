@@ -358,10 +358,37 @@ $svg-tester-error-frame: #dda4a0;
 }
 
 .SvgTesterSlider__images {
-    border: 1px solid $gray-10;
     cursor: ew-resize;
     line-height: 0;
     position: relative;
+}
+
+// Frame each side of the divider in the reference/current colours, so it's
+// obvious which rendering you're looking at
+.SvgTesterSlider__images::before,
+.SvgTesterSlider__images::after {
+    border: 2px solid;
+    bottom: 0;
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    z-index: 1;
+}
+
+// No border where the two halves meet: that's the handle's line
+.SvgTesterSlider__images::before {
+    border-color: $svg-tester-reference-frame;
+    border-right: 0;
+    left: 0;
+    right: calc(100% - var(--position));
+}
+
+.SvgTesterSlider__images::after {
+    border-color: $svg-tester-current-frame;
+    border-left: 0;
+    left: var(--position);
+    right: 0;
 }
 
 .SvgTesterSlider__images img {
