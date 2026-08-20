@@ -64,6 +64,22 @@
     @import "../controls/DataTableSearchField.scss";
 }
 
+// The sources overlay has a second home: on our own pages it opens as a
+// page-level panel that is portaled to the document body (SourcesPanel.tsx),
+// which puts it outside .GrapherComponent and out of reach of the rules above.
+// Scope the partials it needs to the panel as well — keep this list in sync
+// with the sources-related imports above.
+.grapher-sources-panel {
+    @import "../tabs/Tabs.scss";
+    @import "../tabs/TabsWithDropdown.scss";
+    @import "../modal/SourcesModal.scss";
+    @import "../modal/SourcesKeyDataTable.scss";
+    @import "../modal/SourcesDescriptions.scss";
+}
+
+// The panel's own layout lives outside any grapher scope, for the same reason.
+@import "../modal/SourcesPanel.scss";
+
 // These rules are currently used elsewhere in the site. e.g. Explorers
 // so we can't scope them to be grapher-only
 @import "../controls/entityPicker/EntityPicker.scss";
