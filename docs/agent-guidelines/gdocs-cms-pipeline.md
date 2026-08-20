@@ -123,7 +123,8 @@ After enrichment and validation, `upsertGdoc` serialises the enriched content to
 4. **Add the site component** (`site/gdocs/components/<Name>.tsx` plus companion `.scss`) referenced from `ArticleBlock.tsx`.
 5. Teach `gdocToArchie` to serialise new **Google Docs AST** constructs only if needed — blocks that authors type directly as `{.my-block}` in the doc need no changes there.
 6. Update `htmlToEnriched.ts` if the block carries inline HTML that needs bespoke handling.
-7. Cover the new behaviour with unit tests in `db/gdocTests.test.ts`. Optionally add an author-facing text-expansion snippet to `types/src/gdocTypes/raycastSnippets.json`.
-8. Consider whether Gdoc subclasses need additional enrichment, validation, or derived metadata.
+7. **Document the block in the writing reference** — this requires a `.md` sidecar, a category entry, and regenerated registries, all of which are checked during the build; see `docs/gdocs-writing-reference.md` for the steps (same for new front-matter fields).
+8. Cover the new behaviour with unit tests in `db/gdocTests.test.ts`. Optionally add an author-facing text-expansion snippet to `types/src/gdocTypes/raycastSnippets.json`.
+9. Consider whether Gdoc subclasses need additional enrichment, validation, or derived metadata.
 
 By following these steps we keep the ingestion pipeline deterministic while preserving the rich authoring experience our authors expect inside Google Docs.

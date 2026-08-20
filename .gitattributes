@@ -1,3 +1,4 @@
 * text=auto eol=lf
 *.css linguist-vendored
 *.less linguist-vendored
+docs/*.registry.generated.json linguist-generated=true
