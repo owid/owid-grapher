@@ -15,20 +15,12 @@ import { DocumentContext } from "./DocumentContext.js"
 import { AnnouncementPage } from "./pages/Announcement.js"
 import { Profile } from "./pages/Profile.js"
 import { ADMIN_BASE_URL } from "../../settings/clientSettings.js"
-import { CookieKey } from "@ourworldindata/grapher"
 import { SiteQueryClientProvider } from "../SiteQueryClientProvider.js"
+import { hasAdminCookie } from "../adminCookie.js"
 
 type OwidGdocProps = OwidGdocPageProps & {
     isPreviewing?: boolean
     archiveContext?: ArchiveContext
-}
-
-function hasAdminCookie(): boolean {
-    try {
-        return document.cookie.includes(CookieKey.isAdmin)
-    } catch {
-        return false
-    }
 }
 
 function AdminLinks({ id }: Pick<OwidGdocPageProps, "id">) {
