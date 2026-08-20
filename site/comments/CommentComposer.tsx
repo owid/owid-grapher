@@ -123,7 +123,13 @@ export function CommentComposer({
                                 // mousedown, because blur would close the list
                                 // before a click could land
                                 onMouseDown={(event) => {
+                                    // preventDefault keeps focus in the
+                                    // textarea, so no blur closes the list
+                                    // before this runs; stopPropagation keeps
+                                    // the popover's outside-click handler out
+                                    // of it entirely.
                                     event.preventDefault()
+                                    event.stopPropagation()
                                     insertMention(user.fullName)
                                 }}
                             >

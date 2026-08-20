@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import {
     useMutation,
     useQuery,
@@ -104,8 +105,20 @@ export function useCommentThreadsForTarget(
         staleTime: 0,
     })
 
+    // Memoised because everything downstream is: the counts derived from these
+    // threads end up in the effect that places the bubbles, so rebuilding the
+    // array on every render made that effect re-run on every render, and it
+    // sets state - a loop that tears down and rebuilds the DOM observer
+    // continuously and makes anything transient in the popover flicker away.
+    // React Query keeps `data` referentially stable while the payload is
+    // unchanged, so this holds across polls.
+    const threads = useMemo(
+        () => (result.data ? groupIntoThreads(result.data.comments) : []),
+        [result.data]
+    )
+
     return {
-        threads: result.data ? groupIntoThreads(result.data.comments) : [],
+        threads,
         currentUserId: result.data?.currentUserId,
         isLoading: result.isLoading,
         error: result.error ?? undefined,

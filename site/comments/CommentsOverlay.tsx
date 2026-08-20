@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import cx from "clsx"
 import { CommentViewState } from "@ourworldindata/types"
@@ -76,6 +76,9 @@ function useBubblePlacements(
     isOn: boolean
 ): PlacedBubbleGroup[] {
     const [placements, setPlacements] = useState<PlacedBubbleGroup[]>([])
+    // Outside the effect on purpose: if it were reset each time the effect
+    // re-ran, every run would commit a fresh array and schedule another render.
+    const lastSerialized = useRef("")
 
     useEffect(() => {
         if (!isOn) {
@@ -86,7 +89,6 @@ function useBubblePlacements(
         // Bubbles live in a portal on document.body, so writing them triggers
         // the observer that placed them. Committing only real changes stops
         // that feeding back on itself.
-        let lastSerialized = ""
         const place = (): void => {
             const next: PlacedBubbleGroup[] = []
             const groupByElement = new Map<HTMLElement, PlacedBubbleGroup>()
@@ -131,8 +133,8 @@ function useBubblePlacements(
                     ]),
                 ])
             )
-            if (serialized === lastSerialized) return
-            lastSerialized = serialized
+            if (serialized === lastSerialized.current) return
+            lastSerialized.current = serialized
             setPlacements(next)
         }
         const schedule = (): void => {
