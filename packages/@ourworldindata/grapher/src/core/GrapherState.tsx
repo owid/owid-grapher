@@ -102,7 +102,7 @@ import {
     sortNumeric,
     isMobile,
 } from "@ourworldindata/utils"
-import Cookies from "js-cookie"
+import { get as getCookie } from "es-cookie"
 import * as _ from "lodash-es"
 import {
     computed,
@@ -1689,7 +1689,7 @@ export class GrapherState
         try {
             // Cookie access can be restricted by iframe sandboxing, in which case the below code will throw an error
             // see https://github.com/owid/owid-grapher/pull/2452
-            return !!Cookies.get(CookieKey.isAdmin)
+            return !!getCookie(CookieKey.isAdmin)
         } catch {
             return false
         }
