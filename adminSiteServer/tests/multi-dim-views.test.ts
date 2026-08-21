@@ -134,6 +134,25 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         expect(config).not.toHaveProperty("hideLegend")
     })
 
+    it("rejects a view config that declares no schema version", async () => {
+        const { grapherConfigSchema: _omitted, ...configWithoutSchema } =
+            multiDimConfig([totalView]) as { grapherConfigSchema: string }
+        const response = await fetch(
+            `${env.baseUrl}/multi-dims/${encodeURIComponent(catalogPath)}`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${env.apiKey}`,
+                },
+                body: JSON.stringify({ config: configWithoutSchema }),
+            }
+        )
+
+        expect(response.status).toBe(400)
+        expect(await env.getCount(MultiDimDataPagesTableName)).toBe(0)
+    })
+
     it("drops the config row of a removed view and keeps the rest", async () => {
         await upsertMultiDim([totalView, perCapitaView])
         const before = await getViewConfigIds()
