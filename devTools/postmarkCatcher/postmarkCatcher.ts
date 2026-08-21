@@ -70,8 +70,6 @@ function acceptEmail(payload: Message): Models.MessageSendingResponse {
 function renderIndexPage(): string {
     const rows = emails
         .map((email, index) => {
-            // Coerced with String(): the payload is typed for convenience but
-            // comes off the wire, so a sender bug can put anything in it.
             const { To, Subject, MessageStream, Tag } = email.payload
             return `<tr>
 <td>${email.receivedAt.toLocaleTimeString()}</td>
