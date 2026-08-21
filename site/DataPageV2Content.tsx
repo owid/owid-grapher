@@ -28,6 +28,7 @@ import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { useWindowQueryParams } from "./hooks.js"
+import AskThisChart from "./AskThisChart.js"
 import IndicatorMetadataBox from "./IndicatorMetadataBox.js"
 import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
@@ -191,6 +192,9 @@ export const DataPageV2Content = ({
                                 id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
                                 license={grapherConfig.license}
                             />
+                        )}
+                        {useNewDatapageDesign && slug && (
+                            <AskThisChart slug={slug} />
                         )}
                         {useNewDatapageDesign && (
                             <div className="datapage-search-wrapper span-cols-14 grid-cols-12-full-width grid">
