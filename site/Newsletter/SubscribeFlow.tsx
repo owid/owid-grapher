@@ -3,10 +3,11 @@ import cx from "clsx"
 import { match } from "ts-pattern"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
-import { TagGraphRoot } from "@ourworldindata/types"
+import { Button } from "@ourworldindata/components"
 import { EmailNotificationsSubscribeForm } from "./EmailNotificationsSubscribeForm.js"
 import { OwidSocials } from "../OwidSocials.js"
 import { NewsletterSubscriptionContext } from "../newsletter.js"
+import { SiteQueryClientProvider } from "../SiteQueryClientProvider.js"
 import {
     SUBSCRIBE_PAGE_CONTENT_GRID_CLASSES,
     SubscribePageConfirmation,
@@ -16,39 +17,46 @@ import {
 type SubscribeFlowState = { name: "form" } | { name: "success"; email: string }
 
 export const SubscribeFlow = ({
-    topicTagGraph,
+    topicAreaNames,
 }: {
-    topicTagGraph: TagGraphRoot
+    topicAreaNames: string[]
 }) => {
     const [state, setState] = useState<SubscribeFlowState>({ name: "form" })
 
     return match(state)
         .with({ name: "form" }, () => (
-            <SubscribeFormScreen
-                topicTagGraph={topicTagGraph}
-                onSubscribed={(email) => setState({ name: "success", email })}
-            />
+            <SiteQueryClientProvider>
+                <SubscribeFormScreen
+                    topicAreaNames={topicAreaNames}
+                    onSubscribed={(email) =>
+                        setState({ name: "success", email })
+                    }
+                />
+            </SiteQueryClientProvider>
         ))
         .with({ name: "success" }, ({ email }) => (
-            <SubscribePageConfirmation
-                heading="You are now subscribed"
-                action={{
-                    href: "/subscribe/preferences",
-                    label: "Update your preferences",
-                }}
-            >
-                We have sent a confirmation email to <strong>{email}</strong>{" "}
-                with a summary of your preferences.
+            <SubscribePageConfirmation heading="You are now subscribed">
+                <p className="subscribe-page__confirmation-text">
+                    We have sent a confirmation email to{" "}
+                    <strong>{email}</strong> with a summary of your preferences.
+                </p>
+                <Button
+                    className="subscribe-page__confirmation-action"
+                    theme="outline-vermillion"
+                    href="/subscribe/preferences"
+                    text="Update your preferences"
+                    icon={null}
+                />
             </SubscribePageConfirmation>
         ))
         .exhaustive()
 }
 
 const SubscribeFormScreen = ({
-    topicTagGraph,
+    topicAreaNames,
     onSubscribed,
 }: {
-    topicTagGraph: TagGraphRoot
+    topicAreaNames: string[]
     onSubscribed: (email: string) => void
 }) => {
     return (
@@ -64,7 +72,7 @@ const SubscribeFormScreen = ({
                 )}
             >
                 <EmailNotificationsSubscribeForm
-                    topicTagGraph={topicTagGraph}
+                    topicAreaNames={topicAreaNames}
                     onSubscribed={onSubscribed}
                 />
             </div>
