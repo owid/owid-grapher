@@ -2,7 +2,11 @@ import * as _ from "lodash-es"
 import fs from "fs-extra"
 
 import * as db from "../db/db.js"
-import { DbPlainTag, DbPlainUser } from "@ourworldindata/utils"
+import {
+    DbPlainTag,
+    DbPlainUser,
+    MDIM_COMPANION_FILE_SUFFIX,
+} from "@ourworldindata/utils"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 import { hashMd5 } from "../serverUtils/hash.js"
 import { BAKE_ON_CHANGE } from "../settings/serverSettings.js"
@@ -80,6 +84,11 @@ export async function deleteOldGraphers(
         console.log(`DELETING ${path}`)
         fs.unlink(path, (err) => {
             if (err) console.error(`Error deleting ${path}`, err)
+        })
+        // Multi-dim pages are baked with a companion file next to them
+        const companionPath = `${bakedSiteDir}/grapher/${slug}${MDIM_COMPANION_FILE_SUFFIX}`
+        fs.rm(companionPath, { force: true }, (err) => {
+            if (err) console.error(`Error deleting ${companionPath}`, err)
         })
     }
 }

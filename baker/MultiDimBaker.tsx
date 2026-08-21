@@ -18,8 +18,15 @@ import {
     ArchiveContext,
     ArchivedPageVersion,
     DataPageRelatedResearch,
+    MDIM_COMPANION_FILE_SUFFIX,
+    MultiDimPageCompanion,
 } from "@ourworldindata/types"
-import { MultiDimDataPageConfig } from "@ourworldindata/utils"
+import {
+    merge,
+    MultiDimDataPageConfig,
+    multiDimDimensionsToViewQueryStr,
+} from "@ourworldindata/utils"
+import { GrapherState } from "@ourworldindata/grapher"
 import * as db from "../db/db.js"
 import { getImagesByFilenames } from "../db/model/Image.js"
 import { getRelatedResearchAndWritingForVariables } from "../db/model/Post.js"
@@ -31,7 +38,10 @@ import {
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
 import { deleteOldGraphers, getTagToSlugMap } from "./GrapherBakingUtils.js"
-import { getVariableMetadata } from "../db/model/Variable.js"
+import {
+    getVariableMetadata,
+    getVariableTitleMetadataByIds,
+} from "../db/model/Variable.js"
 import pMap from "p-map"
 import { fetchAndParseFaqs, getPrimaryTopic } from "./DatapageHelpers.js"
 import { getAllPublishedChartSlugs } from "../db/model/Chart.js"
@@ -43,7 +53,11 @@ import {
 import { MultiDimArchivalManifest } from "../serverUtils/archivalUtils.js"
 import { getLatestArchivedMultiDimPageVersions } from "../db/model/ArchivedMultiDimVersion.js"
 import { getDatapageDataV2 } from "../site/dataPage.js"
-import { getChartConfigByUuid } from "../db/model/ChartConfigs.js"
+import {
+    getChartConfigByUuid,
+    getChartConfigsByUuids,
+} from "../db/model/ChartConfigs.js"
+import { maybeAddChangeInPrefix } from "./algolia/utils/shared.js"
 
 const getLatestMultiDimArchivedVersionsIfEnabled = async (
     knex: db.KnexReadonlyTransaction,
@@ -113,6 +127,58 @@ const getFaqEntries = async (
     )
 
     return { faqs }
+}
+
+/**
+ * Build the companion JSON file that gets baked alongside the multi-dim page
+ * and is read by the Cloudflare Function serving /grapher/[slug] (see
+ * rewriteMetaTags). It currently holds the effective grapher title of every
+ * view; the title resolution mirrors the one used for Algolia mdim view
+ * records in baker/algolia/utils/mdimViews.ts.
+ */
+export async function getMultiDimPageCompanion(
+    knex: db.KnexReadonlyTransaction,
+    config: MultiDimDataPageConfigEnriched
+): Promise<MultiDimPageCompanion> {
+    const chartConfigs = await getChartConfigsByUuids(
+        knex,
+        config.views.map((view) => view.fullConfigId)
+    )
+    const variableMetadataById = await getVariableTitleMetadataByIds(knex, [
+        ...getRelevantVariableIds(config),
+    ])
+
+    const views: MultiDimPageCompanion["views"] = {}
+    for (const view of config.views) {
+        const chartConfig = chartConfigs.get(view.fullConfigId)
+        const variableId = view.indicators.y?.[0]?.id
+        const variableMetadata = variableId
+            ? variableMetadataById.get(variableId)
+            : undefined
+        const metadata = merge(
+            {},
+            variableMetadata ?? {},
+            config.metadata ?? {},
+            view.metadata ?? {}
+        )
+        const shouldAddChangeInPrefix = chartConfig
+            ? new GrapherState(chartConfig).shouldAddChangeInPrefixToTitle
+            : false
+        const title = maybeAddChangeInPrefix(
+            metadata.presentation?.titlePublic ||
+                chartConfig?.title ||
+                metadata.display?.name ||
+                metadata.name ||
+                "",
+            shouldAddChangeInPrefix
+        )
+        if (title) {
+            views[multiDimDimensionsToViewQueryStr(view.dimensions)] = {
+                title,
+            }
+        }
+    }
+    return { views }
 }
 
 export async function renderMultiDimDataPageFromConfig({
@@ -294,6 +360,13 @@ export const bakeMultiDimDataPage = async (
     })
     const outPath = path.join(bakedSiteDir, `grapher/${slug}.html`)
     await fs.writeFile(outPath, renderedHtml)
+
+    const companion = await getMultiDimPageCompanion(knex, config)
+    const companionPath = path.join(
+        bakedSiteDir,
+        `grapher/${slug}${MDIM_COMPANION_FILE_SUFFIX}`
+    )
+    await fs.writeFile(companionPath, JSON.stringify(companion))
 }
 
 export const bakeAllMultiDimDataPages = async (

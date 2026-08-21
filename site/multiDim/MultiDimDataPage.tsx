@@ -7,6 +7,7 @@ import { SiteHeader } from "../SiteHeader.js"
 import { OWID_DATAPAGE_CONTENT_ROOT_ID } from "../DataPageV2Content.js"
 import { SiteFooter } from "../SiteFooter.js"
 import {
+    joinTitleFragments,
     MultiDimDataPageConfig,
     SiteFooterContext,
     serializeJSONForHTML,
@@ -19,6 +20,8 @@ import {
     MultiDimDataPageData,
 } from "./MultiDimDataPageContent.js"
 import { DEFAULT_PAGE_DESCRIPTION } from "../dataPage.js"
+import { JsonLdDataPage } from "../jsonLd.js"
+import { makeJsonLdGrapherImageUrl } from "../jsonLdHelpers.js"
 import { useMemo } from "react"
 
 export function MultiDimDataPage({
@@ -39,9 +42,15 @@ export function MultiDimDataPage({
     if (!slug && !isPreviewing) {
         throw new Error("Missing slug for multidimensional data page")
     }
+    // Keep in sync with the client-side document.title in
+    // MultiDimDataPageContent, which uses the same fragments.
+    const titleFragments = joinTitleFragments(
+        configObj.title.titleVariant,
+        configObj.title.attributionShort
+    )
     let pageTitle = configObj.title.title
-    if (configObj.title.titleVariant) {
-        pageTitle += ` - ${configObj.title.titleVariant}`
+    if (titleFragments) {
+        pageTitle += ` - ${titleFragments}`
     }
     const pageDesc = DEFAULT_PAGE_DESCRIPTION
     const contentProps: MultiDimDataPageData = {
@@ -97,6 +106,16 @@ export function MultiDimDataPage({
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
+                {!isOnArchivalPage && (
+                    <JsonLdDataPage
+                        baseUrl={baseUrl}
+                        grapher={undefined}
+                        datapageData={initialViewData}
+                        canonicalUrl={canonicalUrl}
+                        imageUrl={makeJsonLdGrapherImageUrl(slug ?? undefined)}
+                        name={pageTitle}
+                    />
+                )}
                 <IFrameDetector />
                 <noscript>
                     <style>{`

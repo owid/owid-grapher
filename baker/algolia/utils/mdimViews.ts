@@ -1,16 +1,14 @@
 import * as _ from "lodash-es"
 import {
-    ChartConfigsTableName,
     DbEnrichedMultiDimDataPage,
-    DbRawChartConfig,
     getUniqueNamesFromTagHierarchies,
     merge,
     dimensionsToViewId,
     MultiDimDataPageConfig,
-    parseChartConfig,
 } from "@ourworldindata/utils"
 import { toPlaintext } from "@ourworldindata/components"
 import * as db from "../../../db/db.js"
+import { getChartConfigsByUuids } from "../../../db/model/ChartConfigs.js"
 import { getAllPublishedMultiDimDataPages } from "../../../db/model/MultiDimDataPage.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import {
@@ -42,16 +40,6 @@ import pMap from "p-map"
 
 // Published multi-dim must have a slug.
 type PublishedMultiDimWithSlug = DbEnrichedMultiDimDataPage & { slug: string }
-
-async function getChartConfigsByIds(
-    knex: db.KnexReadonlyTransaction,
-    ids: string[]
-) {
-    const rows = await knex<DbRawChartConfig>(ChartConfigsTableName)
-        .select("id", "full")
-        .whereIn("id", ids)
-    return new Map(rows.map((row) => [row.id, parseChartConfig(row.full)]))
-}
 
 async function getDatasetDimensionsByVariableIds(
     trx: db.KnexReadonlyTransaction,
@@ -94,7 +82,7 @@ async function getRecords(
     console.log(
         `Creating ${multiDim.config.views.length} records for mdim ${slug}`
     )
-    const chartConfigs = await getChartConfigsByIds(
+    const chartConfigs = await getChartConfigsByUuids(
         trx,
         multiDim.config.views.map((view) => view.fullConfigId)
     )

@@ -1,5 +1,7 @@
 import { onRequest as grapherOnRequest } from "../grapher/[slug].js"
+import { rewriteMetaTags } from "../_common/grapherTools.js"
 import type { Env } from "../_common/env.js"
+import type { MultiDimPageCompanion } from "@ourworldindata/types"
 
 interface SeedR2Body {
     bucket: "primary" | "fallback"
@@ -7,6 +9,21 @@ interface SeedR2Body {
     value: string
     contentType?: string
 }
+
+interface RewriteMetaTagsBody {
+    html: string
+    url: string
+    companion?: MultiDimPageCompanion | null
+}
+
+interface SeedAssetBody {
+    pathname: string
+    body: string
+    contentType: string
+}
+
+// In-memory stand-in for the static site assets, seeded via /__test__/seed-asset
+const seededAssets = new Map<string, { body: string; contentType: string }>()
 
 function getBucket(env: Env, bucket: "primary" | "fallback"): R2Bucket {
     if (bucket === "primary") {
@@ -37,7 +54,16 @@ function makeGrapherContext(request: Request, env: Env) {
     const envWithAssets = {
         ...env,
         ASSETS: {
-            fetch: async () => new Response("Not found", { status: 404 }),
+            fetch: async (input: RequestInfo | URL) => {
+                const assetUrl = new URL(
+                    input instanceof Request ? input.url : input
+                )
+                const asset = seededAssets.get(assetUrl.pathname)
+                if (!asset) return new Response("Not found", { status: 404 })
+                return new Response(asset.body, {
+                    headers: { "Content-Type": asset.contentType },
+                })
+            },
             connect: () => {
                 throw new Error("ASSETS.connect is not implemented in tests")
             },
@@ -110,9 +136,47 @@ export default {
             }
 
             if (
-                url.pathname.startsWith("/grapher/") &&
-                url.pathname.endsWith(".config.json")
+                request.method === "POST" &&
+                url.pathname === "/__test__/rewrite-meta-tags"
             ) {
+                const body: RewriteMetaTagsBody = await request.json()
+                const pageUrl = new URL(body.url)
+                const page = new Response(body.html, {
+                    headers: { "Content-Type": "text/html" },
+                })
+                const rewritten = rewriteMetaTags(
+                    pageUrl,
+                    `${pageUrl.pathname}.png?imType=og`,
+                    `${pageUrl.pathname}.png?imType=twitter`,
+                    page,
+                    async () => body.companion ?? undefined
+                )
+                return new Response(await rewritten.text(), {
+                    headers: { "Content-Type": "text/html" },
+                })
+            }
+
+            if (
+                request.method === "POST" &&
+                url.pathname === "/__test__/seed-asset"
+            ) {
+                const body: SeedAssetBody = await request.json()
+                seededAssets.set(body.pathname, {
+                    body: body.body,
+                    contentType: body.contentType,
+                })
+                return Response.json({ ok: true })
+            }
+
+            if (
+                request.method === "POST" &&
+                url.pathname === "/__test__/clear-assets"
+            ) {
+                seededAssets.clear()
+                return Response.json({ ok: true })
+            }
+
+            if (url.pathname.startsWith("/grapher/")) {
                 const context = makeGrapherContext(request, env)
                 return grapherOnRequest(context)
             }

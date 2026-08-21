@@ -1,3 +1,5 @@
+import { MDIM_COMPANION_FILE_SUFFIX } from "@ourworldindata/types"
+
 export interface Env {
     ASSETS: Fetcher
     url: URL
@@ -41,6 +43,7 @@ export const extensions = {
     svg: ".svg",
     csv: ".csv",
     metadata: ".metadata.json",
+    mdimJson: MDIM_COMPANION_FILE_SUFFIX,
     readme: ".readme.md",
     zip: ".zip",
     values: ".values.json",
