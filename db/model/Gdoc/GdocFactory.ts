@@ -45,6 +45,8 @@ import {
     getPublishedGdocsWithTags,
     getTagHierarchiesByChildName,
     getBestBreadcrumbs,
+    getTopicAreaNameForTagNames,
+    topicAreaNamesFromTagHierarchies,
 } from "../../db.js"
 import { GdocAbout } from "./GdocAbout.js"
 import { GdocAuthor } from "./GdocAuthor.js"
@@ -218,7 +220,10 @@ export async function getGdocBaseObjectById(
                 SELECT tags.*
                 FROM tags
                 JOIN posts_gdocs_x_tags gt ON gt.tagId = tags.id
-                WHERE gt.gdocId = ?`,
+                WHERE gt.gdocId = ?
+                -- Callers treat tags[0] as the page's primary tag, so the
+                -- order has to be stable across bake and admin preview.
+                ORDER BY tags.name ASC`,
             [id]
         )
         gdoc.tags = tags
@@ -229,6 +234,10 @@ export async function getGdocBaseObjectById(
             gdoc.breadcrumbs = getBestBreadcrumbs(
                 gdoc.tags,
                 tagHierarchiesByChildName
+            )
+            gdoc.topicArea = getTopicAreaNameForTagNames(
+                tags.map((tag) => tag.name),
+                topicAreaNamesFromTagHierarchies(tagHierarchiesByChildName)
             )
         }
     }
@@ -330,7 +339,10 @@ export async function getPublishedGdocBaseObjectBySlug(
                 SELECT tags.*
                 FROM tags
                 JOIN posts_gdocs_x_tags gt ON gt.tagId = tags.id
-                WHERE gt.gdocId = ?`,
+                WHERE gt.gdocId = ?
+                -- Callers treat tags[0] as the page's primary tag, so the
+                -- order has to be stable across bake and admin preview.
+                ORDER BY tags.name ASC`,
             [gdoc.id]
         )
         gdoc.tags = tags
@@ -340,6 +352,10 @@ export async function getPublishedGdocBaseObjectBySlug(
             gdoc.breadcrumbs = getBestBreadcrumbs(
                 gdoc.tags,
                 tagHierarchiesByChildName
+            )
+            gdoc.topicArea = getTopicAreaNameForTagNames(
+                tags.map((tag) => tag.name),
+                topicAreaNamesFromTagHierarchies(tagHierarchiesByChildName)
             )
         }
     }

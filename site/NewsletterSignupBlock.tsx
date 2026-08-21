@@ -13,8 +13,15 @@ export const NewsletterSignupBlock = ({
     context: NewsletterSubscriptionContext
     className?: string
 }) => {
+    const isLatest = context === NewsletterSubscriptionContext.Latest
     return (
-        <div className={cx("newsletter-signup", className)}>
+        <div
+            className={cx(
+                "newsletter-signup",
+                { "newsletter-signup--latest": isLatest },
+                className
+            )}
+        >
             <NewsletterSubscriptionHeader />
             <NewsletterSubscriptionForm context={context} />
             <OwidSocials context={context} />

@@ -90,6 +90,10 @@
     @include sm-up {
         padding-left: 24px;
         border-left: 1px solid $blue-20;
+        // Without this the column stretches to the height of the taller
+        // description column beside it and the border runs on past the key
+        // data table into blank space.
+        align-self: start;
     }
 }
 
@@ -98,5 +102,21 @@
 
     @include md-up {
         margin-bottom: 0;
+    }
+}
+
+// Without key information the section is one row of three columns at md-up: the
+// heading in a narrow label column, the indicator metadata beside it, and the
+// newsletter card in the right rail level with the metadata fields. Automatic
+// placement puts all three in that row, because each one names its own starting
+// column. Below md the section is a single column and they stack in DOM order:
+// heading, key data table, card.
+//
+// Room for the right rail comes out of the metadata block, which otherwise runs
+// all the way to the section's right edge. Only the pages that actually render a
+// card give it up — see where the modifier is applied in AboutThisData.tsx.
+.about-this-data__key-data--with-newsletter-card {
+    @include md-up {
+        grid-column-end: 10;
     }
 }

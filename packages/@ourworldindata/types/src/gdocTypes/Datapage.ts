@@ -34,6 +34,14 @@ export interface DataPageDataV2 {
     attributionShort?: string
     topicTagsLinks?: string[]
     primaryTopic?: PrimaryTopic
+    /**
+     * Name of the single top-level topic area this indicator belongs to, e.g.
+     * "Population and Demographic Change". Resolved from `topicTagsLinks[0]`
+     * against the tag graph at bake time; undefined when it doesn't resolve to
+     * one. Needs to live here so it survives the `_OWID_DATAPAGEV2_PROPS`
+     * round-trip into the client-hydrated `DataPageV2Content`.
+     */
+    topicArea?: string
     attributions: string[]
     description?: string
     descriptionShort?: string

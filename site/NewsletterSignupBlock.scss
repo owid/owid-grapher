@@ -59,3 +59,23 @@
         }
     }
 }
+
+// The /latest sidebar card. Same form, denser presentation: each option shows
+// its cadence inline next to the option name.
+.newsletter-signup--latest {
+    // The avatar sits to the left of the heading, which wraps onto two lines.
+    // The default block puts the heading on its own full-width row below the
+    // avatar, so this has to match that rule's specificity to override it.
+    .newsletter-subscription-header .newsletter-subscription-header__heading {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .newsletter-subscription-form__label-frequency {
+        display: inline;
+    }
+
+    .owid-socials__heading {
+        margin-bottom: 8px;
+    }
+}

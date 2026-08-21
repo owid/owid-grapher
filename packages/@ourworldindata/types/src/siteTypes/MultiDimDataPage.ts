@@ -137,6 +137,13 @@ export interface MultiDimDataPageProps {
     tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic
+    /**
+     * Name of the single top-level topic area this page belongs to, resolved
+     * from `config.topicTags[0]`. Kept as a page-level prop (rather than on
+     * `initialViewData`) because `initialViewData` is rebuilt client-side from
+     * variable metadata whenever the reader switches view, which would drop it.
+     */
+    topicArea?: string
     relatedResearchCandidates: DataPageRelatedResearch[]
     imageMetadata: Record<string, ImageMetadata>
     isPreviewing?: boolean
