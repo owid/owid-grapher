@@ -2454,6 +2454,11 @@ __metadata:
   peerDependencies:
     react: ^19.0.0
     react-dom: ^19.0.0
+  peerDependenciesMeta:
+    react:
+      optional: true
+    react-dom:
+      optional: true
   languageName: unknown
   linkType: soft
 
@@ -2479,6 +2484,7 @@ __metadata:
     "@types/react": "npm:^19.2.14"
     "@types/url-parse": "npm:^1.4.11"
     algoliasearch: "npm:^5.53.0"
+    core-js: "npm:^3.49.0"
     d3-array: "npm:^3.2.4"
     d3-format: "npm:^3.1.0"
     dayjs: "npm:^1.11.21"
