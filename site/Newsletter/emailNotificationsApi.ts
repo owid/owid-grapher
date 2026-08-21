@@ -2,44 +2,23 @@ import { EMAIL_NOTIFICATIONS_API_BASE_URL } from "../../settings/clientSettings.
 
 export const GENERIC_ERROR_MESSAGE = "Something went wrong. Please try again."
 
-/** The envelope every email-notifications endpoint answers with. */
-interface ApiResponse {
-    ok?: boolean
-    error?: string
-}
-
 /**
- * Both helpers hand back the raw response alongside the parsed body, because
- * callers need the status as well as the body: 410 marks an expired magic link
- * and drives its own screen rather than an error message. That's also why they
- * don't use `fetchJson` from utils, which throws on a non-ok response before
- * the body - and the `error` message it carries - can be read.
+ * These return the raw response rather than using `fetchJson` from utils,
+ * because callers need the status: 410 marks an expired magic link and drives
+ * its own screen rather than an error message, and `fetchJson` throws on a
+ * non-ok response before the body — and the `error` message it carries — can
+ * be read.
  */
-async function requestJson<T extends ApiResponse>(
-    path: string,
-    init?: RequestInit
-): Promise<{ response: Response; json: T }> {
-    const response = await fetch(
-        `${EMAIL_NOTIFICATIONS_API_BASE_URL}${path}`,
-        init
-    )
-    const json: T = await response.json()
-    return { response, json }
-}
-
-export async function apiGet<T extends ApiResponse>(
+export function apiGet(
     path: string,
     params: Record<string, string>
-): Promise<{ response: Response; json: T }> {
+): Promise<Response> {
     const query = new URLSearchParams(params).toString()
-    return requestJson<T>(`${path}?${query}`)
+    return fetch(`${EMAIL_NOTIFICATIONS_API_BASE_URL}${path}?${query}`)
 }
 
-export async function apiPost<T extends ApiResponse>(
-    path: string,
-    body: unknown
-): Promise<{ response: Response; json: T }> {
-    return requestJson<T>(path, {
+export function apiPost(path: string, body: unknown): Promise<Response> {
+    return fetch(`${EMAIL_NOTIFICATIONS_API_BASE_URL}${path}`, {
         method: "POST",
         headers: {
             Accept: "application/json",
@@ -49,9 +28,13 @@ export async function apiPost<T extends ApiResponse>(
     })
 }
 
-export function throwIfApiError(response: Response, json: ApiResponse): void {
-    if (!response.ok || !json.ok)
-        throw new Error(json.error ?? GENERIC_ERROR_MESSAGE)
+/** Turns a non-ok response into an Error carrying the API's `error` message. */
+export async function throwIfApiError(response: Response): Promise<void> {
+    if (response.ok) return
+    const json: { error?: string } | null = await response
+        .json()
+        .catch(() => null)
+    throw new Error(json?.error ?? GENERIC_ERROR_MESSAGE)
 }
 
 export function getErrorMessage(error: unknown): string {
