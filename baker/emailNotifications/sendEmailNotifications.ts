@@ -242,7 +242,7 @@ async function sendViaPostmark(
         // transactional "outbound" stream). Postmark adds the unsubscribe
         // headers automatically.
         MessageStream: "broadcast",
-        Tag: "email-notifications",
+        Tag: "email-notifications", // For analytics
         Metadata: email.metadata,
     })
     return response.MessageID
@@ -374,10 +374,11 @@ async function sendEmailNotifications(options: {
         } catch (error) {
             if (!(error instanceof Errors.InactiveRecipientsError)) throw error
 
-            // We only send to subscribers who are not suppressed in our
-            // local Postmark state, so a refusal means a subscription-change
-            // webhook was missed. Leave it visible for manual reconciliation
-            // rather than guessing why it was suppressed.
+            // We exclude subscribers marked as suppressed in our local
+            // Postmark state. A refusal here means that state is stale, for
+            // example because a subscription-change webhook was delayed,
+            // missed, or failed to process. Leave the mismatch visible for
+            // manual reconciliation rather than guessing why it occurred.
             console.error(
                 `Email send refused userId=${subscriber.userId} reason=inactiveRecipient`
             )
