@@ -9,12 +9,13 @@ import {
 import { Env } from "../../_common/env.js"
 import {
     handleJsonError,
+    handleOptionsRequest,
     makeJsonResponse,
     sendWelcomeEmail,
 } from "../../_common/emailNotifications.js"
 import { upsertOwidBriefSubscription } from "../../_common/mailchimp.js"
 
-export { onRequestOptions } from "../../_common/emailNotifications.js"
+export const onRequestOptions = handleOptionsRequest
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     try {
