@@ -133,13 +133,34 @@ function getContentBoxSize(element: HTMLElement): {
 export function useElementBounds<T extends Bounds | null = Bounds>(
     ref: RefObject<HTMLElement | null>,
     initialValue: T = DEFAULT_GRAPHER_BOUNDS as T,
-    throttleTime: number = 100
+    throttleTimeOrOptions:
+        | number
+        | {
+              throttleTime?: number
+              preserveLastNonZeroBounds?: boolean
+          } = {}
 ): Bounds | T {
+    const options =
+        typeof throttleTimeOrOptions === "number"
+            ? { throttleTime: throttleTimeOrOptions }
+            : throttleTimeOrOptions
+    const { throttleTime = 100, preserveLastNonZeroBounds = false } = options
     const [bounds, setBounds] = useState<Bounds | T>(initialValue)
 
     const updateBoundsImmediately = useCallback(
         (width: number, height: number) => {
             setBounds((currentBounds) => {
+                // A temporarily hidden element can be reported as 0x0. For
+                // responsive children such as Grapher, retaining their last
+                // usable layout avoids a malformed render before the next
+                // non-zero ResizeObserver update arrives.
+                if (
+                    preserveLastNonZeroBounds &&
+                    (width === 0 || height === 0)
+                ) {
+                    return currentBounds
+                }
+
                 if (
                     currentBounds?.width === width &&
                     currentBounds.height === height
@@ -150,7 +171,7 @@ export function useElementBounds<T extends Bounds | null = Bounds>(
                 return new Bounds(0, 0, width, height)
             })
         },
-        []
+        [preserveLastNonZeroBounds]
     )
 
     useIsomorphicLayoutEffect(() => {
