@@ -13,6 +13,7 @@ import {
     type DownloadRewriteTarget,
     GrapherInterface,
     MultiDimDataPageConfigEnriched,
+    MultiDimPageCompanion,
     R2GrapherConfigDirectory,
     AdditionalGrapherDataFetchFn,
     GRAPHER_QUERY_PARAM_KEYS,
@@ -396,24 +397,35 @@ export function resolveMdimViewQueryStr(
 }
 
 /**
+ * Loads the companion file baked alongside a multi-dim data page (see
+ * getMultiDimPageCompanion in the baker). Returns undefined if the file
+ * doesn't exist or can't be loaded.
+ */
+export type MdimCompanionLoader = () => Promise<
+    MultiDimPageCompanion | undefined
+>
+
+/**
  * Update og:url, og:image, twitter:image meta tags, and JSON-LD image URL
  * to include the search parameters. On multi-dim pages, additionally rewrite
  * the canonical URL to the requested view and — when the request selects a
  * specific view via dimension params — serve that view's grapher title in
  * <title>, og:title, twitter:title and the JSON-LD name, so search engines
- * see view-specific titles instead of the generic multi-dim page title.
+ * see view-specific titles instead of the generic multi-dim page title. The
+ * view titles come from the page's companion file, loaded via
+ * `loadMdimCompanion` only when a view is selected.
  */
 export function rewriteMetaTags(
     url: URL,
     openGraphThumbnailUrl: string,
     twitterThumbnailUrl: string,
-    page: Response
+    page: Response,
+    loadMdimCompanion?: MdimCompanionLoader
 ) {
     // Take the origin (e.g. https://ourworldindata.org) from the canonical URL, which should appear before the image elements.
     // If we fail to capture the origin, we end up with relative image URLs, which should also be okay.
     let origin = ""
     let mdimViewQueryStr: string | undefined = undefined
-    let mdimHasDimensionParams = false
     let mdimViewTitle: string | undefined = undefined
 
     const thumbnailUrl = `${url.pathname}.png${url.search}`
@@ -421,7 +433,6 @@ export function rewriteMetaTags(
 
     // Buffers for collecting text across chunks
     let jsonLdText = ""
-    let viewTitlesText = ""
     let titleText = ""
 
     const rewriter = new HTMLRewriter()
@@ -441,7 +452,11 @@ export function rewriteMetaTags(
             },
         })
         .on("head", {
-            element: (element) => {
+            // This handler is async: it (potentially) loads the page's
+            // companion file, and the rewriter waits for it before streaming
+            // any of the head's children — so the view title is known by the
+            // time the <title> handler below runs.
+            element: async (element) => {
                 let mdimDimensionsObj: Record<string, string> | undefined
                 const dimensionsAttr = element.getAttribute(
                     "data-owid-mdim-initial-view-dimensions"
@@ -461,35 +476,15 @@ export function rewriteMetaTags(
                     url.searchParams,
                     mdimDimensionsObj
                 )
-                mdimHasDimensionParams = Object.keys(mdimDimensionsObj).some(
+
+                // Only serve a view-specific title when the URL explicitly
+                // selects a view; the bare mdim URL keeps the generic title.
+                const hasDimensionParams = Object.keys(mdimDimensionsObj).some(
                     (dim) => url.searchParams.has(dim)
                 )
-            },
-        })
-        .on("script[data-owid-mdim-view-titles]", {
-            // The view-title map is baked into the page in a script tag that
-            // appears before <title> (see MultiDimDataPage), so the title is
-            // known by the time the <title> handler below runs.
-            element: (element) => {
-                viewTitlesText = ""
-                element.onEndTag(() => {
-                    // Only serve a view-specific title when the URL explicitly
-                    // selects a view; the bare mdim URL keeps the generic
-                    // title.
-                    if (!mdimHasDimensionParams || !mdimViewQueryStr) return
-                    try {
-                        const viewTitles = JSON.parse(viewTitlesText) as Record<
-                            string,
-                            string
-                        >
-                        mdimViewTitle = viewTitles[mdimViewQueryStr]
-                    } catch (e) {
-                        console.error("Error parsing view titles JSON", e)
-                    }
-                })
-            },
-            text: (text) => {
-                viewTitlesText += text.text
+                if (!hasDimensionParams || !loadMdimCompanion) return
+                const companion = await loadMdimCompanion()
+                mdimViewTitle = companion?.views?.[mdimViewQueryStr]?.title
             },
         })
         .on("title", {

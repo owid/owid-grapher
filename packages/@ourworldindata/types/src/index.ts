@@ -780,6 +780,8 @@ export type {
     MultiDimDataPageConfigRaw,
     MultiDimDataPageInitialViewData,
     MultiDimDataPageProps,
+    MultiDimPageCompanion,
+    MultiDimPageCompanionView,
     FaqEntryKeyedByGdocIdAndFragmentId,
     Choice,
     ChoicesEnriched,
@@ -789,6 +791,7 @@ export type {
     View,
     ViewEnriched,
 } from "./siteTypes/MultiDimDataPage.js"
+export { MDIM_COMPANION_FILE_SUFFIX } from "./siteTypes/MultiDimDataPage.js"
 
 export {
     GRAPHER_PREVIEW_CLASS,
