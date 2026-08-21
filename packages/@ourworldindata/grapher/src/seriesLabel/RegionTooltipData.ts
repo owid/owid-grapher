@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as R from "remeda"
 import {
     checkIsAggregate,
@@ -5,12 +6,15 @@ import {
     Aggregate,
     Continent,
     IncomeGroup,
-    getAggregatesByProvider,
+    getAggregatesInRegionSet,
     getContinents,
     getIncomeGroups,
     Region,
-    RegionDataProvider,
+    RegionSet,
     RequiredBy,
+    type OwidContinentName,
+    type OwidIncomeGroupName,
+    type SuffixedRegionName,
 } from "@ourworldindata/utils"
 import {
     CategoricalMapPalette17,
@@ -19,7 +23,7 @@ import {
 import { parseLabel } from "../core/RegionGroups.js"
 import { getCountriesByRegion } from "../mapCharts/MapHelpers.js"
 
-export type TooltipKey = RegionDataProvider | "incomeGroups" | "continents"
+export type TooltipKey = RegionSet | "incomeGroups" | "continents"
 
 export interface TooltipRegion {
     name: EntityName
@@ -66,8 +70,14 @@ const descriptions: Record<TooltipKey, string> = {
 }
 
 // Geographic display order: left-to-right on the map.
-// Providers without a custom order will be sorted alphabetically.
-const customRegionDisplayOrder: Partial<Record<TooltipKey, string[]>> = {
+// Region sets without a custom order will be sorted alphabetically.
+type OrderedRegionName =
+    | SuffixedRegionName
+    | OwidContinentName
+    | OwidIncomeGroupName
+const customRegionDisplayOrder: Partial<
+    Record<TooltipKey, OrderedRegionName[]>
+> = {
     continents: [
         "North America",
         "South America",
@@ -313,15 +323,16 @@ export function getDescriptionForKey(key: TooltipKey): string {
     return descriptions[key]
 }
 
-export function getRegionsForKey(key: TooltipKey): TooltipRegion[] {
+function _getRegionsForKey(key: TooltipKey): readonly TooltipRegion[] {
     const regions =
         key === "incomeGroups"
             ? getIncomeGroups()
             : key === "continents"
               ? getContinents()
-              : getAggregatesByProvider(key)
+              : getAggregatesInRegionSet(key)
 
-    const customOrder = customRegionDisplayOrder[key]
+    const customOrder: readonly string[] | undefined =
+        customRegionDisplayOrder[key]
     const sortFn = (
         region: Aggregate | IncomeGroup | Continent
     ): number | string => {
@@ -346,9 +357,11 @@ export function getRegionsForKey(key: TooltipKey): TooltipRegion[] {
     )
 }
 
+export const getRegionsForKey = _.memoize(_getRegionsForKey)
+
 /** Build a map from country name to its color and region */
 export function buildCountryMap(
-    regions: TooltipRegion[]
+    regions: readonly TooltipRegion[]
 ): Map<EntityName, { region: EntityName; color: string }> {
     const map = new Map<string, { color: string; region: string }>()
     for (const region of regions) {

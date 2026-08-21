@@ -9,9 +9,35 @@ import type {
     Continent,
     IncomeGroup,
     OwidIncomeGroupCode,
-    RegionDataProvider,
-    AggregateWithDefinedBy,
+    RegionSet,
+    SuffixedRegionName,
+    AggregateWithPublisher,
+    RegionNameSuffix,
 } from "./regionsTypes.js"
+
+/**
+ * Captures the trailing "(Publisher)" of a region name,
+ * e.g. "Africa (WHO)" -> name "Africa", suffix "WHO".
+ *
+ * Matches the *last* parenthetical, since a name can carry others,
+ * e.g. "Africa (non-OECD) (IHME GBD)" -> name "Africa (non-OECD)", suffix "IHME GBD".
+ */
+const REGION_NAME_SUFFIX_RE = /^(.+)\s+\(([^)]+)\)$/
+
+// A region can belong to two of a publisher's region sets at once (e.g. ILO's
+// "Arab States (ILO)" is both a broad region and a subregion), but a region
+// carries a single `definedBy`. The ETL back-fills such a region into the
+// finer set's `*_region` indicator; mirror that here so that set is a complete
+// partition for *all* consumers (tooltips, entity presets, …), not just the ones
+// that special-case it.
+const REGION_SET_BACKFILLS: Partial<Record<RegionSet, SuffixedRegionName[]>> = {
+    ilo_2: ["Arab States (ILO)"],
+    fao_sdg: ["Australia and New Zealand (FAO)"],
+    ihme_gbd_2: [
+        "North Africa and Middle East (IHME GBD)",
+        "South Asia (IHME GBD)",
+    ],
+}
 
 export function checkIsCountry(region: Region): region is Country {
     return region.regionType === "country" || region.regionType === "other"
@@ -75,44 +101,65 @@ export const listedRegionsNames = lazy(() =>
         .map((entity) => entity.name)
 )
 
-export const getRegionDataProviders = lazy(() =>
-    _.uniq(
-        regions
-            .filter(
-                (r): r is AggregateWithDefinedBy =>
-                    r.regionType === "aggregate" && "definedBy" in r
-            )
-            .map((r) => r.definedBy)
+const getAggregatesWithPublisher = lazy(() =>
+    getAggregates().filter(
+        (r): r is AggregateWithPublisher =>
+            r.definedBy !== undefined && r.publisher !== undefined
     )
 )
 
-// A region can belong to a parent tier and a sub-tier at once (e.g. ILO's "Arab States
-// (ILO)" is both a broad region and a subregion), but a region carries a single `definedBy`.
-// The ETL back-fills such a region into the sub-tier's `*_region` indicator; mirror that here
-// so the sub-tier is a complete partition for *all* consumers (tooltips, entity presets, …),
-// not just the ones that special-case it.
-const PROVIDER_REGION_BACKFILLS: Partial<Record<RegionDataProvider, string[]>> =
-    {
-        ilo_2: ["Arab States (ILO)"],
-        // Australia and New Zealand is a fao_2 subregion but also an FAO SDG region; back-fill it into fao_sdg.
-        fao_sdg: ["Australia and New Zealand (FAO)"],
-        // North Africa and Middle East and South Asia are GBD super-regions with no finer
-        // breakdown, so each is also an ihme_gbd_2 region; back-fill them into that tier.
-        ihme_gbd_2: [
-            "North Africa and Middle East (IHME GBD)",
-            "South Asia (IHME GBD)",
-        ],
-    }
+export const getRegionSets = lazy(() =>
+    _.uniq(getAggregatesWithPublisher().map((r) => r.definedBy))
+)
 
-export const getAggregatesByProvider = (
-    provider: RegionDataProvider
-): Aggregate[] => {
-    const direct = getAggregates().filter((r) => r.definedBy === provider)
-    const backfill = PROVIDER_REGION_BACKFILLS[provider]
+/**
+ * The institutions that publish the regions in the file, e.g. "ihme_gbd".
+ *
+ * A publisher's regions may be split across several region sets (fao_1, fao_2, fao_sdg), so
+ * this is coarser than `getRegionSets`, and it's the granularity at which an entity *name*
+ * can be attributed — the key is the suffix its region names share.
+ */
+export const getRegionPublishers = lazy(() =>
+    _.uniq(getAggregatesWithPublisher().map((r) => r.publisher))
+)
+
+/** Splits a region name into its name and its "(Publisher)" suffix */
+export function parseRegionNameSuffix(
+    rawName: string
+): RegionNameSuffix | undefined {
+    const match = rawName.trim().match(REGION_NAME_SUFFIX_RE)
+    if (!match) return undefined
+
+    const [, name, suffix] = match
+
+    const publisherKey = suffix.toLowerCase().replaceAll(" ", "_")
+
+    return { name, suffix, publisherKey }
+}
+
+/**
+ * The form a publisher key and a name's suffix are compared in: lowercased,
+ * separators dropped. Suffixes aren't spelled consistently in the data,
+ * e.g. "(Maddison)" and "(maddison)", "(IHMEGBD)" and "(IHME GBD)"
+ */
+export const toPublisherLookupKey = (key: string): string =>
+    key.toLowerCase().replaceAll(/[\s_]/g, "")
+
+const aggregatesWithPublisherByName = lazy(() =>
+    _.keyBy(getAggregatesWithPublisher(), (r) => r.name)
+)
+
+export const getAggregatesInRegionSet = (
+    regionSet: RegionSet
+): AggregateWithPublisher[] => {
+    const direct = getAggregatesWithPublisher().filter(
+        (r) => r.definedBy === regionSet
+    )
+    const backfill = REGION_SET_BACKFILLS[regionSet]
     if (!backfill) return direct
     return [
         ...direct,
-        ...getAggregates().filter((r) => backfill.includes(r.name)),
+        ...backfill.map((name) => aggregatesWithPublisherByName()[name]),
     ]
 }
 
