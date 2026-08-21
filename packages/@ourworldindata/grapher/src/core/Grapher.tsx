@@ -684,6 +684,14 @@ export class Grapher extends React.Component<GrapherProps> {
     }
 
     @action.bound private setUpWindowResizeEventHandler(): void {
+        // Worth knowing for anything driving the page: taking a full-page screenshot in
+        // Chromium resizes the viewport to 1x1 and restores it ~175ms later, so this
+        // handler runs with window.innerWidth === 1 and, because the debounce below fires
+        // on the leading edge, redraws the chart in its narrow layout straight away. The
+        // redraw at the restored width is 400ms behind, which is long enough for the
+        // screenshot to catch a narrow chart inside a full-width figure.
+        // owid/site-screenshots pins the chart containers and freezes these dimensions
+        // before it captures, for that reason.
         const updateWindowDimensions = action((): void => {
             this.grapherState.windowInnerWidth = window.innerWidth
             this.grapherState.windowInnerHeight = window.innerHeight
