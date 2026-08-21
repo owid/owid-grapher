@@ -19,16 +19,13 @@ import {
 import {
     fetchS3DataValuesByPath,
     fetchS3MetadataByPath,
-    getAllChartsForIndicator,
     getLatestVariableIdsByCatalogPath,
-    getGrapherConfigsForVariable,
-    mergeVariableChartConfigs,
-    getMergedGrapherConfigForVariable,
+    getIndicatorChartConfigRecord,
+    getIndicatorChartConfig,
     searchVariables,
     updateAllChartsThatInheritFromIndicator,
     updateAllMultiDimViewsThatInheritFromIndicator,
-    updateGrapherConfigAdminOfVariable,
-    updateGrapherConfigETLOfVariable,
+    updateIndicatorChartConfig,
 } from "../../db/model/Variable.js"
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
@@ -210,43 +207,17 @@ export async function getLatestVariableIdsByCatalogPathJson(
     return Object.fromEntries(idsByPath)
 }
 
-export async function getVariablesGrapherConfigETLPatchConfigJson(
+export async function getIndicatorChartConfigJson(
     req: Request,
     _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const variableId = expectInt(req.params.variableId)
-    const variable = await getGrapherConfigsForVariable(trx, variableId)
-    if (!variable) {
-        throw new JsonError(`Variable with id ${variableId} not found`, 500)
-    }
-    return variable.etl?.config ?? {}
-}
-
-export async function getVariablesGrapherConfigAdminPatchConfigJson(
-    req: Request,
-    _res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
-) {
-    const variableId = expectInt(req.params.variableId)
-    const variable = await getGrapherConfigsForVariable(trx, variableId)
-    if (!variable) {
-        throw new JsonError(`Variable with id ${variableId} not found`, 500)
-    }
-    return variable.admin?.config ?? {}
-}
-
-export async function getVariablesMergedGrapherConfigJson(
-    req: Request,
-    _res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
-) {
-    const variableId = expectInt(req.params.variableId)
-    const config = await getMergedGrapherConfigForVariable(trx, variableId)
+    const config = await getIndicatorChartConfig(trx, variableId)
     return config ?? {}
 }
 
-export async function getVariablesVariableIdJson(
+export async function getVariableJson(
     req: Request,
     _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
@@ -297,49 +268,21 @@ export async function getVariablesVariableIdJson(
 
     await assignTagsForCharts(trx, charts)
 
-    const variableWithConfigs = await getGrapherConfigsForVariable(
-        trx,
-        variableId
-    )
-    const grapherConfigETL = variableWithConfigs?.etl?.config
-    const grapherConfigAdmin = variableWithConfigs?.admin?.config
-    const mergedGrapherConfig = mergeVariableChartConfigs({
-        etl: grapherConfigETL,
-        admin: grapherConfigAdmin,
-    })
-
-    // add the variable's display field to the merged grapher config
-    if (mergedGrapherConfig) {
-        const [varDims, otherDims] = _.partition(
-            mergedGrapherConfig.dimensions ?? [],
-            (dim) => dim.variableId === variableId
-        )
-        const varDimsWithDisplay = varDims.map((dim) => ({
-            display: variable.display,
-            ...dim,
-        }))
-        mergedGrapherConfig.dimensions = [...varDimsWithDisplay, ...otherDims]
-    }
+    const grapherConfigETL = await getIndicatorChartConfig(trx, variableId)
 
     const variableWithCharts: OwidVariableWithSource & {
         charts: Record<string, any>
-        grapherConfig: GrapherInterface | undefined
         grapherConfigETL: GrapherInterface | undefined
-        grapherConfigAdmin: GrapherInterface | undefined
     } = {
         ...variable,
         charts,
-        grapherConfig: mergedGrapherConfig,
         grapherConfigETL,
-        grapherConfigAdmin,
     }
 
-    return {
-        variable: variableWithCharts,
-    } /*, vardata: await getVariableData([variableId]) }*/
+    return { variable: variableWithCharts }
 }
 
-export async function putVariablesVariableIdGrapherConfigETL(
+export async function putIndicatorChartConfig(
     req: Request,
     res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
@@ -358,13 +301,13 @@ export async function putVariablesVariableIdGrapherConfigETL(
         }
     }
 
-    const variable = await getGrapherConfigsForVariable(trx, variableId)
+    const variable = await getIndicatorChartConfigRecord(trx, variableId)
     if (!variable) {
         throw new JsonError(`Variable with id ${variableId} not found`, 500)
     }
 
     const { savedPatch, updatedCharts, updatedMultiDimViews } =
-        await updateGrapherConfigETLOfVariable(trx, variable, validConfig)
+        await updateIndicatorChartConfig(trx, variable, validConfig)
 
     await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
     const chartIdsForRefresh = Array.from(
@@ -386,20 +329,20 @@ export async function putVariablesVariableIdGrapherConfigETL(
     return { success: true, savedPatch }
 }
 
-export async function deleteVariablesVariableIdGrapherConfigETL(
+export async function deleteIndicatorChartConfig(
     req: Request,
     res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
     const variableId = expectInt(req.params.variableId)
 
-    const variable = await getGrapherConfigsForVariable(trx, variableId)
+    const variable = await getIndicatorChartConfigRecord(trx, variableId)
     if (!variable) {
         throw new JsonError(`Variable with id ${variableId} not found`, 500)
     }
 
     // no-op if the variable doesn't have an ETL config
-    if (!variable.etl) return { success: true }
+    if (!variable.configId) return { success: true }
 
     const now = new Date()
 
@@ -421,23 +364,21 @@ export async function deleteVariablesVariableIdGrapherConfigETL(
                 DELETE FROM chart_configs
                 WHERE id = ?
             `,
-        [variable.etl.configId]
+        [variable.configId]
     )
 
-    const updates = {
-        patchConfigAdmin: variable.admin?.config,
-        updatedAt: now,
-    }
     const updatedCharts = await updateAllChartsThatInheritFromIndicator(
         trx,
         variableId,
-        updates
+        undefined,
+        now
     )
     const updatedMultiDimViews =
         await updateAllMultiDimViewsThatInheritFromIndicator(
             trx,
             variableId,
-            updates
+            undefined,
+            now
         )
     await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
     const chartIdsForRefresh = Array.from(
@@ -457,143 +398,6 @@ export async function deleteVariablesVariableIdGrapherConfigETL(
     }
 
     return { success: true }
-}
-
-export async function putVariablesVariableIdGrapherConfigAdmin(
-    req: Request,
-    res: HandlerResponse,
-    trx: db.KnexReadWriteTransaction
-) {
-    const variableId = expectInt(req.params.variableId)
-
-    let validConfig: GrapherInterface
-    try {
-        validConfig = migrateGrapherConfigToLatestVersionAndFailOnError(
-            req.body
-        )
-    } catch (err) {
-        return {
-            success: false,
-            error: String(err),
-        }
-    }
-
-    const variable = await getGrapherConfigsForVariable(trx, variableId)
-    if (!variable) {
-        throw new JsonError(`Variable with id ${variableId} not found`, 500)
-    }
-
-    const { savedPatch, updatedCharts, updatedMultiDimViews } =
-        await updateGrapherConfigAdminOfVariable(trx, variable, validConfig)
-
-    await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
-    const chartIdsForRefresh = Array.from(
-        new Set(updatedCharts.map((chart) => chart.chartId))
-    )
-    await enqueueExplorerRefreshJobsForDependencies(trx, {
-        chartIds: chartIdsForRefresh,
-        variableIds: [variableId],
-    })
-    const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
-
-    if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
-        await triggerStaticBuild(
-            res.locals.user,
-            `Updating admin-authored config for variable ${variableId}`
-        )
-    }
-
-    return { success: true, savedPatch }
-}
-
-export async function deleteVariablesVariableIdGrapherConfigAdmin(
-    req: Request,
-    res: HandlerResponse,
-    trx: db.KnexReadWriteTransaction
-) {
-    const variableId = expectInt(req.params.variableId)
-
-    const variable = await getGrapherConfigsForVariable(trx, variableId)
-    if (!variable) {
-        throw new JsonError(`Variable with id ${variableId} not found`, 500)
-    }
-
-    // no-op if the variable doesn't have an admin-authored config
-    if (!variable.admin) return { success: true }
-
-    const now = new Date()
-
-    // remove reference in the variables table
-    await db.knexRaw(
-        trx,
-        `-- sql
-                UPDATE variables
-                SET patchConfigIdAdmin = NULL
-                WHERE id = ?
-            `,
-        [variableId]
-    )
-
-    // delete row in the chart_configs table
-    await db.knexRaw(
-        trx,
-        `-- sql
-                DELETE FROM chart_configs
-                WHERE id = ?
-            `,
-        [variable.admin.configId]
-    )
-
-    const updates = {
-        patchConfigETL: variable.etl?.config,
-        updatedAt: now,
-    }
-    const updatedCharts = await updateAllChartsThatInheritFromIndicator(
-        trx,
-        variableId,
-        updates
-    )
-    const updatedMultiDimViews =
-        await updateAllMultiDimViewsThatInheritFromIndicator(
-            trx,
-            variableId,
-            updates
-        )
-    await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
-    const chartIdsForRefresh = Array.from(
-        new Set(updatedCharts.map((chart) => chart.chartId))
-    )
-    await enqueueExplorerRefreshJobsForDependencies(trx, {
-        chartIds: chartIdsForRefresh,
-        variableIds: [variableId],
-    })
-    const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
-
-    if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
-        await triggerStaticBuild(
-            res.locals.user,
-            `Updating admin-authored config for variable ${variableId}`
-        )
-    }
-
-    return { success: true }
-}
-
-export async function getVariablesVariableIdChartsJson(
-    req: Request,
-    _res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
-) {
-    const variableId = expectInt(req.params.variableId)
-    const charts = await getAllChartsForIndicator(trx, variableId)
-    return charts.map((chart) => ({
-        id: chart.chartId,
-        title: chart.config.title,
-        variantName: chart.config.variantName,
-        isChild: chart.isChild,
-        isInheritanceEnabled: chart.isInheritanceEnabled,
-        isPublished: chart.isPublished,
-    }))
 }
 
 async function updateGrapherConfigsInR2(

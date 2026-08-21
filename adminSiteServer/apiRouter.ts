@@ -10,10 +10,8 @@ import {
 } from "./apiRoutes/slideshows.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import {
-    updateVariableAnnotations,
     getChartBulkUpdate,
     updateBulkChartConfigs,
-    getVariableAnnotations,
 } from "./apiRoutes/bulkUpdates.js"
 import {
     getNarrativeCharts,
@@ -120,15 +118,10 @@ import {
     getVariablesJson,
     getLatestVariableIdsByCatalogPathJson,
     getVariablesUsagesJson,
-    getVariablesGrapherConfigETLPatchConfigJson,
-    getVariablesGrapherConfigAdminPatchConfigJson,
-    getVariablesMergedGrapherConfigJson,
-    getVariablesVariableIdJson,
-    putVariablesVariableIdGrapherConfigETL,
-    deleteVariablesVariableIdGrapherConfigETL,
-    putVariablesVariableIdGrapherConfigAdmin,
-    deleteVariablesVariableIdGrapherConfigAdmin,
-    getVariablesVariableIdChartsJson,
+    getIndicatorChartConfigJson,
+    getVariableJson,
+    putIndicatorChartConfig,
+    deleteIndicatorChartConfig,
 } from "./apiRoutes/variables.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import {
@@ -196,21 +189,11 @@ import {
 const apiRouter = new FunctionalRouter()
 
 // Bulk chart update routes
-patchRouteWithRWTransaction(
-    apiRouter,
-    "/variable-annotations",
-    updateVariableAnnotations
-)
 getRouteWithROTransaction(apiRouter, "/chart-bulk-update", getChartBulkUpdate)
 patchRouteWithRWTransaction(
     apiRouter,
     "/chart-bulk-update",
     updateBulkChartConfigs
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/variable-annotations",
-    getVariableAnnotations
 )
 
 // Chart routes
@@ -636,51 +619,25 @@ getRouteWithROTransaction(
 )
 getRouteWithROTransaction(
     apiRouter,
-    "/variables/grapherConfigETL/:variableId.patchConfig.json",
-    getVariablesGrapherConfigETLPatchConfigJson
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables/grapherConfigAdmin/:variableId.patchConfig.json",
-    getVariablesGrapherConfigAdminPatchConfigJson
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables/mergedGrapherConfig/:variableId.json",
-    getVariablesMergedGrapherConfigJson
+    "/variables/:variableId.config.json",
+    getIndicatorChartConfigJson
 )
 // Used in VariableEditPage
 getRouteWithROTransaction(
     apiRouter,
     "/variables/:variableId.json",
-    getVariablesVariableIdJson
+    getVariableJson
 )
 // inserts a new config or updates an existing one
 putRouteWithRWTransaction(
     apiRouter,
     "/variables/:variableId/grapherConfigETL",
-    putVariablesVariableIdGrapherConfigETL
+    putIndicatorChartConfig
 )
 deleteRouteWithRWTransaction(
     apiRouter,
     "/variables/:variableId/grapherConfigETL",
-    deleteVariablesVariableIdGrapherConfigETL
-)
-// inserts a new config or updates an existing one
-putRouteWithRWTransaction(
-    apiRouter,
-    "/variables/:variableId/grapherConfigAdmin",
-    putVariablesVariableIdGrapherConfigAdmin
-)
-deleteRouteWithRWTransaction(
-    apiRouter,
-    "/variables/:variableId/grapherConfigAdmin",
-    deleteVariablesVariableIdGrapherConfigAdmin
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables/:variableId/charts.json",
-    getVariablesVariableIdChartsJson
+    deleteIndicatorChartConfig
 )
 
 // Figma routes
