@@ -37,7 +37,7 @@ ifdef WRANGLER_PORT
 WRANGLER_PORT := $(strip $(WRANGLER_PORT))
 endif
 
-.PHONY: help up up.headless up.worktree setup.worktree require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.graphers svgtest.grapher-views svgtest.mdims svgtest.thumbnails bdd bdd.ui check-not-prod
+.PHONY: help up up.headless up.worktree setup.worktree require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.md5s bdd bdd.ui check-not-prod
 
 help:
 	@echo 'Available commands:'
@@ -59,8 +59,8 @@ help:
 	@echo '  make playwright-browsers    install Playwright browsers'
 	@echo '  make bdd                    (while up) start BDD test environment'
 	@echo '  make bdd.ui                 (while up) start BDD test environment with UI'
-	@echo '  make svgtest                generate an SVG test report for graphers'
-	@echo '  make svgtest.full           generate a full SVG test report'
+	@echo '  make svgtest                run the SVG tests for graphers'
+	@echo '  make svgtest.full           run the SVG tests for all suites'
 	@echo '  make local-bake             do a full local site bake'
 	@echo '  make archive                create an archived version of our charts'
 	@echo '  make wikipedia-archive      create a Wikipedia archive (strips GTM, rewrites archive URLs)'
@@ -406,54 +406,86 @@ unittest: node_modules
 
 svgtest.reset: ../owid-grapher-svgs
 	@echo '==> Resetting owid-grapher-svgs repo to a clean state'
-	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master && git clean -fd
+	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master && git clean -fdx
 
 svgtest: svgtest.reset node_modules
-	@echo '==> Generating SVG test report for graphers'
+	@echo '==> Running the SVG tests for graphers'
 
-	@# generate a full new set of svgs and create an HTML report if there are differences
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts \
-		|| (yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts && open ../owid-grapher-svgs/graphers/differences.html)
+	@# generate a full new set of svgs and compare them against the references
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts || [ $$? -eq 2 ]
+
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/graphers/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (graphers)'; \
+	fi
 
 svgtest.full: svgtest.reset node_modules
-	@echo '==> Generating full SVG test report'
+	@echo '==> Running all SVG test suites'
 
 	@# run test suite for stand-alone graphers
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts \
-		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts || [ $$? -eq 2 ]
+
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/graphers/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (graphers)'; \
+	fi
 
 	@# run test suite for grapher views
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts grapher-views \
-		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts grapher-views
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts grapher-views || [ $$? -eq 2 ]
+
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/grapher-views/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (grapher-views)'; \
+	fi
 
 	@# run test suite for mdims
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts mdims \
-		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts mdims
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts mdims || [ $$? -eq 2 ]
+
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/mdims/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (mdims)'; \
+	fi
 
 	@# run test suite for thumbnails
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts thumbnails \
-		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts thumbnails
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts thumbnails || [ $$? -eq 2 ]
+
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/thumbnails/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (thumbnails)'; \
+	fi
 
 svgtest.grapher-views: svgtest.reset node_modules
-	@echo '==> Generating SVG test report for grapher-views'
+	@echo '==> Running the SVG tests for grapher-views'
 
-	@# run test suite for grapher-views and create an HTML report if there are differences
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts grapher-views \
-		|| (yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts grapher-views && open ../owid-grapher-svgs/grapher-views/differences.html)
+	@# run test suite for grapher-views
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts grapher-views || [ $$? -eq 2 ]
+
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/grapher-views/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (grapher-views)'; \
+	fi
 
 svgtest.mdims: svgtest.reset node_modules
-	@echo '==> Generating SVG test report for mdims'
+	@echo '==> Running the SVG tests for mdims'
 
-	@# run test suite for mdims and create an HTML report if there are differences
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts mdims \
-		|| (yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts mdims && open ../owid-grapher-svgs/mdims/differences.html)
+	@# run test suite for mdims
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts mdims || [ $$? -eq 2 ]
+
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/mdims/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (mdims)'; \
+	fi
 
 svgtest.thumbnails: svgtest.reset node_modules
-	@echo '==> Generating SVG test report for thumbnails'
+	@echo '==> Running the SVG tests for thumbnails'
 
-	@# run test suite for thumbnails and create an HTML report if there are differences
-	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts thumbnails \
-		|| (yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts thumbnails && open ../owid-grapher-svgs/thumbnails/differences.html)
+	@# run test suite for thumbnails
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts thumbnails || [ $$? -eq 2 ]
+
+	@if [ -z "$$(ls -A ../owid-grapher-svgs/thumbnails/differences 2>/dev/null)" ]; then \
+		echo '==> No differences (thumbnails)'; \
+	fi
+
+svgtest.md5s: ../owid-grapher-svgs node_modules
+	@echo '==> Recomputing reference md5s in ../owid-grapher-svgs'
+
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts graphers
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts grapher-views
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts mdims
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/update-reference-md5s.ts thumbnails
 
 node_modules: package.json yarn.lock yarn.config.cjs
 	@echo '==> Installing packages'

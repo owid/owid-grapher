@@ -175,7 +175,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 
         // Chart title and slug may be autocalculated from data, in which case they won't be in props
         // But the server will need to know what we calculated in order to do its job
-        if (!patchConfig.title) patchConfig.title = grapherState.displayTitle
+        if (!patchConfig.title) patchConfig.title = grapherState.effectiveTitle
 
         // Only auto-generate slug when publishing. Drafts can have empty slugs to avoid
         // unnecessary slug collisions.

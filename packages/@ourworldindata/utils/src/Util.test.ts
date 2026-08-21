@@ -37,14 +37,17 @@ import {
     stripOuterParentheses,
     groupTocIntoSections,
     snapToIntervalStart,
+    findFinestCommonTimeInterval,
     diffDatesInDays,
     convertDateToDaysSinceEpoch,
     toStartOfDayUtc,
     epochDate,
+    sentenceCaseIfNotTopicPage,
 } from "./Util.js"
 import {
     BlockSize,
     OwidEnrichedGdocBlock,
+    OwidGdocType,
     SortOrder,
     TagGraphRoot,
     TocHeadingWithSupertitle,
@@ -697,6 +700,7 @@ describe(withUniformSpacing, () => {
         expect(withUniformSpacing([7, 12, 17])).toEqual([7, 12, 17])
     })
 })
+
 describe(snapToIntervalStart, () => {
     const day = (iso: string): number =>
         diffDatesInDays(dayjs.utc(iso), epochDate())
@@ -734,6 +738,44 @@ describe(snapToIntervalStart, () => {
         ).toEqual(day("2021-03-15"))
         expect(snapToIntervalStart(2021, TimeInterval.Year)).toEqual(2021)
         expect(snapToIntervalStart(2025, TimeInterval.Decade)).toEqual(2025)
+    })
+})
+
+describe(findFinestCommonTimeInterval, () => {
+    it("picks the finest of the given intervals", () => {
+        expect(
+            findFinestCommonTimeInterval([TimeInterval.Month, TimeInterval.Day])
+        ).toEqual(TimeInterval.Day)
+        expect(
+            findFinestCommonTimeInterval([
+                TimeInterval.Decade,
+                TimeInterval.Year,
+            ])
+        ).toEqual(TimeInterval.Year)
+        // Quarter starts are month starts, so months represent both
+        expect(
+            findFinestCommonTimeInterval([
+                TimeInterval.Quarter,
+                TimeInterval.Month,
+            ])
+        ).toEqual(TimeInterval.Month)
+    })
+
+    it("falls back to days when weeks are mixed with longer periods", () => {
+        // ISO-week Mondays and month/quarter starts are different grids, so
+        // neither can represent the other's times
+        expect(
+            findFinestCommonTimeInterval([
+                TimeInterval.Quarter,
+                TimeInterval.Week,
+            ])
+        ).toEqual(TimeInterval.Day)
+        expect(
+            findFinestCommonTimeInterval([
+                TimeInterval.Week,
+                TimeInterval.Month,
+            ])
+        ).toEqual(TimeInterval.Day)
     })
 })
 
@@ -1211,6 +1253,61 @@ describe(stripOuterParentheses, () => {
 
     it("trims whitespace before checking for parentheses", () => {
         expect(stripOuterParentheses("   (trimmed)   ")).toBe("trimmed")
+    })
+})
+
+describe(sentenceCaseIfNotTopicPage, () => {
+    it("leaves headings untouched on modular topic pages", () => {
+        expect(
+            sentenceCaseIfNotTopicPage("Featured Data", OwidGdocType.TopicPage)
+        ).toBe("Featured Data")
+    })
+
+    it("sentence-cases headings on linear topic pages", () => {
+        expect(
+            sentenceCaseIfNotTopicPage(
+                "Research & Writing",
+                OwidGdocType.LinearTopicPage
+            )
+        ).toBe("Research & writing")
+    })
+
+    it("lowercases an ordinary topic name without capitalizing the first word", () => {
+        expect(
+            sentenceCaseIfNotTopicPage(
+                "Economic Inequality",
+                OwidGdocType.LinearTopicPage,
+                false
+            )
+        ).toBe("economic inequality")
+    })
+
+    it("preserves abbreviations", () => {
+        expect(
+            sentenceCaseIfNotTopicPage(
+                "CO2 & Greenhouse Gas Emissions",
+                OwidGdocType.LinearTopicPage,
+                false
+            )
+        ).toBe("CO2 & greenhouse gas emissions")
+
+        expect(
+            sentenceCaseIfNotTopicPage(
+                "COVID-19",
+                OwidGdocType.LinearTopicPage,
+                false
+            )
+        ).toBe("COVID-19")
+    })
+
+    it("preserves whitelisted proper nouns", () => {
+        expect(
+            sentenceCaseIfNotTopicPage(
+                "Human Development Index (HDI)",
+                OwidGdocType.LinearTopicPage,
+                false
+            )
+        ).toBe("Human Development Index (HDI)")
     })
 })
 

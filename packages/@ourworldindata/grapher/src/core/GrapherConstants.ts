@@ -29,7 +29,7 @@ export const GRAPHER_FOOTER_CLASS = "footer"
 export const DEFAULT_GRAPHER_ENTITY_TYPE = "country or region"
 export const DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL = "countries and regions"
 
-export const GRAPHER_LOADED_EVENT_NAME = "grapherLoaded"
+export const GRAPHER_LOADING_STATE_EVENT_NAME = "grapherLoadingStateChanged"
 
 export const DEFAULT_GRAPHER_WIDTH = 850
 export const DEFAULT_GRAPHER_HEIGHT = 600
@@ -133,9 +133,8 @@ export const ADDITIONAL_REGION_DATA_PROVIDERS = [
     "oecd",
     "unsd",
     "unm49",
-    // ILO entities are recognized by their "(ILO)" suffix here; the per-level region
-    // definitions live under the `ilo_1`/`ilo_2` RegionDataProviders (cf. unm49 vs un_m49_*).
     "ilo",
+    "ihmegbd",
 ] as const
 
 export type AdditionalRegionDataProvider =
@@ -146,10 +145,17 @@ export const isPopulationVariableETLPath = (path: string): boolean => {
 }
 
 export enum Patterns {
+    /** No-data hatch used by legends, chart elements and the globe */
     noDataPattern = "noDataPattern",
+    /** Viewport-scaled no-data hatch used by 2D maps */
     noDataPatternForMap = "noDataPatternForMap",
-    noDataPatternForGlobe = "noDataPatternForGlobe",
+    /** Not-applicable hatch used by legends and the globe */
+    inapplicablePattern = "inapplicablePattern",
+    /** Viewport-scaled not-applicable hatch used by 2D maps */
+    inapplicablePatternForMap = "inapplicablePatternForMap",
+    /** Dot pattern for maps and the globe */
     projectedDataPattern = "projectedDataPattern",
+    /** Dot pattern for the legend */
     projectedDataPatternForLegend = "projectedDataPatternForLegend",
 }
 

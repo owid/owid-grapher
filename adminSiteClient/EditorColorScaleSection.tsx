@@ -10,6 +10,7 @@ import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
 import {
     ColorSchemeName,
     BinningStrategyIncludingManual,
+    binningStrategiesIncludingManual,
     GrapherChartOrMapType,
     Color,
     MidpointMode,
@@ -37,7 +38,6 @@ import {
 } from "./ColorSchemeDropdown.js"
 import { match } from "ts-pattern"
 import { ErrorMessages } from "./ChartEditorTypes.js"
-import { binningStrategiesIncludingManual } from "@ourworldindata/types/src/grapherTypes/BinningStrategyTypes.js"
 
 interface EditorColorScaleSectionFeatures {
     legendDescription: boolean

@@ -37,7 +37,7 @@ import {
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import {
-    GRAPHER_LOADED_EVENT_NAME,
+    GRAPHER_LOADING_STATE_EVENT_NAME,
     GrapherModal,
 } from "../core/GrapherConstants"
 
@@ -62,12 +62,6 @@ import { FocusArray } from "../focus/FocusArray"
 import { Chart } from "../chart/Chart.js"
 import { flushSync } from "react-dom"
 import { GrapherState } from "./GrapherState.js"
-
-declare global {
-    interface Window {
-        admin?: any // TODO: use stricter type
-    }
-}
 
 // Exactly the same as GrapherInterface, but contains options that developers want but authors won't be touching.
 export interface GrapherProgrammaticInterface extends GrapherInterface {
@@ -686,10 +680,18 @@ export class Grapher extends React.Component<GrapherProps> {
             () => (this.debounceMode ? debouncedPushParams() : pushParams())
         )
 
-        autorun(() => (document.title = this.grapherState.currentTitle))
+        autorun(() => (document.title = this.grapherState.fullTitle))
     }
 
     @action.bound private setUpWindowResizeEventHandler(): void {
+        // Worth knowing for anything driving the page: taking a full-page screenshot in
+        // Chromium resizes the viewport to 1x1 and restores it ~175ms later, so this
+        // handler runs with window.innerWidth === 1 and, because the debounce below fires
+        // on the leading edge, redraws the chart in its narrow layout straight away. The
+        // redraw at the restored width is 400ms behind, which is long enough for the
+        // screenshot to catch a narrow chart inside a full-width figure.
+        // owid/site-screenshots pins the chart containers and freezes these dimensions
+        // before it captures, for that reason.
         const updateWindowDimensions = action((): void => {
             this.grapherState.windowInnerWidth = window.innerWidth
             this.grapherState.windowInnerHeight = window.innerHeight
@@ -708,21 +710,37 @@ export class Grapher extends React.Component<GrapherProps> {
         }
     }
 
-    private setUpGrapherLoadedEventDispatcher(): void {
-        // Emit a custom event when the grapher is ready
-        // We can use this in global scripts that depend on the grapher e.g. the site-screenshots tool
+    private setUpGrapherLoadingStateEventDispatcher(): void {
+        // Announce whether this grapher is loading, for global scripts that need to wait
+        // for the charts on a page to be drawn e.g. the site-screenshots tool
+        const dispatchLoadingState = (isLoading: boolean): void => {
+            document.dispatchEvent(
+                new CustomEvent(GRAPHER_LOADING_STATE_EVENT_NAME, {
+                    detail: { grapher: this, isLoading },
+                })
+            )
+        }
+
         this.grapherState.disposers.push(
             reaction(
                 () => this.grapherState.isReady,
-                () => {
-                    if (this.grapherState.isReady) {
-                        document.dispatchEvent(
-                            new CustomEvent(GRAPHER_LOADED_EVENT_NAME, {
-                                detail: { grapher: this },
-                            })
-                        )
-                    }
-                }
+                (isReady) => dispatchLoadingState(!isReady),
+                // A grapher whose config and data are already at hand is ready by the
+                // time it mounts, and would otherwise never announce itself at all
+                { fireImmediately: true }
+            )
+        )
+
+        // A grapher torn down mid-load must not leave the page looking as if a chart
+        // were still on its way in
+        this.grapherState.disposers.push(() => dispatchLoadingState(false))
+    }
+
+    private freezeToleranceNoticeWhileTimelineMoves(): void {
+        this.grapherState.disposers.push(
+            reaction(
+                () => this.grapherState.isTimelineInteractionActive,
+                this.grapherState.setToleranceNoticeFrozen
             )
         )
     }
@@ -754,12 +772,13 @@ export class Grapher extends React.Component<GrapherProps> {
         this.setBaseFontSize()
         this.setUpIntersectionObserver()
         this.setUpWindowResizeEventHandler()
-        this.setUpGrapherLoadedEventDispatcher()
+        this.setUpGrapherLoadingStateEventDispatcher()
 
         this.bindToWindow()
         this.bindKeyboardShortcuts()
 
         this.clearFocusMode()
+        this.freezeToleranceNoticeWhileTimelineMoves()
     }
 
     private _shortcutsBound = false

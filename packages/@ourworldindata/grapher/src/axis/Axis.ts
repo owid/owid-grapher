@@ -23,7 +23,7 @@ import {
     getDiscreteTimeTickOptions,
     type CalendarTickInterval,
 } from "./timeAxisTicks.js"
-import { MarkdownTextWrap } from "@ourworldindata/components"
+import { MarkdownTextWrap, TextWrapGroup } from "@ourworldindata/components"
 import { CoreColumn } from "@ourworldindata/core-table"
 import {
     DEFAULT_GRAPHER_BOUNDS,
@@ -159,12 +159,12 @@ abstract class AbstractAxis {
         return this._scaleType ?? this.config.scaleType ?? ScaleType.linear
     }
 
-    @computed get isLogScale(): boolean {
-        return this.scaleType === ScaleType.log
-    }
-
     set scaleType(value: ScaleType) {
         this._scaleType = value
+    }
+
+    @computed get isLogScale(): boolean {
+        return this.scaleType === ScaleType.log
     }
 
     @computed get label(): string {
@@ -623,7 +623,10 @@ abstract class AbstractAxis {
         return Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize)
     }
 
-    @computed get labelTextWrap(): MarkdownTextWrap | undefined {
+    @computed get labelTextWrap():
+        | MarkdownTextWrap
+        | TextWrapGroup
+        | undefined {
         if (!this.label) return
 
         const textWrapProps = {
@@ -639,26 +642,28 @@ abstract class AbstractAxis {
             displayUnit: this.formatColumn?.displayUnit,
         })
 
+        const mainLabelFragment = {
+            text: axisLabel.mainLabel,
+            fontWeight: 700,
+            markdown: true,
+        }
+
         const logScaleNotice = "plotted on a logarithmic axis"
 
         if (axisLabel.unit) {
             const secondaryText = this.isLogScale
                 ? `(${axisLabel.unit}; ${logScaleNotice})`
                 : `(${axisLabel.unit})`
-            return MarkdownTextWrap.fromFragments({
-                main: { text: axisLabel.mainLabel, bold: true },
-                secondary: { text: secondaryText },
-                newLine: "avoid-wrap",
-                textWrapProps,
+            return new TextWrapGroup({
+                fragments: [mainLabelFragment, { text: secondaryText }],
+                ...textWrapProps,
             })
         }
 
         if (this.isLogScale) {
-            return MarkdownTextWrap.fromFragments({
-                main: { text: axisLabel.mainLabel, bold: true },
-                secondary: { text: `(${logScaleNotice})` },
-                newLine: "avoid-wrap",
-                textWrapProps,
+            return new TextWrapGroup({
+                fragments: [mainLabelFragment, { text: `(${logScaleNotice})` }],
+                ...textWrapProps,
             })
         }
 

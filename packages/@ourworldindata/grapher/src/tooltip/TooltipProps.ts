@@ -3,11 +3,16 @@ import {
     GrapherTooltipAnchor,
     GrapherTrendArrowDirection,
 } from "@ourworldindata/utils"
-import { IObservableValue } from "mobx"
+// Structural stand-in for mobx's IObservableValue, so the published type
+// declarations don't require mobx to be installed.
+export interface ObservableValue<T> {
+    get(): T
+    set(value: T): void
+}
 
 export interface TooltipManager {
     // We can't pass the property directly because we need it to be observable
-    tooltip?: IObservableValue<TooltipProps | undefined>
+    tooltip?: ObservableValue<TooltipProps | undefined>
 }
 
 /**

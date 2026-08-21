@@ -90,6 +90,40 @@ export function useDataApiDownloadConfig({
     }
 }
 
+/**
+ * The element's content box, i.e. what a ResizeObserver reports as
+ * `entry.contentRect`: the space available inside the element, excluding its
+ * border and padding. Measuring the border box here instead would size a child
+ * larger than the room it actually has, and would disagree with the
+ * ResizeObserver updates that follow.
+ *
+ * Note this reads back layout, so only call it from a layout effect.
+ */
+function getContentBoxSize(element: HTMLElement): {
+    width: number
+    height: number
+} {
+    const rect = element.getBoundingClientRect()
+    const style = window.getComputedStyle(element)
+    // Coerce to 0 rather than NaN: test DOMs don't always resolve these.
+    const px = (value: string): number => parseFloat(value) || 0
+    const horizontal =
+        px(style.borderLeftWidth) +
+        px(style.borderRightWidth) +
+        px(style.paddingLeft) +
+        px(style.paddingRight)
+    const vertical =
+        px(style.borderTopWidth) +
+        px(style.borderBottomWidth) +
+        px(style.paddingTop) +
+        px(style.paddingBottom)
+
+    return {
+        width: Math.max(0, rect.width - horizontal),
+        height: Math.max(0, rect.height - vertical),
+    }
+}
+
 // Auto-updating Bounds object based on ResizeObserver
 // Optionally throttles the bounds updates
 //
@@ -123,7 +157,9 @@ export function useElementBounds<T extends Bounds | null = Bounds>(
         const element = ref.current
         if (!element) return
 
-        const { width, height } = element.getBoundingClientRect()
+        // Same box the ResizeObserver below reports, so the first measurement
+        // agrees with every update after it.
+        const { width, height } = getContentBoxSize(element)
         updateBoundsImmediately(width, height)
     }, [ref, updateBoundsImmediately])
 

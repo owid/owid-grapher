@@ -11,7 +11,11 @@ import {
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../settings/clientSettings.js"
-import { ChartListItem, showChartType } from "./ChartList.js"
+import { ChartListItem } from "./ChartList.js"
+import {
+    GRAPHER_CHART_TYPES,
+    GRAPHER_TAB_CONFIG_OPTIONS,
+} from "@ourworldindata/types"
 import {
     TaggableType,
     DbChartTagJoin,
@@ -31,6 +35,24 @@ interface ChartRowProps {
     tagGraphRolesById: ReturnType<typeof getTagGraphRolesById>
     onDelete: (chart: ChartListItem) => void
     showInheritanceColumn?: boolean
+}
+
+function showChartType(chart: ChartListItem): string {
+    const chartType = chart.type
+
+    if (!chartType) return "Map"
+
+    const displayType = GRAPHER_CHART_TYPES[chartType]
+        ? lodash.startCase(GRAPHER_CHART_TYPES[chartType])
+        : "Unknown"
+
+    if (chart.tab === GRAPHER_TAB_CONFIG_OPTIONS.map) {
+        if (chart.hasChartTab) return `Map + ${displayType}`
+        else return "Map"
+    } else {
+        if (chart.hasMapTab) return `${displayType} + Map`
+        else return displayType
+    }
 }
 
 @observer

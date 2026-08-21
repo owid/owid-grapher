@@ -360,6 +360,12 @@ export const OwidMapColors: Record<string, Color> = {
     Taupe: "#B9B2A6",
     Mustard: "#D9BC54",
     Tomato: "#D94C3F",
+
+    // Additional colors used only for provider maps; deliberately not part
+    // of the CategoricalMapPalette sets for the 'OWID Categorical Map'
+    SoftMagenta: "#A35C86",
+    MutedPlum: "#6B3A62",
+    LightPlum: "#C49BC0",
 } as const
 
 /**
@@ -493,6 +499,29 @@ export const ContinentColors = {
     "Asia (FAO)": OwidDistinctColors.Teal,
     "Oceania (FAO)": OwidDistinctColors.Turquoise,
 
+    // FAO subregions (level 2)
+    "Northern America (FAO)": OwidDistinctColors.Peach,
+    "Caribbean (FAO)": OwidDistinctColors.Coral,
+    "Central America (FAO)": OwidDistinctColors.DustyCoral,
+    "South America (FAO)": OwidDistinctColors.Maroon,
+    "Northern Africa (FAO)": OwidDistinctColors.Purple,
+    "Eastern Africa (FAO)": OwidDistinctColors.Mauve,
+    "Middle Africa (FAO)": OwidDistinctColors.Cherry,
+    "Southern Africa (FAO)": OwidDistinctColors.DarkMauve,
+    "Western Africa (FAO)": OwidDistinctColors.Fuchsia,
+    "Southern Europe (FAO)": OwidDistinctColors.LightTeal,
+    "Western Europe (FAO)": OwidDistinctColors.Blue,
+    "Northern Europe (FAO)": OwidDistinctColors.Denim,
+    "Eastern Europe (FAO)": OwidDistinctColors.MidnightBlue,
+    "Western Asia (FAO)": OwidDistinctColors.Camel,
+    "Central Asia (FAO)": OwidDistinctColors.TealishGreen,
+    "Southern Asia (FAO)": OwidDistinctColors.OliveGreen,
+    "Eastern Asia (FAO)": OwidDistinctColors.Lime,
+    "South-eastern Asia (FAO)": OwidDistinctColors.DarkOrange,
+    "Melanesia (FAO)": OwidDistinctColors.Copper,
+    "Micronesia (FAO)": OwidDistinctColors.DarkCopper,
+    "Polynesia (FAO)": OwidDistinctColors.Turquoise,
+
     // FAO SDG regions
     "Northern America and Europe (FAO)": OwidDistinctColors.Denim,
     "Latin America and the Caribbean (FAO)": OwidDistinctColors.Maroon,
@@ -548,6 +577,47 @@ export const ContinentColors = {
     "Sub-Saharan Africa (UN M49)": OwidDistinctColors.DarkMauve,
     "Western Asia (UN M49)": OwidDistinctColors.Camel,
     "Western Europe (UN M49)": OwidDistinctColors.Blue,
+
+    // UN M49 regions (level 3)
+    "Caribbean (UN M49)": OwidDistinctColors.Coral,
+    "Central America (UN M49)": OwidDistinctColors.DustyCoral,
+    "South America (UN M49)": OwidDistinctColors.Maroon,
+    "Eastern Africa (UN M49)": OwidDistinctColors.Mauve,
+    "Middle Africa (UN M49)": OwidDistinctColors.Cherry,
+    "Southern Africa (UN M49)": OwidDistinctColors.DarkMauve,
+    "Western Africa (UN M49)": OwidDistinctColors.Fuchsia,
+
+    // IHME GBD super-regions
+    "High-income (IHME GBD)": OwidDistinctColors.Denim,
+    "Latin America and Caribbean (IHME GBD)": OwidDistinctColors.Maroon,
+    "Sub-Saharan Africa (IHME GBD)": OwidDistinctColors.DarkMauve,
+    "North Africa and Middle East (IHME GBD)": OwidDistinctColors.Camel,
+    "Central Europe, Eastern Europe, and Central Asia (IHME GBD)":
+        OwidDistinctColors.MidnightBlue,
+    "South Asia (IHME GBD)": OwidDistinctColors.OliveGreen,
+    "Southeast Asia, East Asia, and Oceania (IHME GBD)":
+        OwidDistinctColors.Lime,
+
+    // IHME GBD regions (level 2)
+    "High-income North America (IHME GBD)": OwidDistinctColors.Peach,
+    "Caribbean (IHME GBD)": OwidDistinctColors.Coral,
+    "Central Latin America (IHME GBD)": OwidDistinctColors.DustyCoral,
+    "Andean Latin America (IHME GBD)": OwidDistinctColors.RustyOrange,
+    "Tropical Latin America (IHME GBD)": OwidDistinctColors.Maroon,
+    "Southern Latin America (IHME GBD)": OwidDistinctColors.Copper,
+    "Western Sub-Saharan Africa (IHME GBD)": OwidDistinctColors.Fuchsia,
+    "Central Sub-Saharan Africa (IHME GBD)": OwidDistinctColors.Cherry,
+    "Eastern Sub-Saharan Africa (IHME GBD)": OwidDistinctColors.Mauve,
+    "Southern Sub-Saharan Africa (IHME GBD)": OwidDistinctColors.DarkMauve,
+    "Western Europe (IHME GBD)": OwidDistinctColors.Blue,
+    "Central Europe (IHME GBD)": OwidDistinctColors.Denim,
+    "Eastern Europe (IHME GBD)": OwidDistinctColors.MidnightBlue,
+    "Central Asia (IHME GBD)": OwidDistinctColors.TealishGreen,
+    "East Asia (IHME GBD)": OwidDistinctColors.Lime,
+    "Southeast Asia (IHME GBD)": OwidDistinctColors.DarkOrange,
+    "High-income Asia Pacific (IHME GBD)": OwidDistinctColors.LightTeal,
+    "Australasia (IHME GBD)": OwidDistinctColors.Teal,
+    "Oceania (IHME GBD)": OwidDistinctColors.Turquoise,
 
     // Income groups
     "High-income countries": IncomeGroupColors.HighIncome,
@@ -1003,6 +1073,29 @@ export const MapContinentColors = {
     "Asia (FAO)": OwidMapColors.MutedTeal,
     "Oceania (FAO)": OwidMapColors.SkyTurquoise,
 
+    // FAO subregions (level 2)
+    "Northern America (FAO)": OwidMapColors.SoftOrange,
+    "Caribbean (FAO)": OwidMapColors.Mustard,
+    "Central America (FAO)": OwidMapColors.MutedCherry,
+    "South America (FAO)": OwidMapColors.Tomato,
+    "Northern Africa (FAO)": OwidMapColors.SoftPurple,
+    "Eastern Africa (FAO)": OwidMapColors.LightPurple,
+    "Middle Africa (FAO)": OwidMapColors.SoftMagenta,
+    "Southern Africa (FAO)": OwidMapColors.MutedPlum,
+    "Western Africa (FAO)": OwidMapColors.LightPlum,
+    "Southern Europe (FAO)": OwidMapColors.LightTeal,
+    "Western Europe (FAO)": OwidMapColors.Lavendar,
+    "Northern Europe (FAO)": OwidMapColors.MutedDenim,
+    "Eastern Europe (FAO)": OwidMapColors.LightDenim,
+    "Western Asia (FAO)": OwidMapColors.Sand,
+    "Central Asia (FAO)": OwidMapColors.LightGreen,
+    "Southern Asia (FAO)": OwidMapColors.Olive,
+    "Eastern Asia (FAO)": OwidMapColors.LeafGreen,
+    "South-eastern Asia (FAO)": OwidMapColors.LightOrange,
+    "Melanesia (FAO)": OwidMapColors.LightCherry,
+    "Micronesia (FAO)": OwidMapColors.LightSand,
+    "Polynesia (FAO)": OwidMapColors.SkyTurquoise,
+
     // FAO SDG regions (mirroring the UN SDG regions)
     "Northern America and Europe (FAO)": OwidMapColors.MutedDenim,
     "Latin America and the Caribbean (FAO)": OwidMapColors.MutedCherry,
@@ -1058,6 +1151,47 @@ export const MapContinentColors = {
     "Sub-Saharan Africa (UN M49)": OwidMapColors.LightPurple,
     "Western Asia (UN M49)": OwidMapColors.Sand,
     "Western Europe (UN M49)": OwidMapColors.Lavendar,
+
+    // UN M49 regions (level 3)
+    "Caribbean (UN M49)": OwidMapColors.Mustard,
+    "Central America (UN M49)": OwidMapColors.MutedCherry,
+    "South America (UN M49)": OwidMapColors.Tomato,
+    "Eastern Africa (UN M49)": OwidMapColors.LightPurple,
+    "Middle Africa (UN M49)": OwidMapColors.SoftMagenta,
+    "Southern Africa (UN M49)": OwidMapColors.MutedPlum,
+    "Western Africa (UN M49)": OwidMapColors.LightPlum,
+
+    // IHME GBD super-regions
+    "High-income (IHME GBD)": OwidMapColors.MutedDenim,
+    "Latin America and Caribbean (IHME GBD)": OwidMapColors.MutedCherry,
+    "Sub-Saharan Africa (IHME GBD)": OwidMapColors.LightPurple,
+    "North Africa and Middle East (IHME GBD)": OwidMapColors.Sand,
+    "Central Europe, Eastern Europe, and Central Asia (IHME GBD)":
+        OwidMapColors.LightDenim,
+    "South Asia (IHME GBD)": OwidMapColors.Olive,
+    "Southeast Asia, East Asia, and Oceania (IHME GBD)":
+        OwidMapColors.LeafGreen,
+
+    // IHME GBD regions (level 2)
+    "High-income North America (IHME GBD)": OwidMapColors.SoftOrange,
+    "Caribbean (IHME GBD)": OwidMapColors.Mustard,
+    "Central Latin America (IHME GBD)": OwidMapColors.MutedCherry,
+    "Andean Latin America (IHME GBD)": OwidMapColors.LightCherry,
+    "Tropical Latin America (IHME GBD)": OwidMapColors.Tomato,
+    "Southern Latin America (IHME GBD)": OwidMapColors.LightSand,
+    "Western Sub-Saharan Africa (IHME GBD)": OwidMapColors.LightPlum,
+    "Central Sub-Saharan Africa (IHME GBD)": OwidMapColors.SoftMagenta,
+    "Eastern Sub-Saharan Africa (IHME GBD)": OwidMapColors.LightPurple,
+    "Southern Sub-Saharan Africa (IHME GBD)": OwidMapColors.MutedPlum,
+    "Western Europe (IHME GBD)": OwidMapColors.Lavendar,
+    "Central Europe (IHME GBD)": OwidMapColors.MutedDenim,
+    "Eastern Europe (IHME GBD)": OwidMapColors.LightDenim,
+    "Central Asia (IHME GBD)": OwidMapColors.LightGreen,
+    "East Asia (IHME GBD)": OwidMapColors.LeafGreen,
+    "Southeast Asia (IHME GBD)": OwidMapColors.LightOrange,
+    "High-income Asia Pacific (IHME GBD)": OwidMapColors.LightTeal,
+    "Australasia (IHME GBD)": OwidMapColors.MutedTeal,
+    "Oceania (IHME GBD)": OwidMapColors.SkyTurquoise,
 } as const
 
 /**

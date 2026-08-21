@@ -40,6 +40,7 @@ export {
     fetchText,
     fetchJson,
     fetchWithTimeout,
+    TimeoutError,
     getUserCountryInformation,
     stripHTML,
     getRandomNumberGenerator,
@@ -93,6 +94,9 @@ export {
     traverseEnrichedBlock,
     checkNodeIsSpan,
     generateToc,
+    toSentenceCase,
+    getTopicPageHeading,
+    sentenceCaseIfNotTopicPage,
     groupTocIntoSections,
     getResearchAndWritingId,
     extractLinksFromMarkdown,
@@ -132,6 +136,7 @@ export {
     epochDate,
     getTimeInterval,
     isSubYearly,
+    findFinestCommonTimeInterval,
     snapToIntervalStart,
     logPerf,
     sleep,
@@ -265,9 +270,10 @@ export {
     type PadObject,
     type GridBounds,
     type SplitBoundsPadding,
-    FontFamily,
     Bounds,
 } from "./Bounds.js"
+
+export { FontFamily, cssFontFamily } from "./fonts.js"
 
 export {
     type Persistable,
@@ -399,6 +405,7 @@ export {
     formatCountryFacetFilters,
     formatTopicFacetFilters,
     buildChartsFacetFilters,
+    MAX_FACET_VALUES,
 } from "./search/searchFacetFilters.js"
 
 export {

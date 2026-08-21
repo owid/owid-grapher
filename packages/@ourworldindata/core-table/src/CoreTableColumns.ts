@@ -156,6 +156,11 @@ export abstract class AbstractCoreColumn<
         return `${this.formatTime(startTime)} to ${this.formatTime(endTime)}`
     }
 
+    /** Formats a start/end time pair as a comparison of two time points */
+    formatTimeComparison(startTime: number, endTime: number): string {
+        return `${this.formatTime(startTime)} vs. ${this.formatTime(endTime)}`
+    }
+
     @imemo get roundingMode(): OwidVariableRoundingMode {
         return (
             this.display?.roundingMode ?? OwidVariableRoundingMode.decimalPlaces
@@ -999,8 +1004,8 @@ const memoFormatQuarterCsv = _.memoize((value: number): string => {
     const date = convertDaysSinceEpochToDate(value)
     return `${date.year()}-Q${date.quarter()}` // "2023-Q1"
 })
-const memoParseDate = _.memoize(
-    (value: string): Time => convertDateToDaysSinceEpoch(dayjs.utc(value))
+const memoParseDate = _.memoize((value: string): Time =>
+    convertDateToDaysSinceEpoch(dayjs.utc(value))
 )
 
 class DayColumn<

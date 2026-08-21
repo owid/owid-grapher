@@ -35,6 +35,7 @@ import {
     intersection,
     lowerCaseFirstLetterUnlessAbbreviation,
 } from "@ourworldindata/utils"
+import { makeToleranceNotice } from "../chart/ToleranceNotice.js"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { AxisConfig } from "../axis/AxisConfig"
@@ -430,6 +431,29 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
 
     @computed get allPoints(): SeriesPoint[] {
         return this.series.flatMap((series) => series.points)
+    }
+
+    /**
+     * The columns whose values can miss the time the chart is labelled with.
+     * When the x column is pinned to a time of its own, it's meant to come
+     * from a different time, so that isn't a tolerance caveat.
+     */
+    @computed private get toleranceColumns(): CoreColumn[] {
+        return this.xOverrideTime !== undefined
+            ? [this.yColumn]
+            : [this.xColumn, this.yColumn]
+    }
+
+    @computed get toleranceNotice(): string | undefined {
+        // Time scatters plot time itself on the x axis, so there's no target
+        // time a value could be missing for
+        if (this.isTimeScatter) return undefined
+
+        return makeToleranceNotice({
+            inputTable: this.inputTable,
+            transformedTable: this.transformedTable,
+            columns: this.toleranceColumns,
+        })
     }
 
     @computed private get selectedPoints(): SeriesPoint[] {

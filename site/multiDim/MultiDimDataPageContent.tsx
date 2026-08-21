@@ -361,7 +361,7 @@ export function DataPageContent({
     }, [grapherChangedParams, settings, setSearchParams])
 
     const grapherCurrentTitle = useMobxStateToReactState(
-        useCallback(() => grapherStateRef.current?.currentTitle, []),
+        useCallback(() => grapherStateRef.current?.fullTitle, []),
         !!grapherStateRef.current
     )
 
