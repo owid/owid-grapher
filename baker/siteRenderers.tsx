@@ -546,12 +546,10 @@ export const renderSubscribePage = async (
     if (!FEATURE_FLAGS.has(Features.EmailNotifications)) {
         return renderToHtmlPage(<OldSubscribePage baseUrl={BAKED_BASE_URL} />)
     }
-    const topicTagGraph = await generateTopicTagGraph(knex)
-    const flattenedTopicTagGraph = flattenNonTopicNodes(topicTagGraph)
     return renderToHtmlPage(
         <SubscribePage
             baseUrl={BAKED_BASE_URL}
-            topicTagGraph={flattenedTopicTagGraph}
+            topicAreaNames={await getTopicAreaNames(knex)}
         />
     )
 }
@@ -559,14 +557,21 @@ export const renderSubscribePage = async (
 export const renderEmailNotificationsPreferencesPage = async (
     knex: KnexReadonlyTransaction
 ): Promise<string> => {
-    const topicTagGraph = await generateTopicTagGraph(knex)
-    const flattenedTopicTagGraph = flattenNonTopicNodes(topicTagGraph)
     return renderToHtmlPage(
         <EmailNotificationsPreferencesPage
             baseUrl={BAKED_BASE_URL}
-            topicTagGraph={flattenedTopicTagGraph}
+            topicAreaNames={await getTopicAreaNames(knex)}
         />
     )
+}
+
+async function getTopicAreaNames(
+    knex: KnexReadonlyTransaction
+): Promise<string[]> {
+    const topicTagGraph = flattenNonTopicNodes(
+        await generateTopicTagGraph(knex)
+    )
+    return topicTagGraph.children.map((area) => area.name)
 }
 
 interface ExplorerRenderOpts {
