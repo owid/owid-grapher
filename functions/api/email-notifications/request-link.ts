@@ -10,6 +10,7 @@ import {
     escapeHtml,
     handleHtmlError,
     handleJsonError,
+    handleOptionsRequest,
     makeHtmlResponse,
     makeJsonResponse,
     renderActionPage,
@@ -17,7 +18,7 @@ import {
     sendMagicLinkEmail,
 } from "../../_common/emailNotifications.js"
 
-export { onRequestOptions } from "../../_common/emailNotifications.js"
+export const onRequestOptions = handleOptionsRequest
 
 const REQUEST_LINK_PATH = "/api/email-notifications/request-link"
 
