@@ -87,31 +87,8 @@
     }
 
     .subscribe-page__confirmation-action {
-        @include body-3-medium;
-        display: inline-flex;
-        align-items: center;
-        height: 40px;
+        display: inline-block;
         margin-top: 32px;
-        padding: 8px 24px;
-        background: none;
-        border: 1px solid $vermillion;
-        color: $vermillion;
-        cursor: pointer;
-
-        &:hover {
-            background-color: $vermillion;
-            color: $white;
-        }
-
-        &:disabled {
-            border-color: $gray-30;
-            color: $gray-30;
-            cursor: default;
-
-            &:hover {
-                background: none;
-            }
-        }
     }
 
     .subscribe-page__divider {
