@@ -1,13 +1,10 @@
-import {
-    EmailNotificationsContentType,
-    TagGraphRoot,
-} from "@ourworldindata/types"
+import { EmailNotificationsContentType } from "@ourworldindata/types"
 
 export function areAllTopicsSelected(
     topicTags: string[],
-    topicTagGraph: TagGraphRoot
+    topicAreaNames: string[]
 ): boolean {
-    return topicTagGraph.children.every((area) => topicTags.includes(area.name))
+    return topicAreaNames.every((name) => topicTags.includes(name))
 }
 
 /**
@@ -17,18 +14,16 @@ export function areAllTopicsSelected(
  */
 export function topicTagsForStorage(
     topicTags: string[],
-    topicTagGraph: TagGraphRoot
+    topicAreaNames: string[]
 ): string[] {
-    return areAllTopicsSelected(topicTags, topicTagGraph) ? [] : topicTags
+    return areAllTopicsSelected(topicTags, topicAreaNames) ? [] : topicTags
 }
 
 export function topicTagsFromStorage(
     topicTags: string[],
-    topicTagGraph: TagGraphRoot
+    topicAreaNames: string[]
 ): string[] {
-    return topicTags.length === 0
-        ? topicTagGraph.children.map((area) => area.name)
-        : topicTags
+    return topicTags.length === 0 ? topicAreaNames : topicTags
 }
 
 export interface PreferencesValidationErrors {
