@@ -42,7 +42,6 @@ import { OrphanedArticlesIndexPage } from "./OrphanedArticlesIndexPage.js"
 import { GdocsMatchProps, GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsCoverageMatrixPage } from "./GdocsCoverageMatrixPage.js"
 import { CalloutFunctionsPage } from "./CalloutFunctionsPage.js"
-import { GdocsStoreProvider } from "./GdocsStoreProvider.js"
 import { IndicatorChartEditorPage } from "./IndicatorChartEditorPage.js"
 import { CreateNarrativeChartEditorPage } from "./CreateNarrativeChartEditorPage.js"
 import { NarrativeChartEditorPage } from "./NarrativeChartEditorPage.js"
@@ -422,20 +421,14 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/gdocs/:id/preview"
                                     render={(props: GdocsMatchProps) => (
-                                        <GdocsStoreProvider>
-                                            <GdocsPreviewPage {...props} />
-                                        </GdocsStoreProvider>
+                                        <GdocsPreviewPage {...props} />
                                     )}
                                 />
                                 <Route
                                     exact
                                     path="/gdocs/:id/coverage"
                                     render={(props: GdocsMatchProps) => (
-                                        <GdocsStoreProvider>
-                                            <GdocsCoverageMatrixPage
-                                                {...props}
-                                            />
-                                        </GdocsStoreProvider>
+                                        <GdocsCoverageMatrixPage {...props} />
                                     )}
                                 />
                                 <Route
@@ -446,9 +439,7 @@ export class AdminApp extends React.Component<{
                                 <Route
                                     path="/gdocs"
                                     render={(props: RouteComponentProps) => (
-                                        <GdocsStoreProvider>
-                                            <GdocsIndexPage {...props} />
-                                        </GdocsStoreProvider>
+                                        <GdocsIndexPage {...props} />
                                     )}
                                 />
                                 <Route
