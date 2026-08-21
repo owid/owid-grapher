@@ -1,6 +1,7 @@
 import { useRef, useState } from "react"
 import { AGENT_MENTION, invokesAgent } from "@ourworldindata/types"
 import { useMentionableUsers } from "./useComments.js"
+import { mentionCandidates } from "./mentionCandidates.js"
 
 export function CommentComposer({
     onSubmit,
@@ -25,13 +26,7 @@ export function CommentComposer({
     const suggestions =
         mentionQuery === null
             ? []
-            : users
-                  .filter((user) =>
-                      user.fullName
-                          .toLowerCase()
-                          .includes(mentionQuery.toLowerCase())
-                  )
-                  .slice(0, 6)
+            : mentionCandidates(users, mentionQuery).slice(0, 6)
 
     const updateMentionQuery = (text: string, caret: number): void => {
         const before = text.slice(0, caret)
