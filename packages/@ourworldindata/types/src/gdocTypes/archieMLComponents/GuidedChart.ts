@@ -9,6 +9,7 @@ export type RawBlockGuidedChart = {
     value: OwidRawGdocBlock[]
 }
 
+/** @see ./GuidedChart.md */
 export type EnrichedBlockGuidedChart = {
     type: "guided-chart"
     content: OwidEnrichedGdocBlock[]

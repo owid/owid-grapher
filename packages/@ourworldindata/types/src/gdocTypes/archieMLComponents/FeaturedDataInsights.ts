@@ -5,6 +5,7 @@ export type RawBlockFeaturedDataInsights = {
     value: Record<string, never>
 }
 
+/** @see ./FeaturedDataInsights.md */
 export type EnrichedBlockFeaturedDataInsights = {
     type: "featured-data-insights"
 } & EnrichedBlockWithParseErrors

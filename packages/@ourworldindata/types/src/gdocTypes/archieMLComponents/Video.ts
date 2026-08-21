@@ -13,6 +13,7 @@ export type RawBlockVideo = {
     }
 }
 
+/** @see ./Video.md */
 export type EnrichedBlockVideo = {
     type: "video"
     url: string

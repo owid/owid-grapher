@@ -10,6 +10,7 @@ export type RawBlockCountryProfileSelector = {
     }
 }
 
+/** @see ./CountryProfileSelector.md */
 export type EnrichedBlockCountryProfileSelector = {
     type: "country-profile-selector"
     url: string

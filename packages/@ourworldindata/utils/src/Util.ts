@@ -26,6 +26,9 @@ import {
     type OwidGdocAuthorInterface,
     type OwidGdoc,
     OwidGdocType,
+    type OwidGdocErrorMessage,
+    OwidGdocErrorMessageType,
+    type OwidGdocPostContent,
     type OwidGdocJSON,
     type Span,
     UserCountryInformation,
@@ -1905,6 +1908,46 @@ export function traverseEnrichedBlock(
             callback
         )
         .exhaustive()
+}
+
+/**
+ * Transcribes the findings the ArchieML parser recorded while parsing —
+ * `parseErrors` on blocks (body and ref contents) and `refs.errors` — into
+ * OwidGdocErrorMessages. This function performs NO judgments of its own:
+ * new validation rules belong in `getErrors`'s check functions (advisory,
+ * shown in the admin), not here. Shared by the admin and the writing
+ * reference generator so they can never diverge on what the parser reported.
+ */
+export function getParseFindings(content: {
+    body?: OwidEnrichedGdocBlock[]
+    refs?: OwidGdocPostContent["refs"]
+}): OwidGdocErrorMessage[] {
+    const findings: OwidGdocErrorMessage[] = []
+    const transcribe = (
+        property: OwidGdocErrorMessage["property"],
+        blocks: OwidEnrichedGdocBlock[] | undefined
+    ): void => {
+        for (const block of blocks ?? []) {
+            traverseEnrichedBlock(block, (node) => {
+                for (const parseError of node.parseErrors ?? []) {
+                    findings.push({
+                        property,
+                        type: parseError.isWarning
+                            ? OwidGdocErrorMessageType.Warning
+                            : OwidGdocErrorMessageType.Error,
+                        message: `[${node.type}] ${parseError.message}`,
+                    })
+                }
+            })
+        }
+    }
+
+    transcribe("body", content.body)
+    for (const ref of Object.values(content.refs?.definitions ?? {})) {
+        transcribe("refs", ref.content)
+    }
+    findings.push(...(content.refs?.errors ?? []))
+    return findings
 }
 
 export function checkNodeIsSpan(node: NodeWithUrl): node is Span {

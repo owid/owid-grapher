@@ -5,6 +5,7 @@ export type RawBlockCookieNotice = {
     value: Record<string, never>
 }
 
+/** @see ./CookieNotice.md */
 export type EnrichedBlockCookieNotice = {
     type: "cookie-notice"
 } & EnrichedBlockWithParseErrors

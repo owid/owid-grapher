@@ -17,6 +17,7 @@ export type RawBlockKeyIndicator = {
     value: RawBlockKeyIndicatorValue | ArchieMLUnexpectedNonObjectValue
 }
 
+/** @see ./KeyIndicator.md */
 export type EnrichedBlockKeyIndicator = {
     type: "key-indicator"
     datapageUrl: string
@@ -38,6 +39,7 @@ export type RawBlockKeyIndicatorCollection = {
     }
 }
 
+/** @see ./KeyIndicatorCollection.md */
 export type EnrichedBlockKeyIndicatorCollection = {
     type: "key-indicator-collection"
     heading?: string

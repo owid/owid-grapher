@@ -9,6 +9,7 @@ export type RawBlockExplorerTiles = {
     }
 }
 
+/** @see ./ExplorerTiles.md */
 export type EnrichedBlockExplorerTiles = {
     type: "explorer-tiles"
     title: string
