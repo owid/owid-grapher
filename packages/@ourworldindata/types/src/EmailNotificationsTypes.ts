@@ -199,12 +199,11 @@ export interface EmailNotificationsPreferencesResponse {
     // null when the user exists but has no preferences row (fail-safe; the
     // page falls back to defaults).
     preferences?: EmailNotificationsPreferences | null
+    // Whether the user is subscribed to the OWID Brief in Mailchimp; null when
+    // that can't be determined (Mailchimp unavailable or unconfigured), in
+    // which case the page hides the Brief toggle.
+    subscribedToOwidBrief?: boolean | null
     // "expired" (HTTP 410) drives the expired-magic-link state of the
     // preferences page, which offers to email a new link.
     error?: "expired" | "invalid" | string
-}
-
-export interface EmailNotificationsBriefStatusResponse {
-    subscribedToOwidBrief?: boolean
-    error?: string
 }

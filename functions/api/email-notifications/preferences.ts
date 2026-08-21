@@ -14,14 +14,20 @@ import {
     lookupEmailToken,
     makeJsonResponse,
 } from "../../_common/emailNotifications.js"
-import { upsertOwidBriefSubscription } from "../../_common/mailchimp.js"
+import {
+    getOwidBriefStatus,
+    upsertOwidBriefSubscription,
+} from "../../_common/mailchimp.js"
 
 export const onRequestOptions = handleOptionsRequest
 
 /**
  * Data source of the magic-link preferences page: resolves a magic-link token
- * to the user's email and current preferences. 410 for expired tokens drives
- * the page's expired state (which offers to email a new link).
+ * to the user's email, current preferences and OWID Brief status. 410 for
+ * expired tokens drives the page's expired state (which offers to email a new
+ * link). The Brief status comes from Mailchimp fail-soft: if it can't be
+ * determined, it is null and the page hides the Brief toggle — D1 preferences
+ * are never hostage to Mailchimp availability.
  */
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     try {
@@ -53,6 +59,13 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
         const response: EmailNotificationsPreferencesResponse = {
             email: user.email,
+            subscribedToOwidBrief: await getOwidBriefStatus(
+                env,
+                user.email
+            ).catch((error) => {
+                Sentry.captureException(error)
+                return null
+            }),
             // Fail-safe: a user should always have preferences, but if the
             // row is missing the page falls back to defaults.
             preferences:
