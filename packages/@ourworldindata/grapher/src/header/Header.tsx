@@ -326,7 +326,11 @@ abstract class AbstractHeader<
         // Avoid linking to a grapher/data page when we're already on it
         if (manager.isOnCanonicalUrl && !this.manager.isInIFrame) {
             return (
-                <h1 style={this.titleStyle} aria-label={this.titleAriaLabel}>
+                <h1
+                    data-grapher-part="title"
+                    style={this.titleStyle}
+                    aria-label={this.titleAriaLabel}
+                >
                     <MarkdownTextWrapHtml textWrap={this.title} />
                 </h1>
             )
@@ -344,6 +348,7 @@ abstract class AbstractHeader<
                     })}
                 >
                     <h1
+                        data-grapher-part="title"
                         style={this.titleStyle}
                         aria-label={this.titleAriaLabel}
                     >
@@ -355,7 +360,7 @@ abstract class AbstractHeader<
 
         // On larger screens, only make the title text itself clickable
         return (
-            <h1 style={this.titleStyle}>
+            <h1 data-grapher-part="title" style={this.titleStyle}>
                 <a
                     href={manager.canonicalUrl}
                     data-track-note="chart_click_title"
@@ -380,7 +385,7 @@ abstract class AbstractHeader<
             overflowY: "hidden",
         }
         return (
-            <p style={style}>
+            <p data-grapher-part="subtitle" style={style}>
                 <MarkdownTextWrapHtml textWrap={this.subtitle} />
             </p>
         )

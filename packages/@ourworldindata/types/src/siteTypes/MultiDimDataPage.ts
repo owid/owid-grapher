@@ -131,8 +131,12 @@ export interface MultiDimDataPageProps {
     baseUrl: string
     canonicalUrl: string
     slug: string | null
+    /** multi_dim_data_pages.id; present on previews so comments can target it */
+    multiDimId?: number
     configObj: MultiDimDataPageConfigEnriched
     initialViewData?: MultiDimDataPageInitialViewData
+    /** Indicator behind the landing view, so previews can target it */
+    initialViewVariableId?: number
     initialViewDimensions?: MultiDimDimensionChoices
     tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
