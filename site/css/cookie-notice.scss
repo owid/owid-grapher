@@ -18,7 +18,7 @@ $full-button-width-breakpoint: 400px;
 
     &.open {
         display: block;
-        animation: 400ms ease slide-in forwards;
+        animation: var(--duration-drawer) var(--ease-out) slide-in forwards;
     }
 
     @include sm-only {
@@ -92,5 +92,21 @@ $full-button-width-breakpoint: 400px;
     }
     100% {
         transform: translate(0, 0);
+    }
+}
+
+// Fade the notice in place instead of sliding it up from the bottom edge.
+@media (prefers-reduced-motion: reduce) {
+    .cookie-notice.open {
+        animation: cookie-notice-fade-in var(--duration-popover) linear forwards;
+    }
+}
+
+@keyframes cookie-notice-fade-in {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
     }
 }

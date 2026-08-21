@@ -15,7 +15,10 @@
         padding: 0.5rem;
         color: $blue-100;
         text-decoration: none;
-        transition: all 0.1s;
+        transition:
+            color 0.1s ease,
+            background-color 0.1s ease,
+            border-color 0.1s ease;
 
         &:hover {
             color: $blue-90;
