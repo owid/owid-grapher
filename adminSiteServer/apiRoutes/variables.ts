@@ -26,6 +26,7 @@ import {
     updateAllChartsThatInheritFromIndicator,
     updateAllMultiDimViewsThatInheritFromIndicator,
     updateIndicatorChartConfig,
+    deleteIndicators,
 } from "../../db/model/Variable.js"
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
@@ -429,4 +430,33 @@ async function updateGrapherConfigsInR2(
                 configMd5
             )
     }
+}
+
+/**
+ * Delete a set of indicators.
+ *
+ * An indicator a chart, a published explorer or a live multi-dim view still
+ * uses is never deleted; it comes back in `blocked` instead (but it doesn't
+ * fail the whole request).
+ */
+export async function postVariablesDelete(
+    req: Request,
+    _res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+) {
+    const { variableIds } = req.body ?? {}
+
+    if (
+        !Array.isArray(variableIds) ||
+        !variableIds.every((id) => Number.isInteger(id))
+    ) {
+        throw new JsonError(
+            "`variableIds` must be an array of indicator ids",
+            400
+        )
+    }
+
+    const { deleted, blocked } = await deleteIndicators(trx, variableIds)
+
+    return { success: true, deleted, blocked }
 }

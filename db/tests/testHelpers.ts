@@ -20,7 +20,10 @@ import {
     MultiDimViewDimensionsTableName,
     MultiDimXChartConfigsTableName,
     NarrativeChartsTableName,
+    OriginsTableName,
+    OriginsVariablesTableName,
     PostsGdocsTableName,
+    SourcesTableName,
     TagGraphTableName,
     TagsTableName,
     UsersTableName,
@@ -46,7 +49,10 @@ export const TABLES_IN_USE = [
     ExplorersTableName,
     JobsTableName,
     ChartsTableName,
-    VariablesTableName,
+    OriginsVariablesTableName, // Must come before VariablesTableName and OriginsTableName due to foreign keys
+    VariablesTableName, // Must come before SourcesTableName due to foreign key
+    OriginsTableName,
+    SourcesTableName,
     ChartConfigsTableName,
     DatasetsTableName,
     PostsGdocsTableName,
@@ -96,12 +102,4 @@ export async function insertTestChart(
     }
     const [chartId] = await knexInstance(ChartsTableName).insert(row)
     return { chartId, configId, patchConfigId }
-}
-
-export function sleep(time: number, value: unknown): Promise<any> {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            return resolve(value)
-        }, time)
-    })
 }
