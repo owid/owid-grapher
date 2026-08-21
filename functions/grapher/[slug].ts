@@ -14,8 +14,10 @@ import {
 } from "../_common/redirectTools.js"
 import {
     fetchUnparsedGrapherConfig,
+    MdimCompanionLoader,
     rewriteMetaTags,
 } from "../_common/grapherTools.js"
+import { MultiDimPageCompanion } from "@ourworldindata/types"
 import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
 
 const { preflight, corsify } = cors({
@@ -72,6 +74,16 @@ router
                 env,
                 searchParams
             )
+    )
+    .get(
+        // The companion file baked alongside every multi-dim data page; a
+        // static asset, served as-is.
+        `/grapher/:slug${extensions.mdimJson}`,
+        async (_req, _url, env) => {
+            const resp = await env.ASSETS.fetch(env.url)
+            if (resp.status === 404) throw new StatusError(404)
+            return resp
+        }
     )
     .get(
         `/grapher/:slug${extensions.readme}`,
@@ -172,11 +184,25 @@ async function handleHtmlPageRequest(
         url.search ? "&" + url.search.slice(1) : ""
     }`
 
+    const loadMdimCompanion: MdimCompanionLoader = async () => {
+        try {
+            const resp = await env.ASSETS.fetch(
+                new URL(`/grapher/${slug}${extensions.mdimJson}`, url)
+            )
+            if (resp.status !== 200) return undefined
+            return (await resp.json()) as MultiDimPageCompanion
+        } catch (e) {
+            console.error("Error loading mdim companion file", e)
+            return undefined
+        }
+    }
+
     return rewriteMetaTags(
         url,
         openGraphThumbnailUrl,
         twitterThumbnailUrl,
-        grapherPageResp
+        grapherPageResp,
+        loadMdimCompanion
     )
 }
 

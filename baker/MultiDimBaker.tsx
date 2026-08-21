@@ -18,18 +18,19 @@ import {
     ArchiveContext,
     ArchivedPageVersion,
     DataPageRelatedResearch,
+    MDIM_COMPANION_FILE_SUFFIX,
+    MultiDimPageCompanion,
 } from "@ourworldindata/types"
 import {
     merge,
     MultiDimDataPageConfig,
     multiDimDimensionsToViewQueryStr,
-    serializeJSONForInlineScript,
 } from "@ourworldindata/utils"
 import { GrapherState } from "@ourworldindata/grapher"
 import * as db from "../db/db.js"
 import { getImagesByFilenames } from "../db/model/Image.js"
 import { getRelatedResearchAndWritingForVariables } from "../db/model/Post.js"
-import { injectHtmlBeforeTitle, renderToHtmlPage } from "./siteRenderers.js"
+import { renderToHtmlPage } from "./siteRenderers.js"
 import { MultiDimDataPage } from "../site/multiDim/MultiDimDataPage.js"
 import {
     ARCHIVE_BASE_URL,
@@ -129,16 +130,16 @@ const getFaqEntries = async (
 }
 
 /**
- * Resolve the effective grapher title of every view, keyed by the view's
- * canonical dimensions query string. The titles are baked into the page head
- * so the Cloudflare Function can serve view-specific titles to search engines
- * (see rewriteMetaTags). The title resolution mirrors the one used for Algolia
- * mdim view records in baker/algolia/utils/mdimViews.ts.
+ * Build the companion JSON file that gets baked alongside the multi-dim page
+ * and is read by the Cloudflare Function serving /grapher/[slug] (see
+ * rewriteMetaTags). It currently holds the effective grapher title of every
+ * view; the title resolution mirrors the one used for Algolia mdim view
+ * records in baker/algolia/utils/mdimViews.ts.
  */
-export async function getMultiDimViewTitles(
+export async function getMultiDimPageCompanion(
     knex: db.KnexReadonlyTransaction,
     config: MultiDimDataPageConfigEnriched
-): Promise<Record<string, string>> {
+): Promise<MultiDimPageCompanion> {
     const chartConfigs = await getChartConfigsByUuids(
         knex,
         config.views.map((view) => view.fullConfigId)
@@ -147,7 +148,7 @@ export async function getMultiDimViewTitles(
         ...getRelevantVariableIds(config),
     ])
 
-    const viewTitles: Record<string, string> = {}
+    const views: MultiDimPageCompanion["views"] = {}
     for (const view of config.views) {
         const chartConfig = chartConfigs.get(view.fullConfigId)
         const variableId = view.indicators.y?.[0]?.id
@@ -172,11 +173,12 @@ export async function getMultiDimViewTitles(
             shouldAddChangeInPrefix
         )
         if (title) {
-            viewTitles[multiDimDimensionsToViewQueryStr(view.dimensions)] =
-                title
+            views[multiDimDimensionsToViewQueryStr(view.dimensions)] = {
+                title,
+            }
         }
     }
-    return viewTitles
+    return { views }
 }
 
 export async function renderMultiDimDataPageFromConfig({
@@ -223,8 +225,6 @@ export async function renderMultiDimDataPageFromConfig({
             faqs: mergedMetadata.presentation?.faqs ?? [],
         }
     }
-
-    const viewTitles = await getMultiDimViewTitles(knex, config)
 
     // PRIMARY TOPIC
     const primaryTopic = await getPrimaryTopic(knex, config.topicTags)
@@ -281,7 +281,6 @@ export async function renderMultiDimDataPageFromConfig({
         configObj: pageConfig.config,
         initialViewData,
         initialViewDimensions,
-        viewTitles,
         tagToSlugMap,
         faqEntries,
         primaryTopic,
@@ -341,15 +340,7 @@ export async function renderMultiDimDataPageByCatalogPath(
 export const renderMultiDimDataPageFromProps = async (
     props: MultiDimDataPageProps
 ) => {
-    const html = renderToHtmlPage(<MultiDimDataPage {...props} />)
-    if (!props.viewTitles || _.isEmpty(props.viewTitles)) return html
-    // The Cloudflare Function rewrites the page title to the view's title in
-    // a single streaming pass, so it must have parsed the view-title map
-    // before it encounters <title> (see rewriteMetaTags).
-    const viewTitlesScript = `<script type="application/json" data-owid-mdim-view-titles="">${serializeJSONForInlineScript(
-        props.viewTitles
-    )}</script>`
-    return injectHtmlBeforeTitle(html, viewTitlesScript)
+    return renderToHtmlPage(<MultiDimDataPage {...props} />)
 }
 
 export const bakeMultiDimDataPage = async (
@@ -369,6 +360,13 @@ export const bakeMultiDimDataPage = async (
     })
     const outPath = path.join(bakedSiteDir, `grapher/${slug}.html`)
     await fs.writeFile(outPath, renderedHtml)
+
+    const companion = await getMultiDimPageCompanion(knex, config)
+    const companionPath = path.join(
+        bakedSiteDir,
+        `grapher/${slug}${MDIM_COMPANION_FILE_SUFFIX}`
+    )
+    await fs.writeFile(companionPath, JSON.stringify(companion))
 }
 
 export const bakeAllMultiDimDataPages = async (
