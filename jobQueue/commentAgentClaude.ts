@@ -47,9 +47,7 @@ const FIELD_LABELS: Record<string, string> = {
 
 function describeTarget(context: CommentAgentContext): string {
     const what =
-        context.targetType === "multiDim"
-            ? "multi-dimensional chart"
-            : "chart"
+        context.targetType === "multiDim" ? "multi-dimensional chart" : "chart"
     const where = context.targetKey ?? `id ${context.targetId}`
     const view = context.viewState
         ? `\nView: ${Object.entries(context.viewState)
@@ -128,9 +126,7 @@ export async function runAgentWithClaude(
     })
 
     const reply = response.content
-        .filter(
-            (block): block is Anthropic.TextBlock => block.type === "text"
-        )
+        .filter((block): block is Anthropic.TextBlock => block.type === "text")
         .map((block) => block.text)
         .join("\n")
         .trim()
