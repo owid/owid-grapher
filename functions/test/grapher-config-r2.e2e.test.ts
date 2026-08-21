@@ -1,10 +1,13 @@
 import path from "node:path"
 import { readFileSync } from "node:fs"
 import { beforeAll, afterAll, beforeEach, describe, expect, it } from "vitest"
-import { unstable_startWorker } from "wrangler"
+import { createTestHarness } from "wrangler"
 import { R2GrapherConfigDirectory } from "@ourworldindata/types"
 
-let worker: Awaited<ReturnType<typeof unstable_startWorker>>
+const server = createTestHarness({
+    workers: [{ configPath: "./functions/test/wrangler.e2e.jsonc" }],
+})
+const worker = server.getWorker()
 
 const lifeExpectancyFixturePath = path.join(
     process.cwd(),
@@ -24,7 +27,7 @@ async function workerFetch(pathname: string, init?: unknown) {
     return worker.fetch(`http://example.com${pathname}`, init as never)
 }
 
-async function clearBuckets() {
+async function clearBuckets(): Promise<void> {
     const response = await workerFetch("/__test__/clear-r2", { method: "POST" })
     expect(response.status).toBe(200)
 }
@@ -61,14 +64,11 @@ async function r2HasKey(params: {
 
 describe("grapher config endpoint with local R2 bindings", () => {
     beforeAll(async () => {
-        worker = await unstable_startWorker({
-            config: "./functions/test/wrangler.e2e.jsonc",
-            dev: { logLevel: "none" },
-        })
+        await server.listen()
     })
 
     afterAll(async () => {
-        await worker.dispose()
+        await server.close()
     })
 
     beforeEach(async () => {

@@ -44,13 +44,13 @@ describe(parseSubscriberRow, () => {
     it("parses a D1 row into a subscriber", () => {
         expect(
             parseSubscriberRow({
-                user_id: 7,
+                userId: 7,
                 email: "user@example.com",
                 token: "token",
-                topic_tags: '["Health"]',
-                content_types: '["article"]',
+                topicTags: '["Health"]',
+                contentTypes: '["article"]',
                 frequency: "daily",
-                last_sent_at: "2026-06-30T06:00:00.000Z",
+                lastSentAt: "2026-06-30T06:00:00.000Z",
             })
         ).toEqual({
             userId: 7,

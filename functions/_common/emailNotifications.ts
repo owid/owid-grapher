@@ -4,7 +4,15 @@ import {
     EMAIL_NOTIFICATIONS_FROM_ADDRESS,
     EmailNotificationsPreferences,
 } from "@ourworldindata/types"
+import * as _ from "lodash-es"
 import { Env } from "./env.js"
+import { getPostmarkClient } from "./postmarkClient.js"
+
+export function validateEmailNotificationsDatabase(env: Env): void {
+    if (!env.EMAIL_NOTIFICATIONS_DB) {
+        throw new Error("EMAIL_NOTIFICATIONS_DB is not configured")
+    }
+}
 
 interface PostmarkEmail {
     to: string
@@ -14,21 +22,13 @@ interface PostmarkEmail {
     tag?: string
 }
 
-export function escapeHtml(text: string): string {
-    return text
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-}
-
 function renderPreferencesListHtml(
     preferences: EmailNotificationsPreferences
 ): string {
     // Topic tags are user-submitted strings, so escape them.
     const topics =
         preferences.topicTags.length > 0
-            ? preferences.topicTags.map(escapeHtml).join(", ")
+            ? preferences.topicTags.map(_.escape).join(", ")
             : "All topics"
     const contentTypes = preferences.contentTypes
         .map(
@@ -59,6 +59,7 @@ export async function sendWelcomeEmail(
     env: Env,
     origin: string,
     props: {
+        userId: number
         to: string
         preferences: EmailNotificationsPreferences
         userToken: string
@@ -66,7 +67,6 @@ export async function sendWelcomeEmail(
 ): Promise<void> {
     const updatePreferencesUrl = `${origin}/api/email-notifications/request-link?token=${props.userToken}`
     const unsubscribeUrl = `${origin}/api/email-notifications/unsubscribe?token=${props.userToken}`
-    console.log(`Welcome email for ${props.to}`)
     await sendPostmarkEmail(env, {
         to: props.to,
         subject: "You're subscribed to Our World in Data updates",
@@ -76,20 +76,20 @@ export async function sendWelcomeEmail(
 ${renderPreferencesListHtml(props.preferences)}
 <p>You can <a href="${updatePreferencesUrl}">update your preferences</a> or <a href="${unsubscribeUrl}">unsubscribe</a> at any time — these links are also in the footer of every email we send.</p>`,
     })
+    console.log(`Welcome email sent userId=${props.userId}`)
 }
 
 /**
- * Build the preferences-page URL for a magic-link token, log it (so the flow
- * can be tested locally without Postmark credentials) and send the magic-link
- * email. The token rides in the URL fragment so it stays out of server logs.
+ * Build the preferences-page URL for a magic-link token and send the
+ * magic-link email. The token rides in the URL fragment so it stays out of
+ * server logs.
  */
 export async function sendMagicLinkEmail(
     env: Env,
     origin: string,
-    props: { to: string; token: string }
+    props: { userId: number; to: string; token: string }
 ): Promise<void> {
     const magicLinkUrl = `${origin}/subscribe/preferences#token=${props.token}`
-    console.log(`Magic-link email for ${props.to}, URL: ${magicLinkUrl}`)
     await sendPostmarkEmail(env, {
         to: props.to,
         subject: "Update your Our World in Data notification preferences",
@@ -98,57 +98,35 @@ export async function sendMagicLinkEmail(
 <p><a href="${magicLinkUrl}">Update my preferences</a></p>
 <p>If you didn't request this, you can safely ignore this email — nothing will change.</p>`,
     })
+    console.log(`Magic-link email sent userId=${props.userId}`)
 }
 
 /**
- * Send a transactional email via Postmark. Skipped (with a console warning)
- * when POSTMARK_SERVER_TOKEN is not set, so the rest of the flow can be
- * tested locally without Postmark credentials.
+ * Send a transactional email via Postmark. Throws when Postmark is not
+ * configured or rejects the send.
  */
 export async function sendPostmarkEmail(
     env: Env,
     email: PostmarkEmail
 ): Promise<void> {
-    if (!env.POSTMARK_SERVER_TOKEN) {
-        console.warn(
-            `POSTMARK_SERVER_TOKEN is not set, skipping email "${email.subject}" to ${email.to}`
-        )
-        return
-    }
-
-    const apiBaseUrl =
-        env.POSTMARK_API_BASE_URL || "https://api.postmarkapp.com"
-    const response = await fetch(`${apiBaseUrl}/email`, {
-        method: "POST",
-        headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            "X-Postmark-Server-Token": env.POSTMARK_SERVER_TOKEN,
-        },
-        body: JSON.stringify({
-            From: EMAIL_NOTIFICATIONS_FROM_ADDRESS,
-            To: email.to,
-            Subject: email.subject,
-            HtmlBody: email.htmlBody,
-            MessageStream: "outbound",
-            Tag: email.tag,
-        }),
+    const client = getPostmarkClient(env)
+    await client.sendEmail({
+        From: EMAIL_NOTIFICATIONS_FROM_ADDRESS,
+        To: email.to,
+        Subject: email.subject,
+        HtmlBody: email.htmlBody,
+        MessageStream: "outbound",
+        Tag: email.tag,
     })
-    if (!response.ok) {
-        const data = await response.text()
-        throw new Error(
-            `Failed to send email via Postmark (${response.status}): ${data}`
-        )
-    }
 }
 
 // --- Magic-link tokens (tokens table) ---
 
 export interface EmailTokenRow {
     id: number
-    user_id: number
+    userId: number
     token: string
-    expires_at: string
+    expiresAt: string
 }
 
 export type EmailTokenLookup =
@@ -165,7 +143,7 @@ export async function createEmailToken(
     const expiresAt = new Date(Date.now() + ttlMs).toISOString()
     await db
         .prepare(
-            `INSERT INTO tokens (user_id, token, expires_at)
+            `INSERT INTO tokens (userId, token, expiresAt)
              VALUES (?1, ?2, ?3)`
         )
         .bind(userId, token, expiresAt)
@@ -179,13 +157,13 @@ export async function lookupEmailToken(
 ): Promise<EmailTokenLookup> {
     const row = await db
         .prepare(
-            `SELECT id, user_id, token, expires_at
+            `SELECT id, userId, token, expiresAt
              FROM tokens WHERE token = ?1`
         )
         .bind(token)
         .first<EmailTokenRow>()
     if (!row) return { state: "invalid" }
-    if (row.expires_at <= new Date().toISOString())
+    if (row.expiresAt <= new Date().toISOString())
         return { state: "expired", row }
     return { state: "valid", row }
 }
@@ -272,9 +250,9 @@ export function renderActionPage(props: {
     return renderPage({
         title: props.title,
         bodyHtml: `<p>${props.message}</p>
-<form method="post" action="${escapeHtml(button.action)}">
-<input type="hidden" name="token" value="${escapeHtml(button.token)}" />
-<button type="submit">${escapeHtml(button.label)}</button>
+<form method="post" action="${_.escape(button.action)}">
+<input type="hidden" name="token" value="${_.escape(button.token)}" />
+<button type="submit">${_.escape(button.label)}</button>
 </form>`,
     })
 }
@@ -298,7 +276,7 @@ export async function unsubscribeUserByToken(
         .prepare(
             `UPDATE users
              SET status = 'unsubscribed',
-                 updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+                 updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
              WHERE token = ?1
              RETURNING email`
         )

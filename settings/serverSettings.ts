@@ -140,7 +140,7 @@ export const EMAIL_NOTIFICATIONS_CLOUDFLARE_API_TOKEN: string =
     serverSettings.EMAIL_NOTIFICATIONS_CLOUDFLARE_API_TOKEN || ""
 export const EMAIL_NOTIFICATIONS_D1_DATABASE_ID: string =
     serverSettings.EMAIL_NOTIFICATIONS_D1_DATABASE_ID || ""
-// If unset, sending via Postmark is skipped (useful for local development).
+// Required when running an email-notification send outside dry-run mode.
 export const POSTMARK_SERVER_TOKEN: string =
     serverSettings.POSTMARK_SERVER_TOKEN || ""
 // Point this at the local Postmark catcher (yarn postmarkCatcher) to inspect

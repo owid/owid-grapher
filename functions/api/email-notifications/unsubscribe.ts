@@ -1,11 +1,12 @@
 import * as Sentry from "@sentry/cloudflare"
+import * as _ from "lodash-es"
 import { Env } from "../../_common/env.js"
 import {
-    escapeHtml,
     makeHtmlResponse,
     renderActionPage,
     renderMessagePage,
     unsubscribeUserByToken,
+    validateEmailNotificationsDatabase,
 } from "../../_common/emailNotifications.js"
 
 const UNSUBSCRIBE_PATH = "/api/email-notifications/unsubscribe"
@@ -18,9 +19,10 @@ const UNSUBSCRIBE_PATH = "/api/email-notifications/unsubscribe"
  */
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     try {
+        validateEmailNotificationsDatabase(env)
         const db = env.EMAIL_NOTIFICATIONS_DB
         const token = new URL(request.url).searchParams.get("token")
-        if (!token || !db) return invalidLinkResponse()
+        if (!token) return invalidLinkResponse()
 
         const user = await db
             .prepare(`SELECT email, status FROM users WHERE token = ?1`)
@@ -34,7 +36,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
         return makeHtmlResponse(
             renderActionPage({
                 title: "Unsubscribe from Our World in Data updates",
-                message: `Click below to stop receiving email notifications at ${escapeHtml(user.email)}.`,
+                message: `Click below to stop receiving email notifications at ${_.escape(user.email)}.`,
                 button: {
                     label: "Unsubscribe",
                     action: UNSUBSCRIBE_PATH,
@@ -49,21 +51,19 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 }
 
 /**
- * Performs the unsubscribe. Form target of the confirm page's button, and
- * also the target of the List-Unsubscribe-Post header (one-click
- * unsubscribe): email clients POST directly to the unsubscribe URL — token in
- * the query string, no page shown — so the token is accepted from either the
- * form body or the query string.
+ * Performs the unsubscribe. Form target of the confirm page's button. The
+ * token is accepted from either the form body or the query string.
  */
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     try {
+        validateEmailNotificationsDatabase(env)
         const db = env.EMAIL_NOTIFICATIONS_DB
         const formData = await request.formData().catch(() => null)
         const formToken = formData?.get("token")
         const token =
             (typeof formToken === "string" && formToken) ||
             new URL(request.url).searchParams.get("token")
-        if (!token || !db) return invalidLinkResponse()
+        if (!token) return invalidLinkResponse()
 
         const email = await unsubscribeUserByToken(db, token)
         if (!email) return invalidLinkResponse()
@@ -71,7 +71,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         return makeHtmlResponse(
             renderMessagePage({
                 title: "You've been unsubscribed",
-                message: `${escapeHtml(email)} won't receive any more email notifications from us. You can re-subscribe at any time at https://ourworldindata.org/subscribe.`,
+                message: `${_.escape(email)} won't receive any more email notifications from us. You can re-subscribe at any time at https://ourworldindata.org/subscribe.`,
             })
         )
     } catch (error) {
@@ -84,7 +84,7 @@ function alreadyUnsubscribedResponse(email: string): Response {
     return makeHtmlResponse(
         renderMessagePage({
             title: "Already unsubscribed",
-            message: `${escapeHtml(email)} is not receiving email notifications from us. You can re-subscribe at any time at https://ourworldindata.org/subscribe.`,
+            message: `${_.escape(email)} is not receiving email notifications from us. You can re-subscribe at any time at https://ourworldindata.org/subscribe.`,
         })
     )
 }
