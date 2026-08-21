@@ -99,7 +99,8 @@ html:not(.js-enabled) .latest-data-insights__card,
 }
 
 @include sm-up {
-    .latest-data-insights__card--see-all, .latest-data-insights__dot--see-all {
+    .latest-data-insights__card--see-all,
+    .latest-data-insights__dot--see-all {
         display: none;
     }
 }
