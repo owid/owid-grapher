@@ -26,6 +26,7 @@ import {
 import {
     Url,
     countriesByName,
+    slugify,
     FuzzySearch,
     FuzzySearchResult,
     getAllChildrenOfArea,
@@ -94,6 +95,295 @@ const STOP_WORDS = new Set([
     "per", // matches "Peru"
     "vs",
 ])
+
+export type ChartHitIdentityFields = {
+    slug: string
+    queryParams?: string
+}
+
+/**
+ * Stable identity for the *chart* a hit renders as a row, used to recognise
+ * the same row across two different Algolia result sets.
+ *
+ * Deliberately not `objectID`. The index carries a separate "Featured Metric"
+ * record for some charts — objectID `486-fm-upper-middle-co2-greenhouse-gas-emissions`
+ * — alongside the plain record for the same chart, objectID `486`. Which of the
+ * two comes back depends on the query: `buildChartsFacetFilters` adds an
+ * `isFM:false` facet filter as soon as there is any free-text query, so the
+ * empty-query result set is served the FM record and every result set after the
+ * first keystroke is served the plain one. The two render as the same row (same
+ * slug, same title, same chart), so treating them as different records makes a
+ * chart appear to drop out of the list and re-enter as an unrelated new entry.
+ *
+ * `slug` on its own isn't sufficient either: explorer views and mdim views
+ * share a slug and are distinguished only by `queryParams`, so both go into the
+ * key. (Verified against the live index: for the CO₂ topic's 196-record
+ * unfiltered set this key is unique per row, whereas `objectID` fails to match
+ * 3 of the 165 rows returned for "china".)
+ */
+export function getChartHitIdentity(hit: ChartHitIdentityFields): string {
+    return `${hit.slug}${hit.queryParams ?? ""}`
+}
+
+export type ChartHitPhraseFields = {
+    title?: string
+    subtitle?: string
+    datasetProducers?: string[]
+}
+
+/**
+ * The text of a chart hit as the all-charts block actually renders it: the row's
+ * title, its subtitle, and each producer named in its "Source:" line — kept as
+ * separate strings rather than joined, so a phrase can never be matched across
+ * the boundary between two of them. (Concatenated, a row titled "Per capita
+ * methane emissions" whose subtitle opens "Per capita …" would match the phrase
+ * "emissions per capita", which appears nowhere on it.)
+ *
+ * Deliberately *only* the visible text. The index makes far more searchable than
+ * this — `slug`, `tags`, `datasetProducers`, `availableEntities` — and matching a
+ * typed phrase against fields the row doesn't show is exactly what makes results
+ * look arbitrary (see filterChartHitsByPhrase).
+ */
+function getChartHitRowTexts(hit: ChartHitPhraseFields): string[] {
+    return [
+        hit.title ?? "",
+        hit.subtitle ?? "",
+        ...(hit.datasetProducers ?? []),
+    ].filter((text) => text !== "")
+}
+
+/**
+ * Words for phrase matching, normalised identically on both sides of the
+ * comparison.
+ *
+ * `slugify` is reused here rather than hand-rolling a normaliser: it lowercases,
+ * drops punctuation, and — the part that matters most for our titles — folds
+ * subscript digits, so "CO₂ emissions" becomes "co2-emissions" and a visitor
+ * typing "co2 emissions" still finds it. It's also the same normalisation the
+ * indexed `slug` itself goes through.
+ *
+ * Whitespace is collapsed to single spaces first because `slugify` only turns
+ * *spaces* into separators: a newline or tab is instead removed as punctuation,
+ * which would weld the words on either side of it into one.
+ */
+function splitIntoPhraseMatchWords(text: string): string[] {
+    return slugify(text.replace(/\s+/g, " "))
+        .split("-")
+        .filter((word) => word !== "")
+}
+
+/**
+ * True when `text` contains `phrase` as a run of consecutive whole words, with
+ * the last word of the phrase allowed to match a prefix.
+ *
+ * Whole words, not raw substrings: a substring test would report
+ * "national poverty line" as found in "…below the International Poverty Line",
+ * which is how a search for the phrase ends up returning charts about extreme
+ * poverty (17 of them on the Poverty topic).
+ *
+ * Prefix on the final word only, which covers two things at once: the visitor is
+ * typing, so the last word is routinely half-finished ("national poverty li"),
+ * and it makes the singular find the plural — "national poverty line" matches
+ * the chart titled "Share of population living below national poverty lines",
+ * which is the single most relevant result for that search and which Algolia's
+ * own `"exactPhrase"` operator drops.
+ */
+export function textContainsPhrase(text: string, phrase: string): boolean {
+    const phraseWords = splitIntoPhraseMatchWords(phrase)
+    if (phraseWords.length === 0) return true
+
+    const textWords = splitIntoPhraseMatchWords(text)
+    const leadingWords = phraseWords.slice(0, -1)
+    const lastWord = phraseWords[phraseWords.length - 1]
+
+    for (
+        let start = 0;
+        start + phraseWords.length <= textWords.length;
+        start++
+    ) {
+        const leadingWordsMatch = leadingWords.every(
+            (word, offset) => textWords[start + offset] === word
+        )
+        if (
+            leadingWordsMatch &&
+            textWords[start + leadingWords.length].startsWith(lastWord)
+        )
+            return true
+    }
+    return false
+}
+
+/**
+ * Keeps only the hits whose own visible text contains `phrase` — the
+ * "find"-like narrowing the all-charts block applies on top of its Algolia
+ * results (site/AllChartsBlock.tsx). An empty phrase keeps everything.
+ *
+ * Why the block needs this at all: Algolia does require every word of the query
+ * to be present, but each word may be found in a *different* searchable
+ * attribute of the record, with typo tolerance on top. So on the Poverty topic
+ * "national poverty line" matched 34 charts, among them "Mean income or
+ * consumption per day", which contains none of the three words: "poverty" came
+ * from its producer "World Bank Poverty and Inequality Platform", "line" from
+ * elsewhere in its record, and "national" from "United Nations" via typo
+ * tolerance. Restricted to the words on the row, the same search returns the 4
+ * charts that are actually about national poverty lines.
+ *
+ * The filter runs client-side rather than as a query parameter for two reasons:
+ * Algolia's `"exactPhrase"` operator is token-exact, so quoting the query drops
+ * the plural-titled chart (see textContainsPhrase); and the caller already holds
+ * the complete result set for its topic (queryAllCharts walks every page), so
+ * narrowing it locally can't hide a match on a page that wasn't fetched.
+ */
+export function filterChartHitsByPhrase<T extends ChartHitPhraseFields>(
+    hits: readonly T[],
+    phrase: string
+): T[] {
+    if (splitIntoPhraseMatchWords(phrase).length === 0) return [...hits]
+    return hits.filter((hit) =>
+        getChartHitRowTexts(hit).some((text) =>
+            textContainsPhrase(text, phrase)
+        )
+    )
+}
+
+/**
+ * Re-orders `hits` into the relative order the same charts appear in
+ * `baselineHits`. The result is always a permutation of `hits`: nothing is
+ * added or dropped, only reordered.
+ *
+ * Used by the all-charts block (site/AllChartsBlock.tsx), whose rows must
+ * always read in that block's default order — the order of its unfiltered,
+ * topic-only result set — whatever the visitor has typed. Algolia ranks every
+ * result set by relevance to the query text, so without this the surviving rows
+ * visibly reshuffle on every keystroke as that text grows.
+ *
+ * Rows are matched by `getChartHitIdentity`, not by `objectID` — see there for
+ * why that distinction is load-bearing rather than incidental.
+ *
+ * Hits with no counterpart in the baseline (a record indexed between the two
+ * queries, say) sort to the end, ordered by their identity. That tie-break is
+ * deliberate rather than leaving them equal: equal elements keep their order in
+ * `hits`, which is Algolia's relevance order, i.e. precisely the input that
+ * changes from keystroke to keystroke. Comparing identities instead makes this
+ * a total order that depends only on the two hits being compared, so the output
+ * is a function of the *set* of hits and not of the order they arrived in. (An
+ * inconsistent comparator would itself be a source of apparent shuffling.)
+ */
+export function sortHitsByBaselineOrder<T extends ChartHitIdentityFields>(
+    hits: readonly T[],
+    baselineHits: readonly ChartHitIdentityFields[]
+): T[] {
+    const baselineIndexByIdentity = new Map<string, number>()
+    for (const [index, hit] of baselineHits.entries()) {
+        // First occurrence wins, so a duplicated record can't give one chart
+        // two different positions.
+        const identity = getChartHitIdentity(hit)
+        if (!baselineIndexByIdentity.has(identity))
+            baselineIndexByIdentity.set(identity, index)
+    }
+
+    const positionOf = (hit: T): number =>
+        baselineIndexByIdentity.get(getChartHitIdentity(hit)) ??
+        Number.MAX_SAFE_INTEGER
+
+    return [...hits].sort((a, b) => {
+        const positionDiff = positionOf(a) - positionOf(b)
+        if (positionDiff !== 0) return positionDiff
+        // Only reachable when both hits are missing from the baseline
+        // (baseline positions are unique). Compared with < / > rather than
+        // localeCompare so the ordering can't vary with the runtime's locale.
+        const identityA = getChartHitIdentity(a)
+        const identityB = getChartHitIdentity(b)
+        if (identityA < identityB) return -1
+        if (identityA > identityB) return 1
+        return 0
+    })
+}
+
+/**
+ * Which row of `hits` is selected, given the identity of the chart the visitor
+ * last picked — `null` before they have picked anything.
+ *
+ * Used by the all-charts block (site/AllChartsBlock.tsx) to keep a selection
+ * pinned to a *chart* rather than to a position in the list, so that searching
+ * narrows the list around whatever the visitor is currently reading instead of
+ * snapping the sidecar back to the top of it. Three cases, and the last is the
+ * only one that moves the selection:
+ *
+ * - nothing picked yet → the first row, so the block opens on row 1;
+ * - the picked chart is still in the results → wherever it now sits, however
+ *   far it has moved (filtering out the rows above it shifts every position);
+ * - the picked chart has been filtered out → back to the first row, there
+ *   being nothing else to honour.
+ *
+ * Matching on `getChartHitIdentity` and not on `objectID` is what makes the
+ * second case hold from the first character typed: that keystroke swaps the
+ * Featured Metric record of some charts for the plain record of the same chart
+ * (see getChartHitIdentity), which an objectID-keyed selection would read as
+ * its chart having disappeared.
+ */
+export function resolveSelectedChartIndex(
+    hits: readonly ChartHitIdentityFields[],
+    selectedIdentity: string | null
+): number {
+    if (selectedIdentity === null) return 0
+    const index = hits.findIndex(
+        (hit) => getChartHitIdentity(hit) === selectedIdentity
+    )
+    return index === -1 ? 0 : index
+}
+
+/**
+ * How many indicator rows the all-charts block renders before the visitor asks
+ * for the rest (see getVisibleChartHits below).
+ *
+ * A topic's chart list is unbounded — the CO2 topic alone returns 196 rows —
+ * and the block renders every one of them into the page, with the chart sidecar
+ * held beside the list by `position: sticky`. At 196 rows the list pane is over
+ * 18,000px tall, so the sidecar stays pinned for ~17 viewport heights with an
+ * empty column beside it, which reads as being stuck in the block while
+ * scrolling past it. Rendering a bounded first slice keeps the sticky sidecar
+ * (which visitors do want: the chart stays put while the list scrolls) without
+ * the pin outlasting the reason for it.
+ *
+ * 25 rows is enough to fill the sidecar's own height with list — so the pin
+ * still does its job for the whole visible list — and short enough that the
+ * block is a couple of viewports rather than seventeen.
+ */
+export const ALL_CHARTS_INITIAL_ROW_COUNT = 25
+
+/**
+ * The rows the all-charts block actually renders: the first
+ * `initialRowCount` of them until the visitor reveals the rest, all of them
+ * afterwards.
+ *
+ * Deliberately a slice of the full result set rather than a smaller Algolia
+ * request: the block's row order is pinned to its unfiltered baseline and its
+ * selection is pinned to a chart identity, both of which need the complete
+ * result set in hand, and the reveal control's label has to name the true
+ * total ("Show all 196 indicators") rather than how much of it is on screen.
+ */
+export function getVisibleChartHits<T>(
+    hits: readonly T[],
+    isListExpanded: boolean,
+    initialRowCount: number = ALL_CHARTS_INITIAL_ROW_COUNT
+): readonly T[] {
+    if (isListExpanded) return hits
+    return hits.slice(0, Math.max(initialRowCount, 0))
+}
+
+/**
+ * Whether the all-charts block has rows the visitor hasn't been shown yet, and
+ * so needs its reveal control at the bottom of the list. False at exactly
+ * `initialRowCount` results as well as below it — a "Show all 25 indicators"
+ * button under a list of all 25 of them would do nothing.
+ */
+export function hasHiddenChartHits(
+    totalHitCount: number,
+    initialRowCount: number = ALL_CHARTS_INITIAL_ROW_COUNT
+): boolean {
+    return totalHitCount > initialRowCount
+}
 
 export function pickEntitiesForChartHit(
     hit: SearchChartHit,
@@ -191,9 +481,11 @@ export const toGrapherQueryParams = ({
 const generateQueryStrForChartHit = ({
     hit,
     grapherParams,
+    grapherQueryStr: extraGrapherQueryStr,
 }: {
     hit: SearchChartHit
     grapherParams?: GrapherQueryParams
+    grapherQueryStr?: string
 }): string => {
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
     const isMultiDimView = hit.type === ChartRecordType.MultiDimView
@@ -205,7 +497,7 @@ const generateQueryStrForChartHit = ({
         : undefined
 
     // Remove leading '?' from query strings
-    const queryStrList = [viewQueryStr, grapherQueryStr]
+    const queryStrList = [viewQueryStr, grapherQueryStr, extraGrapherQueryStr]
         .map((queryStr) => queryStr?.replace(/^\?/, ""))
         .filter((queryStr) => queryStr)
 
@@ -217,13 +509,26 @@ const generateQueryStrForChartHit = ({
 export const constructChartUrl = ({
     hit,
     grapherParams,
+    grapherQueryStr,
     overlay,
 }: {
     hit: SearchChartHit
     grapherParams?: GrapherQueryParams
+    /**
+     * Already-serialised Grapher query string (e.g. "?country=~ESP"), merged
+     * in alongside `grapherParams`. Opt-in and unused by /search: it exists so
+     * a caller that already holds the exact query string it handed to a live
+     * Grapher can put *that* string on the chart's link, instead of rebuilding
+     * an equivalent param list that could drift from it.
+     */
+    grapherQueryStr?: string
     overlay?: "sources" | "download-data"
 }): string => {
-    const viewQueryStr = generateQueryStrForChartHit({ hit, grapherParams })
+    const viewQueryStr = generateQueryStrForChartHit({
+        hit,
+        grapherParams,
+        grapherQueryStr,
+    })
     const overlayQueryStr = overlay ? `overlay=${overlay}` : ""
     const queryParts = [
         viewQueryStr?.replace(/^\?/, ""),
@@ -382,6 +687,7 @@ export const DATA_CATALOG_ATTRIBUTES = [
     "subtitle",
     "chartConfigId",
     "explorerType",
+    "datasetProducers",
 ]
 
 // Re-exported for existing importers; the actual definitions live in

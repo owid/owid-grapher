@@ -8,6 +8,14 @@ import {
     createTopicFilter,
     extractFiltersFromQuery,
     createCountryFilter,
+    sortHitsByBaselineOrder,
+    resolveSelectedChartIndex,
+    getChartHitIdentity,
+    getVisibleChartHits,
+    hasHiddenChartHits,
+    filterChartHitsByPhrase,
+    textContainsPhrase,
+    ALL_CHARTS_INITIAL_ROW_COUNT,
 } from "./searchUtils"
 
 import { FilterType, SynonymMap } from "@ourworldindata/types"
@@ -760,5 +768,588 @@ describe("offset pagination for useInfiniteSearchOffset hook", () => {
         expect(getNbPaginatedItemsRequested(0, 3, 6, 3)).toBe(3)
         expect(getNbPaginatedItemsRequested(1, 3, 6, 6)).toBe(9)
         expect(getNbPaginatedItemsRequested(2, 3, 6, 2)).toBe(11)
+    })
+})
+
+describe(getChartHitIdentity, () => {
+    it("ignores objectID, so a Featured Metric record and the plain record for the same chart share an identity", () => {
+        // Real records from the CO2 topic: the empty-query result set is served
+        // the FM record, every result set after the first keystroke the plain
+        // one, and both render as the same row.
+        const featuredMetricRecord = {
+            objectID: "486-fm-upper-middle-co2-greenhouse-gas-emissions",
+            slug: "co-emissions-per-capita",
+        }
+        const plainRecord = {
+            objectID: "486",
+            slug: "co-emissions-per-capita",
+        }
+        expect(getChartHitIdentity(featuredMetricRecord)).toBe(
+            getChartHitIdentity(plainRecord)
+        )
+    })
+
+    it("distinguishes views that share a slug by their queryParams", () => {
+        // Explorer/mdim views all live under one slug.
+        const viewA = { slug: "energy", queryParams: "?tab=chart&x=1" }
+        const viewB = { slug: "energy", queryParams: "?tab=chart&x=2" }
+        expect(getChartHitIdentity(viewA)).not.toBe(getChartHitIdentity(viewB))
+    })
+
+    it("treats a missing queryParams as empty", () => {
+        expect(getChartHitIdentity({ slug: "life-expectancy" })).toBe(
+            getChartHitIdentity({
+                slug: "life-expectancy",
+                queryParams: undefined,
+            })
+        )
+    })
+})
+
+describe(sortHitsByBaselineOrder, () => {
+    // The all-charts block's default order: the unfiltered, topic-only result
+    // set. Every filtered result set must read as a subsequence of this.
+    const baseline = ["a", "b", "c", "d", "e", "f"].map((slug) => ({ slug }))
+
+    const slugs = (hits: { slug: string }[]): string[] =>
+        hits.map((hit) => hit.slug)
+
+    it("restores the baseline order of a relevance-ordered result set", () => {
+        // What Algolia hands back for some query: the same charts, re-ranked.
+        const relevanceOrdered = ["e", "a", "d", "b"].map((slug) => ({ slug }))
+        expect(
+            slugs(sortHitsByBaselineOrder(relevanceOrdered, baseline))
+        ).toEqual(["a", "b", "d", "e"])
+    })
+
+    it("produces a subsequence of the baseline for every permutation of a filtered set", () => {
+        // Whatever order the hits arrive in, the output is the same
+        // baseline-ordered list — so consecutive keystrokes returning the same
+        // set in different orders can't reshuffle the rows.
+        const subset = ["b", "c", "f"]
+        const permutations = [
+            ["b", "c", "f"],
+            ["b", "f", "c"],
+            ["c", "b", "f"],
+            ["c", "f", "b"],
+            ["f", "b", "c"],
+            ["f", "c", "b"],
+        ]
+        for (const permutation of permutations) {
+            const sorted = slugs(
+                sortHitsByBaselineOrder(
+                    permutation.map((slug) => ({ slug })),
+                    baseline
+                )
+            )
+            expect(sorted).toEqual(subset)
+            // ...and that is genuinely a subsequence of the baseline.
+            expect(
+                slugs(baseline).filter((slug) => sorted.includes(slug))
+            ).toEqual(sorted)
+        }
+    })
+
+    it("keeps a chart at its baseline position when the query swaps its Featured Metric record for the plain one", () => {
+        // The bug this ordering rule exists to prevent, with the real records
+        // behind it. The unfiltered set that defines the default order is
+        // served FM records for the first few charts; the filtered set for
+        // "china" is served their plain twins, which carry different
+        // objectIDs. Keyed on objectID those three look like brand-new rows
+        // and get flung to the bottom of a 165-row list, which is what read as
+        // the top charts vanishing.
+        const defaultOrder = [
+            {
+                objectID: "486-fm-upper-middle-co2-greenhouse-gas-emissions",
+                slug: "co-emissions-per-capita",
+            },
+            {
+                objectID: "488-fm-upper-middle-co2-greenhouse-gas-emissions",
+                slug: "annual-co2-emissions-per-country",
+            },
+            {
+                objectID: "1895-fm-upper-middle-co2-greenhouse-gas-emissions",
+                slug: "temperature-anomaly",
+            },
+            {
+                objectID: "4146-fm-upper-middle-co2-greenhouse-gas-emissions",
+                slug: "ghg-emissions-by-sector",
+            },
+            { objectID: "547", slug: "annual-co2-emissions-by-region" },
+            { objectID: "558", slug: "meat-supply-vs-gdp-per-capita" },
+        ]
+        // What Algolia returns for "china": no FM records (isFM:false), the
+        // plain twins instead, in relevance order, and temperature-anomaly
+        // legitimately absent since it has no China data.
+        const chinaResults = [
+            { objectID: "547", slug: "annual-co2-emissions-by-region" },
+            { objectID: "4146", slug: "ghg-emissions-by-sector" },
+            { objectID: "486", slug: "co-emissions-per-capita" },
+            { objectID: "558", slug: "meat-supply-vs-gdp-per-capita" },
+            { objectID: "488", slug: "annual-co2-emissions-per-country" },
+        ]
+        expect(
+            slugs(sortHitsByBaselineOrder(chinaResults, defaultOrder))
+        ).toEqual([
+            "co-emissions-per-capita",
+            "annual-co2-emissions-per-country",
+            "ghg-emissions-by-sector",
+            "annual-co2-emissions-by-region",
+            "meat-supply-vs-gdp-per-capita",
+        ])
+    })
+
+    it("keeps the result a permutation of its input", () => {
+        const hits = ["f", "a", "c"].map((slug) => ({ slug }))
+        const sorted = sortHitsByBaselineOrder(hits, baseline)
+        expect(sorted).toHaveLength(hits.length)
+        expect([...slugs(sorted)].sort()).toEqual([...slugs(hits)].sort())
+    })
+
+    it("does not mutate its input", () => {
+        const hits = ["f", "a", "c"].map((slug) => ({ slug }))
+        sortHitsByBaselineOrder(hits, baseline)
+        expect(slugs(hits)).toEqual(["f", "a", "c"])
+    })
+
+    it("sorts hits missing from the baseline to the end, by identity", () => {
+        const hits = ["zz", "c", "yy", "a"].map((slug) => ({ slug }))
+        expect(slugs(sortHitsByBaselineOrder(hits, baseline))).toEqual([
+            "a",
+            "c",
+            "yy",
+            "zz",
+        ])
+    })
+
+    it("orders unknown hits independently of the order they arrived in", () => {
+        // The fallback position must not depend on Algolia's ranking, or two
+        // keystrokes returning the same unknown records in different orders
+        // would render them in different orders.
+        const first = ["yy", "zz", "xx"].map((slug) => ({ slug }))
+        const second = ["zz", "xx", "yy"].map((slug) => ({ slug }))
+        expect(slugs(sortHitsByBaselineOrder(first, baseline))).toEqual(
+            slugs(sortHitsByBaselineOrder(second, baseline))
+        )
+    })
+
+    it("orders by identity alone when the baseline is empty", () => {
+        const hits = ["c", "a", "b"].map((slug) => ({ slug }))
+        expect(slugs(sortHitsByBaselineOrder(hits, []))).toEqual([
+            "a",
+            "b",
+            "c",
+        ])
+    })
+
+    it("handles an empty result set", () => {
+        expect(sortHitsByBaselineOrder([], baseline)).toEqual([])
+    })
+
+    it("preserves the extra fields on each hit", () => {
+        const hits = [
+            { slug: "c", title: "Third" },
+            { slug: "a", title: "First" },
+        ]
+        expect(sortHitsByBaselineOrder(hits, baseline)).toEqual([
+            { slug: "a", title: "First" },
+            { slug: "c", title: "Third" },
+        ])
+    })
+})
+
+describe(getVisibleChartHits, () => {
+    // A topic's list, as the block holds it: the full result set for the
+    // current query, in the block's default order.
+    const hits = (count: number): { slug: string }[] =>
+        Array.from({ length: count }, (_, index) => ({
+            slug: `chart-${index}`,
+        }))
+
+    it("renders only the first slice of a long list", () => {
+        // The CO2 topic's real size. Every one of those rows in the page is
+        // what pinned the chart sidecar for seventeen viewport heights.
+        const visible = getVisibleChartHits(hits(196), false)
+        expect(visible).toHaveLength(ALL_CHARTS_INITIAL_ROW_COUNT)
+    })
+
+    it("renders the slice as a prefix of the list, in order", () => {
+        // Load-bearing: the block resolves its selected row against the full
+        // result set and hands the slice to the table, so the two only agree
+        // about which row is selected while this is a prefix.
+        const all = hits(196)
+        expect(getVisibleChartHits(all, false, 4)).toEqual(all.slice(0, 4))
+    })
+
+    it("renders everything once the list is expanded", () => {
+        const all = hits(196)
+        expect(getVisibleChartHits(all, true)).toEqual(all)
+    })
+
+    it("renders every row of a list shorter than the slice, either way", () => {
+        const all = hits(7)
+        expect(getVisibleChartHits(all, false)).toEqual(all)
+        expect(getVisibleChartHits(all, true)).toEqual(all)
+    })
+
+    it("handles an empty result set", () => {
+        expect(getVisibleChartHits([], false)).toEqual([])
+        expect(getVisibleChartHits([], true)).toEqual([])
+    })
+
+    it("does not mutate the list it slices", () => {
+        const all = hits(30)
+        getVisibleChartHits(all, false)
+        expect(all).toHaveLength(30)
+    })
+})
+
+describe(hasHiddenChartHits, () => {
+    it("asks for the reveal control when rows are being held back", () => {
+        expect(hasHiddenChartHits(196)).toBe(true)
+        expect(hasHiddenChartHits(165)).toBe(true) // the "china" result set
+        expect(hasHiddenChartHits(ALL_CHARTS_INITIAL_ROW_COUNT + 1)).toBe(true)
+    })
+
+    it("renders no control when the whole list is already on screen", () => {
+        // Including at exactly the slice size: "Show all 25 indicators" under
+        // a list of all 25 of them would do nothing.
+        expect(hasHiddenChartHits(ALL_CHARTS_INITIAL_ROW_COUNT)).toBe(false)
+        expect(hasHiddenChartHits(3)).toBe(false)
+        expect(hasHiddenChartHits(0)).toBe(false)
+    })
+
+    it("agrees with what getVisibleChartHits actually renders", () => {
+        // The control must appear exactly when the slice is hiding something,
+        // whatever the two are given.
+        for (const total of [0, 1, 24, 25, 26, 196]) {
+            const all = Array.from({ length: total }, (_, index) => ({
+                slug: `chart-${index}`,
+            }))
+            const isHiding = getVisibleChartHits(all, false).length < all.length
+            expect(hasHiddenChartHits(total)).toBe(isHiding)
+        }
+    })
+})
+
+describe(resolveSelectedChartIndex, () => {
+    // The all-charts block's unfiltered rows, in their default order.
+    const rows = ["a", "b", "c", "d", "e"].map((slug) => ({ slug }))
+
+    it("selects the first row before anything has been picked", () => {
+        expect(resolveSelectedChartIndex(rows, null)).toBe(0)
+    })
+
+    it("keeps the picked chart selected when the list narrows around it", () => {
+        // Row 4 is picked, then a search removes two rows above it: the
+        // selection follows the chart down to index 1 rather than staying on
+        // index 3 (a different chart) or resetting to the top.
+        const picked = getChartHitIdentity(rows[3])
+        expect(resolveSelectedChartIndex(rows, picked)).toBe(3)
+
+        const narrowed = ["b", "d", "e"].map((slug) => ({ slug }))
+        expect(resolveSelectedChartIndex(narrowed, picked)).toBe(1)
+    })
+
+    it("keeps the picked chart selected when it moves to the top", () => {
+        const picked = getChartHitIdentity(rows[4])
+        expect(resolveSelectedChartIndex([{ slug: "e" }], picked)).toBe(0)
+    })
+
+    it("falls back to the first row when the picked chart is filtered out", () => {
+        // The only case in which the selection is allowed to move on its own.
+        const picked = getChartHitIdentity({ slug: "c" })
+        const withoutC = ["a", "b", "d"].map((slug) => ({ slug }))
+        expect(resolveSelectedChartIndex(withoutC, picked)).toBe(0)
+    })
+
+    it("survives the Featured Metric record swap on the first keystroke", () => {
+        // Real objectIDs from the CO2 topic. The empty-query result set is
+        // served FM records; the first character typed adds isFM:false and
+        // swaps in the plain twins. The visible list is identical, so a
+        // selection made before typing must still point at the same chart —
+        // which an objectID-keyed selection could not do.
+        const beforeTyping = [
+            {
+                objectID: "486-fm-upper-middle-co2-greenhouse-gas-emissions",
+                slug: "co-emissions-per-capita",
+            },
+            {
+                objectID: "488-fm-upper-middle-co2-greenhouse-gas-emissions",
+                slug: "annual-co2-emissions-per-country",
+            },
+            {
+                objectID: "4146-fm-upper-middle-co2-greenhouse-gas-emissions",
+                slug: "ghg-emissions-by-sector",
+            },
+        ]
+        const afterTyping = [
+            { objectID: "486", slug: "co-emissions-per-capita" },
+            { objectID: "488", slug: "annual-co2-emissions-per-country" },
+            { objectID: "4146", slug: "ghg-emissions-by-sector" },
+        ]
+
+        const picked = getChartHitIdentity(beforeTyping[2])
+        expect(resolveSelectedChartIndex(beforeTyping, picked)).toBe(2)
+        expect(resolveSelectedChartIndex(afterTyping, picked)).toBe(2)
+    })
+
+    it("holds the selection across every keystroke of a country search", () => {
+        // Typing "china" one character at a time, each prefix returning a
+        // narrower set (and the plain records from the first character on).
+        // ghg-emissions-by-sector, picked first, is in every one of them, so
+        // the selection must never leave it.
+        const picked = getChartHitIdentity({ slug: "ghg-emissions-by-sector" })
+        const resultSets = [
+            [
+                "co-emissions-per-capita",
+                "temperature-anomaly",
+                "ghg-emissions-by-sector",
+                "meat-supply-vs-gdp-per-capita",
+            ], // ""
+            [
+                "co-emissions-per-capita",
+                "temperature-anomaly",
+                "ghg-emissions-by-sector",
+                "meat-supply-vs-gdp-per-capita",
+            ], // "c"
+            [
+                "co-emissions-per-capita",
+                "ghg-emissions-by-sector",
+                "meat-supply-vs-gdp-per-capita",
+            ], // "ch"
+            ["co-emissions-per-capita", "ghg-emissions-by-sector"], // "chi"
+            ["ghg-emissions-by-sector"], // "chin"
+            ["ghg-emissions-by-sector"], // "china"
+        ]
+        const selectedSlugs = resultSets.map((slugs) => {
+            const hits = slugs.map((slug) => ({ slug }))
+            return hits[resolveSelectedChartIndex(hits, picked)].slug
+        })
+        expect(selectedSlugs).toEqual(
+            resultSets.map(() => "ghg-emissions-by-sector")
+        )
+    })
+
+    it("distinguishes views that share a slug", () => {
+        // Two explorer views of one slug are different charts to the block, so
+        // picking one must not select the other.
+        const views = [
+            { slug: "energy", queryParams: "?country=~ESP" },
+            { slug: "energy", queryParams: "?country=~FRA" },
+        ]
+        expect(
+            resolveSelectedChartIndex(views, getChartHitIdentity(views[1]))
+        ).toBe(1)
+        // Only the FRA view survives: the selection lands on it at index 0
+        // because it is the picked chart, not because it is the first row.
+        expect(
+            resolveSelectedChartIndex([views[1]], getChartHitIdentity(views[1]))
+        ).toBe(0)
+        // The ESP view alone, with FRA picked: the picked chart is gone, so
+        // back to the first row.
+        expect(
+            resolveSelectedChartIndex([views[0]], getChartHitIdentity(views[1]))
+        ).toBe(0)
+    })
+
+    it("returns the first index for an empty result set", () => {
+        // The caller renders no sidecar at all in this case; this only has to
+        // not throw.
+        expect(resolveSelectedChartIndex([], null)).toBe(0)
+        expect(resolveSelectedChartIndex([], "life-expectancy")).toBe(0)
+    })
+})
+
+describe(filterChartHitsByPhrase, () => {
+    // The rows the Poverty topic returned for "national poverty line", with the
+    // text each row actually shows. The first four are the charts the search is
+    // asking for; the rest are what Algolia added because each word of the query
+    // may be found in a different attribute of a record (a tag, a producer, the
+    // slug), typos included.
+    const nationalPovertyLine = {
+        slug: "national-poverty-line-vs-gdp-per-capita",
+        title: "National poverty line vs. GDP per capita",
+        subtitle: "",
+        datasetProducers: ["World Bank Poverty and Inequality Platform"],
+    }
+    const nationalPovertyLinesPlural = {
+        slug: "share-of-population-living-in-poverty-by-national-poverty-lines",
+        title: "Share of population living below national poverty lines",
+        subtitle:
+            "National poverty headcount ratio is the percentage of the population living below the national poverty lines.",
+        datasetProducers: ["World Bank Poverty and Inequality Platform"],
+    }
+    // The chart the designer reported: none of "national", "poverty" or "line"
+    // appears on the row. Algolia matched "poverty" in the producer name,
+    // "line" elsewhere in the record, and "national" in "United Nations" via
+    // typo tolerance.
+    const meanIncome = {
+        slug: "daily-mean-income",
+        title: "Mean income or consumption per day",
+        subtitle:
+            "This data is adjusted for inflation and differences in living costs between countries.",
+        datasetProducers: [
+            "World Bank Poverty and Inequality Platform",
+            "United Nations",
+        ],
+    }
+    // Matched only through its subtitle's "International Poverty Line", which
+    // contains the typed phrase as a raw substring but not as whole words.
+    const extremePoverty = {
+        slug: "share-of-population-in-extreme-poverty",
+        title: "Share of population living in extreme poverty",
+        subtitle:
+            "Extreme poverty is defined as living below the International Poverty Line of $3 per day.",
+        datasetProducers: ["World Bank Poverty and Inequality Platform"],
+    }
+    const povertyHits = [
+        nationalPovertyLine,
+        nationalPovertyLinesPlural,
+        meanIncome,
+        extremePoverty,
+    ]
+
+    it("keeps only the rows whose own text contains the whole phrase", () => {
+        expect(
+            filterChartHitsByPhrase(povertyHits, "national poverty line")
+        ).toEqual([nationalPovertyLine, nationalPovertyLinesPlural])
+    })
+
+    it("matches a plural in the row against a singular in the query", () => {
+        // "national poverty lines" is the most relevant chart of all for this
+        // search, and Algolia's own "exactPhrase" operator drops it.
+        expect(
+            filterChartHitsByPhrase(
+                [nationalPovertyLinesPlural],
+                "national poverty line"
+            )
+        ).toEqual([nationalPovertyLinesPlural])
+    })
+
+    it("does not match a longer word mid-phrase", () => {
+        // "International Poverty Line" contains "national poverty line" as a
+        // substring, but "international" is not the word that was typed.
+        expect(
+            filterChartHitsByPhrase([extremePoverty], "national poverty line")
+        ).toEqual([])
+        // Whereas the phrase the row does show is found.
+        expect(
+            filterChartHitsByPhrase(
+                [extremePoverty],
+                "international poverty line"
+            )
+        ).toEqual([extremePoverty])
+    })
+
+    it("requires the words to be adjacent, not merely all present", () => {
+        // Every word of the query appears on this row — across the title, the
+        // subtitle and the producer list — but never as the phrase.
+        expect(
+            filterChartHitsByPhrase(
+                [meanIncome],
+                "united nations poverty platform"
+            )
+        ).toEqual([])
+    })
+
+    it("never matches a phrase across two separate fields", () => {
+        // The title ends with "emissions" and the subtitle opens with "per
+        // capita", so the concatenation of the two contains "emissions per
+        // capita" although neither line does.
+        const methane = {
+            slug: "per-capita-methane-emissions",
+            title: "Per capita methane emissions",
+            subtitle: "Per capita methane emissions are measured in tonnes.",
+            datasetProducers: ["Climate Watch"],
+        }
+        expect(
+            filterChartHitsByPhrase([methane], "emissions per capita")
+        ).toEqual([])
+        expect(
+            filterChartHitsByPhrase([methane], "per capita methane")
+        ).toEqual([methane])
+    })
+
+    it("finds subscript digits typed as plain ones", () => {
+        // Chart titles use "CO₂", visitors type "co2".
+        const co2 = {
+            slug: "co2-emissions-per-capita",
+            title: "CO₂ emissions per capita",
+            subtitle: "Carbon dioxide (CO₂) emissions from fossil fuels.",
+            datasetProducers: ["Global Carbon Project"],
+        }
+        expect(filterChartHitsByPhrase([co2], "co2 emissions")).toEqual([co2])
+        expect(
+            filterChartHitsByPhrase([co2], "co₂ emissions per capita")
+        ).toEqual([co2])
+    })
+
+    it("matches the source line as well as the title and subtitle", () => {
+        expect(filterChartHitsByPhrase(povertyHits, "world bank")).toEqual(
+            povertyHits
+        )
+    })
+
+    it("treats a half-typed last word as a prefix", () => {
+        // The query is debounced, not submitted, so the last word is routinely
+        // unfinished — the list must not empty out mid-word.
+        for (const prefix of [
+            "national",
+            "national pov",
+            "national poverty l",
+            "national poverty line",
+        ])
+            expect(filterChartHitsByPhrase(povertyHits, prefix)).toEqual([
+                nationalPovertyLine,
+                nationalPovertyLinesPlural,
+            ])
+    })
+
+    it("keeps every hit when there is no phrase to match", () => {
+        // The all-charts block passes an empty phrase whenever the query is
+        // empty, or consists only of a country name — which filters by the
+        // entity facet instead, and must not additionally require the country's
+        // name to be printed on the row.
+        expect(filterChartHitsByPhrase(povertyHits, "")).toEqual(povertyHits)
+        expect(filterChartHitsByPhrase(povertyHits, "   ")).toEqual(povertyHits)
+        // Punctuation-only input normalises to no words at all.
+        expect(filterChartHitsByPhrase(povertyHits, "-")).toEqual(povertyHits)
+    })
+
+    it("drops every hit for a misspelled phrase", () => {
+        // Typo tolerance does not survive this narrowing: Algolia still returns
+        // the typo-matched hits, but none of them shows the typed phrase, so the
+        // block falls through to its empty state ("Search all charts").
+        expect(
+            filterChartHitsByPhrase(povertyHits, "national povery line")
+        ).toEqual([])
+    })
+})
+
+describe(textContainsPhrase, () => {
+    it("ignores case, punctuation and repeated whitespace", () => {
+        expect(
+            textContainsPhrase(
+                "Share of population living\nin poverty",
+                "IN POVERTY"
+            )
+        ).toBe(true)
+        expect(
+            textContainsPhrase("Poverty: share of population", "poverty share")
+        ).toBe(true)
+    })
+
+    it("matches at the start and at the end of the text", () => {
+        expect(textContainsPhrase("Annual CO₂ emissions", "annual")).toBe(true)
+        expect(
+            textContainsPhrase("Annual CO₂ emissions", "co2 emissions")
+        ).toBe(true)
+    })
+
+    it("returns false when the text runs out mid-phrase", () => {
+        expect(
+            textContainsPhrase("Annual CO₂ emissions", "emissions by sector")
+        ).toBe(false)
     })
 })

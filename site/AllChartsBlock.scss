@@ -1,0 +1,577 @@
+.all-charts-block {
+    .all-charts-block__heading {
+        margin-bottom: $margin-bottom-section-heading-ltp;
+        text-align: left;
+    }
+}
+
+// The two-column layout the block uses above the accordion breakpoint. Shared by
+// the panes and by the sticky header above them (see
+// .all-charts-block__sticky-header-columns), so the search input can line up
+// with the list pane it belongs to while the header spans the whole block.
+@mixin all-charts-block-columns {
+    display: grid;
+    // The block itself already spans the full 12-column content grid (see the
+    // "featured-metrics" entry in site/gdocs/components/layout.ts), so the two
+    // panes can only be balanced against each other: any width given to the
+    // indicator list comes straight off the chart sidecar.
+    //
+    // This deliberately favours the sidecar. An even 6/6 split was tried, to
+    // give the list more room once each row's source moved underneath its
+    // subtitle, but it made the chart card noticeably narrower: Grapher sizes
+    // its figure from $grapher-height's aspect ratio and is capped by the
+    // track it sits in, so width taken off this column shrinks the chart
+    // itself, whereas the list only reflows its text. The row text is kept
+    // within the narrower list pane by clamping the subtitle and source lines
+    // instead (see .all-charts-block__row-subtitle and -row-source below).
+    grid-template-columns: 5fr 7fr;
+    gap: 24px;
+
+    @include md-down {
+        grid-template-columns: 1fr;
+    }
+}
+
+.all-charts-block__panes {
+    // Ahead of the mixin, which ends in a media query: a declaration after a
+    // nested rule is a fatal Sass deprecation here (see `mixed-decls` in
+    // vite.config-common.mts).
+    align-items: start;
+    @include all-charts-block-columns;
+}
+
+.all-charts-block__left {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+// How far from the top of the viewport the block's sticky pieces come to rest:
+// flush against the bottom edge of whatever the page already has pinned there,
+// which is the topic page's own sub-nav (.sticky-nav) when it has one and
+// nothing at all when it doesn't.
+//
+// Measured at runtime and published as a custom property by AllChartsBlock.tsx,
+// because neither the nav's presence nor its height can be known from here — it
+// is absent on many topic pages, and 56px or 48px depending on the breakpoint
+// elsewhere. The fallback of 0 is what applies before the measurement lands and
+// on the pages with no nav, and it is the right answer for both: with nothing
+// pinned above, flush against the top of the viewport is flush.
+//
+// This used to be a hardcoded 72px, which assumed the nav was always there and
+// always cleared it with room to spare. On the pages without one that left a
+// live strip at the top of the viewport for rows to scroll through, above a
+// band of white that read as a gap over the heading.
+//
+// Both users of it are below: .all-charts-block__sticky-header and
+// .all-charts-block__right.
+
+// The block's heading and its search bar, stuck to the top of the viewport as a
+// single unit so the indicator rows scroll underneath both of them. They are one
+// element rather than two separately-stuck ones because their combined height
+// depends on the heading's text: a topic whose name wraps the heading onto a
+// second line would otherwise need a second offset kept in sync with it by hand.
+//
+// The white background belongs here, on the unit, so what a row scrolls behind
+// is a single opaque band with one hard bottom edge — the heading and the input
+// don't read as two separately floating strips.
+//
+// Not stuck below the breakpoint: on a phone the two together would take a
+// serious bite out of a short viewport, and the sidecar they were sharing the
+// screen with isn't there anyway. Both scroll away with the page instead.
+.all-charts-block__sticky-header {
+    position: sticky;
+    // Flush against the bottom of the page's own sticky sub-nav, or against the
+    // top of the viewport where there is no nav — see the comment above
+    // --all-charts-block-pinned-above-height. Flush is the point: any offset
+    // beyond it is a strip of viewport that this unit's opaque background does
+    // not reach, so rows scroll up through it and reappear above the heading.
+    top: var(--all-charts-block-pinned-above-height, 0px);
+    z-index: 1;
+    // Solid white, so a row scrolling up underneath is hidden outright and cut
+    // off with a hard edge at the bottom of the bar, rather than showing through
+    // it. An earlier version faded to transparent, which let rows dissolve out
+    // from under the input — the designer's reference has the row clipped
+    // cleanly instead.
+    background-color: $white;
+    // 12px of padding below the input extends the opaque background past it,
+    // then a smaller margin makes up the rest of the original 16px gap to the
+    // suggested-searches row beneath.
+    padding-bottom: 12px;
+    margin-bottom: 4px;
+
+    // There is deliberately no backdrop element above this one. An earlier
+    // version painted a fixed-height band of white over the gap the 72px offset
+    // left, which papered over the leak on the pages that have a sub-nav and
+    // turned into the visible gap on the pages that don't. Sticking flush
+    // removes the gap instead of covering it, so the last thing a row is drawn
+    // over is this unit's own top edge.
+
+    @include md-down {
+        position: static;
+    }
+}
+
+.all-charts-block__sticky-header-columns {
+    @include all-charts-block-columns;
+}
+
+// Holds the search input in the first column of that grid, so it keeps the width
+// of the list pane below it. A wrapper rather than putting the input straight
+// into the grid: the input comes with an active-filters row beneath it, and both
+// belong in the same column.
+.all-charts-block__sticky-header-search {
+    min-width: 0;
+}
+
+.all-charts-block__right {
+    min-width: 0;
+    position: sticky;
+    // Below the sticky heading + search bar above, which is opaque: pinned at
+    // the same offset as those, the chart would scroll up behind them and lose
+    // its top. The height of that unit is measured by the block and published as
+    // a custom property, since it depends on how many lines the heading takes
+    // (see AllChartsBlock.tsx), and it comes to rest that far below wherever the
+    // unit itself came to rest.
+    top: calc(
+        var(--all-charts-block-pinned-above-height, 0px) +
+            var(--all-charts-block-sticky-header-height, 0px)
+    );
+
+    figure[data-grapher-src]:not(.grapherPreview),
+    figure.grapher-component:not(.grapherPreview) {
+        height: $grapher-height;
+    }
+
+    // Below this breakpoint the persistent sidecar is replaced by an
+    // accordion: each row expands its own chart inline (see
+    // .all-charts-block__row-accordion). Sticky positioning is irrelevant
+    // once the element is hidden, but scoping it above this breakpoint keeps
+    // the intent clear.
+    @include md-down {
+        display: none;
+    }
+}
+
+.all-charts-block__search {
+    // Sticking, and the opaque background that goes with it, belong to
+    // .all-charts-block__sticky-header above, which carries the heading along
+    // with the input. What is still needed here is a positioned ancestor for
+    // the search icon and the clear button, both absolutely positioned inside
+    // it.
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.all-charts-block__search-icon {
+    position: absolute;
+    left: 12px;
+    color: $gray-70;
+    pointer-events: none;
+}
+
+.all-charts-block__search-input {
+    width: 100%;
+    padding: 12px 36px 12px 36px;
+    border: 1px solid $gray-30;
+    border-radius: 4px;
+    font-size: 16px;
+    color: $text-color;
+    // Both of these are here to stop the browser painting the field for us.
+    // Nothing declared a background, so the input was left with whatever its
+    // engine draws for a native search field: white in Chrome and Firefox, but a
+    // grey fill in Safari on iOS, where `<input type="search">` is styled like
+    // the system search box — which is why the bar looked grey on a phone and
+    // white on a desktop. Turning the native appearance off as well as naming
+    // the colour, since the grey is drawn by that appearance rather than by an
+    // inherited background.
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: $white;
+
+    &:focus {
+        outline: none;
+        border-color: $blue-60;
+    }
+
+    &::placeholder {
+        color: $gray-70;
+    }
+
+    // Hide the native search input clear button so it doesn't clash with
+    // .all-charts-block__search-clear-button.
+    &::-webkit-search-cancel-button {
+        display: none;
+    }
+}
+
+.all-charts-block__search-clear-button {
+    position: absolute;
+    right: 12px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: $gray-70;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+
+    &:hover {
+        color: $text-color;
+    }
+}
+
+.all-charts-block__active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.all-charts-block__active-filter-button {
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.all-charts-block__suggested {
+    margin-bottom: 16px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.all-charts-block__suggested-label {
+    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: $gray-70;
+}
+
+.all-charts-block__suggested-link {
+    padding: 0;
+    border: none;
+    background: none;
+    color: $blue-60;
+    font-size: 13px;
+    font-weight: 400;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+
+    &:hover {
+        color: $vermillion;
+    }
+}
+
+.all-charts-block__table {
+    // No inner scroll region here by design — the list grows to its full
+    // height and scrolls with the rest of the page (see
+    // .all-charts-block__right above for how the chart sidecar stays in
+    // view as the visitor scrolls past it).
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid $gray-20;
+    transition: opacity 100ms ease-out;
+}
+
+// While a new debounced search query is fetching in the background, the
+// previous results (and sidecar chart) stay fully rendered — see the
+// `placeholderData: keepPreviousData` query option in AllChartsBlock.tsx —
+// rather than being replaced by a skeleton/blank state. This is the only
+// visible feedback that a fresher result set is on its way; it's
+// deliberately subtle since it fires on every keystroke's debounced query.
+.all-charts-block__table--refreshing {
+    opacity: 0.6;
+}
+
+.all-charts-block__row {
+    border-bottom: 1px solid $gray-20;
+}
+
+.all-charts-block__row--selected .all-charts-block__row-body {
+    border-left-color: $vermillion;
+    background-color: $blue-5;
+
+    // The plain hover fill below matches this rule's specificity and is
+    // declared later in the file, so without this the selected row loses its
+    // blue and turns grey for as long as the pointer is over it — including
+    // straight after the click that selected it.
+    &:hover {
+        background-color: $blue-5;
+    }
+}
+
+// A row has no column structure: its text is one block (title, then subtitle,
+// then a "Source: …" line), with the selected row's "Explore the data" link
+// sitting at the right-hand edge. This wrapper holds those two side by side
+// and carries the row's own hover/selected treatment, so the accent border and
+// background span the link too.
+.all-charts-block__row-body {
+    display: flex;
+    align-items: center;
+    border-left: 3px solid transparent;
+
+    &:hover {
+        background-color: $gray-5;
+    }
+
+    // Not enough width on a phone to fit the "Explore the data" link beside
+    // the row's text without squeezing the title, so the link wraps onto its
+    // own line underneath (see .all-charts-block__row-action below).
+    @include sm-only {
+        flex-wrap: wrap;
+    }
+}
+
+// The row's text stack, and its single click/keyboard target (role="button" in
+// the markup) for selecting the row on desktop or toggling its mobile
+// accordion.
+.all-charts-block__row-main {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    padding: 12px 13px; // 3px accent border + 13px = 16px of left inset
+    cursor: pointer;
+}
+
+.all-charts-block__row-title {
+    // Playfair Semibold, matching the weight/family convention used by the
+    // site's serif headings (see h1-semibold/h2-semibold/etc. in
+    // typography.scss), just at a fixed 16px rather than a heading scale.
+    font-family: $serif-font-stack;
+    font-weight: 600;
+    font-size: 16px;
+    // Explicit rather than relying on the inherited html line-height
+    // (1.6), which is too loose for a compact table row heading. Tighter
+    // than the 1.5 used for 16px serif headings elsewhere (h4-semibold in
+    // typography.scss) so the title sits snugly above the subtitle within
+    // the row's 2px stack gap.
+    line-height: 1.25;
+    color: $text-color;
+}
+
+.all-charts-block__row-subtitle {
+    color: $blue-50;
+    font-size: 12px;
+    font-weight: 400;
+    // Matches .all-charts-block__row-source below.
+    line-height: 1.5;
+    // Wrap rather than truncate on the first line — a subtitle cut off after
+    // a few words reads as a rendering bug — but clamp at two lines with an
+    // ellipsis so one verbose indicator can't grow its row unboundedly tall
+    // and push the rest of the list down.
+    overflow-wrap: break-word;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    // -webkit-line-clamp is what actually does the clamping in every browser
+    // we support; the unprefixed line-clamp is only in the newest Chrome and
+    // Safari (see docs/browser-support.md) and is declared alongside it so
+    // this keeps working once that becomes the supported property.
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.all-charts-block__row-tag {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background-color: $blue-10;
+    color: $blue-90;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    align-self: flex-start;
+}
+
+// The "Source: …" line, sitting directly beneath the subtitle rather than in
+// a column of its own. Shares the subtitle's size, weight and line-height so
+// the two sit as one continuous block of supporting text, but deliberately a
+// darker hue: $blue-90 against the subtitle's $blue-50, which gives the
+// attribution more presence than the description above it.
+.all-charts-block__row-source {
+    color: $blue-90;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.5;
+    // The source stays on one line however long the producer list is — some
+    // run to a dozen organisations ("Food and Agriculture Organization of the
+    // United Nations, Eurostat, OECD, IMF, and World Bank, …") and wrapping
+    // those would dominate the row. Laid out as a flex pair so only the
+    // producer list is truncated and the "Source:" label is always readable;
+    // a line clamp can't make that distinction.
+    display: flex;
+    // Stands in for the space between the label and the value: a
+    // whitespace-only text node between two flex items isn't rendered.
+    gap: 0.25em;
+}
+
+// The "Source:" label itself. Bold, but deliberately *not* given a colour of
+// its own: it inherits $blue-90 from .all-charts-block__row-source above, so
+// the label and the producer names beside it are one hue and only the weight
+// distinguishes the label. An earlier version set this to $gray-70, which
+// read as a stray grey against the blue text around it.
+.all-charts-block__row-source-label {
+    // Never truncated, unlike the producer list beside it — a clipped
+    // "Sour…" would just look broken.
+    flex: 0 0 auto;
+    font-weight: 700;
+}
+
+// The producer list, truncated with an ellipsis when it doesn't fit.
+.all-charts-block__row-source-value {
+    // Without min-width: 0 this flex item refuses to shrink below its
+    // content's intrinsic width (min-width: auto is the default), so it
+    // overflows the row instead of ellipsing.
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+// Holds the selected row's "Explore the data" link at the right-hand edge of
+// the row.
+.all-charts-block__row-action {
+    flex: 0 0 auto;
+    padding: 12px 16px 12px 0;
+
+    // Wrapped onto its own line under the row's text (see the flex-wrap on
+    // .all-charts-block__row-body above), so it needs its left inset back.
+    @include sm-only {
+        flex-basis: 100%;
+        padding: 0 16px 12px 13px;
+    }
+}
+
+// The shared .owid-btn is sized for page-level calls to action: 14px
+// body-3-medium text in 8.5px/24px padding, which renders ~35px tall. Design
+// wants a compact 32px control inside a table row, so the size is overridden
+// here rather than in the shared component, which is used at full size
+// elsewhere. These selectors are no more specific than .owid-btn's own, but
+// this file is imported after Button.scss (see site/owid.scss), so they win.
+.all-charts-block__row-explore-button {
+    // A fixed height plus flex centring is what pins the *rendered* height to
+    // 32px. Overriding padding and line-height alone doesn't: the arrow svg
+    // sits in the line box with its own height and baseline offset, so it,
+    // not the declared padding, ends up setting how tall the button comes
+    // out. Centring the content in a fixed-height box takes both out of the
+    // equation. box-sizing: border-box is global, so the 1px transparent
+    // border .owid-btn draws is included in the 32px.
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    padding: 0 12px;
+    font-size: 12px;
+    line-height: 1;
+    // The label reads as one unit with its arrow; wrapping it mid-phrase to
+    // fit a narrow row would look broken.
+    white-space: nowrap;
+}
+
+// Mobile/tablet accordion panel holding the inline chart for the currently
+// expanded row. Hidden on wider viewports, where the persistent sidecar
+// (.all-charts-block__right) is used instead.
+.all-charts-block__row-accordion {
+    display: none;
+    // Lined up with the row text above it rather than inset by a round 16px all
+    // round: the text starts 16px in from the row's left edge (a 3px accent
+    // border plus 13px of padding) and stops 13px short of its right edge, so
+    // the chart takes the same two insets and its card sits directly under the
+    // title.
+    padding: 16px 13px 16px 16px;
+    background-color: $blue-5;
+    border-top: 1px solid $gray-20;
+
+    @include md-down {
+        display: block;
+    }
+
+    figure[data-grapher-src]:not(.grapherPreview),
+    figure.grapher-component:not(.grapherPreview) {
+        height: $grapher-height;
+        // A <figure> is one of the few elements browsers give a horizontal
+        // margin of their own: `margin: 1em 40px`. Nothing here overrode it —
+        // the site's own reset for grapher figures only applies inside
+        // `.article-content`, and this block is in a gdoc's
+        // `.centered-article-container` — so the chart was rendering 80px
+        // narrower than the space it had, centred by the leftover margin. On a
+        // phone that is 80px out of ~340: the card sat well inside the row text
+        // on both sides. Grapher measures this figure to size itself, so
+        // clearing the margin and filling the width is what actually makes the
+        // chart bigger rather than just moving it.
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+    }
+}
+
+// `full-width-on-mobile`, which every GrapherWithFallback carries, pulls the
+// chart 8px past its container on each side. That is meant for a chart in the
+// article body, where those 8px are half the page gutter and the effect is a
+// chart bleeding to the screen edge; inside a row it just puts the chart card 8px
+// outside the row text on either side.
+//
+// Written with the block class in front, and so with three classes, purely to
+// outweigh the `html:not(.IsInIframe) .full-width-on-mobile` that sets those
+// margins (site/gdocs/components/Chart.scss): two classes lose to it and the
+// margins survive.
+.all-charts-block .all-charts-block__row-accordion .all-charts-block__grapher {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+// Holds the "Show all N indicators" control that reveals the rest of the topic's
+// chart list, directly below the last rendered row and inside the list pane (so
+// it scrolls up past the sticky search bar with the rows, and the chart sidecar
+// beside it is unaffected). Centred under the list rather than aligned to the
+// rows' 16px text inset: it acts on the whole list, not on a row.
+//
+// No border of its own — the last row's own bottom border
+// (.all-charts-block__row) already closes the list off above it.
+.all-charts-block__reveal {
+    display: flex;
+    justify-content: center;
+    padding-top: 16px;
+    // Matches the rows' horizontal inset (3px accent border + 13px), so on a
+    // phone the button has the same margin from the pane edge as the row text
+    // above it rather than sitting flush against it.
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+// The label carries a real count ("Show all 196 indicators"), which is wider
+// than a bare "Show more" — on the narrowest phones let it wrap inside the
+// button instead of overflowing the pane.
+.all-charts-block__reveal-button {
+    max-width: 100%;
+}
+
+.all-charts-block__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 48px 16px;
+    gap: 12px;
+}
+
+.all-charts-block__empty-heading {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: $text-color;
+}
+
+.all-charts-block__empty-text {
+    margin: 0;
+    color: $gray-70;
+}
