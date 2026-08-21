@@ -8,7 +8,6 @@ import { Env } from "../../_common/env.js"
 import {
     createEmailToken,
     escapeHtml,
-    handleHtmlError,
     handleJsonError,
     handleOptionsRequest,
     makeHtmlResponse,
@@ -30,34 +29,27 @@ const REQUEST_LINK_PATH = "/api/email-notifications/request-link"
  * requires proving control of the inbox right now via the short-lived link.
  */
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
-    try {
-        const db = env.EMAIL_NOTIFICATIONS_DB
-        const token = new URL(request.url).searchParams.get("token")
-        if (!token || !db) return invalidLinkResponse()
+    const db = env.EMAIL_NOTIFICATIONS_DB
+    const token = new URL(request.url).searchParams.get("token")
+    if (!token || !db) return invalidLinkResponse()
 
-        const user = await db
-            .prepare(`SELECT email FROM users WHERE token = ?1`)
-            .bind(token)
-            .first<{ email: string }>()
-        if (!user) return invalidLinkResponse()
+    const user = await db
+        .prepare(`SELECT email FROM users WHERE token = ?1`)
+        .bind(token)
+        .first<{ email: string }>()
+    if (!user) return invalidLinkResponse()
 
-        return makeHtmlResponse(
-            renderActionPage({
-                title: "Update your preferences",
-                message: `To keep your subscription secure, we'll email a sign-in link to ${escapeHtml(user.email)}. The link is valid for 30 minutes.`,
-                button: {
-                    label: "Email me a link",
-                    action: REQUEST_LINK_PATH,
-                    token,
-                },
-            })
-        )
-    } catch (error) {
-        return handleHtmlError(
-            error,
-            "We couldn't process your request. Please try again later."
-        )
-    }
+    return makeHtmlResponse(
+        renderActionPage({
+            title: "Update your preferences",
+            message: `To keep your subscription secure, we'll email a sign-in link to ${escapeHtml(user.email)}. The link is valid for 30 minutes.`,
+            button: {
+                label: "Email me a link",
+                action: REQUEST_LINK_PATH,
+                token,
+            },
+        })
+    )
 }
 
 /**
@@ -104,7 +96,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             const formData = await request.formData().catch(() => null)
             const formToken = formData?.get("token")
             if (typeof formToken !== "string" || !formToken) {
-                throw new JsonError("Missing token", 400)
+                return invalidLinkResponse()
             }
             token = formToken
         }
@@ -137,10 +129,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         )
     } catch (error) {
         if (isJson) return handleJsonError(error)
-        return handleHtmlError(
-            error,
-            "We couldn't send the link. Please try again later."
-        )
+        throw error
     }
 }
 

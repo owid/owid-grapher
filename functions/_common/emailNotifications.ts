@@ -347,15 +347,6 @@ export function handleJsonError(error: unknown): Response {
     )
 }
 
-/** Catch-block handler for HTML endpoints: report to Sentry, answer generically. */
-export function handleHtmlError(error: unknown, message: string): Response {
-    if (!isExpectedClientError(error)) Sentry.captureException(error)
-    return makeHtmlResponse(
-        renderMessagePage({ title: "Something went wrong", message }),
-        500
-    )
-}
-
 /**
  * Unsubscribe the user identified by the given token. Returns the user's
  * email, or null if no user matches the token.
