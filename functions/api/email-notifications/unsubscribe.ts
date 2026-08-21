@@ -1,7 +1,6 @@
 import { Env } from "../../_common/env.js"
 import {
     escapeHtml,
-    handleHtmlError,
     makeHtmlResponse,
     renderActionPage,
     renderMessagePage,
@@ -17,37 +16,30 @@ const UNSUBSCRIBE_PATH = "/api/email-notifications/unsubscribe"
  * silently unsubscribe real users.
  */
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
-    try {
-        const db = env.EMAIL_NOTIFICATIONS_DB
-        const token = new URL(request.url).searchParams.get("token")
-        if (!token || !db) return invalidLinkResponse()
+    const db = env.EMAIL_NOTIFICATIONS_DB
+    const token = new URL(request.url).searchParams.get("token")
+    if (!token || !db) return invalidLinkResponse()
 
-        const user = await db
-            .prepare(`SELECT email, status FROM users WHERE token = ?1`)
-            .bind(token)
-            .first<{ email: string; status: string }>()
-        if (!user) return invalidLinkResponse()
-        if (user.status === "unsubscribed") {
-            return alreadyUnsubscribedResponse(user.email)
-        }
-
-        return makeHtmlResponse(
-            renderActionPage({
-                title: "Unsubscribe from Our World in Data updates",
-                message: `Click below to stop receiving email notifications at ${escapeHtml(user.email)}.`,
-                button: {
-                    label: "Unsubscribe",
-                    action: UNSUBSCRIBE_PATH,
-                    token,
-                },
-            })
-        )
-    } catch (error) {
-        return handleHtmlError(
-            error,
-            "We couldn't unsubscribe you. Please try again later."
-        )
+    const user = await db
+        .prepare(`SELECT email, status FROM users WHERE token = ?1`)
+        .bind(token)
+        .first<{ email: string; status: string }>()
+    if (!user) return invalidLinkResponse()
+    if (user.status === "unsubscribed") {
+        return alreadyUnsubscribedResponse(user.email)
     }
+
+    return makeHtmlResponse(
+        renderActionPage({
+            title: "Unsubscribe from Our World in Data updates",
+            message: `Click below to stop receiving email notifications at ${escapeHtml(user.email)}.`,
+            button: {
+                label: "Unsubscribe",
+                action: UNSUBSCRIBE_PATH,
+                token,
+            },
+        })
+    )
 }
 
 /**
@@ -58,30 +50,23 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
  * form body or the query string.
  */
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
-    try {
-        const db = env.EMAIL_NOTIFICATIONS_DB
-        const formData = await request.formData().catch(() => null)
-        const formToken = formData?.get("token")
-        const token =
-            (typeof formToken === "string" && formToken) ||
-            new URL(request.url).searchParams.get("token")
-        if (!token || !db) return invalidLinkResponse()
+    const db = env.EMAIL_NOTIFICATIONS_DB
+    const formData = await request.formData().catch(() => null)
+    const formToken = formData?.get("token")
+    const token =
+        (typeof formToken === "string" && formToken) ||
+        new URL(request.url).searchParams.get("token")
+    if (!token || !db) return invalidLinkResponse()
 
-        const email = await unsubscribeUserByToken(db, token)
-        if (!email) return invalidLinkResponse()
+    const email = await unsubscribeUserByToken(db, token)
+    if (!email) return invalidLinkResponse()
 
-        return makeHtmlResponse(
-            renderMessagePage({
-                title: "You've been unsubscribed",
-                message: `${escapeHtml(email)} won't receive any more email notifications from us. You can re-subscribe at any time at https://ourworldindata.org/subscribe.`,
-            })
-        )
-    } catch (error) {
-        return handleHtmlError(
-            error,
-            "We couldn't unsubscribe you. Please try again later."
-        )
-    }
+    return makeHtmlResponse(
+        renderMessagePage({
+            title: "You've been unsubscribed",
+            message: `${escapeHtml(email)} won't receive any more email notifications from us. You can re-subscribe at any time at https://ourworldindata.org/subscribe.`,
+        })
+    )
 }
 
 function alreadyUnsubscribedResponse(email: string): Response {
