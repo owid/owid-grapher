@@ -1,10 +1,9 @@
-import { useCallback, useState } from "react"
+import { useState } from "react"
 import {
     EMAIL_NOTIFICATIONS_CONTENT_TYPES,
     EmailNotificationsContentType,
     EmailNotificationsFrequency,
     EmailNotificationsPreferences,
-    TagGraphRoot,
 } from "@ourworldindata/types"
 import { EmailNotificationsPreferenceFieldsProps } from "./EmailNotificationsPreferenceFields.js"
 import {
@@ -34,8 +33,6 @@ function toggleInArray<T>(items: T[], item: T): T[] {
 interface NotificationPreferencesState {
     /** Spread onto <EmailNotificationsPreferenceFields>. */
     fieldsProps: EmailNotificationsPreferenceFieldsProps
-    /** Prefill from preferences loaded over the API. */
-    setFromStorage: (preferences: EmailNotificationsPreferences) => void
     /** The shape the API stores, with "all topics" collapsed to []. */
     forStorage: () => EmailNotificationsPreferences
     /** Records per-field errors and returns whether the selection is valid. */
@@ -46,40 +43,33 @@ interface NotificationPreferencesState {
 /**
  * The preference state shared by the subscribe form and the magic-link
  * preferences form: both edit the same fields, from the same defaults, through
- * the same <EmailNotificationsPreferenceFields>.
+ * the same <EmailNotificationsPreferenceFields>. The preferences form passes
+ * the stored preferences to prefill from.
  */
 export function useNotificationPreferences(
-    topicTagGraph: TagGraphRoot
+    topicAreaNames: string[],
+    initialPreferences?: EmailNotificationsPreferences | null
 ): NotificationPreferencesState {
     // Every pill starts selected, which is how the empty-means-all-topics
     // storage shape presents itself.
     const [topicTags, setTopicTags] = useState<string[]>(() =>
-        topicTagsFromStorage([], topicTagGraph)
+        topicTagsFromStorage(
+            initialPreferences?.topicTags ?? [],
+            topicAreaNames
+        )
     )
     const [contentTypes, setContentTypes] = useState<
         EmailNotificationsContentType[]
-    >(DEFAULT_CONTENT_TYPES)
-    const [frequency, setFrequency] =
-        useState<EmailNotificationsFrequency>(DEFAULT_FREQUENCY)
+    >(() => [...(initialPreferences?.contentTypes ?? DEFAULT_CONTENT_TYPES)])
+    const [frequency, setFrequency] = useState<EmailNotificationsFrequency>(
+        initialPreferences?.frequency ?? DEFAULT_FREQUENCY
+    )
     const [validationErrors, setValidationErrors] =
         useState<PreferencesValidationErrors | null>(null)
 
-    // Stable identity: the preferences form prefills from inside an effect, so
-    // an inline function here would re-fire it on every render.
-    const setFromStorage = useCallback(
-        (preferences: EmailNotificationsPreferences) => {
-            setTopicTags(
-                topicTagsFromStorage(preferences.topicTags, topicTagGraph)
-            )
-            setContentTypes([...preferences.contentTypes])
-            setFrequency(preferences.frequency)
-        },
-        [topicTagGraph]
-    )
-
     return {
         fieldsProps: {
-            topicTagGraph,
+            topicAreaNames,
             topicTags,
             contentTypes,
             frequency,
@@ -92,9 +82,8 @@ export function useNotificationPreferences(
             onSetFrequency: setFrequency,
             validationErrors,
         },
-        setFromStorage,
         forStorage: () => ({
-            topicTags: topicTagsForStorage(topicTags, topicTagGraph),
+            topicTags: topicTagsForStorage(topicTags, topicAreaNames),
             contentTypes,
             frequency,
         }),

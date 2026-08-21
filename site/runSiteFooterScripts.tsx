@@ -70,38 +70,37 @@ function runSearchPage() {
 function hydrateSubscribePage() {
     // The whole <main> is hydrated, not just the form: submitting it replaces
     // the hero and aside with the confirmation screen.
-    const subscribePageRoot = document.getElementById(SUBSCRIBE_PAGE_ROOT_ID)
-    const topicTagGraph = window._OWID_TOPIC_TAG_GRAPH
+    const root = document.getElementById(SUBSCRIBE_PAGE_ROOT_ID)
+    const topicAreaNames = window._OWID_TOPIC_AREA_NAMES
+    if (root && topicAreaNames) {
+        hydrateRoot(root, <SubscribeFlow topicAreaNames={topicAreaNames} />)
+    }
+}
 
-    if (subscribePageRoot && topicTagGraph) {
-        hydrateRoot(
-            subscribePageRoot,
-            <SubscribeFlow topicTagGraph={topicTagGraph} />
+function renderEmailNotificationsPreferencesPage() {
+    // The page bakes an empty <main>: every screen is client-driven (the mode
+    // depends on the token in the URL fragment), so it is rendered rather than
+    // hydrated.
+    const root = document.getElementById(PREFERENCES_PAGE_ROOT_ID)
+    const topicAreaNames = window._OWID_TOPIC_AREA_NAMES
+    if (root && topicAreaNames) {
+        createRoot(root).render(
+            <EmailNotificationsPreferencesForm
+                topicAreaNames={topicAreaNames}
+            />
         )
     }
+}
 
-    // The magic-link preferences page bakes an empty <main>: every screen is
-    // client-driven (the mode depends on the token in the URL fragment), so it
-    // is rendered rather than hydrated.
-    const preferencesPageRoot = document.getElementById(
-        PREFERENCES_PAGE_ROOT_ID
-    )
-
-    if (preferencesPageRoot && topicTagGraph) {
-        createRoot(preferencesPageRoot).render(
-            <EmailNotificationsPreferencesForm topicTagGraph={topicTagGraph} />
-        )
-    }
-
-    // Baked instead of the new form when the EmailNotifications feature flag
-    // is off.
-    const oldFormContainer = document.getElementById(
+// Baked instead of the new form when the EmailNotifications feature flag is
+// off.
+function hydrateOldSubscribePage() {
+    const container = document.getElementById(
         OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID
     )
-
-    if (oldFormContainer) {
+    if (container) {
         hydrateRoot(
-            oldFormContainer,
+            container,
             <NewsletterSubscriptionForm
                 context={NewsletterSubscriptionContext.SubscribePage}
             />
@@ -428,6 +427,8 @@ export const runSiteFooterScripts = async (
         // falls through
         case SiteFooterContext.subscribePage:
             hydrateSubscribePage()
+            renderEmailNotificationsPreferencesPage()
+            hydrateOldSubscribePage()
         // falls through
         default:
             // Features that were not ported over to gdocs, are only being run on WP pages:
