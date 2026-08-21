@@ -322,8 +322,8 @@ const JSON_HEADERS = {
     "Content-Type": "application/json",
 }
 
-/** Preflight handler, re-exported by every JSON endpoint. */
-export const onRequestOptions: PagesFunction = async () => {
+/** Preflight handler; every JSON endpoint exports it as `onRequestOptions`. */
+export const handleOptionsRequest: PagesFunction = async () => {
     return new Response(null, { headers: CORS_HEADERS, status: 200 })
 }
 
