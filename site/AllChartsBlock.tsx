@@ -232,7 +232,7 @@ export const AllChartsBlock = ({
     const vocabularyChips = useMemo(
         () =>
             rankSuggestedKeywords(
-                vocabulary?.[topicName] ?? [],
+                vocabulary?.[topicName],
                 baseHits ?? [],
                 topicName
             ),

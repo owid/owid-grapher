@@ -10,10 +10,22 @@ import {
 interface PublishedTopicVocabularyEntry {
     topic_name?: string
     keywords?: string[]
+    stats?: { refined?: boolean }
 }
 
-/** Topic name → the vocabulary's search terms for that topic. */
-export type TopicVocabulary = Record<string, string[]>
+export interface TopicVocabularyEntry {
+    keywords: string[]
+    /**
+     * Whether the generator checked each term against the site's search and
+     * re-picked the list from what came back, rather than proposing it from
+     * chart text alone. When it did, its ordering is better informed than
+     * anything this file can work out — see rankSuggestedKeywords.
+     */
+    refined: boolean
+}
+
+/** Topic name → the vocabulary's entry for that topic. */
+export type TopicVocabulary = Record<string, TopicVocabularyEntry>
 
 export const topicVocabularyQueryKey = (url: string): [string, string] => [
     "topicVocabulary",
@@ -38,15 +50,19 @@ export function indexTopicVocabularyByName(data: unknown): TopicVocabulary {
     if (typeof data !== "object" || data === null) return {}
 
     const vocabulary: TopicVocabulary = {}
-    for (const entry of Object.values(data)) {
+    for (const entry_ of Object.values(data)) {
         const { topic_name: topicName, keywords } =
-            (entry as PublishedTopicVocabularyEntry) ?? {}
+            (entry_ as PublishedTopicVocabularyEntry) ?? {}
         if (typeof topicName !== "string" || !topicName) continue
         if (!Array.isArray(keywords)) continue
-        vocabulary[topicName] = keywords.filter(
-            (keyword): keyword is string =>
-                typeof keyword === "string" && keyword.length > 0
-        )
+        const entry = entry_ as PublishedTopicVocabularyEntry
+        vocabulary[topicName] = {
+            keywords: keywords.filter(
+                (keyword): keyword is string =>
+                    typeof keyword === "string" && keyword.length > 0
+            ),
+            refined: entry.stats?.refined === true,
+        }
     }
     return vocabulary
 }
@@ -142,27 +158,44 @@ function isPlaceName(name: string): boolean {
  * substring test here does, so "found nowhere" means unproven, while "reaches
  * only what's already covered" is a duplicate for certain.
  *
- * Comes back empty while either the baseline chart list or the vocabulary is
- * still in flight (the caller then renders no "Suggested:" line at all) rather
- * than showing an unranked guess that would visibly reshuffle a moment later.
+ * None of this applies to a vocabulary the generator has already refined
+ * against the search API: its ordering is better informed than anything
+ * measurable here, so it is taken as given. See the note in the body.
+ *
+ * Comes back empty until the vocabulary arrives, and — for an unrefined
+ * vocabulary only — until the baseline chart list does too, rather than showing
+ * an unranked guess that would visibly reshuffle a moment later.
  */
 export function rankSuggestedKeywords(
-    vocabularyKeywords: string[],
+    entry: TopicVocabularyEntry | undefined,
     hits: SearchChartHit[],
     topicName: string
 ): string[] {
-    if (hits.length === 0) return []
-
     const lowerCaseTopicName = topicName.toLowerCase()
-    const candidates = vocabularyKeywords
-        .slice(0, MAX_VOCABULARY_CANDIDATES)
-        .filter((keyword) => {
-            // A term the topic's own name already contains ("population" on
-            // "Population Growth") narrows nothing down.
-            if (lowerCaseTopicName.includes(keyword.toLowerCase())) return false
-            return !isPlaceName(keyword)
-        })
-    if (candidates.length === 0) return []
+    const offerable = (entry?.keywords ?? []).filter((keyword) => {
+        // A term the topic's own name already contains ("population" on
+        // "Population Growth") narrows nothing down.
+        if (lowerCaseTopicName.includes(keyword.toLowerCase())) return false
+        return !isPlaceName(keyword)
+    })
+    if (offerable.length === 0) return []
+
+    // A refined vocabulary has already been through this exercise with better
+    // evidence: its generator asked the search API what each term actually
+    // returns and re-picked the list from the answers, so its order encodes
+    // real destinations rather than the substring guess below. Second-guessing
+    // it makes the line worse — running the guess over one refined vocabulary
+    // rewrote 115 of 125 topics, dropping "indoor air pollution" and "clean
+    // cooking" from Air Pollution because a chart matching "outdoor air
+    // pollution" contains them as substrings too, when the search shows they
+    // lead somewhere else entirely.
+    //
+    // It also means the line stops waiting on the chart list, since nothing
+    // about the order depends on it any more.
+    if (entry?.refined) return offerable.slice(0, MAX_SUGGESTED_CHIPS)
+
+    if (hits.length === 0) return []
+    const candidates = offerable.slice(0, MAX_VOCABULARY_CANDIDATES)
 
     const chartTexts = hits.map((hit) =>
         [hit.title, hit.subtitle].filter(Boolean).join(" ").toLowerCase()
