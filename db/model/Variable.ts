@@ -32,6 +32,7 @@ import {
     DbEnrichedVariable,
     DbPlainChart,
     DbPlainMultiDimXChartConfig,
+    MultiDimXChartConfigsTableName,
     Distribution,
     DatasetOwners,
     DbPlainDataset,
@@ -39,6 +40,10 @@ import {
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 import { insertChartConfig, updateChartConfig } from "./ChartConfigs.js"
+import {
+    buildMdimViewPatchConfig,
+    getMultiDimDataPageById,
+} from "./MultiDimDataPage.js"
 
 interface IndicatorChartConfigRecord {
     variableId: DbEnrichedVariable["id"]
@@ -260,28 +265,33 @@ async function findAllMultiDimViewsThatInheritFromIndicator(
         isPublished: boolean
     }[]
 > {
-    const charts = await db.knexRaw<{
-        chartConfigId: DbPlainMultiDimXChartConfig["chartConfigId"]
-        patchConfig: DbRawChartConfig["config"]
-        isPublished: boolean
-    }>(
-        trx,
-        `-- sql
-            SELECT
-                mdxcc.chartConfigId as chartConfigId,
-                cc.config as patchConfig,
-                md.published as isPublished
-            FROM multi_dim_data_pages md
-                JOIN multi_dim_x_chart_configs mdxcc ON mdxcc.multiDimId = md.id
-                JOIN chart_configs cc ON cc.id = mdxcc.patchConfigId
-            WHERE mdxcc.variableId = ?
-        `,
-        [variableId]
+    const rows = await trx<DbPlainMultiDimXChartConfig>(
+        MultiDimXChartConfigsTableName
     )
-    return charts.map((chart) => ({
-        ...chart,
-        patchConfig: parseChartConfig(chart.patchConfig),
-    }))
+        .select("multiDimId", "chartConfigId")
+        .where({ variableId })
+    const multiDimIds = _.uniq(rows.map((row) => row.multiDimId))
+    const chartConfigIds = new Set(rows.map((row) => row.chartConfigId))
+
+    const inheritingViews = []
+    for (const multiDimId of multiDimIds) {
+        const multiDim = await getMultiDimDataPageById(trx, multiDimId)
+        if (!multiDim) continue
+        const isPublished = Boolean(multiDim.published)
+        for (const view of multiDim.config.views) {
+            if (!chartConfigIds.has(view.fullConfigId)) continue
+            inheritingViews.push({
+                chartConfigId: view.fullConfigId,
+                isPublished,
+                patchConfig: buildMdimViewPatchConfig(
+                    multiDim.config,
+                    view,
+                    isPublished
+                ),
+            })
+        }
+    }
+    return inheritingViews
 }
 
 export async function updateAllMultiDimViewsThatInheritFromIndicator(
@@ -306,17 +316,11 @@ export async function updateAllMultiDimViewsThatInheritFromIndicator(
             patchConfigETL ?? {},
             view.patchConfig
         )
-        await db.knexRaw(
-            trx,
-            `-- sql
-                UPDATE chart_configs
-                SET
-                    config = ?,
-                    updatedAt = ?
-                WHERE id = ?
-            `,
-            [JSON.stringify(fullConfig), updatedAt, view.chartConfigId]
-        )
+        await updateChartConfig(trx, {
+            configId: view.chartConfigId,
+            config: fullConfig,
+            updatedAt,
+        })
     }
 
     // let the caller know if any views were updated

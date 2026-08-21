@@ -100,8 +100,7 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         await upsertMultiDim([totalView, perCapitaView])
 
         expect(await env.getCount(MultiDimXChartConfigsTableName)).toBe(2)
-        // two config rows per view: the resolved one and its authored layer
-        expect(await env.getCount(ChartConfigsTableName)).toBe(4)
+        expect(await env.getCount(ChartConfigsTableName)).toBe(2)
         expect(await env.getCount(MultiDimViewDimensionsTableName)).toBe(2)
 
         const viewConfigIds = await getViewConfigIds()
@@ -115,6 +114,45 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         expect(config.dimensions).toEqual([{ property: "y", variableId }])
     })
 
+    it("migrates view configs to the latest schema version", async () => {
+        const outdatedView = {
+            ...totalView,
+            config: {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+                ...totalView.config,
+                // hideLegend was renamed to hideSeriesLabels in version 010
+                hideLegend: true,
+            } as GrapherInterface,
+        }
+        await upsertMultiDim([outdatedView])
+
+        const viewConfigIds = await getViewConfigIds()
+        const config = await getConfig(viewConfigIds["metric=total"])
+        expect(config.$schema).toBe(latestGrapherConfigSchema)
+        expect(config.hideSeriesLabels).toBe(true)
+        expect(config).not.toHaveProperty("hideLegend")
+    })
+
+    it("rejects a view config that declares no schema version", async () => {
+        const { grapherConfigSchema: _omitted, ...configWithoutSchema } =
+            multiDimConfig([totalView]) as { grapherConfigSchema: string }
+        const response = await fetch(
+            `${env.baseUrl}/multi-dims/${encodeURIComponent(catalogPath)}`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${env.apiKey}`,
+                },
+                body: JSON.stringify({ config: configWithoutSchema }),
+            }
+        )
+
+        expect(response.status).toBe(400)
+        expect(await env.getCount(MultiDimDataPagesTableName)).toBe(0)
+    })
+
     it("drops the config row of a removed view and keeps the rest", async () => {
         await upsertMultiDim([totalView, perCapitaView])
         const before = await getViewConfigIds()
@@ -125,8 +163,7 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         expect(Object.keys(after)).toEqual(["metric=total"])
         // The surviving view keeps its config id, which is a public identity
         expect(after["metric=total"]).toBe(before["metric=total"])
-        // both of the removed view's config rows are gone
-        expect(await env.getCount(ChartConfigsTableName)).toBe(2)
+        expect(await env.getCount(ChartConfigsTableName)).toBe(1)
 
         // multi_dim_view_dimensions is an append-only log for analytics: its row
         // for the removed view deliberately outlives the config it names, so a

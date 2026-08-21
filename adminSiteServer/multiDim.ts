@@ -1,10 +1,6 @@
 import * as _ from "lodash-es"
 
 import {
-    defaultGrapherConfig,
-    migrateGrapherConfigToLatestVersionAndFailOnError,
-} from "@ourworldindata/grapher"
-import {
     ChartConfigsTableName,
     DbEnrichedMultiDimDataPage,
     DbPlainMultiDimDataPage,
@@ -25,13 +21,12 @@ import {
     R2GrapherConfigDirectory,
     View,
 } from "@ourworldindata/types"
-import {
-    mergeGrapherConfigs,
-    MultiDimDataPageConfig,
-    dimensionsToViewId,
-} from "@ourworldindata/utils"
+import { mergeGrapherConfigs, dimensionsToViewId } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
-import { upsertMultiDimDataPage } from "../db/model/MultiDimDataPage.js"
+import {
+    buildMdimViewPatchConfig,
+    upsertMultiDimDataPage,
+} from "../db/model/MultiDimDataPage.js"
 import { upsertMultiDimXChartConfigs } from "../db/model/MultiDimXChartConfigs.js"
 import {
     getIndicatorChartConfigs,
@@ -43,9 +38,8 @@ import {
     saveMultiDimConfigToR2,
 } from "../serverUtils/r2/chartConfigR2Helpers.js"
 import {
-    saveNewChartConfigPairInDbAndR2,
+    saveNewChartConfigInDbAndR2,
     updateChartConfigInDbAndR2,
-    updateChartConfigPairInDbAndR2,
 } from "./chartConfigHelpers.js"
 
 function catalogPathFromIndicatorEntry(
@@ -161,25 +155,17 @@ async function resolveMultiDimDataPageCatalogPathsToIndicatorIds(
 async function getViewIdToChartConfigIdMap(
     knex: db.KnexReadonlyTransaction,
     catalogPath: string
-) {
+): Promise<Map<string, string>> {
     const rows = await db.knexRaw<DbPlainMultiDimXChartConfig>(
         knex,
         `-- sql
-        SELECT viewId, chartConfigId, patchConfigId
+        SELECT viewId, chartConfigId
         FROM multi_dim_x_chart_configs mdxcc
         JOIN multi_dim_data_pages mddp ON mddp.id = mdxcc.multiDimId
         WHERE mddp.catalogPath = ?`,
         [catalogPath]
     )
-    return new Map(
-        rows.map((row) => [
-            row.viewId,
-            {
-                chartConfigId: row.chartConfigId,
-                patchConfigId: row.patchConfigId,
-            },
-        ])
-    )
+    return new Map(rows.map((row) => [row.viewId, row.chartConfigId]))
 }
 
 async function retrieveMultiDimConfigFromDbAndSaveToR2(
@@ -229,26 +215,16 @@ async function upsertMultiDimConfig(
 
 async function cleanUpOrphanedChartConfigs(
     knex: db.KnexReadWriteTransaction,
-    orphanedViews: { chartConfigId: string; patchConfigId: string }[]
+    orphanedChartConfigIds: string[]
 ) {
-    const chartConfigIds = orphanedViews.map((view) => view.chartConfigId)
-
     await knex<DbPlainMultiDimXChartConfig>(MultiDimXChartConfigsTableName)
-        .whereIn("chartConfigId", chartConfigIds)
+        .whereIn("chartConfigId", orphanedChartConfigIds)
         .delete()
 
     await knex<DbRawChartConfig>(ChartConfigsTableName)
-        .whereIn(
-            "id",
-            orphanedViews.flatMap((view) => [
-                view.chartConfigId,
-                view.patchConfigId,
-            ])
-        )
+        .whereIn("id", orphanedChartConfigIds)
         .delete()
-
-    // Only the resolved config was published
-    for (const id of chartConfigIds) {
+    for (const id of orphanedChartConfigIds) {
         await deleteGrapherConfigFromR2ByUUID(id)
     }
 }
@@ -262,6 +238,7 @@ export async function upsertMultiDim(
         knex,
         rawConfig
     )
+    validateViewConfigSchemas(config)
     const variableConfigs = await getIndicatorChartConfigs(
         knex,
         _.uniq(config.views.map((view) => view.indicators.y[0].id))
@@ -272,152 +249,106 @@ export async function upsertMultiDim(
         .select("published")
         .where({ catalogPath })
         .first()
-    const existingIsPublished = existingMultiDim?.published
+    const existingIsPublished = existingMultiDim
+        ? Boolean(existingMultiDim.published)
+        : undefined
     const existingViewIdsToChartConfigIds = await getViewIdToChartConfigIdMap(
         knex,
         catalogPath
     )
     const reusedChartConfigIds = new Set<string>()
-    const { grapherConfigSchema } = config
 
     const enrichedViews = await Promise.all(
         config.views.map(async (view) => {
-            const viewId = dimensionsToViewId(view.dimensions)
             const variableId = view.indicators.y[0].id
-            let viewGrapherConfig: GrapherInterface = {}
-            if (view.config) {
-                viewGrapherConfig = grapherConfigSchema
-                    ? { $schema: grapherConfigSchema, ...view.config }
-                    : view.config
-                if ("$schema" in viewGrapherConfig) {
-                    viewGrapherConfig =
-                        migrateGrapherConfigToLatestVersionAndFailOnError(
-                            viewGrapherConfig
-                        )
-                }
-            }
-            // Main config for each view. The collection-wide default selection
-            // applies only to views that don't define their own; a view-level
-            // selectedEntityNames sets that view's initial selection, while a
-            // reader's own selection still carries across views as before.
-            // https://github.com/owid/owid-grapher/issues/4928
-            const mainGrapherConfig: GrapherInterface = {
-                $schema: defaultGrapherConfig.$schema,
-                dimensions: MultiDimDataPageConfig.viewToDimensionsConfig(view),
-            }
-            if (viewGrapherConfig.selectedEntityNames === undefined) {
-                mainGrapherConfig.selectedEntityNames =
-                    config.defaultSelection ?? []
-            }
-            const patchGrapherConfig = mergeGrapherConfigs(
-                viewGrapherConfig,
-                mainGrapherConfig
+            const patchGrapherConfig = buildMdimViewPatchConfig(
+                config,
+                view,
+                existingIsPublished
             )
-            if (existingIsPublished !== undefined) {
-                patchGrapherConfig.isPublished = Boolean(existingIsPublished)
-            }
             const fullGrapherConfig = mergeGrapherConfigs(
                 variableConfigs.get(variableId) ?? {},
                 patchGrapherConfig
             )
-            const existing = existingViewIdsToChartConfigIds.get(viewId)
-            let chartConfigId: string
-            let patchConfigId: string
-            if (existing) {
-                chartConfigId = existing.chartConfigId
-                patchConfigId = existing.patchConfigId
-                await updateChartConfigPairInDbAndR2(knex, {
-                    configId: chartConfigId,
-                    patchConfigId,
-                    config: fullGrapherConfig,
-                    patchConfig: patchGrapherConfig,
-                })
+            const existingChartConfigId = existingViewIdsToChartConfigIds.get(
+                dimensionsToViewId(view.dimensions)
+            )
+            let chartConfigId
+            if (existingChartConfigId) {
+                chartConfigId = existingChartConfigId
+                await updateChartConfigInDbAndR2(
+                    knex,
+                    chartConfigId,
+                    fullGrapherConfig
+                )
                 reusedChartConfigIds.add(chartConfigId)
                 console.debug(`Chart config updated id=${chartConfigId}`)
             } else {
-                const ids = await saveNewChartConfigPairInDbAndR2(knex, {
-                    config: fullGrapherConfig,
-                    patchConfig: patchGrapherConfig,
-                })
-                chartConfigId = ids.chartConfigId
-                patchConfigId = ids.patchConfigId
+                const result = await saveNewChartConfigInDbAndR2(
+                    knex,
+                    fullGrapherConfig
+                )
+                chartConfigId = result.chartConfigId
                 await knex(MultiDimViewDimensionsTableName).insert({
                     chartConfigId,
                     dimensions: JSON.stringify(view.dimensions),
                 })
                 console.debug(`Chart config created id=${chartConfigId}`)
             }
-            return {
-                viewId,
-                patchConfigId,
-                view: { ...view, fullConfigId: chartConfigId },
-            }
+            return { ...view, fullConfigId: chartConfigId }
         })
     )
 
-    const orphanedViews = existingViewIdsToChartConfigIds
+    const orphanedChartConfigIds = existingViewIdsToChartConfigIds
         .values()
-        .filter((ids) => !reusedChartConfigIds.has(ids.chartConfigId))
+        .filter((chartConfigId) => !reusedChartConfigIds.has(chartConfigId))
         .toArray()
-    await cleanUpOrphanedChartConfigs(knex, orphanedViews)
+    await cleanUpOrphanedChartConfigs(knex, orphanedChartConfigIds)
 
-    const enrichedConfig = {
-        ...config,
-        views: enrichedViews.map(({ view }) => view),
-    }
+    const enrichedConfig = { ...config, views: enrichedViews }
     const multiDimId = await upsertMultiDimConfig(
         knex,
         catalogPath,
         enrichedConfig
     )
-    for (const { viewId, patchConfigId, view } of enrichedViews) {
+    for (const view of enrichedConfig.views) {
         await upsertMultiDimXChartConfigs(knex, {
             multiDimId,
-            viewId,
+            viewId: dimensionsToViewId(view.dimensions),
             variableId: view.indicators.y[0].id,
             chartConfigId: view.fullConfigId,
-            patchConfigId,
         })
     }
     return multiDimId
 }
 
-/** Both configs of the given views, keyed by the view's resolved id */
+/** Throws if any view config does not declare a schema version */
+function validateViewConfigSchemas(
+    config: MultiDimDataPageConfigPreProcessed
+): void {
+    if (config.grapherConfigSchema) return
+    const viewIds = config.views
+        .filter((view) => view.config && !view.config.$schema)
+        .map((view) => dimensionsToViewId(view.dimensions))
+    if (viewIds.length === 0) return
+
+    // Pages can have thousands of views, so only name the first few
+    const sample = viewIds.slice(0, 5).join(", ")
+    const more = viewIds.length > 5 ? `, and ${viewIds.length - 5} more` : ""
+    throw new JsonError(
+        `${viewIds.length} view config(s) declare no schema version (${sample}${more}). ` +
+            `Set $schema on each view config, or grapherConfigSchema on the multi-dim config.`
+    )
+}
+
 async function getViewChartConfigs(
     knex: db.KnexReadonlyTransaction,
-    chartConfigIds: string[]
-) {
-    const rows = await db.knexRaw<{
-        chartConfigId: string
-        patchConfigId: string | null
-        config: DbRawChartConfig["config"]
-        patchConfig: DbRawChartConfig["config"] | null
-    }>(
-        knex,
-        `-- sql
-        SELECT
-            cc.id AS chartConfigId,
-            mdxcc.patchConfigId,
-            cc.config,
-            cc_patch.config AS patchConfig
-        FROM chart_configs cc
-        LEFT JOIN multi_dim_x_chart_configs mdxcc ON mdxcc.chartConfigId = cc.id
-        LEFT JOIN chart_configs cc_patch ON cc_patch.id = mdxcc.patchConfigId
-        WHERE cc.id IN (?)`,
-        [chartConfigIds]
-    )
-    return new Map(
-        rows.map((row) => [
-            row.chartConfigId,
-            {
-                patchConfigId: row.patchConfigId,
-                config: parseChartConfig(row.config),
-                patchConfig: row.patchConfig
-                    ? parseChartConfig(row.patchConfig)
-                    : undefined,
-            },
-        ])
-    )
+    ids: string[]
+): Promise<Map<string, GrapherInterface>> {
+    const rows = await knex<DbRawChartConfig>(ChartConfigsTableName)
+        .select("id", "config")
+        .whereIn("id", ids)
+    return new Map(rows.map((row) => [row.id, parseChartConfig(row.config)]))
 }
 
 export async function setMultiDimPublished(
@@ -433,27 +364,15 @@ export async function setMultiDimPublished(
     await Promise.all(
         multiDim.config.views.map(async (view) => {
             const { fullConfigId: chartConfigId } = view
-            const viewConfig = viewConfigs.get(chartConfigId)
-            if (!viewConfig) {
+            const config = viewConfigs.get(chartConfigId)
+            if (!config) {
                 throw new JsonError(
                     `Chart config not found id=${chartConfigId}`,
                     404
                 )
             }
-            const { config, patchConfig, patchConfigId } = viewConfig
-
             config.isPublished = published
-            if (patchConfigId && patchConfig) {
-                patchConfig.isPublished = published
-                await updateChartConfigPairInDbAndR2(knex, {
-                    configId: chartConfigId,
-                    patchConfigId,
-                    config,
-                    patchConfig,
-                })
-            } else {
-                await updateChartConfigInDbAndR2(knex, chartConfigId, config)
-            }
+            await updateChartConfigInDbAndR2(knex, chartConfigId, config)
         })
     )
 
