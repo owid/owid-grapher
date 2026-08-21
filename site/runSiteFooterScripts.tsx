@@ -22,7 +22,7 @@ import { runDetailsOnDemand } from "./detailsOnDemand.js"
 import { hydrateCodeSnippets } from "@ourworldindata/components"
 import { hydrateDynamicCollectionPage } from "./collections/DynamicCollectionPageMain.js"
 import { LatestSearchWrapper } from "./latest/LatestSearchWrapper.js"
-import { runAllGraphersLoadedListener } from "./runAllGraphersLoadedListener.js"
+import { runGrapherLoadingTracker } from "./runGrapherLoadingTracker.js"
 import {
     __OWID_EXPLORER_INDEX_PAGE_PROPS,
     ExplorerIndex,
@@ -295,7 +295,7 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
     switch (context) {
         case SiteFooterContext.dataPageV2:
             hydrateDataPageV2Content({ isPreviewing })
-            // runAllGraphersLoadedListener()
+            // runGrapherLoadingTracker()
             runSiteNavigation({ isPreviewing })
             // runSiteTools()
             // runCookiePreferencesManager()
@@ -303,7 +303,7 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
             break
         case SiteFooterContext.multiDimDataPage:
             hydrateMultiDimDataPageContent(isPreviewing)
-            // runAllGraphersLoadedListener()
+            // runGrapherLoadingTracker()
             runSiteNavigation({ isPreviewing })
             // runSiteTools()
             // runCookiePreferencesManager()
@@ -312,14 +312,14 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
             runSiteNavigation({ isPreviewing })
-            // runAllGraphersLoadedListener()
+            // runGrapherLoadingTracker()
             // runSiteTools()
             // runCookiePreferencesManager()
             void runDetailsOnDemand()
             break
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
-            // runAllGraphersLoadedListener()
+            // runGrapherLoadingTracker()
             runSiteNavigation({ isPreviewing })
             runFootnotes()
             void runDetailsOnDemand()
@@ -346,7 +346,7 @@ export const runSiteFooterScripts = async (
         case SiteFooterContext.dataPageV2:
             hydrateDataPageV2Content({ isPreviewing })
             if (isPreviewing) mountPreviewCommentsOverlay()
-            runAllGraphersLoadedListener()
+            runGrapherLoadingTracker()
             runSiteNavigation({ hideDonationFlag, isPreviewing })
             runSiteTools()
             runCookiePreferencesManager()
@@ -356,7 +356,7 @@ export const runSiteFooterScripts = async (
         case SiteFooterContext.multiDimDataPage:
             hydrateMultiDimDataPageContent(isPreviewing)
             if (isPreviewing) mountPreviewCommentsOverlay()
-            runAllGraphersLoadedListener()
+            runGrapherLoadingTracker()
             runSiteNavigation({ hideDonationFlag, isPreviewing })
             runSiteTools()
             runCookiePreferencesManager()
@@ -367,7 +367,7 @@ export const runSiteFooterScripts = async (
         case SiteFooterContext.explorerPage:
             runSiteNavigation({ hideDonationFlag, isPreviewing })
             if (isPreviewing) mountPreviewCommentsOverlay()
-            runAllGraphersLoadedListener()
+            runGrapherLoadingTracker()
             runSiteTools()
             runCookiePreferencesManager()
             runUserSurveyWidget()
@@ -381,7 +381,7 @@ export const runSiteFooterScripts = async (
             break
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
-            runAllGraphersLoadedListener()
+            runGrapherLoadingTracker()
             runSiteNavigation({ hideDonationFlag, isPreviewing })
             runFootnotes()
             void runDetailsOnDemand()
@@ -415,7 +415,7 @@ export const runSiteFooterScripts = async (
             runSiteNavigation({ hideDonationFlag, isPreviewing })
             hydrateCodeSnippets()
             MultiEmbedderSingleton.embedAll(isPreviewing)
-            runAllGraphersLoadedListener()
+            runGrapherLoadingTracker()
             runFootnotes()
             runSiteTools()
             runCookiePreferencesManager()

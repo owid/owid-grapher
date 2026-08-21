@@ -29,7 +29,7 @@ export const GRAPHER_FOOTER_CLASS = "footer"
 export const DEFAULT_GRAPHER_ENTITY_TYPE = "country or region"
 export const DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL = "countries and regions"
 
-export const GRAPHER_LOADED_EVENT_NAME = "grapherLoaded"
+export const GRAPHER_LOADING_STATE_EVENT_NAME = "grapherLoadingStateChanged"
 
 export const DEFAULT_GRAPHER_WIDTH = 850
 export const DEFAULT_GRAPHER_HEIGHT = 600
@@ -133,11 +133,7 @@ export const ADDITIONAL_REGION_DATA_PROVIDERS = [
     "oecd",
     "unsd",
     "unm49",
-    // ILO entities are recognized by their "(ILO)" suffix here; the per-level region
-    // definitions live under the `ilo_1`/`ilo_2` RegionDataProviders (cf. unm49 vs un_m49_*).
     "ilo",
-    // IHME GBD entities are recognized by their "(IHME GBD)" suffix here; the per-level
-    // region definitions live under the `ihme_gbd_1`/`ihme_gbd_2` RegionDataProviders.
     "ihmegbd",
 ] as const
 

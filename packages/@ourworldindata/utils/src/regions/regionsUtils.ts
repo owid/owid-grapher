@@ -96,7 +96,8 @@ const PROVIDER_REGION_BACKFILLS: Partial<Record<RegionDataProvider, string[]>> =
         ilo_2: ["Arab States (ILO)"],
         // Australia and New Zealand is a fao_2 subregion but also an FAO SDG region; back-fill it into fao_sdg.
         fao_sdg: ["Australia and New Zealand (FAO)"],
-        // These two are both GBD super-regions and GBD regions; back-fill them into the regions tier.
+        // North Africa and Middle East and South Asia are GBD super-regions with no finer
+        // breakdown, so each is also an ihme_gbd_2 region; back-fill them into that tier.
         ihme_gbd_2: [
             "North Africa and Middle East (IHME GBD)",
             "South Asia (IHME GBD)",
