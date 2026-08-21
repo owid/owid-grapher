@@ -35,7 +35,7 @@ import {
     getEntityQueryStr,
     extractFiltersFromQuery,
     pickEntitiesForChartHit,
-    filterChartHitsByPhrase,
+    filterChartHitsByQueryWords,
     removeMatchedWordsWithStopWords,
     splitIntoWords,
     sortHitsByBaselineOrder,
@@ -262,18 +262,18 @@ export const AllChartsBlock = ({
     // read as new rows and land at the bottom of the list — the top of the
     // list appearing to empty out. See getChartHitIdentity.
     //
-    // The rows are also narrowed to the ones whose own text contains the typed
-    // phrase, which is a "find" within the topic rather than a relevance search:
+    // The rows are also narrowed to the ones whose own text contains every word
+    // typed, which is a "find" within the topic rather than a relevance search:
     // Algolia requires every word of the query to appear *somewhere* in a
     // record, but each word may come from a different searchable attribute (tags,
-    // producers, entity names, the slug) and may be a typo away from what was
-    // typed, so "national poverty line" came back with 34 charts on the Poverty
-    // topic — including "Mean income or consumption per day", which contains
-    // none of the three words. See filterChartHitsByPhrase for the mechanism and
-    // for why the narrowing happens here rather than in the query.
+    // producers, entity names, the slug) and may be a typo or a synonym away from
+    // what was typed, so "national poverty line" came back with 34 charts on the
+    // Poverty topic — including "Mean income or consumption per day", which
+    // contains none of the three words. See filterChartHitsByQueryWords for the
+    // mechanism and for why the narrowing happens here rather than in the query.
     const isBaselinePending = !baseHits && !isBaseError
     const hits = useMemo(() => {
-        const rawHits = filterChartHitsByPhrase(data ?? [], searchPhrase)
+        const rawHits = filterChartHitsByQueryWords(data ?? [], searchPhrase)
         // No baseline and none coming: with nothing to pin the order to, fall
         // back to Algolia's order rather than blanking the block for good. No
         // later reshuffle can follow, since no baseline will arrive.

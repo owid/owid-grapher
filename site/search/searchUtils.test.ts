@@ -13,8 +13,8 @@ import {
     getChartHitIdentity,
     getVisibleChartHits,
     hasHiddenChartHits,
-    filterChartHitsByPhrase,
-    textContainsPhrase,
+    filterChartHitsByQueryWords,
+    textContainsAllQueryWords,
     ALL_CHARTS_INITIAL_ROW_COUNT,
 } from "./searchUtils"
 
@@ -1161,7 +1161,7 @@ describe(resolveSelectedChartIndex, () => {
     })
 })
 
-describe(filterChartHitsByPhrase, () => {
+describe(filterChartHitsByQueryWords, () => {
     // The rows the Poverty topic returned for "national poverty line", with the
     // text each row actually shows. The first four are the charts the search is
     // asking for; the rest are what Algolia added because each word of the query
@@ -1212,7 +1212,7 @@ describe(filterChartHitsByPhrase, () => {
 
     it("keeps only the rows whose own text contains the whole phrase", () => {
         expect(
-            filterChartHitsByPhrase(povertyHits, "national poverty line")
+            filterChartHitsByQueryWords(povertyHits, "national poverty line")
         ).toEqual([nationalPovertyLine, nationalPovertyLinesPlural])
     })
 
@@ -1220,7 +1220,7 @@ describe(filterChartHitsByPhrase, () => {
         // "national poverty lines" is the most relevant chart of all for this
         // search, and Algolia's own "exactPhrase" operator drops it.
         expect(
-            filterChartHitsByPhrase(
+            filterChartHitsByQueryWords(
                 [nationalPovertyLinesPlural],
                 "national poverty line"
             )
@@ -1231,44 +1231,53 @@ describe(filterChartHitsByPhrase, () => {
         // "International Poverty Line" contains "national poverty line" as a
         // substring, but "international" is not the word that was typed.
         expect(
-            filterChartHitsByPhrase([extremePoverty], "national poverty line")
+            filterChartHitsByQueryWords(
+                [extremePoverty],
+                "national poverty line"
+            )
         ).toEqual([])
         // Whereas the phrase the row does show is found.
         expect(
-            filterChartHitsByPhrase(
+            filterChartHitsByQueryWords(
                 [extremePoverty],
                 "international poverty line"
             )
         ).toEqual([extremePoverty])
     })
 
-    it("requires the words to be adjacent, not merely all present", () => {
+    it("never gathers a query's words from more than one of a row's fields", () => {
         // Every word of the query appears on this row — across the title, the
-        // subtitle and the producer list — but never as the phrase.
+        // subtitle and the producer list — but no single one of them holds them
+        // all. That boundary, not word adjacency, is what keeps the noise out.
         expect(
-            filterChartHitsByPhrase(
+            filterChartHitsByQueryWords(
                 [meanIncome],
                 "united nations poverty platform"
             )
         ).toEqual([])
     })
 
-    it("never matches a phrase across two separate fields", () => {
-        // The title ends with "emissions" and the subtitle opens with "per
-        // capita", so the concatenation of the two contains "emissions per
-        // capita" although neither line does.
+    it("matches the words in any order, and with words in between", () => {
+        // Requiring adjacency rejected rows that plainly answer the query: this
+        // is the shape that made "clean cooking" find nothing on Air Pollution,
+        // whose charts all read "access to clean fuels *for* cooking".
         const methane = {
             slug: "per-capita-methane-emissions",
             title: "Per capita methane emissions",
-            subtitle: "Per capita methane emissions are measured in tonnes.",
+            subtitle: "Measured in tonnes.",
             datasetProducers: ["Climate Watch"],
         }
         expect(
-            filterChartHitsByPhrase([methane], "emissions per capita")
-        ).toEqual([])
-        expect(
-            filterChartHitsByPhrase([methane], "per capita methane")
+            filterChartHitsByQueryWords([methane], "emissions per capita")
         ).toEqual([methane])
+        expect(
+            filterChartHitsByQueryWords([methane], "methane capita")
+        ).toEqual([methane])
+        // …but the words still have to share a field: "emissions" is only in the
+        // title and "tonnes" only in the subtitle.
+        expect(
+            filterChartHitsByQueryWords([methane], "emissions tonnes")
+        ).toEqual([])
     })
 
     it("finds subscript digits typed as plain ones", () => {
@@ -1279,14 +1288,16 @@ describe(filterChartHitsByPhrase, () => {
             subtitle: "Carbon dioxide (CO₂) emissions from fossil fuels.",
             datasetProducers: ["Global Carbon Project"],
         }
-        expect(filterChartHitsByPhrase([co2], "co2 emissions")).toEqual([co2])
+        expect(filterChartHitsByQueryWords([co2], "co2 emissions")).toEqual([
+            co2,
+        ])
         expect(
-            filterChartHitsByPhrase([co2], "co₂ emissions per capita")
+            filterChartHitsByQueryWords([co2], "co₂ emissions per capita")
         ).toEqual([co2])
     })
 
     it("matches the source line as well as the title and subtitle", () => {
-        expect(filterChartHitsByPhrase(povertyHits, "world bank")).toEqual(
+        expect(filterChartHitsByQueryWords(povertyHits, "world bank")).toEqual(
             povertyHits
         )
     })
@@ -1300,7 +1311,7 @@ describe(filterChartHitsByPhrase, () => {
             "national poverty l",
             "national poverty line",
         ])
-            expect(filterChartHitsByPhrase(povertyHits, prefix)).toEqual([
+            expect(filterChartHitsByQueryWords(povertyHits, prefix)).toEqual([
                 nationalPovertyLine,
                 nationalPovertyLinesPlural,
             ])
@@ -1311,10 +1322,16 @@ describe(filterChartHitsByPhrase, () => {
         // empty, or consists only of a country name — which filters by the
         // entity facet instead, and must not additionally require the country's
         // name to be printed on the row.
-        expect(filterChartHitsByPhrase(povertyHits, "")).toEqual(povertyHits)
-        expect(filterChartHitsByPhrase(povertyHits, "   ")).toEqual(povertyHits)
+        expect(filterChartHitsByQueryWords(povertyHits, "")).toEqual(
+            povertyHits
+        )
+        expect(filterChartHitsByQueryWords(povertyHits, "   ")).toEqual(
+            povertyHits
+        )
         // Punctuation-only input normalises to no words at all.
-        expect(filterChartHitsByPhrase(povertyHits, "-")).toEqual(povertyHits)
+        expect(filterChartHitsByQueryWords(povertyHits, "-")).toEqual(
+            povertyHits
+        )
     })
 
     it("drops every hit for a misspelled phrase", () => {
@@ -1322,34 +1339,42 @@ describe(filterChartHitsByPhrase, () => {
         // the typo-matched hits, but none of them shows the typed phrase, so the
         // block falls through to its empty state ("Search all charts").
         expect(
-            filterChartHitsByPhrase(povertyHits, "national povery line")
+            filterChartHitsByQueryWords(povertyHits, "national povery line")
         ).toEqual([])
     })
 })
 
-describe(textContainsPhrase, () => {
+describe(textContainsAllQueryWords, () => {
     it("ignores case, punctuation and repeated whitespace", () => {
         expect(
-            textContainsPhrase(
+            textContainsAllQueryWords(
                 "Share of population living\nin poverty",
                 "IN POVERTY"
             )
         ).toBe(true)
         expect(
-            textContainsPhrase("Poverty: share of population", "poverty share")
+            textContainsAllQueryWords(
+                "Poverty: share of population",
+                "poverty share"
+            )
         ).toBe(true)
     })
 
     it("matches at the start and at the end of the text", () => {
-        expect(textContainsPhrase("Annual CO₂ emissions", "annual")).toBe(true)
         expect(
-            textContainsPhrase("Annual CO₂ emissions", "co2 emissions")
+            textContainsAllQueryWords("Annual CO₂ emissions", "annual")
+        ).toBe(true)
+        expect(
+            textContainsAllQueryWords("Annual CO₂ emissions", "co2 emissions")
         ).toBe(true)
     })
 
     it("returns false when the text runs out mid-phrase", () => {
         expect(
-            textContainsPhrase("Annual CO₂ emissions", "emissions by sector")
+            textContainsAllQueryWords(
+                "Annual CO₂ emissions",
+                "emissions by sector"
+            )
         ).toBe(false)
     })
 })
