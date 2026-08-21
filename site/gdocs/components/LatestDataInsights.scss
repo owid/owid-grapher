@@ -94,14 +94,14 @@ html:not(.js-enabled) .latest-data-insights__card,
     box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.08);
 }
 
-.latest-data-insights__card--see-all {
-    @include sm-up {
-        display: none;
-    }
-}
-
 .latest-data-insights__card__see-all {
     padding: 257px 0;
+}
+
+@include sm-up {
+    .latest-data-insights__card--see-all, .latest-data-insights__dot--see-all {
+        display: none;
+    }
 }
 
 // Sizing flex child picture elements is finnicky on Safari.
@@ -259,11 +259,5 @@ html:not(.js-enabled) .latest-data-insights__card,
         background-color: $blue-70;
         width: 12px;
         height: 12px;
-    }
-}
-
-.latest-data-insights__dot--see-all {
-    @include sm-up {
-        display: none;
     }
 }
