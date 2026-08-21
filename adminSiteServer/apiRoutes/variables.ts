@@ -26,6 +26,7 @@ import {
     updateAllChartsThatInheritFromIndicator,
     updateAllMultiDimViewsThatInheritFromIndicator,
     updateIndicatorChartConfig,
+    deleteIndicators,
 } from "../../db/model/Variable.js"
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
@@ -47,6 +48,7 @@ import {
 } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
+import * as z from "zod"
 
 export async function getEditorVariablesJson(
     req: Request,
@@ -429,4 +431,33 @@ async function updateGrapherConfigsInR2(
                 configMd5
             )
     }
+}
+
+const deleteVariablesSchema = z.object({
+    variableIds: z.array(z.number().int()),
+})
+
+/**
+ * Delete a set of indicators.
+ *
+ * An indicator a chart, a published explorer or a live multi-dim view still
+ * uses is never deleted; it comes back in `blocked` instead (but it doesn't
+ * fail the whole request).
+ */
+export async function postVariablesDelete(
+    req: Request,
+    _res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+) {
+    const parseResult = deleteVariablesSchema.safeParse(req.body)
+    if (!parseResult.success) {
+        throw new JsonError(`Invalid request: ${parseResult.error}`, 400)
+    }
+
+    const { deleted, blocked } = await deleteIndicators(
+        trx,
+        parseResult.data.variableIds
+    )
+
+    return { success: true, deleted, blocked }
 }

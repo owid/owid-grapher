@@ -122,6 +122,7 @@ import {
     getVariableJson,
     putIndicatorChartConfig,
     deleteIndicatorChartConfig,
+    postVariablesDelete,
 } from "./apiRoutes/variables.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import {
@@ -607,6 +608,7 @@ getRouteWithROTransaction(
     getVariableMetadataJson
 )
 getRouteWithROTransaction(apiRouter, "/variables.json", getVariablesJson)
+postRouteWithRWTransaction(apiRouter, "/variables/delete", postVariablesDelete)
 getRouteWithROTransaction(
     apiRouter,
     "/variables.usages.json",

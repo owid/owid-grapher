@@ -99,17 +99,7 @@ export function getAdminTestEnv(): TestEnv {
         serverKnex = knex(dbTestConfig)
         seededUserId = await seedBaselineData()
         // Ensure we start from a clean slate for non-user tables
-        await knexReadWriteTransaction(
-            async (trx) => {
-                const tables = TABLES_IN_USE.filter(
-                    (t) => t !== UsersTableName && t !== AdminApiKeysTableName
-                )
-                for (const table of tables)
-                    await trx.raw(`DELETE FROM ??`, [table])
-            },
-            TransactionCloseMode.KeepOpen,
-            testKnex
-        )
+        await resetDbButKeepBaselines()
         setKnexInstance(serverKnex)
 
         app = new OwidAdminApp({ isDev: true, isTest: true, quiet: true })

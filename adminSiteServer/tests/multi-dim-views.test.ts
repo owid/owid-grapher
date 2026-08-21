@@ -11,6 +11,8 @@ import {
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import {
+    catalogPath,
+    multiDimConfig,
     otherVariableId,
     seedDatasetAndVariables,
     variableId,
@@ -19,8 +21,6 @@ import {
 const env = getAdminTestEnv()
 
 describe("Multi-dim views", { timeout: 20000 }, () => {
-    const catalogPath = "test/catalog#path"
-
     const totalView: View<IndicatorsBeforePreProcessing> = {
         config: { title: "Total energy use" },
         dimensions: { metric: "total" },
@@ -30,26 +30,6 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         config: { title: "Energy use per capita" },
         dimensions: { metric: "per_capita" },
         indicators: { y: otherVariableId },
-    }
-
-    function multiDimConfig(
-        views: View<IndicatorsBeforePreProcessing>[]
-    ): object {
-        return {
-            grapherConfigSchema: latestGrapherConfigSchema,
-            title: { title: "Energy use", titleVariant: "by energy source" },
-            views,
-            dimensions: [
-                {
-                    name: "Metric",
-                    slug: "metric",
-                    choices: views.map((view) => ({
-                        name: view.dimensions.metric,
-                        slug: view.dimensions.metric,
-                    })),
-                },
-            ],
-        }
     }
 
     async function upsertMultiDim(
