@@ -5,7 +5,7 @@ export const datasetId = 1
 export const variableId = 1
 export const otherVariableId = 2
 
-/** Inserts the dataset and the two indicators that the chart config tests share */
+/** Inserts the dataset and the two indicators that the admin API tests share */
 export async function seedDatasetAndVariables(env: TestEnv): Promise<void> {
     await env.testKnex(DatasetsTableName).insert({
         id: datasetId,
