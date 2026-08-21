@@ -25,21 +25,13 @@ describe(rankSuggestedKeywords, () => {
 
     it("puts the terms describing more of the topic's charts first", () => {
         expect(
-            rankSuggestedKeywords(
-                unrefined("Sex ratio", "Women"),
-                hits,
-                "Gender Ratio"
-            )
+            rankSuggestedKeywords(unrefined("Sex ratio", "Women"), hits)
         ).toEqual(["Women", "Sex ratio"])
     })
 
     it("keeps the vocabulary's order between terms describing equally many charts", () => {
         expect(
-            rankSuggestedKeywords(
-                unrefined("Sex ratio", "Parliament"),
-                hits,
-                "Gender Ratio"
-            )
+            rankSuggestedKeywords(unrefined("Sex ratio", "Parliament"), hits)
         ).toEqual(["Sex ratio", "Parliament"])
     })
 
@@ -48,11 +40,7 @@ describe(rankSuggestedKeywords, () => {
         // generously than the substring test does, so it is offered last
         // instead of dropped.
         expect(
-            rankSuggestedKeywords(
-                unrefined("Missing women", "Sex ratio"),
-                hits,
-                "Gender Ratio"
-            )
+            rankSuggestedKeywords(unrefined("Missing women", "Sex ratio"), hits)
         ).toEqual(["Sex ratio", "Missing women"])
     })
 
@@ -67,7 +55,7 @@ describe(rankSuggestedKeywords, () => {
             "Infanticide",
         ]
         expect(
-            rankSuggestedKeywords(unrefined(...keywords), hits, "Gender Ratio")
+            rankSuggestedKeywords(unrefined(...keywords), hits)
         ).toHaveLength(5)
     })
 
@@ -88,11 +76,7 @@ describe(rankSuggestedKeywords, () => {
             "Sex-selective abortion by birth order"
         )
         expect(
-            rankSuggestedKeywords(
-                unrefined(...keywords),
-                skewedHits,
-                "Gender Ratio"
-            )
+            rankSuggestedKeywords(unrefined(...keywords), skewedHits)
         ).not.toContain(broad)
     })
 
@@ -108,8 +92,7 @@ describe(rankSuggestedKeywords, () => {
         expect(
             rankSuggestedKeywords(
                 unrefined("missing", "excess mortality", "judiciary"),
-                hits,
-                "Gender Ratio"
+                hits
             )
         ).toEqual(["missing", "judiciary", "excess mortality"])
     })
@@ -121,8 +104,7 @@ describe(rankSuggestedKeywords, () => {
         expect(
             rankSuggestedKeywords(
                 unrefined("sex ratio", "sex ratio at birth", "infanticide"),
-                hits,
-                "Gender Ratio"
+                hits
             )
         ).toEqual(["sex ratio", "infanticide", "sex ratio at birth"])
     })
@@ -142,38 +124,39 @@ describe(rankSuggestedKeywords, () => {
                     "World",
                     "school attendance"
                 ),
-                hits,
-                "Child Labor"
+                hits
             )
         ).toEqual(["school attendance"])
     })
 
-    it("drops terms the topic's own name already contains", () => {
+    it("offers a term the topic's own name contains, since on some topics nothing narrower reaches the charts", () => {
+        // These used to be refused, on the reasoning that a reader already on
+        // the page has applied them. True for most topics; on Religion, whose
+        // biggest chart is "Share of the population who are religious", only
+        // "religious" reaches it — and allowing it took that topic from covering
+        // 39% of its traffic to 97%.
+        const religionHits = makeHits(
+            "Share of the population who are religious",
+            "Number of people by religion",
+            "How often people pray"
+        )
         expect(
-            rankSuggestedKeywords(
-                unrefined("Gender", "ratio", "Sex ratio"),
-                hits,
-                "Gender Ratio"
-            )
-        ).toEqual(["Sex ratio"])
+            rankSuggestedKeywords(unrefined("religious", "pray"), religionHits)
+        ).toEqual(["religious", "pray"])
     })
 
     it("matches case-insensitively", () => {
-        expect(
-            rankSuggestedKeywords(unrefined("SEX RATIO"), hits, "Gender Ratio")
-        ).toEqual(["SEX RATIO"])
+        expect(rankSuggestedKeywords(unrefined("SEX RATIO"), hits)).toEqual([
+            "SEX RATIO",
+        ])
     })
 
     it("suggests nothing before the topic's charts have loaded", () => {
-        expect(
-            rankSuggestedKeywords(unrefined("Sex ratio"), [], "Gender Ratio")
-        ).toEqual([])
+        expect(rankSuggestedKeywords(unrefined("Sex ratio"), [])).toEqual([])
     })
 
     it("suggests nothing for a topic the vocabulary doesn't cover", () => {
-        expect(
-            rankSuggestedKeywords(unrefined(), hits, "Gender Ratio")
-        ).toEqual([])
+        expect(rankSuggestedKeywords(unrefined(), hits)).toEqual([])
     })
     it("takes a refined vocabulary's order as given, since its generator checked it against real search results", () => {
         // "sex ratio at birth" looks like a narrower spelling of "sex ratio"
@@ -187,15 +170,13 @@ describe(rankSuggestedKeywords, () => {
             "Number of 'missing women' in the world"
         )
         expect(
-            rankSuggestedKeywords(
-                { keywords, refined: true },
-                hits,
-                "Gender Ratio"
-            )
+            rankSuggestedKeywords({ keywords, refined: true }, hits)
         ).toEqual(keywords)
-        expect(
-            rankSuggestedKeywords(unrefined(...keywords), hits, "Gender Ratio")
-        ).toEqual(["sex ratio", "missing women", "sex ratio at birth"])
+        expect(rankSuggestedKeywords(unrefined(...keywords), hits)).toEqual([
+            "sex ratio",
+            "missing women",
+            "sex ratio at birth",
+        ])
     })
 
     it("offers a refined vocabulary's terms before the chart list has arrived", () => {
@@ -204,8 +185,7 @@ describe(rankSuggestedKeywords, () => {
         expect(
             rankSuggestedKeywords(
                 { keywords: ["sex ratio", "missing women"], refined: true },
-                [],
-                "Gender Ratio"
+                []
             )
         ).toEqual(["sex ratio", "missing women"])
     })
@@ -217,20 +197,15 @@ describe(rankSuggestedKeywords, () => {
                     keywords: ["United States", "school attendance"],
                     refined: true,
                 },
-                [],
-                "Child Labor"
+                []
             )
         ).toEqual(["school attendance"])
     })
 
     it("suggests nothing when the vocabulary has no entry for the topic", () => {
-        expect(
-            rankSuggestedKeywords(
-                undefined,
-                makeHits("Sex ratio"),
-                "Gender Ratio"
-            )
-        ).toEqual([])
+        expect(rankSuggestedKeywords(undefined, makeHits("Sex ratio"))).toEqual(
+            []
+        )
     })
 })
 

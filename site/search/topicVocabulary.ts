@@ -168,16 +168,22 @@ function isPlaceName(name: string): boolean {
  */
 export function rankSuggestedKeywords(
     entry: TopicVocabularyEntry | undefined,
-    hits: SearchChartHit[],
-    topicName: string
+    hits: SearchChartHit[]
 ): string[] {
-    const lowerCaseTopicName = topicName.toLowerCase()
-    const offerable = (entry?.keywords ?? []).filter((keyword) => {
-        // A term the topic's own name already contains ("population" on
-        // "Population Growth") narrows nothing down.
-        if (lowerCaseTopicName.includes(keyword.toLowerCase())) return false
-        return !isPlaceName(keyword)
-    })
+    // Only places are refused outright. A term the topic's own name contains was
+    // refused too, on the reasoning that a reader already on the page has
+    // applied it — which is true for most topics and badly wrong for a minority
+    // whose charts are simply called after the topic. Measured over all 125
+    // topics, allowing it changes the median topic's reach by 0.3% and
+    // transforms thirty of them: Religion goes from covering 39% of its topic's
+    // traffic to 97%, Life Expectancy from 21% to 98%, because half of that
+    // topic is one chart titled "Life expectancy" and nothing narrower reaches
+    // it. The generator applies the same rule, and its report shows what each
+    // term reaches, so an over-broad first term is visible rather than guessed
+    // at.
+    const offerable = (entry?.keywords ?? []).filter(
+        (keyword) => !isPlaceName(keyword)
+    )
     if (offerable.length === 0) return []
 
     // A refined vocabulary has already been through this exercise with better
