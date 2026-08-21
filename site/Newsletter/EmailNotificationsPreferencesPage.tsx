@@ -5,23 +5,22 @@ import { SiteFooter } from "../SiteFooter.js"
 import {
     PREFERENCES_PAGE_ROOT_ID,
     SiteFooterContext,
-    TagGraphRoot,
 } from "@ourworldindata/types"
 
 export interface EmailNotificationsPreferencesPageProps {
     baseUrl: string
-    topicTagGraph: TagGraphRoot
+    topicAreaNames: string[]
 }
 
 /**
  * The magic-link update-preferences page. Everything inside <main> is rendered
  * client-side (EmailNotificationsPreferencesForm), driven by the token in the
  * URL fragment - including the page heading, which the terminal screens replace.
- * This shell just bakes the topic tag graph the form needs.
+ * This shell just bakes the topic area names the form needs.
  */
 export const EmailNotificationsPreferencesPage = ({
     baseUrl,
-    topicTagGraph,
+    topicAreaNames,
 }: EmailNotificationsPreferencesPageProps) => {
     return (
         <Html>
@@ -34,7 +33,7 @@ export const EmailNotificationsPreferencesPage = ({
                 <meta name="robots" content="noindex" />
                 <script
                     dangerouslySetInnerHTML={{
-                        __html: `window._OWID_TOPIC_TAG_GRAPH = ${JSON.stringify(topicTagGraph)}`,
+                        __html: `window._OWID_TOPIC_AREA_NAMES = ${JSON.stringify(topicAreaNames)}`,
                     }}
                 ></script>
             </Head>
