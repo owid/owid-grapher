@@ -28,25 +28,20 @@ export const SubscribePageHero = ({
     </header>
 )
 
-type SubscribePageConfirmationAction =
-    | { href: string; label: string }
-    | { onClick: () => void; label: string; disabled?: boolean }
-
 /**
  * A terminal screen: subscribed, preferences saved, unsubscribed, or (with the
  * "error" variant) an expired/invalid link. It carries its own heading and is
  * rendered *instead of* the hero, so it must be rendered by whichever component
- * owns the page's screen state.
+ * owns the page's screen state. Children are the explanatory text and any
+ * follow-up action.
  */
 export const SubscribePageConfirmation = ({
     heading,
     children,
-    action,
     variant = "success",
 }: {
     heading: string
     children: ReactNode
-    action?: SubscribePageConfirmationAction
     variant?: "success" | "error"
 }) => {
     const headingRef = useRef<HTMLHeadingElement>(null)
@@ -78,25 +73,7 @@ export const SubscribePageConfirmation = ({
             >
                 {heading}
             </h1>
-            <div className="subscribe-page__confirmation-text">{children}</div>
-            {action &&
-                ("href" in action ? (
-                    <a
-                        className="subscribe-page__confirmation-action"
-                        href={action.href}
-                    >
-                        {action.label}
-                    </a>
-                ) : (
-                    <button
-                        type="button"
-                        className="subscribe-page__confirmation-action"
-                        onClick={action.onClick}
-                        disabled={action.disabled}
-                    >
-                        {action.label}
-                    </button>
-                ))}
+            {children}
         </div>
     )
 }

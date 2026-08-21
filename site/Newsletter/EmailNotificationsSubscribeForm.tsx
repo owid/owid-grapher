@@ -1,11 +1,8 @@
 import { useState } from "react"
 import * as React from "react"
-import {
-    EmailNotificationsSubscribeRequest,
-    EmailNotificationsSubscribeResponse,
-    TagGraphRoot,
-} from "@ourworldindata/types"
-import { Checkbox, TextInput } from "@ourworldindata/components"
+import { useMutation } from "@tanstack/react-query"
+import { EmailNotificationsSubscribeRequest } from "@ourworldindata/types"
+import { Button, Checkbox, TextInput } from "@ourworldindata/components"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { EmailNotificationsPreferenceFields } from "./EmailNotificationsPreferenceFields.js"
 import {
@@ -66,65 +63,63 @@ const NewsletterOption = ({
 )
 
 export const EmailNotificationsSubscribeForm = ({
-    topicTagGraph,
+    topicAreaNames,
     onSubscribed,
 }: {
-    topicTagGraph: TagGraphRoot
+    topicAreaNames: string[]
     onSubscribed: (email: string) => void
 }) => {
     const [email, setEmail] = useState("")
     const [subscribeToOwidBrief, setSubscribeToOwidBrief] = useState(true)
     const [followTopics, setFollowTopics] = useState(true)
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const [errorMessage, setErrorMessage] = useState<string | null>(null)
-    const preferences = useNotificationPreferences(topicTagGraph)
+    const [validationError, setValidationError] = useState<string | null>(null)
+    const preferences = useNotificationPreferences(topicAreaNames)
 
-    const onSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
-        event.preventDefault()
-        setErrorMessage(null)
-        preferences.resetValidation()
-
-        const trimmedEmail = email.trim()
-        if (!trimmedEmail) {
-            setErrorMessage("Please enter your email address.")
-            return
-        }
-        if (!followTopics && !subscribeToOwidBrief) {
-            setErrorMessage("Please select at least one newsletter.")
-            return
-        }
-        if (followTopics && !preferences.validate()) return
-
-        const request: EmailNotificationsSubscribeRequest = {
-            email: trimmedEmail,
-            notifications: followTopics ? preferences.forStorage() : undefined,
-            subscribeToOwidBrief,
-        }
-
-        setIsSubmitting(true)
-        try {
-            const { response, json } =
-                await apiPost<EmailNotificationsSubscribeResponse>(
-                    "/subscribe",
-                    request
-                )
-            throwIfApiError(response, json)
+    const subscribe = useMutation({
+        mutationFn: async (request: EmailNotificationsSubscribeRequest) => {
+            const response = await apiPost("/subscribe", request)
+            await throwIfApiError(response)
+        },
+        onSuccess: (_, request) => {
             analytics.logSiteFormSubmit(
                 "newsletter-subscribe",
                 "Subscribe [email-notifications]"
             )
-            onSubscribed(trimmedEmail)
-        } catch (error) {
-            setErrorMessage(getErrorMessage(error))
-        } finally {
-            setIsSubmitting(false)
+            onSubscribed(request.email)
+        },
+    })
+
+    const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+        event.preventDefault()
+        setValidationError(null)
+        preferences.resetValidation()
+
+        const trimmedEmail = email.trim()
+        if (!trimmedEmail) {
+            setValidationError("Please enter your email address.")
+            return
         }
+        if (!followTopics && !subscribeToOwidBrief) {
+            setValidationError("Please select at least one newsletter.")
+            return
+        }
+        if (followTopics && !preferences.validate()) return
+
+        subscribe.mutate({
+            email: trimmedEmail,
+            notifications: followTopics ? preferences.forStorage() : undefined,
+            subscribeToOwidBrief,
+        })
     }
+
+    const errorMessage =
+        validationError ??
+        (subscribe.error ? getErrorMessage(subscribe.error) : null)
 
     return (
         <form
             className="email-notifications-subscribe-form"
-            onSubmit={onSubmit}
+            onSubmit={handleSubmit}
         >
             <NewsletterOption
                 id="email-notifications-owid-brief"
@@ -163,14 +158,14 @@ export const EmailNotificationsSubscribeForm = ({
                     onChange={(event) => setEmail(event.target.value)}
                     required={true}
                 />
-                <button
+                <Button
                     type="submit"
-                    aria-label="Subscribe to email notifications"
-                    className="newsletter-form__submit"
-                    disabled={isSubmitting}
-                >
-                    {isSubmitting ? "Subscribing…" : "Subscribe"}
-                </button>
+                    theme="solid-vermillion"
+                    icon={null}
+                    ariaLabel="Subscribe to email notifications"
+                    text={subscribe.isPending ? "Subscribing…" : "Subscribe"}
+                    disabled={subscribe.isPending}
+                />
             </div>
             <div className="email-notifications-subscribe-form__privacy-notice">
                 By subscribing you are agreeing to the terms of our{" "}
