@@ -86,7 +86,7 @@ import {
     EntitiesByRegionGroup,
     RegionGroupKey,
     RegionGroup,
-    isAnyRegionDataProviderKey,
+    isAnyRegionPublisher,
     parseLabel,
 } from "../core/RegionGroups"
 import { SearchField } from "../controls/SearchField"
@@ -593,7 +593,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     }
 
     @computed private get searchPlaceholderEntityType(): string {
-        if (isAnyRegionDataProviderKey(this.entityFilter)) return "region"
+        if (isAnyRegionPublisher(this.entityFilter)) return "region"
 
         return match(this.entityFilter)
             .with("all", () => this.entityType.singular)
