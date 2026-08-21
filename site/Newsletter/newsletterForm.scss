@@ -39,21 +39,3 @@
         color: $blue-40;
     }
 }
-
-.newsletter-form__submit {
-    @include body-3-medium;
-    padding: 8px 24px;
-    background-color: $vermillion;
-    color: $white;
-    border: none;
-    cursor: pointer;
-
-    &:hover {
-        background-color: $accent-vermillion;
-    }
-
-    &:disabled {
-        background-color: $gray-30;
-        cursor: default;
-    }
-}
