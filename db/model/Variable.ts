@@ -329,14 +329,14 @@ export async function updateAllMultiDimViewsThatInheritFromIndicator(
 
 export async function updateIndicatorChartConfig(
     trx: db.KnexReadWriteTransaction,
-    variable: IndicatorChartConfigRecord,
+    indicator: IndicatorChartConfigRecord,
     config: GrapherInterface
 ): Promise<{
     savedPatch: GrapherInterface
     updatedCharts: UpdatedChartInheritanceRecord[]
     updatedMultiDimViews: { chartConfigId: string; isPublished: boolean }[]
 }> {
-    const { variableId } = variable
+    const { variableId } = indicator
 
     const configETL = makeConfigValidForIndicator({
         config,
@@ -348,9 +348,9 @@ export async function updateIndicatorChartConfig(
     // past in chart-sync.
     const now = new Date()
 
-    if (variable.configId) {
+    if (indicator.configId) {
         await updateChartConfig(trx, {
-            configId: variable.configId,
+            configId: indicator.configId,
             config: configETL,
             updatedAt: now,
         })
@@ -1032,7 +1032,7 @@ export interface VariableResultView {
     shortName: string
 }
 
-export const getVariableIdsByCatalogPath = async (
+export const getIndicatorIdsByCatalogPath = async (
     catalogPaths: string[],
     knex: db.KnexReadonlyTransaction
 ): Promise<Map<string, number | null>> => {
@@ -1062,7 +1062,7 @@ export const getVariableIdsByCatalogPath = async (
  * e.g. `grapher/worldbank_wdi/latest/wdi/wdi#ny_gdp_pcap_pp_kd`) and returns
  * the id of the most recent version
  */
-export const getLatestVariableIdsByCatalogPath = async (
+export const getLatestIndicatorIdsByCatalogPath = async (
     catalogPaths: string[],
     knex: db.KnexReadonlyTransaction
 ): Promise<Map<string, number | null>> => {

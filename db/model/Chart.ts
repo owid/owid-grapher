@@ -9,7 +9,7 @@ import {
     KeyChartLevel,
     MultipleOwidVariableDataDimensionsMap,
     DbChartTagJoin,
-    getParentVariableIdFromChartConfig,
+    getParentIndicatorIdFromChartConfig,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -338,7 +338,7 @@ export async function isInheritanceEnabledForChart(
     return row?.isInheritanceEnabled ?? false
 }
 
-async function getParentVariableIdByChartId(
+async function getParentIndicatorIdByChartId(
     trx: db.KnexReadonlyTransaction,
     chartId: number
 ): Promise<number | undefined> {
@@ -358,11 +358,11 @@ export async function getParentByChartId(
     trx: db.KnexReadonlyTransaction,
     chartId: number
 ): Promise<{ variableId?: number; config?: GrapherInterface }> {
-    const parentVariableId = await getParentVariableIdByChartId(trx, chartId)
-    if (!parentVariableId) return {}
+    const parentIndicatorId = await getParentIndicatorIdByChartId(trx, chartId)
+    if (!parentIndicatorId) return {}
     return {
-        variableId: parentVariableId,
-        config: await getIndicatorChartConfig(trx, parentVariableId),
+        variableId: parentIndicatorId,
+        config: await getIndicatorChartConfig(trx, parentIndicatorId),
     }
 }
 
@@ -373,11 +373,11 @@ export async function getParentByChartConfig(
     variableId?: number
     config?: GrapherInterface
 }> {
-    const parentVariableId = getParentVariableIdFromChartConfig(config)
-    if (!parentVariableId) return {}
+    const parentIndicatorId = getParentIndicatorIdFromChartConfig(config)
+    if (!parentIndicatorId) return {}
     return {
-        variableId: parentVariableId,
-        config: await getIndicatorChartConfig(trx, parentVariableId),
+        variableId: parentIndicatorId,
+        config: await getIndicatorChartConfig(trx, parentIndicatorId),
     }
 }
 
