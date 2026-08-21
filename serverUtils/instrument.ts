@@ -2,6 +2,7 @@ import { SENTRY_ADMIN_DSN } from "../settings/clientSettings.js"
 import * as Sentry from "@sentry/node"
 import { nodeProfilingIntegration } from "@sentry/profiling-node"
 import { openAIIntegration } from "@sentry/node"
+import { fingerprintMysqlErrors } from "./mysqlErrorFingerprint.js"
 
 if (!process.env.VITEST) {
     // Ensure to call this before importing any other modules!
@@ -17,6 +18,7 @@ if (!process.env.VITEST) {
             // "automatic chart tagging".
             openAIIntegration(),
         ],
+        beforeSend: fingerprintMysqlErrors,
         tracesSampleRate: 0.1,
         profileLifecycle: "trace", // only profile requests that are traced
         profileSessionSampleRate: 1.0, // This is relative to tracesSampleRate
