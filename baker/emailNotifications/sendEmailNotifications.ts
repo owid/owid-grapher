@@ -2,38 +2,20 @@
 // set up before any errors are thrown.
 import "../../serverUtils/instrument.js"
 
-import * as R from "remeda"
 import * as Sentry from "@sentry/node"
 import fs from "fs-extra"
 import path from "path"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import {
-    EMAIL_NOTIFICATIONS_CONTENT_TYPE_BY_LATEST_TYPE,
     EMAIL_NOTIFICATIONS_FREQUENCIES,
     EMAIL_NOTIFICATIONS_FROM_ADDRESS,
     EmailNotificationsFrequency,
-    LatestFeedGdoc,
-    OwidGdocType,
 } from "@ourworldindata/types"
-import { deriveLatestType } from "../../site/latest/latestUtils.js"
-import {
-    checkIsLatestFeedGdoc,
-    getUniqueNamesFromTagHierarchies,
-    spansToUnformattedPlainText,
-} from "@ourworldindata/utils"
-import { getCanonicalUrl } from "@ourworldindata/components"
 import * as db from "../../db/db.js"
-import { gdocFromJSON } from "../../db/model/Gdoc/GdocFactory.js"
-import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
-import { GdocDataInsight } from "../../db/model/Gdoc/GdocDataInsight.js"
-import { GdocAnnouncement } from "../../db/model/Gdoc/GdocAnnouncement.js"
-import { extractFilenamesFromBlocks } from "../../db/model/Gdoc/gdocUtils.js"
-import { getExcerptFromGdoc, getThumbnailUrl } from "../algolia/utils/pages.js"
 import {
     BASE_DIR,
     BAKED_BASE_URL,
-    CLOUDFLARE_IMAGES_URL,
     POSTMARK_API_BASE_URL,
     POSTMARK_SERVER_TOKEN,
 } from "../../settings/serverSettings.js"
@@ -50,6 +32,7 @@ import {
     getWindowStart,
     parseSubscriberRow,
 } from "./emailNotificationsUtils.js"
+import { buildNotificationItems } from "./notificationItems.js"
 import {
     makeNotificationEmailSubject,
     renderNotificationEmail,
@@ -85,127 +68,6 @@ async function fetchSubscribers(
     return rows.map(parseSubscriberRow)
 }
 
-type LatestFeedGdocInstance = (GdocPost | GdocDataInsight | GdocAnnouncement) &
-    LatestFeedGdoc
-
-/**
- * Like `checkIsLatestFeedGdoc`, but narrows to the Gdoc *class* instances
- * returned by `gdocFromJSON`.
- */
-function isLatestFeedGdocInstance(
-    gdoc: ReturnType<typeof gdocFromJSON>
-): gdoc is LatestFeedGdocInstance {
-    return checkIsLatestFeedGdoc(gdoc)
-}
-
-function getFirstTextBlockPlainText(gdoc: LatestFeedGdocInstance): string {
-    const body = "body" in gdoc.content ? gdoc.content.body : undefined
-    const firstTextBlock = body?.find((block) => block.type === "text")
-    return firstTextBlock
-        ? spansToUnformattedPlainText(firstTextBlock.value)
-        : ""
-}
-
-function buildNotificationItem(
-    gdoc: LatestFeedGdocInstance,
-    topicHierarchiesByChildName: Awaited<
-        ReturnType<typeof db.getTopicHierarchiesByChildName>
-    >,
-    cloudflareImagesByFilename: Awaited<
-        ReturnType<typeof db.getCloudflareImagesByFilename>
-    >
-): NotificationEmailItem {
-    const originalTagNames = gdoc.tags?.map((tag) => tag.name) ?? []
-    // Include the ancestor tags (e.g. the "Health" area for an item tagged
-    // "Vaccination") so subscriptions to top-level areas match.
-    const topicNames = R.unique([
-        ...originalTagNames,
-        ...getUniqueNamesFromTagHierarchies(
-            originalTagNames,
-            topicHierarchiesByChildName
-        ),
-    ])
-    const item: NotificationEmailItem = {
-        // Announcement gdocs split into "data-update" / "announcement"
-        // content types via their kicker.
-        type: EMAIL_NOTIFICATIONS_CONTENT_TYPE_BY_LATEST_TYPE[
-            deriveLatestType(gdoc)
-        ],
-        slug: gdoc.slug,
-        title: gdoc.content.title ?? "",
-        url: getCanonicalUrl(BAKED_BASE_URL, gdoc),
-        publishedAt: gdoc.publishedAt!,
-        topicNames,
-        topicLabel: originalTagNames[0],
-        authors: gdoc.content.authors ?? [],
-    }
-
-    if (gdoc.content.type === OwidGdocType.DataInsight) {
-        // Data insights ship their full content in the email.
-        item.body = gdoc.content.body
-        item.imageUrlByFilename = {}
-        for (const filename of extractFilenamesFromBlocks(gdoc.content.body)) {
-            const cloudflareId =
-                cloudflareImagesByFilename[filename]?.cloudflareId
-            if (cloudflareId) {
-                item.imageUrlByFilename[filename] =
-                    `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=1200`
-            }
-        }
-    } else {
-        item.excerpt =
-            getExcerptFromGdoc(gdoc) || getFirstTextBlockPlainText(gdoc)
-        if (gdoc.content.type === OwidGdocType.Article) {
-            item.thumbnailUrl = getThumbnailUrl(
-                gdoc,
-                cloudflareImagesByFilename
-            )
-        }
-    }
-
-    return item
-}
-
-async function buildNotificationItems(
-    knex: db.KnexReadonlyTransaction,
-    since: Date
-): Promise<NotificationEmailItem[]> {
-    const gdocs = await db
-        .getPublishedGdocsWithTags(
-            knex,
-            [
-                OwidGdocType.Article,
-                OwidGdocType.DataInsight,
-                OwidGdocType.Announcement,
-            ],
-            { excludeDeprecated: true }
-        )
-        .then((rows) => rows.map(gdocFromJSON))
-
-    const recentGdocs = gdocs.filter(
-        (gdoc): gdoc is LatestFeedGdocInstance =>
-            isLatestFeedGdocInstance(gdoc) &&
-            !!gdoc.publishedAt &&
-            gdoc.publishedAt > since
-    )
-    if (recentGdocs.length === 0) return []
-
-    const topicHierarchiesByChildName =
-        await db.getTopicHierarchiesByChildName(knex)
-    const cloudflareImagesByFilename =
-        await db.getCloudflareImagesByFilename(knex)
-
-    return recentGdocs
-        .map((gdoc) =>
-            buildNotificationItem(
-                gdoc,
-                topicHierarchiesByChildName,
-                cloudflareImagesByFilename
-            )
-        )
-        .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
-}
-
 // Postmark's API error code for sending to an address it has suppressed
 // (hard bounce, spam complaint, manual suppression).
 // https://postmarkapp.com/developer/api/overview#error-codes
@@ -218,6 +80,7 @@ async function sendViaPostmark(email: {
     to: string
     subject: string
     htmlBody: string
+    textBody: string
     metadata: Record<string, string>
     unsubscribeUrl: string
 }): Promise<string | null> {
@@ -233,6 +96,9 @@ async function sendViaPostmark(email: {
             To: email.to,
             Subject: email.subject,
             HtmlBody: email.htmlBody,
+            // Text alternative for clients that don't render HTML, and one of
+            // the signals spam filters weigh.
+            TextBody: email.textBody,
             // Bulk emails must go through a Postmark broadcast stream (not
             // the transactional "outbound" stream).
             MessageStream: "broadcast",
@@ -372,13 +238,14 @@ async function sendEmailNotifications(options: {
                 continue
             }
 
-            const html = renderNotificationEmail({
+            const { html, text } = await renderNotificationEmail({
                 subscriber,
                 items: subscriberItems,
                 baseUrl: BAKED_BASE_URL,
                 // Links in emails must be absolute; the email notifications API
                 // is served on the same host as the baked site.
                 apiBaseUrl: `${BAKED_BASE_URL}/api/email-notifications`,
+                now,
             })
             const slugs = subscriberItems.map((item) => item.slug).join(", ")
 
@@ -388,6 +255,10 @@ async function sendEmailNotifications(options: {
                     `${subscriber.email}-${frequency}.html`
                 )
                 await fs.outputFile(previewPath, html)
+                await fs.outputFile(
+                    previewPath.replace(/\.html$/, ".txt"),
+                    text
+                )
                 console.log(
                     `${subscriber.email}: would send ${subscriberItems.length} items (${slugs}), preview written to ${previewPath}`
                 )
@@ -409,6 +280,7 @@ async function sendEmailNotifications(options: {
                 to: subscriber.email,
                 subject: makeNotificationEmailSubject(frequency),
                 htmlBody: html,
+                textBody: text,
                 metadata: {
                     userId: String(subscriber.userId),
                     frequency,

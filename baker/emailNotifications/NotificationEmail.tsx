@@ -1,40 +1,58 @@
-import ReactDOMServer from "react-dom/server"
 import { CSSProperties, Fragment, ReactNode } from "react"
 import {
-    EmailNotificationsContentType,
+    Body,
+    Container,
+    Column,
+    Head,
+    Heading,
+    Html,
+    Img,
+    Link,
+    Preview,
+    Row,
+    Section,
+    Text,
+    render,
+} from "@react-email/components"
+import {
     EmailNotificationsFrequency,
+    LATEST_TYPE_LABELS,
     OwidEnrichedGdocBlock,
     Span,
 } from "@ourworldindata/types"
-import { dayjs, formatAuthors } from "@ourworldindata/utils"
+import { formatAuthors } from "@ourworldindata/utils"
 import {
     EmailNotificationsSubscriber,
     NotificationEmailItem,
+    formatItemDate,
 } from "./emailNotificationsUtils.js"
 
-// Hardcoded email template for the notification emails (an email template
-// editor is out of scope for this project). Emails need inline styles and
-// simple markup, so this deliberately doesn't reuse the site components.
-
 const COLORS = {
-    background: "#fbf9f3",
+    background: "#f7f7f7",
     card: "#ffffff",
+    cardMuted: "#ebeef2",
     navy: "#002147",
-    blue: "#1d3d63",
-    text: "#2d2e2d",
-    muted: "#616161",
-    accent: "#cf1918",
-    border: "#e7e7e7",
+    text: "#1d3d63",
+    muted: "#426591",
+    headerText: "#a4b6ca",
+    vermillion: "#ce261e",
 }
 
-const BODY_FONT = 'Lato, "Helvetica Neue", Helvetica, Arial, sans-serif'
-const SERIF_FONT = '"Playfair Display", Georgia, "Times New Roman", serif'
+const BODY_FONT = "Arial, Helvetica, sans-serif"
+const SERIF_FONT = '"Times New Roman", serif'
 
-const CONTENT_TYPE_LABELS: Record<EmailNotificationsContentType, string> = {
-    article: "Article",
-    "data-insight": "Data insight",
-    "data-update": "Data update",
-    announcement: "Announcement",
+const CONTAINER_WIDTH = 632
+const CONTENT_PADDING = 40
+
+// react-email's <Text> defaults to 14px; the design's body copy is 16px/24px,
+// so every body-copy element states it.
+const BODY_TEXT: CSSProperties = { fontSize: 16, lineHeight: "24px" }
+
+// react-email's <Link> defaults to a blue that a client shows on the alt text
+// when it blocks the image, so links wrapping an image override it.
+const IMAGE_LINK_STYLE: CSSProperties = {
+    color: COLORS.text,
+    textDecoration: "none",
 }
 
 const FREQUENCY_LABELS: Record<EmailNotificationsFrequency, string> = {
@@ -53,16 +71,24 @@ export function makeNotificationEmailSubject(
     return `Your ${FREQUENCY_LABELS[frequency]} update from Our World in Data`
 }
 
-export function renderNotificationEmail(props: {
+export interface NotificationEmailProps {
     subscriber: EmailNotificationsSubscriber
     items: NotificationEmailItem[]
     baseUrl: string
     apiBaseUrl: string
-}): string {
-    return (
-        "<!doctype html>" +
-        ReactDOMServer.renderToStaticMarkup(<NotificationEmail {...props} />)
-    )
+    /** Send time, against which item dates are formatted. */
+    now: Date
+}
+
+export async function renderNotificationEmail(
+    props: NotificationEmailProps
+): Promise<{ html: string; text: string }> {
+    const email = <NotificationEmail {...props} />
+    const [html, text] = await Promise.all([
+        render(email),
+        render(email, { plainText: true }),
+    ])
+    return { html, text }
 }
 
 function NotificationEmail({
@@ -70,308 +96,438 @@ function NotificationEmail({
     items,
     baseUrl,
     apiBaseUrl,
-}: {
-    subscriber: EmailNotificationsSubscriber
-    items: NotificationEmailItem[]
-    baseUrl: string
-    apiBaseUrl: string
-}) {
+    now,
+}: NotificationEmailProps) {
     const unsubscribeUrl = `${apiBaseUrl}/unsubscribe?token=${subscriber.token}`
     const updatePreferencesUrl = `${apiBaseUrl}/request-link?token=${subscriber.token}`
     return (
-        <html lang="en">
-            <head>
-                <meta charSet="utf-8" />
-                <meta
-                    name="viewport"
-                    content="width=device-width, initial-scale=1"
-                />
+        <Html lang="en">
+            <Head>
                 <title>
                     {makeNotificationEmailSubject(subscriber.frequency)}
                 </title>
-            </head>
-            <body
+            </Head>
+            {/* Inbox preview text: the titles readers see next to the subject. */}
+            <Preview>{items.map((item) => item.title).join(" · ")}</Preview>
+            <Body
                 style={{
                     margin: 0,
-                    padding: "24px 0",
+                    padding: 0,
                     backgroundColor: COLORS.background,
                     color: COLORS.text,
                     fontFamily: BODY_FONT,
                     fontSize: 16,
-                    lineHeight: 1.5,
+                    lineHeight: "24px",
                 }}
             >
-                <div
+                <Container
                     style={{
-                        maxWidth: 600,
+                        width: "100%",
+                        maxWidth: CONTAINER_WIDTH,
                         margin: "0 auto",
-                        backgroundColor: COLORS.card,
+                        backgroundColor: COLORS.background,
                     }}
                 >
-                    <Header frequency={subscriber.frequency} />
-                    <div style={{ padding: "8px 24px 24px" }}>
-                        <p>
-                            Here's what we published in the last{" "}
+                    <Header baseUrl={baseUrl} />
+                    <Section
+                        style={{ padding: `32px ${CONTENT_PADDING}px 40px` }}
+                    >
+                        <Text style={{ margin: "0 0 32px", fontSize: 14 }}>
+                            Here is what we published in the last{" "}
                             {FREQUENCY_PERIODS[subscriber.frequency]} across the
-                            topics you follow. You can{" "}
-                            <a
-                                href={unsubscribeUrl}
-                                style={{ color: COLORS.blue }}
-                            >
-                                unsubscribe
-                            </a>{" "}
-                            at any time, or, if this was forwarded to you,{" "}
-                            <a
-                                href={`${baseUrl}/subscribe`}
-                                style={{ color: COLORS.blue }}
-                            >
-                                subscribe here
-                            </a>
-                            .
-                        </p>
-                        {items.map((item, index) => (
-                            <Fragment key={item.url}>
-                                {index > 0 && (
-                                    <hr
-                                        style={{
-                                            border: "none",
-                                            borderTop: `1px solid ${COLORS.border}`,
-                                            margin: "24px 0",
-                                        }}
-                                    />
-                                )}
-                                <Item item={item} />
-                            </Fragment>
-                        ))}
-                        <p style={{ marginTop: 32, textAlign: "center" }}>
-                            <a
-                                href={`${baseUrl}/latest`}
+                            topics you follow.
+                            <br />
+                            <Link
+                                href={updatePreferencesUrl}
                                 style={{
-                                    display: "inline-block",
-                                    padding: "10px 24px",
-                                    backgroundColor: COLORS.blue,
-                                    color: "#ffffff",
-                                    textDecoration: "none",
+                                    color: COLORS.text,
+                                    textDecoration: "underline",
                                 }}
                             >
-                                Browse the latest on Our World in Data
-                            </a>
-                        </p>
-                    </div>
+                                Update your preferences
+                            </Link>{" "}
+                            or, if this was forwarded to you,{" "}
+                            <Link
+                                href={`${baseUrl}/subscribe`}
+                                style={{
+                                    color: COLORS.text,
+                                    textDecoration: "underline",
+                                }}
+                            >
+                                subscribe here
+                            </Link>
+                            .
+                        </Text>
+                        {items.map((item, index) => (
+                            <Fragment key={item.url}>
+                                {index > 0 && <Spacer height={32} />}
+                                <Item item={item} now={now} />
+                            </Fragment>
+                        ))}
+                    </Section>
                     <Footer
                         email={subscriber.email}
+                        baseUrl={baseUrl}
                         unsubscribeUrl={unsubscribeUrl}
                         updatePreferencesUrl={updatePreferencesUrl}
                     />
-                </div>
-            </body>
-        </html>
+                </Container>
+            </Body>
+        </Html>
     )
 }
 
-function Header({ frequency }: { frequency: EmailNotificationsFrequency }) {
+/**
+ * Vertical space between items. A spacer row rather than a margin, because
+ * Outlook ignores margins on tables; the 1px font size stops the &nbsp; from
+ * making the row taller than asked for.
+ */
+function Spacer({ height }: { height: number }) {
     return (
-        <table
-            width="100%"
-            cellPadding={0}
-            cellSpacing={0}
-            style={{
-                backgroundColor: COLORS.navy,
-                borderBottom: `3px solid ${COLORS.accent}`,
-            }}
-        >
-            <tbody>
-                <tr>
-                    <td style={{ padding: "20px 24px" }}>
-                        <span
-                            style={{
-                                fontFamily: SERIF_FONT,
-                                fontSize: 24,
-                                color: "#ffffff",
-                            }}
-                        >
-                            Your {FREQUENCY_LABELS[frequency]} update
-                        </span>
-                    </td>
-                    <td
-                        style={{
-                            padding: "20px 24px",
-                            textAlign: "right",
-                            verticalAlign: "middle",
-                        }}
-                    >
-                        <span
-                            style={{
-                                color: "#ffffff",
-                                fontWeight: 700,
-                                fontSize: 15,
-                            }}
-                        >
-                            Our World
-                            <br />
-                            in Data
-                        </span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <Section style={{ height, lineHeight: `${height}px`, fontSize: 1 }}>
+            &nbsp;
+        </Section>
     )
 }
 
-function Item({ item }: { item: NotificationEmailItem }) {
+/**
+ * The header image is a 1200x250 PNG, shown at the container width so it's
+ * crisp on high-density screens. The width/height attributes state the
+ * display size rather than the asset's because Outlook on Windows sizes
+ * images by their attributes (ignoring CSS)
+ */
+const HEADER_IMAGE_WIDTH = CONTAINER_WIDTH
+const HEADER_IMAGE_HEIGHT = Math.round((CONTAINER_WIDTH * 250) / 1200)
+
+function Header({ baseUrl }: { baseUrl: string }) {
     return (
-        <div>
-            <Kicker item={item} />
-            <h2
-                style={{
-                    fontFamily: SERIF_FONT,
-                    fontSize: 22,
-                    lineHeight: 1.3,
-                    color: COLORS.navy,
-                    margin: "0 0 8px",
-                }}
-            >
-                <a
-                    href={item.url}
-                    style={{ color: COLORS.navy, textDecoration: "none" }}
-                >
-                    {item.title}
-                </a>
-            </h2>
-            {item.type === "data-insight" ? (
-                <DataInsightBody item={item} />
+        <Section style={{ backgroundColor: COLORS.navy }}>
+            {/* The header is an image so it gets the brand typeface in every
+                client. Most clients render the alt text, styled by the img's
+                own text styles, in its place when images are blocked; the
+                navy background keeps it legible there. */}
+            <Link href={baseUrl} style={IMAGE_LINK_STYLE}>
+                <Img
+                    src={`${baseUrl}/owid-email-header.png`}
+                    alt="Our World in Data Update"
+                    width={HEADER_IMAGE_WIDTH}
+                    height={HEADER_IMAGE_HEIGHT}
+                    style={{
+                        display: "block",
+                        width: "100%",
+                        height: "auto",
+                        backgroundColor: COLORS.navy,
+                        fontFamily: BODY_FONT,
+                        fontSize: 16,
+                        lineHeight: "20px",
+                        fontWeight: 700,
+                        color: "#ffffff",
+                        textAlign: "center",
+                    }}
+                />
+            </Link>
+        </Section>
+    )
+}
+
+function Item({ item, now }: { item: NotificationEmailItem; now: Date }) {
+    return (
+        <Section>
+            <Kicker item={item} now={now} />
+            {item.latestType === "data-insight" ? (
+                <DataInsightCard item={item} />
+            ) : item.latestType === "article" ? (
+                <ArticleCard item={item} />
             ) : (
                 <TeaserBody item={item} />
             )}
-        </div>
+        </Section>
     )
 }
 
-function Kicker({ item }: { item: NotificationEmailItem }) {
+function Kicker({ item, now }: { item: NotificationEmailItem; now: Date }) {
+    // The gap below the kicker sits on the paragraphs rather than the row,
+    // because Outlook ignores margins on tables.
     const kickerStyle: CSSProperties = {
-        fontSize: 12,
+        margin: "0 0 8px",
+        fontSize: 10,
+        lineHeight: "16px",
         fontWeight: 700,
-        letterSpacing: "0.08em",
+        letterSpacing: 1,
         textTransform: "uppercase",
         color: COLORS.muted,
     }
     return (
-        <table width="100%" cellPadding={0} cellSpacing={0}>
-            <tbody>
-                <tr>
-                    <td style={{ ...kickerStyle, padding: "0 0 8px" }}>
-                        {CONTENT_TYPE_LABELS[item.type]}
-                        {item.topicLabel ? ` — ${item.topicLabel}` : null}
-                    </td>
-                    <td
-                        style={{
-                            ...kickerStyle,
-                            padding: "0 0 8px",
-                            textAlign: "right",
-                        }}
-                    >
-                        {dayjs(item.publishedAt).format("MMM D")}
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <Row>
+            <Column>
+                <Text style={kickerStyle}>
+                    {LATEST_TYPE_LABELS[item.latestType]}
+                    {item.topicLabel && (
+                        <>
+                            {" — "}
+                            <span style={{ color: COLORS.text }}>
+                                {item.topicLabel}
+                            </span>
+                        </>
+                    )}
+                </Text>
+            </Column>
+            <Column style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                <Text style={kickerStyle}>
+                    {formatItemDate(item.publishedAt, now)}
+                </Text>
+            </Column>
+        </Row>
     )
 }
 
-/** Lean treatment for articles and announcements: excerpt + link. */
+function ItemTitle({
+    item,
+    serif,
+}: {
+    item: NotificationEmailItem
+    serif?: boolean
+}) {
+    return (
+        <Heading
+            as="h2"
+            style={{
+                margin: "0 0 8px",
+                fontFamily: serif ? SERIF_FONT : BODY_FONT,
+                fontSize: serif ? 24 : 20,
+                lineHeight: serif ? "32px" : "24px",
+                fontWeight: 700,
+                color: COLORS.text,
+            }}
+        >
+            <Link
+                href={item.url}
+                style={{ color: COLORS.text, textDecoration: "none" }}
+            >
+                {item.title}
+            </Link>
+        </Heading>
+    )
+}
+
+function ReadMoreLink({ href, label }: { href: string; label: string }) {
+    return (
+        <Text style={{ ...BODY_TEXT, margin: 0 }}>
+            <Link
+                href={href}
+                style={{
+                    color: COLORS.vermillion,
+                    fontWeight: 700,
+                    textDecoration: "none",
+                }}
+            >
+                {label} →
+            </Link>
+        </Text>
+    )
+}
+
 function TeaserBody({ item }: { item: NotificationEmailItem }) {
+    const body = item.body ?? []
     return (
-        <div>
-            {item.authors.length > 0 && (
-                <p
-                    style={{
-                        margin: "0 0 8px",
-                        fontStyle: "italic",
-                        color: COLORS.muted,
-                    }}
-                >
-                    {formatAuthors(item.authors)}
-                </p>
-            )}
-            {item.thumbnailUrl && (
-                <a href={item.url}>
-                    <img
-                        src={item.thumbnailUrl}
-                        alt=""
-                        width={552}
-                        style={{
-                            width: "100%",
-                            height: "auto",
-                            margin: "8px 0",
-                        }}
-                    />
-                </a>
-            )}
-            {item.excerpt && (
-                <p style={{ margin: "0 0 8px" }}>{item.excerpt}</p>
-            )}
-            <p style={{ margin: 0 }}>
-                <a href={item.url} style={{ color: COLORS.blue }}>
-                    {item.type === "article"
-                        ? "Read the article →"
-                        : "Read more →"}
-                </a>
-            </p>
-        </div>
-    )
-}
-
-/** Data insights ship their full content, like in the Data Insights newsletter. */
-function DataInsightBody({ item }: { item: NotificationEmailItem }) {
-    return (
-        <div>
-            {(item.body ?? []).map((block, index) => (
+        <>
+            <ItemTitle item={item} />
+            {body.map((block, index) => (
                 <Block
                     key={index}
                     block={block}
                     imageUrlByFilename={item.imageUrlByFilename ?? {}}
                 />
             ))}
-            {item.authors.length > 0 && (
-                <p style={{ margin: "8px 0 0", color: COLORS.muted }}>
-                    By {formatAuthors(item.authors)}
-                </p>
+            {/* For (rarely-used) cta announcements, just show the excerpt and CTA*/}
+            {body.length === 0 && (
+                <>
+                    {item.excerpt && (
+                        <Text style={{ ...BODY_TEXT, margin: "0 0 8px" }}>
+                            {item.excerpt}
+                        </Text>
+                    )}
+                    {item.cta ? (
+                        <ReadMoreLink
+                            href={item.cta.url}
+                            label={item.cta.text}
+                        />
+                    ) : (
+                        <ReadMoreLink href={item.url} label="Read more" />
+                    )}
+                </>
             )}
-        </div>
+        </>
+    )
+}
+
+function ArticleCard({ item }: { item: NotificationEmailItem }) {
+    return (
+        <Section
+            style={{
+                backgroundColor: COLORS.cardMuted,
+                padding: "16px 16px 24px",
+            }}
+        >
+            {item.thumbnailUrl && (
+                <Link href={item.url} style={IMAGE_LINK_STYLE}>
+                    <Img
+                        src={item.thumbnailUrl}
+                        alt=""
+                        width={CONTAINER_WIDTH - 2 * CONTENT_PADDING - 32}
+                        style={{
+                            width: "100%",
+                            height: "auto",
+                            margin: "0 0 24px",
+                        }}
+                    />
+                </Link>
+            )}
+            <ItemTitle item={item} serif />
+            {item.authors.length > 0 && (
+                <Text
+                    style={{
+                        ...BODY_TEXT,
+                        margin: "0 0 8px",
+                        fontStyle: "italic",
+                        color: COLORS.muted,
+                    }}
+                >
+                    {formatAuthors(item.authors)}
+                </Text>
+            )}
+            {item.excerptBlocks ? (
+                item.excerptBlocks.map((block, index) => (
+                    <Text
+                        key={index}
+                        style={{ ...BODY_TEXT, margin: "0 0 16px" }}
+                    >
+                        <Spans spans={block.value} />
+                    </Text>
+                ))
+            ) : item.excerpt ? (
+                <Text style={{ ...BODY_TEXT, margin: "0 0 16px" }}>
+                    {item.excerpt}
+                </Text>
+            ) : null}
+            <ReadMoreLink href={item.url} label="Read the article" />
+        </Section>
+    )
+}
+
+function DataInsightCard({ item }: { item: NotificationEmailItem }) {
+    const body = item.body ?? []
+    // Render the image (which is by convention always first)
+    const firstNonImage = body.findIndex((block) => block.type !== "image")
+    const splitIndex = firstNonImage === -1 ? body.length : firstNonImage
+    const imageUrlByFilename = item.imageUrlByFilename ?? {}
+    return (
+        <Section style={{ backgroundColor: COLORS.card, padding: 24 }}>
+            {body.slice(0, splitIndex).map((block, index) => (
+                <Block
+                    key={index}
+                    block={block}
+                    imageUrlByFilename={imageUrlByFilename}
+                    // The chart above the title links to the insight, as the
+                    // title itself does.
+                    imageHref={item.url}
+                />
+            ))}
+            <ItemTitle item={item} />
+            {body.slice(splitIndex).map((block, index) => (
+                <Block
+                    key={index}
+                    block={block}
+                    imageUrlByFilename={imageUrlByFilename}
+                />
+            ))}
+            {item.authors.length > 0 && (
+                <Text
+                    style={{
+                        ...BODY_TEXT,
+                        margin: "16px 0 0",
+                        color: COLORS.muted,
+                    }}
+                >
+                    By {formatAuthors(item.authors)}
+                </Text>
+            )}
+        </Section>
     )
 }
 
 /**
- * Render the subset of ArchieML blocks that data insight bodies use by
- * convention (image + text, occasionally a heading). Other block types are
- * skipped.
+ * Render the subset of ArchieML blocks that data insight and announcement
+ * bodies use by convention (image + text, occasionally a heading or list).
+ * Other block types are skipped.
  */
 function Block({
     block,
     imageUrlByFilename,
+    imageHref,
 }: {
     block: OwidEnrichedGdocBlock
     imageUrlByFilename: Record<string, string>
+    /** When set, image blocks link here. */
+    imageHref?: string
 }): ReactNode {
     switch (block.type) {
         case "text":
             return (
-                <p style={{ margin: "0 0 12px" }}>
+                <Text style={{ ...BODY_TEXT, margin: "0 0 16px" }}>
                     <Spans spans={block.value} />
-                </p>
+                </Text>
             )
         case "heading":
             return (
-                <h3
+                <Heading
+                    as="h3"
                     style={{
-                        fontFamily: SERIF_FONT,
-                        fontSize: 18,
-                        color: COLORS.navy,
                         margin: "16px 0 8px",
+                        fontFamily: BODY_FONT,
+                        fontSize: 18,
+                        lineHeight: "24px",
+                        fontWeight: 700,
+                        color: COLORS.text,
                     }}
                 >
                     <Spans spans={block.text} />
-                </h3>
+                </Heading>
+            )
+        case "list":
+        case "numbered-list": {
+            const ListTag = block.type === "list" ? "ul" : "ol"
+            return (
+                <ListTag
+                    style={{
+                        ...BODY_TEXT,
+                        margin: "0 0 16px 24px",
+                        padding: 0,
+                        color: COLORS.text,
+                    }}
+                >
+                    {block.items.map((item, index) => (
+                        <li key={index} style={{ margin: "0 0 4px" }}>
+                            <Spans spans={item.value} />
+                        </li>
+                    ))}
+                </ListTag>
+            )
+        }
+        case "cta":
+            return (
+                <Text style={{ ...BODY_TEXT, margin: "16px 0" }}>
+                    <Link
+                        href={block.url}
+                        style={{
+                            color: COLORS.text,
+                            fontWeight: 700,
+                            textDecoration: "none",
+                        }}
+                    >
+                        {block.text} →
+                    </Link>
+                </Text>
             )
         case "image": {
             const filename = block.preferSmallFilename
@@ -379,17 +535,24 @@ function Block({
                 : block.filename
             const url = imageUrlByFilename[filename]
             if (!url) return null
-            return (
-                <img
+            const image = (
+                <Img
                     src={url}
                     alt={block.alt ?? ""}
-                    width={552}
+                    width={CONTAINER_WIDTH - 2 * CONTENT_PADDING - 48}
                     style={{
                         width: "100%",
                         height: "auto",
-                        margin: "8px 0 12px",
+                        margin: "0 0 16px",
+                        border: `1px solid ${COLORS.cardMuted}`,
                     }}
                 />
+            )
+            if (!imageHref) return image
+            return (
+                <Link href={imageHref} style={IMAGE_LINK_STYLE}>
+                    {image}
+                </Link>
             )
         }
         default:
@@ -410,9 +573,15 @@ function SpanElement({ span }: { span: Span }): ReactNode {
         case "span-link":
         case "span-ref":
             return (
-                <a href={span.url} style={{ color: COLORS.blue }}>
+                <Link
+                    href={span.url}
+                    style={{
+                        color: "inherit",
+                        textDecoration: "underline",
+                    }}
+                >
                     <Spans spans={span.children} />
-                </a>
+                </Link>
             )
         case "span-bold":
             return (
@@ -459,45 +628,73 @@ function SpanElement({ span }: { span: Span }): ReactNode {
 
 function Footer({
     email,
+    baseUrl,
     unsubscribeUrl,
     updatePreferencesUrl,
 }: {
     email: string
+    baseUrl: string
     unsubscribeUrl: string
     updatePreferencesUrl: string
 }) {
     const footerTextStyle: CSSProperties = {
         margin: "0 0 8px",
         fontSize: 13,
+        lineHeight: "20px",
         color: COLORS.muted,
         textAlign: "center",
     }
+    const footerLinkStyle: CSSProperties = {
+        color: COLORS.muted,
+        textDecoration: "underline",
+    }
     return (
-        <div
+        <Section
             style={{
-                padding: "16px 24px 24px",
-                borderTop: `1px solid ${COLORS.border}`,
+                padding: `0 ${CONTENT_PADDING}px 40px`,
+                textAlign: "center",
             }}
         >
-            <p style={footerTextStyle}>
+            <Text
+                style={{
+                    ...BODY_TEXT,
+                    margin: "0 0 24px",
+                    textAlign: "center",
+                }}
+            >
+                <Link
+                    href={`${baseUrl}/latest`}
+                    style={{
+                        display: "inline-block",
+                        padding: "12px 24px",
+                        backgroundColor: COLORS.navy,
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        textDecoration: "none",
+                    }}
+                >
+                    Browse the latest on Our World in Data
+                </Link>
+            </Text>
+            <Text style={footerTextStyle}>
                 This email was sent to {email} because you subscribed to email
                 updates from Our World in Data.
-            </p>
-            <p style={footerTextStyle}>
+            </Text>
+            <Text style={footerTextStyle}>
                 You can{" "}
-                <a href={updatePreferencesUrl} style={{ color: COLORS.blue }}>
+                <Link href={updatePreferencesUrl} style={footerLinkStyle}>
                     update your preferences
-                </a>{" "}
+                </Link>{" "}
                 or{" "}
-                <a href={unsubscribeUrl} style={{ color: COLORS.blue }}>
+                <Link href={unsubscribeUrl} style={footerLinkStyle}>
                     unsubscribe
-                </a>{" "}
+                </Link>{" "}
                 at any time.
-            </p>
-            <p style={{ ...footerTextStyle, marginBottom: 0 }}>
+            </Text>
+            <Text style={{ ...footerTextStyle, marginBottom: 0 }}>
                 Our World in Data · Global Change Data Lab · Oxford, United
                 Kingdom
-            </p>
-        </div>
+            </Text>
+        </Section>
     )
 }
