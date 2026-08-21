@@ -1,5 +1,14 @@
 import { Filter, FilterType, SearchFacetFilters } from "@ourworldindata/types"
 
+/**
+ * What to pass as `maxValuesPerFacet` when a search needs the *complete* list of
+ * a facet's values rather than a sample. Algolia caps facet values at 100 unless
+ * asked for more, which silently truncates any facet with more values than that
+ * — our `tags` facet among them — and a truncated list reads as "these topics
+ * have no content". 1000 is Algolia's documented maximum.
+ */
+export const MAX_FACET_VALUES = 1000
+
 // Shared between the site's client-side Algolia queries (site/search/queries.ts)
 // and the public /api/search Cloudflare function (functions/api/search/searchApi.ts)
 // so that identical filters produce identical Algolia requests in both places.

@@ -11,6 +11,7 @@ import {
     getFilterNamesOfType,
     buildChartsFacetFilters,
     searchSingleForHitsWithClosestMatches,
+    MAX_FACET_VALUES,
 } from "@ourworldindata/utils"
 import {
     getIndexName,
@@ -128,6 +129,15 @@ async function getAvailableTopics(config: AlgoliaConfig): Promise<string[]> {
                 query: "",
                 hitsPerPage: 0,
                 facets: ["tags"],
+                // Algolia returns at most 100 values per facet unless asked for
+                // more, and the index carries appreciably more topic tags than
+                // that. Left at the default, this listed the 100 commonest and
+                // silently dropped the rest, so a perfectly valid but less-used
+                // topic — Books, Gender Ratio, Nuclear Energy, Tetanus — was
+                // reported to callers as a topic that does not exist (see
+                // searchCharts, which only consults this list when a search
+                // comes back empty). The cap is Algolia's documented maximum.
+                maxValuesPerFacet: MAX_FACET_VALUES,
             },
         ],
     })

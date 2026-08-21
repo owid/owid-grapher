@@ -125,7 +125,7 @@ export function getChartHitIdentity(hit: ChartHitIdentityFields): string {
     return `${hit.slug}${hit.queryParams ?? ""}`
 }
 
-export type ChartHitPhraseFields = {
+export type ChartHitMatchFields = {
     title?: string
     subtitle?: string
     datasetProducers?: string[]
@@ -134,17 +134,19 @@ export type ChartHitPhraseFields = {
 /**
  * The text of a chart hit as the all-charts block actually renders it: the row's
  * title, its subtitle, and each producer named in its "Source:" line — kept as
- * separate strings rather than joined, so a phrase can never be matched across
- * the boundary between two of them. (Concatenated, a row titled "Per capita
- * methane emissions" whose subtitle opens "Per capita …" would match the phrase
- * "emissions per capita", which appears nowhere on it.)
+ * separate strings rather than joined, so a query can never be satisfied by
+ * words gathered from two of them. That boundary is what keeps the matching
+ * honest now that the words need not be adjacent: "united nations poverty
+ * platform" finds every one of its words on a row about mean income — "poverty"
+ * and "platform" in its producer, "nations" in another field — but never all of
+ * them in the same one.
  *
  * Deliberately *only* the visible text. The index makes far more searchable than
  * this — `slug`, `tags`, `datasetProducers`, `availableEntities` — and matching a
  * typed phrase against fields the row doesn't show is exactly what makes results
- * look arbitrary (see filterChartHitsByPhrase).
+ * look arbitrary (see filterChartHitsByQueryWords).
  */
-function getChartHitRowTexts(hit: ChartHitPhraseFields): string[] {
+function getChartHitRowTexts(hit: ChartHitMatchFields): string[] {
     return [
         hit.title ?? "",
         hit.subtitle ?? "",
@@ -166,19 +168,19 @@ function getChartHitRowTexts(hit: ChartHitPhraseFields): string[] {
  * *spaces* into separators: a newline or tab is instead removed as punctuation,
  * which would weld the words on either side of it into one.
  */
-function splitIntoPhraseMatchWords(text: string): string[] {
+function splitIntoMatchWords(text: string): string[] {
     return slugify(text.replace(/\s+/g, " "))
         .split("-")
         .filter((word) => word !== "")
 }
 
 /**
- * True when `text` contains `phrase` as a run of consecutive whole words, with
- * the last word of the phrase allowed to match a prefix.
+ * True when every word of `query` appears in `text`, in any order, with the last
+ * word of the query allowed to match a prefix.
  *
  * Whole words, not raw substrings: a substring test would report
  * "national poverty line" as found in "…below the International Poverty Line",
- * which is how a search for the phrase ends up returning charts about extreme
+ * which is how a search for those words ends up returning charts about extreme
  * poverty (17 of them on the Poverty topic).
  *
  * Prefix on the final word only, which covers two things at once: the visitor is
@@ -187,36 +189,37 @@ function splitIntoPhraseMatchWords(text: string): string[] {
  * the chart titled "Share of population living below national poverty lines",
  * which is the single most relevant result for that search and which Algolia's
  * own `"exactPhrase"` operator drops.
+ *
+ * Any order, and with gaps allowed, because requiring the words to be adjacent
+ * rejected rows that plainly answer the query: "clean cooking" found nothing on
+ * Air Pollution, whose charts all say "access to clean fuels *for* cooking", and
+ * "emissions per capita" missed a row titled "Per capita methane emissions".
+ * What stops this from letting the noise back in is not adjacency but the field
+ * boundary — every word has to be in *one* of the row's texts, and the row's
+ * texts are only what it displays. See getChartHitRowTexts and
+ * filterChartHitsByQueryWords.
  */
-export function textContainsPhrase(text: string, phrase: string): boolean {
-    const phraseWords = splitIntoPhraseMatchWords(phrase)
-    if (phraseWords.length === 0) return true
+export function textContainsAllQueryWords(
+    text: string,
+    query: string
+): boolean {
+    const queryWords = splitIntoMatchWords(query)
+    if (queryWords.length === 0) return true
 
-    const textWords = splitIntoPhraseMatchWords(text)
-    const leadingWords = phraseWords.slice(0, -1)
-    const lastWord = phraseWords[phraseWords.length - 1]
+    const textWords = splitIntoMatchWords(text)
+    const leadingWords = queryWords.slice(0, -1)
+    const lastWord = queryWords[queryWords.length - 1]
 
-    for (
-        let start = 0;
-        start + phraseWords.length <= textWords.length;
-        start++
-    ) {
-        const leadingWordsMatch = leadingWords.every(
-            (word, offset) => textWords[start + offset] === word
-        )
-        if (
-            leadingWordsMatch &&
-            textWords[start + leadingWords.length].startsWith(lastWord)
-        )
-            return true
-    }
-    return false
+    return (
+        leadingWords.every((word) => textWords.includes(word)) &&
+        textWords.some((word) => word.startsWith(lastWord))
+    )
 }
 
 /**
- * Keeps only the hits whose own visible text contains `phrase` — the
+ * Keeps only the hits whose own visible text contains every word of `query` — the
  * "find"-like narrowing the all-charts block applies on top of its Algolia
- * results (site/AllChartsBlock.tsx). An empty phrase keeps everything.
+ * results (site/AllChartsBlock.tsx). An empty query keeps everything.
  *
  * Why the block needs this at all: Algolia does require every word of the query
  * to be present, but each word may be found in a *different* searchable
@@ -230,18 +233,18 @@ export function textContainsPhrase(text: string, phrase: string): boolean {
  *
  * The filter runs client-side rather than as a query parameter for two reasons:
  * Algolia's `"exactPhrase"` operator is token-exact, so quoting the query drops
- * the plural-titled chart (see textContainsPhrase); and the caller already holds
+ * the plural-titled chart (see textContainsAllQueryWords); and the caller already holds
  * the complete result set for its topic (queryAllCharts walks every page), so
  * narrowing it locally can't hide a match on a page that wasn't fetched.
  */
-export function filterChartHitsByPhrase<T extends ChartHitPhraseFields>(
+export function filterChartHitsByQueryWords<T extends ChartHitMatchFields>(
     hits: readonly T[],
-    phrase: string
+    query: string
 ): T[] {
-    if (splitIntoPhraseMatchWords(phrase).length === 0) return [...hits]
+    if (splitIntoMatchWords(query).length === 0) return [...hits]
     return hits.filter((hit) =>
         getChartHitRowTexts(hit).some((text) =>
-            textContainsPhrase(text, phrase)
+            textContainsAllQueryWords(text, query)
         )
     )
 }
