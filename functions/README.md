@@ -218,13 +218,6 @@ user); `{ token, unsubscribe: true }` unsubscribes. An optional
 `subscribeToOwidBrief` updates the Mailchimp Brief interest **fail-soft**: a
 Mailchimp failure never blocks the D1 save.
 
-## `/api/email-notifications/brief-status`
-
-Whether the magic-link token's user is subscribed to the OWID Brief in
-Mailchimp. Powers the preferences page's fail-soft Brief toggle: any non-200
-(invalid/expired token, Mailchimp unavailable or unconfigured) makes the
-page hide the toggle.
-
 ## `/api/email-notifications/unsubscribe`
 
 Link target from the notification email footers, with a `token` query

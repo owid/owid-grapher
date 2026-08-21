@@ -5,19 +5,24 @@ import { SiteFooter } from "../SiteFooter.js"
 import {
     SiteFooterContext,
     SUBSCRIBE_PAGE_ROOT_ID,
-    TagGraphRoot,
 } from "@ourworldindata/types"
 import { SubscribeFlow } from "./SubscribeFlow.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 
+declare global {
+    interface Window {
+        _OWID_TOPIC_AREA_NAMES: string[]
+    }
+}
+
 export interface SubscribePageProps {
     baseUrl: string
-    topicTagGraph: TagGraphRoot
+    topicAreaNames: string[]
 }
 
 export const SubscribePage = ({
     baseUrl,
-    topicTagGraph,
+    topicAreaNames,
 }: SubscribePageProps) => {
     return (
         <Html>
@@ -30,7 +35,7 @@ export const SubscribePage = ({
             >
                 <script
                     dangerouslySetInnerHTML={{
-                        __html: `window._OWID_TOPIC_TAG_GRAPH = ${JSON.stringify(topicTagGraph)}`,
+                        __html: `window._OWID_TOPIC_AREA_NAMES = ${JSON.stringify(topicAreaNames)}`,
                     }}
                 ></script>
             </Head>
@@ -42,7 +47,7 @@ export const SubscribePage = ({
                     id={SUBSCRIBE_PAGE_ROOT_ID}
                     className="subscribe-page grid grid-cols-12-full-width"
                 >
-                    <SubscribeFlow topicTagGraph={topicTagGraph} />
+                    <SubscribeFlow topicAreaNames={topicAreaNames} />
                 </main>
                 <SiteFooter context={SiteFooterContext.subscribePage} />
             </body>
