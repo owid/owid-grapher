@@ -48,6 +48,7 @@ import {
 } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
+import * as z from "zod"
 
 export async function getEditorVariablesJson(
     req: Request,
@@ -432,6 +433,10 @@ async function updateGrapherConfigsInR2(
     }
 }
 
+const deleteVariablesSchema = z.object({
+    variableIds: z.array(z.number().int()),
+})
+
 /**
  * Delete a set of indicators.
  *
@@ -444,19 +449,15 @@ export async function postVariablesDelete(
     _res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
-    const { variableIds } = req.body ?? {}
-
-    if (
-        !Array.isArray(variableIds) ||
-        !variableIds.every((id) => Number.isInteger(id))
-    ) {
-        throw new JsonError(
-            "`variableIds` must be an array of indicator ids",
-            400
-        )
+    const parseResult = deleteVariablesSchema.safeParse(req.body)
+    if (!parseResult.success) {
+        throw new JsonError(`Invalid request: ${parseResult.error}`, 400)
     }
 
-    const { deleted, blocked } = await deleteIndicators(trx, variableIds)
+    const { deleted, blocked } = await deleteIndicators(
+        trx,
+        parseResult.data.variableIds
+    )
 
     return { success: true, deleted, blocked }
 }
