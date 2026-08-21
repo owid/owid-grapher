@@ -146,7 +146,8 @@ export default function LatestDataInsights({
                     text=""
                 />
             )}
-            <div className="latest-data-insights__dots">
+            {/* Without JS the dots would never update as the user scrolls. */}
+            <div className="latest-data-insights__dots js--hide-if-js-disabled">
                 {/* The extra dot belongs to the "See all" card; it's hidden
                     along with its card on larger screens (see CSS). */}
                 {Array.from({ length: dataInsights.length + 1 }, (_, index) => (
