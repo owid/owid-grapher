@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest"
 
+import { ColumnTypeNames } from "@ourworldindata/types"
 import {
+    OwidTable,
     SampleColumnSlugs,
     SynthesizeGDPTable,
     SynthesizeProjectedPopulationTable,
@@ -154,5 +156,175 @@ describe("not applicable entities", () => {
         expect(chartState.colorScale.inapplicableLabel).toEqual(
             "Selected country"
         )
+    })
+})
+
+it("keeps the source time of combined values that tolerance was applied to", () => {
+    // France has a projected value for the target time; Germany's closest
+    // projected value is from 2003; Italy only has historical data, from 2002
+    const table = new OwidTable(
+        [
+            ["entityName", "year", "population", "projected_population"],
+            ["France", 2002, 100, ""],
+            ["France", 2003, "", 300],
+            ["France", 2004, "", 400],
+            ["Germany", 2002, 150, ""],
+            ["Germany", 2003, "", 350],
+            ["Italy", 2002, 200, ""],
+        ],
+        [
+            {
+                slug: "population",
+                type: ColumnTypeNames.Numeric,
+                tolerance: 3,
+            },
+            {
+                slug: "projected_population",
+                type: ColumnTypeNames.Numeric,
+                tolerance: 3,
+                display: { isProjection: true },
+            },
+            { slug: "year", type: ColumnTypeNames.Year },
+        ]
+    )
+
+    const combinedSlug = "projected_population-population"
+    const manager: MapChartManager = {
+        table,
+        mapColumnSlug: "projected_population",
+        targetTime: 2004,
+        projectionColumnInfoBySlug: new Map([
+            [
+                "projected_population",
+                {
+                    projectedSlug: "projected_population",
+                    historicalSlug: "population",
+                    combinedSlug,
+                    slugForIsProjectionColumn: `${combinedSlug}-isProjection`,
+                },
+            ],
+        ]),
+    }
+
+    const chartState = new MapChartState({ manager })
+    expect(chartState.series).toEqual([
+        expect.objectContaining({
+            seriesName: "France",
+            time: 2004,
+            value: 400,
+            isProjection: true,
+        }),
+        expect.objectContaining({
+            seriesName: "Germany",
+            time: 2003,
+            value: 350,
+            isProjection: true,
+        }),
+        expect.objectContaining({
+            seriesName: "Italy",
+            time: 2002,
+            value: 200,
+            isProjection: false,
+        }),
+    ])
+})
+
+it("doesn't apply tolerance a second time to a plain map column", () => {
+    // Spain's only value is from 2000, which a tolerance of 3 carries as far as
+    // 2003, so it must not appear on a map showing 2006 — reaching that far
+    // would mean applying the tolerance a second time
+    const table = new OwidTable(
+        [
+            ["entityName", "year", "population"],
+            ["France", 2000, 100],
+            ["France", 2003, 150],
+            ["France", 2006, 200],
+            ["Spain", 2000, 300],
+        ],
+        [
+            {
+                slug: "population",
+                type: ColumnTypeNames.Numeric,
+                tolerance: 3,
+            },
+            { slug: "year", type: ColumnTypeNames.Year },
+        ]
+    )
+
+    const chartState = new MapChartState({
+        manager: { table, mapColumnSlug: "population", targetTime: 2006 },
+    })
+
+    // Spain is not included because its value is too far away from the target time
+    expect(chartState.series.map((series) => series.seriesName)).toEqual([
+        "France",
+    ])
+})
+
+describe("doesn't apply tolerance a second time across the stitch", () => {
+    // Spain's only value is historical, from 2000. A tolerance of 3 carries it
+    // as far as 2003, so it must not appear on a map showing 2006 — reaching
+    // that far would mean applying the tolerance twice
+    const makeChartState = (mapConfig?: MapConfig): MapChartState => {
+        const table = new OwidTable(
+            [
+                ["entityName", "year", "population", "projected_population"],
+                ["France", 2000, 100, ""],
+                ["France", 2003, 150, ""],
+                ["France", 2006, "", 200],
+                ["Spain", 2000, 300, ""],
+            ],
+            [
+                {
+                    slug: "population",
+                    type: ColumnTypeNames.Numeric,
+                    tolerance: 3,
+                },
+                {
+                    slug: "projected_population",
+                    type: ColumnTypeNames.Numeric,
+                    tolerance: 3,
+                    display: { isProjection: true },
+                },
+                { slug: "year", type: ColumnTypeNames.Year },
+            ]
+        )
+
+        const combinedSlug = "projected_population-population"
+        return new MapChartState({
+            manager: {
+                table,
+                mapColumnSlug: "projected_population",
+                targetTime: 2006,
+                mapConfig,
+                projectionColumnInfoBySlug: new Map([
+                    [
+                        "projected_population",
+                        {
+                            projectedSlug: "projected_population",
+                            historicalSlug: "population",
+                            combinedSlug,
+                            slugForIsProjectionColumn: `${combinedSlug}-isProjection`,
+                        },
+                    ],
+                ]),
+            },
+        })
+    }
+
+    it("when the tolerance comes from the columns", () => {
+        // Spain is not included because its value is too far away from the target time
+        expect(
+            makeChartState().series.map((series) => series.seriesName)
+        ).toEqual(["France"])
+    })
+
+    it("when the tolerance comes from the map config", () => {
+        // Spain is not included because its value is too far away from the target time
+        expect(
+            makeChartState(new MapConfig({ timeTolerance: 3 })).series.map(
+                (series) => series.seriesName
+            )
+        ).toEqual(["France"])
     })
 })

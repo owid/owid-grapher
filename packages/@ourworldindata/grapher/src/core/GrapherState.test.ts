@@ -797,6 +797,90 @@ describe("toleranceNotice", () => {
         )
     })
 
+    describe("a historical and projected map", () => {
+        const NOTICE =
+            "Where data for 2004 is unavailable, the value from the closest year between 2001 and 2003 is shown instead."
+
+        const makeProjectedGrapher = ({
+            extraRows = [],
+            historicalTolerance = 3,
+            projectedTolerance = 3,
+        }: {
+            extraRows?: (string | number)[][]
+            historicalTolerance?: number
+            projectedTolerance?: number
+        } = {}): GrapherState =>
+            new GrapherState({
+                table: new OwidTable(
+                    [
+                        ["entityName", "year", "pop", "pop_projected"],
+                        ["France", 1990, 10, ""],
+                        ["France", 2002, 100, ""],
+                        ["France", 2004, "", 400],
+                        // Germany's closest projected value is from 2003, a
+                        // year short of the 2004 the map is showing
+                        ["Germany", 2002, 150, ""],
+                        ["Germany", 2003, "", 350],
+                        ...extraRows,
+                    ],
+                    [
+                        {
+                            slug: "pop",
+                            type: ColumnTypeNames.Numeric,
+                            tolerance: historicalTolerance,
+                            display: { name: "Population" },
+                        },
+                        {
+                            slug: "pop_projected",
+                            type: ColumnTypeNames.Numeric,
+                            tolerance: projectedTolerance,
+                            display: { name: "Population", isProjection: true },
+                        },
+                        { slug: "year", type: ColumnTypeNames.Year },
+                    ]
+                ),
+                dimensions: ["pop", "pop_projected"].map((slug, i) => ({
+                    slug,
+                    property: DimensionProperty.y,
+                    variableId: 100 + i,
+                })),
+                tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+                hasMapTab: true,
+                map: { columnSlug: "pop_projected" },
+            })
+
+        it("explains the tolerance", () => {
+            expect(makeProjectedGrapher().toleranceNotice).toEqual(NOTICE)
+        })
+
+        it("is absent when no value was filled in from another time", () => {
+            expect(
+                makeProjectedGrapher({
+                    extraRows: [["Germany", 2004, "", 450]],
+                }).toleranceNotice
+            ).toBeUndefined()
+        })
+
+        it("gives the tolerance of whichever column the value came from", () => {
+            // Italy is historical-only, so only the historical tolerance can
+            // carry its 2002 value to the 2004 the map is showing
+            const italy: (string | number)[][] = [["Italy", 2002, 200, ""]]
+            expect(
+                makeProjectedGrapher({
+                    extraRows: italy,
+                    projectedTolerance: 0,
+                }).toleranceNotice
+            ).toEqual(NOTICE)
+            expect(
+                makeProjectedGrapher({
+                    extraRows: italy,
+                    historicalTolerance: 0,
+                    projectedTolerance: 0,
+                }).toleranceNotice
+            ).toBeUndefined()
+        })
+    })
+
     describe("only when tolerance is actually applied", () => {
         // Every country has data for every year
         const completeTable = (): OwidTable =>

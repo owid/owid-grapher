@@ -43,6 +43,7 @@ import {
     CoreColumn,
     ErrorValueTypes,
     isNotErrorValueOrEmptyCell,
+    makeOriginalTimeSlugFromColumnSlug,
     OwidTable,
 } from "@ourworldindata/core-table"
 import { GRAPHER_BACKGROUND } from "../color/ColorConstants"
@@ -249,7 +250,9 @@ export function combineHistoricalAndProjectionColumns(
     const transformFn = (
         row: Record<ColumnSlug, { value: CoreValueType; time: Time }>,
         time: Time
-    ): { isProjection: boolean; value: PrimitiveType } | undefined => {
+    ):
+        | { isProjection: boolean; value: PrimitiveType; originalTime: Time }
+        | undefined => {
         // It's possible to have both a historical and a projected value
         // for a given year. In that case, we prefer the historical value.
 
@@ -264,12 +267,21 @@ export function combineHistoricalAndProjectionColumns(
             // If tolerance was applied to the historical column, we need to
             // make sure the interpolated historical value doesn't get picked
             // over the actual projected value
-            historicalTimeDiff <= projectionTimeDiff
+            (!isNotErrorValueOrEmptyCell(projected.value) ||
+                historicalTimeDiff <= projectionTimeDiff)
         )
-            return { value: historical.value, isProjection: false }
+            return {
+                value: historical.value,
+                isProjection: false,
+                originalTime: historical.time,
+            }
 
         if (isNotErrorValueOrEmptyCell(projected.value)) {
-            return { value: projected.value, isProjection: true }
+            return {
+                value: projected.value,
+                isProjection: true,
+                originalTime: projected.time,
+            }
         }
 
         return undefined
@@ -281,6 +293,23 @@ export function combineHistoricalAndProjectionColumns(
         { ...table.get(projectedSlug).def, slug: combinedSlug },
         (row, time) =>
             transformFn(row, time)?.value ??
+            ErrorValueTypes.MissingValuePlaceholder
+    )
+
+    // Keep the time each combined value actually comes from
+    table = table.combineColumns(
+        [projectedSlug, historicalSlug],
+        {
+            ...table.get(combinedSlug).originalTimeColumn.def,
+            slug: makeOriginalTimeSlugFromColumnSlug(combinedSlug),
+            display: { includeInTable: false },
+            derivedFrom: {
+                columnSlug: combinedSlug,
+                relationship: "originalTime",
+            },
+        },
+        (row, time) =>
+            transformFn(row, time)?.originalTime ??
             ErrorValueTypes.MissingValuePlaceholder
     )
 
