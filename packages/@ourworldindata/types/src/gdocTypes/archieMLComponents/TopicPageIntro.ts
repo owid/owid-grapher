@@ -32,6 +32,7 @@ export type EnrichedTopicPageIntroDownloadButton = {
     type: "topic-page-intro-download-button"
 }
 
+/** @see ./TopicPageIntro.md */
 export type EnrichedBlockTopicPageIntro = {
     type: "topic-page-intro"
     downloadButton?: EnrichedTopicPageIntroDownloadButton

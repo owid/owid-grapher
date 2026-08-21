@@ -5,6 +5,7 @@ export type RawBlockDonorList = {
     value?: Record<string, never> // dummy value to unify block shapes
 }
 
+/** @see ./DonorList.md */
 export type EnrichedBlockDonorList = {
     type: "donors"
     value?: Record<string, never> // dummy value to unify block shapes

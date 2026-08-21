@@ -33,6 +33,7 @@ export type EnrichedSocialLink = {
     type?: SocialLinkType
 } & EnrichedBlockWithParseErrors
 
+/** @see ./Socials.md */
 export type EnrichedBlockSocials = {
     type: "socials"
     links: EnrichedSocialLink[]

@@ -20,6 +20,7 @@ export type RawBlockPullQuote = {
     }
 }
 
+/** @see ./PullQuote.md */
 export type EnrichedBlockPullQuote = {
     type: "pull-quote"
     content: EnrichedBlockText[]

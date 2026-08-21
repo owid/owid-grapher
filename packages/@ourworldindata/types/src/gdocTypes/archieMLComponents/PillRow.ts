@@ -11,6 +11,7 @@ export type RawBlockPillRow = {
     }
 }
 
+/** @see ./PillRow.md */
 export type EnrichedBlockPillRow = {
     type: "pill-row"
     title: string

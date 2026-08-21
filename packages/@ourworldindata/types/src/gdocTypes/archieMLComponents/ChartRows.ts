@@ -26,6 +26,7 @@ export type RawBlockChartRows = {
     }
 }
 
+/** @see ./ChartRows.md */
 export type EnrichedBlockChartRows = {
     type: "chart-rows"
     kicker: string

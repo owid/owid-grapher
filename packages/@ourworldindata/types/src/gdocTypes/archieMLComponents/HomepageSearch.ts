@@ -5,6 +5,7 @@ export type RawBlockHomepageSearch = {
     value: Record<string, never>
 }
 
+/** @see ./HomepageSearch.md */
 export type EnrichedBlockHomepageSearch = {
     type: "homepage-search"
 } & EnrichedBlockWithParseErrors
