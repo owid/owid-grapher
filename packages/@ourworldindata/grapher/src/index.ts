@@ -40,8 +40,8 @@ export {
     latestGrapherConfigSchema,
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
-    ADDITIONAL_REGION_DATA_PROVIDERS,
-    type AdditionalRegionDataProvider,
+    ADDITIONAL_REGION_PUBLISHERS,
+    type AdditionalRegionPublisher,
     type FontSettings,
 } from "./core/GrapherConstants"
 export { OWID_LOGO_SVG, OWID_WORDMARK_SVG } from "./captionedChart/LogosSVG.js"
@@ -104,7 +104,7 @@ export {
     getRegionsForKey,
     type TooltipKey,
 } from "./seriesLabel/RegionTooltipData"
-export { regionGroupLabels } from "./core/RegionGroups"
+export { regionGroupLabels, parseLabel } from "./core/RegionGroups"
 export {
     MAP_REGION_LABELS,
     type GeoFeature,

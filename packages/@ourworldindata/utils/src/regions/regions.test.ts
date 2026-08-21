@@ -6,6 +6,7 @@ import {
     getRegionByNameOrVariantName,
     getRegionByName,
     getCountryNamesForRegion,
+    getRegionPublishers,
     articulateEntity,
 } from "./regionsUtils.js"
 
@@ -115,5 +116,20 @@ describe(getCountryNamesForRegion, () => {
         expect(countryNames).toContain("China") // Asia
         expect(countryNames).toContain("Australia") // Oceania
         expect(countryNames).toContain("Nigeria") // Africa
+    })
+})
+
+describe(getRegionPublishers, () => {
+    it("gives one key per publisher, not per region set", () => {
+        const keys = getRegionPublishers()
+
+        // fao_1/fao_2/fao_sdg and ihme_gbd_1/ihme_gbd_2 collapse to one key each
+        expect(keys).toContain("fao")
+        expect(keys).toContain("ihme_gbd")
+        expect(keys).not.toContain("fao_1")
+        expect(keys).not.toContain("ihme_gbd_1")
+
+        // "European Union (27)" is an aggregate with no `definedBy`, so it has no publisher
+        expect(keys).not.toContain("27")
     })
 })
