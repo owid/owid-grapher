@@ -13,6 +13,8 @@ import {
     GrapherInterface,
     OwidVariableWithSource,
     parseChartConfig,
+    ChartConfigsTableName,
+    R2GrapherConfigDirectory,
 } from "@ourworldindata/types"
 import {
     fetchS3DataValuesByPath,
@@ -20,6 +22,7 @@ import {
     getAllChartsForIndicator,
     getLatestVariableIdsByCatalogPath,
     getGrapherConfigsForVariable,
+    mergeVariableChartConfigs,
     getMergedGrapherConfigForVariable,
     searchVariables,
     updateAllChartsThatInheritFromIndicator,
@@ -39,10 +42,12 @@ import {
     oldChartFieldList,
     assignTagsForCharts,
 } from "../../db/model/Chart.js"
-import { updateExistingFullConfig } from "../../db/model/ChartConfigs.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
-import { updateGrapherConfigsInR2 } from "./charts.js"
+import {
+    saveGrapherConfigToR2,
+    saveGrapherConfigToR2ByUUID,
+} from "../../serverUtils/r2/chartConfigR2Helpers.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 
@@ -215,7 +220,7 @@ export async function getVariablesGrapherConfigETLPatchConfigJson(
     if (!variable) {
         throw new JsonError(`Variable with id ${variableId} not found`, 500)
     }
-    return variable.etl?.patchConfig ?? {}
+    return variable.etl?.config ?? {}
 }
 
 export async function getVariablesGrapherConfigAdminPatchConfigJson(
@@ -228,7 +233,7 @@ export async function getVariablesGrapherConfigAdminPatchConfigJson(
     if (!variable) {
         throw new JsonError(`Variable with id ${variableId} not found`, 500)
     }
-    return variable.admin?.patchConfig ?? {}
+    return variable.admin?.config ?? {}
 }
 
 export async function getVariablesMergedGrapherConfigJson(
@@ -262,17 +267,17 @@ export async function getVariablesVariableIdJson(
     const rawCharts = await db.knexRaw<
         OldChartFieldList & {
             isInheritanceEnabled: DbPlainChart["isInheritanceEnabled"]
-            config: DbRawChartConfig["full"]
+            config: DbRawChartConfig["config"]
         }
     >(
         trx,
         `-- sql
-                SELECT ${oldChartFieldList}, charts.isInheritanceEnabled, chart_configs.full AS config
+                SELECT ${oldChartFieldList}, charts.isInheritanceEnabled, chart_configs.config AS config
                 FROM charts
                 JOIN chart_configs ON chart_configs.id = charts.configId
                 JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
                 LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-                LEFT JOIN analytics_grapher_views agv ON (agv.grapher_slug = chart_configs.slug AND chart_configs.full ->> '$.isPublished' = "true")
+                LEFT JOIN analytics_grapher_views agv ON (agv.grapher_slug = chart_configs.slug AND chart_configs.config ->> '$.isPublished' = "true")
                 LEFT JOIN chart_references_view crv ON crv.chartId = charts.id
                 JOIN chart_dimensions cd ON cd.chartId = charts.id
                 WHERE cd.variableId = ?
@@ -296,11 +301,12 @@ export async function getVariablesVariableIdJson(
         trx,
         variableId
     )
-    const grapherConfigETL = variableWithConfigs?.etl?.patchConfig
-    const grapherConfigAdmin = variableWithConfigs?.admin?.patchConfig
-    const mergedGrapherConfig =
-        variableWithConfigs?.admin?.fullConfig ??
-        variableWithConfigs?.etl?.fullConfig
+    const grapherConfigETL = variableWithConfigs?.etl?.config
+    const grapherConfigAdmin = variableWithConfigs?.admin?.config
+    const mergedGrapherConfig = mergeVariableChartConfigs({
+        etl: grapherConfigETL,
+        admin: grapherConfigAdmin,
+    })
 
     // add the variable's display field to the merged grapher config
     if (mergedGrapherConfig) {
@@ -402,7 +408,7 @@ export async function deleteVariablesVariableIdGrapherConfigETL(
         trx,
         `-- sql
                 UPDATE variables
-                SET grapherConfigIdETL = NULL
+                SET patchConfigIdETL = NULL
                 WHERE id = ?
             `,
         [variableId]
@@ -418,17 +424,8 @@ export async function deleteVariablesVariableIdGrapherConfigETL(
         [variable.etl.configId]
     )
 
-    // update admin config if there is one
-    if (variable.admin) {
-        await updateExistingFullConfig(trx, {
-            configId: variable.admin.configId,
-            config: variable.admin.patchConfig,
-            updatedAt: now,
-        })
-    }
-
     const updates = {
-        patchConfigAdmin: variable.admin?.patchConfig,
+        patchConfigAdmin: variable.admin?.config,
         updatedAt: now,
     }
     const updatedCharts = await updateAllChartsThatInheritFromIndicator(
@@ -531,7 +528,7 @@ export async function deleteVariablesVariableIdGrapherConfigAdmin(
         trx,
         `-- sql
                 UPDATE variables
-                SET grapherConfigIdAdmin = NULL
+                SET patchConfigIdAdmin = NULL
                 WHERE id = ?
             `,
         [variableId]
@@ -548,7 +545,7 @@ export async function deleteVariablesVariableIdGrapherConfigAdmin(
     )
 
     const updates = {
-        patchConfigETL: variable.etl?.patchConfig,
+        patchConfigETL: variable.etl?.config,
         updatedAt: now,
     }
     const updatedCharts = await updateAllChartsThatInheritFromIndicator(
@@ -597,4 +594,32 @@ export async function getVariablesVariableIdChartsJson(
         isInheritanceEnabled: chart.isInheritanceEnabled,
         isPublished: chart.isPublished,
     }))
+}
+
+async function updateGrapherConfigsInR2(
+    knex: db.KnexReadonlyTransaction,
+    updatedCharts: { chartConfigId: string; isPublished: boolean }[],
+    updatedMultiDimViews: { chartConfigId: string; isPublished: boolean }[]
+): Promise<void> {
+    const publishedChartConfigIds = new Set(
+        updatedCharts
+            .filter(({ isPublished }) => isPublished)
+            .map(({ chartConfigId }) => chartConfigId)
+    )
+    const idsToUpdate = [...updatedCharts, ...updatedMultiDimViews]
+        .filter(({ isPublished }) => isPublished)
+        .map(({ chartConfigId }) => chartConfigId)
+    const builder = knex<DbRawChartConfig>(ChartConfigsTableName)
+        .select("id", "slug", "config", "configMd5")
+        .whereIn("id", idsToUpdate)
+    for await (const { id, slug, config, configMd5 } of builder.stream()) {
+        await saveGrapherConfigToR2ByUUID(id, config, configMd5)
+        if (publishedChartConfigIds.has(id) && slug)
+            await saveGrapherConfigToR2(
+                config,
+                R2GrapherConfigDirectory.publishedGrapherBySlug,
+                `${slug}.json`,
+                configMd5
+            )
+    }
 }

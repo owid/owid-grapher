@@ -15,7 +15,9 @@ fields:
   variableId:
     description: Foreign key to variables table for the variable being visualized
   chartConfigId:
-    description: Foreign key to chart_configs table for the chart configuration
+    description: Foreign key to chart_configs table for the config that is rendered for this view (the merge of the indicator config and the view's patch)
+  patchConfigId:
+    description: Foreign key to chart_configs table for the view config as authored in the mdim YAML (the mdim-wide config composed with this view's own config). Read whenever the view has to be re-merged, e.g. after an indicator config change.
   createdAt:
     description: Timestamp when the configuration was created
   updatedAt:

@@ -128,7 +128,7 @@ export async function getTagById(
                 LEFT JOIN chart_tags ct ON ct.chartId=charts.id
                 JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
                 LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-                LEFT JOIN analytics_grapher_views agv ON (agv.grapher_slug = chart_configs.slug AND chart_configs.full ->> '$.isPublished' = "true")
+                LEFT JOIN analytics_grapher_views agv ON (agv.grapher_slug = chart_configs.slug AND chart_configs.config ->> '$.isPublished' = "true")
                 LEFT JOIN chart_references_view crv ON crv.chartId = charts.id
                 WHERE ct.tagId ${tagId === UNCATEGORIZED_TAG_ID ? "IS NULL" : "= ?"}
                 GROUP BY charts.id, agv.views_365d, crv.narrativeChartsCount, crv.referencesCount
