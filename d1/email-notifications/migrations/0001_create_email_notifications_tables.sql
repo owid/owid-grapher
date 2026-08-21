@@ -1,4 +1,8 @@
 -- Migration number: 0001 	 2026-06-11T00:00:00.000Z
+-- Timestamp convention: updatedAt defaults are applied on insert only. Every
+-- UPDATE to a table with an updatedAt column must also set updatedAt in the
+-- same statement because D1 does not update it automatically.
+
 -- Users of the email notifications system. The email is the identifier users
 -- enter in the subscribe form; everything else hangs off the user id.
 CREATE TABLE users (
