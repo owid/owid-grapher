@@ -35,13 +35,27 @@ describe(rankSuggestedKeywords, () => {
         ).toEqual(["Sex ratio", "Parliament"])
     })
 
-    it("fills the remaining slots with terms it couldn't match rather than shortening the line", () => {
-        // "Missing women" matches no chart above, but Algolia matches more
-        // generously than the substring test does, so it is offered last
-        // instead of dropped.
+    it("drops a term no chart on the page matches, rather than offering a chip that empties the list", () => {
+        // Clicking a chip searches, and the block then keeps only the rows whose
+        // own text contains the query — so a term nothing on the page matches is
+        // a dead end whatever Algolia would have returned. 25 of the 620 terms
+        // the production vocabulary has been showing behave this way.
         expect(
             rankSuggestedKeywords(unrefined("Missing women", "Sex ratio"), hits)
-        ).toEqual(["Sex ratio", "Missing women"])
+        ).toEqual(["Sex ratio"])
+    })
+
+    it("counts whole words, not substrings, so a short term isn't credited with charts it can't reach", () => {
+        // "Men" occurs inside "Women" and "employment"; searching for it
+        // returns neither, so it must not outrank a term that does reach them.
+        const menHits = makeHits(
+            "Women in employment",
+            "Women in parliament",
+            "Men and women in unpaid care work"
+        )
+        expect(
+            rankSuggestedKeywords(unrefined("Men", "Women"), menHits)
+        ).toEqual(["Women", "Men"])
     })
 
     it("offers at most five terms", () => {
@@ -97,16 +111,16 @@ describe(rankSuggestedKeywords, () => {
         ).toEqual(["missing", "judiciary", "excess mortality"])
     })
 
-    it("prefers an unproven term over a known duplicate when filling the line", () => {
+    it("fills a leftover slot with a duplicate rather than a dead end", () => {
         const hits = makeHits("Sex ratio at birth", "Sex ratio by age")
-        // "sex ratio" covers both charts, so "at birth" is a duplicate;
-        // "infanticide" matches nothing here but Algolia may still find it.
+        // "sex ratio" reaches both charts, so "at birth" adds no destination —
+        // but it does lead somewhere, which "infanticide" doesn't.
         expect(
             rankSuggestedKeywords(
                 unrefined("sex ratio", "sex ratio at birth", "infanticide"),
                 hits
             )
-        ).toEqual(["sex ratio", "infanticide", "sex ratio at birth"])
+        ).toEqual(["sex ratio", "sex ratio at birth"])
     })
 
     it("never suggests a place, however the vocabulary names it", () => {

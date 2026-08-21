@@ -4,6 +4,7 @@ import {
     DEFAULT_TOPIC_VOCABULARY_URL,
     TOPIC_VOCABULARY_URL,
 } from "../../settings/clientSettings.js"
+import { filterChartHitsByQueryWords } from "./searchUtils.js"
 
 // The vocabulary as published: keyed by topic slug, each entry carrying the
 // topic's name, its keywords, and generation stats we have no use for here.
@@ -102,12 +103,14 @@ const MAX_SUGGESTED_CHIPS = 5
 // The vocabulary lists its terms roughly most- to least-central to the topic,
 // and that ordering carries real judgment: the deeper terms drift towards the
 // broad and obvious. Ranking the *whole* list therefore risks handing the line
-// back to the generic words this replaced — "Men" and "Women" sat late in the
-// Gender Ratio list of an earlier vocabulary but occurred in far more of its
-// charts than "Sex-selective abortion" did, and uncapped that topic opened with
-// "Men, Women". Cutting the pool first keeps the two signals in their proper
-// order: the vocabulary decides which terms are worth suggesting at all, the
-// charts decide between the ones that are.
+// back to the generic words this replaced — "Men" and "Women" sit near the end
+// of the published vocabulary's Gender Ratio list but occur in more of its
+// charts than any specific term, so uncapped that topic opens with "Women, Men"
+// instead of "Sex ratio, Missing women". Removing the cap moves 78 of the 125
+// topics' lines and 23 of their opening terms, in that direction. Cutting the
+// pool first keeps the two signals in their proper order: the vocabulary decides
+// which terms are worth suggesting at all, the charts decide between the ones
+// that are.
 const MAX_VOCABULARY_CANDIDATES = 12
 
 // True for anything that names a place: a country, a continent, an aggregate
@@ -142,9 +145,11 @@ function isPlaceName(name: string): boolean {
  * The vocabulary offers more candidates than the line has slots, so the topic's
  * own chart list picks between them, on two counts:
  *
- * - **Reach.** A term occurring in more of the topic's charts describes more of
- *   the list the visitor is looking at, and is likelier to lead somewhere: a
- *   chip runs a search, so one that matches nothing is a dead end.
+ * - **Reach.** A chip runs a search, and the block narrows those results to the
+ *   rows whose own visible text contains the query, so a term no row on the page
+ *   matches empties the list. Reach is therefore measured with that same filter
+ *   (filterChartHitsByQueryWords), a term reaching more rows is offered first,
+ *   and a term reaching none is not offered at all.
  * - **Distinctness.** A term is only kept while it reaches a chart the terms
  *   before it didn't. Without this the line spends its slots several times over
  *   on the same destination — Gender Ratio offered "missing women",
@@ -153,10 +158,11 @@ function isPlaceName(name: string): boolean {
  *   are hard to spot as text but obvious in what they match, which is why this
  *   is decided here rather than asked of whoever generates the vocabulary.
  *
- * Terms found nowhere in the charts' text fill any slots left over, ahead of
- * ones held back as duplicates: Algolia matches far more generously than the
- * substring test here does, so "found nowhere" means unproven, while "reaches
- * only what's already covered" is a duplicate for certain.
+ * A term held back as a duplicate still fills a leftover slot, since it does
+ * lead somewhere; a term that reaches nothing cannot. Measured against the
+ * production vocabulary and the live index, 25 of the 620 terms it has been
+ * showing (4%) run a search that renders an empty list, and dropping them
+ * shortens only 3 topics' lines and empties none.
  *
  * None of this applies to a vocabulary the generator has already refined
  * against the search API: its ordering is better informed than anything
@@ -181,6 +187,12 @@ export function rankSuggestedKeywords(
     // it. The generator applies the same rule, and its report shows what each
     // term reaches, so an over-broad first term is visible rather than guessed
     // at.
+    //
+    // Filtering before the candidate cap below, so a refused term doesn't eat a
+    // candidate slot. It widens the window a little where a place does sit in
+    // the vocabulary's head, but that is rare (6 terms across 3 topics of 125)
+    // and the one topic whose line it changes is better for it: Poverty ends on
+    // "relative poverty" rather than "nutrition".
     const offerable = (entry?.keywords ?? []).filter(
         (keyword) => !isPlaceName(keyword)
     )
@@ -188,13 +200,12 @@ export function rankSuggestedKeywords(
 
     // A refined vocabulary has already been through this exercise with better
     // evidence: its generator asked the search API what each term actually
-    // returns and re-picked the list from the answers, so its order encodes
-    // real destinations rather than the substring guess below. Second-guessing
-    // it makes the line worse — running the guess over one refined vocabulary
-    // rewrote 115 of 125 topics, dropping "indoor air pollution" and "clean
-    // cooking" from Air Pollution because a chart matching "outdoor air
-    // pollution" contains them as substrings too, when the search shows they
-    // lead somewhere else entirely.
+    // returns, weighted the results by how much each chart is viewed, and
+    // re-picked the list from the answers. Second-guessing that from the
+    // topic's default list — unweighted, and blind to everything the search
+    // would have found — makes the line worse: re-ranking one refined
+    // vocabulary rewrote 100 of 125 topics and 54 of their opening terms, while
+    // not one of its 541 published terms rendered an empty list.
     //
     // It also means the line stops waiting on the chart list, since nothing
     // about the order depends on it any more.
@@ -203,28 +214,22 @@ export function rankSuggestedKeywords(
     if (hits.length === 0) return []
     const candidates = offerable.slice(0, MAX_VOCABULARY_CANDIDATES)
 
-    const chartTexts = hits.map((hit) =>
-        [hit.title, hit.subtitle].filter(Boolean).join(" ").toLowerCase()
-    )
-
-    const matched: { keyword: string; charts: Set<number> }[] = []
-    const unmatched: string[] = []
-    for (const keyword of candidates) {
-        const lowerCaseKeyword = keyword.toLowerCase()
-        const charts = new Set<number>()
-        chartTexts.forEach((text, index) => {
-            if (text.includes(lowerCaseKeyword)) charts.add(index)
-        })
-        if (charts.size > 0) matched.push({ keyword, charts })
-        else unmatched.push(keyword)
-    }
+    // The rows each term would leave standing, by the block's own filter, so a
+    // term ranked here reaches exactly what clicking it renders. Terms reaching
+    // nothing are dropped rather than offered as a dead end.
+    const matched = candidates
+        .map((keyword) => ({
+            keyword,
+            charts: new Set(filterChartHitsByQueryWords(hits, keyword)),
+        }))
+        .filter(({ charts }) => charts.size > 0)
 
     // `sort` is stable, so terms reaching the same number of charts keep the
     // order the vocabulary listed them in instead of being shuffled against
     // each other.
     matched.sort((a, b) => b.charts.size - a.charts.size)
 
-    const covered = new Set<number>()
+    const covered = new Set<SearchChartHit>()
     const distinct: string[] = []
     const duplicates: string[] = []
     for (const { keyword, charts } of matched) {
@@ -239,8 +244,5 @@ export function rankSuggestedKeywords(
         for (const chart of charts) covered.add(chart)
     }
 
-    return [...distinct, ...unmatched, ...duplicates].slice(
-        0,
-        MAX_SUGGESTED_CHIPS
-    )
+    return [...distinct, ...duplicates].slice(0, MAX_SUGGESTED_CHIPS)
 }

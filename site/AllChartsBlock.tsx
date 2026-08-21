@@ -208,11 +208,11 @@ export const AllChartsBlock = ({
 
     const { data: baseHits, isError: isBaseError } = useQuery({
         queryKey: searchQueryKeys.charts(baseSearchState),
-        // `title`/`subtitle` (used by rankSuggestedKeywords to rank the
-        // topic's vocabulary terms) are already part of the shared
-        // DATA_CATALOG_ATTRIBUTES, so no extra attributes need requesting
-        // here (contrast the old tag-based chips, which needed an explicit
-        // extra `tags` attribute).
+        // The row texts rankSuggestedKeywords measures its terms against
+        // (`title`, `subtitle`, `datasetProducers` — see getChartHitRowTexts)
+        // are already part of the shared DATA_CATALOG_ATTRIBUTES, so no extra
+        // attributes need requesting here (contrast the old tag-based chips,
+        // which needed an explicit extra `tags` attribute).
         queryFn: () => queryAllCharts(liteSearchClient, baseSearchState),
         enabled: Boolean(topicName),
         placeholderData: keepPreviousData,
