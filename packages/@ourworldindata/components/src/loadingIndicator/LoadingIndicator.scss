@@ -38,3 +38,23 @@
         opacity: 0;
     }
 }
+
+// Keep signalling "loading" without the expanding ring: a slow opacity pulse.
+// 1.6s is 0.625 Hz, well below any flashing threshold.
+@media (prefers-reduced-motion: reduce) {
+    .loading-indicator span {
+        animation: loading-indicator-fade 1.6s ease-in-out infinite;
+        transform: none;
+        opacity: 1;
+    }
+}
+
+@keyframes loading-indicator-fade {
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+    50% {
+        opacity: 1;
+    }
+}
