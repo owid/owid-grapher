@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react"
 import { SiteNavigationTopic } from "./SiteNavigationTopic.js"
 import { TagGraphNode, getAllChildrenOfArea } from "@ourworldindata/utils"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
+import { getPrefersReducedMotion } from "@ourworldindata/components"
 
 export const SiteMobileArea = ({
     area,
@@ -16,7 +17,9 @@ export const SiteMobileArea = ({
 
     useEffect(() => {
         if (isActive && areaRef.current) {
-            areaRef.current.scrollIntoView({ behavior: "smooth" })
+            areaRef.current.scrollIntoView({
+                behavior: getPrefersReducedMotion() ? "auto" : "smooth",
+            })
         }
     }, [isActive])
 

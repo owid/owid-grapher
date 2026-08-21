@@ -3,6 +3,7 @@ import { useEffect } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCaretDown, faCaretUp } from "@fortawesome/free-solid-svg-icons"
 import cx from "clsx"
+import { getPrefersReducedMotion } from "@ourworldindata/components"
 
 export const SiteNavigationToggle = ({
     ariaLabel,
@@ -34,7 +35,7 @@ export const SiteNavigationToggle = ({
             if (menuBottomOffset > window.innerHeight) {
                 window.scrollTo({
                     top: menuBottomOffset - window.innerHeight + window.scrollY,
-                    behavior: "smooth",
+                    behavior: getPrefersReducedMotion() ? "auto" : "smooth",
                 })
             }
         }

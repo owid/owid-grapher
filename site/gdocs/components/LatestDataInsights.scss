@@ -41,8 +41,8 @@ html.js-enabled .latest-data-insights__card-container {
     // A flick advances at most one card instead of flying past several.
     scroll-snap-stop: always;
     transition:
-        opacity 0.2s ease-in-out,
-        box-shadow 0.2s ease-in-out;
+        opacity var(--duration-popover) var(--ease-out),
+        box-shadow var(--duration-popover) var(--ease-out);
     opacity: 0.6;
 
     @include md-down {
@@ -254,11 +254,12 @@ html:not(.js-enabled) .latest-data-insights__card,
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    transition: all 0.2s ease-in-out;
+    transition:
+        transform var(--duration-popover) var(--ease-out),
+        background-color var(--duration-popover) var(--ease-out);
+}
 
-    &--selected {
-        background-color: $blue-70;
-        width: 12px;
-        height: 12px;
-    }
+.latest-data-insights__dot--selected {
+    background-color: $blue-70;
+    transform: scale(1.5);
 }

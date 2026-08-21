@@ -19,13 +19,20 @@ interface SlideInDrawerProps {
 @observer
 export class SlideInDrawer extends React.Component<SlideInDrawerProps> {
     visible: boolean = this.props.active // true while the drawer is active and during enter/exit transitions
+    // False exactly when the drawer's DOM is absent. render() returns null while
+    // closed, so the drawer is created fresh on every open; the panel has to be
+    // painted in its closed position before we flip to open, or the transition
+    // has no start value to animate from.
+    mounted: boolean = false
     drawerRef = React.createRef<HTMLDivElement>()
+    private mountFrame?: number
 
     constructor(props: SlideInDrawerProps) {
         super(props)
 
         makeObservable(this, {
             visible: observable.ref,
+            mounted: observable.ref,
         })
     }
 
@@ -37,6 +44,7 @@ export class SlideInDrawer extends React.Component<SlideInDrawerProps> {
         document.addEventListener("click", this.onDocumentClick, {
             capture: true,
         })
+        if (this.active) this.scheduleMountFlip()
     }
 
     override componentWillUnmount(): void {
@@ -51,6 +59,7 @@ export class SlideInDrawer extends React.Component<SlideInDrawerProps> {
         document.removeEventListener("click", this.onDocumentClick, {
             capture: true,
         })
+        if (this.mountFrame !== undefined) cancelAnimationFrame(this.mountFrame)
     }
 
     override componentDidUpdate(): void {
@@ -59,6 +68,29 @@ export class SlideInDrawer extends React.Component<SlideInDrawerProps> {
             grapherElement.style.overflowX =
                 this.active || this.visible ? "clip" : "visible"
         }
+
+        // Flip per open, not once per component lifetime: this component is
+        // rendered unconditionally by Grapher, so componentDidMount fires at
+        // chart load rather than when the drawer opens. When the drawer is
+        // reopened mid-close the DOM is still painted and `mounted` is still
+        // true, so no flip happens and the transition simply retargets.
+        if (this.active && !this.mounted) this.scheduleMountFlip()
+    }
+
+    // Two frames: the first still runs before the closed state is painted, the
+    // second runs after it, so flipping to open there produces a transition.
+    private scheduleMountFlip(): void {
+        if (this.mountFrame !== undefined) return
+        this.mountFrame = requestAnimationFrame(() => {
+            this.mountFrame = requestAnimationFrame(() => {
+                this.mountFrame = undefined
+                this.setMounted(true)
+            })
+        })
+    }
+
+    @action.bound private setMounted(mounted: boolean): void {
+        this.mounted = mounted
     }
 
     @action.bound onDocumentKeyDown(e: KeyboardEvent): void {
@@ -95,21 +127,21 @@ export class SlideInDrawer extends React.Component<SlideInDrawerProps> {
         e?.stopPropagation()
     }
 
-    @action.bound onAnimationEnd(): void {
-        if (!this.active) this.visible = false
+    @action.bound onBackdropTransitionEnd(e: React.TransitionEvent): void {
+        // Transitions from children bubble; only the backdrop's own fade marks
+        // the end of the exit.
+        if (e.target !== e.currentTarget) return
+        if (e.propertyName !== "opacity") return
+        if (!this.active) {
+            this.visible = false
+            // The DOM goes away with `visible`, so the next open needs a fresh
+            // closed-state paint before it can transition.
+            this.mounted = false
+        }
     }
 
     @computed private get active(): boolean {
         return this.props.active
-    }
-
-    private animationFor(selector: string): React.CSSProperties {
-        const phase = this.active ? "enter" : "exit"
-        return {
-            animationName: `${selector}-${phase}`,
-            animationDuration: "333ms",
-            animationFillMode: "forwards",
-        }
     }
 
     override render(): React.ReactElement | null {
@@ -119,20 +151,15 @@ export class SlideInDrawer extends React.Component<SlideInDrawerProps> {
             return (
                 <div
                     className={cx("drawer", { active: this.active })}
+                    data-state={this.active && this.mounted ? "open" : "closed"}
                     ref={this.drawerRef}
                 >
                     <div
                         className="drawer-backdrop"
                         onClick={this.toggleVisibility}
-                        style={this.animationFor("drawer-backdrop")}
-                        onAnimationEnd={this.onAnimationEnd} // triggers unmount
+                        onTransitionEnd={this.onBackdropTransitionEnd} // triggers unmount
                     ></div>
-                    <div
-                        className="drawer-contents"
-                        style={{
-                            ...this.animationFor("drawer-contents"),
-                        }}
-                    >
+                    <div className="drawer-contents">
                         <DrawerContext.Provider
                             value={{
                                 toggleDrawerVisibility: this.toggleVisibility,

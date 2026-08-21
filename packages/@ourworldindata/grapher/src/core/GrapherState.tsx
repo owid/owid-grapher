@@ -581,6 +581,7 @@ export class GrapherState
     isTimelineAnimationPlaying = false
     /** True if the timeline animation is either playing or paused but not finished */
     isTimelineAnimationActive = false
+    disableChartRowAnimation = false
     animationStartTime: Time | undefined = undefined
     areHandlesOnSameTimeBeforeAnimation: boolean | undefined = undefined
     /** Which timeline element is currently being dragged */
@@ -744,6 +745,7 @@ export class GrapherState
             staticBounds: observable,
             isTimelineAnimationPlaying: observable.ref,
             isTimelineAnimationActive: observable.ref,
+            disableChartRowAnimation: observable.ref,
             animationStartTime: observable.ref,
             areHandlesOnSameTimeBeforeAnimation: observable.ref,
             timelineDragTarget: observable.ref,
