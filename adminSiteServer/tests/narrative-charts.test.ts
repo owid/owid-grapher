@@ -7,7 +7,12 @@ import {
     NarrativeChartsTableName,
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
-import { seedDatasetAndVariables, variableId } from "./fixtures.js"
+import {
+    catalogPath,
+    multiDimConfig,
+    seedDatasetAndVariables,
+    variableId,
+} from "./fixtures.js"
 import type { NarrativeChartResponse } from "../apiRoutes/narrativeCharts.js"
 
 const env = getAdminTestEnv()
@@ -29,25 +34,13 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
         title: "Narrative title",
     }
 
-    const catalogPath = "test/catalog#path"
-    const testMultiDimConfig = {
-        grapherConfigSchema: latestGrapherConfigSchema,
-        title: { title: "Energy use", titleVariant: "by energy source" },
-        views: [
-            {
-                config: { title: "Total energy use" },
-                dimensions: { metric: "total" },
-                indicators: { y: variableId },
-            },
-        ],
-        dimensions: [
-            {
-                name: "Metric",
-                slug: "metric",
-                choices: [{ name: "Total consumption", slug: "total" }],
-            },
-        ],
-    }
+    const testMultiDimConfig = multiDimConfig([
+        {
+            config: { title: "Total energy use" },
+            dimensions: { metric: "total" },
+            indicators: { y: variableId },
+        },
+    ])
 
     async function createParentChart(): Promise<{
         chartId: number
