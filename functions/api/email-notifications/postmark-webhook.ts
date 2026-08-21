@@ -29,7 +29,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     try {
         event = await request.json<PostmarkWebhookEvent>()
     } catch (error) {
-        Sentry.captureException(error)
+        reportWebhookError("Failed to parse Postmark webhook payload", error)
         return new Response(null, { status: 500 })
     }
 
@@ -37,9 +37,14 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         await applyPostmarkWebhookEvent(env.EMAIL_NOTIFICATIONS_DB, event)
         return new Response(null, { status: 200 })
     } catch (error) {
-        Sentry.captureException(error)
+        reportWebhookError("Failed to process Postmark webhook", error)
         return new Response(null, { status: 500 })
     }
+}
+
+function reportWebhookError(message: string, error: unknown): void {
+    console.error(message, error)
+    Sentry.captureException(error)
 }
 
 function validatePostmarkWebhookConfiguration(env: Env): void {
