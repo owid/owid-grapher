@@ -1,6 +1,13 @@
 // Grapher frame
 $frame-color: $gray-10;
 
+// Height of a row of grapher controls
+// keep in sync with CONTROLS_ROW_HEIGHT in CaptionedChart.tsx
+$controlRowHeight: 32px;
+
+// Height of the timeline control
+$timelineHeight: 32px;
+
 // Text
 $dark-text: $gray-80;
 $light-text: $gray-70;
@@ -22,3 +29,8 @@ $zindex-full-screen: 120;
 $zindex-controls-backdrop: 130;
 $zindex-controls-popup: 140;
 $zindex-controls-drawer: 150;
+
+// The page-level sources panel is portaled to the document body, so it has to
+// clear the site chrome: the site header sits at 120 ($zindex-site-header in
+// the components package), the mobile menu and table of contents at 121.
+$zindex-sources-panel: 200;

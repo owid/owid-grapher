@@ -19,6 +19,7 @@
 
 @import "./typography.scss";
 @import "./variables.scss";
+@import "../tabs/tabs-mixins.scss";
 
 // needed for .global-entity-control-container
 @mixin xxlg-down {
@@ -32,6 +33,16 @@
 // You can use sass's "&" syntax at the top level of one of these files
 // if you want to write a rule that requires .GrapherComponent to have a second class.
 // e.g. &.narrow is equivalent to .GrapherComponent.narrow
+//
+// The sources overlay has two homes: the in-frame modal (used by embeds) and
+// the page-level panel, which is portaled to the document body and so isn't
+// inside .GrapherComponent at all (see SourcesPanel.tsx). Both roots carry
+// .grapher-sources-scope, so the partials below that the two share are scoped
+// to it instead — same specificity as .GrapherComponent, emitted once.
+// The blocks alternate to keep the imports in their original order, which is
+// what determines the cascade. Note that sass scopes variables and mixins
+// declared inside a block, so anything shared across the blocks has to live in
+// core/variables.scss or tabs-mixins.scss.
 .GrapherComponent {
     @import "../controls/CommandPalette.scss";
     @import "../controls/Controls.scss";
@@ -39,8 +50,14 @@
     @import "../controls/MapRegionDropdown.scss";
     @import "../captionedChart/CaptionedChart.scss";
     @import "../timeline/TimelineComponent.scss";
+}
+
+.grapher-sources-scope {
     @import "../tabs/Tabs.scss";
     @import "../tabs/TabsWithDropdown.scss";
+}
+
+.GrapherComponent {
     @import "../controls/ContentSwitchers.scss";
     @import "../controls/ActionButtons.scss";
     @import "../controls/ShareMenu.scss";
@@ -49,13 +66,25 @@
     @import "../modal/DownloadModal.scss";
     @import "../entitySelector/EntitySelector.scss";
     @import "../dataTable/DataTable.scss";
+}
+
+.grapher-sources-scope {
     @import "../modal/SourcesModal.scss";
+}
+
+.GrapherComponent {
     @import "../tooltip/Tooltip.scss";
     @import "../mapCharts/MapTooltip.scss";
     @import "../footer/Footer.scss";
     @import "../header/Header.scss";
+}
+
+.grapher-sources-scope {
     @import "../modal/SourcesKeyDataTable.scss";
     @import "../modal/SourcesDescriptions.scss";
+}
+
+.GrapherComponent {
     @import "../slideInDrawer/SlideInDrawer.scss";
     @import "../sidePanel/SidePanel.scss";
     @import "../scatterCharts/NoDataSection.scss";
@@ -63,6 +92,9 @@
     @import "../controls/SearchField.scss";
     @import "../controls/DataTableSearchField.scss";
 }
+
+// The page panel's own layout can't be scoped to a grapher root either.
+@import "../modal/SourcesPanel.scss";
 
 // These rules are currently used elsewhere in the site. e.g. Explorers
 // so we can't scope them to be grapher-only
