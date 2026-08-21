@@ -38,6 +38,8 @@ html.js-enabled .latest-data-insights__card-container {
     flex: 0 0 845px;
     height: 322px;
     scroll-snap-align: start;
+    // A flick advances at most one card instead of flying past several.
+    scroll-snap-stop: always;
     transition:
         opacity 0.2s ease-in-out,
         box-shadow 0.2s ease-in-out;
