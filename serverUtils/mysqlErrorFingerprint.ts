@@ -1,3 +1,5 @@
+import type { ErrorEvent, EventHint } from "@sentry/node"
+
 interface MysqlServerError {
     sqlState: string
     code?: string
@@ -33,7 +35,10 @@ function isMysqlServerError(error: unknown): error is MysqlServerError {
  * thing. Returns undefined for anything that isn't a MySQL server error, leaving
  * Sentry's default grouping alone.
  */
-export function mysqlErrorFingerprint(error: unknown): string[] | undefined {
+export function mysqlErrorFingerprint(
+    error: unknown,
+    transaction?: string
+): string[] | undefined {
     if (!isMysqlServerError(error)) return undefined
 
     // `code` is mysql2's name for the errno, looked up in a table it bundles, so
@@ -42,8 +47,30 @@ export function mysqlErrorFingerprint(error: unknown): string[] | undefined {
         error.code ??
         (error.errno !== undefined ? `errno-${error.errno}` : error.sqlState)
 
-    // `{{ transaction }}` is substituted server-side by Sentry, and is empty for
-    // errors thrown outside a request — which groups all of a process's startup
-    // failures together, as intended.
-    return ["mysql", label, "{{ transaction }}"]
+    // Sentry substitutes `{{ transaction }}` at ingest, but resolving it here
+    // means the group key is whatever this function returns — testable, and
+    // visible in the event itself. Errors thrown outside a request have no
+    // transaction, which groups a process's startup failures together.
+    return transaction ? ["mysql", label, transaction] : ["mysql", label]
+}
+
+/**
+ * Sentry `beforeSend` hook.
+ *
+ * Scope note: this deliberately looks at the thrown error only, not at its
+ * `cause` chain. An error a route wrapped in a `JsonError` was thrown from app
+ * code and carries app frames, so Sentry already groups it by where it happened
+ * — which is more specific than anything this function could produce. Only the
+ * unwrapped mysql2 rejections, the ones with no app frames at all, need help.
+ */
+export function fingerprintMysqlErrors(
+    event: ErrorEvent,
+    hint: EventHint
+): ErrorEvent {
+    const fingerprint = mysqlErrorFingerprint(
+        hint.originalException,
+        event.transaction
+    )
+    if (fingerprint) event.fingerprint = fingerprint
+    return event
 }
