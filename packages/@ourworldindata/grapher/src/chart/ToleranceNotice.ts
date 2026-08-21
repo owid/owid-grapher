@@ -132,7 +132,7 @@ export function formatToleranceNotice({
 }
 
 /** The largest tolerance configured on any of the given columns */
-function getMaxConfiguredTolerance(columns: CoreColumn[]): number {
+export function getMaxConfiguredTolerance(columns: CoreColumn[]): number {
     return Math.max(0, ...columns.map((column) => column.tolerance))
 }
 

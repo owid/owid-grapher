@@ -38,7 +38,10 @@ import { getCountriesByRegion, isOnTheMap } from "./MapHelpers"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
-import { makeToleranceNotice } from "../chart/ToleranceNotice.js"
+import {
+    getMaxConfiguredTolerance,
+    makeToleranceNotice,
+} from "../chart/ToleranceNotice.js"
 
 export type MapFormatValueForTooltip = (
     d: PrimitiveType,
@@ -241,11 +244,10 @@ export class MapChartState implements ChartState, ColorScaleManager {
 
         // A target time is set for faceted maps
         if (this.manager.targetTime !== undefined) {
-            table = table.filterByTargetTimes(
-                [this.manager.targetTime],
-                this.mapConfig.timeTolerance ??
-                    table.get(this.mapColumnSlug).tolerance
-            )
+            // No tolerance here: the map column was interpolated above, so
+            // don't apply tolerance again, otherwise the tolerance window
+            // will be twice as wide
+            table = table.filterByTargetTimes([this.manager.targetTime])
         }
 
         return table
@@ -343,6 +345,17 @@ export class MapChartState implements ChartState, ColorScaleManager {
         return this.manager.targetTime ?? this.manager.endTime
     }
 
+    /** The columns the map's values are drawn from, before any stitching */
+    @computed private get sourceColumns(): CoreColumn[] {
+        const { mapColumnInfo } = this
+        const { table } = this.manager
+        return mapColumnInfo.type === "historical+projected"
+            ? [mapColumnInfo.historicalSlug, mapColumnInfo.projectedSlug].map(
+                  (slug) => table.get(slug)
+              )
+            : [table.get(mapColumnInfo.slug)]
+    }
+
     @computed private get toleranceStrategy(): ToleranceStrategy | undefined {
         return (
             this.mapConfig.toleranceStrategy ?? this.mapColumn.toleranceStrategy
@@ -355,7 +368,9 @@ export class MapChartState implements ChartState, ColorScaleManager {
             // Only the countries the map currently shows are relevant
             transformedTable: this.transformedTableForActiveRegion,
             columns: [this.mapColumn],
-            timeTolerance: this.mapConfig.timeTolerance,
+            timeTolerance:
+                this.mapConfig.timeTolerance ??
+                getMaxConfiguredTolerance(this.sourceColumns),
             toleranceStrategy: this.toleranceStrategy,
         })
     }
@@ -371,17 +386,14 @@ export class MapChartState implements ChartState, ColorScaleManager {
             : undefined
     }
 
-    private checkIsProjection(
-        entityName: EntityName,
-        originalTime: Time
-    ): boolean {
+    private checkIsProjection(entityName: EntityName, time: Time): boolean {
         return match(this.mapColumnInfo.type)
             .with("historical", () => false)
             .with("projected", () => true)
             .with("historical+projected", () =>
-                this.columnIsProjection?.valueByEntityNameAndOriginalTime
-                    .get(entityName)
-                    ?.get(originalTime)
+                this.columnIsProjection?.valueByTimeAndEntityName
+                    .get(time)
+                    ?.get(entityName)
             )
             .exhaustive()
     }
@@ -397,13 +409,10 @@ export class MapChartState implements ChartState, ColorScaleManager {
 
         return mapColumn.owidRows
             .map((row) => {
-                const { entityName, value, originalTime } = row
+                const { entityName, time, value, originalTime } = row
                 const color =
                     this.colorScale.getColor(value) || this.noDataColor
-                const isProjection = this.checkIsProjection(
-                    entityName,
-                    originalTime
-                )
+                const isProjection = this.checkIsProjection(entityName, time)
                 return {
                     seriesName: entityName,
                     time: originalTime,
