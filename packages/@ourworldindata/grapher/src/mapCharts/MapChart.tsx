@@ -32,7 +32,7 @@ import {
     MapViewport,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
-import { ColorScale } from "../color/ColorScale"
+import { ColorScale, INAPPLICABLE_LABEL } from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -45,6 +45,7 @@ import {
     ColorScaleBin,
     isCategoricalBin,
     isNoDataBin,
+    isInapplicableBin,
     isNumericBin,
     isProjectedDataBin,
     mergeCategoricalBinsByLabelAndColor,
@@ -54,6 +55,7 @@ import { LegendStyleConfig } from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import {
     ColumnSlug,
+    EntityName,
     GrapherVariant,
     MapRegionName,
 } from "@ourworldindata/types"
@@ -132,6 +134,10 @@ export class MapChart
 
     @computed get hasProjectedData(): boolean {
         return this.mapColumnInfo.type !== "historical"
+    }
+
+    @computed get inapplicableEntityNamesSet(): Set<EntityName> {
+        return this.chartState.inapplicableEntityNamesSet
     }
 
     @computed private get targetTime(): number | undefined {
@@ -286,6 +292,9 @@ export class MapChart
     @computed private get hoverValue(): string | number | undefined {
         if (!this.mapConfig.hoverCountry) return undefined
 
+        if (this.inapplicableEntityNamesSet.has(this.mapConfig.hoverCountry))
+            return INAPPLICABLE_LABEL
+
         const series = this.choroplethData.get(this.mapConfig.hoverCountry)
         if (!series) return "No data"
 
@@ -304,15 +313,18 @@ export class MapChart
 
         // Check if the legend bracket of a country is hovered
         const series = this.choroplethData.get(featureId)
+        const isInapplicable = this.inapplicableEntityNamesSet.has(featureId)
         if (
             hoverBracket?.contains(series?.value, {
                 isProjection: series?.isProjection,
+                isInapplicable,
             })
         )
             return true
 
         // Check if the external legend bracket of a country is hovered (used in faceted maps)
-        if (externalLegendHoverBin?.contains(series?.value)) return true
+        if (externalLegendHoverBin?.contains(series?.value, { isInapplicable }))
+            return true
 
         return false
     }
@@ -369,6 +381,12 @@ export class MapChart
                 patternRef: Patterns.noDataPattern,
             }) as Bin
 
+        if (isInapplicableBin(bin))
+            return new CategoricalBin({
+                ...bin.props,
+                patternRef: Patterns.inapplicablePattern,
+            }) as Bin
+
         if (isProjectedDataBin(bin)) {
             const patternRef = makeProjectedDataPatternId(
                 PROJECTED_DATA_LEGEND_COLOR,
@@ -392,18 +410,19 @@ export class MapChart
     }
 
     @computed get numericLegendData(): ColorScaleBin[] {
-        const hasNoDataBin = this.legendData.some((bin) => isNoDataBin(bin))
-        if (this.hasCategoricalLegendData || !hasNoDataBin)
-            return this.legendData
-                .filter((bin) => isNumericBin(bin))
-                .map((bin) => this.maybeAddPatternRefToBin(bin))
-
-        const bins: ColorScaleBin[] = this.legendData
-            .filter((bin) => isNumericBin(bin) || isNoDataBin(bin))
+        const numericBins = this.legendData
+            .filter((bin) => isNumericBin(bin))
             .map((bin) => this.maybeAddPatternRefToBin(bin))
 
-        // Move the no-data bin from the end to the start
-        return [bins[bins.length - 1], ...bins.slice(0, -1)]
+        if (this.hasCategoricalLegendData) return numericBins
+
+        // Prepend any leftover categorical bins (e.g. "No data" or
+        // "Not applicable") to the numeric legend
+        const categoricalBins = this.legendData
+            .filter((bin) => isCategoricalBin(bin))
+            .map((bin) => this.maybeAddPatternRefToBin(bin))
+
+        return [...categoricalBins, ...numericBins]
     }
 
     @computed private get numMembersPerCategoricalBinByIndex(): Map<
@@ -439,6 +458,7 @@ export class MapChart
                 return (
                     isNoDataBin(bin) ||
                     isProjectedDataBin(bin) ||
+                    isInapplicableBin(bin) ||
                     memberCount > 0
                 )
             })
@@ -535,7 +555,7 @@ export class MapChart
     @computed private get categoryLegend():
         | HorizontalCategoricalColorLegend
         | undefined {
-        return this.manager.showLegend && this.categoricalLegendData.length > 1
+        return this.manager.showLegend && this.hasCategoricalLegendData
             ? new HorizontalCategoricalColorLegend({ manager: this })
             : undefined
     }
@@ -689,6 +709,9 @@ export class MapChart
                         lineColorScale={this.colorScale}
                         targetTime={this.targetTime}
                         targetTimes={this.manager.highlightedTimesInTooltip}
+                        inapplicableEntityNamesSet={
+                            this.inapplicableEntityNamesSet
+                        }
                         sparklineWidth={sparklineWidth}
                         dismissTooltip={action(() => {
                             this.mapConfig.hoverCountry = undefined

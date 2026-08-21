@@ -322,6 +322,9 @@ export class GrapherState
     /** Entities that should be included (opposite of excludedEntityNames). If empty, all available entities are used. If set, all entities not specified here are excluded. excludedEntityNames are evaluated afterwards and can still remove entities even if they were included before. */
     includedEntityNames: EntityName[] | undefined = undefined
 
+    /** Entities the indicator's data can't apply to by construction, e.g. Mexico for "Where do Mexican emigrants live?" */
+    inapplicableEntityNames: EntityName[] | undefined = undefined
+
     /** Colors for selected entities */
     selectedEntityColors: { [entityName: string]: string | undefined } = {}
 
@@ -711,6 +714,7 @@ export class GrapherState
             focusedSeriesNames: observable,
             excludedEntityNames: observable,
             includedEntityNames: observable,
+            inapplicableEntityNames: observable,
             comparisonLines: observable,
             relatedQuestions: observable,
             dataTableConfig: observable,

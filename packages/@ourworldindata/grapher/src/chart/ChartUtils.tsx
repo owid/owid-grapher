@@ -325,6 +325,37 @@ export function NoDataPattern({
     )
 }
 
+export function InapplicablePattern({
+    patternId = Patterns.inapplicablePattern,
+    scale = 1,
+}: {
+    patternId?: string
+    scale?: number
+}): React.ReactElement {
+    const roundedScale = R.round(scale, 3)
+    return (
+        <pattern
+            id={patternId}
+            patternUnits="userSpaceOnUse"
+            width="4"
+            height="4"
+            patternTransform={`rotate(-45 2 2) scale(${roundedScale})`}
+        >
+            <rect width="4" height="4" fill="#ccc" />
+            <path d="M -1,2 l 6,0" stroke="#fff" strokeWidth={0.7} />
+        </pattern>
+    )
+}
+
+export function ChartPatternDefs(): React.ReactElement {
+    return (
+        <defs>
+            <NoDataPattern />
+            <InapplicablePattern />
+        </defs>
+    )
+}
+
 export function getChartSvgProps({
     fontSize,
 }: {
