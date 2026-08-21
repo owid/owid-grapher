@@ -54,7 +54,10 @@ import {
     RESEARCH_AND_WRITING_DEFAULT_HEADING,
     CHRONOLOGICAL_INDEX_TYPES,
     LATEST_FEED_TYPES,
+    SUB_YEARLY_TIME_INTERVALS,
+    TIME_INTERVALS,
     TimeInterval,
+    type SubYearlyTimeInterval,
     type OwidVariableDisplayConfigInterface,
 } from "@ourworldindata/types"
 import { Point, PointVector } from "./PointVector.js"
@@ -242,38 +245,52 @@ export function formatDay(
 }
 
 /**
- * Resolves the time interval of an indicator from its display config, falling
- * back to the deprecated `yearIsDay` flag when `timeInterval` is not set.
+ * Resolves the time interval of an indicator from its display config,
+ * defaulting to `year` when not set.
  */
 export function getTimeInterval(
     display?: OwidVariableDisplayConfigInterface
 ): TimeInterval {
-    return (
-        display?.timeInterval ??
-        (display?.yearIsDay ? TimeInterval.Day : TimeInterval.Year)
-    )
+    return display?.timeInterval ?? TimeInterval.Year
 }
-
-const SUB_YEARLY_INTERVALS = new Set<TimeInterval>([
-    TimeInterval.Day,
-    TimeInterval.Week,
-    TimeInterval.Month,
-    TimeInterval.Quarter,
-])
 
 /**
  * Whether the interval is finer than a year and therefore encoded as
  * days-since-epoch (day/week/month/quarter)
  */
-export function isSubYearly(interval: TimeInterval): boolean {
-    return SUB_YEARLY_INTERVALS.has(interval)
+export function isSubYearly(
+    interval: TimeInterval
+): interval is SubYearlyTimeInterval {
+    return SUB_YEARLY_TIME_INTERVALS.some((subYearly) => subYearly === interval)
+}
+
+/**
+ * The finest interval that can represent every one of the given intervals'
+ * times, e.g. `day` for day + month. Weeks start on ISO Mondays and
+ * months/quarters on period starts, so those grids don't nest: a mix of them
+ * falls back to `day`, the grid that contains every other.
+ */
+export function findFinestCommonTimeInterval(
+    intervals: TimeInterval[]
+): TimeInterval {
+    const finest =
+        TIME_INTERVALS.find((interval) => intervals.includes(interval)) ??
+        TimeInterval.Year
+    const mixesWeeksWithLongerPeriods =
+        finest === TimeInterval.Week &&
+        intervals.some(
+            (interval) =>
+                interval === TimeInterval.Month ||
+                interval === TimeInterval.Quarter
+        )
+    return mixesWeeksWithLongerPeriods ? TimeInterval.Day : finest
 }
 
 /**
  * Snap a time to the start of its interval, so indicators that pick different
  * representative days for the same period still align: month → first of the
  * month, quarter → first of the quarter, week → the ISO-week Monday. Day and
- * year are their own start and are returned unchanged.
+ * year are returned unchanged.
  */
 export function snapToIntervalStart(
     time: number,
@@ -586,6 +603,8 @@ export async function fetchJson<TResult>(
     return response.json()
 }
 
+export class TimeoutError extends Error {}
+
 // Adapted from https://github.com/sindresorhus/ky/blob/main/source/utils/timeout.ts
 export async function fetchWithTimeout(
     url: string,
@@ -597,7 +616,7 @@ export async function fetchWithTimeout(
     return new Promise((resolve, reject) => {
         const timeoutId = setTimeout(() => {
             abortController.abort()
-            reject(new Error(`Request timed out: ${url}`))
+            reject(new TimeoutError(`Request timed out: ${url}`))
         }, timeoutMs)
 
         void fetch(url, { ...options, signal: abortController.signal })
@@ -1439,7 +1458,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
         textarea.select()
 
         try {
-            // oxlint-disable-next-line typescript/no-deprecated we're using a deprecated API only as a fallback here
+            // oxlint-disable-next-line typescript/no-deprecated -- we're using a deprecated API only as a fallback here
             return document.execCommand("copy")
         } catch (err) {
             console.error("Failed to copy text to clipboard", err)
@@ -1598,6 +1617,7 @@ export function recursivelyMapArticleContent(
     } else if (node.type === "key-insights") {
         node.insights.forEach((insight) => {
             callback(insight)
+            insight.asset?.forEach(callback)
             insight.content.forEach(callback)
         })
     }
@@ -1667,11 +1687,14 @@ export function traverseEnrichedBlock(
         })
         .with({ type: "key-insights" }, (keyInsights) => {
             callback(keyInsights)
-            keyInsights.insights.forEach((insight) =>
+            keyInsights.insights.forEach((insight) => {
+                insight.asset?.forEach((node) =>
+                    traverseEnrichedBlock(node, callback, spanCallback)
+                )
                 insight.content.forEach((node) =>
                     traverseEnrichedBlock(node, callback, spanCallback)
                 )
-            )
+            })
         })
         .with({ type: "expander" }, (expander) => {
             callback(expander)
@@ -2046,6 +2069,15 @@ export function findGreatestCommonDivisorOfArray(arr: number[]): number | null {
     if (arr.length === 0) return null
     if (arr.includes(1)) return 1
     return _.uniq(arr).reduce((acc, num) => greatestCommonDivisor(acc, num))
+}
+
+// Makes sure that values are evenly spaced by inserting values at the greatest
+// common divisor of the gaps between consecutive values.
+export function withUniformSpacing(values: number[]): number[] {
+    const deltas = rollingMap(values, (a, b) => b - a)
+    const gcd = findGreatestCommonDivisorOfArray(deltas)
+    if (gcd === null) return values
+    return _.range(values[0], values[values.length - 1] + gcd, gcd)
 }
 
 export function lowercaseObjectKeys(

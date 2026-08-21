@@ -29,7 +29,7 @@ export const GRAPHER_FOOTER_CLASS = "footer"
 export const DEFAULT_GRAPHER_ENTITY_TYPE = "country or region"
 export const DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL = "countries and regions"
 
-export const GRAPHER_LOADED_EVENT_NAME = "grapherLoaded"
+export const GRAPHER_LOADING_STATE_EVENT_NAME = "grapherLoadingStateChanged"
 
 export const DEFAULT_GRAPHER_WIDTH = 850
 export const DEFAULT_GRAPHER_HEIGHT = 600
@@ -124,9 +124,7 @@ const population_regex =
  */
 export const ADDITIONAL_REGION_DATA_PROVIDERS = [
     "fao",
-    "ei",
     "pip",
-    "ember",
     "gcp",
     "niaid",
     "unicef",
@@ -135,9 +133,8 @@ export const ADDITIONAL_REGION_DATA_PROVIDERS = [
     "oecd",
     "unsd",
     "unm49",
-    // ILO entities are recognized by their "(ILO)" suffix here; the per-level region
-    // definitions live under the `ilo_1`/`ilo_2` RegionDataProviders (cf. unm49 vs un_m49_*).
     "ilo",
+    "ihmegbd",
 ] as const
 
 export type AdditionalRegionDataProvider =

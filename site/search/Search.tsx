@@ -4,6 +4,7 @@ import {
     TemplateConfig,
     SearchResultType,
 } from "@ourworldindata/types"
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
 import { LiteClient } from "algoliasearch/lite"
 import { useEffect, useMemo, useState } from "react"
 import { match } from "ts-pattern"
@@ -17,7 +18,11 @@ import {
     hasDatasetFilters,
     isBrowsing,
 } from "./searchUtils.js"
-import { useTagGraphTopics, useSearchAnalytics } from "./searchHooks.js"
+import {
+    useTagGraphTopics,
+    useSearchAnalytics,
+    useHasSearchError,
+} from "./searchHooks.js"
 import { stateToSearchParams, useSearchParamsState } from "./searchState.js"
 
 // Components
@@ -67,6 +72,7 @@ export const Search = ({
     useSearchAnalytics(state, analytics)
 
     const isFetching = useIsFetching()
+    const hasSearchError = useHasSearchError()
 
     // Autofocus only on the first mount if the user is browsing.
     const [shouldAutoFocus, setShouldAutoFocus] = useState(() =>
@@ -128,7 +134,23 @@ export const Search = ({
                 <SearchResultTypeToggle />
             </div>
             <div className="search-template-results col-start-2 span-cols-12">
-                {!isFetching && <SearchNoResults />}
+                {/* SearchNoResults is hidden by CSS unless it ends up being
+                    the only child of this container, i.e. unless none of the
+                    result sections below rendered anything. */}
+                {!isFetching &&
+                    (hasSearchError ? (
+                        <SearchNoResults
+                            heading="Search is temporarily unavailable."
+                            subtitle={
+                                <p className="body-3-medium">
+                                    Please try again later.
+                                </p>
+                            }
+                            icon={faExclamationTriangle}
+                        />
+                    ) : (
+                        <SearchNoResults />
+                    ))}
                 {match(templateConfig.resultType)
                     .with(SearchResultType.ALL, () => <SearchTemplatesAll />)
                     .with(SearchResultType.DATA, () => <SearchTemplatesData />)

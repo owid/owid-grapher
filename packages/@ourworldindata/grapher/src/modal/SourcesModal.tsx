@@ -310,7 +310,19 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
         )
     }
 
+    private renderNoSources(): React.ReactElement {
+        return (
+            <p className="note-no-sources">
+                No source information is available for the data shown in this
+                chart.
+            </p>
+        )
+    }
+
     private renderModalContent(): React.ReactElement | null {
+        // Charts fed with external data (e.g. via GrapherLoader.fromCsv) may
+        // have no columns with source information at all
+        if (this.tabs.length === 0) return this.renderNoSources()
         return this.tabs.length === 1
             ? this.renderSource({ column: this.tabs[0].column })
             : this.renderMultipleSources()

@@ -40,6 +40,7 @@ export {
     fetchText,
     fetchJson,
     fetchWithTimeout,
+    TimeoutError,
     getUserCountryInformation,
     stripHTML,
     getRandomNumberGenerator,
@@ -102,6 +103,7 @@ export {
     isArrayOfNumbers,
     greatestCommonDivisor,
     findGreatestCommonDivisorOfArray,
+    withUniformSpacing,
     type NodeWithUrl,
     traverseEnrichedSpan,
     copyToClipboard,
@@ -131,6 +133,7 @@ export {
     epochDate,
     getTimeInterval,
     isSubYearly,
+    findFinestCommonTimeInterval,
     snapToIntervalStart,
     logPerf,
     sleep,
@@ -267,9 +270,10 @@ export {
     type PadObject,
     type GridBounds,
     type SplitBoundsPadding,
-    FontFamily,
     Bounds,
 } from "./Bounds.js"
+
+export { FontFamily, cssFontFamily } from "./fonts.js"
 
 export {
     type Persistable,
@@ -302,6 +306,7 @@ export {
 
 export {
     serializeJSONForHTML,
+    serializeJSONForInlineScript,
     deserializeJSONFromHTML,
     escapeJSONStringForInlineScript,
 } from "./serializers.js"
@@ -389,6 +394,26 @@ export {
     buildChartHitDataDisplayProps,
     getTableColumnCountForGridSlotKey,
 } from "./search/SearchHelpers.js"
+
+export {
+    type SearchFacetAttribute,
+    getFilterNamesOfType,
+    setToFacetFilters,
+    formatDisjunctiveFacetFilters,
+    formatConjunctiveFacetFilters,
+    formatFeaturedMetricFacetFilter,
+    formatCountryFacetFilters,
+    formatTopicFacetFilters,
+    buildChartsFacetFilters,
+    MAX_FACET_VALUES,
+} from "./search/searchFacetFilters.js"
+
+export {
+    searchSingleForHits,
+    searchSingleForHitsWithClosestMatches,
+} from "./search/searchClosestMatches.js"
+
+export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
 
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
 export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"

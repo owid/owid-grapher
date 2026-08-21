@@ -93,7 +93,6 @@ export const GDOCS_PRIVATE_KEY: string = (
     .replaceAll('"', "")
     .replaceAll("'", "")
 export const GDOCS_CLIENT_EMAIL: string = clientSettings.GDOCS_CLIENT_EMAIL
-export const GDOCS_CLIENT_ID: string = serverSettings.GDOCS_CLIENT_ID ?? ""
 export const GDOCS_BACKPORTING_TARGET_FOLDER: string =
     serverSettings.GDOCS_BACKPORTING_TARGET_FOLDER ?? ""
 
@@ -173,3 +172,6 @@ export const SEARCH_EVAL_URL: string =
     "https://pub-ec761fe0df554b02bc605610f3296000.r2.dev"
 
 export const FIGMA_API_KEY: string = process.env.FIGMA_API_KEY ?? ""
+
+export const SVG_TESTER_REPO_PATH: string =
+    serverSettings.SVG_TESTER_REPO_PATH ?? "../owid-grapher-svgs"

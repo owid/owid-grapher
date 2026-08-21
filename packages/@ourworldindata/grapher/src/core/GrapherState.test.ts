@@ -13,6 +13,8 @@ import {
     GRAPHER_TAB_NAMES,
     OwidChartDimensionInterface,
     GRAPHER_TAB_QUERY_PARAMS,
+    TimeInterval,
+    StackMode,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -33,6 +35,7 @@ import {
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { setSelectedEntityNamesParam } from "./EntityUrlBuilder"
 import { MapConfig } from "../mapCharts/MapConfig"
+import { TimelineDragTarget } from "../timeline/TimelineController"
 import { SelectionArray } from "../selection/SelectionArray"
 import { latestGrapherConfigSchema } from "./GrapherConstants.js"
 import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable.js"
@@ -297,7 +300,10 @@ const getGrapher = (): GrapherState => {
                 },
                 metadata: {
                     id: 142609,
-                    display: { zeroDay: "2020-01-21", yearIsDay: true },
+                    display: {
+                        zeroDay: "2020-01-21",
+                        timeInterval: TimeInterval.Day,
+                    },
                     dimensions: {
                         entities: {
                             values: [
@@ -383,7 +389,7 @@ it("can serialize scaleType if it changes", () => {
     expect(grapher.changedParams.xScale).toEqual(ScaleType.log)
 })
 
-describe("currentTitle", () => {
+describe("title", () => {
     it("shows the year of the selected data in the title", () => {
         const table = SynthesizeGDPTable(
             { entityCount: 2, timeRange: [2000, 2010] },
@@ -402,21 +408,21 @@ describe("currentTitle", () => {
         })
 
         grapher.timelineHandleTimeBounds = [2001, 2005]
-        expect(grapher.currentTitle).toContain("2001")
-        expect(grapher.currentTitle).toContain("2005")
-        expect(grapher.currentTitle).not.toContain("Infinity")
+        expect(grapher.fullTitle).toContain("2001")
+        expect(grapher.fullTitle).toContain("2005")
+        expect(grapher.fullTitle).not.toContain("Infinity")
 
         grapher.timelineHandleTimeBounds = [1900, 2020]
-        expect(grapher.currentTitle).toContain("2000")
-        expect(grapher.currentTitle).toContain("2009")
+        expect(grapher.fullTitle).toContain("2000")
+        expect(grapher.fullTitle).toContain("2009")
 
         grapher.timelineHandleTimeBounds = [-Infinity, Infinity]
-        expect(grapher.currentTitle).toContain("2000")
-        expect(grapher.currentTitle).toContain("2009")
+        expect(grapher.fullTitle).toContain("2000")
+        expect(grapher.fullTitle).toContain("2009")
 
         grapher.timelineHandleTimeBounds = [Infinity, Infinity]
-        expect(grapher.currentTitle).not.toContain("2000")
-        expect(grapher.currentTitle).toContain("2009")
+        expect(grapher.fullTitle).not.toContain("2000")
+        expect(grapher.fullTitle).toContain("2009")
     })
 
     it("can generate a title when all you have is a table and ySlug", () => {
@@ -429,7 +435,478 @@ describe("currentTitle", () => {
             ySlugs: "GDP",
         })
 
-        expect(grapher.currentTitle).toContain("GDP")
+        expect(grapher.fullTitle).toContain("GDP")
+    })
+
+    it("splits the title into a base and a time annotation", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+            ],
+        })
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+
+        expect(grapher.titleAnnotation).toContain("2001")
+        expect(grapher.titleAnnotation).toContain("2005")
+        expect(grapher.mainTitle).not.toContain("2001")
+        expect(grapher.fullTitle).toEqual(
+            `${grapher.mainTitle}, ${grapher.titleAnnotation}`
+        )
+    })
+
+    it("includes a single selected entity in the annotation", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const entityName = table.availableEntityNames[0]
+        const grapher = new GrapherState({
+            table,
+            selectedEntityNames: [entityName],
+            ySlugs: `${SampleColumnSlugs.GDP} ${SampleColumnSlugs.Population}`,
+        })
+
+        expect(grapher.titleAnnotation).toContain(entityName)
+        expect(grapher.mainTitle).not.toContain(entityName)
+        expect(grapher.fullTitle).toEqual(
+            `${grapher.mainTitle}, ${grapher.titleAnnotation}`
+        )
+    })
+
+    it("combines entity and time in the annotation, entity first", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const entityName = table.availableEntityNames[0]
+        const grapher = new GrapherState({
+            table,
+            selectedEntityNames: [entityName],
+            ySlugs: `${SampleColumnSlugs.GDP} ${SampleColumnSlugs.Population}`,
+        })
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+
+        expect(grapher.titleAnnotation).toEqual(`${entityName}, 2001 to 2005`)
+        expect(grapher.fullTitle).toEqual(
+            `${grapher.mainTitle}, ${entityName}, 2001 to 2005`
+        )
+    })
+
+    it("can hide the entity annotation while keeping the time annotation", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const entityName = table.availableEntityNames[0]
+        const grapher = new GrapherState({
+            table,
+            hideAnnotationFieldsInTitle: { entity: true },
+            addCountryMode: EntitySelectionMode.Disabled,
+            selectedEntityNames: [entityName],
+            ySlugs: `${SampleColumnSlugs.GDP} ${SampleColumnSlugs.Population}`,
+        })
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+
+        expect(grapher.titleAnnotation).not.toContain(entityName)
+        expect(grapher.titleAnnotation).toEqual("2001 to 2005")
+    })
+
+    it("appends the annotation without a comma if the title ends with a question mark", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            title: "How rich are people?",
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+            ],
+        })
+
+        expect(grapher.titleAnnotation).toBeDefined()
+        expect(grapher.fullTitle).toEqual(
+            `How rich are people? ${grapher.titleAnnotation}`
+        )
+    })
+
+    it("keeps the 'Change in' prefix in the title base", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            stackMode: StackMode.relative,
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+            ],
+        })
+
+        expect(grapher.mainTitle).toContain("Change in")
+    })
+
+    it("compares the two times of a faceted map, rather than giving a range", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            ySlugs: SampleColumnSlugs.GDP,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+            hasMapTab: true,
+        })
+
+        // A single time is shown as-is
+        grapher.timelineHandleTimeBounds = [2005, 2005]
+        expect(grapher.titleAnnotation).toEqual("2005")
+
+        // Two times facet the map into two snapshots
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+        expect(grapher.isFaceted).toBe(true)
+        expect(grapher.titleAnnotation).toEqual("2001 vs. 2005")
+    })
+
+    it("compares the two times of a dumbbell chart, rather than giving a range", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            ySlugs: SampleColumnSlugs.GDP,
+            chartTypes: [GRAPHER_CHART_TYPES.Dumbbell],
+            selectedEntityNames: [...table.availableEntityNames],
+        })
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+
+        expect(grapher.titleAnnotation).toEqual("2001 vs. 2005")
+    })
+
+    it("compares the two times of a slope chart, rather than giving a range", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            ySlugs: SampleColumnSlugs.GDP,
+            chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+            selectedEntityNames: [...table.availableEntityNames],
+        })
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+
+        expect(grapher.titleAnnotation).toEqual("2001 vs. 2005")
+    })
+
+    it("gives a range for a relative slope chart, which shows a change over a period", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            ySlugs: SampleColumnSlugs.GDP,
+            chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+            selectedEntityNames: [...table.availableEntityNames],
+            stackMode: StackMode.relative,
+        })
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+
+        // The two halves of the copy belong together: "Change in …" reads as a
+        // period, so the annotation stays a range
+        expect(grapher.mainTitle).toContain("Change in")
+        expect(grapher.titleAnnotation).toEqual("2001 to 2005")
+    })
+
+    it("has no annotation when annotation fields are hidden", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            hideAnnotationFieldsInTitle: { entity: true, time: true },
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+            ],
+        })
+
+        expect(grapher.titleAnnotation).toBeUndefined()
+        expect(grapher.fullTitle).toEqual(grapher.mainTitle)
+    })
+})
+
+describe("toleranceNotice", () => {
+    // Germany lacks data for 2002 and Italy for 2000
+    const makeTable = (extraRows: (string | number)[][] = []): OwidTable =>
+        new OwidTable(
+            [
+                ["entityName", "year", "gdp"],
+                ["France", 1990, 50],
+                ["France", 2000, 100],
+                ["France", 2001, 200],
+                ["France", 2002, 300],
+                ["Germany", 2000, 400],
+                ["Germany", 2001, 500],
+                ["Italy", 2001, 600],
+                ["Italy", 2002, 700],
+                ...extraRows,
+            ],
+            [
+                { slug: "gdp", type: ColumnTypeNames.Numeric, tolerance: 1 },
+                { slug: "year", type: ColumnTypeNames.Year },
+            ]
+        )
+
+    const makeGrapherWithTolerance = (
+        props?: Partial<GrapherProgrammaticInterface>
+    ): GrapherState =>
+        new GrapherState({
+            table: makeTable(),
+            ySlugs: "gdp",
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+            hasMapTab: true,
+            map: { timeTolerance: 3 },
+            ...props,
+        })
+
+    it("explains the tolerance on the map tab", () => {
+        const grapher = makeGrapherWithTolerance()
+        expect(grapher.toleranceNotice).toEqual(
+            "Where data for 2002 is unavailable, the value from the closest year between 1999 and 2001 is shown instead."
+        )
+    })
+
+    it("only explains the tolerance when necessary", () => {
+        const grapher = makeGrapherWithTolerance()
+        const noteAt = (year: number): string | undefined => {
+            grapher.timelineHandleTimeBounds = [year, year]
+            return grapher.toleranceNotice
+        }
+        // Italy has no 2000 value and Germany no 2002 one, but 2001 is the one
+        // year every country has data for
+        expect(noteAt(2000)).toBeDefined()
+        expect(noteAt(2001)).toBeUndefined()
+        expect(noteAt(2002)).toBeDefined()
+    })
+
+    describe("frozen while the timeline is in motion", () => {
+        const drag = (grapher: GrapherState): void => {
+            grapher.timelineDragTarget = TimelineDragTarget.End
+            grapher.setToleranceNoticeFrozen(true)
+        }
+        const release = (grapher: GrapherState): void => {
+            grapher.timelineDragTarget = undefined
+            grapher.setToleranceNoticeFrozen(false)
+        }
+        const goTo = (grapher: GrapherState, year: number): void => {
+            grapher.timelineHandleTimeBounds = [year, year]
+        }
+
+        it("keeps a notice that was up when the drag started", () => {
+            const grapher = makeGrapherWithTolerance()
+            goTo(grapher, 2000) // tolerance applies here
+            drag(grapher)
+            goTo(grapher, 2001) // but not here
+            expect(grapher.toleranceNotice).toBeDefined()
+            release(grapher)
+            expect(grapher.toleranceNotice).toBeUndefined()
+        })
+
+        it("keeps a notice that was down when the drag started", () => {
+            const grapher = makeGrapherWithTolerance()
+            goTo(grapher, 2001)
+            drag(grapher)
+            goTo(grapher, 2000)
+            expect(grapher.toleranceNotice).toBeUndefined()
+            release(grapher)
+            expect(grapher.toleranceNotice).toBeDefined()
+        })
+
+        it("freezes nothing when the timeline is idle", () => {
+            const grapher = makeGrapherWithTolerance()
+            goTo(grapher, 2000)
+            grapher.setToleranceNoticeFrozen(true)
+            goTo(grapher, 2001)
+            expect(grapher.toleranceNotice).toBeUndefined()
+        })
+    })
+
+    it("is only as wide as the columns that were substituted", () => {
+        const grapher = new GrapherState({
+            table: new OwidTable(
+                [
+                    ["entityName", "year", "gdp", "pop"],
+                    ["France", 1990, 10, 1],
+                    ["France", 2001, 200, 20],
+                    // Only gdp is missing its 2002 value
+                    ["France", 2002, "", 30],
+                    ["Germany", 1990, 20, 2],
+                    ["Germany", 2001, 300, 30],
+                    ["Germany", 2002, 400, 40],
+                ],
+                [
+                    {
+                        slug: "gdp",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 3,
+                    },
+                    {
+                        slug: "pop",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 10,
+                    },
+                    { slug: "year", type: ColumnTypeNames.Year },
+                ]
+            ),
+            ySlugs: "gdp pop",
+            chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+            selectedEntityNames: ["France", "Germany"],
+        })
+
+        // gdp's 3 years, not pop's 10, which isn't currently applied
+        expect(grapher.toleranceNotice).toEqual(
+            "Where data is unavailable, the closest value within 3 years is shown instead."
+        )
+    })
+
+    describe("only when tolerance is actually applied", () => {
+        // Every country has data for every year
+        const completeTable = (): OwidTable =>
+            new OwidTable(
+                [
+                    ["entityName", "year", "gdp"],
+                    ["France", 1990, 50],
+                    ["France", 2000, 100],
+                    ["France", 2002, 300],
+                    ["Germany", 1990, 60],
+                    ["Germany", 2000, 400],
+                    ["Germany", 2002, 600],
+                ],
+                [
+                    {
+                        slug: "gdp",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 3,
+                    },
+                    { slug: "year", type: ColumnTypeNames.Year },
+                ]
+            )
+
+        it("is absent on a chart tab whose data has no gaps", () => {
+            const grapher = new GrapherState({
+                table: completeTable(),
+                ySlugs: "gdp",
+                chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+                selectedEntityNames: ["France", "Germany"],
+            })
+            expect(grapher.toleranceNotice).toBeUndefined()
+        })
+
+        // A gap only counts if the entity carrying it is on screen
+        const gapInSpainTable = (): OwidTable =>
+            new OwidTable(
+                [
+                    ["entityName", "year", "gdp"],
+                    ["France", 2000, 100],
+                    ["France", 2001, 200],
+                    ["France", 2002, 300],
+                    ["Germany", 2000, 400],
+                    ["Germany", 2001, 500],
+                    ["Germany", 2002, 600],
+                    ["Spain", 2000, 700],
+                    ["Spain", 2001, 800],
+                    // Spain has no 2002 value, which is the slope's end point
+                ],
+                [
+                    {
+                        slug: "gdp",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 3,
+                    },
+                    { slug: "year", type: ColumnTypeNames.Year },
+                ]
+            )
+
+        const makeSlopeGrapher = (
+            selectedEntityNames: string[]
+        ): GrapherState =>
+            new GrapherState({
+                table: gapInSpainTable(),
+                ySlugs: "gdp",
+                chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+                selectedEntityNames,
+            })
+
+        it("ignores a gap in an entity that isn't selected", () => {
+            expect(
+                makeSlopeGrapher(["France", "Germany"]).toleranceNotice
+            ).toBeUndefined()
+            expect(
+                makeSlopeGrapher(["France", "Germany", "Spain"]).toleranceNotice
+            ).toBeDefined()
+        })
+    })
+
+    describe("appending to the authored note", () => {
+        const NOTICE =
+            "Where data for 2002 is unavailable, the value from the closest year between 1999 and 2001 is shown instead."
+
+        it("separates the notice from a note ending in a period", () => {
+            const grapher = makeGrapherWithTolerance({
+                note: "Values are adjusted.",
+            })
+            expect(grapher.effectiveNote).toEqual(
+                `Values are adjusted. ${NOTICE}`
+            )
+        })
+
+        it("terminates a note that ends without punctuation", () => {
+            const grapher = makeGrapherWithTolerance({
+                note: "Values are adjusted",
+            })
+            expect(grapher.effectiveNote).toEqual(
+                `Values are adjusted. ${NOTICE}`
+            )
+        })
+
+        it("keeps a note's own end punctuation", () => {
+            const grapher = makeGrapherWithTolerance({
+                note: "Is this adjusted?",
+            })
+            expect(grapher.effectiveNote).toEqual(`Is this adjusted? ${NOTICE}`)
+        })
+
+        it("stands alone when there is no authored note", () => {
+            expect(makeGrapherWithTolerance().effectiveNote).toEqual(NOTICE)
+        })
     })
 })
 
@@ -513,6 +990,41 @@ describe("urls", () => {
             hasMapTab: true,
         })
         expect(grapher.embedUrl).toEqual("/grapher/foo?tab=map")
+    })
+
+    describe("createNarrativeChartUrl", () => {
+        const adminCreateNarrativeChartPath =
+            "narrative-charts/create?type=multiDim&chartConfigId=abc"
+        const makeGrapherState = (queryStr: string): GrapherState =>
+            new GrapherState({
+                isPublished: true,
+                env: "dev", // so that admin controls are shown
+                adminBaseUrl: "https://ourworldindata.org",
+                manager: { adminCreateNarrativeChartPath, queryStr },
+            })
+
+        it("passes the live grapher state on as a single encoded param", () => {
+            const url = makeGrapherState(
+                "?tab=line&country=ETH~MDG"
+            ).createNarrativeChartUrl!
+            expect(url).toEqual(
+                "https://ourworldindata.org/admin/narrative-charts/create?type=multiDim&chartConfigId=abc&grapherQueryStr=tab%3Dline%26country%3DETH~MDG"
+            )
+            // the nested query string round-trips back into query params
+            const grapherQueryStr = new URL(url).searchParams.get(
+                "grapherQueryStr"
+            )!
+            expect(Url.fromQueryStr(grapherQueryStr).queryParams).toEqual({
+                tab: "line",
+                country: "ETH~MDG",
+            })
+        })
+
+        it("omits the param when the grapher is in its default state", () => {
+            expect(makeGrapherState("").createNarrativeChartUrl).toEqual(
+                "https://ourworldindata.org/admin/narrative-charts/create?type=multiDim&chartConfigId=abc"
+            )
+        })
     })
 
     it("can upgrade legacy urls", () => {

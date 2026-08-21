@@ -248,11 +248,23 @@ export async function getNarrativeCharts(
     return { narrativeCharts }
 }
 
+export type NarrativeChartResponse = Pick<
+    DbPlainNarrativeChart,
+    "id" | "name" | "updatedAt" | "chartConfigId"
+> & {
+    lastEditedByUser: DbPlainUser["fullName"]
+    configFull: GrapherInterface
+    configPatch: GrapherInterface
+    parentType: "chart" | "multiDim"
+    parentConfigFull: GrapherInterface
+    parentUrl: string | null
+}
+
 export async function getNarrativeChartById(
     req: Request,
     res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
-) {
+): Promise<NarrativeChartResponse> {
     const id = expectInt(req.params.id)
 
     type NarrativeChartRow = Pick<

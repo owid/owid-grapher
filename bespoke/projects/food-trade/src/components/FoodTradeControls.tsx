@@ -16,17 +16,22 @@ import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 import { orderOptionsByRelevance } from "../../../../components/EntityDropdown/EntityDropdown.js"
 import {
+    Controls,
+    ControlsRow,
+    LabeledControl,
+} from "../../../../components/Controls/Controls.js"
+import {
     type DropdownCollection,
-    InlineLabeledDropdown,
-} from "../../../../components/InlineLabeledDropdown/InlineLabeledDropdown.js"
+    LabeledDropdown,
+} from "../../../../components/LabeledDropdown/LabeledDropdown.js"
 import {
     Switcher,
     SwitcherItem,
 } from "../../../../components/Switcher/Switcher.js"
 
-import { Flow } from "../config.js"
-import { ALL_COUNTRIES, isAllCountry } from "../helpers.js"
-import { FoodTradeMetadata, ProductTradeData } from "../types.js"
+import { Flow } from "../core/config.js"
+import { ALL_COUNTRIES, isAllCountry } from "../core/helpers.js"
+import { FoodTradeMetadata, ProductTradeData } from "../core/types.js"
 
 export function FoodTradeControls({
     metadata,
@@ -50,38 +55,33 @@ export function FoodTradeControls({
     setView: (value: Flow) => void
 }): React.ReactElement {
     return (
-        <div className="food-trade-controls">
-            <h3 className="food-trade-controls__title">Configure the data</h3>
-            <div className="food-trade-controls__content">
-                <div className="food-trade-controls__row">
-                    <ProductDropdown
+        <Controls className="food-trade-controls">
+            <ControlsRow>
+                <ProductDropdown
+                    metadata={metadata}
+                    product={product}
+                    country={country}
+                    setProduct={setProduct}
+                />
+                <CountryDropdown
+                    metadata={metadata}
+                    product={product}
+                    country={country}
+                    setCountry={setCountry}
+                    includeAllCountries={!hideFlowSwitcher || view === "both"}
+                />
+                {!hideFlowSwitcher && (
+                    <ViewSwitcher
                         metadata={metadata}
+                        productData={productData}
                         product={product}
                         country={country}
-                        setProduct={setProduct}
+                        view={view}
+                        setView={setView}
                     />
-                    <CountryDropdown
-                        metadata={metadata}
-                        product={product}
-                        country={country}
-                        setCountry={setCountry}
-                        includeAllCountries={
-                            !hideFlowSwitcher || view === "both"
-                        }
-                    />
-                    {!hideFlowSwitcher && (
-                        <ViewSwitcher
-                            metadata={metadata}
-                            productData={productData}
-                            product={product}
-                            country={country}
-                            view={view}
-                            setView={setView}
-                        />
-                    )}
-                </div>
-            </div>
-        </div>
+                )}
+            </ControlsRow>
+        </Controls>
     )
 }
 
@@ -133,7 +133,7 @@ function ProductDropdown({
     )
 
     return (
-        <InlineLabeledDropdown
+        <LabeledDropdown
             label="Product"
             options={options}
             selectedValue={product}
@@ -226,7 +226,7 @@ function CountryDropdown({
     )
 
     return (
-        <InlineLabeledDropdown
+        <LabeledDropdown
             label="Country"
             options={options}
             selectedValue={country}
@@ -320,25 +320,27 @@ function ViewSwitcher({
     const isViewDisabled = !!viewDisabledReason
 
     return (
-        <Tippy
-            content={viewDisabledReason ?? ""}
-            disabled={!isViewDisabled}
-            appendTo={getTippyContainer}
-            maxWidth={270}
-        >
-            <div
-                ref={switcherWrapperRef}
-                className="food-trade-controls__switcher-wrapper"
+        <LabeledControl label="Trade flow">
+            <Tippy
+                content={viewDisabledReason ?? ""}
+                disabled={!isViewDisabled}
+                appendTo={getTippyContainer}
+                maxWidth={270}
             >
-                <Switcher
-                    items={options}
-                    selectedKey={view}
-                    onChange={setView}
-                    isDisabled={isViewDisabled}
-                    ariaLabel="Trade flow"
-                />
-            </div>
-        </Tippy>
+                <div
+                    ref={switcherWrapperRef}
+                    className="food-trade-controls__switcher-wrapper"
+                >
+                    <Switcher
+                        items={options}
+                        selectedKey={view}
+                        onChange={setView}
+                        isDisabled={isViewDisabled}
+                        ariaLabel="Trade flow"
+                    />
+                </div>
+            </Tippy>
+        </LabeledControl>
     )
 }
 

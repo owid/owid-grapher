@@ -117,6 +117,12 @@ sequenceDiagram
 - **Facet Filtering**: Dynamic filters for countries and topics
 - **Search Analytics**: Algolia Insights for click tracking (pending porting from legacy system)
 
+#### Empty-query caching proxy
+
+Requests with empty queries are routed through a caching Cloudflare function (`functions/api/search/cached-queries.ts`) which caches them for 24h.
+
+Queries on the chronological index (which backs /latest and sorts by date) are only cached for 15 minutes, so newly published articles show up quickly.
+
 ### React Query Integration
 
 - **Regular Queries**: Standard search queries using an unpaginated `useQuery` for getting all writing or data topics.

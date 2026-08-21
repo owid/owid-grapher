@@ -86,6 +86,42 @@ Use the `{.bespoke-component}` ArchieML block:
 | `size`    | No       | `wide`  | Layout width: `narrow`, `wide`, or `widest`                                                         |
 | `config`  | No       | `{}`    | Key-value pairs passed to the mount function. Values must be strings (no nesting).                  |
 
+### Embedding in a key insight
+
+A key insight slide normally takes an image (`filename`), a grapher/explorer chart (`url`) or a narrative chart (`narrativeChartName`). To put a bespoke component in the asset column instead, use the `[.+asset]` array, which accepts any block:
+
+```yaml
+{.key-insights}
+  heading: Key insights
+  [.insights]
+    title: Most children die from preventable causes
+    [.+asset]
+      {.bespoke-component}
+        bundle: causes-of-death
+        variant: treemap
+        {.config}
+          ageGroup: Children under 5
+        {}
+      {}
+    []
+    [.+content]
+      Text of the insight goes here.
+    []
+  []
+{}
+```
+
+`asset` is mutually exclusive with `filename`, `url` and `narrativeChartName` — specify exactly one.
+
+The asset column holds one visual filling one slot, so it accepts `bespoke-component`, `chart`, `narrative-chart`, `image`, `static-viz`, `video` and `html`. Layout containers (`side-by-side`, `sticky-left`, `sticky-right`, …) are rejected with a parse error: their grid classes are written for the full 12-column page grid, and the asset column is 7 of those columns, so they would lay out wrong rather than fail. The list is `KEY_INSIGHT_ASSET_BLOCK_TYPES` in `db/model/Gdoc/rawToEnriched.ts`.
+
+Two things to know when authoring one of these:
+
+- **The `size` property has no effect inside a key insight.** The asset column already sets the width (7 of 12 columns on desktop, full width on mobile), and the component fills it.
+- **Don't turn on URL syncing.** The key insights block writes the active slide to the `?insight=` query param; a component that also syncs its state to the URL will fight it.
+
+Note that every slide of a key insights block is in the DOM from page load, not just the active one — so a bespoke component in slide 3 mounts and fetches its data even if the reader never opens that slide.
+
 ## Sizing
 
 The **width** of your component is determined by the `size` property in the ArchieML block:
@@ -242,7 +278,7 @@ A dev server at [bespoke/server/](server/) provides a local environment for work
 yarn startBespokeDevServer
 ```
 
-Visit `http://localhost:8089/<project>/demo` to see a demo page that mounts all of a project's variants inside Shadow DOM — matching the production embedding behavior.
+Visit `http://localhost:8089/<project>/demo` to see a demo page that mounts all of a project's variants inside Shadow DOM — matching the production embedding behavior. `http://localhost:8089/__all` stacks every project's demo page below each other (except `example`), for comparing across projects.
 
 Pass `--build` to build each project and serve the production output via `vite preview` instead of `vite dev`:
 

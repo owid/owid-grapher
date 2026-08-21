@@ -27,6 +27,7 @@
         "normalize.css": "^8.0.1",
         "nuqs": "^2.8.9",
         "react": "^19.2.7",
+        "react-aria-components": "^1.18.0",
         "react-dom": "^19.2.7",
         "remeda": "^2.39.0",
         "ts-pattern": "^5.9.0",
@@ -36,10 +37,10 @@
         "@types/d3": "^7.4.3",
         "@types/react": "^19.2.17",
         "@types/react-dom": "^19.2.3",
-        "@vitejs/plugin-react": "^6.0.2",
+        "@vitejs/plugin-react": "^6.0.4",
         "sass": "^1.101.0",
         "typescript": "^7.0.2",
-        "vite": "^8.0.16",
-        "vitest": "^4.1.8"
+        "vite": "^8.1.5",
+        "vitest": "^4.1.10"
     }
 }

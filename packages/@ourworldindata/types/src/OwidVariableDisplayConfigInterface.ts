@@ -16,8 +16,6 @@ export interface OwidVariableDisplayConfigInterface {
     numSignificantFigures?: number
     tolerance?: number
     timeInterval?: TimeInterval
-    /** Deprecated: Use `timeInterval: "day"` instead. */
-    yearIsDay?: boolean
     zeroDay?: string
     entityAnnotationsMap?: string
     includeInTable?: boolean
@@ -50,6 +48,23 @@ export enum TimeInterval {
     Year = "year",
     Decade = "decade",
 }
+
+/** Sub-yearly intervals, finest first */
+export const SUB_YEARLY_TIME_INTERVALS = [
+    TimeInterval.Day,
+    TimeInterval.Week,
+    TimeInterval.Month,
+    TimeInterval.Quarter,
+] as const
+
+/** All time intervals, finest first */
+export const TIME_INTERVALS = [
+    ...SUB_YEARLY_TIME_INTERVALS,
+    TimeInterval.Year,
+    TimeInterval.Decade,
+] as const
+
+export type SubYearlyTimeInterval = (typeof SUB_YEARLY_TIME_INTERVALS)[number]
 
 export interface OwidChartDimensionInterface {
     property: DimensionProperty

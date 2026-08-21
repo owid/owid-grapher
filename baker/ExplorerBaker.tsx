@@ -18,12 +18,24 @@ export const bakeAllPublishedExplorers = async (
     explorerAdminServer: ExplorerAdminServer,
     knex: db.KnexReadonlyTransaction
 ) => {
-    // remove all existing explorers, since we're re-baking every single one anyway
-    await fs.remove(outputFolder)
-    await fs.mkdirp(outputFolder)
+    // Remove the existing explorer pages, so that unpublished ones disappear.
+    // Only the HTML, since other bake steps write artifacts into this folder
+    // (e.g. _explorerRedirects.json) that we must not delete.
+    await removeBakedExplorerPages(outputFolder)
 
     const published = await explorerAdminServer.getAllPublishedExplorers(knex)
     await bakeExplorersToDir(outputFolder, published, knex)
+}
+
+export const removeBakedExplorerPages = async (outputFolder: string) => {
+    await fs.mkdirp(outputFolder)
+    const entries = await fs.readdir(outputFolder, { withFileTypes: true })
+    const pages = entries.filter(
+        (entry) => entry.isFile() && entry.name.endsWith(".html")
+    )
+    await Promise.all(
+        pages.map((page) => fs.unlink(path.join(outputFolder, page.name)))
+    )
 }
 
 const bakeExplorersToDir = async (

@@ -26,6 +26,7 @@ import {
     slugify,
     greatestCommonDivisor,
     findGreatestCommonDivisorOfArray,
+    withUniformSpacing,
     traverseEnrichedBlock,
     cartesian,
     formatInlineList,
@@ -36,6 +37,7 @@ import {
     stripOuterParentheses,
     groupTocIntoSections,
     snapToIntervalStart,
+    findFinestCommonTimeInterval,
     diffDatesInDays,
     convertDateToDaysSinceEpoch,
     toStartOfDayUtc,
@@ -683,6 +685,20 @@ describe(convertDateToDaysSinceEpoch, () => {
     })
 })
 
+describe(withUniformSpacing, () => {
+    it("can add values to make an array evenly spaced", () => {
+        expect(withUniformSpacing([])).toEqual([])
+        expect(withUniformSpacing([5])).toEqual([5])
+        expect(withUniformSpacing([5, 10])).toEqual([5, 10])
+        expect(withUniformSpacing([5, 10, 15])).toEqual([5, 10, 15])
+        expect(withUniformSpacing([2, 4, 8])).toEqual([2, 4, 6, 8])
+        expect(withUniformSpacing([1, 2, 4, 8])).toEqual([
+            1, 2, 3, 4, 5, 6, 7, 8,
+        ])
+        expect(withUniformSpacing([7, 12, 17])).toEqual([7, 12, 17])
+    })
+})
+
 describe(snapToIntervalStart, () => {
     const day = (iso: string): number =>
         diffDatesInDays(dayjs.utc(iso), epochDate())
@@ -720,6 +736,44 @@ describe(snapToIntervalStart, () => {
         ).toEqual(day("2021-03-15"))
         expect(snapToIntervalStart(2021, TimeInterval.Year)).toEqual(2021)
         expect(snapToIntervalStart(2025, TimeInterval.Decade)).toEqual(2025)
+    })
+})
+
+describe(findFinestCommonTimeInterval, () => {
+    it("picks the finest of the given intervals", () => {
+        expect(
+            findFinestCommonTimeInterval([TimeInterval.Month, TimeInterval.Day])
+        ).toEqual(TimeInterval.Day)
+        expect(
+            findFinestCommonTimeInterval([
+                TimeInterval.Decade,
+                TimeInterval.Year,
+            ])
+        ).toEqual(TimeInterval.Year)
+        // Quarter starts are month starts, so months represent both
+        expect(
+            findFinestCommonTimeInterval([
+                TimeInterval.Quarter,
+                TimeInterval.Month,
+            ])
+        ).toEqual(TimeInterval.Month)
+    })
+
+    it("falls back to days when weeks are mixed with longer periods", () => {
+        // ISO-week Mondays and month/quarter starts are different grids, so
+        // neither can represent the other's times
+        expect(
+            findFinestCommonTimeInterval([
+                TimeInterval.Quarter,
+                TimeInterval.Week,
+            ])
+        ).toEqual(TimeInterval.Day)
+        expect(
+            findFinestCommonTimeInterval([
+                TimeInterval.Week,
+                TimeInterval.Month,
+            ])
+        ).toEqual(TimeInterval.Day)
     })
 })
 

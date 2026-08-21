@@ -1,5 +1,4 @@
 import { useCallback, useMemo, type ReactNode } from "react"
-import { useParentSize } from "@visx/responsive"
 import cx from "clsx"
 import * as R from "remeda"
 import { match } from "ts-pattern"
@@ -26,24 +25,16 @@ import {
     DEFAULT_FONT_SETTINGS,
 } from "../../../../components/Sankey/SplitFlowSankey.js"
 
-import { type TradeRow } from "../types.js"
+import { type TradeRow } from "../core/types.js"
 import {
     capItems,
     formatShare,
     formatTrade,
     tradesToFlows,
-} from "../helpers.js"
+} from "../core/helpers.js"
+import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 
-export function FoodTradeSplitSankey({
-    incomingTrades,
-    outgoingTrades,
-    country,
-    setCountry,
-    product,
-    year,
-    view = "both",
-    setView,
-}: {
+type FoodTradeSplitSankeyProps = {
     country: string
     setCountry: (country: string) => void
     product: string
@@ -52,9 +43,47 @@ export function FoodTradeSplitSankey({
     outgoingTrades: TradeRow[]
     view?: "both" | "import" | "export"
     setView: (view: "both" | "import" | "export") => void
-}) {
-    const { parentRef, width, height } = useParentSize()
+}
 
+export function FoodTradeSplitSankey({
+    view = "both",
+    ...props
+}: FoodTradeSplitSankeyProps) {
+    return (
+        <div
+            className={cx("food-trade-sankey", {
+                "food-trade-sankey--single": view !== "both",
+            })}
+        >
+            <ResponsiveContainer>
+                {(dimensions) => (
+                    <FoodTradeSplitSankeyContent
+                        {...props}
+                        view={view}
+                        {...dimensions}
+                    />
+                )}
+            </ResponsiveContainer>
+        </div>
+    )
+}
+
+function FoodTradeSplitSankeyContent({
+    incomingTrades,
+    outgoingTrades,
+    country,
+    setCountry,
+    product,
+    year,
+    view,
+    setView,
+    width,
+    height,
+}: FoodTradeSplitSankeyProps & {
+    view: "both" | "import" | "export"
+    width: number
+    height: number
+}) {
     const incomingFlows = useMemo(
         () => tradesToFlows(incomingTrades),
         [incomingTrades]
@@ -64,7 +93,7 @@ export function FoodTradeSplitSankey({
         [outgoingTrades]
     )
 
-    const isStacked = view === "both" && width > 0 && width < MOBILE_BREAKPOINT
+    const isStacked = view === "both" && width < MOBILE_BREAKPOINT
     const sharedArgsForBuildingSankeyHalves = {
         country,
         product,
@@ -99,30 +128,23 @@ export function FoodTradeSplitSankey({
         .exhaustive()
 
     return (
-        <div
-            ref={parentRef}
-            className={cx("food-trade-sankey", {
-                "food-trade-sankey--single": view !== "both",
-            })}
-        >
-            <SplitFlowSankey
-                centralEntity={country}
-                incoming={incomingHalf}
-                outgoing={outgoingHalf}
-                width={width}
-                height={height}
-                formatValue={formatValue}
-                view={splitView}
-                isStacked={isStacked}
-                fontSettings={
-                    isStacked ? MOBILE_FONT_SETTINGS : DEFAULT_FONT_SETTINGS
-                }
-                maxNodesToShrinkOther={
-                    isStacked ? STACKED_MAX_NODES_TO_SHRINK_OTHER : undefined
-                }
-                onSelectPartner={setCountry}
-            />
-        </div>
+        <SplitFlowSankey
+            centralEntity={country}
+            incoming={incomingHalf}
+            outgoing={outgoingHalf}
+            width={width}
+            height={height}
+            formatValue={formatValue}
+            view={splitView}
+            isStacked={isStacked}
+            fontSettings={
+                isStacked ? MOBILE_FONT_SETTINGS : DEFAULT_FONT_SETTINGS
+            }
+            maxNodesToShrinkOther={
+                isStacked ? STACKED_MAX_NODES_TO_SHRINK_OTHER : undefined
+            }
+            onSelectPartner={setCountry}
+        />
     )
 }
 
