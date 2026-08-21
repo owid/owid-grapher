@@ -22,7 +22,6 @@ import {
     View,
 } from "@ourworldindata/types"
 import { mergeGrapherConfigs, dimensionsToViewId } from "@ourworldindata/utils"
-import * as Sentry from "@sentry/node"
 import * as db from "../db/db.js"
 import {
     buildMdimViewPatchConfig,
@@ -239,7 +238,7 @@ export async function upsertMultiDim(
         knex,
         rawConfig
     )
-    reportViewConfigsWithoutSchema(catalogPath, config)
+    validateViewConfigSchemas(config)
     const variableConfigs = await getIndicatorChartConfigs(
         knex,
         _.uniq(config.views.map((view) => view.indicators.y[0].id))
@@ -323,9 +322,8 @@ export async function upsertMultiDim(
     return multiDimId
 }
 
-/** Warns if any view config does not declare a schema version */
-function reportViewConfigsWithoutSchema(
-    catalogPath: string,
+/** Throws if any view config does not declare a schema version */
+function validateViewConfigSchemas(
     config: MultiDimDataPageConfigPreProcessed
 ): void {
     if (config.grapherConfigSchema) return
@@ -334,13 +332,12 @@ function reportViewConfigsWithoutSchema(
         .map((view) => dimensionsToViewId(view.dimensions))
     if (viewIds.length === 0) return
 
-    console.warn(
-        `${catalogPath}: ${viewIds.length} view config(s) without a schema version, assumed latest`
-    )
-    // Static message, so that all affected pages group into one Sentry issue
-    Sentry.captureMessage(
-        "Multi-dim view configs without a schema version, assumed latest",
-        { level: "warning", extra: { catalogPath, viewIds } }
+    // Pages can have thousands of views, so only name the first few
+    const sample = viewIds.slice(0, 5).join(", ")
+    const more = viewIds.length > 5 ? `, and ${viewIds.length - 5} more` : ""
+    throw new JsonError(
+        `${viewIds.length} view config(s) declare no schema version (${sample}${more}). ` +
+            `Set $schema on each view config, or grapherConfigSchema on the multi-dim config.`
     )
 }
 
