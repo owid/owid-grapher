@@ -237,7 +237,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
 
     const pathPrefixByUuid = excludeUndefined([
         GRAPHER_CONFIG_R2_BUCKET_PATH,
-        R2GrapherConfigDirectory.byUUID,
+        R2GrapherConfigDirectory.byUuid,
     ]).join("/")
 
     await knexReadonlyTransaction(async (trx) => {

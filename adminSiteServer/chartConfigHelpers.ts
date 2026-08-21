@@ -10,9 +10,9 @@ import {
     updateChartConfig,
 } from "../db/model/ChartConfigs.js"
 import {
-    deleteGrapherConfigFromR2ByUUID,
+    deleteGrapherConfigFromR2ByUuid,
     saveGrapherConfigToR2,
-    saveGrapherConfigToR2ByUUID,
+    saveGrapherConfigToR2ByUuid,
 } from "../serverUtils/r2/chartConfigR2Helpers.js"
 
 export interface ChartConfigPair {
@@ -58,7 +58,7 @@ export const retrieveChartConfigFromDbAndSaveToR2 = async (
         )
 
     if (!r2Path) {
-        await saveGrapherConfigToR2ByUUID(
+        await saveGrapherConfigToR2ByUuid(
             chartConfigId,
             row.config,
             row.configMd5
@@ -152,5 +152,5 @@ export const deleteChartConfigPairFromDbAndR2 = async (
         .whereIn("id", [pair.configId, pair.patchConfigId])
         .delete()
     // Only the resolved config was published
-    await deleteGrapherConfigFromR2ByUUID(pair.configId)
+    await deleteGrapherConfigFromR2ByUuid(pair.configId)
 }
