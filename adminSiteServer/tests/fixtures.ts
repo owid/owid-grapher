@@ -1,4 +1,10 @@
-import { DatasetsTableName, VariablesTableName } from "@ourworldindata/types"
+import {
+    DatasetsTableName,
+    IndicatorsBeforePreProcessing,
+    VariablesTableName,
+    View,
+} from "@ourworldindata/types"
+import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import type { TestEnv } from "./testEnv.js"
 
 export const datasetId = 1
@@ -30,4 +36,27 @@ export async function seedDatasetAndVariables(env: TestEnv): Promise<void> {
         { ...dummyVariable, id: variableId },
         { ...dummyVariable, id: otherVariableId },
     ])
+}
+
+export const catalogPath = "test/catalog#path"
+
+/** A multi-dim page config for the given views */
+export function multiDimConfig(
+    views: View<IndicatorsBeforePreProcessing>[]
+): object {
+    return {
+        grapherConfigSchema: latestGrapherConfigSchema,
+        title: { title: "Energy use", titleVariant: "by energy source" },
+        views,
+        dimensions: [
+            {
+                name: "Metric",
+                slug: "metric",
+                choices: views.map((view) => ({
+                    name: view.dimensions.metric,
+                    slug: view.dimensions.metric,
+                })),
+            },
+        ],
+    }
 }

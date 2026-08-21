@@ -15,7 +15,9 @@ import {
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import {
+    catalogPath,
     datasetId,
+    multiDimConfig,
     otherVariableId,
     seedDatasetAndVariables,
     variableId,
@@ -43,8 +45,6 @@ describe("Bulk indicator deletion", { timeout: 15000 }, () => {
             .pluck<number[]>("id")
     }
 
-    const catalogPath = "test/catalog#path"
-
     async function seedMultiDim(): Promise<void> {
         const views: View<IndicatorsBeforePreProcessing>[] = [
             {
@@ -61,23 +61,7 @@ describe("Bulk indicator deletion", { timeout: 15000 }, () => {
         await env.request({
             method: "PUT",
             path: `/multi-dims/${encodeURIComponent(catalogPath)}`,
-            body: JSON.stringify({
-                config: {
-                    grapherConfigSchema: latestGrapherConfigSchema,
-                    title: { title: "Energy use" },
-                    views,
-                    dimensions: [
-                        {
-                            name: "Metric",
-                            slug: "metric",
-                            choices: views.map((view) => ({
-                                name: view.dimensions.metric,
-                                slug: view.dimensions.metric,
-                            })),
-                        },
-                    ],
-                },
-            }),
+            body: JSON.stringify({ config: multiDimConfig(views) }),
         })
     }
 
