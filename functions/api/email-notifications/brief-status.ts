@@ -1,12 +1,13 @@
 import * as Sentry from "@sentry/cloudflare"
 import { Env } from "../../_common/env.js"
 import {
+    handleOptionsRequest,
     lookupEmailToken,
     makeJsonResponse,
 } from "../../_common/emailNotifications.js"
 import { getOwidBriefStatus } from "../../_common/mailchimp.js"
 
-export { onRequestOptions } from "../../_common/emailNotifications.js"
+export const onRequestOptions = handleOptionsRequest
 
 /**
  * Whether the magic-link token's user is subscribed to the OWID Brief in
