@@ -17,18 +17,12 @@ import {
     EMAIL_NOTIFICATIONS_FREQUENCY_LABELS,
     EmailNotificationsContentType,
     EmailNotificationsFrequency,
-    TagGraphRoot,
 } from "@ourworldindata/types"
 import {
     areAllTopicsSelected,
     PreferencesValidationErrors,
 } from "./emailNotificationsValidation.js"
 
-/**
- * Presentation for the "Show me" cards. The content types themselves come from
- * EMAIL_NOTIFICATIONS_CONTENT_TYPES so that a type added there can't be
- * silently missing here.
- */
 const CONTENT_TYPE_CARDS: Record<
     EmailNotificationsContentType,
     { icon: IconDefinition; description: string }
@@ -119,7 +113,7 @@ const ContentTypeCard = ({
 )
 
 export interface EmailNotificationsPreferenceFieldsProps {
-    topicTagGraph: TagGraphRoot
+    topicAreaNames: string[]
     topicTags: string[]
     contentTypes: EmailNotificationsContentType[]
     frequency: EmailNotificationsFrequency
@@ -134,7 +128,7 @@ export interface EmailNotificationsPreferenceFieldsProps {
  * subscribe form and the magic-link preferences form.
  */
 export const EmailNotificationsPreferenceFields = ({
-    topicTagGraph,
+    topicAreaNames,
     topicTags,
     contentTypes,
     frequency,
@@ -143,14 +137,14 @@ export const EmailNotificationsPreferenceFields = ({
     onSetFrequency,
     validationErrors,
 }: EmailNotificationsPreferenceFieldsProps) => {
-    const allTopicsSelected = areAllTopicsSelected(topicTags, topicTagGraph)
+    const allTopicsSelected = areAllTopicsSelected(topicTags, topicAreaNames)
 
     // The toggle callbacks use functional state updates, so toggling every
     // affected pill in sequence composes correctly.
     const toggleAllTopics = () => {
-        for (const area of topicTagGraph.children) {
-            if (topicTags.includes(area.name) === allTopicsSelected)
-                onToggleTopicTag(area.name)
+        for (const name of topicAreaNames) {
+            if (topicTags.includes(name) === allTopicsSelected)
+                onToggleTopicTag(name)
         }
     }
 
@@ -159,12 +153,12 @@ export const EmailNotificationsPreferenceFields = ({
             <fieldset className="newsletter-form__fieldset">
                 <legend className="h6-black-caps">I want updates about</legend>
                 <div className="newsletter-preference-fields__pills">
-                    {topicTagGraph.children.map((area) => (
+                    {topicAreaNames.map((name) => (
                         <TogglePill
-                            key={area.name}
-                            label={area.name}
-                            selected={topicTags.includes(area.name)}
-                            onToggle={() => onToggleTopicTag(area.name)}
+                            key={name}
+                            label={name}
+                            selected={topicTags.includes(name)}
+                            onToggle={() => onToggleTopicTag(name)}
                         />
                     ))}
                 </div>
