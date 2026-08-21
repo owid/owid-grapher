@@ -10,12 +10,13 @@ import { Env } from "../../_common/env.js"
 import {
     EmailTokenLookup,
     handleJsonError,
+    handleOptionsRequest,
     lookupEmailToken,
     makeJsonResponse,
 } from "../../_common/emailNotifications.js"
 import { upsertOwidBriefSubscription } from "../../_common/mailchimp.js"
 
-export { onRequestOptions } from "../../_common/emailNotifications.js"
+export const onRequestOptions = handleOptionsRequest
 
 /**
  * Data source of the magic-link preferences page: resolves a magic-link token
