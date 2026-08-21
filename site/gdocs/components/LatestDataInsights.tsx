@@ -6,6 +6,7 @@ import {
     faChevronLeft,
 } from "@fortawesome/free-solid-svg-icons"
 import cx from "clsx"
+import * as R from "remeda"
 
 import { Button } from "@ourworldindata/components"
 import {
@@ -176,16 +177,11 @@ function findNearestCardIndex(
     scrollLeft: number
 ): number {
     const origin = cards[0].offsetLeft
-    let nearestIndex = 0
-    let nearestDistance = Infinity
-    cards.forEach((card, index) => {
-        const distance = Math.abs(card.offsetLeft - origin - scrollLeft)
-        if (distance < nearestDistance) {
-            nearestDistance = distance
-            nearestIndex = index
-        }
-    })
-    return nearestIndex
+    const nearest = R.firstBy(
+        cards.map((card, index) => ({ card, index })),
+        ({ card }) => Math.abs(card.offsetLeft - origin - scrollLeft)
+    )
+    return nearest?.index ?? 0
 }
 
 const DataInsightCard = memo(function DataInsightCard({
