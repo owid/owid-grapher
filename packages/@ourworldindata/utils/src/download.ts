@@ -5,6 +5,14 @@ export const SERVER_SIDE_DOWNLOAD_HELP_TEXT =
     "file, metadata in JSON format, and a README. The CSV file can be opened " +
     "in Excel, Google Sheets, and other data analysis tools."
 
+// Shown only where a complete-dataset download is on offer. The sources named
+// elsewhere on the page describe the indicators behind the current view, but
+// the package spans every view, so it can draw on providers that aren't listed
+// there -- point at the file inside it that names all of them.
+export const COMPLETE_DATASET_SOURCES_HELP_TEXT =
+    "The complete dataset covers more indicators than this chart, and its " +
+    "README lists the sources for all of them."
+
 export const triggerDownloadFromBlob = (filename: string, blob: Blob): void => {
     const objectUrl = URL.createObjectURL(blob)
     triggerDownloadFromUrl(filename, objectUrl)
@@ -52,6 +60,39 @@ metadata <- fromJSON("${metadataUrl}")`,
     }
 }
 
+/**
+ * Code examples for the complete-dataset Parquet. A different set of tools from
+ * the chart-scoped CSV examples: Excel, Sheets and Stata are absent because
+ * none of them read Parquet, and a table this wide isn't a spreadsheet job.
+ */
+export function makeCompleteDatasetCodeExamples(
+    parquetUrl: string,
+    metadataUrl: string
+): Record<string, string> {
+    return {
+        "Python with Pandas": `import pandas as pd
+import requests
+
+# Fetch the data (pip install pyarrow)
+df = pd.read_parquet("${parquetUrl}")
+
+# Fetch the metadata
+metadata = requests.get("${metadataUrl}").json()`,
+        // read_parquet() takes a local path, not an HTTP URL, so the file has
+        // to be downloaded first.
+        R: `library(arrow)
+library(jsonlite)
+
+# Fetch the data
+path <- tempfile(fileext = ".parquet")
+download.file("${parquetUrl}", path, mode = "wb")
+df <- read_parquet(path)
+
+# Fetch the metadata
+metadata <- fromJSON("${metadataUrl}")`,
+    }
+}
+
 export function makeNumberOfRowsSnippet(numRows: number | undefined): string {
     if (numRows === undefined) return ""
     if (numRows <= 0) return " (empty)"
@@ -59,12 +100,43 @@ export function makeNumberOfRowsSnippet(numRows: number | undefined): string {
     return ` (${formatValue(numRows, { numDecimalPlaces: 0 })} rows)`
 }
 
+export function formatFileSize(bytes: number): string {
+    const format = (value: number): string =>
+        value.toFixed(1).replace(/\.0$/, "")
+    if (bytes >= 1e9) return `${format(bytes / 1e9)} GB`
+    if (bytes >= 1e6) return `${format(bytes / 1e6)} MB`
+    if (bytes >= 1e3) return `${format(bytes / 1e3)} kB`
+    return `${bytes} B`
+}
+
 export function makeFullDownloadDescription(
     numRows: number | undefined
 ): string {
-    return `Includes all entities and time points${makeNumberOfRowsSnippet(
-        numRows
-    )}`
+    return `Includes all data for this chart${makeNumberOfRowsSnippet(numRows)}`
+}
+
+export function makeCompleteDatasetDescription({
+    rowCount,
+    indicatorCount,
+    sizeBytes,
+}: {
+    rowCount?: number
+    indicatorCount?: number
+    sizeBytes?: number
+}): string {
+    const details = [
+        indicatorCount !== undefined
+            ? `${formatValue(indicatorCount, { numDecimalPlaces: 0 })} ${
+                  indicatorCount === 1 ? "indicator" : "indicators"
+              }`
+            : undefined,
+        rowCount !== undefined && rowCount > 0
+            ? `${formatValue(rowCount, { numDecimalPlaces: 0 })} rows`
+            : undefined,
+        sizeBytes !== undefined ? formatFileSize(sizeBytes) : undefined,
+    ].filter((snippet) => snippet !== undefined)
+    const detailsSnippet = details.length ? ` (${details.join(", ")})` : ""
+    return `Includes every indicator in this dataset, not just this chart's${detailsSnippet}`
 }
 
 export function makeFilteredDownloadDescription({
@@ -74,7 +146,7 @@ export function makeFilteredDownloadDescription({
     visibleIn?: string
     numRows: number | undefined
 }): string {
-    return `Includes only the entities and time points currently visible in the ${visibleIn}${makeNumberOfRowsSnippet(
+    return `Includes only the data currently visible in the ${visibleIn}${makeNumberOfRowsSnippet(
         numRows
     )}`
 }
