@@ -21,7 +21,7 @@ import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { useDocumentContext } from "./gdocs/DocumentContext.js"
 import {
     fetchTopicVocabulary,
-    rankSuggestedKeywords,
+    suggestedKeywords,
     topicVocabularyQueryKey,
 } from "./search/topicVocabulary.js"
 import { getDirectLiteSearchClient } from "./search/searchClients.js"
@@ -74,7 +74,7 @@ export type AllChartsBlockProps = {
     topicName: string
     // Editorially curated search-suggestion chips (from the gdoc block).
     // Optional — when omitted, chips come from the topic's OWID vocabulary
-    // terms instead (see `rankSuggestedKeywords`).
+    // terms instead (see `suggestedKeywords`).
     suggested?: string[]
     className?: string
     id?: string
@@ -189,13 +189,11 @@ export const AllChartsBlock = ({
         placeholderData: keepPreviousData,
     })
 
-    // A second, stable "topic only" query (no text/country/producer filters)
-    // used purely to derive the suggested chips below the search box. Basing
-    // the chips on this baseline rather than the live, filtered `hits` above
-    // means they stay put as shortcuts back into the full list instead of
-    // shrinking or reordering as the visitor narrows their search. When no
-    // filters are active yet (the common initial state), this shares its
-    // cache entry — and network request — with the query above.
+    // A second, stable "topic only" query (no text/country/producer filters).
+    // It fixes the order the rows are listed in, whatever the visitor has typed
+    // — see sortHitsByBaselineOrder below. When no filters are active yet (the
+    // common initial state), this shares its cache entry — and network request
+    // — with the query above.
     const baseSearchState = useMemo(
         () => ({
             query: "",
@@ -208,11 +206,9 @@ export const AllChartsBlock = ({
 
     const { data: baseHits, isError: isBaseError } = useQuery({
         queryKey: searchQueryKeys.charts(baseSearchState),
-        // The row texts rankSuggestedKeywords measures its terms against
-        // (`title`, `subtitle`, `datasetProducers` — see getChartHitRowTexts)
-        // are already part of the shared DATA_CATALOG_ATTRIBUTES, so no extra
-        // attributes need requesting here (contrast the old tag-based chips,
-        // which needed an explicit extra `tags` attribute).
+        // Every attribute this needs is part of the shared
+        // DATA_CATALOG_ATTRIBUTES, so nothing extra is requested here
+        // (contrast the old tag-based chips, which needed `tags`).
         queryFn: () => queryAllCharts(liteSearchClient, baseSearchState),
         enabled: Boolean(topicName),
         placeholderData: keepPreviousData,
@@ -229,9 +225,12 @@ export const AllChartsBlock = ({
         staleTime: Infinity,
     })
 
+    // Shown in the order the vocabulary publishes them — see suggestedKeywords.
+    // Independent of the chart list, so the line appears as soon as the
+    // vocabulary does rather than waiting for a second request.
     const vocabularyChips = useMemo(
-        () => rankSuggestedKeywords(vocabulary?.[topicName], baseHits ?? []),
-        [vocabulary, baseHits, topicName]
+        () => suggestedKeywords(vocabulary?.[topicName]),
+        [vocabulary, topicName]
     )
 
     // Searching must narrow this list without ever re-ordering it.
@@ -241,8 +240,8 @@ export const AllChartsBlock = ({
     // block that reads as the rows jumping around unprompted while you type,
     // so the block's *default* order is pinned instead: rows always appear in
     // the relative order they have in `baseHits`, the unfiltered topic-only
-    // result set already fetched above for the suggested chips (so this needs
-    // no extra request). That holds for every query — a country, a keyword, or
+    // result set fetched above (so this needs no extra request). That holds for
+    // every query — a country, a keyword, or
     // a half-typed prefix on the way to either — because a prefix like "chi"
     // is just as much a query as "china" is, and an order that only settles
     // once the text happens to resolve to something recognised is exactly the
