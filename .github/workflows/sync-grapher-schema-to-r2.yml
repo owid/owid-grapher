@@ -66,3 +66,21 @@ jobs:
         run: |
           aws s3 sync packages/@ourworldindata/grapher/src/schema s3://owid-public/schemas \
             --endpoint-url https://${{ secrets.CLOUDFLARE_R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+
+      # The etl repo vendors this schema and its integration tests compare the vendored copy
+      # against the published one, so until etl re-vendors, every etl branch's staging build
+      # fails on a change made here. Telling etl the moment we publish gets its sync PR opened
+      # in minutes; it also polls daily, but that left a Friday publish red until Monday.
+      # Needs a token with contents:write on owid/etl — GITHUB_TOKEN cannot dispatch across
+      # repos. A failure here must not fail the upload that already succeeded.
+      - name: Tell owid/etl the schema was published
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.ETL_SCHEMA_SYNC_TOKEN }}
+        run: |
+          gh api repos/owid/etl/dispatches --input - <<EOF
+          {
+            "event_type": "grapher-schema-published",
+            "client_payload": { "commit": "$GITHUB_SHA" }
+          }
+          EOF
