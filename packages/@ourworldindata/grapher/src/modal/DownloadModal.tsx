@@ -8,8 +8,10 @@ import {
     canWriteToClipboard,
     fetchWithTimeout,
     getOriginAttributionFragments,
+    makeCompleteDatasetCodeExamples,
     makeDownloadCodeExamples,
     getPhraseForProcessingLevel,
+    COMPLETE_DATASET_SOURCES_HELP_TEXT,
     SERVER_SIDE_DOWNLOAD_HELP_TEXT,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
@@ -25,9 +27,11 @@ import {
 } from "../download.js"
 import {
     DownloadApiOptions,
+    makeCompleteDatasetDescription,
     makeFilteredDownloadDescription,
     makeFullDownloadDescription,
     DownloadButton,
+    DownloadButtonLink,
     Checkbox,
     CodeSnippet,
     OverlayHeader,
@@ -41,6 +45,7 @@ import {
     faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons"
 import {
+    DownloadPackage,
     OwidColumnDef,
     OwidOrigin,
     QueryParams,
@@ -84,6 +89,7 @@ export interface DownloadModalManager {
     isPublished?: boolean
     inputColumnSlugs?: string[]
     isServerSideDownloadAvailable?: boolean
+    downloadPackage?: DownloadPackage
     logImageDownloadEvent?: (action: GrapherImageDownloadEvent) => void
     activeDownloadModalTab: DownloadModalTabName
     isOnMapTab?: boolean
@@ -629,6 +635,7 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
 const ApiAndCodeExamplesSection = (props: {
     downloadCtxBase: DataDownloadContextBase
     firstYColDef?: OwidColumnDef
+    downloadPackage?: DownloadPackage
 }) => {
     const {
         csvUrl,
@@ -641,7 +648,33 @@ const ApiAndCodeExamplesSection = (props: {
         downloadCtxBase: props.downloadCtxBase,
         firstYColDef: props.firstYColDef,
     })
-    const codeExamples = makeDownloadCodeExamples(csvUrl, metadataUrl)
+
+    // Same third scope as the download section on the data page: pre-built
+    // files covering every dimension combination, so the options above don't
+    // apply to them. Only reachable where a package exists at all, which
+    // GrapherManager already limits to mdims with their dimensions on show.
+    const { parquetUrl, metadataUrl: packageMetadataUrl } =
+        props.downloadPackage ?? {}
+    const completeDatasetUrls =
+        parquetUrl && packageMetadataUrl
+            ? { dataUrl: parquetUrl, metadataUrl: packageMetadataUrl }
+            : undefined
+    const [showCompleteDataset, setShowCompleteDataset] = React.useState(false)
+    const completeDataset = showCompleteDataset
+        ? completeDatasetUrls
+        : undefined
+
+    const activeDataUrl = completeDataset?.dataUrl ?? csvUrl
+    const activeMetadataUrl = completeDataset?.metadataUrl ?? metadataUrl
+    const dataUrlLabel = completeDataset
+        ? "Data URL (Parquet format)"
+        : "Data URL (CSV format)"
+    const codeExamples = completeDataset
+        ? makeCompleteDatasetCodeExamples(
+              completeDataset.dataUrl,
+              completeDataset.metadataUrl
+          )
+        : makeDownloadCodeExamples(csvUrl, metadataUrl)
 
     return (
         <>
@@ -665,15 +698,15 @@ const ApiAndCodeExamplesSection = (props: {
                 <section className="download-modal__api-urls">
                     <div>
                         <h4 className="grapher_body-2-medium">
-                            Data URL (CSV format)
+                            {dataUrlLabel}
                         </h4>
-                        <CodeSnippet code={csvUrl} />
+                        <CodeSnippet code={activeDataUrl} />
                     </div>
                     <div>
                         <h4 className="grapher_body-2-medium">
                             Metadata URL (JSON format)
                         </h4>
-                        <CodeSnippet code={metadataUrl} />
+                        <CodeSnippet code={activeMetadataUrl} />
                     </div>
                 </section>
                 <DownloadApiOptions
@@ -682,6 +715,12 @@ const ApiAndCodeExamplesSection = (props: {
                     shortColNames={shortColNames}
                     onShortColNamesChange={setShortColNames}
                     firstYColDef={props.firstYColDef}
+                    completeDataset={
+                        completeDatasetUrls && {
+                            checked: showCompleteDataset,
+                            onChange: setShowCompleteDataset,
+                        }
+                    }
                 />
             </div>
             <div className="download-data-section download-modal__data-section">
@@ -706,7 +745,8 @@ const ApiAndCodeExamplesSection = (props: {
 }
 
 export const DownloadModalDataTab = (props: DownloadModalProps) => {
-    const { yColumnsFromDimensionsOrSlugsOrAuto: yColumns } = props.manager
+    const { yColumnsFromDimensionsOrSlugsOrAuto: yColumns, downloadPackage } =
+        props.manager
 
     const { cols: nonRedistributableCols, sourceLinks } =
         getNonRedistributableInfo(props.manager.tableForDownload)
@@ -832,16 +872,25 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
         )
     }
 
-    const downloadHelpText = serverSideDownloadAvailable ? (
-        <p className="grapher_label-2-regular">
-            {SERVER_SIDE_DOWNLOAD_HELP_TEXT}
-        </p>
-    ) : (
-        <p className="grapher_label-2-regular">
-            Download the data used to create this chart. The data is provided in
-            CSV format, which can be opened in Excel, Google Sheets, and other
-            data analysis tools.
-        </p>
+    const downloadHelpText = (
+        <>
+            {serverSideDownloadAvailable ? (
+                <p className="grapher_label-2-regular">
+                    {SERVER_SIDE_DOWNLOAD_HELP_TEXT}
+                </p>
+            ) : (
+                <p className="grapher_label-2-regular">
+                    Download the data used to create this chart. The data is
+                    provided in CSV format, which can be opened in Excel, Google
+                    Sheets, and other data analysis tools.
+                </p>
+            )}
+            {downloadPackage && (
+                <p className="grapher_label-2-regular">
+                    {COMPLETE_DATASET_SOURCES_HELP_TEXT}
+                </p>
+            )}
+        </>
     )
 
     const firstYColDef = yColumns?.[0]?.def
@@ -867,22 +916,11 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                     {downloadHelpText}
                 </div>
                 <div>
+                    {/* Ordered from smallest to biggest download, and worded
+                        to match the data page's own download section. */}
                     <div className="download-modal__download-buttons">
                         <DownloadButton
-                            title="Download full data"
-                            description={fullDataDescription}
-                            icon="full"
-                            trackingNote={`chart_download_full_data${
-                                serverSideDownloadAvailable
-                                    ? "--server"
-                                    : "--client"
-                            }`}
-                            onClick={() =>
-                                onDownloadClick(CsvDownloadType.Full)
-                            }
-                        />
-                        <DownloadButton
-                            title="Download displayed data"
+                            title="Download only selected data"
                             description={filteredDataDescription}
                             icon="selected"
                             trackingNote={`chart_download_filtered_data${
@@ -896,6 +934,34 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                                 )
                             }
                         />
+                        <DownloadButton
+                            title="Download chart data"
+                            description={fullDataDescription}
+                            icon="full"
+                            trackingNote={`chart_download_full_data${
+                                serverSideDownloadAvailable
+                                    ? "--server"
+                                    : "--client"
+                            }`}
+                            onClick={() =>
+                                onDownloadClick(CsvDownloadType.Full)
+                            }
+                        />
+                        {downloadPackage && (
+                            <DownloadButtonLink
+                                title="Download full dataset"
+                                description={makeCompleteDatasetDescription(
+                                    downloadPackage
+                                )}
+                                icon="complete"
+                                trackingNote="chart_download_complete_dataset"
+                                href={downloadPackage.url}
+                                // No `download` attribute: the zip is served
+                                // from R2, and the attribute is ignored
+                                // cross-origin. ETL uploads it with a
+                                // Content-Disposition filename instead.
+                            />
+                        )}
                     </div>
                 </div>
             </div>
@@ -903,6 +969,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                 <ApiAndCodeExamplesSection
                     downloadCtxBase={downloadCtx}
                     firstYColDef={firstYColDef}
+                    downloadPackage={downloadPackage}
                 />
             )}
         </>

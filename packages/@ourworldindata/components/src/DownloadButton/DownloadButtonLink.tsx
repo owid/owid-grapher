@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { DownloadIconFull } from "../icons/DownloadIconFull.js"
 import { DownloadIconSelected } from "../icons/DownloadIconSelected.js"
+import { DownloadIconComplete } from "../icons/DownloadIconComplete.js"
 
 export function DownloadButtonLink({
     className,
@@ -18,7 +19,7 @@ export function DownloadButtonLink({
     className?: string
     title: string
     description: string
-    icon?: "full" | "selected"
+    icon?: "full" | "selected" | "complete"
     trackingNote?: string
     href: string
     download?: string
@@ -35,8 +36,10 @@ export function DownloadButtonLink({
                 <div className="download-button__icon">
                     {icon === "full" ? (
                         <DownloadIconFull />
-                    ) : (
+                    ) : icon === "selected" ? (
                         <DownloadIconSelected />
+                    ) : (
+                        <DownloadIconComplete />
                     )}
                 </div>
             )}

@@ -13,6 +13,12 @@ import { excludeUndefined } from "./Util"
 import dayjs from "./dayjs.js"
 import { parseArchivalDate } from "./archival/archivalDate.js"
 
+// KEEP IN SYNC WITH ETL. The citation/attribution/date helpers in this file
+// are ported to Python in the etl repo
+// (etl/collection/download_package_format.py), which builds the MDIM
+// "complete dataset" download package at publish time. Changing what a
+// citation looks like here means changing it there too.
+
 export function getOriginAttributionFragments(
     origins: OwidOrigin[] | undefined
 ): string[] {

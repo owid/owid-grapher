@@ -191,6 +191,7 @@ import {
     type EntitySelectorEvent,
     type GrapherImageDownloadEvent,
     type GrapherInteractionEvent,
+    type DownloadPackage,
 } from "@ourworldindata/types"
 import {
     latestGrapherConfigSchema,
@@ -3697,6 +3698,12 @@ export class GrapherState
             // We have a baseUrl to send the request to
             !!this.baseUrl
         )
+    }
+
+    // Set by the site for mdim views whose complete-dataset zip should be
+    // offered in the download modal; see GrapherManager.downloadPackage.
+    @computed get downloadPackage(): DownloadPackage | undefined {
+        return this.manager?.downloadPackage
     }
 
     @computed get baseFontSize(): number {

@@ -1,14 +1,19 @@
 import * as _ from "lodash-es"
+import { runInAction } from "mobx"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { unstable_batchedUpdates } from "react-dom"
 import { useSearchParams } from "react-router-dom-v5-compat"
 import * as Sentry from "@sentry/react"
 import { useIsClient } from "usehooks-ts"
+import { Button } from "@ourworldindata/components"
+import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import {
+    DownloadModalTabName,
     Grapher,
+    GrapherManager,
+    GrapherModal,
     GrapherState,
     getCachingInputTableFetcher,
-    GrapherManager,
     loadCatalogData,
     useElementBounds,
 } from "@ourworldindata/grapher"
@@ -33,7 +38,6 @@ import {
     PrimaryTopic,
 } from "@ourworldindata/types"
 import AboutThisData from "../AboutThisData.js"
-import TopicTags from "../TopicTags.js"
 import MetadataSection from "../MetadataSection.js"
 import DownloadSection from "../DownloadSection.js"
 import GrapherImage from "../GrapherImage.js"
@@ -66,11 +70,32 @@ const useTitleFragments = (config: MultiDimDataPageConfig) => {
     )
 }
 
+// Opens the chart's download modal on the Data tab. Desktop only: the package
+// is a zip, which is an awkward thing to receive on a phone, so it doesn't earn
+// prominent placement there. Mobile readers can still reach the same three
+// options through the chart's own Download button.
+//
+// Its only behaviour is opening the modal, so it's hidden without JavaScript,
+// same as the interactive chart below it — the download section further down the
+// page works either way.
+function DownloadTheDataButton({ onClick }: { onClick: () => void }) {
+    return (
+        <Button
+            theme="outline-vermillion"
+            className={HIDE_IF_JS_DISABLED_CLASSNAME}
+            text="Download the data"
+            icon={faDownload}
+            iconPosition="left"
+            onClick={onClick}
+            dataTrackNote="datapage_download_the_data_button"
+        />
+    )
+}
+
 export type MultiDimDataPageContentProps = {
     canonicalUrl: string
     slug: string | null
     config: MultiDimDataPageConfig
-    tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic
     relatedResearchCandidates: DataPageRelatedResearch[]
@@ -102,20 +127,33 @@ export function DataPageContent({
     faqEntries,
     primaryTopic,
     relatedResearchCandidates,
-    tagToSlugMap,
     imageMetadata,
     archiveContext,
     initialViewData,
     initialViewDimensions,
 }: MultiDimDataPageContentProps) {
-    const assetMap =
-        archiveContext?.type === "archive-page"
-            ? archiveContext.assets.runtime
-            : undefined
+    const isOnArchivalPage = archiveContext?.type === "archive-page"
+    const assetMap = isOnArchivalPage
+        ? archiveContext.assets.runtime
+        : undefined
+    // Built and published to R2 by ETL, so there's nothing to compute here --
+    // `url` already points at the finished zip. The dimension controls are
+    // always visible on the data page itself, so unlike the embedded case (see
+    // MultiDim.tsx) it's always safe to offer.
+    //
+    // Except on an archival page: the package lives in ETL's bucket and isn't
+    // copied into the append-only archive, so a snapshot linking it would hand
+    // out data that has since moved on, or 404 once the object is replaced.
+    const downloadPackage = isOnArchivalPage
+        ? undefined
+        : config.config.downloadPackage
     // A non-empty manager is used in the size calculations
     // within grapher, so we have to initialize it early with
     // a truthy value
-    const managerRef = useRef<GrapherManager>({ adminEditPath: "" })
+    const managerRef = useRef<GrapherManager>({
+        adminEditPath: "",
+        downloadPackage,
+    })
     const grapherStateRef = useRef<GrapherState>(
         new GrapherState({
             additionalDataLoaderFn: (catalogKey) =>
@@ -386,8 +424,6 @@ export function DataPageContent({
         }
     }, [bounds])
 
-    const hasTopicTags = !!config.config.topicTags?.length
-
     const relatedResearch = useMemo(
         () =>
             processRelatedResearch(
@@ -424,6 +460,19 @@ export function DataPageContent({
         !!grapherStateRef.current
     )
 
+    // The download section further down the page offers the same three options,
+    // but scrolling there is jarring -- open the modal over the chart instead.
+    const openDownloadModal = useCallback(() => {
+        runInAction(() => {
+            grapherStateRef.current.activeModal = GrapherModal.Download
+            grapherStateRef.current.activeDownloadModalTab =
+                DownloadModalTabName.Data
+        })
+        // The modal is positioned within the chart's frame, so make sure the
+        // chart is in view. A no-op when it already is.
+        grapherFigureRef.current?.scrollIntoView({ block: "nearest" })
+    }, [])
+
     const downloadSection = slug ? (
         <DownloadSection
             slug={slug}
@@ -435,6 +484,7 @@ export function DataPageContent({
             yColumns={yColumns}
             hideRowCounts={!isClient}
             archivedChartInfo={archiveContext}
+            downloadPackage={downloadPackage}
         />
     ) : undefined
 
@@ -461,20 +511,21 @@ export function DataPageContent({
                                 {titleFragments}
                             </div>
                         </div>
-                        {hasTopicTags && tagToSlugMap && (
-                            <TopicTags
-                                className="header__right col-start-10 span-cols-4 col-sm-start-2 span-sm-cols-12"
-                                topicTagsLinks={config.config.topicTags ?? []}
-                                tagToSlugMap={tagToSlugMap}
-                            />
-                        )}
                         <div className="settings-row__wrapper col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-12">
                             <MultiDimSettingsPanel
+                                className="settings-row__panel"
                                 config={config}
                                 settings={displayedSettings}
                                 onChange={handleSettingsChange}
                                 disabled={isLoadingView}
                             />
+                            {downloadPackage && (
+                                <div className="settings-row__actions">
+                                    <DownloadTheDataButton
+                                        onClick={openDownloadModal}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -561,7 +612,6 @@ export function MultiDimDataPageContent({
     faqEntries,
     primaryTopic,
     relatedResearchCandidates,
-    tagToSlugMap,
     imageMetadata,
     archiveContext,
     initialViewData,
@@ -584,7 +634,6 @@ export function MultiDimDataPageContent({
             faqEntries={faqEntries}
             primaryTopic={primaryTopic}
             relatedResearchCandidates={relatedResearchCandidates}
-            tagToSlugMap={tagToSlugMap}
             imageMetadata={imageMetadata}
             archiveContext={archiveContext}
             initialViewData={initialViewData}

@@ -74,8 +74,10 @@ export { hydrateCodeSnippets } from "./CodeSnippet/hydrateCodeSnippets.js"
 export { DataCitation } from "./DataCitation/DataCitation.js"
 export { DownloadButton } from "./DownloadButton/DownloadButton.js"
 export { DownloadButtonLink } from "./DownloadButton/DownloadButtonLink.js"
+export { DownloadIconComplete } from "./icons/DownloadIconComplete.js"
 export { DownloadApiOptions } from "./DownloadApiOptions/DownloadApiOptions.js"
 export {
+    makeCompleteDatasetDescription,
     makeFilteredDownloadDescription,
     makeFullDownloadDescription,
 } from "@ourworldindata/utils"
