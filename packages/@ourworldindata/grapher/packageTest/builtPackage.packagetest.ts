@@ -12,6 +12,7 @@ import * as fs from "node:fs"
 import * as path from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
+import { defaultGrapherConfig } from "../src/schema/defaultGrapherConfig.js"
 
 afterEach(() => {
     vi.unstubAllGlobals()
@@ -23,6 +24,7 @@ const distDir = path.join(pkgDir, "dist")
 const npmBuildPath = path.join(distDir, "grapher.js")
 const standalonePath = path.join(distDir, "grapher.standalone.min.js")
 const cssPath = path.join(distDir, "grapher.css")
+const schemaPath = path.join(distDir, "grapher-schema.json")
 const dtsPath = path.join(distDir, "grapher.d.ts")
 
 const PUBLIC_EXPORTS = [
@@ -43,7 +45,13 @@ function assertHasPublicExports(mod: Record<string, unknown>): void {
 }
 
 beforeAll(() => {
-    for (const file of [npmBuildPath, standalonePath, cssPath, dtsPath]) {
+    for (const file of [
+        npmBuildPath,
+        standalonePath,
+        cssPath,
+        schemaPath,
+        dtsPath,
+    ]) {
         if (!fs.existsSync(file))
             throw new Error(
                 `Missing build output ${path.relative(pkgDir, file)} — run \`yarn build\` in packages/@ourworldindata/grapher first.`
@@ -223,6 +231,16 @@ describe("stylesheet (dist/grapher.css)", () => {
         const css = fs.readFileSync(cssPath, "utf8")
         expect(css.length).toBeGreaterThan(10_000)
         expect(css).toContain(".GrapherComponent")
+    })
+})
+
+describe("JSON schema (dist/grapher-schema.json)", () => {
+    it("matches the schema version used by the package", () => {
+        const schema = JSON.parse(fs.readFileSync(schemaPath, "utf8")) as {
+            $id: string
+        }
+
+        expect(schema.$id).toBe(defaultGrapherConfig.$schema)
     })
 })
 

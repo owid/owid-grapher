@@ -20,6 +20,7 @@
                 "import": "./dist/grapher.js"
             },
             "./grapher.css": "./dist/grapher.css",
+            "./grapher-schema.json": "./dist/grapher-schema.json",
             "./standalone": {
                 "types": "./dist/grapher.d.ts",
                 "import": "./dist/grapher.standalone.min.js"
@@ -44,11 +45,13 @@
         "dist/grapher.standalone.min.js",
         "dist/grapher.standalone.min.js.map",
         "dist/grapher.css",
+        "dist/grapher-schema.json",
         "dist/grapher.d.ts",
         "dist/grapher.d.ts.map"
     ],
     "scripts": {
-        "build": "tsdown",
+        "build": "tsdown && yarn buildSchema",
+        "buildSchema": "tsx scripts/buildLatestGrapherSchema.ts",
         "clean": "rm -rf dist dist-package",
         "startDemoServer": "http-server . -p 8433 -c-1 -o /demo.html",
         "testPackage": "yarn testPackage:pack && yarn testPackage:vitest && yarn testPackage:attw",
@@ -112,10 +115,12 @@
         "topojson-client": "^3.1.0",
         "ts-pattern": "^5.8.0",
         "tsdown": "^0.22.14",
+        "tsx": "^4.23.0",
         "url-join": "^5.0.0",
         "usehooks-ts": "^3.1.1",
         "versor": "^0.2.0",
-        "vitest": "^4.1.10"
+        "vitest": "^4.1.10",
+        "yaml": "^2.8.3"
     },
     "license": "SEE LICENSE IN LICENSE.md"
 }
