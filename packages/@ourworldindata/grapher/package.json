@@ -106,7 +106,7 @@
         "react-aria-components": "^1.20.0",
         "react-dom": "^19.2.4",
         "react-flip-toolkit": "^7.2.4",
-        "remeda": "^2.32.0",
+        "remeda": "^2.42.0",
         "sass": "^1.89.2",
         "tippy.js": "^6.3.7",
         "topojson-client": "^3.1.0",

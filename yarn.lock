@@ -2339,7 +2339,7 @@ __metadata:
     react-aria-components: "npm:^1.20.0"
     react-dom: "npm:^19.2.4"
     react-markdown: "npm:^10.1.0"
-    remeda: "npm:^2.32.0"
+    remeda: "npm:^2.42.0"
     tippy.js: "npm:^6.3.7"
     ts-pattern: "npm:^5.8.0"
     unist-util-visit: "npm:^5.0.0"
@@ -2358,7 +2358,7 @@ __metadata:
     "@types/papaparse": "npm:^5.5.2"
     lodash-es: "npm:^4.18.1"
     papaparse: "npm:^5.5.3"
-    remeda: "npm:^2.32.0"
+    remeda: "npm:^2.42.0"
     vitest: "npm:^4.1.10"
   languageName: unknown
   linkType: soft
@@ -2385,7 +2385,7 @@ __metadata:
     mobx-react: "npm:^7.6.0"
     react: "npm:^19.2.4"
     react-dom: "npm:^19.2.4"
-    remeda: "npm:^2.32.0"
+    remeda: "npm:^2.42.0"
     ts-pattern: "npm:^5.8.0"
     vitest: "npm:^4.1.10"
   languageName: unknown
@@ -2439,7 +2439,7 @@ __metadata:
     react-aria-components: "npm:^1.20.0"
     react-dom: "npm:^19.2.4"
     react-flip-toolkit: "npm:^7.2.4"
-    remeda: "npm:^2.32.0"
+    remeda: "npm:^2.42.0"
     sass: "npm:^1.89.2"
     tippy.js: "npm:^6.3.7"
     topojson-client: "npm:^3.1.0"
@@ -2491,7 +2491,7 @@ __metadata:
     lodash-es: "npm:^4.18.1"
     mobx: "npm:^6.15.4"
     react: "npm:^19.2.4"
-    remeda: "npm:^2.32.0"
+    remeda: "npm:^2.42.0"
     striptags: "npm:^3.2.0"
     timezone-mock: "npm:^1.0.18"
     ts-pattern: "npm:^5.8.0"
@@ -9267,7 +9267,7 @@ __metadata:
     react-router-dom-v5-compat: "npm:^6.30.0"
     react-tag-autocomplete: "npm:^7.5.0"
     react-zoom-pan-pinch: "npm:^3.7.0"
-    remeda: "npm:^2.32.0"
+    remeda: "npm:^2.42.0"
     rolldown: "npm:^1.2.1"
     rxjs: "npm:^7.8.2"
     s-expression: "npm:^3.1.1"
@@ -11621,7 +11621,7 @@ __metadata:
     mobx: "npm:^6.15.4"
     react: "npm:^19.2.4"
     react-dom: "npm:^19.2.4"
-    remeda: "npm:^2.32.0"
+    remeda: "npm:^2.42.0"
     resvg-wasm: "patch:resvg-wasm@npm%3A0.5.0#~/.yarn/patches/resvg-wasm-npm-0.5.0-50778c75bc.patch"
     stripe: "npm:^14.20.0"
     ts-pattern: "npm:^5.8.0"
@@ -12907,12 +12907,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remeda@npm:^2.32.0":
-  version: 2.32.0
-  resolution: "remeda@npm:2.32.0"
-  dependencies:
-    type-fest: "npm:^4.41.0"
-  checksum: 10/a779ff89be1607b94d0d1817fabeba814c78f5fe0792a47d7ef0e20c84f99a7a9d5aa6e6c1d14bdbdf7c94a5825b3c36eebf996d775be936cafd44a869ee654a
+"remeda@npm:^2.42.0":
+  version: 2.42.0
+  resolution: "remeda@npm:2.42.0"
+  checksum: 10/39a4f67111f984467f1106bff959e6c420c22ca559d6392a81ccd7906fdfeb8ca968fe7d8b5d00936196f95f4b3d73187d759f30e42a972445168ecee719804b
   languageName: node
   linkType: hard
 
@@ -14179,13 +14177,6 @@ __metadata:
   dependencies:
     prelude-ls: "npm:^1.2.1"
   checksum: 10/14687776479d048e3c1dbfe58a2409e00367810d6960c0f619b33793271ff2a27f81b52461f14a162f1f89a9b1d8da1b237fc7c99b0e1fdcec28ec63a86b1fec
-  languageName: node
-  linkType: hard
-
-"type-fest@npm:^4.41.0":
-  version: 4.41.0
-  resolution: "type-fest@npm:4.41.0"
-  checksum: 10/617ace794ac0893c2986912d28b3065ad1afb484cad59297835a0807dc63286c39e8675d65f7de08fafa339afcb8fe06a36e9a188b9857756ae1e92ee8bda212
   languageName: node
   linkType: hard
 

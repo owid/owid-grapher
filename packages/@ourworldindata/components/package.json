@@ -24,7 +24,7 @@
         "react-aria-components": "^1.20.0",
         "react-dom": "^19.2.4",
         "react-markdown": "^10.1.0",
-        "remeda": "^2.32.0",
+        "remeda": "^2.42.0",
         "tippy.js": "^6.3.7",
         "ts-pattern": "^5.8.0",
         "unist-util-visit": "^5.0.0",
