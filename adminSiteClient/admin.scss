@@ -14,20 +14,6 @@
 @import "bootstrap/scss/reboot";
 @import "bootstrap/scss/type";
 @import "bootstrap/scss/code";
-// Layout:
-@import "bootstrap/scss/grid";
-@import "bootstrap/scss/tables";
-// Form controls. `Forms.tsx` is on antd now, and so is the chart editor, but
-// raw `form-control` / `form-check` / `form-group` markup is still hand-written
-// on the pages Phase 5 covers — ExplorerCreatePage, UsersIndexPage, GdocsAdd,
-// VariableEditPage, CalloutFunctionsPage — and `admin.scss` also `@extend`s
-// `.form-control`:
-@import "bootstrap/scss/forms";
-// Chrome and navigation:
-@import "bootstrap/scss/breadcrumb";
-@import "bootstrap/scss/pagination";
-// Components:
-@import "bootstrap/scss/badge";
 // Helpers:
 @import "bootstrap/scss/utilities";
 @import "bootstrap/scss/print";
@@ -43,7 +29,14 @@
 //   buttons + button-group (every button in the admin is an antd `Button`),
 //   alert (every alert in the admin is an antd `Alert`),
 //   input-group (antd `Space.Compact` / `Input`'s `addonBefore` instead),
-//   list-group (`.editable-list` in `Forms.scss` instead).
+//   list-group (`.editable-list` in `Forms.scss` instead),
+//   forms (`Forms.tsx` and the pages around it are on antd primitives; the
+//   field chrome is `.form-field*` in `Forms.scss`),
+//   tables (index views are either an antd `Table` or `.admin-table`, see
+//   `AdminTable.scss`),
+//   grid (antd `Row`/`Col`, or a flex rule in the component's own stylesheet),
+//   badge (antd `Tag`), breadcrumb (antd `Breadcrumb`),
+//   pagination (antd `Pagination`).
 
 // Our own copy of the parts of Bootstrap's reboot the admin depends on, so that
 // removing `bootstrap/scss/reboot` above stays a small, deliberate step rather
