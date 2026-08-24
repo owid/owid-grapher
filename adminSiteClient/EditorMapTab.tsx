@@ -360,7 +360,6 @@ export class EditorMapTab<Editor extends AbstractChartEditor> extends Component<
                         <EditorColorScaleSection
                             scale={colorScale}
                             chartType={GRAPHER_MAP_TYPE}
-                            showLineChartColors={false}
                             features={{
                                 legendDescription: false,
                             }}

@@ -65,14 +65,13 @@ export {
 } from "./color/ColorConstants"
 export { darkenColorForText } from "./color/ColorUtils"
 export {
-    getColorNameOwidDistinctAndSemanticPalettes,
-    getColorNameOwidDistinctLinesAndSemanticPalettes,
     OwidDistinctColors,
     OwidMapColors,
     OwidDistinctLinesColors,
     EnergyColors,
     ContinentColors,
     MapContinentColors,
+    DarkerHexByBaseHex,
 } from "./color/CustomSchemes"
 export { ColorSchemes } from "./color/ColorSchemes"
 export { DimensionSlot } from "./chart/DimensionSlot"
