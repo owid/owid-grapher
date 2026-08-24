@@ -1,0 +1,28 @@
+// The landing page of the SVG tester, which lists the available suites.
+
+.SvgTesterIndexPage__intro {
+    max-width: 720px;
+    margin-bottom: 16px;
+    color: $gray-70;
+}
+
+.SvgTesterIndexPage__status {
+    display: inline-flex;
+    gap: 8px;
+}
+
+.SvgTesterIndexPage__charts {
+    align-items: center;
+    display: inline-flex;
+    gap: 8px;
+}
+
+.SvgTesterIndexPage__progress {
+    width: 56px;
+}
+
+.SvgTesterIndexPage__refreshed {
+    margin-top: 8px;
+    font-size: 13px;
+    color: $gray-70;
+}

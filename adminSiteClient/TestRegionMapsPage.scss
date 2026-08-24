@@ -1,0 +1,22 @@
+// The grid of region maps on the `/admin/test/regionmaps` page.
+
+.TestRegionMapsPage h2 {
+    text-align: center;
+    margin: 32px 0 24px;
+}
+
+.TestRegionMapsPage__row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.TestRegionMapsPage figure {
+    flex: 1 1 450px;
+    max-width: 850px;
+    height: 600px;
+    margin: 0;
+    min-width: 0;
+}

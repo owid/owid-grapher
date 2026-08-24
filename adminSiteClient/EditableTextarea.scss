@@ -1,0 +1,13 @@
+// The save/cancel action row under `EditableTextarea`'s textarea.
+
+.EditableTextarea__actions {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.EditableTextarea__save-action {
+    margin-right: 8px;
+}

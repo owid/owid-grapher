@@ -1,0 +1,17 @@
+// The tag index page's header row and its "add tag" modal.
+
+.TagsIndexPage__header {
+    display: flex;
+    justify-content: space-between;
+    p {
+        line-height: 32px;
+        margin: 0;
+    }
+}
+
+.TagsIndexPage__add-tag-modal {
+    input {
+        margin-bottom: 1rem;
+        display: block;
+    }
+}

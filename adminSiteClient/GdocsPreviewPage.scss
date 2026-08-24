@@ -1,0 +1,40 @@
+// The gdoc preview page: the sticky admin bar above the preview iframe, and
+// the iframe itself.
+
+.GdocsEditPage {
+    .anticon svg {
+        vertical-align: unset; // undo reboot.css
+    }
+
+    .ant-tag svg.svg-inline--fa {
+        margin-right: 0.5em;
+    }
+
+    .admin-bar {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        box-shadow:
+            rgba(0, 0, 0, 0.12) 0px 1px 3px,
+            rgba(0, 0, 0, 0.24) 0px 1px 2px;
+        background: #fff;
+        &.draft {
+            @include draft-background;
+        }
+    }
+
+    .iframe-container {
+        height: calc(100% - 65px);
+        display: flex;
+        justify-content: center;
+        background: #f2f2f2;
+    }
+
+    .GdocsEditPage__error-container {
+        padding: 32px;
+
+        pre {
+            white-space: pre-line;
+        }
+    }
+}

@@ -1,0 +1,15 @@
+// The data insight index page's card grid.
+
+.DataInsightIndexPage {
+    .ant-card-body {
+        padding: 8px;
+
+        a {
+            color: rgba(0, 0, 0, 0.88);
+        }
+    }
+
+    img.border {
+        border: 1px solid rgb(240, 240, 240) !important;
+    }
+}

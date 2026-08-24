@@ -168,9 +168,10 @@ export class AdminApp extends React.Component<{
             <ConfigProvider theme={adminTheme}>
                 {/* `component={false}` keeps `<App>` from wrapping
                 everything in a `div.ant-app`, which would impose antd's
-                font, text colour and line height on the Bootstrap half of
-                the admin and break the `height: 100%` chain from `#app`
-                down to `.AdminApp`. We only want the context it provides.
+                font, text colour and line height on top of the admin's own
+                global layer (`reboot.scss`/`typography.scss`) and break the
+                `height: 100%` chain from `#app` down to `.AdminApp`. We only
+                want the context it provides.
                 antd logs a dev-only warning about `component={false}` with
                 css variables enabled; it's harmless here — every antd
                 component carries its own css-var scope class, so the
