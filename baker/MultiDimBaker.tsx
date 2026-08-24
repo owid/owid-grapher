@@ -171,7 +171,7 @@ export async function getMultiDimPageCompanion(
         config.views.map((view) => view.fullConfigId)
     )
     const variableMetadataById = await getVariableTitleMetadataByIds(knex, [
-        ...getRelevantVariableIds(config),
+        ...getRelevantIndicatorIds(config),
     ])
 
     const views: MultiDimPageCompanion["views"] = {}
