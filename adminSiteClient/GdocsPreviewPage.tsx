@@ -9,6 +9,7 @@ import {
     GdocAboutPageSettings,
     GdocAnnouncementSettings,
     GdocProfileSettings,
+    GdocFeaturedVizSettings,
 } from "./GdocsSettingsForms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
@@ -537,6 +538,22 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             },
                             (gdoc) => (
                                 <GdocAboutPageSettings
+                                    gdoc={gdoc}
+                                    setCurrentGdoc={(updatedGdoc) =>
+                                        setCurrentGdoc(() => updatedGdoc)
+                                    }
+                                    errors={errors}
+                                />
+                            )
+                        )
+                        .with(
+                            {
+                                content: {
+                                    type: OwidGdocType.FeaturedViz,
+                                },
+                            },
+                            (gdoc) => (
+                                <GdocFeaturedVizSettings
                                     gdoc={gdoc}
                                     setCurrentGdoc={(updatedGdoc) =>
                                         setCurrentGdoc(() => updatedGdoc)

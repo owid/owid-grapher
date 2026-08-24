@@ -9,6 +9,7 @@ import {
     faBuildingNgo,
     faUserPen,
     faBullhorn,
+    faChartSimple,
     faFileLines,
     faTriangleExclamation,
 } from "@fortawesome/free-solid-svg-icons"
@@ -36,6 +37,7 @@ const iconGdocTypeMap = {
     [OwidGdocType.Author]: <FontAwesomeIcon icon={faUserPen} />,
     [OwidGdocType.Announcement]: <FontAwesomeIcon icon={faBullhorn} />,
     [OwidGdocType.Profile]: <FontAwesomeIcon icon={faFileLines} />,
+    [OwidGdocType.FeaturedViz]: <FontAwesomeIcon icon={faChartSimple} />,
 }
 
 function canTagGdoc(gdoc: OwidGdocIndexItem): boolean {

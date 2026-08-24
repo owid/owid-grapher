@@ -8,6 +8,7 @@ import {
     OwidGdocAuthorInterface,
     OwidGdocAboutInterface,
     OwidGdocAnnouncementInterface,
+    OwidGdocFeaturedVizInterface,
     OwidGdocProfileInterface,
 } from "@ourworldindata/utils"
 import { Select, Alert } from "antd"
@@ -251,6 +252,51 @@ export const GdocAnnouncementSettings = ({
                 <h3 className="form-section-heading">Announcement settings</h3>
                 <GdocsSettingsContentField
                     property="kicker"
+                    gdoc={gdoc}
+                    errors={errors}
+                />
+            </div>
+        </form>
+    )
+}
+
+export const GdocFeaturedVizSettings = ({
+    gdoc,
+    setCurrentGdoc,
+    errors,
+}: {
+    gdoc: OwidGdocFeaturedVizInterface
+    setCurrentGdoc: (gdoc: OwidGdocFeaturedVizInterface) => void
+    errors?: OwidGdocErrorMessage[]
+}) => {
+    if (!gdoc || !errors) return null
+
+    return (
+        <form className="GdocsSettingsForm">
+            <GdocCommonErrors
+                errors={errors}
+                errorsToFilter={["excerpt", "featured-image"]}
+            />
+            <GdocCommonSettings
+                gdoc={gdoc}
+                setCurrentGdoc={setCurrentGdoc}
+                errors={errors}
+                subdirectory="featured-viz/"
+            />
+            <div className="form-group">
+                <h3 className="form-section-heading">Featured viz settings</h3>
+                <GdocsSettingsContentField
+                    property="subtitle"
+                    gdoc={gdoc}
+                    errors={errors}
+                />
+                <GdocsSettingsContentField
+                    property="excerpt"
+                    gdoc={gdoc}
+                    errors={errors}
+                />
+                <GdocsSettingsContentField
+                    property="featured-image"
                     gdoc={gdoc}
                     errors={errors}
                 />
