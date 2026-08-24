@@ -1,17 +1,6 @@
-import { useSyncExternalStore } from "react"
+import { useMediaQuery } from "usehooks-ts"
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)"
-
-function subscribe(callback: () => void): () => void {
-    if (typeof window === "undefined") return (): void => undefined
-
-    const mediaQueryList = window.matchMedia(REDUCED_MOTION_QUERY)
-    mediaQueryList.addEventListener("change", callback)
-
-    return (): void => {
-        mediaQueryList.removeEventListener("change", callback)
-    }
-}
 
 export function getPrefersReducedMotion(): boolean {
     return (
@@ -20,6 +9,4 @@ export function getPrefersReducedMotion(): boolean {
     )
 }
 
-export function usePrefersReducedMotion(): boolean {
-    return useSyncExternalStore(subscribe, getPrefersReducedMotion, () => false)
-}
+export const usePrefersReducedMotion = () => useMediaQuery(REDUCED_MOTION_QUERY)

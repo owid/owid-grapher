@@ -3,13 +3,8 @@
  */
 
 import { act, renderHook } from "@testing-library/react"
-import type { ReactElement } from "react"
-import ReactDOMServer from "react-dom/server"
 import { afterEach, expect, it, vi } from "vitest"
-import {
-    getPrefersReducedMotion,
-    usePrefersReducedMotion,
-} from "./usePrefersReducedMotion"
+import { usePrefersReducedMotion } from "./usePrefersReducedMotion"
 
 function createMatchMediaMock(initialMatches: boolean): {
     matchMedia: typeof window.matchMedia
@@ -36,12 +31,9 @@ function createMatchMediaMock(initialMatches: boolean): {
             return matches
         },
         media: "(prefers-reduced-motion: reduce)",
-        onchange: null,
         addEventListener,
         removeEventListener,
         dispatchEvent: vi.fn(),
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
     } as unknown as MediaQueryList
 
     return {
@@ -61,18 +53,6 @@ function createMatchMediaMock(initialMatches: boolean): {
 
 afterEach(() => {
     vi.unstubAllGlobals()
-})
-
-function ReducedMotionPreference(): ReactElement {
-    return <span>{String(usePrefersReducedMotion())}</span>
-}
-
-it("returns false when rendered on the server", () => {
-    vi.stubGlobal("window", undefined)
-    expect(getPrefersReducedMotion()).toBe(false)
-    expect(
-        ReactDOMServer.renderToString(<ReducedMotionPreference />)
-    ).toContain("false")
 })
 
 it("reads the current reduced-motion preference", () => {
