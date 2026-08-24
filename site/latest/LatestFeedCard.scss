@@ -1,3 +1,10 @@
+// Cap on the figure in the expanded (single-column) card. A little wider than
+// the compact card's 3-of-8-column thumbnail (~290px at the 1280px grid max),
+// and matching the site's existing 350px "thumbnail" image size, so the figure
+// still reads as supporting evidence next to the full body text rather than as
+// a hero image.
+$expanded-figure-max-width: 350px;
+
 .latest-feed-card {
     background-color: $blue-20;
     color: $blue-90;
@@ -51,13 +58,22 @@
     }
 }
 
-// Filtered to this card's own type: show the whole body, ending on its {.cta}.
+// Filtered to this card's own type: drop to a single column and show the whole
+// body, ending on its {.cta}.
 .latest-feed-card--expanded .latest-feed-card__content {
     max-height: none;
 
     &:before {
         display: none;
     }
+}
+
+// The figure sits inside the text column here (title, authors, figure, body),
+// so it has no grid span to size it — cap it instead, keeping its aspect ratio
+// and its left alignment with the text.
+.latest-feed-card--expanded .latest-feed-card__image {
+    max-width: $expanded-figure-max-width;
+    margin-bottom: $vertical-spacing;
 }
 
 .latest-feed-card__title {
