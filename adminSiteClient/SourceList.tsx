@@ -1,5 +1,5 @@
 import { OwidSource } from "@ourworldindata/utils"
-import { Alert } from "antd"
+import { Alert, Col, Row } from "antd"
 import { BindString } from "./Forms.js"
 
 const MAX_SOURCES = 10
@@ -20,8 +20,8 @@ export function SourceList({ sources }: { sources: OwidSource[] }) {
             )}
             {limitedSources.map((source, index) => (
                 <div key={index}>
-                    <div className="row">
-                        <div className="col">
+                    <Row gutter={30}>
+                        <Col flex="1 1 0">
                             <BindString
                                 field="name"
                                 store={source}
@@ -62,9 +62,9 @@ export function SourceList({ sources }: { sources: OwidSource[] }) {
                                 disabled
                                 // helpText="Date when this data was obtained by us. Date format should always be YYYY-MM-DD."
                             />
-                        </div>
+                        </Col>
 
-                        <div className="col">
+                        <Col flex="1 1 0">
                             <BindString
                                 field="additionalInfo"
                                 store={source}
@@ -75,8 +75,8 @@ export function SourceList({ sources }: { sources: OwidSource[] }) {
                                 // helpText="Describe the dataset and the methodology used in its construction. This can be as long and detailed as you like."
                                 rows={15}
                             />
-                        </div>
-                    </div>
+                        </Col>
+                    </Row>
                     <hr />
                 </div>
             ))}

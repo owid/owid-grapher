@@ -201,7 +201,9 @@ export class VariableSelector<
                 )}
                 {description ? `${description} — ` : null}
                 {name}
-                {isArchived && <span className="badge">Archived</span>}
+                {isArchived && (
+                    <span className="VariableSelector__badge">Archived</span>
+                )}
             </span>
         )
     }

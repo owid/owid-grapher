@@ -104,7 +104,7 @@ import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { Operation } from "../adminShared/SqlFilterSExpression.js"
 import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.js"
 import { SortableList } from "./SortableList.js"
-import { Button, Tabs as AntdTabs } from "antd"
+import { Button, Pagination, Tabs as AntdTabs } from "antd"
 
 type Disposer = () => void
 
@@ -1303,9 +1303,11 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         const { editControl, hasUncommitedRichEditorChanges } = this
         return (
             <section>
-                <div className="container">{editControl}</div>
+                <div className="VariablesAnnotationPage__panel">
+                    {editControl}
+                </div>
                 {hasUncommitedRichEditorChanges ? (
-                    <div className="container rich-editor-confirm-buttons">
+                    <div className="VariablesAnnotationPage__panel rich-editor-confirm-buttons">
                         <Button
                             type="primary"
                             onClick={() => this.commitRichEditorChanges()}
@@ -1328,62 +1330,26 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     }
 
     @action.bound
-    pageToPreviousPage(): void {
-        if (
-            (this.numTotalRows ?? 0) > PAGEING_SIZE &&
-            this.desiredPagingOffset >= PAGEING_SIZE
-        )
-            this.desiredPagingOffset -= PAGEING_SIZE
-    }
-
-    @action.bound
-    pageToNextPage(): void {
-        if (
-            (this.numTotalRows ?? 0) > PAGEING_SIZE &&
-            this.desiredPagingOffset + PAGEING_SIZE < (this.numTotalRows ?? 0)
-        ) {
-            this.desiredPagingOffset += PAGEING_SIZE
-        }
+    pageTo(page: number): void {
+        this.desiredPagingOffset = (page - 1) * PAGEING_SIZE
     }
 
     renderPagination(): React.ReactElement {
         const { numTotalRows, currentPagingOffset } = this
-        const currentStartLabel = currentPagingOffset + 1
-        const currentEndLabel = Math.min(
-            currentPagingOffset + PAGEING_SIZE,
-            numTotalRows ?? 0
-        )
 
         return (
             <nav aria-label="Indicator annotation pagination controls">
-                <ul className="pagination">
-                    <li className="page-item">
-                        <a
-                            className="page-link"
-                            href="#"
-                            aria-label="Previous"
-                            onClick={this.pageToPreviousPage}
-                        >
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-                    <li className="page-item">
-                        <a className="page-link">
-                            {currentStartLabel} to {currentEndLabel} of{" "}
-                            {numTotalRows}
-                        </a>
-                    </li>
-                    <li className="page-item">
-                        <a
-                            className="page-link"
-                            href="#"
-                            aria-label="Next"
-                            onClick={this.pageToNextPage}
-                        >
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                </ul>
+                <Pagination
+                    simple
+                    current={Math.floor(currentPagingOffset / PAGEING_SIZE) + 1}
+                    pageSize={PAGEING_SIZE}
+                    total={numTotalRows ?? 0}
+                    onChange={this.pageTo}
+                    showSizeChanger={false}
+                    showTotal={(total, [from, to]) =>
+                        `${from} to ${to} of ${total}`
+                    }
+                />
             </nav>
         )
     }
@@ -1392,7 +1358,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         const { filterPanelFields, filterState } = this
         return (
             <section>
-                <div className="container">
+                <div className="VariablesAnnotationPage__panel">
                     <h3>Row filters</h3>
                     {this.renderPagination()}
                     <label>Query builder</label>
@@ -1542,7 +1508,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
         return (
             <section className="column-section">
-                <div className="container">
+                <div className="VariablesAnnotationPage__panel">
                     <h3>Columns</h3>
                     <SelectField
                         label="Column set"

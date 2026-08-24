@@ -41,7 +41,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import {
     Button,
+    Col,
     Divider,
+    Row,
     Space,
     Table,
     TableColumnsType,
@@ -627,8 +629,8 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                                 Metadata is non-editable and can be only changed
                                 in ETL.
                             </p>
-                            <div className="row">
-                                <div className="col">
+                            <Row gutter={30}>
+                                <Col flex="1 1 0">
                                     <BindString
                                         field="name"
                                         store={newDataset}
@@ -666,8 +668,8 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                                             disabled
                                         />
                                     </FieldsRow>
-                                </div>
-                                <div className="col">
+                                </Col>
+                                <Col flex="1 1 0">
                                     <BindString
                                         label="Number of days between OWID updates"
                                         field="updatePeriodDays"
@@ -683,8 +685,8 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                                         textarea
                                         disabled
                                     />
-                                </div>
-                            </div>
+                                </Col>
+                            </Row>
                             <Button
                                 color="green"
                                 variant="solid"

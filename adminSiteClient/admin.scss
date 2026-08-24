@@ -92,6 +92,8 @@
 @import "./GdocsAdd.scss";
 @import "./GdocsSettingsForms.scss";
 @import "./GdocsSettingsContentField.scss";
+@import "./GrapherConfigGridEditor.scss";
+@import "./VariableEditPage.scss";
 @import "./GdocsIndexPage.scss";
 @import "./FeaturedMetricsPage.scss";
 @import "./FilesIndexPage.scss";
@@ -162,86 +164,6 @@ button {
     }
 }
 
-.VariablesAnnotationPage {
-    display: flex;
-    flex-grow: 1;
-
-    > .sidebar {
-        min-width: 500px;
-        width: 500px;
-        min-height: 100%;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        > .sidebar-content {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: stretch;
-            overflow-y: auto;
-            height: 100%;
-            > .preview {
-                flex: 0 0 auto;
-                // min-height: 500px;
-                border-top: 1px solid lightgray;
-                padding-top: 5px;
-            }
-            > section {
-                flex: 1 0 200px;
-            }
-        }
-    }
-
-    > .editor-view {
-        width: 100%;
-    }
-
-    .column-list-item {
-        padding: 3px;
-        border: lightgray 1px solid;
-        border-radius: 4px;
-
-        button {
-            margin-right: 0.5rem;
-        }
-    }
-
-    .column-list-item + .column-list-item {
-        margin-top: 4px;
-    }
-
-    .column-section {
-        overflow-y: auto;
-    }
-
-    .queryBuilder {
-        margin: 8px 0;
-    }
-
-    .rich-editor-confirm-buttons {
-        margin-top: 0.5rem;
-
-        button {
-            margin-right: 0.5rem;
-        }
-    }
-}
-
-// The bulk editor's sidebar uses an antd `Tabs` as a tab bar only — its panes
-// are rendered as siblings, below, so that `.sidebar-content`'s flex sizing
-// still reaches them. Hide the empty content area antd renders anyway.
-.VariablesAnnotationPage__tabs {
-    padding: 0.5rem 0.5rem 0;
-
-    > .ant-tabs-nav {
-        margin-bottom: 0;
-    }
-
-    > .ant-tabs-content-holder {
-        display: none;
-    }
-}
-
 /* Reusable utility classes */
 
 .draggable {
@@ -296,17 +218,6 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     }
 }
 
-.VariableEditPage {
-    figure {
-        width: 100%;
-        height: 500px;
-    }
-
-    .partial-grapher-configs .FieldsRow {
-        align-items: flex-start;
-    }
-}
-
 .EditableTextarea__actions {
     display: flex;
     flex-direction: row-reverse;
@@ -344,53 +255,6 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     height: 600px;
     margin: 0;
     min-width: 0;
-}
-
-.TestEmbedsPage {
-    figure,
-    iframe {
-        border: 0;
-        width: 914px;
-        height: 400px;
-    }
-
-    .row {
-        padding: 10px;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-    }
-
-    h3 {
-        width: 50%;
-        text-align: center;
-        margin: 0;
-    }
-
-    nav.pagination {
-        width: 100%;
-        text-align: center;
-    }
-}
-
-.VariableEditRow {
-    border-bottom: 1px solid #eee;
-    padding-bottom: 1em;
-    margin-bottom: 1em;
-
-    figure {
-        width: 100%;
-        height: 500px;
-    }
-}
-
-// to override the default annoying blue border from bootstrap on file upload
-.custom-file-input:focus ~ .custom-file-control {
-    box-shadow:
-        0 0 0 0.075rem #fff,
-        0 0 0 0.2rem #fff;
 }
 
 .TagBadge {
