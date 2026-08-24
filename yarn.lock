@@ -6747,16 +6747,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bootstrap@npm:^4.6.1":
-  version: 4.6.1
-  resolution: "bootstrap@npm:4.6.1"
-  peerDependencies:
-    jquery: 1.9.1 - 3
-    popper.js: ^1.16.1
-  checksum: 10/3930f7309a753c85942dc0d71745d82a23c6181ed8049eb414bb3437e87f75069f4ef70a3e5f2ee92a62de9080e09c3dea22ee96119d73ee32b17cdecc482533
-  languageName: node
-  linkType: hard
-
 "bowser@npm:^2.11.0":
   version: 2.11.0
   resolution: "bowser@npm:2.11.0"
@@ -9251,7 +9241,6 @@ __metadata:
     algoliasearch: "npm:^5.53.0"
     antd: "npm:^6.4.3"
     archieml: "npm:^0.5.0"
-    bootstrap: "npm:^4.6.1"
     bundlemon: "npm:^3.1.0"
     cheerio: "npm:^1.2.0"
     chokidar-cli: "npm:^3.0.0"

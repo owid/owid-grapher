@@ -1,47 +1,12 @@
 /* Chart editor styling */
 
 @import "../public/fonts.css";
-// Bootstrap 4, imported module by module rather than as the full
-// `bootstrap/scss/bootstrap` build, so that individual modules can be dropped
-// as the admin migrates to antd. Modules that no admin markup uses are left
-// out; see the commented list at the bottom of this block.
-//
-// Required infrastructure (no output of its own):
-@import "bootstrap/scss/functions";
-@import "bootstrap/scss/variables";
-@import "bootstrap/scss/mixins";
-// Global element styling the whole admin sits on:
-@import "bootstrap/scss/reboot";
-@import "bootstrap/scss/type";
-@import "bootstrap/scss/code";
-// Helpers:
-@import "bootstrap/scss/utilities";
-@import "bootstrap/scss/print";
-//
-// Deliberately not imported, because nothing in the admin uses them:
-//   root (only defines `--blue`-style custom properties, never read via var()),
-//   images, transitions, dropdown, custom-forms, card, jumbotron, progress,
-//   media, close, toasts, tooltip, popover, carousel, spinners,
-//   modal (`Forms.tsx`'s `Modal` is antd's; the `.modal-header`/`.modal-body`/
-//   `.modal-footer` markup its consumers pass in is styled in `Forms.scss`),
-//   navbar (the admin chrome is an antd `Layout` — see `AdminLayout.tsx`),
-//   nav (every tab strip is an antd `Tabs`),
-//   buttons + button-group (every button in the admin is an antd `Button`),
-//   alert (every alert in the admin is an antd `Alert`),
-//   input-group (antd `Space.Compact` / `Input`'s `addonBefore` instead),
-//   list-group (`.editable-list` in `Forms.scss` instead),
-//   forms (`Forms.tsx` and the pages around it are on antd primitives; the
-//   field chrome is `.form-field*` in `Forms.scss`),
-//   tables (index views are either an antd `Table` or `.admin-table`, see
-//   `AdminTable.scss`),
-//   grid (antd `Row`/`Col`, or a flex rule in the component's own stylesheet),
-//   badge (antd `Tag`), breadcrumb (antd `Breadcrumb`),
-//   pagination (antd `Pagination`).
 
-// Our own copies of the parts of Bootstrap's reboot, typography and utilities
-// the admin depends on, so that removing the imports above stays a small,
-// deliberate step rather than a cliff. Inert for now: every rule here
-// duplicates, with the same value, one Bootstrap just emitted.
+// The admin is on antd (see `AdminApp.tsx`'s `ConfigProvider`); Bootstrap is
+// gone. antd 6 styles only its own components, so these three files are what
+// provides the global layer Bootstrap used to: element normalisation, the
+// typography the admin renders, and the handful of Bootstrap utility class
+// names still in the markup. See each file's header for what it covers.
 @import "./reboot";
 @import "./typography";
 @import "./utilities-shim";
