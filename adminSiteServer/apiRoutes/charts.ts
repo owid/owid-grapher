@@ -1035,60 +1035,22 @@ async function insertChartRevision(
 }
 
 /**
- * Inserts or updates the chart's ETL-authored grapher config.
+ * Inserts or updates a chart's ETL-authored grapher config, addressed by the
+ * chart's config UUID (`charts.configId`) — the chart's stable identity — and
+ * with upsert semantics: if no chart with the given config UUID exists yet, a
+ * minimal draft chart is created that carries the caller-supplied UUID as its
+ * identity, and the ETL config layer is attached to it.
  *
- * The chart's ETL-authored config lives in its own `chart_configs` row,
- * reached via `charts.patchConfigIdETL`. It's a layer between the indicator's
- * config (`variables.patchConfigIdETL`) and the chart's admin-authored patch
+ * The ETL-authored config lives in its own `chart_configs` row, reached via
+ * `charts.patchConfigIdETL`. It's a layer between the indicator's config
+ * (`variables.patchConfigIdETL`) and the chart's admin-authored patch
  * (`charts.patchConfigId`). ETL writes only to its own row; admin writes only
  * to the patch row. The rendered config (`charts.configId`) is
  * `merge(indicator config, etlConfig, patch)`.
  *
- * On each call we also re-diff the existing patch against the new parent
- * stack: redundant patch entries are stripped so future ETL changes to those
- * fields propagate (this matters especially for `dimensions`, which the
- * bootstrap creation flow writes into patch and which would otherwise block
- * future indicator re-versioning).
- *
- * Also bumps `version`, refreshes `chart_dimensions`, saves to R2 (UUID +
- * slug if published), records a chart_revisions entry, and triggers a static
- * build if the chart is published — same housekeeping as `saveGrapher`.
- */
-export async function putChartsChartIdEtlConfig(
-    req: Request,
-    res: HandlerResponse,
-    trx: db.KnexReadWriteTransaction
-) {
-    const chartId = await expectChartId(trx, req.params.chartId)
-
-    // The ETL step that currently owns this chart (mirrors
-    // `multi_dim_data_pages.catalogPath`). Not an identifier — the chart's
-    // identity is its config UUID — and free to change when a step moves.
-    // Optional so other callers don't clobber it; persisted via COALESCE below.
-    const catalogPath = (req.query.catalogPath as string | undefined) ?? null
-
-    let etlConfig: GrapherInterface
-    try {
-        etlConfig = migrateGrapherConfigToLatestVersionAndFailOnError(req.body)
-    } catch (err) {
-        return { success: false, error: String(err) }
-    }
-
-    return upsertEtlConfigForChart(
-        trx,
-        res.locals.user,
-        chartId,
-        etlConfig,
-        catalogPath
-    )
-}
-
-/**
- * Like `putChartsChartIdEtlConfig`, but addressed by the chart's config UUID
- * (`charts.configId`) and with upsert semantics: if no chart with the given
- * config UUID exists yet, a minimal draft chart is created that carries the
- * caller-supplied UUID as its identity, and the ETL config layer is attached
- * to it. The new chart's admin patch starts out (almost) empty, so the ETL
+ * On each call the existing patch is re-diffed against the new parent stack, so
+ * redundant patch entries are stripped and future ETL changes to those fields
+ * propagate instead of being masked. The new chart's admin patch starts out (almost) empty, so the ETL
  * layer owns all rendered fields from birth and only genuine admin edits ever
  * end up in the patch. The one exception is `slug`: identity/publishing keys
  * are deliberately excluded from inheritance, so the slug is copied into the
