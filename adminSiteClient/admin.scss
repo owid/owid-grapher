@@ -17,7 +17,7 @@
 @import "tippy.js/dist/tippy.css";
 @import "tippy.js/themes/light.css";
 
-@import "@react-awesome-query-builder/antd/css/styles.css";
+@import "react-querybuilder/dist/query-builder.css";
 
 @import "../packages/@ourworldindata/components/src/styles/colors.scss";
 @import "../packages/@ourworldindata/components/src/styles/variables.scss";
@@ -295,12 +295,8 @@ $nav-height: 45px;
         overflow-y: auto;
     }
 
-    .query-builder {
-        margin: 0;
-        label {
-            margin-left: 5px;
-            margin-right: 5px;
-        }
+    .queryBuilder {
+        margin: 8px 0;
     }
 
     .rich-editor-confirm-buttons {

@@ -70,10 +70,8 @@ import {
     FetchVariablesParameters,
     fetchVariablesParametersToQueryParametersString,
     isConfigColumn,
-    filterTreeToSExpression,
-    FilterPanelState,
-    filterPanelInitialConfig,
-    initialFilterQueryValue,
+    filterQueryToSExpression,
+    initialFilterQuery,
     fieldDescriptionToFilterPanelFieldConfig,
     simpleColumnToFilterPanelFieldConfig,
     GrapherConfigGridEditorProps,
@@ -85,18 +83,21 @@ import {
     fetchVariablesParametersFromQueryString,
     filterExpressionNoFilter,
     fetchVariablesParametersToQueryParameters,
-    postprocessJsonLogicTree,
+    promoteCustomOperators,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
 import { IconToggleComponent } from "./IconToggleComponent.js"
-import QueryBuilderContainer from "./QueryBuilderContainer.js"
 import {
-    Query,
-    Utils as QbUtils,
-    Utils,
-    Field,
-    Config,
-    ImmutableTree,
-} from "@react-awesome-query-builder/antd"
+    QueryBuilder,
+    type Field,
+    type FieldSelectorProps,
+    type RuleGroupType,
+} from "react-querybuilder"
+import {
+    AntDValueSelector,
+    QueryBuilderAntD,
+    type AntDValueSelectorProps,
+} from "@react-querybuilder/antd"
+import { parseJsonLogic } from "react-querybuilder/parseJsonLogic"
 import CodeMirror, { EditorView } from "@uiw/react-codemirror"
 import jsonpointer from "json8-pointer"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
@@ -105,6 +106,22 @@ import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.js"
 import { SortableList } from "./SortableList.js"
 
 type Disposer = () => void
+
+/** The default antd field selector isn't searchable, but with the ~100 config
+    fields we offer, being able to type to filter is essential */
+function SearchableFieldSelector(
+    props: FieldSelectorProps
+): React.ReactElement {
+    // The cast is needed because AntDValueSelectorProps intersects antd's own
+    // `options` typing, which the field options don't satisfy structurally
+    // (Classname can be string[]) even though they work fine at runtime
+    return (
+        <AntDValueSelector
+            {...(props as unknown as AntDValueSelectorProps)}
+            showSearch={{ optionFilterProp: "label" }}
+        />
+    )
+}
 
 function HotColorScaleRenderer() {
     return <div style={{ color: "gray" }}>Color scale</div>
@@ -173,7 +190,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     hasUncommitedRichEditorChanges: boolean = false
 
     columnSelection: ColumnInformation[] = []
-    filterState: FilterPanelState | undefined = undefined
+    filterState: RuleGroupType | undefined = undefined
 
     declare context: AdminAppContextType
     /** This array contains a description for every column, information like which field
@@ -1131,7 +1148,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 )
 
             // We serialize our own SExpression into the query string. We now
-            // need to get this in a form that the React Awesome Query Builder can process.
+            // need to get this in a form that react-querybuilder can process.
             // The easiest of the formats that library can load is JsonLogic, so we convert
             // to JsonLogic and postprocess to fix some issues
             let jsonLogic = SExpressionToJsonLogic(
@@ -1140,27 +1157,16 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             )
             if (jsonLogic === true) jsonLogic = null // If we have the default query then don't bother any further
 
-            let jsonLogicTree = Utils.loadFromJsonLogic(
-                jsonLogic as any,
-                this.FilterPanelConfig ?? filterPanelInitialConfig
-            )
-
-            if (jsonLogicTree !== undefined) {
-                const mutableTree = Utils.getTree(jsonLogicTree)
-                postprocessJsonLogicTree(mutableTree)
-                jsonLogicTree = QbUtils.loadTree(mutableTree)
+            let filterQuery: RuleGroupType | undefined
+            if (jsonLogic !== null) {
+                filterQuery = parseJsonLogic(
+                    JSON.stringify(jsonLogic)
+                ) as RuleGroupType
+                promoteCustomOperators(filterQuery)
             }
 
-            // If we didn't get a working tree then use our default one instead
-            const tree =
-                jsonLogicTree ?? QbUtils.loadTree(initialFilterQueryValue)
-            this.filterState = {
-                tree: QbUtils.sanitizeTree(
-                    tree,
-                    this.FilterPanelConfig ?? filterPanelInitialConfig
-                ).fixedTree,
-                config: this.FilterPanelConfig ?? filterPanelInitialConfig,
-            }
+            // If we didn't get a working query then use our default one instead
+            this.filterState = filterQuery ?? initialFilterQuery
 
             // Now set the remaining filter fields from the parsed query string
             this.sortByColumn = fetchParamsFromQueryParams.sortByColumn
@@ -1406,20 +1412,27 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     }
 
     renderFilterTab(): React.ReactElement {
-        const { FilterPanelConfig, filterState } = this
+        const { filterPanelFields, filterState } = this
         return (
             <section>
                 <div className="container">
                     <h3>Row filters</h3>
                     {this.renderPagination()}
                     <label>Query builder</label>
-                    {FilterPanelConfig && filterState && (
-                        <Query
-                            {...FilterPanelConfig}
-                            value={filterState.tree}
-                            onChange={this.updateFilterState}
-                            renderBuilder={QueryBuilderContainer}
-                        />
+                    {filterPanelFields.length > 0 && filterState && (
+                        <QueryBuilderAntD>
+                            <QueryBuilder
+                                fields={filterPanelFields}
+                                query={filterState}
+                                onQueryChange={this.updateFilterState}
+                                showNotToggle
+                                autoSelectField={false}
+                                parseNumbers="strict-limited"
+                                controlElements={{
+                                    fieldSelector: SearchableFieldSelector,
+                                }}
+                            />
+                        </QueryBuilderAntD>
                     )}
                     <small className="form-text text-muted">
                         Note that default values like empty string, "LineChart"
@@ -1645,40 +1658,23 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     }
 
     @action.bound
-    updateFilterState(immutableTree: ImmutableTree, config: Config) {
-        const { filterState } = this
-
-        const updateFilterState = !(
-            _.isEqual(filterState?.tree, immutableTree) &&
-            _.isEqual(filterState?.config, config)
-        )
-
-        if (updateFilterState) {
-            this.filterState = {
-                ...filterState,
-                tree: immutableTree,
-                config: config,
-            }
+    updateFilterState(query: RuleGroupType) {
+        if (!_.isEqual(this.filterState, query)) {
+            this.filterState = query
         }
     }
 
     @computed get filterSExpression(): Operation | undefined {
         const { filterState } = this
-        const readOnlyColumns = this.config.readonlyColumns
-        if (filterState) {
-            const tree = QbUtils.getTree(filterState.tree)
-            const sExpression = filterTreeToSExpression(
-                tree,
-                this.config.sExpressionContext,
-                readOnlyColumns
-            )
-
-            return sExpression
-        }
-        return undefined
+        if (!filterState) return undefined
+        return filterQueryToSExpression(
+            filterState,
+            this.config.sExpressionContext,
+            this.config.readonlyColumns
+        )
     }
 
-    @computed get filterPanelConfigFields(): [string, Field][] {
+    @computed get filterPanelFields(): Field[] {
         const { columnSelection, fieldDescriptions } = this
         // The editors to use use are decided by two helper functions. For
         // the more interesting fieldDescription mapping we rely on the
@@ -1703,74 +1699,5 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             })
         )
         return fields
-    }
-
-    @computed get FilterPanelConfig(): Config | undefined {
-        const { filterPanelConfigFields } = this
-
-        if (_.isEmpty(filterPanelConfigFields)) return undefined
-
-        const fieldsObject = Object.fromEntries(filterPanelConfigFields)
-        const config = {
-            ...filterPanelInitialConfig,
-            fields: fieldsObject,
-        }
-        // Hide operators in the UI that we don't have a good equivalent for
-        // in the S-Expressions. For easier comprehension the inverse set of operators
-        // as of react-awesome-query-builder V4 is kept below in commented out form
-        const operatorsToKeep = [
-            "equal",
-            "not_equal",
-            "less",
-            "less_or_equal",
-            "greater",
-            "greater_or_equal",
-            "like",
-            "is_empty",
-            "is_not_empty",
-            "is_null",
-            "is_not_null",
-            "select_equals",
-            "select_not_equals",
-            "some",
-            "all",
-            "none",
-        ]
-        // const operatorsToDrop = [
-        //     "not_like",
-        //     "proximity",
-        //     "starts_with",
-        //     "ends_with",
-        //     "between",
-        //     "not_between",
-        //     "select_any_in",
-        //     "select_not_any_in",
-        //     "multiselect_equals",
-        //     "multiselect_not_equals",
-        // ]
-        config.operators = _.pick(config.operators, operatorsToKeep) as any
-
-        config.operators = {
-            ...config.operators,
-            is_latest: {
-                label: "Is latest",
-                labelForFormat: "Is latest",
-                sqlOp: "=",
-                cardinality: 0,
-                jsonLogic: "==",
-            },
-            is_earliest: {
-                label: "Is earliest",
-                labelForFormat: "Is earliest",
-                sqlOp: "=",
-                cardinality: 0,
-                jsonLogic: "==",
-            },
-        }
-        config.types.number.widgets.number.operators!.push("is_latest")
-        config.types.number.widgets.number.operators!.push("is_earliest")
-
-        config.settings.customFieldSelectProps = { showSearch: true }
-        return config
     }
 }
