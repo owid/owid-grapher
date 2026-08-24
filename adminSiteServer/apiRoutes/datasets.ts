@@ -164,7 +164,7 @@ export async function getDataset(
                     cd.variableId,
                     cd.chartId,
                     cc.slug,
-                    cc.full->>'$.title' AS title
+                    cc.config->>'$.title' AS title
                 FROM chart_dimensions cd
                 JOIN charts c ON c.id = cd.chartId
                 JOIN chart_configs cc ON cc.id = c.configId
@@ -194,7 +194,7 @@ export async function getDataset(
                 JOIN chart_configs cc ON cc.id = mdxcc.chartConfigId
                 JOIN multi_dim_data_pages mdp ON mdp.id = mdxcc.multiDimId
                 JOIN JSON_TABLE(
-                    cc.full,
+                    cc.config,
                     '$.dimensions[*]' COLUMNS (variableId INT PATH '$.variableId')
                 ) jt ON jt.variableId IS NOT NULL
                 WHERE jt.variableId IN (?)
@@ -327,7 +327,7 @@ export async function getDataset(
             JOIN variables AS v ON cd.variableId = v.id
             JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
             LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-            LEFT JOIN analytics_grapher_views agv ON (agv.grapher_slug = chart_configs.slug AND chart_configs.full ->> '$.isPublished' = "true")
+            LEFT JOIN analytics_grapher_views agv ON (agv.grapher_slug = chart_configs.slug AND chart_configs.config ->> '$.isPublished' = "true")
             LEFT JOIN chart_references_view crv ON crv.chartId = charts.id
             WHERE v.datasetId = ?
             GROUP BY charts.id, agv.views_365d, crv.narrativeChartsCount, crv.referencesCount
@@ -554,10 +554,10 @@ export async function republishCharts(
             trx,
             `-- sql
                 UPDATE chart_configs cc
-                JOIN charts c ON c.configId = cc.id
+                JOIN charts c
+                    ON cc.id IN (c.configId, c.patchConfigId)
                 SET
-                    cc.patch = JSON_SET(cc.patch, "$.version", cc.patch->"$.version" + 1),
-                    cc.full = JSON_SET(cc.full, "$.version", cc.full->"$.version" + 1),
+                    cc.config = JSON_SET(cc.config, "$.version", cc.config->"$.version" + 1),
                     cc.updatedAt = ?,
                     c.updatedAt = ?
                 WHERE c.id IN (

@@ -8,10 +8,12 @@ import {
     getWindowUrl,
     setWindowUrl,
     excludeNull,
-    mergeGrapherConfigs,
     es6mapValues,
 } from "@ourworldindata/utils"
-import { GrapherConfigPatch } from "../adminShared/AdminSessionTypes.js"
+import {
+    BulkChartEditRow,
+    GrapherConfigPatch,
+} from "../adminShared/AdminSessionTypes.js"
 import {
     applyPatch,
     setValueRecursiveInplace,
@@ -59,8 +61,6 @@ import {
 import { fromFetch } from "rxjs/fetch"
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons"
 import {
-    parseVariableAnnotationsRow,
-    VariableAnnotationsRow,
     ColumnInformation,
     Action,
     PAGEING_SIZE,
@@ -197,9 +197,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         to display, what editor control should be used, ... */
     fieldDescriptions: FieldDescription[] | undefined = undefined
 
-    /** Rows of the query result to the /variable-annotations endpoint that include a parsed
+    /** Rows of the query result to the /chart-bulk-update endpoint that include a parsed
         grapher object for the grapherConfig field */
-    richDataRows: VariableAnnotationsRow[] | undefined = undefined
+    richDataRows: BulkChartEditRow[] | undefined = undefined
 
     /** Undo stack - not yet used - TODO: implement Undo/redo */
     undoStack: Action[] = []
@@ -322,9 +322,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 runInAction(() => {
                     this.resetViewStateAfterFetch()
                     this.currentPagingOffset = this.desiredPagingOffset
-                    this.richDataRows = currentData.rows.map(
-                        parseVariableAnnotationsRow
-                    )
+                    this.richDataRows = currentData.rows
                     this.numTotalRows = currentData.numTotalRows
                 })
             }
@@ -371,19 +369,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         const { selectedRowContent } = this
         if (selectedRowContent === undefined) return
 
-        // Get the grapherConfig of the currently selected row and then
-        // merge it with the necessary partial information (e.g. variableId field)
-        // to get a config that actually works in all cases
-        const grapherConfig = selectedRowContent.config
-        const finalConfigLayer = this.config.finalVariableLayerModificationFn(
-            selectedRowContent.id
-        )
-
-        const mergedConfig = mergeGrapherConfigs(
-            grapherConfig,
-            finalConfigLayer
-        )
-        void this.loadGrapherJson(mergedConfig)
+        void this.loadGrapherJson(selectedRowContent.config)
     }
 
     @computed private get columnDataSource(): ColumnDataSource | undefined {
@@ -706,7 +692,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             const fields = Object.fromEntries(fieldsArray)
             const readOnlyColumnValues = es6mapValues(
                 readOnlyColumns,
-                (field) => row[field.key as keyof VariableAnnotationsRow]
+                (field) => row[field.key as keyof BulkChartEditRow]
             )
             return {
                 ...Object.fromEntries(readOnlyColumnValues),
@@ -1500,7 +1486,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     }
 
     @computed
-    get selectedRowContent(): VariableAnnotationsRow | undefined {
+    get selectedRowContent(): BulkChartEditRow | undefined {
         const { selectedRow, richDataRows } = this
         const row =
             selectedRow !== undefined && richDataRows !== undefined

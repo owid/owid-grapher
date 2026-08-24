@@ -114,7 +114,7 @@ export const makeSitemap = async (
             FROM charts c
             JOIN chart_configs cc ON cc.id = c.configId
             WHERE
-                cc.full->"$.isPublished" = true
+                cc.config->"$.isPublished" = true
         `
     )
 

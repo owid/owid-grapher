@@ -11,7 +11,7 @@ import {
     ChartRedirect,
     Json,
     GrapherInterface,
-    getParentVariableIdFromChartConfig,
+    getParentIndicatorIdFromChartConfig,
     mergeGrapherConfigs,
     NARRATIVE_CHART_PROPS_TO_OMIT,
 } from "@ourworldindata/utils"
@@ -115,9 +115,9 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         return this.manager.forceDatapage ?? false
     }
 
-    /** parent variable id, derived from the config */
-    @computed get parentVariableId(): number | undefined {
-        return getParentVariableIdFromChartConfig(this.liveConfig)
+    /** parent indicator id, derived from the config */
+    @computed get parentIndicatorId(): number | undefined {
+        return getParentIndicatorIdFromChartConfig(this.liveConfig)
     }
 
     @computed get availableTabs(): EditorTab[] {
@@ -139,7 +139,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     @action.bound async updateParentConfig() {
         const currentParentIndicatorId =
             this.parentConfig?.dimensions?.[0].variableId
-        const newParentIndicatorId = getParentVariableIdFromChartConfig(
+        const newParentIndicatorId = getParentIndicatorIdFromChartConfig(
             this.grapherState.object
         )
 
@@ -149,7 +149,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         // fetch the new parent config
         let newParentConfig: GrapherInterface | undefined
         if (newParentIndicatorId) {
-            newParentConfig = await fetchMergedGrapherConfigByVariableId(
+            newParentConfig = await fetchChartConfigByIndicatorId(
                 this.manager.admin,
                 newParentIndicatorId
             )
@@ -185,7 +185,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 
         // it only makes sense to enable inheritance if the chart has a parent
         const shouldEnableInheritance =
-            !!this.parentVariableId && this.isInheritanceEnabled
+            !!this.parentIndicatorId && this.isInheritanceEnabled
 
         const query = new URLSearchParams({
             inheritance: shouldEnableInheritance ? "enable" : "disable",
@@ -231,7 +231,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 
         // it only makes sense to enable inheritance if the chart has a parent
         const shouldEnableInheritance =
-            !!this.parentVariableId && this.isInheritanceEnabled
+            !!this.parentIndicatorId && this.isInheritanceEnabled
 
         const query = new URLSearchParams({
             inheritance: shouldEnableInheritance ? "enable" : "disable",
@@ -356,12 +356,12 @@ export async function deleteChart(params: {
     if (json.success) onSuccess?.()
 }
 
-export async function fetchMergedGrapherConfigByVariableId(
+export async function fetchChartConfigByIndicatorId(
     admin: Admin,
     indicatorId: number
 ): Promise<GrapherInterface | undefined> {
     const indicatorChart = await admin.getJSON(
-        `/api/variables/mergedGrapherConfig/${indicatorId}.json`
+        `/api/variables/${indicatorId}.config.json`
     )
     return _.isEmpty(indicatorChart) ? undefined : indicatorChart
 }
