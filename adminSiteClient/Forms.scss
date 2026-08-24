@@ -1,14 +1,13 @@
 // Styles for the shared admin form kit in `Forms.tsx`, which renders antd
 // primitives inside our own label / help-text / error chrome.
 //
-// The field wrapper still carries Bootstrap's `form-group` class next to
-// `form-field`, because raw `form-group` markup lives on in the pages Phase 5
-// of the antd migration covers (ExplorerCreatePage, UsersIndexPage, GdocsAdd,
-// the gdocs settings forms) and is interleaved with these components there.
 // The rules below cover the parts that used to come from Bootstrap's
 // form/input-group/list-group/modal markup that `Forms.tsx` no longer emits.
+// A few pages outside `Forms.tsx` hand-write `form-field` /
+// `form-field__label` / `form-field__help` around a control of their own; they
+// get the same chrome that way.
 
-// Replaces Bootstrap's `.form-group`, which the wrapper still carries as well.
+// Replaces Bootstrap's `.form-group`.
 .form-field {
     margin-bottom: 1rem;
 }
