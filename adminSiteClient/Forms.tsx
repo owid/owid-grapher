@@ -153,11 +153,12 @@ export class TextField extends React.Component<TextFieldProps> {
                         {props.secondaryLabel && (
                             <>
                                 <span> </span>
-                                <FontAwesomeIcon
-                                    icon={faCircleInfo}
-                                    className="text-muted"
-                                    title={props.secondaryLabel}
-                                />
+                                <span title={props.secondaryLabel}>
+                                    <FontAwesomeIcon
+                                        icon={faCircleInfo}
+                                        className="text-muted"
+                                    />
+                                </span>
                             </>
                         )}
                     </label>
@@ -251,11 +252,12 @@ export class TextAreaField extends React.Component<TextFieldProps> {
                         {props.secondaryLabel && (
                             <>
                                 <span> </span>
-                                <FontAwesomeIcon
-                                    icon={faCircleInfo}
-                                    className="text-muted"
-                                    title={props.secondaryLabel}
-                                />
+                                <span title={props.secondaryLabel}>
+                                    <FontAwesomeIcon
+                                        icon={faCircleInfo}
+                                        className="text-muted"
+                                    />
+                                </span>
                             </>
                         )}
                     </label>
@@ -622,11 +624,12 @@ export class Toggle extends React.Component<ToggleProps> {
                     {props.secondaryLabel && (
                         <>
                             {" "}
-                            <FontAwesomeIcon
-                                icon={faCircleInfo}
-                                className="text-muted"
-                                title={props.secondaryLabel}
-                            />
+                            <span title={props.secondaryLabel}>
+                                <FontAwesomeIcon
+                                    icon={faCircleInfo}
+                                    className="text-muted"
+                                />
+                            </span>
                         </>
                     )}
                 </label>
@@ -1384,7 +1387,7 @@ export function LoadingBlocker() {
     if (!isVisible) return null
     return (
         <div className="LoadingBlocker">
-            <FontAwesomeIcon icon={faCog} spin fixedWidth size="3x" />
+            <FontAwesomeIcon icon={faCog} spin className="fa-fw" size="3x" />
         </div>
     )
 }

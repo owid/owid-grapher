@@ -8,7 +8,7 @@ import {
     sentenceCaseIfNotTopicPage,
 } from "@ourworldindata/utils"
 import { useLinkedDocument } from "../utils.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
     faMagnifyingGlass,
