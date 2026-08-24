@@ -14,8 +14,11 @@ import {
     EXPLORERS_ROUTE_FOLDER,
 } from "@ourworldindata/explorer"
 
-/** The dark navy the admin header has always used. */
-const HEADER_BG = "#001c3d"
+/**
+ * The charcoal the admin header has always used (the old navbar's Bootstrap
+ * `bg-dark`; the `#001c3d` navy that used to sit behind it was never visible).
+ */
+const HEADER_BG = "#343a40"
 /** The dark slate the sidebar has always used — distinct from the header. */
 const SIDEBAR_BG = "#222d32"
 const HEADER_HEIGHT = 48
