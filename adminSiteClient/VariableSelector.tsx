@@ -242,7 +242,11 @@ export class VariableSelector<
         )
 
         return (
-            <Modal onClose={this.onDismiss} className="VariableSelector">
+            <Modal
+                onClose={this.onDismiss}
+                className="VariableSelector"
+                width="min(90vw, 1000px)"
+            >
                 <div className="modal-header">
                     <h5 className="modal-title">
                         Set indicator{slot.allowMultiple && "s"} for {slot.name}

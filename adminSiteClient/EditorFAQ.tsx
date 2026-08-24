@@ -6,7 +6,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 export class EditorFAQ extends Component<{ onClose: () => void }> {
     override render() {
         return (
-            <Modal onClose={this.props.onClose} className="EditorFAQ">
+            <Modal
+                onClose={this.props.onClose}
+                className="EditorFAQ"
+                width={800}
+            >
                 <div className="modal-header">
                     <h3 className="modal-title">Frequently Asked Questions</h3>
                 </div>

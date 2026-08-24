@@ -94,6 +94,10 @@ class AdminErrorMessage extends React.Component<{ admin: Admin }> {
         return error ? (
             <Modal
                 className="errorMessage"
+                width="80%"
+                // Above antd's static `Modal.confirm`-style dialogs, so a
+                // fatal error is never hidden behind one.
+                zIndex={2001}
                 onClose={action(() => {
                     if (error.isFatal) {
                         window.location.reload()
