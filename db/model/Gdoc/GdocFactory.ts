@@ -52,6 +52,7 @@ import { extractFilenamesFromBlock } from "./gdocUtils.js"
 import { getGdocComponentsWithoutChildren } from "./extractGdocComponentInfo.js"
 import { GdocAnnouncement } from "./GdocAnnouncement.js"
 import { GdocProfile } from "./GdocProfile.js"
+import { GdocFeaturedViz } from "./GdocFeaturedViz.js"
 
 /** Any concrete GdocBase subclass */
 export type AnyGdoc =
@@ -62,6 +63,7 @@ export type AnyGdoc =
     | GdocAuthor
     | GdocAnnouncement
     | GdocProfile
+    | GdocFeaturedViz
 
 export function gdocFromJSON(json: Record<string, any>): AnyGdoc {
     if (typeof json.content === "string") {
@@ -117,6 +119,9 @@ export function gdocFromJSON(json: Record<string, any>): AnyGdoc {
         )
         .with(OwidGdocType.Profile, () =>
             GdocProfile.create({ ...(json as any) })
+        )
+        .with(OwidGdocType.FeaturedViz, () =>
+            GdocFeaturedViz.create({ ...(json as any) })
         )
         .exhaustive()
 }
@@ -422,6 +427,7 @@ export async function loadGdocFromGdocBase(
         .with(OwidGdocType.Author, () => GdocAuthor.create(base))
         .with(OwidGdocType.Announcement, () => GdocAnnouncement.create(base))
         .with(OwidGdocType.Profile, () => GdocProfile.create(base))
+        .with(OwidGdocType.FeaturedViz, () => GdocFeaturedViz.create(base))
         .exhaustive()
 
     if (contentSource === GdocsContentSource.Gdocs) {

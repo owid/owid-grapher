@@ -14,6 +14,7 @@ import {
     faBuildingNgo,
     faUserPen,
     faBullhorn,
+    faChartSimple,
     faFileLines,
     faTriangleExclamation,
 } from "@fortawesome/free-solid-svg-icons"
@@ -51,6 +52,7 @@ const iconGdocTypeMap = {
     [OwidGdocType.Author]: <FontAwesomeIcon icon={faUserPen} />,
     [OwidGdocType.Announcement]: <FontAwesomeIcon icon={faBullhorn} />,
     [OwidGdocType.Profile]: <FontAwesomeIcon icon={faFileLines} />,
+    [OwidGdocType.FeaturedViz]: <FontAwesomeIcon icon={faChartSimple} />,
 }
 
 enum GdocPublishStatus {
@@ -85,6 +87,7 @@ const GdocsIndexPageSearch = observer(function GdocsIndexPageSearch({
         OwidGdocType.Author,
         OwidGdocType.Announcement,
         OwidGdocType.Profile,
+        OwidGdocType.FeaturedViz,
     ]
     return (
         <div className="d-flex flex-grow-1 flex-wrap">
@@ -332,6 +335,7 @@ class GdocsIndexPageContent extends React.Component<GdocsIndexPageContentProps> 
         [OwidGdocType.Author]: false,
         [OwidGdocType.Announcement]: false,
         [OwidGdocType.Profile]: false,
+        [OwidGdocType.FeaturedViz]: false,
         publishStatus: GdocPublishStatus.All,
     }
 

@@ -14,6 +14,7 @@ import { AttachmentsContext } from "./AttachmentsContext.js"
 import { DocumentContext } from "./DocumentContext.js"
 import { AnnouncementPage } from "./pages/Announcement.js"
 import { Profile } from "./pages/Profile.js"
+import { FeaturedViz } from "./pages/FeaturedViz.js"
 import { ADMIN_BASE_URL } from "../../settings/clientSettings.js"
 import { CookieKey } from "@ourworldindata/grapher"
 import { SiteQueryClientProvider } from "../SiteQueryClientProvider.js"
@@ -96,6 +97,9 @@ export function OwidGdoc({
         ))
         .with({ content: { type: OwidGdocType.Profile } }, (props) => (
             <Profile {...props} />
+        ))
+        .with({ content: { type: OwidGdocType.FeaturedViz } }, (props) => (
+            <FeaturedViz {...props} />
         ))
         .with(P.any, (gdoc) => (
             <div
