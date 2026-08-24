@@ -68,10 +68,10 @@ const adminTheme: ThemeConfig = {
         // default of 14px would otherwise be measured against as 1rem.
         fontSize: 14,
         // OWID's $blue-90, from
-        // `packages/@ourworldindata/components/src/styles/colors.scss`. It's
-        // also what `$text-color` resolves to there.
+        // `packages/@ourworldindata/components/src/styles/colors.scss`.
+        // Text color stays antd's near-black default (rgba(0, 0, 0, 0.88))
+        // for better contrast.
         colorPrimary: "#1d3d63",
-        colorText: "#1d3d63",
     },
 }
 
