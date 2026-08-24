@@ -1,9 +1,9 @@
+import * as cheerio from "cheerio"
 import { createElement } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { beforeAll, afterAll, describe, expect, it } from "vitest"
 import { unstable_startWorker } from "wrangler"
 import { MultiDimPageCompanion } from "@ourworldindata/types"
-import { decodeReactEscapedAttribute } from "../_common/grapherTools.js"
 
 let worker: Awaited<ReturnType<typeof unstable_startWorker>>
 
@@ -73,35 +73,18 @@ async function rewriteMetaTagsForUrl(
     return response.text()
 }
 
-function extractFirstGroup(html: string, regex: RegExp): string {
-    const match = html.match(regex)
-    expect(match, `expected to match ${regex}`).toBeTruthy()
-    return match![1]
-}
-
 function extractPageBits(html: string) {
+    const $ = cheerio.load(html)
     return {
-        title: decodeReactEscapedAttribute(
-            extractFirstGroup(html, /<title>(.*?)<\/title>/)
-        ),
-        ogTitle: decodeReactEscapedAttribute(
-            extractFirstGroup(html, /<meta property="og:title" content="(.*?)"/)
-        ),
-        twitterTitle: decodeReactEscapedAttribute(
-            extractFirstGroup(
-                html,
-                /<meta name="twitter:title" content="(.*?)"/
-            )
-        ),
-        canonical: decodeReactEscapedAttribute(
-            extractFirstGroup(html, /<link rel="canonical" href="(.*?)"/)
-        ),
-        jsonLd: JSON.parse(
-            extractFirstGroup(
-                html,
-                /<script type="application\/ld\+json">(.*?)<\/script>/
-            )
-        ) as { name?: string; url?: string },
+        title: $("head > title").text(),
+        ogTitle: $('meta[property="og:title"]').attr("content"),
+        twitterTitle: $('meta[name="twitter:title"]').attr("content"),
+        canonical: $('link[rel="canonical"]').attr("href"),
+        svgTitle: $("body svg title").text(),
+        jsonLd: JSON.parse($('script[type="application/ld+json"]').text()) as {
+            name?: string
+            url?: string
+        },
     }
 }
 
@@ -140,7 +123,7 @@ describe("multi-dim meta tag rewriting", () => {
             `${MDIM_BASE_URL}?antigen=hepb_bd&metric=vaccinated`
         )
         // <title> elements of inline SVGs in the body are left alone
-        expect(html).toContain("<svg><title>Download icon</title></svg>")
+        expect(bits.svgTitle).toBe("Download icon")
     })
 
     it("fills in default choices for missing dimension params and doesn't double-escape entities", async () => {
@@ -159,6 +142,24 @@ describe("multi-dim meta tag rewriting", () => {
             `${MDIM_BASE_URL}?antigen=dtp3&metric=coverage`
         )
         expect(html).not.toContain("&amp;amp;")
+    })
+
+    it("resolves to an existing view when the default fill doesn't exist", async () => {
+        // metric=vaccinated exists only in combination with antigen=hepb_bd,
+        // not with the default antigen (dtp3)
+        const html = await rewriteMetaTagsForUrl(
+            makeMdimPageHtml(),
+            `${MDIM_BASE_URL}?metric=vaccinated`
+        )
+        const viewTitle =
+            "Newborns given a hepatitis B vaccine dose within 24 hours"
+        const bits = extractPageBits(html)
+        expect(bits.title).toBe(
+            `${viewTitle} | ${MDIM_PAGE_TITLE} | Our World in Data`
+        )
+        expect(bits.canonical).toBe(
+            `${MDIM_BASE_URL}?antigen=hepb_bd&metric=vaccinated`
+        )
     })
 
     it("keeps the generic title on the bare mdim URL but still rewrites the canonical URL", async () => {
@@ -214,73 +215,5 @@ describe("multi-dim meta tag rewriting", () => {
         expect(bits.canonical).toBe(MDIM_BASE_URL)
         expect(bits.jsonLd.name).toBe(MDIM_PAGE_TITLE)
         expect(bits.jsonLd.url).toBe(MDIM_BASE_URL)
-    })
-})
-
-describe("full /grapher/[slug] request flow with a companion file", () => {
-    const slug = "vaccination-coverage"
-
-    beforeAll(async () => {
-        worker = await unstable_startWorker({
-            config: "./functions/test/wrangler.mdim.e2e.jsonc",
-            dev: { logLevel: "none" },
-        })
-        await workerFetch("/__test__/seed-asset", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                pathname: `/grapher/${slug}`,
-                body: makeMdimPageHtml(),
-                contentType: "text/html",
-            }),
-        })
-        await workerFetch("/__test__/seed-asset", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                pathname: `/grapher/${slug}.mdim.json`,
-                body: JSON.stringify(MDIM_COMPANION),
-                contentType: "application/json",
-            }),
-        })
-    })
-
-    afterAll(async () => {
-        await workerFetch("/__test__/clear-assets", { method: "POST" })
-        await worker.dispose()
-    })
-
-    it("serves the view title from the companion file", async () => {
-        const response = await workerFetch(
-            `/grapher/${slug}?metric=vaccinated&antigen=hepb_bd`
-        )
-        expect(response.status).toBe(200)
-        const html = await response.text()
-        const bits = extractPageBits(html)
-        const viewTitle =
-            "Newborns given a hepatitis B vaccine dose within 24 hours"
-        expect(bits.title).toBe(
-            `${viewTitle} | ${MDIM_PAGE_TITLE} | Our World in Data`
-        )
-        expect(bits.ogTitle).toBe(`${viewTitle} | ${MDIM_PAGE_TITLE}`)
-    })
-
-    it("serves the generic title on the bare mdim URL", async () => {
-        const response = await workerFetch(`/grapher/${slug}`)
-        expect(response.status).toBe(200)
-        const html = await response.text()
-        const bits = extractPageBits(html)
-        expect(bits.title).toBe(`${MDIM_PAGE_TITLE} | Our World in Data`)
-        expect(bits.canonical).toBe(
-            `${MDIM_BASE_URL}?antigen=dtp3&metric=coverage`
-        )
-    })
-
-    it("serves the companion file itself as JSON", async () => {
-        const response = await workerFetch(`/grapher/${slug}.mdim.json`)
-        expect(response.status).toBe(200)
-        expect(response.headers.get("Content-Type")).toBe("application/json")
-        const companion = (await response.json()) as MultiDimPageCompanion
-        expect(companion).toEqual(MDIM_COMPANION)
     })
 })

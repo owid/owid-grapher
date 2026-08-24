@@ -289,6 +289,7 @@ export { OwidVariableDisplayConfig } from "./OwidVariable.js"
 export {
     strToQueryParams,
     queryParamsToStr,
+    multiDimDimensionsToViewQueryStr,
     getWindowQueryStr,
     setWindowQueryStr,
 } from "./urls/UrlUtils.js"
@@ -359,7 +360,6 @@ export {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
     getMultiDimPageTitle,
-    multiDimDimensionsToViewQueryStr,
     searchParamsToMultiDimView,
 } from "./MultiDimDataPageConfig.js"
 

@@ -19,7 +19,6 @@ import {
     ChartRecord,
     ChartRecordType,
     ExpandedFeaturedMetric,
-    GrapherInterface,
 } from "@ourworldindata/types"
 import urljoin from "url-join"
 import * as R from "remeda"
@@ -30,7 +29,7 @@ import {
     REAL_FM_INCOME_GROUPS,
 } from "./types.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
-import { GRAPHER_ROUTE_FOLDER, GrapherState } from "@ourworldindata/grapher"
+import { GRAPHER_ROUTE_FOLDER } from "@ourworldindata/grapher"
 import * as db from "../../../db/db.js"
 
 const countriesWithVariantNames = new Set(
@@ -389,32 +388,6 @@ export function maybeAddChangeInPrefix(
     return shouldAddChangeInPrefix
         ? "Change in " + lowerCaseFirstLetterUnlessAbbreviation(title)
         : title
-}
-
-/**
- * The effective grapher title of a multi-dim view, resolved from its merged
- * metadata (variable metadata + mdim-level and view-level overrides) and its
- * full chart config. Shared between the Algolia mdim view records and the
- * companion file baked alongside multi-dim pages, so search records and the
- * page titles served to search engines always agree.
- */
-export function getMultiDimViewTitle(
-    metadata: {
-        name?: string
-        display?: { name?: string } | null
-        presentation?: { titlePublic?: string } | null
-    },
-    chartConfig: GrapherInterface | undefined,
-    grapherState: GrapherState | undefined
-): string {
-    return maybeAddChangeInPrefix(
-        metadata.presentation?.titlePublic ||
-            chartConfig?.title ||
-            metadata.display?.name ||
-            metadata.name ||
-            "",
-        grapherState?.shouldAddChangeInPrefixToTitle ?? false
-    )
 }
 
 export const EMPTY_DATASET_CHART_RECORD_DIMENSIONS: DatasetChartRecordDimensions =

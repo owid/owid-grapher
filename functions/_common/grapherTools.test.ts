@@ -6,7 +6,11 @@ import {
 } from "@ourworldindata/core-table"
 import { GrapherState } from "@ourworldindata/grapher"
 import { OwidTableSlugs } from "@ourworldindata/types"
-import { resolveMdimViewQueryStr, rewriteJsonLdText } from "./grapherTools.js"
+import {
+    resolveMdimViewFromCompanion,
+    resolveMdimViewQueryStr,
+    rewriteJsonLdText,
+} from "./grapherTools.js"
 
 describe("download", () => {
     const originalTable = SynthesizeGDPTable()
@@ -146,6 +150,54 @@ describe(resolveMdimViewQueryStr, () => {
                 defaultDimensions
             )
         ).toBe("antigen=dtp3&metric=vaccinated")
+    })
+})
+
+describe(resolveMdimViewFromCompanion, () => {
+    const defaultDimensions = { metric: "coverage", antigen: "dtp3" }
+    const companion = {
+        title: "Childhood vaccination coverage",
+        views: {
+            "antigen=dtp3&metric=coverage": { title: "Coverage of DTP" },
+            "antigen=hepb_bd&metric=vaccinated": { title: "Newborns given" },
+        },
+    }
+
+    it("prefers the combination of specified params and default choices", () => {
+        expect(
+            resolveMdimViewFromCompanion(
+                companion,
+                new URLSearchParams("metric=coverage"),
+                defaultDimensions
+            )
+        ).toEqual({
+            viewQueryStr: "antigen=dtp3&metric=coverage",
+            view: { title: "Coverage of DTP" },
+        })
+    })
+
+    it("falls back to an existing view when the default fill doesn't exist", () => {
+        // metric=vaccinated only exists in combination with antigen=hepb_bd
+        expect(
+            resolveMdimViewFromCompanion(
+                companion,
+                new URLSearchParams("metric=vaccinated"),
+                defaultDimensions
+            )
+        ).toEqual({
+            viewQueryStr: "antigen=hepb_bd&metric=vaccinated",
+            view: { title: "Newborns given" },
+        })
+    })
+
+    it("returns undefined when no existing view matches the specified params", () => {
+        expect(
+            resolveMdimViewFromCompanion(
+                companion,
+                new URLSearchParams("antigen=nonexistent"),
+                defaultDimensions
+            )
+        ).toBeUndefined()
     })
 })
 

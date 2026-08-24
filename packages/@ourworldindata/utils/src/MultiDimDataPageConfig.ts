@@ -233,8 +233,7 @@ export class MultiDimDataPageConfig {
 /**
  * The page title of a multi-dim data page: the title plus its fragments
  * (title variant, short attribution), without the site-name suffix, e.g.
- * "Childhood vaccination coverage - by vaccine". Used for the baked <title>
- * and og:title, the companion file, and the client-side document.title.
+ * "Childhood vaccination coverage - by vaccine".
  */
 export function getMultiDimPageTitle(
     title: IndicatorTitleWithFragments
@@ -244,20 +243,6 @@ export function getMultiDimPageTitle(
         title.titleVariant
     )
     return fragments ? `${title.title} - ${fragments}` : title.title
-}
-
-/**
- * Serialize a view's dimension choices into a canonical query string, e.g.
- * `antigen=hepb_bd&metric=vaccinated`. The parameters are sorted so the same
- * view always produces the same string; this is used as the view's identifier
- * in the sitemap, in canonical URLs, and in the baked view-title map.
- */
-export function multiDimDimensionsToViewQueryStr(
-    dimensions: MultiDimDimensionChoices
-): string {
-    const searchParams = new URLSearchParams(dimensions)
-    searchParams.sort()
-    return searchParams.toString()
 }
 
 export const extractMultiDimChoicesFromSearchParams = (

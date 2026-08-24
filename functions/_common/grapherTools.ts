@@ -9,11 +9,13 @@ import {
     GrapherState,
     loadCatalogData,
 } from "@ourworldindata/grapher"
+import { decodeHTML } from "entities"
 import {
     type DownloadRewriteTarget,
     GrapherInterface,
     MultiDimDataPageConfigEnriched,
     MultiDimPageCompanion,
+    MultiDimPageCompanionView,
     R2GrapherConfigDirectory,
     AdditionalGrapherDataFetchFn,
     GRAPHER_QUERY_PARAM_KEYS,
@@ -359,19 +361,6 @@ export async function initGrapher(
 }
 
 /**
- * HTMLRewriter doesn't un-encode HTML entities in attribute values, so we need
- * to undo the escaping React applied when rendering the attribute.
- */
-export function decodeReactEscapedAttribute(value: string): string {
-    return value
-        .replaceAll("&quot;", '"')
-        .replaceAll("&#x27;", "'")
-        .replaceAll("&lt;", "<")
-        .replaceAll("&gt;", ">")
-        .replaceAll("&amp;", "&")
-}
-
-/**
  * Resolve the canonical dimensions query string for a multi-dim page request:
  * every dimension is taken from the request's search params, falling back to
  * the default view's choice for missing (or empty) params. Must produce the
@@ -390,9 +379,46 @@ export function resolveMdimViewQueryStr(
 }
 
 /**
+ * Resolve the view a multi-dim page request selects, given the views that
+ * actually exist (the companion file's keys). Dimensions specified in the URL
+ * must match exactly; omitted dimensions are filled from the default view
+ * where that combination exists, otherwise from the first existing view (in
+ * the companion's sorted key order) matching the specified dimensions — an
+ * approximation of the client's availability-aware choice adaptation in
+ * filterToAvailableChoices. Returns undefined when no existing view matches
+ * the specified dimensions.
+ */
+export function resolveMdimViewFromCompanion(
+    companion: MultiDimPageCompanion,
+    searchParams: URLSearchParams,
+    defaultDimensions: Record<string, string>
+): { viewQueryStr: string; view: MultiDimPageCompanionView } | undefined {
+    // Prefer the exact combination of specified params and default choices
+    const naiveQueryStr = resolveMdimViewQueryStr(
+        searchParams,
+        defaultDimensions
+    )
+    const naiveView = companion.views?.[naiveQueryStr]
+    if (naiveView) return { viewQueryStr: naiveQueryStr, view: naiveView }
+
+    const specified = Object.keys(defaultDimensions)
+        .map((dim) => [dim, searchParams.get(dim)] as const)
+        .filter(([, value]) => !!value)
+    const entry = Object.entries(companion.views ?? {}).find(
+        ([viewQueryStr]) => {
+            const viewDimensions = new URLSearchParams(viewQueryStr)
+            return specified.every(
+                ([dim, value]) => viewDimensions.get(dim) === value
+            )
+        }
+    )
+    if (!entry) return undefined
+    return { viewQueryStr: entry[0], view: entry[1] }
+}
+
+/**
  * Loads the companion file baked alongside a multi-dim data page (see
- * getMultiDimPageCompanion in the baker). Returns undefined if the file
- * doesn't exist or can't be loaded.
+ * getMultiDimPageCompanion in the baker).
  */
 export type MdimCompanionLoader = () => Promise<
     MultiDimPageCompanion | undefined
@@ -457,8 +483,10 @@ export function rewriteMetaTags(
                 )
                 if (dimensionsAttr) {
                     try {
+                        // HTMLRewriter doesn't un-encode HTML entities in
+                        // attribute values
                         mdimDimensionsObj = JSON.parse(
-                            decodeReactEscapedAttribute(dimensionsAttr)
+                            decodeHTML(dimensionsAttr)
                         ) as Record<string, string>
                     } catch (e) {
                         console.error("Error parsing dimensions JSON", e)
@@ -487,17 +515,22 @@ export function rewriteMetaTags(
                 }
                 if (!companion) return
 
-                const view = companion.views?.[mdimViewQueryStr]
-                if (!view) {
-                    // The dimension params don't resolve to an existing view;
+                const resolved = resolveMdimViewFromCompanion(
+                    companion,
+                    url.searchParams,
+                    mdimDimensionsObj
+                )
+                if (!resolved) {
+                    // No existing view matches the specified dimensions;
                     // canonicalize to the default view instead of advertising
                     // a nonexistent dimension combination.
                     mdimViewQueryStr =
                         multiDimDimensionsToViewQueryStr(mdimDimensionsObj)
                     return
                 }
+                mdimViewQueryStr = resolved.viewQueryStr
                 if (companion.title) {
-                    mdimViewTitle = `${view.title} | ${companion.title}`
+                    mdimViewTitle = `${resolved.view.title} | ${companion.title}`
                 }
             },
         })
