@@ -104,7 +104,7 @@ import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { Operation } from "../adminShared/SqlFilterSExpression.js"
 import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.js"
 import { SortableList } from "./SortableList.js"
-import { Button } from "antd"
+import { Button, Tabs as AntdTabs } from "antd"
 
 type Disposer = () => void
 
@@ -1257,27 +1257,20 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             return (
                 <div className="VariablesAnnotationPage">
                     <div className="sidebar">
-                        <div className="p-2">
-                            <ul className="nav nav-tabs">
-                                {ALL_TABS.map((tab) => (
-                                    <li key={tab} className="nav-item">
-                                        <a
-                                            className={
-                                                "nav-link" +
-                                                (tab === activeTab
-                                                    ? " active"
-                                                    : "")
-                                            }
-                                            onClick={action(
-                                                () => (this.activeTab = tab)
-                                            )}
-                                        >
-                                            {tab}
-                                        </a>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
+                        {/* Tab bar only: the panes stay where they are, as
+                            direct children of `.sidebar-content`, which sizes
+                            them (and the preview area below them) with flex. */}
+                        <AntdTabs
+                            className="VariablesAnnotationPage__tabs"
+                            activeKey={activeTab}
+                            onChange={action(
+                                (key: string) => (this.activeTab = key as Tabs)
+                            )}
+                            items={ALL_TABS.map((tab) => ({
+                                key: tab,
+                                label: tab,
+                            }))}
+                        />
                         <div className="sidebar-content">
                             {match(activeTab)
                                 .with(Tabs.EditorTab, () =>

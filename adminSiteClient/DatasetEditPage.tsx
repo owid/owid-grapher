@@ -39,7 +39,7 @@ import {
     faMagnifyingGlass,
     faChartColumn,
 } from "@fortawesome/free-solid-svg-icons"
-import { Button, Divider, Space, Typography } from "antd"
+import { Button, Divider, Space, Tabs, Typography } from "antd"
 
 interface ExplorerListItem {
     slug: string
@@ -580,12 +580,12 @@ class DatasetEditor extends Component<DatasetEditorProps> {
         )
     }
 
-    renderTabContent() {
+    renderTabContent(tab: string) {
         const { dataset } = this.props
-        const { newDataset, activeTab, searchInput, filteredVariables } = this
+        const { newDataset, searchInput, filteredVariables } = this
         const highlight = highlightFunctionForSearchWords(this.searchWords)
 
-        switch (activeTab) {
+        switch (tab) {
             case "metadata":
                 return (
                     <section>
@@ -937,29 +937,19 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                     </Space>
                 </section>
 
-                {/* TAB NAVIGATION */}
-                <div className="mt-4">
-                    <ul className="nav nav-tabs">
-                        {tabs.map((tab) => (
-                            <li key={tab.key} className="nav-item">
-                                <a
-                                    className={
-                                        "nav-link" +
-                                        (tab.key === activeTab ? " active" : "")
-                                    }
-                                    onClick={() => this.onTabChange(tab.key)}
-                                >
-                                    {tab.label}
-                                </a>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-
-                {/* TAB CONTENT */}
-                <div className="tab-content mt-3">
-                    {this.renderTabContent()}
-                </div>
+                <Tabs
+                    className="mt-4"
+                    activeKey={activeTab}
+                    onChange={this.onTabChange}
+                    // Matches how the tab strip has always behaved: only the
+                    // active tab is mounted.
+                    destroyOnHidden
+                    items={tabs.map((tab) => ({
+                        key: tab.key,
+                        label: tab.label,
+                        children: this.renderTabContent(tab.key),
+                    }))}
+                />
             </main>
         )
     }

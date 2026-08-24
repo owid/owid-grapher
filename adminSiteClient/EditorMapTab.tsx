@@ -346,7 +346,7 @@ export class EditorMapTab<Editor extends AbstractChartEditor> extends Component<
         const isReady = !!mapColumnSlug && grapherState.table.has(mapColumnSlug)
 
         return (
-            <div className="EditorMapTab tab-pane">
+            <div className="EditorMapTab">
                 <VariableSection
                     mapConfig={mapConfig}
                     filledDimensions={grapherState.filledDimensions}

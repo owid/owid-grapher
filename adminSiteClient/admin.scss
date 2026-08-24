@@ -233,68 +233,18 @@ button {
     }
 }
 
-.ChartEditorPage {
-    display: flex;
-    flex-grow: 1;
+// The bulk editor's sidebar uses an antd `Tabs` as a tab bar only — its panes
+// are rendered as siblings, below, so that `.sidebar-content`'s flex sizing
+// still reaches them. Hide the empty content area antd renders anyway.
+.VariablesAnnotationPage__tabs {
+    padding: 0.5rem 0.5rem 0;
 
-    .form-group > label {
+    > .ant-tabs-nav {
         margin-bottom: 0;
     }
 
-    .nav-tabs :not(.active).nav-link {
-        background: #f9f9f9;
-    }
-
-    .nav-tabs .nav-link {
-        color: inherit;
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-    }
-
-    > .chart-editor-settings {
-        min-width: 550px;
-        width: 550px;
-        min-height: 100%;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-    .innerForm {
-        overflow-y: scroll;
-        flex-grow: 1;
-    }
-
-    > .chart-editor-view {
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-
-        a.preview {
-            position: absolute;
-            top: 8px;
-            right: 16px;
-        }
-    }
-
-    section {
-        padding: 1.2em;
-        border-radius: 0.4em;
-        margin-bottom: 1.2em;
-        background-color: #f9f9f9;
-
-        > h5 {
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #ccc;
-        }
-    }
-
-    figure[data-grapher-src],
-    figure.grapher-component {
-        line-height: 0; // remove extra space on the bottom
+    > .ant-tabs-content-holder {
+        display: none;
     }
 }
 
