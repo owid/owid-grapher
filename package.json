@@ -109,7 +109,7 @@
         "d3": "^7.9.0",
         "dayjs": "^1.11.21",
         "dotenv": "^17.4.2",
-        "entities": "^7.0.1",
+        "entities": "^8.0.0",
         "es-cookie": "^1.5.0",
         "express": "^5.2.1",
         "figma-api": "^2.2.1-beta",

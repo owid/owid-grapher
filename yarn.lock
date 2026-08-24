@@ -8187,6 +8187,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"entities@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "entities@npm:8.0.0"
+  checksum: 10/d6e2ba75e444fb101ee2fbb07c839e687306c8a509426b75186619c19196f97c1db9932ca083f823c03e4a20e7407b654aa34de8cbb7770468e20fb2d4573a0e
+  languageName: node
+  linkType: hard
+
 "env-paths@npm:^2.2.0":
   version: 2.2.1
   resolution: "env-paths@npm:2.2.1"
@@ -9216,7 +9223,7 @@ __metadata:
     d3: "npm:^7.9.0"
     dayjs: "npm:^1.11.21"
     dotenv: "npm:^17.4.2"
-    entities: "npm:^7.0.1"
+    entities: "npm:^8.0.0"
     es-cookie: "npm:^1.5.0"
     eslint: "npm:^10.0.3"
     eslint-plugin-import-x: "npm:^4.16.2"
