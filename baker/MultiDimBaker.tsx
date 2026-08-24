@@ -360,7 +360,10 @@ export const bakeMultiDimDataPage = async (
         bakedSiteDir,
         `grapher/${slug}${MDIM_COMPANION_FILE_SUFFIX}`
     )
-    await fs.writeFile(companionPath, JSON.stringify(companion))
+    // Stable stringify so that unchanged content produces a byte-identical
+    // file, keeping the asset's content hash (and thus its ETag and cache
+    // entries) stable across bakes.
+    await fs.writeFile(companionPath, stringify(companion))
 }
 
 export const bakeAllMultiDimDataPages = async (
