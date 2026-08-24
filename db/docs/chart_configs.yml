@@ -5,7 +5,7 @@ metadata:
     Every row holds exactly one config, in the `config` column. What a row *means* is decided by the foreign key that points at it, not by anything on the row: a `configId`/`chartConfigId` names the config that renders, a `patchConfigId` names an authored layer that gets merged into one. Nothing on the row itself distinguishes them, so **always reach a config through its owner** — a query that starts `FROM chart_configs` (matching on `slug`, say) will match both a chart's rendered config and its patch.
 
     Here are some kinds of entities in our DB that reference rows in this table:
-    - Standalone charts, shown on our website at https://ourworldindata.org/grapher/SLUG, stored in the charts table (configId = rendered, patchConfigId = editor-authored layer)
+    - Standalone charts, shown on our website at https://ourworldindata.org/grapher/SLUG, stored in the charts table (configId = rendered, patchConfigId = editor-authored layer, patchConfigIdETL = the chart's ETL-authored layer, if any)
     - Multi-dim charts, shown also at https://ourworldindata.org/grapher/SLUG, stored in the multi_dim_x_chart_configs table (chartConfigId only — the authored layer is derived from multi_dim_data_pages.config, not stored)
     - Narrative charts, shown only as embedded views in articles and that are based on parent standalone charts, stored in the narrative_charts table (chartConfigId = rendered, patchConfigId = editor-authored layer)
     - Explorer views, stored in the explorer_views table (chartConfigId only — the config is generated whole, there is no authored layer)
@@ -20,6 +20,8 @@ metadata:
       column: configId
     - table: charts
       column: patchConfigId
+    - table: charts
+      column: patchConfigIdETL
     - table: explorer_views
       column: chartConfigId
     - table: multi_dim_redirects

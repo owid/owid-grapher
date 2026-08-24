@@ -182,15 +182,20 @@ export interface UpdatedChartInheritanceRecord {
     isPublished: boolean
 }
 
+interface ChartInheritanceRecordWithEtlConfig extends UpdatedChartInheritanceRecord {
+    patchConfigETL: GrapherInterface | null
+}
+
 async function findAllChartsThatInheritFromIndicator(
     trx: db.KnexReadonlyTransaction,
     variableId: number
-): Promise<UpdatedChartInheritanceRecord[]> {
+): Promise<ChartInheritanceRecordWithEtlConfig[]> {
     const charts = await db.knexRaw<{
         chartId: DbPlainChart["id"]
         chartConfigId: DbRawChartConfig["id"]
         patchConfig: DbRawChartConfig["config"]
-        isPublished: boolean
+        patchConfigETL: DbRawChartConfig["config"] | null
+        isPublished: number
     }>(
         trx,
         `-- sql
@@ -198,10 +203,12 @@ async function findAllChartsThatInheritFromIndicator(
                 c.id as chartId,
                 cc.id as chartConfigId,
                 cc_patch.config as patchConfig,
+                cc_etl.config as patchConfigETL,
                 cc.config ->> "$.isPublished" = "true" as isPublished
             FROM charts c
                 JOIN chart_configs cc ON cc.id = c.configId
                 JOIN chart_configs cc_patch ON cc_patch.id = c.patchConfigId
+                LEFT JOIN chart_configs cc_etl ON cc_etl.id = c.patchConfigIdETL
                 JOIN charts_x_parents cxp ON c.id = cxp.chartId
             WHERE
                 c.isInheritanceEnabled IS TRUE
@@ -213,6 +220,9 @@ async function findAllChartsThatInheritFromIndicator(
         chartId: chart.chartId,
         chartConfigId: chart.chartConfigId,
         patchConfig: parseChartConfig(chart.patchConfig),
+        patchConfigETL: chart.patchConfigETL
+            ? parseChartConfig(chart.patchConfigETL)
+            : null,
         isPublished: Boolean(chart.isPublished),
     }))
 }
@@ -231,6 +241,7 @@ export async function updateAllChartsThatInheritFromIndicator(
     for (const chart of inheritingCharts) {
         const fullConfig = mergeGrapherConfigs(
             patchConfigETL ?? {},
+            chart.patchConfigETL ?? {},
             chart.patchConfig
         )
         await db.knexRaw(
@@ -253,20 +264,27 @@ export async function updateAllChartsThatInheritFromIndicator(
         )
     }
 
-    // let the caller know if any charts were updated
-    return inheritingCharts
+    // strip the internal patchConfigETL field before returning to callers
+    return inheritingCharts.map(
+        ({ chartId, chartConfigId, patchConfig, isPublished }) => ({
+            chartId,
+            chartConfigId,
+            patchConfig,
+            isPublished,
+        })
+    )
+}
+
+interface MultiDimViewInheritanceRecord {
+    chartConfigId: string
+    patchConfig: GrapherInterface
+    isPublished: boolean
 }
 
 async function findAllMultiDimViewsThatInheritFromIndicator(
     trx: db.KnexReadonlyTransaction,
     variableId: number
-): Promise<
-    {
-        chartConfigId: string
-        patchConfig: GrapherInterface
-        isPublished: boolean
-    }[]
-> {
+): Promise<MultiDimViewInheritanceRecord[]> {
     const rows = await trx<DbPlainMultiDimXChartConfig>(
         MultiDimXChartConfigsTableName
     )
@@ -301,13 +319,7 @@ export async function updateAllMultiDimViewsThatInheritFromIndicator(
     variableId: number,
     patchConfigETL: GrapherInterface | undefined,
     updatedAt: Date
-): Promise<
-    {
-        chartConfigId: string
-        patchConfig: GrapherInterface
-        isPublished: boolean
-    }[]
-> {
+): Promise<MultiDimViewInheritanceRecord[]> {
     const inheritingViews = await findAllMultiDimViewsThatInheritFromIndicator(
         trx,
         variableId
@@ -325,7 +337,6 @@ export async function updateAllMultiDimViewsThatInheritFromIndicator(
         })
     }
 
-    // let the caller know if any views were updated
     return inheritingViews
 }
 
