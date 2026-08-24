@@ -63,6 +63,9 @@ playwright-report/
 # Claude
 .claude/settings.local.json
 
+# Plans
+/plans/
+
 # Auto Claude
 .auto-claude/
 .auto-claude-security.json
