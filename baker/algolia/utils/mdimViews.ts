@@ -22,13 +22,13 @@ import {
 import { createMultiDimIndexingContext } from "./context.js"
 import { attributeLinksToViewIds } from "./mdimViewsLogic.js"
 import {
+    getMultiDimViewTitle,
     getRelevantIndicatorIds,
     getRelevantIndicatorMetadata,
 } from "../../MultiDimBaker.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import {
     computeRecordScore,
-    getMultiDimViewTitle,
     parseJsonStringArray,
     uniqNonEmptyStrings,
 } from "./shared.js"

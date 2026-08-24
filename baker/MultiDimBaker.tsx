@@ -6,6 +6,7 @@ import ProgressBar from "progress"
 import { stringify } from "safe-stable-stringify"
 import {
     ImageMetadata,
+    GrapherInterface,
     MultiDimDataPageConfigPreProcessed,
     MultiDimDataPageProps,
     FaqEntryKeyedByGdocIdAndFragmentId,
@@ -58,7 +59,7 @@ import {
     getChartConfigByUuid,
     getChartConfigsByUuids,
 } from "../db/model/ChartConfigs.js"
-import { getMultiDimViewTitle } from "./algolia/utils/shared.js"
+import { maybeAddChangeInPrefix } from "./algolia/utils/shared.js"
 
 const getLatestMultiDimArchivedVersionsIfEnabled = async (
     knex: db.KnexReadonlyTransaction,
@@ -131,10 +132,35 @@ const getFaqEntries = async (
 }
 
 /**
+ * The effective grapher title of a multi-dim view, resolved from its merged
+ * metadata (variable metadata + mdim-level and view-level overrides) and its
+ * full chart config. Shared between the Algolia mdim view records and the
+ * companion file baked alongside multi-dim pages, so search records and the
+ * page titles served to search engines always agree.
+ */
+export function getMultiDimViewTitle(
+    metadata: {
+        name?: string
+        display?: { name?: string } | null
+        presentation?: { titlePublic?: string } | null
+    },
+    chartConfig: GrapherInterface | undefined,
+    grapherState: GrapherState | undefined
+): string {
+    return maybeAddChangeInPrefix(
+        metadata.presentation?.titlePublic ||
+            chartConfig?.title ||
+            metadata.display?.name ||
+            metadata.name ||
+            "",
+        grapherState?.shouldAddChangeInPrefixToTitle ?? false
+    )
+}
+
+/**
  * Build the companion JSON file that gets baked alongside the multi-dim page
  * and is read by the Cloudflare Function serving /grapher/[slug] (see
- * rewriteMetaTags). It currently holds the page title and the effective
- * grapher title of every view.
+ * rewriteMetaTags).
  */
 export async function getMultiDimPageCompanion(
     knex: db.KnexReadonlyTransaction,
@@ -391,6 +417,17 @@ export const bakeAllMultiDimDataPages = async (
             renderThrottle: 0,
         }
     )
+    // Delete all companion files up front so stale ones — including those of
+    // slugs that were taken over by a regular chart, whose .html
+    // deleteOldGraphers won't remove — don't linger; the bake below recreates
+    // them for all published multi-dim pages.
+    const companionPaths = fs.globSync(
+        `${bakedSiteDir}/grapher/*${MDIM_COMPANION_FILE_SUFFIX}`
+    )
+    await Promise.all(
+        companionPaths.map((companionPath) => fs.remove(companionPath))
+    )
+
     for (const [slug, row] of multiDimsBySlug.entries()) {
         await bakeMultiDimDataPage(
             knex,
@@ -401,21 +438,6 @@ export const bakeAllMultiDimDataPages = async (
             archivedVersions[row.id]
         )
         progressBar.tick({ name: slug })
-    }
-    // Delete companion files of pages that are no longer published multi-dim
-    // pages — including slugs that were taken over by a regular chart, whose
-    // .html deleteOldGraphers won't remove.
-    const companionPaths = fs.globSync(
-        `${bakedSiteDir}/grapher/*${MDIM_COMPANION_FILE_SUFFIX}`
-    )
-    for (const companionPath of companionPaths) {
-        const slug = path
-            .basename(companionPath)
-            .slice(0, -MDIM_COMPANION_FILE_SUFFIX.length)
-        if (!multiDimsBySlug.has(slug)) {
-            console.log(`DELETING ${companionPath}`)
-            await fs.remove(companionPath)
-        }
     }
 
     const publishedSlugs = multiDimsBySlug.keys()

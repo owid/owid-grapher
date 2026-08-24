@@ -3,6 +3,7 @@
     "include": ["/*"],
     "exclude": [
         "/grapher/_grapherRedirects.json",
+        "/grapher/*.mdim.json",
         "/explorers/_explorerRedirects.json",
         "/topicTagGraph.json",
         "/dods.json",
