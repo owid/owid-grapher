@@ -108,7 +108,7 @@ function extractPageBits(html: string) {
 describe("multi-dim meta tag rewriting", () => {
     beforeAll(async () => {
         worker = await unstable_startWorker({
-            config: "./functions/test/wrangler.e2e.jsonc",
+            config: "./functions/test/wrangler.mdim.e2e.jsonc",
             dev: { logLevel: "none" },
         })
     })
@@ -222,7 +222,7 @@ describe("full /grapher/[slug] request flow with a companion file", () => {
 
     beforeAll(async () => {
         worker = await unstable_startWorker({
-            config: "./functions/test/wrangler.e2e.jsonc",
+            config: "./functions/test/wrangler.mdim.e2e.jsonc",
             dev: { logLevel: "none" },
         })
         await workerFetch("/__test__/seed-asset", {
