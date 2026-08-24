@@ -1,0 +1,23 @@
+// Styles for the chart editor's customize tab, moved out of `admin.scss`.
+
+// Make the x/y dropdown in the comparison line editor narrow
+.comparisonLine .form-field:first-of-type {
+    flex-grow: 0;
+    flex-basis: 65px;
+}
+
+.dumbbell-trend-colors {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .dumbbell-trend-colors__invert {
+        margin-left: auto;
+    }
+
+    .dumbbell-trend-colors__invert-icon {
+        position: relative;
+        top: 1px;
+        margin-right: 6px;
+    }
+}

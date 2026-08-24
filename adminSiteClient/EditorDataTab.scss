@@ -82,3 +82,19 @@
         margin-top: 0.75rem;
     }
 }
+
+// The rows of the "data to show" list, moved out of `admin.scss`.
+.ListItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    > div {
+        display: flex;
+        align-items: center;
+    }
+
+    &.invalid {
+        background: #fce9e6;
+    }
+}

@@ -147,3 +147,99 @@
         }
     }
 }
+
+// Blocks below moved out of `admin.scss` when the chart editor was migrated;
+// they all style components that live in `Forms.tsx`.
+.EditableListItem {
+    @extend .draggable;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    > div {
+        display: flex;
+        align-items: center;
+    }
+
+    i {
+        font-size: 1.2rem;
+        color: #666;
+    }
+
+    > div:first-child > * {
+        margin-right: 12px;
+    }
+}
+
+.FieldsRow {
+    display: flex;
+    align-items: center;
+    margin: 0 0 1em;
+
+    > * {
+        padding-right: 1rem;
+        margin-bottom: 0 !important;
+        flex-grow: 1;
+        flex-basis: 0;
+    }
+}
+
+.WithResetButton {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    .form-field {
+        margin-bottom: 0;
+        width: 100%;
+    }
+
+    .ResetToDefaultButton {
+        height: auto;
+        padding: 0;
+        font-size: 0.8em;
+        color: inherit;
+
+        &:disabled {
+            font-style: italic;
+        }
+
+        &:not(:disabled) {
+            text-decoration: underline;
+        }
+
+        &:hover {
+            text-decoration: none;
+        }
+    }
+}
+
+.ColorBox {
+    width: 2em;
+    height: 2em;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.colorpicker-tooltip {
+    .tippy-content {
+        padding: 0;
+    }
+}
+
+.LoadingBlocker {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    color: white;
+    align-items: center;
+    justify-content: center;
+}

@@ -68,6 +68,16 @@
     }
 }
 
+// Three of the tabs want a little air under their labels; the rest sit tight
+// against their control.
+.EditorScatterTab,
+.EditorMarimekkoTab,
+.EditorDataTab {
+    .form-field__label {
+        margin-bottom: 0.3rem;
+    }
+}
+
 // The form column inside the active tab pane. Used to be a Bootstrap
 // `.container`, which in this column amounted to its 15px horizontal padding.
 .ChartEditorPage .innerForm {

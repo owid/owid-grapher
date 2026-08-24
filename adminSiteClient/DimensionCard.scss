@@ -1,0 +1,36 @@
+// Styles for the indicator cards in the chart editor's basic tab, moved out
+// of `admin.scss`. Kept under `.EditorBasicTab` — the only place the card is
+// rendered — so that the specificity against `.editable-list__item` is the same
+// as it has always been.
+.EditorBasicTab {
+    .DimensionCard {
+        header {
+            display: flex;
+            color: #666;
+            align-items: center;
+            text-align: center;
+            gap: 1em;
+            justify-content: space-between;
+
+            > div {
+                display: flex;
+                align-items: center;
+                gap: 0.5em;
+            }
+        }
+
+        > div {
+            margin: 1em 0;
+        }
+
+        .dimensionLink {
+            color: inherit;
+            text-decoration: underline;
+            text-decoration-color: rgba(0, 0, 0, 0.2);
+
+            &:hover {
+                text-decoration-color: inherit;
+            }
+        }
+    }
+}
