@@ -6605,15 +6605,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.15.2, axios@npm:^1.7.5":
-  version: 1.18.1
-  resolution: "axios@npm:1.18.1"
+"axios@npm:^1.18.1, axios@npm:^1.7.5":
+  version: 1.19.0
+  resolution: "axios@npm:1.19.0"
   dependencies:
     follow-redirects: "npm:^1.16.0"
-    form-data: "npm:^4.0.5"
+    form-data: "npm:^4.0.6"
     https-proxy-agent: "npm:^5.0.1"
     proxy-from-env: "npm:^2.1.0"
-  checksum: 10/c4cdced3ee0a9bf7dcae189fbc74a124aa079d4f04dbd995e602d39c1419476e8d021f87ee39ac8d8398e5a55e6d0b986238b3645f0d9177ac80de87c2a73f18
+  checksum: 10/d27e263b003f2dc1e6d0e2ab062dbc7c2b15668c25723e1e2072f139505c1fbd1f8cffef77d5ec05bb8e3cefa6fc5325c6446e747669fd95d85519529fa0db0b
   languageName: node
   linkType: hard
 
@@ -8706,13 +8706,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"figma-api@npm:^2.2.0-beta":
-  version: 2.2.0-beta
-  resolution: "figma-api@npm:2.2.0-beta"
+"figma-api@npm:^2.2.1-beta":
+  version: 2.2.1-beta
+  resolution: "figma-api@npm:2.2.1-beta"
   dependencies:
     "@figma/rest-api-spec": "npm:>=0.37.0 <1.0.0"
-    axios: "npm:^1.15.2"
-  checksum: 10/573875ed12f59bf0e3c5876ed0bc26b30be55281b945dd87b0ebb86ac4ba2a492f905f88a909e8917a398c642a566ec04c362fe5a082182cabdb6bafc54a5866
+    axios: "npm:^1.18.1"
+  checksum: 10/6547795d91afdf423673b97a4d3ac5afcec4f96508ab0f157318a0da14180467c8923ef892472db91fc159f9f8b2db45088987c7977e7c97bf75e92f2351037d
   languageName: node
   linkType: hard
 
@@ -8833,7 +8833,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"form-data@npm:^4.0.5":
+"form-data@npm:^4.0.6":
   version: 4.0.6
   resolution: "form-data@npm:4.0.6"
   dependencies:
@@ -9222,7 +9222,7 @@ __metadata:
     eslint-plugin-import-x: "npm:^4.16.2"
     eslint-plugin-mobx: "npm:^0.0.14"
     express: "npm:^5.2.1"
-    figma-api: "npm:^2.2.0-beta"
+    figma-api: "npm:^2.2.1-beta"
     filenamify: "npm:^7.0.1"
     flag-icons: "npm:^7.5.0"
     fs-extra: "npm:^11.3.4"
