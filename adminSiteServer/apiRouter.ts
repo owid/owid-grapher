@@ -151,7 +151,7 @@ import {
     getChartTagsJson,
     getChartRecordsJson,
     putChartsChartIdEtlConfig,
-    putChartsByConfigIdEtlConfig,
+    upsertEtlConfigByChartConfigId,
     deleteChartsChartIdEtlConfig,
 } from "./apiRoutes/charts.js"
 import { getChartConfig } from "./apiRoutes/chartConfigs.js"
@@ -275,7 +275,7 @@ deleteRouteWithRWTransaction(
 putRouteWithRWTransaction(
     apiRouter,
     "/charts/by-config/:chartConfigId/etlConfig",
-    putChartsByConfigIdEtlConfig
+    upsertEtlConfigByChartConfigId
 )
 
 // Chart config routes

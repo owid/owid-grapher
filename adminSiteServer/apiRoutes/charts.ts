@@ -1037,7 +1037,9 @@ export async function putChartsChartIdEtlConfig(
 ) {
     const chartId = await expectChartId(trx, req.params.chartId)
 
-    // ETL's stable identity for this chart (mirrors `multi_dim_data_pages.catalogPath`).
+    // The ETL step that currently owns this chart (mirrors
+    // `multi_dim_data_pages.catalogPath`). Not an identifier — the chart's
+    // identity is its config UUID — and free to change when a step moves.
     // Optional so other callers don't clobber it; persisted via COALESCE below.
     const catalogPath = (req.query.catalogPath as string | undefined) ?? null
 
@@ -1069,7 +1071,7 @@ export async function putChartsChartIdEtlConfig(
  * patch at creation (matching admin-created charts). Created charts are
  * drafts — publishing stays an admin act via the regular chart API.
  */
-export async function putChartsByConfigIdEtlConfig(
+export async function upsertEtlConfigByChartConfigId(
     req: Request,
     res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
@@ -1087,20 +1089,21 @@ export async function putChartsByConfigIdEtlConfig(
         return { success: false, error: String(err) }
     }
 
-    let chartId = await getChartIdByConfigId(trx, chartConfigId)
-    const created = chartId === undefined
+    const existingChartId = await getChartIdByConfigId(trx, chartConfigId)
+    const created = existingChartId === undefined
 
-    if (chartId === undefined) {
-        const { chartId: newChartId } = await saveGrapher(trx, {
-            user: res.locals.user,
-            newConfig: {
-                $schema: defaultGrapherConfig.$schema,
-                slug: etlConfig.slug,
-            },
-            chartConfigId,
-        })
-        chartId = newChartId
-    }
+    const chartId =
+        existingChartId ??
+        (
+            await saveGrapher(trx, {
+                user: res.locals.user,
+                newConfig: {
+                    $schema: defaultGrapherConfig.$schema,
+                    slug: etlConfig.slug,
+                },
+                chartConfigId,
+            })
+        ).chartId
 
     const result = await upsertEtlConfigForChart(
         trx,
@@ -1151,25 +1154,17 @@ async function upsertEtlConfigForChart(
         throw new JsonError(`Chart with id ${chartId} not found`, 404)
     }
 
-    // Guard against pushing ETL content to the wrong chart. A chart's catalog
-    // path is its stable ETL identity; if the incoming push carries a
-    // different one than we've already recorded, that almost always means the
-    // config UUID used to address this chart is stale or wrong on the ETL
-    // side. Refuse rather than silently stamping unrelated content onto it —
-    // and while `charts.catalogPath` has a unique DB index, checking here
-    // first turns a raw duplicate-key failure into a clear, actionable error
-    // before any other writes happen. A chart with no catalog path yet is
-    // free to adopt one for the first time.
+    // A chart's identity is its config UUID, which never changes. `catalogPath`
+    // records which ETL step currently owns the chart, and that can legitimately
+    // change — a step gets renamed or moved — so a push carrying a different
+    // path than we've recorded simply updates it. It stays useful to the ETL as
+    // a sanity check on whether a chart has already been adopted, not as an
+    // identifier to resolve charts by.
+    //
+    // The one thing still worth refusing is handing a path to a second chart:
+    // `charts.catalogPath` has a unique DB index, and checking here turns a raw
+    // duplicate-key failure into a clear error before any other writes happen.
     if (catalogPath && row.catalogPath !== catalogPath) {
-        if (row.catalogPath) {
-            throw new JsonError(
-                `Chart ${chartId} already belongs to catalog path '${row.catalogPath}'; ` +
-                    `refusing to overwrite it with '${catalogPath}'. If this chart's ` +
-                    `identity is stale or wrong, fix it on the ETL side rather than ` +
-                    `pushing over it.`,
-                409
-            )
-        }
         const conflictingChart = await db.knexRawFirst<
             Pick<DbPlainChart, "id">
         >(
@@ -1265,7 +1260,7 @@ async function upsertEtlConfigForChart(
     //     admin override): `full` is identical, but if we don't store the
     //     reduced patch, that stale entry would mask future ETL updates to a
     //     field ETL now owns.
-    //   - A newly-supplied `catalogPath`, which still needs backfilling onto a
+    //   - A new or changed `catalogPath`, which still needs writing onto a
     //     chart that already has a `patchConfigIdETL` (the catalogPath writes
     //     below this point would otherwise be skipped).
     if (!fullChanged) {

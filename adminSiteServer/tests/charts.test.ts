@@ -1909,7 +1909,10 @@ describe("ETL config upsert by config UUID", { timeout: 15000 }, () => {
         expect(response.status).toBe(400)
     })
 
-    it("rejects a push whose catalogPath doesn't match the chart's existing one", async () => {
+    it("updates a chart's catalogPath when the ETL step that owns it moves", async () => {
+        // The chart is identified by its config UUID, which never changes. The
+        // catalog path just records which step owns it, so a renamed or moved
+        // step is an ordinary update, not a conflict.
         const chartConfigId = uuidv7()
         const first = await env.request({
             method: "PUT",
@@ -1918,20 +1921,28 @@ describe("ETL config upsert by config UUID", { timeout: 15000 }, () => {
         })
         expect(first.success).toBe(true)
 
-        const response = await rawRequest({
+        const second = await env.request({
             method: "PUT",
             path: `/charts/by-config/${chartConfigId}/etlConfig?catalogPath=grapher/second/latest/second%23chart`,
             body: JSON.stringify({
                 ...testEtlConfig,
-                subtitle: "Should not be written",
+                subtitle: "Written to the same chart",
             }),
         })
-        expect(response.status).toBe(409)
+        expect(second.success).toBe(true)
+        // same chart, not a new one
+        expect(second.chartId).toBe(first.chartId)
+
+        const chartRow = await env
+            .testKnex(ChartsTableName)
+            .where("id", first.chartId)
+            .first()
+        expect(chartRow.catalogPath).toBe("grapher/second/latest/second#chart")
 
         const fullConfig = await env.fetchJson(
             `/charts/${first.chartId}.config.json`
         )
-        expect(fullConfig.subtitle).toBeUndefined()
+        expect(fullConfig.subtitle).toBe("Written to the same chart")
     })
 
     it("rejects assigning a catalogPath that already belongs to a different chart", async () => {
@@ -1959,7 +1970,8 @@ describe("ETL config upsert by config UUID", { timeout: 15000 }, () => {
         // Simulates the ETL forgetting the config UUID it already minted for a
         // chart (e.g. a caching bug) and generating a fresh one on a re-run
         // that should have updated the same chart. The push still carries the
-        // correct (matching) catalogPath, which is what the guard catches.
+        // correct catalogPath, which is already owned by the original chart —
+        // the uniqueness guard is what catches this.
         const sharedCatalogPath = "grapher/reused/latest/reused%23chart"
 
         const first = await env.request({
