@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { App, ConfigProvider, ThemeConfig } from "antd"
 import * as React from "react"
 import { Admin } from "./Admin.js"
+import { setAdminAppInstances } from "./adminAppInstances.js"
 import { ChartEditorPage } from "./ChartEditorPage.js"
 import { action } from "mobx"
 import { observer } from "mobx-react"
@@ -128,6 +129,18 @@ class AdminErrorMessage extends React.Component<{ admin: Admin }> {
     }
 }
 
+/**
+ * Renders nothing. Lifts the `message` / `notification` / `modal` instances
+ * antd's `<App>` provides into module scope, so that MobX class components —
+ * which can't call `App.useApp()` themselves — can still raise notifications
+ * that pick up the `<ConfigProvider>` theme. Must be rendered inside `<App>`,
+ * and above everything that uses them.
+ */
+function AdminAppInstancesBridge(): null {
+    setAdminAppInstances(App.useApp())
+    return null
+}
+
 @observer
 class AdminLoader extends React.Component<{ admin: Admin }> {
     override render(): React.ReactElement | null {
@@ -155,6 +168,7 @@ export class AdminApp extends React.Component<{
                 the admin and break the `height: 100%` chain from `#app`
                 down to `.AdminApp`. We only want the context it provides. */}
                 <App component={false}>
+                    <AdminAppInstancesBridge />
                     <QueryClientProvider client={queryClient}>
                         <AdminAppContext.Provider value={this.childContext}>
                             <Router basename={admin.basePath}>

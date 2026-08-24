@@ -1,15 +1,8 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import * as React from "react"
-import {
-    Button,
-    Flex,
-    Input,
-    Modal,
-    Space,
-    Table,
-    TableColumnsType,
-} from "antd"
+import { Button, Flex, Input, Space, Table, TableColumnsType } from "antd"
 
+import { modal } from "../adminAppInstances.js"
 import { AdminLayout } from "../AdminLayout.js"
 import { AdminAppContext } from "../AdminAppContext.js"
 import { Timeago } from "../Forms.js"
@@ -130,7 +123,7 @@ export function SlideshowsIndexPage() {
 
     const deleteFn = useCallback(
         (slideshowId: number) => {
-            Modal.confirm({
+            modal.confirm({
                 title: "Delete this entire slideshow?",
                 content:
                     "All slides in this deck will be permanently deleted. This cannot be undone.",

@@ -1,4 +1,5 @@
-import { Badge, Button, Modal, Space } from "antd"
+import { Badge, Button, Space } from "antd"
+import { modal } from "./adminAppInstances.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faExclamationTriangle,
@@ -40,7 +41,7 @@ export const GdocsSaveButtons = ({
         const widthModal = hasChanges ? { width: "80vw" } : {}
         const centeredModal = hasChanges ? { centered: true } : {}
 
-        Modal.confirm({
+        modal.confirm({
             title: `Are you sure you want to publish ${
                 hasChanges ? "these changes" : "this article"
             }?`,
