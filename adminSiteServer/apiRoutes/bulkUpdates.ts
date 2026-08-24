@@ -141,7 +141,7 @@ export async function getVariableAnnotations(
     trx: db.KnexReadonlyTransaction
 ): Promise<BulkGrapherConfigResponse<VariableAnnotationsResponseRow>> {
     const context: OperationContext = {
-        grapherConfigFieldName: "grapherConfigAdmin",
+        grapherConfigFieldName: "chart_configs.patch",
         whitelistedColumnNamesAndTypes:
             variableAnnotationAllowedColumnNamesAndTypes,
     }
