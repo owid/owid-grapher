@@ -8,6 +8,7 @@ import {
     getCountryNamesForRegion,
     getRegionPublishers,
     articulateEntity,
+    parseRegionNameSuffix,
 } from "./regionsUtils.js"
 
 it("getCountryBySlug", () => {
@@ -131,5 +132,37 @@ describe(getRegionPublishers, () => {
 
         // "European Union (27)" is an aggregate with no `definedBy`, so it has no publisher
         expect(keys).not.toContain("27")
+    })
+})
+
+describe(parseRegionNameSuffix, () => {
+    it("splits off the last parenthetical", () => {
+        expect(parseRegionNameSuffix("Africa (WHO)")).toEqual({
+            name: "Africa",
+            suffix: "WHO",
+            publisherKey: "who",
+        })
+        expect(parseRegionNameSuffix("Africa (non-OECD) (IHME GBD)")).toEqual({
+            name: "Africa (non-OECD)",
+            suffix: "IHME GBD",
+            publisherKey: "ihme_gbd",
+        })
+        expect(parseRegionNameSuffix("Africa (PIP) ")).toMatchObject({
+            name: "Africa",
+            suffix: "PIP",
+        })
+    })
+
+    it("requires a non-empty suffix in trailing parens, preceded by a space", () => {
+        expect(parseRegionNameSuffix("United States")).toEqual(undefined)
+        expect(parseRegionNameSuffix("(WHO)")).toEqual(undefined)
+        expect(parseRegionNameSuffix("Africa ()")).toEqual(undefined)
+        // no space before the parenthesis
+        expect(parseRegionNameSuffix("Africa(WHO)")).toEqual(undefined)
+        // extra whitespace before the parenthesis is not kept in the name
+        expect(parseRegionNameSuffix("Africa  (WHO)")).toMatchObject({
+            name: "Africa",
+            suffix: "WHO",
+        })
     })
 })

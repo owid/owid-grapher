@@ -21,8 +21,11 @@ import type {
  *
  * Matches the *last* parenthetical, since a name can carry others,
  * e.g. "Africa (non-OECD) (IHME GBD)" -> name "Africa (non-OECD)", suffix "IHME GBD".
+ *
+ * `.*\S` and `[^()]+` (not `.+` and `[^)]+`) keep the match linear: neither group
+ * can compete with `\s+` or the literal `\(` for the same characters.
  */
-const REGION_NAME_SUFFIX_RE = /^(.+)\s+\(([^)]+)\)$/
+const REGION_NAME_SUFFIX_RE = /^(.*\S)\s+\(([^()]+)\)$/
 
 // A region can belong to two of a publisher's region sets at once (e.g. ILO's
 // "Arab States (ILO)" is both a broad region and a subregion), but a region
