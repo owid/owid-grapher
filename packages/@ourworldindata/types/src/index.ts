@@ -204,6 +204,8 @@ export {
     type OwidGdocProfileScope,
     type OwidGdocProfileContent,
     type OwidGdocProfileInterface,
+    type OwidGdocFeaturedVizContent,
+    type OwidGdocFeaturedVizInterface,
     type OwidGdocProfileEntitySummary,
     type OwidGdoc,
     type ChronologicalGdoc,
