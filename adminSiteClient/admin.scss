@@ -17,10 +17,14 @@
 // Layout:
 @import "bootstrap/scss/grid";
 @import "bootstrap/scss/tables";
-// Form controls (`admin.scss` also `@extend`s `.form-control`):
+// Form controls. `Forms.tsx` is on antd now, but raw `form-group` /
+// `form-control` / `form-check` / `form-text` markup is still hand-written in
+// the editor tabs, ExplorerCreatePage, UsersIndexPage, GdocsAdd and others,
+// and `admin.scss` also `@extend`s `.form-control`:
 @import "bootstrap/scss/forms";
 @import "bootstrap/scss/buttons";
 @import "bootstrap/scss/button-group";
+// still used by EditorReferencesTab (`input-group-prepend`/`input-group-text`):
 @import "bootstrap/scss/input-group";
 // Chrome and navigation:
 @import "bootstrap/scss/nav";
@@ -30,8 +34,9 @@
 // Components:
 @import "bootstrap/scss/badge";
 @import "bootstrap/scss/alert";
+// still used by EditorReferencesTab, EditorHistoryTab, EditorDataTab and
+// DimensionCard, which interleave `list-group-item`s with `EditableListItem`s:
 @import "bootstrap/scss/list-group";
-@import "bootstrap/scss/modal";
 // Helpers:
 @import "bootstrap/scss/utilities";
 @import "bootstrap/scss/print";
@@ -39,7 +44,9 @@
 // Deliberately not imported, because nothing in the admin uses them:
 //   root (only defines `--blue`-style custom properties, never read via var()),
 //   images, transitions, dropdown, custom-forms, card, jumbotron, progress,
-//   media, close, toasts, tooltip, popover, carousel, spinners.
+//   media, close, toasts, tooltip, popover, carousel, spinners,
+//   modal (`Forms.tsx`'s `Modal` is antd's; the `.modal-header`/`.modal-body`/
+//   `.modal-footer` markup its consumers pass in is styled in `Forms.scss`).
 
 // Our own copy of the parts of Bootstrap's reboot the admin depends on, so that
 // removing `bootstrap/scss/reboot` above stays a small, deliberate step rather
