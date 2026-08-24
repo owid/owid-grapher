@@ -43,6 +43,39 @@ const SERIF_FONT = '"Times New Roman", serif'
 
 const CONTAINER_WIDTH = 632
 const CONTENT_PADDING = 40
+const MOBILE_BREAKPOINT = 480
+const MOBILE_CONTENT_PADDING = 16
+const MOBILE_CARD_PADDING = 16
+
+/**
+ * The header image is a 1200x250 PNG, shown at the container width so it's
+ * crisp on high-density screens. The width/height attributes state the
+ * display size rather than the asset's because Outlook on Windows sizes
+ * images by their attributes (ignoring CSS)
+ */
+const HEADER_IMAGE_WIDTH = CONTAINER_WIDTH
+const HEADER_IMAGE_HEIGHT = Math.round((CONTAINER_WIDTH * 250) / 1200)
+// Roughly the header's height on a ~400px-wide phone
+const MOBILE_HEADER_IMAGE_HEIGHT = 80
+
+// The inline styles win by default, so the mobile overrides need !important.
+// Mobile clients (iOS Mail, Gmail app, Outlook mobile) honor <style> media
+// queries; the ones that don't just keep the desktop padding.
+const RESPONSIVE_STYLES = `
+@media only screen and (max-width: ${MOBILE_BREAKPOINT}px) {
+    .content {
+        padding-left: ${MOBILE_CONTENT_PADDING}px !important;
+        padding-right: ${MOBILE_CONTENT_PADDING}px !important;
+    }
+    .card {
+        padding-left: ${MOBILE_CARD_PADDING}px !important;
+        padding-right: ${MOBILE_CARD_PADDING}px !important;
+    }
+    .header-image {
+        line-height: ${MOBILE_HEADER_IMAGE_HEIGHT}px !important;
+    }
+}
+`
 
 // react-email's <Text> defaults to 14px; the design's body copy is 16px/24px,
 // so every body-copy element states it.
@@ -106,6 +139,7 @@ function NotificationEmail({
                 <title>
                     {makeNotificationEmailSubject(subscriber.frequency)}
                 </title>
+                <style>{RESPONSIVE_STYLES}</style>
             </Head>
             {/* Inbox preview text: the titles readers see next to the subject. */}
             <Preview>{items.map((item) => item.title).join(" · ")}</Preview>
@@ -130,6 +164,7 @@ function NotificationEmail({
                 >
                     <Header baseUrl={baseUrl} />
                     <Section
+                        className="content"
                         style={{ padding: `32px ${CONTENT_PADDING}px 40px` }}
                     >
                         <Text style={{ margin: "0 0 32px", fontSize: 14 }}>
@@ -190,24 +225,17 @@ function Spacer({ height }: { height: number }) {
     )
 }
 
-/**
- * The header image is a 1200x250 PNG, shown at the container width so it's
- * crisp on high-density screens. The width/height attributes state the
- * display size rather than the asset's because Outlook on Windows sizes
- * images by their attributes (ignoring CSS)
- */
-const HEADER_IMAGE_WIDTH = CONTAINER_WIDTH
-const HEADER_IMAGE_HEIGHT = Math.round((CONTAINER_WIDTH * 250) / 1200)
-
 function Header({ baseUrl }: { baseUrl: string }) {
     return (
         <Section style={{ backgroundColor: COLORS.navy }}>
             {/* The header is an image so it gets the brand typeface in every
                 client. Most clients render the alt text, styled by the img's
                 own text styles, in its place when images are blocked; the
-                navy background keeps it legible there. */}
+                navy background keeps it legible there, and the line-height
+                matching the image height centers it vertically. */}
             <Link href={baseUrl} style={IMAGE_LINK_STYLE}>
                 <Img
+                    className="header-image"
                     src={`${baseUrl}/owid-email-header.png`}
                     alt="Our World in Data Update"
                     width={HEADER_IMAGE_WIDTH}
@@ -219,7 +247,7 @@ function Header({ baseUrl }: { baseUrl: string }) {
                         backgroundColor: COLORS.navy,
                         fontFamily: BODY_FONT,
                         fontSize: 16,
-                        lineHeight: "20px",
+                        lineHeight: `${HEADER_IMAGE_HEIGHT}px`,
                         fontWeight: 700,
                         color: "#ffffff",
                         textAlign: "center",
@@ -364,6 +392,7 @@ function TeaserBody({ item }: { item: NotificationEmailItem }) {
 function ArticleCard({ item }: { item: NotificationEmailItem }) {
     return (
         <Section
+            className="card"
             style={{
                 backgroundColor: COLORS.cardMuted,
                 padding: "16px 16px 24px",
@@ -422,7 +451,10 @@ function DataInsightCard({ item }: { item: NotificationEmailItem }) {
     const splitIndex = firstNonImage === -1 ? body.length : firstNonImage
     const imageUrlByFilename = item.imageUrlByFilename ?? {}
     return (
-        <Section style={{ backgroundColor: COLORS.card, padding: 24 }}>
+        <Section
+            className="card"
+            style={{ backgroundColor: COLORS.card, padding: 24 }}
+        >
             {body.slice(0, splitIndex).map((block, index) => (
                 <Block
                     key={index}
@@ -650,6 +682,7 @@ function Footer({
     }
     return (
         <Section
+            className="content"
             style={{
                 padding: `0 ${CONTENT_PADDING}px 40px`,
                 textAlign: "center",
