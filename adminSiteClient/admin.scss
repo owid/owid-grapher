@@ -1,7 +1,45 @@
 /* Chart editor styling */
 
 @import "../public/fonts.css";
-@import "bootstrap/scss/bootstrap";
+// Bootstrap 4, imported module by module rather than as the full
+// `bootstrap/scss/bootstrap` build, so that individual modules can be dropped
+// as the admin migrates to antd. Modules that no admin markup uses are left
+// out; see the commented list at the bottom of this block.
+//
+// Required infrastructure (no output of its own):
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/mixins";
+// Global element styling the whole admin sits on:
+@import "bootstrap/scss/reboot";
+@import "bootstrap/scss/type";
+@import "bootstrap/scss/code";
+// Layout:
+@import "bootstrap/scss/grid";
+@import "bootstrap/scss/tables";
+// Form controls (`admin.scss` also `@extend`s `.form-control`):
+@import "bootstrap/scss/forms";
+@import "bootstrap/scss/buttons";
+@import "bootstrap/scss/button-group";
+@import "bootstrap/scss/input-group";
+// Chrome and navigation:
+@import "bootstrap/scss/nav";
+@import "bootstrap/scss/navbar";
+@import "bootstrap/scss/breadcrumb";
+@import "bootstrap/scss/pagination";
+// Components:
+@import "bootstrap/scss/badge";
+@import "bootstrap/scss/alert";
+@import "bootstrap/scss/list-group";
+@import "bootstrap/scss/modal";
+// Helpers:
+@import "bootstrap/scss/utilities";
+@import "bootstrap/scss/print";
+//
+// Deliberately not imported, because nothing in the admin uses them:
+//   root (only defines `--blue`-style custom properties, never read via var()),
+//   images, transitions, dropdown, custom-forms, card, jumbotron, progress,
+//   media, close, toasts, tooltip, popover, carousel, spinners.
 
 @mixin draft-background {
     background: repeating-linear-gradient(
