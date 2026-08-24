@@ -16,7 +16,7 @@ import {
     MinimalTagWithMetadata,
 } from "./TagGraphMetadata.js"
 import cx from "clsx"
-import { Button } from "antd"
+import { Button, Select } from "antd"
 
 type ExplorerWithTags = {
     slug: string
@@ -72,7 +72,7 @@ export class ExplorerTagsPage extends Component {
                         new slug.
                     </p>
 
-                    <table className="table table-bordered">
+                    <table className="admin-table">
                         <thead>
                             <tr>
                                 <th style={{ width: "45%" }}>Explorer</th>
@@ -91,7 +91,8 @@ export class ExplorerTagsPage extends Component {
                                     <tr
                                         key={explorer.slug}
                                         className={cx({
-                                            "table-danger": !isSlugValid,
+                                            "admin-table__row--danger":
+                                                !isSlugValid,
                                         })}
                                     >
                                         <td>
@@ -142,27 +143,24 @@ export class ExplorerTagsPage extends Component {
                             {/* New Explorer Row */}
                             <tr>
                                 <td>
-                                    <select
-                                        value={this.newExplorerSlug}
-                                        onChange={(e) => {
-                                            this.newExplorerSlug =
-                                                e.target.value
+                                    <Select
+                                        style={{ width: "100%" }}
+                                        value={
+                                            this.newExplorerSlug || undefined
+                                        }
+                                        placeholder="Select an explorer"
+                                        onChange={action((slug: string) => {
+                                            this.newExplorerSlug = slug
+                                        })}
+                                        showSearch={{
+                                            optionFilterProp: "value",
                                         }}
-                                    >
-                                        <option value="">
-                                            Select an explorer
-                                        </option>
-                                        {this.filteredExplorers.map(
-                                            (explorer) => (
-                                                <option
-                                                    key={explorer.slug}
-                                                    value={explorer.slug}
-                                                >
-                                                    {explorer.slug}
-                                                </option>
-                                            )
+                                        options={this.filteredExplorers.map(
+                                            (explorer) => ({
+                                                value: explorer.slug,
+                                            })
                                         )}
-                                    </select>
+                                    />
                                 </td>
                                 <td>
                                     <EditableTags

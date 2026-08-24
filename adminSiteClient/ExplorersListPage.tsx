@@ -25,7 +25,7 @@ import {
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { AdminManager } from "./AdminManager.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { Button } from "antd"
+import { Button, Checkbox } from "antd"
 
 interface ExplorerRowProps {
     explorer: ExplorerProgram
@@ -178,7 +178,7 @@ class ExplorerList extends Component<ExplorerListProps> {
             userSelect: "none" as const,
         }
         return (
-            <table className="table table-bordered">
+            <table className="admin-table">
                 <thead>
                     <tr>
                         <th>Slug</th>
@@ -307,21 +307,12 @@ export class ExplorersIndexPage extends Component<{
                         explorers
                     </div>
                     <div>
-                        <label
-                            style={{
-                                marginBottom: 0,
-                                cursor: "pointer",
-                                userSelect: "none",
-                            }}
+                        <Checkbox
+                            checked={this.showOnlyPublished}
+                            onChange={this.onToggleShowOnlyPublished}
                         >
-                            <input
-                                type="checkbox"
-                                checked={this.showOnlyPublished}
-                                onChange={this.onToggleShowOnlyPublished}
-                                style={{ marginRight: 6 }}
-                            />
                             Show only published
-                        </label>
+                        </Checkbox>
                     </div>
                     {/* <div style={{ textAlign: "right" }}>
                         <Button

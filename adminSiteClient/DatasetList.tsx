@@ -143,7 +143,7 @@ export class DatasetList extends React.Component<DatasetListProps> {
         const { props, availableTags } = this
         const tagGraphRolesById = getTagGraphRolesById(availableTags ?? [])
         return (
-            <table className="table table-bordered">
+            <table className="admin-table">
                 <thead>
                     <tr>
                         <th>Dataset</th>

@@ -39,7 +39,15 @@ import {
     faMagnifyingGlass,
     faChartColumn,
 } from "@fortawesome/free-solid-svg-icons"
-import { Button, Divider, Space, Tabs, Typography } from "antd"
+import {
+    Button,
+    Divider,
+    Space,
+    Table,
+    TableColumnsType,
+    Tabs,
+    Typography,
+} from "antd"
 
 interface ExplorerListItem {
     slug: string
@@ -150,77 +158,92 @@ class ExplorerList extends Component<ExplorerListProps> {
             return <p>No explorers use variables from this dataset.</p>
         }
 
+        const columns: TableColumnsType<ExplorerListItem> = [
+            {
+                title: "Preview",
+                key: "preview",
+                className: "table-preview-col",
+                align: "center",
+                render: (_, explorer) =>
+                    explorer.isPublished ? (
+                        <a
+                            href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${explorer.slug}`}
+                        >
+                            <img
+                                src={`${EXPLORER_DYNAMIC_THUMBNAIL_URL}/${explorer.slug}.png`}
+                                width={850}
+                                height={600}
+                                className="chartPreview"
+                            />
+                        </a>
+                    ) : null,
+            },
+            {
+                title: "Slug",
+                dataIndex: "slug",
+                sorter: (a, b) => a.slug.localeCompare(b.slug),
+                render: (slug: string) => (
+                    <Link native to={`/${EXPLORERS_ROUTE_FOLDER}/${slug}`}>
+                        {slug}
+                    </Link>
+                ),
+            },
+            {
+                title: "Title",
+                dataIndex: "title",
+                render: (title: string | null) => title || <em>No title</em>,
+            },
+            {
+                title: "Status",
+                key: "status",
+                render: (_, explorer) =>
+                    explorer.isPublished ? (
+                        <a
+                            href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${explorer.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Published
+                        </a>
+                    ) : (
+                        <span className="text-secondary">Unpublished</span>
+                    ),
+            },
+            {
+                title: "Views per day",
+                dataIndex: "pageviewsPerDay",
+                sorter: (a, b) =>
+                    (a.pageviewsPerDay ?? 0) - (b.pageviewsPerDay ?? 0),
+                render: (pageviewsPerDay: number | undefined) =>
+                    pageviewsPerDay?.toLocaleString() ?? "0",
+            },
+            {
+                title: "Last updated",
+                key: "lastEditedAt",
+                sorter: (a, b) => a.lastEditedAt.localeCompare(b.lastEditedAt),
+                render: (_, explorer) => (
+                    <Timeago
+                        time={explorer.lastEditedAt}
+                        by={explorer.lastEditedByUserName}
+                    />
+                ),
+            },
+            {
+                title: "Created",
+                dataIndex: "createdAt",
+                sorter: (a, b) => a.createdAt.localeCompare(b.createdAt),
+                render: (createdAt: string) => <Timeago time={createdAt} />,
+            },
+        ]
+
         return (
-            <table className="table table-bordered">
-                <thead>
-                    <tr>
-                        <th className="table-preview-col">Preview</th>
-                        <th>Slug</th>
-                        <th>Title</th>
-                        <th>Status</th>
-                        <th>Views per day</th>
-                        <th>Last updated</th>
-                        <th>Created</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {explorers.map((explorer) => (
-                        <tr key={explorer.slug}>
-                            <td className="table-preview-col table-preview-col--centered">
-                                {explorer.isPublished ? (
-                                    <a
-                                        href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${explorer.slug}`}
-                                    >
-                                        <img
-                                            src={`${EXPLORER_DYNAMIC_THUMBNAIL_URL}/${explorer.slug}.png`}
-                                            width={850}
-                                            height={600}
-                                            className="chartPreview"
-                                        />
-                                    </a>
-                                ) : null}
-                            </td>
-                            <td>
-                                <Link
-                                    native
-                                    to={`/${EXPLORERS_ROUTE_FOLDER}/${explorer.slug}`}
-                                >
-                                    {explorer.slug}
-                                </Link>
-                            </td>
-                            <td>{explorer.title || <em>No title</em>}</td>
-                            <td>
-                                {explorer.isPublished ? (
-                                    <a
-                                        href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${explorer.slug}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        Published
-                                    </a>
-                                ) : (
-                                    <span className="text-secondary">
-                                        Unpublished
-                                    </span>
-                                )}
-                            </td>
-                            <td>
-                                {explorer.pageviewsPerDay?.toLocaleString() ??
-                                    "0"}
-                            </td>
-                            <td>
-                                <Timeago
-                                    time={explorer.lastEditedAt}
-                                    by={explorer.lastEditedByUserName}
-                                />
-                            </td>
-                            <td>
-                                <Timeago time={explorer.createdAt} />
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <Table
+                size="small"
+                rowKey={(explorer) => explorer.slug}
+                dataSource={explorers}
+                pagination={false}
+                columns={columns}
+            />
         )
     }
 }
@@ -260,104 +283,108 @@ class MultiDimList extends Component<MultiDimListProps> {
             )
         }
 
+        const columns: TableColumnsType<MultiDimListItem> = [
+            {
+                title: "Preview",
+                key: "preview",
+                className: "table-preview-col",
+                align: "center",
+                render: (_, mdim) =>
+                    mdim.published && mdim.slug ? (
+                        <a href={`${BAKED_GRAPHER_URL}/${mdim.slug}`}>
+                            <img
+                                src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${mdim.slug}.png`}
+                                height={600}
+                                width={850}
+                                className="chartPreview"
+                            />
+                        </a>
+                    ) : null,
+            },
+            {
+                title: "Slug",
+                key: "slug",
+                sorter: (a, b) => (a.slug ?? "").localeCompare(b.slug ?? ""),
+                render: (_, mdim) => {
+                    if (!mdim.slug) return <em>No slug</em>
+                    const githubPath = getGitHubPathFromCatalogPath(
+                        mdim.catalogPath
+                    )
+                    if (!githubPath) return mdim.slug
+                    return (
+                        <a
+                            href={`https://github.com/owid/etl/tree/master/etl/steps/export/multidim/${githubPath}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {mdim.slug}
+                        </a>
+                    )
+                },
+            },
+            {
+                title: "Title",
+                key: "title",
+                render: (_, mdim) =>
+                    mdim.title ? (
+                        <>
+                            {mdim.title}
+                            {mdim.titleVariant && <>, {mdim.titleVariant}</>}
+                        </>
+                    ) : (
+                        <em>No title</em>
+                    ),
+            },
+            {
+                title: "Status",
+                key: "status",
+                render: (_, mdim) => {
+                    if (!mdim.published)
+                        return (
+                            <span className="text-secondary">Unpublished</span>
+                        )
+                    if (!mdim.slug) return "Published"
+                    return (
+                        <a
+                            href={`${BAKED_GRAPHER_URL}/${mdim.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Published
+                        </a>
+                    )
+                },
+            },
+            {
+                title: "Grapher views/day",
+                dataIndex: "grapherViewsPerDay",
+                sorter: (a, b) =>
+                    (a.grapherViewsPerDay ?? 0) - (b.grapherViewsPerDay ?? 0),
+                render: (grapherViewsPerDay: number | undefined) =>
+                    grapherViewsPerDay?.toLocaleString() ?? "0",
+            },
+            {
+                title: "Last updated",
+                dataIndex: "updatedAt",
+                sorter: (a, b) => a.updatedAt.localeCompare(b.updatedAt),
+                render: (updatedAt: string) => <Timeago time={updatedAt} />,
+            },
+            {
+                title: "Created",
+                dataIndex: "createdAt",
+                sorter: (a, b) => a.createdAt.localeCompare(b.createdAt),
+                render: (createdAt: string) => <Timeago time={createdAt} />,
+            },
+        ]
+
         return (
-            <table className="table table-bordered">
-                <thead>
-                    <tr>
-                        <th className="table-preview-col">Preview</th>
-                        <th>Slug</th>
-                        <th>Title</th>
-                        <th>Status</th>
-                        <th>Grapher views/day</th>
-                        <th>Last updated</th>
-                        <th>Created</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {multiDims.map((mdim) => (
-                        <tr key={mdim.id}>
-                            <td className="table-preview-col table-preview-col--centered">
-                                {mdim.published && mdim.slug ? (
-                                    <a
-                                        href={`${BAKED_GRAPHER_URL}/${mdim.slug}`}
-                                    >
-                                        <img
-                                            src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${mdim.slug}.png`}
-                                            height={600}
-                                            width={850}
-                                            className="chartPreview"
-                                        />
-                                    </a>
-                                ) : null}
-                            </td>
-                            <td>
-                                {mdim.slug ? (
-                                    (() => {
-                                        const githubPath =
-                                            getGitHubPathFromCatalogPath(
-                                                mdim.catalogPath
-                                            )
-                                        return githubPath ? (
-                                            <a
-                                                href={`https://github.com/owid/etl/tree/master/etl/steps/export/multidim/${githubPath}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
-                                                {mdim.slug}
-                                            </a>
-                                        ) : (
-                                            mdim.slug
-                                        )
-                                    })()
-                                ) : (
-                                    <em>No slug</em>
-                                )}
-                            </td>
-                            <td>
-                                {mdim.title ? (
-                                    <>
-                                        {mdim.title}
-                                        {mdim.titleVariant && (
-                                            <>, {mdim.titleVariant}</>
-                                        )}
-                                    </>
-                                ) : (
-                                    <em>No title</em>
-                                )}
-                            </td>
-                            <td>
-                                {mdim.published ? (
-                                    mdim.slug ? (
-                                        <a
-                                            href={`${BAKED_GRAPHER_URL}/${mdim.slug}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            Published
-                                        </a>
-                                    ) : (
-                                        "Published"
-                                    )
-                                ) : (
-                                    <span className="text-secondary">
-                                        Unpublished
-                                    </span>
-                                )}
-                            </td>
-                            <td>
-                                {mdim.grapherViewsPerDay?.toLocaleString() ??
-                                    "0"}
-                            </td>
-                            <td>
-                                <Timeago time={mdim.updatedAt} />
-                            </td>
-                            <td>
-                                <Timeago time={mdim.createdAt} />
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <Table
+                size="small"
+                rowKey={(mdim) => mdim.id}
+                dataSource={multiDims}
+                pagination={false}
+                columns={columns}
+            />
         )
     }
 }

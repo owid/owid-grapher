@@ -301,7 +301,7 @@ export class ChartList extends React.Component<ChartListProps> {
                         autofocus={this.props.autofocusSearchInput}
                     />
                 </div>
-                <table className="table table-bordered">
+                <table className="admin-table">
                     <thead>
                         <tr>
                             <th></th>

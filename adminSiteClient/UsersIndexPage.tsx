@@ -1,8 +1,8 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-import { observable, action, runInAction, makeObservable } from "mobx"
+import { observable, action, computed, runInAction, makeObservable } from "mobx"
 
-import { Alert, Button, Input } from "antd"
+import { Alert, Button, Input, Table, TableColumnsType } from "antd"
 import { Modal, Timeago } from "./Forms.js"
 import { LinkButton } from "./Link.js"
 import { AdminLayout } from "./AdminLayout.js"
@@ -11,6 +11,10 @@ import { UserIndexMeta } from "./UserMeta.js"
 
 interface UserIndexMetaWithLastSeen extends UserIndexMeta {
     lastSeen: Date
+}
+
+function compareTimes(a: Date | undefined, b: Date | undefined): number {
+    return new Date(a ?? 0).getTime() - new Date(b ?? 0).getTime()
 }
 
 @observer
@@ -140,6 +144,64 @@ export class UsersIndexPage extends React.Component {
         }
     }
 
+    @computed get columns(): TableColumnsType<UserIndexMetaWithLastSeen> {
+        const { isSuperuser } = this.context.admin
+        const columns: TableColumnsType<UserIndexMetaWithLastSeen> = [
+            {
+                title: "Name",
+                dataIndex: "fullName",
+                sorter: (a, b) => a.fullName.localeCompare(b.fullName),
+            },
+            {
+                title: "Last Seen",
+                dataIndex: "lastSeen",
+                sorter: (a, b) => compareTimes(a.lastSeen, b.lastSeen),
+                render: (lastSeen: Date) => <Timeago time={lastSeen} />,
+            },
+            {
+                title: "Joined",
+                dataIndex: "createdAt",
+                sorter: (a, b) => compareTimes(a.createdAt, b.createdAt),
+                render: (createdAt: Date) => <Timeago time={createdAt} />,
+            },
+        ]
+
+        if (isSuperuser) {
+            columns.push(
+                {
+                    title: "Status",
+                    dataIndex: "isActive",
+                    render: (isActive: boolean) =>
+                        isActive ? "active" : "disabled",
+                },
+                {
+                    title: "",
+                    key: "edit",
+                    render: (_, user) => (
+                        <LinkButton type="primary" to={`/users/${user.id}`}>
+                            Edit
+                        </LinkButton>
+                    ),
+                },
+                {
+                    title: "",
+                    key: "delete",
+                    render: (_, user) => (
+                        <Button
+                            color="danger"
+                            variant="solid"
+                            onClick={() => this.onDelete(user)}
+                        >
+                            Delete
+                        </Button>
+                    ),
+                }
+            )
+        }
+
+        return columns
+    }
+
     override render() {
         const { users } = this
         const { isSuperuser } = this.context.admin
@@ -164,59 +226,13 @@ export class UsersIndexPage extends React.Component {
                             </Button>
                         )}
                     </div>
-                    <table className="table table-bordered">
-                        <tbody>
-                            <tr>
-                                <th>Name</th>
-                                <th>Last Seen</th>
-                                <th>Joined</th>
-                                {isSuperuser && <th>Status</th>}
-                                {isSuperuser && <th></th>}
-                                {isSuperuser && <th></th>}
-                            </tr>
-                            {users.map((user) => (
-                                <tr key={user.id}>
-                                    <td>{user.fullName}</td>
-                                    <td>
-                                        <Timeago time={user.lastSeen} />
-                                    </td>
-                                    <td>
-                                        <Timeago time={user.createdAt} />
-                                    </td>
-                                    {isSuperuser && (
-                                        <td>
-                                            {user.isActive
-                                                ? "active"
-                                                : "disabled"}
-                                        </td>
-                                    )}
-                                    {isSuperuser && (
-                                        <td>
-                                            <LinkButton
-                                                type="primary"
-                                                to={`/users/${user.id}`}
-                                            >
-                                                Edit
-                                            </LinkButton>
-                                        </td>
-                                    )}
-                                    {isSuperuser && (
-                                        <td>
-                                            <Button
-                                                color="danger"
-                                                variant="solid"
-                                                onClick={() =>
-                                                    this.onDelete(user)
-                                                }
-                                            >
-                                                Delete
-                                            </Button>
-                                        </td>
-                                    )}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    <Table
+                        size="small"
+                        rowKey={(user) => user.id}
+                        dataSource={users}
+                        pagination={false}
+                        columns={this.columns}
+                    />
                 </main>
             </AdminLayout>
         )

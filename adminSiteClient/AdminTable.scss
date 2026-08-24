@@ -1,0 +1,34 @@
+// The plain bordered table the admin's list views use, replacing Bootstrap's
+// `.table.table-bordered`. Index pages whose rows are ordinary records use an
+// antd `<Table>` instead; this class is for the lists whose rows are their own
+// MobX `@observer` components (`ChartList`, `DatasetList`, `VariableList`,
+// `ExplorersListPage`, `ExplorerTagsPage`), where antd's `columns`/`dataSource`
+// API would mean rewriting the row components for no gain.
+//
+// `border-collapse: collapse` comes from the reboot.
+
+.admin-table {
+    width: 100%;
+    margin-bottom: 1rem;
+    border: 1px solid #dee2e6;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 0.75rem;
+    vertical-align: top;
+    border: 1px solid #dee2e6;
+}
+
+.admin-table thead th,
+.admin-table thead td {
+    vertical-align: bottom;
+    border-bottom-width: 2px;
+}
+
+// Flags a row whose data no longer resolves — e.g. an explorer slug in
+// `ExplorerTagsPage` that matches no explorer in the database.
+.admin-table tr.admin-table__row--danger > td,
+.admin-table tr.admin-table__row--danger > th {
+    background-color: #f5c6cb;
+}
