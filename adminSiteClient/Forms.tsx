@@ -53,10 +53,11 @@ export class FieldsRow extends React.Component<{ children: React.ReactNode }> {
 
 /**
  * The wrapper every field renders. It keeps Bootstrap's `form-group` class
- * alongside our own `form-field` one: raw `form-group` markup still exists in
- * ~30 other admin files, and a good number of `admin.scss` rules key layout
- * off `.form-group` inside the chart editor. Dropping it belongs to the phase
- * that migrates those pages.
+ * alongside our own `form-field` one: the chart editor is off `form-group`
+ * now, but raw `form-group` markup still exists on the pages Phase 5 of the
+ * antd migration covers (ExplorerCreatePage, UsersIndexPage, GdocsAdd, the
+ * gdocs settings forms), and `admin.scss` still keys layout off it there.
+ * Dropping it belongs to the phase that migrates those pages.
  */
 function FormField(props: {
     className?: string

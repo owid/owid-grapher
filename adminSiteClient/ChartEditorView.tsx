@@ -489,6 +489,10 @@ export class ChartEditorView<
                         className="ChartEditorView__tabs"
                         activeKey={editor.tab}
                         onChange={this.onTabChange}
+                        // There are up to eleven tabs in a 550px column;
+                        // antd's default 32px gutter would push half of them
+                        // into the overflow dropdown.
+                        tabBarGutter={14}
                         // Only the active tab is mounted, the way the editor
                         // has always worked: every field writes straight
                         // through to `grapherState`, so there is no per-tab
