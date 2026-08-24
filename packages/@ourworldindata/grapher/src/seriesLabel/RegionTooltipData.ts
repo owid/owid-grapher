@@ -11,7 +11,7 @@ import {
     getIncomeGroups,
     Region,
     RegionSet,
-    RequiredBy,
+    type AggregateWithPublisher,
     type OwidContinentName,
     type OwidIncomeGroupName,
     type SuffixedRegionName,
@@ -69,14 +69,10 @@ const descriptions: Record<TooltipKey, string> = {
         "The **Institute for Health Metrics and Evaluation (IHME)** groups countries into 21 regions for its Global Burden of Disease (GBD) study:",
 }
 
-// Geographic display order: left-to-right on the map.
-// Region sets without a custom order will be sorted alphabetically.
-type OrderedRegionName =
-    | SuffixedRegionName
-    | OwidContinentName
-    | OwidIncomeGroupName
-const customRegionDisplayOrder: Partial<
-    Record<TooltipKey, OrderedRegionName[]>
+// Geographic display order: left-to-right on the map
+export const customRegionDisplayOrder: Record<
+    TooltipKey,
+    (SuffixedRegionName | OwidContinentName | OwidIncomeGroupName)[]
 > = {
     continents: [
         "North America",
@@ -315,8 +311,12 @@ const customRegionDisplayOrder: Partial<
 
 export function hasTooltipData(
     region: Region
-): region is RequiredBy<Aggregate, "definedBy"> {
-    return checkIsAggregate(region) && region.definedBy !== undefined
+): region is AggregateWithPublisher {
+    return (
+        checkIsAggregate(region) &&
+        region.definedBy !== undefined &&
+        region.publisher !== undefined
+    )
 }
 
 export function getDescriptionForKey(key: TooltipKey): string {
@@ -331,16 +331,10 @@ function _getRegionsForKey(key: TooltipKey): readonly TooltipRegion[] {
               ? getContinents()
               : getAggregatesInRegionSet(key)
 
-    const customOrder: readonly string[] | undefined =
-        customRegionDisplayOrder[key]
-    const sortFn = (
-        region: Aggregate | IncomeGroup | Continent
-    ): number | string => {
-        if (customOrder) {
-            const index = customOrder.indexOf(region.name)
-            return index >= 0 ? index : Infinity
-        }
-        return parseLabel(region.name).name
+    const displayOrder: readonly string[] = customRegionDisplayOrder[key]
+    const sortFn = (region: Aggregate | IncomeGroup | Continent): number => {
+        const index = displayOrder.indexOf(region.name)
+        return index >= 0 ? index : Infinity
     }
 
     return R.pipe(

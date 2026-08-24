@@ -6,6 +6,7 @@ import {
     getRegionByNameOrVariantName,
     getRegionByName,
     getCountryNamesForRegion,
+    getAggregates,
     getRegionPublishers,
     articulateEntity,
     parseRegionNameSuffix,
@@ -164,5 +165,15 @@ describe(parseRegionNameSuffix, () => {
             name: "Africa",
             suffix: "WHO",
         })
+    })
+})
+
+describe(getAggregates, () => {
+    it("gives every region of a published set a publisher", () => {
+        const withoutPublisher = getAggregates()
+            .filter((region) => region.definedBy && !region.publisher)
+            .map((region) => region.name)
+
+        expect(withoutPublisher).toEqual([])
     })
 })

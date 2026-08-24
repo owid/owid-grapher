@@ -225,6 +225,7 @@ export {
     type Continent,
     type OwidContinentName,
     type Aggregate,
+    type AggregateWithPublisher,
     type RegionSet,
     type RegionPublisher,
     type SuffixedRegionName,
