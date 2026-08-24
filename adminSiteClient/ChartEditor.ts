@@ -219,9 +219,15 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     }
 
     async saveAsNewGrapher(): Promise<void> {
-        const { patchConfig } = this
+        const { patchConfig, etlConfig } = this
 
-        const chartJson = { ...patchConfig }
+        // An ETL-managed chart keeps its title/subtitle/etc. in `etlConfig`, not
+        // in `patchConfig`, so a plain `{ ...patchConfig }` copy would silently
+        // drop them. Fold the ETL layer in: the new chart is a normal chart that
+        // still inherits the indicator's config, so merging `etlConfig` under the
+        // admin `patchConfig` reproduces what the source rendered. For non-ETL
+        // charts `etlConfig` is undefined, so this is a no-op.
+        const chartJson = mergeGrapherConfigs(etlConfig ?? {}, patchConfig)
         delete chartJson.id
         delete chartJson.isPublished
         delete chartJson.slug
