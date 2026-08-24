@@ -197,19 +197,11 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         const row = await env.testKnex(ChartConfigsTableName).first()
         const patchConfigETL = JSON.parse(row.config)
 
-        // check that the dimensions field were added to the config
-        const processedTestVariableConfigETL = {
-            ...testVariableConfigETL,
-
-            // automatically added
-            dimensions: [
-                {
-                    property: "y",
-                    variableId,
-                },
-            ],
-        }
-        expect(patchConfigETL).toEqual(processedTestVariableConfigETL)
+        // indicator-level configs are a parent layer, so they are stored
+        // as-is: no `dimensions` array is injected. Which indicators a chart
+        // plots is the child's business and is inherited from there.
+        expect(patchConfigETL).toEqual(testVariableConfigETL)
+        expect(patchConfigETL).not.toHaveProperty("dimensions")
 
         // the effective indicator config is the ETL config
         const indicatorChartConfig = await env.fetchJson(
@@ -245,6 +237,8 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             ...indicatorChartConfig,
             title: "Total energy use",
             selectedEntityNames: [], // multi-dims define their own default entities
+            // supplied by the view layer, not inherited from the indicator
+            dimensions: [{ property: "y", variableId }],
         }
         const fullViewConfig1 = await env
             .testKnex(ChartConfigsTableName)

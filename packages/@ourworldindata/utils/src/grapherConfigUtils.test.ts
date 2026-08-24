@@ -10,7 +10,6 @@ import {
 import {
     mergeGrapherConfigs,
     diffGrapherConfigs,
-    rediffPatchAgainstNewParentStack,
 } from "./grapherConfigUtils.js"
 
 describe(mergeGrapherConfigs, () => {
@@ -337,7 +336,7 @@ describe(diffGrapherConfigs, () => {
         ).toEqual({})
     })
 
-    it("doesn't diff $schema, id, version, slug, isPublished or dimensions", () => {
+    it("doesn't diff $schema, id, version, slug or isPublished", () => {
         expect(
             diffGrapherConfigs(
                 {
@@ -373,8 +372,42 @@ describe(diffGrapherConfigs, () => {
             version: 1,
             slug: "slug",
             isPublished: false,
-            dimensions: [{ property: DimensionProperty.y, variableId: 123456 }],
         })
+    })
+
+    it("diffs dimensions like any other inherited property", () => {
+        const dimensions = [
+            { property: DimensionProperty.y, variableId: 123456 },
+        ]
+
+        // identical to the reference: falls through to the parent stack
+        expect(diffGrapherConfigs({ dimensions }, { dimensions })).toEqual({})
+
+        // a genuine override: survives in the patch
+        expect(
+            diffGrapherConfigs(
+                {
+                    dimensions: [
+                        { property: DimensionProperty.y, variableId: 999 },
+                    ],
+                },
+                { dimensions }
+            )
+        ).toEqual({
+            dimensions: [{ property: DimensionProperty.y, variableId: 999 }],
+        })
+
+        // absent from the reference: kept, nothing to inherit from
+        expect(diffGrapherConfigs({ dimensions }, {})).toEqual({ dimensions })
+    })
+
+    it("drops only the nested fields that match the reference", () => {
+        expect(
+            diffGrapherConfigs(
+                { yAxis: { min: 0, max: 100 } },
+                { yAxis: { min: 0 } }
+            )
+        ).toEqual({ yAxis: { max: 100 } })
     })
 
     it("is idempotent", () => {
@@ -410,61 +443,5 @@ describe("diff+merge", () => {
         )
         const onlyMerged = mergeGrapherConfigs(reference, config)
         expect(diffedAndMerged).toEqual(onlyMerged)
-    })
-})
-
-describe(rediffPatchAgainstNewParentStack, () => {
-    it("removes patch values that match the new parent stack", () => {
-        const existingPatch: GrapherInterface = {
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.004.json",
-            title: "Parent title",
-            dimensions: [{ property: DimensionProperty.y, variableId: 123 }],
-        }
-        const newParentStack: GrapherInterface = {
-            title: "Parent title",
-            dimensions: [{ property: DimensionProperty.y, variableId: 123 }],
-        }
-
-        expect(
-            rediffPatchAgainstNewParentStack(existingPatch, newParentStack)
-        ).toEqual({
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.004.json",
-        })
-    })
-
-    it("keeps non-inheritable keys and real admin overrides", () => {
-        const existingPatch: GrapherInterface = {
-            id: 123,
-            slug: "admin-chart",
-            isPublished: false,
-            title: "Admin title",
-            dimensions: [{ property: DimensionProperty.y, variableId: 456 }],
-        }
-        const newParentStack: GrapherInterface = {
-            title: "Parent title",
-            dimensions: [{ property: DimensionProperty.y, variableId: 123 }],
-        }
-
-        expect(
-            rediffPatchAgainstNewParentStack(existingPatch, newParentStack)
-        ).toEqual(existingPatch)
-    })
-
-    it("drops only the nested fields that now match the new parent stack", () => {
-        const existingPatch: GrapherInterface = {
-            yAxis: { min: 0, max: 100 },
-        }
-        // ETL has adopted `min` but not `max`
-        const newParentStack: GrapherInterface = {
-            yAxis: { min: 0 },
-        }
-
-        expect(
-            rediffPatchAgainstNewParentStack(existingPatch, newParentStack)
-        ).toEqual({
-            yAxis: { max: 100 },
-        })
     })
 })

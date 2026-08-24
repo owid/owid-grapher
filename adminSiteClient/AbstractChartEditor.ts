@@ -58,6 +58,10 @@ export interface AbstractChartEditorManager {
     // (variables.patchConfigIdETL), if any. For other editor variants
     // (narrative) it is whatever their parent layer happens to be.
     parentConfig?: GrapherInterface
+    // id of the indicator `parentConfig` was loaded from. Tracked explicitly
+    // because indicator-level configs don't carry `dimensions` and so can't be
+    // asked which indicator they belong to.
+    parentVariableId?: number
     // For the main chart editor, the chart's own ETL-authored grapher config
     // (stored as a separate chart_configs row, via charts.patchConfigIdETL).
     // Always applied, independent of indicator inheritance. Undefined for
@@ -106,6 +110,8 @@ export abstract class AbstractChartEditor<
 
     // parent config derived from the current chart config
     parentConfig: GrapherInterface | undefined = undefined
+    // id of the indicator `parentConfig` was loaded from
+    parentVariableId: number | undefined = undefined
     // chart's own ETL-authored grapher config layer (above parentConfig,
     // below patchConfig in the merge chain). Always applied — independent of
     // `isInheritanceEnabled`, which only governs `parentConfig`.
@@ -125,6 +131,7 @@ export abstract class AbstractChartEditor<
             showStaticPreview: observable.ref,
             savedPatchConfig: observable.ref,
             parentConfig: observable.ref,
+            parentVariableId: observable.ref,
             etlConfig: observable.ref,
             isInheritanceEnabled: observable.ref,
         })
@@ -139,7 +146,10 @@ export abstract class AbstractChartEditor<
 
         when(
             () => this.manager.parentConfig !== undefined,
-            () => (this.parentConfig = this.manager.parentConfig)
+            () => {
+                this.parentConfig = this.manager.parentConfig
+                this.parentVariableId = this.manager.parentVariableId
+            }
         )
 
         when(

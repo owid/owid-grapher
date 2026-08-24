@@ -25,7 +25,6 @@ import {
     mergeGrapherConfigs,
     parseIntOrUndefined,
     omitUndefinedValues,
-    rediffPatchAgainstNewParentStack,
 } from "@ourworldindata/utils"
 import { validate as uuidValidate } from "uuid"
 import {
@@ -417,7 +416,6 @@ const updateExistingChart = async (
     const chartRow = await db.knexRawFirst<
         Pick<DbPlainChart, "configId" | "patchConfigId"> & {
             etlConfig: string | null
-            existingFull: string
         }
     >(
         knex,
@@ -425,10 +423,8 @@ const updateExistingChart = async (
             SELECT
                 c.configId,
                 c.patchConfigId,
-                cc_etl.config AS etlConfig,
-                cc.config AS existingFull
+                cc_etl.config AS etlConfig
             FROM charts c
-            JOIN chart_configs cc ON cc.id = c.configId
             LEFT JOIN chart_configs cc_etl ON cc_etl.id = c.patchConfigIdETL
             WHERE c.id = ?
         `,
@@ -440,36 +436,23 @@ const updateExistingChart = async (
     const etlConfig = chartRow.etlConfig
         ? parseChartConfig(chartRow.etlConfig)
         : {}
-    const existingFull = parseChartConfig(chartRow.existingFull)
 
-    // Look up the chart's parent indicator (only if inheritance is enabled).
-    // For a regular (non-ETL) chart, `dimensions` is a required key that's
-    // always retained in the admin patch (see `diffGrapherConfigs`), so an
-    // absent `config.dimensions` there is a deliberate admin choice to opt out
-    // of inheritance entirely — resolve the parent from `config` as-is. For an
-    // ETL-managed chart, the admin patch typically has no `dimensions` at all
-    // (those live in etlConfig instead), so resolve from the dimensions the
-    // chart will plot *after* this save: the admin patch's override if it has
-    // one, else the chart's etlConfig, else the dimensions it already has.
-    // Resolving from `config` alone in that case would find no parent and
-    // silently drop the indicator's inherited fields (title, subtitle, map
-    // settings, ...).
+    // Look up the chart's parent indicator (only if inheritance is enabled),
+    // resolving it from the dimensions the chart will plot *after* this save:
+    // the incoming admin config's if it has any, else the chart's etlConfig's.
+    // An ETL-managed chart's admin config legitimately carries no `dimensions`
+    // — they're inherited from the ETL layer — and resolving from `config`
+    // alone would then find no parent and silently drop the indicator's
+    // inherited fields (title, subtitle, map settings, ...). There is no
+    // further fallback: `dimensions` only ever come from one of these two
+    // layers (indicator-level configs never carry them), so an admin config
+    // that drops them on a chart with no ETL layer is a deliberate choice to
+    // stop inheriting from an indicator altogether.
     const parent = shouldInherit
-        ? await getParentByChartConfig(
-              knex,
-              _.isEmpty(etlConfig)
-                  ? config
-                  : {
-                        dimensions:
-                            config.dimensions ??
-                            etlConfig.dimensions ??
-                            existingFull.dimensions,
-                        chartTypes:
-                            config.chartTypes ??
-                            etlConfig.chartTypes ??
-                            existingFull.chartTypes,
-                    }
-          )
+        ? await getParentByChartConfig(knex, {
+              dimensions: config.dimensions ?? etlConfig.dimensions,
+              chartTypes: config.chartTypes ?? etlConfig.chartTypes,
+          })
         : undefined
 
     // compute patch and full configs.
@@ -477,21 +460,7 @@ const updateExistingChart = async (
     // config plus the chart's own etlConfig (if any). Patch only carries
     // admin-authored overrides on top of that stack.
     const parentStack = mergeGrapherConfigs(parent?.config ?? {}, etlConfig)
-    let patchConfig = diffGrapherConfigs(config, parentStack)
-    // `diffGrapherConfigs` always retains `dimensions` (it's in `REQUIRED_KEYS`),
-    // even when they match the parent. For ETL-managed charts that turns
-    // every admin no-op Save into a phantom "dimensions override" stuck in
-    // patch — which would then block subsequent ETL changes to the chart's
-    // indicators. Drop the residue when the chart has an etlConfig and
-    // `dimensions` matches the parent stack. An admin who actually changed
-    // dimensions sees them stay in patch (real override) and that override
-    // survives subsequent ETL pushes, like any other admin field override.
-    if (
-        !_.isEmpty(etlConfig) &&
-        _.isEqual(patchConfig.dimensions, parentStack.dimensions)
-    ) {
-        patchConfig = _.omit(patchConfig, "dimensions")
-    }
+    const patchConfig = diffGrapherConfigs(config, parentStack)
     const fullConfig = mergeGrapherConfigs(parentStack, patchConfig)
 
     const now = new Date()
@@ -1228,27 +1197,22 @@ async function upsertEtlConfigForChart(
     // layer, so it wins), else the incoming ETL config's. Resolving from the
     // pre-push config would, on a dataset re-version, leave the chart
     // inheriting the old indicator's fields (title, subtitle, note) while
-    // plotting the new one — and nothing later recomputes it. Variable configs
-    // never carry `dimensions`, so this doesn't depend on which parent we pick.
+    // plotting the new one — and nothing later recomputes it. These are the
+    // only two layers that can supply `dimensions` (indicator-level configs
+    // never carry them), so there is nothing further to fall back to.
     const parent = row.isInheritanceEnabled
         ? await getParentByChartConfig(trx, {
-              dimensions:
-                  existingPatch.dimensions ??
-                  etlConfig.dimensions ??
-                  existingFull.dimensions,
-              chartTypes:
-                  existingPatch.chartTypes ??
-                  etlConfig.chartTypes ??
-                  existingFull.chartTypes,
+              dimensions: existingPatch.dimensions ?? etlConfig.dimensions,
+              chartTypes: existingPatch.chartTypes ?? etlConfig.chartTypes,
           })
         : undefined
 
     const newParentStack = mergeGrapherConfigs(parent?.config ?? {}, etlConfig)
 
-    const newPatch = rediffPatchAgainstNewParentStack(
-        existingPatch,
-        newParentStack
-    )
+    // Recompute the admin patch against the new parent stack: fields that the
+    // ETL layer has adopted fall through and stop being pinned in the patch,
+    // and only genuine admin overrides survive.
+    const newPatch = diffGrapherConfigs(existingPatch, newParentStack)
 
     // Does this push actually change the rendered chart? Compare the recomputed
     // full config against the stored one, ignoring `version`/`id` (which always
@@ -1390,10 +1354,10 @@ async function upsertEtlConfigForChart(
  * re-diffed against the remaining parent (the indicator's config, if
  * inheritance is on) and stored as the new patch: fields matching the
  * indicator's config stay inherited, everything else — in particular the
- * grapher `dimensions`, which the patch deliberately doesn't carry while a
- * chart is ETL-managed — becomes a regular admin override. Rebuilding from
- * the leftover layers instead would silently drop those dimensions and blank
- * the chart.
+ * grapher `dimensions`, which an ETL-managed chart's patch inherits from the
+ * ETL layer rather than carrying itself — becomes a regular admin override.
+ * Rebuilding from the leftover layers instead would silently drop those
+ * dimensions and blank the chart.
  */
 export async function deleteChartsChartIdEtlConfig(
     req: Request,

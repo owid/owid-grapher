@@ -137,8 +137,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     }
 
     @action.bound async updateParentConfig() {
-        const currentParentIndicatorId =
-            this.parentConfig?.dimensions?.[0].variableId
+        const currentParentIndicatorId = this.parentVariableId
         const newParentIndicatorId = getParentIndicatorIdFromChartConfig(
             this.grapherState.object
         )
@@ -166,6 +165,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 
         // update the parent config in any case
         this.parentConfig = newParentConfig
+        this.parentVariableId = newParentIndicatorId
     }
 
     async saveGrapher({

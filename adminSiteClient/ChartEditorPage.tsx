@@ -64,6 +64,7 @@ export class ChartEditorPage
 
     patchConfig: GrapherInterface = {}
     parentConfig: GrapherInterface | undefined = undefined
+    parentVariableId: number | undefined = undefined
     etlConfig: GrapherInterface | undefined = undefined
 
     isInheritanceEnabled: boolean | undefined = undefined
@@ -94,6 +95,7 @@ export class ChartEditorPage
             // patch separately: the indicator's grapher_config and the
             // chart's own etlConfig. They are merged on the editor side.
             this.parentConfig = parent?.variableConfig
+            this.parentVariableId = parent?.variableId
             this.etlConfig = parent?.etlConfig
             this.isInheritanceEnabled = parent?.isInheritanceEnabled ?? true
             this.forceDatapage = settings?.forceDatapage ?? false
@@ -105,6 +107,7 @@ export class ChartEditorPage
                     this.context.admin,
                     parentIndicatorId
                 )
+                this.parentVariableId = parentIndicatorId
             }
             this.isInheritanceEnabled = true
             this.forceDatapage = false
