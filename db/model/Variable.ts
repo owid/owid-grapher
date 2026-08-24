@@ -145,34 +145,18 @@ export async function insertIndicatorChartConfig(
     )
 }
 
-function makeConfigValidForIndicator({
-    config,
-    variableId,
-}: {
+/**
+ * Indicator-level configs are a parent layer, so they must not carry
+ * `dimensions`: which indicators a chart plots is the child's business (a
+ * chart's own patch, or the ETL config layer of an ETL-managed chart), and it
+ * reaches the rendered config through ordinary inheritance. Storing dimensions
+ * here would put a stale, indicator-shaped array underneath every inheriting
+ * chart for no one to use.
+ */
+function stripDimensionsFromIndicatorConfig(
     config: GrapherInterface
-    variableId: number
-}): GrapherInterface {
-    const updatedConfig = { ...config }
-
-    // validate the given y-dimensions
-    const defaultDimension = { property: DimensionProperty.y, variableId }
-    const [yDimensions, otherDimensions] = _.partition(
-        updatedConfig.dimensions ?? [],
-        (dimension) => dimension.property === DimensionProperty.y
-    )
-    if (yDimensions.length === 0) {
-        updatedConfig.dimensions = [defaultDimension, ...otherDimensions]
-    } else if (yDimensions.length >= 0) {
-        const givenDimension = yDimensions.find(
-            (dimension) => dimension.variableId === variableId
-        )
-        updatedConfig.dimensions = [
-            givenDimension ?? defaultDimension,
-            ...otherDimensions,
-        ]
-    }
-
-    return updatedConfig
+): GrapherInterface {
+    return _.omit(config, "dimensions")
 }
 
 export interface UpdatedChartInheritanceRecord {
@@ -351,10 +335,7 @@ export async function updateIndicatorChartConfig(
 }> {
     const { variableId } = indicator
 
-    const configETL = makeConfigValidForIndicator({
-        config,
-        variableId,
-    })
+    const configETL = stripDimensionsFromIndicatorConfig(config)
 
     // Set the updatedAt manually instead of letting the DB do it so it is the
     // same across different tables. The inconsistency caused issues in the
