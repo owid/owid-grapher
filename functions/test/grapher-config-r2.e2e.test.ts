@@ -6,6 +6,7 @@ import {
     MultiDimPageCompanion,
     R2GrapherConfigDirectory,
 } from "@ourworldindata/types"
+import { decodeReactEscapedAttribute } from "../_common/grapherTools.js"
 
 let worker: Awaited<ReturnType<typeof unstable_startWorker>>
 
@@ -180,19 +181,11 @@ function reactEscapeAttr(value: string): string {
         .replaceAll(">", "&gt;")
 }
 
-function decodeEntities(value: string): string {
-    return value
-        .replaceAll("&quot;", '"')
-        .replaceAll("&#x27;", "'")
-        .replaceAll("&lt;", "<")
-        .replaceAll("&gt;", ">")
-        .replaceAll("&amp;", "&")
-}
-
 const MDIM_BASE_URL = "https://ourworldindata.org/grapher/vaccination-coverage"
 const MDIM_PAGE_TITLE = "Childhood vaccination coverage - by vaccine"
 const MDIM_DEFAULT_DIMENSIONS = { antigen: "dtp3", metric: "coverage" }
 const MDIM_COMPANION: MultiDimPageCompanion = {
+    title: MDIM_PAGE_TITLE,
     views: {
         "antigen=dtp3&metric=coverage": {
             title: "Share of one-year-olds vaccinated against diphtheria, tetanus & pertussis",
@@ -222,7 +215,7 @@ function makeMdimPageHtml({ withMdimAttrs = true } = {}): string {
 <meta name="twitter:title" content="${MDIM_PAGE_TITLE}"/>
 <meta property="og:url" content="${MDIM_BASE_URL}"/>
 <script type="application/ld+json">${jsonLd}</script>
-</head><body></body></html>`
+</head><body><svg><title>Download icon</title></svg></body></html>`
 }
 
 async function rewriteMetaTagsForUrl(
@@ -248,17 +241,19 @@ function extractFirstGroup(html: string, regex: RegExp): string {
 
 function extractPageBits(html: string) {
     return {
-        title: decodeEntities(extractFirstGroup(html, /<title>(.*?)<\/title>/)),
-        ogTitle: decodeEntities(
+        title: decodeReactEscapedAttribute(
+            extractFirstGroup(html, /<title>(.*?)<\/title>/)
+        ),
+        ogTitle: decodeReactEscapedAttribute(
             extractFirstGroup(html, /<meta property="og:title" content="(.*?)"/)
         ),
-        twitterTitle: decodeEntities(
+        twitterTitle: decodeReactEscapedAttribute(
             extractFirstGroup(
                 html,
                 /<meta name="twitter:title" content="(.*?)"/
             )
         ),
-        canonical: decodeEntities(
+        canonical: decodeReactEscapedAttribute(
             extractFirstGroup(html, /<link rel="canonical" href="(.*?)"/)
         ),
         jsonLd: JSON.parse(
@@ -304,6 +299,8 @@ describe("multi-dim meta tag rewriting", () => {
         expect(bits.jsonLd.url).toBe(
             `${MDIM_BASE_URL}?antigen=hepb_bd&metric=vaccinated`
         )
+        // <title> elements of inline SVGs in the body are left alone
+        expect(html).toContain("<svg><title>Download icon</title></svg>")
     })
 
     it("fills in default choices for missing dimension params and doesn't double-escape entities", async () => {
@@ -341,7 +338,7 @@ describe("multi-dim meta tag rewriting", () => {
         )
     })
 
-    it("keeps the generic title for dimension choices that don't match a view", async () => {
+    it("keeps the generic title for dimension choices that don't match a view and canonicalizes to the default view", async () => {
         const html = await rewriteMetaTagsForUrl(
             makeMdimPageHtml(),
             `${MDIM_BASE_URL}?antigen=nonexistent`
@@ -349,7 +346,7 @@ describe("multi-dim meta tag rewriting", () => {
         const bits = extractPageBits(html)
         expect(bits.title).toBe(`${MDIM_PAGE_TITLE} | Our World in Data`)
         expect(bits.canonical).toBe(
-            `${MDIM_BASE_URL}?antigen=nonexistent&metric=coverage`
+            `${MDIM_BASE_URL}?antigen=dtp3&metric=coverage`
         )
     })
 

@@ -86,7 +86,7 @@ describe(rewriteJsonLdText, () => {
             ),
             {
                 viewQueryStr: "antigen=hepb_bd&metric=vaccinated",
-                viewTitle: "Newborns given a hepatitis B vaccine dose",
+                title: "Newborns given a hepatitis B vaccine dose | Childhood vaccination coverage - by vaccine",
             }
         )
 
@@ -137,6 +137,15 @@ describe(resolveMdimViewQueryStr, () => {
         expect(
             resolveMdimViewQueryStr(new URLSearchParams(), defaultDimensions)
         ).toBe("antigen=dtp3&metric=coverage")
+    })
+
+    it("falls back to default choices for empty dimension params", () => {
+        expect(
+            resolveMdimViewQueryStr(
+                new URLSearchParams("antigen=&metric=vaccinated"),
+                defaultDimensions
+            )
+        ).toBe("antigen=dtp3&metric=vaccinated")
     })
 })
 

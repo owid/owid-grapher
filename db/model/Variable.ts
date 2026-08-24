@@ -40,6 +40,7 @@ import {
     DatasetOwners,
     DbPlainDataset,
     normalizeDescriptionKey,
+    parseVariableDisplayConfig,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 import { insertChartConfig, updateChartConfig } from "./ChartConfigs.js"
@@ -451,16 +452,30 @@ export async function getVariableTitleMetadataByIds(
         .select("id", "name", "titlePublic", "display")
         .whereIn("id", variableIds)
     return new Map(
-        rows.map((row) => [
-            row.id,
-            {
-                name: row.name ?? undefined,
-                display: row.display ? JSON.parse(row.display) : undefined,
-                presentation: row.titlePublic
-                    ? { titlePublic: row.titlePublic }
-                    : undefined,
-            },
-        ])
+        rows.map((row) => {
+            // One malformed display value shouldn't abort a whole bake
+            let display: OwidVariableDisplayConfigInterface | undefined
+            try {
+                display = row.display
+                    ? parseVariableDisplayConfig(row.display)
+                    : undefined
+            } catch (e) {
+                console.error(
+                    `Error parsing display config of variable ${row.id}`,
+                    e
+                )
+            }
+            return [
+                row.id,
+                {
+                    name: row.name ?? undefined,
+                    display,
+                    presentation: row.titlePublic
+                        ? { titlePublic: row.titlePublic }
+                        : undefined,
+                },
+            ]
+        })
     )
 }
 

@@ -5,6 +5,7 @@ import {
     merge,
     dimensionsToViewId,
     MultiDimDataPageConfig,
+    multiDimDimensionsToViewQueryStr,
 } from "@ourworldindata/utils"
 import { toPlaintext } from "@ourworldindata/components"
 import * as db from "../../../db/db.js"
@@ -19,10 +20,7 @@ import {
     IndexingContext,
 } from "@ourworldindata/types"
 import { createMultiDimIndexingContext } from "./context.js"
-import {
-    attributeLinksToViewIds,
-    dimensionsToSortedQueryStr,
-} from "./mdimViewsLogic.js"
+import { attributeLinksToViewIds } from "./mdimViewsLogic.js"
 import {
     getRelevantIndicatorIds,
     getRelevantIndicatorMetadata,
@@ -30,7 +28,7 @@ import {
 import { GrapherState } from "@ourworldindata/grapher"
 import {
     computeRecordScore,
-    maybeAddChangeInPrefix,
+    getMultiDimViewTitle,
     parseJsonStringArray,
     uniqNonEmptyStrings,
 } from "./shared.js"
@@ -120,21 +118,14 @@ async function getRecords(
             )
         }
         const grapherState = new GrapherState(chartConfig)
-        const queryStr = dimensionsToSortedQueryStr(view.dimensions)
+        const queryStr = multiDimDimensionsToViewQueryStr(view.dimensions)
         const variableId = view.indicators.y[0].id
         const metadata = merge(
             relevantVariableMetadata[variableId],
             multiDim.config.metadata ?? {},
             view.metadata ?? {}
         )
-        const title = maybeAddChangeInPrefix(
-            metadata.presentation?.titlePublic ||
-                chartConfig.title ||
-                metadata.display?.name ||
-                metadata.name ||
-                "",
-            grapherState.shouldAddChangeInPrefixToTitle
-        )
+        const title = getMultiDimViewTitle(metadata, chartConfig, grapherState)
         const titleVariant =
             view.indicators.y.length === 1
                 ? metadata.presentation?.titleVariant
