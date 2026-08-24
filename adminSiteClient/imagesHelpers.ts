@@ -1,9 +1,16 @@
-import { RcFile } from "antd/es/upload/interface.js"
+import type { GetProp, UploadProps } from "antd"
 import { Admin } from "./Admin"
 import { DbEnrichedImageWithUserId } from "@ourworldindata/types"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings"
 
-export type File = string | Blob | RcFile
+/**
+ * The raw browser `File` antd hands to `<Upload>`'s callbacks, with the `uid`
+ * rc-upload tacks onto it. antd doesn't export the type by name, so derive it
+ * from a public prop rather than deep-importing `antd/es/upload/interface`.
+ */
+export type UploadFileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0]
+
+export type File = string | Blob | UploadFileType
 
 type FigmaResponse =
     | { success: true; imageUrl: string }
@@ -43,7 +50,7 @@ export function fileToBase64(
 
     // Awkward solution to union type shenanigans
     function getFilename(
-        file: Blob | RcFile,
+        file: Blob | UploadFileType,
         filename?: string
     ): string | undefined {
         if ("name" in file) return file.name

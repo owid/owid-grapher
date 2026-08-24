@@ -18,6 +18,7 @@ import {
     Select,
     Space,
     Table,
+    TableColumnsType,
     Tooltip,
 } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -33,7 +34,6 @@ import { faFigma } from "@fortawesome/free-brands-svg-icons"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { Timeago } from "./Forms.js"
-import { ColumnsType } from "antd/es/table/InternalTable.js"
 import {
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
@@ -105,7 +105,7 @@ function createColumns(ctx: {
     triggerImageUploadFlow: (
         dataInsight: DataInsightIndexItemThatCanBeUploaded
     ) => void
-}): ColumnsType<OwidGdocDataInsightIndexItem> {
+}): TableColumnsType<OwidGdocDataInsightIndexItem> {
     return [
         {
             title: "Preview",

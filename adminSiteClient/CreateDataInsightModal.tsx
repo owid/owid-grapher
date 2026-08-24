@@ -18,7 +18,6 @@ import {
     Select,
     FormItemProps,
 } from "antd"
-import { ValidateStatus } from "antd/es/form/FormItem"
 import {
     Fragment,
     useCallback,
@@ -949,7 +948,7 @@ function FeedbackTag({ progress }: { progress: Progress }) {
     )
 }
 
-function validate(progress: Progress): ValidateStatus {
+function validate(progress: Progress): FormItemProps["validateStatus"] {
     if (progress.status === "idle") return "success"
     if (progress.status === "running") return "validating"
     return progress.success ? "success" : "error"

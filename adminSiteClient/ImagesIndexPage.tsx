@@ -39,12 +39,12 @@ import {
 import {
     ACCEPTED_IMG_TYPES,
     type File,
+    type UploadFileType,
     fileToBase64,
     type ImageUploadResponse,
 } from "./imagesHelpers.js"
-import { RcFile } from "antd/es/upload/interface.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
-import { NotificationInstance } from "antd/es/notification/interface.js"
+import { type NotificationInstance } from "./adminAppInstances.js"
 import { EditableTextarea } from "./EditableTextarea.js"
 
 type ImageMap = Record<string, DbEnrichedImageWithPageviews>
@@ -536,7 +536,7 @@ function ImageReplaceConfirmModal({
     onCancel: () => void
     onConfirm: () => void
     currentImage: DbEnrichedImageWithPageviews
-    newImageFile: RcFile | null
+    newImageFile: UploadFileType | null
 }) {
     const currentImageSrc =
         currentImage.cloudflareId && currentImage.originalWidth
@@ -643,10 +643,12 @@ function PutImageButton({
     notificationApi: NotificationInstance
 }) {
     const [showConfirmModal, setShowConfirmModal] = useState(false)
-    const [selectedFile, setSelectedFile] = useState<RcFile | null>(null)
+    const [selectedFile, setSelectedFile] = useState<UploadFileType | null>(
+        null
+    )
 
-    const handleFileSelect = (options: { file: RcFile | File }) => {
-        const file = options.file as RcFile
+    const handleFileSelect = (options: { file: UploadFileType | File }) => {
+        const file = options.file as UploadFileType
         if (!file) return
         setSelectedFile(file)
         setShowConfirmModal(true)

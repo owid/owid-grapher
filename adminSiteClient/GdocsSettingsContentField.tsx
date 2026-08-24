@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { Input, InputProps, Space } from "antd"
+import { GetProps, Input, InputProps, Space } from "antd"
 import {
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
@@ -10,7 +10,6 @@ import {
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
 import { getPropertyMostCriticalError } from "./gdocsValidation.js"
-import { TextAreaProps } from "antd/lib/input/TextArea.js"
 import { Help } from "./Forms.js"
 import { makeImageSrc } from "./imagesHelpers.js"
 
@@ -114,7 +113,7 @@ export const GdocsSettingsTextArea = ({
     name: string
     value: string
     errorType?: OwidGdocErrorMessageType
-    inputProps?: TextAreaProps
+    inputProps?: GetProps<typeof Input.TextArea>
 }) => (
     <Input.TextArea
         value={value}
