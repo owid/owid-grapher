@@ -222,6 +222,25 @@ export const getReferencesByChartId = async (
  * (`charts.configId`) to the numeric chart id. Route handlers use this so that
  * `:chartId` params accept both forms of addressing a chart.
  */
+/**
+ * Validate a caller-supplied chart config UUID and return it in canonical
+ * (lower-case) form.
+ *
+ * A chart's config UUID is its identity, so the stored form should not depend
+ * on how a caller happened to type it. Everything that mints one emits
+ * lower-case already (the `uuid` package lower-cases in `stringify`, as does
+ * Python's `uuid` on the ETL side), but `uuidValidate`'s regex is
+ * case-insensitive, so a hand-written UUID could otherwise be stored verbatim
+ * and leave the same chart spelled differently in different environments.
+ * MySQL's collation makes lookups case-insensitive regardless, so this is about
+ * what we persist, not about matching.
+ */
+const normalizeChartConfigId = (chartConfigId: string): string => {
+    if (!uuidValidate(chartConfigId))
+        throw new JsonError(`Invalid config UUID '${chartConfigId}'`, 400)
+    return chartConfigId.toLowerCase()
+}
+
 export const expectChartId = async (
     knex: db.KnexReadonlyTransaction,
     chartIdOrConfigId: string | number | undefined
@@ -237,7 +256,10 @@ export const expectChartId = async (
         typeof chartIdOrConfigId === "string" &&
         uuidValidate(chartIdOrConfigId)
     ) {
-        const chartId = await getChartIdByConfigId(knex, chartIdOrConfigId)
+        const chartId = await getChartIdByConfigId(
+            knex,
+            chartIdOrConfigId.toLowerCase()
+        )
         if (chartId === undefined)
             throw new JsonError(
                 `No chart found for config id ${chartIdOrConfigId}`,
@@ -282,7 +304,7 @@ const saveNewChart = async (
         forceDatapage = false,
         // new charts inherit by default
         shouldInherit = true,
-        chartConfigId: providedChartConfigId,
+        chartConfigId: rawProvidedChartConfigId,
     }: {
         config: GrapherInterface
         user: DbPlainUser
@@ -297,12 +319,12 @@ const saveNewChart = async (
     patchConfig: GrapherInterface
     fullConfig: GrapherInterface
 }> => {
+    const providedChartConfigId =
+        rawProvidedChartConfigId === undefined
+            ? undefined
+            : normalizeChartConfigId(rawProvidedChartConfigId)
+
     if (providedChartConfigId !== undefined) {
-        if (!uuidValidate(providedChartConfigId))
-            throw new JsonError(
-                `Invalid config UUID '${providedChartConfigId}'`,
-                400
-            )
         const existingRow = await db.knexRawFirst<Pick<DbRawChartConfig, "id">>(
             knex,
             `SELECT id FROM chart_configs WHERE id = ?`,
@@ -881,10 +903,12 @@ export async function createChart(
     }
     // optional caller-supplied config UUID, e.g. chart-sync carrying a chart's
     // identity from staging to production
-    const chartConfigId =
+    const rawChartConfigId =
         (req.query.configId as string | undefined) || undefined
-    if (chartConfigId !== undefined && !uuidValidate(chartConfigId))
-        throw new JsonError(`Invalid config UUID '${chartConfigId}'`, 400)
+    const chartConfigId =
+        rawChartConfigId === undefined
+            ? undefined
+            : normalizeChartConfigId(rawChartConfigId)
 
     try {
         const { chartId } = await saveGrapher(trx, {
@@ -1076,9 +1100,7 @@ export async function upsertEtlConfigByChartConfigId(
     res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
-    const chartConfigId = req.params.chartConfigId
-    if (!uuidValidate(chartConfigId))
-        throw new JsonError(`Invalid config UUID '${chartConfigId}'`, 400)
+    const chartConfigId = normalizeChartConfigId(req.params.chartConfigId)
 
     const catalogPath = (req.query.catalogPath as string | undefined) ?? null
 

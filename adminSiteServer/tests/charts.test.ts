@@ -1998,6 +1998,36 @@ describe("ETL config upsert by config UUID", { timeout: 15000 }, () => {
         expect(chartCountAfterRejection).toBe(chartCountAfterFirst)
     })
 
+    it("stores caller-supplied config UUIDs in canonical lower case", async () => {
+        // Every generator emits lower-case, but `uuidValidate` accepts either,
+        // so a hand-written UUID must not leave the same chart spelled
+        // differently in different environments.
+        const chartConfigId = uuidv7()
+        const upperCased = chartConfigId.toUpperCase()
+
+        const response = await env.request({
+            method: "PUT",
+            path: `/charts/by-config/${upperCased}/etlConfig`,
+            body: JSON.stringify(testEtlConfig),
+        })
+        expect(response.success).toBe(true)
+
+        const chartRow = await env
+            .testKnex(ChartsTableName)
+            .where("id", response.chartId)
+            .first()
+        expect(chartRow.configId).toBe(chartConfigId)
+
+        // and the upper-case spelling still addresses the same chart
+        const second = await env.request({
+            method: "PUT",
+            path: `/charts/by-config/${upperCased}/etlConfig`,
+            body: JSON.stringify({ ...testEtlConfig, subtitle: "Second push" }),
+        })
+        expect(second.chartId).toBe(response.chartId)
+        expect(second.created).toBe(false)
+    })
+
     it("creates a chart with a caller-supplied config UUID via POST /charts", async () => {
         const chartConfigId = uuidv7()
         const response = await env.request({
