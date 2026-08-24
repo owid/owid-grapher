@@ -38,6 +38,15 @@ export const DATA_INSIGHT_ATOM_FEED_PROPS = {
     href: `https://ourworldindata.org/${DATA_INSIGHTS_ATOM_FEED_NAME}`,
 }
 
+/** Suppresses iframe embed mode on a page (useful in the admin) */
+export const DISABLE_IFRAME_EMBED_PARAM = "disableIframeEmbed"
+
+/**
+ * An embedded page posts this to its parent window with the visualization's
+ * rendered height, so the embedding site can size the iframe to fit.
+ */
+export const BESPOKE_EMBED_HEIGHT_MESSAGE_TYPE = "owid-bespoke-embed-height"
+
 export const DEFAULT_TOMBSTONE_REASON =
     "Our World in Data is designed to be an evergreen publication. This " +
     "means that when a page cannot be updated due to outdated data or " +

@@ -126,19 +126,96 @@ Note that every slide of a key insights block is in the DOM from page load, not 
 
 A bespoke component can also be the subject of its own page, rather than one
 figure inside an article. Those are gdocs of type `featured-viz`, published at
-`/featured-viz/<slug>`. The first top-level `{.bespoke-component}` block is the
-featured viz: it renders on a full-bleed blue band, at the width its `size` asks
-for, and later bespoke blocks on the page render as ordinary blocks.
+`/featured-viz/<slug>`, and they behave differently in three ways:
+
+- **The first top-level `{.bespoke-component}` block is the featured viz.** It
+  renders on a full-bleed blue band, at the width its `size` asks for. Later
+  bespoke blocks on the page render as ordinary blocks.
+- **The featured viz drives the URL.** The page forces `urlSync` on for it, so
+  a project that reads `config.urlSync` syncs without the author asking, and the
+  page URL is shareable and embeddable at a particular view. There is no
+  opt-out: a featured viz page whose URL doesn't track its viz is not worth
+  publishing. A project that doesn't read `config.urlSync` won't sync at all;
+  add it before giving that bundle a featured viz page.
+- **The page is embeddable.** In an iframe it collapses to the featured viz
+  alone: no site header, no footer, no article text. The iframe keeps whatever
+  `?query=params` it was given, so a link with viz state in it embeds with that
+  state.
 
 Everything else on the page is authored as in a normal article, and any block an
 article supports works there.
+
+### Embedding one
+
+Point an iframe at the page URL, optionally with viz state in the query string:
+
+```html
+<iframe
+    src="https://ourworldindata.org/featured-viz/where-do-migrants-live?migrantPyramidCountry=France"
+    style="width: 100%; height: 600px; border: 0px none"
+    loading="lazy"
+    allow="web-share; clipboard-write"
+></iframe>
+```
+
+An iframe can't size itself to its content, and a bespoke viz has no
+viewport-derived height to fall back on the way a grapher chart does. So the
+embedded page posts its rendered height to the parent window: an
+`owid-bespoke-embed-height` message, on load and whenever the height changes.
+Embedders that want an exact fit add a listener:
+
+```html
+<script>
+    window.addEventListener("message", (event) => {
+        if (event.origin !== "https://ourworldindata.org") return
+        if (event.data?.type !== "owid-bespoke-embed-height") return
+        for (const iframe of document.querySelectorAll("iframe")) {
+            if (iframe.contentWindow === event.source)
+                iframe.style.height = event.data.height + "px"
+        }
+    })
+</script>
+```
+
+Hand these out as two snippets rather than one combined block. Plenty of CMSs
+strip `<script>` outright, so the iframe alone has to be the thing that works,
+and the listener is an upgrade offered on top of it. Two things follow:
+
+- The listener has to set the same property the iframe sets. Both use inline
+  `style` above. Setting the `height` content attribute instead is a silent
+  no-op against an inline style height, since a presentational hint loses to
+  inline style in the cascade.
+- The static height wants to be generous. Without the listener the page still
+  renders and the viz still works, but it is clipped to that height. It scrolls
+  inside the frame, and scroll chains to the host page once it bottoms out, but
+  overlay scrollbars draw no gutter, so at rest nothing signals that the viz
+  continues below the fold.
+
+Picking that height isn't a matter of measuring one screenshot. A bespoke viz
+usually gets _taller_ as it gets narrower, because the layout reflows into a
+longer stack. Measured on the causes-of-death treemap, a 1280px-wide viewport
+renders 1028px tall and a 390px one renders 1352px. A height tuned to desktop
+therefore clips on every phone, and one safe on mobile leaves a band of
+whitespace on desktop. Err towards the narrow case: whitespace is recoverable,
+a sliced visualization isn't.
+
+Embed mode can be suppressed with a `?disableIframeEmbed` query param. The
+admin's article preview frames the article, so it sets that param — otherwise an
+editor previewing a featured viz page would see only the viz.
 
 ### More than one bespoke block
 
 Expected, and fine. A page often embeds the same viz several times with
 different settings and talks about each one. Only the first top-level bespoke
-block is the featured viz and gets the blue band; the rest render as ordinary
-figures at whatever `size` they ask for.
+block is the featured viz: the rest render as ordinary figures, with no blue
+band, no `urlSync`, and hidden in an embed along with the rest of the article.
+
+Keeping `urlSync` on the featured viz alone is deliberate. The page URL stands
+for the featured viz's state, the thing a reader shares and an embed pins. So a
+second component writing its own params would pollute it, and a second component
+of the _same_ bundle would fight it for the same keys. The
+cross-instance state sharing described under "Sharing state between variants" is
+an in-article device; it doesn't apply here.
 
 ## Sizing
 

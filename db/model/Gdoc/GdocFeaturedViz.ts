@@ -35,9 +35,7 @@ export class GdocFeaturedViz
     override _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
 
-        // Only top-level bespoke-component blocks count: the page renders the
-        // first one on its blue band, and it can't do that for a block nested
-        // inside a container.
+        // Featured viz pages must have a bespoke-component block at the top level of their body
         const hasBespokeBlock = (this.content.body ?? []).some(
             (block) => block.type === "bespoke-component"
         )
@@ -46,7 +44,7 @@ export class GdocFeaturedViz
             errors.push({
                 property: "body",
                 message:
-                    "A featured viz page must contain a {.bespoke-component} block at the top level of its body. Without one the page has no featured viz to show.",
+                    "A featured viz page must contain a {.bespoke-component} block at the top level of its body",
                 type: OwidGdocErrorMessageType.Error,
             })
         }

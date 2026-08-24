@@ -59,6 +59,7 @@ import {
     BAKED_BASE_URL,
     PUBLISHED_AT_FORMAT,
 } from "../settings/clientSettings.js"
+import { DISABLE_IFRAME_EMBED_PARAM } from "../site/SiteConstants.js"
 import { RouteComponentProps } from "react-router-dom"
 import * as R from "remeda"
 
@@ -117,6 +118,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 ? selectedEntity
                 : undefined,
         acceptSuggestions: acceptSuggestions ? "true" : "false",
+        // The preview embeds the article as iframe, which would otherwise put
+        // an embeddable page into embed mode and hide everything but the viz
+        [DISABLE_IFRAME_EMBED_PARAM]: "true",
     })
 
     const fetchGdoc = useCallback(

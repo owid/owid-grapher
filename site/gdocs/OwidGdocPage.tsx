@@ -32,6 +32,7 @@ import {
     DEFAULT_ATOM_FEED_PROPS,
 } from "../SiteConstants.js"
 import { Html } from "../Html.js"
+import { IFrameDetector } from "../IframeDetector.js"
 import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
 import { addPreferSmallFilenameToDataInsightImages } from "../gdocs/utils.js"
 import { AriaAnnouncerProvider } from "../AriaAnnouncerContext.js"
@@ -173,6 +174,7 @@ export default function OwidGdocPage({
     const assetMaps = isOnArchivalPage ? archiveContext.assets : undefined
     const isDataInsight = checkIsDataInsight(gdoc)
     const isAuthor = checkIsAuthor(gdoc)
+    const isFeaturedViz = gdoc.content.type === OwidGdocType.FeaturedViz
     const isJsonLdArticle = isJsonLdArticlePredicate(gdoc)
 
     let imageUrl
@@ -237,6 +239,7 @@ export default function OwidGdocPage({
                         imageUrl={imageUrl}
                     />
                 )}
+                {isFeaturedViz && <IFrameDetector />}
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `window._OWID_GDOC_PROPS = ${serializeJSONForInlineScript(

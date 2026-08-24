@@ -58,3 +58,24 @@ hr.featured-viz-divider {
         margin: 0;
     }
 }
+
+// When the page is embedded in an iframe it becomes viz-only
+html.IsInIframe {
+    .centered-article-container--featured-viz > *:not(.featured-viz-hero) {
+        display: none;
+    }
+
+    // The embedding page provides the background and the padding.
+    .featured-viz-hero {
+        background-color: transparent;
+        padding: 0;
+        margin: 0;
+    }
+
+    // The viz gets the whole iframe rather than the article's 8 columns.
+    .featured-viz-hero__viz {
+        grid-column: 1 / -1;
+    }
+
+    @include hide-site-chrome;
+}

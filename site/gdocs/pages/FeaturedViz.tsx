@@ -1,4 +1,6 @@
 import * as _ from "lodash-es"
+import { useEffect, useMemo, useRef, type RefObject } from "react"
+import { GRAPHER_IS_IN_IFRAME_CLASS } from "@ourworldindata/grapher"
 import cx from "clsx"
 import {
     EnrichedBlockBespokeComponent,
@@ -10,6 +12,7 @@ import {
 import { formatDate } from "@ourworldindata/utils"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { BESPOKE_EMBED_HEIGHT_MESSAGE_TYPE } from "../../SiteConstants.js"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import { getLayout } from "../components/layout.js"
 import { BespokeComponent } from "../components/BespokeComponent.js"
@@ -30,7 +33,10 @@ type FeaturedVizProps = Omit<
 }
 
 export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
-    const { before, hero, after } = splitFeaturedVizBody(content.body)
+    const { before, hero, after } = useMemo(
+        () => splitFeaturedVizBody(content.body),
+        [content.body]
+    )
 
     const { citationText, bibtex } = buildGdocCitation({
         authors: content.authors,
@@ -109,8 +115,14 @@ function FeaturedVizHeader({
 
 /** The page's featured viz: a full-bleed band behind the bespoke component. */
 function FeaturedVizHero({ block }: { block: EnrichedBlockBespokeComponent }) {
+    const heroRef = useRef<HTMLDivElement>(null)
+    useReportEmbedHeight(heroRef)
+
     return (
-        <div className="featured-viz-hero span-cols-14 grid grid-cols-12-full-width">
+        <div
+            ref={heroRef}
+            className="featured-viz-hero span-cols-14 grid grid-cols-12-full-width"
+        >
             <BespokeComponent
                 className={cx(
                     "featured-viz-hero__viz",
@@ -144,9 +156,45 @@ function splitFeaturedVizBody(
     )
     if (heroIndex === -1) return { before: body, hero: undefined, after: [] }
 
+    const hero = body[heroIndex] as EnrichedBlockBespokeComponent
+
     return {
         before: body.slice(0, heroIndex),
-        hero: body[heroIndex] as EnrichedBlockBespokeComponent,
+        // Switch on urlSync for the featured viz, so it can be linked to and
+        // embedded with its current state
+        hero: { ...hero, config: { ...hero.config, urlSync: "true" } },
         after: body.slice(heroIndex + 1),
     }
+}
+
+/**
+ * While the page is embedded, report the viz's rendered height to the embedding
+ * window so it can size the iframe to fit. An iframe can't size itself, and
+ * unlike a grapher chart a bespoke viz has no viewport-derived height to fall
+ * back on.
+ */
+function useReportEmbedHeight(ref: RefObject<HTMLDivElement | null>): void {
+    useEffect(() => {
+        const element = ref.current
+        if (!element) return
+
+        // Only report the height if the page is embedded
+        const hasIframeEmbedClass = document.documentElement.classList.contains(
+            GRAPHER_IS_IN_IFRAME_CLASS
+        )
+        if (!hasIframeEmbedClass) return
+
+        // ResizeObserver fires once on observe, which covers the initial height
+        const observer = new ResizeObserver(() => {
+            window.parent.postMessage(
+                {
+                    type: BESPOKE_EMBED_HEIGHT_MESSAGE_TYPE,
+                    height: element.offsetHeight,
+                },
+                "*"
+            )
+        })
+        observer.observe(element)
+        return () => observer.disconnect()
+    }, [ref])
 }
