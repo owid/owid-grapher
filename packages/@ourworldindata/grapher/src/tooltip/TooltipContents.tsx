@@ -16,7 +16,7 @@ import { makeAxisLabel } from "../axis/AxisUtils.js"
 import * as R from "remeda"
 import { CoreColumn } from "@ourworldindata/core-table"
 
-type TooltipValue = number | string | undefined
+type TooltipValueType = number | string | undefined
 
 const NO_DATA_LABEL = "No data"
 const NO_DATA_COLOR = "#999"
@@ -355,18 +355,18 @@ export function toTooltipTableColumns(
 }
 
 export function formatTooltipRangeValues(
-    values: TooltipValue[],
+    values: TooltipValueType[],
     column: CoreColumn,
     noDataLabel: string = NO_DATA_LABEL
 ): [string, string] {
-    const formatTooltipValueShort = (value: TooltipValue): string =>
+    const formatTooltipValueShort = (value: TooltipValueType): string =>
         formatTooltipValue(
             value,
             (value) => column.formatValueShort(value),
             noDataLabel
         )
     const formatTooltipValueShortWithAbbreviations = (
-        value: TooltipValue
+        value: TooltipValueType
     ): string =>
         formatTooltipValue(
             value,
@@ -389,7 +389,7 @@ export function formatTooltipRangeValues(
 }
 
 function formatTooltipValue(
-    value: TooltipValue,
+    value: TooltipValueType,
     formatValue: (value: number) => string,
     noDataLabel: string = NO_DATA_LABEL
 ): string {
