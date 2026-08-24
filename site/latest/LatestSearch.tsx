@@ -4,6 +4,7 @@ import {
     LATEST_TYPE_VALUES,
     LatestState,
     LatestType,
+    PageChronologicalRecord,
     TagGraphRoot,
 } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
@@ -79,6 +80,13 @@ export const LatestSearch = ({
     const clearAllFilters = () => {
         updateParams(() => ({ topics: [], latestType: null }))
     }
+
+    // Cards render their full body when the feed is filtered to their own
+    // type. Topic-page records carry no latestType and never render a card.
+    const isExpandedHit = (hit: PageChronologicalRecord) =>
+        latestType !== null &&
+        "latestType" in hit &&
+        hit.latestType === latestType
 
     const {
         hits,
@@ -180,6 +188,7 @@ export const LatestSearch = ({
                             selectedTopic={topics[0]}
                             position={i + 1}
                             shouldAutoExpand={hit.slug === autoExpandedSlug}
+                            isExpanded={isExpandedHit(hit)}
                         />
                     ))}
                     {/* Always render the signup block — with 0 or 1 hits it
@@ -196,6 +205,7 @@ export const LatestSearch = ({
                             selectedTopic={topics[0]}
                             position={i + 3}
                             shouldAutoExpand={hit.slug === autoExpandedSlug}
+                            isExpanded={isExpandedHit(hit)}
                         />
                     ))}
                     {hasNextPage && (

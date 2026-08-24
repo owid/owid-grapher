@@ -6,8 +6,14 @@ import {
 import { formatInlineList } from "@ourworldindata/utils"
 import { useContext } from "react"
 import * as React from "react"
+import { faChevronRight } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { AnnouncementContent } from "../../latest/AnnouncementContent.js"
-import { deriveAnnouncementLatestType } from "../../latest/latestUtils.js"
+import {
+    buildLatestPagePath,
+    deriveAnnouncementLatestType,
+    latestTypeLabelPlural,
+} from "../../latest/latestUtils.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { CopySocialButton } from "../components/CopySocialButton.js"
 import { buildSocialText } from "../socialText.js"
@@ -50,6 +56,13 @@ export const AnnouncementPage = ({
         SOCIAL_LATEST_TYPES.includes(latestType) && content.body.length > 0
     return (
         <div className="announcement-page grid grid-cols-12-full-width">
+            <div className="announcement-page-breadcrumbs span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 col-sm-start-2 span-sm-cols-12">
+                <a href={buildLatestPagePath(latestType)}>
+                    {latestTypeLabelPlural(latestType)}
+                </a>
+                <FontAwesomeIcon icon={faChevronRight} />
+                <span>{content.title}</span>
+            </div>
             <div className="announcement-page-content span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 span-sm-cols-14 col-sm-start-1">
                 <AnnouncementContent
                     title={content.title}

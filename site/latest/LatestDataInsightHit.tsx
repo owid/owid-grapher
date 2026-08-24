@@ -1,12 +1,15 @@
-import { formatAuthors, OwidGdocType } from "@ourworldindata/utils"
+import { OwidGdocType } from "@ourworldindata/utils"
 import { PageChronologicalDataInsightRecord } from "@ourworldindata/types"
 import { getPrefixedGdocPath } from "@ourworldindata/components"
 import { AttachmentsContext } from "../gdocs/AttachmentsContext.js"
-import Image from "../gdocs/components/Image.js"
-import { ArticleBlocks } from "../gdocs/components/ArticleBlocks.js"
 import cx from "clsx"
 import { LatestHitMetadata } from "./LatestHitMetadata.js"
-import { LATEST_HIT_GRID_CLASSES, makeAttachments } from "./latestUtils.js"
+import { LatestFeedCard } from "./LatestFeedCard.js"
+import {
+    LATEST_HIT_GRID_CLASSES,
+    makeAttachments,
+    splitOutFeedCardMedia,
+} from "./latestUtils.js"
 import { useLatestContext } from "./LatestContext.js"
 import { useIsLikelyBaked } from "./latestHooks.js"
 
@@ -14,10 +17,12 @@ export const LatestDataInsightHit = ({
     hit,
     selectedTopic,
     position,
+    isExpanded,
 }: {
     hit: PageChronologicalDataInsightRecord
     selectedTopic?: string
     position: number
+    isExpanded?: boolean
 }) => {
     const { analytics } = useLatestContext()
     const href = getPrefixedGdocPath("", {
@@ -25,8 +30,7 @@ export const LatestDataInsightHit = ({
         content: { type: OwidGdocType.DataInsight },
     })
     const isLikelyBaked = useIsLikelyBaked(href, hit.date)
-    const firstImage = hit.body.find((block) => block.type === "image")
-    const otherBlocks = hit.body.filter((block) => block !== firstImage)
+    const { media, bodyBlocks } = splitOutFeedCardMedia(hit.body)
     const titleId = `latest-hit-${hit.slug}-title`
 
     if (!isLikelyBaked) return null
@@ -46,40 +50,18 @@ export const LatestDataInsightHit = ({
                     publishedAt={hit.date}
                     selectedTopic={selectedTopic}
                 />
-                <a
+                <LatestFeedCard
                     href={href}
-                    aria-labelledby={titleId}
-                    className="latest-data-insight-hit__card grid grid-cols-8"
+                    title={hit.title}
+                    titleId={titleId}
+                    authors={hit.authors}
+                    media={media}
+                    blocks={bodyBlocks}
+                    isExpanded={isExpanded}
                     onClick={() =>
                         analytics.logLatestResultClick(hit, position)
                     }
-                >
-                    {firstImage && (
-                        <Image
-                            className="latest-data-insight-hit__image span-cols-3"
-                            filename={firstImage.filename}
-                            containerType="latest-data-insight"
-                            shouldLightbox={false}
-                        />
-                    )}
-                    <div className="latest-data-insight-hit__content span-cols-5">
-                        <h2
-                            id={titleId}
-                            className="latest-data-insight-hit__title body-1-bold"
-                        >
-                            {hit.title}
-                        </h2>
-                        <p className="latest-data-insight-hit__authors">
-                            {formatAuthors(hit.authors)}
-                        </p>
-                        <div className="latest-data-insight-hit__blocks">
-                            <ArticleBlocks
-                                blocks={otherBlocks}
-                                shouldRenderLinks={false}
-                            />
-                        </div>
-                    </div>
-                </a>
+                />
             </article>
         </AttachmentsContext.Provider>
     )

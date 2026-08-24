@@ -1,0 +1,83 @@
+.latest-feed-card {
+    background-color: $blue-20;
+    color: $blue-90;
+    padding: 16px;
+
+    &:hover {
+        background-color: $accent-pale-blue;
+    }
+
+    &:hover .latest-feed-card__content:before {
+        background: linear-gradient(
+            180deg,
+            rgba(231, 242, 255, 0) 50%,
+            $accent-pale-blue 100%
+        );
+    }
+
+    @include sm-only {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+}
+
+.latest-feed-card__image {
+    align-self: start;
+    display: block;
+
+    img {
+        display: block;
+    }
+}
+
+.latest-feed-card__content {
+    max-height: 286px;
+    overflow: hidden;
+    position: relative;
+
+    &:before {
+        content: "";
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+        background: linear-gradient(
+            180deg,
+            rgba(219, 229, 240, 0) 50%,
+            $blue-20 100%
+        );
+    }
+}
+
+// Filtered to this card's own type: show the whole body, ending on its {.cta}.
+.latest-feed-card--expanded .latest-feed-card__content {
+    max-height: none;
+
+    &:before {
+        display: none;
+    }
+}
+
+.latest-feed-card__title {
+    line-height: 1.5rem;
+    margin: 0 0 8px 0;
+}
+
+.latest-feed-card__authors {
+    @include body-3-medium-italic;
+    color: $blue-50;
+    margin: 0 0 8px 0;
+}
+
+.latest-feed-card__blocks {
+    @include text-block-override {
+        @include body-3-medium;
+    }
+
+    .cta {
+        @include body-3-bold;
+        margin-bottom: 0;
+    }
+}

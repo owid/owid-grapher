@@ -42,3 +42,31 @@
         width: 100%;
     }
 }
+
+// Back-navigation to the filtered feed, mirroring .data-insight-breadcrumbs on
+// the data insight page.
+.announcement-page-breadcrumbs {
+    margin: 32px 0 0;
+    font-size: 0.875rem;
+
+    a {
+        @include owid-link-90;
+
+        &:visited {
+            color: $blue-90; // Don't change the color.
+        }
+    }
+
+    svg {
+        height: 12px;
+        margin: 0 8px 1px 8px;
+    }
+
+    span {
+        color: $blue-60;
+    }
+
+    @include sm-only {
+        display: none;
+    }
+}

@@ -10,6 +10,9 @@ type LatestHitProps = {
     selectedTopic?: string
     position: number
     shouldAutoExpand: boolean
+    /** Render the card's full body rather than the clipped preview. Set by
+     * LatestSearch when the feed is filtered to this card's own type. */
+    isExpanded?: boolean
 }
 
 /** Dispatches to the appropriate per-type hit card. */
@@ -18,6 +21,7 @@ export const LatestHit = ({
     selectedTopic,
     position,
     shouldAutoExpand,
+    isExpanded,
 }: LatestHitProps) => {
     return match(hit)
         .with({ type: OwidGdocType.Article }, (hit) => (
@@ -32,6 +36,7 @@ export const LatestHit = ({
                 hit={hit}
                 selectedTopic={selectedTopic}
                 position={position}
+                isExpanded={isExpanded}
             />
         ))
         .with({ type: OwidGdocType.Announcement }, (hit) => (
@@ -40,6 +45,7 @@ export const LatestHit = ({
                 selectedTopic={selectedTopic}
                 position={position}
                 shouldAutoExpand={shouldAutoExpand}
+                isExpanded={isExpanded}
             />
         ))
         .with(

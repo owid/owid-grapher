@@ -7,6 +7,7 @@ import {
     LatestFeedGdoc,
     LatestType,
     LatestUrlParam,
+    OwidEnrichedGdocBlock,
     PageChronologicalRecord,
 } from "@ourworldindata/types"
 import { OwidGdocType, slugify } from "@ourworldindata/utils"
@@ -103,4 +104,37 @@ export function makeAttachments(hit: PageChronologicalRecord) {
         relatedCharts: [],
         tags: [],
     }
+}
+
+export type LatestFeedCardMedia =
+    | { kind: "image"; filename: string }
+    | { kind: "chart"; url: string }
+
+/**
+ * Pull the block that becomes the card's left-hand thumbnail out of a body,
+ * and return the rest as the card's text column.
+ *
+ * Data insights lead with an {.image}; data updates put their figure last and
+ * could in principle use a {.chart} instead (announcement records are the only
+ * ones that carry linkedCharts, so a chart block can actually resolve on a
+ * card). Either way we take the first image or chart block wherever it sits.
+ * Bodies with neither — e.g. the handful of data updates that are pure text —
+ * fall through to a full-width text card.
+ */
+export function splitOutFeedCardMedia(blocks: OwidEnrichedGdocBlock[]): {
+    media?: LatestFeedCardMedia
+    bodyBlocks: OwidEnrichedGdocBlock[]
+} {
+    const mediaBlock = blocks.find(
+        (block) => block.type === "image" || block.type === "chart"
+    )
+    const bodyBlocks = blocks.filter((block) => block !== mediaBlock)
+    if (mediaBlock?.type === "image" && mediaBlock.filename)
+        return {
+            media: { kind: "image", filename: mediaBlock.filename },
+            bodyBlocks,
+        }
+    if (mediaBlock?.type === "chart")
+        return { media: { kind: "chart", url: mediaBlock.url }, bodyBlocks }
+    return { bodyBlocks }
 }
