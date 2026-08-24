@@ -22,9 +22,7 @@ import { MigrationInterface, QueryRunner } from "typeorm"
  * `charts.patchConfigId` and `variables.patchConfigIdETL`), never a rendered
  * config, so there is nothing to re-upload to R2.
  */
-export class DropDimensionsFromIndicatorConfigs1787581800000
-    implements MigrationInterface
-{
+export class DropDimensionsFromIndicatorConfigs1787581800000 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // 1. Any chart that currently gets its `dimensions` from neither its
         //    own patch nor its ETL layer would, after step 2, have nowhere left
