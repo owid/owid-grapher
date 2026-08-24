@@ -76,13 +76,26 @@ describe("filter query round trip through react-querybuilder", () => {
     }
 })
 
-describe("filterQueryToSExpression", () => {
+describe(filterQueryToSExpression, () => {
     it("drops incomplete rules", () => {
         const query: RuleGroupType = {
             combinator: "and",
             rules: [
                 { field: "name", operator: "contains", value: "energy" },
                 { field: "/minTime", operator: "<", value: "" },
+            ],
+        }
+        expect(
+            filterQueryToSExpression(query, context, readOnlyColumns)?.toSExpr()
+        ).toEqual(`(AND (CONTAINS variables.name "energy"))`)
+    })
+
+    it("ignores rules where no field has been selected yet", () => {
+        const query: RuleGroupType = {
+            combinator: "and",
+            rules: [
+                { field: "~", operator: "=", value: "" },
+                { field: "name", operator: "contains", value: "energy" },
             ],
         }
         expect(

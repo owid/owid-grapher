@@ -37,6 +37,7 @@ import {
 
 import { GrapherInterface } from "@ourworldindata/types"
 import {
+    defaultPlaceholderFieldName,
     isRuleGroup,
     type Field,
     type RuleGroupType,
@@ -344,7 +345,9 @@ export function filterQueryToSExpression(
         if (query.not) return new Negation(operation)
         else return operation
     } else {
-        if (!query.field) return undefined
+        // Ignore rules where no field has been selected yet
+        if (!query.field || query.field === defaultPlaceholderFieldName)
+            return undefined
         const field = getFieldSymbol(
             query.field,
             context,

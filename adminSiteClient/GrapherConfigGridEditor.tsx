@@ -1426,6 +1426,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                                 query={filterState}
                                 onQueryChange={this.updateFilterState}
                                 showNotToggle
+                                autoSelectField={false}
                                 parseNumbers="strict-limited"
                                 controlElements={{
                                     fieldSelector: SearchableFieldSelector,
