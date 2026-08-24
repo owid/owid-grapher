@@ -7,7 +7,7 @@ import {
     GDOCS_ANNOUNCEMENT_DUPLICATION_TEMPLATE_ID,
 } from "../settings/clientSettings.js"
 import { useGdocsStore } from "./GdocsStoreContext.js"
-import { Button } from "antd"
+import { Button, Input } from "antd"
 
 export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
     const [documentUrl, setDocumentUrl] = React.useState("")
@@ -73,17 +73,16 @@ export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
                     </ul>
                     Paste the URL of your new document in the field below 👇
                 </div>
-                <div className="form-group">
-                    <input
+                <div className="form-field">
+                    <Input
                         type="text"
-                        className="form-control"
                         onChange={(e) => setDocumentUrl(e.target.value)}
                         value={documentUrl}
                         required
                         placeholder={GDOCS_URL_PLACEHOLDER}
                         pattern={gdocUrlRegex.source}
                     />
-                    <span className="validation-notice">
+                    <span className="GdocsAddForm__validation-notice">
                         Invalid URL - it should look like this:{" "}
                         <pre>{GDOCS_URL_PLACEHOLDER}</pre>
                     </span>

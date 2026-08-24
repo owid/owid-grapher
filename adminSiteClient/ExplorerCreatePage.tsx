@@ -28,7 +28,7 @@ import {
 } from "./ExplorerCommands.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ENV } from "../settings/clientSettings.js"
-import { Button } from "antd"
+import { Button, Checkbox } from "antd"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
 
@@ -287,18 +287,12 @@ export class ExplorerCreatePage extends Component<ExplorerCreatePageProps> {
             : "" // todo: provide an explanation of how many cells are modified.
 
         const showPreviewCheckbox = (
-            <div className="form-check">
-                <input
-                    type="checkbox"
-                    className="form-check-input"
-                    id="showPreview"
-                    checked={this.showPreview}
-                    onChange={() => this.onShowPreviewChanged()}
-                ></input>
-                <label className="form-check-label" htmlFor="showPreview">
-                    Show Preview
-                </label>
-            </div>
+            <Checkbox
+                checked={this.showPreview}
+                onChange={() => this.onShowPreviewChanged()}
+            >
+                Show Preview
+            </Checkbox>
         )
 
         return (

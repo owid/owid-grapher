@@ -60,7 +60,12 @@
         margin-right: 5px;
     }
 
-    .badge {
+    // The "Archived" chip next to an archived indicator's name. It used to lean
+    // on Bootstrap's `.badge` for its box model; those two declarations are
+    // inlined here now.
+    .VariableSelector__badge {
+        display: inline-block;
+        white-space: nowrap;
         background-color: #999;
         border-radius: 2px;
         text-transform: uppercase;

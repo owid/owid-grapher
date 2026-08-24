@@ -1,0 +1,28 @@
+// The "Add a document" modal (`GdocsAdd.tsx`). Validation is native HTML5
+// validation on the URL field's `pattern`, surfaced through the `:invalid`
+// sibling selector below rather than through any component state.
+
+.GdocsAddForm__instructions {
+    margin-left: 8px;
+    margin-bottom: 8px;
+}
+
+.GdocsAddForm__validation-notice {
+    display: none;
+}
+
+.GdocsAddForm input:invalid + .GdocsAddForm__validation-notice {
+    display: block;
+    margin-top: 4px;
+    color: red;
+    padding-left: 5px;
+
+    pre {
+        color: red;
+    }
+}
+
+// A blank input counts as invalid, but there is nothing to complain about yet.
+.GdocsAddForm input:placeholder-shown + .GdocsAddForm__validation-notice {
+    display: none;
+}

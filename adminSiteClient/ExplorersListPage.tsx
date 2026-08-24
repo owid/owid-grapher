@@ -25,7 +25,7 @@ import {
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { AdminManager } from "./AdminManager.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { Button } from "antd"
+import { Button, Checkbox, Tag } from "antd"
 
 interface ExplorerRowProps {
     explorer: ExplorerProgram
@@ -35,15 +35,15 @@ interface ExplorerRowProps {
 
 function explorerTypeBadge(mode: ExplorerChartCreationMode): {
     label: string
-    className: string
+    color?: string
 } {
     switch (mode) {
         case ExplorerChartCreationMode.FromVariableIds:
-            return { label: "Indicator", className: "badge badge-success" }
+            return { label: "Indicator", color: "success" }
         case ExplorerChartCreationMode.FromGrapherId:
-            return { label: "Grapher", className: "badge badge-secondary" }
+            return { label: "Grapher" }
         case ExplorerChartCreationMode.FromExplorerTableColumnSlugs:
-            return { label: "CSV", className: "badge badge-secondary" }
+            return { label: "CSV" }
     }
 }
 
@@ -107,10 +107,10 @@ class ExplorerRow extends Component<ExplorerRowProps> {
                 </td>
                 <td>
                     {(() => {
-                        const { label, className } = explorerTypeBadge(
+                        const { label, color } = explorerTypeBadge(
                             explorer.chartCreationMode
                         )
-                        return <span className={className}>{label}</span>
+                        return <Tag color={color}>{label}</Tag>
                     })()}
                 </td>
                 <td>
@@ -178,7 +178,7 @@ class ExplorerList extends Component<ExplorerListProps> {
             userSelect: "none" as const,
         }
         return (
-            <table className="table table-bordered">
+            <table className="admin-table">
                 <thead>
                     <tr>
                         <th>Slug</th>
@@ -307,21 +307,12 @@ export class ExplorersIndexPage extends Component<{
                         explorers
                     </div>
                     <div>
-                        <label
-                            style={{
-                                marginBottom: 0,
-                                cursor: "pointer",
-                                userSelect: "none",
-                            }}
+                        <Checkbox
+                            checked={this.showOnlyPublished}
+                            onChange={this.onToggleShowOnlyPublished}
                         >
-                            <input
-                                type="checkbox"
-                                checked={this.showOnlyPublished}
-                                onChange={this.onToggleShowOnlyPublished}
-                                style={{ marginRight: 6 }}
-                            />
                             Show only published
-                        </label>
+                        </Checkbox>
                     </div>
                     {/* <div style={{ textAlign: "right" }}>
                         <Button

@@ -94,7 +94,7 @@ export const GdocsManualBreadcrumbsInput = ({
     }
 
     return (
-        <div className="form-group">
+        <div className="form-field">
             <div className="d-flex justify-content-between">Breadcrumbs</div>
             {!!gdoc.breadcrumbs?.length && !gdoc.manualBreadcrumbs?.length ? (
                 <div>

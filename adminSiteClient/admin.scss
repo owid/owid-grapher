@@ -14,20 +14,6 @@
 @import "bootstrap/scss/reboot";
 @import "bootstrap/scss/type";
 @import "bootstrap/scss/code";
-// Layout:
-@import "bootstrap/scss/grid";
-@import "bootstrap/scss/tables";
-// Form controls. `Forms.tsx` is on antd now, and so is the chart editor, but
-// raw `form-control` / `form-check` / `form-group` markup is still hand-written
-// on the pages Phase 5 covers — ExplorerCreatePage, UsersIndexPage, GdocsAdd,
-// VariableEditPage, CalloutFunctionsPage — and `admin.scss` also `@extend`s
-// `.form-control`:
-@import "bootstrap/scss/forms";
-// Chrome and navigation:
-@import "bootstrap/scss/breadcrumb";
-@import "bootstrap/scss/pagination";
-// Components:
-@import "bootstrap/scss/badge";
 // Helpers:
 @import "bootstrap/scss/utilities";
 @import "bootstrap/scss/print";
@@ -43,7 +29,14 @@
 //   buttons + button-group (every button in the admin is an antd `Button`),
 //   alert (every alert in the admin is an antd `Alert`),
 //   input-group (antd `Space.Compact` / `Input`'s `addonBefore` instead),
-//   list-group (`.editable-list` in `Forms.scss` instead).
+//   list-group (`.editable-list` in `Forms.scss` instead),
+//   forms (`Forms.tsx` and the pages around it are on antd primitives; the
+//   field chrome is `.form-field*` in `Forms.scss`),
+//   tables (index views are either an antd `Table` or `.admin-table`, see
+//   `AdminTable.scss`),
+//   grid (antd `Row`/`Col`, or a flex rule in the component's own stylesheet),
+//   badge (antd `Tag`), breadcrumb (antd `Breadcrumb`),
+//   pagination (antd `Pagination`).
 
 // Our own copy of the parts of Bootstrap's reboot the admin depends on, so that
 // removing `bootstrap/scss/reboot` above stays a small, deliberate step rather
@@ -87,6 +80,14 @@
 @import "./EditorFAQ.scss";
 @import "./EditableTags.scss";
 @import "./AdminSidebar.scss";
+@import "./AdminTable.scss";
+@import "./ChartList.scss";
+@import "./CalloutFunctionsPage.scss";
+@import "./GdocsAdd.scss";
+@import "./GdocsSettingsForms.scss";
+@import "./GdocsSettingsContentField.scss";
+@import "./GrapherConfigGridEditor.scss";
+@import "./VariableEditPage.scss";
 @import "./GdocsIndexPage.scss";
 @import "./FeaturedMetricsPage.scss";
 @import "./FilesIndexPage.scss";
@@ -128,9 +129,7 @@ button {
 
     button,
     a,
-    .form-field__label,
-    .form-group > label,
-    .form-check > label {
+    .form-field__label {
         @extend .clickable;
     }
 
@@ -159,86 +158,6 @@ button {
     }
 }
 
-.VariablesAnnotationPage {
-    display: flex;
-    flex-grow: 1;
-
-    > .sidebar {
-        min-width: 500px;
-        width: 500px;
-        min-height: 100%;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        > .sidebar-content {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: stretch;
-            overflow-y: auto;
-            height: 100%;
-            > .preview {
-                flex: 0 0 auto;
-                // min-height: 500px;
-                border-top: 1px solid lightgray;
-                padding-top: 5px;
-            }
-            > section {
-                flex: 1 0 200px;
-            }
-        }
-    }
-
-    > .editor-view {
-        width: 100%;
-    }
-
-    .column-list-item {
-        padding: 3px;
-        border: lightgray 1px solid;
-        border-radius: 4px;
-
-        button {
-            margin-right: 0.5rem;
-        }
-    }
-
-    .column-list-item + .column-list-item {
-        margin-top: 4px;
-    }
-
-    .column-section {
-        overflow-y: auto;
-    }
-
-    .queryBuilder {
-        margin: 8px 0;
-    }
-
-    .rich-editor-confirm-buttons {
-        margin-top: 0.5rem;
-
-        button {
-            margin-right: 0.5rem;
-        }
-    }
-}
-
-// The bulk editor's sidebar uses an antd `Tabs` as a tab bar only — its panes
-// are rendered as siblings, below, so that `.sidebar-content`'s flex sizing
-// still reaches them. Hide the empty content area antd renders anyway.
-.VariablesAnnotationPage__tabs {
-    padding: 0.5rem 0.5rem 0;
-
-    > .ant-tabs-nav {
-        margin-bottom: 0;
-    }
-
-    > .ant-tabs-content-holder {
-        display: none;
-    }
-}
-
 /* Reusable utility classes */
 
 .draggable {
@@ -262,123 +181,6 @@ button {
 
 main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     padding: 2em;
-}
-
-.chartPreview {
-    width: 100%;
-    height: auto;
-    max-width: 140px;
-}
-
-.internalNotes {
-    font-size: 13px;
-    color: #666;
-    margin-top: 6px;
-}
-
-.ChartList {
-    .topRow {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 1em;
-
-        .form-group {
-            margin: 0;
-        }
-
-        input {
-            width: 500px;
-        }
-    }
-}
-
-.ImportPage {
-    .Importer {
-        max-width: 1000px;
-
-        input:not([type="submit"]),
-        select,
-        textarea,
-        button {
-            @extend .form-control;
-        }
-
-        label {
-            display: block;
-        }
-
-        textarea {
-            resize: none;
-        }
-
-        .updateWarning {
-            margin-top: 20px;
-            margin-bottom: 0;
-            text-align: center;
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-
-        select.chooseDataset {
-            margin-bottom: 20px;
-            font-size: 1.2em;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-    }
-
-    .ValidationView {
-        margin-top: 20px;
-    }
-
-    .EditVariable {
-        .variableProps > label {
-            margin-right: 10px;
-            line-height: normal;
-        }
-
-        .name,
-        .description {
-            width: 100%;
-        }
-    }
-
-    .importProgress {
-        background: white;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        padding: 20px;
-
-        .success {
-            color: #00a65a;
-        }
-
-        .error {
-            color: #dd4b39;
-        }
-
-        .progressInner {
-            overflow: auto;
-            margin: 10px;
-        }
-    }
-
-    section:not(:first-child) {
-        margin-top: 0;
-    }
-}
-
-.VariableEditPage {
-    figure {
-        width: 100%;
-        height: 500px;
-    }
-
-    .partial-grapher-configs .FieldsRow {
-        align-items: flex-start;
-    }
 }
 
 .EditableTextarea__actions {
@@ -418,53 +220,6 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     height: 600px;
     margin: 0;
     min-width: 0;
-}
-
-.TestEmbedsPage {
-    figure,
-    iframe {
-        border: 0;
-        width: 914px;
-        height: 400px;
-    }
-
-    .row {
-        padding: 10px;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-    }
-
-    h3 {
-        width: 50%;
-        text-align: center;
-        margin: 0;
-    }
-
-    nav.pagination {
-        width: 100%;
-        text-align: center;
-    }
-}
-
-.VariableEditRow {
-    border-bottom: 1px solid #eee;
-    padding-bottom: 1em;
-    margin-bottom: 1em;
-
-    figure {
-        width: 100%;
-        height: 500px;
-    }
-}
-
-// to override the default annoying blue border from bootstrap on file upload
-.custom-file-input:focus ~ .custom-file-control {
-    box-shadow:
-        0 0 0 0.075rem #fff,
-        0 0 0 0.2rem #fff;
 }
 
 .TagBadge {
@@ -535,14 +290,6 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     }
 }
 
-.TagEditPage {
-    .form-check-label {
-        &:has(input:disabled) {
-            cursor: default;
-        }
-    }
-}
-
 .DeploysPage {
     .all-published-notice {
         font-size: 18px;
@@ -596,68 +343,6 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
         font-weight: 400;
         color: #777;
     }
-}
-
-.GdocsAddForm {
-    .GdocsAddForm__instructions {
-        margin-left: 8px;
-        margin-bottom: 8px;
-    }
-    .validation-notice {
-        display: none;
-    }
-    input:invalid + .validation-notice {
-        display: block;
-        margin-top: 4px;
-        color: red;
-        padding-left: 5px;
-        pre {
-            color: red;
-        }
-    }
-    // don't show the validation notice when the input is blank (because that counts as "invalid")
-    input:placeholder-shown + .validation-notice {
-        display: none;
-    }
-}
-
-.GdocsEditPage,
-.GdocsSettingsForm {
-    .success {
-        color: #52c41a;
-    }
-
-    .warning {
-        color: #faad14;
-    }
-
-    .error {
-        color: #ff4d4f;
-    }
-    .muted {
-        color: rgba(0, 0, 0, 0.25);
-    }
-    h3.form-section-heading {
-        color: #757575;
-    }
-    .form-group:not(:first-child) h3.form-section-heading {
-        margin-top: 32px;
-    }
-}
-
-.GdocsSettingsForm__alert {
-    margin-bottom: 8px;
-}
-
-.GdocsSettingsContentField__imagePreview {
-    margin-top: 12px;
-}
-
-.GdocsSettingsContentField__imagePreviewImage {
-    display: block;
-    width: 100%;
-    border: 1px solid #d9d9d9;
-    border-radius: 4px;
 }
 
 .GdocsEditPage {
@@ -786,88 +471,6 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
 
     .GdocsCoverageMatrix__cell {
         border: 1px solid #e5e7eb;
-    }
-}
-
-.CalloutFunctionsPage {
-    padding: 24px;
-}
-
-.CalloutFunctionsPage__form {
-    margin-top: 16px;
-}
-
-.CalloutFunctionsPage__input-group {
-    display: flex;
-    gap: 8px;
-
-    input {
-        flex: 1;
-    }
-}
-
-.CalloutFunctionsPage__results {
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    padding: 16px;
-}
-
-.CalloutFunctionsPage__function-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.CalloutFunctionsPage__column-functions {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    padding: 8px 12px;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 4px;
-    margin-bottom: 8px;
-    ul {
-        width: 100%;
-        margin-top: 8px;
-        li {
-            margin-bottom: 4px;
-            list-style: none;
-        }
-    }
-
-    code {
-        flex: 1;
-        font-size: 14px;
-        color: #1f2937;
-    }
-}
-
-.GdocsSettingsForm {
-    .edit-in-gdocs {
-        position: relative;
-
-        a {
-            background-color: rgb(24, 144, 255, 0.8);
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            text-decoration: none;
-            transition: all 0.2s;
-            opacity: 0;
-        }
-
-        &:hover a {
-            opacity: 1;
-        }
     }
 }
 
@@ -1178,15 +781,6 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
 
 .ImageReplaceConfirmModal__strong-text {
     font-weight: bold;
-}
-
-.table-preview-col {
-    min-width: 140px;
-    width: 12.5%;
-}
-
-.table-preview-col--centered {
-    text-align: center;
 }
 
 .SvgTesterIndexPage__intro {

@@ -1,0 +1,79 @@
+// Styles for the gdocs settings drawer (`GdocsSettingsForms.tsx`). The status
+// colours are shared with `GdocsEditPage.tsx`, which renders the same drawer.
+
+.GdocsEditPage,
+.GdocsSettingsForm {
+    .success {
+        color: #52c41a;
+    }
+
+    .warning {
+        color: #faad14;
+    }
+
+    .error {
+        color: #ff4d4f;
+    }
+
+    .muted {
+        color: rgba(0, 0, 0, 0.25);
+    }
+
+    h3.form-section-heading {
+        color: #757575;
+    }
+}
+
+// One titled block of settings. Replaces Bootstrap's `.form-group`, which this
+// markup used as a generic spacing wrapper rather than as a form field.
+.GdocsSettingsForm__section {
+    margin-bottom: 1rem;
+}
+
+.GdocsSettingsForm__section:not(:first-child) h3.form-section-heading {
+    margin-top: 32px;
+}
+
+// Replaces Bootstrap's `.form-text` on the notes under the entity picker.
+.GdocsSettingsForm__help {
+    display: block;
+    margin-top: 0.25rem;
+}
+
+.GdocsSettingsForm__preview-entity {
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.GdocsSettingsForm__alert {
+    margin-bottom: 8px;
+}
+
+.GdocsSettingsForm {
+    .edit-in-gdocs {
+        position: relative;
+
+        a {
+            background-color: rgb(24, 144, 255, 0.8);
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            transition: all 0.2s;
+            opacity: 0;
+        }
+
+        &:hover a {
+            opacity: 1;
+        }
+    }
+}

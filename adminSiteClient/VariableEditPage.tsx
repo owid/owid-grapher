@@ -12,7 +12,12 @@ import YAML from "yaml"
 import * as _ from "lodash-es"
 import { AdminLayout } from "./AdminLayout.js"
 import { Link, LinkButton } from "./Link.js"
-import { FieldsRow, TextAreaField, CatalogPathField } from "./Forms.js"
+import {
+    FieldsRow,
+    TextAreaField,
+    TextField,
+    CatalogPathField,
+} from "./Forms.js"
 import {
     OwidVariableWithDataAndSource,
     DimensionProperty,
@@ -36,6 +41,7 @@ import {
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.js"
+import { Breadcrumb, Col, Row } from "antd"
 
 interface VariablePageData extends Omit<
     OwidVariableWithDataAndSource,
@@ -71,17 +77,7 @@ function ReadOnlyField({
             />
         )
     }
-    return (
-        <div className="form-group">
-            <label>{label}</label>
-            <input
-                type="text"
-                className="form-control"
-                value={displayValue}
-                disabled
-            />
-        </div>
-    )
+    return <TextField label={label} value={displayValue} disabled />
 }
 
 // XXX refactor with DatasetEditPage
@@ -121,19 +117,22 @@ class VariableEditor extends Component<{
 
         return (
             <main className="VariableEditPage">
-                <ol className="breadcrumb">
-                    <li className="breadcrumb-item">
-                        {variable.datasetNamespace}
-                    </li>
-                    <li className="breadcrumb-item">
-                        <Link to={`/datasets/${variable.datasetId}`}>
-                            {variable.datasetName}
-                        </Link>
-                    </li>
-                    <li className="breadcrumb-item active">{variable.name}</li>
-                </ol>
-                <div className="row">
-                    <div className="col">
+                <Breadcrumb
+                    className="VariableEditPage__breadcrumb"
+                    items={[
+                        { title: variable.datasetNamespace },
+                        {
+                            title: (
+                                <Link to={`/datasets/${variable.datasetId}`}>
+                                    {variable.datasetName}
+                                </Link>
+                            ),
+                        },
+                        { title: variable.name },
+                    ]}
+                />
+                <Row gutter={30}>
+                    <Col flex="1 1 0">
                         <section>
                             <h3>Indicator metadata</h3>
                             {isV2MetadataVariable && (
@@ -243,9 +242,9 @@ class VariableEditor extends Component<{
                                 />
                             </FieldsRow>
                         </section>
-                    </div>
+                    </Col>
                     {this.grapherState && (
-                        <div className="col">
+                        <Col flex="1 1 0">
                             <div className="topbar">
                                 <h3>Preview</h3>
                                 <LinkButton
@@ -255,11 +254,11 @@ class VariableEditor extends Component<{
                                 </LinkButton>
                             </div>
                             <Grapher grapherState={this.grapherState} />
-                        </div>
+                        </Col>
                     )}
-                </div>
-                <div className="row">
-                    <div className="col">
+                </Row>
+                <Row gutter={30}>
+                    <Col flex="1 1 0">
                         <section>
                             <h4>
                                 Data Page&nbsp;
@@ -318,7 +317,7 @@ class VariableEditor extends Component<{
                                 />
                             </FieldsRow>
                             <FieldsRow>
-                                <div className="col">
+                                <div>
                                     <ReadOnlyField
                                         label="Processing Level"
                                         value={variable.processingLevel}
@@ -357,11 +356,11 @@ class VariableEditor extends Component<{
                                 />
                             </FieldsRow>
                         </section>
-                    </div>
-                </div>
+                    </Col>
+                </Row>
                 <hr></hr>
-                <div className="row">
-                    <div className="col">
+                <Row gutter={30}>
+                    <Col flex="1 1 0">
                         <section>
                             <h3>
                                 Origins&nbsp;
@@ -374,8 +373,8 @@ class VariableEditor extends Component<{
                             </h3>
                             <OriginList origins={variable.origins || []} />
                         </section>
-                    </div>
-                </div>
+                    </Col>
+                </Row>
                 {variable.source && (
                     <section>
                         <h3>Source</h3>

@@ -1,9 +1,9 @@
-import { useCallback, useContext, useEffect, useState } from "react"
+import { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { FieldsRow } from "./Forms.js"
 import { Link } from "./Link.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { Button } from "antd"
+import { Button, Table, TableColumnsType } from "antd"
 
 interface RedirectListItem {
     id: number
@@ -11,36 +11,6 @@ interface RedirectListItem {
     chartId: number
     chartSlug: string
     targetQueryParam: string | null
-}
-
-interface RedirectRowProps {
-    redirect: RedirectListItem
-    onDelete: (redirect: RedirectListItem) => void
-}
-
-function RedirectRow({ redirect, onDelete }: RedirectRowProps) {
-    return (
-        <tr>
-            <td>{redirect.slug}</td>
-            <td>
-                <Link to={`/charts/${redirect.chartId}/edit`}>
-                    {redirect.chartSlug}
-                    {redirect.targetQueryParam
-                        ? `?${redirect.targetQueryParam}`
-                        : ""}
-                </Link>
-            </td>
-            <td>
-                <Button
-                    color="danger"
-                    variant="solid"
-                    onClick={() => onDelete(redirect)}
-                >
-                    Delete
-                </Button>
-            </td>
-        </tr>
-    )
 }
 
 export function RedirectsIndexPage() {
@@ -79,6 +49,42 @@ export function RedirectsIndexPage() {
         void getData()
     }, [admin])
 
+    const columns: TableColumnsType<RedirectListItem> = useMemo(
+        () => [
+            {
+                title: "Slug",
+                dataIndex: "slug",
+                sorter: (a, b) => a.slug.localeCompare(b.slug),
+            },
+            {
+                title: "Redirects To",
+                key: "target",
+                render: (_, redirect) => (
+                    <Link to={`/charts/${redirect.chartId}/edit`}>
+                        {redirect.chartSlug}
+                        {redirect.targetQueryParam
+                            ? `?${redirect.targetQueryParam}`
+                            : ""}
+                    </Link>
+                ),
+            },
+            {
+                title: "",
+                key: "delete",
+                render: (_, redirect) => (
+                    <Button
+                        color="danger"
+                        variant="solid"
+                        onClick={() => onDelete(redirect)}
+                    >
+                        Delete
+                    </Button>
+                ),
+            },
+        ],
+        [onDelete]
+    )
+
     return (
         <AdminLayout title="Chart Redirects">
             <main className="RedirectsIndexPage">
@@ -89,22 +95,13 @@ export function RedirectsIndexPage() {
                     Redirects are automatically created when the slug of a
                     published chart is changed.
                 </p>
-                <table className="table table-bordered">
-                    <tbody>
-                        <tr>
-                            <th>Slug</th>
-                            <th>Redirects To</th>
-                            <th></th>
-                        </tr>
-                        {redirects.map((redirect) => (
-                            <RedirectRow
-                                key={redirect.id}
-                                redirect={redirect}
-                                onDelete={onDelete}
-                            />
-                        ))}
-                    </tbody>
-                </table>
+                <Table
+                    size="small"
+                    rowKey={(redirect) => redirect.id}
+                    dataSource={redirects}
+                    pagination={false}
+                    columns={columns}
+                />
             </main>
         </AdminLayout>
     )

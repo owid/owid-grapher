@@ -304,7 +304,7 @@ export class VariableList extends React.Component<VariableListProps> {
     override render() {
         const { props } = this
         return (
-            <table className="table table-bordered">
+            <table className="admin-table">
                 <thead>
                     <tr>
                         <th>Name</th>
