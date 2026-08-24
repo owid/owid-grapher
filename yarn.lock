@@ -5409,10 +5409,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/polylabel@npm:^1.1.3":
-  version: 1.1.3
-  resolution: "@types/polylabel@npm:1.1.3"
-  checksum: 10/e51ec7b7ce9d3e576e78013825bc9ec2ed595aeaddbe15a95fa209fddc229a5e73411f1ed57e80cadd9679603bbdcd8c350733ed794c3af7b519bf570371d906
+"@types/polylabel@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@types/polylabel@npm:2.0.0"
+  checksum: 10/2d8db0681cf5bc408d64f43dd67a6fae5dca9baa176cbad39019c37528ac716bbb45dc3596def9d86bb186ac5580da17376068e28318ba0b06db3b215812e978
   languageName: node
   linkType: hard
 
@@ -9184,7 +9184,7 @@ __metadata:
     "@types/multer": "npm:^2.1.0"
     "@types/node": "npm:^24.12.4"
     "@types/papaparse": "npm:^5.5.2"
-    "@types/polylabel": "npm:^1.1.3"
+    "@types/polylabel": "npm:^2.0.0"
     "@types/progress": "npm:^2.0.7"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
@@ -9248,7 +9248,7 @@ __metadata:
     p-map: "npm:^7.0.3"
     papaparse: "npm:^5.5.3"
     playwright-bdd: "npm:^9.1.0"
-    polylabel: "npm:^2.0.1"
+    polylabel: "npm:^2.1.0"
     progress: "npm:^2.0.3"
     react: "npm:^19.2.4"
     react-aria-components: "npm:^1.20.0"
@@ -12169,12 +12169,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"polylabel@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "polylabel@npm:2.0.1"
+"polylabel@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "polylabel@npm:2.1.0"
   dependencies:
     tinyqueue: "npm:^3.0.0"
-  checksum: 10/cfd4043487720e725710b19eca84f675c930e4754c60317f113a222d0b807c46cf0d2d4c2d854bae737433daa048cc6220c41e786f30929e7301015458f16c74
+  checksum: 10/842f810396948f1b0897b740d4c36a58fdae9f110c73509c39d8e7b762fe24913af7b6349fc64ba0946fc59e2ff24cb0c50967611583f774e7d3945106514754
   languageName: node
   linkType: hard
 
