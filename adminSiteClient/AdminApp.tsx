@@ -166,7 +166,12 @@ export class AdminApp extends React.Component<{
                 everything in a `div.ant-app`, which would impose antd's
                 font, text colour and line height on the Bootstrap half of
                 the admin and break the `height: 100%` chain from `#app`
-                down to `.AdminApp`. We only want the context it provides. */}
+                down to `.AdminApp`. We only want the context it provides.
+                antd logs a dev-only warning about `component={false}` with
+                css variables enabled; it's harmless here — every antd
+                component carries its own css-var scope class, so the
+                ConfigProvider theme still reaches all of them (verified:
+                `--ant-color-primary` resolves on rendered buttons). */}
                 <App component={false}>
                     <AdminAppInstancesBridge />
                     <QueryClientProvider client={queryClient}>
