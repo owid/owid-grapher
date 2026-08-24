@@ -63,6 +63,7 @@ import {
     FieldWithDetailReferences,
 } from "./ChartEditorTypes.js"
 import { Dataset, EditorDatabase } from "./EditorDatabase.js"
+import { Radio } from "antd"
 
 export type DetailReferences = Record<FieldWithDetailReferences, string[]>
 
@@ -527,48 +528,34 @@ export class ChartEditorView<
                         <Grapher grapherState={this.grapherState} />
                     </figure>
                     <div>
-                        <div
-                            className="btn-group"
-                            data-toggle="buttons"
-                            style={{ whiteSpace: "nowrap" }}
-                        >
-                            <label
-                                className={
-                                    "btn btn-light" +
-                                    (this.isMobilePreview ? " active" : "")
-                                }
-                                title="Mobile preview"
-                            >
-                                <input
-                                    type="radio"
-                                    onChange={action(() => {
-                                        editor.previewMode = "mobile"
-                                    })}
-                                    name="previewSize"
-                                    id="mobile"
-                                    checked={this.isMobilePreview}
-                                />{" "}
-                                <FontAwesomeIcon icon={faMobile} />
-                            </label>
-                            <label
-                                className={
-                                    "btn btn-light" +
-                                    (!this.isMobilePreview ? " active" : "")
-                                }
-                                title="Desktop preview"
-                            >
-                                <input
-                                    onChange={action(() => {
-                                        editor.previewMode = "desktop"
-                                    })}
-                                    type="radio"
-                                    name="previewSize"
-                                    id="desktop"
-                                    checked={!this.isMobilePreview}
-                                />{" "}
-                                <FontAwesomeIcon icon={faDesktop} />
-                            </label>
-                        </div>
+                        <Radio.Group
+                            className="ChartEditorPage__preview-mode"
+                            optionType="button"
+                            buttonStyle="solid"
+                            value={this.isMobilePreview ? "mobile" : "desktop"}
+                            onChange={action((event) => {
+                                editor.previewMode = event.target
+                                    .value as typeof editor.previewMode
+                            })}
+                            options={[
+                                {
+                                    value: "mobile",
+                                    label: (
+                                        <span title="Mobile preview">
+                                            <FontAwesomeIcon icon={faMobile} />
+                                        </span>
+                                    ),
+                                },
+                                {
+                                    value: "desktop",
+                                    label: (
+                                        <span title="Desktop preview">
+                                            <FontAwesomeIcon icon={faDesktop} />
+                                        </span>
+                                    ),
+                                },
+                            ]}
+                        />
                         <div
                             className="form-group d-inline-block"
                             style={{ width: 250, marginLeft: 15 }}

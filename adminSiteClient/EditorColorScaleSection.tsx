@@ -4,7 +4,7 @@ import * as React from "react"
 import { Component, Fragment } from "react"
 import { action, computed, runInAction, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { Select } from "antd"
+import { Button, Select } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -121,12 +121,9 @@ class ColorLegendSection extends Component<ColorLegendSectionProps> {
                         ))}
                     </EditableList>
                 ) : (
-                    <button
-                        className="btn btn-primary"
-                        onClick={this.onManualBins}
-                    >
+                    <Button type="primary" onClick={this.onManualBins}>
                         Assign custom labels
-                    </button>
+                    </Button>
                 )}
             </Section>
         )

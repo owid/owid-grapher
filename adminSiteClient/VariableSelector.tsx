@@ -15,7 +15,7 @@ import {
     makeObservable,
 } from "mobx"
 import { observer } from "mobx-react"
-import { Select } from "antd"
+import { Button, Select } from "antd"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArchive } from "@fortawesome/free-solid-svg-icons"
@@ -449,15 +449,14 @@ export class VariableSelector<
                     </div>
                 </div>
                 <div className="modal-footer">
-                    <button className="btn" onClick={this.onDismiss}>
-                        Close
-                    </button>
-                    <button
-                        className="btn btn-success"
+                    <Button onClick={this.onDismiss}>Close</Button>
+                    <Button
+                        color="green"
+                        variant="solid"
                         onClick={this.onComplete}
                     >
                         Set variable{slot.allowMultiple && "s"}
-                    </button>
+                    </Button>
                 </div>
             </Modal>
         )

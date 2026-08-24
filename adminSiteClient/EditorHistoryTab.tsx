@@ -3,7 +3,7 @@ import { observer } from "mobx-react"
 import { ChartEditor, Log } from "./ChartEditor.js"
 import { Timeago } from "./Forms.js"
 import { computed, observable, makeObservable } from "mobx"
-import { Modal } from "antd"
+import { Button, Modal } from "antd"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
 
 function LogCompareModal({
@@ -99,12 +99,11 @@ class LogRenderer extends Component<LogRendererProps> {
                 <span>{title}</span>
                 <div className="d-flex" style={{ gap: 6 }}>
                     {hasCompareButton && (
-                        <button
-                            className="btn btn-secondary"
+                        <Button
                             onClick={() => (this.isCompareModalOpen = true)}
                         >
                             Compare <br /> to previous
-                        </button>
+                        </Button>
                     )}
                 </div>
             </li>

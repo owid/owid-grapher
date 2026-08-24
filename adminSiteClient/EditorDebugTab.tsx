@@ -10,7 +10,7 @@ import {
     mergeGrapherConfigs,
 } from "@ourworldindata/utils"
 import YAML from "yaml"
-import { Modal, notification } from "antd"
+import { Button, Modal, notification, Space } from "antd"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import {
     NarrativeChartEditor,
@@ -112,12 +112,13 @@ class EditorDebugTabForChart extends Component<{
                         className="form-control"
                         value={YAML.stringify(patchConfig)}
                     />
-                    <button
-                        className="btn btn-primary mt-2"
+                    <Button
+                        className="mt-2"
+                        type="primary"
                         onClick={this.copyYamlToClipboard}
                     >
                         Copy YAML for ETL
-                    </button>
+                    </Button>
                 </Section>
 
                 {parentIndicatorId && (
@@ -284,21 +285,19 @@ class EditorDebugTabForNarrativeChart extends Component<{
                         className="form-control"
                         value={YAML.stringify(patchConfig)}
                     />
-                    <button
-                        className="btn btn-primary mt-2"
-                        onClick={this.copyYamlToClipboard}
-                    >
-                        Copy YAML for ETL
-                    </button>
+                    <Space className="mt-2" wrap>
+                        <Button
+                            type="primary"
+                            onClick={this.copyYamlToClipboard}
+                        >
+                            Copy YAML for ETL
+                        </Button>
+                        <Button onClick={() => (this.diffModalOpen = true)}>
+                            Show diff to parent chart
+                        </Button>
+                    </Space>
 
                     {this.diffModal}
-
-                    <button
-                        className="btn btn-secondary mt-2"
-                        onClick={() => (this.diffModalOpen = true)}
-                    >
-                        Show diff to parent chart
-                    </button>
                 </Section>
 
                 <Section name="Parent chart">

@@ -1,0 +1,13 @@
+// The mobile/desktop preview toggle underneath the chart preview. Used to be a
+// Bootstrap `.btn-group` sized by a `.ChartEditorPage .btn-group .btn` rule in
+// `admin.scss`; it is an antd `Radio.Group` now, so the width lives here.
+// The rest of `.ChartEditorPage`'s styling still lives in `admin.scss` and gets
+// moved here when the chart editor tabs themselves are migrated.
+.ChartEditorPage__preview-mode {
+    white-space: nowrap;
+
+    .ant-radio-button-wrapper {
+        text-align: center;
+        width: 50px;
+    }
+}

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { Form, Input, InputRef, Modal } from "antd"
+import { Alert, Form, Input, InputRef, Modal } from "antd"
 import {
     NARRATIVE_CHART_KEBAB_CASE_ERROR_MSG,
     KEBAB_CASE_REGEX,
@@ -79,12 +79,14 @@ export const NarrativeChartNameModal = (props: {
                     <Input ref={inputRef} />
                 </Form.Item>
                 {props.errorMsg && (
-                    <div
-                        className="alert alert-danger"
-                        style={{ whiteSpace: "pre-wrap" }}
-                    >
-                        {props.errorMsg}
-                    </div>
+                    <Alert
+                        type="error"
+                        title={
+                            <span style={{ whiteSpace: "pre-wrap" }}>
+                                {props.errorMsg}
+                            </span>
+                        }
+                    />
                 )}
             </div>
         </Modal>

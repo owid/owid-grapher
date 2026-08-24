@@ -17,7 +17,7 @@ import {
     mappableCountries,
     ToleranceStrategy,
 } from "@ourworldindata/utils"
-import { Select } from "antd"
+import { Button, Select } from "antd"
 import { action, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
@@ -289,14 +289,12 @@ class InheritanceSection<Editor extends AbstractChartEditor> extends Component<{
 
                 {!areMapSettingsInherited && (
                     <div className="mt-2">
-                        <button
-                            className="btn btn-outline-secondary"
-                            type="button"
+                        <Button
+                            icon={<FontAwesomeIcon icon={faLink} />}
                             onClick={this.resetToParent}
                         >
-                            <FontAwesomeIcon icon={faLink} className="mr-2" />
                             Reset all map settings
-                        </button>
+                        </Button>
                     </div>
                 )}
             </Section>
