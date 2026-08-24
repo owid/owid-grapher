@@ -105,6 +105,10 @@ export const makeSitemap = async (
 
     const publishedDataInsights = await db.getPublishedDataInsights(knex)
 
+    const featuredVizPages = await db.getPublishedGdocsWithTags(knex, [
+        OwidGdocType.FeaturedViz,
+    ])
+
     const charts = await db.knexRaw<
         Pick<DbPlainChart, "updatedAt"> & { slug: string }
     >(
@@ -161,6 +165,12 @@ export const makeSitemap = async (
             publishedDataInsights.map((d) => ({
                 loc: urljoin(BAKED_BASE_URL, "data-insights", d.slug),
                 lastmod: dayjs(d.updatedAt).format("YYYY-MM-DD"),
+            }))
+        )
+        .concat(
+            featuredVizPages.map((p) => ({
+                loc: urljoin(BAKED_BASE_URL, "featured-viz", p.slug),
+                lastmod: dayjs(p.updatedAt).format("YYYY-MM-DD"),
             }))
         )
         .concat(

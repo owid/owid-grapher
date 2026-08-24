@@ -1071,6 +1071,7 @@ export function getPageTypeNameAndIcon(pageType: OwidGdocType): {
             icon: faFlag,
         }))
         .with(
+            OwidGdocType.FeaturedViz, // Not yet indexed
             OwidGdocType.Author, // Should never be indexed
             OwidGdocType.Fragment, // Should never be indexed
             OwidGdocType.Homepage, // Should never be indexed

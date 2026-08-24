@@ -121,6 +121,24 @@ Two things to know when authoring one of these:
 
 Note that every slide of a key insights block is in the DOM from page load, not just the active one — so a bespoke component in slide 3 mounts and fetches its data even if the reader never opens that slide.
 
+## Featured viz pages
+
+A bespoke component can also be the subject of its own page, rather than one
+figure inside an article. Those are gdocs of type `featured-viz`, published at
+`/featured-viz/<slug>`. The first top-level `{.bespoke-component}` block is the
+featured viz: it renders on a full-bleed blue band, at the width its `size` asks
+for, and later bespoke blocks on the page render as ordinary blocks.
+
+Everything else on the page is authored as in a normal article, and any block an
+article supports works there.
+
+### More than one bespoke block
+
+Expected, and fine. A page often embeds the same viz several times with
+different settings and talks about each one. Only the first top-level bespoke
+block is the featured viz and gets the blue band; the rest render as ordinary
+figures at whatever `size` they ask for.
+
 ## Sizing
 
 The **width** of your component is determined by the `size` property in the ArchieML block:
