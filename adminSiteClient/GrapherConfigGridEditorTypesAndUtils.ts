@@ -504,7 +504,7 @@ export function fieldDescriptionToFilterPanelFieldConfig(
         .returnType<Field | undefined>()
         .with(EditorOption.checkbox, () => ({
             ...common,
-            valueEditorType: "checkbox",
+            valueEditorType: "switch",
             defaultValue: false,
             operators: booleanOperators,
         }))

@@ -315,6 +315,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ant-design/icons-svg@npm:^4.5.0":
+  version: 4.5.0
+  resolution: "@ant-design/icons-svg@npm:4.5.0"
+  checksum: 10/1f03fe952e519edb0e15c24fa73c538e449429ce7a00a353c4209624c466331b3f68c4ddf171fba479d573d0e3f5bb5958e9f2d5318424ebed645604a45c4a70
+  languageName: node
+  linkType: hard
+
 "@ant-design/icons@npm:^6.2.3":
   version: 6.2.5
   resolution: "@ant-design/icons@npm:6.2.5"
@@ -327,6 +334,21 @@ __metadata:
     react: ">=16.0.0"
     react-dom: ">=16.0.0"
   checksum: 10/802bc010d9d7a2e97266b31c41ceb0a0698ef3d7c00e689df91eb9f961d1171ae0e55a4b171176a39d86162aeb1c51718cb617ad2e19fe1e3761f5c404280925
+  languageName: node
+  linkType: hard
+
+"@ant-design/icons@npm:^6.3.2":
+  version: 6.3.2
+  resolution: "@ant-design/icons@npm:6.3.2"
+  dependencies:
+    "@ant-design/colors": "npm:^8.0.1"
+    "@ant-design/icons-svg": "npm:^4.5.0"
+    "@rc-component/util": "npm:^1.11.0"
+    clsx: "npm:^2.1.1"
+  peerDependencies:
+    react: ">=16.0.0"
+    react-dom: ">=16.0.0"
+  checksum: 10/4aa19ad34e8ae34d919250f18f39cd8848d50bcb84a4612817c5bbdf5db9e37ec8e5653de7c7adb7ef75e696084b68298d128a7a831e80cd52662eba780a5f4f
   languageName: node
   linkType: hard
 
@@ -3626,6 +3648,19 @@ __metadata:
     react: ">=18.0.0"
     react-dom: ">=18.0.0"
   checksum: 10/6391b2b715b40d895fc9bc626aa4be1ee6c7b018a536a830b06b7181e20ab3868097a16377918b5159bd114dfe02ed985fc0bdf2cef707e3f4c7302a1076e0f7
+  languageName: node
+  linkType: hard
+
+"@react-querybuilder/antd@npm:^8.23.1":
+  version: 8.23.1
+  resolution: "@react-querybuilder/antd@npm:8.23.1"
+  peerDependencies:
+    "@ant-design/icons": ">=5"
+    antd: ">=5.11.0"
+    dayjs: ">=1"
+    react: ">=18"
+    react-querybuilder: 8.23.1
+  checksum: 10/947c6841da7dd7f76d024119832be9b3529da611a8e22a3e9667c96ac62b6ce8a9aebb78106f32bc52b90d00920d5db1c2cc5fa1c3c61e07fb4ac90fabfb49bb
   languageName: node
   linkType: hard
 
@@ -9137,6 +9172,7 @@ __metadata:
     "@algolia/autocomplete-theme-classic": "npm:^1.19.8"
     "@algolia/client-common": "npm:5.53.0"
     "@algolia/requester-fetch": "npm:5.53.0"
+    "@ant-design/icons": "npm:^6.3.2"
     "@aws-sdk/client-s3": "npm:^3.1089.0"
     "@codemirror/commands": "npm:^6.10.4"
     "@codemirror/lang-markdown": "npm:^6.5.2"
@@ -9161,6 +9197,7 @@ __metadata:
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@playwright/test": "npm:^1.60.0"
+    "@react-querybuilder/antd": "npm:^8.23.1"
     "@rmp135/sql-ts": "npm:^2.1.0"
     "@rollup/plugin-swc": "npm:^0.4.1"
     "@sentry/node": "npm:^10.70.0"

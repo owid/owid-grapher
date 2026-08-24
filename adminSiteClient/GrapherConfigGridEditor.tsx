@@ -89,8 +89,14 @@ import { IconToggleComponent } from "./IconToggleComponent.js"
 import {
     QueryBuilder,
     type Field,
+    type FieldSelectorProps,
     type RuleGroupType,
 } from "react-querybuilder"
+import {
+    AntDValueSelector,
+    QueryBuilderAntD,
+    type AntDValueSelectorProps,
+} from "@react-querybuilder/antd"
 import { parseJsonLogic } from "react-querybuilder/parseJsonLogic"
 import CodeMirror, { EditorView } from "@uiw/react-codemirror"
 import jsonpointer from "json8-pointer"
@@ -100,6 +106,22 @@ import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.js"
 import { SortableList } from "./SortableList.js"
 
 type Disposer = () => void
+
+/** The default antd field selector isn't searchable, but with the ~100 config
+    fields we offer, being able to type to filter is essential */
+function SearchableFieldSelector(
+    props: FieldSelectorProps
+): React.ReactElement {
+    // The cast is needed because AntDValueSelectorProps intersects antd's own
+    // `options` typing, which the field options don't satisfy structurally
+    // (Classname can be string[]) even though they work fine at runtime
+    return (
+        <AntDValueSelector
+            {...(props as unknown as AntDValueSelectorProps)}
+            showSearch={{ optionFilterProp: "label" }}
+        />
+    )
+}
 
 function HotColorScaleRenderer() {
     return <div style={{ color: "gray" }}>Color scale</div>
@@ -1398,13 +1420,18 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     {this.renderPagination()}
                     <label>Query builder</label>
                     {filterPanelFields.length > 0 && filterState && (
-                        <QueryBuilder
-                            fields={filterPanelFields}
-                            query={filterState}
-                            onQueryChange={this.updateFilterState}
-                            showNotToggle
-                            parseNumbers="strict-limited"
-                        />
+                        <QueryBuilderAntD>
+                            <QueryBuilder
+                                fields={filterPanelFields}
+                                query={filterState}
+                                onQueryChange={this.updateFilterState}
+                                showNotToggle
+                                parseNumbers="strict-limited"
+                                controlElements={{
+                                    fieldSelector: SearchableFieldSelector,
+                                }}
+                            />
+                        </QueryBuilderAntD>
                     )}
                     <small className="form-text text-muted">
                         Note that default values like empty string, "LineChart"
