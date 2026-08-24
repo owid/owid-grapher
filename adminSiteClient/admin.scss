@@ -17,23 +17,17 @@
 // Layout:
 @import "bootstrap/scss/grid";
 @import "bootstrap/scss/tables";
-// Form controls. `Forms.tsx` is on antd now, but raw `form-group` /
-// `form-control` / `form-check` / `form-text` markup is still hand-written in
-// the editor tabs, ExplorerCreatePage, UsersIndexPage, GdocsAdd and others,
-// and `admin.scss` also `@extend`s `.form-control`:
+// Form controls. `Forms.tsx` is on antd now, and so is the chart editor, but
+// raw `form-control` / `form-check` / `form-group` markup is still hand-written
+// on the pages Phase 5 covers — ExplorerCreatePage, UsersIndexPage, GdocsAdd,
+// VariableEditPage, CalloutFunctionsPage — and `admin.scss` also `@extend`s
+// `.form-control`:
 @import "bootstrap/scss/forms";
-// still used by EditorReferencesTab (`input-group-prepend`/`input-group-text`):
-@import "bootstrap/scss/input-group";
-// Chrome and navigation. `nav` is still used by the `nav nav-tabs` chrome of
-// ChartEditorView, GrapherConfigGridEditor and DatasetEditPage:
-@import "bootstrap/scss/nav";
+// Chrome and navigation:
 @import "bootstrap/scss/breadcrumb";
 @import "bootstrap/scss/pagination";
 // Components:
 @import "bootstrap/scss/badge";
-// still used by EditorReferencesTab, EditorHistoryTab, EditorDataTab and
-// DimensionCard, which interleave `list-group-item`s with `EditableListItem`s:
-@import "bootstrap/scss/list-group";
 // Helpers:
 @import "bootstrap/scss/utilities";
 @import "bootstrap/scss/print";
@@ -45,8 +39,11 @@
 //   modal (`Forms.tsx`'s `Modal` is antd's; the `.modal-header`/`.modal-body`/
 //   `.modal-footer` markup its consumers pass in is styled in `Forms.scss`),
 //   navbar (the admin chrome is an antd `Layout` — see `AdminLayout.tsx`),
+//   nav (every tab strip is an antd `Tabs`),
 //   buttons + button-group (every button in the admin is an antd `Button`),
-//   alert (every alert in the admin is an antd `Alert`).
+//   alert (every alert in the admin is an antd `Alert`),
+//   input-group (antd `Space.Compact` / `Input`'s `addonBefore` instead),
+//   list-group (`.editable-list` in `Forms.scss` instead).
 
 // Our own copy of the parts of Bootstrap's reboot the admin depends on, so that
 // removing `bootstrap/scss/reboot` above stays a small, deliberate step rather
@@ -80,6 +77,7 @@
 @import "./SaveButtons.scss";
 @import "./ChartEditorView.scss";
 @import "./EditorDataTab.scss";
+@import "./EditorReferencesTab.scss";
 @import "./EditableTags.scss";
 @import "./AdminSidebar.scss";
 @import "./GdocsIndexPage.scss";
@@ -246,11 +244,6 @@ button {
     > .ant-tabs-content-holder {
         display: none;
     }
-}
-
-.list-group {
-    margin-top: 0;
-    margin-bottom: 0.5em;
 }
 
 .EditorBasicTab {
@@ -900,30 +893,6 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     }
 }
 
-.redirect-prefix {
-    color: #aaa;
-    font-size: 13px;
-    font-weight: 400;
-    text-decoration: none;
-}
-
-.add-redirect-form {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-
-    span,
-    button {
-        flex: 0;
-    }
-
-    input[type="text"] {
-        flex: 1;
-        font-weight: 700;
-        color: #007bff;
-    }
-}
-
 .TagEditPage {
     .form-check-label {
         &:has(input:disabled) {
@@ -1360,21 +1329,6 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
 
     img.border {
         border: 1px solid rgb(240, 240, 240) !important;
-    }
-}
-
-.EditorReferencesTab .ReferencesDataInsights {
-    li {
-        display: flex;
-        gap: 1em;
-
-        a {
-            flex-grow: 1;
-        }
-
-        button {
-            min-width: 144px;
-        }
     }
 }
 

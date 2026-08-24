@@ -85,7 +85,7 @@ class LogRenderer extends Component<LogRendererProps> {
 
         return (
             <li
-                className="list-group-item d-flex justify-content-between"
+                className="editable-list__item d-flex justify-content-between"
                 style={{ alignItems: "center" }}
             >
                 {hasCompareButton && (
@@ -126,7 +126,7 @@ export class EditorHistoryTab extends Component<{ editor: ChartEditor }> {
         return (
             <div>
                 {this.logs.map((log, i) => (
-                    <ul key={i} className="list-group">
+                    <ul key={i} className="editable-list">
                         <LogRenderer
                             log={log}
                             previousLog={this.logs[i + 1]} // Needed for comparison, might be undefined

@@ -1,11 +1,12 @@
 // Styles for the shared admin form kit in `Forms.tsx`, which renders antd
 // primitives inside our own label / help-text / error chrome.
 //
-// The wrapper elements still carry Bootstrap's `form-group` and `list-group`
-// classes next to the ones below, because raw Bootstrap form and list markup
-// lives on in ~30 other admin files and is frequently interleaved with these
-// components. The rules here only cover the parts that used to come from
-// Bootstrap's form/input-group/modal markup that `Forms.tsx` no longer emits.
+// The field wrapper still carries Bootstrap's `form-group` class next to
+// `form-field`, because raw `form-group` markup lives on in the pages Phase 5
+// of the antd migration covers (ExplorerCreatePage, UsersIndexPage, GdocsAdd,
+// the gdocs settings forms) and is interleaved with these components there.
+// The rules below cover the parts that used to come from Bootstrap's
+// form/input-group/list-group/modal markup that `Forms.tsx` no longer emits.
 
 .form-field__label {
     display: block;
@@ -74,12 +75,36 @@
     height: auto;
 }
 
-// `EditableList` / `EditableListItem`. These deliberately mirror what
-// Bootstrap's list-group gives the hand-written `list-group-item` markup they
-// are mixed with; they exist as grep-able hooks for the phase that removes it.
+// `EditableList` / `EditableListItem`, plus the hand-written list markup in the
+// chart editor that used to carry Bootstrap's `list-group` classes. These rules
+// are what `bootstrap/scss/list-group` used to emit for them, minus the
+// variants (`-action`, `-flush`, contextual colours) nothing ever used.
 .editable-list {
+    display: flex;
+    flex-direction: column;
+    padding-left: 0;
     margin-top: 0;
     margin-bottom: 0.5em;
+}
+
+.editable-list__item {
+    position: relative;
+    display: block;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: -1px;
+    background-color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.editable-list__item:first-child {
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+}
+
+.editable-list__item:last-child {
+    margin-bottom: 0;
+    border-bottom-right-radius: 0.25rem;
+    border-bottom-left-radius: 0.25rem;
 }
 
 // The `Modal` component renders whatever it is handed inside an antd modal

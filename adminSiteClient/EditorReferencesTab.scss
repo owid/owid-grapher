@@ -1,0 +1,41 @@
+// Styles for the chart editor's "Refs" tab, moved out of `admin.scss` when the
+// tab's Bootstrap list-group and input-group markup was replaced.
+.EditorReferencesTab .redirect-prefix {
+    color: #aaa;
+    font-size: 13px;
+    font-weight: 400;
+    text-decoration: none;
+}
+
+.EditorReferencesTab .ReferencesDataInsights {
+    li {
+        display: flex;
+        gap: 1em;
+
+        a {
+            flex-grow: 1;
+        }
+
+        button {
+            min-width: 144px;
+        }
+    }
+}
+
+.AddRedirectForm__row {
+    margin-bottom: 0.5rem;
+}
+
+// A static label sitting flush against the antd `Input` next to it — what
+// Bootstrap's `.input-group-prepend` + `.input-group-text` used to render.
+.AddRedirectForm__addon {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    padding: 4px 11px;
+    border: 1px solid #d9d9d9;
+    border-right: none;
+    border-radius: 6px 0 0 6px;
+    background: #fafafa;
+    white-space: nowrap;
+}

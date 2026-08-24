@@ -96,7 +96,7 @@ class EntityListItem extends React.Component<EntityListItemProps> {
 
         return (
             <div
-                className="list-group-item EditableListItem"
+                className="editable-list__item EditableListItem"
                 key={entityName}
                 {...rest}
             >
@@ -133,7 +133,7 @@ class SeriesListItem extends React.Component<SeriesListItemProps> {
         const { seriesName, isValid } = props
         const rest = _.omit(props, ["seriesName", "isValid", "onRemove"])
 
-        const className = cx("ListItem", "list-group-item", {
+        const className = cx("ListItem", "editable-list__item", {
             invalid: !isValid,
         })
         const annotation = !isValid ? "(not plotted)" : ""

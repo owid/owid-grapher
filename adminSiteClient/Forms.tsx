@@ -670,12 +670,6 @@ export class Toggle extends React.Component<ToggleProps> {
     }
 }
 
-/**
- * Keeps Bootstrap's `list-group` classes alongside our own: several call sites
- * mix `EditableListItem`s with hand-written `list-group-item` markup in the
- * same list, so the two have to keep looking the same until those pages move
- * over too.
- */
 export class EditableList extends React.Component<{
     className?: string
     children?: React.ReactNode
@@ -684,11 +678,7 @@ export class EditableList extends React.Component<{
         return this.props.children ? (
             <ul
                 {...this.props}
-                className={cx(
-                    "editable-list",
-                    "list-group",
-                    this.props.className
-                )}
+                className={cx("editable-list", this.props.className)}
             />
         ) : null
     }
@@ -703,11 +693,7 @@ export class EditableListItem extends React.Component<EditableListItemProps> {
         return (
             <li
                 {...this.props}
-                className={cx(
-                    "editable-list__item",
-                    "list-group-item",
-                    this.props.className
-                )}
+                className={cx("editable-list__item", this.props.className)}
             />
         )
     }
