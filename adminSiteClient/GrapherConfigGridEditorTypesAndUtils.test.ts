@@ -8,7 +8,7 @@ import {
 } from "../adminShared/SqlFilterSExpression.js"
 import {
     filterQueryToSExpression,
-    promoteLatestEarliestToOperators,
+    promoteCustomOperators,
     ReadOnlyColumn,
     SExpressionToJsonLogic,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
@@ -46,7 +46,7 @@ function sExpressionToFilterQuery(sExpressionString: string): RuleGroupType {
     const operation = parseToOperation(sExpressionString, context)!
     const jsonLogic = SExpressionToJsonLogic(operation, readOnlyColumns)
     const query = parseJsonLogic(JSON.stringify(jsonLogic)) as RuleGroupType
-    promoteLatestEarliestToOperators(query)
+    promoteCustomOperators(query)
     return query
 }
 
@@ -59,6 +59,7 @@ describe("filter query round trip through react-querybuilder", () => {
         `(AND (= /minTime "latest"))`,
         `(AND (= /maxTime "earliest") (<= /maxTime 2020))`,
         `(AND (= /subtitle ""))`,
+        `(AND (<> /note ""))`,
         `(AND (<> /type "ScatterPlot"))`,
         `(AND (CONTAINS variables.name "wildfire") (OR (ISNULL /subtitle) (> /minTime 2000)))`,
     ]
@@ -83,6 +84,9 @@ describe(filterQueryToSExpression, () => {
             rules: [
                 { field: "name", operator: "contains", value: "energy" },
                 { field: "/minTime", operator: "<", value: "" },
+                { field: "/title", operator: "=", value: "" },
+                { field: "/title", operator: "!=", value: "" },
+                { field: "/subtitle", operator: "contains", value: "" },
             ],
         }
         expect(
@@ -108,6 +112,19 @@ describe(filterQueryToSExpression, () => {
         expect(
             filterQueryToSExpression(query, context, readOnlyColumns)
         ).toBeUndefined()
+    })
+
+    it("promotes loaded empty-string comparisons to isEmpty/isNotEmpty", () => {
+        const query = sExpressionToFilterQuery(
+            `(AND (= /subtitle "") (<> /note ""))`
+        )
+        expect(query.rules).toEqual([
+            expect.objectContaining({
+                field: "/subtitle",
+                operator: "isEmpty",
+            }),
+            expect.objectContaining({ field: "/note", operator: "isNotEmpty" }),
+        ])
     })
 
     it("translates isEmpty/isNotEmpty to comparisons with the empty string", () => {

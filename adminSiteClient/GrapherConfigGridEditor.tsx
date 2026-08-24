@@ -83,7 +83,7 @@ import {
     fetchVariablesParametersFromQueryString,
     filterExpressionNoFilter,
     fetchVariablesParametersToQueryParameters,
-    promoteLatestEarliestToOperators,
+    promoteCustomOperators,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
 import { IconToggleComponent } from "./IconToggleComponent.js"
 import {
@@ -1162,7 +1162,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 filterQuery = parseJsonLogic(
                     JSON.stringify(jsonLogic)
                 ) as RuleGroupType
-                promoteLatestEarliestToOperators(filterQuery)
+                promoteCustomOperators(filterQuery)
             }
 
             // If we didn't get a working query then use our default one instead

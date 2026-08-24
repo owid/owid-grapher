@@ -308,16 +308,23 @@ export function SExpressionToJsonLogic(
 
 /** When we load a filter query from the query string we convert our SExpression
     to JsonLogic and import it with react-querybuilder's parseJsonLogic. Our custom
-    operators isLatest/isEarliest have no JsonLogic equivalent and are represented
-    as field = "latest" / field = "earliest" - this function walks the imported
-    query and turns such rules back into the custom operators. */
-export function promoteLatestEarliestToOperators(group: RuleGroupType): void {
+    operators have no JsonLogic equivalent and are represented as plain comparisons
+    (isLatest as field = "latest", isEmpty as field = "" etc.) - this function walks
+    the imported query and turns such rules back into the custom operators.
+    Promoting = ""/!= "" to isEmpty/isNotEmpty also keeps them distinguishable from
+    rules whose value the user just hasn't filled in yet, which are excluded from
+    the filter (see filterQueryToSExpression). */
+export function promoteCustomOperators(group: RuleGroupType): void {
     for (const rule of group.rules) {
-        if (isRuleGroup(rule)) promoteLatestEarliestToOperators(rule)
+        if (isRuleGroup(rule)) promoteCustomOperators(rule)
         else if (rule.operator === "=" && rule.value === "latest")
             rule.operator = "isLatest"
         else if (rule.operator === "=" && rule.value === "earliest")
             rule.operator = "isEarliest"
+        else if (rule.operator === "=" && rule.value === "")
+            rule.operator = "isEmpty"
+        else if (rule.operator === "!=" && rule.value === "")
+            rule.operator = "isNotEmpty"
     }
 }
 
@@ -371,13 +378,21 @@ export function filterQueryToSExpression(
                     (op) => getEqualityOperator(op) !== undefined,
                     (op) => {
                         const operator = getEqualityOperator(op)!
-                        const val = getValueAtom(value)
+                        // A blank value is the default of a freshly added rule,
+                        // so treat it as incomplete. Matching the empty string
+                        // is available through the isEmpty/isNotEmpty operators.
+                        const val =
+                            value === "" ? undefined : getValueAtom(value)
                         if (val === undefined) return undefined
                         return new EqualityComparison(operator, [field, val])
                     }
                 )
                 .with("contains", () => {
-                    if (typeof value !== "string") return undefined
+                    // An empty search string would create a `LIKE '%%'` query
+                    // that looks like a no-op but excludes null rows, so treat
+                    // it as incomplete
+                    if (typeof value !== "string" || value === "")
+                        return undefined
                     return new StringContainsOperation(
                         field,
                         new StringAtom(value)
