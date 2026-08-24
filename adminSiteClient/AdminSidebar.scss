@@ -1,0 +1,30 @@
+// The admin sidebar: an antd `Layout.Sider` holding a dark inline `Menu`
+// (`AdminSidebar.tsx`). Its colors come from the `Menu` theme tokens set in
+// `AdminLayout.tsx`.
+
+.AdminSidebar {
+    overflow-x: hidden;
+    // Long enough to outgrow short viewports, so it scrolls on its own rather
+    // than with the page.
+    overflow-y: auto;
+}
+
+.AdminSidebar__menu {
+    // antd draws a divider down the right-hand side of inline menus; the
+    // sider's own edge is the divider here.
+    border-inline-end: none;
+    padding-bottom: 16px;
+}
+
+// Every entry is a real link, so that cmd-click and middle-click open a new
+// tab. It fills the item so the whole label is clickable; clicks that land on
+// the icon or the padding are handled by the menu's `onClick`.
+.AdminSidebar__menu a {
+    color: inherit;
+    display: block;
+
+    &:hover {
+        color: inherit;
+        text-decoration: none;
+    }
+}

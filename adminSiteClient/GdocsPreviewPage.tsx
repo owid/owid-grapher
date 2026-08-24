@@ -288,7 +288,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
 
     if (criticalErrorMessage) {
         return (
-            <AdminLayout title="Preview error" noSidebar fixedNav={false}>
+            <AdminLayout title="Preview error" noSidebar>
                 <main className="GdocsEditPage">
                     <div className="GdocsEditPage__error-container">
                         <p>
@@ -311,7 +311,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         <AdminLayout
             title={`Previewing ${currentGdoc.content.title}`}
             noSidebar
-            fixedNav={false}
         >
             <main className="GdocsEditPage">
                 <Row

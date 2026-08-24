@@ -1,0 +1,141 @@
+// The admin chrome: the antd `Layout` shell rendered by `AdminLayout.tsx`.
+// Colors, header height and padding come from the `Layout`/`Menu` theme tokens
+// in that file; what's left here is our own markup inside the header, and the
+// sizing chain the pages below depend on. The sidebar has its own companion
+// file, `AdminSidebar.scss`.
+
+$admin-chrome-fg: rgba(255, 255, 255, 0.85);
+$admin-chrome-hover-bg: rgba(255, 255, 255, 0.12);
+
+.AdminLayout {
+    // Completes the `#app` → `.AdminApp` → here chain, so that the shell is
+    // exactly as tall as the viewport and only its content area scrolls.
+    height: 100%;
+}
+
+.AdminLayout__header {
+    align-items: center;
+    display: flex;
+    font-size: 0.95rem;
+    gap: 2px;
+    // antd's header line-height matches its (much taller) default header;
+    // everything in here is centered by flexbox instead.
+    line-height: 1;
+}
+
+.AdminLayout__sidebar-toggle {
+    align-items: center;
+    background: transparent;
+    border-radius: 4px;
+    color: $admin-chrome-fg;
+    display: flex;
+    flex: 0 0 auto;
+    height: 32px;
+    justify-content: center;
+    margin-right: 8px;
+    padding: 0;
+    width: 32px;
+
+    &:hover {
+        background: $admin-chrome-hover-bg;
+        color: #fff;
+    }
+}
+
+.AdminLayout__brand {
+    align-items: center;
+    color: #fff;
+    display: flex;
+    flex: 0 0 auto;
+    font-size: 1.15rem;
+    font-weight: 600;
+    gap: 8px;
+    margin-right: 16px;
+    white-space: nowrap;
+
+    &:hover {
+        color: #fff;
+        text-decoration: none;
+    }
+}
+
+.AdminLayout__env {
+    border-radius: 3px;
+    color: #001c3d;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 3px 6px;
+    text-transform: uppercase;
+}
+
+.AdminLayout__env--dev {
+    background: orange;
+}
+
+.AdminLayout__env--live {
+    background: lightgreen;
+}
+
+.AdminLayout__env--test {
+    background: lightpink;
+}
+
+.AdminLayout__nav {
+    align-items: center;
+    display: flex;
+    flex: 1 1 auto;
+    gap: 2px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.AdminLayout__nav-link {
+    background: transparent;
+    border-radius: 4px;
+    color: $admin-chrome-fg;
+    // `<button>`s don't inherit either of these.
+    font-family: inherit;
+    font-size: inherit;
+    padding: 8px 10px;
+    white-space: nowrap;
+
+    &:hover {
+        background: $admin-chrome-hover-bg;
+        color: #fff;
+        text-decoration: none;
+    }
+}
+
+.AdminLayout__user {
+    color: $admin-chrome-fg;
+    flex: 0 0 auto;
+    margin-left: 8px;
+    white-space: nowrap;
+
+    &:hover {
+        color: #fff;
+        text-decoration: none;
+    }
+
+    &:hover::after {
+        content: " (logout)";
+    }
+}
+
+.AdminLayout__content {
+    // What `.ant-layout-content` would give us; see the comment on the element
+    // in `AdminLayout.tsx` for why it isn't used.
+    flex: auto;
+    min-height: 0;
+    // The shell is the scroll container: the header and the sidebar stay put
+    // while the page scrolls.
+    overflow: auto;
+}
+
+// Pages size themselves against the content area, the way they used to size
+// themselves against `calc(100vh - $nav-height)`. Anything taller than that
+// overflows and scrolls `.AdminLayout__content`.
+.AdminLayout__content > main {
+    height: 100%;
+}

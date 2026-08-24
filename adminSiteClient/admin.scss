@@ -26,9 +26,9 @@
 @import "bootstrap/scss/button-group";
 // still used by EditorReferencesTab (`input-group-prepend`/`input-group-text`):
 @import "bootstrap/scss/input-group";
-// Chrome and navigation:
+// Chrome and navigation. `nav` is still used by the `nav nav-tabs` chrome of
+// ChartEditorView, GrapherConfigGridEditor and DatasetEditPage:
 @import "bootstrap/scss/nav";
-@import "bootstrap/scss/navbar";
 @import "bootstrap/scss/breadcrumb";
 @import "bootstrap/scss/pagination";
 // Components:
@@ -46,7 +46,8 @@
 //   images, transitions, dropdown, custom-forms, card, jumbotron, progress,
 //   media, close, toasts, tooltip, popover, carousel, spinners,
 //   modal (`Forms.tsx`'s `Modal` is antd's; the `.modal-header`/`.modal-body`/
-//   `.modal-footer` markup its consumers pass in is styled in `Forms.scss`).
+//   `.modal-footer` markup its consumers pass in is styled in `Forms.scss`),
+//   navbar (the admin chrome is an antd `Layout` — see `AdminLayout.tsx`).
 
 // Our own copy of the parts of Bootstrap's reboot the admin depends on, so that
 // removing `bootstrap/scss/reboot` above stays a small, deliberate step rather
@@ -76,6 +77,8 @@
 @import "../packages/@ourworldindata/components/src/styles/typography.scss";
 
 @import "./Forms.scss";
+@import "./AdminLayout.scss";
+@import "./AdminSidebar.scss";
 @import "./GdocsIndexPage.scss";
 @import "./FeaturedMetricsPage.scss";
 @import "./FilesIndexPage.scss";
@@ -112,8 +115,6 @@ button {
     height: 100%;
 }
 
-$nav-height: 45px;
-
 .AdminApp {
     height: 100%;
 
@@ -127,55 +128,6 @@ $nav-height: 45px;
 
     .btn:disabled {
         cursor: default;
-    }
-
-    a.logout:hover:after {
-        content: " (logout)";
-    }
-
-    .navbar {
-        z-index: 3;
-        font-size: 0.95rem;
-    }
-
-    // overriding bootstrap defaults that break the navbar buttons
-    @media screen and (max-width: 992px) {
-        .navbar.navbar-expand-lg {
-            flex-wrap: nowrap;
-
-            .navbar-nav {
-                flex-direction: row;
-            }
-
-            .nav-link {
-                padding: 7px;
-            }
-        }
-    }
-
-    .navbar-brand {
-        font-size: 1.15rem;
-    }
-
-    .navbar-toggler {
-        padding: 0.2rem 0.5rem;
-        display: block;
-        margin-right: 1rem;
-    }
-
-    .navbar span.dev {
-        color: orange;
-        font-size: 0.8em;
-    }
-
-    .navbar span.live {
-        color: lightgreen;
-        font-size: 0.8em;
-    }
-
-    .navbar span.test {
-        color: lightpink;
-        font-size: 0.8em;
     }
 
     section {
@@ -204,74 +156,6 @@ $nav-height: 45px;
 
     section:not(:first-child) {
         margin-top: 40px;
-    }
-}
-
-.AdminLayout {
-    height: 100%;
-
-    > nav {
-        background-color: #001c3d;
-        width: 100%;
-        height: $nav-height;
-    }
-
-    > main {
-        height: calc(100vh - $nav-height);
-    }
-}
-
-.AdminLayout.withSidebar {
-    padding-left: 160px;
-}
-
-.AdminLayout.fixedNav {
-    padding-top: 45px;
-    > nav {
-        position: fixed;
-        z-index: 2;
-        top: 0;
-    }
-}
-
-.AdminSidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 160px;
-    height: 100%;
-
-    overflow-y: auto;
-    background: #222d32;
-
-    ul {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-
-    li.header {
-        color: #4b646f;
-        background: #1a2226;
-        padding: 10px 25px 10px 15px;
-        font-size: 12px;
-    }
-
-    li > a {
-        padding: 12px 5px 12px 15px;
-        display: block;
-        color: #b8c7ce;
-    }
-
-    li > a.active {
-        font-weight: bold;
-        background: #1a2226;
-    }
-
-    li > a:hover {
-        color: #fff;
-        background: #1e282c;
-        text-decoration: none;
     }
 }
 

@@ -5,7 +5,9 @@ $svg-tester-current-frame: #94c2a0;
 $svg-tester-error: #b3261e;
 $svg-tester-error-frame: #dda4a0;
 
-.AdminLayout > main.SvgTesterSuitePage {
+// Grows with its content instead of being capped at the height of the admin
+// layout's content area, so that the sticky suite nav below scrolls with it.
+.AdminLayout__content > main.SvgTesterSuitePage {
     height: auto;
 }
 
