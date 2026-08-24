@@ -1,0 +1,122 @@
+// The images index page, plus the confirmation modal that shows the old and
+// the new image side by side before an image is replaced.
+
+.ImageIndexPage {
+    @media (max-width: 1300px) {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        .ant-table-cell {
+            padding-left: 4px !important;
+            padding-right: 4px !important;
+        }
+    }
+    .ImageIndexPage__delete-user-button {
+        border-radius: 50%;
+        margin-left: 8px;
+        height: 16px;
+        font-size: 0.8em;
+        align-items: center;
+        display: inline-flex;
+        width: 16px;
+        vertical-align: -2px;
+    }
+
+    .ImageIndexPage__update-image-button {
+        color: #007bff;
+        margin-bottom: 8px;
+    }
+
+    .ImageIndexPage__alt-text-editor {
+        textarea {
+            border-radius: 6px;
+            position: relative;
+            border: 1px solid #ccc;
+            width: 100%;
+            &.ImageIndexPage__alt-text-editor--should-autosize {
+                field-sizing: content;
+            }
+        }
+    }
+
+    .ImageIndexPage__unsaved-chip {
+        color: gray;
+        background-color: lightgray;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-size: 10px;
+        text-transform: uppercase;
+        display: inline-block;
+        top: -2px;
+        position: relative;
+    }
+}
+
+.ImageIndexPage__usage-chip {
+    background-color: #ddd;
+    padding: 2px 4px;
+    display: inline-block;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 12px;
+}
+
+.ImageIndexPage__usage-list {
+    max-width: 300px;
+    padding-left: 16px;
+    margin-top: -8px;
+    margin-bottom: 0;
+}
+
+.ImageReplaceConfirmModal__content {
+    margin: 16px 0 24px 0;
+}
+
+.ImageReplaceConfirmModal__section {
+    margin-bottom: 20px;
+}
+
+.ImageReplaceConfirmModal__images-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.ImageReplaceConfirmModal__image-wrapper {
+    text-align: center;
+}
+
+.ImageReplaceConfirmModal__image-label {
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #666;
+}
+
+.ImageReplaceConfirmModal__image {
+    max-width: 300px;
+    max-height: 300px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+}
+
+.ImageReplaceConfirmModal__filename {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #999;
+}
+
+.ImageReplaceConfirmModal__placeholder {
+    width: 300px;
+    height: 300px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+}
+
+.ImageReplaceConfirmModal__strong-text {
+    font-weight: bold;
+}

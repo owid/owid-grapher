@@ -1,0 +1,95 @@
+// The parts of Bootstrap 4's `_type.scss` and `_code.scss` the admin actually
+// renders, kept at Bootstrap's own values so that dropping those two modules
+// was not a visible change.
+//
+// `_type.scss` is what gave the admin its heading sizes and weights, its `<hr>`
+// rule and `<small>`'s 80%; `_code.scss` is what styles the `<code>` and
+// `<pre>` blocks that the debug/export/API-preview pages are full of. Neither
+// has an antd equivalent — antd 6 styles its own components and nothing else —
+// so these rules live here.
+//
+// Only the selectors the admin uses are kept. Bootstrap also shipped
+// `.h1`–`.h6`, `.lead`, `.display-1`–`.display-4`, `.list-inline`,
+// `.initialism`, `.blockquote*`, `.mark`, `kbd` and `.pre-scrollable`; the
+// admin renders none of those. Element normalisation that came from
+// Bootstrap's reboot (the monospace font stack, `<pre>`'s margins) is in
+// `reboot.scss`, which is imported just before this file.
+
+// Headings. `.AdminApp section h1` further down in `admin.scss` overrides the
+// size and weight for in-page headings; these are the defaults everything else
+// falls back to.
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+h1 {
+    font-size: 2.5rem;
+}
+
+h2 {
+    font-size: 2rem;
+}
+
+h3 {
+    font-size: 1.75rem;
+}
+
+h4 {
+    font-size: 1.5rem;
+}
+
+h5 {
+    font-size: 1.25rem;
+}
+
+h6 {
+    font-size: 1rem;
+}
+
+hr {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    border: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+small,
+.small {
+    font-size: 80%;
+    font-weight: 400;
+}
+
+.list-unstyled {
+    padding-left: 0;
+    list-style: none;
+}
+
+// Code, from `_code.scss`.
+code {
+    font-size: 87.5%;
+    color: #e83e8c;
+    word-wrap: break-word;
+}
+
+a > code {
+    color: inherit;
+}
+
+pre {
+    display: block;
+    font-size: 87.5%;
+    color: #212529;
+}
+
+pre code {
+    font-size: inherit;
+    color: inherit;
+    word-break: normal;
+}

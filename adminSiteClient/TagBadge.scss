@@ -1,0 +1,71 @@
+// The pill a tag is rendered as, in the tag index, the tag graph and the
+// `EditableTags` widget. Not an antd `Tag`: it has its own approve/sort
+// affordances and colour-codes areas, orphans and pending suggestions.
+
+.TagBadge {
+    display: inline-block;
+    border-radius: 5px;
+    border: 1px solid #eee;
+    font-size: 0.8em;
+    background-color: #eee;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+.TagBadge--is-pending {
+    background-color: #fff;
+    border-color: #eb8038;
+}
+
+.TagBadge--is-area {
+    background-color: #e8f1ff;
+}
+
+.TagBadge--is-orphan {
+    background-color: #fff4df;
+}
+
+.TagBadge--is-area .TagBadge__name {
+    color: #1d5c96;
+}
+
+.TagBadge--is-orphan .TagBadge__name {
+    color: #8a5100;
+}
+
+.TagBadge__graph-icon {
+    display: inline-block;
+    margin-right: 4px;
+}
+
+.TagBadge__name {
+    color: #333;
+}
+
+.TagBadge__sorting,
+.TagBadge__name,
+.TagBadge__approve {
+    display: inline-block;
+    padding: 6px;
+}
+
+.TagBadge__sorting,
+.TagBadge__approve {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    background-color: #fff;
+    cursor: pointer;
+    transition: 0.1s;
+
+    &:hover {
+        background-color: #eee;
+    }
+}
+
+.TagBadge__approve {
+    color: #fff;
+    background-color: #eb8038;
+
+    &:hover {
+        color: #000;
+    }
+}

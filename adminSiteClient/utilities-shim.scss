@@ -1,0 +1,144 @@
+// A small, permanent re-implementation of the Bootstrap 4 utility classes the
+// admin still uses, so that dropping `bootstrap/scss/utilities` did not mean
+// rewriting ~100 call sites.
+//
+// Converting every `mt-3`/`text-muted`/`d-flex` in the admin to a component
+// class or an inline style would have been pure churn for no benefit, and it
+// would have made stragglers block the Bootstrap removal indefinitely. So these
+// class names stay, and this file is what backs them. It is deliberately not a
+// growing utility framework: it lists exactly the classes that were in use when
+// Bootstrap was removed, with exactly the values Bootstrap 4.6 gave them.
+//
+// If you need a neighbouring class (`mb-1`, `pt-2`, …), add it here by hand.
+// Bootstrap's spacing scale, for reference: 0 → 0, 1 → 0.25rem, 2 → 0.5rem,
+// 3 → 1rem, 4 → 1.5rem, 5 → 3rem. There are no responsive (`-sm-`/`-md-`)
+// variants: the admin never used any.
+//
+// New code is better off with a class in the component's own stylesheet, or
+// with antd's own layout components (`Flex`, `Space`, `Row`/`Col`).
+
+// Flexbox
+.d-flex {
+    display: flex !important;
+}
+
+.flex-wrap {
+    flex-wrap: wrap !important;
+}
+
+.flex-grow-1 {
+    flex-grow: 1 !important;
+}
+
+.justify-content-end {
+    justify-content: flex-end !important;
+}
+
+.justify-content-between {
+    justify-content: space-between !important;
+}
+
+.align-items-center {
+    align-items: center !important;
+}
+
+// Position, float and sizing
+.position-fixed {
+    position: fixed !important;
+}
+
+.float-right {
+    float: right !important;
+}
+
+.w-100 {
+    width: 100% !important;
+}
+
+// Spacing
+.m-0 {
+    margin: 0 !important;
+}
+
+.m-3 {
+    margin: 1rem !important;
+}
+
+.mt-0 {
+    margin-top: 0 !important;
+}
+
+.mt-1 {
+    margin-top: 0.25rem !important;
+}
+
+.mt-2 {
+    margin-top: 0.5rem !important;
+}
+
+.mt-3 {
+    margin-top: 1rem !important;
+}
+
+.mt-4 {
+    margin-top: 1.5rem !important;
+}
+
+.mb-0 {
+    margin-bottom: 0 !important;
+}
+
+.mb-2 {
+    margin-bottom: 0.5rem !important;
+}
+
+.mb-3 {
+    margin-bottom: 1rem !important;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem !important;
+}
+
+.mr-1 {
+    margin-right: 0.25rem !important;
+}
+
+.mr-3 {
+    margin-right: 1rem !important;
+}
+
+.my-2 {
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.p-3 {
+    padding: 1rem !important;
+}
+
+// Borders
+.border {
+    border: 1px solid #dee2e6 !important;
+}
+
+// Text
+.text-right {
+    text-align: right !important;
+}
+
+.text-capitalize {
+    text-transform: capitalize !important;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+.text-secondary {
+    color: #6c757d !important;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}

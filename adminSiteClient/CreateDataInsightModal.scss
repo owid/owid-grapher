@@ -1,0 +1,124 @@
+// The "create data insight" modal. `ReuploadImageForDataInsightModal` reuses
+// the same `.di-modal-content` wrapper, so these rules cover both.
+
+.di-modal-content {
+    margin: 16px 0 24px 0;
+
+    > div {
+        margin-bottom: 12px;
+    }
+
+    .side-by-side-preview {
+        margin-top: 6px;
+    }
+
+    .loading-image.placeholder,
+    .loading-image.error {
+        width: 350px;
+        height: 350px;
+        border: 1px solid #f0f0f0;
+    }
+
+    .loading-image.placeholder {
+        padding: 8px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 16px;
+    }
+
+    .loading-image.error {
+        font-size: 14px;
+        display: block;
+        padding: 12px;
+    }
+
+    .form {
+        margin-top: 24px;
+
+        .form-item.image-alt-text {
+            margin-bottom: 0;
+        }
+
+        .form-submit {
+            margin-top: 24px;
+            text-align: right;
+        }
+    }
+
+    .image-preview {
+        margin: 24px 0;
+
+        h3 {
+            font-size: 1em;
+            font-weight: 400;
+            margin-bottom: 12px;
+        }
+    }
+
+    .feedback-box {
+        padding: 24px;
+        background: #f5f5f5;
+        margin-top: 36px;
+        border-radius: 4px;
+
+        h2 {
+            font-size: 1em;
+            margin-bottom: 12px;
+        }
+
+        p {
+            margin: 12px 0 0 0;
+        }
+
+        ul {
+            padding-left: 1em;
+            margin: 0;
+        }
+
+        li {
+            line-height: 1.5;
+        }
+
+        li,
+        p {
+            // add a little margin before the feedback tag
+            span:first-of-type {
+                margin-right: 12px;
+            }
+        }
+
+        li + li {
+            margin-top: 0.25em;
+        }
+    }
+
+    .feedback-tag {
+        padding: 2px 4px;
+        border-radius: 4px;
+        border-width: 1px;
+        border-style: solid;
+
+        svg {
+            margin-right: 4px;
+        }
+
+        &.success {
+            border-color: rgba(114, 194, 64, 0.6);
+            background: rgb(246, 255, 237);
+
+            svg {
+                color: rgb(114, 194, 64);
+            }
+        }
+
+        &.error {
+            border-color: rgba(236, 91, 86, 0.6);
+            background: rgb(255, 242, 240);
+
+            svg {
+                color: rgb(236, 91, 86);
+            }
+        }
+    }
+}
