@@ -1,0 +1,6 @@
+{
+    "$schema": "../../node_modules/wrangler/config-schema.json",
+    "name": "owid-functions-mdim-e2e-tests",
+    "main": "./mdim-meta-tags.e2e.worker.ts",
+    "compatibility_date": "2025-05-05"
+}
