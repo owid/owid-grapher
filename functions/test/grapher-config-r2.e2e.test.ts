@@ -1,5 +1,7 @@
 import path from "node:path"
 import { readFileSync } from "node:fs"
+import { createElement } from "react"
+import { renderToStaticMarkup } from "react-dom/server"
 import { beforeAll, afterAll, beforeEach, describe, expect, it } from "vitest"
 import { unstable_startWorker } from "wrangler"
 import {
@@ -171,14 +173,13 @@ describe("grapher config endpoint with local R2 bindings", () => {
     })
 })
 
-/** Escape a string the way React does when rendering it into an attribute. */
-function reactEscapeAttr(value: string): string {
-    return value
-        .replaceAll("&", "&amp;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#x27;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
+/**
+ * Render an HTML attribute with React so the fixture's attribute escaping
+ * exactly matches what the baked pages contain, e.g. `name="a &quot;b&quot;"`.
+ */
+function renderAttrWithReact(name: string, value: string): string {
+    const html = renderToStaticMarkup(createElement("div", { [name]: value }))
+    return html.slice("<div ".length, -"></div>".length)
 }
 
 const MDIM_BASE_URL = "https://ourworldindata.org/grapher/vaccination-coverage"
@@ -198,9 +199,10 @@ const MDIM_COMPANION: MultiDimPageCompanion = {
 
 function makeMdimPageHtml({ withMdimAttrs = true } = {}): string {
     const headAttrs = withMdimAttrs
-        ? ` data-owid-mdim-initial-view-dimensions="${reactEscapeAttr(
+        ? ` ${renderAttrWithReact(
+              "data-owid-mdim-initial-view-dimensions",
               JSON.stringify(MDIM_DEFAULT_DIMENSIONS)
-          )}"`
+          )}`
         : ""
     const jsonLd = JSON.stringify({
         "@context": "https://schema.org",
