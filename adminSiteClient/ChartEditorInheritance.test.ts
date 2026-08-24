@@ -21,7 +21,7 @@ const patchConfig: GrapherInterface = { title: "Admin title" }
 function makeEditor(): ChartEditor {
     const editor = new ChartEditor({
         manager: {
-            admin: {} as any,
+            admin: {},
             patchConfig,
             parentConfig,
             etlConfig,
