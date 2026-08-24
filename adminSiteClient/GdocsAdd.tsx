@@ -7,6 +7,7 @@ import {
     GDOCS_ANNOUNCEMENT_DUPLICATION_TEMPLATE_ID,
 } from "../settings/clientSettings.js"
 import { useGdocsStore } from "./GdocsStoreContext.js"
+import { Button } from "antd"
 
 export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
     const [documentUrl, setDocumentUrl] = React.useState("")
@@ -89,9 +90,9 @@ export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
                 </div>
             </div>
             <div className="modal-footer">
-                <button type="submit" className="btn btn-primary">
+                <Button type="primary" htmlType="submit">
                     Add document
-                </button>
+                </Button>
             </div>
         </form>
     )

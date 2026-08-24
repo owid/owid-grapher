@@ -77,8 +77,11 @@
     width: 100%;
 }
 
-.gdoc-index__help-link {
-    margin-right: 8px;
+// "Open documentation" / "Add document" sit next to the search bar in a flex
+// row; without this they get squeezed by the full-width filter block and wrap.
+.gdoc-index__actions {
+    flex-shrink: 0;
+    align-self: flex-start;
 }
 
 .gdoc-index__load-more {

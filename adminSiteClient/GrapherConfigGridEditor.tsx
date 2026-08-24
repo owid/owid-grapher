@@ -104,6 +104,7 @@ import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { Operation } from "../adminShared/SqlFilterSExpression.js"
 import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.js"
 import { SortableList } from "./SortableList.js"
+import { Button } from "antd"
 
 type Disposer = () => void
 
@@ -1312,19 +1313,16 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 <div className="container">{editControl}</div>
                 {hasUncommitedRichEditorChanges ? (
                     <div className="container rich-editor-confirm-buttons">
-                        <button
-                            className="btn btn-primary"
+                        <Button
+                            type="primary"
                             onClick={() => this.commitRichEditorChanges()}
                         >
                             Commit
-                        </button>
+                        </Button>
 
-                        <button
-                            className="btn btn-secondary"
-                            onClick={() => this.cancelRichEditorChanges()}
-                        >
+                        <Button onClick={() => this.cancelRichEditorChanges()}>
                             Cancel
-                        </button>
+                        </Button>
                     </div>
                 ) : null}
             </section>
@@ -1562,14 +1560,13 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                             label: item.label,
                         }))}
                     />
-                    <button
-                        className="btn btn-secondary"
+                    <Button
                         onClick={this.onShowOnlyColumnsWithValuesInCurrentRow}
                         title="Show only columns where the current row has a set value"
                         disabled={this.selectedRow === undefined}
                     >
                         Show only columns with values in current row
-                    </button>
+                    </Button>
                     <BindString
                         field="columnFilter"
                         store={this}
