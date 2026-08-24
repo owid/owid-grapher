@@ -562,11 +562,12 @@ export class Grapher extends React.Component<GrapherProps> {
 
                 {/* Entity selector in a slide-in drawer */}
                 <SlideInDrawer
+                    ariaLabel="Entity selector"
                     grapherRef={this.grapherState.base}
-                    active={this.grapherState.isEntitySelectorDrawerOpen}
-                    toggle={() => {
+                    isOpen={this.grapherState.isEntitySelectorDrawerOpen}
+                    onOpenChange={(isOpen) => {
                         this.grapherState.isEntitySelectorModalOrDrawerOpen =
-                            !this.grapherState.isEntitySelectorModalOrDrawerOpen
+                            isOpen
                     }}
                 >
                     <EntitySelector
