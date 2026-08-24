@@ -1411,7 +1411,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                             />
                         </QueryBuilderAntD>
                     )}
-                    <small className="form-text text-muted">
+                    <small className="form-field__help text-muted">
                         Note that default values like empty string, "LineChart"
                         for type or the default checkbox state are often stored
                         as null. To find these you have to use the "is null"

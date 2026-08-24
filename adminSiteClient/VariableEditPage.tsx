@@ -12,7 +12,12 @@ import YAML from "yaml"
 import * as _ from "lodash-es"
 import { AdminLayout } from "./AdminLayout.js"
 import { Link, LinkButton } from "./Link.js"
-import { FieldsRow, TextAreaField, CatalogPathField } from "./Forms.js"
+import {
+    FieldsRow,
+    TextAreaField,
+    TextField,
+    CatalogPathField,
+} from "./Forms.js"
 import {
     OwidVariableWithDataAndSource,
     DimensionProperty,
@@ -71,17 +76,7 @@ function ReadOnlyField({
             />
         )
     }
-    return (
-        <div className="form-group">
-            <label>{label}</label>
-            <input
-                type="text"
-                className="form-control"
-                value={displayValue}
-                disabled
-            />
-        </div>
-    )
+    return <TextField label={label} value={displayValue} disabled />
 }
 
 // XXX refactor with DatasetEditPage

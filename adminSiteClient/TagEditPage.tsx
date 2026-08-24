@@ -156,8 +156,8 @@ class TagEditor extends Component<{
                             label="Name"
                             helpText="Tag names must be unique and should be able to be understood without context"
                         />
-                        <div className="form-group">
-                            <label>Slug</label>
+                        <div className="form-field">
+                            <label className="form-field__label">Slug</label>
                             <AutoComplete
                                 style={{ width: "100%" }}
                                 value={newtag.slug ?? ""}
@@ -184,7 +184,7 @@ class TagEditor extends Component<{
                                 }}
                                 allowClear
                             />
-                            <small className="form-text text-muted">
+                            <small className="form-field__help text-muted">
                                 The slug for this tag's topic page, e.g.
                                 trade-and-globalization.
                             </small>

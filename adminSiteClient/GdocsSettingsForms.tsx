@@ -60,7 +60,7 @@ const GdocCommonSettings = <T extends OwidGdoc>({
     subdirectory?: string
 }) => {
     return (
-        <div className="form-group">
+        <div className="GdocsSettingsForm__section">
             <h3 className="form-section-heading">Common settings</h3>
             <GdocsSettingsContentField
                 property="title"
@@ -114,7 +114,7 @@ export const GdocPostSettings = ({
                 setCurrentGdoc={setCurrentGdoc}
                 errors={errors}
             />
-            <div className="form-group">
+            <div className="GdocsSettingsForm__section">
                 <h3 className="form-section-heading">Post settings</h3>
                 <GdocsSettingsContentField
                     property="excerpt"
@@ -195,7 +195,7 @@ export const GdocInsightSettings = ({
                 errors={errors}
                 subdirectory="data-insights/"
             />
-            <div className="form-group">
+            <div className="GdocsSettingsForm__section">
                 <h3 className="form-section-heading">Data insight settings</h3>
                 <GdocsPublicationContext
                     gdoc={gdoc}
@@ -247,7 +247,7 @@ export const GdocAnnouncementSettings = ({
                 gdoc={gdoc}
                 setCurrentGdoc={setCurrentGdoc}
             />
-            <div className="form-group">
+            <div className="GdocsSettingsForm__section">
                 <h3 className="form-section-heading">Announcement settings</h3>
                 <GdocsSettingsContentField
                     property="kicker"
@@ -270,7 +270,7 @@ export const GdocHomepageSettings = ({
     return (
         <div className="GdocsSettingsForm">
             <GdocCommonErrors errors={errors} errorsToFilter={[]} />
-            <div className="form-group">
+            <div className="GdocsSettingsForm__section">
                 <h3 className="form-section-heading">Homepage settings</h3>
                 <p>The homepage has no custom authors, slug, title, etc.</p>
                 <p>Just hit publish when you'd like to update the page!</p>
@@ -292,7 +292,7 @@ export const GdocAuthorSettings = ({
     return (
         <div className="GdocsSettingsForm">
             <GdocCommonErrors errors={errors} errorsToFilter={[]} />
-            <div className="form-group">
+            <div className="GdocsSettingsForm__section">
                 <h3 className="form-section-heading">Common settings</h3>
                 <GdocsSettingsContentField
                     property="title"
@@ -306,7 +306,7 @@ export const GdocAuthorSettings = ({
                     subdirectory="team/"
                 />
             </div>
-            <div className="form-group">
+            <div className="GdocsSettingsForm__section">
                 <h3 className="form-section-heading">Author settings</h3>
                 <GdocsSettingsContentField
                     property="role"
@@ -331,7 +331,7 @@ export const GdocAboutPageSettings = ({
     return (
         <div className="GdocsSettingsForm">
             <GdocCommonErrors errors={errors} errorsToFilter={[]} />
-            <div className="form-group">
+            <div className="GdocsSettingsForm__section">
                 <h3 className="form-section-heading">Common settings</h3>
                 <GdocsSettingsContentField
                     property="title"
@@ -344,7 +344,7 @@ export const GdocAboutPageSettings = ({
                     errors={errors}
                 />
             </div>
-            <div className="form-group">
+            <div className="GdocsSettingsForm__section">
                 <h3 className="form-section-heading">About page settings</h3>
                 <GdocsSettingsContentField
                     property="hide-nav"
@@ -378,16 +378,8 @@ export const GdocProfileSettings = ({
 }) => {
     return (
         <form className="GdocsSettingsForm">
-            <div
-                className="form-group"
-                style={{
-                    background: "#f9f9f9",
-                    padding: "10px",
-                    borderRadius: "5px",
-                    marginBottom: "20px",
-                }}
-            >
-                <label>
+            <div className="GdocsSettingsForm__section GdocsSettingsForm__preview-entity">
+                <label className="form-field__label">
                     <strong>Preview entity</strong>
                 </label>
                 <Select
@@ -398,12 +390,12 @@ export const GdocProfileSettings = ({
                     onChange={setSelectedEntity}
                     options={entitiesInScope}
                 />
-                <p className="form-text text-muted">
+                <p className="GdocsSettingsForm__help text-muted">
                     Select which country to preview this profile template for.
                     This only affects the preview and does not change the
                     template itself.
                 </p>
-                <p className="form-text text-muted">
+                <p className="GdocsSettingsForm__help text-muted">
                     <a
                         href={`/admin/gdocs/${gdoc.id}/coverage?contentSource=gdocs`}
                         target="_blank"
@@ -423,7 +415,7 @@ export const GdocProfileSettings = ({
                 errors={errors}
                 subdirectory="profile/"
             />
-            <div className="form-group">
+            <div className="GdocsSettingsForm__section">
                 <h3 className="form-section-heading">Profile settings</h3>
                 <GdocsSettingsContentField
                     property="scope"

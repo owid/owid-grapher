@@ -1,0 +1,13 @@
+// The featured-image preview `GdocsSettingsContentField.tsx` renders under the
+// `featured-image` field of the gdocs settings drawer.
+
+.GdocsSettingsContentField__imagePreview {
+    margin-top: 12px;
+}
+
+.GdocsSettingsContentField__imagePreviewImage {
+    display: block;
+    width: 100%;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+}

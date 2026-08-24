@@ -2,7 +2,7 @@ import { useContext, useState, useEffect, useCallback } from "react"
 import { useLocation, useHistory } from "react-router-dom"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
-import { Alert, Button, Spin } from "antd"
+import { Alert, Button, Input, Spin } from "antd"
 
 type CalloutFunctionsResponse = {
     url: string
@@ -78,12 +78,11 @@ export const CalloutFunctionsPage = () => {
                     className="CalloutFunctionsPage__form"
                 >
                     <div className="CalloutFunctionsPage__input-group">
-                        <input
+                        <Input
                             type="text"
                             value={chartUrl}
                             onChange={(e) => setChartUrl(e.target.value)}
                             placeholder="https://ourworldindata.org/grapher/life-expectancy"
-                            className="form-control"
                         />
                         <Button
                             type="primary"

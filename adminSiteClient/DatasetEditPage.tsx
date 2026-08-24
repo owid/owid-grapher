@@ -382,8 +382,8 @@ class DatasetTagEditor extends Component<DatasetTagEditorProps> {
         const { newDataset, availableTags } = this.props
 
         return (
-            <div className="form-group">
-                <label>Tags</label>
+            <div className="form-field">
+                <label className="form-field__label">Tags</label>
                 <EditableTags
                     tags={newDataset.tags}
                     suggestions={availableTags}

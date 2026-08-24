@@ -54,8 +54,8 @@ export const GdocsSettingsContentField = ({
     const featuredImageSrc = getFeaturedImageSrc(gdoc, property, value)
 
     return (
-        <div className="form-group">
-            <label htmlFor={property}>
+        <div className="form-field">
+            <label className="form-field__label" htmlFor={property}>
                 <span className="text-capitalize">{property}</span>
             </label>
             <div className="edit-in-gdocs">

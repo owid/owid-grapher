@@ -2,7 +2,7 @@ import * as React from "react"
 import { observer } from "mobx-react"
 import { observable, action, runInAction, makeObservable } from "mobx"
 
-import { Alert, Button } from "antd"
+import { Alert, Button, Input } from "antd"
 import { Modal, Timeago } from "./Forms.js"
 import { LinkButton } from "./Link.js"
 import { AdminLayout } from "./AdminLayout.js"
@@ -60,25 +60,29 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
                         <h5 className="modal-title">Add a user</h5>
                     </div>
                     <div className="modal-body">
-                        <div className="form-group">
-                            <label>Full name</label>
-                            <input
+                        <div className="form-field">
+                            <label className="form-field__label">
+                                Full name
+                            </label>
+                            <Input
                                 type="text"
-                                className="form-control"
-                                onChange={(e) =>
-                                    (this.fullName = e.currentTarget.value)
-                                }
+                                value={this.fullName}
+                                onChange={action(
+                                    (e: React.ChangeEvent<HTMLInputElement>) =>
+                                        (this.fullName = e.currentTarget.value)
+                                )}
                                 required
                             />
                         </div>
-                        <div className="form-group">
-                            <label>Email</label>
-                            <input
+                        <div className="form-field">
+                            <label className="form-field__label">Email</label>
+                            <Input
                                 type="email"
-                                className="form-control"
-                                onChange={(e) =>
-                                    (this.email = e.currentTarget.value)
-                                }
+                                value={this.email}
+                                onChange={action(
+                                    (e: React.ChangeEvent<HTMLInputElement>) =>
+                                        (this.email = e.currentTarget.value)
+                                )}
                                 required
                             />
                         </div>
