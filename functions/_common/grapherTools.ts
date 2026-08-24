@@ -362,7 +362,7 @@ export async function initGrapher(
  * HTMLRewriter doesn't un-encode HTML entities in attribute values, so we need
  * to undo the escaping React applied when rendering the attribute.
  */
-function decodeReactEscapedAttribute(value: string): string {
+export function decodeReactEscapedAttribute(value: string): string {
     return value
         .replaceAll("&quot;", '"')
         .replaceAll("&#x27;", "'")
@@ -371,19 +371,12 @@ function decodeReactEscapedAttribute(value: string): string {
         .replaceAll("&amp;", "&")
 }
 
-function escapeHtmlText(value: string): string {
-    return value
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-}
-
 /**
  * Resolve the canonical dimensions query string for a multi-dim page request:
  * every dimension is taken from the request's search params, falling back to
- * the default view's choice. Must produce the same string as
- * multiDimDimensionsToViewQueryStr does at bake time so that sitemap URLs,
- * canonical URLs and view-title lookups all agree.
+ * the default view's choice for missing (or empty) params. Must produce the
+ * same string as multiDimDimensionsToViewQueryStr does at bake time so that
+ * sitemap URLs, canonical URLs and view-title lookups all agree.
  */
 export function resolveMdimViewQueryStr(
     searchParams: URLSearchParams,
@@ -391,7 +384,7 @@ export function resolveMdimViewQueryStr(
 ): string {
     const dimensions: Record<string, string> = {}
     for (const [dim, defaultChoice] of Object.entries(defaultDimensions)) {
-        dimensions[dim] = searchParams.get(dim) ?? defaultChoice
+        dimensions[dim] = searchParams.get(dim) || defaultChoice
     }
     return multiDimDimensionsToViewQueryStr(dimensions)
 }
@@ -426,14 +419,15 @@ export function rewriteMetaTags(
     // If we fail to capture the origin, we end up with relative image URLs, which should also be okay.
     let origin = ""
     let mdimViewQueryStr: string | undefined = undefined
+    // The requested view's title including the page title, e.g.
+    // "Share of children vaccinated | Childhood vaccination coverage - by vaccine"
     let mdimViewTitle: string | undefined = undefined
 
     const thumbnailUrl = `${url.pathname}.png${url.search}`
     const downloadCtxBase = getDownloadContextBase(url)
 
-    // Buffers for collecting text across chunks
+    // Buffer for collecting JSON-LD script text across chunks
     let jsonLdText = ""
-    let titleText = ""
 
     const rewriter = new HTMLRewriter()
         .on("picture[data-owid-populate-url-params] source", {
@@ -483,35 +477,42 @@ export function rewriteMetaTags(
                     (dim) => url.searchParams.has(dim)
                 )
                 if (!hasDimensionParams || !loadMdimCompanion) return
-                const companion = await loadMdimCompanion()
-                mdimViewTitle = companion?.views?.[mdimViewQueryStr]?.title
+                let companion: MultiDimPageCompanion | undefined
+                try {
+                    companion = await loadMdimCompanion()
+                } catch (e) {
+                    // A failed companion load should degrade to the generic
+                    // title, not fail the whole page.
+                    console.error("Error loading mdim companion file", e)
+                }
+                if (!companion) return
+
+                const view = companion.views?.[mdimViewQueryStr]
+                if (!view) {
+                    // The dimension params don't resolve to an existing view;
+                    // canonicalize to the default view instead of advertising
+                    // a nonexistent dimension combination.
+                    mdimViewQueryStr =
+                        multiDimDimensionsToViewQueryStr(mdimDimensionsObj)
+                    return
+                }
+                if (companion.title) {
+                    mdimViewTitle = `${view.title} | ${companion.title}`
+                }
             },
         })
-        .on("title", {
-            text: (text) => {
+        // head > title so that <title> elements of inline SVGs in the body
+        // (e.g. icon accessibility labels) are left alone
+        .on("head > title", {
+            element: (element) => {
                 if (!mdimViewTitle) return
-                // text.text is raw source text with entities intact, so buffer
-                // it unchanged and only escape the prepended view title.
-                titleText += text.text
-                text.remove()
-                if (text.lastInTextNode) {
-                    text.after(
-                        `${escapeHtmlText(mdimViewTitle)} | ${titleText}`,
-                        { html: true }
-                    )
-                }
+                element.setInnerContent(`${mdimViewTitle} | Our World in Data`)
             },
         })
         .on('meta[property="og:title"], meta[name="twitter:title"]', {
             element: (element) => {
                 if (!mdimViewTitle) return
-                const content = element.getAttribute("content")
-                if (content) {
-                    element.setAttribute(
-                        "content",
-                        `${mdimViewTitle} | ${decodeReactEscapedAttribute(content)}`
-                    )
-                }
+                element.setAttribute("content", mdimViewTitle)
             },
         })
         .on('link[rel="canonical"]', {
@@ -577,7 +578,7 @@ export function rewriteMetaTags(
                     endTag.before(
                         rewriteJsonLdText(jsonLdText, url, {
                             viewQueryStr: mdimViewQueryStr,
-                            viewTitle: mdimViewTitle,
+                            title: mdimViewTitle,
                         }),
                         {
                             html: true,
@@ -666,9 +667,9 @@ function getRewrittenDownloadUrl(
  *
  * If the parsed JSON-LD contains `image.contentUrl`, each search param from
  * `url` is copied onto that image URL. On multi-dim pages, `url` is rewritten
- * to the requested view (mirroring the canonical URL) and `name` gets the
- * view's grapher title prepended. If parsing fails, the original text is
- * returned unchanged after logging the error.
+ * to the requested view (mirroring the canonical URL) and `name` is replaced
+ * with the view's title. If parsing fails, the original text is returned
+ * unchanged after logging the error.
  *
  * @param jsonLdText - Raw JSON-LD text.
  * @param url - The current request URL whose search params should be preserved.
@@ -691,7 +692,7 @@ function getRewrittenDownloadUrl(
 export function rewriteJsonLdText(
     jsonLdText: string,
     url: URL,
-    mdimView?: { viewQueryStr?: string; viewTitle?: string }
+    mdimView?: { viewQueryStr?: string; title?: string }
 ): string {
     try {
         const data = JSON.parse(jsonLdText) as {
@@ -711,8 +712,8 @@ export function rewriteJsonLdText(
         if (mdimView?.viewQueryStr && data.url) {
             data.url = `${data.url}?${mdimView.viewQueryStr}`
         }
-        if (mdimView?.viewTitle && data.name) {
-            data.name = `${mdimView.viewTitle} | ${data.name}`
+        if (mdimView?.title && data.name) {
+            data.name = mdimView.title
         }
 
         return escapeJSONStringForInlineScript(JSON.stringify(data))

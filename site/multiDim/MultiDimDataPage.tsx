@@ -7,7 +7,7 @@ import { SiteHeader } from "../SiteHeader.js"
 import { OWID_DATAPAGE_CONTENT_ROOT_ID } from "../DataPageV2Content.js"
 import { SiteFooter } from "../SiteFooter.js"
 import {
-    joinTitleFragments,
+    getMultiDimPageTitle,
     MultiDimDataPageConfig,
     SiteFooterContext,
     serializeJSONForHTML,
@@ -42,16 +42,7 @@ export function MultiDimDataPage({
     if (!slug && !isPreviewing) {
         throw new Error("Missing slug for multidimensional data page")
     }
-    // Keep in sync with the client-side document.title in
-    // MultiDimDataPageContent, which uses the same fragments.
-    const titleFragments = joinTitleFragments(
-        configObj.title.titleVariant,
-        configObj.title.attributionShort
-    )
-    let pageTitle = configObj.title.title
-    if (titleFragments) {
-        pageTitle += ` - ${titleFragments}`
-    }
+    const pageTitle = getMultiDimPageTitle(configObj.title)
     const pageDesc = DEFAULT_PAGE_DESCRIPTION
     const contentProps: MultiDimDataPageData = {
         canonicalUrl,

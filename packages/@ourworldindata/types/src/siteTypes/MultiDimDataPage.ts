@@ -143,6 +143,11 @@ export const MDIM_COMPANION_FILE_SUFFIX = ".mdim.json"
  */
 export interface MultiDimPageCompanion {
     /**
+     * The page title (see getMultiDimPageTitle), without the site-name
+     * suffix, e.g. "Childhood vaccination coverage - by vaccine".
+     */
+    title: string
+    /**
      * Per-view data, keyed by the view's canonical dimensions query string
      * (see multiDimDimensionsToViewQueryStr), e.g.
      * "antigen=hepb_bd&metric=vaccinated".
