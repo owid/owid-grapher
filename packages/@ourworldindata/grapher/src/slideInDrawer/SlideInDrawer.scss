@@ -5,6 +5,18 @@
     right: 0;
     bottom: 0;
     overflow: clip;
+    z-index: $zindex-controls-drawer;
+    background-color: rgba(0, 0, 0, 0.1);
+    transition: background-color var(--duration-drawer) var(--ease-drawer);
+
+    &[data-entering],
+    &[data-exiting] {
+        background-color: rgba(0, 0, 0, 0);
+
+        .drawer-contents {
+            transform: translateX(100%);
+        }
+    }
 
     .drawer-contents {
         position: absolute;
@@ -12,42 +24,22 @@
         top: 0;
         width: 300px;
         height: 100%;
-        z-index: $zindex-controls-drawer;
         background: white;
-        // A transition, not keyframes, so that toggling mid-slide reverses from
-        // the current position instead of restarting from off-screen.
-        transform: translateX(100%);
+        transform: translateX(0);
         transition: transform var(--duration-drawer) var(--ease-drawer);
     }
 
-    .drawer-backdrop {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.1);
-        z-index: $zindex-controls-backdrop;
-        opacity: 0;
-        transition: opacity var(--duration-drawer) var(--ease-drawer);
+    .drawer-dialog {
+        height: 100%;
+        outline: none;
     }
 
-    // The base values above are the closed state, so only the open state needs
-    // declaring.
-    &[data-state="open"] {
-        .drawer-backdrop {
-            opacity: 1;
-        }
-        .drawer-contents {
-            transform: translateX(0);
-        }
-    }
-
-    // Drop the panel's movement only. Do NOT add `transition: none` to
-    // .drawer-backdrop: a zero-duration transition never fires transitionend,
-    // and this component unmounts itself from that event — the drawer would
-    // stay on screen over the chart forever.
+    // Drop the panel's movement only. React Aria keeps [data-exiting] on the
+    // overlay until its background transition ends, so that transition is
+    // load-bearing for exit unmounting and must not be removed.
     @media (prefers-reduced-motion: reduce) {
+        transition-timing-function: linear;
+
         .drawer-contents {
             transition: none;
         }
