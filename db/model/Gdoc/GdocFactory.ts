@@ -53,16 +53,17 @@ import { getGdocComponentsWithoutChildren } from "./extractGdocComponentInfo.js"
 import { GdocAnnouncement } from "./GdocAnnouncement.js"
 import { GdocProfile } from "./GdocProfile.js"
 
-export function gdocFromJSON(
-    json: Record<string, any>
-):
+/** Any concrete GdocBase subclass */
+export type AnyGdoc =
     | GdocPost
     | GdocDataInsight
     | GdocHomepage
     | GdocAbout
     | GdocAuthor
     | GdocAnnouncement
-    | GdocProfile {
+    | GdocProfile
+
+export function gdocFromJSON(json: Record<string, any>): AnyGdoc {
     if (typeof json.content === "string") {
         json.content = JSON.parse(json.content)
     }
@@ -151,14 +152,7 @@ export async function createGdocAndInsertIntoDb(
 export async function updateGdocContentOnly(
     knex: KnexReadWriteTransaction,
     id: string,
-    gdoc:
-        | GdocPost
-        | GdocDataInsight
-        | GdocHomepage
-        | GdocAbout
-        | GdocAuthor
-        | GdocAnnouncement
-        | GdocProfile
+    gdoc: AnyGdoc
 ): Promise<void> {
     gdoc.updateMarkdown()
     await knex
@@ -355,15 +349,7 @@ export async function getAndLoadGdocBySlug(
     knex: KnexReadonlyTransaction,
     slug: string,
     types: OwidGdocType[]
-): Promise<
-    | GdocPost
-    | GdocDataInsight
-    | GdocHomepage
-    | GdocAbout
-    | GdocAuthor
-    | GdocAnnouncement
-    | GdocProfile
-> {
+): Promise<AnyGdoc> {
     const base = await getPublishedGdocBaseObjectBySlug(knex, slug, true, types)
     if (!base) {
         throw new Error(
@@ -378,15 +364,7 @@ export async function getAndLoadGdocById(
     id: string,
     contentSource?: GdocsContentSource,
     acceptSuggestions: boolean = false
-): Promise<
-    | GdocPost
-    | GdocDataInsight
-    | GdocHomepage
-    | GdocAbout
-    | GdocAuthor
-    | GdocAnnouncement
-    | GdocProfile
-> {
+): Promise<AnyGdoc> {
     const base = await getGdocBaseObjectById(knex, id, true)
     if (!base)
         throw new Error(`No Google Doc with id "${id}" found in the database`)
@@ -414,15 +392,7 @@ export async function loadGdocFromGdocBase(
     contentSource?: GdocsContentSource,
     acceptSuggestions: boolean = false,
     options?: { loadState?: boolean }
-): Promise<
-    | GdocPost
-    | GdocDataInsight
-    | GdocHomepage
-    | GdocAbout
-    | GdocAuthor
-    | GdocAnnouncement
-    | GdocProfile
-> {
+): Promise<AnyGdoc> {
     const shouldLoadState = options?.loadState ?? true
 
     const type = _.get(base, "content.type") as unknown
@@ -712,15 +682,7 @@ export function getDbEnrichedGdocFromOwidGdoc(
 export async function upsertGdoc(
     knex: KnexReadWriteTransaction,
     gdoc: GdocBase
-): Promise<
-    | GdocPost
-    | GdocDataInsight
-    | GdocHomepage
-    | GdocAbout
-    | GdocAuthor
-    | GdocAnnouncement
-    | GdocProfile
-> {
+): Promise<AnyGdoc> {
     let sql = undefined
     try {
         gdoc.updateMarkdown()
@@ -814,14 +776,7 @@ export async function getAllGdocIndexItemsOrderedByUpdatedAt(
 
 export async function setImagesInContentGraph(
     trx: KnexReadWriteTransaction,
-    gdoc:
-        | GdocPost
-        | GdocDataInsight
-        | GdocHomepage
-        | GdocAbout
-        | GdocAuthor
-        | GdocAnnouncement
-        | GdocProfile
+    gdoc: AnyGdoc
 ): Promise<void> {
     const id = gdoc.id
     // Deleting and recreating these is simpler than tracking orphans over the next code block
