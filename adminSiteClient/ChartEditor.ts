@@ -154,18 +154,27 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
             )
         }
 
-        // if inheritance is enabled, update the live grapher object
-        if (this.isInheritanceEnabled) {
-            const newConfig = mergeGrapherConfigs(
-                newParentConfig ?? {},
-                this.patchConfig
-            )
-            this.updateLiveGrapher(newConfig)
-        }
+        // Capture the admin's genuine overrides *before* swapping in the new
+        // indicator layer: `patchConfig` is computed against the active parent
+        // stack, so reading it afterwards would fold the old indicator's
+        // inherited values into the patch as if the admin had authored them.
+        const { patchConfig } = this
 
         // update the parent config in any case
         this.parentConfig = newParentConfig
         this.parentVariableId = newParentIndicatorId
+
+        // if inheritance is enabled, update the live grapher object. Rebuild
+        // from the whole parent stack rather than the indicator layer alone:
+        // the chart's own etlConfig sits between them, and `updateLiveGrapher`
+        // resets grapherState first, so a layer left out of the merge falls
+        // back to grapher defaults — which the next save would then diff into
+        // the patch as explicit overrides of the layer that actually owns them.
+        if (this.isInheritanceEnabled) {
+            this.updateLiveGrapher(
+                mergeGrapherConfigs(this.activeParentConfig ?? {}, patchConfig)
+            )
+        }
     }
 
     async saveGrapher({
@@ -219,15 +228,14 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     }
 
     async saveAsNewGrapher(): Promise<void> {
-        const { patchConfig, etlConfig } = this
-
-        // An ETL-managed chart keeps its title/subtitle/etc. in `etlConfig`, not
-        // in `patchConfig`, so a plain `{ ...patchConfig }` copy would silently
-        // drop them. Fold the ETL layer in: the new chart is a normal chart that
-        // still inherits the indicator's config, so merging `etlConfig` under the
-        // admin `patchConfig` reproduces what the source rendered. For non-ETL
-        // charts `etlConfig` is undefined, so this is a no-op.
-        const chartJson = mergeGrapherConfigs(etlConfig ?? {}, patchConfig)
+        // Start from what the source chart actually renders — the whole parent
+        // stack plus the admin patch — and let the save diff the inherited
+        // layers back out against the new chart's own parent. Copying
+        // `patchConfig` alone would silently drop everything an ETL-managed
+        // chart keeps in its ETL layer. `fullConfig` carries no grapher
+        // defaults (`liveConfig` strips them), so nothing spurious survives
+        // that diff as a fake override.
+        const chartJson = { ...this.fullConfig }
         delete chartJson.id
         delete chartJson.isPublished
         delete chartJson.slug
