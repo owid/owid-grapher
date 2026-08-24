@@ -8,6 +8,11 @@
 // The rules below cover the parts that used to come from Bootstrap's
 // form/input-group/list-group/modal markup that `Forms.tsx` no longer emits.
 
+// Replaces Bootstrap's `.form-group`, which the wrapper still carries as well.
+.form-field {
+    margin-bottom: 1rem;
+}
+
 .form-field__label {
     display: block;
 }

@@ -242,7 +242,7 @@ class InapplicableEntitiesSection extends Component<{
                     showSearch
                     allowClear
                 />
-                <small className="form-text text-muted">
+                <small className="form-field__help text-muted">
                     Entities the indicator's data can't apply to by
                     construction, e.g. Mexico for "Where do Mexican emigrants
                     live?". Excluded from the color scale and drawn in a

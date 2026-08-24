@@ -10,7 +10,7 @@ import {
     mergeGrapherConfigs,
 } from "@ourworldindata/utils"
 import YAML from "yaml"
-import { Button, Modal, notification, Space } from "antd"
+import { Button, Input, Modal, notification, Space } from "antd"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import {
     NarrativeChartEditor,
@@ -106,10 +106,9 @@ class EditorDebugTabForChart extends Component<{
         return (
             <div>
                 <Section name="Config">
-                    <textarea
+                    <Input.TextArea
                         rows={7}
                         readOnly
-                        className="form-control"
                         value={YAML.stringify(patchConfig)}
                     />
                     <Button
@@ -159,10 +158,9 @@ class EditorDebugTabForChart extends Component<{
                                         : "Parent config (not currently applied)"
                                 }
                             >
-                                <textarea
+                                <Input.TextArea
                                     rows={7}
                                     readOnly
-                                    className="form-control"
                                     value={YAML.stringify(parentConfig)}
                                 />
                             </Section>
@@ -171,10 +169,9 @@ class EditorDebugTabForChart extends Component<{
                 )}
 
                 <Section name="Full Config">
-                    <textarea
+                    <Input.TextArea
                         rows={7}
                         readOnly
-                        className="form-control"
                         value={YAML.stringify(fullConfig)}
                     />
                 </Section>
@@ -279,10 +276,9 @@ class EditorDebugTabForNarrativeChart extends Component<{
         return (
             <div>
                 <Section name="Config">
-                    <textarea
+                    <Input.TextArea
                         rows={7}
                         readOnly
-                        className="form-control"
                         value={YAML.stringify(patchConfig)}
                     />
                     <Space className="mt-2" wrap>
@@ -308,19 +304,17 @@ class EditorDebugTabForNarrativeChart extends Component<{
                 </Section>
                 {parentConfig && (
                     <Section name="Parent config">
-                        <textarea
+                        <Input.TextArea
                             rows={7}
                             readOnly
-                            className="form-control"
                             value={YAML.stringify(parentConfig)}
                         />
                     </Section>
                 )}
                 <Section name="Full Config">
-                    <textarea
+                    <Input.TextArea
                         rows={7}
                         readOnly
-                        className="form-control"
                         value={YAML.stringify(fullConfig)}
                     />
                 </Section>

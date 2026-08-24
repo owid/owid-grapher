@@ -121,6 +121,7 @@ button {
 
     button,
     a,
+    .form-field__label,
     .form-group > label,
     .form-check > label {
         @extend .clickable;
@@ -505,7 +506,7 @@ button {
             }
         }
 
-        .form-group {
+        .form-field {
             flex: 1 1;
             margin-bottom: 0;
         }
@@ -519,7 +520,7 @@ button {
 .EditorScatterTab,
 .EditorMarimekkoTab,
 .EditorDataTab {
-    .form-group > label {
+    .form-field__label {
         margin-bottom: 0.3rem;
     }
 }
@@ -563,7 +564,7 @@ button {
     flex-direction: column;
     align-items: flex-start;
 
-    .form-group {
+    .form-field {
         margin-bottom: 0;
         width: 100%;
     }
@@ -1455,7 +1456,7 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
 }
 
 // Make the x/y dropdown in the comparison line editor narrow
-.comparisonLine .form-group:first-of-type {
+.comparisonLine .form-field:first-of-type {
     flex-grow: 0;
     flex-basis: 65px;
 }

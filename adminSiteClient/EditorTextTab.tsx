@@ -340,8 +340,8 @@ export class EditorTextTab<
                         helpText="Short comma-separated list of source names"
                         softCharacterLimit={60}
                     />
-                    <div className="form-group">
-                        <label>Origin url</label>
+                    <div className="form-field">
+                        <label className="form-field__label">Origin url</label>
                         <AutoComplete
                             style={{ width: "100%" }}
                             value={grapherState.originUrl ?? ""}
@@ -421,7 +421,7 @@ export class EditorTextTab<
                                 )
                             }}
                         />
-                        <small className="form-text text-muted">
+                        <small className="form-field__help text-muted">
                             The page containing this chart where more context
                             can be found. Choose a topic page from the dropdown
                             or type any relative or absolute URL.

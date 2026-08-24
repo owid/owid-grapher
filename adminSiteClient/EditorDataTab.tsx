@@ -4,7 +4,7 @@ import { getRegionByName, checkIsCountry } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import cx from "clsx"
-import { Button } from "antd"
+import { Button, Radio, Space } from "antd"
 import {
     EntitySelectionMode,
     MissingDataStrategy,
@@ -1036,63 +1036,27 @@ export class EditorDataTab<
         return (
             <div className="EditorDataTab">
                 <Section name="Can user add/change data?">
-                    <div className="form-check">
-                        <label className="form-check-label">
-                            <input
-                                className="form-check-input"
-                                type="radio"
-                                name="add-country-mode"
-                                value={EntitySelectionMode.MultipleEntities}
-                                checked={
-                                    grapherState.addCountryMode ===
-                                    EntitySelectionMode.MultipleEntities
-                                }
-                                onChange={() =>
-                                    (grapherState.addCountryMode =
-                                        EntitySelectionMode.MultipleEntities)
-                                }
-                            />
-                            User can add and remove data
-                        </label>
-                    </div>
-                    <div className="form-check">
-                        <label className="form-check-label">
-                            <input
-                                className="form-check-input"
-                                type="radio"
-                                name="add-country-mode"
-                                value={EntitySelectionMode.SingleEntity}
-                                checked={
-                                    grapherState.addCountryMode ===
-                                    EntitySelectionMode.SingleEntity
-                                }
-                                onChange={() =>
-                                    (grapherState.addCountryMode =
-                                        EntitySelectionMode.SingleEntity)
-                                }
-                            />
-                            User can change entity
-                        </label>
-                    </div>
-                    <div className="form-check">
-                        <label className="form-check-label">
-                            <input
-                                className="form-check-input"
-                                type="radio"
-                                name="add-country-mode"
-                                value={EntitySelectionMode.Disabled}
-                                checked={
-                                    grapherState.addCountryMode ===
-                                    EntitySelectionMode.Disabled
-                                }
-                                onChange={() =>
-                                    (grapherState.addCountryMode =
-                                        EntitySelectionMode.Disabled)
-                                }
-                            />
-                            User cannot change/add data
-                        </label>
-                    </div>
+                    <Radio.Group
+                        name="add-country-mode"
+                        value={grapherState.addCountryMode}
+                        onChange={action(
+                            (event) =>
+                                (grapherState.addCountryMode = event.target
+                                    .value as EntitySelectionMode)
+                        )}
+                    >
+                        <Space orientation="vertical" size={0}>
+                            <Radio value={EntitySelectionMode.MultipleEntities}>
+                                User can add and remove data
+                            </Radio>
+                            <Radio value={EntitySelectionMode.SingleEntity}>
+                                User can change entity
+                            </Radio>
+                            <Radio value={EntitySelectionMode.Disabled}>
+                                User cannot change/add data
+                            </Radio>
+                        </Space>
+                    </Radio.Group>
                 </Section>
                 <Section name="Entity type">
                     <FieldsRow>

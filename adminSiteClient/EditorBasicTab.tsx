@@ -553,7 +553,7 @@ const TagsSection = (props: {
                             id: props.chartId,
                         }}
                     />
-                    <small className="form-text text-muted">
+                    <small className="form-field__help text-muted">
                         Changes to tags will be applied instantly, without the
                         need to save the chart.
                     </small>
