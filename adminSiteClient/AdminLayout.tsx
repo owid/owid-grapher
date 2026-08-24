@@ -14,8 +14,10 @@ import {
     EXPLORERS_ROUTE_FOLDER,
 } from "@ourworldindata/explorer"
 
-/** The dark navy the admin chrome has always used. */
-const CHROME_BG = "#001c3d"
+/** The dark navy the admin header has always used. */
+const HEADER_BG = "#001c3d"
+/** The dark slate the sidebar has always used — distinct from the header. */
+const SIDEBAR_BG = "#222d32"
 const HEADER_HEIGHT = 48
 
 /**
@@ -26,20 +28,24 @@ const HEADER_HEIGHT = 48
 const chromeTheme: ThemeConfig = {
     components: {
         Layout: {
-            headerBg: CHROME_BG,
+            headerBg: HEADER_BG,
             headerHeight: HEADER_HEIGHT,
             headerPadding: "0 16px",
-            siderBg: CHROME_BG,
+            siderBg: SIDEBAR_BG,
             // The pages below expect to sit on white, not on antd's grey
             // `colorBgLayout`.
             bodyBg: "#fff",
         },
+        // The sidebar's pre-antd palette: muted slate text on `#222d32`,
+        // darker slate for the active entry, white on hover.
         Menu: {
-            darkItemBg: CHROME_BG,
-            darkSubMenuItemBg: CHROME_BG,
-            darkItemSelectedBg: "#1d3d63",
-            darkItemHoverBg: "rgba(255, 255, 255, 0.08)",
-            darkGroupTitleColor: "rgba(255, 255, 255, 0.45)",
+            darkItemBg: SIDEBAR_BG,
+            darkSubMenuItemBg: SIDEBAR_BG,
+            darkItemColor: "#b8c7ce",
+            darkItemSelectedBg: "#1a2226",
+            darkItemHoverBg: "#1e282c",
+            darkItemHoverColor: "#fff",
+            darkGroupTitleColor: "#4b646f",
         },
     },
 }
