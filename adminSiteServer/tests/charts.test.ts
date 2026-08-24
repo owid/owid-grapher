@@ -23,6 +23,15 @@ import {
 
 const env = getAdminTestEnv()
 
+/**
+ * ETL configs are pushed by the chart's config UUID (its stable identity), not
+ * by numeric chart id, so tests holding a chart id have to look the UUID up.
+ */
+async function etlConfigPath(chartId: number): Promise<string> {
+    const row = await env.testKnex(ChartsTableName).where("id", chartId).first()
+    return `/charts/by-config/${row.configId}/etlConfig`
+}
+
 describe("Charts API", { timeout: 15000 }, () => {
     const testChartConfig = {
         $schema: latestGrapherConfigSchema,
@@ -721,7 +730,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         // push an etlConfig
         const putResponse = await env.request({
             method: "PUT",
-            path: `/charts/${chartId}/etlConfig`,
+            path: `${await etlConfigPath(chartId)}`,
             body: JSON.stringify(testChartEtlConfig),
         })
         expect(putResponse.success).toBe(true)
@@ -787,7 +796,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         // push an etlConfig that overrides note and adds subtitle
         await env.request({
             method: "PUT",
-            path: `/charts/${chartId}/etlConfig`,
+            path: `${await etlConfigPath(chartId)}`,
             body: JSON.stringify({
                 $schema: latestGrapherConfigSchema,
                 note: "Note from etlConfig",
@@ -834,7 +843,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
 
         await env.request({
             method: "PUT",
-            path: `/charts/${chartId}/etlConfig`,
+            path: `${await etlConfigPath(chartId)}`,
             body: JSON.stringify({
                 $schema: latestGrapherConfigSchema,
                 title: "ETL title v1",
@@ -861,7 +870,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         // patch should still win, etlConfig's other fields should update
         await env.request({
             method: "PUT",
-            path: `/charts/${chartId}/etlConfig`,
+            path: `${await etlConfigPath(chartId)}`,
             body: JSON.stringify({
                 $schema: latestGrapherConfigSchema,
                 title: "ETL title v2",
@@ -896,7 +905,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
 
         await env.request({
             method: "PUT",
-            path: `/charts/${chartId}/etlConfig`,
+            path: `${await etlConfigPath(chartId)}`,
             body: JSON.stringify({
                 $schema: latestGrapherConfigSchema,
                 note: "etlConfig note",
@@ -968,7 +977,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
 
         await env.request({
             method: "PUT",
-            path: `/charts/${chartId}/etlConfig`,
+            path: `${await etlConfigPath(chartId)}`,
             body: JSON.stringify({
                 $schema: latestGrapherConfigSchema,
                 title: "ETL-managed chart",
@@ -1046,7 +1055,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         // bootstrap dimensions from `patch` (mirrors the real chart-upsert flow).
         await env.request({
             method: "PUT",
-            path: `/charts/${chartId}/etlConfig`,
+            path: `${await etlConfigPath(chartId)}`,
             body: JSON.stringify({
                 $schema: latestGrapherConfigSchema,
                 dimensions: [{ variableId, property: "y" }],
@@ -1058,7 +1067,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         // ETL re-points the chart at indicator B (dataset re-versioning).
         await env.request({
             method: "PUT",
-            path: `/charts/${chartId}/etlConfig`,
+            path: `${await etlConfigPath(chartId)}`,
             body: JSON.stringify({
                 $schema: latestGrapherConfigSchema,
                 dimensions: [{ variableId: variableB, property: "y" }],
@@ -1112,7 +1121,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         const chartId = response.chartId
         await env.request({
             method: "PUT",
-            path: `/charts/${chartId}/etlConfig`,
+            path: `${await etlConfigPath(chartId)}`,
             body: JSON.stringify({
                 $schema: latestGrapherConfigSchema,
                 dimensions: [{ variableId, property: "y" }],
@@ -1133,7 +1142,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         // ETL re-points at indicator B — the admin's override must win.
         await env.request({
             method: "PUT",
-            path: `/charts/${chartId}/etlConfig`,
+            path: `${await etlConfigPath(chartId)}`,
             body: JSON.stringify({
                 $schema: latestGrapherConfigSchema,
                 dimensions: [{ variableId: variableB, property: "y" }],
@@ -1156,7 +1165,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         // First ETL config push.
         await env.request({
             method: "PUT",
-            path: `/charts/${chartId}/etlConfig`,
+            path: `${await etlConfigPath(chartId)}`,
             body: JSON.stringify(testChartEtlConfig),
         })
         const afterFirst = await env.fetchJson(`/charts/${chartId}.config.json`)
@@ -1168,7 +1177,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         // Identical re-push (e.g. --force, a data refresh, a bulk ETL run).
         await env.request({
             method: "PUT",
-            path: `/charts/${chartId}/etlConfig`,
+            path: `${await etlConfigPath(chartId)}`,
             body: JSON.stringify(testChartEtlConfig),
         })
         const afterRepush = await env.fetchJson(
@@ -1185,7 +1194,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         // A genuine config change still bumps the version.
         await env.request({
             method: "PUT",
-            path: `/charts/${chartId}/etlConfig`,
+            path: `${await etlConfigPath(chartId)}`,
             body: JSON.stringify({
                 ...testChartEtlConfig,
                 subtitle: "A genuinely different subtitle",
@@ -1223,7 +1232,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         // dropped from the admin patch so ETL now owns it.
         await env.request({
             method: "PUT",
-            path: `/charts/${chartId}/etlConfig`,
+            path: `${await etlConfigPath(chartId)}`,
             body: JSON.stringify({
                 $schema: latestGrapherConfigSchema,
                 title: "Shared title",
@@ -1239,7 +1248,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         // mask this and the title would stay "Shared title").
         await env.request({
             method: "PUT",
-            path: `/charts/${chartId}/etlConfig`,
+            path: `${await etlConfigPath(chartId)}`,
             body: JSON.stringify({
                 $schema: latestGrapherConfigSchema,
                 title: "ETL-owned title",
@@ -1265,7 +1274,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         // First push creates the etlConfig row; no catalogPath supplied yet.
         await env.request({
             method: "PUT",
-            path: `/charts/${chartId}/etlConfig`,
+            path: `${await etlConfigPath(chartId)}`,
             body: JSON.stringify({
                 $schema: latestGrapherConfigSchema,
                 subtitle: "ETL subtitle",
@@ -1278,7 +1287,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         // it must still be backfilled despite the early return.
         await env.request({
             method: "PUT",
-            path: `/charts/${chartId}/etlConfig?catalogPath=${encodeURIComponent(
+            path: `${await etlConfigPath(chartId)}?catalogPath=${encodeURIComponent(
                 "grapher/test/latest/x#y"
             )}`,
             body: JSON.stringify({
@@ -1300,7 +1309,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
 
         const putResponse = await env.request({
             method: "PUT",
-            path: `/charts/${chartId}/etlConfig`,
+            path: `${await etlConfigPath(chartId)}`,
             body: JSON.stringify({
                 // no $schema
                 title: "T",
