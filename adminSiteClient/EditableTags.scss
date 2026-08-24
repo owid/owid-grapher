@@ -1,0 +1,7 @@
+// The "Suggest" / "Edit tags" actions next to a row of tag badges. They are
+// antd link buttons now, which bring their own icon gap and focus ring, so the
+// only thing left from the `admin.scss` rule this replaces is the tighter
+// horizontal padding that keeps them close to the badges.
+.EditableTags__action {
+    padding-inline: 6px;
+}

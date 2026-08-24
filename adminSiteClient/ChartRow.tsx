@@ -2,7 +2,7 @@ import * as React from "react"
 import { observer } from "mobx-react"
 import { action, runInAction, makeObservable } from "mobx"
 import * as lodash from "lodash-es"
-import { Link } from "./Link.js"
+import { LinkButton } from "./Link.js"
 import { Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -22,7 +22,7 @@ import {
     copyToClipboard,
     excludeUndefined,
 } from "@ourworldindata/utils"
-import { Dropdown } from "antd"
+import { Button, Dropdown } from "antd"
 import {
     getTagGraphRolesById,
     MinimalTagWithMetadata,
@@ -178,12 +178,9 @@ export class ChartRow extends React.Component<ChartRowProps> {
                 <td>{chart.narrativeChartsCount?.toLocaleString() ?? "0"}</td>
                 <td>{chart.referencesCount?.toLocaleString() ?? "0"}</td>
                 <td>
-                    <Link
-                        to={`/charts/${chart.id}/edit`}
-                        className="btn btn-primary"
-                    >
+                    <LinkButton type="primary" to={`/charts/${chart.id}/edit`}>
                         Edit
-                    </Link>
+                    </LinkButton>
                     <Dropdown.Button
                         className="mt-1"
                         onClick={() =>
@@ -203,12 +200,13 @@ export class ChartRow extends React.Component<ChartRowProps> {
                     </Dropdown.Button>
                 </td>
                 <td>
-                    <button
-                        className="btn btn-danger"
+                    <Button
+                        color="danger"
+                        variant="solid"
                         onClick={() => this.props.onDelete(chart)}
                     >
                         Delete
-                    </button>
+                    </Button>
                 </td>
             </tr>
         )

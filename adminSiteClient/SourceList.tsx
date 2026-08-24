@@ -1,4 +1,5 @@
 import { OwidSource } from "@ourworldindata/utils"
+import { Alert } from "antd"
 import { BindString } from "./Forms.js"
 
 const MAX_SOURCES = 10
@@ -10,11 +11,12 @@ export function SourceList({ sources }: { sources: OwidSource[] }) {
     return (
         <div>
             {sources.length > MAX_SOURCES && (
-                <div className="alert alert-warning">
-                    <strong>Warning:</strong> There are {sources.length} sources
-                    for this dataset. Only the first {MAX_SOURCES} will be
-                    displayed.
-                </div>
+                <Alert
+                    type="warning"
+                    showIcon
+                    title="Warning"
+                    description={`There are ${sources.length} sources for this dataset. Only the first ${MAX_SOURCES} will be displayed.`}
+                />
             )}
             {limitedSources.map((source, index) => (
                 <div key={index}>

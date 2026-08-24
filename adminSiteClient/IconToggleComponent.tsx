@@ -1,5 +1,6 @@
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { Button } from "antd"
 
 export interface IconToggleProps {
     isOn: boolean
@@ -9,10 +10,11 @@ export interface IconToggleProps {
 }
 
 export const IconToggleComponent = (props: IconToggleProps) => (
-    <button
-        className="btn btn-light btn-sm"
+    <Button
+        size="small"
+        icon={
+            <FontAwesomeIcon icon={props.isOn ? props.onIcon : props.offIcon} />
+        }
         onClick={() => props.onClick(!props.isOn)}
-    >
-        <FontAwesomeIcon icon={props.isOn ? props.onIcon : props.offIcon} />
-    </button>
+    />
 )

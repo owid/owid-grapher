@@ -7,6 +7,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { BindString, Timeago } from "./Forms.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
+import { Button } from "antd"
 
 interface SourcePageData {
     id: number
@@ -160,12 +161,14 @@ class SourceEditor extends Component<{ source: SourcePageData }> {
                             textarea
                             disabled={true}
                         />
-                        <input
-                            type="submit"
-                            className="btn btn-success"
-                            value="Update source"
+                        <Button
+                            color="green"
+                            variant="solid"
+                            htmlType="submit"
                             disabled={true}
-                        />
+                        >
+                            Update source
+                        </Button>
                     </form>
                 </section>
                 <section>

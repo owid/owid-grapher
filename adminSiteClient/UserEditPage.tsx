@@ -6,6 +6,7 @@ import { Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { UserIndexMeta } from "./UserMeta.js"
+import { Button } from "antd"
 
 @observer
 export class UserEditPage extends Component<{ userId: number }> {
@@ -42,12 +43,13 @@ export class UserEditPage extends Component<{ userId: number }> {
                         value={user.isActive}
                         onValue={(v) => (user.isActive = v)}
                     />
-                    <button
-                        className="btn btn-success"
+                    <Button
+                        color="green"
+                        variant="solid"
                         onClick={() => this.save()}
                     >
                         Update user
-                    </button>
+                    </Button>
                 </main>
             </AdminLayout>
         )

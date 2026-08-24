@@ -11,7 +11,7 @@ import {
 import YAML from "yaml"
 import * as _ from "lodash-es"
 import { AdminLayout } from "./AdminLayout.js"
-import { Link } from "./Link.js"
+import { Link, LinkButton } from "./Link.js"
 import { FieldsRow, TextAreaField, CatalogPathField } from "./Forms.js"
 import {
     OwidVariableWithDataAndSource,
@@ -248,12 +248,11 @@ class VariableEditor extends Component<{
                         <div className="col">
                             <div className="topbar">
                                 <h3>Preview</h3>
-                                <Link
-                                    className="btn btn-secondary"
+                                <LinkButton
                                     to={`/charts/create?${this.configUrlParams}`}
                                 >
                                     Edit as new chart
-                                </Link>
+                                </LinkButton>
                             </div>
                             <Grapher grapherState={this.grapherState} />
                         </div>
