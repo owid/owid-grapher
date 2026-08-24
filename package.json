@@ -14,6 +14,7 @@
         "buildViteSite": "NODE_OPTIONS=--max-old-space-size=8192 vite build --config vite.config-site.mts",
         "buildVite": "yarn buildViteSite && yarn buildViteAdmin",
         "bakeGdocPosts": "tsx --tsconfig tsconfig.tsx.json baker/bakeGdocPosts.ts",
+        "checkInternalLinks": "tsx --tsconfig tsconfig.tsx.json baker/checkInternalLinks.ts",
         "cleanTsc": "rm -rf itsJustJavascript && tsc -b -clean",
         "createDbMigration": "tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration:create",
         "createMultiDimRedirectsFromCsv": "tsx --tsconfig tsconfig.tsx.json devTools/createMultiDimRedirectsFromCsv.ts",
