@@ -1,15 +1,20 @@
 // A hand-extracted subset of Bootstrap 4's `_reboot.scss` — exactly the global
 // element normalisation the admin actually depends on.
 //
-// Bootstrap's reboot is what the whole admin currently sits on: box-sizing,
-// the body font, heading/paragraph/list margin resets, `border-collapse` on
-// tables, and font inheritance for form controls. antd 6 ships no global reset
-// (its components are self-contained CSS-in-JS), so once Bootstrap is gone
-// there would be nothing left providing these. This file is that replacement.
+// Bootstrap's reboot is what the whole admin used to sit on: box-sizing, the
+// body font, heading/paragraph/list margin resets, `border-collapse` on tables,
+// the form-control font inheritance, and the `<fieldset>`/`<legend>` resets.
+// antd 6 ships no global reset (its components are self-contained CSS-in-JS),
+// so with Bootstrap gone this file is the only thing providing them.
 //
-// While `bootstrap/scss/reboot` is still imported (it is, from `admin.scss`,
-// just above this file) every declaration here duplicates one Bootstrap
-// already emits with the same value, so including it is a rendering no-op.
+// It is a subset, not a copy: rules for elements the admin never renders
+// (`<abbr>`, `<address>`, `<blockquote>`, `<dt>`/`<dd>`, `<sub>`/`<sup>`,
+// `<caption>`, `<output>`, `<progress>`, `<template>`) were left out, as was
+// Bootstrap's `display: block` for the HTML5 sectioning elements, which every
+// browser we support has as a UA default anyway. Typography that came from
+// Bootstrap's `_type.scss`/`_code.scss` — heading sizes, `<hr>`, `<small>`,
+// `<code>`/`<pre>` — lives in `typography.scss`, imported right after this.
+//
 // Values are deliberately kept identical to Bootstrap 4's output rather than
 // "modernised" — modernising them is a separate, visible change.
 
@@ -42,6 +47,18 @@ body {
     background-color: #fff;
 }
 
+// Suppresses the focus ring on containers that are focused programmatically
+// rather than by the user — antd puts `tabindex="-1"` on its modal wrappers.
+[tabindex="-1"]:focus:not(:focus-visible) {
+    outline: 0 !important;
+}
+
+hr {
+    box-sizing: content-box;
+    height: 0;
+    overflow: visible;
+}
+
 h1,
 h2,
 h3,
@@ -71,6 +88,11 @@ ul ol {
     margin-bottom: 0;
 }
 
+b,
+strong {
+    font-weight: bolder;
+}
+
 a {
     color: #007bff;
     text-decoration: none;
@@ -80,6 +102,37 @@ a {
 a:hover {
     color: #0056b3;
     text-decoration: underline;
+}
+
+a:not([href]):not([class]) {
+    color: inherit;
+    text-decoration: none;
+}
+
+a:not([href]):not([class]):hover {
+    color: inherit;
+    text-decoration: none;
+}
+
+pre,
+code,
+kbd,
+samp {
+    font-family:
+        SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+        "Courier New", monospace;
+    font-size: 1em;
+}
+
+pre {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    overflow: auto;
+    -ms-overflow-style: scrollbar;
+}
+
+figure {
+    margin: 0 0 1rem;
 }
 
 img {
@@ -126,6 +179,24 @@ textarea {
 }
 
 button,
+input {
+    overflow: visible;
+}
+
+button,
+select {
+    text-transform: none;
+}
+
+[role="button"] {
+    cursor: pointer;
+}
+
+select {
+    word-wrap: normal;
+}
+
+button,
 [type="button"],
 [type="reset"],
 [type="submit"] {
@@ -139,9 +210,66 @@ button:not(:disabled),
     cursor: pointer;
 }
 
+button::-moz-focus-inner,
+[type="button"]::-moz-focus-inner,
+[type="reset"]::-moz-focus-inner,
+[type="submit"]::-moz-focus-inner {
+    padding: 0;
+    border-style: none;
+}
+
+input[type="radio"],
+input[type="checkbox"] {
+    box-sizing: border-box;
+    padding: 0;
+}
+
 textarea {
     overflow: auto;
     resize: vertical;
+}
+
+fieldset {
+    min-width: 0;
+    padding: 0;
+    margin: 0;
+    border: 0;
+}
+
+legend {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+    line-height: inherit;
+    color: inherit;
+    white-space: normal;
+}
+
+[type="number"]::-webkit-inner-spin-button,
+[type="number"]::-webkit-outer-spin-button {
+    height: auto;
+}
+
+[type="search"] {
+    outline-offset: -2px;
+    -webkit-appearance: none;
+}
+
+[type="search"]::-webkit-search-decoration {
+    -webkit-appearance: none;
+}
+
+::-webkit-file-upload-button {
+    font: inherit;
+    -webkit-appearance: button;
+}
+
+summary {
+    display: list-item;
+    cursor: pointer;
 }
 
 [hidden] {
