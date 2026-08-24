@@ -32,3 +32,21 @@
 .admin-table tr.admin-table__row--danger > th {
     background-color: #f5c6cb;
 }
+
+// The thumbnail column that `ChartRow` and `DatasetEditPage`'s explorer /
+// multi-dim tables share. It is used from both an `.admin-table` and an antd
+// `<Table>` column's `className`, so it stays unscoped.
+.table-preview-col {
+    min-width: 140px;
+    width: 12.5%;
+}
+
+.table-preview-col--centered {
+    text-align: center;
+}
+
+.chartPreview {
+    width: 100%;
+    height: auto;
+    max-width: 140px;
+}

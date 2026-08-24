@@ -1,0 +1,26 @@
+// The searchable chart list (`ChartList.tsx`) and its rows (`ChartRow.tsx`),
+// embedded on the chart index, dataset, indicator and tag pages. The table
+// itself is styled by `AdminTable.scss`.
+
+.ChartList {
+    .topRow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1em;
+
+        .form-field {
+            margin: 0;
+        }
+
+        input {
+            width: 500px;
+        }
+    }
+}
+
+.internalNotes {
+    font-size: 13px;
+    color: #666;
+    margin-top: 6px;
+}
