@@ -904,8 +904,7 @@ export async function createChart(
     }
     // optional caller-supplied config UUID, e.g. chart-sync carrying a chart's
     // identity from staging to production
-    const rawChartConfigId =
-        (req.query.configId as string | undefined) || undefined
+    const rawChartConfigId = req.query.configId as string | undefined
     const chartConfigId =
         rawChartConfigId === undefined
             ? undefined
@@ -922,7 +921,13 @@ export async function createChart(
 
         return { success: true, chartId: chartId }
     } catch (err) {
-        return { success: false, error: { message: String(err), status: 500 } }
+        return {
+            success: false,
+            error: {
+                message: String(err),
+                status: err instanceof JsonError ? err.status : 500,
+            },
+        }
     }
 }
 
