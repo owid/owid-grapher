@@ -4,7 +4,9 @@ import {
     OwidGdocErrorMessageType,
     OwidGdocFeaturedVizContent,
     OwidGdocFeaturedVizInterface,
+    excludeNullish,
 } from "@ourworldindata/utils"
+import { OwidEnrichedGdocBlock } from "@ourworldindata/types"
 import { GdocBase } from "./GdocBase.js"
 
 export class GdocFeaturedViz
@@ -15,6 +17,19 @@ export class GdocFeaturedViz
 
     constructor(id?: string) {
         super(id)
+    }
+
+    protected override typeSpecificFilenames(): string[] {
+        return excludeNullish([this.content["featured-image"]])
+    }
+
+    override _getSubclassEnrichedBlocks = (
+        gdoc: this
+    ): OwidEnrichedGdocBlock[] => {
+        if (!gdoc.content.refs?.definitions) return []
+        return Object.values(gdoc.content.refs.definitions).flatMap(
+            (definition) => definition.content
+        )
     }
 
     override _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {

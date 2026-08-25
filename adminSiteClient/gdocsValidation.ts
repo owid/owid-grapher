@@ -147,18 +147,16 @@ function validateBody(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
     }
 }
 
-function validateRefs(
-    gdoc: OwidGdocPostInterface,
-    errors: OwidGdocErrorMessage[]
-) {
-    if (gdoc.content.refs) {
+function validateRefs(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
+    if ("refs" in gdoc.content && gdoc.content.refs) {
+        const { refs } = gdoc.content
         // Errors due to refs being unused / undefined / malformed
-        if (gdoc.content.refs.errors.length) {
-            errors.push(...gdoc.content.refs.errors)
+        if (refs.errors.length) {
+            errors.push(...refs.errors)
         }
         // Errors due to the content of the refs having parse errors
-        if (gdoc.content.refs.definitions) {
-            Object.values(gdoc.content.refs.definitions).map((definition) => {
+        if (refs.definitions) {
+            Object.values(refs.definitions).map((definition) => {
                 definition.content.map((block) => {
                     traverseEnrichedBlock(block, (node) => {
                         if (node.parseErrors.length) {
@@ -341,12 +339,12 @@ export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
     validateTitle(gdoc, errors)
     validateSlug(gdoc, errors)
     validateBody(gdoc, errors)
+    validateRefs(gdoc, errors)
     validatePublishedAt(gdoc, errors)
     validateContentType(gdoc, errors)
     validateDeprecationNotice(gdoc, errors)
 
     if (checkIsGdocPost(gdoc)) {
-        validateRefs(gdoc, errors)
         validateExcerpt(gdoc, errors)
         validateManualBreadcrumbs(gdoc, errors)
         validateAtomFields(gdoc, errors)
