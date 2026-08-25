@@ -16,17 +16,19 @@ interface HorizontalCategoricalColorLegendProps {
     isStatic?: boolean
 }
 
-export const HorizontalCategoricalColorLegend = observer(
-    function HorizontalCategoricalColorLegend({
-        state,
-        x,
-        y,
-        onMouseEnter,
-        onMouseOver,
-        onMouseLeave,
-        onTouchSelect,
-        isStatic,
-    }: HorizontalCategoricalColorLegendProps): React.ReactElement {
+@observer
+export class HorizontalCategoricalColorLegend extends React.Component<HorizontalCategoricalColorLegendProps> {
+    override render(): React.ReactElement {
+        const {
+            state,
+            x,
+            y,
+            onMouseEnter,
+            onMouseOver,
+            onMouseLeave,
+            onTouchSelect,
+            isStatic,
+        } = this.props
         const { marks, rectPadding } = state
 
         return (
@@ -137,7 +139,7 @@ export const HorizontalCategoricalColorLegend = observer(
             </g>
         )
     }
-)
+}
 
 const stopPointerDownPropagation = (event: React.PointerEvent): void => {
     event.stopPropagation()
