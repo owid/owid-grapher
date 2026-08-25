@@ -1,7 +1,28 @@
-import type { HighlightResultOption, SnippetResultOption } from "algoliasearch"
 import { OwidGdocType } from "../gdocTypes/Gdoc.js"
 import { GrapherTabName } from "../grapherTypes/GrapherTypes.js"
 import * as z from "zod/mini"
+
+// Structural copies of algoliasearch's HighlightResultOption and
+// SnippetResultOption. This package doesn't declare algoliasearch as a
+// dependency (and downstream packages that bundle these types shouldn't have
+// to either), so the two small interfaces are inlined instead of imported.
+type AlgoliaMatchLevel = "none" | "partial" | "full"
+
+type HighlightResultOption = {
+    /** Highlighted attribute value, including HTML tags. */
+    value: string
+    matchLevel: AlgoliaMatchLevel
+    /** List of matched words from the search query. */
+    matchedWords: Array<string>
+    /** Whether the entire attribute value is highlighted. */
+    fullyHighlighted?: boolean | undefined
+}
+
+type SnippetResultOption = {
+    /** Highlighted attribute value, including HTML tags. */
+    value: string
+    matchLevel: AlgoliaMatchLevel
+}
 
 export const PagesIndexRecordSchema = z.object({
     objectID: z.string(),

@@ -1,7 +1,7 @@
 import parseArgs from "minimist"
 import { knexRaw, knexReadWriteTransaction } from "../../db/db.js"
 import { DbRawPostGdoc, parsePostGdocContent } from "@ourworldindata/types"
-import { getGdocComponentsWithoutChildren } from "../../db/model/Gdoc/extractGdocComponentInfo.js"
+import { getGdocComponentsWithoutChildren } from "@ourworldindata/gdoc-pipeline"
 
 async function main() {
     await knexReadWriteTransaction(async (trx) => {

@@ -11,8 +11,12 @@ import {
     ArchiveContext,
 } from "@ourworldindata/types"
 import { excludeNullish, generateToc } from "@ourworldindata/utils"
-import { formatCitation, generateStickyNav } from "./archieToEnriched.js"
-import { parseFaqs, parseLatestFeedExcerpt } from "./rawToEnriched.js"
+import {
+    formatCitation,
+    generateStickyNav,
+    parseFaqs,
+    parseLatestFeedExcerpt,
+} from "@ourworldindata/gdoc-pipeline"
 import { GdocBase } from "./GdocBase.js"
 import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../ArchivedChartVersion.js"

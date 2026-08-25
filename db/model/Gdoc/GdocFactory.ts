@@ -48,8 +48,10 @@ import {
 } from "../../db.js"
 import { GdocAbout } from "./GdocAbout.js"
 import { GdocAuthor } from "./GdocAuthor.js"
-import { extractFilenamesFromBlock } from "./gdocUtils.js"
-import { getGdocComponentsWithoutChildren } from "./extractGdocComponentInfo.js"
+import {
+    extractFilenamesFromBlock,
+    getGdocComponentsWithoutChildren,
+} from "@ourworldindata/gdoc-pipeline"
 import { GdocAnnouncement } from "./GdocAnnouncement.js"
 import { GdocProfile } from "./GdocProfile.js"
 

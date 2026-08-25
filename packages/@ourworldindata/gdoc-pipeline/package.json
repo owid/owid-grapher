@@ -1,0 +1,71 @@
+{
+    "name": "@ourworldindata/gdoc-pipeline",
+    "version": "0.0.0",
+    "description": "OWID's Google Docs / ArchieML content pipeline: converts Google Docs documents to ArchieML, parses ArchieML into enriched content blocks, and serializes enriched blocks back to ArchieML, Markdown and indexable text.",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/owid/owid-grapher.git",
+        "directory": "packages/@ourworldindata/gdoc-pipeline"
+    },
+    "type": "module",
+    "main": "src/index.ts",
+    "types": "src/index.ts",
+    "publishConfig": {
+        "registry": "https://packages.owid.io",
+        "main": "dist/gdoc-pipeline.js",
+        "types": "dist/gdoc-pipeline.d.ts",
+        "exports": {
+            ".": {
+                "types": "./dist/gdoc-pipeline.d.ts",
+                "import": "./dist/gdoc-pipeline.js"
+            }
+        }
+    },
+    "peerDependencies": {
+        "@googleapis/docs": "^9.0.0"
+    },
+    "peerDependenciesMeta": {
+        "@googleapis/docs": {
+            "optional": true
+        }
+    },
+    "files": [
+        "dist/gdoc-pipeline.js",
+        "dist/gdoc-pipeline.js.map",
+        "dist/gdoc-pipeline.d.ts",
+        "dist/gdoc-pipeline.d.ts.map"
+    ],
+    "scripts": {
+        "build": "tsdown",
+        "clean": "rm -rf dist dist-package",
+        "testPackage": "yarn testPackage:pack && yarn testPackage:vitest && yarn testPackage:attw",
+        "testPackage:pack": "yarn pack --out dist-package/gdoc-pipeline.tgz",
+        "testPackage:vitest": "vitest run --config vitest.package.config.ts",
+        "testPackage:attw": "attw --profile esm-only -- dist-package/gdoc-pipeline.tgz"
+    },
+    "directories": {
+        "lib": "src"
+    },
+    "keywords": [],
+    "author": "",
+    "devDependencies": {
+        "@arethetypeswrong/cli": "^0.18.5",
+        "@googleapis/docs": "^9.2.1",
+        "@ourworldindata/components": "workspace:^",
+        "@ourworldindata/types": "workspace:^",
+        "@ourworldindata/utils": "workspace:^",
+        "@types/lodash-es": "^4.17.12",
+        "archieml": "^0.5.0",
+        "bumpp": "^12.2.0",
+        "cheerio": "^1.2.0",
+        "domhandler": "^5.0.3",
+        "es-module-lexer": "^2.3.1",
+        "lodash-es": "^4.18.1",
+        "publint": "^0.3.23",
+        "remeda": "^2.42.0",
+        "ts-pattern": "^5.8.0",
+        "tsdown": "^0.22.14",
+        "vitest": "^4.1.10"
+    },
+    "license": "SEE LICENSE IN LICENSE.md"
+}
