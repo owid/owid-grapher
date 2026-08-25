@@ -24,7 +24,7 @@ import {
     DEFAULT_LATEST_FEED_VIEW,
     LATEST_FACETS_CONTAINER_CLASSES,
     LATEST_FILTERS_DIVIDER_CLASSES,
-    LATEST_NEWSLETTER_SIGNUP_CLASSES,
+    LATEST_HIT_GRID_CLASSES,
     LatestFeedView,
     hasViewToggle,
     sortTopicAreasByPopularity,
@@ -37,13 +37,12 @@ import {
 } from "./latestState.js"
 import { LatestHit } from "./LatestHit.js"
 import { LATEST_STICKY_FILTERS_ARMS, OwidGdocType } from "@ourworldindata/utils"
+import { LatestNewsletterSlot } from "./LatestNewsletterSlot.js"
 import { LatestSearchSkeleton } from "./LatestSearchSkeleton.js"
 import { LatestContext } from "./LatestContext.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
-import { NewsletterSignupBlock } from "../NewsletterSignupBlock.js"
 import { SearchHorizontalDivider } from "../search/SearchHorizontalDivider.js"
 import { SearchNoResults } from "../search/SearchNoResults.js"
-import { NewsletterSubscriptionContext } from "../newsletter.js"
 import { PoweredBy } from "react-instantsearch"
 import { getPrefersReducedMotion } from "@ourworldindata/components"
 
@@ -244,22 +243,26 @@ export const LatestSearch = ({
                 <LatestViewToggle view={view} onViewChange={setView} />
             )}
             {isLoading ? (
-                <LatestSearchSkeleton />
+                <LatestSearchSkeleton topicArea={topics[0]} />
             ) : hits.length === 0 ? (
-                <SearchNoResults
-                    subtitle={
-                        <p className="body-3-medium">
-                            Try removing some filters or{" "}
-                            <button
-                                className="latest-search__reset-button"
-                                onClick={clearAllFilters}
-                            >
-                                reset filters
-                            </button>
-                            .
-                        </p>
-                    }
-                />
+                <>
+                    <SearchNoResults
+                        className={`latest-search__no-results ${LATEST_HIT_GRID_CLASSES}`}
+                        subtitle={
+                            <p className="body-3-medium">
+                                Try removing some filters or{" "}
+                                <button
+                                    className="latest-search__reset-button"
+                                    onClick={clearAllFilters}
+                                >
+                                    reset filters
+                                </button>
+                                .
+                            </p>
+                        }
+                    />
+                    <LatestNewsletterSlot topicArea={topics[0]} />
+                </>
             ) : (
                 <>
                     {hits.slice(0, 2).map((hit, i) => (
@@ -272,13 +275,10 @@ export const LatestSearch = ({
                             isTypeFiltered={displayedLatestType !== null}
                         />
                     ))}
-                    {/* Always render the signup block — with 0 or 1 hits it
+                    {/* Always render the newsletter slot — with 0 or 1 hits it
                         falls below whatever cards exist, which is the
                         intended layout. */}
-                    <NewsletterSignupBlock
-                        className={LATEST_NEWSLETTER_SIGNUP_CLASSES}
-                        context={NewsletterSubscriptionContext.Latest}
-                    />
+                    <LatestNewsletterSlot topicArea={topics[0]} />
                     {hits.slice(2).map((hit, i) => (
                         <LatestHit
                             key={hit.objectID}
