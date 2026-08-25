@@ -1034,6 +1034,33 @@ async function insertChartRevision(
     )
 }
 
+async function assertCatalogPathAvailable(
+    trx: db.KnexReadonlyTransaction,
+    catalogPath: string | null,
+    chartId?: number
+): Promise<void> {
+    if (!catalogPath) return
+
+    const conflictingChart = await db.knexRawFirst<Pick<DbPlainChart, "id">>(
+        trx,
+        `-- sql
+            SELECT id
+            FROM charts
+            WHERE catalogPath = ?
+            ${chartId === undefined ? "" : "AND id != ?"}
+        `,
+        chartId === undefined ? [catalogPath] : [catalogPath, chartId]
+    )
+    if (!conflictingChart) return
+
+    const newOwner = chartId === undefined ? "a new chart" : `chart ${chartId}`
+    throw new JsonError(
+        `Catalog path '${catalogPath}' is already used by chart ${conflictingChart.id}; ` +
+            `refusing to assign it to ${newOwner} too.`,
+        409
+    )
+}
+
 /**
  * Inserts or updates a chart's ETL-authored grapher config, addressed by the
  * chart's config UUID (`charts.configId`) — the chart's stable identity — and
@@ -1075,6 +1102,13 @@ export async function upsertEtlConfigByChartConfigId(
 
     const existingChartId = await getChartIdByConfigId(trx, chartConfigId)
     const created = existingChartId === undefined
+
+    // Check before creating a chart because saveGrapher uploads the initial
+    // rendered config to R2. A later catalog-path conflict would roll back the
+    // database transaction but leave that external object behind.
+    if (created) {
+        await assertCatalogPathAvailable(trx, catalogPath)
+    }
 
     const chartId =
         existingChartId ??
@@ -1148,23 +1182,8 @@ async function upsertEtlConfigForChart(
     // The one thing still worth refusing is handing a path to a second chart:
     // `charts.catalogPath` has a unique DB index, and checking here turns a raw
     // duplicate-key failure into a clear error before any other writes happen.
-    if (catalogPath && row.catalogPath !== catalogPath) {
-        const conflictingChart = await db.knexRawFirst<
-            Pick<DbPlainChart, "id">
-        >(
-            trx,
-            `-- sql
-                SELECT id FROM charts WHERE catalogPath = ? AND id != ?
-            `,
-            [catalogPath, chartId]
-        )
-        if (conflictingChart) {
-            throw new JsonError(
-                `Catalog path '${catalogPath}' is already used by chart ${conflictingChart.id}; ` +
-                    `refusing to assign it to chart ${chartId} too.`,
-                409
-            )
-        }
+    if (row.catalogPath !== catalogPath) {
+        await assertCatalogPathAvailable(trx, catalogPath, chartId)
     }
 
     const existingPatch = parseChartConfig(row.patch)
@@ -1406,7 +1425,7 @@ export async function deleteChartsChartIdEtlConfig(
     const etlConfigId = row.patchConfigIdETL
     await db.knexRaw(
         trx,
-        `UPDATE charts SET patchConfigIdETL = NULL, updatedAt = ? WHERE id = ?`,
+        `UPDATE charts SET patchConfigIdETL = NULL, catalogPath = NULL, updatedAt = ? WHERE id = ?`,
         [now, chartId]
     )
     await db.knexRaw(trx, `DELETE FROM chart_configs WHERE id = ?`, [

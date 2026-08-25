@@ -903,9 +903,12 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         })
         const chartId = response.chartId
 
+        const catalogPath = "grapher/test/latest/delete-test#chart"
         await env.request({
             method: "PUT",
-            path: `${await etlConfigPath(chartId)}`,
+            path: `${await etlConfigPath(chartId)}?catalogPath=${encodeURIComponent(
+                catalogPath
+            )}`,
             body: JSON.stringify({
                 $schema: latestGrapherConfigSchema,
                 note: "etlConfig note",
@@ -935,6 +938,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
             .where("id", chartId)
             .first()
         expect(chartRow.patchConfigIdETL).toBeNull()
+        expect(chartRow.catalogPath).toBeNull()
         // a render-neutral detach is not a content edit: lastEditedAt untouched
         expect(chartRow.lastEditedAt.getTime()).toBe(oldLastEditedAt.getTime())
         expect(chartRow.lastEditedByUserId).toBe(
@@ -956,6 +960,20 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         expect(patchConfig).toHaveProperty("subtitle", "etlConfig subtitle")
         // still inherited from the indicator, so not in patch
         expect(patchConfig).not.toHaveProperty("hasMapTab")
+
+        // Detaching releases the ETL step identity so another chart can adopt
+        // the same catalog path later.
+        const replacement = await env.request({
+            method: "PUT",
+            path: `/charts/by-config/${uuidv7()}/etlConfig?catalogPath=${encodeURIComponent(
+                catalogPath
+            )}`,
+            body: JSON.stringify({
+                ...testChartEtlConfig,
+                slug: "replacement-after-detach",
+            }),
+        })
+        expect(replacement.success).toBe(true)
     })
 
     it("DELETE preserves the grapher dimensions the patch no longer carries", async () => {
