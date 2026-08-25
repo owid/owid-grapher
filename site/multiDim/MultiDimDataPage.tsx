@@ -30,6 +30,7 @@ export function MultiDimDataPage({
     initialViewDimensions,
     faqEntries,
     primaryTopic,
+    topicArea,
     relatedResearchCandidates,
     imageMetadata,
     isPreviewing,
@@ -49,6 +50,7 @@ export function MultiDimDataPage({
         initialViewDimensions,
         faqEntries,
         primaryTopic,
+        topicArea,
         relatedResearchCandidates,
         imageMetadata,
         isPreviewing,
@@ -136,6 +138,7 @@ export function MultiDimDataPage({
                                     isPreviewing={isPreviewing}
                                     faqEntries={faqEntries}
                                     primaryTopic={primaryTopic}
+                                    topicArea={topicArea}
                                     relatedResearchCandidates={
                                         relatedResearchCandidates
                                     }
