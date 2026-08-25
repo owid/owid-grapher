@@ -1,9 +1,5 @@
-import { NewsletterSignupBlock } from "../NewsletterSignupBlock.js"
-import { NewsletterSubscriptionContext } from "../newsletter.js"
-import {
-    LATEST_HIT_GRID_CLASSES,
-    LATEST_NEWSLETTER_SIGNUP_CLASSES,
-} from "./latestUtils.js"
+import { LatestNewsletterSlot } from "./LatestNewsletterSlot.js"
+import { LATEST_HIT_GRID_CLASSES } from "./latestUtils.js"
 
 const LatestHitSkeleton = () => (
     <div
@@ -26,14 +22,13 @@ const LatestHitSkeleton = () => (
     </div>
 )
 
-export const LatestSearchSkeleton = () => (
+// The newsletter slot is rendered for real so it doesn't change between the
+// skeleton and the loaded feed.
+export const LatestSearchSkeleton = ({ topicArea }: { topicArea?: string }) => (
     <>
         <LatestHitSkeleton />
         <LatestHitSkeleton />
-        <NewsletterSignupBlock
-            className={LATEST_NEWSLETTER_SIGNUP_CLASSES}
-            context={NewsletterSubscriptionContext.Latest}
-        />
+        <LatestNewsletterSlot topicArea={topicArea} />
         <LatestHitSkeleton />
     </>
 )
