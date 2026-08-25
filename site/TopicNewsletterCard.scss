@@ -1,0 +1,146 @@
+.topic-newsletter-card {
+    background-color: $gray-5;
+    padding: 24px;
+    border-radius: 8px;
+    align-self: start;
+}
+
+.topic-newsletter-card__header {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+
+    svg {
+        margin-right: 8px;
+        color: $blue-90;
+        height: 16px;
+        width: 16px;
+        padding: 4px;
+    }
+}
+
+.topic-newsletter-card__heading {
+    line-height: 24px;
+    color: $blue-90;
+    margin: 0;
+}
+
+.topic-newsletter-card__p {
+    color: $blue-70;
+    margin: 0 0 16px 0;
+}
+
+.topic-newsletter-card__button {
+    // .owid-btn is display: block, which would stretch the button to the
+    // card's full width.
+    display: inline-block;
+}
+
+// Copy on the left, button on the right, for slots wide enough at md-up.
+.topic-newsletter-card--horizontal {
+    @include md-up {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) max-content;
+        column-gap: 32px;
+
+        .topic-newsletter-card__header {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .topic-newsletter-card__p {
+            grid-column: 1;
+            grid-row: 2;
+            margin-bottom: 0;
+        }
+
+        .topic-newsletter-card__button {
+            grid-column: 2;
+            grid-row: 1 / span 2;
+            align-self: center;
+        }
+    }
+}
+
+// Top of the right rail of a modular topic page.
+.topic-newsletter-card--topic-page-intro {
+    margin-bottom: 32px;
+
+    @include md-down {
+        margin-top: 32px;
+    }
+}
+
+// Right rail of a linear topic page, level with the intro paragraphs.
+.topic-newsletter-card--gdoc-aside {
+    margin-bottom: 24px;
+
+    @include md-down {
+        margin-top: 24px;
+    }
+}
+
+// Right rail of the sparse "About this data" section on data pages; stacks
+// below the key data table under md.
+.topic-newsletter-card--about-this-data {
+    @include md-down {
+        margin-top: 32px;
+    }
+}
+
+// Below the key data table in the metadata column of "What you should know
+// about this indicator".
+.topic-newsletter-card--key-info {
+    margin-top: 32px;
+}
+
+// Bottom of the description column of the same section, at its full width.
+.topic-newsletter-card--key-info-left {
+    margin-top: 32px;
+}
+
+// Between the chart and "Related research and data" on plain grapher pages.
+// `main` isn't a grid there, so the width mirrors `.related-research-data`
+// (site/css/chart.scss): the same 800px box, and below that width 24px
+// gutters so the rounded corners don't touch the viewport.
+.topic-newsletter-card--grapher-page {
+    width: calc(100% - #{$padding-x-sm * 2});
+    max-width: 800px;
+    margin: 32px auto;
+
+    @include md-up {
+        // Grapher leaves a 16–22px empty strip under the chart at desktop
+        // widths (`scaleToFitIdeal`), which reads as part of the gap above
+        // the card, so the top margin is trimmed to even the two gaps out.
+        margin-top: 12px;
+    }
+}
+
+// To the right of the indicator metadata box in the data-page-metadata-v1
+// experiment; matches the box's offsets so the two tops line up.
+.topic-newsletter-card--datapage-metadata {
+    margin-top: -$indicator-metadata-box-pull-up;
+    margin-bottom: 48px;
+
+    @include md-down {
+        margin-top: 0;
+        margin-bottom: 32px;
+    }
+
+    @include sm-only {
+        margin-left: -$indicator-metadata-box-bleed-sm;
+        margin-right: -$indicator-metadata-box-bleed-sm;
+    }
+}
+
+// The /latest sidebar once a topic is picked. The page background is also
+// $gray-5, so use the tint of the signup block this replaces.
+.topic-newsletter-card--latest {
+    grid-row: 4;
+    background-color: $blue-10;
+
+    @include md-down {
+        grid-row: unset;
+        margin-bottom: 40px;
+    }
+}
