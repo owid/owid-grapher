@@ -1,7 +1,8 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import * as React from "react"
 import { useMutation } from "@tanstack/react-query"
 import { EmailNotificationsSubscribeRequest } from "@ourworldindata/types"
+import { getWindowUrl, setWindowUrl } from "@ourworldindata/utils"
 import { Button, Checkbox, TextInput } from "@ourworldindata/components"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { EmailNotificationsPreferenceFields } from "./EmailNotificationsPreferenceFields.js"
@@ -10,7 +11,11 @@ import {
     getErrorMessage,
     throwIfApiError,
 } from "./emailNotificationsApi.js"
-import { useNotificationPreferences } from "./useNotificationPreferences.js"
+import {
+    TOPICS_QUERY_PARAM,
+    topicAreasFromSearchParams,
+    useNotificationPreferences,
+} from "./useNotificationPreferences.js"
 
 const analytics = new SiteAnalytics()
 
@@ -81,6 +86,20 @@ export const EmailNotificationsSubscribeForm = ({
     const [followTopics, setFollowTopics] = useState(true)
     const [validationError, setValidationError] = useState<string | null>(null)
     const preferences = useNotificationPreferences(topicAreaNames)
+    const { setTopicTags } = preferences
+
+    // The page is baked, so the URL is only known after hydration. The form
+    // isn't kept in sync with the URL afterwards, so drop the param once read.
+    useEffect(() => {
+        const url = getWindowUrl()
+        const topicAreas = topicAreasFromSearchParams(
+            new URLSearchParams(url.queryStr),
+            topicAreaNames
+        )
+        if (!topicAreas.length) return
+        setTopicTags(topicAreas)
+        setWindowUrl(url.updateQueryParams({ [TOPICS_QUERY_PARAM]: undefined }))
+    }, [topicAreaNames, setTopicTags])
 
     const subscribe = useMutation({
         mutationFn: async (request: EmailNotificationsSubscribeRequest) => {
