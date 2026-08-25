@@ -71,10 +71,12 @@ const renderDatapageIfApplicable = async (
     {
         imageMetadataDictionary,
         archiveContextDictionary,
+        topicAreaLookup,
         forceDatapage,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
+        topicAreaLookup?: db.TopicAreaLookup
         forceDatapage?: boolean
     } = {}
 ) => {
@@ -102,6 +104,7 @@ const renderDatapageIfApplicable = async (
             pageGrapher: grapher,
             imageMetadataDictionary,
             archiveContextDictionary,
+            topicAreaLookup,
         },
         knex
     )
@@ -116,14 +119,17 @@ export const renderDataPageOrGrapherPage = async (
     {
         imageMetadataDictionary,
         archiveContextDictionary,
+        topicAreaLookup,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
+        topicAreaLookup?: db.TopicAreaLookup
     } = {}
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
         imageMetadataDictionary,
         archiveContextDictionary,
+        topicAreaLookup,
     })
     if (datapage) return datapage
     return renderGrapherPage(grapher, knex, {
@@ -131,6 +137,7 @@ export const renderDataPageOrGrapherPage = async (
             grapher.id !== undefined
                 ? archiveContextDictionary?.[grapher.id]
                 : undefined,
+        topicAreaLookup,
     })
 }
 
@@ -143,6 +150,7 @@ export async function renderDataPageV2(
         pageGrapher,
         imageMetadataDictionary = {},
         archiveContextDictionary,
+        topicAreaLookup,
     }: {
         variableId: number
         variableMetadata: OwidVariableWithSource
@@ -151,6 +159,8 @@ export async function renderDataPageV2(
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
+        /** Resolved once per bake; a page rendered on its own resolves it here. */
+        topicAreaLookup?: db.TopicAreaLookup
     },
     knex: db.KnexReadonlyTransaction
 ) {
@@ -216,6 +226,14 @@ export async function renderDataPageV2(
         knex,
         datapageData.topicTagsLinks
     )
+
+    const { byTagName, byChartId } =
+        topicAreaLookup ?? (await getTopicAreaLookupForChart(knex, grapher))
+    datapageData.topicArea =
+        db.getTopicAreaNameForTagNames(
+            datapageData.topicTagsLinks ?? [],
+            byTagName
+        ) ?? (grapher.id !== undefined ? byChartId[grapher.id] : undefined)
 
     let imageMetadata: Record<string, ImageMetadata> = {}
 
@@ -343,15 +361,24 @@ export const renderPreviewDataPageOrGrapherPage = async (
     })
 }
 
+/** For a single page rendered outside a bake (admin previews, mock site router). */
+const getTopicAreaLookupForChart = (
+    knex: db.KnexReadonlyTransaction,
+    grapher: GrapherInterface
+): Promise<db.TopicAreaLookup> =>
+    db.getTopicAreaLookup(knex, grapher.id !== undefined ? [grapher.id] : [])
+
 const renderGrapherPage = async (
     grapher: GrapherInterface,
     knex: db.KnexReadonlyTransaction,
     {
         archiveContext,
         isPreviewing,
+        topicAreaLookup,
     }: {
         archiveContext?: ArchiveContext
         isPreviewing?: boolean
+        topicAreaLookup?: db.TopicAreaLookup
     } = {}
 ) => {
     const isOnArchivalPage = archiveContext?.type === "archive-page"
@@ -369,6 +396,10 @@ const renderGrapherPage = async (
         grapher.id && !isOnArchivalPage
             ? await getRelatedArticles(knex, grapher.id)
             : undefined
+    const { byChartId } =
+        topicAreaLookup ?? (await getTopicAreaLookupForChart(knex, grapher))
+    const topicArea =
+        grapher.id !== undefined ? byChartId[grapher.id] : undefined
 
     return renderToHtmlPage(
         <GrapherPage
@@ -379,6 +410,7 @@ const renderGrapherPage = async (
             baseGrapherUrl={BAKED_GRAPHER_URL}
             archiveContext={archiveContext}
             isPreviewing={isPreviewing}
+            topicArea={topicArea}
         />
     )
 }
@@ -389,10 +421,12 @@ export const bakeSingleGrapherPageForArchival = async (
     knex: db.KnexReadonlyTransaction,
     {
         imageMetadataDictionary,
+        topicAreaLookup,
         archiveInfo,
         manifest,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
+        topicAreaLookup?: db.TopicAreaLookup
         archiveInfo: ArchiveMetaInformation
         manifest: GrapherArchivalManifest
     }
@@ -402,6 +436,7 @@ export const bakeSingleGrapherPageForArchival = async (
         outPathHtml,
         await renderDataPageOrGrapherPage(grapher, knex, {
             imageMetadataDictionary,
+            topicAreaLookup,
             archiveContextDictionary: {
                 [grapher.id as number]: archiveInfo,
             },
@@ -431,6 +466,7 @@ const bakeGrapherPage = async (
         await renderDataPageOrGrapherPage(grapher, knex, {
             imageMetadataDictionary: args.imageMetadataDictionary,
             archiveContextDictionary: args.archiveContextDictionary,
+            topicAreaLookup: args.topicAreaLookup,
         })
     )
 }
@@ -442,6 +478,7 @@ export interface BakeSingleGrapherChartArguments {
     slug: string
     imageMetadataDictionary: Record<string, DbEnrichedImage>
     archiveContextDictionary: Record<number, ArchiveContext | undefined>
+    topicAreaLookup: db.TopicAreaLookup
 }
 
 export const bakeSingleGrapherChart = async (
@@ -494,6 +531,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
     )
     const archiveContextDictionary =
         await getLatestArchivedChartPageVersionsIfEnabled(knex)
+    const topicAreaLookup = await db.getTopicAreaLookup(knex)
 
     const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map((row) => ({
         id: row.id,
@@ -502,6 +540,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
         slug: row.slug,
         imageMetadataDictionary,
         archiveContextDictionary,
+        topicAreaLookup,
     }))
 
     const progressBar = new ProgressBar(
