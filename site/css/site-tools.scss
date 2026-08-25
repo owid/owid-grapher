@@ -50,7 +50,12 @@
                 }
             }
 
-            .newsletter-subscription-form {
+            .newsletter-subscription-header--compact svg {
+                display: block;
+            }
+
+            .newsletter-subscription-form,
+            .newsletter-signup-form {
                 padding-top: 16px;
             }
         }
