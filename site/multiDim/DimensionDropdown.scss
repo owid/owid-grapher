@@ -79,18 +79,15 @@ $selected-hover-fill: #bed2e7;
 .md-menu {
     width: 400px;
     background: white;
-    padding: 16px 16px 8px;
+    // No horizontal padding: menu items are full-bleed, so the hover and
+    // selection fills span the menu's full width.
+    padding: 16px 0 8px;
     border-radius: 4px;
     box-shadow: 0px 4px 23px 4px #0000000f;
     z-index: $zindex-controls-popup;
     overflow-y: auto;
     scrollbar-gutter: stable;
     overscroll-behavior: contain;
-
-    // Reduce right padding in webkit browsers to accommodate scrollbar
-    @supports selector(::-webkit-scrollbar) {
-        padding-right: 6px;
-    }
 
     // Always show scrollbar in webkit browsers. This makes it clear that there
     // are more options to scroll through.
@@ -112,6 +109,7 @@ $selected-hover-fill: #bed2e7;
     .md-menu__overlay-header {
         display: flex;
         justify-content: space-between;
+        padding: 0 16px;
         margin-bottom: 12px;
     }
 
@@ -148,7 +146,7 @@ $selected-hover-fill: #bed2e7;
     .md-menu__group-label {
         @include label-2-bold;
         color: $light-text;
-        margin: 16px 0;
+        margin: 16px;
     }
 
     .md-menu__item {
@@ -158,8 +156,7 @@ $selected-hover-fill: #bed2e7;
         justify-content: space-between;
         gap: 8px;
         min-height: 32px;
-        padding: 8px 12px;
-        border-radius: 4px;
+        padding: 8px 16px;
         color: $gray-80;
         cursor: pointer;
 
