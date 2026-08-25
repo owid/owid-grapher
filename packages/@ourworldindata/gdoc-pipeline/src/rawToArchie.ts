@@ -496,7 +496,7 @@ function* rawBlockStaticVizToArchieMLString(
 function* RawBlockStickyRightContainerToArchieMLString(
     block: RawBlockStickyRightContainer
 ): Generator<string, void, undefined> {
-    yield "{ .sticky-right }"
+    yield "{.sticky-right}"
     if (typeof block.value !== "string") {
         yield "[.+right]"
         for (const b of block.value.right)
@@ -513,7 +513,7 @@ function* RawBlockStickyRightContainerToArchieMLString(
 function* RawBlockStickyLeftContainerToArchieMLString(
     block: RawBlockStickyLeftContainer
 ): Generator<string, void, undefined> {
-    yield "{ .sticky-left }"
+    yield "{.sticky-left}"
     if (typeof block.value !== "string") {
         yield "[.+right]"
         for (const b of block.value.right)
@@ -530,7 +530,7 @@ function* RawBlockStickyLeftContainerToArchieMLString(
 function* RawBlockSideBySideContainerToArchieMLString(
     block: RawBlockSideBySideContainer
 ): Generator<string, void, undefined> {
-    yield "{ .side-by-side }"
+    yield "{.side-by-side}"
     if (typeof block.value !== "string") {
         yield "[.+right]"
         for (const b of block.value.right)
