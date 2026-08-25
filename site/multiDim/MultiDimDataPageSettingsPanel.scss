@@ -4,23 +4,10 @@
     align-items: center;
     gap: 16px;
 
-    .md-settings__configure-data {
-        flex-shrink: 0;
-        color: $blue-60;
-
-        @include sm-only {
-            display: none;
-        }
-    }
-
     .md-settings__dropdowns {
         display: flex;
         flex-wrap: wrap;
         gap: 16px;
-
-        @include sm-only {
-            gap: 8px;
-        }
     }
 
     @include sm-only {
