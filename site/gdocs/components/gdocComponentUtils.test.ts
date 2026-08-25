@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest"
-import { injectAutomaticSubscribeBanner } from "./gdocComponentUtils.js"
+import {
+    getIntroAsideInsertionIndex,
+    injectAutomaticSubscribeBanner,
+} from "./gdocComponentUtils.js"
 import type {
     EnrichedBlockHeading,
     EnrichedBlockText,
@@ -74,5 +77,23 @@ describe(injectAutomaticSubscribeBanner, () => {
             result.filter((block) => block.type === "subscribe-banner")
         ).toHaveLength(1)
         expect(result[finalHeadingIndex + 1]).toBe(trailingText)
+    })
+})
+
+describe(getIntroAsideInsertionIndex, () => {
+    it("points at the first text block, skipping leading headings", () => {
+        expect(
+            getIntroAsideInsertionIndex([
+                headingBlock(1),
+                textBlock(),
+                textBlock(),
+            ])
+        ).toBe(1)
+        expect(getIntroAsideInsertionIndex([textBlock()])).toBe(0)
+    })
+
+    it("falls back to the first block when there is no text", () => {
+        expect(getIntroAsideInsertionIndex([headingBlock(1)])).toBe(0)
+        expect(getIntroAsideInsertionIndex([])).toBe(0)
     })
 })
