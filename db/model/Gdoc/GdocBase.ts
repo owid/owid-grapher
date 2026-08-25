@@ -296,6 +296,9 @@ export class GdocBase implements OwidGdocBaseInterface {
         OwidGdocPublicationContext.listed
     breadcrumbs: BreadcrumbItem[] | null = null
     manualBreadcrumbs: BreadcrumbItem[] | null = null
+    // Derived from the tag graph when a page is baked or previewed, not stored
+    // in posts_gdocs. See db.getTopicAreaNameForTagNames.
+    topicArea: string | undefined = undefined
     tags: DbPlainTag[] | null = null
     errors: OwidGdocErrorMessage[] = []
     donors: string[] = []
