@@ -30,6 +30,34 @@
     font-size: 11px;
     line-height: 1;
     cursor: help;
+
+    &:hover,
+    &:focus-visible {
+        color: $gray-70;
+    }
+}
+
+// Tooltip shown when hovering a control label's info icon.
+.md-label-tooltip {
+    padding: 8px;
+    text-align: left;
+    color: $gray-90;
+    font: 400 12px/16px $lato;
+    letter-spacing: 0.01em;
+
+    h5 {
+        @include h6-black-caps;
+        margin: 0;
+        color: $gray-70;
+    }
+
+    p {
+        margin: 16px 0 0;
+    }
+
+    h5 + p {
+        margin-top: 4px;
+    }
 }
 
 .md-settings__control--hidden {
