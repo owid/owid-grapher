@@ -321,6 +321,13 @@ export type { OwidSource } from "./OwidSource.js"
 export type { OwidOrigin } from "./OwidOrigin.js"
 
 export {
+    type BespokeMetadata,
+    type BespokeMetadataWithProvenance,
+    BespokeMetadataSchema,
+    hasProvenance,
+} from "./domainTypes/BespokeMetadata.js"
+
+export {
     type OwidVariableDisplayConfigInterface,
     type OwidVariableDataTableConfigInterface,
     OwidVariableRoundingMode,
