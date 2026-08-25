@@ -97,6 +97,14 @@
     }
 }
 
+// Icon beside a two-line heading, however wide the container is.
+.newsletter-subscription-header--compact {
+    .newsletter-subscription-header__heading {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+}
+
 .homepage-subscribe .newsletter-subscription {
     flex: 1;
 }
