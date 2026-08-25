@@ -10,6 +10,11 @@ $vertical-spacing: 16px;
 // ToC can offset against it (see $sidebar-toc-header-gap).
 $topic-page-header-margin-bottom: 32px;
 
+// Offsets of the indicator metadata box, shared with the topic newsletter card
+// that sits beside it.
+$indicator-metadata-box-pull-up: 104px;
+$indicator-metadata-box-bleed-sm: 8px;
+
 :root {
     --grid-gap: 24px;
 

@@ -12,21 +12,35 @@ import {
 import { DataPageDataV2 } from "@ourworldindata/types"
 import { formatAttributions } from "@ourworldindata/utils"
 import KeyDataTable from "./KeyDataTable.js"
+import TopicNewsletterCard from "./TopicNewsletterCard.js"
+import { hasTopicNewsletterCard } from "./topicNewsletter.js"
+import { isDescriptionColumnShorter } from "./datapageUtils.js"
 
 export default function AboutThisData({
     datapageData,
     hasFaq,
     className,
     id,
+    topicArea,
 }: {
     datapageData: DataPageDataV2
     hasFaq: boolean
     className?: string
     id?: string
+    // A prop, not a datapageData field: multi-dim pages rebuild datapageData
+    // client-side on every view switch.
+    topicArea?: string
 }) {
     const hasDescriptionKey = !!datapageData.descriptionKey
     const attribution = formatAttributions(datapageData.attributions ?? [])
     const id_ = id ?? DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
+    const hasKeyInfo =
+        hasDescriptionKey ||
+        !!datapageData.descriptionFromProducer ||
+        !!datapageData.source?.additionalInfo
+    const isNewsletterCardOnLeft = isDescriptionColumnShorter(
+        datapageData.descriptionKey
+    )
 
     return (
         <div
@@ -35,9 +49,7 @@ export default function AboutThisData({
                 className
             )}
         >
-            {hasDescriptionKey ||
-            datapageData.descriptionFromProducer ||
-            datapageData.source?.additionalInfo ? (
+            {hasKeyInfo ? (
                 <>
                     <h2 id={id_} className="key-info__title span-cols-12">
                         What you should know about this indicator
@@ -98,12 +110,29 @@ export default function AboutThisData({
                                 icon={faArrowDown}
                             />
                         )}
+                        {isNewsletterCardOnLeft && (
+                            // Inside the column, not a grid item of its own: a
+                            // third row would sit below the taller column.
+                            <TopicNewsletterCard
+                                pageType="chart"
+                                topicArea={topicArea}
+                                className="topic-newsletter-card--key-info-left topic-newsletter-card--horizontal"
+                            />
+                        )}
                     </div>
                     <div className="key-info__right span-cols-4 span-lg-cols-5 span-sm-cols-12">
                         <KeyDataTable
                             datapageData={datapageData}
                             attribution={attribution}
                         />
+                        {!isNewsletterCardOnLeft && (
+                            <TopicNewsletterCard
+                                pageType="chart"
+                                topicArea={topicArea}
+                                variant="narrow"
+                                className="topic-newsletter-card--key-info"
+                            />
+                        )}
                     </div>
                 </>
             ) : (
@@ -114,12 +143,27 @@ export default function AboutThisData({
                     >
                         About this data
                     </h2>
-                    <div className="col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                    <div
+                        className={cx(
+                            "about-this-data__key-data col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12",
+                            // Make room for the card only when there is one.
+                            {
+                                "about-this-data__key-data--with-newsletter-card":
+                                    hasTopicNewsletterCard(topicArea),
+                            }
+                        )}
+                    >
                         <KeyDataTable
                             datapageData={datapageData}
                             attribution={attribution}
                         />
                     </div>
+                    <TopicNewsletterCard
+                        pageType="chart"
+                        topicArea={topicArea}
+                        variant="narrow"
+                        className="topic-newsletter-card--about-this-data col-start-10 span-cols-3 col-lg-start-10 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                    />
                 </>
             )}
         </div>
