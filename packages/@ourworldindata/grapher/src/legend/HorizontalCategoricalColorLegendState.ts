@@ -109,22 +109,24 @@ export class HorizontalCategoricalColorLegendState {
         const { width } = this.options
 
         // Center each line
-        lines.forEach((line) => {
+        return lines.flatMap((line) => {
             const xShift =
                 align === HorizontalAlign.center
                     ? (width - line.totalWidth) / 2
                     : align === HorizontalAlign.right
                       ? width - line.totalWidth
                       : 0
-            line.marks.forEach((mark) => {
-                mark.x += xShift
-                mark.label.bounds = mark.label.bounds.set({
-                    x: mark.label.bounds.x + xShift,
-                })
-            })
+            return line.marks.map((mark) => ({
+                ...mark,
+                x: mark.x + xShift,
+                label: {
+                    ...mark.label,
+                    bounds: mark.label.bounds.set({
+                        x: mark.label.bounds.x + xShift,
+                    }),
+                },
+            }))
         })
-
-        return lines.flatMap((l) => l.marks)
     }
 
     @computed get height(): number {
