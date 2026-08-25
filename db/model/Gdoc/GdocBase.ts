@@ -26,8 +26,16 @@ import {
     getRegionByNameOrVariantName,
 } from "@ourworldindata/utils"
 import { docs as googleDocs, type docs_v1 } from "@googleapis/docs"
-import { gdocToArchie } from "./gdocToArchie.js"
-import { archieToEnriched } from "./archieToEnriched.js"
+import {
+    archieToEnriched,
+    documentContainsMixedStraightAndCurlyQuotes,
+    enrichedBlocksToMarkdown,
+    extractFilenamesFromBlock,
+    extractUrl,
+    gdocToArchie,
+    getAllLinksFromResearchAndWritingBlock,
+    spansToSimpleString,
+} from "@ourworldindata/gdoc-pipeline"
 import { getChartConfigById, mapSlugsToIds } from "../Chart.js"
 import {
     BAKED_BASE_URL,
@@ -38,15 +46,8 @@ import {
 import { PROD_URL } from "../../../site/SiteConstants.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { match, P } from "ts-pattern"
-import {
-    extractFilenamesFromBlock,
-    extractUrl,
-    getAllLinksFromResearchAndWritingBlock,
-    spansToSimpleString,
-} from "./gdocUtils.js"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 import { acceptAllGdocSuggestions } from "./acceptAllGdocSuggestions.js"
-import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
 import { getDatapageIndicatorId } from "../Variable.js"
 import { createLinkForNarrativeChart, createLinkFromUrl } from "../Link.js"
 import {
@@ -99,7 +100,6 @@ import { getDods } from "../Dod.js"
 import { getLatestArchivedExplorerPageVersionsIfEnabled } from "../ArchivedExplorerVersion.js"
 import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../ArchivedMultiDimVersion.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../ArchivedChartVersion.js"
-import { documentContainsMixedStraightAndCurlyQuotes } from "./gdocValidation.js"
 
 const BASE_URL = IS_ARCHIVE ? PROD_URL : BAKED_BASE_URL
 

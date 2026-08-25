@@ -14,6 +14,7 @@
     // makes the build fail with "tsgo did not generate dts file for ...".
     "extends": "./grapher/tsconfig.json",
     "include": [
+        "gdoc-pipeline/src/**/*",
         "grapher/src/**/*",
         "types/src/**/*",
         "utils/src/**/*",

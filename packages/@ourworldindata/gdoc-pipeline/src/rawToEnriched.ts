@@ -175,6 +175,7 @@ import {
     VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS,
     RawBlockBespokeComponent,
     EnrichedBlockBespokeComponent,
+    isValidPeerCountryStrategyQueryParam,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -186,7 +187,6 @@ import {
     validateConditionalSectionLists,
 } from "@ourworldindata/utils"
 import { checkIsInternalLink, getLinkType } from "@ourworldindata/components"
-import { isValidPeerCountryStrategyQueryParam } from "@ourworldindata/grapher"
 import {
     extractUrl,
     getTitleSupertitleFromHeadingText,

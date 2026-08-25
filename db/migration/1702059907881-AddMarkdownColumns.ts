@@ -5,7 +5,7 @@ import {
     OwidGdocPostContent,
 } from "@ourworldindata/utils"
 import { MigrationInterface, QueryRunner } from "typeorm"
-import { enrichedBlocksToMarkdown } from "../model/Gdoc/enrichedToMarkdown.js"
+import { enrichedBlocksToMarkdown } from "@ourworldindata/gdoc-pipeline"
 
 export class AddMarkdownColumns1702059907881 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {

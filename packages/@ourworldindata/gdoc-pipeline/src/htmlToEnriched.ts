@@ -1,5 +1,4 @@
 import * as _ from "lodash-es"
-import path from "path"
 import {
     Span,
     EnrichedBlockText,
@@ -552,15 +551,18 @@ function cheerioToArchieML(
 
                     const imageAttribs =
                         image && "attribs" in image ? image.attribs : {}
+                    const imageSrc = imageAttribs["src"] ?? ""
 
                     return {
                         errors,
                         content: [
                             {
                                 type: "image",
-                                // src is the entire path. we only want the filename
-                                filename: path
-                                    .basename(imageAttribs["src"] ?? "")
+                                // src is the entire path. we only want the
+                                // filename (node's path.basename isn't
+                                // available in browsers)
+                                filename: imageSrc
+                                    .slice(imageSrc.lastIndexOf("/") + 1)
                                     .replace(
                                         // removing size suffixes e.g. some_file-1280x840.png -> some_file.png
                                         /-\d+x\d+\.(png|jpg|jpeg|gif|svg)$/,

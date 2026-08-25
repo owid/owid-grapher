@@ -2,9 +2,9 @@ import { OwidGdocPostContent } from "@ourworldindata/utils"
 import {
     propertyToArchieMLString,
     OwidRawGdocBlockToArchieMLStringGenerator,
-} from "./rawToArchie.js"
+    enrichedBlockToRawBlock,
+} from "@ourworldindata/gdoc-pipeline"
 import { GDOCS_BACKPORTING_TARGET_FOLDER } from "../../../settings/serverSettings.js"
-import { enrichedBlockToRawBlock } from "./enrichedToRaw.js"
 import { type docs_v1, docs as googleDocs } from "@googleapis/docs"
 import { type drive_v3, drive as googleDrive } from "@googleapis/drive"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
