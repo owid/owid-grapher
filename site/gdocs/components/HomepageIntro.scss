@@ -19,7 +19,9 @@
 .homepage-intro__featured-work-column {
     display: flex;
     flex-direction: column;
-    min-width: 0;
+    @include md-up {
+        min-width: 0;
+    }
     @include md-down {
         flex-direction: row;
     }
