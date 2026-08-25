@@ -212,19 +212,13 @@ function buildVariantPayload(
                         filenames.add(author.featuredImage)
                 }
 
-                if (g.content.cta) {
-                    payload.cta = g.content.cta
-                } else {
-                    copyAttachmentsIfPresent(payload, g)
-                    for (const f of extractFilenamesFromBlocks(
-                        g.content.body
-                    )) {
-                        filenames.add(f)
-                    }
-                    for (const doc of Object.values(g.linkedDocuments ?? {})) {
-                        if (doc["featured-image"]) {
-                            filenames.add(doc["featured-image"])
-                        }
+                copyAttachmentsIfPresent(payload, g)
+                for (const f of extractFilenamesFromBlocks(g.content.body)) {
+                    filenames.add(f)
+                }
+                for (const doc of Object.values(g.linkedDocuments ?? {})) {
+                    if (doc["featured-image"]) {
+                        filenames.add(doc["featured-image"])
                     }
                 }
 

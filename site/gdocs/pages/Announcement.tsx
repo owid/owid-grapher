@@ -44,8 +44,6 @@ export const AnnouncementPage = ({
 }: AnnouncementProps): React.ReactElement => {
     const { linkedDocuments } = useContext(AttachmentsContext)
     const latestType = deriveAnnouncementLatestType(content.kicker)
-    // CTA-only announcements have an empty body (enforced by
-    // GdocAnnouncement._validateSubclass), so there's nothing to copy.
     const shouldShowCopySocialButton =
         SOCIAL_LATEST_TYPES.includes(latestType) && content.body.length > 0
     return (
@@ -58,9 +56,7 @@ export const AnnouncementPage = ({
                     slug={slug}
                     publishedAt={publishedAt}
                     authors={content.authors}
-                    excerpt={content.excerpt}
                     body={content.body}
-                    cta={content.cta}
                     isStandalone
                 />
                 {shouldShowCopySocialButton && (
