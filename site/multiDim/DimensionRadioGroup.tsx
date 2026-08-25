@@ -1,5 +1,10 @@
 import cx from "clsx"
-import { Label, Radio, RadioGroup } from "react-aria-components"
+import {
+    Label,
+    RadioButton,
+    RadioField,
+    RadioGroup,
+} from "react-aria-components"
 
 import { DimensionEnriched } from "@ourworldindata/types"
 
@@ -9,14 +14,14 @@ export default function DimensionRadioGroup({
     availableChoiceSlugs,
     value,
     onChange,
-    disabled,
+    readOnly,
 }: {
     className?: string
     dimension: DimensionEnriched
     availableChoiceSlugs: Set<string>
     value: string
     onChange: (value: string) => void
-    disabled?: boolean
+    readOnly?: boolean
 }) {
     return (
         <RadioGroup
@@ -28,26 +33,34 @@ export default function DimensionRadioGroup({
             orientation="horizontal"
             value={value}
             onChange={onChange}
-            isDisabled={disabled || dimension.choices.length === 1}
+            isDisabled={dimension.choices.length === 1}
+            // While a view is loading, block changes with readOnly rather than
+            // disabled: disabling would make the focused radio unfocusable and
+            // drop keyboard focus.
+            isReadOnly={readOnly}
         >
             <Label className="md-settings__radio-group-label">
                 {dimension.name}
             </Label>
             {dimension.choices.map((choice) => (
-                <Radio
+                <RadioField
                     key={choice.slug}
-                    className="md-settings__radio"
+                    className="md-settings__radio-field"
                     value={choice.slug}
                     isDisabled={!availableChoiceSlugs.has(choice.slug)}
-                    data-track-note="multi-dim-choice-radio"
                 >
-                    <span
-                        className="md-settings__radio-label"
-                        title={choice.name}
+                    <RadioButton
+                        className="md-settings__radio"
+                        data-track-note="multi-dim-choice-radio"
                     >
-                        {choice.name}
-                    </span>
-                </Radio>
+                        <span
+                            className="md-settings__radio-label"
+                            title={choice.name}
+                        >
+                            {choice.name}
+                        </span>
+                    </RadioButton>
+                </RadioField>
             ))}
         </RadioGroup>
     )
