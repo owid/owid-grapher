@@ -57,6 +57,7 @@ import {
     getHomepageId,
     getPublishedExplorersBySlug,
     generateTopicTagGraph,
+    getTopicAreaNames,
 } from "../db/db.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
 import { formatUrls } from "../site/formatting.js"
@@ -563,15 +564,6 @@ export const renderEmailNotificationsPreferencesPage = async (
             topicAreaNames={await getTopicAreaNames(knex)}
         />
     )
-}
-
-async function getTopicAreaNames(
-    knex: KnexReadonlyTransaction
-): Promise<string[]> {
-    const topicTagGraph = flattenNonTopicNodes(
-        await generateTopicTagGraph(knex)
-    )
-    return topicTagGraph.children.map((area) => area.name)
 }
 
 interface ExplorerRenderOpts {
