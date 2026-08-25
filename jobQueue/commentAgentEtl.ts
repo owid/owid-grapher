@@ -152,12 +152,14 @@ export async function runAgentInEtlCheckout(
     context: CommentAgentContext,
     notify?: (content: string) => Promise<void>
 ): Promise<CommentAgentResult> {
-    // A change request takes minutes, and until the reply lands the thread
-    // looks ignored. Say up front that the run started; questions stay silent
-    // since their answer arrives quickly anyway.
-    if (notify && looksLikeChangeRequest(context.instruction))
+    // Even a question takes a minute to answer, and until the reply lands the
+    // thread looks ignored. Say up front that the run started; the wording
+    // only promises a PR link when the comment looks like a change request.
+    if (notify)
         await notify(
-            "Working on it — I'll reply here with a draft PR link when done (usually a few minutes)."
+            looksLikeChangeRequest(context.instruction)
+                ? "Working on it — I'll reply here with a draft PR link when done (usually a few minutes)."
+                : "Looking into it — I'll reply here in a minute or two."
         )
 
     // Read first: the checkout has no way to reach the database, and the
