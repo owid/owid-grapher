@@ -59,15 +59,6 @@ $toggle-full-width-breakpoint: 520px;
     }
 }
 
-.md-settings__dropdown-label {
-    white-space: nowrap;
-
-    &::after {
-        content: ":";
-        margin-right: 3px;
-    }
-}
-
 .md-settings__dropdown-current-choice {
     color: $primary-text;
     max-width: 150px;
@@ -75,11 +66,16 @@ $toggle-full-width-breakpoint: 520px;
     text-overflow: ellipsis;
     white-space: nowrap;
     min-width: 0;
-    margin-left: auto;
 
     @media (max-width: $toggle-full-width-breakpoint) {
         max-width: none;
     }
+}
+
+.md-settings__dropdown-caret {
+    // Pushes the caret to the right edge when the button is wider than its
+    // content (mobile full-width layout).
+    margin-left: auto;
 }
 
 .md-settings__dropdown {
