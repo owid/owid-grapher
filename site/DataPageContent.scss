@@ -189,6 +189,10 @@
     }
 
     .related-research__item {
+        > .image {
+            min-width: 0;
+        }
+
         &:hover h3 {
             text-decoration: underline;
         }

@@ -62,4 +62,9 @@
     object-fit: contain;
     align-self: start;
     width: var(--thumbnail-width);
+
+    img {
+        display: block;
+        overflow: hidden;
+    }
 }
