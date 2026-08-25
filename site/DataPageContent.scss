@@ -191,6 +191,11 @@
     .related-research__item {
         > .image {
             min-width: 0;
+
+            img {
+                display: block;
+                overflow: hidden;
+            }
         }
 
         &:hover h3 {
