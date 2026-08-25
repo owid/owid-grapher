@@ -103,6 +103,10 @@ function useBubblePlacements(
 
     useEffect(() => {
         if (!isOn) {
+            // Forget the last committed layout too: coming back on recomputes
+            // the same placements, and an unchanged serialization would be
+            // skipped as a no-op, leaving the bubbles gone until the page moves.
+            lastSerialized.current = ""
             setPlacements([])
             return undefined
         }
