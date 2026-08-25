@@ -5,6 +5,7 @@ import {
     EmailNotificationsFrequency,
     EmailNotificationsPreferences,
 } from "@ourworldindata/types"
+import { deserializeSet } from "../search/searchUtils.js"
 import { EmailNotificationsPreferenceFieldsProps } from "./EmailNotificationsPreferenceFields.js"
 import {
     getPreferencesValidationErrors,
@@ -24,6 +25,20 @@ export const DEFAULT_CONTENT_TYPES: EmailNotificationsContentType[] =
 
 export const DEFAULT_FREQUENCY: EmailNotificationsFrequency = "weekly"
 
+/** Same `?topics=` param as /search and /latest: area names, `~`-separated. */
+export const TOPICS_QUERY_PARAM = "topics"
+
+export function topicAreasFromSearchParams(
+    searchParams: URLSearchParams,
+    topicAreaNames: string[]
+): string[] {
+    return [
+        ...deserializeSet(searchParams.get(TOPICS_QUERY_PARAM)).intersection(
+            new Set(topicAreaNames)
+        ),
+    ]
+}
+
 function toggleInArray<T>(items: T[], item: T): T[] {
     return items.includes(item)
         ? items.filter((candidate) => candidate !== item)
@@ -33,6 +48,7 @@ function toggleInArray<T>(items: T[], item: T): T[] {
 interface NotificationPreferencesState {
     /** Spread onto <EmailNotificationsPreferenceFields>. */
     fieldsProps: EmailNotificationsPreferenceFieldsProps
+    setTopicTags: (topicTags: string[]) => void
     /** The shape the API stores, with "all topics" collapsed to []. */
     forStorage: () => EmailNotificationsPreferences
     /** Records per-field errors and returns whether the selection is valid. */
@@ -82,6 +98,7 @@ export function useNotificationPreferences(
             onSetFrequency: setFrequency,
             validationErrors,
         },
+        setTopicTags,
         forStorage: () => ({
             topicTags: topicTagsForStorage(topicTags, topicAreaNames),
             contentTypes,
