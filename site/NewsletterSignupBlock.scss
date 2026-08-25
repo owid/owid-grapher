@@ -19,7 +19,14 @@
         }
     }
 
-    .newsletter-subscription-form {
+    .newsletter-subscription-header--compact
+        .newsletter-subscription-header__heading {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .newsletter-subscription-form,
+    .newsletter-signup-form {
         @include lg-up {
             padding-bottom: 16px;
             border-bottom: 1px solid $blue-20;
