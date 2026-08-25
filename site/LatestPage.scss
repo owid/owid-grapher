@@ -39,6 +39,12 @@
     }
 }
 
+// Span the rows the sidebar slot is pinned to, so the slot sits beside the
+// message rather than under it.
+.latest-search__no-results {
+    grid-row: 1 / span 4;
+}
+
 .latest-page__newsletter-signup {
     grid-row: 4 / span 5;
 
