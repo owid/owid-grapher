@@ -16,6 +16,7 @@ import {
 } from "./emailNotificationsApi.js"
 import { topicAreasFromSearchParams } from "../search/searchUtils.js"
 import { useNotificationPreferences } from "./useNotificationPreferences.js"
+import { takeSubscribePrefill } from "./subscribePrefill.js"
 
 const analytics = new SiteAnalytics()
 
@@ -88,9 +89,17 @@ export const EmailNotificationsSubscribeForm = ({
     const preferences = useNotificationPreferences(topicAreaNames)
     const { setTopicTags } = preferences
 
-    // The page is baked, so the URL is only known after hydration. The form
-    // isn't kept in sync with the URL afterwards, so drop the param once read.
+    // The page is baked, so the URL and storage are only known after
+    // hydration. The form isn't kept in sync with either afterwards, so both
+    // are consumed once.
     useEffect(() => {
+        const prefill = takeSubscribePrefill()
+        if (prefill) {
+            setEmail(prefill.email)
+            setSubscribeToOwidBrief(prefill.subscribeToOwidBrief)
+            setFollowTopics(true)
+        }
+
         const url = getWindowUrl()
         const topicAreas = topicAreasFromSearchParams(
             new URLSearchParams(url.queryStr),
