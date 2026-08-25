@@ -1,0 +1,83 @@
+$radio-group-height: 32px;
+$radio-group-full-width-breakpoint: 520px;
+
+.md-settings__radio-group {
+    display: flex;
+    align-items: center;
+    height: $radio-group-height;
+    padding: 1px 1px 1px 12px;
+    color: $secondary-text;
+    background: white;
+    border: 1px solid $light-stroke;
+    border-radius: 4px;
+    font: $medium 13px/16px $lato;
+    letter-spacing: 0.01em;
+
+    &[data-disabled] {
+        color: $gray-60;
+        background: $gray-5;
+    }
+
+    @media (max-width: $radio-group-full-width-breakpoint) {
+        width: 100%;
+    }
+}
+
+.md-settings__radio-group-label {
+    white-space: nowrap;
+    margin-right: 8px;
+
+    &::after {
+        content: ":";
+    }
+}
+
+.md-settings__radio {
+    display: flex;
+    align-items: center;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 3px;
+    color: $primary-text;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &:focus-visible {
+        // Override global focus-visible style.
+        outline: none !important;
+    }
+
+    &[data-hovered]:not([data-selected]):not([data-disabled]) {
+        background: $hover-fill;
+    }
+
+    &[data-focus-visible] {
+        outline: 2px solid $blue-30;
+        outline-offset: -2px;
+    }
+
+    &[data-selected] {
+        color: $active-text;
+        background: $active-fill;
+        cursor: default;
+    }
+
+    &[data-disabled] {
+        color: $gray-60;
+        cursor: default;
+    }
+
+    @media (max-width: $radio-group-full-width-breakpoint) {
+        flex: 1;
+        justify-content: center;
+        // Allow segments to shrink below their content width, so long choice
+        // names get truncated instead of overflowing the container.
+        min-width: 0;
+    }
+}
+
+.md-settings__radio-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
