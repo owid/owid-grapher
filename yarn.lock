@@ -2366,6 +2366,7 @@ __metadata:
     ts-pattern: "npm:^5.8.0"
     unist-util-visit: "npm:^5.0.0"
     url-slug: "npm:^4.0.1"
+    usehooks-ts: "npm:^3.1.1"
     vitest: "npm:^4.1.10"
   languageName: unknown
   linkType: soft

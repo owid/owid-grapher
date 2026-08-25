@@ -28,7 +28,8 @@
         "tippy.js": "^6.3.7",
         "ts-pattern": "^5.8.0",
         "unist-util-visit": "^5.0.0",
-        "url-slug": "^4.0.1"
+        "url-slug": "^4.0.1",
+        "usehooks-ts": "^3.1.1"
     },
     "devDependencies": {
         "@testing-library/react": "^16.3.2",
