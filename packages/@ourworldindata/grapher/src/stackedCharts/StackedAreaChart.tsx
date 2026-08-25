@@ -48,7 +48,7 @@ import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { StackedAreas } from "./StackedAreas"
-import { HorizontalColorLegendManager } from "../legend/HorizontalColorLegends"
+import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
@@ -236,7 +236,7 @@ export class StackedAreaChart
         return this.verticalLabelsWidth
     }
 
-    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+    @computed get externalLegend(): ExternalColorLegendData | undefined {
         if (!this.showLegend) {
             const categoricalLegendData = this.chartState.unstackedSeries
                 .map(

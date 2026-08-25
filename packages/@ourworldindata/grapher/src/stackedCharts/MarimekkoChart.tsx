@@ -48,10 +48,8 @@ import {
     makeTooltipRoundingNotice,
     makeTooltipToleranceNotice,
 } from "../tooltip/Tooltip"
-import {
-    HorizontalCategoricalColorLegend,
-    HorizontalColorLegendManager,
-} from "../legend/HorizontalColorLegends"
+import { HorizontalCategoricalColorLegend } from "../legend/HorizontalCategoricalColorLegend"
+import { HorizontalCategoricalColorLegendState } from "../legend/HorizontalCategoricalColorLegendState"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
@@ -82,7 +80,7 @@ export type MarimekkoChartProps = ChartComponentProps<MarimekkoChartState>
 @observer
 export class MarimekkoChart
     extends React.Component<MarimekkoChartProps>
-    implements ChartInterface, HorizontalColorLegendManager, AxisManager
+    implements ChartInterface, AxisManager
 {
     base = React.createRef<SVGGElement>()
 
@@ -214,12 +212,14 @@ export class MarimekkoChart
             .padBottom(this.longestLabelHeight + 2)
             .padBottom(labelLinesHeight)
             .padTop(
-                this.showLegend ? this.legend.height + this.legendPaddingTop : 0
+                this.showLegend
+                    ? this.legendState.height + this.legendPaddingTop
+                    : 0
             )
             .padLeft(marginToEnsureWidestEntityLabelFitsEvenIfAtX0)
     }
 
-    @computed get isStatic(): boolean {
+    @computed private get isStatic(): boolean {
         return this.manager.isStatic ?? false
     }
 
@@ -286,22 +286,22 @@ export class MarimekkoChart
     // legend props
 
     @computed private get legendPaddingTop(): number {
-        return this.legend.height > 0 ? this.fontSize : 0
+        return this.legendState.height > 0 ? this.fontSize : 0
     }
 
-    @computed get legendX(): number {
+    @computed private get legendX(): number {
         return this.bounds.x
     }
 
-    @computed get categoryLegendY(): number {
+    @computed private get categoryLegendY(): number {
         return this.bounds.top
     }
 
-    @computed get legendWidth(): number {
+    @computed private get legendWidth(): number {
         return this.bounds.width
     }
 
-    @computed get legendAlign(): HorizontalAlign {
+    @computed private get legendAlign(): HorizontalAlign {
         return HorizontalAlign.left
     }
 
@@ -309,7 +309,7 @@ export class MarimekkoChart
         return this.manager.detailsOrderedByReference ?? []
     }
 
-    @computed get categoricalLegendData(): CategoricalBin[] {
+    @computed private get categoricalLegendData(): CategoricalBin[] {
         const { colorColumnSlug, colorScale, series } = this
         if (colorColumnSlug) {
             return colorScale.categoricalLegendBins
@@ -329,7 +329,9 @@ export class MarimekkoChart
         return []
     }
 
-    resolveLegendBinEmphasis(bin: ColorScaleBin): Emphasis {
+    private readonly resolveLegendBinEmphasis = (
+        bin: ColorScaleBin
+    ): Emphasis => {
         const { focusColorBin } = this
 
         // If nothing is focused, all items are active
@@ -379,8 +381,17 @@ export class MarimekkoChart
         this.focusColorBin = undefined
     }
 
-    @computed private get legend(): HorizontalCategoricalColorLegend {
-        return new HorizontalCategoricalColorLegend({ manager: this })
+    @computed private get legendState(): HorizontalCategoricalColorLegendState {
+        return new HorizontalCategoricalColorLegendState(
+            this.categoricalLegendData,
+            {
+                fontSize: this.fontSize,
+                width: this.legendWidth,
+                align: this.legendAlign,
+                resolveBinEmphasis: this.resolveLegendBinEmphasis,
+                styleConfig: this.legendStyleConfig,
+            }
+        )
     }
 
     @action.bound private onEntityMouseOver(entityName: string): void {
@@ -542,7 +553,14 @@ export class MarimekkoChart
                     detailsMarker={manager.detailsMarkerInSvg}
                 />
                 {this.showLegend && (
-                    <HorizontalCategoricalColorLegend manager={this} />
+                    <HorizontalCategoricalColorLegend
+                        state={this.legendState}
+                        x={this.legendX}
+                        y={this.categoryLegendY}
+                        onMouseOver={this.onLegendMouseOver}
+                        onMouseLeave={this.onLegendMouseLeave}
+                        isStatic={this.isStatic}
+                    />
                 )}
                 {this.renderBars()}
                 {this.labelLines}

@@ -8,11 +8,11 @@ import {
 } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import {
-    HorizontalCategoricalColorLegend,
-    HorizontalColorLegendManager,
-    HorizontalNumericColorLegend,
-} from "../legend/HorizontalColorLegends"
+import { HorizontalNumericColorLegend } from "../legend/HorizontalNumericColorLegend"
+import { HorizontalCategoricalColorLegend } from "../legend/HorizontalCategoricalColorLegend"
+import { HorizontalNumericColorLegendState } from "../legend/HorizontalNumericColorLegendState"
+import { HorizontalCategoricalColorLegendState } from "../legend/HorizontalCategoricalColorLegendState"
+import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 
 import { MapTooltip } from "./MapTooltip"
 import { TooltipState } from "../tooltip/Tooltip.js"
@@ -82,10 +82,7 @@ export const MAP_LEGEND_MAX_WIDTH_RATIO = 0.95
 @observer
 export class MapChart
     extends Component<MapChartProps>
-    implements
-        ChartInterface,
-        HorizontalColorLegendManager,
-        ChoroplethMapManager
+    implements ChartInterface, ChoroplethMapManager
 {
     constructor(props: MapChartProps) {
         super(props)
@@ -259,21 +256,13 @@ export class MapChart
         this.isHoverBracketPinnedBecauseOfTouchEvent = false
     }
 
-    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
-        const {
-            numericLegendData,
-            categoricalLegendData,
-            legendMaxWidth,
-            legendStyleConfig,
-        } = this
-
+    @computed get externalLegend(): ExternalColorLegendData | undefined {
         if (this.manager.showLegend) return undefined
 
         return {
-            numericLegendData,
-            categoricalLegendData,
-            legendMaxWidth,
-            legendStyleConfig,
+            numericLegendData: this.numericLegendData,
+            categoricalLegendData: this.categoricalLegendData,
+            legendStyleConfig: this.legendStyleConfig,
         }
     }
 
@@ -503,7 +492,9 @@ export class MapChart
         return undefined
     }
 
-    resolveLegendBinEmphasis(bin: ColorScaleBin): Emphasis {
+    private readonly resolveLegendBinEmphasis = (
+        bin: ColorScaleBin
+    ): Emphasis => {
         if (!this.categoricalHoverBracket && !this.numericHoverBracket)
             return Emphasis.Default
 
@@ -521,7 +512,7 @@ export class MapChart
         return Emphasis.Muted
     }
 
-    legendStyleConfig: LegendStyleConfig = {
+    private readonly legendStyleConfig: LegendStyleConfig = {
         marker: {
             default: { stroke: DEFAULT_STROKE_COLOR },
             highlighted: {
@@ -531,12 +522,12 @@ export class MapChart
         },
     }
 
-    @computed get legendMaxWidth(): number {
+    @computed private get legendMaxWidth(): number {
         // it seems nice to have just a little bit of extra padding left and right
         return this.bounds.width * MAP_LEGEND_MAX_WIDTH_RATIO
     }
 
-    @computed get legendX(): number {
+    @computed private get legendX(): number {
         return this.bounds.x + (this.bounds.width - this.legendMaxWidth) / 2
     }
 
@@ -545,51 +536,63 @@ export class MapChart
     }
 
     @computed private get numericLegendHeight(): number {
-        return this.numericLegend ? this.numericLegend.height : 0
+        return this.numericLegendState?.height ?? 0
     }
 
     @computed private get categoryLegendHeight(): number {
-        return this.categoryLegend ? this.categoryLegend.height : 0
+        return this.categoryLegendState?.height ?? 0
     }
 
-    @computed private get categoryLegend():
-        | HorizontalCategoricalColorLegend
+    @computed private get categoryLegendState():
+        | HorizontalCategoricalColorLegendState
         | undefined {
-        return this.manager.showLegend && this.hasCategoricalLegendData
-            ? new HorizontalCategoricalColorLegend({ manager: this })
-            : undefined
+        if (!this.manager.showLegend || !this.hasCategoricalLegendData)
+            return undefined
+        return new HorizontalCategoricalColorLegendState(
+            this.categoricalLegendData,
+            {
+                fontSize: this.fontSize,
+                maxWidth: this.legendMaxWidth,
+                align: HorizontalAlign.center,
+                resolveBinEmphasis: this.resolveLegendBinEmphasis,
+                styleConfig: this.legendStyleConfig,
+            }
+        )
     }
 
-    @computed private get numericLegend():
-        | HorizontalNumericColorLegend
+    @computed private get numericLegendState():
+        | HorizontalNumericColorLegendState
         | undefined {
-        return this.manager.showLegend && this.numericLegendData.length > 1
-            ? new HorizontalNumericColorLegend({ manager: this })
-            : undefined
+        if (!this.manager.showLegend || this.numericLegendData.length <= 1)
+            return undefined
+        return new HorizontalNumericColorLegendState(this.numericLegendData, {
+            fontSize: this.fontSize,
+            maxWidth: this.legendMaxWidth,
+            align: HorizontalAlign.center,
+            binSize: this.numericBinSize,
+            resolveBinEmphasis: this.resolveLegendBinEmphasis,
+            styleConfig: this.legendStyleConfig,
+        })
     }
 
-    @computed get categoryLegendY(): number {
-        if (!this.categoryLegend) return 0
+    @computed private get categoryLegendY(): number {
+        if (!this.categoryLegendState) return 0
 
         return (
             this.bounds.bottom -
-            this.categoryLegend.height -
+            this.categoryLegendHeight -
             PADDING_BELOW_MAP_LEGEND
         )
     }
 
-    @computed get legendAlign(): HorizontalAlign {
-        return HorizontalAlign.center
-    }
-
-    @computed get numericLegendY(): number {
-        if (!this.numericLegend) return 0
+    @computed private get numericLegendY(): number {
+        if (!this.numericLegendState) return 0
         return (
             this.bounds.bottom -
             this.numericLegendHeight -
             PADDING_BELOW_MAP_LEGEND -
             // If present, the category legend is placed below the numeric legend
-            (this.categoryLegend
+            (this.categoryLegendState
                 ? this.categoryLegendHeight + PADDING_BETWEEN_MAP_LEGENDS
                 : 0)
         )
@@ -615,20 +618,37 @@ export class MapChart
         })
     }
 
-    @computed get numericBinSize(): number {
+    @computed private get numericBinSize(): number {
         return 0.625 * this.fontSize
     }
 
     renderMapLegend(): React.ReactElement {
-        const { numericLegend, categoryLegend } = this
+        const { numericLegendState, categoryLegendState } = this
 
         return (
             <>
-                {numericLegend && (
-                    <HorizontalNumericColorLegend manager={this} />
+                {numericLegendState && (
+                    <HorizontalNumericColorLegend
+                        state={numericLegendState}
+                        x={this.legendX}
+                        y={this.numericLegendY}
+                        onMouseEnter={this.onLegendMouseEnter}
+                        onMouseOver={this.onLegendMouseOver}
+                        onMouseLeave={this.onLegendMouseLeave}
+                        onTouchSelect={this.onLegendTouchSelect}
+                    />
                 )}
-                {categoryLegend && (
-                    <HorizontalCategoricalColorLegend manager={this} />
+                {categoryLegendState && (
+                    <HorizontalCategoricalColorLegend
+                        state={categoryLegendState}
+                        x={this.legendX}
+                        y={this.categoryLegendY}
+                        onMouseEnter={this.onLegendMouseEnter}
+                        onMouseOver={this.onLegendMouseOver}
+                        onMouseLeave={this.onLegendMouseLeave}
+                        onTouchSelect={this.onLegendTouchSelect}
+                        isStatic={this.isStatic}
+                    />
                 )}
             </>
         )
