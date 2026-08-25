@@ -57,6 +57,30 @@ function parseMarkdownBlocks(markdown: string): MarkdownBlock[] {
     return blocks
 }
 
+/**
+ * How many top-level bullets a descriptionKey renders as. Nested bullets and
+ * continuation lines belong to their parent item, so they don't add to the
+ * count; a descriptionKey written as prose has none.
+ */
+export function countDescriptionKeyBullets(markdown: string): number {
+    return parseMarkdownBlocks(markdown).filter(
+        (block) => block.type === "listItem"
+    ).length
+}
+
+// Bullet count from which the description column of "What you should know
+// about this indicator" usually outgrows the metadata column beside it. Right
+// on 90% of data pages when measured at 1440px; see owid/owid-grapher#6846.
+const LEFT_COLUMN_TALLER_BULLET_COUNT = 5
+
+/** Whether the description column is expected to be the shorter of the two. */
+export function isDescriptionColumnShorter(descriptionKey?: string): boolean {
+    const bulletCount = descriptionKey
+        ? countDescriptionKeyBullets(descriptionKey)
+        : 0
+    return bulletCount < LEFT_COLUMN_TALLER_BULLET_COUNT
+}
+
 // Adjacent list items are always rejoined tightly, so a "loose" list (bullets
 // separated by blank lines) comes out tight — a deliberate simplification.
 function joinMarkdownBlocks(blocks: MarkdownBlock[]): string {
