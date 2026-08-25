@@ -1,0 +1,43 @@
+name: Gdoc pipeline package
+
+# Builds the standalone @ourworldindata/gdoc-pipeline npm package and runs the
+# smoke tests in packages/@ourworldindata/gdoc-pipeline/packageTest/ against
+# the build outputs: importability and self-containedness of the JS bundle,
+# running the pipeline from the built code, and typechecking the packed type
+# declarations.
+on:
+  pull_request:
+    paths:
+      - "packages/@ourworldindata/**"
+      - "rolldown.config-common.mts"
+      - "yarn.lock"
+      - ".github/workflows/gdoc-pipeline-package.yml"
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: packages/@ourworldindata/gdoc-pipeline
+
+jobs:
+  test-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-node-yarn-deps
+
+      - name: Build package
+        run: yarn build
+
+      - name: Test package
+        run: yarn testPackage

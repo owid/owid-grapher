@@ -39,7 +39,7 @@ The Our World in Data monorepo: the Grapher charting library, the chart/data adm
 
 Dependency layers, enforced via TypeScript project references (diagram: `docs/imports-diagram.md`):
 
-1. **Reusable packages** — `packages/@ourworldindata/*` (yarn workspaces): `types` → `utils` → `core-table` (our custom dataframe classes consumed by charts), `components`, `grapher` (the charting library itself), `explorer` (wraps Grapher with extra dropdowns for complex datasets).
+1. **Reusable packages** — `packages/@ourworldindata/*` (yarn workspaces): `types` → `utils` → `core-table` (our custom dataframe classes consumed by charts), `components`, `gdoc-pipeline` (the pure gdocs/ArchieML conversion layer), `grapher` (the charting library itself), `explorer` (wraps Grapher with extra dropdowns for complex datasets).
 2. **Foundation** — `settings/` (env config split into `clientSettings.ts` / `serverSettings.ts`, loaded from `.env`), `serverUtils/`.
 3. **Core** — `db/` (MySQL access; knex for queries, TypeORM only for migrations in `db/migration/`), `jobQueue/`.
 4. **Applications** — `adminSiteServer/` (Express admin API, entry `adminSiteServer/app.ts`), `adminSiteClient/` (admin React SPA), `baker/` (bakes the static public site), `site/` (React components for public pages, shared by baker and admin previews; uses React hooks, not MobX), `explorerAdminServer/`.
@@ -51,7 +51,7 @@ Key facts that span multiple directories:
 
 - **Grapher** is a client-side visualization library: a chart is a JSON config stored in MySQL alongside the data values it renders. Chart components follow a three-layer pattern — layout-independent `*State.ts` class, MobX `@observer` `*Chart.tsx` component, stateless SVG render component — with a `Series → SizedSeries → PlacedSeries → RenderSeries` data chain. Read `docs/agent-guidelines/chart-components.md` before touching chart code.
 - **The public site is statically baked**: `baker/` merges Google-Docs-authored content with chart configs from the admin and writes out a static site. Production bakes go through a deploy queue (`baker/startDeployQueueServer.ts`); `make local-bake` does a full local bake.
-- **Content is authored in Google Docs using ArchieML**. The ingestion pipeline lives in `db/model/Gdoc/` (`gdocToArchie` → `archieToEnriched` → enriched JSON blocks persisted to `posts_gdocs`), with a `GdocBase` class hierarchy (`GdocPost`, `GdocDataInsight`, `GdocHomepage`, …). Before working on gdocs-related things, read:
+- **Content is authored in Google Docs using ArchieML**. The pure conversion pipeline lives in `packages/@ourworldindata/gdoc-pipeline` (`gdocToArchie` → `archieToEnriched` → enriched JSON blocks, published as a standalone npm package); the db- and Google-API-facing layer in `db/model/Gdoc/` builds on it, with a `GdocBase` class hierarchy (`GdocPost`, `GdocDataInsight`, `GdocHomepage`, …) persisting to `posts_gdocs`. Before working on gdocs-related things, read:
     - `docs/agent-guidelines/gdocs-cms-pipeline.md` — the archieml pipeline from gdocs to the database
     - `docs/agent-guidelines/gdocs-class-hierarchy.md` — the gdoc types and how to create new ones
     - `docs/agent-guidelines/gdocs-attachments.md` — how attachments give rendering components their context

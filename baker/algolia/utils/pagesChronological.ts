@@ -20,7 +20,7 @@ import {
     SearchIndexName,
     DbEnrichedImage,
 } from "@ourworldindata/types"
-import { extractFilenamesFromBlocks } from "../../../db/model/Gdoc/gdocUtils.js"
+import { extractFilenamesFromBlocks } from "@ourworldindata/gdoc-pipeline"
 import { gdocFromJSON } from "../../../db/model/Gdoc/GdocFactory.js"
 import { GdocBase } from "../../../db/model/Gdoc/GdocBase.js"
 import { GdocPost } from "../../../db/model/Gdoc/GdocPost.js"

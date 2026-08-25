@@ -244,6 +244,22 @@ export type PeerCountryStrategyQueryParam = PeerCountryStrategy | "auto"
 export const VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS: PeerCountryStrategyQueryParam[] =
     ["auto", ...Object.values(PeerCountryStrategy)]
 
+/** Check if the given string is a valid PeerCountryStrategy */
+function isValidPeerCountryStrategy(
+    candidate: string
+): candidate is PeerCountryStrategy {
+    return Object.values(PeerCountryStrategy).includes(
+        candidate as PeerCountryStrategy
+    )
+}
+
+/** Check if the given string is a valid PeerCountryStrategyQueryParam */
+export function isValidPeerCountryStrategyQueryParam(
+    candidate: string
+): candidate is PeerCountryStrategyQueryParam {
+    return candidate === "auto" || isValidPeerCountryStrategy(candidate)
+}
+
 export enum GrapherTooltipAnchor {
     /** The tooltip is positioned relative to the mouse cursor */
     Mouse = "mouse",

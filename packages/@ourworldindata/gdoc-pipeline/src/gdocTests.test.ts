@@ -12,19 +12,19 @@ import {
     EnrichedBlockSocials,
     SocialLinkType,
 } from "@ourworldindata/utils"
-import { spansToHtmlString } from "./model/Gdoc/gdocUtils.js"
-import { archieToEnriched } from "./model/Gdoc/archieToEnriched.js"
-import { OwidRawGdocBlockToArchieMLString } from "./model/Gdoc/rawToArchie.js"
-import { enrichedBlockExamples } from "./model/Gdoc/exampleEnrichedBlocks.js"
-import { enrichedBlockToRawBlock } from "./model/Gdoc/enrichedToRaw.js"
+import { spansToHtmlString } from "./gdocUtils.js"
+import { archieToEnriched } from "./archieToEnriched.js"
+import { OwidRawGdocBlockToArchieMLString } from "./rawToArchie.js"
+import { enrichedBlockExamples } from "./exampleEnrichedBlocks.js"
+import { enrichedBlockToRawBlock } from "./enrichedToRaw.js"
 import { load } from "archieml"
 import {
     parseRawBlocksToEnrichedBlocks,
     parseSimpleText,
-} from "./model/Gdoc/rawToEnriched.js"
-import { gdocToArchie } from "./model/Gdoc/gdocToArchie.js"
+} from "./rawToEnriched.js"
+import { gdocToArchie } from "./gdocToArchie.js"
 import { docs_v1 } from "@googleapis/docs"
-import { documentContainsMixedStraightAndCurlyQuotes } from "./model/Gdoc/gdocValidation.js"
+import { documentContainsMixedStraightAndCurlyQuotes } from "./gdocValidation.js"
 
 function getArchieMLDocWithContent(content: string): string {
     return `title: Writing OWID Articles With Google Docs

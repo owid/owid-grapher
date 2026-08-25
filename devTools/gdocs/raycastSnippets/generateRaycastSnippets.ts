@@ -1,8 +1,10 @@
 import path from "node:path"
 import { readFile, writeFile } from "node:fs/promises"
-import { enrichedBlockExamples } from "../../../db/model/Gdoc/exampleEnrichedBlocks.js"
-import { enrichedBlockToRawBlock } from "../../../db/model/Gdoc/enrichedToRaw.js"
-import { OwidRawGdocBlockToArchieMLString } from "../../../db/model/Gdoc/rawToArchie.js"
+import {
+    enrichedBlockExamples,
+    enrichedBlockToRawBlock,
+    OwidRawGdocBlockToArchieMLString,
+} from "@ourworldindata/gdoc-pipeline"
 import type {
     OwidEnrichedGdocBlock,
     OwidRawGdocBlock,

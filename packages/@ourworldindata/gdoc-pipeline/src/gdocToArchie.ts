@@ -121,7 +121,10 @@ function mergeAdjacentLinkedElements(
     return merged
 }
 
-function paragraphToString(
+// Exported so that consumers of this package (e.g. tooling that maps
+// ArchieML output back to Google Docs body elements) can re-drive the
+// per-element conversion that gdocToArchie performs internally.
+export function paragraphToString(
     paragraph: docs_v1.Schema$Paragraph,
     context: { isInList: boolean; isInTable: boolean }
 ): string {
@@ -197,7 +200,8 @@ function paragraphToString(
     return text
 }
 
-function tableToString(
+// Exported for the same reason as paragraphToString above.
+export function tableToString(
     table: docs_v1.Schema$StructuralElement["table"]
 ): string {
     if (!table) return ""
