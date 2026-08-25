@@ -7,17 +7,16 @@ $radio-group-height: 32px;
     align-items: center;
     height: $radio-group-height;
     padding: 1px;
-    color: $secondary-text;
     background: white;
-    border: 1px solid $light-stroke;
+    border: 1px solid $gray-10;
     border-radius: 4px;
-    font: $medium 13px/16px $lato;
+    font: 500 13px/16px $lato;
     letter-spacing: 0.01em;
 }
 
 .md-settings__radio-group[data-disabled] .md-settings__radio-group-options {
     color: $gray-60;
-    background: $gray-5;
+    background: $gray-10;
 }
 
 @media (width <= $toggle-full-width-breakpoint) {
@@ -46,7 +45,7 @@ $radio-group-height: 32px;
     height: 28px;
     padding: 0 10px;
     border-radius: 3px;
-    color: $primary-text;
+    color: $gray-70;
     white-space: nowrap;
     cursor: pointer;
 
@@ -56,7 +55,7 @@ $radio-group-height: 32px;
     }
 
     &[data-hovered]:not([data-selected]):not([data-disabled]) {
-        background: $hover-fill;
+        background: $gray-10;
     }
 
     &[data-focus-visible] {
@@ -65,8 +64,8 @@ $radio-group-height: 32px;
     }
 
     &[data-selected] {
-        color: $active-text;
-        background: $active-fill;
+        color: $blue-90;
+        background: $blue-20;
         cursor: default;
     }
 
