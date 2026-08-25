@@ -24,16 +24,80 @@ interface HorizontalNumericColorLegendProps {
     onTouchSelect?: (bin: ColorScaleBin) => void
 }
 
-export const HorizontalNumericColorLegend = observer(
-    function HorizontalNumericColorLegend({
-        state,
-        x,
-        y,
-        onMouseEnter,
-        onMouseOver,
-        onMouseLeave,
-        onTouchSelect,
-    }: HorizontalNumericColorLegendProps): React.ReactElement {
+@observer
+export class HorizontalNumericColorLegend extends React.Component<HorizontalNumericColorLegendProps> {
+    private readonly onPointerEnter =
+        (bin: ColorScaleBin) =>
+        (event: React.PointerEvent): void => {
+            const { onMouseEnter, onMouseOver, onTouchSelect } = this.props
+            if (event.pointerType === "touch" && onTouchSelect) return
+
+            onMouseEnter?.(bin)
+            onMouseOver?.(bin)
+        }
+
+    private readonly onPointerLeave = (event: React.PointerEvent): void => {
+        const { onMouseLeave, onTouchSelect } = this.props
+        if (event.pointerType === "touch" && onTouchSelect) return
+
+        onMouseLeave?.()
+    }
+
+    private readonly onPointerUp =
+        (bin: ColorScaleBin) =>
+        (event: React.PointerEvent): void => {
+            if (event.pointerType === "touch") this.props.onTouchSelect?.(bin)
+        }
+
+    private renderBin(
+        positionedBin: PositionedBin,
+        isHighlightOverlay = false
+    ): React.ReactElement {
+        const { state, x, y } = this.props
+        const { binSize, height } = state
+        const bottomY = y + height
+
+        const bin = positionedBin.bin
+        const style = state.getMarkerStyle(bin)
+        const fill = bin.patternRef ? `url(#${bin.patternRef})` : style.fill
+
+        return (
+            <NumericBinRect
+                key={
+                    isHighlightOverlay
+                        ? `highlight-${positionedBin.x}`
+                        : positionedBin.x
+                }
+                x={x + positionedBin.x}
+                y={bottomY - binSize}
+                width={positionedBin.width}
+                height={binSize}
+                fill={isHighlightOverlay ? "none" : fill}
+                stroke={style.stroke}
+                strokeWidth={style.strokeWidth}
+                opacity={style.opacity}
+                isOpenLeft={
+                    bin instanceof NumericBin ? bin.props.isOpenLeft : false
+                }
+                isOpenRight={
+                    bin instanceof NumericBin ? bin.props.isOpenRight : false
+                }
+                pointerEvents={isHighlightOverlay ? "none" : undefined}
+                onPointerEnter={
+                    isHighlightOverlay ? undefined : this.onPointerEnter(bin)
+                }
+                onPointerLeave={
+                    isHighlightOverlay ? undefined : this.onPointerLeave
+                }
+                onPointerUp={
+                    isHighlightOverlay ? undefined : this.onPointerUp(bin)
+                }
+            />
+        )
+    }
+
+    override render(): React.ReactElement {
+        const { state, x, y, onTouchSelect } = this.props
         const {
             numericLabels,
             binSize,
@@ -45,70 +109,6 @@ export const HorizontalNumericColorLegend = observer(
         } = state
 
         const bottomY = y + height
-
-        const onPointerEnter =
-            (bin: ColorScaleBin) =>
-            (event: React.PointerEvent): void => {
-                if (event.pointerType === "touch" && onTouchSelect) return
-
-                onMouseEnter?.(bin)
-                onMouseOver?.(bin)
-            }
-        const onPointerLeave = (event: React.PointerEvent): void => {
-            if (event.pointerType === "touch" && onTouchSelect) return
-
-            onMouseLeave?.()
-        }
-        const onPointerUp =
-            (bin: ColorScaleBin) =>
-            (event: React.PointerEvent): void => {
-                if (event.pointerType === "touch") onTouchSelect?.(bin)
-            }
-
-        const renderBin = (
-            positionedBin: PositionedBin,
-            isHighlightOverlay = false
-        ): React.ReactElement => {
-            const bin = positionedBin.bin
-            const style = state.getMarkerStyle(bin)
-            const fill = bin.patternRef ? `url(#${bin.patternRef})` : style.fill
-
-            return (
-                <NumericBinRect
-                    key={
-                        isHighlightOverlay
-                            ? `highlight-${positionedBin.x}`
-                            : positionedBin.x
-                    }
-                    x={x + positionedBin.x}
-                    y={bottomY - binSize}
-                    width={positionedBin.width}
-                    height={binSize}
-                    fill={isHighlightOverlay ? "none" : fill}
-                    stroke={style.stroke}
-                    strokeWidth={style.strokeWidth}
-                    opacity={style.opacity}
-                    isOpenLeft={
-                        bin instanceof NumericBin ? bin.props.isOpenLeft : false
-                    }
-                    isOpenRight={
-                        bin instanceof NumericBin
-                            ? bin.props.isOpenRight
-                            : false
-                    }
-                    pointerEvents={isHighlightOverlay ? "none" : undefined}
-                    onPointerEnter={
-                        isHighlightOverlay ? undefined : onPointerEnter(bin)
-                    }
-                    onPointerLeave={
-                        isHighlightOverlay ? undefined : onPointerLeave
-                    }
-                    onPointerUp={
-                        isHighlightOverlay ? undefined : onPointerUp(bin)
-                    }
-                />
-            )
-        }
 
         return (
             <g
@@ -145,7 +145,7 @@ export const HorizontalNumericColorLegend = observer(
                 </g>
                 <g id={makeFigmaId("swatches")}>
                     {positionedBins.map((positionedBin) =>
-                        renderBin(positionedBin)
+                        this.renderBin(positionedBin)
                     )}
                     {/*
                         Render highlighted bins last so their stroke is painted above adjacent bins.
@@ -159,7 +159,9 @@ export const HorizontalNumericColorLegend = observer(
                                 state.getBinEmphasis(positionedBin.bin) ===
                                 Emphasis.Highlighted
                         )
-                        .map((positionedBin) => renderBin(positionedBin, true))}
+                        .map((positionedBin) =>
+                            this.renderBin(positionedBin, true)
+                        )}
                 </g>
                 <g id={makeFigmaId("labels")}>
                     {numericLabels.map((label, index) => {
@@ -194,7 +196,9 @@ export const HorizontalNumericColorLegend = observer(
                                 height={Math.max(0, height - binSize)}
                                 fill="transparent"
                                 pointerEvents="all"
-                                onPointerUp={onPointerUp(positionedBin.bin)}
+                                onPointerUp={this.onPointerUp(
+                                    positionedBin.bin
+                                )}
                             />
                         ))}
                     </g>
@@ -210,7 +214,7 @@ export const HorizontalNumericColorLegend = observer(
             </g>
         )
     }
-)
+}
 
 const stopPointerDownPropagation = (event: React.PointerEvent): void => {
     event.stopPropagation()
