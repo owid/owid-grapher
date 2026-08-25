@@ -106,9 +106,6 @@ export default function MultiDimEmbedSettingsPanel({
 
     return (
         <div className={cx("md-embed-settings", className)} ref={containerRef}>
-            <div className="h6-black-caps md-embed-settings__header">
-                Configure the data
-            </div>
             <MultiDimControls
                 ref={dropdownsRef}
                 dimensions={dimensions}
