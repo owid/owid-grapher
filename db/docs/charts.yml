@@ -35,13 +35,13 @@ fields:
   patchConfigIdETL:
     description: |
       Foreign key to chart_configs table, holding the chart's ETL-authored config layer, if any — mirroring variables.patchConfigIdETL, but per chart rather than per indicator. Like patchConfigId it names an authored layer, never a config that renders. The rendered config a chart displays (configId's row) is merge(indicator config, this row's config, patchConfigId's row) — admin edits always win. NULL until the ETL first pushes a config for this chart.
-  catalogPath:
+  etlConfigCatalogPath:
     description: |
-      The ETL step that currently owns this chart, in ETL catalog-path form (e.g. animal_welfare/latest/banning_of_chick_culling#banning_of_chick_culling), mirroring multi_dim_data_pages.catalogPath. NULL for hand-authored charts and for ETL-authored charts that predate this column.
+      The ETL step that authored this chart's ETL config layer (patchConfigIdETL), i.e. the step that currently owns the chart, in ETL catalog-path form (e.g. animal_welfare/latest/banning_of_chick_culling#banning_of_chick_culling), mirroring multi_dim_data_pages.catalogPath. NULL for hand-authored charts and for ETL-authored charts that predate this column. It is set from the `catalogPath` query parameter of the ETL config push route.
 
       This is not an identifier. A chart is identified by its config UUID (configId), which never changes; the catalog path records which step owns the chart and may change when a step is renamed or moved. Its purpose is to let the ETL sanity-check whether a chart has already been adopted — never to resolve which chart a push is for.
 
-      Enforced unique at the DB level (one chart per catalog path). A push that carries a different catalogPath than the one recorded simply updates it; a push that would assign a catalogPath already used by a different chart is rejected with a 409, turning the raw duplicate-key failure into an actionable error.
+      Enforced unique at the DB level (one chart per catalog path). A push that carries a different path than the one recorded simply updates it; a push that would assign a path already used by a different chart is rejected with a 409, turning the raw duplicate-key failure into an actionable error. Malformed paths are rejected with a 400 (same `namespace/version/step#indicator` shape the multi-dim routes enforce).
   isInheritanceEnabled:
     description: When true, chart inherits configuration from parent variable's patchConfigIdETL. This allows variables to define default chart settings that are automatically applied to all inheriting charts.
   forceDatapage:

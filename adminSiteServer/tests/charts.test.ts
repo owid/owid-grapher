@@ -938,7 +938,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
             .where("id", chartId)
             .first()
         expect(chartRow.patchConfigIdETL).toBeNull()
-        expect(chartRow.catalogPath).toBeNull()
+        expect(chartRow.etlConfigCatalogPath).toBeNull()
         // a render-neutral detach is not a content edit: lastEditedAt untouched
         expect(chartRow.lastEditedAt.getTime()).toBe(oldLastEditedAt.getTime())
         expect(chartRow.lastEditedByUserId).toBe(
@@ -1299,7 +1299,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
             }),
         })
         let chartRow = await env.testKnex("charts").where("id", chartId).first()
-        expect(chartRow.catalogPath).toBeNull()
+        expect(chartRow.etlConfigCatalogPath).toBeNull()
 
         // Identical re-push (no-op for `full`) but now carrying a catalogPath —
         // it must still be backfilled despite the early return.
@@ -1314,7 +1314,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
             }),
         })
         chartRow = await env.testKnex("charts").where("id", chartId).first()
-        expect(chartRow.catalogPath).toBe("grapher/test/latest/x#y")
+        expect(chartRow.etlConfigCatalogPath).toBe("grapher/test/latest/x#y")
     })
 
     it("rejects an etlConfig with no $schema", async () => {
@@ -1824,7 +1824,9 @@ describe("ETL config upsert by config UUID", { timeout: 15000 }, () => {
             .first()
         expect(chartRow.configId).toBe(chartConfigId)
         expect(chartRow.patchConfigIdETL).not.toBeNull()
-        expect(chartRow.catalogPath).toBe("grapher/dummy/latest/dummy#chart")
+        expect(chartRow.etlConfigCatalogPath).toBe(
+            "grapher/dummy/latest/dummy#chart"
+        )
 
         // the admin patch starts out almost empty — the ETL layer owns all
         // fields except the non-inheritable slug, which is copied into the
@@ -1936,6 +1938,23 @@ describe("ETL config upsert by config UUID", { timeout: 15000 }, () => {
         expect(response.status).toBe(400)
     })
 
+    it("rejects malformed catalog paths", async () => {
+        const chartConfigId = uuidv7()
+        const response = await rawRequest({
+            method: "PUT",
+            path: `/charts/by-config/${chartConfigId}/etlConfig?catalogPath=grapher/no/indicator/part`,
+            body: JSON.stringify(testEtlConfig),
+        })
+        expect(response.status).toBe(400)
+
+        // ...and creates no chart along the way
+        const chartRow = await env
+            .testKnex(ChartsTableName)
+            .where("configId", chartConfigId)
+            .first()
+        expect(chartRow).toBeUndefined()
+    })
+
     it("updates a chart's catalogPath when the ETL step that owns it moves", async () => {
         // The chart is identified by its config UUID, which never changes. The
         // catalog path just records which step owns it, so a renamed or moved
@@ -1964,7 +1983,9 @@ describe("ETL config upsert by config UUID", { timeout: 15000 }, () => {
             .testKnex(ChartsTableName)
             .where("id", first.chartId)
             .first()
-        expect(chartRow.catalogPath).toBe("grapher/second/latest/second#chart")
+        expect(chartRow.etlConfigCatalogPath).toBe(
+            "grapher/second/latest/second#chart"
+        )
 
         const fullConfig = await env.fetchJson(
             `/charts/${first.chartId}.config.json`

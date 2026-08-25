@@ -75,6 +75,7 @@ import { DataInsightMinimalInformation } from "../../adminShared/AdminTypes.js"
 import {
     validateNewGrapherSlug,
     validateDraftGrapherSlug,
+    isValidCatalogPath,
 } from "../validation.js"
 
 export const getReferencesByChartId = async (
@@ -1046,7 +1047,7 @@ async function assertCatalogPathAvailable(
         `-- sql
             SELECT id
             FROM charts
-            WHERE catalogPath = ?
+            WHERE etlConfigCatalogPath = ?
             ${chartId === undefined ? "" : "AND id != ?"}
         `,
         chartId === undefined ? [catalogPath] : [catalogPath, chartId]
@@ -1092,6 +1093,9 @@ export async function upsertEtlConfigByChartConfigId(
     const chartConfigId = normalizeChartConfigId(req.params.chartConfigId)
 
     const catalogPath = (req.query.catalogPath as string | undefined) ?? null
+    if (catalogPath !== null && !isValidCatalogPath(catalogPath)) {
+        throw new JsonError(`Invalid chart catalog path ${catalogPath}`)
+    }
 
     let etlConfig: GrapherInterface
     try {
@@ -1147,7 +1151,7 @@ async function upsertEtlConfigForChart(
             | "patchConfigId"
             | "patchConfigIdETL"
             | "isInheritanceEnabled"
-            | "catalogPath"
+            | "etlConfigCatalogPath"
         > & { patch: string; full: string }
     >(
         trx,
@@ -1157,7 +1161,7 @@ async function upsertEtlConfigForChart(
                 c.patchConfigId,
                 c.patchConfigIdETL,
                 c.isInheritanceEnabled,
-                c.catalogPath,
+                c.etlConfigCatalogPath,
                 cc_patch.config AS patch,
                 cc.config AS full
             FROM charts c
@@ -1172,17 +1176,18 @@ async function upsertEtlConfigForChart(
         throw new JsonError(`Chart with id ${chartId} not found`, 404)
     }
 
-    // A chart's identity is its config UUID, which never changes. `catalogPath`
-    // records which ETL step currently owns the chart, and that can legitimately
+    // A chart's identity is its config UUID, which never changes.
+    // `etlConfigCatalogPath` records which ETL step currently owns the chart,
+    // and that can legitimately
     // change — a step gets renamed or moved — so a push carrying a different
     // path than we've recorded simply updates it. It stays useful to the ETL as
     // a sanity check on whether a chart has already been adopted, not as an
     // identifier to resolve charts by.
     //
     // The one thing still worth refusing is handing a path to a second chart:
-    // `charts.catalogPath` has a unique DB index, and checking here turns a raw
+    // `charts.etlConfigCatalogPath` has a unique index, and checking turns a raw
     // duplicate-key failure into a clear error before any other writes happen.
-    if (row.catalogPath !== catalogPath) {
+    if (row.etlConfigCatalogPath !== catalogPath) {
         await assertCatalogPathAvailable(trx, catalogPath, chartId)
     }
 
@@ -1247,7 +1252,7 @@ async function upsertEtlConfigForChart(
                 UPDATE charts
                 SET
                     patchConfigIdETL = ?,
-                    catalogPath = COALESCE(?, catalogPath),
+                    etlConfigCatalogPath = COALESCE(?, etlConfigCatalogPath),
                     updatedAt = ?
                 WHERE id = ?
             `,
@@ -1263,9 +1268,10 @@ async function upsertEtlConfigForChart(
     //     admin override): `full` is identical, but if we don't store the
     //     reduced patch, that stale entry would mask future ETL updates to a
     //     field ETL now owns.
-    //   - A new or changed `catalogPath`, which still needs writing onto a
-    //     chart that already has a `patchConfigIdETL` (the catalogPath writes
-    //     below this point would otherwise be skipped).
+    //   - A new or changed catalog path, which still needs writing onto a
+    //     chart that already has a `patchConfigIdETL` (the
+    //     `etlConfigCatalogPath` writes below this point would otherwise be
+    //     skipped).
     if (!fullChanged) {
         const patchChanged = !_.isEqual(newPatch, existingPatch)
         if (patchChanged || catalogPath) {
@@ -1277,7 +1283,9 @@ async function upsertEtlConfigForChart(
                     SET
                         cc.config = ?,
                         cc.updatedAt = ?,
-                        c.catalogPath = COALESCE(?, c.catalogPath),
+                        c.etlConfigCatalogPath = COALESCE(
+                            ?, c.etlConfigCatalogPath
+                        ),
                         c.updatedAt = ?
                     WHERE c.id = ?
                 `,
@@ -1311,7 +1319,7 @@ async function upsertEtlConfigForChart(
                 c.updatedAt = ?,
                 c.lastEditedAt = ?,
                 c.lastEditedByUserId = ?,
-                c.catalogPath = COALESCE(?, c.catalogPath)
+                c.etlConfigCatalogPath = COALESCE(?, c.etlConfigCatalogPath)
             WHERE c.id = ?
         `,
         [
@@ -1425,7 +1433,7 @@ export async function deleteChartsChartIdEtlConfig(
     const etlConfigId = row.patchConfigIdETL
     await db.knexRaw(
         trx,
-        `UPDATE charts SET patchConfigIdETL = NULL, catalogPath = NULL, updatedAt = ? WHERE id = ?`,
+        `UPDATE charts SET patchConfigIdETL = NULL, etlConfigCatalogPath = NULL, updatedAt = ? WHERE id = ?`,
         [now, chartId]
     )
     await db.knexRaw(trx, `DELETE FROM chart_configs WHERE id = ?`, [

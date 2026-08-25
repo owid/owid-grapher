@@ -3,7 +3,7 @@ export interface DbInsertChart {
     configId: string
     patchConfigId: string
     patchConfigIdETL?: string | null
-    catalogPath?: string | null
+    etlConfigCatalogPath?: string | null
     createdAt?: Date
     forceDatapage?: boolean
     id?: number
