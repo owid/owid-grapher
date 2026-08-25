@@ -10,38 +10,51 @@
     }
 
     p.featured-viz-header__subtitle {
-        @include body-2-regular;
+        @include body-2-semibold;
         & {
-            color: $blue-60;
-            margin: 0 0 16px;
+            color: $blue-50;
+            margin: 0 0 8px;
         }
     }
 
     p.featured-viz-header__byline,
     p.featured-viz-header__dateline {
-        @include body-3-medium;
+        @include body-3-regular;
         & {
-            color: $blue-60;
             margin: 0;
         }
     }
 
     .featured-viz-header__byline a {
-        @include owid-link-60;
-        color: $blue-60;
+        @include owid-link-90;
 
         &:visited {
             color: inherit;
         }
     }
 
-    p.featured-viz-header__dateline {
-        margin-bottom: 32px;
+    p.featured-viz-header__byline {
+        margin-bottom: 4px;
     }
+
+    p.featured-viz-header__dateline {
+        color: $blue-50;
+        margin-bottom: 16px;
+    }
+}
+
+hr.featured-viz-divider {
+    margin: 0 0 16px;
 }
 
 .featured-viz-hero {
     background-color: $blue-5;
     padding: 36px 0 32px;
-    margin-bottom: 32px;
+    margin: 16px 0 24px;
+
+    // The band supplies the vertical padding, so the margin a bespoke component
+    // carries for in-article use would double it
+    .featured-viz-hero__viz {
+        margin: 0;
+    }
 }
