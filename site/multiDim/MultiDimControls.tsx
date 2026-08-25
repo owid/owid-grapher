@@ -20,7 +20,7 @@ const MultiDimControls = forwardRef<
         resolvedSettings: MultiDimDimensionChoices
         onChange: (settings: MultiDimDimensionChoices) => void
         collapsedCount: number
-        disabled?: boolean
+        readOnly?: boolean
     }
 >(function MultiDimControls(
     {
@@ -30,7 +30,7 @@ const MultiDimControls = forwardRef<
         resolvedSettings,
         onChange,
         collapsedCount,
-        disabled,
+        readOnly,
     },
     ref
 ) {
@@ -63,7 +63,7 @@ const MultiDimControls = forwardRef<
                         }
                         value={resolvedSettings[dim.slug]}
                         onChange={handleChange}
-                        disabled={disabled}
+                        readOnly={readOnly}
                     />
                 ) : (
                     <DimensionDropdown
@@ -72,7 +72,7 @@ const MultiDimControls = forwardRef<
                         dimension={dim}
                         value={resolvedSettings[dim.slug]}
                         onChange={handleChange}
-                        disabled={disabled}
+                        readOnly={readOnly}
                     />
                 )
             })}
