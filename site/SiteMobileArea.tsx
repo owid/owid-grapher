@@ -11,6 +11,10 @@ export const SiteMobileArea = ({ area }: { area: TagGraphNode }) => {
         event: React.ToggleEvent<HTMLDetailsElement>
     ) => {
         if (event.newState !== "open") return
+        const rect = event.currentTarget.getBoundingClientRect()
+        const isFullyVisible =
+            rect.top >= 0 && rect.bottom <= window.innerHeight
+        if (isFullyVisible) return
         event.currentTarget.scrollIntoView({
             behavior: getPrefersReducedMotion() ? "auto" : "smooth",
         })
