@@ -6,7 +6,7 @@ import { MultiDimDimensionChoices } from "@ourworldindata/types"
 import { MultiDimDataPageConfig } from "@ourworldindata/utils"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import { useResolvedSettings } from "./multiDimSettings.js"
-import MultiDimDropdowns from "./MultiDimDropdowns.js"
+import MultiDimControls from "./MultiDimControls.js"
 
 export default function MultiDimEmbedSettingsPanel({
     className,
@@ -56,7 +56,7 @@ export default function MultiDimEmbedSettingsPanel({
 
         const dropdowns = Array.from(
             dropdownsContainer.querySelectorAll<HTMLDivElement>(
-                ".md-settings__dropdown"
+                ".md-settings__control"
             )
         )
 
@@ -109,8 +109,9 @@ export default function MultiDimEmbedSettingsPanel({
             <div className="h6-black-caps md-embed-settings__header">
                 Configure the data
             </div>
-            <MultiDimDropdowns
+            <MultiDimControls
                 ref={dropdownsRef}
+                dimensions={dimensions}
                 availableSettings={availableSettings}
                 resolvedSettings={resolvedSettings}
                 onChange={onChange}
