@@ -45,7 +45,14 @@ export const defineViteConfigForEntrypoint = (
             // it's important to note that we only expose values that are present in the clientSettings file - not any other things that are stored in .env
             Object.entries(clientSettings).map(([key, value]) => [
                 `process.env.${key}`,
-                JSON.stringify(value?.toString()), // We need to stringify e.g. `true` to `"true"`, so that it's correctly parsed _again_
+                // We need to stringify e.g. `true` to `"true"`, so that it's
+                // correctly parsed _again_. Sets (FEATURE_FLAGS) go back to
+                // the comma-separated form they were parsed from.
+                JSON.stringify(
+                    value instanceof Set
+                        ? [...value].join(",")
+                        : value?.toString()
+                ),
             ])
         ),
         resolve: {
