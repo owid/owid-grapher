@@ -5,9 +5,7 @@ import { MigrationInterface, QueryRunner } from "typeorm"
  * layer, so spell that out in the column name — a bare `catalogPath` on charts
  * reads like a chart-level identifier, which it deliberately isn't.
  */
-export class RenameChartCatalogPathToEtlConfigCatalogPath1787676561528
-    implements MigrationInterface
-{
+export class RenameChartCatalogPathToEtlConfigCatalogPath1787676561528 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(
             `-- sql
