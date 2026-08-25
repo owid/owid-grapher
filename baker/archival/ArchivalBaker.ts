@@ -613,6 +613,7 @@ export const createCommonArchivalContext = async (
     const imageMetadataDictionary = await getAllImages(knex).then((images) =>
         _.keyBy(images, "filename")
     )
+    const topicAreaLookup = await db.getTopicAreaLookup(knex)
 
     return {
         date,
@@ -622,6 +623,7 @@ export const createCommonArchivalContext = async (
         catalogFiles,
         staticAssetMap,
         imageMetadataDictionary,
+        topicAreaLookup,
     }
 }
 
@@ -969,6 +971,7 @@ export interface CommonArchivalContext {
     catalogFiles: AssetMap
     staticAssetMap: Record<string, string>
     imageMetadataDictionary: Record<string, DbEnrichedImage>
+    topicAreaLookup: db.TopicAreaLookup
 }
 
 interface GrapherBakeContext extends CommonArchivalContext {
@@ -1021,6 +1024,7 @@ async function bakeGrapherPageForArchival(
         dodsFiles,
         catalogFiles,
         imageMetadataDictionary,
+        topicAreaLookup,
         staticAssetMap,
         variableFiles,
         checksumsObj,
@@ -1086,6 +1090,7 @@ async function bakeGrapherPageForArchival(
     }
     await bakeSingleGrapherPageForArchival(dir, config, trx, {
         imageMetadataDictionary,
+        topicAreaLookup,
         manifest,
         archiveInfo,
     })
@@ -1258,6 +1263,7 @@ export const bakeMultiDimDataPageForArchival = async (
         dodsFiles,
         catalogFiles,
         imageMetadataDictionary,
+        topicAreaLookup,
         staticAssetMap,
         variableFiles,
         chartConfigFiles,
@@ -1336,6 +1342,7 @@ export const bakeMultiDimDataPageForArchival = async (
 
     await bakeSingleMultiDimDataPageForArchival(dir, slug, config, trx, {
         imageMetadataDictionary,
+        topicAreaLookup,
         manifest,
         archiveInfo,
     })
