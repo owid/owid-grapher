@@ -4,7 +4,7 @@ import {
     EmailNotificationsContentType,
     EmailNotificationsFrequency,
 } from "@ourworldindata/types"
-import { dayjs, flattenNonTopicNodes } from "@ourworldindata/utils"
+import { dayjs } from "@ourworldindata/utils"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
@@ -26,10 +26,7 @@ export async function getEmailNotificationsPreviewTopics(
     _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    const topicTagGraph = flattenNonTopicNodes(
-        await db.generateTopicTagGraph(trx)
-    )
-    return { topicTags: topicTagGraph.children.map((area) => area.name) }
+    return { topicTags: await db.getTopicAreaNames(trx) }
 }
 
 /**
