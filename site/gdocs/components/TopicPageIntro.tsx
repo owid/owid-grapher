@@ -1,3 +1,4 @@
+import { useContext } from "react"
 import {
     EnrichedTopicPageIntroRelatedTopic,
     EnrichedBlockTopicPageIntro,
@@ -5,7 +6,9 @@ import {
 } from "@ourworldindata/utils"
 import { useLinkedDocument } from "../utils.js"
 import { useDocumentContext } from "../DocumentContext.js"
+import { AttachmentsContext } from "../AttachmentsContext.js"
 import Paragraph from "./Paragraph.js"
+import TopicNewsletterCard from "../../TopicNewsletterCard.js"
 
 type TopicPageIntroProps = EnrichedBlockTopicPageIntro & {
     className?: string
@@ -30,6 +33,7 @@ function TopicPageRelatedTopic({
 }
 
 export function TopicPageIntro(props: TopicPageIntroProps) {
+    const { topicArea } = useContext(AttachmentsContext)
     const { gdocType } = useDocumentContext()
     const heading = getTopicPageHeading("relatedTopics", gdocType)
 
@@ -41,6 +45,10 @@ export function TopicPageIntro(props: TopicPageIntroProps) {
                 ))}
             </div>
             <div className="topic-page-intro__links col-start-9 span-cols-4 col-md-start-1 span-md-cols-12">
+                <TopicNewsletterCard
+                    topicArea={topicArea}
+                    className="topic-newsletter-card--topic-page-intro"
+                />
                 {props.downloadButton ? (
                     <div className="topic-page-intro__download-button">
                         <a href={props.downloadButton.url}>
