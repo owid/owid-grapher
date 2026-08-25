@@ -191,6 +191,9 @@ export interface MultiDimDataPageProps {
     initialViewDimensions?: MultiDimDimensionChoices
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic
+    /** Top-level topic area of `config.topicTags[0]`. A page-level prop because
+     * `initialViewData` is rebuilt client-side on every view switch. */
+    topicArea?: string
     relatedResearchCandidates: DataPageRelatedResearch[]
     imageMetadata: Record<string, ImageMetadata>
     isPreviewing?: boolean
