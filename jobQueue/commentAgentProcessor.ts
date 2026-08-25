@@ -102,7 +102,8 @@ export async function runAgentStub(
  * this module stays importable by the queue tests.
  */
 async function defaultRunAgent(
-    context: CommentAgentContext
+    context: CommentAgentContext,
+    notify?: (content: string) => Promise<void>
 ): Promise<CommentAgentResult> {
     const { isAgentConnected, runAgentWithClaude } =
         await import("./commentAgentClaude.js")
@@ -111,7 +112,7 @@ async function defaultRunAgent(
     const { hasEtlCheckout, runAgentInEtlCheckout } =
         await import("./commentAgentEtl.js")
     return hasEtlCheckout()
-        ? await runAgentInEtlCheckout(context)
+        ? await runAgentInEtlCheckout(context, notify)
         : await runAgentWithClaude(context)
 }
 
@@ -147,7 +148,9 @@ async function postReply(
 export async function processCommentAgentJob(
     job: DbPlainJob<CommentAgentJobPayload>,
     runAgent: (
-        context: CommentAgentContext
+        context: CommentAgentContext,
+        /** Posts an interim reply in the thread while the run is still going */
+        notify?: (content: string) => Promise<void>
     ) => Promise<CommentAgentResult> = defaultRunAgent
 ): Promise<{ success: boolean }> {
     const { commentId } = job.payload
@@ -204,7 +207,9 @@ export async function processCommentAgentJob(
 
     let result: CommentAgentResult
     try {
-        result = await runAgent(context)
+        result = await runAgent(context, (content) =>
+            postReply(context, content)
+        )
     } catch (error) {
         // Say so in the thread. A run that fails quietly is indistinguishable
         // from one nobody ever picked up, which is the one outcome the person
