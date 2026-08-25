@@ -55,16 +55,15 @@ export default function DimensionDropdown({
     dimension,
     value,
     onChange,
-    disabled,
+    readOnly,
 }: {
     className?: string
     dimension: DimensionEnriched
     value: string
     onChange: (value: string) => void
-    disabled?: boolean
+    readOnly?: boolean
 }) {
     const [isOpen, setIsOpen] = useState(false)
-    const isDisabled = disabled || dimension.choices.length === 1
     return (
         <Select
             className={cx(
@@ -72,12 +71,17 @@ export default function DimensionDropdown({
                 "md-settings__dropdown",
                 className
             )}
-            isDisabled={isDisabled}
+            isDisabled={dimension.choices.length === 1}
             isOpen={isOpen}
-            onOpenChange={setIsOpen}
+            // While a view is loading (readOnly), don't open the menu, but
+            // always allow closing it. Disabling the whole select instead
+            // would make the trigger unfocusable and drop keyboard focus.
+            onOpenChange={(open) => {
+                if (!open || !readOnly) setIsOpen(open)
+            }}
             value={value}
             onChange={(key) => {
-                if (typeof key === "string") onChange(key)
+                if (typeof key === "string" && !readOnly) onChange(key)
             }}
             aria-label={dimension.name}
         >
