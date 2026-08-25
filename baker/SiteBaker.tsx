@@ -766,6 +766,10 @@ export class SiteBaker {
                 }
             })
 
+        const topicAreaNamesByTagName = db.topicAreaNamesFromTagHierarchies(
+            tagHierarchiesByChildName
+        )
+
         if (gdocsToBake.length > 0)
             await this.getPrefetchedGdocAttachments(knex)
 
@@ -825,6 +829,11 @@ export class SiteBaker {
                             tagHierarchiesByChildName
                         )
                     }
+
+                    publishedGdoc.topicArea = db.getTopicAreaNameForGdocTags(
+                        publishedGdoc.tags ?? [],
+                        topicAreaNamesByTagName
+                    )
 
                     // this is a no-op if the gdoc has no bespoke metadata to load
                     if ("loadBespokeMetadata" in publishedGdoc) {

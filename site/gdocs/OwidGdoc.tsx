@@ -132,6 +132,7 @@ export function OwidGdoc({
                 allChartsBlockResults: _.get(props, "allChartsBlockResults"),
                 // lodash doesn't use fallback when value is null
                 tags: props.tags ?? [],
+                topicArea: props.topicArea,
             }}
         >
             <DocumentContext.Provider
