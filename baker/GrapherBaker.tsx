@@ -38,7 +38,7 @@ import {
 import ProgressBar from "progress"
 import {
     getVariableDistribution,
-    getMergedGrapherConfigForVariable,
+    getIndicatorChartConfig,
     getVariableOfDatapageIfApplicable,
     getOwnersForVariables,
 } from "../db/model/Variable.js"
@@ -154,16 +154,15 @@ export async function renderDataPageV2(
     },
     knex: db.KnexReadonlyTransaction
 ) {
-    const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
-        knex,
-        variableId
-    )
     // Only merge the grapher config on the indicator if the caller tells us to do so -
     // this is true for preview pages for datapages on the indicator level but false
     // if we are on Grapher pages. Once we have a good way in the grapher admin for how
     // to use indicator level defaults, we should reconsider how this works here.
     const grapher = useIndicatorGrapherConfigs
-        ? mergeGrapherConfigs(grapherConfigForVariable ?? {}, pageGrapher ?? {})
+        ? mergeGrapherConfigs(
+              (await getIndicatorChartConfig(knex, variableId)) ?? {},
+              pageGrapher ?? {}
+          )
         : (pageGrapher ?? {})
 
     const faqDocIds = _.compact(
@@ -196,11 +195,7 @@ export async function renderDataPageV2(
     // set to the variableId as a Y variable in theses cases.
     if (!grapher.dimensions || grapher.dimensions.length === 0) {
         const dimensions: OwidChartDimensionInterface[] = [
-            {
-                variableId: variableId,
-                property: DimensionProperty.y,
-                display: variableMetadata.display,
-            },
+            { variableId: variableId, property: DimensionProperty.y },
         ]
         grapher.dimensions = dimensions
     }
@@ -473,7 +468,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
 ) => {
     const chartsToBake = await knexRaw<
         Pick<DbPlainChart, "id"> & {
-            config: DbRawChartConfig["full"]
+            config: DbRawChartConfig["config"]
             slug: string
         }
     >(
@@ -481,11 +476,11 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
         `-- sql
         SELECT
             c.id,
-            cc.full as config,
+            cc.config as config,
             cc.slug
         FROM charts c
         JOIN chart_configs cc ON c.configId = cc.id
-        WHERE JSON_EXTRACT(cc.full, "$.isPublished")=true
+        WHERE JSON_EXTRACT(cc.config, "$.isPublished")=true
         ORDER BY cc.slug ASC`
     )
 

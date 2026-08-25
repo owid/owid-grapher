@@ -23,7 +23,7 @@ import { getDescriptionForKey, getRegionsForKey } from "./RegionTooltipData.js"
 const defaultColors: Record<TextRole, string> = {
     name: GRAPHER_DARK_TEXT,
     value: GRAPHER_DARK_TEXT,
-    regionProviderSuffix: GRAPHER_LIGHT_TEXT,
+    regionPublisherSuffix: GRAPHER_LIGHT_TEXT,
     regionIcon: GRAPHER_LIGHT_TEXT,
 }
 
@@ -43,12 +43,12 @@ export interface SeriesLabelProps {
 /**
  * Renders a series label that consists of up to three fragments:
  * - The main label text (e.g. "United States")
- * - An optional suffix that describes the region provider (e.g. "(WHO)")
+ * - An optional suffix naming the region's publisher (e.g. "(WHO)")
  * - An optional value label (e.g. "70 years")
  *
- * If the label includes a region provider suffix, an info icon may be
+ * If the label includes a region publisher suffix, an info icon may be
  * rendered next to the suffix, which shows a tooltip with more information
- * about the region provider on hover.
+ * about the region set on hover.
  */
 export function SeriesLabel({
     state,
@@ -124,7 +124,7 @@ export function SeriesLabel({
                     x={renderX}
                     y={renderY}
                     fragment={fragment}
-                    fill={colors.regionProviderSuffix}
+                    fill={colors.regionPublisherSuffix}
                     regionName={fragment.regionName}
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}

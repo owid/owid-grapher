@@ -110,20 +110,21 @@ const population_regex =
     /^grapher\/demography\/[\d-]+\/population\/(population#population|historical#population_historical)$/
 
 /**
- * Manually configured list of providers that define geographic regions.
+ * Manually configured list of institutions that publish geographic regions,
+ * but that the ETL's regions file doesn't know about yet.
  *
- * By convention, entities are named with the format 'RegionName (Provider)',
- * such as 'Africa (UN)' or 'Africa (FAO)'.
+ * By convention, entities are named with the format 'RegionName (Publisher)',
+ * such as 'Africa (PIP)' or 'Africa (GCP)'.
  *
- * These provider identifiers are used to compile groups of regions for the
- * filter dropdown in the entity selector and on the data tab.
+ * These identifiers are used to compile groups of regions for the filter
+ * dropdown in the entity selector and on the data tab.
  *
  * Ideally, all regions would be defined in the ETL's regions file,
  * but currently we need to maintain this manual configuration until the
- * regions file is more complete.
+ * regions file is more complete. Publishers that *are* in the regions file
+ * don't belong here.
  */
-export const ADDITIONAL_REGION_DATA_PROVIDERS = [
-    "fao",
+export const ADDITIONAL_REGION_PUBLISHERS = [
     "pip",
     "gcp",
     "niaid",
@@ -132,23 +133,27 @@ export const ADDITIONAL_REGION_DATA_PROVIDERS = [
     "undp",
     "oecd",
     "unsd",
-    "unm49",
-    "ilo",
-    "ihmegbd",
 ] as const
 
-export type AdditionalRegionDataProvider =
-    (typeof ADDITIONAL_REGION_DATA_PROVIDERS)[number]
+export type AdditionalRegionPublisher =
+    (typeof ADDITIONAL_REGION_PUBLISHERS)[number]
 
 export const isPopulationVariableETLPath = (path: string): boolean => {
     return population_regex.test(path)
 }
 
 export enum Patterns {
+    /** No-data hatch used by legends, chart elements and the globe */
     noDataPattern = "noDataPattern",
+    /** Viewport-scaled no-data hatch used by 2D maps */
     noDataPatternForMap = "noDataPatternForMap",
-    noDataPatternForGlobe = "noDataPatternForGlobe",
+    /** Not-applicable hatch used by legends and the globe */
+    inapplicablePattern = "inapplicablePattern",
+    /** Viewport-scaled not-applicable hatch used by 2D maps */
+    inapplicablePatternForMap = "inapplicablePatternForMap",
+    /** Dot pattern for maps and the globe */
     projectedDataPattern = "projectedDataPattern",
+    /** Dot pattern for the legend */
     projectedDataPatternForLegend = "projectedDataPatternForLegend",
 }
 

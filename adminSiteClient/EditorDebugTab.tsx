@@ -11,10 +11,6 @@ import {
 } from "@ourworldindata/utils"
 import YAML from "yaml"
 import { Modal, notification } from "antd"
-import {
-    IndicatorChartEditor,
-    isIndicatorChartEditorInstance,
-} from "./IndicatorChartEditor.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import {
     NarrativeChartEditor,
@@ -35,8 +31,6 @@ export class EditorDebugTab<
             return <EditorDebugTabForChart editor={editor} />
         else if (isNarrativeChartEditorInstance(editor))
             return <EditorDebugTabForNarrativeChart editor={editor} />
-        else if (isIndicatorChartEditorInstance(editor))
-            return <EditorDebugTabForIndicatorChart editor={editor} />
         else return null
     }
 }
@@ -91,21 +85,21 @@ class EditorDebugTabForChart extends Component<{
             parentConfig,
             isInheritanceEnabled,
             fullConfig,
-            parentVariableId,
+            parentIndicatorId,
             grapherState,
         } = this.props.editor
 
-        const column = parentVariableId
-            ? grapherState.inputTable.get(parentVariableId.toString())
+        const column = parentIndicatorId
+            ? grapherState.inputTable.get(parentIndicatorId.toString())
             : undefined
 
-        const variableLink = (
+        const indicatorLink = (
             <a
-                href={`/admin/variables/${parentVariableId}`}
+                href={`/admin/variables/${parentIndicatorId}`}
                 target="_blank"
                 rel="noopener"
             >
-                {column?.name ?? parentVariableId}
+                {column?.name ?? parentIndicatorId}
             </a>
         )
 
@@ -126,33 +120,26 @@ class EditorDebugTabForChart extends Component<{
                     </button>
                 </Section>
 
-                {parentVariableId && (
+                {parentIndicatorId && (
                     <>
                         <Section name="Parent indicator">
                             {isInheritanceEnabled ? (
                                 <p>
                                     This chart is configured to inherit settings
-                                    from its parent indicator, {variableLink}.
+                                    from its parent indicator, {indicatorLink}.
                                     {!parentConfig && (
                                         <>
                                             {" "}
                                             But the parent indicator does not
                                             yet have an associated grapherState
-                                            config. You can{" "}
-                                            <a
-                                                href={`/admin/variables/${parentVariableId}/config`}
-                                                target="_blank"
-                                                rel="noopener"
-                                            >
-                                                create one in the admin.
-                                            </a>
+                                            config.
                                         </>
                                     )}
                                 </p>
                             ) : (
                                 <p>
                                     This chart may inherit chart settings from
-                                    the indicator {variableLink}, but
+                                    the indicator {indicatorLink}, but
                                     inheritance is currently disabled. Toggle
                                     the option below to enable inheritance.
                                 </p>
@@ -177,15 +164,6 @@ class EditorDebugTabForChart extends Component<{
                                     className="form-control"
                                     value={YAML.stringify(parentConfig)}
                                 />
-                                <p className="mt-2">
-                                    <a
-                                        href={`/admin/variables/${parentVariableId}/config`}
-                                        target="_blank"
-                                        rel="noopener"
-                                    >
-                                        Edit parent config in the admin
-                                    </a>
-                                </p>
                             </Section>
                         )}
                     </>
@@ -347,48 +325,6 @@ class EditorDebugTabForNarrativeChart extends Component<{
                         value={YAML.stringify(fullConfig)}
                     />
                 </Section>
-            </div>
-        )
-    }
-}
-
-@observer
-class EditorDebugTabForIndicatorChart extends Component<{
-    editor: IndicatorChartEditor
-}> {
-    override render() {
-        const { patchConfig, parentConfig, fullConfig } = this.props.editor
-
-        return (
-            <div className="ConfigTab">
-                <Section name="Config">
-                    <textarea
-                        rows={7}
-                        readOnly
-                        className="form-control"
-                        value={YAML.stringify(patchConfig)}
-                    />
-                </Section>
-                {parentConfig && (
-                    <>
-                        <Section name="Parent config (authored in the ETL)">
-                            <textarea
-                                rows={7}
-                                readOnly
-                                className="form-control"
-                                value={YAML.stringify(parentConfig)}
-                            />
-                        </Section>
-                        <Section name="Merged config">
-                            <textarea
-                                rows={7}
-                                readOnly
-                                className="form-control"
-                                value={YAML.stringify(fullConfig)}
-                            />
-                        </Section>
-                    </>
-                )}
             </div>
         )
     }

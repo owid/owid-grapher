@@ -8,6 +8,7 @@ import {
     DbInsertExplorer,
     DbPlainExplorer,
     ExplorersTableName,
+    JsonError,
 } from "@ourworldindata/types"
 import { areSetsEqual } from "@ourworldindata/utils"
 import { parseExplorer } from "../explorerParser.js"
@@ -165,8 +166,8 @@ export async function upsertExplorerCharts(
 
 async function validateVariableIds(
     knex: KnexReadWriteTransaction,
-    proposed: number[],
-    isPublished: boolean
+    slug: string,
+    proposed: number[]
 ): Promise<number[]> {
     if (proposed.length === 0) return []
     const foundRows = await knex("variables")
@@ -175,10 +176,10 @@ async function validateVariableIds(
     const found = foundRows.map((row) => row.id)
     const missing = proposed.filter((id) => !found.includes(id))
     if (missing.length > 0) {
-        console.error("missing variables in db", {
-            missing_variables: missing,
-            isPublished,
-        })
+        throw new JsonError(
+            `${missing.length} indicator(s) named by explorer ${slug} don't exist: ${missing.join(", ")}.`,
+            400
+        )
     }
     return found
 }
@@ -210,7 +211,6 @@ export async function upsertExplorerVariables(
             "Mismatch: proposed size does not equal the sum of proposedCatalogPaths and proposedVariableIds sizes"
         )
     }
-    const isPublished = config["isPublished"] === "true"
 
     // Resolve catalog paths to variable ids via a knex query.
     const resolvedRows = await knex("variables")
@@ -227,10 +227,9 @@ export async function upsertExplorerVariables(
         .filter((x) => !foundCatalogPaths.has(x))
         .toArray()
     if (missing.length > 0) {
-        console.error(
-            `Couldn't resolve ${missing.length} catalog paths:`,
-            missing,
-            isPublished
+        throw new JsonError(
+            `${missing.length} catalog path(s) named by explorer ${slug} cannot be resolved: ${missing.join(", ")}.`,
+            400
         )
     }
     // Merge proposed variable ids and resolved variable ids.
@@ -249,8 +248,8 @@ export async function upsertExplorerVariables(
         })
         const validIds = await validateVariableIds(
             knex,
-            Array.from(proposedUnion),
-            isPublished
+            slug,
+            Array.from(proposedUnion)
         )
         await knex("explorer_variables").where({ explorerSlug: slug }).delete()
         await knex("explorer_variables").insert(

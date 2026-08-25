@@ -126,7 +126,6 @@ export interface GrapherManager {
     queryStr?: string
     selection?: SelectionArray
     focusArray?: FocusArray
-    adminEditPath?: string
     adminCreateNarrativeChartPath?: string
     analyticsContext?: AnalyticsContext
 }
@@ -562,11 +561,12 @@ export class Grapher extends React.Component<GrapherProps> {
 
                 {/* Entity selector in a slide-in drawer */}
                 <SlideInDrawer
+                    ariaLabel="Entity selector"
                     grapherRef={this.grapherState.base}
-                    active={this.grapherState.isEntitySelectorDrawerOpen}
-                    toggle={() => {
+                    isOpen={this.grapherState.isEntitySelectorDrawerOpen}
+                    onOpenChange={(isOpen) => {
                         this.grapherState.isEntitySelectorModalOrDrawerOpen =
-                            !this.grapherState.isEntitySelectorModalOrDrawerOpen
+                            isOpen
                     }}
                 >
                     <EntitySelector

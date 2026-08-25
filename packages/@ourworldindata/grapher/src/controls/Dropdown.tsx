@@ -33,8 +33,9 @@ export interface DropdownOptionGroup<
     options: DropdownOption[]
 }
 
-export type DropdownCollectionItem<DropdownOption extends BasicDropdownOption> =
-    DropdownOption | DropdownOptionGroup<DropdownOption>
+export type DropdownCollectionItem<
+    DropdownOption extends BasicDropdownOption,
+> = DropdownOption | DropdownOptionGroup<DropdownOption>
 
 export type DropdownCollection<DropdownOption extends BasicDropdownOption> =
     DropdownCollectionItem<DropdownOption>[]

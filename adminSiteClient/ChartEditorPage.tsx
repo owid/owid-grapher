@@ -1,7 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction, action, makeObservable } from "mobx"
-import { getParentVariableIdFromChartConfig } from "@ourworldindata/utils"
+import { getParentIndicatorIdFromChartConfig } from "@ourworldindata/utils"
 import {
     type AnalyticsGrapherViewWithRank,
     GrapherInterface,
@@ -14,7 +14,7 @@ import {
     ChartEditor,
     Log,
     ChartEditorManager,
-    fetchMergedGrapherConfigByVariableId,
+    fetchChartConfigByIndicatorId,
 } from "./ChartEditor.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
@@ -94,9 +94,9 @@ export class ChartEditorPage
             this.forceDatapage = settings?.forceDatapage ?? false
         } else if (grapherConfig) {
             const parentIndicatorId =
-                getParentVariableIdFromChartConfig(grapherConfig)
+                getParentIndicatorIdFromChartConfig(grapherConfig)
             if (parentIndicatorId) {
-                this.parentConfig = await fetchMergedGrapherConfigByVariableId(
+                this.parentConfig = await fetchChartConfigByIndicatorId(
                     this.context.admin,
                     parentIndicatorId
                 )

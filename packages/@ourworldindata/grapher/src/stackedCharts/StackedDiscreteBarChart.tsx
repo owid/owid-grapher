@@ -693,6 +693,7 @@ export class StackedDiscreteBarChart
                     items={this.renderRows}
                     keyAccessor={(d) => d.entityName}
                     getY={(d) => d.yPosition}
+                    immediate={this.manager.disableChartRowAnimation}
                     renderRow={(row) => (
                         <StackedDiscreteBarRow
                             key={row.entityName}

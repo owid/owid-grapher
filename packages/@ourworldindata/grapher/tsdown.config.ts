@@ -78,19 +78,21 @@ export default defineConfig([
     },
     // The standalone bundle for the package's `./standalone` export: minified,
     // with React bundled in, so it can be dropped into a plain HTML page via a
-    // single `import`. Built from the CSS-free grapher.public.ts entry, since
-    // the npm build above already emits dist/grapher.css - which is where CDN
-    // consumers load the styles from too.
+    // single `import`. Built from a CSS-free entry, since the npm build above
+    // already emits dist/grapher.css - which is where CDN consumers load the
+    // styles from too.
     {
         ...shared,
         name: "standalone",
-        entry: { "grapher.standalone.min": "./src/grapher.public.ts" },
+        entry: {
+            "grapher.standalone.min": "./src/grapher.standalone.entry.ts",
+        },
         minify: true,
     },
     // The bundled type declarations for the public API, shared by both builds
-    // above. Emits no JS of its own (`emitDtsOnly`), and uses the same CSS-free
-    // entry as the standalone build - the declaration pass runs through tsgo,
-    // which has no idea what to do with an `import "./core/grapher.scss"`.
+    // above. Emits no JS of its own (`emitDtsOnly`), and uses the CSS- and
+    // polyfill-free grapher.public.ts entry - the declaration pass runs through
+    // tsgo, which has no idea what to do with an `import "./core/grapher.scss"`.
     {
         ...shared,
         name: "types",

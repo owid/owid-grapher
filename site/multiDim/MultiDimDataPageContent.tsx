@@ -116,7 +116,7 @@ export function DataPageContent({
     // A non-empty manager is used in the size calculations
     // within grapher, so we have to initialize it early with
     // a truthy value
-    const managerRef = useRef<GrapherManager>({ adminEditPath: "" })
+    const managerRef = useRef<GrapherManager>({})
     const grapherStateRef = useRef<GrapherState>(
         new GrapherState({
             additionalDataLoaderFn: (catalogKey) =>
@@ -203,16 +203,10 @@ export function DataPageContent({
                 Boolean(isPreviewing),
                 assetMap
             )
-            const variables = newView.indicators?.["y"]
-            const adminEditPath =
-                variables?.length === 1
-                    ? `variables/${variables[0].id}/config`
-                    : undefined
             const analyticsContext = {
                 slug: slug!,
                 viewConfigId: grapherConfigUuid,
             }
-            managerRef.current.adminEditPath = adminEditPath
             managerRef.current.analyticsContext = analyticsContext
             managerRef.current.adminCreateNarrativeChartPath = `narrative-charts/create?type=multiDim&chartConfigId=${grapherConfigUuid}`
 

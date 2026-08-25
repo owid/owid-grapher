@@ -40,7 +40,7 @@
             }
             img {
                 background: $gray-5;
-                transition: 150ms;
+                transition: box-shadow var(--duration-press) ease;
                 box-shadow: 0px 0px 12px 0px rgba(49, 37, 2, 0.05);
             }
             h2 {

@@ -19,6 +19,9 @@
 .homepage-intro__featured-work-column {
     display: flex;
     flex-direction: column;
+    @include md-up {
+        min-width: 0;
+    }
     @include md-down {
         flex-direction: row;
     }
@@ -40,6 +43,7 @@
 
 .homepage-intro__featured-tile {
     display: block;
+    width: 100%;
     border: 1px solid $blue-10;
     padding: 16px;
     color: $blue-90;

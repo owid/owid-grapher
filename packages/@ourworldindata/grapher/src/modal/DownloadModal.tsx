@@ -53,6 +53,7 @@ import {
 } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 import { GrapherRasterizeFn } from "../captionedChart/StaticChartRasterizer.js"
+import { TabPanel } from "react-aria-components"
 import { TabItem, Tabs } from "../tabs/Tabs.js"
 import * as R from "remeda"
 import {
@@ -140,14 +141,6 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return this.props.manager.activeDownloadModalTab
     }
 
-    @computed private get isVisTabActive() {
-        return this.activeTab === DownloadModalTabName.Vis
-    }
-
-    @computed private get isDataTabActive() {
-        return this.activeTab === DownloadModalTabName.Data
-    }
-
     @action.bound private onTabChange(key: DownloadModalTabName) {
         this.props.manager.activeDownloadModalTab = key
     }
@@ -171,47 +164,37 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                         title="Download"
                         onDismiss={this.onDismiss}
                     />
-                    <div className="download-modal__tab-list">
-                        <Tabs
-                            variant="slim"
-                            items={this.tabItems}
-                            selectedKey={this.activeTab}
-                            onChange={this.onTabChange}
-                        />
-                    </div>
-
-                    {/* Tabs */}
-                    {/**
-                     * We only hide the inactive tab with display: none and don't unmount it,
-                     * so that the tab state (selected radio buttons, etc) is preserved
-                     * when switching between tabs.
-                     */}
-                    <div className="download-modal__tab-panel" role="tabpanel">
-                        <div
-                            className="download-modal__tab-content"
-                            style={{
-                                display: this.isVisTabActive
-                                    ? undefined
-                                    : "none",
-                            }}
-                            role="tab"
-                            aria-hidden={!this.isVisTabActive}
-                        >
-                            <DownloadModalVisTab {...this.props} />
+                    <Tabs
+                        variant="slim"
+                        items={this.tabItems}
+                        selectedKey={this.activeTab}
+                        onChange={this.onTabChange}
+                        className="download-modal__tab-list"
+                        containerClassName="download-modal__tabs"
+                    >
+                        {/**
+                         * The inactive tab panel stays mounted (shouldForceMount)
+                         * and is only hidden via CSS, so that the tab state
+                         * (selected radio buttons, etc) is preserved when
+                         * switching between tabs.
+                         */}
+                        <div className="download-modal__tab-panel">
+                            <TabPanel
+                                id={DownloadModalTabName.Vis}
+                                shouldForceMount
+                                className="download-modal__tab-content"
+                            >
+                                <DownloadModalVisTab {...this.props} />
+                            </TabPanel>
+                            <TabPanel
+                                id={DownloadModalTabName.Data}
+                                shouldForceMount
+                                className="download-modal__tab-content"
+                            >
+                                <DownloadModalDataTab {...this.props} />
+                            </TabPanel>
                         </div>
-                        <div
-                            className="download-modal__tab-content"
-                            style={{
-                                display: this.isDataTabActive
-                                    ? undefined
-                                    : "none",
-                            }}
-                            role="tab"
-                            aria-hidden={!this.isDataTabActive}
-                        >
-                            <DownloadModalDataTab {...this.props} />
-                        </div>
-                    </div>
+                    </Tabs>
                 </div>
             </Modal>
         )

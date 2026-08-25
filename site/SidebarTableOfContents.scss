@@ -11,7 +11,6 @@ $sidebar-toc-padding-wide: 24px; // L/R padding (wide sidebar + mobile drawer)
 $sidebar-toc-padding-narrow: 16px; // L/R padding (narrow sidebar)
 $sidebar-toc-collapsed-strip: 40px; // sliver left visible when collapsed
 $sidebar-toc-toggle-width: 31px; // straddles the sidebar's right edge
-$sidebar-toc-transition: 300ms ease;
 $sidebar-toc-section-gap: 24px;
 $sidebar-toc-chart-gap: 12px;
 $sidebar-toc-chart-y-padding: math.div($sidebar-toc-chart-gap, 2);
@@ -56,9 +55,9 @@ $sidebar-toc-header-gap: $topic-page-header-margin-bottom;
     display: flex;
     flex-direction: column;
     transition:
-        transform $sidebar-toc-transition,
-        background-color $sidebar-toc-transition,
-        border-color $sidebar-toc-transition;
+        transform var(--duration-drawer) var(--ease-drawer),
+        background-color var(--duration-hover) ease,
+        border-color var(--duration-hover) ease;
 
     @media (max-width: $sidebar-toc-sm) {
         display: none;
@@ -74,7 +73,7 @@ $sidebar-toc-header-gap: $topic-page-header-margin-bottom;
     flex-direction: column;
     gap: $sidebar-toc-section-gap;
     @include thin-scrollbar;
-    transition: opacity $sidebar-toc-transition;
+    transition: opacity var(--duration-popover) var(--ease-out);
 }
 
 // ── Collapse state ────────────────────────────────────────────────────────────
@@ -91,8 +90,8 @@ $sidebar-toc-header-gap: $topic-page-header-margin-bottom;
         // Delay the visibility flip to the end of the fade so the content stays
         // rendered while sliding out, then drops from the tab order.
         transition:
-            opacity $sidebar-toc-transition,
-            visibility 0s $sidebar-toc-transition;
+            opacity var(--duration-popover) var(--ease-out),
+            visibility 0s var(--duration-popover);
     }
 }
 

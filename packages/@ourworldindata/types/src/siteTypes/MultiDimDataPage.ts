@@ -136,7 +136,7 @@ export interface MultiDimDataPageProps {
     configObj: MultiDimDataPageConfigEnriched
     initialViewData?: MultiDimDataPageInitialViewData
     /** Indicator behind the landing view, so previews can target it */
-    initialViewVariableId?: number
+    initialViewIndicatorId?: number
     initialViewDimensions?: MultiDimDimensionChoices
     tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId

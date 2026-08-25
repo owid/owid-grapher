@@ -251,6 +251,7 @@ Running the build script produces the following outputs under `dist/`:
 - `grapher.js`: The ES module library build. React and React DOM are marked as external peer dependencies (ideal for modern React apps or bundler environments).
 - `grapher.standalone.min.js`: The minified standalone bundle. All dependencies (including React and React DOM) are bundled, enabling plug-and-play usage directly in any HTML page.
 - `grapher.css`: The stylesheet containing all Grapher layouts and components styles.
+- `grapher-schema.json`: The latest JSON schema for Grapher configs, also available through the `@ourworldindata/grapher/grapher-schema.json` package export.
 - `grapher.d.ts`: TypeScript declaration entry point for the public API.
 
 To compile these assets:
