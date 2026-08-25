@@ -46,6 +46,14 @@ export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
     return (
         <article className="centered-article-container centered-article-container--featured-viz grid grid-cols-12-full-width">
             <FeaturedVizHeader content={content} publishedAt={publishedAt} />
+            {before.length > 0 && (
+                <hr
+                    className={cx(
+                        "featured-viz-divider",
+                        getLayout("horizontal-rule")
+                    )}
+                />
+            )}
             <ArticleBlocks blocks={before} />
             {hero && <FeaturedVizHero block={hero} />}
             <ArticleBlocks blocks={after} />
