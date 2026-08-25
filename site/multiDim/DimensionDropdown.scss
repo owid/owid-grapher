@@ -107,8 +107,6 @@ $selected-hover-fill: #bed2e7;
     }
 
     .md-menu__overlay-header {
-        display: flex;
-        justify-content: space-between;
         padding: 0 16px;
         margin-bottom: 12px;
     }
@@ -116,15 +114,8 @@ $selected-hover-fill: #bed2e7;
     .md-menu__overlay-header-title {
         @include h5-black-caps;
         color: $light-text;
-
-        // Align with the close button. We don't use align-items: center,
-        // because the children below the title can have arbitrary height.
-        margin-top: 9px;
+        margin-top: 0;
         margin-bottom: 4px;
-    }
-
-    .md-menu__overlay-header-close-button {
-        margin-left: 8px;
     }
 
     .md-menu__dimension-description {
