@@ -2,6 +2,7 @@ import { EnrichedBlockBespokeComponent } from "@ourworldindata/types"
 import { LoadingIndicator } from "@ourworldindata/components"
 import cx from "clsx"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useIntersectionObserver } from "usehooks-ts"
 import { BESPOKE_COMPONENT_REGISTRY } from "../../bespokeComponentRegistry.js"
 import { mountBespokeComponentInShadow } from "../../../bespoke/shared/bespokeComponentShadowDom.js"
 import { BESPOKE_BASE_URL } from "../../../settings/clientSettings.js"
@@ -52,6 +53,13 @@ export function BespokeComponent({
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
+    // Defer loading the component's JS until it approaches the viewport
+    const { ref: intersectionRef, isIntersecting: hasBeenVisible } =
+        useIntersectionObserver({
+            rootMargin: "400px",
+            freezeOnceVisible: true,
+        })
+
     const definition = useMemo(
         () => BESPOKE_COMPONENT_REGISTRY[block.bundle],
         [block.bundle]
@@ -63,6 +71,8 @@ export function BespokeComponent({
     }, [definition])
 
     useEffect(() => {
+        if (!hasBeenVisible) return
+
         const container = containerRef.current
         if (!container) return
 
@@ -113,14 +123,21 @@ export function BespokeComponent({
             }
             container.shadowRoot?.replaceChildren()
         }
-    }, [block.bundle, block.variant, block.config, definition, scriptUrl])
+    }, [
+        block.bundle,
+        block.variant,
+        block.config,
+        definition,
+        scriptUrl,
+        hasBeenVisible,
+    ])
 
     if (error) {
         return <BespokeError className={className} message={error} />
     }
 
     return (
-        <div className={className}>
+        <div className={className} ref={intersectionRef}>
             {isLoading && <LoadingIndicator />}
             <div ref={containerRef}></div>
         </div>
