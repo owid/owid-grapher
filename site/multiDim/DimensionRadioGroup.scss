@@ -32,8 +32,21 @@ $radio-group-full-width-breakpoint: 520px;
     }
 }
 
+.md-settings__radio-field {
+    display: flex;
+
+    @media (max-width: $radio-group-full-width-breakpoint) {
+        // Distribute the available width evenly between the segments and
+        // allow them to shrink below their content width, so long choice
+        // names get truncated instead of overflowing the container.
+        flex: 1;
+        min-width: 0;
+    }
+}
+
 .md-settings__radio {
     display: flex;
+    flex: 1;
     align-items: center;
     height: 28px;
     padding: 0 10px;
@@ -68,10 +81,7 @@ $radio-group-full-width-breakpoint: 520px;
     }
 
     @media (max-width: $radio-group-full-width-breakpoint) {
-        flex: 1;
         justify-content: center;
-        // Allow segments to shrink below their content width, so long choice
-        // names get truncated instead of overflowing the container.
         min-width: 0;
     }
 }
