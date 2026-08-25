@@ -34,7 +34,7 @@ export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
 
     const { citationText, bibtex } = buildGdocCitation({
         authors: content.authors,
-        title: content.title,
+        title: content.title ?? "",
         publishedAt,
         slug,
         canonicalUrl: getCanonicalUrl(BAKED_BASE_URL, {

@@ -40,6 +40,7 @@ import {
     DbPlainTag,
     AssetMap,
     OwidGdocAboutInterface,
+    OwidGdocFeaturedVizInterface,
     OwidGdocHomepageInterface,
     PrimitiveType,
     GrapherTrendArrowDirection,
@@ -2234,6 +2235,12 @@ export function checkIsAboutPage(
     gdoc: OwidGdoc
 ): gdoc is OwidGdocAboutInterface {
     return gdoc.content.type === OwidGdocType.AboutPage
+}
+
+export function checkIsFeaturedViz(
+    gdoc: OwidGdoc
+): gdoc is OwidGdocFeaturedVizInterface {
+    return gdoc.content.type === OwidGdocType.FeaturedViz
 }
 
 export function checkIsAuthor(gdoc: OwidGdoc): gdoc is OwidGdocAuthorInterface {

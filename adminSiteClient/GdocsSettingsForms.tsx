@@ -294,6 +294,15 @@ export const GdocFeaturedVizSettings = ({
                     property="excerpt"
                     gdoc={gdoc}
                     errors={errors}
+                    render={(props) => (
+                        <GdocsSettingsTextArea
+                            {...props}
+                            inputProps={{
+                                showCount: true,
+                                maxLength: EXCERPT_MAX_LENGTH,
+                            }}
+                        />
+                    )}
                 />
                 <GdocsSettingsContentField
                     property="featured-image"
