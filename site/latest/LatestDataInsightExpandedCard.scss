@@ -1,0 +1,37 @@
+// Expanded (filtered-to-data-insights) feed card. The white card, padding,
+// figure outline and body type all come from `.data-insight-body` in
+// gdocs/pages/DataInsight.scss, which this card also carries; everything here
+// is the delta between that page and a feed of clickable cards. The rules that
+// override that class are written against both class names so they win however
+// the two files end up ordered in owid.scss.
+.latest-data-insight-expanded-card.data-insight-body {
+    display: block;
+    color: $blue-90;
+
+    // The feed spaces its cards with `.latest-page article`; the detail page's
+    // own 30px bottom margin would stack on top of that.
+    margin-bottom: 0;
+
+    &:hover .latest-data-insight-expanded-card__title {
+        text-decoration: underline;
+    }
+}
+
+// `.data-insight-body h1` sizes the title on the detail page. This card uses an
+// <h2>, because in the feed it sits below the page's own <h1>.
+.latest-data-insight-expanded-card__title {
+    margin: 0 0 8px 0;
+    font-size: 1.875rem;
+
+    @include md-down {
+        font-size: 1.375rem;
+    }
+}
+
+// Plain text rather than the detail page's LinkedAuthor list: data insight
+// records carry no linkedAuthors, and an author link can't nest in this card's
+// own anchor. Matches `.data-insight-authors` otherwise.
+.latest-data-insight-expanded-card__authors {
+    color: $blue-60;
+    margin: 0 0 16px 0;
+}

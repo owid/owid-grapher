@@ -65,5 +65,9 @@ LatestSearchWrapper            (Algolia LiteClient + QueryClientProvider)
         └── LatestHit          (per-type dispatcher)
               ├── LatestArticleHit
               ├── LatestDataInsightHit
+              │     ├── LatestFeedCard                   (compact)
+              │     └── LatestDataInsightExpandedCard    (filtered to data insights)
               └── LatestAnnouncementHit
+                    ├── LatestFeedCard                   (data updates)
+                    └── AnnouncementContent              (every other kicker)
 ```

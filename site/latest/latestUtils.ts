@@ -71,6 +71,18 @@ export const latestTypeLabelPlural = (type: LatestType): string =>
 export const LATEST_HIT_GRID_CLASSES =
     "span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1"
 
+/**
+ * Grid positioning for an expanded data insight hit. Narrower than the rest of
+ * the feed on purpose: the card reproduces the data insight page's own card,
+ * and that page lays it out over 6 of 12 columns (8 at md) — see
+ * DataInsightBody. Matching the span is what keeps the figure, the title and
+ * the reading measure at the size they are on the page; over the feed's usual
+ * 8 columns the figure would come out ~40% larger than it is there. Left-
+ * aligned with the rest of the feed rather than centred the way the page is.
+ */
+export const LATEST_EXPANDED_DATA_INSIGHT_GRID_CLASSES =
+    "span-cols-6 col-start-2 span-md-cols-8 col-md-start-2 span-sm-cols-14 col-sm-start-1"
+
 /** Grid positioning for the facets row and the divider beneath it — shared
  * between the live UI (LatestSearch) and the baked skeleton
  * (LatestPageSkeleton) so the two layouts can't drift apart. */
