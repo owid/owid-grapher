@@ -82,10 +82,6 @@ export class HorizontalNumericColorLegendState {
         return Math.round(this.fontSize * 1.125)
     }
 
-    @computed private get maxWidth(): number {
-        return this.options.maxWidth ?? this.options.width ?? 200
-    }
-
     private getTickLabelWidth(label: string): number {
         return Bounds.forText(label, {
             fontSize: this.tickFontSize,
@@ -109,13 +105,6 @@ export class HorizontalNumericColorLegendState {
         return _.sum(widths)
     }
 
-    @computed private get isAutoWidth(): boolean {
-        return (
-            this.options.width === undefined &&
-            this.options.maxWidth !== undefined
-        )
-    }
-
     private getNumericLabelMinWidth(bin: NumericBin): number {
         if (bin.text) {
             const tickLabelWidth = this.getTickLabelWidth(bin.text)
@@ -132,8 +121,8 @@ export class HorizontalNumericColorLegendState {
         }
     }
 
-    // Overstretched legends don't look good.
-    // If a `maxWidth` is given, then we calculate an _ideal_ width for the legend.
+    // Overstretched legends don't look good, so we calculate an _ideal_ width
+    // and only grow to `maxWidth` when the labels genuinely need the room.
     @computed private get idealNumericWidth(): number {
         const binCount = this.numericBins.length
         const spaceRequirements = this.numericBins.map((bin) => ({
@@ -154,27 +143,23 @@ export class HorizontalNumericColorLegendState {
     }
 
     @computed get width(): number {
-        if (this.isAutoWidth) {
-            return Math.min(
-                this.maxWidth,
-                this.titleWidth +
-                    this.totalCategoricalWidth +
-                    this.idealNumericWidth
-            )
-        } else {
-            return this.maxWidth
-        }
+        return Math.min(
+            this.options.maxWidth,
+            this.titleWidth +
+                this.totalCategoricalWidth +
+                this.idealNumericWidth
+        )
     }
 
     @computed private get availableNumericWidth(): number {
         return this.width - this.totalCategoricalWidth - this.titleWidth
     }
 
-    // Since we calculate the width automatically in some cases (when `isAutoWidth`
-    // is true), we need to shift X to align the legend horizontally.
+    // The legend is usually narrower than the space it was given, so it has to
+    // be shifted to sit where `align` asks.
     @computed private get xOffset(): number {
-        const { width, maxWidth, align } = this
-        const widthDiff = maxWidth - width
+        const { width, align } = this
+        const widthDiff = this.options.maxWidth - width
         if (align === HorizontalAlign.center) {
             return widthDiff / 2
         } else if (align === HorizontalAlign.right) {
@@ -233,7 +218,7 @@ export class HorizontalNumericColorLegendState {
                   text: title,
                   fontSize: this.titleFontSize,
                   fontWeight: 700,
-                  maxWidth: this.maxWidth / 3,
+                  maxWidth: this.options.maxWidth / 3,
                   lineHeight: 1,
               })
             : undefined

@@ -934,7 +934,7 @@ export class FacetChart
                 this.categoricalLegendData,
                 {
                     fontSize: this.fontSize,
-                    maxWidth: this.legendMaxWidth,
+                    width: this.legendMaxWidth,
                     align: this.legendAlign,
                     resolveBinEmphasis: this.resolveLegendBinEmphasis,
                     styleConfig: this.categoricalStyleConfig,

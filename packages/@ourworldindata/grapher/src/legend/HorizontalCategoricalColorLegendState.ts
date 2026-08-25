@@ -44,10 +44,6 @@ export class HorizontalCategoricalColorLegendState {
         return this.options.align ?? HorizontalAlign.center
     }
 
-    @computed get width(): number {
-        return this.options.width ?? this.options.maxWidth ?? 200
-    }
-
     @computed private get visibleBins(): CategoricalBin[] {
         return this.bins.filter((bin) => !bin.isHidden)
     }
@@ -68,7 +64,7 @@ export class HorizontalCategoricalColorLegendState {
                 labelBounds.width +
                 this.markPadding
 
-            if (xOffset + markWidth > this.width && marks.length > 0) {
+            if (xOffset + markWidth > this.options.width && marks.length > 0) {
                 lines.push({
                     totalWidth: xOffset - this.markPadding,
                     marks: marks,
@@ -109,7 +105,8 @@ export class HorizontalCategoricalColorLegendState {
     }
 
     @computed get marks(): CategoricalMark[] {
-        const { markLines: lines, align, width } = this
+        const { markLines: lines, align } = this
+        const { width } = this.options
 
         // Center each line
         lines.forEach((line) => {

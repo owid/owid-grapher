@@ -431,7 +431,7 @@ export class FacetMap
             this.categoricalLegendData,
             {
                 fontSize: this.fontSize,
-                maxWidth: this.legendMaxWidth,
+                width: this.legendMaxWidth,
                 align: HorizontalAlign.center,
                 resolveBinEmphasis: this.resolveLegendBinEmphasis,
                 styleConfig: this.legendStyleConfig,

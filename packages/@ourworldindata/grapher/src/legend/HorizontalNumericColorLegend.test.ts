@@ -37,6 +37,7 @@ describe(HorizontalNumericColorLegend, () => {
         const state = new HorizontalNumericColorLegendState(
             [highlightedBin, otherBin],
             {
+                maxWidth: 200,
                 resolveBinEmphasis: (bin) =>
                     bin === highlightedBin
                         ? Emphasis.Highlighted

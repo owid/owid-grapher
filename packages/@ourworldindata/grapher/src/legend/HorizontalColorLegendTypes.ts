@@ -40,9 +40,9 @@ export interface MarkLine {
 }
 
 export interface HorizontalNumericColorLegendOptions {
+    /** The legend shrinks to its ideal width and aligns itself within this. */
+    maxWidth: number
     fontSize?: number
-    width?: number
-    maxWidth?: number
     title?: string
     align?: HorizontalAlign
     tickSize?: number
@@ -52,9 +52,9 @@ export interface HorizontalNumericColorLegendOptions {
 }
 
 export interface HorizontalCategoricalColorLegendOptions {
+    /** The legend always fills this, wrapping its marks onto as many lines as it needs. */
+    width: number
     fontSize?: number
-    width?: number
-    maxWidth?: number
     align?: HorizontalAlign
     resolveBinEmphasis?: (bin: ColorScaleBin) => Emphasis
     styleConfig?: LegendStyleConfig

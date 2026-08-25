@@ -44,7 +44,9 @@ describe(HorizontalNumericColorLegendState, () => {
             color: "blue",
         })
 
-        const state = new HorizontalNumericColorLegendState([bin], {})
+        const state = new HorizontalNumericColorLegendState([bin], {
+            maxWidth: 200,
+        })
         expect(state.height).toBeGreaterThan(0)
     })
 
@@ -57,7 +59,7 @@ describe(HorizontalNumericColorLegendState, () => {
                 makeNumericBin(1, 2),
                 makeCategoricalBin("c"),
             ],
-            {}
+            { maxWidth: 200 }
         )
 
         const bins = state.positionedBins
@@ -80,7 +82,9 @@ describe(HorizontalCategoricalColorLegendState, () => {
             color: "red",
         })
 
-        const state = new HorizontalCategoricalColorLegendState([bin], {})
+        const state = new HorizontalCategoricalColorLegendState([bin], {
+            width: 200,
+        })
         expect(state.height).toBeGreaterThan(0)
     })
 })
