@@ -51,7 +51,7 @@ import {
     mergeCategoricalBinsByLabelAndColor,
     NumericBin,
 } from "../color/ColorScaleBin"
-import { LegendStyleConfig } from "../legend/LegendStyleConfig"
+import { BinEmphasis, LegendStyleConfig } from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import {
     ColumnSlug,
@@ -512,6 +512,24 @@ export class MapChart
         return Emphasis.Muted
     }
 
+    @computed private get numericLegendEmphasis(): BinEmphasis {
+        return new Map(
+            this.numericLegendData.map((bin) => [
+                bin,
+                this.resolveLegendBinEmphasis(bin),
+            ])
+        )
+    }
+
+    @computed private get categoricalLegendEmphasis(): BinEmphasis {
+        return new Map(
+            this.categoricalLegendData.map((bin) => [
+                bin,
+                this.resolveLegendBinEmphasis(bin),
+            ])
+        )
+    }
+
     private readonly legendStyleConfig: LegendStyleConfig = {
         marker: {
             default: { stroke: DEFAULT_STROKE_COLOR },
@@ -554,8 +572,6 @@ export class MapChart
                 fontSize: this.fontSize,
                 width: this.legendMaxWidth,
                 align: HorizontalAlign.center,
-                resolveBinEmphasis: this.resolveLegendBinEmphasis,
-                styleConfig: this.legendStyleConfig,
             }
         )
     }
@@ -570,8 +586,6 @@ export class MapChart
             maxWidth: this.legendMaxWidth,
             align: HorizontalAlign.center,
             binSize: this.numericBinSize,
-            resolveBinEmphasis: this.resolveLegendBinEmphasis,
-            styleConfig: this.legendStyleConfig,
         })
     }
 
@@ -630,6 +644,8 @@ export class MapChart
                 {numericLegendState && (
                     <HorizontalNumericColorLegend
                         state={numericLegendState}
+                        styleConfig={this.legendStyleConfig}
+                        binEmphasis={this.numericLegendEmphasis}
                         x={this.legendX}
                         y={this.numericLegendY}
                         onMouseEnter={this.onLegendMouseEnter}
@@ -641,6 +657,8 @@ export class MapChart
                 {categoryLegendState && (
                     <HorizontalCategoricalColorLegend
                         state={categoryLegendState}
+                        styleConfig={this.legendStyleConfig}
+                        binEmphasis={this.categoricalLegendEmphasis}
                         x={this.legendX}
                         y={this.categoryLegendY}
                         onMouseEnter={this.onLegendMouseEnter}

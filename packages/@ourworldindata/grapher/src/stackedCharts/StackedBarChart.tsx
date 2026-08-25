@@ -41,6 +41,7 @@ import { Color, HorizontalAlign, SeriesName } from "@ourworldindata/types"
 import { getHoverStateForSeries } from "../chart/ChartUtils"
 import { InteractionState } from "../interaction/InteractionState"
 import { resolveEmphasis, Emphasis } from "../interaction/Emphasis"
+import { BinEmphasis } from "../legend/LegendStyleConfig"
 import { HorizontalCategoricalColorLegend } from "../legend/HorizontalCategoricalColorLegend"
 import { HorizontalCategoricalColorLegendState } from "../legend/HorizontalCategoricalColorLegendState"
 import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
@@ -262,6 +263,15 @@ export class StackedBarChart
         return isActive ? Emphasis.Highlighted : Emphasis.Muted
     }
 
+    @computed private get categoricalLegendEmphasis(): BinEmphasis {
+        return new Map(
+            this.categoricalLegendData.map((bin) => [
+                bin,
+                this.resolveLegendBinEmphasis(bin),
+            ])
+        )
+    }
+
     @computed private get categoricalLegendData(): CategoricalBin[] {
         return this.series
             .map(
@@ -311,8 +321,6 @@ export class StackedBarChart
         return new VerticalColorLegendState(this.categoricalLegendData, {
             fontSize: this.fontSize,
             maxWidth: this.maxLegendWidth,
-            resolveBinEmphasis: this.resolveLegendBinEmphasis,
-            styleConfig: this.legendStyleConfig,
         })
     }
 
@@ -324,8 +332,6 @@ export class StackedBarChart
                 fontSize: this.fontSize,
                 width: this.bounds.width,
                 align: this.legendAlign,
-                resolveBinEmphasis: this.resolveLegendBinEmphasis,
-                styleConfig: this.legendStyleConfig,
             }
         )
     }
@@ -484,6 +490,8 @@ export class StackedBarChart
         return showHorizontalLegend ? (
             <HorizontalCategoricalColorLegend
                 state={this.horizontalColorLegendState}
+                styleConfig={this.legendStyleConfig}
+                binEmphasis={this.categoricalLegendEmphasis}
                 x={this.legendX}
                 y={this.categoryLegendY}
                 onMouseOver={this.onLegendMouseOver}
@@ -493,6 +501,8 @@ export class StackedBarChart
         ) : (
             <VerticalColorLegend
                 state={this.verticalColorLegendState}
+                styleConfig={this.legendStyleConfig}
+                binEmphasis={this.categoricalLegendEmphasis}
                 x={this.legendX}
                 y={this.legendY}
                 onMouseOver={this.onLegendMouseOver}

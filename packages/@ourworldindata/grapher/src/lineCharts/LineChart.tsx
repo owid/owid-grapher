@@ -362,6 +362,7 @@ export class LineChart
         return (
             <HorizontalNumericColorLegend
                 state={this.numericLegendState}
+                styleConfig={this.numericLegendStyleConfig}
                 x={this.legendX}
                 y={this.numericLegendY}
             />
@@ -527,7 +528,6 @@ export class LineChart
                   title: this.legendTitle,
                   tickSize: this.legendTickSize,
                   binSize: this.numericBinSize,
-                  styleConfig: this.numericLegendStyleConfig,
               })
             : undefined
     }

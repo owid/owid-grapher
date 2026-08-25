@@ -66,7 +66,7 @@ import {
     NumericBin,
 } from "../color/ColorScaleBin"
 import { FocusArray } from "../focus/FocusArray"
-import { LegendStyleConfig } from "../legend/LegendStyleConfig"
+import { BinEmphasis, LegendStyleConfig } from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
 import {
@@ -895,6 +895,24 @@ export class FacetChart
         return isActive ? Emphasis.Highlighted : Emphasis.Muted
     }
 
+    @computed private get numericLegendEmphasis(): BinEmphasis {
+        return new Map(
+            this.numericLegendData.map((bin) => [
+                bin,
+                this.resolveLegendBinEmphasis(bin),
+            ])
+        )
+    }
+
+    @computed private get categoricalLegendEmphasis(): BinEmphasis {
+        return new Map(
+            this.categoricalLegendData.map((bin) => [
+                bin,
+                this.resolveLegendBinEmphasis(bin),
+            ])
+        )
+    }
+
     @computed private get numericStyleConfig(): LegendStyleConfig | undefined {
         const legend = this.externalLegends[0]
         return legend?.numericLegendStyleConfig ?? legend?.legendStyleConfig
@@ -922,8 +940,6 @@ export class FacetChart
                         align: this.legendAlign,
                         tickSize: this.legendTickSize,
                         binSize: this.numericBinSize,
-                        resolveBinEmphasis: this.resolveLegendBinEmphasis,
-                        styleConfig: this.numericStyleConfig,
                     }
                 ),
             }
@@ -936,8 +952,6 @@ export class FacetChart
                     fontSize: this.fontSize,
                     width: this.legendMaxWidth,
                     align: this.legendAlign,
-                    resolveBinEmphasis: this.resolveLegendBinEmphasis,
-                    styleConfig: this.categoricalStyleConfig,
                 }
             ),
         }
@@ -949,6 +963,8 @@ export class FacetChart
                 return (
                     <HorizontalNumericColorLegend
                         state={legend.state}
+                        styleConfig={this.numericStyleConfig}
+                        binEmphasis={this.numericLegendEmphasis}
                         x={this.legendX}
                         y={this.legendY}
                         onMouseOver={this.onLegendMouseOver}
@@ -959,6 +975,8 @@ export class FacetChart
                 return (
                     <HorizontalCategoricalColorLegend
                         state={legend.state}
+                        styleConfig={this.categoricalStyleConfig}
+                        binEmphasis={this.categoricalLegendEmphasis}
                         x={this.legendX}
                         y={this.legendY}
                         onMouseOver={this.onLegendMouseOver}

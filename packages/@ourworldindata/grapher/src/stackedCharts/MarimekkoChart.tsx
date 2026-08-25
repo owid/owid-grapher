@@ -51,7 +51,7 @@ import {
 import { HorizontalCategoricalColorLegend } from "../legend/HorizontalCategoricalColorLegend"
 import { HorizontalCategoricalColorLegendState } from "../legend/HorizontalCategoricalColorLegendState"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
-import { LegendStyleConfig } from "../legend/LegendStyleConfig"
+import { BinEmphasis, LegendStyleConfig } from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { ColorScale } from "../color/ColorScale"
@@ -346,6 +346,15 @@ export class MarimekkoChart
         return isFocused ? Emphasis.Highlighted : Emphasis.Muted
     }
 
+    @computed private get categoricalLegendEmphasis(): BinEmphasis {
+        return new Map(
+            this.categoricalLegendData.map((bin) => [
+                bin,
+                this.resolveLegendBinEmphasis(bin),
+            ])
+        )
+    }
+
     legendStyleConfig: LegendStyleConfig = LEGEND_STYLE_FOR_STACKED_CHARTS
 
     @computed get hoverColors(): string[] {
@@ -388,8 +397,6 @@ export class MarimekkoChart
                 fontSize: this.fontSize,
                 width: this.legendWidth,
                 align: this.legendAlign,
-                resolveBinEmphasis: this.resolveLegendBinEmphasis,
-                styleConfig: this.legendStyleConfig,
             }
         )
     }
@@ -555,6 +562,8 @@ export class MarimekkoChart
                 {this.showLegend && (
                     <HorizontalCategoricalColorLegend
                         state={this.legendState}
+                        styleConfig={this.legendStyleConfig}
+                        binEmphasis={this.categoricalLegendEmphasis}
                         x={this.legendX}
                         y={this.categoryLegendY}
                         onMouseOver={this.onLegendMouseOver}

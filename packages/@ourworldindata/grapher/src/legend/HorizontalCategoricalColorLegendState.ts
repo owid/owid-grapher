@@ -1,14 +1,11 @@
 import * as _ from "lodash-es"
 import { computed } from "mobx"
 import { Bounds, HorizontalAlign } from "@ourworldindata/utils"
-import { ColorScaleBin, CategoricalBin } from "../color/ColorScaleBin"
+import { CategoricalBin } from "../color/ColorScaleBin"
 import {
     BASE_FONT_SIZE,
     GRAPHER_FONT_SCALE_12_8,
 } from "../core/GrapherConstants"
-import { LegendTextStyle, LegendMarkerStyle } from "./LegendStyleConfig"
-import { Emphasis } from "../interaction/Emphasis"
-import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import {
     CategoricalMark,
     MarkLine,
@@ -131,28 +128,5 @@ export class HorizontalCategoricalColorLegendState {
 
     @computed get height(): number {
         return _.max(this.marks.map((mark) => mark.y + mark.rectSize)) ?? 0
-    }
-
-    getBinEmphasis(bin: ColorScaleBin): Emphasis {
-        return this.options.resolveBinEmphasis?.(bin) ?? Emphasis.Default
-    }
-
-    getTextStyle(bin: ColorScaleBin): LegendTextStyle {
-        const styleConfig = this.options.styleConfig?.text
-        return {
-            color: GRAPHER_DARK_TEXT,
-            ...styleConfig?.default,
-            ...styleConfig?.[this.getBinEmphasis(bin)],
-        }
-    }
-
-    getMarkerStyle(bin: ColorScaleBin): LegendMarkerStyle {
-        const styleConfig = this.options.styleConfig?.marker
-        return {
-            fill: bin.color,
-            strokeWidth: 0.4,
-            ...styleConfig?.default,
-            ...styleConfig?.[this.getBinEmphasis(bin)],
-        }
     }
 }

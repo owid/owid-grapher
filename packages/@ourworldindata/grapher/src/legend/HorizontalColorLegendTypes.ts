@@ -1,7 +1,6 @@
 import { Bounds, HorizontalAlign } from "@ourworldindata/utils"
 import { ColorScaleBin, CategoricalBin } from "../color/ColorScaleBin"
 import { LegendStyleConfig } from "./LegendStyleConfig"
-import { Emphasis } from "../interaction/Emphasis"
 import type { HorizontalNumericColorLegendState } from "./HorizontalNumericColorLegendState"
 import type { HorizontalCategoricalColorLegendState } from "./HorizontalCategoricalColorLegendState"
 
@@ -47,8 +46,6 @@ export interface HorizontalNumericColorLegendOptions {
     align?: HorizontalAlign
     tickSize?: number
     binSize?: number
-    resolveBinEmphasis?: (bin: ColorScaleBin) => Emphasis
-    styleConfig?: LegendStyleConfig
 }
 
 export interface HorizontalCategoricalColorLegendOptions {
@@ -56,8 +53,6 @@ export interface HorizontalCategoricalColorLegendOptions {
     width: number
     fontSize?: number
     align?: HorizontalAlign
-    resolveBinEmphasis?: (bin: ColorScaleBin) => Emphasis
-    styleConfig?: LegendStyleConfig
 }
 
 /** Which of the two horizontal legends a chart is showing. */

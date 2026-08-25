@@ -58,6 +58,7 @@ import { HorizontalCategoricalColorLegendState } from "../legend/HorizontalCateg
 import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"
+import { BinEmphasis } from "../legend/LegendStyleConfig"
 import { HorizontalAxis } from "../axis/Axis"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
@@ -240,6 +241,15 @@ export class StackedDiscreteBarChart
         return Emphasis.Default
     }
 
+    @computed private get categoricalLegendEmphasis(): BinEmphasis {
+        return new Map(
+            this.categoricalLegendData.map((bin) => [
+                bin,
+                this.resolveLegendBinEmphasis(bin),
+            ])
+        )
+    }
+
     legendStyleConfig = LEGEND_STYLE_FOR_STACKED_CHARTS
 
     @computed get externalLegend(): ExternalColorLegendData | undefined {
@@ -272,8 +282,6 @@ export class StackedDiscreteBarChart
                 fontSize: this.fontSize,
                 width: this.legendWidth,
                 align: this.legendAlign,
-                resolveBinEmphasis: this.resolveLegendBinEmphasis,
-                styleConfig: this.legendStyleConfig,
             }
         )
     }
@@ -628,6 +636,8 @@ export class StackedDiscreteBarChart
         return (
             <HorizontalCategoricalColorLegend
                 state={this.legendState}
+                styleConfig={this.legendStyleConfig}
+                binEmphasis={this.categoricalLegendEmphasis}
                 x={this.legendX}
                 y={this.categoryLegendY}
                 onMouseOver={this.onLegendMouseOver}

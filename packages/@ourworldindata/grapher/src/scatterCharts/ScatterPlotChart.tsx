@@ -58,7 +58,7 @@ import {
 } from "./ScatterPlotChartConstants"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { ColorScaleBin } from "../color/ColorScaleBin"
-import { LegendStyleConfig } from "../legend/LegendStyleConfig"
+import { BinEmphasis, LegendStyleConfig } from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import {
     ScatterSizeLegend,
@@ -325,8 +325,6 @@ export class ScatterPlotChart
             fontSize: this.fontSize,
             maxWidth: this.maxLegendWidth,
             title: this.legendTitle,
-            resolveBinEmphasis: this.resolveLegendBinEmphasis,
-            styleConfig: this.legendStyleConfig,
         })
     }
 
@@ -419,6 +417,15 @@ export class ScatterPlotChart
     ): Emphasis => {
         const isActive = this.activeColors.includes(bin.color)
         return isActive ? Emphasis.Highlighted : Emphasis.Muted
+    }
+
+    @computed private get categoricalLegendEmphasis(): BinEmphasis {
+        return new Map(
+            this.categoricalLegendData.map((bin) => [
+                bin,
+                this.resolveLegendBinEmphasis(bin),
+            ])
+        )
     }
 
     @computed private get hideConnectedScatterLines(): boolean {
@@ -656,6 +663,8 @@ export class ScatterPlotChart
                 {verticalColorLegendState && (
                     <VerticalColorLegend
                         state={verticalColorLegendState}
+                        styleConfig={this.legendStyleConfig}
+                        binEmphasis={this.categoricalLegendEmphasis}
                         x={this.legendX}
                         y={this.legendY}
                         onMouseOver={this.onLegendMouseOver}

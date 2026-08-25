@@ -6,9 +6,6 @@ import {
     BASE_FONT_SIZE,
 } from "../core/GrapherConstants"
 import { ColorScaleBin, NumericBin } from "../color/ColorScaleBin"
-import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
-import { LegendTextStyle, LegendMarkerStyle } from "./LegendStyleConfig"
-import { Emphasis } from "../interaction/Emphasis"
 import {
     SizedLegendSeries,
     VerticalColorLegendOptions,
@@ -108,27 +105,5 @@ export class VerticalColorLegendState {
             _.sum(this.series.map((series) => series.height)) +
             this.lineHeight * this.series.length
         )
-    }
-
-    getBinEmphasis(bin: ColorScaleBin): Emphasis {
-        return this.options.resolveBinEmphasis?.(bin) ?? Emphasis.Default
-    }
-
-    getTextStyle(bin: ColorScaleBin): LegendTextStyle {
-        const styleConfig = this.options.styleConfig?.text
-        return {
-            color: GRAPHER_DARK_TEXT,
-            ...styleConfig?.default,
-            ...styleConfig?.[this.getBinEmphasis(bin)],
-        }
-    }
-
-    getMarkerStyle(bin: ColorScaleBin): LegendMarkerStyle {
-        const styleConfig = this.options.styleConfig?.marker
-        return {
-            fill: bin.color,
-            ...styleConfig?.default,
-            ...styleConfig?.[this.getBinEmphasis(bin)],
-        }
     }
 }

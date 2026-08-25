@@ -36,7 +36,7 @@ import { HorizontalCategoricalColorLegendState } from "../legend/HorizontalCateg
 import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { GRAPHER_DARK_TEXT, GRAY_30 } from "../color/ColorConstants"
-import { LegendStyleConfig } from "../legend/LegendStyleConfig"
+import { BinEmphasis, LegendStyleConfig } from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import {
     MAP_LEGEND_MAX_WIDTH_RATIO,
@@ -433,8 +433,6 @@ export class FacetMap
                 fontSize: this.fontSize,
                 width: this.legendMaxWidth,
                 align: HorizontalAlign.center,
-                resolveBinEmphasis: this.resolveLegendBinEmphasis,
-                styleConfig: this.legendStyleConfig,
             }
         )
     }
@@ -447,8 +445,6 @@ export class FacetMap
             fontSize: this.fontSize,
             maxWidth: this.legendMaxWidth,
             align: HorizontalAlign.center,
-            resolveBinEmphasis: this.resolveLegendBinEmphasis,
-            styleConfig: this.legendStyleConfig,
         })
     }
 
@@ -476,6 +472,24 @@ export class FacetMap
         }
 
         return Emphasis.Muted
+    }
+
+    @computed private get numericLegendEmphasis(): BinEmphasis {
+        return new Map(
+            this.numericLegendData.map((bin) => [
+                bin,
+                this.resolveLegendBinEmphasis(bin),
+            ])
+        )
+    }
+
+    @computed private get categoricalLegendEmphasis(): BinEmphasis {
+        return new Map(
+            this.categoricalLegendData.map((bin) => [
+                bin,
+                this.resolveLegendBinEmphasis(bin),
+            ])
+        )
     }
 
     @computed private get legendStyleConfig(): LegendStyleConfig | undefined {
@@ -534,6 +548,8 @@ export class FacetMap
                 {numericLegendState && (
                     <HorizontalNumericColorLegend
                         state={numericLegendState}
+                        styleConfig={this.legendStyleConfig}
+                        binEmphasis={this.numericLegendEmphasis}
                         x={this.legendX}
                         y={this.numericLegendY}
                         onMouseOver={this.onLegendMouseOver}
@@ -543,6 +559,8 @@ export class FacetMap
                 {categoryLegendState && (
                     <HorizontalCategoricalColorLegend
                         state={categoryLegendState}
+                        styleConfig={this.legendStyleConfig}
+                        binEmphasis={this.categoricalLegendEmphasis}
                         x={this.legendX}
                         y={this.categoryLegendY}
                         onMouseOver={this.onLegendMouseOver}

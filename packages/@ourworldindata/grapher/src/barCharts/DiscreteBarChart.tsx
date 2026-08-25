@@ -517,6 +517,7 @@ export class DiscreteBarChart
         return (
             <HorizontalNumericColorLegend
                 state={this.numericLegendState}
+                styleConfig={this.numericLegendStyleConfig}
                 x={this.legendX}
                 y={this.numericLegendY}
             />
@@ -657,7 +658,6 @@ export class DiscreteBarChart
             title: this.legendTitle,
             tickSize: 1,
             binSize: this.numericBinSize,
-            styleConfig: this.numericLegendStyleConfig,
         })
     }
 

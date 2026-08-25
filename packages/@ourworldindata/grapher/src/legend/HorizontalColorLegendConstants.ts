@@ -5,6 +5,7 @@ export const DEFAULT_TEXT_COLOR = "#111"
 export const DEFAULT_TICK_SIZE = 3
 
 export const CATEGORICAL_BIN_MIN_WIDTH = 20
+export const CATEGORICAL_BIN_STROKE_WIDTH = 0.4
 export const SPACE_BETWEEN_CATEGORICAL_BINS = 7
 export const MINIMUM_LABEL_DISTANCE = 5
 

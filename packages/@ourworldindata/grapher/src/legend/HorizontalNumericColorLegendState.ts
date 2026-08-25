@@ -13,9 +13,6 @@ import {
     GRAPHER_FONT_SCALE_12,
     GRAPHER_FONT_SCALE_14,
 } from "../core/GrapherConstants"
-import { LegendTextStyle, LegendMarkerStyle } from "./LegendStyleConfig"
-import { Emphasis } from "../interaction/Emphasis"
-import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import {
     PositionedBin,
     NumericLabel,
@@ -23,9 +20,6 @@ import {
 } from "./HorizontalColorLegendTypes"
 import {
     DEFAULT_NUMERIC_BIN_SIZE,
-    DEFAULT_NUMERIC_BIN_STROKE,
-    DEFAULT_NUMERIC_BIN_STROKE_WIDTH,
-    DEFAULT_TEXT_COLOR,
     DEFAULT_TICK_SIZE,
     CATEGORICAL_BIN_MIN_WIDTH,
     MINIMUM_LABEL_DISTANCE,
@@ -341,36 +335,6 @@ export class HorizontalNumericColorLegendState {
             y:
                 // Align the title's baseline with the bottom of the colour bins
                 this.height - this.title.height + this.titleFontSize * 0.2,
-        }
-    }
-
-    @computed get defaultTextColor(): string {
-        return (
-            this.options.styleConfig?.text?.default?.color ?? DEFAULT_TEXT_COLOR
-        )
-    }
-
-    getBinEmphasis(bin: ColorScaleBin): Emphasis {
-        return this.options.resolveBinEmphasis?.(bin) ?? Emphasis.Default
-    }
-
-    getTextStyle(bin: ColorScaleBin): LegendTextStyle {
-        const styleConfig = this.options.styleConfig?.text
-        return {
-            color: GRAPHER_DARK_TEXT,
-            ...styleConfig?.default,
-            ...styleConfig?.[this.getBinEmphasis(bin)],
-        }
-    }
-
-    getMarkerStyle(bin: ColorScaleBin): LegendMarkerStyle {
-        const styleConfig = this.options.styleConfig?.marker
-        return {
-            fill: bin.color,
-            stroke: DEFAULT_NUMERIC_BIN_STROKE,
-            strokeWidth: DEFAULT_NUMERIC_BIN_STROKE_WIDTH,
-            ...styleConfig?.default,
-            ...styleConfig?.[this.getBinEmphasis(bin)],
         }
     }
 }

@@ -36,13 +36,7 @@ describe(HorizontalNumericColorLegend, () => {
 
         const state = new HorizontalNumericColorLegendState(
             [highlightedBin, otherBin],
-            {
-                maxWidth: 200,
-                resolveBinEmphasis: (bin) =>
-                    bin === highlightedBin
-                        ? Emphasis.Highlighted
-                        : Emphasis.Default,
-            }
+            { maxWidth: 200 }
         )
 
         const { container } = render(
@@ -53,6 +47,10 @@ describe(HorizontalNumericColorLegend, () => {
                     state,
                     x: 0,
                     y: 0,
+                    binEmphasis: new Map([
+                        [highlightedBin, Emphasis.Highlighted],
+                        [otherBin, Emphasis.Default],
+                    ]),
                 })
             )
         )
