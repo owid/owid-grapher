@@ -1,4 +1,14 @@
+import type { z } from "zod/mini"
 import { Nominal } from "../NominalType"
+
+/**
+ * Pins a zod schema to a hand-written interface. A schema declared
+ * `satisfies SchemaFor<T>` fails to compile if it misses a field of `T`, adds
+ * one, or gives one the wrong type.
+ */
+export type SchemaFor<T> = {
+    [K in keyof Required<T>]: z.ZodMiniType<T[K]>
+}
 
 export type Integer = number
 
