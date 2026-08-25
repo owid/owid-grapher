@@ -13,6 +13,8 @@ import {
     OwidGdocDataInsightInterface,
     checkIsAuthor,
     OwidGdocAuthorInterface,
+    checkIsFeaturedViz,
+    OwidGdocFeaturedVizInterface,
     getFilenameExtension,
     OwidEnrichedGdocBlock,
 } from "@ourworldindata/utils"
@@ -181,7 +183,7 @@ function validateRefs(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
 export const EXCERPT_MAX_LENGTH = 175
 
 function validateExcerpt(
-    gdoc: OwidGdocPostInterface,
+    gdoc: OwidGdocPostInterface | OwidGdocFeaturedVizInterface,
     errors: OwidGdocErrorMessage[]
 ) {
     if (!gdoc.content.excerpt) {
@@ -353,6 +355,8 @@ export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
         validateDataInsightImage(gdoc, errors)
     } else if (checkIsAuthor(gdoc)) {
         validateSocials(gdoc, errors)
+    } else if (checkIsFeaturedViz(gdoc)) {
+        validateExcerpt(gdoc, errors)
     }
 
     return errors
