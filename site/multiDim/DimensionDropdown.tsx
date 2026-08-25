@@ -67,7 +67,11 @@ export default function DimensionDropdown({
     const isDisabled = disabled || dimension.choices.length === 1
     return (
         <Select
-            className={cx("md-settings__dropdown", className)}
+            className={cx(
+                "md-settings__control",
+                "md-settings__dropdown",
+                className
+            )}
             isDisabled={isDisabled}
             isOpen={isOpen}
             onOpenChange={setIsOpen}
