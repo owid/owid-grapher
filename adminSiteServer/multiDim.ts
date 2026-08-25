@@ -239,6 +239,7 @@ export async function upsertMultiDim(
         rawConfig
     )
     validateViewConfigSchemas(config)
+    validateDimensionPresentations(config)
     const indicatorConfigs = await getIndicatorChartConfigs(
         knex,
         _.uniq(config.views.map((view) => view.indicators.y[0].id))
@@ -320,6 +321,23 @@ export async function upsertMultiDim(
         })
     }
     return multiDimId
+}
+
+/** Throws if a dimension explicitly configured as a radio group has grouped choices */
+function validateDimensionPresentations(
+    config: MultiDimDataPageConfigPreProcessed
+): void {
+    for (const dimension of config.dimensions) {
+        if (
+            dimension.presentation?.type === "radio" &&
+            dimension.choices.some((choice) => choice.group)
+        ) {
+            throw new JsonError(
+                `Dimension "${dimension.slug}" is configured as a radio group, ` +
+                    `but has grouped choices. Choice groups are only supported in dropdowns.`
+            )
+        }
+    }
 }
 
 /** Throws if any view config does not declare a schema version */
