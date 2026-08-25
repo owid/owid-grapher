@@ -13,7 +13,6 @@ import {
     ListBoxItem,
 } from "react-aria-components"
 
-import { CloseButton } from "@ourworldindata/components"
 import { Choice, DimensionEnriched } from "@ourworldindata/types"
 import DimensionLabel from "./DimensionLabel.js"
 
@@ -96,20 +95,14 @@ export default function DimensionDropdown({
                 offset={4}
             >
                 <div className="md-menu__overlay-header">
-                    <div>
-                        <h2 className="md-menu__overlay-header-title">
-                            {dimension.name}
-                        </h2>
-                        {dimension.description && (
-                            <p className="md-menu__dimension-description">
-                                {dimension.description}
-                            </p>
-                        )}
-                    </div>
-                    <CloseButton
-                        className="md-menu__overlay-header-close-button"
-                        onClick={() => setIsOpen(false)}
-                    />
+                    <h2 className="md-menu__overlay-header-title">
+                        {dimension.name}
+                    </h2>
+                    {dimension.description && (
+                        <p className="md-menu__dimension-description">
+                            {dimension.description}
+                        </p>
+                    )}
                 </div>
                 <ListBox>
                     {Object.entries(dimension.choicesByGroup).map(
