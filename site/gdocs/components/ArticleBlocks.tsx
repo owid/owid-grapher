@@ -1,5 +1,9 @@
+import { Fragment, type ReactNode } from "react"
 import ArticleBlock from "./ArticleBlock.js"
-import { injectAutomaticSubscribeBanner } from "./gdocComponentUtils.js"
+import {
+    getIntroAsideInsertionIndex,
+    injectAutomaticSubscribeBanner,
+} from "./gdocComponentUtils.js"
 import { Container } from "./layout.js"
 import {
     OwidEnrichedGdocBlock,
@@ -14,6 +18,9 @@ import {
  * @param toc
  * @param shouldRenderLinks - Won't render <a> elements when false. Useful to avoid
  * invalid nested links.
+ * @param introAside - Optional element rendered as a sibling grid item just
+ * after the first paragraph of the body, so that it sits in the right rail
+ * level with the intro. It is responsible for its own grid placement classes.
  * @constructor
  */
 export const ArticleBlocks = ({
@@ -23,6 +30,7 @@ export const ArticleBlocks = ({
     shouldRenderLinks = true,
     interactiveImages = true,
     automaticSubscribeBanner = false,
+    introAside,
 }: {
     blocks: OwidEnrichedGdocBlock[]
     containerType?: Container
@@ -30,23 +38,33 @@ export const ArticleBlocks = ({
     shouldRenderLinks?: boolean
     interactiveImages?: boolean
     automaticSubscribeBanner?: boolean
+    introAside?: ReactNode
 }) => {
     const blocksToRender = automaticSubscribeBanner
         ? injectAutomaticSubscribeBanner(blocks)
         : blocks
 
+    const introAsideIndex = introAside
+        ? getIntroAsideInsertionIndex(blocksToRender)
+        : -1
+
     return (
         <>
             {blocksToRender.map((block: OwidEnrichedGdocBlock, i: number) => {
-                return (
+                const articleBlock = (
                     <ArticleBlock
-                        key={i}
                         b={block}
                         containerType={containerType}
                         toc={toc}
                         shouldRenderLinks={shouldRenderLinks}
                         interactiveImages={interactiveImages}
                     />
+                )
+                return (
+                    <Fragment key={i}>
+                        {articleBlock}
+                        {i === introAsideIndex ? introAside : null}
+                    </Fragment>
                 )
             })}
         </>
