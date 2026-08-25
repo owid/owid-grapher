@@ -27,6 +27,8 @@ export type BespokeComponentVariantsList<VariantName extends string = string> =
     BespokeComponentVariantsEntry<VariantName>[]
 
 export interface BespokeComponentDefinition {
-    /** URL to the ES module that exports the component's mount function */
+    /** URL to the ES module that exports the component's mount function, relative to BESPOKE_BASE_URL */
     scriptUrl: string
+    /** Absolute URL to the component's metadata file, served from the public data bucket rather than the site's asset path */
+    metadataUrl?: string
 }
