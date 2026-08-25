@@ -35,6 +35,7 @@ interface HorizontalNumericColorLegendProps {
     onMouseOver?: (bin: ColorScaleBin) => void
     onMouseLeave?: () => void
     onTouchSelect?: (bin: ColorScaleBin) => void
+    isStatic?: boolean
 }
 
 export function HorizontalNumericColorLegend(
@@ -50,6 +51,7 @@ export function HorizontalNumericColorLegend(
         onMouseOver,
         onMouseLeave,
         onTouchSelect,
+        isStatic,
     } = props
     const {
         numericLabels,
@@ -135,6 +137,8 @@ export function HorizontalNumericColorLegend(
         )
     }
 
+    const showTouchHitAreas = !isStatic && !!onTouchSelect
+
     return (
         <g
             id={makeFigmaId("numeric-color-legend")}
@@ -205,7 +209,7 @@ export function HorizontalNumericColorLegend(
                     )
                 })}
             </g>
-            {onTouchSelect && (
+            {showTouchHitAreas && (
                 // Add invisible hit areas above each swatch for touch interaction.
                 // They are the height of the legend labels, and only handle touch events.
                 <g id={makeFigmaId("swatch-hit-areas")} aria-hidden="true">

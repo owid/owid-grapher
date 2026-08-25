@@ -652,6 +652,7 @@ export class MapChart
                         onMouseOver={this.onLegendMouseOver}
                         onMouseLeave={this.onLegendMouseLeave}
                         onTouchSelect={this.onLegendTouchSelect}
+                        isStatic={this.isStatic}
                     />
                 )}
                 {categoryLegendState && (
