@@ -45,6 +45,8 @@ import {
     getPublishedGdocsWithTags,
     getTagHierarchiesByChildName,
     getBestBreadcrumbs,
+    getTopicAreaNameForGdocTags,
+    topicAreaNamesFromTagHierarchies,
 } from "../../db.js"
 import { GdocAbout } from "./GdocAbout.js"
 import { GdocAuthor } from "./GdocAuthor.js"
@@ -211,29 +213,34 @@ export async function getGdocBaseObjectById(
         ...enrichedRow,
         tags: null,
     } satisfies OwidGdocBaseInterface
-    if (fetchLinkedTags) {
-        const tags = await knexRaw<DbPlainTag>(
-            knex,
-            `-- sql
-                SELECT tags.*
-                FROM tags
-                JOIN posts_gdocs_x_tags gt ON gt.tagId = tags.id
-                WHERE gt.gdocId = ?`,
-            [id]
-        )
-        gdoc.tags = tags
-
-        if (tags.length) {
-            const tagHierarchiesByChildName =
-                await getTagHierarchiesByChildName(knex)
-            gdoc.breadcrumbs = getBestBreadcrumbs(
-                gdoc.tags,
-                tagHierarchiesByChildName
-            )
-        }
-    }
+    if (fetchLinkedTags) await loadTagsAndTagDerivedFields(knex, gdoc)
 
     return gdoc
+}
+
+/** Loads a gdoc's tags and what derives from them (breadcrumbs, topic area). */
+async function loadTagsAndTagDerivedFields(
+    knex: KnexReadonlyTransaction,
+    gdoc: OwidGdocBaseInterface
+): Promise<void> {
+    const tags = await knexRaw<DbPlainTag>(
+        knex,
+        `-- sql
+            SELECT tags.*
+            FROM tags
+            JOIN posts_gdocs_x_tags gt ON gt.tagId = tags.id
+            WHERE gt.gdocId = ?`,
+        [gdoc.id]
+    )
+    gdoc.tags = tags
+    if (!tags.length) return
+
+    const tagHierarchiesByChildName = await getTagHierarchiesByChildName(knex)
+    gdoc.breadcrumbs = getBestBreadcrumbs(tags, tagHierarchiesByChildName)
+    gdoc.topicArea = getTopicAreaNameForGdocTags(
+        tags,
+        topicAreaNamesFromTagHierarchies(tagHierarchiesByChildName)
+    )
 }
 
 export async function getMinimalGdocBaseObjects(
@@ -323,26 +330,7 @@ export async function getPublishedGdocBaseObjectBySlug(
         ...enrichedRow,
         tags: null,
     } satisfies OwidGdocBaseInterface
-    if (fetchLinkedTags) {
-        const tags = await knexRaw<DbPlainTag>(
-            knex,
-            `-- sql
-                SELECT tags.*
-                FROM tags
-                JOIN posts_gdocs_x_tags gt ON gt.tagId = tags.id
-                WHERE gt.gdocId = ?`,
-            [gdoc.id]
-        )
-        gdoc.tags = tags
-        if (tags.length) {
-            const tagHierarchiesByChildName =
-                await getTagHierarchiesByChildName(knex)
-            gdoc.breadcrumbs = getBestBreadcrumbs(
-                gdoc.tags,
-                tagHierarchiesByChildName
-            )
-        }
-    }
+    if (fetchLinkedTags) await loadTagsAndTagDerivedFields(knex, gdoc)
     return gdoc
 }
 
