@@ -213,7 +213,7 @@ function buildUnsubscribeUserStatement(
     return db
         .prepare(
             `UPDATE users
-             SET status = 'unsubscribed',
+             SET emailNotificationsStatus = 'unsubscribed',
                  updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
              WHERE email = ?1
                  AND EXISTS (

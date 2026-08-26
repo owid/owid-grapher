@@ -54,9 +54,9 @@ function renderPreferencesListHtml(
  * Welcome email sent on every subscribe-form submission: signup is single
  * opt-in, so the subscription is already active when this is sent. For an
  * existing address the preferences shown are the merged result. Carries the
- * permanent per-user token's footer links (update preferences / unsubscribe)
- * — for an address submitted by someone else, this email is also what lets
- * the owner notice and undo the change.
+ * permanent per-user token's footer links for updating or unsubscribing from
+ * these notifications — for an address submitted by someone else, this email is
+ * also what lets the owner notice and undo the change.
  */
 export async function sendWelcomeEmail(
     env: Env,
@@ -77,7 +77,7 @@ export async function sendWelcomeEmail(
         htmlBody: `<p>Thanks for subscribing to email updates from Our World in Data! You're all set — you'll receive an email when we publish new work matching your preferences.</p>
 <p>These are your notification preferences:</p>
 ${renderPreferencesListHtml(props.preferences)}
-<p>You can <a href="${updatePreferencesUrl}">update your preferences</a> or <a href="${unsubscribeUrl}">unsubscribe</a> at any time — these links are also in the footer of every email we send.</p>`,
+<p>You can <a href="${updatePreferencesUrl}">update your preferences</a> or <a href="${unsubscribeUrl}">unsubscribe from Follow Topics</a> at any time — these links are also in the footer of every Follow Topics email we send.</p>`,
     })
     console.log(`Welcome email sent userId=${props.userId}`)
 }
@@ -336,7 +336,7 @@ export async function unsubscribeUserByToken(
     const user = await db
         .prepare(
             `UPDATE users
-             SET status = 'unsubscribed',
+             SET emailNotificationsStatus = 'unsubscribed',
                  updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
              WHERE token = ?1
              RETURNING email`

@@ -212,7 +212,7 @@ describe("Postmark webhook with local D1", () => {
 
     it("records a Postmark recipient unsubscribe locally", async () => {
         await runSql(
-            `INSERT INTO users (email, token, status)
+            `INSERT INTO users (email, token, emailNotificationsStatus)
              VALUES ('reader@example.com', 'reader-token', 'subscribed')`
         )
 
@@ -220,10 +220,10 @@ describe("Postmark webhook with local D1", () => {
 
         expect(response.status).toBe(200)
         await expect(
-            querySql<{ status: string }>(
-                `SELECT status FROM users WHERE email = 'reader@example.com'`
+            querySql<{ emailNotificationsStatus: string }>(
+                `SELECT emailNotificationsStatus FROM users WHERE email = 'reader@example.com'`
             )
-        ).resolves.toEqual([{ status: "unsubscribed" }])
+        ).resolves.toEqual([{ emailNotificationsStatus: "unsubscribed" }])
         await expect(
             querySql<{ email: string; isSuppressed: number }>(
                 `SELECT email, isSuppressed FROM postmark_suppressions`
@@ -233,7 +233,7 @@ describe("Postmark webhook with local D1", () => {
 
     it("mirrors non-unsubscribe suppressions without changing user intent", async () => {
         await runSql(
-            `INSERT INTO users (email, token, status)
+            `INSERT INTO users (email, token, emailNotificationsStatus)
              VALUES ('reader@example.com', 'reader-token', 'subscribed')`
         )
 
@@ -246,10 +246,10 @@ describe("Postmark webhook with local D1", () => {
 
         expect(response.status).toBe(200)
         await expect(
-            querySql<{ status: string }>(
-                `SELECT status FROM users WHERE email = 'reader@example.com'`
+            querySql<{ emailNotificationsStatus: string }>(
+                `SELECT emailNotificationsStatus FROM users WHERE email = 'reader@example.com'`
             )
-        ).resolves.toEqual([{ status: "subscribed" }])
+        ).resolves.toEqual([{ emailNotificationsStatus: "subscribed" }])
         await expect(
             querySql<{ email: string; isSuppressed: number }>(
                 `SELECT email, isSuppressed FROM postmark_suppressions`
@@ -259,7 +259,7 @@ describe("Postmark webhook with local D1", () => {
 
     it("retains a tombstone on reactivation without opting the user back in", async () => {
         await runSql(
-            `INSERT INTO users (email, token, status)
+            `INSERT INTO users (email, token, emailNotificationsStatus)
              VALUES ('reader@example.com', 'reader-token', 'unsubscribed')`
         )
         await runSql(
@@ -281,10 +281,10 @@ describe("Postmark webhook with local D1", () => {
 
         expect(response.status).toBe(200)
         await expect(
-            querySql<{ status: string }>(
-                `SELECT status FROM users WHERE email = 'reader@example.com'`
+            querySql<{ emailNotificationsStatus: string }>(
+                `SELECT emailNotificationsStatus FROM users WHERE email = 'reader@example.com'`
             )
-        ).resolves.toEqual([{ status: "unsubscribed" }])
+        ).resolves.toEqual([{ emailNotificationsStatus: "unsubscribed" }])
         await expect(
             querySql<{ isSuppressed: number; postmarkChangedAt: string }>(
                 `SELECT isSuppressed, postmarkChangedAt
@@ -361,7 +361,7 @@ describe("Postmark webhook with local D1", () => {
 
     it("ignores a stale suppression delivered after a newer reactivation", async () => {
         await runSql(
-            `INSERT INTO users (email, token, status)
+            `INSERT INTO users (email, token, emailNotificationsStatus)
              VALUES ('reader@example.com', 'reader-token', 'subscribed')`
         )
 
@@ -384,10 +384,10 @@ describe("Postmark webhook with local D1", () => {
         expect(reactivationResponse.status).toBe(200)
         expect(staleSuppressionResponse.status).toBe(200)
         await expect(
-            querySql<{ status: string }>(
-                `SELECT status FROM users WHERE email = 'reader@example.com'`
+            querySql<{ emailNotificationsStatus: string }>(
+                `SELECT emailNotificationsStatus FROM users WHERE email = 'reader@example.com'`
             )
-        ).resolves.toEqual([{ status: "subscribed" }])
+        ).resolves.toEqual([{ emailNotificationsStatus: "subscribed" }])
         await expect(
             querySql<{ isSuppressed: number; postmarkChangedAt: string }>(
                 `SELECT isSuppressed, postmarkChangedAt
@@ -482,10 +482,10 @@ describe("Postmark webhook with local D1", () => {
             },
         ])
         await expect(
-            querySql<{ status: string }>(
-                `SELECT status FROM users WHERE email = 'reader@example.com'`
+            querySql<{ emailNotificationsStatus: string }>(
+                `SELECT emailNotificationsStatus FROM users WHERE email = 'reader@example.com'`
             )
-        ).resolves.toEqual([{ status: "unsubscribed" }])
+        ).resolves.toEqual([{ emailNotificationsStatus: "unsubscribed" }])
     })
 
     it("does not apply an already processed event again", async () => {
