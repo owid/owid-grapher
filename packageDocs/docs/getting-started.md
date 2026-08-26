@@ -142,7 +142,7 @@ Point your package manager at the registry:
     npm install @ourworldindata/grapher
     ```
 
-=== "Yarn Berry"
+=== "Yarn"
 
     In the consuming project's `.yarnrc.yml`:
 
