@@ -1383,6 +1383,12 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
                 ...R.pick(authorGdoc, ["latestWorkLinks"]),
             }
         })
+        .when(checkIsFeaturedViz, (featuredVizGdoc) => {
+            return {
+                ...commonProps,
+                ...R.pick(featuredVizGdoc, ["bespokeMetadata"]),
+            }
+        })
         .otherwise(() => commonProps)
 }
 
