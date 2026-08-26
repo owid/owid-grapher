@@ -45,28 +45,37 @@ function makeAuthHeader(env: Env): string {
 }
 
 /**
- * Set the OWID Brief interest on the Mailchimp list member, creating the
- * member if needed. New list members are created with
- * `status_if_new: "subscribed"` because the OWID Brief uses single opt-in.
- * Throws on missing configuration and Mailchimp errors.
+ * Enable or disable the OWID Brief interest on a Mailchimp list member.
+ * Enabling creates or re-subscribes the member using single opt-in. Disabling
+ * only patches an existing member; an address that has never joined the
+ * Mailchimp audience remains absent rather than being created with the Brief
+ * interest turned off.
  */
 export async function upsertOwidBriefSubscription(
     env: Env,
     email: string,
-    enabled: boolean
+    shouldSubscribe: boolean
 ): Promise<void> {
     validateMailchimpConfiguration(env)
 
-    const member: Record<string, unknown> = {
-        email_address: email,
-        status_if_new: "subscribed",
-        interests: { [env.MAILCHIMP_OWID_BRIEF_INTEREST_ID]: enabled },
-    }
+    const member = shouldSubscribe
+        ? {
+              email_address: email,
+              status_if_new: "subscribed",
+              // status_if_new only applies when creating a member. An
+              // explicit Brief opt-in also re-subscribes an existing globally
+              // unsubscribed member.
+              status: "subscribed",
+              interests: { [env.MAILCHIMP_OWID_BRIEF_INTEREST_ID]: true },
+          }
+        : {
+              interests: { [env.MAILCHIMP_OWID_BRIEF_INTEREST_ID]: false },
+          }
 
     const response = await fetch(
         makeMemberUrl(env, await makeSubscriberHash(email)),
         {
-            method: "PUT",
+            method: shouldSubscribe ? "PUT" : "PATCH",
             headers: {
                 Authorization: makeAuthHeader(env),
                 "Content-Type": "application/json",
@@ -74,6 +83,9 @@ export async function upsertOwidBriefSubscription(
             body: JSON.stringify(member),
         }
     )
+    // An absent member is already not subscribed, so disabling their Brief
+    // interest is an idempotent success rather than an error.
+    if (!shouldSubscribe && response.status === 404) return
     if (!response.ok) {
         const data = await response.json()
         console.error("Failed to update the OWID Brief subscription", data)
