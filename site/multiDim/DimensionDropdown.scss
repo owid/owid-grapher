@@ -135,7 +135,7 @@ $selected-hover-fill: #bed2e7;
     .md-menu__search {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 8px;
         height: 32px;
         margin: 0 4px 4px;
         padding: 0 8px;
@@ -149,7 +149,7 @@ $selected-hover-fill: #bed2e7;
 
     .md-menu__search-icon {
         flex-shrink: 0;
-        font-size: 16px;
+        font-size: 12px;
         color: $gray-70;
     }
 
