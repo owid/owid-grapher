@@ -2460,9 +2460,12 @@ __metadata:
     vitest: "npm:^4.1.10"
     yaml: "npm:^2.8.3"
   peerDependencies:
+    "@types/react": ^19.0.0
     react: ^19.0.0
     react-dom: ^19.0.0
   peerDependenciesMeta:
+    "@types/react":
+      optional: true
     react:
       optional: true
     react-dom:
