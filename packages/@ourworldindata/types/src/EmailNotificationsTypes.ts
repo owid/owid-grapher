@@ -12,6 +12,14 @@ export const EMAIL_NOTIFICATIONS_FROM_ADDRESS =
 export type EmailNotificationsFrequency =
     (typeof EMAIL_NOTIFICATIONS_FREQUENCIES)[number]
 
+export const EMAIL_NOTIFICATIONS_STATUSES = [
+    "subscribed",
+    "unsubscribed",
+] as const
+
+export type EmailNotificationsStatus =
+    (typeof EMAIL_NOTIFICATIONS_STATUSES)[number]
+
 // Lifetime of the magic-link tokens (tokens table). The short expiry is
 // cheap because the expired-link page offers to email a fresh link.
 export const EMAIL_NOTIFICATIONS_MAGIC_LINK_TTL_MS = 30 * 60 * 1000
@@ -172,23 +180,28 @@ export type EmailNotificationsRequestLinkRequest = z.infer<
 
 // Save from the magic-link preferences page. The magic link itself was the
 // proof of inbox control, so changes apply immediately (no second
-// confirmation email). `subscribeToOwidBrief` drives the fail-soft Mailchimp
-// Brief toggle: omitted when the toggle wasn't shown.
-export const EmailNotificationsUpdatePreferencesRequestTypeObject = z
-    .object({
-        token: z.string().check(z.minLength(1), z.maxLength(100)),
-        preferences: z.optional(EmailNotificationsPreferencesTypeObject),
-        unsubscribe: z.optional(z.boolean()),
-        subscribeToOwidBrief: z.optional(z.boolean()),
-    })
-    .check(
-        z.refine(
-            (request) =>
-                request.preferences !== undefined ||
-                request.unsubscribe === true,
-            "Provide preferences or unsubscribe"
-        )
-    )
+// confirmation email). Notifications based on these preferences and the
+// Mailchimp-owned OWID Brief are independent subscriptions.
+// `subscribeToOwidBrief` is omitted when Mailchimp's current state could not
+// be loaded and its toggle is unavailable.
+const EmailNotificationsUpdatePreferencesCommonShape = {
+    token: z.string().check(z.minLength(1), z.maxLength(100)),
+    subscribeToOwidBrief: z.optional(z.boolean()),
+}
+
+export const EmailNotificationsUpdatePreferencesRequestTypeObject =
+    z.discriminatedUnion("subscribeToTopicNotifications", [
+        z.object({
+            ...EmailNotificationsUpdatePreferencesCommonShape,
+            subscribeToTopicNotifications: z.literal(true),
+            preferences: EmailNotificationsPreferencesTypeObject,
+        }),
+        z.object({
+            ...EmailNotificationsUpdatePreferencesCommonShape,
+            subscribeToTopicNotifications: z.literal(false),
+            preferences: z.optional(z.never()),
+        }),
+    ])
 
 export type EmailNotificationsUpdatePreferencesRequest = z.infer<
     typeof EmailNotificationsUpdatePreferencesRequestTypeObject
@@ -196,12 +209,13 @@ export type EmailNotificationsUpdatePreferencesRequest = z.infer<
 
 export interface EmailNotificationsPreferencesResponse {
     email?: string
-    // null when the user exists but has no preferences row (fail-safe; the
-    // page falls back to defaults).
+    emailNotificationsStatus?: EmailNotificationsStatus
+    // null when the identity has never configured notification preferences.
+    // The page uses defaults if the reader chooses to enable notifications.
     preferences?: EmailNotificationsPreferences | null
     // Whether the user is subscribed to the OWID Brief in Mailchimp; null when
     // that can't be determined (Mailchimp unavailable or unconfigured), in
-    // which case the page hides the Brief toggle.
+    // which case the page disables Brief changes and explains why.
     subscribedToOwidBrief?: boolean | null
     // "expired" (HTTP 410) drives the expired-magic-link state of the
     // preferences page, which offers to email a new link.
