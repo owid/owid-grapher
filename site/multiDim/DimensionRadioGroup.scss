@@ -27,6 +27,7 @@ $radio-group-full-width-breakpoint: 520px;
 
 .md-settings__radio-field {
     display: flex;
+    position: relative;
 
     @media (max-width: $radio-group-full-width-breakpoint) {
         // Distribute the available width evenly between the segments and
@@ -37,12 +38,34 @@ $radio-group-full-width-breakpoint: 520px;
     }
 }
 
+// Thin separator bar between options, as in grapher's Tabs.scss.
+.md-settings__radio-field + .md-settings__radio-field::before {
+    content: "";
+    display: block;
+    width: 1px;
+    height: calc(100% - 12px);
+    position: absolute;
+    top: 6px;
+    left: 0;
+    background-color: $gray-20;
+}
+
+// Hide separators next to a selected or hovered option. The hovered state
+// only appears on the radio button inside the field, hence the :has().
+.md-settings__radio-field[data-selected]::before,
+.md-settings__radio-field:has([data-hovered])::before,
+.md-settings__radio-field[data-selected] + .md-settings__radio-field::before,
+.md-settings__radio-field:has([data-hovered])
+    + .md-settings__radio-field::before {
+    display: none;
+}
+
 .md-settings__radio {
     display: flex;
     flex: 1;
     align-items: center;
     height: 28px;
-    padding: 0 10px;
+    padding: 0 16px;
     border-radius: 3px;
     color: $gray-70;
     white-space: nowrap;
