@@ -126,7 +126,7 @@ export class DimensionCard<
         const columnDef = column.def as OwidColumnDef
 
         return (
-            <div className="DimensionCard list-group-item">
+            <div className="DimensionCard editable-list__item">
                 <header>
                     <div>
                         <span

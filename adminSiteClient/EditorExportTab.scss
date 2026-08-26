@@ -1,0 +1,9 @@
+// Styles for the chart editor's export tab, moved out of `admin.scss`.
+.EditorExportTab {
+    .DownloadButtons {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        align-items: flex-start;
+    }
+}

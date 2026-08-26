@@ -246,8 +246,10 @@ class ColorsSection extends Component<ColorsSectionProps> {
                     </p>
                 )}
                 <FieldsRow>
-                    <div className="form-group">
-                        <label>Color scheme</label>
+                    <div className="form-field">
+                        <label className="form-field__label">
+                            Color scheme
+                        </label>
                         <ColorSchemeDropdown
                             value={this.currentColorScheme}
                             onChange={this.onColorScheme}
@@ -273,8 +275,10 @@ class ColorsSection extends Component<ColorsSectionProps> {
                 </FieldsRow>
                 <hr />
                 <FieldsRow>
-                    <div className="form-group">
-                        <label>Binning strategy</label>
+                    <div className="form-field">
+                        <label className="form-field__label">
+                            Binning strategy
+                        </label>
                         <Select<BinningStrategyIncludingManual>
                             options={this.binningStrategyOptions}
                             onChange={this.onBinningStrategy}
@@ -332,8 +336,10 @@ class ColorsSection extends Component<ColorsSectionProps> {
                     />
                 </FieldsRow>
                 <FieldsRow>
-                    <div className="form-group">
-                        <label>Midpoint mode</label>
+                    <div className="form-field">
+                        <label className="form-field__label">
+                            Midpoint mode
+                        </label>
                         <Select<MidpointModeOptionValue>
                             options={this.midpointModeOptions}
                             onChange={(value) => {

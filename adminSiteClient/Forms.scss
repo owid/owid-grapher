@@ -1,11 +1,17 @@
 // Styles for the shared admin form kit in `Forms.tsx`, which renders antd
 // primitives inside our own label / help-text / error chrome.
 //
-// The wrapper elements still carry Bootstrap's `form-group` and `list-group`
-// classes next to the ones below, because raw Bootstrap form and list markup
-// lives on in ~30 other admin files and is frequently interleaved with these
-// components. The rules here only cover the parts that used to come from
-// Bootstrap's form/input-group/modal markup that `Forms.tsx` no longer emits.
+// The field wrapper still carries Bootstrap's `form-group` class next to
+// `form-field`, because raw `form-group` markup lives on in the pages Phase 5
+// of the antd migration covers (ExplorerCreatePage, UsersIndexPage, GdocsAdd,
+// the gdocs settings forms) and is interleaved with these components there.
+// The rules below cover the parts that used to come from Bootstrap's
+// form/input-group/list-group/modal markup that `Forms.tsx` no longer emits.
+
+// Replaces Bootstrap's `.form-group`, which the wrapper still carries as well.
+.form-field {
+    margin-bottom: 1rem;
+}
 
 .form-field__label {
     display: block;
@@ -74,12 +80,36 @@
     height: auto;
 }
 
-// `EditableList` / `EditableListItem`. These deliberately mirror what
-// Bootstrap's list-group gives the hand-written `list-group-item` markup they
-// are mixed with; they exist as grep-able hooks for the phase that removes it.
+// `EditableList` / `EditableListItem`, plus the hand-written list markup in the
+// chart editor that used to carry Bootstrap's `list-group` classes. These rules
+// are what `bootstrap/scss/list-group` used to emit for them, minus the
+// variants (`-action`, `-flush`, contextual colours) nothing ever used.
 .editable-list {
+    display: flex;
+    flex-direction: column;
+    padding-left: 0;
     margin-top: 0;
     margin-bottom: 0.5em;
+}
+
+.editable-list__item {
+    position: relative;
+    display: block;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: -1px;
+    background-color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.editable-list__item:first-child {
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+}
+
+.editable-list__item:last-child {
+    margin-bottom: 0;
+    border-bottom-right-radius: 0.25rem;
+    border-bottom-left-radius: 0.25rem;
 }
 
 // The `Modal` component renders whatever it is handed inside an antd modal
@@ -116,4 +146,100 @@
             margin: 0.25rem;
         }
     }
+}
+
+// Blocks below moved out of `admin.scss` when the chart editor was migrated;
+// they all style components that live in `Forms.tsx`.
+.EditableListItem {
+    @extend .draggable;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    > div {
+        display: flex;
+        align-items: center;
+    }
+
+    i {
+        font-size: 1.2rem;
+        color: #666;
+    }
+
+    > div:first-child > * {
+        margin-right: 12px;
+    }
+}
+
+.FieldsRow {
+    display: flex;
+    align-items: center;
+    margin: 0 0 1em;
+
+    > * {
+        padding-right: 1rem;
+        margin-bottom: 0 !important;
+        flex-grow: 1;
+        flex-basis: 0;
+    }
+}
+
+.WithResetButton {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    .form-field {
+        margin-bottom: 0;
+        width: 100%;
+    }
+
+    .ResetToDefaultButton {
+        height: auto;
+        padding: 0;
+        font-size: 0.8em;
+        color: inherit;
+
+        &:disabled {
+            font-style: italic;
+        }
+
+        &:not(:disabled) {
+            text-decoration: underline;
+        }
+
+        &:hover {
+            text-decoration: none;
+        }
+    }
+}
+
+.ColorBox {
+    width: 2em;
+    height: 2em;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.colorpicker-tooltip {
+    .tippy-content {
+        padding: 0;
+    }
+}
+
+.LoadingBlocker {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    color: white;
+    align-items: center;
+    justify-content: center;
 }

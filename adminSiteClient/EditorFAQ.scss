@@ -1,0 +1,15 @@
+// Styles for the chart editor's FAQ dialog, moved out of `admin.scss`.
+.EditorFAQ {
+    .modal-body {
+        max-height: 80vh;
+        overflow-y: scroll;
+    }
+
+    h6 {
+        font-weight: bold;
+    }
+
+    h6:not(:first-child) {
+        margin-top: 20px;
+    }
+}

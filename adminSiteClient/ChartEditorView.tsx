@@ -56,14 +56,14 @@ import {
 } from "./VisionDeficiencies.js"
 import { EditorMarimekkoTab } from "./EditorMarimekkoTab.js"
 import { EditorExportTab } from "./EditorExportTab.js"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { AbstractChartEditor, EditorTab } from "./AbstractChartEditor.js"
 import {
     ErrorMessages,
     ErrorMessagesForDimensions,
     FieldWithDetailReferences,
 } from "./ChartEditorTypes.js"
 import { Dataset, EditorDatabase } from "./EditorDatabase.js"
-import { Radio } from "antd"
+import { Radio, Tabs } from "antd"
 
 export type DetailReferences = Record<FieldWithDetailReferences, string[]>
 
@@ -393,6 +393,78 @@ export class ChartEditorView<
         )
     }
 
+    @action.bound private onTabChange(key: string): void {
+        const editor = this.manager.editor
+        const tab = key as EditorTab
+        editor.tab = tab
+        editor.showStaticPreview = tab === "export"
+    }
+
+    private renderTabLabel(editor: Editor, tab: EditorTab): React.ReactNode {
+        const referencesCount =
+            tab === "refs" && editor.references
+                ? ` (${getFullReferencesCount(editor.references)})`
+                : ""
+        return `${_.capitalize(tab)}${referencesCount}`
+    }
+
+    private renderTabContent(
+        editor: Editor,
+        tab: EditorTab
+    ): React.ReactElement | null {
+        const chartEditor = isChartEditorInstance(editor) ? editor : undefined
+
+        switch (tab) {
+            case "basic":
+                return (
+                    <EditorBasicTab
+                        editor={editor}
+                        database={this.database}
+                        errorMessagesForDimensions={
+                            this.errorMessagesForDimensions
+                        }
+                    />
+                )
+            case "text":
+                return (
+                    <EditorTextTab
+                        editor={editor}
+                        errorMessages={this.errorMessages}
+                    />
+                )
+            case "data":
+                return <EditorDataTab editor={editor} />
+            case "customize":
+                return (
+                    <EditorCustomizeTab
+                        editor={editor}
+                        errorMessages={this.errorMessages}
+                    />
+                )
+            case "scatter":
+                return <EditorScatterTab editor={editor} />
+            case "marimekko":
+                return <EditorMarimekkoTab grapherState={editor.grapherState} />
+            case "map":
+                return (
+                    <EditorMapTab
+                        editor={editor}
+                        errorMessages={this.errorMessages}
+                    />
+                )
+            case "revisions":
+                return chartEditor ? (
+                    <EditorHistoryTab editor={chartEditor} />
+                ) : null
+            case "refs":
+                return <EditorReferencesTab editor={editor} />
+            case "export":
+                return <EditorExportTab editor={editor} />
+            case "debug":
+                return <EditorDebugTab editor={editor} />
+        }
+    }
+
     renderReady(editor: Editor): React.ReactElement {
         const { grapherState, availableTabs } = editor
 
@@ -413,84 +485,29 @@ export class ChartEditorView<
                     <Redirect to={`/charts/${chartEditor.newChartId}/edit`} />
                 )}
                 <div className="chart-editor-settings">
-                    <div className="p-2">
-                        <ul className="nav nav-tabs">
-                            {availableTabs.map((tab) => (
-                                <li key={tab} className="nav-item">
-                                    <a
-                                        className={
-                                            "nav-link" +
-                                            (tab === editor.tab
-                                                ? " active"
-                                                : "")
-                                        }
-                                        onClick={() => {
-                                            editor.tab = tab
-                                            editor.showStaticPreview =
-                                                tab === "export"
-                                        }}
-                                    >
-                                        {_.capitalize(tab)}
-                                        {tab === "refs" && editor?.references
-                                            ? ` (${getFullReferencesCount(
-                                                  editor.references
-                                              )})`
-                                            : ""}
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                    <div className="innerForm container">
-                        {editor.tab === "basic" && (
-                            <EditorBasicTab
-                                editor={editor}
-                                database={this.database}
-                                errorMessagesForDimensions={
-                                    this.errorMessagesForDimensions
-                                }
-                            />
-                        )}
-                        {editor.tab === "text" && (
-                            <EditorTextTab
-                                editor={editor}
-                                errorMessages={this.errorMessages}
-                            />
-                        )}
-                        {editor.tab === "data" && (
-                            <EditorDataTab editor={editor} />
-                        )}
-                        {editor.tab === "customize" && (
-                            <EditorCustomizeTab
-                                editor={editor}
-                                errorMessages={this.errorMessages}
-                            />
-                        )}
-                        {editor.tab === "scatter" && (
-                            <EditorScatterTab editor={editor} />
-                        )}
-                        {editor.tab === "marimekko" && (
-                            <EditorMarimekkoTab grapherState={grapherState} />
-                        )}
-                        {editor.tab === "map" && (
-                            <EditorMapTab
-                                editor={editor}
-                                errorMessages={this.errorMessages}
-                            />
-                        )}
-                        {chartEditor && chartEditor.tab === "revisions" && (
-                            <EditorHistoryTab editor={chartEditor} />
-                        )}
-                        {editor.tab === "refs" && (
-                            <EditorReferencesTab editor={editor} />
-                        )}
-                        {editor.tab === "export" && (
-                            <EditorExportTab editor={editor} />
-                        )}
-                        {editor.tab === "debug" && (
-                            <EditorDebugTab editor={editor} />
-                        )}
-                    </div>
+                    <Tabs
+                        className="ChartEditorView__tabs"
+                        activeKey={editor.tab}
+                        onChange={this.onTabChange}
+                        // There are up to eleven tabs in a 550px column;
+                        // antd's default 32px gutter would push half of them
+                        // into the overflow dropdown.
+                        tabBarGutter={14}
+                        // Only the active tab is mounted, the way the editor
+                        // has always worked: every field writes straight
+                        // through to `grapherState`, so there is no per-tab
+                        // component state to preserve across a switch.
+                        destroyOnHidden
+                        items={availableTabs.map((tab) => ({
+                            key: tab,
+                            label: this.renderTabLabel(editor, tab),
+                            children: (
+                                <div className="innerForm">
+                                    {this.renderTabContent(editor, tab)}
+                                </div>
+                            ),
+                        }))}
+                    />
                     {editor.tab !== "export" && (
                         <SaveButtons
                             editor={editor}
@@ -556,10 +573,7 @@ export class ChartEditorView<
                                 },
                             ]}
                         />
-                        <div
-                            className="form-group d-inline-block"
-                            style={{ width: 250, marginLeft: 15 }}
-                        >
+                        <div className="ChartEditorView__vision-deficiency">
                             Emulate vision deficiency:{" "}
                             <VisionDeficiencyDropdown
                                 onChange={action(

@@ -263,8 +263,10 @@ export class VariableSelector<
                                 onEscape={this.onDismiss}
                                 autofocus
                             />
-                            <div className="form-group">
-                                <label>Namespaces</label>
+                            <div className="form-field">
+                                <label className="form-field__label">
+                                    Namespaces
+                                </label>
                                 <Select<string[], NamespaceOption>
                                     options={namespaceOptions}
                                     value={this.chosenNamespaces.map(

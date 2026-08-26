@@ -1,8 +1,92 @@
+// Styling for the chart editor shell: the two-column page, the antd `Tabs`
+// strip that replaced the Bootstrap `nav nav-tabs` markup, and the scrolling
+// form column. The individual tabs bring their own companion stylesheets.
+.ChartEditorPage {
+    display: flex;
+    flex-grow: 1;
+
+    .form-field__label {
+        margin-bottom: 0;
+    }
+
+    > .chart-editor-settings {
+        min-width: 550px;
+        width: 550px;
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    > .chart-editor-view {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+
+        a.preview {
+            position: absolute;
+            top: 8px;
+            right: 16px;
+        }
+    }
+
+    section {
+        padding: 1.2em;
+        border-radius: 0.4em;
+        margin-bottom: 1.2em;
+        background-color: #f9f9f9;
+
+        > h5 {
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #ccc;
+        }
+    }
+
+    figure[data-grapher-src],
+    figure.grapher-component {
+        line-height: 0; // remove extra space on the bottom
+    }
+}
+
+// The editor has up to eleven tabs in a 550px column, so the tab bar overflows
+// and antd folds the rest into its "more" dropdown; a tighter gutter than the
+// default 32px keeps most of them visible.
+.ChartEditorView__tabs {
+    flex: 1 1 auto;
+    min-height: 0;
+
+    > .ant-tabs-nav {
+        margin-bottom: 0;
+        padding: 0.5rem 0.5rem 0;
+    }
+
+    > .ant-tabs-content-holder {
+        overflow-y: scroll;
+    }
+}
+
+// Three of the tabs want a little air under their labels; the rest sit tight
+// against their control.
+.EditorScatterTab,
+.EditorMarimekkoTab,
+.EditorDataTab {
+    .form-field__label {
+        margin-bottom: 0.3rem;
+    }
+}
+
+// The form column inside the active tab pane. Used to be a Bootstrap
+// `.container`, which in this column amounted to its 15px horizontal padding.
+.ChartEditorPage .innerForm {
+    padding: 0 15px;
+}
+
 // The mobile/desktop preview toggle underneath the chart preview. Used to be a
 // Bootstrap `.btn-group` sized by a `.ChartEditorPage .btn-group .btn` rule in
 // `admin.scss`; it is an antd `Radio.Group` now, so the width lives here.
-// The rest of `.ChartEditorPage`'s styling still lives in `admin.scss` and gets
-// moved here when the chart editor tabs themselves are migrated.
 .ChartEditorPage__preview-mode {
     white-space: nowrap;
 
@@ -10,4 +94,10 @@
         text-align: center;
         width: 50px;
     }
+}
+
+.ChartEditorView__vision-deficiency {
+    display: inline-block;
+    width: 250px;
+    margin-left: 15px;
 }

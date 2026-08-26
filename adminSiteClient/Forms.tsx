@@ -48,10 +48,11 @@ export class FieldsRow extends React.Component<{ children: React.ReactNode }> {
 
 /**
  * The wrapper every field renders. It keeps Bootstrap's `form-group` class
- * alongside our own `form-field` one: raw `form-group` markup still exists in
- * ~30 other admin files, and a good number of `admin.scss` rules key layout
- * off `.form-group` inside the chart editor. Dropping it belongs to the phase
- * that migrates those pages.
+ * alongside our own `form-field` one: the chart editor is off `form-group`
+ * now, but raw `form-group` markup still exists on the pages Phase 5 of the
+ * antd migration covers (ExplorerCreatePage, UsersIndexPage, GdocsAdd, the
+ * gdocs settings forms), and `admin.scss` still keys layout off it there.
+ * Dropping it belongs to the phase that migrates those pages.
  */
 function FormField(props: {
     className?: string
@@ -665,12 +666,6 @@ export class Toggle extends React.Component<ToggleProps> {
     }
 }
 
-/**
- * Keeps Bootstrap's `list-group` classes alongside our own: several call sites
- * mix `EditableListItem`s with hand-written `list-group-item` markup in the
- * same list, so the two have to keep looking the same until those pages move
- * over too.
- */
 export class EditableList extends React.Component<{
     className?: string
     children?: React.ReactNode
@@ -679,11 +674,7 @@ export class EditableList extends React.Component<{
         return this.props.children ? (
             <ul
                 {...this.props}
-                className={cx(
-                    "editable-list",
-                    "list-group",
-                    this.props.className
-                )}
+                className={cx("editable-list", this.props.className)}
             />
         ) : null
     }
@@ -698,11 +689,7 @@ export class EditableListItem extends React.Component<EditableListItemProps> {
         return (
             <li
                 {...this.props}
-                className={cx(
-                    "editable-list__item",
-                    "list-group-item",
-                    this.props.className
-                )}
+                className={cx("editable-list__item", this.props.className)}
             />
         )
     }

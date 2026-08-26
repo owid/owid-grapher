@@ -180,8 +180,10 @@ export class ColorSchemeSelector extends React.Component<ColorSchemeSelectorProp
         return (
             <React.Fragment>
                 <FieldsRow>
-                    <div className="form-group">
-                        <label>Color scheme</label>
+                    <div className="form-field">
+                        <label className="form-field__label">
+                            Color scheme
+                        </label>
                         <ColorSchemeDropdown
                             value={grapherState.baseColorScheme}
                             onChange={this.onChange}
@@ -322,7 +324,7 @@ class SortOrderSection<
     override render() {
         return (
             <Section name="Sort Order">
-                <div className="form-group">
+                <div className="form-field">
                     Sort by
                     <Select
                         onChange={this.onSortByChange}
@@ -345,7 +347,7 @@ class SortOrderSection<
                         }
                     />
                 </div>
-                <div className="form-group">
+                <div className="form-field">
                     Sort order
                     <RadioGroup
                         options={[
@@ -408,7 +410,7 @@ class FacetSection<Editor extends AbstractChartEditor> extends React.Component<{
 
         return (
             <Section name="Faceting">
-                <div className="form-group">
+                <div className="form-field">
                     Faceting strategy
                     <Select
                         options={this.facetOptions}
@@ -796,8 +798,10 @@ class DumbbellSection<
                 />
                 {features.canConfigureDumbbellColors && (
                     <FieldsRow>
-                        <div className="form-group">
-                            <label>Trend colors</label>
+                        <div className="form-field">
+                            <label className="form-field__label">
+                                Trend colors
+                            </label>
                             <div className="dumbbell-trend-colors">
                                 <TrendColorField
                                     grapherState={grapherState}
@@ -934,7 +938,7 @@ export class EditorCustomizeTab<
                     <Section name="X Axis">
                         {/* If a scatter tab is present, then x-axis settings only apply to the scatter plot */}
                         {!grapherState.isScatter && grapherState.hasScatter && (
-                            <small className="form-text text-muted mt-0 mb-2">
+                            <small className="form-field__help text-muted mt-0 mb-2">
                                 X axis settings only apply to the scatter plot
                             </small>
                         )}

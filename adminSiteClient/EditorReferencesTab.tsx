@@ -27,7 +27,7 @@ import {
 import { ReuploadImageForDataInsightModal } from "./ReuploadImageForDataInsightModal.js"
 import { ImageUploadResponse } from "./imagesHelpers.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
-import { Alert, Button, notification } from "antd"
+import { Alert, Button, Input, notification, Space } from "antd"
 import { getCanonicalUrl } from "@ourworldindata/components"
 
 const BASE_URL = BAKED_GRAPHER_URL.replace(/^https?:\/\//, "")
@@ -126,7 +126,7 @@ export class EditorReferencesTabForChart extends Component<{
                             )}
                         </div>
                     </div>
-                    <small className="form-text text-muted">
+                    <small className="form-field__help text-muted">
                         Chart view numbers include all views of this chart
                         (direct, embedded, and in articles). The numbers are
                         updated nightly.
@@ -159,11 +159,11 @@ export class EditorReferencesTabForChart extends Component<{
                     {this.redirects.length ? (
                         <Fragment>
                             <p>The following URLs redirect to this chart:</p>
-                            <ul className="list-group">
+                            <ul className="editable-list">
                                 {this.redirects.map((redirect) => (
                                     <li
                                         key={redirect.id}
-                                        className="list-group-item"
+                                        className="editable-list__item"
                                     >
                                         <span className="redirect-prefix">
                                             {BASE_URL}/
@@ -322,38 +322,28 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
                     void this.onSubmit()
                 }}
             >
-                <div className="input-group mb-2">
-                    <div className="input-group-prepend">
-                        <span className="input-group-text" id="basic-addon3">
-                            {BASE_URL}/
-                        </span>
-                    </div>
-                    <input
-                        type="text"
-                        className="form-control"
+                <Space.Compact className="AddRedirectForm__row" block>
+                    <span className="AddRedirectForm__addon">{BASE_URL}/</span>
+                    <Input
                         placeholder="URL"
                         value={this.slug}
                         onChange={(event) =>
                             this.onSlugChange(event.target.value)
                         }
                     />
-                </div>
-                <div className="input-group mb-2">
-                    <div className="input-group-prepend">
-                        <span className="input-group-text">
-                            Target query params (optional)
-                        </span>
-                    </div>
-                    <input
-                        type="text"
-                        className="form-control"
+                </Space.Compact>
+                <Space.Compact className="AddRedirectForm__row" block>
+                    <span className="AddRedirectForm__addon">
+                        Target query params (optional)
+                    </span>
+                    <Input
                         placeholder="e.g. 'tab=map'"
                         value={this.targetQueryParam}
                         onChange={(event) =>
                             this.onTargetQueryParamChange(event.target.value)
                         }
                     />
-                </div>
+                </Space.Compact>
                 <div className="text-right mb-3">
                     <Button
                         type="primary"
@@ -378,9 +368,9 @@ const ReferencesWordpressPosts = (props: {
     return (
         <>
             <p>Public wordpress pages that embed or reference this chart:</p>
-            <ul className="list-group">
+            <ul className="editable-list">
                 {props.references.postsWordpress.map((post) => (
-                    <li key={post.id} className="list-group-item">
+                    <li key={post.id} className="editable-list__item">
                         <a href={post.url} target="_blank" rel="noopener">
                             <strong>{post.title}</strong>
                         </a>{" "}
@@ -408,9 +398,9 @@ const ReferencesGdocPosts = (props: {
     return (
         <>
             <p>Published content that references this chart</p>
-            <ul className="list-group">
+            <ul className="editable-list">
                 {props.references.postsGdocs.map((post) => (
-                    <li key={post.id} className="list-group-item">
+                    <li key={post.id} className="editable-list__item">
                         <a
                             href={getCanonicalUrl(BAKED_BASE_URL, {
                                 slug: post.slug,
@@ -446,9 +436,9 @@ const ReferencesExplorers = (props: {
     return (
         <>
             <p>Explorers (incl. unpublished ones) that reference this chart:</p>
-            <ul className="list-group">
+            <ul className="editable-list">
                 {props.references.explorers.map((explorer) => (
-                    <li key={explorer} className="list-group-item">
+                    <li key={explorer} className="editable-list__item">
                         <a
                             href={`https://ourworldindata.org/explorers/${explorer}`}
                             target="_blank"
@@ -479,9 +469,9 @@ const ReferencesNarrativeCharts = (props: {
     return (
         <>
             <p>Narrative charts based on this chart</p>
-            <ul className="list-group">
+            <ul className="editable-list">
                 {props.references.narrativeCharts.map((narrativeChart) => (
-                    <li key={narrativeChart.id} className="list-group-item">
+                    <li key={narrativeChart.id} className="editable-list__item">
                         <a
                             href={`/admin/narrative-charts/${narrativeChart.id}/edit`}
                             target="_blank"
@@ -503,9 +493,9 @@ const ReferencesStaticViz = (props: {
     return (
         <>
             <p>Static visualizations created from this chart:</p>
-            <ul className="list-group">
+            <ul className="editable-list">
                 {props.references.staticViz.map((staticViz) => (
-                    <li key={staticViz.id} className="list-group-item">
+                    <li key={staticViz.id} className="editable-list__item">
                         <a
                             href={`/admin/static-viz/${staticViz.id}`}
                             target="_blank"
@@ -559,12 +549,12 @@ const ReferencesDataInsights = (props: {
                 <p>
                     Published and unpublished data insights based on this chart
                 </p>
-                <ul className="list-group">
+                <ul className="editable-list">
                     {props.references.dataInsights.map((dataInsight) => (
                         <Fragment key={dataInsight.gdocId}>
                             <li>
                                 <a
-                                    className="list-group-item"
+                                    className="editable-list__item"
                                     href={`/admin/gdocs/${dataInsight.gdocId}/preview`}
                                     target="_blank"
                                     rel="noopener"

@@ -17,23 +17,17 @@
 // Layout:
 @import "bootstrap/scss/grid";
 @import "bootstrap/scss/tables";
-// Form controls. `Forms.tsx` is on antd now, but raw `form-group` /
-// `form-control` / `form-check` / `form-text` markup is still hand-written in
-// the editor tabs, ExplorerCreatePage, UsersIndexPage, GdocsAdd and others,
-// and `admin.scss` also `@extend`s `.form-control`:
+// Form controls. `Forms.tsx` is on antd now, and so is the chart editor, but
+// raw `form-control` / `form-check` / `form-group` markup is still hand-written
+// on the pages Phase 5 covers — ExplorerCreatePage, UsersIndexPage, GdocsAdd,
+// VariableEditPage, CalloutFunctionsPage — and `admin.scss` also `@extend`s
+// `.form-control`:
 @import "bootstrap/scss/forms";
-// still used by EditorReferencesTab (`input-group-prepend`/`input-group-text`):
-@import "bootstrap/scss/input-group";
-// Chrome and navigation. `nav` is still used by the `nav nav-tabs` chrome of
-// ChartEditorView, GrapherConfigGridEditor and DatasetEditPage:
-@import "bootstrap/scss/nav";
+// Chrome and navigation:
 @import "bootstrap/scss/breadcrumb";
 @import "bootstrap/scss/pagination";
 // Components:
 @import "bootstrap/scss/badge";
-// still used by EditorReferencesTab, EditorHistoryTab, EditorDataTab and
-// DimensionCard, which interleave `list-group-item`s with `EditableListItem`s:
-@import "bootstrap/scss/list-group";
 // Helpers:
 @import "bootstrap/scss/utilities";
 @import "bootstrap/scss/print";
@@ -45,8 +39,11 @@
 //   modal (`Forms.tsx`'s `Modal` is antd's; the `.modal-header`/`.modal-body`/
 //   `.modal-footer` markup its consumers pass in is styled in `Forms.scss`),
 //   navbar (the admin chrome is an antd `Layout` — see `AdminLayout.tsx`),
+//   nav (every tab strip is an antd `Tabs`),
 //   buttons + button-group (every button in the admin is an antd `Button`),
-//   alert (every alert in the admin is an antd `Alert`).
+//   alert (every alert in the admin is an antd `Alert`),
+//   input-group (antd `Space.Compact` / `Input`'s `addonBefore` instead),
+//   list-group (`.editable-list` in `Forms.scss` instead).
 
 // Our own copy of the parts of Bootstrap's reboot the admin depends on, so that
 // removing `bootstrap/scss/reboot` above stays a small, deliberate step rather
@@ -79,7 +76,15 @@
 @import "./AdminLayout.scss";
 @import "./SaveButtons.scss";
 @import "./ChartEditorView.scss";
+@import "./EditorBasicTab.scss";
+@import "./DimensionCard.scss";
+@import "./VariableSelector.scss";
 @import "./EditorDataTab.scss";
+@import "./EditorCustomizeTab.scss";
+@import "./EditorColorScaleSection.scss";
+@import "./EditorExportTab.scss";
+@import "./EditorReferencesTab.scss";
+@import "./EditorFAQ.scss";
 @import "./EditableTags.scss";
 @import "./AdminSidebar.scss";
 @import "./GdocsIndexPage.scss";
@@ -123,6 +128,7 @@ button {
 
     button,
     a,
+    .form-field__label,
     .form-group > label,
     .form-check > label {
         @extend .clickable;
@@ -150,21 +156,6 @@ button {
 
     section:not(:first-child) {
         margin-top: 40px;
-    }
-}
-
-.EditorFAQ {
-    .modal-body {
-        max-height: 80vh;
-        overflow-y: scroll;
-    }
-
-    h6 {
-        font-weight: bold;
-    }
-
-    h6:not(:first-child) {
-        margin-top: 20px;
     }
 }
 
@@ -233,351 +224,18 @@ button {
     }
 }
 
-.ChartEditorPage {
-    display: flex;
-    flex-grow: 1;
+// The bulk editor's sidebar uses an antd `Tabs` as a tab bar only — its panes
+// are rendered as siblings, below, so that `.sidebar-content`'s flex sizing
+// still reaches them. Hide the empty content area antd renders anyway.
+.VariablesAnnotationPage__tabs {
+    padding: 0.5rem 0.5rem 0;
 
-    .form-group > label {
+    > .ant-tabs-nav {
         margin-bottom: 0;
     }
 
-    .nav-tabs :not(.active).nav-link {
-        background: #f9f9f9;
-    }
-
-    .nav-tabs .nav-link {
-        color: inherit;
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-    }
-
-    > .chart-editor-settings {
-        min-width: 550px;
-        width: 550px;
-        min-height: 100%;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-    .innerForm {
-        overflow-y: scroll;
-        flex-grow: 1;
-    }
-
-    > .chart-editor-view {
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-
-        a.preview {
-            position: absolute;
-            top: 8px;
-            right: 16px;
-        }
-    }
-
-    section {
-        padding: 1.2em;
-        border-radius: 0.4em;
-        margin-bottom: 1.2em;
-        background-color: #f9f9f9;
-
-        > h5 {
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #ccc;
-        }
-    }
-
-    figure[data-grapher-src],
-    figure.grapher-component {
-        line-height: 0; // remove extra space on the bottom
-    }
-}
-
-.list-group {
-    margin-top: 0;
-    margin-bottom: 0.5em;
-}
-
-.EditorBasicTab {
-    .DimensionCard {
-        header {
-            display: flex;
-            color: #666;
-            align-items: center;
-            text-align: center;
-            gap: 1em;
-            justify-content: space-between;
-
-            > div {
-                display: flex;
-                align-items: center;
-                gap: 0.5em;
-            }
-        }
-
-        > div {
-            margin: 1em 0;
-        }
-
-        .dimensionLink {
-            color: inherit;
-            text-decoration: underline;
-            text-decoration-color: rgba(0, 0, 0, 0.2);
-
-            &:hover {
-                text-decoration-color: inherit;
-            }
-        }
-    }
-
-    .dimensionSlot {
-        cursor: pointer;
-        min-height: 50px;
-        border: 1px dashed #bbb;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #666;
-    }
-
-    .VariableSlots {
-        display: flex;
-        flex-direction: column;
-        gap: 1em;
-    }
-
-    .DimensionSlotHeader {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .chart-type-group {
-        margin-bottom: 12px;
-
-        .chart-type-group__label {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 4px;
-        }
-
-        .chart-type-group__description {
-            display: block;
-            font-size: 0.75rem;
-            font-style: italic;
-            margin-bottom: 7px;
-        }
-
-        .chart-type-group__grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4px;
-
-            .ant-tag-checkable {
-                display: flex;
-                align-items: center;
-                gap: 4px;
-                margin: 0;
-                padding: 5px 10px;
-                border: 1px solid #d9d9d9;
-                background: white;
-
-                &:hover {
-                    border-color: #396d8f;
-                    color: inherit;
-                }
-
-                &.ant-tag-checkable-checked {
-                    background: #e6f0f8;
-                    border-color: #396d8f;
-                    color: #2a4d65;
-                }
-            }
-        }
-    }
-}
-
-.EditorExportTab {
-    .DownloadButtons {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        align-items: flex-start;
-    }
-}
-
-.ColorableItem {
-    display: flex;
-    align-items: center;
-
-    > div {
-        margin-right: 0.5em;
-    }
-}
-
-.VariableSelector {
-    .modal-body > div {
-        display: flex !important;
-        justify-content: space-between;
-    }
-
-    .selectedData {
-        min-width: 25%;
-        padding-left: 1em;
-        max-height: 550px;
-        overflow-y: auto;
-    }
-
-    .searchResults h5 {
-        color: #666;
-        font-size: 1rem;
-        padding-bottom: 5px;
-        border-bottom: 1px solid #ccc;
-    }
-
-    .searchResults ul {
-        display: flex;
-        flex-wrap: wrap;
-    }
-
-    .searchResults b {
-        color: orange;
-    }
-
-    ul {
-        padding: 0;
-    }
-
-    li {
-        list-style-type: none;
-        flex: 1 0 15em;
-        min-height: 32px;
-    }
-
-    li > .toggle-field {
-        width: 100%;
-        margin-bottom: 0;
-    }
-
-    input[type="search"] {
-        width: 100%;
-        font-size: 0.9em;
-        padding: 0.4em;
-        margin-bottom: 0.4em;
-        border: 1px solid #ccc;
-    }
-
-    .muted-option {
-        opacity: 0.55;
-    }
-
-    .icon {
-        color: #999;
-        margin-right: 5px;
-    }
-
-    .badge {
-        background-color: #999;
-        border-radius: 2px;
-        text-transform: uppercase;
-        font-size: 10px;
-        font-weight: 700;
-        padding: 3px 4px;
-        color: white;
-        margin-left: 4px;
-    }
-}
-
-.ListItem {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    > div {
-        display: flex;
-        align-items: center;
-    }
-
-    &.invalid {
-        background: #fce9e6;
-    }
-}
-
-.EditableListItem {
-    @extend .draggable;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    > div {
-        display: flex;
-        align-items: center;
-    }
-
-    i {
-        font-size: 1.2rem;
-        color: #666;
-    }
-
-    > div:first-child > * {
-        margin-right: 12px;
-    }
-}
-
-.ColorSchemeEditor {
-    padding-left: 0;
-    li {
-        display: flex;
-        align-items: center;
-
-        i {
-            font-size: 1.2rem;
-            color: #666;
-        }
-
-        > * {
-            margin-right: 8px;
-
-            &:last-child {
-                margin-right: 0;
-            }
-        }
-
-        .range {
-            display: flex;
-            flex: 1 0;
-            align-items: center;
-
-            span {
-                font-size: 0.85em;
-                margin: 0 3px;
-            }
-        }
-
-        .form-group {
-            flex: 1 1;
-            margin-bottom: 0;
-        }
-    }
-}
-
-.BinLabelView .FieldsRow {
-    margin-bottom: 0;
-}
-
-.EditorScatterTab,
-.EditorMarimekkoTab,
-.EditorDataTab {
-    .form-group > label {
-        margin-bottom: 0.3rem;
+    > .ant-tabs-content-holder {
+        display: none;
     }
 }
 
@@ -600,79 +258,6 @@ button {
 .clickable {
     cursor: pointer;
     user-select: none;
-}
-
-.FieldsRow {
-    display: flex;
-    align-items: center;
-    margin: 0 0 1em;
-
-    > * {
-        padding-right: 1rem;
-        margin-bottom: 0 !important;
-        flex-grow: 1;
-        flex-basis: 0;
-    }
-}
-
-.WithResetButton {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-
-    .form-group {
-        margin-bottom: 0;
-        width: 100%;
-    }
-
-    .ResetToDefaultButton {
-        height: auto;
-        padding: 0;
-        font-size: 0.8em;
-        color: inherit;
-
-        &:disabled {
-            font-style: italic;
-        }
-
-        &:not(:disabled) {
-            text-decoration: underline;
-        }
-
-        &:hover {
-            text-decoration: none;
-        }
-    }
-}
-
-.ColorBox {
-    width: 2em;
-    height: 2em;
-    cursor: pointer;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.colorpicker-tooltip {
-    .tippy-content {
-        padding: 0;
-    }
-}
-
-.LoadingBlocker {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 9999;
-    color: white;
-    align-items: center;
-    justify-content: center;
 }
 
 main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
@@ -949,30 +534,6 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
 
     &:hover {
         color: #000;
-    }
-}
-
-.redirect-prefix {
-    color: #aaa;
-    font-size: 13px;
-    font-weight: 400;
-    text-decoration: none;
-}
-
-.add-redirect-form {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-
-    span,
-    button {
-        flex: 0;
-    }
-
-    input[type="text"] {
-        flex: 1;
-        font-weight: 700;
-        color: #007bff;
     }
 }
 
@@ -1415,21 +976,6 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     }
 }
 
-.EditorReferencesTab .ReferencesDataInsights {
-    li {
-        display: flex;
-        gap: 1em;
-
-        a {
-            flex-grow: 1;
-        }
-
-        button {
-            min-width: 144px;
-        }
-    }
-}
-
 .di-modal-content {
     margin: 16px 0 24px 0;
 
@@ -1552,12 +1098,6 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     }
 }
 
-// Make the x/y dropdown in the comparison line editor narrow
-.comparisonLine .form-group:first-of-type {
-    flex-grow: 0;
-    flex-basis: 65px;
-}
-
 .multi-dim-preview {
     display: flex;
     align-items: center;
@@ -1652,22 +1192,6 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
 
 .table-preview-col--centered {
     text-align: center;
-}
-
-.dumbbell-trend-colors {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    .dumbbell-trend-colors__invert {
-        margin-left: auto;
-    }
-
-    .dumbbell-trend-colors__invert-icon {
-        position: relative;
-        top: 1px;
-        margin-right: 6px;
-    }
 }
 
 .SvgTesterIndexPage__intro {
