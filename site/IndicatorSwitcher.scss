@@ -189,8 +189,10 @@ $hover-fill: #e3ebf5;
         border-color: $blue-30;
     }
 
+    // Keep the site-wide focus ring (site/owid.scss) — the hover treatment
+    // alone is indistinguishable from :hover, so keyboard focus would be
+    // invisible. Same call as the topic pills in LatestTopicFacets.scss.
     &:focus-visible {
-        outline: none;
         background: $hover-fill;
         border-color: $blue-30;
     }
@@ -254,7 +256,6 @@ $hover-fill: #e3ebf5;
     }
 
     &:focus-visible {
-        outline: none;
         border-color: $blue-50;
     }
 }
@@ -340,7 +341,6 @@ $hover-fill: #e3ebf5;
     }
 
     &:focus-visible {
-        outline: none;
         background: $blue-10;
         color: $blue-90;
     }
