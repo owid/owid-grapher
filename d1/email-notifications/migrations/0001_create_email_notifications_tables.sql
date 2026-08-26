@@ -3,15 +3,16 @@
 -- UPDATE to a table with an updatedAt column must also set updatedAt in the
 -- same statement because D1 does not update it automatically.
 
--- Users of the email notifications system. The email is the identifier users
--- enter in the subscribe form; everything else hangs off the user id.
+-- Identities known to the email preferences system. This includes readers who
+-- only subscribe to the Mailchimp-owned OWID Brief so they can still request a
+-- magic link and manage all of their email preferences in one place.
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT NOT NULL UNIQUE,
-    -- Users are subscribed immediately (single opt-in) and can unsubscribe
-    -- via the link in every email.
-    status TEXT NOT NULL DEFAULT 'subscribed'
-        CHECK (status IN ('subscribed', 'unsubscribed')),
+    -- Whether notifications matching the user's preferences are active.
+    -- The OWID Brief subscription state lives only in Mailchimp.
+    emailNotificationsStatus TEXT NOT NULL DEFAULT 'unsubscribed'
+        CHECK (emailNotificationsStatus IN ('subscribed', 'unsubscribed')),
     -- Secret token identifying the user in unsubscribe/manage links.
     token TEXT NOT NULL UNIQUE,
     createdAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),

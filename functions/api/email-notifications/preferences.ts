@@ -5,6 +5,7 @@ import {
     EmailNotificationsPreferencesResponse,
     EmailNotificationsUpdatePreferencesRequestTypeObject,
     JsonError,
+    EmailNotificationsStatus,
 } from "@ourworldindata/utils"
 import { Env } from "../../_common/env.js"
 import {
@@ -31,11 +32,10 @@ export const onRequestOptions = handleOptionsRequest
 
 /**
  * Data source of the magic-link preferences page: resolves a magic-link token
- * to the user's email, current preferences and OWID Brief status. 410 for
- * expired tokens drives the page's expired state (which offers to email a new
- * link). The Brief status comes from Mailchimp fail-soft: if it can't be
- * determined, it is null and the page hides the Brief toggle — D1 preferences
- * are never hostage to Mailchimp availability.
+ * to the user's email, current notification status and preferences, and live
+ * OWID Brief status from Mailchimp. 410 for expired tokens drives the page's
+ * expired state (which offers to email a new link). If Mailchimp is
+ * unavailable, its status is null and that independent control is disabled.
  */
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     try {
@@ -49,7 +49,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
         const user = await db
             .prepare(
-                `SELECT users.email, notification_preferences.topicTags,
+                `SELECT users.email, users.emailNotificationsStatus,
+                        notification_preferences.topicTags,
                         notification_preferences.contentTypes,
                         notification_preferences.frequency
                  FROM users
@@ -60,6 +61,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
             .bind(lookup.row.userId)
             .first<{
                 email: string
+                emailNotificationsStatus: EmailNotificationsStatus
                 topicTags: string | null
                 contentTypes: string | null
                 frequency: string | null
@@ -68,6 +70,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
         const response: EmailNotificationsPreferencesResponse = {
             email: user.email,
+            emailNotificationsStatus: user.emailNotificationsStatus,
             subscribedToOwidBrief: await getOwidBriefStatus(
                 env,
                 user.email
@@ -75,8 +78,9 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
                 Sentry.captureException(error)
                 return null
             }),
-            // Fail-safe: a user should always have preferences, but if the
-            // row is missing the page falls back to defaults.
+            // Brief-only identities intentionally have no notification
+            // preferences row; the page offers defaults if they enable email
+            // notifications.
             preferences:
                 user.topicTags && user.contentTypes && user.frequency
                     ? ({
@@ -94,10 +98,11 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
 /**
  * Save target of the magic-link preferences page. The magic link itself was
- * the proof of inbox control, so changes apply immediately — including
- * reactivating an unsubscribed user. `unsubscribe: true` unsubscribes
- * instead. An optional `subscribeToOwidBrief` updates the Mailchimp Brief
- * interest fail-soft: a Mailchimp failure never blocks the D1 save.
+ * the proof of inbox control, so changes apply immediately. Notification
+ * status and preferences are stored in D1; the optional Brief selection is
+ * written directly to Mailchimp. Cross-system updates cannot be atomic, so
+ * failures are surfaced rather than claiming that every requested preference
+ * was saved.
  */
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     try {
@@ -144,17 +149,18 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             }>()
         if (!user) return tokenErrorResponse({ state: "invalid" })
 
-        if (data.unsubscribe) {
+        if (!data.subscribeToTopicNotifications) {
             await db
                 .prepare(
                     `UPDATE users
-                     SET status = 'unsubscribed',
+                     SET emailNotificationsStatus = 'unsubscribed',
                          updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
                      WHERE id = ?1`
                 )
                 .bind(userId)
                 .run()
-        } else if (data.preferences) {
+        } else {
+            const preferences = data.preferences
             if (user.activeSuppressionChangedAt) {
                 await reactivatePostmarkRecipient(env, user.email)
                 await markReactivatedLocally(
@@ -167,7 +173,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
                 db
                     .prepare(
                         `UPDATE users
-                         SET status = 'subscribed',
+                         SET emailNotificationsStatus = 'subscribed',
                              updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
                          WHERE id = ?1`
                     )
@@ -185,30 +191,19 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
                     )
                     .bind(
                         userId,
-                        JSON.stringify(data.preferences.topicTags),
-                        JSON.stringify(data.preferences.contentTypes),
-                        data.preferences.frequency
+                        JSON.stringify(preferences.topicTags),
+                        JSON.stringify(preferences.contentTypes),
+                        preferences.frequency
                     ),
             ])
         }
 
         if (data.subscribeToOwidBrief !== undefined) {
-            try {
-                await upsertOwidBriefSubscription(
-                    env,
-                    user.email,
-                    data.subscribeToOwidBrief
-                )
-            } catch (error) {
-                // Fail soft: the D1 preferences are saved; only the Brief
-                // toggle didn't stick.
-                const errorMessage =
-                    error instanceof Error ? error.message : String(error)
-                console.error(
-                    `OWID Brief update failed error=${JSON.stringify(errorMessage)}`
-                )
-                Sentry.captureException(error)
-            }
+            await upsertOwidBriefSubscription(
+                env,
+                user.email,
+                data.subscribeToOwidBrief
+            )
         }
 
         return makeJsonResponse({ ok: true }, 200)
