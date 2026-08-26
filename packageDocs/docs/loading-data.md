@@ -12,7 +12,11 @@ See the [API reference](api/index.md) for their full options.
 
 ## The CSV column contract
 
-CSV data — whether passed inline (`csv`), fetched from a URL (`csvUrl`), or used to construct an `OwidTable` — must contain `entityName`, `entityCode`, and `entityId` columns plus a `year` (or `day`) column, followed by one or more value columns:
+CSV data — whether passed inline (`csv`), fetched from a URL (`csvUrl`), or used to construct an `OwidTable` — must contain `entityName`, `entityCode`, and `entityId` columns plus a `year` (or `day`) column, followed by one or more value columns.
+
+## `fromCsv`: CSV data
+
+Pass the CSV inline as `csv`, or have it fetched from a URL with `csvUrl` (exactly one of the two — the types enforce this):
 
 ```js
 import { GrapherLoader } from "@ourworldindata/grapher"
@@ -28,9 +32,50 @@ United States,USA,1,2020,63544`,
 }).mount(container)
 ```
 
-`fromTable` accepts the same data as a pre-built table (`new OwidTable(csvString, columnDefs)`), useful when you want to construct or transform the data programmatically first.
+## `fromTable`: an in-memory table
 
-For `fromApi`, the config's `dimensions` array says which indicators to fetch; indicator IDs can be found via the [OWID data catalog](https://docs.owid.io/projects/etl/api/). Data loading starts at construction time, so the chart shows a loading state until the data arrives.
+`fromTable` accepts the same data as a pre-built [`OwidTable`](api/reference/classes/OwidTable.md), useful when you want to construct or transform the data programmatically before handing it to the chart:
+
+```js
+import { GrapherLoader, OwidTable } from "@ourworldindata/grapher"
+
+const table = new OwidTable(csvString, [
+    { slug: "gdpPerCapita", type: "Numeric", name: "GDP per capita" },
+])
+
+GrapherLoader.fromTable({
+    config: { title: "GDP per capita" },
+    data: table,
+}).mount(container)
+```
+
+## `fromApi`: OWID's data API
+
+For `fromApi`, the config's `dimensions` array says which indicators to fetch; indicator IDs can be found via the [OWID data catalog](https://docs.owid.io/projects/etl/api/). Data loading starts at construction time, so the chart shows a loading state until the data arrives:
+
+```js
+GrapherLoader.fromApi({
+    config: {
+        title: "Life expectancy",
+        selectedEntityNames: ["World", "Africa", "Europe"],
+        dimensions: [{ property: "y", variableId: 1118466 }],
+    },
+}).mount(container)
+```
+
+### Customizing the API URL
+
+`dataApiUrl` overrides the base URL the indicators are fetched from; it defaults to `https://api.ourworldindata.org/v1/indicators/`. For each indicator, the loader requests `<variableId>.data.json` and `<variableId>.metadata.json` relative to that base. This is useful for pointing a chart at self-hosted copies of indicator files — note that the URL must currently contain `v1/indicators`, other formats are rejected:
+
+```js
+GrapherLoader.fromApi({
+    config: {
+        title: "Life expectancy",
+        dimensions: [{ property: "y", variableId: 1118466 }],
+    },
+    dataApiUrl: "https://api.example.org/v1/indicators/",
+}).mount(container)
+```
 
 ## Providing metadata
 
