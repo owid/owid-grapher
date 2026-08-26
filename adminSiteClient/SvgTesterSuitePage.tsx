@@ -77,6 +77,13 @@ const VISUAL_STATUS_LABELS: Record<VisualStatus, string> = {
     identical: "No visible change",
 }
 
+/** Only where the label leaves a question, which is where the check has no answer */
+const VISUAL_STATUS_HINTS: Partial<Record<VisualStatus, string>> = {
+    unknown:
+        "This chart's pixels can't be read — an embedded <foreignObject> taints the canvas — so it may not have changed at all",
+    pending: "The check hasn't got to this chart yet",
+}
+
 /** Which differences to list, once we know which ones only changed in markup */
 type VisualFilter = VisualStatus | "all"
 
@@ -673,18 +680,14 @@ function DifferenceCard({
                             {entry.chartType}
                         </Tag>
                     )}
-                    {status !== "changed" && (
-                        <Tag
-                            className="SvgTesterSuitePage__chart-type"
-                            title={
-                                status === "unknown"
-                                    ? "This chart's pixels can't be read — an embedded <foreignObject> taints the canvas — so it may not have changed at all"
-                                    : undefined
-                            }
-                        >
-                            {VISUAL_STATUS_LABELS[status]}
-                        </Tag>
-                    )}
+                    <Tag
+                        className={cx("SvgTesterSuitePage__status", {
+                            "is-changed": status === "changed",
+                        })}
+                        title={VISUAL_STATUS_HINTS[status]}
+                    >
+                        {VISUAL_STATUS_LABELS[status]}
+                    </Tag>
                 </span>
                 <SvgTesterChartLinks entry={entry} />
             </header>
