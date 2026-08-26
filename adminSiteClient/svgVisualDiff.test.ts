@@ -3,6 +3,7 @@ import {
     createVisualDiffChecker,
     decodeVerdicts,
     encodeVerdicts,
+    groupByVisualVerdict,
     LoadPixels,
     RasterizedSvg,
     type VisualVerdict,
@@ -131,6 +132,42 @@ describe("the visual diff checker", () => {
         await runIdleWork()
         await expect(second).resolves.toBe("identical")
         expect(loads).toBe(4)
+    })
+})
+
+describe("splitting differences by verdict", () => {
+    const entry = (svgFilename: string) => ({ svgFilename })
+
+    it("puts each difference in the bucket its verdict names", () => {
+        const grouped = groupByVisualVerdict(
+            [entry("a.svg"), entry("b.svg"), entry("c.svg")],
+            { "a.svg": "identical", "b.svg": "changed", "c.svg": "unknown" }
+        )
+
+        expect(grouped.changed).toEqual([entry("b.svg")])
+        expect(grouped.unknown).toEqual([entry("c.svg")])
+        expect(grouped.identical).toEqual([entry("a.svg")])
+    })
+
+    it("keeps the order the differences came in", () => {
+        const grouped = groupByVisualVerdict(
+            [entry("a.svg"), entry("b.svg"), entry("c.svg")],
+            { "a.svg": "changed", "b.svg": "identical", "c.svg": "changed" }
+        )
+
+        expect(grouped.changed).toEqual([entry("a.svg"), entry("c.svg")])
+    })
+
+    it("counts a difference nothing is known about yet as changed", () => {
+        const grouped = groupByVisualVerdict([entry("a.svg")], {})
+
+        expect(grouped.changed).toEqual([entry("a.svg")])
+    })
+
+    it("names every bucket even when nothing landed in it", () => {
+        const grouped = groupByVisualVerdict([], {})
+
+        expect(grouped).toEqual({ changed: [], unknown: [], identical: [] })
     })
 })
 

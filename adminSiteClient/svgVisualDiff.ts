@@ -53,6 +53,25 @@ export type LoadPixels = (
  */
 export type VisualVerdict = "identical" | "changed" | "unknown"
 
+/**
+ * The differences split by what the pixel check came to, each bucket keeping the
+ * order the report lists them in. The buckets are declared review-first, which
+ * is the order the report walks them in.
+ */
+export function groupByVisualVerdict<T extends { svgFilename: string }>(
+    entries: T[],
+    verdicts: Record<string, VisualVerdict>
+): Record<VisualVerdict, T[]> {
+    const grouped: Record<VisualVerdict, T[]> = {
+        changed: [],
+        unknown: [],
+        identical: [],
+    }
+    for (const entry of entries)
+        grouped[verdicts[entry.svgFilename] ?? "changed"].push(entry)
+    return grouped
+}
+
 export function createVisualDiffChecker(loadPixels: LoadPixels): {
     /**
      * What the two SVGs' pixels came to. Never rejects, and never hangs, and

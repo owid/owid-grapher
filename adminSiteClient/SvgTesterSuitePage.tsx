@@ -42,6 +42,7 @@ import pMap from "p-map"
 import {
     compareSvgsVisually,
     encodeVerdicts,
+    groupByVisualVerdict,
     readVerdicts,
     VISUAL_DIFF_CONCURRENCY,
     type VisualVerdict,
@@ -187,17 +188,10 @@ export function SvgTesterSuitePage() {
 
     const applied = verdictBySvg ?? NO_VISUAL_RESULTS
 
-    const grouped = useMemo(() => {
-        const byVerdict = _.groupBy(
-            visible,
-            (entry) => applied[entry.svgFilename] ?? "changed"
-        )
-        return {
-            changed: byVerdict.changed ?? [],
-            unknown: byVerdict.unknown ?? [],
-            identical: byVerdict.identical ?? [],
-        }
-    }, [visible, applied])
+    const grouped = useMemo(
+        () => groupByVisualVerdict(visible, applied),
+        [visible, applied]
+    )
 
     const populatedVerdicts = VISUAL_VERDICTS.filter(
         (verdict) => grouped[verdict].length > 0
