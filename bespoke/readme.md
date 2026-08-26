@@ -125,9 +125,17 @@ Note that every slide of a key insights block is in the DOM from page load, not 
 
 A bespoke component can also be the subject of its own page, rather than one
 figure inside an article. Those are gdocs of type `featured-viz`, published at
-`/featured-viz/<slug>`. The first top-level `{.bespoke-component}` block is the
-featured viz: it renders on a full-bleed blue band, at the width its `size` asks
-for, and later bespoke blocks on the page render as ordinary blocks.
+`/featured-viz/<slug>`, and they behave differently in two ways:
+
+- **The first top-level `{.bespoke-component}` block is the featured viz.** It
+  renders on a full-bleed blue band, at the width its `size` asks for. Later
+  bespoke blocks on the page render as ordinary blocks.
+- **The featured viz drives the URL.** The page forces `urlSync` on for it, so
+  a project that reads `config.urlSync` syncs without the author asking, and the
+  page URL is shareable at a particular view. There is no opt-out: a featured
+  viz page whose URL doesn't track its viz is not worth publishing. A project
+  that doesn't read `config.urlSync` won't sync at all; add it before giving
+  that bundle a featured viz page.
 
 Everything else on the page is authored as in a normal article, and any block an
 article supports works there.
@@ -136,8 +144,15 @@ article supports works there.
 
 Expected, and fine. A page often embeds the same viz several times with
 different settings and talks about each one. Only the first top-level bespoke
-block is the featured viz and gets the blue band; the rest render as ordinary
-figures at whatever `size` they ask for.
+block is the featured viz: the rest render as ordinary figures, with no blue
+band and no `urlSync`.
+
+Keeping `urlSync` on the featured viz alone is deliberate. The page URL stands
+for the featured viz's state, the thing a reader shares. So a second component
+writing its own params would pollute it, and a second component of the _same_
+bundle would fight it for the same keys. The cross-instance state sharing
+described under "Sharing state between variants" is an in-article device; it
+doesn't apply here.
 
 ## Sizing
 
