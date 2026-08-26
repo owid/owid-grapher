@@ -1,5 +1,4 @@
 .indicator-metadata-box {
-    position: relative;
     padding: 24px;
     background-color: $blue-5;
     grid-template-columns: repeat(12, 1fr);
@@ -25,7 +24,7 @@
     }
 }
 
-.indicator-metadata-box__indicator-title {
+.indicator-metadata-box__title {
     margin: 0;
     color: $blue-90;
     max-width: calc(100% - 104px);
@@ -37,33 +36,7 @@
     color: $blue-50;
 }
 
-.indicator-metadata-box__show-less {
-    display: none;
-    position: absolute;
-    top: 0px;
-    right: 0px;
-    padding: 24px;
-    padding-bottom: 16px;
-    border: none;
-    background: none;
-    cursor: pointer;
-    @include note-13-medium;
-    color: $blue-50;
-    svg {
-        margin-left: 6px;
-    }
-    &:hover {
-        text-decoration: none;
-    }
-}
-
-.indicator-metadata-box:has(.meta-expander__details[open]) {
-    .indicator-metadata-box__show-less {
-        display: inline-block;
-    }
-}
-
-.meta-description-table {
+.metadata-box-key-data {
     margin-top: 8px;
     margin-bottom: 0;
     line-height: 1.2;
@@ -72,20 +45,20 @@
     gap: 8px 16px;
 }
 
-.meta-description-table__pair {
+.metadata-box-key-data__row {
     display: flex;
     gap: 4px;
 }
 
-.meta-description-table__pair--full-width {
+.metadata-box-key-data__row--full-width {
     flex-basis: 100%;
 }
 
-.meta-description-table__key {
+.metadata-box-key-data__key {
     @include note-13-medium;
     color: $blue-50;
 }
-.meta-description-table__value {
+.metadata-box-key-data__value {
     @include note-13-medium;
     margin: 0;
     color: $blue-90;
@@ -98,139 +71,26 @@
     }
 }
 
-.meta-description-table__key--source {
+.metadata-box-key-data__key--source {
     text-wrap: nowrap;
 }
 
-.meta-expander {
-    margin-top: 16px;
-    border-top: 1px solid $blue-20;
-    details {
-        display: flex;
-        flex-direction: column;
-        .meta-expander__summary {
-            order: 1;
-            display: inline-block;
-            cursor: pointer;
-            align-self: start;
-            @include body-2-semibold;
-            margin-left: -24px;
-            margin-bottom: -24px;
-            width: calc(100% + 48px);
-            padding: 16px;
-            @include note-13-medium;
-            color: $blue-50;
-            text-align: center;
-            &:hover {
-                background-color: $blue-20;
-            }
-            transition: background-color 0.15s;
-            &::marker,
-            &::-webkit-details-marker {
-                content: "";
-            }
-        }
-        .meta-expander__show-less {
-            display: none;
-        }
-        &[open] {
-            .meta-expander__show-less {
-                display: inline-block;
-            }
-            .meta-expander__show-more {
-                display: none;
-            }
-        }
-        a {
-            @include owid-link-90;
-        }
-    }
-    .ExpandableToggle {
-        .ExpandableToggle__button {
-            --title: #{$blue-60};
-            --button-hover: #{$blue-50};
-            padding: 16px;
-        }
-        .ExpandableToggle__content {
-            padding: 16px;
-        }
-        &[open] {
-            background-color: $blue-20;
-        }
-    }
-}
-
-.meta-expander__preview {
-    margin-top: 16px;
-}
-
-.indicator-metadata-box__chevron {
-    font-size: 0.75em;
-    margin-left: 4px;
-    position: relative;
-    top: -1px;
-}
-
-// free-form markdown rendering of descriptionKey
-.meta-expander__prose {
-    p,
-    ul,
-    ol {
-        @include body-2-regular;
-        margin: 0 0 8px;
-    }
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-        @include body-2-bold-tight;
-        color: $blue-90;
-        margin: 0 0 8px;
-        &:not(:first-child) {
-            margin-top: 16px;
-        }
-    }
-    p:last-child,
-    ul:last-child,
-    ol:last-child {
-        margin-bottom: 0;
-    }
-    ul,
-    ol {
-        padding-left: 1.5em;
-    }
-    li {
-        margin-bottom: 8px;
-    }
-    a {
-        @include owid-link-90;
-    }
-}
-
-// the part of the descriptionKey revealed by expanding the box; continues
-// right below the preview
-.meta-expander__remainder {
-    margin-top: 8px;
-}
-
-.meta-expander__section {
+.metadata-box-section {
     margin-bottom: 32px;
 }
 
-.meta-expander__section:first-of-type .meta-expander__section-title {
+.metadata-box-section:first-of-type .metadata-box-section__title {
     margin-top: 16px;
 }
 
-.meta-expander__section-title {
+.metadata-box-section__title {
     @include body-2-bold-tight;
     color: $blue-90;
     margin-top: 0;
     margin-bottom: 16px;
 }
 
-.meta-expander__section--faqs {
+.metadata-box-section--faqs {
     .indicator-processing .indicator-processing-callout {
         margin: 16px 8px;
     }
@@ -240,7 +100,7 @@
     }
 }
 
-.meta-expander__reuse-notice {
+.indicator-metadata-box__reuse-notice {
     margin-top: 32px;
     @include note-13-medium;
     a {
