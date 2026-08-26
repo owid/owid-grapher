@@ -156,7 +156,6 @@
         "safe-stable-stringify": "^2.4.1",
         "sharp": "^0.35.2",
         "simple-git": "^3.36.0",
-        "spin-delay": "^2.0.1",
         "tinyexec": "^1.1.1",
         "tippy.js": "^6.3.7",
         "ts-pattern": "^5.8.0",
