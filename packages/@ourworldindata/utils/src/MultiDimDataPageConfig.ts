@@ -250,8 +250,9 @@ export function getMultiDimPageTitle(
 /**
  * Which control a dimension should be rendered as. An explicit
  * `presentation.type` in the config always wins; otherwise dimensions with at
- * most two ungrouped choices render as a radio group, everything else as a
- * dropdown.
+ * most two ungrouped choices render as a radio group, dimensions with more
+ * than ten choices as a dropdown with a search field, and everything else as
+ * a plain dropdown.
  *
  * Always resolve against the dimension's full choice list (not one filtered
  * to the currently available choices), so the control type doesn't flip as
@@ -262,7 +263,8 @@ export function resolveDimensionPresentationType(
 ): DimensionPresentationType {
     if (dimension.presentation?.type) return dimension.presentation.type
     const hasGroups = dimension.choices.some((choice) => choice.group)
-    return dimension.choices.length <= 2 && !hasGroups ? "radio" : "dropdown"
+    if (dimension.choices.length <= 2 && !hasGroups) return "radio"
+    return dimension.choices.length > 10 ? "dropdown-with-search" : "dropdown"
 }
 
 export const extractMultiDimChoicesFromSearchParams = (
