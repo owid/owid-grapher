@@ -6,6 +6,7 @@ import {
     IndicatorProcessing,
     CodeSnippet,
     DataCitation,
+    ChartLicenseNotice,
 } from "@ourworldindata/components"
 import {
     FaqEntryData,
@@ -22,7 +23,6 @@ import {
     getIndicatorCitations,
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
-import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
 
 export default function MetadataSection({
     attributionShort,

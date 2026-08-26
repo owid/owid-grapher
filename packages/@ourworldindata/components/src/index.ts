@@ -59,6 +59,8 @@ export { IndicatorProcessing } from "./IndicatorProcessing/IndicatorProcessing.j
 export { MetadataBoxExpander } from "./MetadataBoxExpander/MetadataBoxExpander.js"
 export { MetadataBoxCollapseButton } from "./MetadataBoxCollapseButton/MetadataBoxCollapseButton.js"
 export { MetadataBoxSection } from "./MetadataBoxSection/MetadataBoxSection.js"
+export { MetadataBoxReuseNotice } from "./MetadataBoxReuseNotice/MetadataBoxReuseNotice.js"
+export { ChartLicenseNotice } from "./ChartLicenseNotice/ChartLicenseNotice.js"
 export {
     MetadataBoxKeyData,
     MetadataBoxKeyDataRow,
