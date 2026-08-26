@@ -15,6 +15,7 @@ import {
     ValueRange,
     OwidVariableRoundingMode,
     isSubYearly,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import { ComparisonLineConfig } from "@ourworldindata/types"
 import { AxisConfig, AxisManager } from "./AxisConfig"
@@ -110,10 +111,7 @@ abstract class AbstractAxis {
 
     abstract placeTickLabel(value: number): TickLabelPlacement
     abstract get tickLabels(): TickLabelPlacement[]
-
-    @computed get endpointTickLabels(): TickLabelPlacement[] {
-        return pickOutermostTickLabels(this.tickLabels)
-    }
+    abstract get endpointTickLabels(): TickLabelPlacement[]
 
     @computed get hideAxis(): boolean {
         return this.config.hideAxis ?? false
@@ -732,19 +730,37 @@ export class HorizontalAxis extends AbstractAxis {
         return this.height
     }
 
-    override get endpointTickLabels(): TickLabelPlacement[] {
+    @computed get endpointTickLabels(): TickLabelPlacement[] {
         const { formatColumn } = this
 
         // For time columns, ticks sit on calendar-nice values that don't
         // necessarily include the endpoints, so use the domain instead
         if (formatColumn?.isTimeColumn) {
-            const times = _.uniq(this.domain).filter(Number.isFinite)
-            return times.map((time) =>
-                this.placeTickLabel(time, formatColumn.formatTimeShort(time))
+            const [start, end] = this.domain
+
+            const startLabel = Number.isFinite(start)
+                ? this.placeTickLabel(
+                      start,
+                      formatColumn.formatTimeShort(start)
+                  )
+                : undefined
+
+            const endLabel =
+                Number.isFinite(end) && end !== start
+                    ? this.placeTickLabel(
+                          end,
+                          // Include the full plotted range for sub-yearly data
+                          formatColumn.formatTimeShortEnd(end)
+                      )
+                    : undefined
+
+            return hideOverlappingTickLabels(
+                excludeUndefined([startLabel, endLabel]),
+                { padding: 3 }
             )
         }
 
-        return pickOutermostTickLabels(this.tickLabels)
+        return pickOutermostTickLabels(this.tickLabels, (label) => label.x)
     }
 
     protected override get baseTicks(): Tickmark[] {
@@ -925,6 +941,10 @@ export class VerticalAxis extends AbstractAxis {
 
     @computed get size(): number {
         return this.width
+    }
+
+    @computed get endpointTickLabels(): TickLabelPlacement[] {
+        return pickOutermostTickLabels(this.tickLabels, (label) => label.y)
     }
 
     @computed get tickLabels(): TickLabelPlacement[] {
@@ -1126,21 +1146,12 @@ function labelsFit(
     return true
 }
 
-/**
- * The outermost two of the given labels, ordered by their position along the
- * axis. A horizontal axis varies in x and a vertical one in y, so sort by x
- * first and break the resulting tie on y.
- */
 function pickOutermostTickLabels(
-    tickLabels: TickLabelPlacement[]
+    tickLabels: TickLabelPlacement[],
+    position: (label: TickLabelPlacement) => number
 ): TickLabelPlacement[] {
     if (tickLabels.length < 2) return tickLabels
-    const sorted = R.sortBy(
-        tickLabels,
-        (label) => label.x,
-        (label) => label.y
-    )
-    return [sorted[0], sorted.at(-1)!]
+    return [_.minBy(tickLabels, position)!, _.maxBy(tickLabels, position)!]
 }
 
 /**

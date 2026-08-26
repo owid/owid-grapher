@@ -723,8 +723,22 @@ describe("endpoint tick labels", () => {
             "Q1 2020",
             "Q1 2025",
         ])
-        // ...whereas the endpoint labels cover the plotted range
-        expect(endpointLabels(axis)).toEqual(["Apr 2014", "Apr 2026"])
+        // ...whereas the endpoint labels cover the plotted range, running to
+        // the end of the last quarter rather than its first month
+        expect(endpointLabels(axis)).toEqual(["Apr 2014", "Jun 2026"])
+    })
+
+    it("runs to the end of the last week on a weekly axis", () => {
+        const axis = makeTimeAxis({
+            columnType: ColumnTypeNames.Week,
+            min: day("2020-01-20"),
+            max: day("2026-07-13"),
+            range: [0, 220],
+            hideFractionalTicks: true,
+        })
+
+        // both Mondays, and the range ends on the Sunday that closes that week
+        expect(endpointLabels(axis)).toEqual(["Jan 20, 2020", "Jul 19, 2026"])
     })
 
     it("labels the ends of the domain on a continuous monthly axis", () => {
@@ -753,6 +767,18 @@ describe("endpoint tick labels", () => {
         })
 
         expect(endpointLabels(axis)).toEqual(["1953", "2019"])
+    })
+
+    it("keeps only the start label when the two don't fit", () => {
+        const axis = makeTimeAxis({
+            columnType: ColumnTypeNames.Day,
+            min: day("2026-01-01"),
+            max: day("2026-01-02"),
+            range: [0, 100],
+            hideFractionalTicks: true,
+        })
+
+        expect(endpointLabels(axis)).toEqual(["Jan 1, 2026"])
     })
 
     it("falls back to the outermost ticks on a non-time axis", () => {
