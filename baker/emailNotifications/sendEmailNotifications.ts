@@ -78,7 +78,7 @@ async function fetchSubscribers(
          FROM users
          JOIN notification_preferences
              ON notification_preferences.userId = users.id
-         WHERE users.status = 'subscribed'
+         WHERE users.emailNotificationsStatus = 'subscribed'
              AND NOT EXISTS (
                  SELECT 1
                  FROM postmark_suppressions
