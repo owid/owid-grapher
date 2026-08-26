@@ -13,6 +13,7 @@ import {
     NarrativeChartInfo,
     MinimalTag,
     LinkedStaticViz,
+    BespokeMetadataWithProvenance,
 } from "@ourworldindata/types"
 
 export type Attachments = {
@@ -30,6 +31,7 @@ export type Attachments = {
     linkedStaticViz?: Record<string, LinkedStaticViz>
     tags: MinimalTag[]
     linkedCallouts?: LinkedCallouts
+    bespokeMetadata?: BespokeMetadataWithProvenance
 }
 
 export const AttachmentsContext = createContext<Attachments>({
