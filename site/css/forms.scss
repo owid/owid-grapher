@@ -27,11 +27,11 @@ $checkbox-check-height: 4px;
         z-index: $zindex-input;
         top: 50%;
         left: 0;
+        margin: 0;
         margin-top: -6px;
         width: $checkbox-icon-size;
         height: $checkbox-icon-size;
         cursor: pointer;
-        margin: 0;
         opacity: 0;
     }
 
