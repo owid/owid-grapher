@@ -262,6 +262,16 @@ const algoliaGetItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({
     item,
 }) => prependSubdirectoryToAlgoliaItemUrl(item)
 
+const ALGOLIA_PAGES_ITEM_PARAMS = {
+    attributesToRetrieve: ["title", "slug", "type"],
+    attributesToHighlight: ["title"],
+}
+
+const ALGOLIA_CHARTS_ITEM_PARAMS = {
+    attributesToRetrieve: ["title", "slug", "type", "queryParams"],
+    attributesToHighlight: ["title"],
+}
+
 const createAlgoliaPagesSource = (
     searchSource?: string
 ): AutocompleteSource<BaseItem> => ({
@@ -281,6 +291,7 @@ const createAlgoliaPagesSource = (
                         hitsPerPage: 2,
                         distinct: true,
                         filters: `NOT type:${OwidGdocType.Profile}`,
+                        ...ALGOLIA_PAGES_ITEM_PARAMS,
                     },
                 },
             ],
@@ -307,6 +318,7 @@ const createAlgoliaChartsSource = (
                         query,
                         hitsPerPage: 3,
                         distinct: true,
+                        ...ALGOLIA_CHARTS_ITEM_PARAMS,
                     },
                 },
             ],
@@ -439,6 +451,7 @@ const createProfileSource = (
                             ],
                         }),
                         hitsPerPage: 1,
+                        ...ALGOLIA_PAGES_ITEM_PARAMS,
                     },
                 },
             ],
