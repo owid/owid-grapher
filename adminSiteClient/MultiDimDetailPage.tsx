@@ -469,31 +469,14 @@ export function MultiDimDetailPage({ id }: { id: number }) {
                         </Space>
                     </Col>
                     <Col>
-                        {liveUrl ? (
-                            <a
-                                className="ant-btn ant-btn-default"
-                                href={liveUrl}
-                                target="_blank"
-                                rel="noopener"
-                            >
-                                <Space>
-                                    <FontAwesomeIcon icon={faExternalLink} />
-                                    View live
-                                </Space>
-                            </a>
-                        ) : (
-                            <a
-                                className="ant-btn ant-btn-default"
-                                href={previewUrl}
-                                target="_blank"
-                                rel="noopener"
-                            >
-                                <Space>
-                                    <FontAwesomeIcon icon={faExternalLink} />
-                                    View preview
-                                </Space>
-                            </a>
-                        )}
+                        <Button
+                            href={liveUrl ?? previewUrl}
+                            target="_blank"
+                            rel="noopener"
+                            icon={<FontAwesomeIcon icon={faExternalLink} />}
+                        >
+                            {liveUrl ? "View live" : "View preview"}
+                        </Button>
                     </Col>
                 </Row>
 

@@ -16,6 +16,7 @@ import {
     MinimalTagWithMetadata,
 } from "./TagGraphMetadata.js"
 import cx from "clsx"
+import { Button } from "antd"
 
 type ExplorerWithTags = {
     slug: string
@@ -123,8 +124,9 @@ export class ExplorerTagsPage extends Component {
                                             />
                                         </td>
                                         <td>
-                                            <button
-                                                className="btn btn-danger"
+                                            <Button
+                                                color="danger"
+                                                variant="solid"
                                                 onClick={() =>
                                                     this.deleteExplorerTags(
                                                         explorer.slug
@@ -132,7 +134,7 @@ export class ExplorerTagsPage extends Component {
                                                 }
                                             >
                                                 Delete
-                                            </button>
+                                            </Button>
                                         </td>
                                     </tr>
                                 )
@@ -181,8 +183,8 @@ export class ExplorerTagsPage extends Component {
                                     />
                                 </td>
                                 <td>
-                                    <button
-                                        className="btn btn-primary"
+                                    <Button
+                                        type="primary"
                                         disabled={
                                             !this.newExplorerSlug ||
                                             !this.newExplorerTags.length
@@ -191,7 +193,7 @@ export class ExplorerTagsPage extends Component {
                                         onClick={() => this.saveNewExplorer()}
                                     >
                                         Save
-                                    </button>
+                                    </Button>
                                 </td>
                             </tr>
                         </tbody>

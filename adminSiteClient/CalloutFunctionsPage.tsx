@@ -2,7 +2,7 @@ import { useContext, useState, useEffect, useCallback } from "react"
 import { useLocation, useHistory } from "react-router-dom"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
-import { Spin } from "antd"
+import { Alert, Button, Spin } from "antd"
 
 type CalloutFunctionsResponse = {
     url: string
@@ -85,9 +85,9 @@ export const CalloutFunctionsPage = () => {
                             placeholder="https://ourworldindata.org/grapher/life-expectancy"
                             className="form-control"
                         />
-                        <button
-                            type="submit"
-                            className="btn btn-primary"
+                        <Button
+                            type="primary"
+                            htmlType="submit"
                             disabled={isLoading || !chartUrl.trim()}
                         >
                             {isLoading ? (
@@ -95,13 +95,11 @@ export const CalloutFunctionsPage = () => {
                             ) : (
                                 "Get Functions"
                             )}
-                        </button>
+                        </Button>
                     </div>
                 </form>
 
-                {error && (
-                    <div className="alert alert-danger mt-3">{error}</div>
-                )}
+                {error && <Alert className="mt-3" type="error" title={error} />}
 
                 {data && (
                     <div className="CalloutFunctionsPage__results mt-4">
@@ -121,8 +119,9 @@ export const CalloutFunctionsPage = () => {
                                             {fns.map((fn) => (
                                                 <li key={fn}>
                                                     <code>{fn}</code>
-                                                    <button
-                                                        className="btn btn-sm btn-outline-secondary ms-2"
+                                                    <Button
+                                                        className="ms-2"
+                                                        size="small"
                                                         onClick={() =>
                                                             navigator.clipboard.writeText(
                                                                 fn
@@ -131,7 +130,7 @@ export const CalloutFunctionsPage = () => {
                                                         title="Copy to clipboard"
                                                     >
                                                         Copy
-                                                    </button>
+                                                    </Button>
                                                 </li>
                                             ))}
                                         </ul>

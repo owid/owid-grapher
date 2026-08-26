@@ -2,8 +2,9 @@ import * as React from "react"
 import { observer } from "mobx-react"
 import { observable, action, runInAction, makeObservable } from "mobx"
 
+import { Alert, Button } from "antd"
 import { Modal, Timeago } from "./Forms.js"
-import { Link } from "./Link.js"
+import { LinkButton } from "./Link.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { UserIndexMeta } from "./UserMeta.js"
@@ -83,17 +84,15 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
                         </div>
                     </div>
                     <div className="modal-footer">
-                        <input
-                            type="submit"
-                            className="btn btn-primary"
-                            value="Add user"
-                        />
+                        <Button type="primary" htmlType="submit">
+                            Add user
+                        </Button>
                     </div>
                     {this.responseSuccess && (
-                        <div className="alert alert-success" role="alert">
-                            User added! They can now log in with their G Suite
-                            account.
-                        </div>
+                        <Alert
+                            type="success"
+                            title="User added! They can now log in with their G Suite account."
+                        />
                     )}
                 </form>
             </Modal>
@@ -151,14 +150,14 @@ export class UsersIndexPage extends React.Component {
                     <div className="topbar">
                         <h2>Users</h2>
                         {isSuperuser && (
-                            <button
+                            <Button
+                                type="primary"
                                 onClick={action(
                                     () => (this.isInviteModal = true)
                                 )}
-                                className="btn btn-primary"
                             >
                                 Add a user
-                            </button>
+                            </Button>
                         )}
                     </div>
                     <table className="table table-bordered">
@@ -189,24 +188,25 @@ export class UsersIndexPage extends React.Component {
                                     )}
                                     {isSuperuser && (
                                         <td>
-                                            <Link
+                                            <LinkButton
+                                                type="primary"
                                                 to={`/users/${user.id}`}
-                                                className="btn btn-primary"
                                             >
                                                 Edit
-                                            </Link>
+                                            </LinkButton>
                                         </td>
                                     )}
                                     {isSuperuser && (
                                         <td>
-                                            <button
-                                                className="btn btn-danger"
+                                            <Button
+                                                color="danger"
+                                                variant="solid"
                                                 onClick={() =>
                                                     this.onDelete(user)
                                                 }
                                             >
                                                 Delete
-                                            </button>
+                                            </Button>
                                         </td>
                                     )}
                                 </tr>

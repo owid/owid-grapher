@@ -67,7 +67,7 @@ import { SortableList } from "./SortableList.js"
 import { CodeSnippet, GrapherTabIcon } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faFile, faArrowsUpDown } from "@fortawesome/free-solid-svg-icons"
-import { Tag } from "antd"
+import { Button, Tag } from "antd"
 
 interface DimensionSlotViewProps<Editor> {
     slot: DimensionSlot
@@ -354,13 +354,14 @@ export class DimensionSlotView<
                 <div className="DimensionSlotHeader">
                     <h5>{slot.name}</h5>
                     {showSwapButton && (
-                        <button
-                            className="btn btn-sm"
+                        <Button
+                            size="small"
+                            icon={<FontAwesomeIcon icon={faArrowsUpDown} />}
                             onClick={onSwapXAndY}
                             title="Swap X and Y axes"
                         >
-                            <FontAwesomeIcon icon={faArrowsUpDown} /> Swap axes
-                        </button>
+                            Swap axes
+                        </Button>
                     )}
                 </div>
                 <SortableList<SortableListItemType>

@@ -15,6 +15,7 @@ import {
 } from "./NarrativeChartEditor.js"
 import { NarrativeChartNameModal } from "./NarrativeChartNameModal.js"
 import { CreateDataInsightModal } from "./CreateDataInsightModal.js"
+import { Alert, Button, Space } from "antd"
 
 interface SaveButtonsProps<Editor extends AbstractChartEditor> {
     editor: Editor
@@ -107,9 +108,10 @@ class SaveButtonsForChart extends Component<SaveButtonsProps<ChartEditor>> {
 
         return (
             <div className="SaveButtons">
-                <div>
-                    <button
-                        className="btn btn-success"
+                <Space wrap>
+                    <Button
+                        color="green"
+                        variant="solid"
                         onClick={this.onSaveChart}
                         disabled={isSavingDisabled}
                     >
@@ -118,38 +120,39 @@ class SaveButtonsForChart extends Component<SaveButtonsProps<ChartEditor>> {
                             : isNewGrapher
                               ? "Create draft"
                               : "Save draft"}
-                    </button>{" "}
+                    </Button>
                     {!isNewGrapher && (
                         <>
-                            <button
-                                className="btn btn-secondary"
+                            <Button
                                 onClick={this.onSaveAsNew}
                                 disabled={isSavingDisabled}
                             >
                                 Save as new
-                            </button>{" "}
-                            <button
-                                className="btn btn-danger"
+                            </Button>
+                            <Button
+                                color="danger"
+                                variant="solid"
                                 onClick={this.onPublishToggle}
                                 disabled={isSavingDisabled}
                             >
                                 {grapherState.isPublished
                                     ? "Unpublish"
                                     : "Publish"}
-                            </button>{" "}
-                            <button
-                                className="btn btn-danger"
+                            </Button>
+                            <Button
+                                color="danger"
+                                variant="solid"
                                 onClick={this.onDeleteChart}
                             >
                                 Delete
-                            </button>
+                            </Button>
                         </>
                     )}
-                </div>
+                </Space>
                 {!isNewGrapher && (
-                    <div className="mt-2">
-                        <button
-                            className="btn btn-primary"
+                    <div className="SaveButtons__secondary-row">
+                        <Button
+                            type="primary"
                             onClick={() => {
                                 this.isNarrativeChartNameModalOpen = true
                                 this.narrativeChartNameModalError = undefined
@@ -157,7 +160,7 @@ class SaveButtonsForChart extends Component<SaveButtonsProps<ChartEditor>> {
                             disabled={isSavingDisabled}
                         >
                             Save as narrative chart
-                        </button>
+                        </Button>
                     </div>
                 )}
                 <NarrativeChartNameModal
@@ -171,9 +174,12 @@ class SaveButtonsForChart extends Component<SaveButtonsProps<ChartEditor>> {
                 />
                 {grapherState.isReady &&
                     editingErrors.map((error, i) => (
-                        <div key={i} className="alert alert-danger mt-2">
-                            {error}
-                        </div>
+                        <Alert
+                            key={i}
+                            className="SaveButtons__error"
+                            type="error"
+                            title={error}
+                        />
                     ))}
             </div>
         )
@@ -233,49 +239,52 @@ class SaveButtonsForNarrativeChart extends Component<
 
         return (
             <div className="SaveButtons">
-                {isNewGrapher ? (
-                    <button
-                        className="btn btn-success"
-                        onClick={this.onCreateChart}
-                        disabled={isSavingDisabled}
-                    >
-                        Create narrative chart
-                    </button>
-                ) : (
-                    <button
-                        className="btn btn-success"
-                        onClick={this.onSaveChart}
-                        disabled={isSavingDisabled}
-                    >
-                        Save narrative chart
-                    </button>
-                )}{" "}
-                {editor.parentUrl && (
-                    <>
-                        <a
-                            className="btn btn-secondary"
+                <Space wrap>
+                    {isNewGrapher ? (
+                        <Button
+                            color="green"
+                            variant="solid"
+                            onClick={this.onCreateChart}
+                            disabled={isSavingDisabled}
+                        >
+                            Create narrative chart
+                        </Button>
+                    ) : (
+                        <Button
+                            color="green"
+                            variant="solid"
+                            onClick={this.onSaveChart}
+                            disabled={isSavingDisabled}
+                        >
+                            Save narrative chart
+                        </Button>
+                    )}
+                    {editor.parentUrl && (
+                        <Button
                             href={`/admin${editor.parentUrl}`}
                             target="_blank"
                             rel="noopener"
                         >
                             Go to parent chart
-                        </a>{" "}
-                    </>
-                )}
-                {!editor.isNewGrapher && (
-                    <button
-                        className="btn btn-secondary"
-                        onClick={this.onCreateDataInsight}
-                        disabled={isSavingDisabled}
-                    >
-                        Create DI
-                    </button>
-                )}
+                        </Button>
+                    )}
+                    {!editor.isNewGrapher && (
+                        <Button
+                            onClick={this.onCreateDataInsight}
+                            disabled={isSavingDisabled}
+                        >
+                            Create DI
+                        </Button>
+                    )}
+                </Space>
                 {grapherState.isReady &&
                     editingErrors.map((error, i) => (
-                        <div key={i} className="alert alert-danger mt-2">
-                            {error}
-                        </div>
+                        <Alert
+                            key={i}
+                            className="SaveButtons__error"
+                            type="error"
+                            title={error}
+                        />
                     ))}
                 {this.isCreateDataInsightModalOpen && (
                     <CreateDataInsightModal

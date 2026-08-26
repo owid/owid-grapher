@@ -13,6 +13,7 @@ import {
     highlightFunctionForSearchWords,
     SearchWord,
 } from "../adminShared/search.js"
+import { Button } from "antd"
 
 @observer
 export class DatasetsIndexPage extends Component {
@@ -103,12 +104,9 @@ export class DatasetsIndexPage extends Component {
                         searchHighlight={highlight}
                     />
                     {!searchInput && (
-                        <button
-                            className="btn btn-secondary"
-                            onClick={this.onShowMore}
-                        >
+                        <Button onClick={this.onShowMore}>
                             Show more datasets...
-                        </button>
+                        </Button>
                     )}
                 </main>
             </AdminLayout>

@@ -9,7 +9,7 @@ import { ChartList, ChartListItem } from "./ChartList.js"
 import { TagBadge } from "./TagBadge.js"
 import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { AutoComplete } from "antd"
+import { AutoComplete, Button, Space } from "antd"
 
 interface TagPageData {
     id: number
@@ -207,25 +207,27 @@ class TagEditor extends Component<{
                                     : "When enabled, charts with this tag will be indexed in Algolia even without matching a published topic page"
                             }
                         />
-                        <div style={{ marginTop: 16 }}>
-                            <input
-                                type="submit"
+                        <Space style={{ marginTop: 16 }} wrap>
+                            <Button
+                                color="green"
+                                variant="solid"
+                                htmlType="submit"
                                 disabled={!this.isModified || !newtag.name}
-                                className="btn btn-success"
-                                value="Update tag"
-                            />{" "}
+                            >
+                                Update tag
+                            </Button>
                             {tag.datasets.length === 0 &&
                                 tag.children.length === 0 &&
                                 !tag.specialType && (
-                                    <button
-                                        className="btn btn-danger"
-                                        type="button"
+                                    <Button
+                                        color="danger"
+                                        variant="solid"
                                         onClick={() => this.deleteTag()}
                                     >
                                         Delete tag
-                                    </button>
+                                    </Button>
                                 )}
-                        </div>
+                        </Space>
                     </form>
                 </section>
                 {tag.children.length > 0 && (

@@ -9,6 +9,7 @@ import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { Deploy, DeployStatus } from "@ourworldindata/utils"
 import { Timeago } from "./Forms.js"
+import { Button } from "antd"
 
 const statusLabel: Record<DeployStatus, string> = {
     [DeployStatus.queued]: "Next up",
@@ -55,9 +56,7 @@ export class DeployStatusPage extends Component {
                 <main className="DeploysPage">
                     <div className="topbar">
                         <h2>Deploy status</h2>
-                        <button
-                            className="btn btn-secondary"
-                            type="button"
+                        <Button
                             disabled={!this.canManuallyDeploy}
                             onClick={async () => {
                                 this.canManuallyDeploy = false
@@ -66,7 +65,7 @@ export class DeployStatusPage extends Component {
                             }}
                         >
                             Manually enqueue a deploy
-                        </button>
+                        </Button>
                     </div>
                     {this.deploys.length > 0 ? (
                         <table className="DeploysTable">

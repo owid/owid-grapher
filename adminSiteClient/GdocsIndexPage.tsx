@@ -18,6 +18,7 @@ import {
     faTriangleExclamation,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { Button, Space } from "antd"
 import {
     DbChartTagJoin,
     OwidGdocType,
@@ -466,28 +467,27 @@ class GdocsIndexPageContent extends React.Component<GdocsIndexPageContentProps> 
                             onToggleGdocTypeFilter={this.onToggleGdocTypeFilter}
                             onPublishStatusChange={this.onPublishStatusChange}
                         />
-                        <div>
-                            <a
-                                className="btn btn-secondary gdoc-index__help-link"
-                                target="_blank"
+                        <Space className="gdoc-index__actions" wrap>
+                            <Button
                                 href="https://docs.google.com/document/d/1OLoTWloy4VecOjKTjB1wLV6tEphHJIMXfexrf1ZYJzU/edit"
+                                target="_blank"
                                 rel="noopener"
+                                icon={<FontAwesomeIcon icon={faQuestion} />}
                             >
-                                <FontAwesomeIcon icon={faQuestion} /> Open
-                                documentation
-                            </a>
-                            <button
-                                className="btn btn-primary"
+                                Open documentation
+                            </Button>
+                            <Button
+                                type="primary"
+                                icon={<FontAwesomeIcon icon={faCirclePlus} />}
                                 onClick={() =>
                                     this.props.history.push(
                                         `${this.props.match.path}/add`
                                     )
                                 }
                             >
-                                <FontAwesomeIcon icon={faCirclePlus} /> Add
-                                document
-                            </button>
-                        </div>
+                                Add document
+                            </Button>
+                        </Space>
                     </div>
 
                     {this.allGdocsToShow
@@ -515,13 +515,9 @@ class GdocsIndexPageContent extends React.Component<GdocsIndexPageContentProps> 
                         </p>
                         {this.props.visibleResultCount <
                             this.allGdocsToShow.length && (
-                            <button
-                                type="button"
-                                className="btn btn-secondary"
-                                onClick={this.props.onLoadMore}
-                            >
+                            <Button onClick={this.props.onLoadMore}>
                                 Load more
-                            </button>
+                            </Button>
                         )}
                     </div>
 

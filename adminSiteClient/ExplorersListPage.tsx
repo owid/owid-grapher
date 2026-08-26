@@ -25,6 +25,7 @@ import {
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { AdminManager } from "./AdminManager.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { Button } from "antd"
 
 interface ExplorerRowProps {
     explorer: ExplorerProgram
@@ -124,29 +125,31 @@ class ExplorerRow extends Component<ExplorerRowProps> {
                 </td>
 
                 <td>
-                    <a
+                    <Button
+                        type="primary"
                         href={`${EXPLORERS_ROUTE_FOLDER}/${slug}`}
-                        className="btn btn-primary"
                         title={hasEdits ? "*You have local edits" : ""}
                     >
                         Edit{hasEdits ? "*" : ""}
-                    </a>
+                    </Button>
                 </td>
                 <td>
-                    <button
-                        className="btn btn-danger"
+                    <Button
+                        color="danger"
+                        variant="solid"
                         onClick={() => indexPage.togglePublishedStatus(slug)}
                     >
                         {isPublished ? "Unpublish" : "Publish"}
-                    </button>
+                    </Button>
                 </td>
                 <td>
-                    <button
-                        className="btn btn-danger"
+                    <Button
+                        color="danger"
+                        variant="solid"
                         onClick={() => indexPage.deleteExplorer(slug)}
                     >
-                        Delete{" "}
-                    </button>
+                        Delete
+                    </Button>
                 </td>
             </tr>
         )
@@ -321,12 +324,12 @@ export class ExplorersIndexPage extends Component<{
                         </label>
                     </div>
                     {/* <div style={{ textAlign: "right" }}>
-                        <a
-                            className="btn btn-primary"
+                        <Button
+                            type="primary"
                             href={`/admin/${EXPLORERS_ROUTE_FOLDER}/${DefaultNewExplorerSlug}`}
                         >
                             Create
-                        </a>
+                        </Button>
                     </div> */}
                 </div>
                 <ExplorerList

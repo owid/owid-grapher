@@ -18,6 +18,7 @@ import {
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEdit, faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons"
+import { Button } from "antd"
 
 interface TaggableItem {
     id?: number
@@ -189,26 +190,30 @@ export class EditableTags extends React.Component<EditableTagsProps> {
                     {!disabled && (
                         <>
                             {hasSuggestionsSupport && (
-                                <button
-                                    className="btn btn-link EditableTags__action"
+                                <Button
+                                    type="link"
+                                    className="EditableTags__action"
+                                    icon={
+                                        <FontAwesomeIcon
+                                            icon={faWandMagicSparkles}
+                                        />
+                                    }
                                     onClick={this.onSuggest}
                                 >
-                                    <FontAwesomeIcon
-                                        icon={faWandMagicSparkles}
-                                    />
                                     Suggest
-                                </button>
+                                </Button>
                             )}
-                            <button
-                                className="btn btn-link EditableTags__action"
+                            <Button
+                                type="link"
+                                className="EditableTags__action"
+                                icon={<FontAwesomeIcon icon={faEdit} />}
                                 onClick={(event) => {
                                     this.onToggleEdit()
                                     event.stopPropagation()
                                 }}
                             >
-                                <FontAwesomeIcon icon={faEdit} />
                                 Edit tags
-                            </button>
+                            </Button>
                         </>
                     )}
                 </div>

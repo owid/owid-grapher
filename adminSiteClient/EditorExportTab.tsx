@@ -338,37 +338,34 @@ export class EditorExportTab<
 
                 <Section name="Export static chart">
                     <div className="DownloadButtons">
-                        <button
-                            className="btn btn-primary"
+                        <Button
+                            type="primary"
+                            icon={<FontAwesomeIcon icon={faDownload} />}
                             onClick={this.onDownloadPNG}
                         >
-                            {<FontAwesomeIcon icon={faDownload} />} Download PNG
-                        </button>
-                        <button
-                            className="btn btn-primary"
+                            Download PNG
+                        </Button>
+                        <Button
+                            type="primary"
+                            icon={<FontAwesomeIcon icon={faDownload} />}
                             onClick={this.onDownloadSVG}
                         >
-                            {<FontAwesomeIcon icon={faDownload} />} Download SVG
-                        </button>
+                            Download SVG
+                        </Button>
                     </div>
                 </Section>
 
                 {/* Link to Wizard dataset preview */}
                 {this.grapherState.isPublished && (
                     <Section name="Animate chart">
-                        <a
+                        <Button
                             href={chartAnimationUrl.toString()}
                             target="_blank"
-                            className="btn btn-tertiary"
                             rel="noopener"
+                            icon={<FontAwesomeIcon icon={faHatWizard} />}
                         >
-                            <Button
-                                type="default"
-                                icon={<FontAwesomeIcon icon={faHatWizard} />}
-                            >
-                                Animate with Wizard
-                            </Button>
-                        </a>
+                            Animate with Wizard
+                        </Button>
                     </Section>
                 )}
             </div>

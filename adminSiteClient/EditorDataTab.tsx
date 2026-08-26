@@ -4,6 +4,7 @@ import { getRegionByName, checkIsCountry } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import cx from "clsx"
+import { Button } from "antd"
 import {
     EntitySelectionMode,
     MissingDataStrategy,
@@ -232,23 +233,24 @@ class QuickAddSection extends React.Component<{
                 </span>
                 <div className="quick-add-buttons">
                     {this.availablePresets.map(({ preset, entities }) => (
-                        <button
+                        <Button
                             key={preset.id}
-                            className="btn btn-outline-secondary"
+                            size="small"
                             onClick={() => this.onSelectPreset(entities)}
                             title={`Replace current selection with ${preset.description}`}
                         >
                             {preset.label}
-                        </button>
+                        </Button>
                     ))}
                     {this.shouldShowDataRangeButton && (
-                        <button
-                            className="btn btn-outline-secondary"
+                        <Button
+                            size="small"
+                            icon={<FontAwesomeIcon icon={faDice} />}
                             onClick={this.onSetDataRange}
                             title="Replace current selection with countries representing the data range. Click multiple times for different results."
                         >
-                            <FontAwesomeIcon icon={faDice} /> Data range
-                        </button>
+                            Data range
+                        </Button>
                     )}
                 </div>
             </div>
@@ -436,37 +438,22 @@ class AddPeersSection extends React.Component<{
                     :
                 </div>
                 <div className="add-peers-buttons">
-                    <button
-                        className="btn btn-outline-secondary"
-                        onClick={this.onAddParentRegionPeers}
-                    >
+                    <Button size="small" onClick={this.onAddParentRegionPeers}>
                         + Parent regions
-                    </button>
-                    <button
-                        className="btn btn-outline-secondary"
-                        onClick={this.onAddGdpPerCapitaPeers}
-                    >
+                    </Button>
+                    <Button size="small" onClick={this.onAddGdpPerCapitaPeers}>
                         + Similar by GDP
-                    </button>
-                    <button
-                        className="btn btn-outline-secondary"
-                        onClick={this.onAddPopulationPeers}
-                    >
+                    </Button>
+                    <Button size="small" onClick={this.onAddPopulationPeers}>
                         + Similar by population
-                    </button>
-                    <button
-                        className="btn btn-outline-secondary"
-                        onClick={this.onAddNeighborsPeers}
-                    >
+                    </Button>
+                    <Button size="small" onClick={this.onAddNeighborsPeers}>
                         + Neighbors
-                    </button>
+                    </Button>
                     {this.shouldShowDataRangeButton && (
-                        <button
-                            className="btn btn-outline-secondary"
-                            onClick={this.onAddDataRangePeers}
-                        >
+                        <Button size="small" onClick={this.onAddDataRangePeers}>
                             + Data range
-                        </button>
+                        </Button>
                     )}
                 </div>
             </div>
@@ -574,22 +561,21 @@ export class EntitySelectionSection extends React.Component<{
                             .map((key) => ({ value: key }))}
                     />
                     {editor.canPropertyBeInherited("selectedEntityNames") && (
-                        <button
-                            className="btn btn-outline-secondary"
-                            type="button"
+                        <Button
                             style={{ maxWidth: "min-content" }}
                             title="Reset to parent selection"
+                            icon={
+                                <FontAwesomeIcon
+                                    icon={
+                                        isEntitySelectionInherited
+                                            ? faLink
+                                            : faUnlink
+                                    }
+                                />
+                            }
                             onClick={this.setEntitySelectionToParentValue}
                             disabled={isEntitySelectionInherited}
-                        >
-                            <FontAwesomeIcon
-                                icon={
-                                    isEntitySelectionInherited
-                                        ? faLink
-                                        : faUnlink
-                                }
-                            />
-                        </button>
+                        />
                     )}
                 </FieldsRow>
                 <QuickAddSection editor={editor} />
@@ -614,22 +600,22 @@ export class EntitySelectionSection extends React.Component<{
                 <div className="SelectionResetButtons">
                     {this.liveSelection.length > 0 &&
                         this.isSelectionDifferentFromLive && (
-                            <button
-                                className="btn btn-secondary"
+                            <Button
+                                size="small"
                                 onClick={this.onResetToLive}
                                 title="Reset to the published selection"
                             >
                                 Reset to live
-                            </button>
+                            </Button>
                         )}
                     {!selection.isEmpty && (
-                        <button
-                            className="btn btn-secondary"
+                        <Button
+                            size="small"
                             onClick={this.onClearSelection}
                             title="Clear current selection"
                         >
                             Clear
-                        </button>
+                        </Button>
                     )}
                 </div>
                 {isEntitySelectionInherited && (
@@ -712,18 +698,17 @@ export class FocusSection extends React.Component<{
                             .map((key) => ({ value: key }))}
                     />
                     {editor.canPropertyBeInherited("focusedSeriesNames") && (
-                        <button
-                            className="btn btn-outline-secondary"
-                            type="button"
+                        <Button
                             style={{ maxWidth: "min-content" }}
                             title="Reset to parent focus"
+                            icon={
+                                <FontAwesomeIcon
+                                    icon={isFocusInherited ? faLink : faUnlink}
+                                />
+                            }
                             onClick={this.setFocusedSeriesNamesToParentValue}
                             disabled={isFocusInherited}
-                        >
-                            <FontAwesomeIcon
-                                icon={isFocusInherited ? faLink : faUnlink}
-                            />
-                        </button>
+                        />
                     )}
                 </FieldsRow>
                 {focusedSeriesNames.map((seriesName) => (
@@ -996,12 +981,13 @@ class EntityFilterSection<
                     </ul>
                 )}
                 {this.includedEntityNames && (
-                    <button
-                        className="btn btn-light btn-clear-selection"
+                    <Button
+                        className="EditorDataTab__clear-selection"
+                        icon={<FontAwesomeIcon icon={faTrash} />}
                         onClick={this.onClearIncludedEntities}
                     >
-                        <FontAwesomeIcon icon={faTrash} /> Clear start selection
-                    </button>
+                        Clear start selection
+                    </Button>
                 )}
                 <SelectField
                     label="Exclude individual entities"
@@ -1030,12 +1016,13 @@ class EntityFilterSection<
                     </ul>
                 )}
                 {this.excludedEntityNames && (
-                    <button
-                        className="btn btn-light btn-clear-selection"
+                    <Button
+                        className="EditorDataTab__clear-selection"
+                        icon={<FontAwesomeIcon icon={faTrash} />}
                         onClick={this.onClearExcludedEntities}
                     >
-                        <FontAwesomeIcon icon={faTrash} /> Clear exclude list
-                    </button>
+                        Clear exclude list
+                    </Button>
                 )}
             </Section>
         )

@@ -658,11 +658,13 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                                     />
                                 </div>
                             </div>
-                            <input
-                                type="submit"
-                                className="btn btn-success"
-                                value="Update dataset"
-                            />
+                            <Button
+                                color="green"
+                                variant="solid"
+                                htmlType="submit"
+                            >
+                                Update dataset
+                            </Button>
                         </form>
 
                         {/* ORIGINS */}
@@ -722,14 +724,14 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                             )}
                         />
                         {filteredVariables.length > this.maxVisibleRows && (
-                            <button
-                                className="btn btn-secondary mt-3"
+                            <Button
+                                className="mt-3"
                                 onClick={action(() => {
                                     this.maxVisibleRows += 200
                                 })}
                             >
                                 Show more indicators...
-                            </button>
+                            </Button>
                         )}
                     </section>
                 )
@@ -737,12 +739,13 @@ class DatasetEditor extends Component<DatasetEditorProps> {
             case "charts":
                 return (
                     <section>
-                        <button
-                            className="btn btn-primary float-right"
+                        <Button
+                            className="float-right"
+                            type="primary"
                             onClick={() => this.republishCharts()}
                         >
                             Republish all charts
-                        </button>
+                        </Button>
                         <h3>Charts</h3>
                         <ChartList charts={dataset.charts} />
                     </section>
@@ -797,8 +800,9 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                                         </code>
                                     </p>
                                 )}
-                                <button
-                                    className="btn btn-outline-danger"
+                                <Button
+                                    color="danger"
+                                    variant="outlined"
                                     onClick={() => this.archive()}
                                     disabled={
                                         dataset.charts &&
@@ -806,7 +810,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                                     }
                                 >
                                     Archive dataset
-                                </button>
+                                </Button>
                             </>
                         )}
                     </section>

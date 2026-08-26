@@ -3,6 +3,7 @@ import { AdminLayout } from "./AdminLayout.js"
 import { FieldsRow } from "./Forms.js"
 import { Link } from "./Link.js"
 import { AdminAppContext } from "./AdminAppContext.js"
+import { Button } from "antd"
 
 interface RedirectListItem {
     id: number
@@ -30,12 +31,13 @@ function RedirectRow({ redirect, onDelete }: RedirectRowProps) {
                 </Link>
             </td>
             <td>
-                <button
-                    className="btn btn-danger"
+                <Button
+                    color="danger"
+                    variant="solid"
                     onClick={() => onDelete(redirect)}
                 >
                     Delete
-                </button>
+                </Button>
             </td>
         </tr>
     )

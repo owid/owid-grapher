@@ -27,7 +27,7 @@ import {
 import { ReuploadImageForDataInsightModal } from "./ReuploadImageForDataInsightModal.js"
 import { ImageUploadResponse } from "./imagesHelpers.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
-import { notification } from "antd"
+import { Alert, Button, notification } from "antd"
 import { getCanonicalUrl } from "@ourworldindata/components"
 
 const BASE_URL = BAKED_GRAPHER_URL.replace(/^https?:\/\//, "")
@@ -355,18 +355,16 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
                     />
                 </div>
                 <div className="text-right mb-3">
-                    <button
-                        className="btn btn-primary"
-                        type="submit"
+                    <Button
+                        type="primary"
+                        htmlType="submit"
                         disabled={!this.slug || this.isLoading}
                     >
                         Add redirect
-                    </button>
+                    </Button>
                 </div>
                 {this.errorMessage && (
-                    <div className="alert alert-danger">
-                        {this.errorMessage}
-                    </div>
+                    <Alert type="error" title={this.errorMessage} />
                 )}
             </form>
         )
@@ -574,14 +572,13 @@ const ReferencesDataInsights = (props: {
                                     <strong>{dataInsight.title}</strong>
                                 </a>
                                 {props.canReuploadImage?.(dataInsight) && (
-                                    <button
-                                        className="btn btn-secondary"
+                                    <Button
                                         onClick={() =>
                                             setDataInsightForUpload(dataInsight)
                                         }
                                     >
                                         Upload static export as DI image
-                                    </button>
+                                    </Button>
                                 )}
                             </li>
                         </Fragment>

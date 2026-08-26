@@ -17,6 +17,7 @@ import { VariableList, VariableListItem } from "./VariableList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
 import urljoin from "url-join"
+import { Button } from "antd"
 
 @observer
 export class VariablesIndexPage extends Component {
@@ -116,12 +117,9 @@ export class VariablesIndexPage extends Component {
                         searchHighlight={highlight}
                     />
                     {!searchInput && (
-                        <button
-                            className="btn btn-secondary"
-                            onClick={this.onShowMore}
-                        >
+                        <Button onClick={this.onShowMore}>
                             Show more indicators...
-                        </button>
+                        </Button>
                     )}
                 </main>
             </AdminLayout>

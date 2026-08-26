@@ -26,7 +26,7 @@ import {
     highlightFunctionForSearchWords,
 } from "../adminShared/search.js"
 import { TextField } from "./Forms.js"
-import { Tooltip } from "antd"
+import { Button, Tooltip } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { deleteChart } from "./ChartEditor.js"
@@ -356,12 +356,9 @@ export class ChartList extends React.Component<ChartListProps> {
                     </tbody>
                 </table>
                 {hasMoreCharts && (
-                    <button
-                        className="btn btn-secondary"
-                        onClick={this.onShowMore}
-                    >
+                    <Button onClick={this.onShowMore}>
                         Show more charts...
-                    </button>
+                    </Button>
                 )}
             </div>
         )

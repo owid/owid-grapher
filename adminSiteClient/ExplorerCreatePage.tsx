@@ -6,7 +6,6 @@ import {
     slugify,
     toRectangularMatrix,
 } from "@ourworldindata/utils"
-import classNames from "clsx"
 import Handsontable from "handsontable"
 import { registerAllModules } from "handsontable/registry"
 import { action, computed, observable, makeObservable } from "mobx"
@@ -29,6 +28,7 @@ import {
 } from "./ExplorerCommands.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ENV } from "../settings/clientSettings.js"
+import { Button } from "antd"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
 
@@ -245,19 +245,19 @@ export class ExplorerCreatePage extends Component<ExplorerCreatePageProps> {
         const buttons = []
 
         buttons.push(
-            <button
+            <Button
                 key="save"
+                type="primary"
                 disabled={!isModified && !isNewFile}
-                className={classNames("btn", "btn-primary")}
                 onClick={this.onSave}
                 title="Saves explorer"
             >
                 Save
-            </button>
+            </Button>
         )
 
         buttons.push(
-            <button
+            <Button
                 key="saveAs"
                 disabled={isNewFile}
                 title={
@@ -265,23 +265,21 @@ export class ExplorerCreatePage extends Component<ExplorerCreatePageProps> {
                         ? "You need to save this file first."
                         : "Saves as a new explorer"
                 }
-                className={classNames("btn", "btn-secondary")}
                 onClick={this.saveAs}
             >
                 Save As
-            </button>
+            </Button>
         )
 
         buttons.push(
-            <button
+            <Button
                 key="clear"
                 disabled={!isModified}
                 title={isModified ? "" : "No changes"}
-                className={classNames("btn", "btn-secondary")}
                 onClick={this.clearChanges}
             >
                 Clear Changes
-            </button>
+            </Button>
         )
 
         const modifiedMessage = isModified

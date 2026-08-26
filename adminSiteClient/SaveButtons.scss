@@ -1,0 +1,14 @@
+// Footer of the chart editor sidebar: the save/publish/delete row plus the
+// list of blocking editing errors. Moved out of `admin.scss`'s
+// `.ChartEditorPage` block when the buttons were migrated to antd.
+.SaveButtons {
+    padding: 24px;
+}
+
+.SaveButtons__secondary-row {
+    margin-top: 8px;
+}
+
+.SaveButtons__error {
+    margin-top: 8px;
+}
