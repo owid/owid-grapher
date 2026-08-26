@@ -283,14 +283,21 @@ export const getCitationLong = ({
 
 // The "How to cite this page" citation, covering the OWID-authored data page as
 // a whole (descriptions, FAQs, etc.) rather than just the underlying data.
-export const getCitationDatapage = (
-    indicatorTitle: IndicatorTitleWithFragments,
-    origins: OwidOrigin[],
-    source: OwidSource | undefined,
-    primaryTopic: PrimaryTopic | undefined,
-    citationUrl: string | undefined,
-    archivalDate: string | undefined
-): string => {
+export const getCitationDatapage = ({
+    indicatorTitle,
+    origins,
+    source,
+    primaryTopic,
+    citationUrl,
+    archivalDate,
+}: {
+    indicatorTitle: IndicatorTitleWithFragments
+    origins: OwidOrigin[]
+    source?: OwidSource
+    primaryTopic?: PrimaryTopic
+    citationUrl?: string
+    archivalDate?: string
+}): string => {
     const currentYear = dayjs().year()
     const producers = _.uniq(origins.map((o) => `${o.producer}`))
     const adaptedFrom =

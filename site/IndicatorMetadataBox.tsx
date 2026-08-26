@@ -124,14 +124,14 @@ function ExpandableSection({
         citationUrl,
         archivalDate: archiveContext?.archivalDate,
     })
-    const citationDatapage = getCitationDatapage(
-        title,
+    const citationDatapage = getCitationDatapage({
+        indicatorTitle: title,
         origins,
         source,
         primaryTopic,
         citationUrl,
-        archiveContext?.archivalDate
-    )
+        archivalDate: archiveContext?.archivalDate,
+    })
 
     const faqQuestions = groupFaqsByQuestion(faqEntries?.faqs ?? [])
 

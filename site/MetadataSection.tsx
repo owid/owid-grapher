@@ -74,14 +74,14 @@ export default function MetadataSection({
         citationUrl,
         archivalDate: archiveContext?.archivalDate,
     })
-    const citationDatapage = getCitationDatapage(
-        title,
+    const citationDatapage = getCitationDatapage({
+        indicatorTitle: title,
         origins,
         source,
         primaryTopic,
         citationUrl,
-        archiveContext?.archivalDate
-    )
+        archivalDate: archiveContext?.archivalDate,
+    })
     return (
         <div className="MetadataSection span-cols-14 grid grid-cols-12-full-width">
             <div className="col-start-2 span-cols-12">
