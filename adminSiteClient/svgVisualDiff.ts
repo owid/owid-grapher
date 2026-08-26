@@ -54,21 +54,36 @@ export type LoadPixels = (
 export type VisualVerdict = "identical" | "changed" | "unknown"
 
 /**
- * The differences split by what the pixel check came to, each bucket keeping the
- * order the report lists them in. The buckets are declared review-first, which
- * is the order the report walks them in.
+ * What the report knows about a chart, which is a verdict or the absence of one.
+ * The check never concludes "pending", so it is a status and not a verdict: a
+ * chart nobody has looked at yet must not read as one that changed.
  */
-export function groupByVisualVerdict<T extends { svgFilename: string }>(
+export type VisualStatus = VisualVerdict | "pending"
+
+/** Review-first, and the order the report lists the differences in */
+export const VISUAL_STATUSES: VisualStatus[] = [
+    "changed",
+    "unknown",
+    "pending",
+    "identical",
+]
+
+/**
+ * The differences split by what the pixel check came to, each bucket keeping the
+ * order the report lists them in.
+ */
+export function groupByVisualStatus<T extends { svgFilename: string }>(
     entries: T[],
     verdicts: Record<string, VisualVerdict>
-): Record<VisualVerdict, T[]> {
-    const grouped: Record<VisualVerdict, T[]> = {
+): Record<VisualStatus, T[]> {
+    const grouped: Record<VisualStatus, T[]> = {
         changed: [],
         unknown: [],
+        pending: [],
         identical: [],
     }
     for (const entry of entries)
-        grouped[verdicts[entry.svgFilename] ?? "changed"].push(entry)
+        grouped[verdicts[entry.svgFilename] ?? "pending"].push(entry)
     return grouped
 }
 

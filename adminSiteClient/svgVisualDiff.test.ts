@@ -3,7 +3,7 @@ import {
     createVisualDiffChecker,
     decodeVerdicts,
     encodeVerdicts,
-    groupByVisualVerdict,
+    groupByVisualStatus,
     LoadPixels,
     RasterizedSvg,
     type VisualVerdict,
@@ -135,11 +135,11 @@ describe("the visual diff checker", () => {
     })
 })
 
-describe("splitting differences by verdict", () => {
+describe("splitting differences by status", () => {
     const entry = (svgFilename: string) => ({ svgFilename })
 
     it("puts each difference in the bucket its verdict names", () => {
-        const grouped = groupByVisualVerdict(
+        const grouped = groupByVisualStatus(
             [entry("a.svg"), entry("b.svg"), entry("c.svg")],
             { "a.svg": "identical", "b.svg": "changed", "c.svg": "unknown" }
         )
@@ -147,10 +147,11 @@ describe("splitting differences by verdict", () => {
         expect(grouped.changed).toEqual([entry("b.svg")])
         expect(grouped.unknown).toEqual([entry("c.svg")])
         expect(grouped.identical).toEqual([entry("a.svg")])
+        expect(grouped.pending).toEqual([])
     })
 
     it("keeps the order the differences came in", () => {
-        const grouped = groupByVisualVerdict(
+        const grouped = groupByVisualStatus(
             [entry("a.svg"), entry("b.svg"), entry("c.svg")],
             { "a.svg": "changed", "b.svg": "identical", "c.svg": "changed" }
         )
@@ -158,16 +159,31 @@ describe("splitting differences by verdict", () => {
         expect(grouped.changed).toEqual([entry("a.svg"), entry("c.svg")])
     })
 
-    it("counts a difference nothing is known about yet as changed", () => {
-        const grouped = groupByVisualVerdict([entry("a.svg")], {})
+    it("leaves a difference nothing is known about yet out of the changed bucket", () => {
+        const grouped = groupByVisualStatus([entry("a.svg")], {})
 
-        expect(grouped.changed).toEqual([entry("a.svg")])
+        expect(grouped.pending).toEqual([entry("a.svg")])
+        expect(grouped.changed).toEqual([])
+    })
+
+    it("keeps an unfinished check out of the changed bucket entirely", () => {
+        const grouped = groupByVisualStatus([entry("a.svg"), entry("b.svg")], {
+            "a.svg": "identical",
+        })
+
+        expect(grouped.changed).toEqual([])
+        expect(grouped.pending).toEqual([entry("b.svg")])
     })
 
     it("names every bucket even when nothing landed in it", () => {
-        const grouped = groupByVisualVerdict([], {})
+        const grouped = groupByVisualStatus([], {})
 
-        expect(grouped).toEqual({ changed: [], unknown: [], identical: [] })
+        expect(grouped).toEqual({
+            changed: [],
+            unknown: [],
+            pending: [],
+            identical: [],
+        })
     })
 })
 
