@@ -1,0 +1,122 @@
+.metadata-box-expander {
+    margin-top: 16px;
+    border-top: 1px solid $blue-20;
+
+    details {
+        display: flex;
+        flex-direction: column;
+
+        .metadata-box-expander__summary {
+            order: 1;
+            display: inline-block;
+            cursor: pointer;
+            align-self: start;
+            @include body-2-semibold;
+            margin-left: -24px;
+            margin-bottom: -24px;
+            width: calc(100% + 48px);
+            padding: 16px;
+            @include note-13-medium;
+            color: $blue-50;
+            text-align: center;
+            transition: background-color 0.15s;
+
+            &:hover {
+                background-color: $blue-20;
+            }
+
+            &::marker,
+            &::-webkit-details-marker {
+                content: "";
+            }
+        }
+
+        .metadata-box-expander__show-less {
+            display: none;
+        }
+
+        &[open] {
+            .metadata-box-expander__show-less {
+                display: inline-block;
+            }
+            .metadata-box-expander__show-more {
+                display: none;
+            }
+        }
+
+        a {
+            @include owid-link-90;
+        }
+    }
+
+    .ExpandableToggle {
+        .ExpandableToggle__button {
+            --title: #{$blue-60};
+            --button-hover: #{$blue-50};
+            padding: 16px;
+        }
+
+        .ExpandableToggle__content {
+            padding: 16px;
+        }
+
+        &[open] {
+            background-color: $blue-20;
+        }
+    }
+}
+
+.metadata-box-expander__preview {
+    margin-top: 16px;
+}
+
+.metadata-box-expander__chevron {
+    font-size: 0.75em;
+    margin-left: 4px;
+    position: relative;
+    top: -1px;
+}
+
+// free-form markdown rendering
+.metadata-box-expander__prose {
+    p,
+    ul,
+    ol {
+        @include body-2-regular;
+        margin: 0 0 8px;
+    }
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @include body-2-bold-tight;
+        color: $blue-90;
+        margin: 0 0 8px;
+        &:not(:first-child) {
+            margin-top: 16px;
+        }
+    }
+    p:last-child,
+    ul:last-child,
+    ol:last-child {
+        margin-bottom: 0;
+    }
+    ul,
+    ol {
+        padding-left: 1.5em;
+    }
+    li {
+        margin-bottom: 8px;
+    }
+    a {
+        @include owid-link-90;
+    }
+}
+
+// the part of the content revealed by expanding; continues right below the
+// preview
+.metadata-box-expander__remainder {
+    margin-top: 8px;
+}
