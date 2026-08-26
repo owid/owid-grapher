@@ -9,7 +9,7 @@
     position: relative;
     z-index: $zindex-lightbox;
     border-bottom: $header-border-height solid $vermillion;
-    background-color: $oxford-blue;
+    background-color: $vermillion;
 
     @include sm-only {
         .wrapper {
