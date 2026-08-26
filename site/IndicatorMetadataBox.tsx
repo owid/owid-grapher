@@ -10,6 +10,9 @@ import {
     INDICATOR_PROCESSING_SECTION_ID,
     MetadataBoxExpander,
     MetadataBoxCollapseButton,
+    MetadataBoxSection,
+    MetadataBoxKeyData,
+    MetadataBoxKeyDataRow,
 } from "@ourworldindata/components"
 import {
     ArchiveContext,
@@ -150,53 +153,46 @@ function IndicatorMetadataSections({
                     <SimpleMarkdownText text={descriptionKeyRest} />
                 </div>
             )}
-            {
-                <section className="metadata-box-section metadata-box-section--faqs">
-                    <h2 className="metadata-box-section__title" id="faqs">
-                        Frequently asked questions
-                    </h2>
-                    {faqQuestions.map((faq, i) => (
-                        <ExpandableToggle
-                            key={faq.question}
-                            label={faq.question}
-                            isStacked={i < faqQuestions.length - 1}
-                            content={
-                                <ArticleBlocks
-                                    blocks={faq.answer}
-                                    containerType="datapage"
-                                />
-                            }
-                            onToggle={(isOpen) =>
-                                logExpandableToggle(
-                                    // untranslated source text
-                                    faq.question.slice(0, 100),
-                                    isOpen
-                                )
-                            }
-                        />
-                    ))}
+            <MetadataBoxSection
+                title="Frequently asked questions"
+                id="faqs"
+                className="metadata-box-section--faqs"
+            >
+                {faqQuestions.map((faq, i) => (
                     <ExpandableToggle
-                        label="How did Our World in Data process this data?"
-                        contentId={INDICATOR_PROCESSING_SECTION_ID}
+                        key={faq.question}
+                        label={faq.question}
+                        isStacked={i < faqQuestions.length - 1}
                         content={
-                            <IndicatorProcessing
-                                descriptionProcessing={descriptionProcessing}
+                            <ArticleBlocks
+                                blocks={faq.answer}
+                                containerType="datapage"
                             />
                         }
                         onToggle={(isOpen) =>
                             logExpandableToggle(
-                                "how_owid_processed_data",
+                                // untranslated source text
+                                faq.question.slice(0, 100),
                                 isOpen
                             )
                         }
                     />
-                </section>
-            }
+                ))}
+                <ExpandableToggle
+                    label="How did Our World in Data process this data?"
+                    contentId={INDICATOR_PROCESSING_SECTION_ID}
+                    content={
+                        <IndicatorProcessing
+                            descriptionProcessing={descriptionProcessing}
+                        />
+                    }
+                    onToggle={(isOpen) =>
+                        logExpandableToggle("how_owid_processed_data", isOpen)
+                    }
+                />
+            </MetadataBoxSection>
             {datapageData.descriptionFromProducer && (
-                <section className="metadata-box-section">
-                    <h2 className="metadata-box-section__title">
-                        Documentation from data sources
-                    </h2>
+                <MetadataBoxSection title="Documentation from data sources">
                     <ExpandableToggle
                         label={
                             datapageData.attributionShort ||
@@ -214,15 +210,12 @@ function IndicatorMetadataSections({
                             )
                         }
                     />
-                </section>
+                </MetadataBoxSection>
             )}
-            <section className="metadata-box-section">
-                <h2
-                    id={DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}
-                    className="metadata-box-section__title"
-                >
-                    Data sources
-                </h2>
+            <MetadataBoxSection
+                title="Data sources"
+                id={DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}
+            >
                 <IndicatorSources
                     sources={sourcesForDisplay}
                     hideReuseThisWorkText
@@ -231,10 +224,9 @@ function IndicatorMetadataSections({
                         logExpandableToggle(`data_source_${index + 1}`, isOpen)
                     }
                 />
-            </section>
+            </MetadataBoxSection>
             {(citationShort || citationLong) && (
-                <section className="metadata-box-section">
-                    <h2 className="metadata-box-section__title">How to cite</h2>
+                <MetadataBoxSection title="How to cite">
                     {citationDatapage && (
                         <ExpandableToggle
                             label="How to cite this page"
@@ -317,9 +309,9 @@ function IndicatorMetadataSections({
                             />
                         )}
                     </section>
-                </section>
+                </MetadataBoxSection>
             )}
-            <section className="metadata-box-section indicator-metadata-box__reuse-notice">
+            <MetadataBoxSection className="indicator-metadata-box__reuse-notice">
                 <p>
                     All data produced by third-party providers and made
                     available by Our World in Data are subject to the license
@@ -332,7 +324,7 @@ function IndicatorMetadataSections({
                 <p>
                     <ChartLicenseNotice license={license} />
                 </p>
-            </section>
+            </MetadataBoxSection>
         </MetadataBoxExpander>
     )
 }
@@ -380,76 +372,53 @@ export default function IndicatorMetadataBox({
                     {datapageData.titleVariant}
                 </span>
             </h2>
-            <dl className="metadata-box-key-data">
+            <MetadataBoxKeyData>
                 {datapageData.descriptionShort && (
-                    <div className="metadata-box-key-data__row metadata-box-key-data__row--full-width">
-                        <dt className="sr-only">Description</dt>
-                        <dd className="metadata-box-key-data__value">
-                            <SimpleMarkdownText
-                                text={datapageData.descriptionShort}
-                            />
-                        </dd>
-                    </div>
+                    <MetadataBoxKeyDataRow
+                        label="Description"
+                        isFullWidth
+                        isLabelScreenReaderOnly
+                    >
+                        <SimpleMarkdownText
+                            text={datapageData.descriptionShort}
+                        />
+                    </MetadataBoxKeyDataRow>
                 )}
                 {sourceString && (
-                    <div className="metadata-box-key-data__row metadata-box-key-data__row--full-width">
-                        <dt className="metadata-box-key-data__key metadata-box-key-data__key--source">
-                            Data source
-                        </dt>
-                        <dd className="metadata-box-key-data__value">
-                            {sourceString}
-                        </dd>
-                    </div>
+                    <MetadataBoxKeyDataRow
+                        label="Data source"
+                        isFullWidth
+                        labelClassName="metadata-box-key-data__key--source"
+                    >
+                        {sourceString}
+                    </MetadataBoxKeyDataRow>
                 )}
                 {datapageData.unit && (
-                    <div className="metadata-box-key-data__row">
-                        <dt className="metadata-box-key-data__key">Unit</dt>
-                        <dd className="metadata-box-key-data__value">
-                            {datapageData.unit}
-                        </dd>
-                    </div>
+                    <MetadataBoxKeyDataRow label="Unit">
+                        {datapageData.unit}
+                    </MetadataBoxKeyDataRow>
                 )}
                 {datapageData.dateRange && (
-                    <div className="metadata-box-key-data__row">
-                        <dt className="metadata-box-key-data__key">
-                            Date range
-                        </dt>
-                        <dd className="metadata-box-key-data__value">
-                            {datapageData.dateRange}
-                        </dd>
-                    </div>
+                    <MetadataBoxKeyDataRow label="Date range">
+                        {datapageData.dateRange}
+                    </MetadataBoxKeyDataRow>
                 )}
                 {datapageData.lastUpdated && (
-                    <div className="metadata-box-key-data__row">
-                        <dt className="metadata-box-key-data__key">
-                            Last updated
-                        </dt>
-                        <dd className="metadata-box-key-data__value">
-                            {datapageData.lastUpdated}
-                        </dd>
-                    </div>
+                    <MetadataBoxKeyDataRow label="Last updated">
+                        {datapageData.lastUpdated}
+                    </MetadataBoxKeyDataRow>
                 )}
                 {datapageData.nextUpdate && (
-                    <div className="metadata-box-key-data__row">
-                        <dt className="metadata-box-key-data__key">
-                            Next expected update
-                        </dt>
-                        <dd className="metadata-box-key-data__value">
-                            {datapageData.nextUpdate}
-                        </dd>
-                    </div>
+                    <MetadataBoxKeyDataRow label="Next expected update">
+                        {datapageData.nextUpdate}
+                    </MetadataBoxKeyDataRow>
                 )}
                 {owners.length > 0 && (
-                    <div className="metadata-box-key-data__row">
-                        <dt className="metadata-box-key-data__key">
-                            Managed by
-                        </dt>
-                        <dd className="metadata-box-key-data__value">
-                            <Byline names={owners} prefix="" />
-                        </dd>
-                    </div>
+                    <MetadataBoxKeyDataRow label="Managed by">
+                        <Byline names={owners} prefix="" />
+                    </MetadataBoxKeyDataRow>
                 )}
-            </dl>
+            </MetadataBoxKeyData>
             <IndicatorMetadataSections
                 datapageData={datapageData}
                 faqEntries={faqEntries}
