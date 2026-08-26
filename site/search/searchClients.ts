@@ -1,5 +1,10 @@
 import { liteClient, LiteClient } from "algoliasearch/lite"
-import type { EndRequest, Requester, Response } from "@algolia/client-common"
+import {
+    createNullCache,
+    type EndRequest,
+    type Requester,
+    type Response,
+} from "@algolia/client-common"
 import { createFetchRequester } from "@algolia/requester-fetch"
 import { isEmptyQuerySearchPayload } from "@ourworldindata/utils"
 import {
@@ -52,11 +57,32 @@ const createCachingRequester = (): Requester => {
 
 let liteSearchClient: LiteClient | null = null
 
+/**
+ * Disable Algolia's response cache so React Query alone decides when cached
+ * results should be reused or refetched.
+ */
 export const getLiteSearchClient = (): LiteClient => {
     if (!liteSearchClient) {
         liteSearchClient = liteClient(ALGOLIA_ID, ALGOLIA_SEARCH_KEY, {
             requester: createCachingRequester(),
+            responsesCache: createNullCache(),
         })
     }
     return liteSearchClient
+}
+
+let autocompleteSearchClient: LiteClient | null = null
+
+/**
+ * Keep Algolia's response cache for autocomplete. It already manages requests
+ * through @algolia/autocomplete-js, so adding React Query solely for caching
+ * would introduce another state layer. A separate client lets React Query-backed
+ * searches disable Algolia's cache without making autocomplete re-request prior
+ * input when users backspace or retype it.
+ */
+export const getAutocompleteSearchClient = (): LiteClient => {
+    if (!autocompleteSearchClient) {
+        autocompleteSearchClient = liteClient(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
+    }
+    return autocompleteSearchClient
 }

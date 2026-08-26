@@ -26,7 +26,7 @@ import {
     BAKED_GRAPHER_URL,
 } from "../../settings/clientSettings.js"
 import { DEFAULT_SEARCH_PLACEHOLDER } from "./searchClient.js"
-import { getLiteSearchClient } from "./searchClients.js"
+import { getAutocompleteSearchClient } from "./searchClients.js"
 import {
     PAGES_INDEX,
     CHARTS_INDEX,
@@ -89,7 +89,7 @@ const buildRecentSearchesPlugin = () =>
 
 let liteSearchClient: LiteClient | null
 if (ALGOLIA_ID && ALGOLIA_SEARCH_KEY) {
-    liteSearchClient = getLiteSearchClient()
+    liteSearchClient = getAutocompleteSearchClient()
 } else {
     liteSearchClient = null
     console.warn("Algolia credentials are not set")
