@@ -17,35 +17,55 @@ The package has two entry points sharing the same API and type declarations — 
 
 React apps must use `/react`: importing the root export there would silently ship a second copy of React alongside the one your app already has.
 
-## React / bundler
+## With a bundler
 
-```tsx
-import { useEffect, useRef } from "react"
-import { DimensionProperty, GrapherLoader } from "@ourworldindata/grapher/react"
-import "@ourworldindata/grapher/grapher.css"
+=== "Non-React"
 
-function LifeExpectancyChart() {
-    const ref = useRef<HTMLDivElement>(null)
+    Import from the root export, the standalone bundle with React baked in. `mount` just needs a sized container element:
 
-    useEffect(() => {
-        const loader = GrapherLoader.fromApi({
-            config: {
-                title: "Life expectancy",
-                selectedEntityNames: ["World", "Africa", "Europe"],
-                dimensions: [
-                    { property: DimensionProperty.y, variableId: 1118466 },
-                ],
-            },
-        }).mount(ref.current!)
+    ```js
+    import { GrapherLoader } from "@ourworldindata/grapher"
+    import "@ourworldindata/grapher/grapher.css"
 
-        return () => loader.dispose()
-    }, [])
+    // the container needs an explicit size, e.g. `aspect-ratio: 850 / 600`
+    GrapherLoader.fromApi({
+        config: {
+            title: "Life expectancy",
+            selectedEntityNames: ["World", "Africa", "Europe"],
+            dimensions: [{ property: "y", variableId: 1118466 }],
+        },
+    }).mount(document.querySelector("#chart"))
+    ```
 
-    return <div style={{ aspectRatio: "850 / 600" }} ref={ref} />
-}
-```
+=== "React"
 
-The same code minus the React wrapper works in any bundler environment — `mount` just needs a sized container element.
+    Import from `/react`, which uses your app's own copy of React:
+
+    ```tsx
+    import { useEffect, useRef } from "react"
+    import { DimensionProperty, GrapherLoader } from "@ourworldindata/grapher/react"
+    import "@ourworldindata/grapher/grapher.css"
+
+    function LifeExpectancyChart() {
+        const ref = useRef<HTMLDivElement>(null)
+
+        useEffect(() => {
+            const loader = GrapherLoader.fromApi({
+                config: {
+                    title: "Life expectancy",
+                    selectedEntityNames: ["World", "Africa", "Europe"],
+                    dimensions: [
+                        { property: DimensionProperty.y, variableId: 1118466 },
+                    ],
+                },
+            }).mount(ref.current!)
+
+            return () => loader.dispose()
+        }, [])
+
+        return <div style={{ aspectRatio: "850 / 600" }} ref={ref} />
+    }
+    ```
 
 ### Styles and fonts
 

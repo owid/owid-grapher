@@ -21,7 +21,7 @@ GrapherLoader.fromCsv({
 
 ## Where to go next
 
-- [Getting started](getting-started.md) — React and plain-HTML quick starts, styles and fonts, installation.
+- [Getting started](getting-started.md) — bundler (React and non-React) and plain-HTML quick starts, styles and fonts, installation.
 - [Loading data](loading-data.md) — the three data sources and the metadata you can attach to columns.
 - [The chart config](chart-config/index.md) — what a config is, and the full field reference.
 - [API](api/index.md) — `GrapherLoader` and the other public exports.
