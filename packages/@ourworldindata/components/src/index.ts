@@ -58,6 +58,11 @@ export { IndicatorProcessing } from "./IndicatorProcessing/IndicatorProcessing.j
 
 export { MetadataBoxExpander } from "./MetadataBoxExpander/MetadataBoxExpander.js"
 export { MetadataBoxCollapseButton } from "./MetadataBoxCollapseButton/MetadataBoxCollapseButton.js"
+export { MetadataBoxSection } from "./MetadataBoxSection/MetadataBoxSection.js"
+export {
+    MetadataBoxKeyData,
+    MetadataBoxKeyDataRow,
+} from "./MetadataBoxKeyData/MetadataBoxKeyData.js"
 
 export { LabeledSwitch } from "./LabeledSwitch/LabeledSwitch.js"
 export { Checkbox } from "./Checkbox.js"
