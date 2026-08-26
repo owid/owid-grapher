@@ -6,16 +6,19 @@ import { DimensionEnriched } from "@ourworldindata/types"
 import { Tippy } from "@ourworldindata/utils"
 
 // The label rendered above each dimension control (dropdown or radio group),
-// with an optional info icon showing the dimension's description and any
-// choice descriptions on hover.
+// with an optional info icon showing the dimension's description on hover.
+// Radio groups also list the choice descriptions in the tooltip, since unlike
+// dropdowns they have no menu to show them in.
 export default function DimensionLabel({
     dimension,
+    showChoiceDescriptions,
 }: {
     dimension: DimensionEnriched
+    showChoiceDescriptions?: boolean
 }) {
-    const choicesWithDescription = dimension.choices.filter(
-        (choice) => choice.description
-    )
+    const choicesWithDescription = showChoiceDescriptions
+        ? dimension.choices.filter((choice) => choice.description)
+        : []
     const hasTooltip =
         Boolean(dimension.description) || choicesWithDescription.length > 0
     return (
