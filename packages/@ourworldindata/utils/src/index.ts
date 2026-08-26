@@ -158,6 +158,7 @@ export {
 } from "./Util.js"
 
 export {
+    getOriginAttributionFragment,
     getOriginAttributionFragments,
     getAttributionFragmentsFromVariable,
     getETLPathComponents,

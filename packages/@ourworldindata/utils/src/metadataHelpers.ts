@@ -13,23 +13,24 @@ import { excludeUndefined } from "./Util"
 import dayjs from "./dayjs.js"
 import { parseArchivalDate } from "./archival/archivalDate.js"
 
+export function getOriginAttributionFragment(
+    origin: OwidOrigin
+): string | undefined {
+    if (origin.attribution && origin.attribution.trim() !== "")
+        return origin.attribution
+    if (!origin.producer) return undefined
+    const yearPublished = origin.datePublished
+        ? dayjs(origin.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
+        : undefined
+    const yearPublishedString = yearPublished ? ` (${yearPublished})` : ""
+    return `${origin.producer}${yearPublishedString}`
+}
+
 export function getOriginAttributionFragments(
     origins: OwidOrigin[] | undefined
 ): string[] {
-    return origins
-        ? origins.map((origin) => {
-              const yearPublished = origin.datePublished
-                  ? dayjs(origin.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
-                  : undefined
-              const yearPublishedString = yearPublished
-                  ? ` (${yearPublished})`
-                  : ""
-              return (
-                  origin.attribution ??
-                  `${origin.producer}${yearPublishedString}`
-              )
-          })
-        : []
+    if (!origins) return []
+    return excludeUndefined(origins.map(getOriginAttributionFragment))
 }
 
 export const splitSourceTextIntoFragments = (

@@ -6,8 +6,9 @@ import { observer } from "mobx-react"
 import {
     Bounds,
     canWriteToClipboard,
+    excludeUndefined,
     fetchWithTimeout,
-    getOriginAttributionFragments,
+    getOriginAttributionFragment,
     makeDownloadCodeExamples,
     getPhraseForProcessingLevel,
     SERVER_SIDE_DOWNLOAD_HELP_TEXT,
@@ -55,7 +56,6 @@ import { Modal } from "./Modal"
 import { GrapherRasterizeFn } from "../captionedChart/StaticChartRasterizer.js"
 import { TabPanel } from "react-aria-components"
 import { TabItem, Tabs } from "../tabs/Tabs.js"
-import * as R from "remeda"
 import {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
@@ -551,21 +551,24 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
         (o) => o.urlMain ?? o.datePublished
     )
 
-    const attributions = getOriginAttributionFragments(originsUniq)
-
-    const sourceLinks = R.zip(attributions, originsUniq).map(
-        ([attribution, origin]) => {
-            const link = origin?.urlMain
-
-            if (link)
-                return (
-                    <li key={link}>
-                        <a href={link}>{attribution}</a>
-                    </li>
-                )
-            else return <li key={attribution}>{attribution}</li>
-        }
+    const attributedOrigins = excludeUndefined(
+        originsUniq.map((origin) => {
+            const attribution = getOriginAttributionFragment(origin)
+            return attribution ? { attribution, origin } : undefined
+        })
     )
+
+    const sourceLinks = attributedOrigins.map(({ attribution, origin }) => {
+        const link = origin.urlMain
+
+        if (link)
+            return (
+                <li key={link}>
+                    <a href={link}>{attribution}</a>
+                </li>
+            )
+        else return <li key={attribution}>{attribution}</li>
+    })
 
     // Find the highest processing level of all columns
     const owidProcessingLevel = table?.columnsAsArray
@@ -577,8 +580,8 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
         }, undefined)
 
     const sourceIsOwid =
-        attributions.length === 1 &&
-        attributions[0].toLowerCase() === "our world in data"
+        attributedOrigins.length === 1 &&
+        attributedOrigins[0].attribution.toLowerCase() === "our world in data"
     const processingLevelPhrase = !sourceIsOwid
         ? getPhraseForProcessingLevel(owidProcessingLevel)
         : undefined

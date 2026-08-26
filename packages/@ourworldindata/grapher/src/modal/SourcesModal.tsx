@@ -5,7 +5,6 @@ import {
     getAttributionFragmentsFromVariable,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
-    excludeUndefined,
     DisplaySource,
     prepareSourcesForDisplay,
     OwidSource,
@@ -440,14 +439,10 @@ export class Source extends React.Component<SourceProps> {
         return undefined
     }
 
-    @computed private get producers(): string[] {
-        if (!this.def.origins) return []
-        return _.uniq(excludeUndefined(this.def.origins.map((o) => o.producer)))
-    }
-
     @computed get attributions(): string | undefined {
-        const attributionFragments =
-            getAttributionFragmentsFromVariable(this.def) ?? this.producers
+        const attributionFragments = getAttributionFragmentsFromVariable(
+            this.def
+        )
         if (attributionFragments.length === 0) return undefined
         return attributionFragments.join(", ")
     }
