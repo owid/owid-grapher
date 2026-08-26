@@ -4,7 +4,10 @@ import { match } from "ts-pattern"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "@ourworldindata/components"
-import { EmailNotificationsSubscribeForm } from "./EmailNotificationsSubscribeForm.js"
+import {
+    EmailNotificationsSubscribeForm,
+    Subscription,
+} from "./EmailNotificationsSubscribeForm.js"
 import { OwidSocials } from "../OwidSocials.js"
 import { NewsletterSubscriptionContext } from "../newsletter.js"
 import { SiteQueryClientProvider } from "../SiteQueryClientProvider.js"
@@ -14,7 +17,9 @@ import {
     SubscribePageHero,
 } from "./SubscribePageLayout.js"
 
-type SubscribeFlowState = { name: "form" } | { name: "success"; email: string }
+type SubscribeFlowState =
+    | { name: "form" }
+    | { name: "success"; subscription: Subscription }
 
 export const SubscribeFlow = ({
     topicAreaNames,
@@ -28,18 +33,15 @@ export const SubscribeFlow = ({
             <SiteQueryClientProvider>
                 <SubscribeFormScreen
                     topicAreaNames={topicAreaNames}
-                    onSubscribed={(email) =>
-                        setState({ name: "success", email })
+                    onSubscribed={(subscription) =>
+                        setState({ name: "success", subscription })
                     }
                 />
             </SiteQueryClientProvider>
         ))
-        .with({ name: "success" }, ({ email }) => (
+        .with({ name: "success" }, ({ subscription }) => (
             <SubscribePageConfirmation heading="You are now subscribed">
-                <p className="subscribe-page__confirmation-text">
-                    We have sent a confirmation email to{" "}
-                    <strong>{email}</strong> with a summary of your preferences.
-                </p>
+                <SubscribedText subscription={subscription} />
                 <Button
                     className="subscribe-page__confirmation-action"
                     theme="outline-vermillion"
@@ -52,12 +54,32 @@ export const SubscribeFlow = ({
         .exhaustive()
 }
 
+const SubscribedText = ({
+    subscription: { email, followTopics, subscribeToOwidBrief },
+}: {
+    subscription: Subscription
+}) => (
+    <>
+        {followTopics && (
+            <p className="subscribe-page__confirmation-text">
+                We have sent a confirmation email to <strong>{email}</strong>{" "}
+                with a summary of your preferences.
+            </p>
+        )}
+        {subscribeToOwidBrief && (
+            <p className="subscribe-page__confirmation-text">
+                Your subscription to The OWID Brief is active.
+            </p>
+        )}
+    </>
+)
+
 const SubscribeFormScreen = ({
     topicAreaNames,
     onSubscribed,
 }: {
     topicAreaNames: string[]
-    onSubscribed: (email: string) => void
+    onSubscribed: (subscription: Subscription) => void
 }) => {
     return (
         <>
