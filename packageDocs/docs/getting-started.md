@@ -6,6 +6,17 @@
 
     Installing the package requires an auth token for OWID's private registry, which is not generally available at the moment — see [Installation & access](#installation-access) below.
 
+## Which entry point?
+
+The package has two entry points sharing the same API and type declarations — pick by whether your page already has React:
+
+| Entry point                     | What it is                                                                | Use it in …                                                   |
+| ------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `@ourworldindata/grapher`       | the standalone bundle: minified, with React baked in                      | plain HTML pages, static sites, and apps that don't use React |
+| `@ourworldindata/grapher/react` | the library build, with `react` and `react-dom` (19) as peer dependencies | React apps and anywhere else React is already a dependency    |
+
+React apps must use `/react`: importing the root export there would silently ship a second copy of React alongside the one your app already has.
+
 ## React / bundler
 
 ```tsx
@@ -126,4 +137,4 @@ Point your package manager at the registry:
     yarn add @ourworldindata/grapher
     ```
 
-The package is **ESM-only** and has two entry points sharing the same API and type declarations: the root export (`@ourworldindata/grapher`) is the standalone bundle with React baked in, and `@ourworldindata/grapher/react` is the library build for React apps and bundler environments, with `react` and `react-dom` (19) as peer dependencies. React apps must use `/react` — importing the root export there would silently ship a second copy of React.
+The package is **ESM-only**. It ships two entry points — see [Which entry point?](#which-entry-point) above for choosing between the root export and `/react`.
