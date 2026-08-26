@@ -7,7 +7,16 @@ import {
 import { useContext, useEffect, useMemo, useState } from "react"
 import cx from "clsx"
 import tippy, { type ReferenceElement } from "tippy.js"
-import { Button, Flex, Form, Input, Modal, Popconfirm, Table } from "antd"
+import {
+    Button,
+    Flex,
+    Form,
+    Input,
+    Modal,
+    Popconfirm,
+    Table,
+    TableColumnsType,
+} from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
@@ -16,7 +25,6 @@ import {
     DodUsageRecord,
     DodUsageTypes,
 } from "@ourworldindata/types"
-import { ColumnsType } from "antd/es/table/InternalTable.js"
 import { EditableTextarea } from "./EditableTextarea.js"
 import * as R from "remeda"
 import { Admin } from "./Admin.js"
@@ -27,7 +35,6 @@ import {
     initializeDetailsOnDemand,
     renderDodContentHtml,
 } from "@ourworldindata/components"
-import TextArea from "antd/es/input/TextArea.js"
 import { match } from "ts-pattern"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { extractDetailsFromSyntax } from "@ourworldindata/utils"
@@ -161,7 +168,7 @@ function createColumns({
     patchDodMutation: PatchDodMutationType
     setActiveDodForUsageModal: (name: string) => void
     users: Record<string, DbPlainUser> | undefined
-}): ColumnsType<DbPlainDod> {
+}): TableColumnsType<DbPlainDod> {
     return [
         {
             title: "Name",
@@ -425,7 +432,7 @@ function CreateDodModal({
                     name="content"
                     rules={[{ required: true }]}
                 >
-                    <TextArea rows={8} />
+                    <Input.TextArea rows={8} />
                 </Form.Item>
                 <Form.Item>
                     <Button

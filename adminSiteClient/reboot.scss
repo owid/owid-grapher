@@ -1,0 +1,149 @@
+// A hand-extracted subset of Bootstrap 4's `_reboot.scss` — exactly the global
+// element normalisation the admin actually depends on.
+//
+// Bootstrap's reboot is what the whole admin currently sits on: box-sizing,
+// the body font, heading/paragraph/list margin resets, `border-collapse` on
+// tables, and font inheritance for form controls. antd 6 ships no global reset
+// (its components are self-contained CSS-in-JS), so once Bootstrap is gone
+// there would be nothing left providing these. This file is that replacement.
+//
+// While `bootstrap/scss/reboot` is still imported (it is, from `admin.scss`,
+// just above this file) every declaration here duplicates one Bootstrap
+// already emits with the same value, so including it is a rendering no-op.
+// Values are deliberately kept identical to Bootstrap 4's output rather than
+// "modernised" — modernising them is a separate, visible change.
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+// `font-size` is deliberately not set here: `admin.scss` sets `html`'s font
+// size to 14px itself, further down.
+html {
+    font-family: sans-serif;
+    line-height: 1.15;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+body {
+    margin: 0;
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+        Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji",
+        "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #212529;
+    text-align: left;
+    background-color: #fff;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+
+p {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+ol,
+ul,
+dl {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+ol ol,
+ul ul,
+ol ul,
+ul ol {
+    margin-bottom: 0;
+}
+
+a {
+    color: #007bff;
+    text-decoration: none;
+    background-color: transparent;
+}
+
+a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+img {
+    vertical-align: middle;
+    border-style: none;
+}
+
+svg {
+    overflow: hidden;
+    vertical-align: middle;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+th {
+    text-align: inherit;
+    text-align: -webkit-match-parent;
+}
+
+label {
+    display: inline-block;
+    margin-bottom: 0.5rem;
+}
+
+button {
+    border-radius: 0;
+}
+
+button:focus:not(:focus-visible) {
+    outline: 0;
+}
+
+input,
+button,
+select,
+optgroup,
+textarea {
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+button,
+[type="button"],
+[type="reset"],
+[type="submit"] {
+    -webkit-appearance: button;
+}
+
+button:not(:disabled),
+[type="button"]:not(:disabled),
+[type="reset"]:not(:disabled),
+[type="submit"]:not(:disabled) {
+    cursor: pointer;
+}
+
+textarea {
+    overflow: auto;
+    resize: vertical;
+}
+
+[hidden] {
+    display: none !important;
+}

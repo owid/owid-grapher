@@ -1,5 +1,5 @@
 import * as React from "react"
-import { notification } from "antd"
+import { notification } from "./adminAppInstances.js"
 import { OwidGdocErrorMessageType } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 

@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import { useState } from "react"
 import { Dropdown, Button, Modal, Form, Checkbox, Input } from "antd"
+import { modal } from "./adminAppInstances.js"
 import {
     faEllipsisVertical,
     faTrash,
@@ -50,7 +51,7 @@ export const GdocsMoreMenu = ({
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
     const confirmUnpublish = () => {
-        Modal.confirm({
+        modal.confirm({
             title: "Are you sure you want to unpublish this article?",
             content: "The article will no longer be visible to the public.",
             okText: "Unpublish",

@@ -1,9 +1,8 @@
 import React, { useState, useCallback } from "react"
-import { Button } from "antd"
+import { Button, Input } from "antd"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSave } from "@fortawesome/free-solid-svg-icons"
-import TextArea from "antd/es/input/TextArea.js"
 
 interface EditableTextareaProps {
     value: string
@@ -48,7 +47,7 @@ export function EditableTextarea({
 
     return (
         <div className={cx("EditableTextarea", className)}>
-            <TextArea
+            <Input.TextArea
                 autoSize={autoResize}
                 value={value}
                 onChange={(e) => {

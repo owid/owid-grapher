@@ -1,8 +1,7 @@
 import { useContext } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Link } from "react-router-dom"
-import { Collapse, Empty, Progress, Table, Tag } from "antd"
-import { ColumnsType } from "antd/es/table/InternalTable.js"
+import { Collapse, Empty, Progress, Table, TableColumnsType, Tag } from "antd"
 import {
     OrphanedTopicArticle,
     TopicPageOrphanReport,
@@ -31,7 +30,7 @@ function OrphanTable({
 }: {
     orphans: OrphanedTopicArticle[]
 }): React.ReactElement {
-    const columns: ColumnsType<OrphanedTopicArticle> = [
+    const columns: TableColumnsType<OrphanedTopicArticle> = [
         {
             title: "Article",
             dataIndex: "title",

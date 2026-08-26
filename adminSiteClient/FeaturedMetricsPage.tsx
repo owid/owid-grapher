@@ -4,7 +4,6 @@ import { useContext, useEffect, useMemo, useState } from "react"
 import {
     Input,
     Popconfirm,
-    notification,
     Dropdown,
     Button,
     Flex,
@@ -12,6 +11,7 @@ import {
     Checkbox,
     Tooltip,
 } from "antd"
+import { notification } from "./adminAppInstances.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
