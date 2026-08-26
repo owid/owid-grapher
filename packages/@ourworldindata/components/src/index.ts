@@ -66,6 +66,8 @@ export {
 } from "./MetadataBox/MetadataBoxKeyData.js"
 export { ChartLicenseNotice } from "./ChartLicenseNotice/ChartLicenseNotice.js"
 
+export { BespokeMetadataKeyData } from "./BespokeMetadata/BespokeMetadataKeyData.js"
+
 export { LabeledSwitch } from "./LabeledSwitch/LabeledSwitch.js"
 export { Checkbox } from "./Checkbox.js"
 export { RadioButton } from "./RadioButton.js"

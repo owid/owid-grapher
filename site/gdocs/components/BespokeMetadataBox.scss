@@ -1,0 +1,34 @@
+.bespoke-metadata-box {
+    padding: 24px;
+    // Matches the gap the hero band leaves above it
+    margin-bottom: 24px;
+    background-color: $blue-5;
+    // MetadataBoxExpander's scroll compensation is only correct without anchoring
+    overflow-anchor: none;
+}
+
+.bespoke-metadata-box__title {
+    margin: 0;
+    color: $blue-90;
+    max-width: calc(100% - 104px);
+}
+
+.bespoke-metadata-box__title-variant {
+    @include note-13-medium;
+    margin-left: 8px;
+    color: $blue-50;
+}
+
+.bespoke-metadata-box__description {
+    @include note-13-medium;
+    margin-top: 8px;
+    color: $blue-90;
+
+    p {
+        margin: 0;
+    }
+
+    a {
+        @include owid-link-90;
+    }
+}
