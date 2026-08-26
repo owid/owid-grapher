@@ -25,7 +25,16 @@ function DimensionItem({ choice }: { choice: Choice }) {
         >
             {({ isSelected }) => (
                 <>
-                    <span className="md-menu__item-label">{choice.name}</span>
+                    <span className="md-menu__item-content">
+                        <span className="md-menu__item-label">
+                            {choice.name}
+                        </span>
+                        {choice.description && (
+                            <span className="md-menu__item-description">
+                                {choice.description}
+                            </span>
+                        )}
+                    </span>
                     {isSelected && (
                         <FontAwesomeIcon
                             className="md-menu__item-check"

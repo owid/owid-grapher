@@ -35,7 +35,7 @@ export default function DimensionRadioGroup({
             // drop keyboard focus.
             isReadOnly={readOnly}
         >
-            <DimensionLabel dimension={dimension} />
+            <DimensionLabel dimension={dimension} showChoiceDescriptions />
             <div className="md-settings__radio-group-options">
                 {dimension.choices.map((choice) => (
                     <RadioField

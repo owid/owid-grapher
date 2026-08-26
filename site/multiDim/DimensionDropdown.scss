@@ -175,6 +175,23 @@ $selected-hover-fill: #bed2e7;
         }
     }
 
+    .md-menu__item-content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .md-menu__item-description {
+        @include note-2-regular;
+        color: $gray-70;
+    }
+
+    .md-menu__item[data-selected] .md-menu__item-description {
+        // Figma "Accent/Blue 50", lighter than the palette's $blue-50.
+        color: #6e87a2;
+    }
+
     .md-menu__item-check {
         flex-shrink: 0;
         font-size: 12px;
