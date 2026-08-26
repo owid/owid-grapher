@@ -9329,6 +9329,7 @@ __metadata:
     schema-dts: "npm:^2.0.0"
     sharp: "npm:^0.35.2"
     simple-git: "npm:^3.36.0"
+    spin-delay: "npm:^2.0.1"
     tinyexec: "npm:^1.1.1"
     tippy.js: "npm:^6.3.7"
     topojson-server: "npm:^3.0.1"
@@ -13565,6 +13566,15 @@ __metadata:
   version: 2.0.2
   resolution: "space-separated-tokens@npm:2.0.2"
   checksum: 10/202e97d7ca1ba0758a0aa4fe226ff98142073bcceeff2da3aad037968878552c3bbce3b3231970025375bbba5aee00c5b8206eda408da837ab2dc9c0f26be990
+  languageName: node
+  linkType: hard
+
+"spin-delay@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "spin-delay@npm:2.0.1"
+  peerDependencies:
+    react: ">=17.0.1"
+  checksum: 10/f84d77410c6325ccf6a5fb4c5f547f145fcc6f158b8a7f1ebd33555e37250b9fe63fd5597d77368929065b200395e8312d32b3e9400d42c912a2ad56095a31eb
   languageName: node
   linkType: hard
 

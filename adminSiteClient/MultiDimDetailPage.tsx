@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query"
-import { useContext, useEffect, useState, useMemo } from "react"
+import { useContext, useState, useMemo } from "react"
 import {
     Alert,
     Col,
@@ -36,7 +36,6 @@ import {
     DimensionEnriched,
     MultiDimDataPageConfigEnriched,
 } from "@ourworldindata/types"
-import { LoadingBlocker } from "./Forms.js"
 import { formatSourceQueryParams } from "./multiDimRedirectHelpers.js"
 
 // Source path must start with /grapher/ or /explorers/ and cannot end with a slash.
@@ -121,7 +120,7 @@ async function fetchMultiDim(
     admin: Admin,
     id: number
 ): Promise<MultiDimDetail> {
-    const { multiDim } = await admin.getJSON<{
+    const { multiDim } = await admin.getJSONInBackground<{
         multiDim: ApiMultiDimDetail
     }>(`/api/multi-dims/${id}`)
     return deserializeMultiDim(multiDim)
@@ -131,7 +130,7 @@ async function fetchMultiDimRedirects(
     admin: Admin,
     id: number
 ): Promise<MultiDimRedirect[]> {
-    const { redirects } = await admin.getJSON<{
+    const { redirects } = await admin.getJSONInBackground<{
         redirects: MultiDimRedirect[]
     }>(`/api/multi-dims/${id}/redirects`)
     return redirects
@@ -278,13 +277,6 @@ export function MultiDimDetailPage({ id }: { id: number }) {
     const [selectedDimensions, setSelectedDimensions] =
         useState<MultiDimDimensionChoices>({})
 
-    useEffect(() => {
-        admin.loadingIndicatorSetting = "off"
-        return () => {
-            admin.loadingIndicatorSetting = "default"
-        }
-    }, [admin])
-
     const {
         data: multiDim,
         isLoading,
@@ -400,9 +392,7 @@ export function MultiDimDetailPage({ id }: { id: number }) {
     if (isLoading) {
         return (
             <AdminLayout>
-                <main className="MultiDimDetailPage">
-                    <LoadingBlocker />
-                </main>
+                <main className="MultiDimDetailPage" />
             </AdminLayout>
         )
     }
