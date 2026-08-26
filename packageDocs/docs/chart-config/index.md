@@ -20,4 +20,4 @@ The authoritative definition of every field is the JSON schema at
 maintained in [`packages/@ourworldindata/grapher/src/schema/`](https://github.com/owid/owid-grapher/tree/master/packages/@ourworldindata/grapher/src/schema)
 and also shipped with the package as `@ourworldindata/grapher/grapher-schema.json`.
 
-A browsable, field-by-field rendering of that schema is available in the [schema reference](schema-reference/index.md).
+A browsable, field-by-field rendering of that schema is available in the [schema reference](../schema-reference/index.md).

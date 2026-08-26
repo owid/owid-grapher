@@ -2,11 +2,15 @@
 
 [`GrapherLoader`](api/index.md) is the main entry point: pick a data source via one of its static factories, then `mount` it into a sized container element.
 
+!!! warning "Private package — restricted access"
+
+    Installing the package requires an auth token for OWID's private registry, which is not generally available at the moment — see [Installation & access](#installation-access) below.
+
 ## React / bundler
 
 ```tsx
 import { useEffect, useRef } from "react"
-import { DimensionProperty, GrapherLoader } from "@ourworldindata/grapher"
+import { DimensionProperty, GrapherLoader } from "@ourworldindata/grapher/react"
 import "@ourworldindata/grapher/grapher.css"
 
 function LifeExpectancyChart() {
@@ -39,7 +43,7 @@ The same code minus the React wrapper works in any bundler environment — `moun
 
 ## Plain HTML (standalone bundle)
 
-For static sites or non-React applications, use the standalone bundle (`dist/grapher.standalone.min.js`), which has React baked in. In an installed package it is the `@ourworldindata/grapher/standalone` export; the relative paths below are for `dist/` files copied onto a static host or CDN.
+For static sites or non-React applications, use the standalone bundle (`dist/grapher.standalone.min.js`), which has React baked in. In an installed package it is the root `@ourworldindata/grapher` export; the relative paths below are for `dist/` files copied onto a static host or CDN.
 
 ```html
 <!doctype html>
@@ -122,4 +126,4 @@ Point your package manager at the registry:
     yarn add @ourworldindata/grapher
     ```
 
-The package is **ESM-only**. `react` and `react-dom` (19) are peer dependencies of the library build; the standalone bundle has them baked in.
+The package is **ESM-only** and has two entry points sharing the same API and type declarations: the root export (`@ourworldindata/grapher`) is the standalone bundle with React baked in, and `@ourworldindata/grapher/react` is the library build for React apps and bundler environments, with `react` and `react-dom` (19) as peer dependencies. React apps must use `/react` — importing the root export there would silently ship a second copy of React.

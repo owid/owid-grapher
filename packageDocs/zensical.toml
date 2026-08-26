@@ -18,7 +18,7 @@ nav = [
     { "Getting started" = "getting-started.md" },
     { "Loading data" = "loading-data.md" },
     { "The chart config" = [
-        "chart-config.md",
+        "chart-config/index.md",
         { "Schema reference" = "schema-reference/index.md" },
     ] },
     { "API" = [

@@ -374,7 +374,7 @@ class DatasetTagEditor extends Component<DatasetTagEditorProps> {
         makeObservable(this)
     }
 
-    @action.bound onSaveTags(tags: DbChartTagJoin[]) {
+    @action.bound onSaveTags(tags: DbChartTagJoin[]): void {
         this.props.newDataset.tags = tags
     }
 

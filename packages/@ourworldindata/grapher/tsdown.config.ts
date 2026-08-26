@@ -14,9 +14,9 @@ import {
 //
 // There are three entries, which tsdown builds concurrently in one run:
 //
-//   npm         dist/grapher.js + dist/grapher.css   for bundler/React consumers
-//   standalone  dist/grapher.standalone.min.js       for plain HTML pages
-//   types       dist/grapher.d.ts                    for both of the above
+//   npm         dist/grapher.react.js + dist/grapher.css   for bundler/React consumers
+//   standalone  dist/grapher.standalone.min.js             for plain HTML pages
+//   types       dist/grapher.d.ts                          for both of the above
 //
 // They all write into dist/, so no two of them may emit the same filename.
 
@@ -59,14 +59,15 @@ const shared = {
 } satisfies UserConfig
 
 export default defineConfig([
-    // The ES module build, published as the package's `main`. Meant for React
-    // apps and bundler environments, so it's left unminified and React stays
-    // external. This is also the entry that owns the stylesheet: it's the only
-    // one built from grapher.entry.ts, which imports grapher.scss.
+    // The ES module build, published as the package's `./react` export. Meant
+    // for React apps and bundler environments, so it's left unminified and
+    // React stays external. This is also the entry that owns the stylesheet:
+    // it's the only one built from grapher.entry.ts, which imports
+    // grapher.scss.
     {
         ...shared,
         name: "npm",
-        entry: { grapher: "./src/grapher.entry.ts" },
+        entry: { "grapher.react": "./src/grapher.entry.ts" },
         // React is a peer dependency of the npm package.
         deps: { ...shared.deps, neverBundle: REACT_EXTERNALS },
         css: {
@@ -76,11 +77,11 @@ export default defineConfig([
             preprocessorOptions: { scss: scssPreprocessorOptions },
         },
     },
-    // The standalone bundle for the package's `./standalone` export: minified,
-    // with React bundled in, so it can be dropped into a plain HTML page via a
-    // single `import`. Built from a CSS-free entry, since the npm build above
-    // already emits dist/grapher.css - which is where CDN consumers load the
-    // styles from too.
+    // The standalone bundle, published as the package's root export (and
+    // `main`): minified, with React bundled in, so it can be dropped into a
+    // plain HTML page via a single `import`. Built from a CSS-free entry,
+    // since the npm build above already emits dist/grapher.css - which is
+    // where CDN consumers load the styles from too.
     {
         ...shared,
         name: "standalone",

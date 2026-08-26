@@ -21,7 +21,7 @@ The package is published as `@ourworldindata/grapher` to OWID's private npm regi
 npm install @ourworldindata/grapher
 ```
 
-`react` and `react-dom` (19) are peer dependencies of the library build; the standalone bundle (the `@ourworldindata/grapher/standalone` export) has them baked in. The package is ESM-only.
+The package has two entry points sharing the same API and type declarations: the root export (`@ourworldindata/grapher`) is the standalone bundle with React baked in, and `@ourworldindata/grapher/react` is the library build for React apps and bundler environments, with `react` and `react-dom` (19) as peer dependencies. React apps must use `/react` — importing the root export there would silently ship a second copy of React. The package is ESM-only.
 
 Two things to include on any page that shows a chart:
 
@@ -34,7 +34,7 @@ Two things to include on any page that shows a chart:
 
 ```tsx
 import { useEffect, useRef } from "react"
-import { DimensionProperty, GrapherLoader } from "@ourworldindata/grapher"
+import { DimensionProperty, GrapherLoader } from "@ourworldindata/grapher/react"
 import "@ourworldindata/grapher/grapher.css"
 
 function LifeExpectancyChart() {
@@ -66,8 +66,8 @@ For loading your own data (CSV or in-memory tables), providing source metadata, 
 
 Running the build script produces the following outputs under `dist/`:
 
-- `grapher.js`: The ES module library build. React and React DOM are marked as external peer dependencies (ideal for modern React apps or bundler environments).
-- `grapher.standalone.min.js`: The minified standalone bundle. All dependencies (including React and React DOM) are bundled, enabling plug-and-play usage directly in any HTML page.
+- `grapher.react.js`: The ES module library build, published as the `@ourworldindata/grapher/react` export. React and React DOM are marked as external peer dependencies (ideal for modern React apps or bundler environments).
+- `grapher.standalone.min.js`: The minified standalone bundle, published as the root `@ourworldindata/grapher` export. All dependencies (including React and React DOM) are bundled, enabling plug-and-play usage directly in any HTML page.
 - `grapher.css`: The stylesheet containing all Grapher layouts and components styles.
 - `grapher-schema.json`: The latest JSON schema for Grapher configs, also available through the `@ourworldindata/grapher/grapher-schema.json` package export.
 - `grapher.d.ts`: TypeScript declaration entry point for the public API.
