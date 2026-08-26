@@ -59,18 +59,20 @@ describe("dist/gdoc-pipeline.js", () => {
     })
 
     it("exports the public API and runs the pipeline end-to-end", async () => {
-        const mod = (await import(
-            pathToFileURL(npmBuildPath).href
-        )) as Record<string, unknown>
+        const mod = (await import(pathToFileURL(npmBuildPath).href)) as Record<
+            string,
+            unknown
+        >
 
         for (const name of PUBLIC_EXPORTS) {
             expect(typeof mod[name], `export ${name}`).toBe("function")
         }
 
         // ArchieML -> enriched blocks
-        const archieToEnriched = mod.archieToEnriched as (
-            text: string
-        ) => { title?: string; body?: unknown[] }
+        const archieToEnriched = mod.archieToEnriched as (text: string) => {
+            title?: string
+            body?: unknown[]
+        }
         const enriched = archieToEnriched(
             [
                 "title: Smoke test",
