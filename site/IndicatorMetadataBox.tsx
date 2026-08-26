@@ -8,6 +8,8 @@ import {
     makeSource,
     IndicatorProcessing,
     INDICATOR_PROCESSING_SECTION_ID,
+    MetadataBoxExpander,
+    MetadataBoxCollapseButton,
 } from "@ourworldindata/components"
 import {
     ArchiveContext,
@@ -27,8 +29,6 @@ import {
 } from "@ourworldindata/utils"
 import { Byline } from "./gdocs/components/Byline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons"
 import { splitDescriptionKey } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
@@ -45,7 +45,7 @@ function logExpandableToggle(target: string, isOpen: boolean): void {
     )
 }
 
-interface ExpandableSectionProps {
+interface IndicatorMetadataSectionsProps {
     datapageData: DataPageDataV2
     className?: string
     faqEntries: FaqEntryData | undefined
@@ -86,7 +86,7 @@ function groupFaqsByQuestion(
     return questions
 }
 
-function ExpandableSection({
+function IndicatorMetadataSections({
     datapageData,
     className,
     faqEntries,
@@ -97,7 +97,7 @@ function ExpandableSection({
     title,
     descriptionProcessing,
     license,
-}: ExpandableSectionProps) {
+}: IndicatorMetadataSectionsProps) {
     const { origins, source } = datapageData
     const sourcesForDisplay = prepareSourcesForDisplay({
         origins,
@@ -124,20 +124,6 @@ function ExpandableSection({
 
     const faqQuestions = groupFaqsByQuestion(faqEntries?.faqs ?? [])
 
-    // overflow-anchor: none; is set on this page so that scroll position doesn't jump when collapsing FAQ/sources
-    // but when collapsing the metadata box itself, we want to jump back to the top
-    const summaryRef = useRef<HTMLElement>(null)
-    const handleSummaryClick = (event: React.MouseEvent<HTMLElement>) => {
-        const details = detailsRef.current
-        const summary = summaryRef.current
-        if (!details?.open || !summary) return // expanding — let the native toggle run
-        event.preventDefault()
-        const before = summary.getBoundingClientRect().top
-        details.open = false
-        const after = summary.getBoundingClientRect().top
-        window.scrollBy(0, after - before)
-    }
-
     // Only the start of a long descriptionKey is shown above the fold; the
     // rest goes inside the <details> so that it works without JavaScript and
     // browsers auto-expand it when in-page search matches hidden text.
@@ -145,250 +131,209 @@ function ExpandableSection({
         splitDescriptionKey(datapageData.descriptionKey ?? "")
 
     return (
-        <div className={cx("meta-expander", className)}>
-            {descriptionKeyPreview && (
-                <div className="meta-expander__preview meta-expander__prose">
+        <MetadataBoxExpander
+            className={className}
+            detailsRef={detailsRef}
+            preview={
+                descriptionKeyPreview ? (
                     <SimpleMarkdownText text={descriptionKeyPreview} />
+                ) : undefined
+            }
+            onToggle={(isOpen) =>
+                analytics.logSiteClick(
+                    isOpen ? "expand_metadata_box" : "collapse_metadata_box"
+                )
+            }
+        >
+            {descriptionKeyRest && (
+                <div className="metadata-box-expander__remainder metadata-box-expander__prose">
+                    <SimpleMarkdownText text={descriptionKeyRest} />
                 </div>
             )}
-            <details
-                className="meta-expander__details"
-                ref={detailsRef}
-                // React 19 simulates bubbling for `toggle`, so toggles from the
-                // nested ExpandableToggles would otherwise fire this handler too.
-                // Guard to only react to this element's own toggle.
-                onToggle={(e) => {
-                    if (e.target !== e.currentTarget) return
-                    analytics.logSiteClick(
-                        e.currentTarget.open
-                            ? "expand_metadata_box"
-                            : "collapse_metadata_box"
-                    )
-                }}
-            >
-                <summary
-                    className="meta-expander__summary"
-                    ref={summaryRef}
-                    onClick={handleSummaryClick}
-                >
-                    <span className="meta-expander__show-more">
-                        Show more{" "}
-                        <FontAwesomeIcon
-                            className="indicator-metadata-box__chevron"
-                            icon={faChevronDown}
-                        />
-                    </span>
-                    <span className="meta-expander__show-less">
-                        Show less{" "}
-                        <FontAwesomeIcon
-                            className="indicator-metadata-box__chevron"
-                            icon={faChevronUp}
-                        />
-                    </span>
-                </summary>
-                {descriptionKeyRest && (
-                    <div className="meta-expander__remainder meta-expander__prose">
-                        <SimpleMarkdownText text={descriptionKeyRest} />
-                    </div>
-                )}
-                {
-                    <section className="meta-expander__section meta-expander__section--faqs">
-                        <h2 className="meta-expander__section-title" id="faqs">
-                            Frequently asked questions
-                        </h2>
-                        {faqQuestions.map((faq, i) => (
-                            <ExpandableToggle
-                                key={faq.question}
-                                label={faq.question}
-                                isStacked={i < faqQuestions.length - 1}
-                                content={
-                                    <ArticleBlocks
-                                        blocks={faq.answer}
-                                        containerType="datapage"
-                                    />
-                                }
-                                onToggle={(isOpen) =>
-                                    logExpandableToggle(
-                                        // untranslated source text
-                                        faq.question.slice(0, 100),
-                                        isOpen
-                                    )
-                                }
-                            />
-                        ))}
-                        <ExpandableToggle
-                            label="How did Our World in Data process this data?"
-                            contentId={INDICATOR_PROCESSING_SECTION_ID}
-                            content={
-                                <IndicatorProcessing
-                                    descriptionProcessing={
-                                        descriptionProcessing
-                                    }
-                                />
-                            }
-                            onToggle={(isOpen) =>
-                                logExpandableToggle(
-                                    "how_owid_processed_data",
-                                    isOpen
-                                )
-                            }
-                        />
-                    </section>
-                }
-                {datapageData.descriptionFromProducer && (
-                    <section className="meta-expander__section">
-                        <h2 className="meta-expander__section-title">
-                            Documentation from data sources
-                        </h2>
-                        <ExpandableToggle
-                            label={
-                                datapageData.attributionShort ||
-                                "Principal data source"
-                            }
-                            content={
-                                <SimpleMarkdownText
-                                    text={datapageData.descriptionFromProducer}
-                                />
-                            }
-                            onToggle={(isOpen) =>
-                                logExpandableToggle(
-                                    "producer_documentation",
-                                    isOpen
-                                )
-                            }
-                        />
-                    </section>
-                )}
-                <section className="meta-expander__section">
-                    <h2
-                        id={DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}
-                        className="meta-expander__section-title"
-                    >
-                        Data sources
+            {
+                <section className="metadata-box-section metadata-box-section--faqs">
+                    <h2 className="metadata-box-section__title" id="faqs">
+                        Frequently asked questions
                     </h2>
-                    <IndicatorSources
-                        sources={sourcesForDisplay}
-                        hideReuseThisWorkText
-                        hideTeasers
-                        onSourceToggle={(_source, index, isOpen) =>
+                    {faqQuestions.map((faq, i) => (
+                        <ExpandableToggle
+                            key={faq.question}
+                            label={faq.question}
+                            isStacked={i < faqQuestions.length - 1}
+                            content={
+                                <ArticleBlocks
+                                    blocks={faq.answer}
+                                    containerType="datapage"
+                                />
+                            }
+                            onToggle={(isOpen) =>
+                                logExpandableToggle(
+                                    // untranslated source text
+                                    faq.question.slice(0, 100),
+                                    isOpen
+                                )
+                            }
+                        />
+                    ))}
+                    <ExpandableToggle
+                        label="How did Our World in Data process this data?"
+                        contentId={INDICATOR_PROCESSING_SECTION_ID}
+                        content={
+                            <IndicatorProcessing
+                                descriptionProcessing={descriptionProcessing}
+                            />
+                        }
+                        onToggle={(isOpen) =>
                             logExpandableToggle(
-                                `data_source_${index + 1}`,
+                                "how_owid_processed_data",
                                 isOpen
                             )
                         }
                     />
                 </section>
-                {(citationShort || citationLong) && (
-                    <section className="meta-expander__section">
-                        <h2 className="meta-expander__section-title">
-                            How to cite
-                        </h2>
-                        {citationDatapage && (
+            }
+            {datapageData.descriptionFromProducer && (
+                <section className="metadata-box-section">
+                    <h2 className="metadata-box-section__title">
+                        Documentation from data sources
+                    </h2>
+                    <ExpandableToggle
+                        label={
+                            datapageData.attributionShort ||
+                            "Principal data source"
+                        }
+                        content={
+                            <SimpleMarkdownText
+                                text={datapageData.descriptionFromProducer}
+                            />
+                        }
+                        onToggle={(isOpen) =>
+                            logExpandableToggle(
+                                "producer_documentation",
+                                isOpen
+                            )
+                        }
+                    />
+                </section>
+            )}
+            <section className="metadata-box-section">
+                <h2
+                    id={DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}
+                    className="metadata-box-section__title"
+                >
+                    Data sources
+                </h2>
+                <IndicatorSources
+                    sources={sourcesForDisplay}
+                    hideReuseThisWorkText
+                    hideTeasers
+                    onSourceToggle={(_source, index, isOpen) =>
+                        logExpandableToggle(`data_source_${index + 1}`, isOpen)
+                    }
+                />
+            </section>
+            {(citationShort || citationLong) && (
+                <section className="metadata-box-section">
+                    <h2 className="metadata-box-section__title">How to cite</h2>
+                    {citationDatapage && (
+                        <ExpandableToggle
+                            label="How to cite this page"
+                            isStacked
+                            content={
+                                <>
+                                    <p>
+                                        To cite this page overall, including any
+                                        descriptions, FAQs or explanations of
+                                        the data authored by Our World in Data,
+                                        please use the following citation:
+                                    </p>
+                                    <CodeSnippet
+                                        code={citationDatapage}
+                                        theme="light"
+                                        useMarkdown={true}
+                                        onCopy={() =>
+                                            analytics.logSiteClick(
+                                                "copy_citation",
+                                                "citation_page"
+                                            )
+                                        }
+                                    />
+                                </>
+                            }
+                            onToggle={(isOpen) =>
+                                logExpandableToggle("how_to_cite_page", isOpen)
+                            }
+                        />
+                    )}
+                    <section className="indicator-sources">
+                        {citationShort && (
                             <ExpandableToggle
-                                label="How to cite this page"
-                                isStacked
+                                label="How to cite this data"
+                                isStacked={!!citationLong}
                                 content={
                                     <>
-                                        <p>
-                                            To cite this page overall, including
-                                            any descriptions, FAQs or
-                                            explanations of the data authored by
-                                            Our World in Data, please use the
-                                            following citation:
+                                        <p className="citation__paragraph">
+                                            If you have limited space (e.g. in
+                                            data visualizations), you can use
+                                            this abbreviated in-line citation:
                                         </p>
                                         <CodeSnippet
-                                            code={citationDatapage}
+                                            code={citationShort}
                                             theme="light"
                                             useMarkdown={true}
                                             onCopy={() =>
                                                 analytics.logSiteClick(
                                                     "copy_citation",
-                                                    "citation_page"
+                                                    "citation_data_short"
                                                 )
                                             }
                                         />
+                                        {citationLong && (
+                                            <>
+                                                <p className="citation__paragraph">
+                                                    Full citation
+                                                </p>
+                                                <CodeSnippet
+                                                    code={citationLong}
+                                                    theme="light"
+                                                    useMarkdown={true}
+                                                    onCopy={() =>
+                                                        analytics.logSiteClick(
+                                                            "copy_citation",
+                                                            "citation_data_full"
+                                                        )
+                                                    }
+                                                />
+                                            </>
+                                        )}
                                     </>
                                 }
                                 onToggle={(isOpen) =>
                                     logExpandableToggle(
-                                        "how_to_cite_page",
+                                        "how_to_cite_data",
                                         isOpen
                                     )
                                 }
                             />
                         )}
-                        <section className="indicator-sources">
-                            {citationShort && (
-                                <ExpandableToggle
-                                    label="How to cite this data"
-                                    isStacked={!!citationLong}
-                                    content={
-                                        <>
-                                            <p className="citation__paragraph">
-                                                If you have limited space (e.g.
-                                                in data visualizations), you can
-                                                use this abbreviated in-line
-                                                citation:
-                                            </p>
-                                            <CodeSnippet
-                                                code={citationShort}
-                                                theme="light"
-                                                useMarkdown={true}
-                                                onCopy={() =>
-                                                    analytics.logSiteClick(
-                                                        "copy_citation",
-                                                        "citation_data_short"
-                                                    )
-                                                }
-                                            />
-                                            {citationLong && (
-                                                <>
-                                                    <p className="citation__paragraph">
-                                                        Full citation
-                                                    </p>
-                                                    <CodeSnippet
-                                                        code={citationLong}
-                                                        theme="light"
-                                                        useMarkdown={true}
-                                                        onCopy={() =>
-                                                            analytics.logSiteClick(
-                                                                "copy_citation",
-                                                                "citation_data_full"
-                                                            )
-                                                        }
-                                                    />
-                                                </>
-                                            )}
-                                        </>
-                                    }
-                                    onToggle={(isOpen) =>
-                                        logExpandableToggle(
-                                            "how_to_cite_data",
-                                            isOpen
-                                        )
-                                    }
-                                />
-                            )}
-                        </section>
                     </section>
-                )}
-                <section className="meta-expander__section meta-expander__reuse-notice">
-                    <p>
-                        All data produced by third-party providers and made
-                        available by Our World in Data are subject to the
-                        license terms from the original providers. Our work
-                        would not be possible without the data providers we rely
-                        on, so we ask you to always cite them appropriately.
-                        This is crucial to allow data providers to continue
-                        doing their work, enhancing, maintaining and updating
-                        valuable data.
-                    </p>
-                    <p>
-                        <ChartLicenseNotice license={license} />
-                    </p>
                 </section>
-            </details>
-        </div>
+            )}
+            <section className="metadata-box-section indicator-metadata-box__reuse-notice">
+                <p>
+                    All data produced by third-party providers and made
+                    available by Our World in Data are subject to the license
+                    terms from the original providers. Our work would not be
+                    possible without the data providers we rely on, so we ask
+                    you to always cite them appropriately. This is crucial to
+                    allow data providers to continue doing their work,
+                    enhancing, maintaining and updating valuable data.
+                </p>
+                <p>
+                    <ChartLicenseNotice license={license} />
+                </p>
+            </section>
+        </MetadataBoxExpander>
     )
 }
 
@@ -424,31 +369,22 @@ export default function IndicatorMetadataBox({
     const detailsRef = useRef<HTMLDetailsElement | null>(null)
 
     return (
-        <div className={cx("indicator-metadata-box", className)} id={id}>
-            <button
-                type="button"
-                className="indicator-metadata-box__show-less"
-                onClick={() => {
-                    if (detailsRef.current) detailsRef.current.open = false
-                }}
-            >
-                Show less
-                <FontAwesomeIcon
-                    icon={faChevronUp}
-                    className="indicator-metadata-box__chevron"
-                />
-            </button>
-            <h2 className="indicator-metadata-box__indicator-title body-2-bold-tight">
+        <div
+            className={cx("metadata-box indicator-metadata-box", className)}
+            id={id}
+        >
+            <MetadataBoxCollapseButton detailsRef={detailsRef} />
+            <h2 className="indicator-metadata-box__title body-2-bold-tight">
                 {datapageData.title.title}
                 <span className="indicator-metadata-box__title-variant">
                     {datapageData.titleVariant}
                 </span>
             </h2>
-            <dl className="meta-description-table">
+            <dl className="metadata-box-key-data">
                 {datapageData.descriptionShort && (
-                    <div className="meta-description-table__pair meta-description-table__pair--full-width">
+                    <div className="metadata-box-key-data__row metadata-box-key-data__row--full-width">
                         <dt className="sr-only">Description</dt>
-                        <dd className="meta-description-table__value">
+                        <dd className="metadata-box-key-data__value">
                             <SimpleMarkdownText
                                 text={datapageData.descriptionShort}
                             />
@@ -456,65 +392,65 @@ export default function IndicatorMetadataBox({
                     </div>
                 )}
                 {sourceString && (
-                    <div className="meta-description-table__pair meta-description-table__pair--full-width">
-                        <dt className="meta-description-table__key meta-description-table__key--source">
+                    <div className="metadata-box-key-data__row metadata-box-key-data__row--full-width">
+                        <dt className="metadata-box-key-data__key metadata-box-key-data__key--source">
                             Data source
                         </dt>
-                        <dd className="meta-description-table__value">
+                        <dd className="metadata-box-key-data__value">
                             {sourceString}
                         </dd>
                     </div>
                 )}
                 {datapageData.unit && (
-                    <div className="meta-description-table__pair">
-                        <dt className="meta-description-table__key">Unit</dt>
-                        <dd className="meta-description-table__value">
+                    <div className="metadata-box-key-data__row">
+                        <dt className="metadata-box-key-data__key">Unit</dt>
+                        <dd className="metadata-box-key-data__value">
                             {datapageData.unit}
                         </dd>
                     </div>
                 )}
                 {datapageData.dateRange && (
-                    <div className="meta-description-table__pair">
-                        <dt className="meta-description-table__key">
+                    <div className="metadata-box-key-data__row">
+                        <dt className="metadata-box-key-data__key">
                             Date range
                         </dt>
-                        <dd className="meta-description-table__value">
+                        <dd className="metadata-box-key-data__value">
                             {datapageData.dateRange}
                         </dd>
                     </div>
                 )}
                 {datapageData.lastUpdated && (
-                    <div className="meta-description-table__pair">
-                        <dt className="meta-description-table__key">
+                    <div className="metadata-box-key-data__row">
+                        <dt className="metadata-box-key-data__key">
                             Last updated
                         </dt>
-                        <dd className="meta-description-table__value">
+                        <dd className="metadata-box-key-data__value">
                             {datapageData.lastUpdated}
                         </dd>
                     </div>
                 )}
                 {datapageData.nextUpdate && (
-                    <div className="meta-description-table__pair">
-                        <dt className="meta-description-table__key">
+                    <div className="metadata-box-key-data__row">
+                        <dt className="metadata-box-key-data__key">
                             Next expected update
                         </dt>
-                        <dd className="meta-description-table__value">
+                        <dd className="metadata-box-key-data__value">
                             {datapageData.nextUpdate}
                         </dd>
                     </div>
                 )}
                 {owners.length > 0 && (
-                    <div className="meta-description-table__pair">
-                        <dt className="meta-description-table__key">
+                    <div className="metadata-box-key-data__row">
+                        <dt className="metadata-box-key-data__key">
                             Managed by
                         </dt>
-                        <dd className="meta-description-table__value">
+                        <dd className="metadata-box-key-data__value">
                             <Byline names={owners} prefix="" />
                         </dd>
                     </div>
                 )}
             </dl>
-            <ExpandableSection
+            <IndicatorMetadataSections
                 datapageData={datapageData}
                 faqEntries={faqEntries}
                 detailsRef={detailsRef}
