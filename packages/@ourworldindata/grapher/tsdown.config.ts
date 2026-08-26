@@ -59,10 +59,11 @@ const shared = {
 } satisfies UserConfig
 
 export default defineConfig([
-    // The ES module build, published as the package's `main`. Meant for React
-    // apps and bundler environments, so it's left unminified and React stays
-    // external. This is also the entry that owns the stylesheet: it's the only
-    // one built from grapher.entry.ts, which imports grapher.scss.
+    // The ES module build, published as the package's `./react` export. Meant
+    // for React apps and bundler environments, so it's left unminified and
+    // React stays external. This is also the entry that owns the stylesheet:
+    // it's the only one built from grapher.entry.ts, which imports
+    // grapher.scss.
     {
         ...shared,
         name: "npm",
@@ -76,11 +77,11 @@ export default defineConfig([
             preprocessorOptions: { scss: scssPreprocessorOptions },
         },
     },
-    // The standalone bundle for the package's `./standalone` export: minified,
-    // with React bundled in, so it can be dropped into a plain HTML page via a
-    // single `import`. Built from a CSS-free entry, since the npm build above
-    // already emits dist/grapher.css - which is where CDN consumers load the
-    // styles from too.
+    // The standalone bundle, published as the package's root export (and
+    // `main`): minified, with React bundled in, so it can be dropped into a
+    // plain HTML page via a single `import`. Built from a CSS-free entry,
+    // since the npm build above already emits dist/grapher.css - which is
+    // where CDN consumers load the styles from too.
     {
         ...shared,
         name: "standalone",

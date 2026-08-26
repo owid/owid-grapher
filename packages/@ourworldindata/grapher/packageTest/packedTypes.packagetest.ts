@@ -57,6 +57,10 @@ const CONSUMER_SOURCE = `import {
     type FromTableOptions,
     type GrapherInterface,
 } from "@ourworldindata/grapher"
+import { GrapherLoader as GrapherLoaderReact } from "@ourworldindata/grapher/react"
+
+// Both entrypoints share the same declaration bundle.
+GrapherLoaderReact satisfies typeof GrapherLoader
 
 const config: GrapherInterface = { title: "Smoke test chart" }
 
@@ -232,7 +236,7 @@ describe("packed package", () => {
         }
 
         // `yarn pack` must have applied publishConfig.
-        expect(manifest.main).toBe("dist/grapher.js")
+        expect(manifest.main).toBe("dist/grapher.standalone.min.js")
         expect(manifest.types).toBe("dist/grapher.d.ts")
         expect(manifest.exports).toBeDefined()
         expect(manifest.exports["./grapher-schema.json"]).toBe(
@@ -242,9 +246,11 @@ describe("packed package", () => {
         // Everything the package needs at runtime is bundled, so it must not
         // declare any dependencies: `yarn pack` turns `workspace:^` entries
         // into semver ranges of unpublished packages, which would make
-        // `npm install` fail outright. Only the react peer deps are expected.
+        // `npm install` fail outright. Only the react peer deps (and their
+        // types) are expected.
         expect(manifest.dependencies).toBeUndefined()
         expect(Object.keys(manifest.peerDependencies ?? {})).toEqual([
+            "@types/react",
             "react",
             "react-dom",
         ])
@@ -254,7 +260,7 @@ describe("packed package", () => {
             manifest.types,
             "dist/grapher.css",
             "dist/grapher-schema.json",
-            "dist/grapher.standalone.min.js",
+            "dist/grapher.js",
         ]) {
             expect(
                 fs.existsSync(path.join(packedDir, file)),
