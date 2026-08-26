@@ -13,7 +13,6 @@ import {
     GrapherInterface,
     getParentIndicatorIdFromChartConfig,
     mergeGrapherConfigs,
-    NARRATIVE_CHART_PROPS_TO_OMIT,
 } from "@ourworldindata/utils"
 import { DbChartTagJoin } from "@ourworldindata/types"
 import { action, computed, observable, runInAction, makeObservable } from "mobx"
@@ -24,6 +23,7 @@ import {
     EditorTab,
     References,
 } from "./AbstractChartEditor.js"
+import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
 import { Admin } from "./Admin.js"
 import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
 
@@ -253,9 +253,12 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     async saveAsNarrativeChart(
         name: string
     ): Promise<{ success: boolean; errorMsg?: string }> {
-        const { patchConfig, grapherState } = this
+        const { grapherState } = this
 
-        const chartJson = _.omit(patchConfig, NARRATIVE_CHART_PROPS_TO_OMIT)
+        const chartJson = makeNarrativeChartPatchConfig(
+            this.liveConfigWithDefaults,
+            this.activeParentConfigWithDefaults
+        )
 
         const body = {
             type: "chart",
