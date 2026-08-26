@@ -131,6 +131,15 @@ describe(resolveDimensionPresentationType, () => {
         expect(resolveDimensionPresentationType(dimension)).toBe("dropdown")
     })
 
+    it("defaults to dropdown-with-search for dimensions with more than ten choices", () => {
+        expect(resolveDimensionPresentationType(makeDimension(10))).toBe(
+            "dropdown"
+        )
+        expect(resolveDimensionPresentationType(makeDimension(11))).toBe(
+            "dropdown-with-search"
+        )
+    })
+
     it("respects an explicit presentation type", () => {
         expect(
             resolveDimensionPresentationType(
@@ -142,5 +151,17 @@ describe(resolveDimensionPresentationType, () => {
                 makeDimension(5, { presentation: { type: "radio" } })
             )
         ).toBe("radio")
+        expect(
+            resolveDimensionPresentationType(
+                makeDimension(3, {
+                    presentation: { type: "dropdown-with-search" },
+                })
+            )
+        ).toBe("dropdown-with-search")
+        expect(
+            resolveDimensionPresentationType(
+                makeDimension(20, { presentation: { type: "dropdown" } })
+            )
+        ).toBe("dropdown")
     })
 })
