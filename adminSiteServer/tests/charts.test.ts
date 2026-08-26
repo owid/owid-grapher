@@ -1143,6 +1143,45 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         expect(afterChange.version).toBeGreaterThan(versionAfterFirst)
     })
 
+    it("leaves charts.updatedAt untouched on a no-op ETL re-push carrying an unchanged catalogPath", async () => {
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+        const chartId = response.chartId
+        const catalogPath = "grapher/test/latest/updated_at#y"
+        const pushPath = `${await etlConfigPath(chartId)}?catalogPath=${encodeURIComponent(
+            catalogPath
+        )}`
+
+        await env.request({
+            method: "PUT",
+            path: pushPath,
+            body: JSON.stringify(testChartEtlConfig),
+        })
+        const afterFirst = await env
+            .testKnex("charts")
+            .where("id", chartId)
+            .first()
+
+        // The ETL sends `catalogPath` on every push, so an identical re-push
+        // must not move `updatedAt` — chart-diff reads it to tell whether a
+        // chart was edited in production after a staging server was created.
+        await env.request({
+            method: "PUT",
+            path: pushPath,
+            body: JSON.stringify(testChartEtlConfig),
+        })
+        const afterRepush = await env
+            .testKnex("charts")
+            .where("id", chartId)
+            .first()
+
+        expect(afterRepush.updatedAt).toEqual(afterFirst.updatedAt)
+        expect(afterRepush.etlConfigCatalogPath).toBe(catalogPath)
+    })
+
     it("backfills catalogPath on a no-op re-push for a chart that already has an etlConfig", async () => {
         const response = await env.request({
             method: "POST",
