@@ -1279,7 +1279,16 @@ async function upsertEtlConfigForChart(
     //     skipped).
     if (!fullChanged) {
         const patchChanged = !_.isEqual(newPatch, existingPatch)
-        if (patchChanged || catalogPath) {
+        // Compare the incoming path against the stored one rather than just
+        // testing for its presence: the ETL sends `catalogPath` on every push,
+        // so `catalogPath` alone is always truthy and would make us write —
+        // and move `charts.updatedAt` — on every no-op re-push. chart-diff
+        // reads `charts.updatedAt` to decide whether a chart was edited in
+        // production after a staging server was created, so that churn shows
+        // up there as conflicts nobody caused.
+        const catalogPathChanged =
+            catalogPath !== null && catalogPath !== row.etlConfigCatalogPath
+        if (patchChanged || catalogPathChanged) {
             await db.knexRaw(
                 trx,
                 `-- sql
