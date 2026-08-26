@@ -36,28 +36,25 @@ export function* getCitationLines(
         ...def,
         source: { name: def.sourceName },
     })
-    const citationShort = getCitationShort(
-        def.origins ?? [],
-        attributionFragments,
-        def.owidProcessingLevel
-    )
+    const citationShort = getCitationShort({
+        attributions: attributionFragments,
+        owidProcessingLevel: def.owidProcessingLevel,
+    })
 
     yield citationShort
 
     yield ""
 
     yield "#### Full citation"
-    const citationLong = getCitationLong(
-        col.titlePublicOrDisplayName,
-        def.origins ?? [],
-        col.source ?? {},
-        attributionFragments,
-        def.presentation?.attributionShort,
-        def.presentation?.titleVariant,
-        def.owidProcessingLevel,
-        undefined,
-        undefined
-    )
+    const citationLong = getCitationLong({
+        indicatorTitle: col.titlePublicOrDisplayName,
+        origins: def.origins ?? [],
+        source: col.source ?? {},
+        attributions: attributionFragments,
+        attributionShort: def.presentation?.attributionShort,
+        titleVariant: def.presentation?.titleVariant,
+        owidProcessingLevel: def.owidProcessingLevel,
+    })
     yield citationLong
 }
 

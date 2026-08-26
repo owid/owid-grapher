@@ -393,25 +393,22 @@ export class Source extends React.Component<SourceProps> {
     }
 
     @computed get citationShort(): string {
-        return getCitationShort(
-            this.def.origins ?? [],
-            getAttributionFragmentsFromVariable(this.def),
-            this.def.owidProcessingLevel
-        )
+        return getCitationShort({
+            attributions: getAttributionFragmentsFromVariable(this.def),
+            owidProcessingLevel: this.def.owidProcessingLevel,
+        })
     }
 
     @computed get citationLong(): string {
-        return getCitationLong(
-            this.titleWithFragments,
-            this.def.origins ?? [],
-            this.source,
-            getAttributionFragmentsFromVariable(this.def),
-            this.def.presentation?.attributionShort,
-            this.def.presentation?.titleVariant,
-            this.def.owidProcessingLevel,
-            undefined,
-            undefined
-        )
+        return getCitationLong({
+            indicatorTitle: this.titleWithFragments,
+            origins: this.def.origins ?? [],
+            source: this.source,
+            attributions: getAttributionFragmentsFromVariable(this.def),
+            attributionShort: this.def.presentation?.attributionShort,
+            titleVariant: this.def.presentation?.titleVariant,
+            owidProcessingLevel: this.def.owidProcessingLevel,
+        })
     }
 
     @computed private get source(): OwidSource {

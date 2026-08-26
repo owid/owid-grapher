@@ -59,13 +59,12 @@ export default function MetadataSection({
 }) {
     const sourcesForDisplay = prepareSourcesForDisplay({ origins, source })
     const citationUrl = archiveContext?.archiveUrl ?? canonicalUrl
-    const citationShort = getCitationShort(
-        origins,
+    const citationShort = getCitationShort({
         attributions,
-        owidProcessingLevel
-    )
-    const citationLong = getCitationLong(
-        title,
+        owidProcessingLevel,
+    })
+    const citationLong = getCitationLong({
+        indicatorTitle: title,
         origins,
         source,
         attributions,
@@ -73,8 +72,8 @@ export default function MetadataSection({
         titleVariant,
         owidProcessingLevel,
         citationUrl,
-        archiveContext?.archivalDate
-    )
+        archivalDate: archiveContext?.archivalDate,
+    })
     const citationDatapage = getCitationDatapage(
         title,
         origins,

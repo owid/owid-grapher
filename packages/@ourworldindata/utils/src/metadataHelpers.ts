@@ -191,22 +191,20 @@ export const getYearSuffixFromOrigin = (o: OwidOrigin): string => {
     else return ""
 }
 
-export const getCitationShort = (
-    origins: OwidOrigin[],
-    attributions: string[],
-    owidProcessingLevel: OwidProcessingLevel | undefined
-): string => {
-    const producersWithYear = _.uniq(
-        origins.map((o) => `${o.producer}${getYearSuffixFromOrigin(o)}`)
-    )
+export const getCitationShort = ({
+    attributions,
+    owidProcessingLevel,
+}: {
+    attributions: string[]
+    owidProcessingLevel?: OwidProcessingLevel
+}): string => {
     const processingLevelPhrase =
         getPhraseForProcessingLevel(owidProcessingLevel)
 
-    const attributionFragments = attributions ?? producersWithYear
     const attributionPotentiallyShortened =
-        attributionFragments.length > 3
-            ? `${attributionFragments[0]} and other sources`
-            : attributionFragments.join("; ")
+        attributions.length > 3
+            ? `${attributions[0]} and other sources`
+            : attributions.join("; ")
 
     return `${attributionPotentiallyShortened} – ${processingLevelPhrase} by Our World in Data`
 }
@@ -224,29 +222,35 @@ export const getPhraseForArchivalDate = (
     return `(archived on ${formatted}).`
 }
 
-export const getCitationLong = (
-    indicatorTitle: IndicatorTitleWithFragments,
-    origins: OwidOrigin[],
-    source: OwidSource | undefined,
-    attributions: string[],
-    attributionShort: string | undefined,
-    titleVariant: string | undefined,
-    owidProcessingLevel: OwidProcessingLevel | undefined,
-    citationUrl: string | undefined,
-    archivalDate: string | undefined
-): string => {
+export const getCitationLong = ({
+    indicatorTitle,
+    origins,
+    attributions,
+    source,
+    attributionShort,
+    titleVariant,
+    owidProcessingLevel,
+    citationUrl,
+    archivalDate,
+}: {
+    indicatorTitle: IndicatorTitleWithFragments
+    origins: OwidOrigin[]
+    attributions: string[]
+    source?: OwidSource
+    attributionShort?: string
+    titleVariant?: string
+    owidProcessingLevel?: OwidProcessingLevel
+    citationUrl?: string
+    archivalDate?: string
+}): string => {
     const sourceShortName =
         attributionShort && titleVariant
             ? `${attributionShort} – ${titleVariant}`
             : attributionShort || titleVariant
-    const producersWithYear = _.uniq(
-        origins.map((o) => `${o.producer}${getYearSuffixFromOrigin(o)}`)
-    )
     const processingLevelPhrase =
         getPhraseForProcessingLevel(owidProcessingLevel)
 
-    const attributionFragments = attributions ?? producersWithYear
-    const attributionUnshortened = attributionFragments.join("; ")
+    const attributionUnshortened = attributions.join("; ")
     const citationLonger = `${attributionUnshortened} – ${processingLevelPhrase} by Our World in Data`
     const titleWithOptionalFragments = excludeUndefined([
         indicatorTitle.title,
