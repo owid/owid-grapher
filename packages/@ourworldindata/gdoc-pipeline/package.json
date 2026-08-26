@@ -22,10 +22,14 @@
         }
     },
     "peerDependencies": {
-        "@googleapis/docs": "^9.0.0"
+        "@googleapis/docs": "^9.0.0",
+        "zod": "^4.4.3"
     },
     "peerDependenciesMeta": {
         "@googleapis/docs": {
+            "optional": true
+        },
+        "zod": {
             "optional": true
         }
     },
@@ -65,7 +69,8 @@
         "remeda": "^2.42.0",
         "ts-pattern": "^5.8.0",
         "tsdown": "^0.22.14",
-        "vitest": "^4.1.10"
+        "vitest": "^4.1.10",
+        "zod": "^4.4.3"
     },
     "license": "SEE LICENSE IN LICENSE.md"
 }

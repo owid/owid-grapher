@@ -30,7 +30,10 @@ npm install @ourworldindata/gdoc-pipeline
 
 The package is ESM-only and has **no runtime dependencies** — everything (archieml, cheerio, lodash-es, and OWID's internal workspace packages) is bundled. It runs in browsers as well as Node; nothing in it touches node builtins.
 
-`@googleapis/docs` is an **optional peer dependency**, used purely for its types: `gdocToArchie` consumes the Google Docs API's document JSON (`docs_v1.Schema$Document`). Install it if you call `gdocToArchie` from TypeScript; if you only work with ArchieML text and enriched blocks, you don't need it.
+Two packages are declared as **optional peer dependencies**. Both are needed purely for their types, so they only matter to TypeScript consumers:
+
+- `@googleapis/docs` — `gdocToArchie` consumes the Google Docs API's document JSON (`docs_v1.Schema$Document`). Install it if you call `gdocToArchie` from TypeScript; if you only work with ArchieML text and enriched blocks, you don't need it.
+- `zod` — part of the exported type surface is derived from zod schemas, so the declaration bundle references `zod/mini` types. Install it if you reference those types, or if your project runs `tsc` without `skipLibCheck`. Zod's runtime code is bundled, so it is never needed at runtime.
 
 ### Quick start
 
@@ -53,7 +56,9 @@ const markdown = enrichedBlocksToMarkdown(content.body, false)
 
 // enriched blocks -> ArchieML text
 const archie = (content.body ?? [])
-    .map((block) => OwidRawGdocBlockToArchieMLString(enrichedBlockToRawBlock(block)))
+    .map((block) =>
+        OwidRawGdocBlockToArchieMLString(enrichedBlockToRawBlock(block))
+    )
     .join("")
 ```
 
@@ -73,7 +78,7 @@ Inside the owid-grapher monorepo the package is consumed directly from source (`
 The published artifacts are built with [tsdown](https://tsdown.dev/) (see `tsdown.config.ts`):
 
 - `dist/gdoc-pipeline.js` — the bundled ES module (all dependencies inlined)
-- `dist/gdoc-pipeline.d.ts` — its type declarations, with the types of the internal `@ourworldindata/*` workspace packages inlined; only `@googleapis/docs` stays an external type import
+- `dist/gdoc-pipeline.d.ts` — its type declarations, with the types of the internal `@ourworldindata/*` workspace packages inlined; only the optional peer dependencies (`@googleapis/docs` and `zod`) stay external type imports
 
 Build and verify from this directory:
 
