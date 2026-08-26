@@ -67,6 +67,7 @@ export {
 export { ChartLicenseNotice } from "./ChartLicenseNotice/ChartLicenseNotice.js"
 
 export { BespokeMetadataKeyData } from "./BespokeMetadata/BespokeMetadataKeyData.js"
+export { BespokeMetadataSections } from "./BespokeMetadata/BespokeMetadataSections.js"
 
 export { LabeledSwitch } from "./LabeledSwitch/LabeledSwitch.js"
 export { Checkbox } from "./Checkbox.js"

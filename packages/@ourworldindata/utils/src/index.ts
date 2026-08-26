@@ -162,6 +162,7 @@ export {
 export {
     getOriginAttributions,
     getAttributionFragmentsFromVariable,
+    getAttributionFragmentsFromBespokeMetadata,
     formatAttributions,
     formatAttributionsShortened,
     getETLPathComponents,
