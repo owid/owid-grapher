@@ -27,6 +27,7 @@ $radio-group-full-width-breakpoint: 520px;
 
 .md-settings__radio-field {
     display: flex;
+    position: relative;
 
     @media (max-width: $radio-group-full-width-breakpoint) {
         // Distribute the available width evenly between the segments and
@@ -37,12 +38,31 @@ $radio-group-full-width-breakpoint: 520px;
     }
 }
 
+// A field that is neither selected nor hovered. The hovered state only
+// appears on the radio button inside the field, hence the :has().
+$plain-field: ":not([data-selected], :has([data-hovered]))";
+
+// Thin separator bar between options, as in grapher's Tabs.scss, drawn only
+// between two plain options so that a selected or hovered one has no
+// separator on either side.
+.md-settings__radio-field#{$plain-field}
+    + .md-settings__radio-field#{$plain-field}::before {
+    content: "";
+    display: block;
+    width: 1px;
+    height: calc(100% - 12px);
+    position: absolute;
+    top: 6px;
+    left: 0;
+    background-color: $gray-20;
+}
+
 .md-settings__radio {
     display: flex;
     flex: 1;
     align-items: center;
     height: 28px;
-    padding: 0 10px;
+    padding: 0 16px;
     border-radius: 3px;
     color: $gray-70;
     white-space: nowrap;
