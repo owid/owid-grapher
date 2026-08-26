@@ -30,8 +30,8 @@ import {
  * - no token: enter-email form that requests a magic link (the response is
  *   identical whether the email is subscribed or not)
  * - valid token: the preferences form, prefilled, saving immediately (the
- *   magic link was the proof of inbox control), with a fail-soft OWID Brief
- *   toggle that is only shown if Mailchimp answered
+ *   magic link was the proof of inbox control), with independent Follow
+ *   Topics and Mailchimp-owned OWID Brief controls
  * - expired token: offers to email a new link
  */
 export const EmailNotificationsPreferencesForm = ({
@@ -195,6 +195,7 @@ type TokenLookup =
     | {
           state: "valid"
           email: string
+          subscribedToTopicNotifications: boolean
           preferences: EmailNotificationsPreferences | null
           subscribedToOwidBrief: boolean | null
       }
@@ -204,10 +205,13 @@ async function fetchPreferences(token: string): Promise<TokenLookup> {
     if (response.status === 410) return { state: "expired" }
     if (!response.ok) return { state: "invalid" }
     const json: EmailNotificationsPreferencesResponse = await response.json()
-    if (!json.email) return { state: "invalid" }
+    if (!json.email || !json.emailNotificationsStatus)
+        return { state: "invalid" }
     return {
         state: "valid",
         email: json.email,
+        subscribedToTopicNotifications:
+            json.emailNotificationsStatus === "subscribed",
         preferences: json.preferences ?? null,
         subscribedToOwidBrief: json.subscribedToOwidBrief ?? null,
     }
@@ -235,9 +239,7 @@ const TokenScreen = ({
             .with("saved", () => (
                 <SubscribePageConfirmation heading="Preferences updated">
                     <p className="subscribe-page__confirmation-text">
-                        Your email notification preferences have been saved.
-                        You'll receive an email when we publish new work
-                        matching them.
+                        Your email preferences have been saved.
                     </p>
                 </SubscribePageConfirmation>
             ))
@@ -278,6 +280,9 @@ const TokenScreen = ({
                 topicAreaNames={topicAreaNames}
                 email={data.email}
                 initialPreferences={data.preferences}
+                initialSubscribedToTopicNotifications={
+                    data.subscribedToTopicNotifications
+                }
                 initialSubscribedToOwidBrief={data.subscribedToOwidBrief}
                 onDone={setResult}
             />
@@ -290,6 +295,7 @@ const PreferencesEditor = ({
     topicAreaNames,
     email,
     initialPreferences,
+    initialSubscribedToTopicNotifications,
     initialSubscribedToOwidBrief,
     onDone,
 }: {
@@ -297,7 +303,8 @@ const PreferencesEditor = ({
     topicAreaNames: string[]
     email: string
     initialPreferences: EmailNotificationsPreferences | null
-    // null = toggle hidden (Mailchimp unavailable)
+    initialSubscribedToTopicNotifications: boolean
+    // null = Mailchimp unavailable, so the Brief control is disabled.
     initialSubscribedToOwidBrief: boolean | null
     onDone: (result: TokenScreenResult) => void
 }) => {
@@ -305,6 +312,8 @@ const PreferencesEditor = ({
         topicAreaNames,
         initialPreferences
     )
+    const [subscribedToTopicNotifications, setSubscribedToTopicNotifications] =
+        useState(initialSubscribedToTopicNotifications)
     const [subscribedToOwidBrief, setSubscribedToOwidBrief] = useState(
         initialSubscribedToOwidBrief
     )
@@ -316,7 +325,10 @@ const PreferencesEditor = ({
             const response = await apiPost("/preferences", request)
             if (response.status === 410) return "expired" as const
             await throwIfApiError(response)
-            return request.unsubscribe ? "unsubscribed" : "saved"
+            return !request.subscribeToTopicNotifications &&
+                request.subscribeToOwidBrief === false
+                ? "unsubscribed"
+                : "saved"
         },
         onSuccess: onDone,
     })
@@ -324,18 +336,33 @@ const PreferencesEditor = ({
     const handleSave = (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
         preferences.resetValidation()
-        if (!preferences.validate()) return
-        update.mutate({
+        if (subscribedToTopicNotifications && !preferences.validate()) return
+        const commonRequest = {
             token,
-            preferences: preferences.forStorage(),
             // Only included when the toggle was shown.
             subscribeToOwidBrief: subscribedToOwidBrief ?? undefined,
-        })
+        }
+        update.mutate(
+            subscribedToTopicNotifications
+                ? {
+                      ...commonRequest,
+                      subscribeToTopicNotifications: true,
+                      preferences: preferences.forStorage(),
+                  }
+                : {
+                      ...commonRequest,
+                      subscribeToTopicNotifications: false,
+                  }
+        )
     }
 
     const handleUnsubscribe = () => {
         preferences.resetValidation()
-        update.mutate({ token, unsubscribe: true })
+        update.mutate({
+            token,
+            subscribeToTopicNotifications: false,
+            subscribeToOwidBrief: false,
+        })
     }
 
     return (
@@ -348,12 +375,19 @@ const PreferencesEditor = ({
                     Updating the email notification preferences for{" "}
                     <strong>{email}</strong>.
                 </p>
-                <EmailNotificationsPreferenceFields
-                    {...preferences.fieldsProps}
-                />
-                {subscribedToOwidBrief !== null && (
-                    <fieldset className="newsletter-form__fieldset">
-                        <legend className="h5-black-caps">Newsletter</legend>
+                <fieldset className="newsletter-form__fieldset">
+                    <legend className="h5-black-caps">Newsletters</legend>
+                    <Checkbox
+                        id="email-notifications-preferences-follow-topics"
+                        label="Follow Topics — receive updates on the topics you follow as we publish them."
+                        checked={subscribedToTopicNotifications}
+                        onChange={() =>
+                            setSubscribedToTopicNotifications(
+                                !subscribedToTopicNotifications
+                            )
+                        }
+                    />
+                    {subscribedToOwidBrief !== null && (
                         <Checkbox
                             id="email-notifications-preferences-owid-brief"
                             label="The OWID Brief — stay up to date with our latest work plus curated highlights from across Our World in Data, twice a month."
@@ -362,7 +396,19 @@ const PreferencesEditor = ({
                                 setSubscribedToOwidBrief(!subscribedToOwidBrief)
                             }
                         />
-                    </fieldset>
+                    )}
+                </fieldset>
+                {subscribedToTopicNotifications && (
+                    <EmailNotificationsPreferenceFields
+                        {...preferences.fieldsProps}
+                    />
+                )}
+                {subscribedToOwidBrief === null && (
+                    <div className="newsletter-form__alert">
+                        We couldn't load your OWID Brief subscription. You can
+                        still update Follow Topics, or try again later to manage
+                        the Brief.
+                    </div>
                 )}
                 <ErrorAlert error={update.error} />
                 <div className="email-notifications-preferences-form__actions">
@@ -373,14 +419,16 @@ const PreferencesEditor = ({
                         text={update.isPending ? "Saving…" : "Save preferences"}
                         disabled={update.isPending}
                     />
-                    <button
-                        type="button"
-                        className="email-notifications-preferences-form__unsubscribe"
-                        disabled={update.isPending}
-                        onClick={handleUnsubscribe}
-                    >
-                        Unsubscribe from all email notifications
-                    </button>
+                    {subscribedToOwidBrief !== null && (
+                        <button
+                            type="button"
+                            className="email-notifications-preferences-form__unsubscribe"
+                            disabled={update.isPending}
+                            onClick={handleUnsubscribe}
+                        >
+                            Unsubscribe from all email notifications
+                        </button>
+                    )}
                 </div>
             </form>
         </PreferencesScreen>
