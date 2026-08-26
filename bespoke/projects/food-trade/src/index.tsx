@@ -1,8 +1,8 @@
 import { createRoot } from "react-dom/client"
 import { enableShadowDOM } from "@react-stately/flags"
 
-import { VariantName } from "./types.js"
-import { parseConfig } from "./config.js"
+import { VariantName } from "./core/types.js"
+import { parseConfig } from "./core/config.js"
 import { SankeyVariant } from "./variants/SankeyVariant"
 
 import type {

@@ -30,6 +30,7 @@ import {
     getRegionByName,
     makeSafeForCSS,
     convertDaysSinceEpochToDate,
+    isSubYearly,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -76,7 +77,6 @@ import {
     ToleranceStrategy,
     type EntitySelectorEvent,
 } from "@ourworldindata/types"
-import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
 import * as R from "remeda"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { match } from "ts-pattern"
@@ -85,7 +85,7 @@ import {
     EntitiesByRegionGroup,
     RegionGroupKey,
     RegionGroup,
-    isAnyRegionDataProviderKey,
+    isAnyRegionPublisher,
     parseLabel,
 } from "../core/RegionGroups"
 import { SearchField } from "../controls/SearchField"
@@ -191,9 +191,6 @@ interface EntitySelectorProps {
 
 @observer
 export class EntitySelector extends React.Component<EntitySelectorProps> {
-    static override contextType = DrawerContext
-    declare context: React.ContextType<typeof DrawerContext>
-
     scrollableContainer = React.createRef<HTMLDivElement>()
     searchFieldRef = React.createRef<HTMLInputElement>()
     contentRef = React.createRef<HTMLDivElement>()
@@ -514,9 +511,9 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         })
     }
 
-    @computed private get chartHasDailyData(): boolean {
-        return this.numericalChartColumns.some(
-            (column) => column.display?.yearIsDay
+    @computed private get chartHasSubYearlyData(): boolean {
+        return this.numericalChartColumns.some((column) =>
+            isSubYearly(column.timeInterval)
         )
     }
 
@@ -548,9 +545,9 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         const isExternal = this.isExternalIndicator(column.slug)
         if (isExternal) return lookupTime
 
-        // When the chart uses daily dates but this column is yearly, convert
-        // the lookup time back to a year before formatting the label
-        if (this.chartHasDailyData && !column.display?.yearIsDay) {
+        // When the chart uses day-encoded times but this column is yearly,
+        // convert the lookup time back to a year before formatting the label
+        if (this.chartHasSubYearlyData && !isSubYearly(column.timeInterval)) {
             return convertDaysSinceEpochToDate(lookupTime).year()
         }
 
@@ -592,7 +589,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     }
 
     @computed private get searchPlaceholderEntityType(): string {
-        if (isAnyRegionDataProviderKey(this.entityFilter)) return "region"
+        if (isAnyRegionPublisher(this.entityFilter)) return "region"
 
         return match(this.entityFilter)
             .with("all", () => this.entityType.singular)
@@ -1299,13 +1296,8 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     }
 
     @action.bound private close(): void {
-        // if rendered into a drawer, we use a method provided by the
-        // `<SlideInDrawer />` component so that closing the drawer is animated
-        if (this.context.toggleDrawerVisibility) {
-            this.context.toggleDrawerVisibility()
-        } else {
-            this.manager.isEntitySelectorModalOrDrawerOpen = false
-        }
+        if (this.props.onDismiss) this.props.onDismiss()
+        else this.manager.isEntitySelectorModalOrDrawerOpen = false
     }
 
     @computed get filterOptions(): FilterDropdownOption[] {
@@ -1857,16 +1849,16 @@ function buildOwidTableForCatalogData(
     const originalTimeSlug = makeOriginalTimeSlugFromColumnSlug(slug)
 
     const rows = data.map((row) => ({
-        [OwidTableSlugs.entityName]: row.entity,
+        [OwidTableSlugs.EntityName]: row.entity,
         // The catalog data's max year is used as the time for all rows
-        [OwidTableSlugs.year]: maxYear,
+        [OwidTableSlugs.Year]: maxYear,
         [columnDef.slug]: row.value,
         [originalTimeSlug]: row.year,
     }))
 
     // Necessary to ensure correct formatting of the year values
     const yearColumnDef: OwidColumnDef = {
-        slug: OwidTableSlugs.year,
+        slug: OwidTableSlugs.Year,
         type: ColumnTypeNames.Year,
     }
     const originalTimeColumnDef: OwidColumnDef = {

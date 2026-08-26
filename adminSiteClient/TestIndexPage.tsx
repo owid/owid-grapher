@@ -31,6 +31,11 @@ export function TestIndexPage() {
                         </Link>
                     </li>
                     <li>
+                        <Link target="_blank" to="/test-region-maps">
+                            Region maps
+                        </Link>
+                    </li>
+                    <li>
                         <Link
                             native
                             target="_blank"

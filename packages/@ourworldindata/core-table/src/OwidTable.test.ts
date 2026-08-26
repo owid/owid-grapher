@@ -85,8 +85,8 @@ it("can group data by entity and time", () => {
 describe("timeColumn", () => {
     it("uses 'time' as the canonical timeColumn", () => {
         const columnStore = {
-            [OwidTableSlugs.entityName]: ["usa"],
-            [OwidTableSlugs.time]: [2000],
+            [OwidTableSlugs.EntityName]: ["usa"],
+            [OwidTableSlugs.Time]: [2000],
             year: [2000],
             day: ["2000-01-01"],
             x: [0],
@@ -101,7 +101,7 @@ describe("timeColumn", () => {
                 type: ColumnTypeNames.Day,
             },
             {
-                slug: OwidTableSlugs.time,
+                slug: OwidTableSlugs.Time,
                 type: ColumnTypeNames.Year,
             },
             {
@@ -110,7 +110,7 @@ describe("timeColumn", () => {
             },
         ]
         const table = new OwidTable(columnStore, colDefs)
-        expect(table.timeColumn.slug).toEqual(OwidTableSlugs.time)
+        expect(table.timeColumn.slug).toEqual(OwidTableSlugs.Time)
     })
 
     it("prefers a day column when both year and day are in the chart", () => {

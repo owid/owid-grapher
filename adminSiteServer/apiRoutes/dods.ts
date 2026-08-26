@@ -49,8 +49,8 @@ export async function getDods(
 }
 
 /**
- * The same as the mockSiteRouter "dods.json" endpoint, but accessible from prod/staging admin clients
- * grep "shouldFetchFromAdminApi" for more information
+ * The same as the mockSiteRouter "dods.json" endpoint, but accessible from
+ * prod/staging admin clients.
  */
 export async function getParsedDods(
     _: Request,

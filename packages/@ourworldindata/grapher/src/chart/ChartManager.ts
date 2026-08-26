@@ -13,6 +13,7 @@ import {
     EntityName,
     DetailsMarker,
     GrapherVariant,
+    SideWidths,
 } from "@ourworldindata/types"
 import { TooltipManager } from "../tooltip/TooltipProps"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
@@ -34,6 +35,7 @@ export interface ChartManager {
 
     variant?: GrapherVariant
     useMinimalLabeling?: boolean
+    hideStartValueLabel?: boolean // Only used in LineChartThumbnail
     chartAreaPadding?: number
 
     isExportingToSvgOrPng?: boolean
@@ -86,6 +88,7 @@ export interface ChartManager {
     // know what date the timeline is set to. and let's pass startTime in, too.
     startTime?: number
     endTime?: number
+    disableChartRowAnimation?: boolean
 
     facetStrategy?: FacetStrategy // todo: make a strategy? a column prop? etc
     seriesStrategy?: SeriesStrategy
@@ -94,6 +97,9 @@ export interface ChartManager {
     showNoDataArea?: boolean // No data area in Marimekko charts
 
     externalLegendHoverBin?: ColorScaleBin | undefined
+
+    /** Used by FacetChart to align chart content across facets */
+    sharedVerticalLabelWidths?: SideWidths
 
     missingDataStrategy?: MissingDataStrategy
 

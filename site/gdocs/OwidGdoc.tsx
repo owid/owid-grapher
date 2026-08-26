@@ -136,7 +136,13 @@ export function OwidGdoc({
                 tags: props.tags ?? [],
             }}
         >
-            <DocumentContext.Provider value={{ isPreviewing, archiveContext }}>
+            <DocumentContext.Provider
+                value={{
+                    isPreviewing,
+                    archiveContext,
+                    gdocType: props.content.type,
+                }}
+            >
                 <SiteQueryClientProvider>
                     <AdminLinks id={props.id} />
                     {content}

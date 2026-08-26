@@ -74,7 +74,7 @@ export interface QueryParams {
 }
 
 export enum R2GrapherConfigDirectory {
-    byUUID = "config/by-uuid",
+    byUuid = "config/by-uuid",
     publishedGrapherBySlug = "config/by-slug-published",
     multiDim = "multi-dim-config",
 }

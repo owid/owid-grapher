@@ -236,9 +236,8 @@ export class LineChartState implements ChartState, ColorScaleManager {
 
     @computed get series(): readonly LineChartSeries[] {
         const series = this.yColumns.flatMap((col) =>
-            col.uniqEntityNames.map(
-                (entityName): LineChartSeries =>
-                    this.constructSingleSeries(entityName, col)
+            col.uniqEntityNames.map((entityName): LineChartSeries =>
+                this.constructSingleSeries(entityName, col)
             )
         )
 

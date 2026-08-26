@@ -89,6 +89,7 @@
 @import "./search/SearchTopicPageHit.scss";
 @import "./search/SearchResultHeader.scss";
 @import "./search/SearchNoResults.scss";
+@import "./search/SearchClosestMatchesNotice.scss";
 @import "./search/SearchDetectedFilters.scss";
 @import "./search/skeletons.scss";
 @import "./search/SearchResultHeaderSkeleton.scss";
@@ -125,7 +126,6 @@
 @import "./blocks/related-charts.scss";
 @import "./blocks/CookiePreferences.scss";
 @import "./blocks/Grid.scss";
-@import "./blocks/Card.scss";
 @import "./blocks/BiographyCard.scss";
 @import "./blocks/research-and-writing.scss";
 @import "./blocks/GalleryArrow.scss";
@@ -195,7 +195,6 @@
 @import "./DownloadSection.scss";
 @import "./MetadataSection.scss";
 @import "./TopicTags.scss";
-@import "./detailsOnDemand.scss";
 
 @import "./gdocs/pages/DataInsight.scss";
 @import "./gdocs/pages/Homepage.scss";
@@ -801,7 +800,7 @@ a.ref sup {
 .FeedbackForm {
     height: calc(100vh - 155px);
     max-height: 700px;
-    transition: opacity 0.25s ease-in-out;
+    transition: opacity var(--duration-panel) var(--ease-out);
 
     &.loading > * {
         opacity: 0.5;

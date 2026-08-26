@@ -40,6 +40,7 @@ export {
     fetchText,
     fetchJson,
     fetchWithTimeout,
+    TimeoutError,
     getUserCountryInformation,
     stripHTML,
     getRandomNumberGenerator,
@@ -50,8 +51,7 @@ export {
     es6mapValues,
     type DataValue,
     valuesByEntityAtTimes,
-    dateDiffInDays,
-    diffDateISOStringInDays,
+    diffDatesInDays,
     getYearFromISOStringAndDayOffset,
     parseIntOrUndefined,
     anyToString,
@@ -94,6 +94,9 @@ export {
     traverseEnrichedBlock,
     checkNodeIsSpan,
     generateToc,
+    toSentenceCase,
+    getTopicPageHeading,
+    sentenceCaseIfNotTopicPage,
     groupTocIntoSections,
     getResearchAndWritingId,
     extractLinksFromMarkdown,
@@ -103,6 +106,7 @@ export {
     isArrayOfNumbers,
     greatestCommonDivisor,
     findGreatestCommonDivisorOfArray,
+    withUniformSpacing,
     type NodeWithUrl,
     traverseEnrichedSpan,
     copyToClipboard,
@@ -121,13 +125,19 @@ export {
     flattenNonTopicNodes,
     formatInlineList,
     lazy,
-    getParentVariableIdFromChartConfig,
+    getParentIndicatorIdFromChartConfig,
     isArrayDifferentFromReference,
     readFromAssetMap,
     getUniqueNamesFromTagHierarchies,
     getUserNavigatorLanguages,
     getUserNavigatorLanguagesNonEnglish,
     convertDaysSinceEpochToDate,
+    convertDateToDaysSinceEpoch,
+    epochDate,
+    getTimeInterval,
+    isSubYearly,
+    findFinestCommonTimeInterval,
+    snapToIntervalStart,
     logPerf,
     sleep,
     lowercaseObjectKeys,
@@ -211,9 +221,14 @@ export {
     type Country,
     type IncomeGroup,
     type OwidIncomeGroupCode,
+    type OwidIncomeGroupName,
     type Continent,
+    type OwidContinentName,
     type Aggregate,
-    type RegionDataProvider,
+    type AggregateWithPublisher,
+    type RegionSet,
+    type RegionPublisher,
+    type SuffixedRegionName,
     regions,
     countries,
     listedRegionsNames,
@@ -223,8 +238,12 @@ export {
     getRegionByNameOrVariantName,
     getContinents,
     getAggregates,
-    getAggregatesByProvider,
-    getRegionDataProviders,
+    getAggregatesInRegionSet,
+    getRegionSets,
+    getRegionPublishers,
+    parseRegionNameSuffix,
+    toPublisherLookupKey,
+    type RegionNameSuffix,
     countriesByName,
     incomeGroupsByCode,
     getRegionAlternativeNames,
@@ -260,9 +279,10 @@ export {
     type PadObject,
     type GridBounds,
     type SplitBoundsPadding,
-    FontFamily,
     Bounds,
 } from "./Bounds.js"
+
+export { FontFamily, cssFontFamily } from "./fonts.js"
 
 export {
     type Persistable,
@@ -295,6 +315,7 @@ export {
 
 export {
     serializeJSONForHTML,
+    serializeJSONForInlineScript,
     deserializeJSONFromHTML,
     escapeJSONStringForInlineScript,
 } from "./serializers.js"
@@ -383,5 +404,34 @@ export {
     getTableColumnCountForGridSlotKey,
 } from "./search/SearchHelpers.js"
 
+export {
+    type SearchFacetAttribute,
+    getFilterNamesOfType,
+    setToFacetFilters,
+    formatDisjunctiveFacetFilters,
+    formatConjunctiveFacetFilters,
+    formatFeaturedMetricFacetFilter,
+    formatCountryFacetFilters,
+    formatTopicFacetFilters,
+    buildChartsFacetFilters,
+    MAX_FACET_VALUES,
+} from "./search/searchFacetFilters.js"
+
+export {
+    searchSingleForHits,
+    searchSingleForHitsWithClosestMatches,
+} from "./search/searchClosestMatches.js"
+
+export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
+
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
 export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"
+
+export {
+    type DecisionTreeNode,
+    type QueryParamMatchRule,
+    buildQueryParamDecisionTree,
+    matchQueryParamDecisionTree,
+    serializeDecisionTree,
+    deserializeDecisionTree,
+} from "./QueryParamDecisionTree.js"

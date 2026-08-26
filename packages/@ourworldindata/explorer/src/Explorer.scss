@@ -102,8 +102,7 @@ html.IsInIframe .ExplorerFigure,
     display: grid;
     grid-template-columns: 1fr 4fr;
     grid-template-rows: 1fr 9fr;
-    grid-row-gap: $explorer-grid-gap;
-    grid-column-gap: $explorer-grid-gap;
+    gap: $explorer-grid-gap;
 
     &.HideControls {
         display: block;

@@ -103,12 +103,18 @@ const getThumbnailOptions = (params: URLSearchParams): ImageOptions => {
     if (params.has("imHeight"))
         options.pngHeight = parseInt(params.get("imHeight")!)
 
+    // Thumbnails are rendered at a quarter of the requested png size; keep
+    // svgWidth/svgHeight in sync since renderSvgToPng derives the png scale
+    // factor from them
+    options.svgWidth = options.pngWidth / 4
+    options.svgHeight = options.pngHeight / 4
+
     if (!options.grapherProps) options.grapherProps = {}
     options.grapherProps.staticBounds = new Bounds(
         0,
         0,
-        options.pngWidth / 4,
-        options.pngHeight / 4
+        options.svgWidth,
+        options.svgHeight
     )
 
     return options

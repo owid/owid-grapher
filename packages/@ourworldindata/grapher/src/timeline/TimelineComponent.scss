@@ -281,8 +281,12 @@ $timelineHeight: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 120px;
     cursor: text;
+    min-width: 120px;
+
+    &.GrapherTimeline__DateInput--month {
+        min-width: 84px;
+    }
 
     &:focus-within {
         border-color: $blue-50;
@@ -292,6 +296,10 @@ $timelineHeight: 32px;
         display: flex;
         gap: 2px;
         outline: none;
+    }
+
+    .GrapherTimeline__DateInputSeparator {
+        padding: 0 1px;
     }
 
     .GrapherTimeline__DateInputSegment {

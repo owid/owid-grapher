@@ -28,7 +28,6 @@ import {
     loadCatalogData,
 } from "@ourworldindata/grapher"
 import { NarrativeChartMinimalInformation } from "./ChartEditor.js"
-import { IndicatorChartInfo } from "./IndicatorChartEditor.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
 import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.js"
 
@@ -65,7 +64,6 @@ export interface References {
     postsGdocs?: PostReference[]
     explorers?: string[]
     narrativeCharts?: NarrativeChartMinimalInformation[]
-    childCharts?: IndicatorChartInfo[]
     dataInsights?: DataInsightMinimalInformation[]
     staticViz?: StaticVizReference[]
 }

@@ -1,0 +1,16 @@
+{
+    "name": "@owid/bespoke-helpers",
+    "private": true,
+    "type": "module",
+    "dependencies": {
+        "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
+    },
+    "devDependencies": {
+        "typescript": "^7.0.2",
+        "vitest": "^4.1.10"
+    },
+    "scripts": {
+        "build": "",
+        "typecheck": "tsc --noEmit"
+    }
+}

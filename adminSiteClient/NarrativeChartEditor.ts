@@ -1,4 +1,3 @@
-import * as _ from "lodash-es"
 import type { History } from "history"
 import { computed, runInAction, makeObservable } from "mobx"
 import {
@@ -7,12 +6,8 @@ import {
     References,
     type EditorTab,
 } from "./AbstractChartEditor.js"
-import {
-    NARRATIVE_CHART_PROPS_TO_OMIT,
-    NARRATIVE_CHART_PROPS_TO_PERSIST,
-    GrapherInterface,
-} from "@ourworldindata/types"
-import { diffGrapherConfigs } from "@ourworldindata/utils"
+import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
+import { GrapherInterface } from "@ourworldindata/types"
 
 export interface Chart {
     id: number
@@ -56,28 +51,10 @@ export class NarrativeChartEditor extends AbstractChartEditor<NarrativeChartEdit
     }
 
     override get patchConfig(): GrapherInterface {
-        const config = _.omit(
+        return makeNarrativeChartPatchConfig(
             this.liveConfigWithDefaults,
-            NARRATIVE_CHART_PROPS_TO_OMIT
+            this.activeParentConfigWithDefaults
         )
-
-        const patchToParentChart = diffGrapherConfigs(
-            config,
-            this.activeParentConfigWithDefaults || {}
-        )
-
-        return {
-            ...patchToParentChart,
-
-            // We want to make sure we're explicitly persisting some props like entity selection
-            // always, so they never change when the parent chart changes.
-            // For this, we need to ensure we include the default layer, so that we even
-            // persist these props when they are the same as the default.
-            ..._.pick(
-                this.liveConfigWithDefaults,
-                NARRATIVE_CHART_PROPS_TO_PERSIST
-            ),
-        }
     }
 
     @computed get narrativeChartId(): number | undefined {

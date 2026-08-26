@@ -107,7 +107,7 @@ export const getCloudflarePagesRedirects = async (
     // Split into static and dynamic: Cloudflare requires all dynamic (wildcard)
     // redirects to be at the very end of the _redirects file.
     const allSiteRedirects = (await getSiteRedirects(knex)).map(
-        (row) => `${row.source} ${row.target} ${row.code}`
+        (row) => `${row.source} ${row.target} 301`
     )
     const siteRedirects = allSiteRedirects.filter((r) => !r.includes("*"))
     const dynamicSiteRedirects = allSiteRedirects.filter((r) => r.includes("*"))

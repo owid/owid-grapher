@@ -1,0 +1,5 @@
+This package is Grapher, our client-side charting library. A chart is a JSON config (stored in MySQL, rendered from `GrapherState`) plus the data values it ingests via core-table.
+
+- Read [docs/agent-guidelines/chart-components.md](../../../docs/agent-guidelines/chart-components.md) before touching chart code. Chart types follow a three-layer pattern — layout-independent `*State.ts` class, MobX `@observer` `*Chart.tsx` component, stateless SVG render component — with a `Series → SizedSeries → PlacedSeries → RenderSeries` data chain.
+- After changing anything that can affect rendering, run `make svgtest` (SVG regression against a reference export in the sibling `../owid-grapher-svgs` repo); it opens an HTML diff report if any output changed, so you can judge whether diffs are intended. See `devTools/svgTester/readme.md` for the other suites (grapher-views, mdims, explorers, thumbnails) and how the reference set is regenerated.
+- Styles live in companion `.scss` files with entry point [src/core/grapher.scss](./src/core/grapher.scss); the MobX `makeObservable` and SCSS conventions are in the root CLAUDE.md's code-style section.

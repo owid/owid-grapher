@@ -1,3 +1,12 @@
+// Layout for the inert pill copies in the baked LatestPageSkeleton — the live
+// UI gets this from react-horizontal-scrolling-menu's inline styles instead.
+.latest-topic-facets-skeleton__pill-row {
+    display: flex;
+    gap: 8px;
+    overflow: hidden;
+    pointer-events: none;
+}
+
 .latest-hit-skeleton {
     margin-bottom: 48px;
 

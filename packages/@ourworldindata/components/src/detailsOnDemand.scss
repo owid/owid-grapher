@@ -1,0 +1,58 @@
+.dod-container {
+    padding: 16px;
+    max-height: 300px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    @include body-3-regular;
+    font-size: 14px;
+
+    > span.markdown-text-wrap {
+        > .markdown-text-wrap__line:first-child {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        > .markdown-text-wrap__line:not(:first-child) {
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        a {
+            @include owid-link-90;
+        }
+    }
+}
+
+// Specificity trump to overwrite the Grapher styles when inside a dod
+.GrapherComponent .dod-container a.span-link {
+    @include owid-link-60;
+}
+
+.dod-span {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 2px;
+    cursor: help;
+
+    span,
+    strong,
+    em {
+        pointer-events: none;
+    }
+}
+
+// In SVG, a dotted underline is drawn manually, so suppress the css underline
+// to avoid rendering two overlapping dotted lines
+tspan.dod-span {
+    text-decoration: none;
+}
+
+// Stops text from getting pushed out of the way when a tooltip appears on Chrome
+[data-tippy-root] {
+    display: inline;
+}
+
+// Overwriting styles for dod tippys but not other types
+.tippy-box[data-theme~="dod"] .tippy-content {
+    padding: 0;
+}

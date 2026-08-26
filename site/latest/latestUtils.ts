@@ -70,6 +70,15 @@ export const latestTypeLabelPlural = (type: LatestType): string =>
 export const LATEST_HIT_GRID_CLASSES =
     "span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1"
 
+/** Grid positioning for the facets row and the divider beneath it — shared
+ * between the live UI (LatestSearch) and the baked skeleton
+ * (LatestPageSkeleton) so the two layouts can't drift apart. */
+export const LATEST_FACETS_CONTAINER_CLASSES =
+    "latest-search__facets-container span-cols-12 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1"
+
+export const LATEST_FILTERS_DIVIDER_CLASSES =
+    "latest-search__filters-divider span-cols-12 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1"
+
 /** Stable id for the announcement content heading, used by parent wrappers
  * (the feed's <article>) for aria-labelledby. */
 export const announcementContentTitleId = (slug: string) =>

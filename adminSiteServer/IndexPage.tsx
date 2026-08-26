@@ -7,6 +7,7 @@ export const IndexPage = (props: {
     isSuperuser: boolean
 }) => {
     const assets = viteAssetsForAdmin()
+    const iconSuffix = ENV === "production" ? "" : "-dev"
     const script = `
         window.isEditor = true
         window.admin = new Admin({
@@ -27,6 +28,17 @@ export const IndexPage = (props: {
                     name="viewport"
                     content="width=device-width, initial-scale=1"
                 />
+                <link
+                    rel="icon"
+                    href={`/favicon${iconSuffix}.ico`}
+                    sizes="32x32"
+                />
+                <link
+                    rel="icon"
+                    href={`/icon${iconSuffix}.svg`}
+                    type="image/svg+xml"
+                />
+                <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
                 {assets.forHeader}
             </head>
             <body>

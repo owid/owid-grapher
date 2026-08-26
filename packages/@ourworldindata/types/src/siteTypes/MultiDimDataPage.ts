@@ -110,6 +110,15 @@ export interface ViewEnriched extends View<IndicatorsAfterPreProcessing> {
 
 export type MultiDimDimensionChoices = Record<string, string> // Keys: dimension slugs, values: choice slugs
 
+// The resolved target of an explorer→multi-dim redirect, stored in the leaves of
+// the baked explorer redirect decision trees (see baker/redirectsFromDb.ts). A
+// `null` value in targetQueryParams means the param should be removed from the
+// outgoing URL; a string value means it should be set to that value.
+export interface ExplorerRedirectTarget {
+    targetSlug: string
+    targetQueryParams: Record<string, string | null>
+}
+
 export type FaqEntryKeyedByGdocIdAndFragmentId = {
     faqs: Record<string, Record<string, OwidEnrichedGdocBlock[]>>
 }

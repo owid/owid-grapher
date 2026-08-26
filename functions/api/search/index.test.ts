@@ -151,6 +151,78 @@ describe("Search API endpoint", () => {
         })
     })
 
+    describe("pageTypes parameter", () => {
+        it("passes a single pageTypes value through to searchPages", async () => {
+            const mockSearchPages = vi
+                .spyOn(searchApi, "searchPages")
+                .mockResolvedValue({
+                    query: "malaria",
+                    results: [],
+                    nbHits: 0,
+                    offset: 0,
+                    length: 20,
+                })
+
+            const request = new Request(
+                "http://localhost/api/search?q=malaria&type=pages&pageTypes=data-insight"
+            )
+            await onRequestGet({ request, env: mockEnv } as any)
+
+            expect(mockSearchPages).toHaveBeenCalledWith(
+                expect.anything(),
+                "malaria",
+                0,
+                20,
+                ["data-insight"],
+                "http://localhost"
+            )
+        })
+
+        it("parses and trims a comma-separated pageTypes list", async () => {
+            const mockSearchPages = vi
+                .spyOn(searchApi, "searchPages")
+                .mockResolvedValue({
+                    query: "malaria",
+                    results: [],
+                    nbHits: 0,
+                    offset: 0,
+                    length: 20,
+                })
+
+            const request = new Request(
+                "http://localhost/api/search?q=malaria&type=pages&pageTypes=article,%20about-page"
+            )
+            await onRequestGet({ request, env: mockEnv } as any)
+
+            expect(mockSearchPages).toHaveBeenCalledWith(
+                expect.anything(),
+                "malaria",
+                0,
+                20,
+                ["article", "about-page"],
+                "http://localhost"
+            )
+        })
+
+        it("rejects an unknown pageTypes value without calling searchPages", async () => {
+            const mockSearchPages = vi.spyOn(searchApi, "searchPages")
+
+            const request = new Request(
+                "http://localhost/api/search?q=malaria&type=pages&pageTypes=bogus-type"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(400)
+            const body = await response.json()
+            assert(typeof body === "object" && body !== null && "error" in body)
+            expect(body.error).toContain("bogus-type")
+            expect(mockSearchPages).not.toHaveBeenCalled()
+        })
+    })
+
     describe("pagination validation", () => {
         it("rejects negative page", async () => {
             const request = new Request(

@@ -101,7 +101,6 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
         console.log(`Indexing ${records.length} records`)
         await client!.replaceAllObjects({
             indexName,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             objects: records as Array<Record<string, any>>,
         })
         console.log(`Indexing complete`)

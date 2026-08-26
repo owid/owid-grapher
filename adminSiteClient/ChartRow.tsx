@@ -11,7 +11,11 @@ import {
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../settings/clientSettings.js"
-import { ChartListItem, showChartType } from "./ChartList.js"
+import { ChartListItem } from "./ChartList.js"
+import {
+    GRAPHER_CHART_TYPES,
+    GRAPHER_TAB_CONFIG_OPTIONS,
+} from "@ourworldindata/types"
 import {
     TaggableType,
     DbChartTagJoin,
@@ -33,6 +37,24 @@ interface ChartRowProps {
     showInheritanceColumn?: boolean
 }
 
+function showChartType(chart: ChartListItem): string {
+    const chartType = chart.type
+
+    if (!chartType) return "Map"
+
+    const displayType = GRAPHER_CHART_TYPES[chartType]
+        ? lodash.startCase(GRAPHER_CHART_TYPES[chartType])
+        : "Unknown"
+
+    if (chart.tab === GRAPHER_TAB_CONFIG_OPTIONS.map) {
+        if (chart.hasChartTab) return `Map + ${displayType}`
+        else return "Map"
+    } else {
+        if (chart.hasMapTab) return `${displayType} + Map`
+        else return displayType
+    }
+}
+
 @observer
 export class ChartRow extends React.Component<ChartRowProps> {
     static override contextType = AdminAppContext
@@ -43,7 +65,7 @@ export class ChartRow extends React.Component<ChartRowProps> {
         makeObservable(this)
     }
 
-    async saveTags(tags: DbChartTagJoin[]) {
+    async saveTags(tags: DbChartTagJoin[]): Promise<void> {
         const { chart } = this.props
         const json = await this.context.admin.requestJSON(
             `/api/charts/${chart.id}/setTags`,
@@ -55,8 +77,8 @@ export class ChartRow extends React.Component<ChartRowProps> {
         }
     }
 
-    @action.bound onSaveTags(tags: DbChartTagJoin[]) {
-        void this.saveTags(tags)
+    @action.bound onSaveTags(tags: DbChartTagJoin[]): Promise<void> {
+        return this.saveTags(tags)
     }
 
     override render() {

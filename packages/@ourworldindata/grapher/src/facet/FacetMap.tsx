@@ -22,7 +22,7 @@ import {
     MapRegionName,
     Time,
 } from "@ourworldindata/types"
-import { calculateAspectRatio, getFacetGridPadding } from "./FacetChartUtils"
+import { calculateAspectRatio } from "./FacetChartUtils"
 import {
     FacetMapManager,
     MapFacetSeries,
@@ -207,11 +207,11 @@ export class FacetMap
     }
 
     @computed private get facetGridPadding(): SplitBoundsPadding {
-        return getFacetGridPadding({
-            labelFontSize: this.facetFontSize,
-            labelPadding: this.labelPadding,
-            shouldAddRowPadding: false,
-        })
+        return {
+            rowPadding: Math.round(this.labelHeight + this.labelPadding),
+            columnPadding: Math.round(this.labelHeight),
+            outerPadding: 0,
+        }
     }
 
     @computed private get labelHeight(): number {
@@ -267,6 +267,7 @@ export class FacetMap
             isStatic,
             mapColumnSlug = "",
             mapConfig,
+            inapplicableEntityNames,
             isMapSelectionEnabled,
             colorScale,
             globeController,
@@ -289,6 +290,7 @@ export class FacetMap
                 isStatic,
                 mapColumnSlug,
                 mapConfig,
+                inapplicableEntityNames,
                 isMapSelectionEnabled,
                 colorScale,
                 globeController,

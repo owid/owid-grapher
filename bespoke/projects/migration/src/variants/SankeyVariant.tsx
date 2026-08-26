@@ -23,16 +23,22 @@ import {
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 
-import { SankeyVariantConfig, VariantProps } from "../config.js"
-import { MigrationFlow, MigrationRow, MigrationView, Sex } from "../types.js"
-import { useMigrationData, useMigrationMetadata } from "../data.js"
+import { SankeyVariantConfig } from "../core/config.js"
+import type { VariantProps } from "../../../../helpers/config.js"
+import {
+    MigrationFlow,
+    MigrationRow,
+    MigrationView,
+    Sex,
+} from "../core/types.js"
+import { useMigrationData, useMigrationMetadata } from "../core/data.js"
 import {
     formatPeople,
     getPopulation,
     getSexAdjective,
     getSexNoun,
     OTHERS_ENTITY_NAME,
-} from "../helpers.js"
+} from "../core/helpers.js"
 import { MigrationChart } from "../components/MigrationChart.js"
 import { MigrationControls } from "../components/MigrationControls.js"
 

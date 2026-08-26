@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import { Bounds, isMobile, PointVector } from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"
 import {
     AxisAlign,
@@ -9,14 +10,16 @@ import {
     ScaleType,
     SeriesName,
     SeriesStrategy,
+    Time,
 } from "@ourworldindata/types"
 import {
     LineChartSeries,
+    LinePoint,
     PlacedLineChartSeries,
     PlacedPoint,
     RenderLineChartSeries,
 } from "./LineChartConstants"
-import { DualAxis } from "../axis/Axis"
+import { DualAxis, HorizontalAxis } from "../axis/Axis"
 import { LineChartState } from "./LineChartState"
 import { darkenColorForLine } from "../color/ColorUtils"
 import {
@@ -148,6 +151,35 @@ export function toPlacedLineChartSeries(
         })
         return { ...series, placedPoints }
     })
+}
+
+/**
+ * Find the time of the data point whose x is closest to the mouse position.
+ * Returns undefined if the mouse is outside the bounds.
+ */
+export function findClosestTimeAtMouse({
+    mouse,
+    innerBounds,
+    horizontalAxis,
+    allValues,
+}: {
+    mouse: PointVector
+    innerBounds: Bounds
+    horizontalAxis: HorizontalAxis
+    allValues: LinePoint[]
+}): Time | undefined {
+    // Expand the hit box so the first/last timepoints are easy to hover
+    const hoverMargin = isMobile() ? 44 : 25
+    const boundedBox = innerBounds.expand({
+        left: hoverMargin,
+        right: hoverMargin,
+    })
+
+    if (!boundedBox.contains(mouse)) return undefined
+
+    const invertedX = horizontalAxis.invert(mouse.x)
+    const closest = _.minBy(allValues, (point) => Math.abs(invertedX - point.x))
+    return closest?.x
 }
 
 export function toRenderLineChartSeries(

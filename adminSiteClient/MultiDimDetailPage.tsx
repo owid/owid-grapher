@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query"
 import { useContext, useEffect, useState, useMemo } from "react"
 import {
+    Alert,
     Col,
     Row,
     Space,
@@ -36,6 +37,7 @@ import {
     MultiDimDataPageConfigEnriched,
 } from "@ourworldindata/types"
 import { LoadingBlocker } from "./Forms.js"
+import { formatSourceQueryParams } from "./multiDimRedirectHelpers.js"
 
 // Source path must start with /grapher/ or /explorers/ and cannot end with a slash.
 const SOURCE_PATH_PATTERN = /^\/(grapher|explorers)\/.*[^/]$/
@@ -45,6 +47,17 @@ const INVALID_SOURCE_PATH_MESSAGE =
 function normalizeRedirectSource(source: string): string {
     const sourceUrl = new URL(source, window.location.origin)
     return sourceUrl.pathname
+}
+
+// Parses a query-string-style input (e.g. "tab=map&country=USA") into an object,
+// or null when empty. These are the source query params the redirect matches on.
+function parseSourceQueryParamsInput(
+    input: string
+): Record<string, string> | null {
+    const trimmed = input.trim().replace(/^\?/, "")
+    if (!trimmed) return null
+    const result = Object.fromEntries(new URLSearchParams(trimmed))
+    return Object.keys(result).length > 0 ? result : null
 }
 
 type ApiMultiDimDetail = {
@@ -63,6 +76,7 @@ type MultiDimDetail = Omit<ApiMultiDimDetail, "updatedAt"> & {
 type MultiDimRedirect = {
     id: number
     source: string
+    sourceQueryParams: Record<string, string | null> | null
     viewConfigId: string | null
 }
 
@@ -127,13 +141,14 @@ async function createMultiDimRedirect(
     admin: Admin,
     multiDimId: number,
     source: string,
-    viewConfigId: string | null
+    viewConfigId: string | null,
+    sourceQueryParams: Record<string, string> | null
 ): Promise<MultiDimRedirect> {
     const { redirect } = await admin.requestJSON<{
         redirect: MultiDimRedirect
     }>(
         `/api/multi-dims/${multiDimId}/redirects`,
-        { source, viewConfigId },
+        { source, viewConfigId, sourceQueryParams },
         "POST"
     )
     return redirect
@@ -153,6 +168,7 @@ async function deleteMultiDimRedirect(
 
 type RedirectFormValues = {
     source: string
+    sourceQueryParams: string
     redirectToSpecificView: boolean
 }
 
@@ -169,6 +185,22 @@ function getRedirectColumns(ctx: {
             title: "Source",
             dataIndex: "source",
             key: "source",
+            render: (_, redirect) => {
+                const queryParams = formatSourceQueryParams(
+                    redirect.sourceQueryParams
+                )
+                return (
+                    <>
+                        <Typography.Text>{redirect.source}</Typography.Text>
+                        {queryParams && (
+                            <Typography.Text type="secondary">
+                                {" "}
+                                (when {queryParams})
+                            </Typography.Text>
+                        )}
+                    </>
+                )
+            },
         },
         {
             title: "Target",
@@ -271,15 +303,24 @@ export function MultiDimDetailPage({ id }: { id: number }) {
         mutationFn: ({
             source,
             viewConfigId,
+            sourceQueryParams,
         }: {
             source: string
             viewConfigId: string | null
-        }) => createMultiDimRedirect(admin, id, source, viewConfigId),
+            sourceQueryParams: Record<string, string> | null
+        }) =>
+            createMultiDimRedirect(
+                admin,
+                id,
+                source,
+                viewConfigId,
+                sourceQueryParams
+            ),
         onSuccess: () => {
             void queryClient.invalidateQueries({
                 queryKey: ["multiDimRedirects", id],
             })
-            redirectForm.resetFields(["source"])
+            redirectForm.resetFields(["source", "sourceQueryParams"])
         },
     })
 
@@ -350,6 +391,9 @@ export function MultiDimDetailPage({ id }: { id: number }) {
             viewConfigId: values.redirectToSpecificView
                 ? currentViewConfigId
                 : null,
+            sourceQueryParams: parseSourceQueryParamsInput(
+                values.sourceQueryParams
+            ),
         })
     }
 
@@ -459,12 +503,20 @@ export function MultiDimDetailPage({ id }: { id: number }) {
                             Create a redirect
                         </Typography.Title>
 
+                        <Alert
+                            type="info"
+                            showIcon
+                            style={{ marginBottom: 16 }}
+                            title="For a redirect to take effect, the target multi-dim must be published and the source chart or explorer must be deleted afterwards, if it hasn't already."
+                        />
+
                         <Form
                             form={redirectForm}
                             layout="vertical"
                             onFinish={handleCreateRedirect}
                             initialValues={{
                                 source: "",
+                                sourceQueryParams: "",
                                 redirectToSpecificView: true,
                             }}
                         >
@@ -485,6 +537,13 @@ export function MultiDimDetailPage({ id }: { id: number }) {
                                 ]}
                             >
                                 <Input placeholder="/grapher/example" />
+                            </Form.Item>
+                            <Form.Item
+                                label="Source query params"
+                                name="sourceQueryParams"
+                                extra="Optional. Only redirect when these query params match, e.g. tab=map&country=USA. Leave empty to match any."
+                            >
+                                <Input placeholder="tab=map&country=USA" />
                             </Form.Item>
                             <Form.Item
                                 name="redirectToSpecificView"

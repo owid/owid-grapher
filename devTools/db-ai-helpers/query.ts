@@ -6,23 +6,7 @@ import { dataSource } from "../../db/dataSource.js"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 
-function normalizeBranch(branchName: string): string {
-    return branchName.replace(/[/._]/g, "-")
-}
-
-function getContainerName(branchName: string): string {
-    let normalized = normalizeBranch(branchName)
-
-    // Strip staging-site- prefix to add it back later
-    normalized = normalized.replace(/^staging-site-/, "")
-
-    // Truncate to 28 characters (Cloudflare's limit)
-    const limit = 28
-    const containerName = `staging-site-${normalized.slice(0, limit)}`
-
-    // Remove trailing hyphens
-    return containerName.replace(/-+$/, "")
-}
+import { getContainerName } from "../stagingHostname.js"
 
 function getCurrentBranch(): string {
     return execSync("git rev-parse --abbrev-ref HEAD", {

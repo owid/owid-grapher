@@ -13,6 +13,7 @@ import {
     PlacedAnchoredLabelSeries,
 } from "./AnchoredLabelsTypes.js"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
+import { Emphasis } from "../interaction/Emphasis.js"
 
 interface AnchoredLabelsOptions {
     /** Font size for the labels */
@@ -199,12 +200,27 @@ export class AnchoredLabelsState {
             }
         }
 
+        // Higher-emphasis labels are preferred when collisions are resolved
+        const emphasisRank = (s: InitialAnchoredLabelSeries): number => {
+            switch (s.emphasis) {
+                case Emphasis.Highlighted:
+                    return 2
+                case Emphasis.Muted:
+                    return 0
+                default:
+                    return 1
+            }
+        }
+
         // Hide labels that are overlapping with an anchor element
         if (this.options.anchorCollisionRadius) {
             for (const s1 of series) {
                 for (const s2 of series) {
                     if (s1.seriesName === s2.seriesName) continue
                     if (s1.collisionBounds.intersects(s2.anchorBounds)) {
+                        // Keep s1 if it's more emphasized than the series that
+                        // owns the anchor, tolerating the overlap
+                        if (emphasisRank(s1) > emphasisRank(s2)) continue
                         s1.isHidden = true
                         break
                     }
@@ -222,7 +238,17 @@ export class AnchoredLabelsState {
                 if (s2.isHidden) continue
 
                 if (s1.collisionBounds.intersects(s2.collisionBounds)) {
-                    const picked = resolveCollision?.(s1, s2) ?? s1
+                    const rank1 = emphasisRank(s1)
+                    const rank2 = emphasisRank(s2)
+
+                    // Prefer the more emphasized label; fall back to the
+                    // caller-provided resolver when emphasis is equal
+                    const picked =
+                        rank1 > rank2
+                            ? s1
+                            : rank2 > rank1
+                              ? s2
+                              : (resolveCollision?.(s1, s2) ?? s1)
 
                     if (picked === s1) s2.isHidden = true
                     else s1.isHidden = true

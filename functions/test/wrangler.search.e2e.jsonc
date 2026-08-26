@@ -1,0 +1,13 @@
+{
+    "$schema": "../../node_modules/wrangler/config-schema.json",
+    "name": "owid-functions-search-e2e-tests",
+    "main": "./search.e2e.worker.ts",
+    "compatibility_date": "2025-05-05",
+    "vars": {
+        // Same read-only, search-only production key used by
+        // searchApi.integration.test.ts — public by design (client-side
+        // Algolia calls ship this key in the browser bundle).
+        "ALGOLIA_ID": "ASCB5XMYF2",
+        "ALGOLIA_SEARCH_KEY": "bafe9c4659e5657bf750a38fbee5c269"
+    }
+}

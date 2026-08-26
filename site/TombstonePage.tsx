@@ -36,6 +36,7 @@ export default function TombstonePage({
                 canonicalUrl={canonicalUrl}
                 pageTitle="This page was removed"
                 baseUrl={baseUrl}
+                noindex
             />
             <body className="NotFoundPage">
                 <SiteHeader />

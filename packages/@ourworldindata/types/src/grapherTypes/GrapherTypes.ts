@@ -263,6 +263,7 @@ export interface Tickmark {
     faint?: boolean
     gridLineOnly?: boolean
     solid?: boolean // mostly for labelling domain start (e.g. 0)
+    label?: string
 }
 export interface TickFormattingOptions {
     roundingMode?: OwidVariableRoundingMode
@@ -274,6 +275,10 @@ export interface TickFormattingOptions {
     useNoBreakSpace?: boolean
     showPlus?: boolean
     numberAbbreviation?: "short" | "long" | false
+    /** The magnitude at which abbreviation starts (defaults to 1 million) */
+    abbreviationThreshold?: number
+    /** Minimum precision of abbreviated values (defaults to 3) */
+    abbreviationSignificantFigures?: number
 }
 // Represents the actual entered configuration state in the editor
 export interface AxisConfigInterface {
@@ -349,11 +354,15 @@ export interface AxisConfigInterface {
     singleValueAxisPointAlign?: AxisAlign
 
     /**
-     * If given, think of the axis scale as a band scale, where each domain value
-     * occupies a fixed width. The axis is padded on both sides to reserve space
-     * for the outermost values.
+     * If given, treat the axis as a band scale: each value occupies a fixed
+     * width and the axis is padded on both sides to reserve space for the
+     * outermost values.
+     *
+     * These values also become the default tick positions (one tick per band),
+     * unless `ticks` is set explicitly or a calendar-aware tick layout applies
+     * (e.g. monthly time axes).
      */
-    domainValues?: number[]
+    bandValues?: number[]
 
     /**
      * Whether to offset the leftmost tick label so it doesn't overflow the axis start.
@@ -549,7 +558,6 @@ export enum ColorSchemeName {
     BinaryMapPaletteC = "BinaryMapPaletteC",
     BinaryMapPaletteD = "BinaryMapPaletteD",
     BinaryMapPaletteE = "BinaryMapPaletteE",
-    BinaryMapPaletteF = "BinaryMapPaletteF",
     SingleColorGradientDenim = "SingleColorGradientDenim",
     SingleColorGradientTeal = "SingleColorGradientTeal",
     SingleColorGradientPurple = "SingleColorGradientPurple",
@@ -669,6 +677,7 @@ export interface GrapherInterface extends SortConfig {
     hideTotalValueLabel?: boolean
     excludedEntityNames?: EntityName[]
     includedEntityNames?: EntityName[]
+    inapplicableEntityNames?: EntityName[]
     selectedEntityNames?: EntityName[]
     selectedEntityColors?: { [entityName: string]: string | undefined }
     focusedSeriesNames?: SeriesName[]
@@ -826,6 +835,7 @@ export const grapherKeysToSerialize = [
     "sortColumnSlug",
     "excludedEntityNames",
     "includedEntityNames",
+    "inapplicableEntityNames",
     "selectedFacetStrategy",
     "hideFacetControl",
     "comparisonLines",

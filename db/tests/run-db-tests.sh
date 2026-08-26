@@ -22,12 +22,19 @@ export ENV=production
 : "${GRAPHER_TEST_DB_PASS:?Need to set GRAPHER_TEST_DB_PASS non-empty}"
 : "${GRAPHER_TEST_DB_NAME:?Need to set GRAPHER_TEST_DB_NAME non-empty}"
 
+# Run the test stack in its own compose project
+DBTESTS_COMPOSE=(
+    docker compose
+    -p "${COMPOSE_PROJECT_NAME:-$(basename "$PWD")}-dbtests"
+    -f docker-compose.dbtests.yml
+)
+
 # Create log directory
 mkdir -p tmp-logs
 
 # Always try to stop the compose stack when exiting (success or failure)
 cleanup() {
-    docker compose -f docker-compose.dbtests.yml stop >/dev/null 2>&1 || true
+    "${DBTESTS_COMPOSE[@]}" stop >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
 
@@ -47,16 +54,16 @@ show_log_on_error() {
 
 echo 'test database started'
 
-if ! docker compose -f docker-compose.dbtests.yml up -d >tmp-logs/docker-startup.log 2>&1; then
+if ! "${DBTESTS_COMPOSE[@]}" up -d >tmp-logs/docker-startup.log 2>&1; then
     show_log_on_error "tmp-logs/docker-startup.log" "Docker startup"
     # In case the stack was partially created, ensure it's torn down
-    docker compose -f docker-compose.dbtests.yml down >/dev/null 2>&1 || true
+    "${DBTESTS_COMPOSE[@]}" down >/dev/null 2>&1 || true
     exit 1
 fi
 
 if ! ./devTools/docker/wait-for-tests-mysql.sh >tmp-logs/mysql-wait.log 2>&1; then
     show_log_on_error "tmp-logs/mysql-wait.log" "MySQL wait"
-    docker compose -f docker-compose.dbtests.yml stop >/dev/null 2>&1
+    "${DBTESTS_COMPOSE[@]}" stop >/dev/null 2>&1
     exit 1
 fi
 
@@ -64,7 +71,7 @@ echo 'applying migrations'
 
 if ! yarn tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration:run -d db/tests/dataSource.dbtests.ts >tmp-logs/migrations.log 2>&1; then
     show_log_on_error "tmp-logs/migrations.log" "Database migrations"
-    docker compose -f docker-compose.dbtests.yml stop >/dev/null 2>&1
+    "${DBTESTS_COMPOSE[@]}" stop >/dev/null 2>&1
     exit 1
 fi
 
@@ -73,11 +80,11 @@ if ! yarn run vitest run -c vitest.db.config.ts >tmp-logs/tests.log 2>&1
 then
     show_log_on_error "tmp-logs/tests.log" "Tests"
     ./devTools/docker/mark-test-mysql-dirty.sh >/dev/null 2>&1
-    docker compose -f docker-compose.dbtests.yml stop >/dev/null 2>&1
+    "${DBTESTS_COMPOSE[@]}" stop >/dev/null 2>&1
     exit 23
 else
     echo '✅ DB tests succeeded'
     ./devTools/docker/mark-test-mysql-dirty.sh >/dev/null 2>&1
-    docker compose -f docker-compose.dbtests.yml stop >/dev/null 2>&1
+    "${DBTESTS_COMPOSE[@]}" stop >/dev/null 2>&1
     exit 0
 fi

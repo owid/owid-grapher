@@ -32,7 +32,7 @@ import {
     MapViewport,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
-import { ColorScale } from "../color/ColorScale"
+import { ColorScale, INAPPLICABLE_LABEL } from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -45,14 +45,17 @@ import {
     ColorScaleBin,
     isCategoricalBin,
     isNoDataBin,
+    isInapplicableBin,
     isNumericBin,
     isProjectedDataBin,
+    mergeCategoricalBinsByLabelAndColor,
     NumericBin,
 } from "../color/ColorScaleBin"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import {
     ColumnSlug,
+    EntityName,
     GrapherVariant,
     MapRegionName,
 } from "@ourworldindata/types"
@@ -99,6 +102,11 @@ export class MapChart
      * Hovering a map bracket highlights all countries within that bracket on the map.
      */
     hoverBracket: MapBracket | undefined = undefined
+    /**
+     * For touch events, we "pin" the hover bracket into an active state until the user taps outside of the legend.
+     * This is to create a better touch device experience.
+     */
+    private isHoverBracketPinnedBecauseOfTouchEvent = false
 
     tooltipState = new TooltipState<{
         featureId: string
@@ -126,6 +134,10 @@ export class MapChart
 
     @computed get hasProjectedData(): boolean {
         return this.mapColumnInfo.type !== "historical"
+    }
+
+    @computed get inapplicableEntityNamesSet(): Set<EntityName> {
+        return this.chartState.inapplicableEntityNamesSet
     }
 
     @computed private get targetTime(): number | undefined {
@@ -189,6 +201,7 @@ export class MapChart
         this.onMapMouseLeave()
         this.onLegendMouseLeave()
         document.removeEventListener("keydown", this.onDocumentKeyDown)
+        document.removeEventListener("pointerdown", this.onDocumentPointerDown)
     }
 
     @action.bound onLegendMouseEnter(bracket: MapBracket): void {
@@ -199,11 +212,18 @@ export class MapChart
     }
 
     @action.bound onLegendMouseOver(bracket: MapBracket): void {
+        if (this.isHoverBracketPinnedBecauseOfTouchEvent) return
         this.hoverBracket = bracket
     }
 
     @action.bound onLegendMouseLeave(): void {
+        if (this.isHoverBracketPinnedBecauseOfTouchEvent) return
         this.hoverBracket = undefined
+    }
+
+    @action.bound onLegendTouchSelect(bracket: MapBracket): void {
+        this.hoverBracket = bracket
+        this.isHoverBracketPinnedBecauseOfTouchEvent = true
     }
 
     @computed get mapConfig(): MapConfig {
@@ -225,6 +245,18 @@ export class MapChart
             this.globeController.resetGlobe()
             this.mapConfig.region = MapRegionName.World
         }
+    }
+
+    // Clear the pinned hover bracket when the user taps outside of the legend.
+    // This only applies to when the hover bracket is currently pinned because of a touch event.
+    // But it doesn't check that the pointer event here is a touch event, because otherwise we would
+    // get into weird states with hybrid devices that have both touch and mouse input.
+    //
+    // Note that the legend itself stops propagation of pointer events, so this event handler will
+    // only be called when the user taps outside of the legend.
+    @action.bound onDocumentPointerDown(): void {
+        this.hoverBracket = undefined
+        this.isHoverBracketPinnedBecauseOfTouchEvent = false
     }
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
@@ -249,6 +281,7 @@ export class MapChart
         exposeInstanceOnWindow(this)
 
         document.addEventListener("keydown", this.onDocumentKeyDown)
+        document.addEventListener("pointerdown", this.onDocumentPointerDown)
     }
 
     @computed private get legendData(): ColorScaleBin[] {
@@ -258,6 +291,9 @@ export class MapChart
     /** The value of the currently hovered feature/country */
     @computed private get hoverValue(): string | number | undefined {
         if (!this.mapConfig.hoverCountry) return undefined
+
+        if (this.inapplicableEntityNamesSet.has(this.mapConfig.hoverCountry))
+            return INAPPLICABLE_LABEL
 
         const series = this.choroplethData.get(this.mapConfig.hoverCountry)
         if (!series) return "No data"
@@ -277,15 +313,18 @@ export class MapChart
 
         // Check if the legend bracket of a country is hovered
         const series = this.choroplethData.get(featureId)
+        const isInapplicable = this.inapplicableEntityNamesSet.has(featureId)
         if (
             hoverBracket?.contains(series?.value, {
                 isProjection: series?.isProjection,
+                isInapplicable,
             })
         )
             return true
 
         // Check if the external legend bracket of a country is hovered (used in faceted maps)
-        if (externalLegendHoverBin?.contains(series?.value)) return true
+        if (externalLegendHoverBin?.contains(series?.value, { isInapplicable }))
+            return true
 
         return false
     }
@@ -342,6 +381,12 @@ export class MapChart
                 patternRef: Patterns.noDataPattern,
             }) as Bin
 
+        if (isInapplicableBin(bin))
+            return new CategoricalBin({
+                ...bin.props,
+                patternRef: Patterns.inapplicablePattern,
+            }) as Bin
+
         if (isProjectedDataBin(bin)) {
             const patternRef = makeProjectedDataPatternId(
                 PROJECTED_DATA_LEGEND_COLOR,
@@ -365,18 +410,19 @@ export class MapChart
     }
 
     @computed get numericLegendData(): ColorScaleBin[] {
-        const hasNoDataBin = this.legendData.some((bin) => isNoDataBin(bin))
-        if (this.hasCategoricalLegendData || !hasNoDataBin)
-            return this.legendData
-                .filter((bin) => isNumericBin(bin))
-                .map((bin) => this.maybeAddPatternRefToBin(bin))
-
-        const bins: ColorScaleBin[] = this.legendData
-            .filter((bin) => isNumericBin(bin) || isNoDataBin(bin))
+        const numericBins = this.legendData
+            .filter((bin) => isNumericBin(bin))
             .map((bin) => this.maybeAddPatternRefToBin(bin))
 
-        // Move the no-data bin from the end to the start
-        return [bins[bins.length - 1], ...bins.slice(0, -1)]
+        if (this.hasCategoricalLegendData) return numericBins
+
+        // Prepend any leftover categorical bins (e.g. "No data" or
+        // "Not applicable") to the numeric legend
+        const categoricalBins = this.legendData
+            .filter((bin) => isCategoricalBin(bin))
+            .map((bin) => this.maybeAddPatternRefToBin(bin))
+
+        return [...categoricalBins, ...numericBins]
     }
 
     @computed private get numMembersPerCategoricalBinByIndex(): Map<
@@ -412,12 +458,15 @@ export class MapChart
                 return (
                     isNoDataBin(bin) ||
                     isProjectedDataBin(bin) ||
+                    isInapplicableBin(bin) ||
                     memberCount > 0
                 )
             })
         }
 
-        return categoricalLegendData
+        // Collapse bins that would render identical swatches (same label and
+        // color) into one, so the legend doesn't show visual duplicates
+        return mergeCategoricalBinsByLabelAndColor(categoricalLegendData)
     }
 
     @computed private get hasCategoricalLegendData(): boolean {
@@ -506,7 +555,7 @@ export class MapChart
     @computed private get categoryLegend():
         | HorizontalCategoricalColorLegend
         | undefined {
-        return this.manager.showLegend && this.categoricalLegendData.length > 1
+        return this.manager.showLegend && this.hasCategoricalLegendData
             ? new HorizontalCategoricalColorLegend({ manager: this })
             : undefined
     }
@@ -660,6 +709,9 @@ export class MapChart
                         lineColorScale={this.colorScale}
                         targetTime={this.targetTime}
                         targetTimes={this.manager.highlightedTimesInTooltip}
+                        inapplicableEntityNamesSet={
+                            this.inapplicableEntityNamesSet
+                        }
                         sparklineWidth={sparklineWidth}
                         dismissTooltip={action(() => {
                             this.mapConfig.hoverCountry = undefined

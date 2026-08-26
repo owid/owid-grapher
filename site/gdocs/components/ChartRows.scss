@@ -56,12 +56,31 @@
     }
 }
 
-.chart-rows .chart-thumbnail {
+.chart-rows__chart {
     flex-shrink: 0;
     width: 300px;
+    margin: 0; // reset the browser default figure margin
 
     @include sm-only {
         width: calc(10 / 12 * 100%); // emulating 10 columns without grid
+        // Keep the chart above the text when stacked on mobile, even though
+        // the text now comes first in source order for the left/right layout.
+        order: -1;
+    }
+}
+
+.chart-rows .chart-thumbnail {
+    width: 100%;
+}
+
+// Nested selector so it wins over the article's centered `figcaption` styles
+.chart-rows .chart-rows__caption {
+    @include body-3-medium-italic;
+    color: $blue-60;
+    text-align: left;
+    margin-top: 8px;
+    a {
+        @include owid-link-90;
     }
 }
 
@@ -76,6 +95,14 @@
 
 .chart-rows__row-content .article-block__text {
     @include body-3-regular;
+}
+
+.chart-rows__row-content .article-block__text strong {
+    font-size: 1rem;
+}
+
+.chart-rows__row-content .article-block__text:first-child:not(:last-child) {
+    margin-bottom: 8px;
 }
 
 .chart-rows--standalone {

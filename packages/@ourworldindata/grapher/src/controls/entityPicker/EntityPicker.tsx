@@ -212,7 +212,7 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
         // If the slug is "entityName", then try to get it from grapherTable first, because it might
         // not be present in pickerTable (for indicator-powered explorers, for example).
         if (
-            this.metric === OwidTableSlugs.entityName &&
+            this.metric === OwidTableSlugs.EntityName &&
             this.grapherTable?.has(this.metric)
         )
             return this.grapherTable
@@ -547,7 +547,7 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
             // If columnSlug is undefined, we're sorting by relevance, which is (mostly) by country name.
             // If the column is currently missing (not loaded yet), assume it is numeric.
             columnSlug !== undefined &&
-            columnSlug !== OwidTableSlugs.entityName &&
+            columnSlug !== OwidTableSlugs.EntityName &&
             (col === undefined ||
                 col.isMissing ||
                 col instanceof ColumnTypeMap.Numeric)

@@ -65,6 +65,12 @@ export interface ChartState {
 
     /** Sort keys this chart type supports */
     availableSortKeys?: SortBy[]
+
+    /**
+     * Explains that some of the values aren't from the time the chart is
+     * labelled with, because tolerance was applied
+     */
+    toleranceNotice?: string
 }
 
 /** Interface implemented by all chart component classes */
@@ -91,4 +97,10 @@ export interface ChartInterface {
      * plotting area.
      */
     verticalLabelWidths?: SideWidths
+
+    /**
+     * How far the chart's plotting area is inset from its bounds on each side.
+     * Consumed by FacetChart to align facet labels with the plot content.
+     */
+    contentInset?: SideWidths
 }

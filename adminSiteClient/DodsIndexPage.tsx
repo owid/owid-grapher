@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-query"
 import { useContext, useEffect, useMemo, useState } from "react"
 import cx from "clsx"
-import { tippy } from "@tippyjs/react"
+import tippy, { type ReferenceElement } from "tippy.js"
 import { Button, Flex, Form, Input, Modal, Popconfirm, Table } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
@@ -22,10 +22,10 @@ import * as R from "remeda"
 import { Admin } from "./Admin.js"
 import { fromMarkdown } from "mdast-util-from-markdown"
 import { PhrasingContent, RootContent } from "mdast"
-import { renderToStaticMarkup } from "react-dom/server"
 import {
-    MarkdownTextWrap,
-    MarkdownTextWrapHtml,
+    DOD_TIPPY_PROPS,
+    initializeDetailsOnDemand,
+    renderDodContentHtml,
 } from "@ourworldindata/components"
 import TextArea from "antd/es/input/TextArea.js"
 import { match } from "ts-pattern"
@@ -245,7 +245,8 @@ function createColumns({
                                 if (!textarea) return
 
                                 const text = textarea.textContent
-                                const target = event.currentTarget as any
+                                const target: ReferenceElement =
+                                    event.currentTarget
 
                                 if (text && !target._tippy) {
                                     showDodPreviewTooltip(text, target)
@@ -289,25 +290,9 @@ function createColumns({
 }
 
 function showDodPreviewTooltip(text: string, element: Element): void {
-    const markdownTextWrap = new MarkdownTextWrap({
-        text,
-        fontSize: 16,
-        lineHeight: 1.55,
-    })
-    const content = renderToStaticMarkup(
-        <div className="dod-container">
-            <MarkdownTextWrapHtml textWrap={markdownTextWrap} />
-        </div>
-    )
     tippy(element, {
-        content,
-        allowHTML: true,
-        delay: [null, 200],
-        interactive: true,
-        hideOnClick: false,
-        arrow: false,
-        theme: "light dod",
-        appendTo: document.body,
+        ...DOD_TIPPY_PROPS,
+        content: renderDodContentHtml(text),
         onHidden: (instance) => instance.destroy(),
     })
 }
@@ -596,6 +581,17 @@ export function DodsIndexPage() {
             return queryClient.invalidateQueries({ queryKey: ["dods"] })
         },
     })
+
+    // Makes DoDs referenced from a preview behave like they do on the site
+    useEffect(() => {
+        if (!dods) return
+        return initializeDetailsOnDemand({
+            details: R.mapValues(dods, (dod) => ({
+                id: dod.name,
+                text: dod.content,
+            })),
+        })
+    }, [dods])
 
     const filteredDods = useMemo(
         () =>

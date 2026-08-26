@@ -29,7 +29,7 @@ export interface SeriesLabelStateOptions {
     showRegionTooltip?: boolean
 }
 
-export type TextRole = "name" | "value" | "regionProviderSuffix" | "regionIcon"
+export type TextRole = "name" | "value" | "regionPublisherSuffix" | "regionIcon"
 
 export interface TextSpan {
     role: TextRole
@@ -133,8 +133,8 @@ export class SeriesLabelState {
     }
 
     @computed private get name(): string {
-        // Only split the suffix from the main text if it's a region provider
-        return this.parsedText.providerKey
+        // Only split the suffix from the main text if it names a region publisher
+        return this.parsedText.publisherKey
             ? this.parsedText.name
             : this.parsedText.raw
     }
@@ -189,8 +189,8 @@ export class SeriesLabelState {
         if (checkIsOwidContinent(region))
             return { tooltipKey: "continents", regionName: region.name }
 
-        // Check if it's a region provider with tooltip data
-        if (this.parsedText.providerKey && hasTooltipData(region)) {
+        // Check if it's a published region set with tooltip data
+        if (this.parsedText.publisherKey && hasTooltipData(region)) {
             return {
                 tooltipKey: region.definedBy,
                 regionName: region.name,
@@ -201,15 +201,15 @@ export class SeriesLabelState {
     }
 
     /**
-     * Fragments for the parenthetical region provider suffix (e.g. "(WHO)")
+     * Fragments for the parenthetical region publisher suffix (e.g. "(WHO)")
      *
-     * Some region providers have an associated tooltip, in which case we render
+     * Some region sets have an associated tooltip, in which case we render
      * an info icon inside the parentheses. If there is no info icon, the
      * suffix is rendered in a muted style to visually differentiate it from
      * the main name.
      */
     @computed private get suffixFragments(): ContentFragment[] | undefined {
-        if (!this.parsedText.providerKey) return undefined
+        if (!this.parsedText.publisherKey) return undefined
 
         const fontSettings = { ...this.fontSettings, fontWeight: 400 }
 
@@ -229,7 +229,7 @@ export class SeriesLabelState {
             return [
                 {
                     type: "text",
-                    role: "regionProviderSuffix",
+                    role: "regionPublisherSuffix",
                     text: textBeforeIcon,
                     width: textBeforeWidth,
                     fontWeight: fontSettings.fontWeight,
@@ -243,7 +243,7 @@ export class SeriesLabelState {
                 },
                 {
                     type: "text",
-                    role: "regionProviderSuffix",
+                    role: "regionPublisherSuffix",
                     text: textAfterIcon,
                     width: textAfterWidth,
                     fontWeight: fontSettings.fontWeight,
@@ -256,7 +256,7 @@ export class SeriesLabelState {
             return [
                 {
                     type: "text",
-                    role: "regionProviderSuffix",
+                    role: "regionPublisherSuffix",
                     text,
                     width,
                     fontWeight: fontSettings.fontWeight,
@@ -284,7 +284,7 @@ export class SeriesLabelState {
     }
 
     @computed private get regionIconFragments(): ContentFragment[] | undefined {
-        if (!this.regionIconInfo || this.parsedText.providerKey)
+        if (!this.regionIconInfo || this.parsedText.publisherKey)
             return undefined
 
         return [
@@ -322,7 +322,7 @@ export class SeriesLabelState {
                 textToAppend: suffixText,
                 reservedWidth,
             })
-            return fits ? "regionProviderSuffix" : undefined
+            return fits ? "regionPublisherSuffix" : undefined
         }
 
         // Only consider value if not forced to new line
@@ -344,7 +344,7 @@ export class SeriesLabelState {
         return excludeUndefined([
             this.suffixFragments
                 ? {
-                      role: "regionProviderSuffix",
+                      role: "regionPublisherSuffix",
                       fragments: this.suffixFragments,
                   }
                 : undefined,

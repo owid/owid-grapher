@@ -12,7 +12,7 @@ import {
 import * as lodash from "lodash-es"
 
 import { AdminLayout } from "./AdminLayout.js"
-import { SearchField, FieldsRow } from "./Forms.js"
+import { TextField, FieldsRow } from "./Forms.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
@@ -76,7 +76,7 @@ export class VariablesIndexPage extends Component {
                             Showing {variablesToShow.length} of {numTotalRows}{" "}
                             indicators
                         </span>
-                        <SearchField
+                        <TextField
                             placeholder="e.g. ^population before:2023 -wdi"
                             value={searchInput}
                             onValue={action(

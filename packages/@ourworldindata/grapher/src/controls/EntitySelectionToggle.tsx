@@ -5,6 +5,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEye, faRightLeft, faPen } from "@fortawesome/free-solid-svg-icons"
 import classnames from "clsx"
 import { GrapherWindowType } from "@ourworldindata/types"
+import {
+    DEFAULT_GRAPHER_ENTITY_TYPE,
+    DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
+} from "../core/GrapherConstants"
 
 export interface EntitySelectionManager {
     canHighlightEntities?: boolean
@@ -24,6 +28,11 @@ interface EntitySelectionLabel {
     icon: React.ReactElement
     action: string
     entity: string
+    /**
+     * Optional tail of the entity name that is dropped before
+     * the entity name collapses entirely
+     */
+    entitySuffix?: string
 }
 
 @observer
@@ -86,21 +95,21 @@ export class EntitySelectionToggle extends React.Component<{
         if (canHighlightEntities)
             return {
                 action: "Select",
-                entity: entityTypePlural,
+                ...splitDefaultEntityLabel(entityTypePlural),
                 icon: <FontAwesomeIcon icon={faEye} />,
             }
 
         if (canChangeEntity)
             return {
                 action: "Change",
-                entity: entityType,
+                ...splitDefaultEntityLabel(entityType),
                 icon: <FontAwesomeIcon icon={faRightLeft} />,
             }
 
         if (canAddEntities)
             return {
                 action: "Edit",
-                entity: entityTypePlural,
+                ...splitDefaultEntityLabel(entityTypePlural),
                 icon: <FontAwesomeIcon icon={faPen} />,
             }
 
@@ -112,7 +121,11 @@ export class EntitySelectionToggle extends React.Component<{
         const { isEntitySelectorModalOrDrawerOpen: active } = this.props.manager
 
         return showToggle && label ? (
-            <div className="entity-selection-menu">
+            <div
+                className={classnames("entity-selection-menu", {
+                    "entity-selection-menu--shortenable": !!label.entitySuffix,
+                })}
+            >
                 <button
                     className={classnames("menu-toggle", { active })}
                     onClick={action((e): void => {
@@ -122,14 +135,36 @@ export class EntitySelectionToggle extends React.Component<{
                     })}
                     type="button"
                     data-track-note="chart_add_entity"
-                    aria-label={`${label.action} ${label.entity}`}
+                    aria-label={`${label.action} ${label.entity}${label.entitySuffix ?? ""}`}
                 >
                     {label.icon}
                     <label className="label">
-                        {label.action} <span>{label.entity}</span>
+                        {label.action}{" "}
+                        <span>
+                            {label.entity}
+                            {label.entitySuffix && (
+                                <span className="entity-suffix">
+                                    {label.entitySuffix}
+                                </span>
+                            )}
+                        </span>
                     </label>
                 </button>
             </div>
         ) : null
     }
+}
+
+/**
+ * Splits the default entity type into a base and a droppable suffix
+ * ("countries and regions" -> "countries" + " and regions")
+ */
+function splitDefaultEntityLabel(
+    entity: string
+): Pick<EntitySelectionLabel, "entity" | "entitySuffix"> {
+    if (entity === DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL)
+        return { entity: "countries", entitySuffix: " and regions" }
+    if (entity === DEFAULT_GRAPHER_ENTITY_TYPE)
+        return { entity: "country", entitySuffix: " or region" }
+    return { entity }
 }

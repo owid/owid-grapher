@@ -8,6 +8,7 @@ import {
     when,
     computed,
     makeObservable,
+    runInAction,
 } from "mobx"
 import { observer } from "mobx-react"
 import {
@@ -48,13 +49,9 @@ import { Section, TextField } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
 import { DimensionCard } from "./DimensionCard.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import { EditorDatabase } from "./ChartEditorView.js"
+import { EditorDatabase } from "./EditorDatabase.js"
 import { isChartEditorInstance } from "./ChartEditor.js"
 import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
-import {
-    IndicatorChartEditor,
-    isIndicatorChartEditorInstance,
-} from "./IndicatorChartEditor.js"
 import { EditableTags } from "./EditableTags.js"
 import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
 import {
@@ -83,7 +80,7 @@ interface DimensionSlotViewProps<Editor> {
 }
 
 @observer
-class DimensionSlotView<
+export class DimensionSlotView<
     Editor extends AbstractChartEditor,
 > extends React.Component<DimensionSlotViewProps<Editor>> {
     disposers: IReactionDisposer[] = []
@@ -237,8 +234,9 @@ class DimensionSlotView<
 
         if (grapherState.isScatter || grapherState.isMarimekko) {
             // Chart types that display all entities shouldn't select
-            // any entity by default
-            selection.clearSelection()
+            // any entity by default, but an existing selection (e.g. one
+            // that was authored) should be left untouched
+            return
         } else if (
             nonProjectedYColumns.length > 1 &&
             !grapherState.hasStackedArea &&
@@ -536,7 +534,7 @@ const TagsSection = (props: {
     chartId: number | undefined
     tags: DbChartTagJoin[] | undefined
     availableTags: MinimalTagWithMetadata[] | undefined
-    onSaveTags: (tags: DbChartTagJoin[]) => void
+    onSaveTags: (tags: DbChartTagJoin[]) => Promise<void>
 }) => {
     const { chartId, tags, availableTags } = props
     const canTag = !!chartId && tags && availableTags
@@ -783,11 +781,11 @@ export class EditorBasicTab<
         this.updateParentConfig()
     }
 
-    @action.bound onSaveTags(tags: DbChartTagJoin[]) {
-        void this.saveTags(tags)
+    @action.bound onSaveTags(tags: DbChartTagJoin[]): Promise<void> {
+        return this.saveTags(tags)
     }
 
-    async saveTags(tags: DbChartTagJoin[]) {
+    async saveTags(tags: DbChartTagJoin[]): Promise<void> {
         const { editor } = this.props
         const { grapherState } = editor
         await this.context.admin.requestJSON(
@@ -795,17 +793,20 @@ export class EditorBasicTab<
             { tags },
             "POST"
         )
+        if (isChartEditorInstance(editor)) {
+            runInAction(() => {
+                editor.manager.tags = tags
+            })
+        }
     }
 
     override render() {
         const { editor } = this.props
         const { grapherState } = editor
-        const isIndicatorChart = isIndicatorChartEditorInstance(editor)
         const isNarrativeChart = isNarrativeChartEditorInstance(editor)
 
         return (
             <div className="EditorBasicTab">
-                {isIndicatorChart && <IndicatorChartInfo editor={editor} />}
                 {isNarrativeChart &&
                     (editor.isNewGrapher ? (
                         <NarrativeChartForm editor={editor} />
@@ -865,15 +866,13 @@ export class EditorBasicTab<
                         </div>
                     </div>
                 </Section>
-                {!isIndicatorChart && (
-                    <VariablesSection
-                        editor={editor}
-                        database={this.props.database}
-                        errorMessagesForDimensions={
-                            this.props.errorMessagesForDimensions
-                        }
-                    />
-                )}
+                <VariablesSection
+                    editor={editor}
+                    database={this.props.database}
+                    errorMessagesForDimensions={
+                        this.props.errorMessagesForDimensions
+                    }
+                />
 
                 {isChartEditorInstance(editor) && (
                     <TagsSection
@@ -886,27 +885,6 @@ export class EditorBasicTab<
             </div>
         )
     }
-}
-
-function IndicatorChartInfo(props: { editor: IndicatorChartEditor }) {
-    const { variableId, grapherState } = props.editor
-
-    const column = grapherState.inputTable.get(variableId?.toString())
-    const variableLink = (
-        <a
-            href={`/admin/variables/${variableId}`}
-            target="_blank"
-            rel="noopener"
-        >
-            {column?.name ?? variableId}
-        </a>
-    )
-
-    return (
-        <Section name="Indicator chart">
-            <p>Your are editing the config of the {variableLink} indicator.</p>
-        </Section>
-    )
 }
 
 function NarrativeChartInfo(props: { editor: NarrativeChartEditor }) {

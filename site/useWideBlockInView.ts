@@ -13,13 +13,18 @@ import { useMediaQuery } from "usehooks-ts"
  * - Full-text-column (`span-cols-12`) blocks only overlap while the viewport is
  *   too narrow to fit the 12-col content plus a full sidebar-width outer track
  *   on each side.
+ * - Left-aligned (`col-start-2 span-cols-3`) blocks are narrow, but they start
+ *   at the same left edge as a 12-col block — the edge the sidebar bleeds into
+ *   from the outer track — so they share the 12-col overlap condition.
  *
- * The sidebar coexists with ≤8-col content, so 8-col blocks (e.g. chart-story)
- * are deliberately not matched.
+ * The sidebar coexists with ≤8-col content, so centred 8-col blocks (e.g.
+ * chart-story) are deliberately not matched.
  */
 const WIDE_COL_SELECTOR = '[class*="article-block__"].span-cols-12'
+const LEFT_ALIGNED_SELECTOR =
+    '[class*="article-block__"].col-start-2.span-cols-3'
 const FULL_BLEED_SELECTOR = '[class*="article-block__"].span-cols-14'
-const WIDE_BLOCK_SELECTORS = `${WIDE_COL_SELECTOR}, ${FULL_BLEED_SELECTOR}`
+const WIDE_BLOCK_SELECTORS = `${WIDE_COL_SELECTOR}, ${LEFT_ALIGNED_SELECTOR}, ${FULL_BLEED_SELECTOR}`
 
 // Keep in sync with --inner-cols-max-total-width in site/css/grid.scss.
 const GRID_INNER_COLS_MAX_WIDTH = 1280

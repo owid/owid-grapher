@@ -4,11 +4,12 @@ import { GRAPHER_IMAGE_WIDTH_2X } from "@ourworldindata/grapher"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
 import type { Organization } from "schema-dts"
 
-export function makeJsonLdCreator(baseUrl: string): Organization {
+export function makeJsonLdOwidOrganization(baseUrl: string): Organization {
     return {
         "@type": "Organization",
         name: "Our World in Data",
         url: baseUrl,
+        logo: `${baseUrl}/owid-logo.png`,
     }
 }
 

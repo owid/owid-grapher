@@ -44,7 +44,7 @@ type DataInsightRow = Pick<
         gdocId: DbRawPostGdoc["id"]
         narrativeChartId?: DbPlainNarrativeChart["id"]
         narrativeChartConfigId?: DbPlainNarrativeChart["chartConfigId"]
-        chartConfig?: DbRawChartConfig["full"]
+        chartConfig?: DbRawChartConfig["config"]
         imageId?: DbRawImage["id"]
         tags?: MinimalTag[]
     }
@@ -106,10 +106,10 @@ async function getAllDataInsightIndexItemsOrderedByUpdatedAt(
 
         -- only consider published stand-alone charts since we join by slug which is only unique for published charts
         WITH published_charts AS (
-            SELECT cc.id, cc.slug, cc.full
+            SELECT cc.id, cc.slug, cc.config
             FROM chart_configs cc
             JOIN charts c ON c.configId = cc.id
-            WHERE cc.full ->> '$.isPublished' = 'true'
+            WHERE cc.config ->> '$.isPublished' = 'true'
         )
 
         SELECT
@@ -126,7 +126,7 @@ async function getAllDataInsightIndexItemsOrderedByUpdatedAt(
             nc.chartConfigId AS narrativeChartConfigId,
 
             -- chart config (prefer narrative charts over grapher URLs)
-            COALESCE(cc_narrativeChart.full, cc_grapherUrl.full) AS chartConfig,
+            COALESCE(cc_narrativeChart.config, cc_grapherUrl.config) AS chartConfig,
 
             -- image fields
             i.id AS imageId,
@@ -295,11 +295,18 @@ export async function refreshDataInsights(
     if (gdocIds.length === 0)
         return { success: true, updated: 0, errored: 0, errors: [] }
 
-    // Fetch the requested data insights from the database
+    // Fetch the requested data insights from the database. Refresh drafts
+    // and scheduled data insights (published, but with a publish date in the
+    // future) from Google Docs. Skip data insights that are already live, to
+    // avoid accidentally re-publishing content that isn't ready to go out.
     const rows = await trx
         .table<DbRawPostGdoc>(PostsGdocsTableName)
         .where("type", "data-insight")
-        .where("published", 0) // Only refresh unpublished data insights
+        .where((builder) =>
+            builder
+                .where("published", 0)
+                .orWhere("publishedAt", ">", trx.fn.now())
+        )
         .whereIn("id", gdocIds)
 
     const records: OwidGdocBaseInterface[] = rows.map((row) =>

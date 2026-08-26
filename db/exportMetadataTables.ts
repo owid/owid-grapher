@@ -42,7 +42,6 @@ export const PUBLIC_DATA_TABLES = [
     "explorers",
     "featured_metrics",
     "files",
-    "housekeeper_reviews",
     "images",
     "importer_additionalcountryinfo",
     "jobs",

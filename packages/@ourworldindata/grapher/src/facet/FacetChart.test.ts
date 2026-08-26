@@ -1,6 +1,7 @@
 import { expect, it, describe } from "vitest"
 
 import * as _ from "lodash-es"
+import { Bounds } from "@ourworldindata/utils"
 import { FacetChart } from "./FacetChart"
 import { SynthesizeGDPTable, OwidTable } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
@@ -153,6 +154,7 @@ describe("shared x axis", () => {
     const chart = new FacetChart({
         manager,
         chartTypeName: GRAPHER_CHART_TYPES.StackedBar,
+        bounds: new Bounds(0, 0, 400, 300),
     })
     const xAxisConfigs = chart.placedSeries.map(
         (series) => series.manager.xAxisConfig

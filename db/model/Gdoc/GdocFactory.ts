@@ -772,6 +772,29 @@ type GdocIndexDatabaseRow = Pick<
     subtitle: string | null
 }
 
+async function toGdocIndexItems(
+    knex: KnexReadonlyTransaction,
+    gdocs: GdocIndexDatabaseRow[]
+): Promise<OwidGdocIndexItem[]> {
+    if (!gdocs.length) return []
+
+    const groupedTags = await getTagsGroupedByGdocId(
+        knex,
+        gdocs.map((gdoc) => gdoc.id)
+    )
+    return gdocs.map((gdoc) => ({
+        id: gdoc.id,
+        slug: gdoc.slug,
+        tags: groupedTags.get(gdoc.id) ?? [],
+        published: !!gdoc.published,
+        publishedAt: gdoc.publishedAt,
+        title: gdoc.title ?? "",
+        subtitle: gdoc.subtitle ?? undefined,
+        authors: parsePostGdocsAuthors(gdoc.authors),
+        type: gdoc.type,
+    }))
+}
+
 export async function getAllGdocIndexItemsOrderedByUpdatedAt(
     knex: KnexReadonlyTransaction
 ): Promise<OwidGdocIndexItem[]> {
@@ -795,21 +818,44 @@ export async function getAllGdocIndexItemsOrderedByUpdatedAt(
 
     gdocs.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
 
-    const groupedTags = await getTagsGroupedByGdocId(
-        knex,
-        gdocs.map((gdoc) => gdoc.id)
-    )
-    return gdocs.map((gdoc) => ({
-        id: gdoc.id,
-        slug: gdoc.slug,
-        tags: groupedTags.get(gdoc.id) ?? [],
-        published: !!gdoc.published,
-        publishedAt: gdoc.publishedAt,
-        title: gdoc.title ?? "",
-        subtitle: gdoc.subtitle ?? undefined,
-        authors: parsePostGdocsAuthors(gdoc.authors),
-        type: gdoc.type,
-    }))
+    return toGdocIndexItems(knex, gdocs)
+}
+
+export async function getGdocIndexItemsByTagId(
+    knex: KnexReadonlyTransaction,
+    tagId: number,
+    uncategorized: boolean
+): Promise<OwidGdocIndexItem[]> {
+    const query = knex
+        .table<GdocIndexDatabaseRow>(`${PostsGdocsTableName} as pg`)
+        .select(
+            "pg.id",
+            "pg.slug",
+            "pg.type",
+            "pg.authors",
+            "pg.published",
+            "pg.publishedAt",
+            "pg.updatedAt"
+        )
+        .select(
+            knex.raw("pg.content ->> '$.title' AS title"),
+            knex.raw("pg.content ->> '$.subtitle' AS subtitle")
+        )
+
+    if (uncategorized) {
+        query
+            .leftJoin(`${PostsGdocsXTagsTableName} as gt`, "gt.gdocId", "pg.id")
+            .whereNull("gt.tagId")
+    } else {
+        query
+            .join(`${PostsGdocsXTagsTableName} as gt`, "gt.gdocId", "pg.id")
+            .where("gt.tagId", tagId)
+    }
+
+    const gdocs = await query
+    gdocs.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+
+    return toGdocIndexItems(knex, gdocs)
 }
 
 export async function setImagesInContentGraph(

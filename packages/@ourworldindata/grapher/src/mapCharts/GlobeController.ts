@@ -1,5 +1,10 @@
-import { FeatureCollection } from "geojson"
-import { geoInterpolate, geoOrthographic, geoPath } from "d3-geo"
+import {
+    geoCentroid,
+    geoDistance,
+    geoInterpolate,
+    geoOrthographic,
+    geoPath,
+} from "d3-geo"
 import { interpolateNumber } from "d3-interpolate"
 import { easeCubicOut } from "d3-ease"
 import * as R from "remeda"
@@ -20,7 +25,6 @@ import {
     DEFAULT_GLOBE_ROTATION,
     DEFAULT_GLOBE_ROTATIONS_FOR_TIME,
     DEFAULT_GLOBE_SIZE,
-    GeoFeature,
     GLOBE_COUNTRY_ZOOM,
     GLOBE_LATITUDE_MAX,
     GLOBE_LATITUDE_MIN,
@@ -30,10 +34,7 @@ import {
     GlobeRenderFeature,
     MAP_REGION_NAMES,
 } from "./MapChartConstants"
-import { isPointPlacedOnVisibleHemisphere } from "./MapHelpers"
-import { ckmeans } from "simple-statistics"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
-import { center } from "@turf/center"
 import { action } from "mobx"
 
 const geoFeaturesById = new Map<string, GlobeRenderFeature>(
@@ -42,6 +43,16 @@ const geoFeaturesById = new Map<string, GlobeRenderFeature>(
 
 const LONGITUDE_OFFSET = 40
 const ANIMATION_DURATION = 600
+
+// Used to split countries into two halves of the globe: those within a quarter
+// turn of this reference point, and those closer to its antipode.
+// The reference point is arbitrary, but it roughly splits the world into the Americas and Europe/Africa/Asia.
+const HEMISPHERE_REFERENCE_POINT: [number, number] = [-70, -50] // southern Chile - its antipode is in Mongolia
+
+// Countries whose centroid is further away than this from the globe's center
+// point aren't considered visible. that's a little less than the 90 degrees of
+// the visible hemisphere, since we can otherwise end up with centroids where the countries themselves are barely visible (e.g. New Zealand and Spain)
+const MAX_VISIBLE_CENTROID_DISTANCE = (65 * Math.PI) / 180
 
 interface Target {
     coords: [number, number]
@@ -224,26 +235,20 @@ function calculateTargetForCountry(
     const geoFeature = geoFeaturesById.get(country)
     if (!geoFeature) return
 
-    const coords: [number, number] = [
-        geoFeature.geoCentroid[0],
-        R.clamp(geoFeature.geoCentroid[1], {
-            min: GLOBE_LATITUDE_MIN,
-            max: GLOBE_LATITUDE_MAX,
-        }),
-    ]
+    const coords = clampLatitude(geoFeature.geoCentroid)
 
     // make sure the whole country is visible after zooming
-    const zoomToFit = calculateZoomToFitForGeoFeature(geoFeature.geo)
+    const zoomToFit = calculateZoomToFitForCountry(geoFeature)
     const targetZoom = Math.min(zoom ?? GLOBE_COUNTRY_ZOOM, zoomToFit)
 
     return { coords, zoom: targetZoom }
 }
 
-function calculateZoomToFitForGeoFeature(geoFeature: GeoFeature): number {
-    const centerPoint = getCenterPoint(geoFeature)
+function calculateZoomToFitForCountry(feature: GlobeRenderFeature): number {
+    const centerPoint = clampLatitude(feature.geoCentroid)
     const projection = geoOrthographic().rotate(negateCoords(centerPoint))
 
-    const corners = geoPath().projection(projection).bounds(geoFeature)
+    const corners = geoPath().projection(projection).bounds(feature.geo)
     const bounds = Bounds.fromCorners(
         new PointVector(...corners[0]),
         new PointVector(...corners[1])
@@ -357,18 +362,24 @@ function getCoordsBasedOnTime(): [number, number] {
 function getCenterForCountryCollection(
     countryNames: string[]
 ): [number, number] {
-    const featureCollection = makeFeatureCollectionForCountries(countryNames)
-    return getCenterPoint(featureCollection)
+    // the spherical centroid of the countries' centroids
+    const coordinates = excludeUndefined(
+        countryNames.map((name) => geoFeaturesById.get(name)?.geoCentroid)
+    )
+    const centerPoint = geoCentroid({ type: "MultiPoint", coordinates })
+
+    // the centroid isn't well-defined for all inputs, e.g. there is no single
+    // point closest to two exactly antipodal points. d3 returns NaN coords in such cases.
+    if (!Number.isFinite(centerPoint[0]) || !Number.isFinite(centerPoint[1]))
+        return DEFAULT_GLOBE_ROTATION
+
+    return clampLatitude(centerPoint)
 }
 
-function getCenterPoint(
-    geojson: GeoFeature | FeatureCollection
-): [number, number] {
-    const centerPoint = center(geojson)
-
+function clampLatitude([lon, lat]: [number, number]): [number, number] {
     return [
-        centerPoint.geometry.coordinates[0],
-        R.clamp(centerPoint.geometry.coordinates[1], {
+        lon,
+        R.clamp(lat, {
             min: GLOBE_LATITUDE_MIN,
             max: GLOBE_LATITUDE_MAX,
         }),
@@ -406,82 +417,46 @@ function findVisibleCountrySubset(countryNames: string[]): string[] {
     // rotate the globe to the center point of all given countries,
     // and find all countries that are then visible on the globe
     const centerPoint = getCenterForCountryCollection(countryNames)
-    const projection = geoOrthographic().rotate(negateCoords(centerPoint))
     const visibleCountries = countryNames.filter((countryName) => {
         const feature = geoFeaturesById.get(countryName)
         if (!feature) return false
 
-        // check if the centroid is visible
-        const isCentroidVisible = isPointPlacedOnVisibleHemisphere(
-            feature.geoCentroid,
-            centerPoint
-        )
-        if (!isCentroidVisible) return false
-
-        // if the centroid is visible, then also check if the bounds are
-        // visible (if they're infinite, then they're not)
-        const corners = geoPath().projection(projection).bounds(feature.geo)
-        if (corners[0][0] === Number.POSITIVE_INFINITY) return false
-
-        return true
+        // check if the centroid is close enough to the center point
+        const distance = geoDistance(feature.geoCentroid, centerPoint)
+        return distance < MAX_VISIBLE_CENTROID_DISTANCE
     })
 
     // it's possible for no country to be visible if the countries are on opposite
     // sides from the globe. in that case, we need to drop a subset of countries
     if (visibleCountries.length === 0) {
-        // cluster countries into two groups based on their centroid longitude
-        const clusters = clusterCountriesByCentroidLongitude(countryNames)
+        // split countries into the two halves of the globe they're on
+        const [near, far] = partitionCountriesByHemisphere(countryNames)
 
-        // keep the bigger cluster
-        // (if both clusters have the same number of countries, keep any)
-        return clusters[0].length > clusters[1].length
-            ? clusters[0]
-            : clusters[1]
+        // keep the bigger half
+        return near.length > far.length ? near : far
     }
 
     return visibleCountries
 }
 
-function clusterCountriesByCentroidLongitude(
+function partitionCountriesByHemisphere(
     countryNames: string[]
-): string[][] {
-    const nameToLon: Record<string, number> = {}
-    const lonToName: Record<number, string> = {}
-
-    // map country names to their centroid's longitude and vice versa
-    // (assumes that no two countries have the same longitude)
-    countryNames.forEach((countryName) => {
-        const feature = geoFeaturesById.get(countryName)
-        if (!feature) return
-
-        const lon = R.round(feature.geoCentroid[0], 5)
-        nameToLon[countryName] = lon
-        lonToName[lon] = countryName
-    })
-
-    // cluster longitudes into two groups
-    const clusters = ckmeans(
-        excludeUndefined(countryNames.map((name) => nameToLon[name])),
-        2
-    )
-
-    // map longitudes back to country names
-    return clusters.map((cluster) =>
-        cluster.map((centroidLon) => lonToName[centroidLon])
-    )
-}
-
-function makeFeatureCollectionForCountries(
-    countryNames: string[]
-): FeatureCollection {
+): [string[], string[]] {
     const features = excludeUndefined(
         countryNames.map((name) => geoFeaturesById.get(name))
     )
 
-    return {
-        type: "FeatureCollection",
-        features: features.map((feature) => feature.geo),
-    }
+    // split into countries that are less and more than a quarter turn away
+    // from the reference point, i.e. into the half of the globe centered on
+    // the reference point and the opposite one
+    const [near, far] = R.partition(
+        features,
+        (feature) =>
+            geoDistance(feature.geoCentroid, HEMISPHERE_REFERENCE_POINT) <
+            Math.PI / 2
+    )
+
+    return [near.map((feature) => feature.id), far.map((feature) => feature.id)]
 }
 
 function addLongitudeOffset(

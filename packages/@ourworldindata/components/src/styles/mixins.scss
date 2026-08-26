@@ -51,43 +51,6 @@
     }
 }
 
-@mixin dod-container {
-    padding: 16px;
-    max-height: 300px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    @include body-3-regular;
-
-    > span.markdown-text-wrap {
-        > .markdown-text-wrap__line:first-child {
-            font-weight: bold;
-            font-size: 1rem;
-        }
-
-        > .markdown-text-wrap__line:not(:first-child) {
-            margin-top: 8px;
-            font-size: 0.875rem;
-        }
-
-        a {
-            @include owid-link-90;
-        }
-    }
-}
-
-@mixin dod-span {
-    text-decoration: underline;
-    text-decoration-style: dotted;
-    text-underline-offset: 2px;
-    cursor: help;
-
-    span,
-    strong,
-    em {
-        pointer-events: none;
-    }
-}
-
 @mixin info {
     font-size: 0.875rem;
 
@@ -280,7 +243,7 @@
     outline: none;
     padding: 0.25rem;
     color: $blue-100;
-    transition: all 150ms;
+    transition: background-color 150ms ease;
     &:hover {
         background-color: $blue-20;
     }
@@ -364,7 +327,9 @@
         rgba(0, 0, 0, 0.25) 0px 1px 2px 0px;
     padding: 10px;
     background-color: #fff;
-    transition: all 300ms ease;
+    transition:
+        box-shadow var(--duration-press) ease,
+        opacity var(--duration-press) ease;
 }
 
 @mixin image-hover {
@@ -434,7 +399,7 @@
     background-color: $blue-20;
     cursor: pointer;
     border: none;
-    transition: background-color 0.1s ease-in-out;
+    transition: background-color var(--duration-hover) ease;
     @include sm-up {
         display: inline-block;
     }

@@ -11,7 +11,7 @@ import { DataTable } from "../dataTable/DataTable"
 import { CaptionedChartManager } from "../captionedChart/CaptionedChart"
 import { LoadingIndicator } from "@ourworldindata/components"
 import { FacetChart } from "../facet/FacetChart"
-import { getChartSvgProps, NoDataPattern } from "./ChartUtils"
+import { ChartPatternDefs, getChartSvgProps } from "./ChartUtils"
 import { ChartComponent, makeChartState } from "./ChartTypeMap"
 import { GRAPHER_CHART_AREA_CLASS } from "../core/GrapherConstants"
 import { ChartState } from "./ChartInterface"
@@ -48,14 +48,6 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
         return undefined
     }
 
-    private renderNoDataPattern(): React.ReactElement {
-        return (
-            <defs>
-                <NoDataPattern />
-            </defs>
-        )
-    }
-
     @computed private get chartState(): ChartState | undefined {
         if (!this.activeChartOrMapType) return undefined
         return makeChartState(this.activeChartOrMapType, this.manager)
@@ -64,7 +56,7 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
     private renderLoadingIndicatorIntoSvg(): React.ReactElement {
         return (
             <foreignObject {...this.bounds.toProps()}>
-                <LoadingIndicator title={this.manager.whatAreWeWaitingFor} />
+                <LoadingIndicator title="Loading data..." />
             </foreignObject>
         )
     }
@@ -115,7 +107,7 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
                     height={height}
                     viewBox={`0 0 ${width} ${height}`}
                 >
-                    {this.renderNoDataPattern()}
+                    <ChartPatternDefs />
                     {this.manager.isReady
                         ? this.renderReadyChartOrMap()
                         : this.renderLoadingIndicatorIntoSvg()}
@@ -135,9 +127,7 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
                 {this.manager.isReady ? (
                     <DataTable bounds={bounds} manager={this.manager} />
                 ) : (
-                    <LoadingIndicator
-                        title={this.manager.whatAreWeWaitingFor}
-                    />
+                    <LoadingIndicator title="Loading data..." />
                 )}
             </div>
         )

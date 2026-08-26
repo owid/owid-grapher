@@ -1,5 +1,5 @@
 import { PartialBy, PointVector } from "@ourworldindata/utils"
-import { EntityName, OwidVariableRow, SideWidths } from "@ourworldindata/types"
+import { EntityName, OwidVariableRow } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
@@ -10,7 +10,6 @@ export interface SlopeChartManager extends ChartManager {
     canSelectMultipleEntities?: boolean // used to pick an appropriate series name
     hasTimeline?: boolean // used to filter the table for the entity selector
     hideNoDataSection?: boolean
-    sharedVerticalLabelWidths?: SideWidths
 }
 
 export interface SlopeChartSeries extends ChartSeries {

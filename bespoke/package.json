@@ -3,6 +3,7 @@
     "packageManager": "yarn@4.17.1",
     "workspaces": [
         "components/",
+        "helpers/",
         "hooks/",
         "projects/*"
     ],
@@ -13,8 +14,8 @@
     },
     "devDependencies": {
         "@rollup/plugin-swc": "^0.4.1",
-        "@vitejs/plugin-react": "^6.0.2",
-        "vite": "^8.0.16",
-        "vitest": "^4.1.8"
+        "@vitejs/plugin-react": "^6.0.4",
+        "vite": "^8.1.5",
+        "vitest": "^4.1.10"
     }
 }

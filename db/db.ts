@@ -40,6 +40,7 @@ import {
     TagGraphRoot,
     FeaturedMetricByParentTagNameDictionary,
     ChartConfigsTableName,
+    ChartsTableName,
     FeaturedMetricsTableName,
     TagsTableName,
     PostsGdocsXTagsTableName,
@@ -365,7 +366,7 @@ export const getTotalNumberOfCharts = (
             SELECT COUNT(*) AS count
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
-            WHERE cc.full ->> "$.isPublished" = "true"
+            WHERE cc.config ->> "$.isPublished" = "true"
         `
     ).then((res) => res?.count ?? 0)
 }
@@ -417,6 +418,11 @@ export const getHomepageAnnouncements = (
         AND pg.publishedAt <= NOW()
         AND pg.type = '${OwidGdocType.Announcement}'
         AND pg.publicationContext = 'listed'
+        -- Topic updates are surfaced as topic pages in the homepage's featured
+        -- work column, so listing them here too would show them twice.
+        -- COALESCE because a kicker-less announcement has a JSON NULL here,
+        -- which would otherwise make the comparison NULL and drop the row.
+        AND COALESCE(pg.content ->> '$.kicker', '') != 'topic-update'
         ORDER BY pg.publishedAt DESC
         LIMIT 3
         `
@@ -1433,10 +1439,11 @@ export async function validateChartSlug(
         const grapher = await knexRaw(
             trx,
             `-- sql
-            SELECT id
-            FROM ${ChartConfigsTableName}
-            WHERE slug = ?
-            AND full->>"$.isPublished" = "true"`,
+            SELECT c.id
+            FROM ${ChartConfigsTableName} cc
+            JOIN ${ChartsTableName} c ON c.configId = cc.id
+            WHERE cc.slug = ?
+            AND cc.config->>"$.isPublished" = "true"`,
             [slug]
         ).then((rows) => rows[0])
 

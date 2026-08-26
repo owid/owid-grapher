@@ -171,23 +171,48 @@
     top: -1px;
 }
 
-.meta-expander__list {
-    margin-left: 24px;
+// free-form markdown rendering of descriptionKey
+.meta-expander__prose {
+    p,
+    ul,
+    ol {
+        @include body-2-regular;
+        margin: 0 0 8px;
+    }
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @include body-2-bold-tight;
+        color: $blue-90;
+        margin: 0 0 8px;
+        &:not(:first-child) {
+            margin-top: 16px;
+        }
+    }
+    p:last-child,
+    ul:last-child,
+    ol:last-child {
+        margin-bottom: 0;
+    }
+    ul,
+    ol {
+        padding-left: 1.5em;
+    }
+    li {
+        margin-bottom: 8px;
+    }
     a {
         @include owid-link-90;
     }
-    ul {
-        margin-left: 24px;
-    }
 }
 
-.meta-expander__list-item {
-    margin-bottom: 8px;
-
-    p {
-        @include body-2-regular;
-        margin: 0;
-    }
+// the part of the descriptionKey revealed by expanding the box; continues
+// right below the preview
+.meta-expander__remainder {
+    margin-top: 8px;
 }
 
 .meta-expander__section {

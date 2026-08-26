@@ -37,6 +37,20 @@
     }
 }
 
+.key-info__key-description {
+    p {
+        margin: 8px 0;
+
+        &:first-of-type {
+            margin-top: 0;
+        }
+
+        &:last-of-type {
+            margin-bottom: 0;
+        }
+    }
+}
+
 .key-info__expandable-descriptions {
     p {
         margin: 8px 0;
@@ -61,12 +75,10 @@
 }
 
 .key-info__learn-more {
-    margin-top: 24px;
-    @include expandable-paragraph__expand-button--full;
+    margin-top: 16px;
 
-    svg {
-        font-size: 0.75em;
-        margin-left: 12px;
+    @include sm-up {
+        display: inline-block;
     }
 }
 

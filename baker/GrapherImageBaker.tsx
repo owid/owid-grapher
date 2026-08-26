@@ -56,14 +56,14 @@ export async function getPublishedGraphersBySlug(
 
     // Select all graphers that are published
     const sql = `-- sql
-        SELECT c.id, cc.full as config
+        SELECT c.id, cc.config as config
         FROM charts c
         JOIN chart_configs cc ON c.configId = cc.id
-        WHERE cc.full ->> "$.isPublished" = 'true'
+        WHERE cc.config ->> "$.isPublished" = 'true'
     `
 
     const query = db.knexRaw<
-        Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
+        Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["config"] }
     >(knex, sql)
     for (const row of await query) {
         const grapher = JSON.parse(row.config)

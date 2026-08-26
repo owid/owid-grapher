@@ -1,4 +1,3 @@
-import { useParentSize } from "@visx/responsive"
 import { Group } from "@visx/group"
 
 import { Bounds } from "@ourworldindata/utils"
@@ -12,6 +11,7 @@ import {
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
+import { ResponsiveContainer } from "../../../../components/ResponsiveContainer/ResponsiveContainer.js"
 
 import "./Chart.scss"
 import {
@@ -20,16 +20,16 @@ import {
 } from "@ourworldindata/components"
 
 export function Chart() {
-    const { parentRef, width, height } = useParentSize()
-
     return (
         <Frame className="example-chart">
             <ChartHeader
                 title="Example chart"
                 subtitle="This is an example chart using @visx components."
             />
-            <div className="example-chart__area" ref={parentRef}>
-                <ChartArea width={width} height={height} />
+            <div className="example-chart__area">
+                <ResponsiveContainer>
+                    {(dimensions) => <ChartArea {...dimensions} />}
+                </ResponsiveContainer>
             </div>
             <ChartFooter source="Example data source" note="Example note" />
         </Frame>
@@ -40,8 +40,6 @@ const MARKDOWN_TEXT = `**Demo of using _MarkdownTextWrap_**:
 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.`
 
 function ChartArea({ width, height }: { width: number; height: number }) {
-    if (width <= 0 || height <= 0) return null
-
     // Bounds of the entire SVG
     const bounds = new Bounds(0, 0, width, height)
 

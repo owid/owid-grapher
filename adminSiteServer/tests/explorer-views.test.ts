@@ -379,8 +379,9 @@ graphers
         }
 
         const finalChartConfigsCount = await getChartConfigsCount()
-        // Should only have the original 2 test charts left (explorer view configs are deleted)
-        expect(finalChartConfigsCount).toBe(2)
+        // Should only have the original 2 test charts left (explorer view configs
+        // are deleted). Each chart keeps two configs: the full config and the patch config.
+        expect(finalChartConfigsCount).toBe(4)
     })
 
     it("should handle error cases gracefully", async () => {

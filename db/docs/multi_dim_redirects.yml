@@ -5,7 +5,9 @@ fields:
   id:
     description: Unique identifier for the redirect
   source:
-    description: Source path that should redirect to a multi-dim page or view (unique)
+    description: Source path that should redirect to a multi-dim page or view
+  sourceQueryParams:
+    description: Optional JSON object of source query parameters to match for redirecting
   multiDimId:
     description: Foreign key to multi_dim_data_pages.id identifying the target multi-dim page
   viewConfigId:

@@ -2,8 +2,10 @@ import { Bounds } from "@ourworldindata/utils"
 import { DetailsMarker } from "@ourworldindata/types"
 
 export interface HeaderManager {
-    currentTitle?: string
-    currentSubtitle?: string
+    mainTitle?: string
+    titleAnnotation?: string
+    fullTitle?: string
+    effectiveSubtitle?: string
     hideLogo?: boolean
     shouldLinkToOwid?: boolean
     logo?: string

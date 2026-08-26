@@ -30,13 +30,12 @@ import {
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import { getChartConfigBySlug } from "../db/model/Chart.js"
+import { getChartConfigByUuid } from "../db/model/ChartConfigs.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { getVariableData, getVariableMetadata } from "../db/model/Variable.js"
 import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage.js"
 import {
-    DbRawChartConfig,
     JsonError,
-    parseChartConfig,
     TombstonePageData,
     gdocUrlRegex,
     OwidGdocMinimalPostInterface,
@@ -225,13 +224,8 @@ getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/grapher/by-uuid/:uuid.config.json",
     async (req, res, trx) => {
-        const chartRow = await db.knexRawFirst<Pick<DbRawChartConfig, "full">>(
-            trx,
-            "SELECT full FROM chart_configs WHERE id = ?",
-            [req.params.uuid]
-        )
-        if (!chartRow) throw new JsonError("No such chart", 404)
-        const config = parseChartConfig(chartRow.full)
+        const config = await getChartConfigByUuid(trx, req.params.uuid)
+        if (!config) throw new JsonError("No such chart", 404)
         res.json(config)
     }
 )
@@ -261,13 +255,9 @@ getPlainRouteWithROTransaction(
                 multiDim.config,
                 searchParams
             )
-            const configRow = await db.knexRawFirst<
-                Pick<DbRawChartConfig, "full">
-            >(trx, "SELECT full FROM chart_configs WHERE id = ?", [
-                view.fullConfigId,
-            ])
-            if (configRow) {
-                res.json(parseChartConfig(configRow.full))
+            const config = await getChartConfigByUuid(trx, view.fullConfigId)
+            if (config) {
+                res.json(config)
                 return
             }
         }

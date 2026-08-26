@@ -11,7 +11,6 @@ import { UserEditPage } from "./UserEditPage.js"
 import { VariableEditPage } from "./VariableEditPage.js"
 import { VariablesIndexPage } from "./VariablesIndexPage.js"
 import { DatasetEditPage } from "./DatasetEditPage.js"
-import { VariablesAnnotationPage } from "./VariablesAnnotationPage.js"
 import { SourceEditPage } from "./SourceEditPage.js"
 import { RedirectsIndexPage } from "./RedirectsIndexPage.js"
 import SiteRedirectsIndexPage from "./SiteRedirectsIndexPage"
@@ -19,6 +18,7 @@ import { TagEditPage } from "./TagEditPage.js"
 import { TagsIndexPage } from "./TagsIndexPage.js"
 import { TagGraphPage } from "./TagGraphPage.js"
 import { TestIndexPage } from "./TestIndexPage.js"
+import { TestRegionMapsPage } from "./TestRegionMapsPage.js"
 import { NotFoundPage } from "./NotFoundPage.js"
 import { DeployStatusPage } from "./DeployStatusPage.js"
 import { ExplorerTagsPage } from "./ExplorerTagsPage.js"
@@ -41,8 +41,6 @@ import { OrphanedArticlesIndexPage } from "./OrphanedArticlesIndexPage.js"
 import { GdocsMatchProps, GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsCoverageMatrixPage } from "./GdocsCoverageMatrixPage.js"
 import { CalloutFunctionsPage } from "./CalloutFunctionsPage.js"
-import { GdocsStoreProvider } from "./GdocsStoreProvider.js"
-import { IndicatorChartEditorPage } from "./IndicatorChartEditorPage.js"
 import { CreateNarrativeChartEditorPage } from "./CreateNarrativeChartEditorPage.js"
 import { NarrativeChartEditorPage } from "./NarrativeChartEditorPage.js"
 import { NarrativeChartIndexPage } from "./NarrativeChartIndexPage.js"
@@ -55,6 +53,8 @@ import MultiDimRedirectsIndexPage from "./MultiDimRedirectsIndexPage.js"
 import { FeaturedMetricsPage } from "./FeaturedMetricsPage.js"
 import { DodsIndexPage } from "./DodsIndexPage.js"
 import { StaticVizIndexPage } from "./StaticVizIndexPage.js"
+import { SvgTesterIndexPage } from "./SvgTesterIndexPage.js"
+import { SvgTesterSuitePage } from "./SvgTesterSuitePage.js"
 import { StaticVizEditPage } from "./StaticVizEditPage.js"
 import { SlideshowsIndexPage } from "./slideshows/SlideshowsIndexPage.js"
 import { SlideshowEditorPage } from "./slideshows/SlideshowEditorPage.js"
@@ -235,6 +235,20 @@ export class AdminApp extends React.Component<{
                                 />
                                 <Route
                                     exact
+                                    path="/svgtester"
+                                    component={SvgTesterIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/svgtester/:suite"
+                                    render={({ match }) => (
+                                        <SvgTesterSuitePage
+                                            key={match.params.suite}
+                                        />
+                                    )}
+                                />
+                                <Route
+                                    exact
                                     path="/static-viz"
                                     component={StaticVizIndexPage}
                                 />
@@ -294,11 +308,6 @@ export class AdminApp extends React.Component<{
                                 />
                                 <Route
                                     exact
-                                    path={`/variable-annotations`}
-                                    render={() => <VariablesAnnotationPage />}
-                                />
-                                <Route
-                                    exact
                                     path="/users/:userId"
                                     render={({ match }) => (
                                         <UserEditPage
@@ -312,17 +321,6 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/users"
                                     component={UsersIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/variables/:variableId/config"
-                                    render={({ match }) => (
-                                        <IndicatorChartEditorPage
-                                            variableId={parseInt(
-                                                match.params.variableId
-                                            )}
-                                        />
-                                    )}
                                 />
                                 <Route
                                     exact
@@ -405,20 +403,14 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/gdocs/:id/preview"
                                     render={(props: GdocsMatchProps) => (
-                                        <GdocsStoreProvider>
-                                            <GdocsPreviewPage {...props} />
-                                        </GdocsStoreProvider>
+                                        <GdocsPreviewPage {...props} />
                                     )}
                                 />
                                 <Route
                                     exact
                                     path="/gdocs/:id/coverage"
                                     render={(props: GdocsMatchProps) => (
-                                        <GdocsStoreProvider>
-                                            <GdocsCoverageMatrixPage
-                                                {...props}
-                                            />
-                                        </GdocsStoreProvider>
+                                        <GdocsCoverageMatrixPage {...props} />
                                     )}
                                 />
                                 <Route
@@ -429,9 +421,7 @@ export class AdminApp extends React.Component<{
                                 <Route
                                     path="/gdocs"
                                     render={(props: RouteComponentProps) => (
-                                        <GdocsStoreProvider>
-                                            <GdocsIndexPage {...props} />
-                                        </GdocsStoreProvider>
+                                        <GdocsIndexPage {...props} />
                                     )}
                                 />
                                 <Route
@@ -442,6 +432,11 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/test"
                                     component={TestIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/test-region-maps"
+                                    component={TestRegionMapsPage}
                                 />
                                 <Route
                                     exact

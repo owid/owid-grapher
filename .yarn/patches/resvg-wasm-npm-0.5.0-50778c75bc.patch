@@ -1,0 +1,50 @@
+diff --git a/lib.browser/core/resvg_wasm.js b/lib.browser/core/resvg_wasm.js
+index 23ea8af6b46f9775ec84077c16b7c0877cd23f80..3bb5b3a5a49118290a627ddca627c749db90b11c 100644
+--- a/lib.browser/core/resvg_wasm.js
++++ b/lib.browser/core/resvg_wasm.js
+@@ -1,9 +1,15 @@
+ /* @ts-self-types="./resvg_wasm.d.ts" */
+ 
+-import * as wasm from "./resvg_wasm_bg.wasm";
+-import { __wbg_set_wasm } from "./resvg_wasm_bg.js";
+-__wbg_set_wasm(wasm);
+-wasm.__wbindgen_start();
++// Patched for Cloudflare workerd: importing a .wasm file there yields an
++// uninstantiated WebAssembly.Module (not the instantiated exports that the
++// wasm-bindgen "bundler" target expects), so instantiate it manually.
++import wasmModule from "./resvg_wasm_bg.wasm";
++import * as bg from "./resvg_wasm_bg.js";
++const instance = await WebAssembly.instantiate(wasmModule, {
++    "./resvg_wasm_bg.js": bg,
++});
++bg.__wbg_set_wasm(instance.exports);
++instance.exports.__wbindgen_start();
+ export {
+     Context, newContext
+ } from "./resvg_wasm_bg.js";
+diff --git a/package.json b/package.json
+index 1c1f2b821dcf0f984c9c2d50ba306050e65d1f32..827127fe1248b57a0180cb72866a4ce080468c24 100644
+--- a/package.json
++++ b/package.json
+@@ -13,15 +13,18 @@
+   "exports": {
+     ".": {
+       "module": "./lib.browser/index.js",
+-      "node": "./lib/index.js"
++      "node": "./lib/index.js",
++      "default": "./lib.browser/index.js"
+     },
+     "./*": {
+       "module": "./lib.browser/*.js",
+-      "node": "./lib/*.js"
++      "node": "./lib/*.js",
++      "default": "./lib.browser/*.js"
+     },
+     "./core/*": {
+       "module": "./lib.browser/core/*.js",
+-      "node": "./lib/core/*.js"
++      "node": "./lib/core/*.js",
++      "default": "./lib.browser/core/*.js"
+     }
+   },
+   "engines": {

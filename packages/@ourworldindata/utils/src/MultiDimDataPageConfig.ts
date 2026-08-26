@@ -9,6 +9,7 @@ import {
     OwidChartDimensionInterface,
     DimensionProperty,
     MultiDimDataPageConfigEnriched,
+    normalizeDescriptionKey,
     OwidVariableWithSourceAndDimension,
 } from "@ourworldindata/types"
 import * as _ from "lodash-es"
@@ -169,11 +170,14 @@ export class MultiDimDataPageConfig {
     ): OwidVariableWithSourceAndDimension {
         const mdimConfigView = this.findViewByDimensions(dimensions)
 
-        return merge(
+        const merged = merge(
             variableMetadata,
             this.config.metadata ?? {},
             mdimConfigView?.metadata ?? {}
         )
+        // Configs written before the string migration hold descriptionKey arrays.
+        merged.descriptionKey = normalizeDescriptionKey(merged.descriptionKey)
+        return merged
     }
 
     findViewDimensionsByConfigId(

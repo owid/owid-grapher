@@ -51,7 +51,11 @@ export class Tooltip extends React.Component<ManagedTooltipProps> {
     }
 
     @action.bound private removeToolTipFromContainer(): void {
-        this.props.tooltipManager.tooltip?.set(undefined)
+        const { tooltip } = this.props.tooltipManager
+        // Clear the shared tooltip only if this instance still owns it.
+        // This prevents an older tooltip (e.g. from another facet) from
+        // clearing the active one and causing flicker while moving between facets.
+        if (tooltip?.get()?.id === this.props.id) tooltip.set(undefined)
     }
 
     override componentDidUpdate(): void {

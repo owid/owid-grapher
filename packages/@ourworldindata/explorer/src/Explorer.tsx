@@ -18,6 +18,7 @@ import {
     OwidTable,
     BlankOwidTable,
     parseTransformString,
+    TransformParamType,
 } from "@ourworldindata/core-table"
 import {
     EntityPicker,
@@ -82,7 +83,6 @@ import {
     migrateExplorerUrl,
 } from "./urlMigrations/ExplorerUrlMigrations.js"
 import { match } from "ts-pattern"
-import { TransformParamType } from "@ourworldindata/core-table/src/Transforms.js"
 
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
@@ -1256,8 +1256,12 @@ export class Explorer
         } else {
             const discardColumnTypes = new Set([
                 ColumnTypeNames.Year,
+                ColumnTypeNames.Decade,
                 ColumnTypeNames.Date,
                 ColumnTypeNames.Day,
+                ColumnTypeNames.Week,
+                ColumnTypeNames.Month,
+                ColumnTypeNames.Quarter,
                 ColumnTypeNames.EntityId,
                 ColumnTypeNames.EntityCode,
             ])

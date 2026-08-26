@@ -4,9 +4,16 @@ How to set up a cloud environment so Claude Code sessions can run the full
 grapher dev stack (MySQL + admin server + vite) inside the sandbox, with the
 production metadata database pre-imported.
 
+With that in place a session can build a feature, show you a screenshot of the
+running site (site search included), and push a branch with its own staging
+server — all from a browser or your phone. Setup is a couple of minutes of
+clicking plus a one-off automated build.
+
 ## Create the environment
 
-At <https://claude.ai/code>, open the environment selector → **Add environment**:
+At <https://claude.ai/code>, open the environment selector above the chat input
+(labelled **Default**) → **Add environment**. First-time users are redirected to
+onboarding instead; the same settings apply.
 
 - **Name**: `owid-grapher`
 - **Network access**: Full
@@ -26,6 +33,9 @@ At <https://claude.ai/code>, open the environment selector → **Add environment
     ```
 
 - **Setup script**: paste the script below.
+
+Back in the chat, pick the `owid/owid-grapher` repository in the repo picker
+next to the environment selector, then start your first session.
 
 The first session triggers the setup script (~10 minutes: installs MySQL,
 imports the metadata dump). The resulting filesystem is snapshotted, so later
@@ -95,3 +105,5 @@ A small end-to-end feature demo:
 > the counts to the toggle labels, take a screenshot of
 > /search?q=malaria&resultType=all to show me, then push the branch and give
 > me the staging link.
+
+Sonnet 5 handles this kind of work well; Fable 5 if you have usage to spare.

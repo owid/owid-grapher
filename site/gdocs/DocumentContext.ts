@@ -1,9 +1,10 @@
 import { createContext, useContext } from "react"
-import { ArchiveContext } from "@ourworldindata/types"
+import { ArchiveContext, OwidGdocType } from "@ourworldindata/types"
 
 export const DocumentContext = createContext<{
     isPreviewing: boolean
     archiveContext?: ArchiveContext
+    gdocType?: OwidGdocType
 }>({
     isPreviewing: false,
 })

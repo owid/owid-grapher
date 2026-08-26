@@ -54,6 +54,11 @@ import {
     RESEARCH_AND_WRITING_DEFAULT_HEADING,
     CHRONOLOGICAL_INDEX_TYPES,
     LATEST_FEED_TYPES,
+    SUB_YEARLY_TIME_INTERVALS,
+    TIME_INTERVALS,
+    TimeInterval,
+    type SubYearlyTimeInterval,
+    type OwidVariableDisplayConfigInterface,
 } from "@ourworldindata/types"
 import { Point, PointVector } from "./PointVector.js"
 import * as React from "react"
@@ -206,11 +211,29 @@ export function makeFigmaId(...unsafeKeys: (string | undefined)[]): string {
     return makeSafeForFigma(unsafeKeys.filter((key) => key).join("__"))
 }
 
+// The epoch, parsed once (lazily) as a dayjs object and reused across the
+// codebase so we don't repeatedly re-parse the ISO string. Uses dayjs' UTC
+// mode, which forces dayjs to format in UTC time instead of local time, making
+// dates consistent no matter what timezone the user is in.
+//
+// Parsing is deferred via `lazy` rather than done at module load so the object
+// isn't created before the `timezone-mock` used in tests is registered (a dayjs
+// object backed by a native Date created outside the mock can't be cloned once
+// the mock is active).
+
+export const epochDate = lazy(() => dayjs.utc(EPOCH_DATE))
+
+const MS_PER_DAY = 86_400_000
+export const toStartOfDayUtc = (date: dayjs.Dayjs): dayjs.Dayjs =>
+    date.valueOf() % MS_PER_DAY === 0 ? date : date.utc().startOf("day")
+
 export function convertDaysSinceEpochToDate(dayAsYear: number): dayjs.Dayjs {
-    // Use dayjs' UTC mode
-    // This will force dayjs to format in UTC time instead of local time,
-    // making dates consistent no matter what timezone the user is in.
-    return dayjs.utc(EPOCH_DATE).add(dayAsYear, "days")
+    return epochDate().add(dayAsYear, "days")
+}
+
+// Inverse of convertDaysSinceEpochToDate.
+export function convertDateToDaysSinceEpoch(date: dayjs.Dayjs): number {
+    return diffDatesInDays(date, epochDate())
 }
 
 export function formatDay(
@@ -219,6 +242,68 @@ export function formatDay(
 ): string {
     const format = options?.format ?? "MMM D, YYYY"
     return convertDaysSinceEpochToDate(dayAsYear).format(format)
+}
+
+/**
+ * Resolves the time interval of an indicator from its display config,
+ * defaulting to `year` when not set.
+ */
+export function getTimeInterval(
+    display?: OwidVariableDisplayConfigInterface
+): TimeInterval {
+    return display?.timeInterval ?? TimeInterval.Year
+}
+
+/**
+ * Whether the interval is finer than a year and therefore encoded as
+ * days-since-epoch (day/week/month/quarter)
+ */
+export function isSubYearly(
+    interval: TimeInterval
+): interval is SubYearlyTimeInterval {
+    return SUB_YEARLY_TIME_INTERVALS.some((subYearly) => subYearly === interval)
+}
+
+/**
+ * The finest interval that can represent every one of the given intervals'
+ * times, e.g. `day` for day + month. Weeks start on ISO Mondays and
+ * months/quarters on period starts, so those grids don't nest: a mix of them
+ * falls back to `day`, the grid that contains every other.
+ */
+export function findFinestCommonTimeInterval(
+    intervals: TimeInterval[]
+): TimeInterval {
+    const finest =
+        TIME_INTERVALS.find((interval) => intervals.includes(interval)) ??
+        TimeInterval.Year
+    const mixesWeeksWithLongerPeriods =
+        finest === TimeInterval.Week &&
+        intervals.some(
+            (interval) =>
+                interval === TimeInterval.Month ||
+                interval === TimeInterval.Quarter
+        )
+    return mixesWeeksWithLongerPeriods ? TimeInterval.Day : finest
+}
+
+/**
+ * Snap a time to the start of its interval, so indicators that pick different
+ * representative days for the same period still align: month → first of the
+ * month, quarter → first of the quarter, week → the ISO-week Monday. Day and
+ * year are returned unchanged.
+ */
+export function snapToIntervalStart(
+    time: number,
+    interval: TimeInterval
+): number {
+    if (!Number.isFinite(time)) return time
+    const date = convertDaysSinceEpochToDate(time)
+    let start: dayjs.Dayjs
+    if (interval === TimeInterval.Month) start = date.startOf("month")
+    else if (interval === TimeInterval.Quarter) start = date.startOf("quarter")
+    else if (interval === TimeInterval.Week) start = date.startOf("isoWeek")
+    else return time
+    return convertDateToDaysSinceEpoch(start)
 }
 
 export const formatYear = (year: number): string => {
@@ -518,6 +603,8 @@ export async function fetchJson<TResult>(
     return response.json()
 }
 
+export class TimeoutError extends Error {}
+
 // Adapted from https://github.com/sindresorhus/ky/blob/main/source/utils/timeout.ts
 export async function fetchWithTimeout(
     url: string,
@@ -529,7 +616,7 @@ export async function fetchWithTimeout(
     return new Promise((resolve, reject) => {
         const timeoutId = setTimeout(() => {
             abortController.abort()
-            reject(new Error(`Request timed out: ${url}`))
+            reject(new TimeoutError(`Request timed out: ${url}`))
         }, timeoutMs)
 
         void fetch(url, { ...options, signal: abortController.signal })
@@ -708,18 +795,11 @@ export const valuesByEntityAtTimes = (
         valuesAtTimes(valueByTime, targetTimes, tolerance)
     )
 
-const MS_PER_DAY = 1000 * 60 * 60 * 24
-
-// From https://stackoverflow.com/a/15289883
-export function dateDiffInDays(a: Date, b: Date): number {
-    // Discard the time and time-zone information.
-    const utca = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate())
-    const utcb = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate())
-    return Math.floor((utca - utcb) / MS_PER_DAY)
+export const diffDatesInDays = (a: dayjs.Dayjs, b: dayjs.Dayjs): number => {
+    const aUtc = toStartOfDayUtc(a)
+    const bUtc = toStartOfDayUtc(b)
+    return Math.trunc((aUtc.valueOf() - bUtc.valueOf()) / MS_PER_DAY)
 }
-
-export const diffDateISOStringInDays = (a: string, b: string): number =>
-    dayjs.utc(a).diff(dayjs.utc(b), "day")
 
 export const getYearFromISOStringAndDayOffset = (
     epoch: string,
@@ -925,10 +1005,12 @@ export const mapNullToUndefined = <T>(
     array: (T | undefined | null)[]
 ): (T | undefined)[] => array.map((v) => (v === null ? undefined : v))
 
+// A word is treated as an abbreviation, and keeps its casing, if its second
+// character is uppercase (e.g. "CO2", "HIV/AIDS", "SDG").
+const isAbbreviation = (word: string): boolean => /[A-Z]/.test(word.charAt(1))
+
 export const lowerCaseFirstLetterUnlessAbbreviation = (str: string): string =>
-    str.charAt(1).match(/[A-Z]/)
-        ? str
-        : str.charAt(0).toLowerCase() + str.slice(1)
+    isAbbreviation(str) ? str : str.charAt(0).toLowerCase() + str.slice(1)
 
 /**
  * Use with caution - please note that this sort function only sorts on numeric data, and that sorts
@@ -1378,7 +1460,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
         textarea.select()
 
         try {
-            // oxlint-disable-next-line typescript/no-deprecated we're using a deprecated API only as a fallback here
+            // oxlint-disable-next-line typescript/no-deprecated -- we're using a deprecated API only as a fallback here
             return document.execCommand("copy")
         } catch (err) {
             console.error("Failed to copy text to clipboard", err)
@@ -1537,6 +1619,7 @@ export function recursivelyMapArticleContent(
     } else if (node.type === "key-insights") {
         node.insights.forEach((insight) => {
             callback(insight)
+            insight.asset?.forEach(callback)
             insight.content.forEach(callback)
         })
     }
@@ -1606,11 +1689,14 @@ export function traverseEnrichedBlock(
         })
         .with({ type: "key-insights" }, (keyInsights) => {
             callback(keyInsights)
-            keyInsights.insights.forEach((insight) =>
+            keyInsights.insights.forEach((insight) => {
+                insight.asset?.forEach((node) =>
+                    traverseEnrichedBlock(node, callback, spanCallback)
+                )
                 insight.content.forEach((node) =>
                     traverseEnrichedBlock(node, callback, spanCallback)
                 )
-            )
+            })
         })
         .with({ type: "expander" }, (expander) => {
             callback(expander)
@@ -1861,9 +1947,71 @@ export function getResearchAndWritingId(heading?: string): string {
     return heading ? slugify(heading) : RESEARCH_AND_WRITING_ID
 }
 
+// Proper nouns that should keep their Title Case even in sentence-case (LTP)
+// headings. Compared case-insensitively against the whole string.
+const CASE_PRESERVED_PHRASES = new Set(
+    ["Human Development Index (HDI)", "SDG Tracker"].map((phrase) =>
+        phrase.toLowerCase()
+    )
+)
+
+// Sentence-cases a heading while preserving abbreviations and known proper
+// nouns. `capitalizeFirstWord` is false for text interpolated mid-heading,
+// e.g. the topic name in "Featured data on economic inequality".
+export function toSentenceCase(
+    str: string,
+    capitalizeFirstWord = true
+): string {
+    if (CASE_PRESERVED_PHRASES.has(str.trim().toLowerCase())) return str
+    return str
+        .split(" ")
+        .map((word, i) => {
+            if (isAbbreviation(word)) return word
+            const lower = word.toLowerCase()
+            return capitalizeFirstWord && i === 0
+                ? lower.charAt(0).toUpperCase() + lower.slice(1)
+                : lower
+        })
+        .join(" ")
+}
+
+// Topic page components have headings written in Title Case (both authored
+// custom titles and our defaults). Only modular topic pages keep Title Case;
+// every other context (linear topic pages, and the fallback when the gdoc type
+// is unknown) renders them in sentence case. Mirrors getTopicPageHeading.
+export function sentenceCaseIfNotTopicPage(
+    title: string | undefined,
+    gdocType?: OwidGdocType,
+    capitalizeFirstWord = true
+): string {
+    if (!title) return ""
+    return gdocType === OwidGdocType.TopicPage
+        ? title
+        : toSentenceCase(title, capitalizeFirstWord)
+}
+
+const topicPageTitleHeadings = {
+    keyCharts: "Key Charts",
+    featuredData: "Featured Data",
+    dataInsights: "Data Insights",
+    researchAndWriting: RESEARCH_AND_WRITING_DEFAULT_HEADING,
+    countryProfiles: "Country Profiles",
+    relatedTopics: "Related Topics",
+}
+
+// Returns the default heading for a topic page component, in Title Case on
+// modular topic pages and sentence case everywhere else.
+export function getTopicPageHeading(
+    key: keyof typeof topicPageTitleHeadings,
+    gdocType: OwidGdocType | undefined
+): string {
+    return sentenceCaseIfNotTopicPage(topicPageTitleHeadings[key], gdocType)
+}
+
 export function generateToc(
     body: OwidEnrichedGdocBlock[] | undefined,
-    isTocForSidebar: boolean = false
+    isTocForSidebar: boolean = false,
+    gdocType?: OwidGdocType
 ): TocHeadingWithSupertitle[] {
     if (!body) return []
 
@@ -1894,7 +2042,7 @@ export function generateToc(
 
             if (child.type === "all-charts") {
                 toc.push({
-                    title: "Key charts",
+                    title: getTopicPageHeading("keyCharts", gdocType),
                     slug: ALL_CHARTS_ID,
                     isSubheading: false,
                 })
@@ -1903,7 +2051,7 @@ export function generateToc(
 
             if (child.type === "featured-metrics") {
                 toc.push({
-                    title: "Featured data",
+                    title: getTopicPageHeading("featuredData", gdocType),
                     slug: FEATURED_METRICS_ID,
                     isSubheading: false,
                 })
@@ -1912,8 +2060,14 @@ export function generateToc(
 
             if (child.type === "research-and-writing") {
                 const { heading } = child
+                const customHeadingCaseCorrected = sentenceCaseIfNotTopicPage(
+                    heading,
+                    gdocType
+                )
                 toc.push({
-                    title: heading || RESEARCH_AND_WRITING_DEFAULT_HEADING,
+                    title:
+                        customHeadingCaseCorrected ||
+                        getTopicPageHeading("researchAndWriting", gdocType),
                     slug: getResearchAndWritingId(heading),
                     isSubheading: false,
                 })
@@ -1921,9 +2075,8 @@ export function generateToc(
             }
 
             if (child.type === "featured-data-insights") {
-                const title = "Data insights"
                 toc.push({
-                    title,
+                    title: getTopicPageHeading("dataInsights", gdocType),
                     slug: FEATURED_DATA_INSIGHTS_ID,
                     isSubheading: false,
                 })
@@ -1933,7 +2086,7 @@ export function generateToc(
             if (child.type === "explore-data-section") {
                 const title = child.title || EXPLORE_DATA_SECTION_DEFAULT_TITLE
                 toc.push({
-                    title,
+                    title: sentenceCaseIfNotTopicPage(title, gdocType),
                     slug: EXPLORE_DATA_SECTION_ID,
                     isSubheading: false,
                 })
@@ -1986,6 +2139,16 @@ export function findGreatestCommonDivisorOfArray(arr: number[]): number | null {
     if (arr.includes(1)) return 1
     return _.uniq(arr).reduce((acc, num) => greatestCommonDivisor(acc, num))
 }
+
+// Makes sure that values are evenly spaced by inserting values at the greatest
+// common divisor of the gaps between consecutive values.
+export function withUniformSpacing(values: number[]): number[] {
+    const deltas = rollingMap(values, (a, b) => b - a)
+    const gcd = findGreatestCommonDivisorOfArray(deltas)
+    if (gcd === null) return values
+    return _.range(values[0], values[values.length - 1] + gcd, gcd)
+}
+
 export function lowercaseObjectKeys(
     obj: Record<string, unknown>
 ): Record<string, unknown> {
@@ -2284,7 +2447,7 @@ export function traverseObjects<T extends Record<string, any>>(
     return result
 }
 
-export function getParentVariableIdFromChartConfig(
+export function getParentIndicatorIdFromChartConfig(
     config: GrapherInterface
 ): number | undefined {
     const { chartTypes, dimensions } = config

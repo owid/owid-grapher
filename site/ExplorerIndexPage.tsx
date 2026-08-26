@@ -4,6 +4,7 @@ import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { SiteFooterContext } from "@ourworldindata/types"
+import { serializeJSONForInlineScript } from "@ourworldindata/utils"
 import {
     __OWID_EXPLORER_INDEX_PAGE_PROPS,
     ExplorerIndex,
@@ -14,7 +15,7 @@ export const ExplorerIndexPage = ({
     baseUrl,
     explorers,
 }: ExplorerIndexPageProps) => {
-    const inlineJs = `window.${__OWID_EXPLORER_INDEX_PAGE_PROPS} = ${JSON.stringify(
+    const inlineJs = `window.${__OWID_EXPLORER_INDEX_PAGE_PROPS} = ${serializeJSONForInlineScript(
         {
             baseUrl,
             explorers,

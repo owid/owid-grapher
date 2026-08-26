@@ -1,8 +1,6 @@
-import { initWasm, Resvg, type ResvgRenderOptions } from "@resvg/resvg-wasm"
+import { newContext, type Context } from "resvg-wasm"
 import { TimeLogger } from "./timeLogger.js"
 import { png } from "itty-router"
-
-import resvg_wasm from "@resvg/resvg-wasm/index_bg.wasm"
 
 // these are regular .ttf files, but cloudflare needs the .bin extension to serve them correctly
 import LatoRegular from "../_common/fonts/LatoLatin-Regular.ttf.bin"
@@ -18,10 +16,7 @@ import {
     initGrapher,
 } from "./grapherTools.js"
 import { GRAPHER_TAB_NAMES } from "@ourworldindata/types"
-import {
-    fetchInputTableForConfig,
-    GRAPHER_BACKGROUND,
-} from "@ourworldindata/grapher"
+import { fetchInputTableForConfig } from "@ourworldindata/grapher"
 import ReactDOMServer from "react-dom/server"
 
 declare global {
@@ -114,35 +109,34 @@ export const fetchAndRenderGrapher = async (
     }
 }
 
-let initialized = false
+let resvgContext: Promise<Context> | undefined
+
+function getResvgContext(): Promise<Context> {
+    resvgContext ??= newContext().then((context) => {
+        for (const fontData of [
+            LatoRegular,
+            LatoMedium,
+            LatoItalic,
+            LatoBold,
+            PlayfairSemiBold,
+        ]) {
+            context.registerFontData(new Uint8Array(fontData))
+        }
+        return context
+    })
+    return resvgContext
+}
 
 export async function renderSvgToPng(svg: string, options: ImageOptions) {
-    if (!initialized) {
-        await initWasm(resvg_wasm)
-        initialized = true
-    }
+    const context = await getResvgContext()
 
-    const opts: ResvgRenderOptions = {
-        fitTo: {
-            mode: "width",
-            value: options.pngWidth,
-        },
-        background: GRAPHER_BACKGROUND,
-        font: {
-            fontBuffers: [
-                LatoRegular,
-                LatoMedium,
-                LatoItalic,
-                LatoBold,
-                PlayfairSemiBold,
-            ].map((f) => new Uint8Array(f)),
-        },
-    }
+    // resvg-wasm only takes a scale factor, so compute it such that the
+    // resulting png is options.pngWidth pixels wide
+    const scale = options.pngWidth / options.svgWidth
 
     const pngLogger = new TimeLogger("png")
-    const resvgJS = new Resvg(svg, opts)
-
-    const pngData = resvgJS.render().asPng()
+    const pngData = context.render(svg, scale)
+    if (!pngData) throw new Error("Failed to render SVG to PNG")
     pngLogger.log("svg2png")
     return pngData
 }
