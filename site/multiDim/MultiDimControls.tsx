@@ -7,7 +7,10 @@ import {
     DimensionEnriched,
     MultiDimDimensionChoices,
 } from "@ourworldindata/types"
-import { resolveDimensionPresentationType } from "@ourworldindata/utils"
+import {
+    resolveDimensionPresentationType,
+    resolveDimensionShowsSearch,
+} from "@ourworldindata/utils"
 import DimensionDropdown from "./DimensionDropdown.js"
 import DimensionRadioGroup from "./DimensionRadioGroup.js"
 
@@ -73,6 +76,7 @@ const MultiDimControls = forwardRef<
                         value={resolvedSettings[dim.slug]}
                         onChange={handleChange}
                         readOnly={readOnly}
+                        showSearch={resolveDimensionShowsSearch(fullDimension)}
                     />
                 )
             })}
