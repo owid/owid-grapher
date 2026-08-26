@@ -21,6 +21,7 @@ import {
     OwidVariableDataMetadataDimensions,
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
+    OwidVariableDisplayConfigInterface,
     OwidVariableId,
     DimensionProperty,
     GrapherInterface,
@@ -39,6 +40,7 @@ import {
     DatasetOwners,
     DbPlainDataset,
     normalizeDescriptionKey,
+    parseVariableDisplayConfig,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 import { insertChartConfig, updateChartConfig } from "./ChartConfigs.js"
@@ -422,6 +424,59 @@ export async function getDatapageIndicatorId(
     )
 
     return row?.variableId
+}
+
+/**
+ * Fetch the title-related metadata fields for the given variables, shaped like
+ * (a subset of) the variable metadata JSON so it can be merged with metadata
+ * overrides from multi-dim configs.
+ */
+export async function getVariableTitleMetadataByIds(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<
+    Map<
+        number,
+        {
+            name?: string
+            display?: OwidVariableDisplayConfigInterface
+            presentation?: { titlePublic?: string }
+        }
+    >
+> {
+    if (variableIds.length === 0) return new Map()
+    const rows: Pick<
+        DbRawVariable,
+        "id" | "name" | "titlePublic" | "display"
+    >[] = await knex(VariablesTableName)
+        .select("id", "name", "titlePublic", "display")
+        .whereIn("id", variableIds)
+    return new Map(
+        rows.map((row) => {
+            // One malformed display value shouldn't abort a whole bake
+            let display: OwidVariableDisplayConfigInterface | undefined
+            try {
+                display = row.display
+                    ? parseVariableDisplayConfig(row.display)
+                    : undefined
+            } catch (e) {
+                console.error(
+                    `Error parsing display config of variable ${row.id}`,
+                    e
+                )
+            }
+            return [
+                row.id,
+                {
+                    name: row.name ?? undefined,
+                    display,
+                    presentation: row.titlePublic
+                        ? { titlePublic: row.titlePublic }
+                        : undefined,
+                },
+            ]
+        })
+    )
 }
 
 // TODO: these are domain functions and should live somewhere else

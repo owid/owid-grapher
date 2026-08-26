@@ -14,8 +14,13 @@ import {
 } from "../_common/redirectTools.js"
 import {
     fetchUnparsedGrapherConfig,
+    MdimCompanionLoader,
     rewriteMetaTags,
 } from "../_common/grapherTools.js"
+import {
+    MDIM_COMPANION_FILE_SUFFIX,
+    MultiDimPageCompanion,
+} from "@ourworldindata/types"
 import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
 
 const { preflight, corsify } = cors({
@@ -172,11 +177,25 @@ async function handleHtmlPageRequest(
         url.search ? "&" + url.search.slice(1) : ""
     }`
 
+    const loadMdimCompanion: MdimCompanionLoader = async () => {
+        try {
+            const resp = await env.ASSETS.fetch(
+                new URL(`/grapher/${slug}${MDIM_COMPANION_FILE_SUFFIX}`, url)
+            )
+            if (resp.status !== 200) return undefined
+            return (await resp.json()) as MultiDimPageCompanion
+        } catch (e) {
+            console.error("Error loading mdim companion file", e)
+            return undefined
+        }
+    }
+
     return rewriteMetaTags(
         url,
         openGraphThumbnailUrl,
         twitterThumbnailUrl,
-        grapherPageResp
+        grapherPageResp,
+        loadMdimCompanion
     )
 }
 
