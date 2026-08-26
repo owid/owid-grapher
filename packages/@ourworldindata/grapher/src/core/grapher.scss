@@ -98,6 +98,9 @@
 
 // These rules are currently used elsewhere in the site. e.g. Explorers
 // so we can't scope them to be grapher-only
+// (fontawesome.scss additionally must stay unscoped because grapher portals
+// icons outside of .GrapherComponent: pinned tooltips, popovers, tippy)
+@import "../../../components/src/styles/fontawesome.scss";
 @import "../controls/entityPicker/EntityPicker.scss";
 @import "../fullScreen/FullScreen.scss";
 @import "../../../components/src/Checkbox.scss";

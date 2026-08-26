@@ -327,7 +327,7 @@ const bakeChartConfig = async (
 ) => {
     // Fetch the grapher config from the database
     const chartConfigRow = await knex<DbRawChartConfig>(ChartConfigsTableName)
-        .select("full")
+        .select("config")
         .where("id", chartConfigId)
         .first()
 
@@ -335,7 +335,7 @@ const bakeChartConfig = async (
         throw new Error(`Chart config not found with id: ${chartConfigId}`)
     }
 
-    const configStringified = chartConfigRow.full
+    const configStringified = chartConfigRow.config
 
     const apiPath = "grapher/by-uuid"
     const configFilename = path.join(
@@ -551,7 +551,7 @@ export const archiveNarrativeCharts = async (
     }
 
     const narrativeChartRows = await knex("narrative_charts as nc")
-        .select("nc.id", "nc.name", "cc.full as config")
+        .select("nc.id", "nc.name", "cc.config as config")
         .join("chart_configs as cc", "nc.chartConfigId", "cc.id")
         .whereIn("nc.name", uniqueNarrativeChartNames)
         .then((rows: NarrativeChartRow[]) =>

@@ -164,7 +164,7 @@ async function propsFromQueryParams(
 
     if (params.type) {
         if (params.type === GRAPHER_MAP_TYPE) {
-            query = query.andWhereRaw(`cc.full->>"$.hasMapTab" = "true"`)
+            query = query.andWhereRaw(`cc.config->>"$.hasMapTab" = "true"`)
             tab ||= GRAPHER_TAB_CONFIG_OPTIONS.map
         } else {
             query = query.andWhereRaw(`cc.chartType = :type`, {
@@ -176,33 +176,35 @@ async function propsFromQueryParams(
 
     if (params.logLinear) {
         query = query.andWhereRaw(
-            `cc.full->>'$.yAxis.canChangeScaleType' = "true" OR cc.full->>'$.xAxis.canChangeScaleType'  = "true"`
+            `cc.config->>'$.yAxis.canChangeScaleType' = "true" OR cc.config->>'$.xAxis.canChangeScaleType'  = "true"`
         )
         tab = GRAPHER_TAB_CONFIG_OPTIONS.chart
     }
 
     if (params.comparisonLines) {
         query = query.andWhereRaw(
-            `cc.full->'$.comparisonLines[0].yEquals' != ''`
+            `cc.config->'$.comparisonLines[0].yEquals' != ''`
         )
         tab = GRAPHER_TAB_CONFIG_OPTIONS.chart
     }
 
     if (params.stackMode) {
-        query = query.andWhereRaw(`cc.full->'$.stackMode' = :stackMode`, {
+        query = query.andWhereRaw(`cc.config->'$.stackMode' = :stackMode`, {
             stackMode: params.stackMode,
         })
         tab = GRAPHER_TAB_CONFIG_OPTIONS.chart
     }
 
     if (params.relativeToggle) {
-        query = query.andWhereRaw(`cc.full->>'$.hideRelativeToggle' = "false"`)
+        query = query.andWhereRaw(
+            `cc.config->>'$.hideRelativeToggle' = "false"`
+        )
         tab = GRAPHER_TAB_CONFIG_OPTIONS.chart
     }
 
     if (params.chartTypeSwitcher) {
         query = query.andWhereRaw(
-            `COALESCE(json_length(cc.full->'$.chartTypes'), 2) > 1`
+            `COALESCE(json_length(cc.config->'$.chartTypes'), 2) > 1`
         )
     }
 
@@ -211,7 +213,7 @@ async function propsFromQueryParams(
         // have a visible categorial legend, and can leave out some that have one.
         // But in practice it seems to work reasonably well.
         query = query.andWhereRaw(
-            `json_length(cc.full->'$.map.colorScale.customCategoryColors') > 1`
+            `json_length(cc.config->'$.map.colorScale.customCategoryColors') > 1`
         )
         tab = GRAPHER_TAB_CONFIG_OPTIONS.map
     }
@@ -235,7 +237,7 @@ async function propsFromQueryParams(
 
     if (params.faceted) {
         query = query.andWhereRaw(
-            `cc.full->>'$.selectedFacetStrategy' != 'none'`
+            `cc.config->>'$.selectedFacetStrategy' != 'none'`
         )
         tab = GRAPHER_TAB_CONFIG_OPTIONS.chart
     }
@@ -244,13 +246,13 @@ async function propsFromQueryParams(
         const mode = params.addCountryMode
         if (mode === EntitySelectionMode.MultipleEntities) {
             query = query.andWhereRaw(
-                `cc.full->'$.addCountryMode' IS NULL OR cc.full->'$.addCountryMode' = :mode`,
+                `cc.config->'$.addCountryMode' IS NULL OR cc.config->'$.addCountryMode' = :mode`,
                 {
                     mode: EntitySelectionMode.MultipleEntities,
                 }
             )
         } else {
-            query = query.andWhereRaw(`cc.full->'$.addCountryMode' = :mode`, {
+            query = query.andWhereRaw(`cc.config->'$.addCountryMode' = :mode`, {
                 mode,
             })
         }
@@ -261,7 +263,7 @@ async function propsFromQueryParams(
     }
 
     if (tab === GRAPHER_TAB_CONFIG_OPTIONS.map) {
-        query = query.andWhereRaw(`cc.full->>"$.hasMapTab" = "true"`)
+        query = query.andWhereRaw(`cc.config->>"$.hasMapTab" = "true"`)
     } else if (tab === GRAPHER_TAB_CONFIG_OPTIONS.chart) {
         query = query.andWhereRaw(`cc.chartType IS NOT NULL`)
     }
@@ -491,11 +493,11 @@ getPlainRouteWithROTransaction(
     async (req, res, trx) => {
         const id = req.params.id
         const chartRaw = await db.knexRawFirst<
-            Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
+            Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["config"] }
         >(
             trx,
             `-- sql
-                select ca.id, cc.full as config
+                select ca.id, cc.config as config
                 from charts ca
                 join chart_configs cc
                 on ca.configId = cc.id
@@ -680,10 +682,10 @@ getPlainRouteWithROTransaction(
     testPageRouter,
     "/previews",
     async (req, res, trx) => {
-        const rows = await db.knexRaw<{ config: DbRawChartConfig["full"] }>(
+        const rows = await db.knexRaw<{ config: DbRawChartConfig["config"] }>(
             trx,
             `-- sql
-                SELECT cc.full as config
+                SELECT cc.config as config
                 FROM charts ca
                 JOIN chart_configs cc
                 ON ca.configId = cc.id
@@ -700,10 +702,10 @@ getPlainRouteWithROTransaction(
     testPageRouter,
     "/embedVariants",
     async (req, res, trx) => {
-        const rows = await db.knexRaw<{ config: DbRawChartConfig["full"] }>(
+        const rows = await db.knexRaw<{ config: DbRawChartConfig["config"] }>(
             trx,
             `-- sql
-                SELECT cc.full as config
+                SELECT cc.config as config
                 FROM charts ca
                 JOIN chart_configs cc
                 ON ca.configId = cc.id

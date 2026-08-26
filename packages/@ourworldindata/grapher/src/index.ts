@@ -31,7 +31,7 @@ export {
     GRAPHER_SQUARE_SIZE,
     STATIC_EXPORT_DETAIL_SPACING,
     DEFAULT_GRAPHER_ENTITY_TYPE,
-    GRAPHER_LOADED_EVENT_NAME,
+    GRAPHER_LOADING_STATE_EVENT_NAME,
     CookieKey,
     BASE_FONT_SIZE,
     WORLD_ENTITY_NAME,
@@ -40,8 +40,8 @@ export {
     latestGrapherConfigSchema,
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
-    ADDITIONAL_REGION_DATA_PROVIDERS,
-    type AdditionalRegionDataProvider,
+    ADDITIONAL_REGION_PUBLISHERS,
+    type AdditionalRegionPublisher,
     type FontSettings,
 } from "./core/GrapherConstants"
 export { OWID_LOGO_SVG, OWID_WORDMARK_SVG } from "./captionedChart/LogosSVG.js"
@@ -65,14 +65,13 @@ export {
 } from "./color/ColorConstants"
 export { darkenColorForText } from "./color/ColorUtils"
 export {
-    getColorNameOwidDistinctAndSemanticPalettes,
-    getColorNameOwidDistinctLinesAndSemanticPalettes,
     OwidDistinctColors,
     OwidMapColors,
     OwidDistinctLinesColors,
     EnergyColors,
     ContinentColors,
     MapContinentColors,
+    DarkerHexByBaseHex,
 } from "./color/CustomSchemes"
 export { ColorSchemes } from "./color/ColorSchemes"
 export { DimensionSlot } from "./chart/DimensionSlot"
@@ -104,7 +103,7 @@ export {
     getRegionsForKey,
     type TooltipKey,
 } from "./seriesLabel/RegionTooltipData"
-export { regionGroupLabels } from "./core/RegionGroups"
+export { regionGroupLabels, parseLabel } from "./core/RegionGroups"
 export {
     MAP_REGION_LABELS,
     type GeoFeature,

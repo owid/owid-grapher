@@ -28,7 +28,7 @@ Pass `--build` to build each project before serving it via `vite preview` instea
 yarn startBespokeDevServer --build
 ```
 
-In build mode, the demo page uses the built output files (`index.js`, `index.css`) instead of source entrypoints. The `/__bespoke/` Vite instance still runs in dev mode to serve the demo infrastructure.
+In build mode, the demo page uses the built output file (`index.js`) instead of the source entrypoint. The `/__bespoke/` Vite instance still runs in dev mode to serve the demo infrastructure.
 
 ### Demo page
 
@@ -43,15 +43,14 @@ The demo page reads the `entrypoints` field from each project's `package.json` t
 ```json
 {
     "entrypoints": {
-        "js": "src/index.ts",
-        "css": "src/index.css" // optional
+        "js": "src/index.ts"
     }
 }
 ```
 
-Only `js` is required. If `css` is omitted, the demo page won't load a separate stylesheet — useful when your component injects its own styles via `vite-plugin-css-position`, which is recommended.
+The demo page never loads a separate stylesheet: a project bundles its styles into the module with `vite-plugin-css-position`, so they land inside the Shadow DOM.
 
-In dev mode, requests for `/<project>/index.js` and `/<project>/index.css` are redirected to the corresponding source entrypoints so Vite can serve them. In build mode, these files exist as-is in the build output.
+In dev mode, requests for `/<project>/index.js` are redirected to the source entrypoint so Vite can serve it. In build mode, that file exists as-is in the build output.
 
 ## Staging
 

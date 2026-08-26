@@ -235,6 +235,9 @@ describe("packed package", () => {
         expect(manifest.main).toBe("dist/grapher.js")
         expect(manifest.types).toBe("dist/grapher.d.ts")
         expect(manifest.exports).toBeDefined()
+        expect(manifest.exports["./grapher-schema.json"]).toBe(
+            "./dist/grapher-schema.json"
+        )
 
         // Everything the package needs at runtime is bundled, so it must not
         // declare any dependencies: `yarn pack` turns `workspace:^` entries
@@ -250,6 +253,7 @@ describe("packed package", () => {
             manifest.main,
             manifest.types,
             "dist/grapher.css",
+            "dist/grapher-schema.json",
             "dist/grapher.standalone.min.js",
         ]) {
             expect(

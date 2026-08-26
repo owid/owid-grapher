@@ -102,7 +102,7 @@ import {
     sortNumeric,
     isMobile,
 } from "@ourworldindata/utils"
-import Cookies from "js-cookie"
+import { get as getCookie } from "es-cookie"
 import * as _ from "lodash-es"
 import {
     computed,
@@ -321,6 +321,9 @@ export class GrapherState
 
     /** Entities that should be included (opposite of excludedEntityNames). If empty, all available entities are used. If set, all entities not specified here are excluded. excludedEntityNames are evaluated afterwards and can still remove entities even if they were included before. */
     includedEntityNames: EntityName[] | undefined = undefined
+
+    /** Entities the indicator's data can't apply to by construction, e.g. Mexico for "Where do Mexican emigrants live?" */
+    inapplicableEntityNames: EntityName[] | undefined = undefined
 
     /** Colors for selected entities */
     selectedEntityColors: { [entityName: string]: string | undefined } = {}
@@ -578,6 +581,7 @@ export class GrapherState
     isTimelineAnimationPlaying = false
     /** True if the timeline animation is either playing or paused but not finished */
     isTimelineAnimationActive = false
+    disableChartRowAnimation = false
     animationStartTime: Time | undefined = undefined
     areHandlesOnSameTimeBeforeAnimation: boolean | undefined = undefined
     /** Which timeline element is currently being dragged */
@@ -711,6 +715,7 @@ export class GrapherState
             focusedSeriesNames: observable,
             excludedEntityNames: observable,
             includedEntityNames: observable,
+            inapplicableEntityNames: observable,
             comparisonLines: observable,
             relatedQuestions: observable,
             dataTableConfig: observable,
@@ -740,6 +745,7 @@ export class GrapherState
             staticBounds: observable,
             isTimelineAnimationPlaying: observable.ref,
             isTimelineAnimationActive: observable.ref,
+            disableChartRowAnimation: observable.ref,
             animationStartTime: observable.ref,
             areHandlesOnSameTimeBeforeAnimation: observable.ref,
             timelineDragTarget: observable.ref,
@@ -1626,12 +1632,8 @@ export class GrapherState
     }
 
     @computed get editUrl(): string | undefined {
-        let editPath = this.manager?.adminEditPath
-        if (!editPath && this.id) {
-            editPath = `charts/${this.id}/edit`
-        }
-        if (this.showAdminControls && this.adminBaseUrl && editPath) {
-            return `${this.adminBaseUrl}/admin/${editPath}`
+        if (this.showAdminControls && this.adminBaseUrl && this.id) {
+            return `${this.adminBaseUrl}/admin/charts/${this.id}/edit`
         }
         return undefined
     }
@@ -1689,7 +1691,7 @@ export class GrapherState
         try {
             // Cookie access can be restricted by iframe sandboxing, in which case the below code will throw an error
             // see https://github.com/owid/owid-grapher/pull/2452
-            return !!Cookies.get(CookieKey.isAdmin)
+            return !!getCookie(CookieKey.isAdmin)
         } catch {
             return false
         }

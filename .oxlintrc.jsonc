@@ -62,6 +62,23 @@
         "eslint/no-prototype-builtins": "error",
         "eslint/no-redeclare": "error",
         "eslint/no-regex-spaces": "error",
+        "eslint/no-restricted-imports": [
+            "error",
+            {
+                "patterns": [
+                    {
+                        "group": [
+                            "@ourworldindata/*/**",
+                            // Polyfills must be bundled from source ahead of all other code
+                            "!@ourworldindata/utils/src/polyfills.js",
+                            // scss can only be imported from source
+                            "!@ourworldindata/grapher/src/core/grapher.scss"
+                        ],
+                        "message": "Import from the package entry point instead"
+                    }
+                ]
+            }
+        ],
         "eslint/no-self-assign": "error",
         "eslint/no-self-compare": "warn",
         "eslint/no-setter-return": "error",
@@ -227,6 +244,14 @@
             "files": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
             "rules": {
                 "eslint/no-undef": "off" // this is enforced by TS
+            }
+        },
+        {
+            // bespoke projects deliberately deep-import grapher internals to keep
+            // their standalone bundles small
+            "files": ["bespoke/**/*"],
+            "rules": {
+                "eslint/no-restricted-imports": "off"
             }
         },
         {

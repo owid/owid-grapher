@@ -100,3 +100,7 @@ export { reactRenderToStringClientOnly } from "./reactUtil.js"
 
 export { GrapherTabIcon } from "./GrapherTabIcon.js"
 export { GrapherTrendArrow } from "./GrapherTrendArrow.js"
+export {
+    getPrefersReducedMotion,
+    usePrefersReducedMotion,
+} from "./usePrefersReducedMotion.js"

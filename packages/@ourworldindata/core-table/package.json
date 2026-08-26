@@ -15,7 +15,7 @@
         "@ourworldindata/utils": "workspace:^",
         "lodash-es": "^4.18.1",
         "papaparse": "^5.5.3",
-        "remeda": "^2.32.0"
+        "remeda": "^2.42.0"
     },
     "devDependencies": {
         "@types/lodash-es": "^4.17.12",

@@ -5,6 +5,18 @@
     right: 0;
     bottom: 0;
     overflow: clip;
+    z-index: $zindex-controls-drawer;
+    background-color: rgba(0, 0, 0, 0.1);
+    transition: background-color var(--duration-drawer) var(--ease-drawer);
+
+    &[data-entering],
+    &[data-exiting] {
+        background-color: rgba(0, 0, 0, 0);
+
+        .drawer-contents {
+            transform: translateX(100%);
+        }
+    }
 
     .drawer-contents {
         position: absolute;
@@ -12,53 +24,24 @@
         top: 0;
         width: 300px;
         height: 100%;
-        z-index: $zindex-controls-drawer;
         background: white;
+        transform: translateX(0);
+        transition: transform var(--duration-drawer) var(--ease-drawer);
     }
 
-    .drawer-backdrop {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.1);
-        z-index: $zindex-controls-backdrop;
+    .drawer-dialog {
+        height: 100%;
+        outline: none;
     }
-}
 
-@keyframes drawer-backdrop-enter {
-    0% {
-        opacity: 0;
-    }
-    100% {
-        opacity: 1;
-    }
-}
+    // Drop the panel's movement only. React Aria keeps [data-exiting] on the
+    // overlay until its background transition ends, so that transition is
+    // load-bearing for exit unmounting and must not be removed.
+    @media (prefers-reduced-motion: reduce) {
+        transition-timing-function: linear;
 
-@keyframes drawer-backdrop-exit {
-    0% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 0;
-    }
-}
-
-@keyframes drawer-contents-enter {
-    0% {
-        transform: translate(301px, 0);
-    }
-    100% {
-        transform: translate(0, 0);
-    }
-}
-
-@keyframes drawer-contents-exit {
-    0% {
-        transform: translate(0, 0);
-    }
-    100% {
-        transform: translate(301px, 0);
+        .drawer-contents {
+            transition: none;
+        }
     }
 }

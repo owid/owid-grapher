@@ -61,7 +61,7 @@ describe(SeriesLabelState, () => {
         ])
     })
 
-    it("splits name and region provider suffix into separate fragments on the same line", () => {
+    it("splits name and region publisher suffix into separate fragments on the same line", () => {
         const label = new SeriesLabelState({
             text: "Latin America and the Caribbean (UN)",
             maxWidth: 140,
@@ -73,7 +73,7 @@ describe(SeriesLabelState, () => {
             [
                 { role: "name", text: "the Caribbean", fontWeight: 400 },
                 {
-                    role: "regionProviderSuffix",
+                    role: "regionPublisherSuffix",
                     text: " (UN)",
                     fontWeight: 400,
                 },
@@ -81,7 +81,7 @@ describe(SeriesLabelState, () => {
         ])
     })
 
-    it("does not split non-provider suffixes from the name", () => {
+    it("does not split suffixes that name no publisher from the name", () => {
         const label = new SeriesLabelState({
             text: "Asia and Oceania (excl. China and India)",
             maxWidth: Infinity,
@@ -111,7 +111,7 @@ describe(SeriesLabelState, () => {
             [
                 { role: "name", text: "Africa", fontWeight: 400 },
                 {
-                    role: "regionProviderSuffix",
+                    role: "regionPublisherSuffix",
                     text: " (WHO)",
                     fontWeight: 400,
                 },
@@ -133,7 +133,7 @@ describe(SeriesLabelState, () => {
             [
                 { role: "name", text: "Africa", fontWeight: 700 },
                 {
-                    role: "regionProviderSuffix",
+                    role: "regionPublisherSuffix",
                     text: " (WHO)",
                     fontWeight: 400,
                 },
@@ -142,7 +142,7 @@ describe(SeriesLabelState, () => {
         ])
     })
 
-    it("shows an icon next to a region provider suffix when enabled", () => {
+    it("shows an icon next to a region publisher suffix when enabled", () => {
         const label = new SeriesLabelState({
             text: "Africa (WHO)",
             maxWidth: Infinity,
@@ -152,13 +152,13 @@ describe(SeriesLabelState, () => {
 
         expect(label.positionedFragments).toMatchObject([
             { type: "text", role: "name", text: "Africa" },
-            { type: "text", role: "regionProviderSuffix", text: "(WHO" },
+            { type: "text", role: "regionPublisherSuffix", text: "(WHO" },
             { type: "icon", tooltipKey: "who" },
-            { type: "text", role: "regionProviderSuffix", text: ")" },
+            { type: "text", role: "regionPublisherSuffix", text: ")" },
         ])
     })
 
-    it("only shows on icon if the suffix is a known region provider", () => {
+    it("only shows on icon if the suffix names a known region publisher", () => {
         const label = new SeriesLabelState({
             text: "Africa (FAKE)",
             maxWidth: Infinity,

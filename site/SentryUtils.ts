@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/react"
-import Cookies from "js-cookie"
+import { get as getCookie, getAll as getAllCookies } from "es-cookie"
 import { getPreferenceValue, PreferenceType } from "./cookiePreferences.js"
 import {
     experiments,
@@ -147,7 +147,7 @@ export function getSessionSampleRate(): number {
  *   - If multiple experiments specify rates, returns the maximum value
  */
 function parseExperimentsSampleRate(): number | undefined {
-    const allCookies = Cookies.get()
+    const allCookies = getAllCookies()
     const expSentrySampleRates: number[] = []
 
     for (const [cookieName, cookieValue] of Object.entries(allCookies)) {
@@ -294,7 +294,7 @@ export function updateSentryUser() {
 }
 
 function extractGaClientIdFromCookie(): string | undefined {
-    const gaCookie = Cookies.get("_ga")
+    const gaCookie = getCookie("_ga")
     if (!gaCookie) {
         return
     }

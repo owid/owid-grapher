@@ -7,19 +7,14 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { useState } from "react"
-import {
-    bind,
-    dayjs,
-    Tippy,
-    copyToClipboard,
-    ColorSchemeName,
-} from "@ourworldindata/utils"
+import { bind, dayjs, Tippy, copyToClipboard } from "@ourworldindata/utils"
 import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import cx from "clsx"
 import { useTimeout } from "usehooks-ts"
 
 import { AdminColorPicker } from "./AdminColorPicker.js"
+import type { ColorPaletteKey } from "./colorPalettes.js"
 import {
     faCog,
     faLink,
@@ -153,11 +148,12 @@ export class TextField extends React.Component<TextFieldProps> {
                         {props.secondaryLabel && (
                             <>
                                 <span> </span>
-                                <FontAwesomeIcon
-                                    icon={faCircleInfo}
-                                    className="text-muted"
-                                    title={props.secondaryLabel}
-                                />
+                                <span title={props.secondaryLabel}>
+                                    <FontAwesomeIcon
+                                        icon={faCircleInfo}
+                                        className="text-muted"
+                                    />
+                                </span>
                             </>
                         )}
                     </label>
@@ -251,11 +247,12 @@ export class TextAreaField extends React.Component<TextFieldProps> {
                         {props.secondaryLabel && (
                             <>
                                 <span> </span>
-                                <FontAwesomeIcon
-                                    icon={faCircleInfo}
-                                    className="text-muted"
-                                    title={props.secondaryLabel}
-                                />
+                                <span title={props.secondaryLabel}>
+                                    <FontAwesomeIcon
+                                        icon={faCircleInfo}
+                                        className="text-muted"
+                                    />
+                                </span>
                             </>
                         )}
                     </label>
@@ -622,11 +619,12 @@ export class Toggle extends React.Component<ToggleProps> {
                     {props.secondaryLabel && (
                         <>
                             {" "}
-                            <FontAwesomeIcon
-                                icon={faCircleInfo}
-                                className="text-muted"
-                                title={props.secondaryLabel}
-                            />
+                            <span title={props.secondaryLabel}>
+                                <FontAwesomeIcon
+                                    icon={faCircleInfo}
+                                    className="text-muted"
+                                />
+                            </span>
                         </>
                     )}
                 </label>
@@ -673,8 +671,7 @@ export class EditableListItem extends React.Component<EditableListItemProps> {
 interface ColorBoxProps {
     color: string | undefined
     onColor: (color: string | undefined) => void
-    showLineChartColors: boolean
-    baseColorScheme?: ColorSchemeName
+    palette: ColorPaletteKey
 }
 
 @observer
@@ -699,8 +696,7 @@ export class ColorBox extends React.Component<ColorBoxProps> {
                         <AdminColorPicker
                             color={color}
                             onColor={this.props.onColor}
-                            showLineChartColors={this.props.showLineChartColors}
-                            baseColorScheme={this.props.baseColorScheme}
+                            palette={this.props.palette}
                             onResize={this.handleResize}
                         />
                         <div
@@ -1384,7 +1380,7 @@ export function LoadingBlocker() {
     if (!isVisible) return null
     return (
         <div className="LoadingBlocker">
-            <FontAwesomeIcon icon={faCog} spin fixedWidth size="3x" />
+            <FontAwesomeIcon icon={faCog} spin className="fa-fw" size="3x" />
         </div>
     )
 }

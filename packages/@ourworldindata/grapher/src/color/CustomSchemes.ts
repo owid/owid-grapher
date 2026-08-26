@@ -1,11 +1,9 @@
 import * as _ from "lodash-es"
-import { lazy } from "@ourworldindata/utils"
 import {
     Color,
     ColorSchemeInterface,
     ColorSchemeName,
 } from "@ourworldindata/types"
-import * as R from "remeda"
 
 // TODO: Initialize CustomColorSchemes lazily
 export const CustomColorSchemes: ColorSchemeInterface[] = []
@@ -37,8 +35,6 @@ export const OwidDistinctColors = {
     Coral: "#d73c50",
 } as const
 
-const OwidDistinctColorsNames = lazy(() => R.invert(OwidDistinctColors))
-
 // These are variations of some of the colors above where the original color would have too little
 // contrast against a white background for thin lines or text elements
 export const DarkerOwidDistinctColors: Record<string, string> = {
@@ -50,7 +46,7 @@ export const DarkerOwidDistinctColors: Record<string, string> = {
     LimeDarker: "#338711",
 }
 
-const darkerColorReplacementsHexToReplacementColorName = {
+export const DarkerHexByBaseHex = {
     [OwidDistinctColors.DarkOrange]: DarkerOwidDistinctColors.DarkOrangeDarker,
     [OwidDistinctColors.Peach]: DarkerOwidDistinctColors.PeachDarker,
     [OwidDistinctColors.LightTeal]: DarkerOwidDistinctColors.LightTealDarker,
@@ -64,11 +60,6 @@ export const OwidDistinctLinesColors = {
     ..._.omit(OwidDistinctColors, Object.keys(DarkerOwidDistinctColors)),
     ...DarkerOwidDistinctColors,
 }
-
-// Used for looking up names from color hex values
-const OwidDistinctLinesColorNames = lazy(() =>
-    R.invert(OwidDistinctLinesColors)
-)
 
 // Below are 5 variations of the same colors in different permutations
 export const CategoricalColorsPaletteA = [
@@ -260,9 +251,6 @@ export const EnergyColors = {
     OtherRenewables: OwidDistinctColors.OliveGreen,
 }
 
-// Used for looking up color names from hex values
-const EnergyColorsNames = lazy(() => R.invert(EnergyColors))
-
 const EnergyColorPalette = [
     EnergyColors.Coal,
     EnergyColors.Oil,
@@ -284,23 +272,6 @@ export const OwidEnergy = {
     colorMap: EnergyColors,
 }
 CustomColorSchemes.push(OwidEnergy)
-
-function getModifiedLinesNames(
-    colorNames: Record<string, string>
-): Record<string, string> {
-    return Object.fromEntries(
-        Object.entries(colorNames).map(([k, v]) => [
-            k in darkerColorReplacementsHexToReplacementColorName
-                ? darkerColorReplacementsHexToReplacementColorName[k]
-                : k,
-            v,
-        ])
-    )
-}
-
-const EnergyColorsLinesNames = lazy(() =>
-    getModifiedLinesNames(EnergyColorsNames())
-)
 
 export const OwidEnergyLines = getModifiedLinesColorScheme(OwidEnergy)
 CustomColorSchemes.push(OwidEnergyLines)
@@ -587,15 +558,44 @@ export const ContinentColors = {
     "Southern Africa (UN M49)": OwidDistinctColors.DarkMauve,
     "Western Africa (UN M49)": OwidDistinctColors.Fuchsia,
 
+    // IHME GBD super-regions
+    "High-income (IHME GBD)": OwidDistinctColors.Denim,
+    "Latin America and Caribbean (IHME GBD)": OwidDistinctColors.Maroon,
+    "Sub-Saharan Africa (IHME GBD)": OwidDistinctColors.DarkMauve,
+    "North Africa and Middle East (IHME GBD)": OwidDistinctColors.Camel,
+    "Central Europe, Eastern Europe, and Central Asia (IHME GBD)":
+        OwidDistinctColors.MidnightBlue,
+    "South Asia (IHME GBD)": OwidDistinctColors.OliveGreen,
+    "Southeast Asia, East Asia, and Oceania (IHME GBD)":
+        OwidDistinctColors.Lime,
+
+    // IHME GBD regions (level 2)
+    "High-income North America (IHME GBD)": OwidDistinctColors.Peach,
+    "Caribbean (IHME GBD)": OwidDistinctColors.Coral,
+    "Central Latin America (IHME GBD)": OwidDistinctColors.DustyCoral,
+    "Andean Latin America (IHME GBD)": OwidDistinctColors.RustyOrange,
+    "Tropical Latin America (IHME GBD)": OwidDistinctColors.Maroon,
+    "Southern Latin America (IHME GBD)": OwidDistinctColors.Copper,
+    "Western Sub-Saharan Africa (IHME GBD)": OwidDistinctColors.Fuchsia,
+    "Central Sub-Saharan Africa (IHME GBD)": OwidDistinctColors.Cherry,
+    "Eastern Sub-Saharan Africa (IHME GBD)": OwidDistinctColors.Mauve,
+    "Southern Sub-Saharan Africa (IHME GBD)": OwidDistinctColors.DarkMauve,
+    "Western Europe (IHME GBD)": OwidDistinctColors.Blue,
+    "Central Europe (IHME GBD)": OwidDistinctColors.Denim,
+    "Eastern Europe (IHME GBD)": OwidDistinctColors.MidnightBlue,
+    "Central Asia (IHME GBD)": OwidDistinctColors.TealishGreen,
+    "East Asia (IHME GBD)": OwidDistinctColors.Lime,
+    "Southeast Asia (IHME GBD)": OwidDistinctColors.DarkOrange,
+    "High-income Asia Pacific (IHME GBD)": OwidDistinctColors.LightTeal,
+    "Australasia (IHME GBD)": OwidDistinctColors.Teal,
+    "Oceania (IHME GBD)": OwidDistinctColors.Turquoise,
+
     // Income groups
     "High-income countries": IncomeGroupColors.HighIncome,
     "Upper-middle-income countries": IncomeGroupColors.UpperMiddleIncome,
     "Lower-middle-income countries": IncomeGroupColors.LowerMiddleIncome,
     "Low-income countries": IncomeGroupColors.LowIncome,
 } as const
-
-// Used for looking up color names from hex values
-const ContinentColorsNames = lazy(() => R.invert(ContinentColors))
 
 const ContinentColorPalette = [
     ContinentColors.Africa,
@@ -638,17 +638,13 @@ function getModifiedLinesColorScheme(
 ): ColorSchemeInterface {
     const colors = colorScheme.colorSets[0]
     const modifiedColors = colors.map((color) =>
-        color in darkerColorReplacementsHexToReplacementColorName
-            ? darkerColorReplacementsHexToReplacementColorName[color]
-            : color
+        color in DarkerHexByBaseHex ? DarkerHexByBaseHex[color] : color
     )
 
     // If the scheme has a colorMap, we need to create a modified version with darker colors
     const modifiedColorMap = colorScheme.colorMap
         ? _.mapValues(colorScheme.colorMap, (color) =>
-              color in darkerColorReplacementsHexToReplacementColorName
-                  ? darkerColorReplacementsHexToReplacementColorName[color]
-                  : color
+              color in DarkerHexByBaseHex ? DarkerHexByBaseHex[color] : color
           )
         : undefined
 
@@ -660,10 +656,6 @@ function getModifiedLinesColorScheme(
         displayName: (colorScheme.displayName ?? "") + " (Lines)",
     }
 }
-
-const ContinentColorsLinesNames = lazy(() =>
-    getModifiedLinesNames(ContinentColorsNames())
-)
 
 export const ContinentColorsLinesColorScheme = getModifiedLinesColorScheme(
     ContinentColorsColorScheme
@@ -873,16 +865,6 @@ export const BinaryMapPaletteE = {
 }
 
 CustomColorSchemes.push(BinaryMapPaletteE)
-
-export const BinaryMapPaletteF = {
-    name: ColorSchemeName.BinaryMapPaletteF,
-    displayName: "Binary map palette F",
-    singleColorScale: false,
-    isDistinct: true,
-    colorSets: [[OwidDistinctColors.TealishGreen, OwidDistinctColors.Coral]],
-}
-
-CustomColorSchemes.push(BinaryMapPaletteF)
 
 const CategoricalMapPalette10 = [
     OwidMapColors.MutedDenim,
@@ -1128,6 +1110,38 @@ export const MapContinentColors = {
     "Middle Africa (UN M49)": OwidMapColors.SoftMagenta,
     "Southern Africa (UN M49)": OwidMapColors.MutedPlum,
     "Western Africa (UN M49)": OwidMapColors.LightPlum,
+
+    // IHME GBD super-regions
+    "High-income (IHME GBD)": OwidMapColors.MutedDenim,
+    "Latin America and Caribbean (IHME GBD)": OwidMapColors.MutedCherry,
+    "Sub-Saharan Africa (IHME GBD)": OwidMapColors.LightPurple,
+    "North Africa and Middle East (IHME GBD)": OwidMapColors.Sand,
+    "Central Europe, Eastern Europe, and Central Asia (IHME GBD)":
+        OwidMapColors.LightDenim,
+    "South Asia (IHME GBD)": OwidMapColors.Olive,
+    "Southeast Asia, East Asia, and Oceania (IHME GBD)":
+        OwidMapColors.LeafGreen,
+
+    // IHME GBD regions (level 2)
+    "High-income North America (IHME GBD)": OwidMapColors.SoftOrange,
+    "Caribbean (IHME GBD)": OwidMapColors.Mustard,
+    "Central Latin America (IHME GBD)": OwidMapColors.MutedCherry,
+    "Andean Latin America (IHME GBD)": OwidMapColors.LightCherry,
+    "Tropical Latin America (IHME GBD)": OwidMapColors.Tomato,
+    "Southern Latin America (IHME GBD)": OwidMapColors.LightSand,
+    "Western Sub-Saharan Africa (IHME GBD)": OwidMapColors.LightPlum,
+    "Central Sub-Saharan Africa (IHME GBD)": OwidMapColors.SoftMagenta,
+    "Eastern Sub-Saharan Africa (IHME GBD)": OwidMapColors.LightPurple,
+    "Southern Sub-Saharan Africa (IHME GBD)": OwidMapColors.MutedPlum,
+    "Western Europe (IHME GBD)": OwidMapColors.Lavendar,
+    "Central Europe (IHME GBD)": OwidMapColors.MutedDenim,
+    "Eastern Europe (IHME GBD)": OwidMapColors.LightDenim,
+    "Central Asia (IHME GBD)": OwidMapColors.LightGreen,
+    "East Asia (IHME GBD)": OwidMapColors.LeafGreen,
+    "Southeast Asia (IHME GBD)": OwidMapColors.LightOrange,
+    "High-income Asia Pacific (IHME GBD)": OwidMapColors.LightTeal,
+    "Australasia (IHME GBD)": OwidMapColors.MutedTeal,
+    "Oceania (IHME GBD)": OwidMapColors.SkyTurquoise,
 } as const
 
 /**
@@ -1146,52 +1160,6 @@ export const OwidCategoricalMapScheme = {
 CustomColorSchemes.push(OwidCategoricalMapScheme)
 
 export const DefaultColorScheme = OwidDistinctColorScheme
-
-export function getColorNameAndSemanticPalettes(
-    color: string,
-    baseColorSchemeNames: Record<string, string>,
-    continentsColorSchemeNames: Record<string, string>,
-    energyColorSchemeNames: Record<string, string>
-): string[] {
-    const colorNameStandardized = color.toUpperCase()
-    const owidDistinct =
-        colorNameStandardized in baseColorSchemeNames
-            ? `🎨 ${baseColorSchemeNames[colorNameStandardized]}`
-            : ""
-    const continents =
-        colorNameStandardized in continentsColorSchemeNames
-            ? `🌍 ${continentsColorSchemeNames[colorNameStandardized]}`
-            : ""
-    const energy =
-        colorNameStandardized in energyColorSchemeNames
-            ? `⚡ ${energyColorSchemeNames[colorNameStandardized]}`
-            : ""
-    const lines = [owidDistinct, continents, energy].filter((x) => x !== "")
-
-    return lines
-}
-
-export function getColorNameOwidDistinctAndSemanticPalettes(
-    color: string
-): string[] {
-    return getColorNameAndSemanticPalettes(
-        color,
-        OwidDistinctColorsNames(),
-        ContinentColorsNames(),
-        EnergyColorsNames()
-    )
-}
-
-export function getColorNameOwidDistinctLinesAndSemanticPalettes(
-    color: string
-): string[] {
-    return getColorNameAndSemanticPalettes(
-        color,
-        OwidDistinctLinesColorNames(),
-        ContinentColorsLinesNames(),
-        EnergyColorsLinesNames()
-    )
-}
 
 // Perceptual color scales from https://github.com/politiken-journalism/scale-color-perceptual
 CustomColorSchemes.push({

@@ -243,7 +243,7 @@
     outline: none;
     padding: 0.25rem;
     color: $blue-100;
-    transition: all 150ms;
+    transition: background-color 150ms ease;
     &:hover {
         background-color: $blue-20;
     }
@@ -327,7 +327,9 @@
         rgba(0, 0, 0, 0.25) 0px 1px 2px 0px;
     padding: 10px;
     background-color: #fff;
-    transition: all 300ms ease;
+    transition:
+        box-shadow var(--duration-press) ease,
+        opacity var(--duration-press) ease;
 }
 
 @mixin image-hover {
@@ -397,7 +399,7 @@
     background-color: $blue-20;
     cursor: pointer;
     border: none;
-    transition: background-color 0.1s ease-in-out;
+    transition: background-color var(--duration-hover) ease;
     @include sm-up {
         display: inline-block;
     }
