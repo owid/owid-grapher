@@ -172,9 +172,15 @@ Each system has a deliberately narrow responsibility:
 The central modeling rule is that **subscription intent and deliverability are
 different state**:
 
-- `users.status` records whether the reader wants OWID notifications.
+- `users.emailNotificationsStatus` records whether the reader wants email notifications.
 - `postmark_suppressions` stores Postmark's latest known suppression state for
   each address and message stream.
+
+Every address submitted through the subscription form has a D1 `users` row so
+it can request a magic link and use the unified preferences page. A Brief-only
+identity remains unsubscribed from Follow Topics and has no
+`notification_preferences` row. The Brief's subscription state is never copied
+to D1; Mailchimp remains its source of truth.
 
 An address must be subscribed and unsuppressed to receive a scheduled message.
 A hard bounce can suppress an address without changing the reader's intent.
@@ -220,8 +226,9 @@ The relevant routes and their trust boundaries are:
 
 Postmark webhooks project provider state into D1: delivery updates message
 state, and broadcast subscription changes maintain the suppression mirror.
-Only a recipient-originated unsubscribe changes local subscription intent;
-administrative reactivation affects deliverability only.
+Only a recipient-originated unsubscribe changes local Follow Topics intent;
+administrative reactivation affects deliverability only. Mailchimp handles the
+OWID Brief's own unsubscribe links and remains authoritative for its state.
 
 Detailed bounce diagnostics remain in Postmark rather than being duplicated in
 D1; D1 only stores the operational state needed by this feature.

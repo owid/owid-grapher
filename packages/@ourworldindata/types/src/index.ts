@@ -16,6 +16,8 @@ export {
     EMAIL_NOTIFICATIONS_FROM_ADDRESS,
     EMAIL_NOTIFICATIONS_MAGIC_LINK_TTL_MS,
     type EmailNotificationsFrequency,
+    EMAIL_NOTIFICATIONS_STATUSES,
+    type EmailNotificationsStatus,
     EmailNotificationsPreferencesTypeObject,
     type EmailNotificationsPreferences,
     mergeEmailNotificationsPreferences,

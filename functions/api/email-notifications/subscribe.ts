@@ -47,9 +47,14 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         }
 
         const email = data.email.trim().toLowerCase()
+        validateEmailNotificationsDatabase(env)
+        const db = env.EMAIL_NOTIFICATIONS_DB
+        // Every subscriber gets a D1 identity so the magic-link preferences
+        // page can manage both products. A Brief-only identity has email
+        // notifications disabled and no notification preferences row.
+        const user = await ensureUserIdentity(db, email)
 
         if (data.notifications) {
-            validateEmailNotificationsDatabase(env)
             // Signup is single opt-in: the submission takes effect
             // immediately and the welcome email confirms it. For an address
             // that already exists (whatever its status), the chosen
@@ -62,12 +67,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             // submission they didn't make. The response is identical whether
             // the email was already known or not, and both branches send
             // exactly one email.
-            const db = env.EMAIL_NOTIFICATIONS_DB
             const origin = new URL(request.url).origin
-            const [user, postmarkSuppression] = await Promise.all([
-                findUserByEmail(db, email),
-                findLocalSuppressionState(db, email),
-            ])
+            const postmarkSuppression = await findLocalSuppressionState(
+                db,
+                email
+            )
             if (postmarkSuppression?.isSuppressed) {
                 await reactivatePostmarkRecipient(env, email)
                 await markReactivatedLocally(
@@ -76,32 +80,16 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
                     postmarkSuppression.postmarkChangedAt
                 )
             }
-            let userId: number
-            let userToken: string
-            let preferences: EmailNotificationsPreferences
-            if (!user) {
-                preferences = data.notifications
-                const createdUser = await createSubscribedUser(
-                    db,
-                    email,
-                    preferences
-                )
-                userId = createdUser.id
-                userToken = createdUser.token
-            } else {
-                preferences = await resubscribeUser(
-                    db,
-                    user,
-                    data.notifications
-                )
-                userId = user.id
-                userToken = user.token
-            }
+            const preferences = await resubscribeUser(
+                db,
+                user,
+                data.notifications
+            )
             await sendWelcomeEmail(env, origin, {
-                userId,
+                userId: user.id,
                 to: email,
                 preferences,
-                userToken,
+                userToken: user.token,
             })
         }
 
@@ -130,51 +118,26 @@ interface EmailNotificationsUser {
     token: string
 }
 
-async function findUserByEmail(
+async function ensureUserIdentity(
     db: D1Database,
     email: string
-): Promise<EmailNotificationsUser | null> {
-    return await db
+): Promise<EmailNotificationsUser> {
+    await db
+        .prepare(
+            `INSERT OR IGNORE INTO users
+                 (email, token, emailNotificationsStatus)
+             VALUES (?1, ?2, 'unsubscribed')`
+        )
+        .bind(email, crypto.randomUUID())
+        .run()
+    const user = await db
         .prepare(`SELECT id, email, token FROM users WHERE email = ?1`)
         .bind(email)
         .first<EmailNotificationsUser>()
-}
-
-/**
- * Single opt-in for a never-seen address: create the user as 'subscribed'
- * with the chosen preferences, active immediately.
- */
-async function createSubscribedUser(
-    db: D1Database,
-    email: string,
-    preferences: EmailNotificationsPreferences
-): Promise<EmailNotificationsUser> {
-    const token = crypto.randomUUID()
-    const user = await db
-        .prepare(
-            `INSERT INTO users (email, token, status)
-             VALUES (?1, ?2, 'subscribed')
-             RETURNING id`
-        )
-        .bind(email, token)
-        .first<{ id: number }>()
     if (!user) {
-        throw new JsonError("Failed to store subscription", 500)
+        throw new JsonError("Failed to store subscriber identity", 500)
     }
-    await db
-        .prepare(
-            `INSERT INTO notification_preferences
-                 (userId, topicTags, contentTypes, frequency)
-             VALUES (?1, ?2, ?3, ?4)`
-        )
-        .bind(
-            user.id,
-            JSON.stringify(preferences.topicTags),
-            JSON.stringify(preferences.contentTypes),
-            preferences.frequency
-        )
-        .run()
-    return { id: user.id, email, token }
+    return user
 }
 
 /**
@@ -195,7 +158,7 @@ async function resubscribeUser(
         db
             .prepare(
                 `UPDATE users
-                 SET status = 'subscribed',
+                 SET emailNotificationsStatus = 'subscribed',
                      updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
                  WHERE id = ?1`
             )
