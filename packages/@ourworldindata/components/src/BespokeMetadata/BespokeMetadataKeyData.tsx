@@ -1,9 +1,8 @@
-import * as _ from "lodash-es"
-import { BespokeMetadata } from "@ourworldindata/types"
+import { BespokeMetadataWithProvenance } from "@ourworldindata/types"
 import {
+    getAttributionFragmentsFromBespokeMetadata,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
-    getOriginAttributionFragments,
 } from "@ourworldindata/utils"
 import {
     makeDateRange,
@@ -27,11 +26,9 @@ interface BespokeMetadataKeyDataRow {
 export function BespokeMetadataKeyData({
     metadata,
 }: {
-    metadata: BespokeMetadata
+    metadata: BespokeMetadataWithProvenance
 }): React.ReactElement | null {
-    const attributions = metadata.attribution
-        ? [metadata.attribution]
-        : _.uniq(getOriginAttributionFragments(metadata.origins))
+    const attributions = getAttributionFragmentsFromBespokeMetadata(metadata)
 
     const lastUpdated = getLastUpdatedFromVariable(metadata)
     const nextUpdate = lastUpdated
