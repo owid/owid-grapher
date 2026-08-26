@@ -25,4 +25,3 @@ GrapherLoader.fromCsv({
 - [Loading data](loading-data.md) — the three data sources and the metadata you can attach to columns.
 - [The chart config](chart-config/index.md) — what a config is, and the full field reference.
 - [API](api/index.md) — `GrapherLoader` and the other public exports.
-- [How Grapher works](how-grapher-works.md) — the internal pipeline from config to pixels.

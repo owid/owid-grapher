@@ -47,7 +47,6 @@ nav = [
             ] },
         ] },
     ] },
-    { "How Grapher works" = "how-grapher-works.md" },
 ]
 
 # Extra settings
