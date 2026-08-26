@@ -13,6 +13,8 @@ import {
     MetadataBoxSection,
     MetadataBoxKeyData,
     MetadataBoxKeyDataRow,
+    MetadataBoxReuseNotice,
+    ChartLicenseNotice,
 } from "@ourworldindata/components"
 import {
     ArchiveContext,
@@ -34,7 +36,6 @@ import { Byline } from "./gdocs/components/Byline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { splitDescriptionKey } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
-import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
 
 const analytics = new SiteAnalytics()
 
@@ -312,18 +313,9 @@ function IndicatorMetadataSections({
                 </MetadataBoxSection>
             )}
             <MetadataBoxSection className="indicator-metadata-box__reuse-notice">
-                <p>
-                    All data produced by third-party providers and made
-                    available by Our World in Data are subject to the license
-                    terms from the original providers. Our work would not be
-                    possible without the data providers we rely on, so we ask
-                    you to always cite them appropriately. This is crucial to
-                    allow data providers to continue doing their work,
-                    enhancing, maintaining and updating valuable data.
-                </p>
-                <p>
+                <MetadataBoxReuseNotice>
                     <ChartLicenseNotice license={license} />
-                </p>
+                </MetadataBoxReuseNotice>
             </MetadataBoxSection>
         </MetadataBoxExpander>
     )
