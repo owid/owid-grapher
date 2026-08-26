@@ -700,3 +700,74 @@ describe("calendar-aware time ticks", () => {
         expect(values).toEqual(bandValues)
     })
 })
+
+describe("endpoint tick labels", () => {
+    const endpointLabels = (axis: HorizontalAxis): string[] =>
+        axis.endpointTickLabels.map((label) => label.formattedValue)
+
+    it("labels the first and last band value on a discrete quarterly axis", () => {
+        const bandValues = R.range(0, 49).map((quarter) =>
+            convertDateToDaysSinceEpoch(
+                dayjs.utc("2014-04-01").add(quarter, "quarter")
+            )
+        )
+        const axis = makeTimeAxis({
+            columnType: ColumnTypeNames.Quarter,
+            bandValues,
+            range: [0, 220],
+        })
+
+        // the generated ticks are calendar-nice and miss both ends
+        expect(axis.tickLabels.map((tick) => tick.formattedValue)).toEqual([
+            "Q1 2015",
+            "Q1 2020",
+            "Q1 2025",
+        ])
+        // ...whereas the endpoint labels cover the plotted range
+        expect(endpointLabels(axis)).toEqual(["Apr 2014", "Apr 2026"])
+    })
+
+    it("labels the ends of the domain on a continuous monthly axis", () => {
+        const axis = makeTimeAxis({
+            min: day("2014-01-01"),
+            max: day("2026-06-01"),
+            range: [0, 220],
+            hideFractionalTicks: true,
+        })
+
+        expect(axis.tickLabels.map((tick) => tick.formattedValue)).toEqual([
+            "2015",
+            "2020",
+            "2025",
+        ])
+        expect(endpointLabels(axis)).toEqual(["Jan 2014", "Jun 2026"])
+    })
+
+    it("labels the ends of the domain on a yearly axis", () => {
+        const axis = makeTimeAxis({
+            columnType: ColumnTypeNames.Year,
+            min: 1953,
+            max: 2019,
+            range: [0, 220],
+            hideFractionalTicks: true,
+        })
+
+        expect(endpointLabels(axis)).toEqual(["1953", "2019"])
+    })
+
+    it("falls back to the outermost ticks on a non-time axis", () => {
+        const axis = new AxisConfig({
+            scaleType: ScaleType.linear,
+            min: 0,
+            max: 100,
+        }).toHorizontalAxis()
+        axis.range = [0, 220]
+
+        const tickLabels = axis.tickLabels.map((tick) => tick.formattedValue)
+        expect(tickLabels.length).toBeGreaterThan(2)
+        expect(endpointLabels(axis)).toEqual([
+            R.first(tickLabels),
+            R.last(tickLabels),
+        ])
+    })
+})

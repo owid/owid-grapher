@@ -111,6 +111,10 @@ abstract class AbstractAxis {
     abstract placeTickLabel(value: number): TickLabelPlacement
     abstract get tickLabels(): TickLabelPlacement[]
 
+    @computed get endpointTickLabels(): TickLabelPlacement[] {
+        return pickOutermostTickLabels(this.tickLabels)
+    }
+
     @computed get hideAxis(): boolean {
         return this.config.hideAxis ?? false
     }
@@ -728,6 +732,21 @@ export class HorizontalAxis extends AbstractAxis {
         return this.height
     }
 
+    override get endpointTickLabels(): TickLabelPlacement[] {
+        const { formatColumn } = this
+
+        // For time columns, ticks sit on calendar-nice values that don't
+        // necessarily include the endpoints, so use the domain instead
+        if (formatColumn?.isTimeColumn) {
+            const times = _.uniq(this.domain).filter(Number.isFinite)
+            return times.map((time) =>
+                this.placeTickLabel(time, formatColumn.formatTimeShort(time))
+            )
+        }
+
+        return pickOutermostTickLabels(this.tickLabels)
+    }
+
     protected override get baseTicks(): Tickmark[] {
         if (this.timeAxisTicks) return this.timeAxisTicks
 
@@ -1105,6 +1124,23 @@ function labelsFit(
             return false
     }
     return true
+}
+
+/**
+ * The outermost two of the given labels, ordered by their position along the
+ * axis. A horizontal axis varies in x and a vertical one in y, so sort by x
+ * first and break the resulting tie on y.
+ */
+function pickOutermostTickLabels(
+    tickLabels: TickLabelPlacement[]
+): TickLabelPlacement[] {
+    if (tickLabels.length < 2) return tickLabels
+    const sorted = R.sortBy(
+        tickLabels,
+        (label) => label.x,
+        (label) => label.y
+    )
+    return [sorted[0], sorted.at(-1)!]
 }
 
 /**
