@@ -4,10 +4,11 @@
 // (Vite & friends) and `moduleResolution: "nodenext"` (plain Node ESM).
 //
 // The packed tarball is extracted into a throwaway consumer project whose
-// node_modules contains only the packed package plus a symlink to
-// @googleapis/docs — the only package its bundled d.ts is allowed to import
-// from (enforced by a test below). tsc then typechecks a consumer file
-// against it, with `skipLibCheck: true` like virtually all real consumers.
+// node_modules contains only the packed package plus symlinks to the packages
+// its bundled d.ts is allowed to import from — @googleapis/docs and zod, both
+// declared as optional peer dependencies (enforced by a test below). tsc then
+// typechecks a consumer file against it, with `skipLibCheck: true` like
+// virtually all real consumers.
 // To still validate our bundled declaration file itself, a third tsc run
 // checks a copy of it renamed to `.ts` — skipLibCheck only skips `.d.ts`
 // files, so the copy is fully checked while third-party declarations stay
@@ -34,11 +35,18 @@ const tscBin = path.join(repoRoot, "node_modules/.bin/tsc")
 // needs them resolvable, so we symlink them out of the monorepo node_modules.
 const TYPE_DEPENDENCIES = ["@googleapis/docs", "googleapis-common", "zod"]
 
-// The only module the bundled gdoc-pipeline.d.ts may import from:
-// @googleapis/docs (the Google Docs document JSON types that gdocToArchie
-// consumes), which is an optional peer dependency. Everything else must be
-// inlined into the bundle — any other external import forces consumers to
-// install that package just to typecheck.
+// The only modules the bundled gdoc-pipeline.d.ts may import from, both
+// declared as optional peer dependencies:
+//
+//   @googleapis/docs  the Google Docs document JSON types that gdocToArchie
+//                     consumes
+//   zod               the schema types behind the zod-backed aliases that
+//                     @ourworldindata/types contributes to the API surface;
+//                     zod itself is bundled into the JS, so this is a
+//                     type-only dependency
+//
+// Everything else must be inlined into the bundle — any other external import
+// forces consumers to install that package just to typecheck.
 const ALLOWED_TYPE_IMPORTS = /^(@googleapis\/docs|zod)(\/|$)/
 
 // Exercises the public API surface. The @ts-expect-error lines double as a
@@ -231,11 +239,14 @@ describe("packed package", () => {
         // Everything the package needs at runtime is bundled, so it must not
         // declare any dependencies: `yarn pack` turns `workspace:^` entries
         // into semver ranges of unpublished packages, which would make
-        // `npm install` fail outright. Only the optional @googleapis/docs
-        // peer dep (types for gdocToArchie's input) is expected.
+        // `npm install` fail outright. The two type-only externals its
+        // declaration bundle still imports from are declared as optional peer
+        // dependencies instead, so consumers who need them (see
+        // ALLOWED_TYPE_IMPORTS) are told which versions to install.
         expect(manifest.dependencies).toBeUndefined()
         expect(Object.keys(manifest.peerDependencies ?? {})).toEqual([
             "@googleapis/docs",
+            "zod",
         ])
 
         for (const file of [manifest.main, manifest.types]) {
@@ -263,7 +274,7 @@ describe("packed package", () => {
         expect(entries.length).toBeLessThan(15)
     })
 
-    it("only imports from @googleapis/docs in its declaration bundle", async () => {
+    it("only imports from its declared peer dependencies in its declaration bundle", async () => {
         const dtsPath = path.join(
             consumerDir,
             "node_modules/@ourworldindata/gdoc-pipeline/dist/gdoc-pipeline.d.ts"
