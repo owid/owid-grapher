@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useContext, useEffect, useMemo, useState } from "react"
+import { useContext, useMemo, useState } from "react"
 import {
     Alert,
     Button,
@@ -38,9 +38,9 @@ type FormData = {
 }
 
 async function fetchRedirects(admin: Admin) {
-    const { redirects } = await admin.getJSON<{ redirects: Redirect[] }>(
-        "/api/site-redirects.json"
-    )
+    const { redirects } = await admin.getJSONInBackground<{
+        redirects: Redirect[]
+    }>("/api/site-redirects.json")
     return redirects
 }
 
@@ -134,13 +134,6 @@ export default function SiteRedirectsIndexPage() {
     const queryClient = useQueryClient()
     const [form] = Form.useForm<FormData>()
     const [search, setSearch] = useState("")
-
-    useEffect(() => {
-        admin.loadingIndicatorSetting = "off"
-        return () => {
-            admin.loadingIndicatorSetting = "default"
-        }
-    }, [admin])
 
     const { data: redirects } = useQuery({
         queryKey: ["siteRedirects"],

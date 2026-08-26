@@ -8,7 +8,7 @@ import {
 import { Admin } from "./Admin.js"
 
 export async function fetchGdocs(admin: Admin): Promise<OwidGdocIndexItem[]> {
-    return admin.getJSON<OwidGdocIndexItem[]>("/api/gdocs")
+    return admin.getJSONInBackground<OwidGdocIndexItem[]>("/api/gdocs")
 }
 
 export async function createGdoc(admin: Admin, id: string): Promise<void> {

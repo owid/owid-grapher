@@ -4,7 +4,7 @@ import {
     useQuery,
     useQueryClient,
 } from "@tanstack/react-query"
-import { useContext, useEffect, useMemo, useState } from "react"
+import { useContext, useMemo, useState } from "react"
 import {
     Button,
     Checkbox,
@@ -284,9 +284,9 @@ function deserializeMultiDim(mdim: ApiMultiDim): MultiDim {
 }
 
 async function fetchMultiDims(admin: Admin) {
-    const { multiDims } = await admin.getJSON<{ multiDims: ApiMultiDim[] }>(
-        "/api/multi-dims.json"
-    )
+    const { multiDims } = await admin.getJSONInBackground<{
+        multiDims: ApiMultiDim[]
+    }>("/api/multi-dims.json")
     return multiDims.map(deserializeMultiDim)
 }
 
@@ -305,13 +305,6 @@ export function MultiDimIndexPage() {
         notification.useNotification()
     const [search, setSearch] = useState("")
     const queryClient = useQueryClient()
-
-    useEffect(() => {
-        admin.loadingIndicatorSetting = "off"
-        return () => {
-            admin.loadingIndicatorSetting = "default"
-        }
-    }, [admin])
 
     const { data } = useQuery({
         queryKey: ["multiDims"],
