@@ -24,7 +24,7 @@ const makeAbsoluteWithBaseUrl = (url: string, baseUrl: string | undefined) => {
  *
  * This is not a normal React component - it renders client-only and mounts
  * an external ES module into a Shadow DOM. This allows embedding
- * independently-built components that have their own bundled JS and CSS,
+ * independently-built components that bundle their own JS and CSS,
  * isolated from the rest of the page styles.
  *
  * On the server, this renders an empty div. On the client, useEffect dynamically
@@ -57,19 +57,9 @@ export function BespokeComponent({
         [block.bundle]
     )
 
-    const { scriptUrl, cssUrl } = useMemo(() => {
-        if (!definition || !BESPOKE_BASE_URL.trim())
-            return { scriptUrl: undefined, cssUrl: undefined }
-
-        return {
-            scriptUrl: makeAbsoluteWithBaseUrl(
-                definition.scriptUrl,
-                BESPOKE_BASE_URL
-            ),
-            cssUrl:
-                definition.cssUrl &&
-                makeAbsoluteWithBaseUrl(definition.cssUrl, BESPOKE_BASE_URL),
-        }
+    const scriptUrl = useMemo(() => {
+        if (!definition || !BESPOKE_BASE_URL.trim()) return undefined
+        return makeAbsoluteWithBaseUrl(definition.scriptUrl, BESPOKE_BASE_URL)
     }, [definition])
 
     useEffect(() => {
@@ -93,7 +83,6 @@ export function BespokeComponent({
         mountBespokeComponentInShadow({
             container,
             scriptUrl,
-            cssUrl,
             variant: block.variant,
             config: block.config,
             signal: abortController.signal,
@@ -124,14 +113,7 @@ export function BespokeComponent({
             }
             container.shadowRoot?.replaceChildren()
         }
-    }, [
-        block.bundle,
-        block.variant,
-        block.config,
-        definition,
-        scriptUrl,
-        cssUrl,
-    ])
+    }, [block.bundle, block.variant, block.config, definition, scriptUrl])
 
     if (error) {
         return <BespokeError className={className} message={error} />

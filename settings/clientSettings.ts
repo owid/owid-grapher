@@ -131,8 +131,8 @@ export const SLACK_DI_PITCHES_CHANNEL_ID: string =
 
 export const IS_RUNNING_INSIDE_VITEST: boolean = !!process.env.VITEST
 
-// Base URL for bespoke component assets. When set, scriptUrl and cssUrl from
-// the bespoke component registry are resolved relative to this URL instead of
+// Base URL for bespoke component assets. When set, the scriptUrl from the
+// bespoke component registry is resolved relative to this URL instead of
 // the current origin. Useful for pointing to the bespoke dev server during
 // local development (e.g. "http://localhost:8089").
 export const BESPOKE_BASE_URL: string =
