@@ -34,14 +34,13 @@ import {
     CategoricalColorAssigner,
     CategoricalColorMap,
 } from "../color/CategoricalColorAssigner.js"
-import { BinaryMapPaletteE } from "../color/CustomSchemes.js"
 import { FocusArray } from "../focus/FocusArray.js"
 import { AxisConfig } from "../axis/AxisConfig.js"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
 
-// used in StackedBar charts to color negative and positive bars
-const POSITIVE_COLOR = BinaryMapPaletteE.colorSets[0][0] // orange
-const NEGATIVE_COLOR = BinaryMapPaletteE.colorSets[0][1] // blue
+// Used in StackedBar charts to color negative and positive bars
+const POSITIVE_COLOR = "#f4a582" // orange
+const NEGATIVE_COLOR = "#92c5de" // blue
 
 export abstract class AbstractStackedChartState implements ChartState {
     manager: ChartManager

@@ -507,6 +507,7 @@ export class DiscreteBarChart
                 keyAccessor={(d) => d.seriesName}
                 getY={(d) => d.barY}
                 renderRow={(series) => this.renderRow(series)}
+                immediate={this.manager.disableChartRowAnimation}
             />
         )
     }

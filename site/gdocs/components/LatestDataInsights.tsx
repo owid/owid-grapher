@@ -8,7 +8,7 @@ import {
 import cx from "clsx"
 import * as R from "remeda"
 
-import { Button } from "@ourworldindata/components"
+import { Button, getPrefersReducedMotion } from "@ourworldindata/components"
 import {
     EnrichedBlockImage,
     formatAuthors,
@@ -85,7 +85,7 @@ export default function LatestDataInsights({
         if (!card) return
         scroller.scrollTo({
             left: card.offsetLeft - cards[0].offsetLeft,
-            behavior: "smooth",
+            behavior: getPrefersReducedMotion() ? "auto" : "smooth",
         })
     }
 

@@ -193,7 +193,6 @@ export default function Image(props: {
                     <source
                         key={i}
                         {...props}
-                        type="image/png"
                         sizes={
                             containerSizes[containerType] ??
                             containerSizes.default

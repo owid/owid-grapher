@@ -12,174 +12,174 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@algolia/abtesting@npm:1.19.0":
-  version: 1.19.0
-  resolution: "@algolia/abtesting@npm:1.19.0"
+"@algolia/abtesting@npm:1.23.0":
+  version: 1.23.0
+  resolution: "@algolia/abtesting@npm:1.23.0"
   dependencies:
-    "@algolia/client-common": "npm:5.53.0"
-    "@algolia/requester-browser-xhr": "npm:5.53.0"
-    "@algolia/requester-fetch": "npm:5.53.0"
-    "@algolia/requester-node-http": "npm:5.53.0"
-  checksum: 10/eaa3183c5ee2ceb77e4b658c9656917d59e9ce363526e9fd4a58c63cb8ed445d9413b64aa488b3ed021d22a29d9e734bd2c508dd6ec57b9eeada44d3d75b2333
+    "@algolia/client-common": "npm:5.57.0"
+    "@algolia/requester-browser-xhr": "npm:5.57.0"
+    "@algolia/requester-fetch": "npm:5.57.0"
+    "@algolia/requester-node-http": "npm:5.57.0"
+  checksum: 10/d14b64269dbce9fcd3f31a34b2e76ad204702197dce47f88bcdc0018846c14941774ec1f55f425896702ec7141e8dc40265632bfeb5d3f97daa55e3f0f198130
   languageName: node
   linkType: hard
 
-"@algolia/autocomplete-core@npm:1.19.8":
-  version: 1.19.8
-  resolution: "@algolia/autocomplete-core@npm:1.19.8"
+"@algolia/autocomplete-core@npm:1.19.9":
+  version: 1.19.9
+  resolution: "@algolia/autocomplete-core@npm:1.19.9"
   dependencies:
-    "@algolia/autocomplete-plugin-algolia-insights": "npm:1.19.8"
-    "@algolia/autocomplete-shared": "npm:1.19.8"
-  checksum: 10/adb5f90a03269b0eb2d17ee745fcd808f36561d9921b5a6aee723ef1d45d2b52c2758b1a2c7bac97a3a949268906e006fbc9b84e4584abe8e578b3b0d42bad9a
+    "@algolia/autocomplete-plugin-algolia-insights": "npm:1.19.9"
+    "@algolia/autocomplete-shared": "npm:1.19.9"
+  checksum: 10/94a28b53e2cab732ebb7b9427d8530b7b30c7694ff9ff82ce70716a2ad1016101c5e6dc53e6eb796479cfec104d96c5963fab524a42e7440dd385a986c3f467f
   languageName: node
   linkType: hard
 
-"@algolia/autocomplete-js@npm:1.19.8, @algolia/autocomplete-js@npm:^1.19.8":
-  version: 1.19.8
-  resolution: "@algolia/autocomplete-js@npm:1.19.8"
+"@algolia/autocomplete-js@npm:1.19.9, @algolia/autocomplete-js@npm:^1.19.9":
+  version: 1.19.9
+  resolution: "@algolia/autocomplete-js@npm:1.19.9"
   dependencies:
-    "@algolia/autocomplete-core": "npm:1.19.8"
-    "@algolia/autocomplete-preset-algolia": "npm:1.19.8"
-    "@algolia/autocomplete-shared": "npm:1.19.8"
+    "@algolia/autocomplete-core": "npm:1.19.9"
+    "@algolia/autocomplete-preset-algolia": "npm:1.19.9"
+    "@algolia/autocomplete-shared": "npm:1.19.9"
     htm: "npm:^3.1.1"
     preact: "npm:^10.13.2"
   peerDependencies:
     "@algolia/client-search": ">= 4.5.1 < 6"
     algoliasearch: ">= 4.9.1 < 6"
-  checksum: 10/b39395eb412cc30b59b4128fa758c166d67fd891fc13bbd7c98821df0954b33e95c8ee6f76848c6361c4bf93ac3d76c765d90d09e91342b552b453bde820e241
+  checksum: 10/5c23c670d95c8fe142e475a0b63d45a070abadf8488235e85e47ad447e9a31f09e8d3c16c719e01b1d581ab2635f829f8b6644e52733c382f4ecd15a9b6ebd05
   languageName: node
   linkType: hard
 
-"@algolia/autocomplete-plugin-algolia-insights@npm:1.19.8":
-  version: 1.19.8
-  resolution: "@algolia/autocomplete-plugin-algolia-insights@npm:1.19.8"
+"@algolia/autocomplete-plugin-algolia-insights@npm:1.19.9":
+  version: 1.19.9
+  resolution: "@algolia/autocomplete-plugin-algolia-insights@npm:1.19.9"
   dependencies:
-    "@algolia/autocomplete-shared": "npm:1.19.8"
+    "@algolia/autocomplete-shared": "npm:1.19.9"
   peerDependencies:
     search-insights: ">= 1 < 3"
-  checksum: 10/dd8b8c483472fe58ea1d0fd7c9acd52f9dfa794eaaab2782c696b3855de56dfe00a5226f073eab5e3b3d445cd17cf062b0c8463ee05ae90a26cc086e73d330f4
+  checksum: 10/332f0434a1e3ba19f13eff92aaa459ba3a86ab41d0d05834ab7ffd7feaf0f2883c0a8e82a31d3837566142184cf3bf941389b5e8924b07f290e181c1a52cc8af
   languageName: node
   linkType: hard
 
-"@algolia/autocomplete-plugin-recent-searches@npm:^1.19.8":
-  version: 1.19.8
-  resolution: "@algolia/autocomplete-plugin-recent-searches@npm:1.19.8"
+"@algolia/autocomplete-plugin-recent-searches@npm:^1.19.9":
+  version: 1.19.9
+  resolution: "@algolia/autocomplete-plugin-recent-searches@npm:1.19.9"
   dependencies:
-    "@algolia/autocomplete-core": "npm:1.19.8"
-    "@algolia/autocomplete-js": "npm:1.19.8"
-    "@algolia/autocomplete-preset-algolia": "npm:1.19.8"
-    "@algolia/autocomplete-shared": "npm:1.19.8"
+    "@algolia/autocomplete-core": "npm:1.19.9"
+    "@algolia/autocomplete-js": "npm:1.19.9"
+    "@algolia/autocomplete-preset-algolia": "npm:1.19.9"
+    "@algolia/autocomplete-shared": "npm:1.19.9"
   peerDependencies:
     "@algolia/client-search": ">= 4.5.1 < 6"
-  checksum: 10/996731990b5714e0e8365bdfa882c15f7d95ccc0e7ed1b6acf6d4516af4838b3b10787eabea340baf789ba974c205f9d38b3570cec5afd05b8fc7e9646375179
+  checksum: 10/f22cf3a0240e743547b7ca7d76d123cff85f5f0c8f71d22100d55b7670af654fb6f23dadc296862692290263aae81a686fe23af5de16b822b9ee7176f051f43d
   languageName: node
   linkType: hard
 
-"@algolia/autocomplete-preset-algolia@npm:1.19.8":
-  version: 1.19.8
-  resolution: "@algolia/autocomplete-preset-algolia@npm:1.19.8"
+"@algolia/autocomplete-preset-algolia@npm:1.19.9":
+  version: 1.19.9
+  resolution: "@algolia/autocomplete-preset-algolia@npm:1.19.9"
   dependencies:
-    "@algolia/autocomplete-shared": "npm:1.19.8"
+    "@algolia/autocomplete-shared": "npm:1.19.9"
   peerDependencies:
     "@algolia/client-search": ">= 4.9.1 < 6"
     algoliasearch: ">= 4.9.1 < 6"
-  checksum: 10/d3f195fbd89337779b1f764a8598550d641559ac2a0b8822d395e376ff6cc0f60b8f5a6645ae562f44b5fdf45ff14af049550f90cf56b06ab5b4110263053e3e
+  checksum: 10/8b151ab7dc95b917efcdde5c46aace468ab1a3c40d08e1bab03069438c78cbf1ae159352ac303926d6c5b11f13341bccbc964e43d68fc18c8911903080ee9906
   languageName: node
   linkType: hard
 
-"@algolia/autocomplete-shared@npm:1.19.8":
-  version: 1.19.8
-  resolution: "@algolia/autocomplete-shared@npm:1.19.8"
+"@algolia/autocomplete-shared@npm:1.19.9":
+  version: 1.19.9
+  resolution: "@algolia/autocomplete-shared@npm:1.19.9"
   peerDependencies:
     "@algolia/client-search": ">= 4.9.1 < 6"
     algoliasearch: ">= 4.9.1 < 6"
-  checksum: 10/45f7bcd8b75258462698914f0995b60df91ea217c731a964bebcea050e83fb898110ae7f227b55886012d7fb6678304f36831649abb363e6ebac86f030be0baf
+  checksum: 10/ff2cccb17fc0a8d2d01ad52428c09592ac70b1486a7582c0627e1280bc450cb918d0a41c889772115ccfb967fa92ab723da9aaa6595795a2bda0d4f77eb271e6
   languageName: node
   linkType: hard
 
-"@algolia/autocomplete-theme-classic@npm:^1.19.8":
-  version: 1.19.8
-  resolution: "@algolia/autocomplete-theme-classic@npm:1.19.8"
-  checksum: 10/a6b8c898574363db3b63afbdca2e95a3ffa74379bf1d6eaddf79cbb8e556c350912a09df050509c6ac58fc9892e3af783827094cc20810d25a0ef112d3d0a69b
+"@algolia/autocomplete-theme-classic@npm:^1.19.9":
+  version: 1.19.9
+  resolution: "@algolia/autocomplete-theme-classic@npm:1.19.9"
+  checksum: 10/9ef67c8da38afb40b9e5aff27b655ffa8abf29900650249eef27ec549c1b054da71e1555911fa6fd4b3239b0d5c98fbf4076c90d813ab091ad396d6b55884593
   languageName: node
   linkType: hard
 
-"@algolia/client-abtesting@npm:5.53.0":
-  version: 5.53.0
-  resolution: "@algolia/client-abtesting@npm:5.53.0"
+"@algolia/client-abtesting@npm:5.57.0":
+  version: 5.57.0
+  resolution: "@algolia/client-abtesting@npm:5.57.0"
   dependencies:
-    "@algolia/client-common": "npm:5.53.0"
-    "@algolia/requester-browser-xhr": "npm:5.53.0"
-    "@algolia/requester-fetch": "npm:5.53.0"
-    "@algolia/requester-node-http": "npm:5.53.0"
-  checksum: 10/2087f9c60eec1ace58bb800993dc58a91d595257d3352a8a6f2e83104a92427209ed2a65418228f7c2fabe03b321ab1cbe0f1615edfc9676893556e696a4ed8a
+    "@algolia/client-common": "npm:5.57.0"
+    "@algolia/requester-browser-xhr": "npm:5.57.0"
+    "@algolia/requester-fetch": "npm:5.57.0"
+    "@algolia/requester-node-http": "npm:5.57.0"
+  checksum: 10/a5659aef4d17e73dba5bee4bf72b54201e83249acf4bf8ff1bb610b552909ead0713336569860c3486037cca2ea982b3d3bc118a14f068da8228bfd1f064e6c0
   languageName: node
   linkType: hard
 
-"@algolia/client-analytics@npm:5.53.0":
-  version: 5.53.0
-  resolution: "@algolia/client-analytics@npm:5.53.0"
+"@algolia/client-analytics@npm:5.57.0":
+  version: 5.57.0
+  resolution: "@algolia/client-analytics@npm:5.57.0"
   dependencies:
-    "@algolia/client-common": "npm:5.53.0"
-    "@algolia/requester-browser-xhr": "npm:5.53.0"
-    "@algolia/requester-fetch": "npm:5.53.0"
-    "@algolia/requester-node-http": "npm:5.53.0"
-  checksum: 10/432feaab007b5cdde216b4ddfed08631558ba91e3139cfd065619c6301ab7d321df82c6a5f3e615e9c8d399720ed53407ca32531937e362003e78c7991a5009c
+    "@algolia/client-common": "npm:5.57.0"
+    "@algolia/requester-browser-xhr": "npm:5.57.0"
+    "@algolia/requester-fetch": "npm:5.57.0"
+    "@algolia/requester-node-http": "npm:5.57.0"
+  checksum: 10/0593c83a62a0bf7acb28e30b144015a5c51d07364d86a65e163bc6ae1951baeeab4c72bcb5f676e5cecb7503efc548f5f9103a265721f79d17a305dd974ed6a8
   languageName: node
   linkType: hard
 
-"@algolia/client-common@npm:5.53.0":
-  version: 5.53.0
-  resolution: "@algolia/client-common@npm:5.53.0"
-  checksum: 10/bcef6d69d6340f16021da1a07602a282e03871867f2f22bd38026832b16721fa5e2d8c3a45472106ec833735dff0756c8d8b2e1a31f7fa2d7fe53c5eb0bc57ee
+"@algolia/client-common@npm:5.57.0, @algolia/client-common@npm:^5.57.0":
+  version: 5.57.0
+  resolution: "@algolia/client-common@npm:5.57.0"
+  checksum: 10/8576b1b530b087482bd6c03e5603c69a17dcae9e14a1654277ee60d0c05555644d1e00660b11d31727b4a2253bfe1c2350a63b2e5cb2926b40cecdb12bec001c
   languageName: node
   linkType: hard
 
-"@algolia/client-insights@npm:5.53.0":
-  version: 5.53.0
-  resolution: "@algolia/client-insights@npm:5.53.0"
+"@algolia/client-insights@npm:5.57.0":
+  version: 5.57.0
+  resolution: "@algolia/client-insights@npm:5.57.0"
   dependencies:
-    "@algolia/client-common": "npm:5.53.0"
-    "@algolia/requester-browser-xhr": "npm:5.53.0"
-    "@algolia/requester-fetch": "npm:5.53.0"
-    "@algolia/requester-node-http": "npm:5.53.0"
-  checksum: 10/bb949a2460b759177873da3f470d4590a7370732192ba4b62f9f5f246018e31c7458ebf93747b951108e52a779346cb68a1c3d2fddd6515b373e83477d9683f3
+    "@algolia/client-common": "npm:5.57.0"
+    "@algolia/requester-browser-xhr": "npm:5.57.0"
+    "@algolia/requester-fetch": "npm:5.57.0"
+    "@algolia/requester-node-http": "npm:5.57.0"
+  checksum: 10/3557ef5c1b143704418e2f7e0752ee8e7b1b11c796d45d1ee5b80848c291696579e913a240d85c8ce4146a1176b0606274eb91cafd1bfabacb95e44bc5b54b25
   languageName: node
   linkType: hard
 
-"@algolia/client-personalization@npm:5.53.0":
-  version: 5.53.0
-  resolution: "@algolia/client-personalization@npm:5.53.0"
+"@algolia/client-personalization@npm:5.57.0":
+  version: 5.57.0
+  resolution: "@algolia/client-personalization@npm:5.57.0"
   dependencies:
-    "@algolia/client-common": "npm:5.53.0"
-    "@algolia/requester-browser-xhr": "npm:5.53.0"
-    "@algolia/requester-fetch": "npm:5.53.0"
-    "@algolia/requester-node-http": "npm:5.53.0"
-  checksum: 10/6043eee231d1c12274ac2f449a98fb001d0f11682fa5a2409df7ce713b86b54df3fe1c3065163127fee66686cee14e15556b8dedc39efe0bdb06b25d7e2ce4a6
+    "@algolia/client-common": "npm:5.57.0"
+    "@algolia/requester-browser-xhr": "npm:5.57.0"
+    "@algolia/requester-fetch": "npm:5.57.0"
+    "@algolia/requester-node-http": "npm:5.57.0"
+  checksum: 10/ced097e64d1e5951d7d4565ec700639594fbfca71225a08b33c63973a354932b8d77f11042d504e8ed1c9f077062d48523b4a09ca0dd086f7f72f78e8bc04aed
   languageName: node
   linkType: hard
 
-"@algolia/client-query-suggestions@npm:5.53.0":
-  version: 5.53.0
-  resolution: "@algolia/client-query-suggestions@npm:5.53.0"
+"@algolia/client-query-suggestions@npm:5.57.0":
+  version: 5.57.0
+  resolution: "@algolia/client-query-suggestions@npm:5.57.0"
   dependencies:
-    "@algolia/client-common": "npm:5.53.0"
-    "@algolia/requester-browser-xhr": "npm:5.53.0"
-    "@algolia/requester-fetch": "npm:5.53.0"
-    "@algolia/requester-node-http": "npm:5.53.0"
-  checksum: 10/2bab41df5b76060504964c7210f4f32b2cd35b7a85352032f4b3126a12cd5aecc671d0b79d5bada75c6fedb968fe7fb2bec8c56798ef59aab0b3410cc3314423
+    "@algolia/client-common": "npm:5.57.0"
+    "@algolia/requester-browser-xhr": "npm:5.57.0"
+    "@algolia/requester-fetch": "npm:5.57.0"
+    "@algolia/requester-node-http": "npm:5.57.0"
+  checksum: 10/7e57dd51cb8f31159c4ffa13ce773bee8a910dcaa1f20819f16f88124e9eedf161bba785421fddbd570b1011c68f0ed94a9c1266e8978f6f6fb82976d2d474a4
   languageName: node
   linkType: hard
 
-"@algolia/client-search@npm:5.53.0":
-  version: 5.53.0
-  resolution: "@algolia/client-search@npm:5.53.0"
+"@algolia/client-search@npm:5.57.0":
+  version: 5.57.0
+  resolution: "@algolia/client-search@npm:5.57.0"
   dependencies:
-    "@algolia/client-common": "npm:5.53.0"
-    "@algolia/requester-browser-xhr": "npm:5.53.0"
-    "@algolia/requester-fetch": "npm:5.53.0"
-    "@algolia/requester-node-http": "npm:5.53.0"
-  checksum: 10/8c40a36edd5ebdf438e90bb9ee1dbe27689027747c66c4901b6684149c4f5a2da26e72f11a1583542db60503c8e28a69d7d06f856139a0c356274ee8024216ca
+    "@algolia/client-common": "npm:5.57.0"
+    "@algolia/requester-browser-xhr": "npm:5.57.0"
+    "@algolia/requester-fetch": "npm:5.57.0"
+    "@algolia/requester-node-http": "npm:5.57.0"
+  checksum: 10/ffcf6a5115a2c92d16dd17129c4e04f99782ee33582157e0e01dff2cbab97df46c1f317f2b2890d52651c04528400aa6b64f9b128b5612b65be465d0e0a8e5df
   languageName: node
   linkType: hard
 
@@ -190,66 +190,66 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@algolia/ingestion@npm:1.53.0":
-  version: 1.53.0
-  resolution: "@algolia/ingestion@npm:1.53.0"
+"@algolia/ingestion@npm:1.57.0":
+  version: 1.57.0
+  resolution: "@algolia/ingestion@npm:1.57.0"
   dependencies:
-    "@algolia/client-common": "npm:5.53.0"
-    "@algolia/requester-browser-xhr": "npm:5.53.0"
-    "@algolia/requester-fetch": "npm:5.53.0"
-    "@algolia/requester-node-http": "npm:5.53.0"
-  checksum: 10/639e4e5575e854f3aa421afaa0fa45e4d98f14d825edc9a88ec3d72e87167b8c748d267ca1da8fe34f6b961df4cdca30ea49bad961aded5605e4f93c1e474374
+    "@algolia/client-common": "npm:5.57.0"
+    "@algolia/requester-browser-xhr": "npm:5.57.0"
+    "@algolia/requester-fetch": "npm:5.57.0"
+    "@algolia/requester-node-http": "npm:5.57.0"
+  checksum: 10/fdef13e7a231c56108d34d19654d3d2210cce3fbf231f0468e779aef8b9b33eacb5ef7adc9aafe6fe5934afb2e7adbf1ceb267c8f6a3b51fb9377f52038eb350
   languageName: node
   linkType: hard
 
-"@algolia/monitoring@npm:1.53.0":
-  version: 1.53.0
-  resolution: "@algolia/monitoring@npm:1.53.0"
+"@algolia/monitoring@npm:1.57.0":
+  version: 1.57.0
+  resolution: "@algolia/monitoring@npm:1.57.0"
   dependencies:
-    "@algolia/client-common": "npm:5.53.0"
-    "@algolia/requester-browser-xhr": "npm:5.53.0"
-    "@algolia/requester-fetch": "npm:5.53.0"
-    "@algolia/requester-node-http": "npm:5.53.0"
-  checksum: 10/ac8e18761392872d44d67d5a897daf25a277e4628a542e1c57ac2fdc793b9b4a658485002a3627829608a592d02b97cc59d1bac44b2ecdaa417cddaf5e06fc3c
+    "@algolia/client-common": "npm:5.57.0"
+    "@algolia/requester-browser-xhr": "npm:5.57.0"
+    "@algolia/requester-fetch": "npm:5.57.0"
+    "@algolia/requester-node-http": "npm:5.57.0"
+  checksum: 10/bb156a868f82a9104aae9e71a3ea0266e55b9eaf212e8c0813fdab516e7ee998f81b83b4a503b3d0174c88d18628ca6ddd79184db8e612d988c238f9957487ea
   languageName: node
   linkType: hard
 
-"@algolia/recommend@npm:5.53.0":
-  version: 5.53.0
-  resolution: "@algolia/recommend@npm:5.53.0"
+"@algolia/recommend@npm:5.57.0":
+  version: 5.57.0
+  resolution: "@algolia/recommend@npm:5.57.0"
   dependencies:
-    "@algolia/client-common": "npm:5.53.0"
-    "@algolia/requester-browser-xhr": "npm:5.53.0"
-    "@algolia/requester-fetch": "npm:5.53.0"
-    "@algolia/requester-node-http": "npm:5.53.0"
-  checksum: 10/ae04821435339d9474edce61c74975a938f128fce6410d72d50d9d31d40125823605c01da3d5c1f97598331cbdd8cf25001d453446a083553630fb9cc683eb4f
+    "@algolia/client-common": "npm:5.57.0"
+    "@algolia/requester-browser-xhr": "npm:5.57.0"
+    "@algolia/requester-fetch": "npm:5.57.0"
+    "@algolia/requester-node-http": "npm:5.57.0"
+  checksum: 10/8e85f47fffc2b8af168febd10f11b85c29a005ae1c32811f47b0a4ba4f4d272aa123baa7fecf7db718ede9b14c54b7450977c157de675ce3d610e46672856cf7
   languageName: node
   linkType: hard
 
-"@algolia/requester-browser-xhr@npm:5.53.0":
-  version: 5.53.0
-  resolution: "@algolia/requester-browser-xhr@npm:5.53.0"
+"@algolia/requester-browser-xhr@npm:5.57.0":
+  version: 5.57.0
+  resolution: "@algolia/requester-browser-xhr@npm:5.57.0"
   dependencies:
-    "@algolia/client-common": "npm:5.53.0"
-  checksum: 10/bddcf5bdf14cbcbb8a5f9b0f834f0f708d7074653222e608efed12d837bfe88fd8df4eb116aff354cac2a3e13389717e2832518139bcf422da1609fa35f5792f
+    "@algolia/client-common": "npm:5.57.0"
+  checksum: 10/d7d6c2ec9a0a30517565d0481a18bd66e546e9e93f0ca3eecd38130f7213ed8512e45f915b6b84c10414553d3a2c89bf491b13667d0afaf1ea698daf97c1b2a6
   languageName: node
   linkType: hard
 
-"@algolia/requester-fetch@npm:5.53.0":
-  version: 5.53.0
-  resolution: "@algolia/requester-fetch@npm:5.53.0"
+"@algolia/requester-fetch@npm:5.57.0, @algolia/requester-fetch@npm:^5.57.0":
+  version: 5.57.0
+  resolution: "@algolia/requester-fetch@npm:5.57.0"
   dependencies:
-    "@algolia/client-common": "npm:5.53.0"
-  checksum: 10/60f333ba7c45d36b24d9b0a3991fdff3a1d40b59c3b3fc6424b34bf9c89dc0c4ec920d3475b2bdd5eb3bc888195f9c7d3ca44f1424d032c94e30e5ea9efe4702
+    "@algolia/client-common": "npm:5.57.0"
+  checksum: 10/a3cb7d11b6296afb37cf673de786b07b7f0e13dc5e6db48a6394ea9d8f82be16e7e33f4e7dbfae3ff3e0a9ba40cb23df24f618d25eb215451c96c83b14ad3ff9
   languageName: node
   linkType: hard
 
-"@algolia/requester-node-http@npm:5.53.0":
-  version: 5.53.0
-  resolution: "@algolia/requester-node-http@npm:5.53.0"
+"@algolia/requester-node-http@npm:5.57.0":
+  version: 5.57.0
+  resolution: "@algolia/requester-node-http@npm:5.57.0"
   dependencies:
-    "@algolia/client-common": "npm:5.53.0"
-  checksum: 10/5cadb77179b812ab29e55bc56de1f45df138093b28e57369ac08e0e0f8ec02f4fec62777bc679663a97cda44b321aa150c9547772e7beb82caaa3bc2b6e0ae38
+    "@algolia/client-common": "npm:5.57.0"
+  checksum: 10/b73435157b64f51ed5ecdef3be64a36006765680d77d16668f3b500160b0a8fe5ebc5c3bcb0c02e569bfe51019414eb3bbb46a6c218a17699f1de67a815d5865
   languageName: node
   linkType: hard
 
@@ -308,32 +308,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ant-design/icons-svg@npm:^4.4.2":
-  version: 4.4.2
-  resolution: "@ant-design/icons-svg@npm:4.4.2"
-  checksum: 10/cb926eb6b0386c8364514fd60760a7a467bdef1146f1edd3cdfc28b025a06fc84ceb179dea773ef357de88f33f2c27f10c091d5d1bdec94c28dc02a72aa0ac0b
-  languageName: node
-  linkType: hard
-
 "@ant-design/icons-svg@npm:^4.5.0":
   version: 4.5.0
   resolution: "@ant-design/icons-svg@npm:4.5.0"
   checksum: 10/1f03fe952e519edb0e15c24fa73c538e449429ce7a00a353c4209624c466331b3f68c4ddf171fba479d573d0e3f5bb5958e9f2d5318424ebed645604a45c4a70
-  languageName: node
-  linkType: hard
-
-"@ant-design/icons@npm:^6.2.3":
-  version: 6.2.5
-  resolution: "@ant-design/icons@npm:6.2.5"
-  dependencies:
-    "@ant-design/colors": "npm:^8.0.1"
-    "@ant-design/icons-svg": "npm:^4.4.2"
-    "@rc-component/util": "npm:^1.11.0"
-    clsx: "npm:^2.1.1"
-  peerDependencies:
-    react: ">=16.0.0"
-    react-dom: ">=16.0.0"
-  checksum: 10/802bc010d9d7a2e97266b31c41ceb0a0698ef3d7c00e689df91eb9f961d1171ae0e55a4b171176a39d86162aeb1c51718cb617ad2e19fe1e3761f5c404280925
   languageName: node
   linkType: hard
 
@@ -833,10 +811,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.10.1, @babel/runtime@npm:^7.11.1, @babel/runtime@npm:^7.12.13, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.15.4, @babel/runtime@npm:^7.18.0, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.18.6, @babel/runtime@npm:^7.20.0, @babel/runtime@npm:^7.23.2, @babel/runtime@npm:^7.24.4, @babel/runtime@npm:^7.24.7, @babel/runtime@npm:^7.28.4, @babel/runtime@npm:^7.29.2, @babel/runtime@npm:^7.7.6":
+"@babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.10.1, @babel/runtime@npm:^7.11.1, @babel/runtime@npm:^7.12.13, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.15.4, @babel/runtime@npm:^7.18.0, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.18.6, @babel/runtime@npm:^7.23.2, @babel/runtime@npm:^7.24.4, @babel/runtime@npm:^7.24.7, @babel/runtime@npm:^7.28.4, @babel/runtime@npm:^7.29.2, @babel/runtime@npm:^7.7.6":
   version: 7.29.7
   resolution: "@babel/runtime@npm:7.29.7"
   checksum: 10/9883b4951787779fd382b121f22f92966d85f19434841f65fb00b2dfec232107e139683f47c6f252891826ad8ee18317b46c3a0e4819116a9885f47b46d7126a
+  languageName: node
+  linkType: hard
+
+"@babel/runtime@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@babel/runtime@npm:8.0.0"
+  checksum: 10/1aa5079d7d22d0b7eab30596e85b8c7d4a1003166ff4bb5fffadbc779b24c1acf8a08007e7afadd73191ed67b8249da66c5a2b5df29396f975e58c7df952d1a7
   languageName: node
   linkType: hard
 
@@ -2366,6 +2351,7 @@ __metadata:
     ts-pattern: "npm:^5.8.0"
     unist-util-visit: "npm:^5.0.0"
     url-slug: "npm:^4.0.1"
+    usehooks-ts: "npm:^3.1.1"
     vitest: "npm:^4.1.10"
   languageName: unknown
   linkType: soft
@@ -2505,7 +2491,7 @@ __metadata:
     "@types/lodash-es": "npm:^4.17.12"
     "@types/react": "npm:^19.2.14"
     "@types/url-parse": "npm:^1.4.11"
-    algoliasearch: "npm:^5.53.0"
+    algoliasearch: "npm:^5.57.0"
     core-js: "npm:^3.49.0"
     d3-array: "npm:^3.2.4"
     d3-format: "npm:^3.1.0"
@@ -3055,27 +3041,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rc-component/async-validator@npm:^5.1.0":
-  version: 5.1.1
-  resolution: "@rc-component/async-validator@npm:5.1.1"
+"@rc-component/async-validator@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "@rc-component/async-validator@npm:6.0.0"
   dependencies:
     "@babel/runtime": "npm:^7.24.4"
-  checksum: 10/851977e8200a22beefdcf3cd0e97b390be4b4d366a8e279dc49b4fbef0806a647332ccdd6cd0e650268b9e624eca557629cc9499536e53a9849f98321083adf0
+  checksum: 10/eab6c8d5af27c71c2108e35f9d2afa71438ddff57341fc4b3ece4c07440aab4c60fec91c5553796b876cd534cbb4f2884177e775da23552178568a21a3565bea
   languageName: node
   linkType: hard
 
-"@rc-component/cascader@npm:~1.15.0":
-  version: 1.15.0
-  resolution: "@rc-component/cascader@npm:1.15.0"
+"@rc-component/cascader@npm:~1.22.0":
+  version: 1.22.0
+  resolution: "@rc-component/cascader@npm:1.22.0"
   dependencies:
-    "@rc-component/select": "npm:~1.6.0"
-    "@rc-component/tree": "npm:~1.3.0"
-    "@rc-component/util": "npm:^1.4.0"
+    "@rc-component/select": "npm:~1.10.0"
+    "@rc-component/tree": "npm:~1.4.0"
+    "@rc-component/util": "npm:^1.11.1"
     clsx: "npm:^2.1.1"
   peerDependencies:
     react: ">=18.0.0"
     react-dom: ">=18.0.0"
-  checksum: 10/c0e335e5fad825e51d78f09585679b439eb05e503920d18d66c6fb125acd2ad1e028b2a642a5be5f8d751afdb68e1d5d81f3b13c2ece99c1fbfa985c2f7cdc45
+  checksum: 10/4ea8e6fd41afee3d2db9774558d59b2571747155f0049a495255a5e6b41680e970d860f79bb10604a6a82e86c1f1db6fb1aaf0e48f0db7a92915c7035e721c9e
   languageName: node
   linkType: hard
 
@@ -3133,18 +3119,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rc-component/dialog@npm:~1.9.0":
-  version: 1.9.0
-  resolution: "@rc-component/dialog@npm:1.9.0"
+"@rc-component/dialog@npm:~1.10.0":
+  version: 1.10.0
+  resolution: "@rc-component/dialog@npm:1.10.0"
   dependencies:
-    "@rc-component/motion": "npm:^1.1.3"
+    "@rc-component/motion": "npm:^1.3.3"
     "@rc-component/portal": "npm:^2.1.0"
     "@rc-component/util": "npm:^1.9.0"
     clsx: "npm:^2.1.1"
   peerDependencies:
     react: ">=18.0.0"
     react-dom: ">=18.0.0"
-  checksum: 10/d8eb21dff903e5c8d3cce12781804c3f0b86fa0027f2beee7a110832f4b704c70d831f6189cbf18efbe7901187691b886dea5b60e7875cde4f3c30d92b2a72fd
+  checksum: 10/ce1057d9975d4fe48cdd88875fce789d87ed104adf3ef53cdfe40c1a443f817bc7fb1cf01b23b1dd76134796363441aa6dcdd045559973dcb97c8807adebd07b
   languageName: node
   linkType: hard
 
@@ -3163,46 +3149,46 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rc-component/dropdown@npm:~1.0.0, @rc-component/dropdown@npm:~1.0.2":
-  version: 1.0.2
-  resolution: "@rc-component/dropdown@npm:1.0.2"
+"@rc-component/dropdown@npm:~1.0.0, @rc-component/dropdown@npm:~1.0.3":
+  version: 1.0.3
+  resolution: "@rc-component/dropdown@npm:1.0.3"
   dependencies:
     "@rc-component/trigger": "npm:^3.0.0"
-    "@rc-component/util": "npm:^1.2.1"
+    "@rc-component/util": "npm:^1.11.1"
     clsx: "npm:^2.1.1"
   peerDependencies:
     react: ">=16.11.0"
     react-dom: ">=16.11.0"
-  checksum: 10/5281beada1171b96f27a64460a22fc49dcbefbd8b728ca8f426981995ac21225b14eed96d6c5783bb42f72ae47bf9a1ce3f66fd3eeb6a1f6b361f0a8a23333f6
+  checksum: 10/b303e112321cc91bf10411a2d7e21a67fcfa4d035d22800e24a975ab5db2f23f91c2d4c099d0435b78f5a9707dd252bd0f50d62cbda839ab33d339e2dd92141a
   languageName: node
   linkType: hard
 
-"@rc-component/form@npm:~1.8.1":
-  version: 1.8.2
-  resolution: "@rc-component/form@npm:1.8.2"
+"@rc-component/form@npm:~1.8.6":
+  version: 1.8.6
+  resolution: "@rc-component/form@npm:1.8.6"
   dependencies:
-    "@rc-component/async-validator": "npm:^5.1.0"
+    "@rc-component/async-validator": "npm:^6.0.0"
     "@rc-component/util": "npm:^1.11.1"
     clsx: "npm:^2.1.1"
   peerDependencies:
     react: ">=16.9.0"
     react-dom: ">=16.9.0"
-  checksum: 10/64e3b18f8957e3edc1c14606607b1e82016fea329a726a3a3d29e497365daf977ba8735186c41e4ce5154237e7db538afa6bf98fc6d962fa941da70d9b5761b8
+  checksum: 10/6ee11057220d6a102ca39cc664ab3bdff1db9e1bcf8bf7a0236a1ca75d45cce77b359940c4e86e5cc855f016e05e15a0372af3c62473606e1faee18ccbe6dd0c
   languageName: node
   linkType: hard
 
-"@rc-component/image@npm:~1.9.0":
-  version: 1.9.0
-  resolution: "@rc-component/image@npm:1.9.0"
+"@rc-component/image@npm:~1.10.0":
+  version: 1.10.0
+  resolution: "@rc-component/image@npm:1.10.0"
   dependencies:
     "@rc-component/motion": "npm:^1.0.0"
     "@rc-component/portal": "npm:^2.1.2"
-    "@rc-component/util": "npm:^1.10.1"
+    "@rc-component/util": "npm:^1.11.1"
     clsx: "npm:^2.1.1"
   peerDependencies:
     react: ">=16.9.0"
     react-dom: ">=16.9.0"
-  checksum: 10/b2ab8fc85b060fded547f31687a144e50f07a51c3d7148164c2773cabf5c6e1ec92bec5e9cf52384711fbe58403c7ba5f72d71fdd8fa55e43267fc3da416f54b
+  checksum: 10/f6a8a3e6c829b4971a1a3a690e45d124a0f65e1f187ad57219ed4fa72bd0fc19834e350f6536cec0477f9b7ddcbb882d77d1e8a684739c0f458eedd9432c151b
   languageName: node
   linkType: hard
 
@@ -3220,7 +3206,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rc-component/input@npm:~1.3.0":
+"@rc-component/input@npm:~1.3.1":
   version: 1.3.1
   resolution: "@rc-component/input@npm:1.3.1"
   dependencies:
@@ -3234,25 +3220,42 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rc-component/mentions@npm:~1.9.0":
-  version: 1.9.0
-  resolution: "@rc-component/mentions@npm:1.9.0"
+"@rc-component/listy@npm:~1.2.3":
+  version: 1.2.3
+  resolution: "@rc-component/listy@npm:1.2.3"
   dependencies:
-    "@rc-component/input": "npm:~1.3.0"
-    "@rc-component/menu": "npm:~1.3.0"
+    "@rc-component/motion": "npm:^1.1.4"
+    "@rc-component/portal": "npm:^2.0.0"
+    "@rc-component/resize-observer": "npm:^1.0.0"
+    "@rc-component/util": "npm:^1.3.1"
+    "@rc-component/virtual-list": "npm:^1.4.0"
+    clsx: "npm:^2.1.1"
+  peerDependencies:
+    react: ">=18.0.0"
+    react-dom: ">=18.0.0"
+  checksum: 10/f7b7ac3543649e55544515914ed0854820c9e9ae2825a145002b558bdeb066a44498acfd45841a2df0cb5e02b46043ebc0eb423f6b5a212416a9c366e19240c1
+  languageName: node
+  linkType: hard
+
+"@rc-component/mentions@npm:~1.11.0":
+  version: 1.11.0
+  resolution: "@rc-component/mentions@npm:1.11.0"
+  dependencies:
+    "@rc-component/input": "npm:~1.3.1"
+    "@rc-component/menu": "npm:~1.4.0"
     "@rc-component/trigger": "npm:^3.0.0"
-    "@rc-component/util": "npm:^1.3.0"
+    "@rc-component/util": "npm:^1.11.1"
     clsx: "npm:^2.1.1"
   peerDependencies:
     react: ">=16.9.0"
     react-dom: ">=16.9.0"
-  checksum: 10/527a1c5cb80f31ca4013ce7ba06377aba274150fce09e87cddc734957b9efeabbb6aa0f5cc55b1e98d78fae797a4e328892fb56ac8c5f27e18fd480bf2680d62
+  checksum: 10/a2658c530577b146e9227cc69b6c7006401a1214248bca8428dbe16e46accdfff855e28d37bc1015012f96aa64e51e3f2f6a49940258f89342049674417c8ec8
   languageName: node
   linkType: hard
 
-"@rc-component/menu@npm:~1.3.0":
-  version: 1.3.1
-  resolution: "@rc-component/menu@npm:1.3.1"
+"@rc-component/menu@npm:~1.4.0, @rc-component/menu@npm:~1.4.1":
+  version: 1.4.1
+  resolution: "@rc-component/menu@npm:1.4.1"
   dependencies:
     "@rc-component/motion": "npm:^1.1.4"
     "@rc-component/overflow": "npm:^1.0.0"
@@ -3262,20 +3265,20 @@ __metadata:
   peerDependencies:
     react: ">=16.9.0"
     react-dom: ">=16.9.0"
-  checksum: 10/b6a8a42fc3a88349310d43087c0b0b2a47076def11db9490a9356a3ed23af43bb499ed86968bcf88b52c62f1232a3974ecfe89ee4b96b61b805fc11e35ff2463
+  checksum: 10/af2237b65d618e8d465d58ae5b0afe0ea50d8dea514e6942e723c5c9cadbc9949a8d2c4df77aa5f091687c7a47a62bc8025a0c53c326b552b12e1c0dd4c4082f
   languageName: node
   linkType: hard
 
 "@rc-component/mini-decimal@npm:^1.0.1":
-  version: 1.1.0
-  resolution: "@rc-component/mini-decimal@npm:1.1.0"
+  version: 1.1.4
+  resolution: "@rc-component/mini-decimal@npm:1.1.4"
   dependencies:
     "@babel/runtime": "npm:^7.18.0"
-  checksum: 10/5dbc39a590f87790d22f57c7271f05c9a73e3f28a3a4587fa562e817b69706079a8ae9763a010aa9c2887bc9003a6ef395ca0795cd8c653ce038dfe4b9005d4e
+  checksum: 10/3a0c293a7d989b154db491b8eb74c95b65ed2a80d064d94fa53a3c16c5fecec069e59aefdedc1e3326062fcc94c609f3a034aa222890a173c12196957542ac21
   languageName: node
   linkType: hard
 
-"@rc-component/motion@npm:^1.0.0, @rc-component/motion@npm:^1.1.3, @rc-component/motion@npm:^1.1.4, @rc-component/motion@npm:^1.3.2":
+"@rc-component/motion@npm:^1.0.0, @rc-component/motion@npm:^1.1.3, @rc-component/motion@npm:^1.1.4, @rc-component/motion@npm:^1.3.3":
   version: 1.3.3
   resolution: "@rc-component/motion@npm:1.3.3"
   dependencies:
@@ -3329,27 +3332,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rc-component/pagination@npm:~1.2.0":
-  version: 1.2.0
-  resolution: "@rc-component/pagination@npm:1.2.0"
+"@rc-component/pagination@npm:~1.4.0":
+  version: 1.4.0
+  resolution: "@rc-component/pagination@npm:1.4.0"
   dependencies:
-    "@rc-component/util": "npm:^1.3.0"
+    "@rc-component/util": "npm:^1.11.1"
     clsx: "npm:^2.1.1"
   peerDependencies:
     react: ">=16.9.0"
     react-dom: ">=16.9.0"
-  checksum: 10/106fa3e26d10a160e26ccb75db0ac82d32ec7b0b2e9a513708da154b4ac520eead4b651e364017ca1880c45cdbe5c0a79d9d427da95f45411a89006d956565a2
+  checksum: 10/f950b31a1a7ce21863438f0855126c52dcfe13533e66a33b72f0f7e28ec6c50947dea29afc3453a749edee06bf14a8a33bd0c22fc3a747e0c1df0dbf00bc08a2
   languageName: node
   linkType: hard
 
-"@rc-component/picker@npm:~1.10.0":
-  version: 1.10.0
-  resolution: "@rc-component/picker@npm:1.10.0"
+"@rc-component/picker@npm:~1.12.0":
+  version: 1.12.0
+  resolution: "@rc-component/picker@npm:1.12.0"
   dependencies:
     "@rc-component/overflow": "npm:^1.0.0"
     "@rc-component/resize-observer": "npm:^1.0.0"
     "@rc-component/trigger": "npm:^3.6.15"
-    "@rc-component/util": "npm:^1.3.0"
+    "@rc-component/util": "npm:^1.11.1"
     clsx: "npm:^2.1.1"
   peerDependencies:
     date-fns: ">= 2.x"
@@ -3367,11 +3370,11 @@ __metadata:
       optional: true
     moment:
       optional: true
-  checksum: 10/522365bbf50ebf0d22e94bb519fb12f8b21de606f43af61d71a9624d3aa7726d9733f3fcf9bee4921e24787c39771517714084ca97bc44ec12ecab1ad41f2f91
+  checksum: 10/91e8cf763cd0c83faa39de974be4d0b90ce5c9c473e7cc113e61a381a0fad77f9dca9243d144f4990fe9a29dc2a5a4f4b22e75e3df749c089f40b1a91cf13e72
   languageName: node
   linkType: hard
 
-"@rc-component/portal@npm:^2.1.0, @rc-component/portal@npm:^2.1.2, @rc-component/portal@npm:^2.1.3, @rc-component/portal@npm:^2.2.0":
+"@rc-component/portal@npm:^2.0.0, @rc-component/portal@npm:^2.1.0, @rc-component/portal@npm:^2.1.2, @rc-component/portal@npm:^2.1.3, @rc-component/portal@npm:^2.2.0, @rc-component/portal@npm:^2.2.1":
   version: 2.2.1
   resolution: "@rc-component/portal@npm:2.2.1"
   dependencies:
@@ -3397,15 +3400,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rc-component/qrcode@npm:~1.1.1":
-  version: 1.1.2
-  resolution: "@rc-component/qrcode@npm:1.1.2"
+"@rc-component/qrcode@npm:~2.0.0":
+  version: 2.0.0
+  resolution: "@rc-component/qrcode@npm:2.0.0"
   dependencies:
     "@babel/runtime": "npm:^7.24.7"
   peerDependencies:
     react: ">=16.9.0"
     react-dom: ">=16.9.0"
-  checksum: 10/19a9183d51b3b8fabf1ad1d2e11f6d6ee84b697096f180088c83dfb7b819d6efb659631343dbe0b98d90391159f3bdbc682129dd824e232528fce39bf63d470f
+  checksum: 10/652cd9bf42996bc471c5e7e1f91cf56f719ad4469097e3ee05f7b7d74b88995eb2a1e1780d7d1354e4e957973bf830dc4cd2dc0eb45723beb19372e222d510ec
   languageName: node
   linkType: hard
 
@@ -3449,32 +3452,32 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rc-component/select@npm:~1.6.0, @rc-component/select@npm:~1.6.15":
-  version: 1.6.15
-  resolution: "@rc-component/select@npm:1.6.15"
+"@rc-component/select@npm:~1.10.0, @rc-component/select@npm:~1.10.1":
+  version: 1.10.1
+  resolution: "@rc-component/select@npm:1.10.1"
   dependencies:
     "@rc-component/overflow": "npm:^1.0.0"
     "@rc-component/trigger": "npm:^3.0.0"
-    "@rc-component/util": "npm:^1.3.0"
-    "@rc-component/virtual-list": "npm:^1.0.1"
+    "@rc-component/util": "npm:^1.11.1"
+    "@rc-component/virtual-list": "npm:^1.2.0"
     clsx: "npm:^2.1.1"
   peerDependencies:
     react: "*"
     react-dom: "*"
-  checksum: 10/fdf9c4e5829c029480dd51cd1792e9f06cd8b4f8622d8610229af0038ba6dfcb3776686b6817ce123685a31d6d34a55b42f6ec507893cbb67e6f299edaefcc3e
+  checksum: 10/72a17a1c70e0f9a82015e0488cd98d9044400ba569279db25207977381b6e4379eb3f47414600967aacb070c0652719d6cf6f0ae046a431d7399da88a6b94fc5
   languageName: node
   linkType: hard
 
-"@rc-component/slider@npm:~1.0.1":
-  version: 1.0.1
-  resolution: "@rc-component/slider@npm:1.0.1"
+"@rc-component/slider@npm:~1.1.1":
+  version: 1.1.1
+  resolution: "@rc-component/slider@npm:1.1.1"
   dependencies:
     "@rc-component/util": "npm:^1.3.0"
     clsx: "npm:^2.1.1"
   peerDependencies:
     react: ">=16.9.0"
     react-dom: ">=16.9.0"
-  checksum: 10/23ee6d696e7e60fa0d707ef0d58aba7892e4e3630b0f466b4ffda374210be0cd2e63fff034fcfcf11f72c03d4a4e980560ab5be3807f441cf8e20280793ba33e
+  checksum: 10/68794cadcdb86d690399aa17703f65e16d1bb28e34bc638ed51847980d0c2cad07cfb553e33495ae649582a81b7693c8278be797a5a7a4f6f5d8eeddb3728bf9
   languageName: node
   linkType: hard
 
@@ -3504,9 +3507,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rc-component/table@npm:~1.10.0":
-  version: 1.10.2
-  resolution: "@rc-component/table@npm:1.10.2"
+"@rc-component/table@npm:~1.11.1":
+  version: 1.11.1
+  resolution: "@rc-component/table@npm:1.11.1"
   dependencies:
     "@rc-component/context": "npm:^2.0.1"
     "@rc-component/resize-observer": "npm:^1.0.0"
@@ -3516,16 +3519,16 @@ __metadata:
   peerDependencies:
     react: ">=18.0.0"
     react-dom: ">=18.0.0"
-  checksum: 10/f2a572630d853bb8a9fea786b388b2cfba9378ec136112835aee9e794bfe32bb9752157f40799d67449bcfd5dbc4d918f280d5d993088574fe79f3545075b19d
+  checksum: 10/062481eb222968333355cfc25fff42e36e6cd623edb2d056c6b41d11f851aa9297ae7ebdd5b8b7633b8b5b1331b7eaf86927b8ac28d5c88abd6e02fb4cdf1ad4
   languageName: node
   linkType: hard
 
-"@rc-component/tabs@npm:~1.9.0":
-  version: 1.9.1
-  resolution: "@rc-component/tabs@npm:1.9.1"
+"@rc-component/tabs@npm:~1.12.0":
+  version: 1.12.0
+  resolution: "@rc-component/tabs@npm:1.12.0"
   dependencies:
     "@rc-component/dropdown": "npm:~1.0.0"
-    "@rc-component/menu": "npm:~1.3.0"
+    "@rc-component/menu": "npm:~1.4.0"
     "@rc-component/motion": "npm:^1.1.3"
     "@rc-component/resize-observer": "npm:^1.0.0"
     "@rc-component/util": "npm:^1.11.1"
@@ -3533,21 +3536,21 @@ __metadata:
   peerDependencies:
     react: ">=16.9.0"
     react-dom: ">=16.9.0"
-  checksum: 10/32a4733fc3d7bb1f4c7124e251674d0168b91cd8fc4ef9084e63daef5f24047294d94e208c4e5f823a8f60e8d39eb78f0cdeafe0d843fb97238dbac363dadef8
+  checksum: 10/98c32297459d9abdc4d973d27f9c7a2483e83b189cb423f676e425f1629c4aaefce1dde8f00706185e25e6ade0252bf480520eab232fb06039e22a1b6dbed737
   languageName: node
   linkType: hard
 
-"@rc-component/tooltip@npm:~1.4.0":
-  version: 1.4.0
-  resolution: "@rc-component/tooltip@npm:1.4.0"
+"@rc-component/tooltip@npm:~1.5.0":
+  version: 1.5.0
+  resolution: "@rc-component/tooltip@npm:1.5.0"
   dependencies:
-    "@rc-component/trigger": "npm:^3.7.1"
-    "@rc-component/util": "npm:^1.3.0"
+    "@rc-component/trigger": "npm:^3.10.0"
+    "@rc-component/util": "npm:^1.11.1"
     clsx: "npm:^2.1.1"
   peerDependencies:
     react: ">=18.0.0"
     react-dom: ">=18.0.0"
-  checksum: 10/2e81bc4b15afaef66f7c7ad4cf1b21cf900ea221bbfc78995a3bea7da33491654ab7f2368ae9b39d9a3d14cfeb7639420506cdbd642c7539b43ad1021c72f8ee
+  checksum: 10/5f304a2a4dd3ea2b1570c35b463da319521a47041630a076bbabd946fa8647d28352ab7d704d3cb3781a83022cf311429b4d048202c3dbc6a877f0dee01651f3
   languageName: node
   linkType: hard
 
@@ -3566,24 +3569,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rc-component/tree-select@npm:~1.9.0":
-  version: 1.9.0
-  resolution: "@rc-component/tree-select@npm:1.9.0"
+"@rc-component/tree-select@npm:~1.16.1":
+  version: 1.16.1
+  resolution: "@rc-component/tree-select@npm:1.16.1"
   dependencies:
-    "@rc-component/select": "npm:~1.6.0"
-    "@rc-component/tree": "npm:~1.3.0"
-    "@rc-component/util": "npm:^1.4.0"
+    "@rc-component/select": "npm:~1.10.0"
+    "@rc-component/tree": "npm:~1.4.0"
+    "@rc-component/util": "npm:^1.11.1"
     clsx: "npm:^2.1.1"
   peerDependencies:
     react: "*"
     react-dom: "*"
-  checksum: 10/884af6e8a0e22920ef4f0bbddd49398b31ef9aa7334384fa7699782fcaf1f37e60a3aa089bfd04ffe6cd3ce97ab7f15f5810111c9ab75695ac0b99dcc3f25cdc
+  checksum: 10/8a892777c67e206e7bedeb492d934476a9efb0b91f186108a6a6316bcde9657efbff14ac3ca42518c861e12259c332e37bfecea0546d3dad4e1ab41624ae53e8
   languageName: node
   linkType: hard
 
-"@rc-component/tree@npm:~1.3.0, @rc-component/tree@npm:~1.3.1":
-  version: 1.3.2
-  resolution: "@rc-component/tree@npm:1.3.2"
+"@rc-component/tree@npm:~1.4.0":
+  version: 1.4.0
+  resolution: "@rc-component/tree@npm:1.4.0"
   dependencies:
     "@rc-component/motion": "npm:^1.0.0"
     "@rc-component/util": "npm:^1.11.1"
@@ -3592,27 +3595,27 @@ __metadata:
   peerDependencies:
     react: "*"
     react-dom: "*"
-  checksum: 10/ba1d965cf5daef7194b23509f666b459ab77c099a4ce4680529e3619d09b9d3002b49409fcb3c02b657c4f41cd84b3b3ea8ab347053c6c6c3dbb75b53e5d150b
+  checksum: 10/cabd53f82490433222ef190eb0bc680c6ac56ff02cde842ba6cc70c8dfceca63eccc0ff0abd9b597ec8fd1bcebaa1d94eb33c44fe5ecb2115235b06863274b23
   languageName: node
   linkType: hard
 
-"@rc-component/trigger@npm:^3.0.0, @rc-component/trigger@npm:^3.6.15, @rc-component/trigger@npm:^3.7.1, @rc-component/trigger@npm:^3.9.0":
-  version: 3.9.1
-  resolution: "@rc-component/trigger@npm:3.9.1"
+"@rc-component/trigger@npm:^3.0.0, @rc-component/trigger@npm:^3.10.0, @rc-component/trigger@npm:^3.10.1, @rc-component/trigger@npm:^3.6.15":
+  version: 3.10.1
+  resolution: "@rc-component/trigger@npm:3.10.1"
   dependencies:
-    "@rc-component/motion": "npm:^1.1.4"
-    "@rc-component/portal": "npm:^2.2.0"
-    "@rc-component/resize-observer": "npm:^1.1.1"
-    "@rc-component/util": "npm:^1.2.1"
+    "@rc-component/motion": "npm:^1.3.3"
+    "@rc-component/portal": "npm:^2.2.1"
+    "@rc-component/resize-observer": "npm:^1.1.2"
+    "@rc-component/util": "npm:^1.11.1"
     clsx: "npm:^2.1.1"
   peerDependencies:
     react: ">=18.0.0"
     react-dom: ">=18.0.0"
-  checksum: 10/5b24f16169f2aa3ac159f3692135c4e2d5113a8dec7d1986d0d3018d6961d7c97f1c59137565d4e20f3fe85249d612e8d024b1d58a86c5c65b7d5811173a267a
+  checksum: 10/c0a312138601ca6b4d856a63457437c41fe5e93be8fab53931360d6b7f9a454feeab0aff2afc2a4f86a91cf3637236b624e82f088bb4178aa04bc34c7f0e3159
   languageName: node
   linkType: hard
 
-"@rc-component/upload@npm:~1.1.0":
+"@rc-component/upload@npm:~1.1.1":
   version: 1.1.1
   resolution: "@rc-component/upload@npm:1.1.1"
   dependencies:
@@ -3625,31 +3628,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rc-component/util@npm:^1.10.1, @rc-component/util@npm:^1.11.0, @rc-component/util@npm:^1.11.1, @rc-component/util@npm:^1.2.0, @rc-component/util@npm:^1.2.1, @rc-component/util@npm:^1.3.0, @rc-component/util@npm:^1.4.0, @rc-component/util@npm:^1.7.0, @rc-component/util@npm:^1.9.0":
-  version: 1.11.1
-  resolution: "@rc-component/util@npm:1.11.1"
+"@rc-component/util@npm:^1.11.0, @rc-component/util@npm:^1.11.1, @rc-component/util@npm:^1.12.0, @rc-component/util@npm:^1.2.0, @rc-component/util@npm:^1.2.1, @rc-component/util@npm:^1.3.0, @rc-component/util@npm:^1.3.1, @rc-component/util@npm:^1.4.0, @rc-component/util@npm:^1.7.0, @rc-component/util@npm:^1.9.0":
+  version: 1.12.0
+  resolution: "@rc-component/util@npm:1.12.0"
   dependencies:
     is-mobile: "npm:^5.0.0"
-    react-is: "npm:^18.2.0"
+    react-is: "npm:^19.2.7"
   peerDependencies:
     react: ">=18.0.0"
     react-dom: ">=18.0.0"
-  checksum: 10/18a35706e3032f3fee84375ebd8c434badbd1e7bba5d0b2d7ed39f8b5d5399adbebce5f78b1421b5b016c3bdad83dc37237a150644bb33299511b1aae95bb9e9
+  checksum: 10/719510e8caced367561a5e17ef6fc733298f4b3c572fd4a6a0531694a8ffc80806c086b7e32ad4681d5de006486a96c97abf4ce85ef50dd6651019383af82a56
   languageName: node
   linkType: hard
 
-"@rc-component/virtual-list@npm:^1.0.1, @rc-component/virtual-list@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "@rc-component/virtual-list@npm:1.2.0"
+"@rc-component/virtual-list@npm:^1.0.1, @rc-component/virtual-list@npm:^1.2.0, @rc-component/virtual-list@npm:^1.4.0":
+  version: 1.5.1
+  resolution: "@rc-component/virtual-list@npm:1.5.1"
   dependencies:
-    "@babel/runtime": "npm:^7.20.0"
+    "@babel/runtime": "npm:^8.0.0"
     "@rc-component/resize-observer": "npm:^1.0.1"
     "@rc-component/util": "npm:^1.4.0"
     clsx: "npm:^2.1.1"
   peerDependencies:
     react: ">=18.0.0"
     react-dom: ">=18.0.0"
-  checksum: 10/6391b2b715b40d895fc9bc626aa4be1ee6c7b018a536a830b06b7181e20ab3868097a16377918b5159bd114dfe02ed985fc0bdf2cef707e3f4c7302a1076e0f7
+  checksum: 10/c331151b244070c05e3da53e690c01885b3a0a60e51bf4120ad7114ab0850652d1957e685eed31e8a47b7ff5c86cbed55a93ddd6560062334a2a2b691787cbb0
   languageName: node
   linkType: hard
 
@@ -6376,36 +6379,36 @@ __metadata:
   languageName: node
   linkType: hard
 
-"algoliasearch-helper@npm:3.29.1":
-  version: 3.29.1
-  resolution: "algoliasearch-helper@npm:3.29.1"
+"algoliasearch-helper@npm:3.29.3":
+  version: 3.29.3
+  resolution: "algoliasearch-helper@npm:3.29.3"
   dependencies:
     "@algolia/events": "npm:^4.0.1"
   peerDependencies:
     algoliasearch: ">= 3.1 < 6"
-  checksum: 10/5710e4a82c8f4af5f26a86ee61b348845dc88c89d2bbf564bafd304d2906a80a401d504db980a1594a920c623f381b5b5fd9b47faa5ba6237c880a5fe95e2c70
+  checksum: 10/157d0b0ee5d1fd1116282c099b40e4d29657dcda58f101ec554fb9faa85e753747ac8d6783c472f0f4222a69e1903175bc26e00aa9ca204af4a111920fcf7a9e
   languageName: node
   linkType: hard
 
-"algoliasearch@npm:^5.53.0":
-  version: 5.53.0
-  resolution: "algoliasearch@npm:5.53.0"
+"algoliasearch@npm:^5.57.0":
+  version: 5.57.0
+  resolution: "algoliasearch@npm:5.57.0"
   dependencies:
-    "@algolia/abtesting": "npm:1.19.0"
-    "@algolia/client-abtesting": "npm:5.53.0"
-    "@algolia/client-analytics": "npm:5.53.0"
-    "@algolia/client-common": "npm:5.53.0"
-    "@algolia/client-insights": "npm:5.53.0"
-    "@algolia/client-personalization": "npm:5.53.0"
-    "@algolia/client-query-suggestions": "npm:5.53.0"
-    "@algolia/client-search": "npm:5.53.0"
-    "@algolia/ingestion": "npm:1.53.0"
-    "@algolia/monitoring": "npm:1.53.0"
-    "@algolia/recommend": "npm:5.53.0"
-    "@algolia/requester-browser-xhr": "npm:5.53.0"
-    "@algolia/requester-fetch": "npm:5.53.0"
-    "@algolia/requester-node-http": "npm:5.53.0"
-  checksum: 10/0e87f7c87bde32963c3d83f514775abc2242b9a958150b1c72b94b3b39fb086e84a8745dbe7bfa49c32e7578d4311dcdabf28f457e1e07556df460cb35e84e09
+    "@algolia/abtesting": "npm:1.23.0"
+    "@algolia/client-abtesting": "npm:5.57.0"
+    "@algolia/client-analytics": "npm:5.57.0"
+    "@algolia/client-common": "npm:5.57.0"
+    "@algolia/client-insights": "npm:5.57.0"
+    "@algolia/client-personalization": "npm:5.57.0"
+    "@algolia/client-query-suggestions": "npm:5.57.0"
+    "@algolia/client-search": "npm:5.57.0"
+    "@algolia/ingestion": "npm:1.57.0"
+    "@algolia/monitoring": "npm:1.57.0"
+    "@algolia/recommend": "npm:5.57.0"
+    "@algolia/requester-browser-xhr": "npm:5.57.0"
+    "@algolia/requester-fetch": "npm:5.57.0"
+    "@algolia/requester-node-http": "npm:5.57.0"
+  checksum: 10/d6fee2b0383de2671352343e025323f8085ea73b9d9ca8aae5fb69bcd1ac805d14d80596b3ca33778a44a3f5d28ba50f0c646f98f39b9f26675849ebeeb14f1a
   languageName: node
   linkType: hard
 
@@ -6478,53 +6481,54 @@ __metadata:
   languageName: node
   linkType: hard
 
-"antd@npm:^6.4.3":
-  version: 6.4.3
-  resolution: "antd@npm:6.4.3"
+"antd@npm:^6.6.1":
+  version: 6.6.1
+  resolution: "antd@npm:6.6.1"
   dependencies:
     "@ant-design/colors": "npm:^8.0.1"
     "@ant-design/cssinjs": "npm:^2.1.2"
     "@ant-design/cssinjs-utils": "npm:^2.1.2"
     "@ant-design/fast-color": "npm:^3.0.1"
-    "@ant-design/icons": "npm:^6.2.3"
+    "@ant-design/icons": "npm:^6.3.2"
     "@ant-design/react-slick": "npm:~2.0.0"
     "@babel/runtime": "npm:^7.29.2"
-    "@rc-component/cascader": "npm:~1.15.0"
+    "@rc-component/cascader": "npm:~1.22.0"
     "@rc-component/checkbox": "npm:~2.0.0"
     "@rc-component/collapse": "npm:~1.2.0"
     "@rc-component/color-picker": "npm:~3.1.1"
-    "@rc-component/dialog": "npm:~1.9.0"
+    "@rc-component/dialog": "npm:~1.10.0"
     "@rc-component/drawer": "npm:~1.4.2"
-    "@rc-component/dropdown": "npm:~1.0.2"
-    "@rc-component/form": "npm:~1.8.1"
-    "@rc-component/image": "npm:~1.9.0"
-    "@rc-component/input": "npm:~1.3.0"
+    "@rc-component/dropdown": "npm:~1.0.3"
+    "@rc-component/form": "npm:~1.8.6"
+    "@rc-component/image": "npm:~1.10.0"
+    "@rc-component/input": "npm:~1.3.1"
     "@rc-component/input-number": "npm:~1.6.2"
-    "@rc-component/mentions": "npm:~1.9.0"
-    "@rc-component/menu": "npm:~1.3.0"
-    "@rc-component/motion": "npm:^1.3.2"
+    "@rc-component/listy": "npm:~1.2.3"
+    "@rc-component/mentions": "npm:~1.11.0"
+    "@rc-component/menu": "npm:~1.4.1"
+    "@rc-component/motion": "npm:^1.3.3"
     "@rc-component/mutate-observer": "npm:^2.0.1"
     "@rc-component/notification": "npm:~2.0.7"
-    "@rc-component/pagination": "npm:~1.2.0"
-    "@rc-component/picker": "npm:~1.10.0"
+    "@rc-component/pagination": "npm:~1.4.0"
+    "@rc-component/picker": "npm:~1.12.0"
     "@rc-component/progress": "npm:~1.0.2"
-    "@rc-component/qrcode": "npm:~1.1.1"
+    "@rc-component/qrcode": "npm:~2.0.0"
     "@rc-component/rate": "npm:~1.0.1"
     "@rc-component/resize-observer": "npm:^1.1.2"
     "@rc-component/segmented": "npm:~1.3.0"
-    "@rc-component/select": "npm:~1.6.15"
-    "@rc-component/slider": "npm:~1.0.1"
+    "@rc-component/select": "npm:~1.10.1"
+    "@rc-component/slider": "npm:~1.1.1"
     "@rc-component/steps": "npm:~1.2.2"
     "@rc-component/switch": "npm:~1.0.3"
-    "@rc-component/table": "npm:~1.10.0"
-    "@rc-component/tabs": "npm:~1.9.0"
-    "@rc-component/tooltip": "npm:~1.4.0"
+    "@rc-component/table": "npm:~1.11.1"
+    "@rc-component/tabs": "npm:~1.12.0"
+    "@rc-component/tooltip": "npm:~1.5.0"
     "@rc-component/tour": "npm:~2.4.0"
-    "@rc-component/tree": "npm:~1.3.1"
-    "@rc-component/tree-select": "npm:~1.9.0"
-    "@rc-component/trigger": "npm:^3.9.0"
-    "@rc-component/upload": "npm:~1.1.0"
-    "@rc-component/util": "npm:^1.11.0"
+    "@rc-component/tree": "npm:~1.4.0"
+    "@rc-component/tree-select": "npm:~1.16.1"
+    "@rc-component/trigger": "npm:^3.10.1"
+    "@rc-component/upload": "npm:~1.1.1"
+    "@rc-component/util": "npm:^1.12.0"
     clsx: "npm:^2.1.1"
     dayjs: "npm:^1.11.11"
     scroll-into-view-if-needed: "npm:^3.1.0"
@@ -6532,7 +6536,7 @@ __metadata:
   peerDependencies:
     react: ">=18.0.0"
     react-dom: ">=18.0.0"
-  checksum: 10/09db78c6cf437ac107873c1d4bd8a2bd0ebe87716dbde79917ae7de8a555971da1a2fe9c85c0c14da9515889e853e11aecbdd4ca6663add6740b8c80c264d385
+  checksum: 10/25d79bda53dc39ddb6a95fb5abaa16328cef7483739c5935c9e7e56adff72e39ffd95751a18c8fb9baf916e00e8ea40596f25533b114f2ea9462d96f97e10750
   languageName: node
   linkType: hard
 
@@ -9176,11 +9180,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "grapher@workspace:."
   dependencies:
-    "@algolia/autocomplete-js": "npm:^1.19.8"
-    "@algolia/autocomplete-plugin-recent-searches": "npm:^1.19.8"
-    "@algolia/autocomplete-theme-classic": "npm:^1.19.8"
-    "@algolia/client-common": "npm:5.53.0"
-    "@algolia/requester-fetch": "npm:5.53.0"
+    "@algolia/autocomplete-js": "npm:^1.19.9"
+    "@algolia/autocomplete-plugin-recent-searches": "npm:^1.19.9"
+    "@algolia/autocomplete-theme-classic": "npm:^1.19.9"
+    "@algolia/client-common": "npm:^5.57.0"
+    "@algolia/requester-fetch": "npm:^5.57.0"
     "@ant-design/icons": "npm:^6.3.2"
     "@aws-sdk/client-s3": "npm:^3.1089.0"
     "@codemirror/commands": "npm:^6.10.4"
@@ -9248,8 +9252,8 @@ __metadata:
     "@vitejs/plugin-react": "npm:^6.0.5"
     "@vitest/coverage-v8": "npm:^4.1.10"
     "@yarnpkg/types": "npm:^4.0.1"
-    algoliasearch: "npm:^5.53.0"
-    antd: "npm:^6.4.3"
+    algoliasearch: "npm:^5.57.0"
+    antd: "npm:^6.6.1"
     archieml: "npm:^0.5.0"
     bootstrap: "npm:^4.6.1"
     bundlemon: "npm:^3.1.0"
@@ -9306,7 +9310,7 @@ __metadata:
     react-diff-viewer-continued: "npm:^4.4.0"
     react-dom: "npm:^19.2.4"
     react-horizontal-scrolling-menu: "npm:^8.2.0"
-    react-instantsearch: "npm:^7.35.0"
+    react-instantsearch: "npm:^7.45.0"
     react-querybuilder: "npm:^8.23.1"
     react-router: "npm:^5.3.4"
     react-router-dom: "npm:^5.3.4"
@@ -9792,19 +9796,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"instantsearch-ui-components@npm:0.30.0":
-  version: 0.30.0
-  resolution: "instantsearch-ui-components@npm:0.30.0"
+"instantsearch-ui-components@npm:0.36.0":
+  version: 0.36.0
+  resolution: "instantsearch-ui-components@npm:0.36.0"
   dependencies:
     "@swc/helpers": "npm:0.5.18"
     markdown-to-jsx: "npm:^7.7.15"
-  checksum: 10/59aeedd2b6011d056b14daa3524958a565b8b5b3c89d3fabead6c1cdcea6b3c7bc6b199e0c1da9570e39ead4856ea892b0bf02f238790702fac409f440f965f1
+  checksum: 10/d5955b7a9e28337f6aca3a5b3ed8a5bc7dc8c57d7a02f7cf8ace66ab24dbcc1f80156dc15075c96820e8ac85a53a2a113fa155db9acecd1a3e31bfbec1cba7f8
   languageName: node
   linkType: hard
 
-"instantsearch.js@npm:4.101.0":
-  version: 4.101.0
-  resolution: "instantsearch.js@npm:4.101.0"
+"instantsearch.js@npm:4.112.0":
+  version: 4.112.0
+  resolution: "instantsearch.js@npm:4.112.0"
   dependencies:
     "@algolia/events": "npm:^4.0.1"
     "@swc/helpers": "npm:0.5.18"
@@ -9812,17 +9816,17 @@ __metadata:
     "@types/google.maps": "npm:^3.55.12"
     "@types/hogan.js": "npm:^3.0.0"
     "@types/qs": "npm:^6.5.3"
-    algoliasearch-helper: "npm:3.29.1"
+    algoliasearch-helper: "npm:3.29.3"
     hogan.js: "npm:^3.0.2"
     htm: "npm:^3.0.0"
-    instantsearch-ui-components: "npm:0.30.0"
+    instantsearch-ui-components: "npm:0.36.0"
     preact: "npm:^10.10.0"
     qs: "npm:^6.5.1"
     react: "npm:>= 0.14.0"
     search-insights: "npm:^2.17.2"
   peerDependencies:
     algoliasearch: ">= 3.1 < 6"
-  checksum: 10/e1ff5dd31e90d9cbc824a8b665d7d49ef9dfba532ed3d91d6ed99600ef842b8d00352688b6c7ba23984d62c530a7da23d04ba15b961b4c9be7dc07a46efd0eac
+  checksum: 10/26c62b954449460bff846429123579ffc4951b95de421e4a48d9bd5e67858c52592a453a62741168a7cf62fd7e038f9cbcd1c4a010f822ff527c6a2dd4c1fa88
   languageName: node
   linkType: hard
 
@@ -11638,7 +11642,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "owid-functions@workspace:functions"
   dependencies:
-    "@algolia/requester-fetch": "npm:5.53.0"
+    "@algolia/requester-fetch": "npm:^5.57.0"
     "@cloudflare/workers-types": "npm:^5.20260809.1"
     "@ourworldindata/components": "workspace:^"
     "@ourworldindata/core-table": "workspace:^"
@@ -11650,7 +11654,7 @@ __metadata:
     "@types/lodash-es": "npm:^4.17.12"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
-    algoliasearch: "npm:^5.53.0"
+    algoliasearch: "npm:^5.57.0"
     cookie: "npm:^2.0.1"
     itty-router: "npm:^5.0.23"
     littlezipper: "npm:^0.1.5"
@@ -12516,34 +12520,34 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-instantsearch-core@npm:7.35.0":
-  version: 7.35.0
-  resolution: "react-instantsearch-core@npm:7.35.0"
+"react-instantsearch-core@npm:7.45.0":
+  version: 7.45.0
+  resolution: "react-instantsearch-core@npm:7.45.0"
   dependencies:
     "@swc/helpers": "npm:0.5.18"
-    algoliasearch-helper: "npm:3.29.1"
-    instantsearch.js: "npm:4.101.0"
+    algoliasearch-helper: "npm:3.29.3"
+    instantsearch.js: "npm:4.112.0"
     use-sync-external-store: "npm:^1.0.0"
   peerDependencies:
     algoliasearch: ">= 3.1 < 6"
     react: ">= 16.8.0 < 20"
-  checksum: 10/bf78a296af2b01f19f87965a0ef7ed96279509d14a3f8e8c539796b957871c551dabd82cf464ccd16f1c24cbe552d2270af3ac72261bcdcf7d6fd0e8bca77fe5
+  checksum: 10/9c1b1b7ad0504cf7864538a67ca3bc4ff3f5075711abd3fe8d83bf4613badfd4751723e984e1abff0e28ec1a863d1afcbb30adbdfc855d227c12780704aa40fc
   languageName: node
   linkType: hard
 
-"react-instantsearch@npm:^7.35.0":
-  version: 7.35.0
-  resolution: "react-instantsearch@npm:7.35.0"
+"react-instantsearch@npm:^7.45.0":
+  version: 7.45.0
+  resolution: "react-instantsearch@npm:7.45.0"
   dependencies:
     "@swc/helpers": "npm:0.5.18"
-    instantsearch-ui-components: "npm:0.30.0"
-    instantsearch.js: "npm:4.101.0"
-    react-instantsearch-core: "npm:7.35.0"
+    instantsearch-ui-components: "npm:0.36.0"
+    instantsearch.js: "npm:4.112.0"
+    react-instantsearch-core: "npm:7.45.0"
   peerDependencies:
     algoliasearch: ">= 3.1 < 6"
     react: ">= 16.8.0 < 20"
     react-dom: ">= 16.8.0 < 20"
-  checksum: 10/41bb318c1abdd98e56fb6ca17356aff73e75e119eefcbd0c5107e340031d7cb56460f1b6481828e599461e3e9ca72f5a2ffdb59ae7da4aca67e06527dfd32e97
+  checksum: 10/612cc23baa7d921c916417440c793bf39cd8b8b37260392c21beedb2c3e0a512a9ce95ac7107c92d91f3f9398ecf230a3dd2f053f0db157ce809946ca720588c
   languageName: node
   linkType: hard
 
@@ -12561,10 +12565,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-is@npm:^18.2.0":
-  version: 18.3.1
-  resolution: "react-is@npm:18.3.1"
-  checksum: 10/d5f60c87d285af24b1e1e7eaeb123ec256c3c8bdea7061ab3932e3e14685708221bf234ec50b21e10dd07f008f1b966a2730a0ce4ff67905b3872ff2042aec22
+"react-is@npm:^19.2.7":
+  version: 19.2.8
+  resolution: "react-is@npm:19.2.8"
+  checksum: 10/09d053ff36e0ba4d47164baf9eab1c7772791f0371aa92281f0e547e0f6a5a5c8a1eb939aadd1a08b3c565958dd63ee59c746b6ac0d5ccb14ad742ac0314ab15
   languageName: node
   linkType: hard
 

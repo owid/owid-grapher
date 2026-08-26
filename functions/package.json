@@ -2,7 +2,7 @@
     "name": "owid-functions",
     "type": "module",
     "dependencies": {
-        "@algolia/requester-fetch": "5.53.0",
+        "@algolia/requester-fetch": "^5.57.0",
         "@ourworldindata/components": "workspace:^",
         "@ourworldindata/core-table": "workspace:^",
         "@ourworldindata/explorer": "workspace:^",
@@ -10,7 +10,7 @@
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
         "@sentry/cloudflare": "^10.70.0",
-        "algoliasearch": "^5.53.0",
+        "algoliasearch": "^5.57.0",
         "cookie": "^2.0.1",
         "itty-router": "^5.0.23",
         "littlezipper": "^0.1.5",

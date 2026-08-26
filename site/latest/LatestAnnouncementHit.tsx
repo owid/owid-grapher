@@ -39,8 +39,8 @@ export const LatestAnnouncementHit = ({
     // Only data updates get the shared feed-card treatment (thumbnail left,
     // text right, clickable through to the announcement's own page). The other
     // announcement kinds — topic updates, website upgrades, general
-    // announcements — and CTA-only announcements (empty body) stay on the
-    // inline "Read more" rendering.
+    // announcements — stay on the inline "Read more" rendering, as does any
+    // announcement with an empty body, which has no card content to show.
     const shouldUseFeedCard =
         hit.latestType === "data-update" && hit.body.length > 0
 
@@ -87,9 +87,7 @@ export const LatestAnnouncementHit = ({
                         slug={hit.slug}
                         publishedAt={hit.date}
                         authors={hit.authors}
-                        excerpt={hit.excerpt}
                         body={hit.body}
-                        cta={hit.cta}
                         selectedTopic={selectedTopic}
                         onReadMore={() =>
                             analytics.logLatestAnnouncementExpand(hit, position)

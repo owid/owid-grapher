@@ -719,6 +719,7 @@ export class DumbbellChart
                         d.seriesName
                     }
                     getY={(d: RenderDumbbellSeries): number => d.y}
+                    immediate={this.manager.disableChartRowAnimation}
                     renderRow={(series): React.ReactElement => (
                         <DumbbellChartRow
                             key={series.seriesName}

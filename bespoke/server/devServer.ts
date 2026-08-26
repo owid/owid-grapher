@@ -345,13 +345,6 @@ function serveDemoPage(
     const jsEntrypoint = BUILD_MODE
         ? "index.js"
         : (entrypoints?.js ?? "src/index.ts")
-    const cssUrl = BUILD_MODE
-        ? entrypoints?.css
-            ? `/${projectName}/index.css`
-            : ""
-        : entrypoints?.css
-          ? `/${projectName}/${entrypoints.css}`
-          : ""
     const viteDevScripts = BUILD_MODE
         ? ""
         : `<script type="module">
@@ -365,14 +358,13 @@ function serveDemoPage(
         .replaceAll("{{PROJECT}}", projectName)
         .replaceAll("{{VITE_DEV_SCRIPTS}}", viteDevScripts)
         .replaceAll("{{ENTRYPOINT_JS}}", jsEntrypoint)
-        .replaceAll("{{CSS_URL}}", cssUrl)
         .replaceAll("{{DEV_ONLY_GLOBAL_CSS}}", devOnlyGlobalCss)
     res.writeHead(200, { "Content-Type": "text/html" })
     res.end(html)
 }
 
 // Read the "entrypoints" field from a project's package.json,
-// mapping e.g. { js: "src/index.ts", css: "src/index.css" }
+// mapping e.g. { js: "src/index.ts" }
 function getProjectEntrypoints(
     projectName: string
 ): Record<string, string> | null {
@@ -388,11 +380,10 @@ function getProjectEntrypoints(
 // Map well-known filenames to the entrypoints key they correspond to
 const ENTRYPOINT_ALIASES: Record<string, string> = {
     "index.js": "js",
-    "index.css": "css",
 }
 
-// If the request is for /<project>/index.js or /<project>/index.css,
-// redirect to the actual source entrypoint so Vite can serve it
+// If the request is for /<project>/index.js, redirect to the actual
+// source entrypoint so Vite can serve it
 function tryEntrypointRedirect(
     projectName: string,
     pathname: string,
@@ -510,9 +501,9 @@ const server = http.createServer(
             return
         }
 
-        // In dev mode, redirect /<project>/index.js and /<project>/index.css
-        // to actual source entrypoints so Vite can serve them.
-        // In build mode, these files exist as-is in dist/, so no redirect needed.
+        // In dev mode, redirect /<project>/index.js to the actual source
+        // entrypoint so Vite can serve it.
+        // In build mode, that file exists as-is in dist/, so no redirect needed.
         if (
             !BUILD_MODE &&
             tryEntrypointRedirect(

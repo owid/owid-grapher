@@ -1161,7 +1161,9 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     border-bottom-right-radius: 5px;
     background-color: #fff;
     cursor: pointer;
-    transition: 0.1s;
+    transition:
+        background-color var(--duration-hover) ease,
+        color var(--duration-hover) ease;
 
     &:hover {
         background-color: #eee;
@@ -1537,7 +1539,7 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
             justify-content: center;
             color: white;
             text-decoration: none;
-            transition: all 0.2s;
+            transition: opacity 0.2s ease;
             opacity: 0;
         }
 
@@ -1808,7 +1810,10 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     border: 2px dashed #d9d9d9;
     color: #8c8c8c;
     font-size: 14px;
-    transition: all 0.2s ease;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease;
     border-radius: 4px;
     padding: 8px;
     text-align: center;

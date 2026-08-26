@@ -25,15 +25,6 @@
     }
 }
 
-.announcement-content__excerpt {
-    @include body-2-regular;
-    margin: 16px 0;
-
-    @include sm-only {
-        @include body-3-medium;
-    }
-}
-
 .announcement-content {
     .cta {
         @include sm-only {

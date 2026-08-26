@@ -510,7 +510,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                             features={{
                                 legendDescription: false,
                             }}
-                            showLineChartColors={false}
                             onChange={this.onGenericRichEditorChange}
                         />
                     ) : undefined
@@ -536,7 +535,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                                 features={{
                                     legendDescription: false,
                                 }}
-                                showLineChartColors={grapherState.isLineChart}
                                 onChange={this.onGenericRichEditorChange}
                             />
                         )
