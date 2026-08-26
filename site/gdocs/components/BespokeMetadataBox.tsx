@@ -1,4 +1,5 @@
 import { useRef } from "react"
+import cx from "clsx"
 import {
     BespokeMetadataKeyData,
     BespokeMetadataSections,
@@ -13,9 +14,13 @@ import { splitDescriptionKey } from "../../datapageUtils.js"
 export function BespokeMetadataBox({
     metadata,
     citationUrl,
+    pageCitation,
+    className,
 }: {
     metadata: BespokeMetadataWithProvenance
     citationUrl?: string
+    pageCitation?: string
+    className?: string
 }) {
     const detailsRef = useRef<HTMLDetailsElement | null>(null)
 
@@ -26,7 +31,7 @@ export function BespokeMetadataBox({
         splitDescriptionKey(metadata.descriptionKey ?? "")
 
     return (
-        <div className="metadata-box bespoke-metadata-box">
+        <div className={cx("metadata-box", "bespoke-metadata-box", className)}>
             <MetadataBoxCollapseButton detailsRef={detailsRef} />
             <h2 className="bespoke-metadata-box__title body-2-bold-tight">
                 {metadata.title}
@@ -58,6 +63,7 @@ export function BespokeMetadataBox({
                 <BespokeMetadataSections
                     metadata={metadata}
                     citationUrl={citationUrl}
+                    pageCitation={pageCitation}
                 />
             </MetadataBoxExpander>
         </div>

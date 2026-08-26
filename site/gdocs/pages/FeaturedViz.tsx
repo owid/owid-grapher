@@ -1,7 +1,8 @@
 import * as _ from "lodash-es"
-import { useMemo } from "react"
+import { useContext, useMemo } from "react"
 import cx from "clsx"
 import {
+    BlockSize,
     EnrichedBlockBespokeComponent,
     OwidEnrichedGdocBlock,
     OwidGdocFeaturedVizContent,
@@ -11,9 +12,11 @@ import {
 import { formatDate } from "@ourworldindata/utils"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { AttachmentsContext } from "../AttachmentsContext.js"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import { getLayout } from "../components/layout.js"
 import { BespokeComponent } from "../components/BespokeComponent.js"
+import { BespokeMetadataBox } from "../components/BespokeMetadataBox.js"
 import { Byline } from "../components/Byline.js"
 import { CitationSection } from "../components/CitationSection.js"
 import { LicenseSection } from "../components/LicenseSection.js"
@@ -31,20 +34,23 @@ type FeaturedVizProps = Omit<
 }
 
 export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
+    const { bespokeMetadata } = useContext(AttachmentsContext)
+
     const { before, hero, after } = useMemo(
         () => splitFeaturedVizBody(content.body),
         [content.body]
     )
 
+    const canonicalUrl = getCanonicalUrl(BAKED_BASE_URL, {
+        slug,
+        content: { type: OwidGdocType.FeaturedViz },
+    })
     const { citationText, bibtex } = buildGdocCitation({
         authors: content.authors,
         title: content.title ?? "",
         publishedAt,
         slug,
-        canonicalUrl: getCanonicalUrl(BAKED_BASE_URL, {
-            slug,
-            content: { type: OwidGdocType.FeaturedViz },
-        }),
+        canonicalUrl,
     })
 
     return (
@@ -60,6 +66,14 @@ export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
             )}
             <ArticleBlocks blocks={before} />
             {hero && <FeaturedVizHero block={hero} />}
+            {bespokeMetadata && (
+                <BespokeMetadataBox
+                    className={getLayout(metadataBoxLayoutKey(hero?.size))}
+                    metadata={bespokeMetadata}
+                    citationUrl={canonicalUrl}
+                    pageCitation={citationText}
+                />
+            )}
             <ArticleBlocks blocks={after} />
             {content.refs && !_.isEmpty(content.refs.definitions) ? (
                 <Footnotes definitions={content.refs.definitions} />
@@ -109,6 +123,16 @@ function FeaturedVizHeader({
             </p>
         </header>
     )
+}
+
+/**
+ * The box tracks the hero's width, except that a `widest` hero would give it
+ * lines too long to read comfortably.
+ */
+function metadataBoxLayoutKey(heroSize: BlockSize | undefined): string {
+    if (heroSize === undefined || heroSize === BlockSize.Narrow)
+        return "default"
+    return "bespoke-component--wide"
 }
 
 /** The page's featured viz: a full-bleed band behind the bespoke component. */
