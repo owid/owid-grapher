@@ -42,8 +42,11 @@ import pMap from "p-map"
 import {
     compareSvgsVisually,
     encodeVerdicts,
+    groupByVisualStatus,
     readVerdicts,
     VISUAL_DIFF_CONCURRENCY,
+    VISUAL_STATUSES,
+    type VisualStatus,
     type VisualVerdict,
     writeVerdicts,
 } from "./svgVisualDiff.js"
@@ -67,19 +70,22 @@ const KIND_LABELS: Record<SvgTesterVerifyErrorEntry["kind"], string> = {
 
 const CHART_TYPE_PARAM = "chartType"
 
-/** Ordered as the list shows them: what to review first comes first */
-const VISUAL_VERDICT_LABELS: Record<VisualVerdict, string> = {
+const VISUAL_STATUS_LABELS: Record<VisualStatus, string> = {
     changed: "Visible change",
     unknown: "Couldn't check",
+    pending: "Not checked yet",
     identical: "No visible change",
 }
 
-const VISUAL_VERDICTS = Object.keys(VISUAL_VERDICT_LABELS) as VisualVerdict[]
+/** Only where the label leaves a question, which is where the check has no answer */
+const VISUAL_STATUS_HINTS: Partial<Record<VisualStatus, string>> = {
+    unknown:
+        "This chart's pixels can't be read — an embedded <foreignObject> taints the canvas — so it may not have changed at all",
+    pending: "The check hasn't got to this chart yet",
+}
 
 /** Which differences to list, once we know which ones only changed in markup */
-type VisualFilter = VisualVerdict | "all"
-
-const DEFAULT_VISUAL_FILTER: VisualFilter = "changed"
+type VisualFilter = VisualStatus | "all"
 
 /** How many of a run's differences turned out to be markup-only */
 interface VisualSummary {
@@ -125,9 +131,8 @@ export function SvgTesterSuitePage() {
 
     // Not in the URL, unlike the chart type: which differences render
     // identically is only known once this session has checked them
-    const [visualFilter, setVisualFilter] = useState<VisualFilter>(
-        DEFAULT_VISUAL_FILTER
-    )
+    // Unset until the reader picks one, so the default can follow the check
+    const [visualFilter, setVisualFilter] = useState<VisualFilter>()
 
     const { data, isLoading, isError, dataUpdatedAt } = useQuery({
         queryKey: ["svgtester-results", suite],
@@ -187,28 +192,21 @@ export function SvgTesterSuitePage() {
 
     const applied = verdictBySvg ?? NO_VISUAL_RESULTS
 
-    const grouped = useMemo(() => {
-        const byVerdict = _.groupBy(
-            visible,
-            (entry) => applied[entry.svgFilename] ?? "changed"
-        )
-        return {
-            changed: byVerdict.changed ?? [],
-            unknown: byVerdict.unknown ?? [],
-            identical: byVerdict.identical ?? [],
-        }
-    }, [visible, applied])
+    const grouped = useMemo(
+        () => groupByVisualStatus(visible, applied),
+        [visible, applied]
+    )
 
-    const populatedVerdicts = VISUAL_VERDICTS.filter(
-        (verdict) => grouped[verdict].length > 0
+    const populatedStatuses = VISUAL_STATUSES.filter(
+        (status) => grouped[status].length > 0
     )
     // Nothing to filter when every difference is in the same bucket
-    const showVisualFilter = populatedVerdicts.length > 1
+    const showVisualFilter = populatedStatuses.length > 1
 
     const visualFilterOptions = [
-        ...populatedVerdicts.map((verdict) => ({
-            value: verdict,
-            label: `${VISUAL_VERDICT_LABELS[verdict]} (${grouped[verdict].length.toLocaleString()})`,
+        ...populatedStatuses.map((status) => ({
+            value: status,
+            label: `${VISUAL_STATUS_LABELS[status]} (${grouped[status].length.toLocaleString()})`,
         })),
         {
             value: "all" as const,
@@ -216,32 +214,42 @@ export function SvgTesterSuitePage() {
         },
     ]
 
-    // The selection sticks, so it can name a bucket since emptied
+    // What is worth reading moves as the check runs: the charts nobody has
+    // looked at yet while it is going, the ones that changed once it is done.
+    // The reader's own choice, once made, outranks both — and sticks, so it can
+    // name a bucket since emptied.
+    const wantedVisualFilter =
+        visualFilter ?? (isComplete ? "changed" : "pending")
     const effectiveVisualFilter: VisualFilter = visualFilterOptions.some(
-        (option) => option.value === visualFilter
+        (option) => option.value === wantedVisualFilter
     )
-        ? visualFilter
+        ? wantedVisualFilter
         : "all"
 
+    // Paired with the bucket each one was drawn from, so a card cannot label
+    // itself as something other than what it is listed under
     const shown = useMemo(
         () =>
-            effectiveVisualFilter === "all"
-                ? VISUAL_VERDICTS.flatMap((verdict) => grouped[verdict])
-                : grouped[effectiveVisualFilter],
+            (effectiveVisualFilter === "all"
+                ? VISUAL_STATUSES
+                : [effectiveVisualFilter]
+            ).flatMap((status) =>
+                grouped[status].map((entry) => ({ entry, status }))
+            ),
         [effectiveVisualFilter, grouped]
     )
 
     const cards = useMemo(
         () =>
-            shown.map((entry) => (
+            shown.map(({ entry, status }) => (
                 <DifferenceCard
                     key={anchorId(entry.viewId, entry.queryStr)}
                     suite={suite}
                     entry={entry}
-                    verdict={applied[entry.svgFilename] ?? "changed"}
+                    status={status}
                 />
             )),
-        [shown, suite, applied]
+        [shown, suite]
     )
 
     const visualSummary = differences.length
@@ -633,11 +641,11 @@ function CommitLabel({
 function DifferenceCard({
     suite,
     entry,
-    verdict,
+    status,
 }: {
     suite: string
     entry: SvgTesterVerifyDifferenceEntry
-    verdict: VisualVerdict
+    status: VisualStatus
 }) {
     const [mode, setMode] = useState<ViewMode>("side-by-side")
     const beforeUrl = svgUrl(suite, "references", entry)
@@ -672,18 +680,14 @@ function DifferenceCard({
                             {entry.chartType}
                         </Tag>
                     )}
-                    {verdict !== "changed" && (
-                        <Tag
-                            className="SvgTesterSuitePage__chart-type"
-                            title={
-                                verdict === "unknown"
-                                    ? "This chart's pixels can't be read — an embedded <foreignObject> taints the canvas — so it may not have changed at all"
-                                    : undefined
-                            }
-                        >
-                            {VISUAL_VERDICT_LABELS[verdict]}
-                        </Tag>
-                    )}
+                    <Tag
+                        className={cx("SvgTesterSuitePage__status", {
+                            "is-changed": status === "changed",
+                        })}
+                        title={VISUAL_STATUS_HINTS[status]}
+                    >
+                        {VISUAL_STATUS_LABELS[status]}
+                    </Tag>
                 </span>
                 <SvgTesterChartLinks entry={entry} />
             </header>
