@@ -100,7 +100,7 @@
         "@uiw/react-codemirror": "^4.25.11",
         "@uiw/react-json-view": "^2.0.0-alpha.43",
         "algoliasearch": "^5.53.0",
-        "antd": "^6.4.3",
+        "antd": "^6.6.1",
         "archieml": "^0.5.0",
         "bootstrap": "^4.6.1",
         "cheerio": "^1.2.0",
