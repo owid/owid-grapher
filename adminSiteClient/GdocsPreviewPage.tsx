@@ -42,7 +42,7 @@ import {
 } from "./gdocsHooks.js"
 import { getErrors } from "./gdocsValidation.js"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
-import { useGdocsStore } from "./GdocsStoreContext.js"
+import { deleteGdoc, updateGdoc } from "./gdocsApi.js"
 import { IconBadge } from "./IconBadge.js"
 import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
@@ -94,7 +94,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         useState<RecordsPreviewMode>("records")
     const [errors, setErrors] = React.useState<OwidGdocErrorMessage[]>()
     const { admin } = useContext(AdminAppContext)
-    const store = useGdocsStore()
 
     const [isMobilePreviewActive, setIsMobilePreviewActive] = useState(false)
     const [acceptSuggestions, setAcceptSuggestions] = useState(false)
@@ -229,7 +228,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         if (currentGdoc.published)
             throw new Error("Cannot save a published doc as a draft")
 
-        const updatedGdoc = await store.update(currentGdoc)
+        const updatedGdoc = await updateGdoc(admin, currentGdoc)
         setGdoc({ original: updatedGdoc, current: updatedGdoc })
         openSuccessNotification("draft")
     }
@@ -240,8 +239,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         const publishedAt = currentGdoc.publishedAt ?? new Date()
         publishedAt.setSeconds(0, 0)
         const slug = currentGdoc.slug || slugify(`${currentGdoc.content.title}`)
-        const publishedGdoc = await store.publish({
+        const publishedGdoc = await updateGdoc(admin, {
             ...currentGdoc,
+            published: true,
             publishedAt,
             slug,
         })
@@ -251,14 +251,18 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
 
     const doUnpublish = async () => {
         if (!currentGdoc) return
-        const unpublishedGdoc = await store.unpublish(currentGdoc)
+        const unpublishedGdoc = await updateGdoc(admin, {
+            ...currentGdoc,
+            publishedAt: null,
+            published: false,
+        })
         setGdoc({ original: unpublishedGdoc, current: unpublishedGdoc })
         openSuccessNotification("unpublished")
     }
 
-    const onDelete = async (tombstone?: CreateTombstoneData) => {
+    const handleDelete = async (tombstone?: CreateTombstoneData) => {
         if (!currentGdoc) return
-        await store.delete(currentGdoc, tombstone)
+        await deleteGdoc(admin, currentGdoc.id, tombstone)
         history.push("/gdocs")
     }
 
@@ -267,15 +271,15 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             (isMobilePreviewActive) => !isMobilePreviewActive
         )
 
-    const onToggleAcceptSuggestions = (checked: boolean) => {
+    const handleToggleAcceptSuggestions = (checked: boolean) => {
         setAcceptSuggestions(checked)
     }
 
-    const onSettingsClose = () => {
+    const handleSettingsClose = () => {
         setSettingsOpen(false)
     }
 
-    const onDiffClose = () => {
+    const handleDiffClose = () => {
         setDiffOpen(false)
     }
 
@@ -387,7 +391,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             <Space>
                                 <Switch
                                     checked={acceptSuggestions}
-                                    onChange={onToggleAcceptSuggestions}
+                                    onChange={handleToggleAcceptSuggestions}
                                     id="preview-suggestions"
                                 />
                                 <Tippy
@@ -426,7 +430,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 gdoc={currentGdoc}
                                 onDebug={() => setDiffOpen(true)}
                                 onUnpublish={doUnpublish}
-                                onDelete={onDelete}
+                                onDelete={handleDelete}
                                 isMobilePreviewActive={isMobilePreviewActive}
                                 toggleMobilePreview={toggleMobilePreview}
                                 onOpenRecords={() => setRecordsOpen(true)}
@@ -438,7 +442,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     title="Settings"
                     placement="right"
                     size="large"
-                    onClose={onSettingsClose}
+                    onClose={handleSettingsClose}
                     open={isSettingsOpen}
                 >
                     {tsMatch(currentGdoc)
@@ -572,9 +576,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     placement="bottom"
                     size="90%"
                     open={isDiffOpen}
-                    onClose={onDiffClose}
+                    onClose={handleDiffClose}
                     extra={
-                        <Button type="primary" onClick={onDiffClose}>
+                        <Button type="primary" onClick={handleDiffClose}>
                             Done
                         </Button>
                     }
