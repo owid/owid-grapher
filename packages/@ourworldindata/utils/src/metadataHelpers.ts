@@ -223,6 +223,15 @@ export const getPhraseForArchivalDate = (
     return `(archived on ${formatted}).`
 }
 
+function getOriginCitationFragment(origin: OwidOrigin): string | undefined {
+    const title = origin.title ?? origin.titleSnapshot
+    const quotedTitle = title
+        ? `“${title}${origin.versionProducer ? ` ${origin.versionProducer}` : ""}”`
+        : undefined
+    const parts = _.compact([origin.producer, quotedTitle])
+    return parts.length > 0 ? parts.join(", ") : undefined
+}
+
 export const getCitationLong = ({
     indicatorTitle,
     origins,
@@ -258,12 +267,7 @@ export const getCitationLong = ({
         sourceShortName,
     ]).join(" – ")
     const originsLong = _.uniq(
-        origins.map(
-            (o) =>
-                `${o.producer}, “${o.title ?? o.titleSnapshot}${
-                    o.versionProducer ? " " + o.versionProducer : ""
-                }”`
-        )
+        _.compact(origins.map(getOriginCitationFragment))
     ).join("; ")
     const today = getDateForCitation(dayjs())
     const archivalString = getPhraseForArchivalDate(archivalDate)
@@ -299,7 +303,7 @@ export const getCitationDatapage = ({
     archivalDate?: string
 }): string => {
     const currentYear = dayjs().year()
-    const producers = _.uniq(origins.map((o) => `${o.producer}`))
+    const producers = _.uniq(_.compact(origins.map((o) => o.producer)))
     const adaptedFrom =
         producers.length > 0 ? producers.join(", ") : source?.name
 
