@@ -3,4 +3,4 @@ name = "owid-grapher-package-docs"
 version = "0.1.0"
 description = "Documentation site for the @ourworldindata/grapher npm package"
 requires-python = ">=3.12"
-dependencies = ["zensical>=0.0.15"]
+dependencies = ["zensical>=0.0.57"]
