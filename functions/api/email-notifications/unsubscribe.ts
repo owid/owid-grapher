@@ -23,18 +23,21 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     if (!token) return invalidLinkResponse()
 
     const user = await db
-        .prepare(`SELECT email, status FROM users WHERE token = ?1`)
+        .prepare(
+            `SELECT email, emailNotificationsStatus
+             FROM users WHERE token = ?1`
+        )
         .bind(token)
-        .first<{ email: string; status: string }>()
+        .first<{ email: string; emailNotificationsStatus: string }>()
     if (!user) return invalidLinkResponse()
-    if (user.status === "unsubscribed") {
+    if (user.emailNotificationsStatus === "unsubscribed") {
         return alreadyUnsubscribedResponse(user.email)
     }
 
     return makeHtmlResponse(
         renderActionPage({
             title: "Unsubscribe from Our World in Data updates",
-            message: `Click below to stop receiving email notifications at ${_.escape(user.email)}.`,
+            message: `Click below to stop receiving Follow Topics notifications at ${_.escape(user.email)}. Your OWID Brief subscription is managed separately by Mailchimp.`,
             button: {
                 label: "Unsubscribe",
                 action: UNSUBSCRIBE_PATH,
@@ -64,7 +67,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     return makeHtmlResponse(
         renderMessagePage({
             title: "You've been unsubscribed",
-            message: `${_.escape(email)} won't receive any more email notifications from us. You can re-subscribe at any time at https://ourworldindata.org/subscribe.`,
+            message: `${_.escape(email)} won't receive any more Follow Topics notifications from us. The OWID Brief is managed separately by Mailchimp. You can re-subscribe at any time at https://ourworldindata.org/subscribe.`,
         })
     )
 }
@@ -73,7 +76,7 @@ function alreadyUnsubscribedResponse(email: string): Response {
     return makeHtmlResponse(
         renderMessagePage({
             title: "Already unsubscribed",
-            message: `${_.escape(email)} is not receiving email notifications from us. You can re-subscribe at any time at https://ourworldindata.org/subscribe.`,
+            message: `${_.escape(email)} is not receiving Follow Topics notifications from us. The OWID Brief is managed separately by Mailchimp. You can re-subscribe at any time at https://ourworldindata.org/subscribe.`,
         })
     )
 }
