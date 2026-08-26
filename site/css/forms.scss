@@ -18,7 +18,6 @@ $checkbox-check-height: 4px;
 %owid-checkbox {
     display: inline-block;
     position: relative;
-    padding-left: $checkbox-icon-size;
     padding-left: calc(#{$checkbox-icon-size} + 0.5rem);
     margin-bottom: 0.5rem;
 
