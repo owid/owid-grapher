@@ -121,7 +121,7 @@ export const experiments: Experiment[] = [
             "/grapher/annual-number-of-deaths-by-cause",
             "/grapher/electricity-prod-source-stacked",
             "/grapher/population-with-un-projections",
-            "/grapher/global-energy-substitution",
+            "/grapher/global-primary-energy-by-source",
             "/grapher/population-growth-rates",
             "/grapher/temperature-anomaly",
             "/grapher/annual-deaths-by-age",
