@@ -220,7 +220,8 @@ export class GrapherLoader {
     }
 
     /** Prepare a chart whose data comes from a pre-built OwidTable. */
-    static fromTable({ config, data }: FromTableOptions): GrapherLoader {
+    static fromTable(options: FromTableOptions): GrapherLoader {
+        const { config, data } = options
         const grapherState = new GrapherState({
             ...defaultGrapherConfigOverrides(),
             ...config,
@@ -262,10 +263,8 @@ export class GrapherLoader {
     }
 
     /** Prepare a chart whose data will be fetched from the OWID data API. */
-    static fromApi({
-        config,
-        dataApiUrl = DEFAULT_DATA_API_URL,
-    }: FromApiOptions): GrapherLoader {
+    static fromApi(options: FromApiOptions): GrapherLoader {
+        const { config, dataApiUrl = DEFAULT_DATA_API_URL } = options
         const grapherState = new GrapherState({
             ...defaultGrapherConfigOverrides(),
             ...config,

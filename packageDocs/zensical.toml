@@ -1,0 +1,139 @@
+[project]
+# Top-level settings
+site_name = "@ourworldindata/grapher"
+site_url = "https://docs.owid.io/projects/grapher/"
+site_description = "Documentation for the Grapher charting library, published as the @ourworldindata/grapher npm package."
+site_author = "Our World in Data"
+copyright = '<a href="https://ourworldindata.org/">Our World in Data</a>'
+docs_dir = "docs"
+edit_uri = "edit/master/packageDocs/docs/"
+
+# Repository information
+repo_name = "owid/owid-grapher"
+repo_url = "https://github.com/owid/owid-grapher"
+
+# Navigation structure
+nav = [
+    { "Home" = "index.md" },
+    { "Getting started" = "getting-started.md" },
+    { "Loading data" = "loading-data.md" },
+    { "The chart config" = [
+        "chart-config.md",
+        { "Schema reference" = "schema-reference/index.md" },
+    ] },
+    { "API" = [
+        "api/index.md",
+        { "Generated reference" = [
+            "api/reference/index.md",
+            { "GrapherLoader" = "api/reference/classes/GrapherLoader.md" },
+            { "Grapher" = "api/reference/classes/Grapher.md" },
+            { "FetchingGrapher" = "api/reference/functions/FetchingGrapher.md" },
+            { "OwidTable" = "api/reference/classes/OwidTable.md" },
+            { "GrapherInterface" = "api/reference/interfaces/GrapherInterface.md" },
+            { "OwidChartDimensionInterface" = "api/reference/interfaces/OwidChartDimensionInterface.md" },
+            { "OwidColumnDef" = "api/reference/interfaces/OwidColumnDef.md" },
+            { "FromTableOptions" = "api/reference/interfaces/FromTableOptions.md" },
+            { "FromCsvOptions" = "api/reference/types/FromCsvOptions.md" },
+            { "FromApiOptions" = "api/reference/interfaces/FromApiOptions.md" },
+            { "ColumnTypeNames" = "api/reference/enums/ColumnTypeNames.md" },
+            { "DimensionProperty" = "api/reference/enums/DimensionProperty.md" },
+        ] },
+    ] },
+    { "How Grapher works" = "how-grapher-works.md" },
+]
+
+# Extra settings
+[project.extra]
+homepage = "https://docs.owid.io/projects/grapher/"
+generator = true
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/owid"
+
+[[project.extra.social]]
+icon = "fontawesome/solid/globe"
+link = "https://ourworldindata.org"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/bluesky"
+link = "https://bsky.app/profile/ourworldindata.org"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/linkedin"
+link = "https://linkedin.com/company/ourworldindata"
+
+# Theme configuration
+[project.theme]
+variant = "modern"
+language = "en"
+logo = "assets/owid-logo.svg"
+favicon = "assets/favicon.png"
+
+features = [
+    "content.code.copy",
+    "content.code.select",
+    "navigation.footer",
+    "navigation.indexes",
+    "navigation.sections",
+    "navigation.top",
+    "search.suggest",
+    "search.highlight",
+    "toc.follow",
+]
+
+[project.theme.icon]
+repo = "fontawesome/brands/github"
+
+# Palette toggle for automatic mode
+[[project.theme.palette]]
+media = "(prefers-color-scheme)"
+toggle.icon = "lucide/sun-moon"
+toggle.name = "Switch to light mode"
+
+# Theme palette - light mode
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "indigo"
+accent = "pink"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to dark mode"
+
+# Theme palette - dark mode
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "blue"
+accent = "amber"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to light mode"
+
+# MARKDOWN EXTENSIONS
+[project.markdown_extensions]
+admonition = {}
+attr_list = {}
+md_in_html = {}
+# The generated API and schema reference pages lean heavily on tables, so
+# enable the extension explicitly rather than relying on defaults.
+tables = {}
+
+[project.markdown_extensions.toc]
+permalink = true
+
+[project.markdown_extensions.pymdownx]
+details = {}
+inlinehilite = {}
+
+[project.markdown_extensions.pymdownx.highlight]
+anchor_linenums = true
+line_spans = "__span"
+pygments_lang_class = true
+
+[project.markdown_extensions.pymdownx.tabbed]
+alternate_style = true
+
+[project.markdown_extensions.pymdownx.superfences]
+custom_fences = [
+    { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
+]

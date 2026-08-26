@@ -45,7 +45,7 @@ Dependency layers, enforced via TypeScript project references (diagram: `docs/im
 4. **Applications** — `adminSiteServer/` (Express admin API, entry `adminSiteServer/app.ts`), `adminSiteClient/` (admin React SPA), `baker/` (bakes the static public site), `site/` (React components for public pages, shared by baker and admin previews; uses React hooks, not MobX), `explorerAdminServer/`.
 5. **Edge** — `functions/`: Cloudflare Pages Functions serving dynamic routes (`/grapher/[slug]`, thumbnails, data downloads, `/api`, donations) with file-based routing plus `_routes.json`. Separate workspace with its own `package.json`; local dev via `yarn startLocalCloudflareFunctions` or `make up.full`.
 
-Other directories: `bespoke/` (self-contained custom data-viz components embedded in articles via Shadow DOM; each project under `bespoke/projects/` has its own build — see `bespoke/readme.md`), `devTools/` (various utilities).
+Other directories: `bespoke/` (self-contained custom data-viz components embedded in articles via Shadow DOM; each project under `bespoke/projects/` has its own build — see `bespoke/readme.md`), `devTools/` (various utilities), `packageDocs/` (public docs site for the `@ourworldindata/grapher` npm package, deployed to https://docs.owid.io/projects/grapher/ — keep it in sync when changing the package's public API, schema, or consumer-facing behavior).
 
 Key facts that span multiple directories:
 
