@@ -14,9 +14,9 @@ import {
 //
 // There are three entries, which tsdown builds concurrently in one run:
 //
-//   npm         dist/grapher.js + dist/grapher.css   for bundler/React consumers
-//   standalone  dist/grapher.standalone.min.js       for plain HTML pages
-//   types       dist/grapher.d.ts                    for both of the above
+//   npm         dist/grapher.react.js + dist/grapher.css   for bundler/React consumers
+//   standalone  dist/grapher.standalone.min.js             for plain HTML pages
+//   types       dist/grapher.d.ts                          for both of the above
 //
 // They all write into dist/, so no two of them may emit the same filename.
 
@@ -67,7 +67,7 @@ export default defineConfig([
     {
         ...shared,
         name: "npm",
-        entry: { grapher: "./src/grapher.entry.ts" },
+        entry: { "grapher.react": "./src/grapher.entry.ts" },
         // React is a peer dependency of the npm package.
         deps: { ...shared.deps, neverBundle: REACT_EXTERNALS },
         css: {

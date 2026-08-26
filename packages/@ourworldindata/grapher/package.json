@@ -24,7 +24,7 @@
             },
             "./react": {
                 "types": "./dist/grapher.d.ts",
-                "import": "./dist/grapher.js"
+                "import": "./dist/grapher.react.js"
             },
             "./grapher.css": "./dist/grapher.css",
             "./grapher-schema.json": "./dist/grapher-schema.json"
@@ -47,8 +47,8 @@
         }
     },
     "files": [
-        "dist/grapher.js",
-        "dist/grapher.js.map",
+        "dist/grapher.react.js",
+        "dist/grapher.react.js.map",
         "dist/grapher.standalone.min.js",
         "dist/grapher.standalone.min.js.map",
         "dist/grapher.css",

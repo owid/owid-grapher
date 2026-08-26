@@ -248,7 +248,7 @@ One gotcha: fields like `columnDefs[].type` and `dimensions[].property` are enum
 
 Running the build script produces the following outputs under `dist/`:
 
-- `grapher.js`: The ES module library build, published as the `@ourworldindata/grapher/react` export. React and React DOM are marked as external peer dependencies (ideal for modern React apps or bundler environments).
+- `grapher.react.js`: The ES module library build, published as the `@ourworldindata/grapher/react` export. React and React DOM are marked as external peer dependencies (ideal for modern React apps or bundler environments).
 - `grapher.standalone.min.js`: The minified standalone bundle, published as the root `@ourworldindata/grapher` export. All dependencies (including React and React DOM) are bundled, enabling plug-and-play usage directly in any HTML page.
 - `grapher.css`: The stylesheet containing all Grapher layouts and components styles.
 - `grapher-schema.json`: The latest JSON schema for Grapher configs, also available through the `@ourworldindata/grapher/grapher-schema.json` package export.

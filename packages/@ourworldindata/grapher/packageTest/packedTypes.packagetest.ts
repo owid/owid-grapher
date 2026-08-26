@@ -260,7 +260,7 @@ describe("packed package", () => {
             manifest.types,
             "dist/grapher.css",
             "dist/grapher-schema.json",
-            "dist/grapher.js",
+            "dist/grapher.react.js",
         ]) {
             expect(
                 fs.existsSync(path.join(packedDir, file)),
