@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import { useMemo } from "react"
 import cx from "clsx"
 import {
     EnrichedBlockBespokeComponent,
@@ -30,7 +31,10 @@ type FeaturedVizProps = Omit<
 }
 
 export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
-    const { before, hero, after } = splitFeaturedVizBody(content.body)
+    const { before, hero, after } = useMemo(
+        () => splitFeaturedVizBody(content.body),
+        [content.body]
+    )
 
     const { citationText, bibtex } = buildGdocCitation({
         authors: content.authors,
@@ -144,9 +148,12 @@ function splitFeaturedVizBody(
     )
     if (heroIndex === -1) return { before: body, hero: undefined, after: [] }
 
+    const hero = body[heroIndex] as EnrichedBlockBespokeComponent
+
     return {
         before: body.slice(0, heroIndex),
-        hero: body[heroIndex] as EnrichedBlockBespokeComponent,
+        // The page URL tracks the featured viz, ignoring the authored config
+        hero: { ...hero, config: { ...hero.config, urlSync: "true" } },
         after: body.slice(heroIndex + 1),
     }
 }
