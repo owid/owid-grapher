@@ -2,6 +2,7 @@
     "name": "owid-functions",
     "type": "module",
     "dependencies": {
+        "@algolia/client-common": "^5.57.0",
         "@algolia/requester-fetch": "^5.57.0",
         "@ourworldindata/components": "workspace:^",
         "@ourworldindata/core-table": "workspace:^",
