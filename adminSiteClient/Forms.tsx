@@ -2,6 +2,11 @@
  * ================
  *
  * Reusable React components to keep admin UI succint and consistent
+ *
+ * The internals are built on *controlled* antd primitives (`Input`, `Select`,
+ * `Radio.Group`, `Switch`, `Modal`, `Button`). antd's own `<Form>` is
+ * deliberately not used anywhere: it is uncontrolled (rc-field-form) and would
+ * fight the MobX stores that the `Bind*` wrappers below write straight into.
  */
 
 import * as _ from "lodash-es"
@@ -12,6 +17,15 @@ import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import cx from "clsx"
 import { useTimeout } from "usehooks-ts"
+import {
+    Button as AntdButton,
+    Input,
+    Modal as AntdModal,
+    Radio,
+    Select,
+    Space,
+    Switch,
+} from "antd"
 
 import { AdminColorPicker } from "./AdminColorPicker.js"
 import type { ColorPaletteKey } from "./colorPalettes.js"
@@ -30,6 +44,64 @@ export class FieldsRow extends React.Component<{ children: React.ReactNode }> {
     override render() {
         return <div className="FieldsRow">{this.props.children}</div>
     }
+}
+
+/**
+ * The wrapper every field renders. It keeps Bootstrap's `form-group` class
+ * alongside our own `form-field` one: raw `form-group` markup still exists in
+ * ~30 other admin files, and a good number of `admin.scss` rules key layout
+ * off `.form-group` inside the chart editor. Dropping it belongs to the phase
+ * that migrates those pages.
+ */
+function FormField(props: {
+    className?: string
+    innerRef?: React.Ref<HTMLDivElement>
+    label?: React.ReactNode
+    secondaryLabel?: string
+    helpText?: string
+    errorMessage?: string
+    softCharacterLimit?: number
+    value?: string
+    children: React.ReactNode
+}): React.ReactElement {
+    return (
+        <div
+            className={cx("form-field", "form-group", props.className)}
+            ref={props.innerRef}
+        >
+            {props.label !== undefined && props.label !== "" && (
+                <label className="form-field__label">
+                    {props.label}
+                    {props.secondaryLabel && (
+                        <>
+                            <span> </span>
+                            <span title={props.secondaryLabel}>
+                                <FontAwesomeIcon
+                                    icon={faCircleInfo}
+                                    className="text-muted"
+                                />
+                            </span>
+                        </>
+                    )}
+                </label>
+            )}
+            {props.children}
+            {props.helpText && (
+                <small className="form-field__help text-muted">
+                    {props.helpText}
+                </small>
+            )}
+            {props.softCharacterLimit && props.value && (
+                <SoftCharacterLimit
+                    text={props.value}
+                    limit={props.softCharacterLimit}
+                />
+            )}
+            {props.errorMessage && (
+                <ErrorMessage message={props.errorMessage} />
+            )}
+        </div>
+    )
 }
 
 interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
@@ -53,6 +125,40 @@ interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
     buttonContent?: React.ReactNode
     buttonTooltipContent?: React.ReactNode
     buttonDisabled?: boolean
+}
+
+/**
+ * The trailing button some fields carry (the link/unlink toggle, "copy",
+ * "reset"). It sits in a `Space.Compact` next to the control, which is antd's
+ * equivalent of Bootstrap's `input-group` + `input-group-append`.
+ */
+function renderFieldButton(props: {
+    buttonContent?: React.ReactNode
+    buttonTooltipContent?: React.ReactNode
+    buttonDisabled?: boolean
+    onButtonClick?: () => void
+}): React.ReactElement | null {
+    if (!props.buttonContent) return null
+
+    const button = (
+        <AntdButton
+            className="form-field__button"
+            onClick={props.onButtonClick}
+            disabled={props.buttonDisabled}
+        >
+            {props.buttonContent}
+        </AntdButton>
+    )
+
+    if (props.buttonTooltipContent) {
+        return (
+            <Tippy content={props.buttonTooltipContent} maxWidth={180}>
+                {button}
+            </Tippy>
+        )
+    }
+
+    return button
 }
 
 export class TextField extends React.Component<TextFieldProps> {
@@ -100,91 +206,44 @@ export class TextField extends React.Component<TextFieldProps> {
         }
     }
 
-    renderButton() {
-        const { props } = this
-        if (!props.buttonContent) return null
-
-        const button = (
-            <div className="input-group-append">
-                <button
-                    className="btn btn-outline-secondary"
-                    type="button"
-                    onClick={props.onButtonClick}
-                    disabled={props.buttonDisabled}
-                >
-                    {props.buttonContent}
-                </button>
-            </div>
-        )
-
-        if (props.buttonTooltipContent) {
-            return (
-                <Tippy content={props.buttonTooltipContent} maxWidth={180}>
-                    {button}
-                </Tippy>
-            )
-        }
-
-        return button
-    }
-
     override render() {
         const { props } = this
-        const passthroughProps = _.pick(props, [
-            "placeholder",
-            "title",
-            "disabled",
-            "required",
-        ])
+
+        const input = (
+            <Input
+                value={props.value || ""}
+                onChange={(e) => this.onChange(e.currentTarget.value)}
+                onBlur={this.onBlur}
+                onKeyDown={this.onKeyDown}
+                placeholder={props.placeholder}
+                title={props.title}
+                disabled={props.disabled}
+                required={props.required}
+            />
+        )
+
+        const button = renderFieldButton(props)
 
         return (
-            <div
-                className={cx("form-group", this.props.className)}
-                ref={this.base}
+            <FormField
+                className={props.className}
+                innerRef={this.base}
+                label={props.label}
+                secondaryLabel={props.secondaryLabel}
+                helpText={props.helpText}
+                errorMessage={props.errorMessage}
+                softCharacterLimit={props.softCharacterLimit}
+                value={props.value}
             >
-                {props.label && (
-                    <label>
-                        {props.label}
-                        {props.secondaryLabel && (
-                            <>
-                                <span> </span>
-                                <span title={props.secondaryLabel}>
-                                    <FontAwesomeIcon
-                                        icon={faCircleInfo}
-                                        className="text-muted"
-                                    />
-                                </span>
-                            </>
-                        )}
-                    </label>
+                {button ? (
+                    <Space.Compact className="form-field__control" block>
+                        {input}
+                        {button}
+                    </Space.Compact>
+                ) : (
+                    input
                 )}
-                <div className="input-group">
-                    <input
-                        className="form-control"
-                        type="text"
-                        value={props.value || ""}
-                        onChange={(e) => this.onChange(e.currentTarget.value)}
-                        onBlur={this.onBlur}
-                        onKeyDown={this.onKeyDown}
-                        {...passthroughProps}
-                    />
-                    {this.renderButton()}
-                </div>
-                {props.helpText && (
-                    <small className="form-text text-muted">
-                        {props.helpText}
-                    </small>
-                )}
-                {props.softCharacterLimit && props.value && (
-                    <SoftCharacterLimit
-                        text={props.value}
-                        limit={props.softCharacterLimit}
-                    />
-                )}
-                {props.errorMessage && (
-                    <ErrorMessage message={props.errorMessage} />
-                )}
-            </div>
+            </FormField>
         )
     }
 }
@@ -195,94 +254,51 @@ export class TextAreaField extends React.Component<TextFieldProps> {
         this.props.onValue?.(value)
     }
 
+    // NOTE: unlike `TextField`, this deliberately does not forward
+    // `props.onBlur` — it never has, and a number of chart-editor call sites
+    // pass an `onBlur` that triggers a save.
     @bind onBlur() {
         const { value = "" } = this.props
         const trimmedValue = value.trim()
         this.props.onValue?.(trimmedValue)
     }
 
-    renderButton() {
-        const { props } = this
-        if (!props.buttonContent) return null
-
-        const button = (
-            <div className="input-group-append">
-                <button
-                    className="btn btn-outline-secondary"
-                    type="button"
-                    onClick={props.onButtonClick}
-                    disabled={props.buttonDisabled}
-                >
-                    {props.buttonContent}
-                </button>
-            </div>
-        )
-
-        if (props.buttonTooltipContent) {
-            return (
-                <Tippy content={props.buttonTooltipContent} maxWidth={180}>
-                    {button}
-                </Tippy>
-            )
-        }
-
-        return button
-    }
-
     override render() {
         const { props } = this
-        const passthroughProps = _.pick(props, [
-            "placeholder",
-            "title",
-            "disabled",
-            "label",
-            "rows",
-        ])
+
+        const textArea = (
+            <Input.TextArea
+                value={props.value}
+                onChange={this.onChange}
+                onBlur={this.onBlur}
+                rows={props.rows ?? 5}
+                placeholder={props.placeholder}
+                title={props.title}
+                disabled={props.disabled}
+            />
+        )
+
+        const button = renderFieldButton(props)
 
         return (
-            <div className="form-group">
-                {props.label && (
-                    <label>
-                        {props.label}
-                        {props.secondaryLabel && (
-                            <>
-                                <span> </span>
-                                <span title={props.secondaryLabel}>
-                                    <FontAwesomeIcon
-                                        icon={faCircleInfo}
-                                        className="text-muted"
-                                    />
-                                </span>
-                            </>
-                        )}
-                    </label>
+            <FormField
+                className={props.className}
+                label={props.label}
+                secondaryLabel={props.secondaryLabel}
+                helpText={props.helpText}
+                errorMessage={props.errorMessage}
+                softCharacterLimit={props.softCharacterLimit}
+                value={props.value}
+            >
+                {button ? (
+                    <Space.Compact className="form-field__control" block>
+                        {textArea}
+                        {button}
+                    </Space.Compact>
+                ) : (
+                    textArea
                 )}
-                <div className="input-group">
-                    <textarea
-                        className="form-control"
-                        value={props.value}
-                        onChange={this.onChange}
-                        onBlur={this.onBlur}
-                        rows={5}
-                        {...passthroughProps}
-                    />
-                    {this.renderButton()}
-                </div>
-                {props.helpText && (
-                    <small className="form-text text-muted">
-                        {props.helpText}
-                    </small>
-                )}
-                {props.softCharacterLimit && props.value && (
-                    <SoftCharacterLimit
-                        text={props.value}
-                        limit={props.softCharacterLimit}
-                    />
-                )}
-                {props.errorMessage && (
-                    <ErrorMessage message={props.errorMessage} />
-                )}
-            </div>
+            </FormField>
         )
     }
 }
@@ -384,8 +400,9 @@ class WithResetButton extends React.Component<WithResetButtonProps> {
         return (
             <div className="WithResetButton">
                 {props.children}
-                <button
-                    className="btn btn-link ResetToDefaultButton"
+                <AntdButton
+                    type="link"
+                    className="ResetToDefaultButton"
                     onClick={props.onClick}
                     disabled={props.disabled}
                 >
@@ -393,7 +410,7 @@ class WithResetButton extends React.Component<WithResetButtonProps> {
                         (props.disabled
                             ? "Bound to data. Edit to unbind"
                             : "Bind to data")}
-                </button>
+                </AntdButton>
             </div>
         )
     }
@@ -409,37 +426,52 @@ interface SelectFieldProps {
     onBlur?: () => void
 }
 
+/**
+ * A native `<select>` displays its first option whenever the bound value
+ * matches none of them (unless there's a placeholder option to fall back to),
+ * and several chart-editor fields rely on that: they leave the config value
+ * `undefined` and let Grapher apply its own default, which is the first option.
+ * antd's `Select` would render those fields blank instead, so mirror what the
+ * browser did. Nothing is written back either way — this only affects display.
+ */
+function selectDisplayValue(
+    value: string | undefined,
+    options: { value: string }[],
+    placeholder?: string
+): string | undefined {
+    if (options.some((opt) => opt.value === value)) return value
+    if (placeholder !== undefined) return undefined
+    return options[0]?.value
+}
+
 export class SelectField extends React.Component<SelectFieldProps> {
     override render() {
         const { props } = this
 
+        const options = props.options.map((opt) => ({
+            value: opt.value,
+            label: opt.label || opt.value,
+        }))
+
         return (
-            <div className="form-group">
-                {props.label && <label>{props.label}</label>}
-                <select
-                    className="form-control"
-                    onChange={(e) => props.onValue(e.currentTarget.value)}
-                    onBlur={this.props.onBlur}
-                    value={props.value}
-                    defaultValue={undefined}
-                >
-                    {props.placeholder ? (
-                        <option key={undefined} value={undefined} hidden={true}>
-                            {props.placeholder}
-                        </option>
-                    ) : null}
-                    {props.options.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                            {opt.label || opt.value}
-                        </option>
-                    ))}
-                </select>
-                {props.helpText && (
-                    <small className="form-text text-muted">
-                        {props.helpText}
-                    </small>
-                )}
-            </div>
+            <FormField label={props.label} helpText={props.helpText}>
+                <Select
+                    className="form-field__select"
+                    value={selectDisplayValue(
+                        props.value,
+                        options,
+                        props.placeholder
+                    )}
+                    onChange={(value: string) => props.onValue(value)}
+                    onBlur={props.onBlur}
+                    placeholder={props.placeholder}
+                    // The chart editor puts these in narrow columns, where
+                    // clipping long option labels to the field width would
+                    // make them unreadable.
+                    popupMatchSelectWidth={false}
+                    options={options}
+                />
+            </FormField>
         )
     }
 }
@@ -467,35 +499,40 @@ export class SelectGroupsField extends React.Component<SelectGroupsFieldProps> {
     override render() {
         const { props } = this
 
+        const ungroupedOptions = props.options.map((opt) => ({
+            value: opt.value,
+            label: opt.label,
+        }))
+        const groupedOptions = props.groups.flatMap((group) =>
+            group.options.map((opt) => ({
+                value: opt.value,
+                label: opt.label || opt.value,
+            }))
+        )
+
         return (
-            <div className="form-group">
-                {props.label && <label>{props.label}</label>}
-                <select
-                    className="form-control"
-                    onChange={(e) => props.onValue(e.currentTarget.value)}
-                    value={props.value}
-                >
-                    {props.options.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                        </option>
-                    ))}
-                    {props.groups.map((group) => (
-                        <optgroup key={group.title} label={group.title}>
-                            {group.options.map((opt) => (
-                                <option key={opt.value} value={opt.value}>
-                                    {opt.label || opt.value}
-                                </option>
-                            ))}
-                        </optgroup>
-                    ))}
-                </select>
-                {props.helpText && (
-                    <small className="form-text text-muted">
-                        {props.helpText}
-                    </small>
-                )}
-            </div>
+            <FormField label={props.label} helpText={props.helpText}>
+                <Select
+                    className="form-field__select"
+                    value={selectDisplayValue(props.value, [
+                        ...ungroupedOptions,
+                        ...groupedOptions,
+                    ])}
+                    onChange={(value: string) => props.onValue(value)}
+                    popupMatchSelectWidth={false}
+                    options={[
+                        ...ungroupedOptions,
+                        ...props.groups.map((group) => ({
+                            label: group.title,
+                            title: group.title,
+                            options: group.options.map((opt) => ({
+                                value: opt.value,
+                                label: opt.label || opt.value,
+                            })),
+                        })),
+                    ]}
+                />
+            </FormField>
         )
     }
 }
@@ -514,36 +551,18 @@ interface RadioGroupProps {
 
 export class RadioGroup extends React.Component<RadioGroupProps> {
     override render() {
+        const { props } = this
         return (
-            <div className="form-group">
-                {this.props.label && <label>{this.props.label}</label>}
-                <div>
-                    {this.props.options.map((option) => {
-                        return (
-                            <div
-                                key={option.value}
-                                className="form-check form-check-inline"
-                            >
-                                <input
-                                    type="radio"
-                                    className="form-check-input"
-                                    id={option.value}
-                                    checked={option.value === this.props.value}
-                                    onChange={() =>
-                                        this.props.onChange(option.value)
-                                    }
-                                />
-                                <label
-                                    className="form-check-label"
-                                    htmlFor={option.value}
-                                >
-                                    {option.label || option.value}
-                                </label>
-                            </div>
-                        )
-                    })}
-                </div>
-            </div>
+            <FormField label={props.label}>
+                <Radio.Group
+                    value={props.value}
+                    onChange={(ev) => props.onChange(ev.target.value)}
+                    options={props.options.map((option) => ({
+                        value: option.value,
+                        label: option.label || option.value,
+                    }))}
+                />
+            </FormField>
         )
     }
 }
@@ -591,30 +610,43 @@ interface ToggleProps {
     secondaryLabel?: string
 }
 
+let toggleIdCounter = 0
+
 export class Toggle extends React.Component<ToggleProps> {
+    // antd's `Switch` renders a `<button>`, which a wrapping `<label>` cannot
+    // reliably activate, so the label is wired up explicitly instead.
+    private readonly labelId = `toggle-label-${++toggleIdCounter}`
+
     constructor(props: ToggleProps) {
         super(props)
         makeObservable(this)
     }
 
-    @action.bound onChange(e: React.ChangeEvent<HTMLInputElement>) {
-        this.props.onValue(!!e.currentTarget.checked)
+    @action.bound onChange(checked: boolean) {
+        this.props.onValue(checked)
+    }
+
+    @action.bound onLabelClick() {
+        if (this.props.disabled) return
+        this.props.onValue(!this.props.value)
     }
 
     override render() {
         const { props } = this
-        const passthroughProps = _.pick(props, ["label", "disabled", "title"])
 
         return (
-            <div className="form-check">
-                <label className="form-check-label">
-                    <input
-                        className="form-check-input"
-                        type="checkbox"
-                        checked={props.value}
-                        onChange={this.onChange}
-                        {...passthroughProps}
-                    />
+            <div className="toggle-field" title={props.title}>
+                <Switch
+                    checked={props.value}
+                    disabled={props.disabled}
+                    onChange={this.onChange}
+                    aria-labelledby={this.labelId}
+                />
+                <span
+                    id={this.labelId}
+                    className="toggle-field__label"
+                    onClick={this.onLabelClick}
+                >
                     {props.label}
                     {props.secondaryLabel && (
                         <>
@@ -627,12 +659,18 @@ export class Toggle extends React.Component<ToggleProps> {
                             </span>
                         </>
                     )}
-                </label>
+                </span>
             </div>
         )
     }
 }
 
+/**
+ * Keeps Bootstrap's `list-group` classes alongside our own: several call sites
+ * mix `EditableListItem`s with hand-written `list-group-item` markup in the
+ * same list, so the two have to keep looking the same until those pages move
+ * over too.
+ */
 export class EditableList extends React.Component<{
     className?: string
     children?: React.ReactNode
@@ -641,10 +679,11 @@ export class EditableList extends React.Component<{
         return this.props.children ? (
             <ul
                 {...this.props}
-                className={
-                    "list-group" +
-                    (this.props.className ? ` ${this.props.className}` : "")
-                }
+                className={cx(
+                    "editable-list",
+                    "list-group",
+                    this.props.className
+                )}
             />
         ) : null
     }
@@ -659,10 +698,11 @@ export class EditableListItem extends React.Component<EditableListItemProps> {
         return (
             <li
                 {...this.props}
-                className={
-                    "list-group-item" +
-                    (this.props.className ? ` ${this.props.className}` : "")
-                }
+                className={cx(
+                    "editable-list__item",
+                    "list-group-item",
+                    this.props.className
+                )}
             />
         )
     }
@@ -775,7 +815,7 @@ type AutoTextFieldProps = TextFieldProps & {
 }
 
 const ErrorMessage = ({ message }: { message: string }) => (
-    <div style={{ color: "red" }}>{message}</div>
+    <div className="form-field__error">{message}</div>
 )
 
 interface SoftCharacterLimitProps {
@@ -789,11 +829,10 @@ class SoftCharacterLimit extends React.Component<SoftCharacterLimitProps> {
         const { text, limit } = this.props
         return (
             <div
-                style={
-                    text.length > limit
-                        ? { color: "#D17D05" }
-                        : { color: "rgba(0,0,0,0.3)" }
-                }
+                className={cx("form-field__character-limit", {
+                    "form-field__character-limit--exceeded":
+                        text.length > limit,
+                })}
             >
                 {text.length} / {limit}
                 {text.length > limit && (
@@ -1257,51 +1296,37 @@ interface ModalProps {
     children: React.ReactNode
     className?: string
     onClose: () => void
+    /** Passed straight to antd; defaults to antd's 520px. */
+    width?: string | number
+    /** Only needed to stack above antd's static `Modal.confirm`-style dialogs. */
+    zIndex?: number
 }
 
+/**
+ * A thin wrapper over antd's `Modal` that renders whatever it's given, with no
+ * chrome of its own — consumers bring their own `.modal-header` /
+ * `.modal-body` / `.modal-footer` markup, which is why the content padding is
+ * zeroed out here.
+ */
 @observer
 export class Modal extends React.Component<ModalProps> {
-    base = React.createRef<HTMLDivElement>()
-    dismissable: boolean = true
-
-    constructor(props: ModalProps) {
-        super(props)
-        makeObservable(this)
-    }
-
-    @action.bound onClickOutside() {
-        if (this.dismissable) this.props.onClose()
-    }
-
-    override componentDidMount() {
-        // HACK (Mispy): The normal ways of doing this (stopPropagation etc) don't seem to work here
-        this.base.current!.addEventListener("click", () => {
-            this.dismissable = false
-            setTimeout(() => (this.dismissable = true), 100)
-        })
-        setTimeout(
-            () => document.body.addEventListener("click", this.onClickOutside),
-            0
-        )
-    }
-
-    override componentWillUnmount() {
-        document.body.removeEventListener("click", this.onClickOutside)
-    }
-
     override render() {
         const { props } = this
         return (
-            <div
-                className={
-                    "modal" + (props.className ? ` ${props.className}` : "")
-                }
-                style={{ display: "block" }}
+            <AntdModal
+                open
+                className={cx("admin-modal", props.className)}
+                onCancel={props.onClose}
+                footer={null}
+                width={props.width}
+                zIndex={props.zIndex}
+                styles={{
+                    container: { padding: 0, overflow: "hidden" },
+                    body: { padding: 0 },
+                }}
             >
-                <div ref={this.base} className="modal-dialog" role="document">
-                    <div className="modal-content">{this.props.children}</div>
-                </div>
-            </div>
+                {props.children}
+            </AntdModal>
         )
     }
 }
@@ -1352,23 +1377,21 @@ export const CatalogPathField = ({
     }
 
     return (
-        <div className="form-group catalog-path-field">
-            <label>Catalog path</label>
-            <div className="input-group">
-                <pre className="form-control">{tokenizedCatalogPath}</pre>
-                <div className="input-group-append">
-                    <button
-                        className="btn btn-outline-secondary"
-                        onClick={async () =>
-                            catalogPath && (await copyToClipboard(catalogPath))
-                        }
-                        disabled={!catalogPath}
-                    >
-                        <FontAwesomeIcon icon={faCopy} />
-                    </button>
-                </div>
-            </div>
-        </div>
+        <FormField className="catalog-path-field" label="Catalog path">
+            <Space.Compact className="form-field__control" block>
+                <pre className="catalog-path-field__value">
+                    {tokenizedCatalogPath}
+                </pre>
+                <AntdButton
+                    className="form-field__button"
+                    onClick={async () =>
+                        catalogPath && (await copyToClipboard(catalogPath))
+                    }
+                    disabled={!catalogPath}
+                    icon={<FontAwesomeIcon icon={faCopy} />}
+                />
+            </Space.Compact>
+        </FormField>
     )
 }
 
@@ -1411,13 +1434,13 @@ interface ButtonProps {
 export class Button extends React.Component<ButtonProps> {
     override render() {
         return (
-            <button className="btn btn-link" onClick={this.props.onClick}>
+            <AntdButton type="link" onClick={this.props.onClick}>
                 {this.props.children}
-            </button>
+            </AntdButton>
         )
     }
 }
 
 export const Help = ({ children }: { children: React.ReactNode }) => (
-    <small className="form-text text-muted mb-4">{children}</small>
+    <small className="form-field__help text-muted mb-4">{children}</small>
 )

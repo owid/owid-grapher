@@ -17,10 +17,14 @@
 // Layout:
 @import "bootstrap/scss/grid";
 @import "bootstrap/scss/tables";
-// Form controls (`admin.scss` also `@extend`s `.form-control`):
+// Form controls. `Forms.tsx` is on antd now, but raw `form-group` /
+// `form-control` / `form-check` / `form-text` markup is still hand-written in
+// the editor tabs, ExplorerCreatePage, UsersIndexPage, GdocsAdd and others,
+// and `admin.scss` also `@extend`s `.form-control`:
 @import "bootstrap/scss/forms";
 @import "bootstrap/scss/buttons";
 @import "bootstrap/scss/button-group";
+// still used by EditorReferencesTab (`input-group-prepend`/`input-group-text`):
 @import "bootstrap/scss/input-group";
 // Chrome and navigation:
 @import "bootstrap/scss/nav";
@@ -30,8 +34,9 @@
 // Components:
 @import "bootstrap/scss/badge";
 @import "bootstrap/scss/alert";
+// still used by EditorReferencesTab, EditorHistoryTab, EditorDataTab and
+// DimensionCard, which interleave `list-group-item`s with `EditableListItem`s:
 @import "bootstrap/scss/list-group";
-@import "bootstrap/scss/modal";
 // Helpers:
 @import "bootstrap/scss/utilities";
 @import "bootstrap/scss/print";
@@ -39,7 +44,9 @@
 // Deliberately not imported, because nothing in the admin uses them:
 //   root (only defines `--blue`-style custom properties, never read via var()),
 //   images, transitions, dropdown, custom-forms, card, jumbotron, progress,
-//   media, close, toasts, tooltip, popover, carousel, spinners.
+//   media, close, toasts, tooltip, popover, carousel, spinners,
+//   modal (`Forms.tsx`'s `Modal` is antd's; the `.modal-header`/`.modal-body`/
+//   `.modal-footer` markup its consumers pass in is styled in `Forms.scss`).
 
 // Our own copy of the parts of Bootstrap's reboot the admin depends on, so that
 // removing `bootstrap/scss/reboot` above stays a small, deliberate step rather
@@ -68,6 +75,7 @@
 @import "../packages/@ourworldindata/components/src/styles/typography-constants.scss";
 @import "../packages/@ourworldindata/components/src/styles/typography.scss";
 
+@import "./Forms.scss";
 @import "./GdocsIndexPage.scss";
 @import "./FeaturedMetricsPage.scss";
 @import "./FilesIndexPage.scss";
@@ -268,10 +276,6 @@ $nav-height: 45px;
 }
 
 .EditorFAQ {
-    .modal-dialog {
-        max-width: 800px;
-    }
-
     .modal-body {
         max-height: 80vh;
         overflow-y: scroll;
@@ -429,15 +433,6 @@ $nav-height: 45px;
     margin-bottom: 0.5em;
 }
 
-.catalog-path-field {
-    pre {
-        white-space: pre-wrap;
-        overflow-wrap: anywhere;
-        height: auto;
-        background: #e9ecef;
-    }
-}
-
 .EditorBasicTab {
     .DimensionCard {
         header {
@@ -559,11 +554,6 @@ $nav-height: 45px;
 }
 
 .VariableSelector {
-    .modal-dialog {
-        min-width: 800px;
-        max-width: 90vw;
-    }
-
     .modal-body > div {
         display: flex !important;
         justify-content: space-between;
@@ -602,7 +592,7 @@ $nav-height: 45px;
         min-height: 32px;
     }
 
-    li > .form-check {
+    li > .toggle-field {
         width: 100%;
         margin-bottom: 0;
     }
@@ -839,19 +829,6 @@ $nav-height: 45px;
     user-select: none;
 }
 
-.modalContainer {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.3);
-    z-index: 1040;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 .FieldsRow {
     display: flex;
     align-items: center;
@@ -862,14 +839,6 @@ $nav-height: 45px;
         margin-bottom: 0 !important;
         flex-grow: 1;
         flex-basis: 0;
-    }
-}
-
-.AutoTextField {
-    .input-group-addon {
-        cursor: pointer;
-        padding-left: 8px;
-        padding-top: 6px;
     }
 }
 
@@ -884,6 +853,7 @@ $nav-height: 45px;
     }
 
     .ResetToDefaultButton {
+        height: auto;
         padding: 0;
         font-size: 0.8em;
         color: inherit;
@@ -930,19 +900,6 @@ $nav-height: 45px;
     color: white;
     align-items: center;
     justify-content: center;
-}
-
-.modal {
-    background-color: rgba(0, 0, 0, 0.5);
-    overflow-y: auto;
-}
-
-.errorMessage {
-    // 1 above .ant-modal-mask
-    z-index: 2001;
-    .modal-dialog {
-        max-width: 80%;
-    }
 }
 
 main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
@@ -1592,7 +1549,6 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     }
 }
 
-.input-group-append,
 .input-group-prepend {
     .btn {
         z-index: 0;

@@ -1,0 +1,119 @@
+// Styles for the shared admin form kit in `Forms.tsx`, which renders antd
+// primitives inside our own label / help-text / error chrome.
+//
+// The wrapper elements still carry Bootstrap's `form-group` and `list-group`
+// classes next to the ones below, because raw Bootstrap form and list markup
+// lives on in ~30 other admin files and is frequently interleaved with these
+// components. The rules here only cover the parts that used to come from
+// Bootstrap's form/input-group/modal markup that `Forms.tsx` no longer emits.
+
+.form-field__label {
+    display: block;
+}
+
+// Replaces Bootstrap's `.form-text`.
+.form-field__help {
+    display: block;
+    margin-top: 0.25rem;
+}
+
+.form-field__error {
+    color: red;
+}
+
+.form-field__character-limit {
+    color: rgba(0, 0, 0, 0.3);
+}
+
+.form-field__character-limit--exceeded {
+    color: #d17d05;
+}
+
+// The control row of a field that has a trailing button — an antd
+// `Space.Compact`, replacing Bootstrap's `.input-group` + `.input-group-append`.
+.form-field__control {
+    display: flex;
+    width: 100%;
+
+    > *:first-child {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    > .form-field__button {
+        flex: 0 0 auto;
+    }
+}
+
+// antd selects are inline-block by default; ours stand in for a `.form-control`
+// and so fill the field.
+.form-field__select {
+    width: 100%;
+}
+
+.toggle-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0.5rem;
+}
+
+.toggle-field__label {
+    cursor: pointer;
+    user-select: none;
+}
+
+.catalog-path-field__value {
+    margin: 0;
+    padding: 4px 11px;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px 0 0 6px;
+    background: #e9ecef;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    height: auto;
+}
+
+// `EditableList` / `EditableListItem`. These deliberately mirror what
+// Bootstrap's list-group gives the hand-written `list-group-item` markup they
+// are mixed with; they exist as grep-able hooks for the phase that removes it.
+.editable-list {
+    margin-top: 0;
+    margin-bottom: 0.5em;
+}
+
+// The `Modal` component renders whatever it is handed inside an antd modal
+// with its own padding zeroed out, so these three carry the chrome — same
+// class names, same look as the Bootstrap modal they replace.
+.admin-modal {
+    .modal-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .modal-title {
+        margin-bottom: 0;
+        line-height: 1.5;
+    }
+
+    .modal-body {
+        position: relative;
+        flex: 1 1 auto;
+        padding: 1rem;
+    }
+
+    .modal-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 1rem;
+        border-top: 1px solid #dee2e6;
+
+        > * {
+            margin: 0.25rem;
+        }
+    }
+}
