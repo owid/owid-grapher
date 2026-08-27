@@ -3,6 +3,7 @@ import pluginReact from "@vitejs/plugin-react"
 import { viteCssPosition } from "vite-plugin-css-position"
 import pluginSwc from "@rollup/plugin-swc"
 
+import { DEDUPED_PACKAGES } from "../../shared/viteDedupe.js"
 import { entrypoints } from "./package.json"
 
 export default defineConfig({
@@ -38,19 +39,7 @@ export default defineConfig({
         }),
     ],
     resolve: {
-        // The linked @ourworldindata/* packages and the shared
-        // bespoke/{components,hooks} workspaces resolve their dependencies
-        // relative to their real paths, which would load a second copy of
-        // React (breaking hooks) or @tanstack/react-query (breaking the
-        // QueryClient context, since each copy has its own React context).
-        // This forces these to resolve to a single copy in this project's
-        // node_modules.
-        dedupe: [
-            "react",
-            "react-dom",
-            "@react-stately/flags",
-            "@tanstack/react-query",
-        ],
+        dedupe: DEDUPED_PACKAGES,
     },
     build: {
         lib: {
