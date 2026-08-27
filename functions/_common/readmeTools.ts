@@ -12,6 +12,7 @@ import {
     getCitationLong,
     prepareSourcesForDisplay,
     formatDate,
+    stripDetailOnDemandLinks,
 } from "@ourworldindata/utils"
 import type { CoreColumn } from "@ourworldindata/core-table"
 import { GrapherState } from "@ourworldindata/grapher"
@@ -358,5 +359,10 @@ ${sources.join("\n")}
 
     `
     }
-    return readme
+    // Detail-on-demand links (e.g. [terawatt-hours](#dod:watt-hours)) render as
+    // hover tooltips on the website, but the readme ships inside a downloaded
+    // zip where they're just dead links. Strip them here, over the fully
+    // assembled document, so any field that starts carrying DoD links later
+    // is covered automatically.
+    return stripDetailOnDemandLinks(readme)
 }
