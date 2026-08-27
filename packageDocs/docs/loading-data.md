@@ -12,7 +12,7 @@ See the [API reference](api/index.md) for their full options.
 
 ## The CSV column contract
 
-CSV data — whether passed inline (`csv`), fetched from a URL (`csvUrl`), or used to construct an `OwidTable` — must contain `entityName`, `entityCode`, and `entityId` columns plus a `year` (or `day`) column, followed by one or more value columns.
+CSV data — whether passed inline (`csv`), fetched from a URL (`csvUrl`), or used to construct an `OwidTable` — must contain an `entityName` column and a `year` (or `day`) column, followed by one or more value columns. `entityCode` and `entityId` columns are optional.
 
 ## `fromCsv`: CSV data
 

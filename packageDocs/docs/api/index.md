@@ -22,7 +22,7 @@ Initializes a chart from an in-memory [`OwidTable`](reference/classes/OwidTable.
 Parses CSV data — inline or fetched from a URL — automatically creating an `OwidTable` inside Grapher.
 
 - **`config`** (`GrapherInterface`): Grapher configuration.
-- **`csv`** (`string`): CSV content as an inline string. Exactly one of `csv` and `csvUrl` must be given (the types enforce this). The CSV must include `entityName`, `entityCode`, `entityId`, and `year` (or `day`) columns, plus one or more value columns.
+- **`csv`** (`string`): CSV content as an inline string. Exactly one of `csv` and `csvUrl` must be given (the types enforce this). The CSV must include an `entityName` column and a `year` (or `day`) column, plus one or more value columns; `entityCode` and `entityId` are optional.
 - **`csvUrl`** (`string`): URL pointing to a CSV file of the same format.
 - **`columnDefs`** (`OwidColumnDef[]`, optional): definitions describing the types, names, colors, and formatting of each column — see [Providing metadata](../loading-data.md#providing-metadata).
 

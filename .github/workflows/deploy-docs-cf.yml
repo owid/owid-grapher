@@ -13,6 +13,7 @@ on:
     paths:
       - "packageDocs/**"
       - "packages/@ourworldindata/**"
+      - "devTools/schema/generate-schema-docs.ts"
       - "yarn.lock"
       - ".github/workflows/deploy-docs-cf.yml"
   pull_request:
@@ -20,6 +21,7 @@ on:
     paths:
       - "packageDocs/**"
       - "packages/@ourworldindata/**"
+      - "devTools/schema/generate-schema-docs.ts"
       - "yarn.lock"
       - ".github/workflows/deploy-docs-cf.yml"
   workflow_dispatch:
@@ -77,8 +79,15 @@ jobs:
         run: |
           mkdir -p staging/projects/grapher
           cp -a packageDocs/site/. staging/projects/grapher/
+          # On the production domain the site only exists under
+          # /projects/grapher/, but preview deployments are visited at the
+          # bare *.pages.dev root — redirect that to the actual site.
+          echo '<meta http-equiv="refresh" content="0; url=/projects/grapher/">' > staging/index.html
 
       - name: Deploy to Cloudflare Pages
+        # Fork and Dependabot PRs don't get the Cloudflare secrets, so the
+        # deploy would fail — build-only for those, deploy for trusted refs.
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN_DOCS }}

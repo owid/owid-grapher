@@ -26,9 +26,9 @@ export interface FromTableOptions extends GrapherApiOptionsBase {
 }
 
 /** Options for {@link GrapherLoader.fromCsv}. Provide the CSV either inline
- *  (`csv`) or as a URL to fetch (`csvUrl`). It must have entityName,
- *  entityCode, entityId, and year (or day) columns, plus one or more value
- *  columns. */
+ *  (`csv`) or as a URL to fetch (`csvUrl`). It must have an entityName column
+ *  and a year (or day) column, plus one or more value columns; entityCode
+ *  and entityId columns are optional. */
 export type FromCsvOptions = GrapherApiOptionsBase & {
     /** Column definitions — use these to specify types and display names for
      *  your value columns. */

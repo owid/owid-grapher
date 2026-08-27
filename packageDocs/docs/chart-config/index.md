@@ -21,3 +21,5 @@ maintained in [`packages/@ourworldindata/grapher/src/schema/`](https://github.co
 and also shipped with the package as `@ourworldindata/grapher/grapher-schema.json`.
 
 A browsable, field-by-field rendering of that schema is available in the [schema reference](../schema-reference/index.md).
+
+One note on requiredness: the schema describes **persisted** configs, which must carry `$schema` and `dimensions`. Configs passed to `GrapherLoader` are looser — `$schema` is never needed, and `dimensions` is only required for [`fromApi`](../api/index.md#grapherloaderfromapi-config-dataapiurl), where it says which indicators to fetch.

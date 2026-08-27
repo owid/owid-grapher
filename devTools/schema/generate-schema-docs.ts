@@ -449,7 +449,7 @@ function renderPage(
         lines.push(formatDescription(schema.description), "")
 
     lines.push(
-        `Only ${required.map((key) => `\`${key}\``).join(" and ")} are required; every other field is optional and falls back to the default listed below. Unknown properties are rejected.`,
+        `In a persisted config, only ${required.map((key) => `\`${key}\``).join(" and ")} are required; every other field is optional, with defaults listed below where the schema defines one. Unknown properties are rejected.`,
         ""
     )
 
