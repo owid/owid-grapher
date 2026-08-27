@@ -89,6 +89,7 @@
         "@ourworldindata/components": "workspace:^",
         "@ourworldindata/core-table": "workspace:^",
         "@ourworldindata/explorer": "workspace:^",
+        "@ourworldindata/gdoc-pipeline": "workspace:^",
         "@ourworldindata/grapher": "workspace:^",
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",

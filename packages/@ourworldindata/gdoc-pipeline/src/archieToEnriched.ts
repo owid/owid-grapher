@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
 import { load } from "archieml"
-import { createHash } from "crypto"
+import { sha1Hex } from "./sha1.js"
 import {
     OwidGdocPostContent,
     recursivelyMapArticleContent,
@@ -164,9 +164,7 @@ export function extractRefs(text: string): {
         ) as RegExpMatchArray
         const contentOrId = match[1]
 
-        const id = isInlineRef
-            ? createHash("sha1").update(contentOrId).digest("hex")
-            : contentOrId
+        const id = isInlineRef ? sha1Hex(contentOrId) : contentOrId
 
         refsByFirstAppearance.add(id)
         const index = [...refsByFirstAppearance].indexOf(id)

@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-import { enrichedBlocksToMarkdown } from "../model/Gdoc/enrichedToMarkdown.js"
+import { enrichedBlocksToMarkdown } from "@ourworldindata/gdoc-pipeline"
 import { gdocFromJSON } from "../model/Gdoc/GdocFactory.js"
 
 export class FixMalformedGdocMarkdown1747337107717 implements MigrationInterface {

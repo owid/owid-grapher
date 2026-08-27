@@ -19,7 +19,7 @@ import {
     OwidGdocBaseInterface,
 } from "@ourworldindata/types"
 import { KnexReadonlyTransaction } from "../db/db.js"
-import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
+import { parseFaqs } from "@ourworldindata/gdoc-pipeline"
 import { getSlugForTopicTag } from "./GrapherBakingUtils.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
 

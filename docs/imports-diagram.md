@@ -10,6 +10,7 @@ graph TD;
     utils["packages/@ourworldindata/utils"];
     components["packages/@ourworldindata/components"];
     core_table["packages/@ourworldindata/core-table"];
+    gdoc_pipeline["packages/@ourworldindata/gdoc-pipeline"];
     grapher["packages/@ourworldindata/grapher"];
     explorer["packages/@ourworldindata/explorer"];
 
@@ -37,8 +38,13 @@ graph TD;
 
     settings --> utils;
 
+    gdoc_pipeline --> components;
+    gdoc_pipeline --> types;
+    gdoc_pipeline --> utils;
+
     db --> components;
     db --> explorer;
+    db --> gdoc_pipeline;
     db --> grapher;
     db --> types;
     db --> utils;
@@ -62,6 +68,7 @@ graph TD;
     baker --> components;
     baker --> core_table;
     baker --> explorer;
+    baker --> gdoc_pipeline;
     baker --> grapher;
     baker --> types;
     baker --> utils;
@@ -89,7 +96,7 @@ graph TD;
     classDef appLayer fill:#fff3e0;
     classDef toolLayer fill:#fce4ec;
 
-    class types,utils,components,core_table,grapher,explorer packageLayer;
+    class types,utils,components,core_table,gdoc_pipeline,grapher,explorer packageLayer;
     class settings,serverUtils infraLayer;
     class db,jobQueue coreLayer;
     class adminShared,adminSiteServer,adminSiteClient,baker,site,explorerAdminServer appLayer;
