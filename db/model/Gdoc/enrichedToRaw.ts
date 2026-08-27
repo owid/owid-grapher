@@ -686,6 +686,7 @@ export function enrichedBlockToRawBlock(
                     variant: b.variant,
                     size: b.size,
                     config: b.config,
+                    fallbackImageFilename: b.fallbackImageFilename,
                 },
             }
         })
