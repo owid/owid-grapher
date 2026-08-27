@@ -8,7 +8,7 @@ import { GrapherState } from "@ourworldindata/grapher"
 import { OwidTableSlugs } from "@ourworldindata/types"
 import {
     GrapherIdentifier,
-    isUnpublishedChartRequestedByUuid,
+    isUnpublishedChartHiddenFromPublicSite,
     rewriteJsonLdText,
 } from "./grapherTools.js"
 
@@ -93,7 +93,7 @@ describe(rewriteJsonLdText, () => {
     })
 })
 
-describe(isUnpublishedChartRequestedByUuid, () => {
+describe(isUnpublishedChartHiddenFromPublicSite, () => {
     const uuid: GrapherIdentifier = {
         type: "uuid",
         id: "0191b6c7-5595-70b2-8d30-fa03fccd7add",
@@ -102,24 +102,50 @@ describe(isUnpublishedChartRequestedByUuid, () => {
 
     it("hides a chart that is not published", () => {
         expect(
-            isUnpublishedChartRequestedByUuid(uuid, { isPublished: false })
+            isUnpublishedChartHiddenFromPublicSite(
+                uuid,
+                { isPublished: false },
+                "production"
+            )
         ).toBe(true)
     })
 
     it("serves a published chart", () => {
         expect(
-            isUnpublishedChartRequestedByUuid(uuid, { isPublished: true })
+            isUnpublishedChartHiddenFromPublicSite(
+                uuid,
+                { isPublished: true },
+                "production"
+            )
         ).toBe(false)
     })
 
     it("serves a config with no isPublished field, as narrative charts have", () => {
-        expect(isUnpublishedChartRequestedByUuid(uuid, {})).toBe(false)
+        expect(
+            isUnpublishedChartHiddenFromPublicSite(uuid, {}, "production")
+        ).toBe(false)
     })
 
     it("leaves the by-slug route alone, which serves published configs only", () => {
         expect(
-            isUnpublishedChartRequestedByUuid(slug, { isPublished: false })
+            isUnpublishedChartHiddenFromPublicSite(
+                slug,
+                { isPublished: false },
+                "production"
+            )
         ).toBe(false)
+    })
+
+    it("keeps serving drafts on staging, which the preview tooling needs", () => {
+        for (const environment of ["staging", "development"]) {
+            expect(
+                isUnpublishedChartHiddenFromPublicSite(
+                    uuid,
+                    { isPublished: false },
+                    environment
+                )
+            ).toBe(false)
+        }
     })
 })
 

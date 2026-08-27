@@ -195,15 +195,26 @@ async function fetchMultiDimGrapherConfig(
  * published charts. The by-uuid routes read `config/by-uuid`, which holds a
  * config for every chart, so they have to check publication themselves.
  *
+ * Only on the public site. Staging serves the same functions through wrangler,
+ * and previewing a chart before it is published is what a staging server is
+ * for: the ETL preview tooling and the chart-preview VS Code extension both
+ * fetch drafts from `staging-site-<branch>`, which is reachable on the tailnet
+ * only.
+ *
  * Tests for `false` rather than "not true" deliberately: narrative charts are
  * addressed by UUID too and their configs carry no `isPublished` field, so they
  * must keep resolving.
  */
-export function isUnpublishedChartRequestedByUuid(
+export function isUnpublishedChartHiddenFromPublicSite(
     identifier: GrapherIdentifier,
-    grapherConfig: GrapherInterface
+    grapherConfig: GrapherInterface,
+    environment: string
 ): boolean {
-    return identifier.type === "uuid" && grapherConfig.isPublished === false
+    return (
+        environment === "production" &&
+        identifier.type === "uuid" &&
+        grapherConfig.isPublished === false
+    )
 }
 
 export async function fetchGrapherConfig({
@@ -275,7 +286,13 @@ export async function fetchGrapherConfig({
     } else {
         grapherConfig = config as GrapherInterface
     }
-    if (isUnpublishedChartRequestedByUuid(identifier, grapherConfig)) {
+    if (
+        isUnpublishedChartHiddenFromPublicSite(
+            identifier,
+            grapherConfig,
+            env.ENV
+        )
+    ) {
         throw new StatusError(404)
     }
     console.log("grapher title", grapherConfig.title)
