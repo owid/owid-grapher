@@ -1,11 +1,14 @@
 import {
     EnrichedBlockBespokeComponent,
     HIDE_IF_JS_DISABLED_CLASSNAME,
+    HIDE_IF_JS_ENABLED_CLASSNAME,
 } from "@ourworldindata/types"
 import { LoadingIndicator } from "@ourworldindata/components"
 import cx from "clsx"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useIntersectionObserver } from "usehooks-ts"
+import Image from "./Image.js"
+import { useImage } from "../utils.js"
 import { BESPOKE_COMPONENT_REGISTRY } from "../../bespokeComponentRegistry.js"
 import { mountBespokeComponentInShadow } from "../../../bespoke/shared/bespokeComponentShadowDom.js"
 import { BESPOKE_BASE_URL } from "../../../settings/clientSettings.js"
@@ -30,10 +33,6 @@ const makeAbsoluteWithBaseUrl = (url: string, baseUrl: string | undefined) => {
  * an external ES module into a Shadow DOM. This allows embedding
  * independently-built components that bundle their own JS and CSS,
  * isolated from the rest of the page styles.
- *
- * On the server, this renders a loading indicator and the site's no-JS warning
- * block. On the client, useEffect dynamically imports the module and calls its
- * `mount` function.
  *
  * Example ArchieML:
  * {.bespoke-component}
@@ -68,6 +67,8 @@ export function BespokeComponent({
         () => BESPOKE_COMPONENT_REGISTRY[block.bundle],
         [block.bundle]
     )
+
+    const fallbackImage = useImage(block.fallbackImageFilename)
 
     const scriptUrl = useMemo(() => {
         if (!definition || !BESPOKE_BASE_URL.trim()) return undefined
@@ -147,7 +148,19 @@ export function BespokeComponent({
                     <LoadingIndicator />
                 </div>
             )}
-            <div className="js--show-warning-block-if-js-disabled" />
+            {fallbackImage ? (
+                <Image
+                    className={cx(
+                        HIDE_IF_JS_ENABLED_CLASSNAME,
+                        "bespoke-component__fallback-image"
+                    )}
+                    imageData={fallbackImage}
+                    containerType={`bespoke-component--${block.size}`}
+                    shouldLightbox={false}
+                />
+            ) : (
+                <div className="js--show-warning-block-if-js-disabled" />
+            )}
             <div ref={containerRef}></div>
         </div>
     )
