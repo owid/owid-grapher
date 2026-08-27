@@ -197,6 +197,15 @@ function validateExcerpt(
     }
 }
 
+function validateFeaturedImage(
+    gdoc: OwidGdocFeaturedVizInterface,
+    errors: OwidGdocErrorMessage[]
+) {
+    if (!gdoc.content["featured-image"]) {
+        errors.push(getMissingContentPropertyError("featured-image"))
+    }
+}
+
 function validateManualBreadcrumbs(
     gdoc: OwidGdocPostInterface,
     errors: OwidGdocErrorMessage[]
@@ -357,6 +366,7 @@ export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
         validateSocials(gdoc, errors)
     } else if (checkIsFeaturedViz(gdoc)) {
         validateExcerpt(gdoc, errors)
+        validateFeaturedImage(gdoc, errors)
     }
 
     return errors
