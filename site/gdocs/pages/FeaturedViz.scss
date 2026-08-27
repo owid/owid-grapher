@@ -58,3 +58,17 @@ hr.featured-viz-divider {
         margin: 0;
     }
 }
+
+.centered-article-container--featured-viz {
+    .footnote-container {
+        margin-top: 0;
+    }
+
+    // Whichever block comes before the footnote container or citation footer
+    > [class*="article-block__"]:has(+ .footnote-container),
+    > [class*="article-block__"]:has(+ #article-citation),
+    > .featured-viz-hero:has(+ .footnote-container),
+    > .featured-viz-hero:has(+ #article-citation) {
+        margin-bottom: 48px;
+    }
+}
