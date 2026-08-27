@@ -1,9 +1,6 @@
 import * as React from "react"
 import { Bounds, bind } from "@ourworldindata/utils"
-import {
-    isElementInteractive,
-    isTargetOutsideElement,
-} from "../chart/ChartUtils"
+import { isTargetOutsideElement } from "../chart/ChartUtils"
 import { isOwidDropdownOpen } from "../controls/Dropdown"
 
 export class Modal extends React.Component<{
@@ -31,9 +28,6 @@ export class Modal extends React.Component<{
         if (
             this.contentRef?.current &&
             isTargetOutsideElement(e.target!, this.contentRef.current) &&
-            // clicking on an interactive element should not dismiss the modal
-            // (this is especially important for the suggested chart review tool)
-            !isElementInteractive(e.target as HTMLElement) &&
             !isOwidDropdownOpen()
         )
             this.props.onDismiss()
