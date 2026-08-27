@@ -33,10 +33,9 @@ import {
     SizedDiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
-import {
-    HorizontalColorLegendManager,
-    HorizontalNumericColorLegend,
-} from "../legend/HorizontalColorLegends"
+import { HorizontalNumericColorLegend } from "../legend/HorizontalNumericColorLegend"
+import { HorizontalNumericColorLegendState } from "../legend/HorizontalNumericColorLegendState"
+import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import { DiscreteBarChartState } from "./DiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { makeProjectedDataPatternId } from "./DiscreteBarChartHelpers"
@@ -71,7 +70,7 @@ export type DiscreteBarChartProps = ChartComponentProps<DiscreteBarChartState>
 @observer
 export class DiscreteBarChart
     extends React.Component<DiscreteBarChartProps>
-    implements ChartInterface, AxisManager, HorizontalColorLegendManager
+    implements ChartInterface, AxisManager
 {
     base = React.createRef<SVGGElement>()
 
@@ -513,9 +512,17 @@ export class DiscreteBarChart
     }
 
     private renderLegend(): React.ReactElement | null {
-        if (!this.showColorLegend) return null
+        if (!this.showColorLegend || !this.numericLegendState) return null
 
-        return <HorizontalNumericColorLegend manager={this} />
+        return (
+            <HorizontalNumericColorLegend
+                state={this.numericLegendState}
+                x={this.bounds.x}
+                y={this.bounds.top}
+                interactive={!this.manager.isStatic}
+                styleConfig={this.numericLegendStyleConfig}
+            />
+        )
     }
 
     private renderAxis(): React.ReactElement {
@@ -586,20 +593,8 @@ export class DiscreteBarChart
         return this.hasColorLegend && !!this.manager.showLegend
     }
 
-    @computed get legendX(): number {
-        return this.bounds.x
-    }
-
-    @computed get legendMaxWidth(): number {
-        return this.bounds.width
-    }
-
-    @computed get legendAlign(): HorizontalAlign {
-        return HorizontalAlign.center
-    }
-
     // TODO just pass colorScale to legend and let it figure it out?
-    @computed get numericLegendData(): ColorScaleBin[] {
+    @computed private get numericLegendData(): ColorScaleBin[] {
         const legendBins = this.chartState.colorScale.legendBins.slice()
 
         // Show a "Projected data" legend item with a striped pattern if appropriate
@@ -631,7 +626,7 @@ export class DiscreteBarChart
     // Used when the bars are colored by a numeric scale
     numericLegendStyleConfig = NUMERIC_LEGEND_STYLE
 
-    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+    @computed get externalLegend(): ExternalColorLegendData | undefined {
         if (this.hasColorLegend) {
             return {
                 numericLegendData: this.numericLegendData,
@@ -641,32 +636,32 @@ export class DiscreteBarChart
         return undefined
     }
 
-    @computed get numericBinSize(): number {
+    @computed private get numericBinSize(): number {
         return 0.625 * this.fontSize
     }
 
-    legendTickSize = 1
-
-    @computed private get numericLegend():
-        | HorizontalNumericColorLegend
+    @computed private get numericLegendState():
+        | HorizontalNumericColorLegendState
         | undefined {
-        return this.manager.showLegend
-            ? new HorizontalNumericColorLegend({ manager: this })
-            : undefined
+        if (!this.manager.showLegend) return undefined
+        return new HorizontalNumericColorLegendState(this.numericLegendData, {
+            fontSize: this.fontSize,
+            maxWidth: this.bounds.width,
+            align: HorizontalAlign.center,
+            title: this.legendTitle,
+            tickSize: 1,
+            binSize: this.numericBinSize,
+        })
     }
 
-    @computed get numericLegendY(): number {
-        return this.bounds.top
-    }
-
-    @computed get legendTitle(): string | undefined {
+    @computed private get legendTitle(): string | undefined {
         return this.chartState.hasColorScale
             ? this.chartState.colorScale.legendDescription
             : undefined
     }
 
-    @computed get legendHeight(): number {
-        return this.numericLegend?.height ?? 0
+    @computed private get legendHeight(): number {
+        return this.numericLegendState?.height ?? 0
     }
 
     // End of color legend props
