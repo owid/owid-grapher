@@ -25,9 +25,9 @@ export function usePublishedGdocTopicSlugs() {
     return useQuery({
         queryKey: gdocKeys.publishedTopicSlugs(),
         queryFn: async () => {
-            const { slugs } = await admin.getJSON<{ slugs: string[] }>(
-                "/api/gdocs/publishedTopicSlugs"
-            )
+            const { slugs } = await admin.getJSONInBackground<{
+                slugs: string[]
+            }>("/api/gdocs/publishedTopicSlugs")
             return slugs
         },
     })
