@@ -19,7 +19,7 @@ import {
     HorizontalColorLegendProps,
     PositionedBin,
 } from "./HorizontalColorLegendTypes"
-import { useDismissOnOutsidePointerDown } from "../hooks.js"
+import { useDismissOnOutsidePointerDownOrUnmount } from "../hooks.js"
 import {
     ARROW_SIZE,
     DEFAULT_NUMERIC_BIN_STROKE,
@@ -51,12 +51,15 @@ export function HorizontalNumericColorLegend(
     } = state
 
     const isHoverable = interactive && !!onMouseOver
-    useDismissOnOutsidePointerDown(isHoverable ? onMouseLeave : undefined)
+    useDismissOnOutsidePointerDownOrUnmount(
+        isHoverable ? onMouseLeave : undefined
+    )
 
     const defaultTextColor =
         styleConfig?.text?.default?.color ?? DEFAULT_TEXT_COLOR
 
     const bottomY = y + height
+    const labelStripHeight = Math.max(0, height - binSize)
 
     const markerStyleFor = (bin: ColorScaleBin): LegendMarkerStyle =>
         resolveLegendMarkerStyle(styleConfig, binEmphasis?.get(bin), {
@@ -201,7 +204,7 @@ export function HorizontalNumericColorLegend(
                             x={x + positionedBin.x}
                             y={y}
                             width={positionedBin.width}
-                            height={Math.max(0, height - binSize)}
+                            height={labelStripHeight}
                             fill="transparent"
                             pointerEvents="all"
                             onPointerUp={onPointerUp(positionedBin.bin)}
