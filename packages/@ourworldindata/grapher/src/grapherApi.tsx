@@ -26,9 +26,9 @@ export interface FromTableOptions extends GrapherApiOptionsBase {
 }
 
 /** Options for {@link GrapherLoader.fromCsv}. Provide the CSV either inline
- *  (`csv`) or as a URL to fetch (`csvUrl`). It must have entityName,
- *  entityCode, entityId, and year (or day) columns, plus one or more value
- *  columns. */
+ *  (`csv`) or as a URL to fetch (`csvUrl`). It must have an entityName column
+ *  and a year (or day) column, plus one or more value columns; entityCode
+ *  and entityId columns are optional. */
 export type FromCsvOptions = GrapherApiOptionsBase & {
     /** Column definitions — use these to specify types and display names for
      *  your value columns. */
@@ -220,7 +220,8 @@ export class GrapherLoader {
     }
 
     /** Prepare a chart whose data comes from a pre-built OwidTable. */
-    static fromTable({ config, data }: FromTableOptions): GrapherLoader {
+    static fromTable(options: FromTableOptions): GrapherLoader {
+        const { config, data } = options
         const grapherState = new GrapherState({
             ...defaultGrapherConfigOverrides(),
             ...config,
@@ -262,10 +263,8 @@ export class GrapherLoader {
     }
 
     /** Prepare a chart whose data will be fetched from the OWID data API. */
-    static fromApi({
-        config,
-        dataApiUrl = DEFAULT_DATA_API_URL,
-    }: FromApiOptions): GrapherLoader {
+    static fromApi(options: FromApiOptions): GrapherLoader {
+        const { config, dataApiUrl = DEFAULT_DATA_API_URL } = options
         const grapherState = new GrapherState({
             ...defaultGrapherConfigOverrides(),
             ...config,
