@@ -458,6 +458,13 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         return timeColumn.formatTimeShort(time)
     }
 
+    /** Formats a time as the end of the period it stands for */
+    private formatTimeEnd(time: number): string {
+        const { timeColumn } = this.manager
+        if (!timeColumn) return time.toString()
+        return timeColumn.formatTimeShortEnd(time)
+    }
+
     @action.bound private togglePlay(): void {
         void this.controller.togglePlay()
     }
@@ -690,7 +697,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
         if (!this.endTooltipVisible) return undefined
 
-        const formattedEndTime = this.formatTime(this.controller.endTime)
+        const formattedEndTime = this.formatTimeEnd(this.controller.endTime)
 
         if (!this.canEditTimeViaTooltip) {
             return <SimpleTimeTooltip formattedTime={formattedEndTime} />
@@ -784,9 +791,9 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         } = controller
 
         const formattedMinTime = this.formatTime(minTime)
-        const formattedMaxTime = this.formatTime(maxTime)
+        const formattedMaxTime = this.formatTimeEnd(maxTime)
         const formattedStartTime = this.formatTime(startTime)
-        const formattedEndTime = this.formatTime(endTime)
+        const formattedEndTime = this.formatTimeEnd(endTime)
         const formattedHoverTime =
             hoverTime !== undefined ? this.formatTime(hoverTime) : undefined
 
