@@ -69,6 +69,7 @@ Use the `{.bespoke-component}` ArchieML block:
   bundle: income-plots
   variant: distribution
   size: wide # options: narrow, wide, widest
+  fallbackImageFilename: income-distribution.png
   {.config}
     country: USA
     year: 2020
@@ -78,12 +79,29 @@ Use the `{.bespoke-component}` ArchieML block:
 
 ### Properties
 
-| Property  | Required | Default | Description                                                                                         |
-| --------- | -------- | ------- | --------------------------------------------------------------------------------------------------- |
-| `bundle`  | Yes      | —       | Name of the component in the registry                                                               |
-| `variant` | No       | —       | Identifier for this instance; multiple instances of the same bundle can use variants to share state |
-| `size`    | No       | `wide`  | Layout width: `narrow`, `wide`, or `widest`                                                         |
-| `config`  | No       | `{}`    | Key-value pairs passed to the mount function. Values must be strings (no nesting).                  |
+| Property                | Required | Default | Description                                                                                         |
+| ----------------------- | -------- | ------- | --------------------------------------------------------------------------------------------------- |
+| `bundle`                | Yes      | —       | Name of the component in the registry                                                               |
+| `variant`               | No       | —       | Identifier for this instance; multiple instances of the same bundle can use variants to share state |
+| `size`                  | No       | `wide`  | Layout width: `narrow`, `wide`, or `widest`                                                         |
+| `config`                | No       | `{}`    | Key-value pairs passed to the mount function. Values must be strings (no nesting).                  |
+| `fallbackImageFilename` | No       | —       | Image shown in the component's place when JavaScript is unavailable                                 |
+
+### Rendering without JavaScript
+
+A bespoke component is client-side JavaScript, so it renders nothing for a
+reader who doesn't have it. Set `fallbackImageFilename` to an image uploaded
+through the admin and that image takes the component's place. It never renders
+when JavaScript is available.
+
+The `defaultAlt` on the admin image row is the only description such a reader
+gets. The admin raises an error when no image matches the filename, and a
+warning when the matching image has no alt text.
+
+Without a fallback image the block shows the site's "JavaScript needs to be
+enabled" notice instead. For one figure among many in an article that is a fine
+outcome. A featured viz page is nothing but its viz, so the admin warns when the
+featured viz has no fallback image.
 
 ### Embedding in a key insight
 
@@ -166,8 +184,9 @@ On smaller screens, these map to other grid-based widths. See [site/gdocs/compon
 
 Ideally, your component adapts fluidly to any width given by its container. But if you need a `max-width` or a set of "good" widths, that's fine too.
 
-There is currently no mechanism for specifying dimensions ahead of time to prevent layout shifts. Components are rendered at whatever size the container provides once they load, and there will be a layout shift.
-We might add a way to specify dimensions for the loading state in the future.
+There is no mechanism for reserving a component's dimensions ahead of time. Components render at whatever size the container provides once they load, and there will be a layout shift.
+
+`fallbackImageFilename` is not that mechanism. It is hidden whenever JavaScript is available, so it reserves nothing on a normal page load. Showing it as a loading poster would reserve a height and is the obvious next step, but these components get taller as they get narrower, so one image cannot reserve the right height at every width. A wrong reserved height trades one layout shift for another.
 
 ## Shadow DOM considerations
 
