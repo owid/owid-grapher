@@ -12,17 +12,17 @@
     background-color: rgba(0, 0, 0, 0.4);
     z-index: $zindex-modal;
 
-    .modal-wrapper {
-        position: relative;
-        height: 100%;
+    .modal-content {
+        position: absolute;
+        border-radius: 4px;
+        background: #fff;
+        box-shadow: 0px 4px 30px 0px rgba(0, 0, 0, 0.15);
+        min-height: 150px;
+    }
 
-        .modal-content {
-            position: absolute;
-            border-radius: 4px;
-            background: #fff;
-            box-shadow: 0px 4px 30px 0px rgba(0, 0, 0, 0.15);
-            min-height: 150px;
-        }
+    .modal-dialog {
+        height: 100%;
+        outline: none;
     }
 }
 
