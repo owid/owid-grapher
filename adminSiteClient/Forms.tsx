@@ -6,12 +6,16 @@
 
 import * as _ from "lodash-es"
 import * as React from "react"
-import { useState } from "react"
-import { bind, dayjs, Tippy, copyToClipboard } from "@ourworldindata/utils"
+import {
+    bind,
+    dayjs,
+    Tippy,
+    copyToClipboard,
+    useSpinDelay,
+} from "@ourworldindata/utils"
 import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import cx from "clsx"
-import { useTimeout } from "usehooks-ts"
 
 import { AdminColorPicker } from "./AdminColorPicker.js"
 import type { ColorPaletteKey } from "./colorPalettes.js"
@@ -1372,11 +1376,13 @@ export const CatalogPathField = ({
     )
 }
 
-export function LoadingBlocker() {
-    const [isVisible, setIsVisible] = useState(false)
-    useTimeout(() => setIsVisible(true), 200)
-    // When an action completes fast (which is quite often) the user won't be
-    // annoyed by an intermediate flash of the spinner on the screen.
+export function LoadingBlocker({
+    isLoading,
+}: {
+    isLoading: boolean
+}): React.ReactElement | null {
+    const isVisible = useSpinDelay(isLoading, { ssr: false })
+
     if (!isVisible) return null
     return (
         <div className="LoadingBlocker">

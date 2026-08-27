@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useContext, useEffect, useMemo, useState } from "react"
+import { useContext, useMemo, useState } from "react"
 import {
     Alert,
     Button,
@@ -49,7 +49,7 @@ type GroupedRedirects = {
 }
 
 async function fetchAllMultiDimRedirects(admin: Admin) {
-    const { redirects } = await admin.getJSON<{
+    const { redirects } = await admin.getJSONInBackground<{
         redirects: MultiDimRedirect[]
     }>("/api/multi-dim-redirects.json")
     return redirects
@@ -228,13 +228,6 @@ export default function MultiDimRedirectsIndexPage() {
     const [bulkResult, setBulkResult] =
         useState<BulkMultiDimRedirectResponse | null>(null)
     const [bulkError, setBulkError] = useState<string | null>(null)
-
-    useEffect(() => {
-        admin.loadingIndicatorSetting = "off"
-        return () => {
-            admin.loadingIndicatorSetting = "default"
-        }
-    }, [admin])
 
     const { data: redirects } = useQuery({
         queryKey: ["allMultiDimRedirects"],

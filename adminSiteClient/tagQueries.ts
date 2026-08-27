@@ -39,7 +39,9 @@ export function useTag(tagId: number) {
     return useQuery({
         queryKey: tagKeys.detail(tagId),
         queryFn: () =>
-            admin.getJSON<TagDetailResponse>(`/api/tags/${tagId}.json`),
+            admin.getJSONInBackground<TagDetailResponse>(
+                `/api/tags/${tagId}.json`
+            ),
     })
 }
 
@@ -48,7 +50,7 @@ export function useTags() {
     return useQuery({
         queryKey: tagKeys.list(),
         queryFn: async () => {
-            const { tags } = await admin.getJSON<{
+            const { tags } = await admin.getJSONInBackground<{
                 tags: MinimalTagWithMetadata[]
             }>("/api/tags.json")
             return tags

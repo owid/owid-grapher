@@ -203,6 +203,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         void fetchLatestGdoc()
         return () => {
             isMounted = false
+            admin.loadingIndicatorSetting = "default"
         }
     }, [admin, acceptSuggestions, fetchGdoc, handleError, originalGdoc])
 
