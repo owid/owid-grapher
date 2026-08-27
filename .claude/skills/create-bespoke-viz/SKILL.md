@@ -7,7 +7,7 @@ metadata:
 
 # Creating Bespoke Data Viz
 
-Bespoke projects are one-off, self-contained visualizations embedded in OWID articles via Shadow DOM. A project can also be the subject of its own page, a `featured-viz` gdoc at `/featured-viz/<slug>`, where it renders on a blue band and drives the page URL. Read [bespoke/readme.md](../../../bespoke/readme.md) first — it is the authoritative doc for the mount interface, Shadow DOM mechanics, ArchieML embedding, featured viz pages, and jotai-based cross-variant state.
+Bespoke projects are one-off, self-contained visualizations embedded in OWID articles via Shadow DOM. A project can also be the subject of its own page, a `featured-viz` gdoc at `/featured-viz/<slug>`, where it renders on a blue band and drives the page URL. Such a page should also name a `fallbackImageFilename` on its block, an admin-uploaded image that stands in for the component when JavaScript is unavailable. Read [bespoke/readme.md](../../../bespoke/readme.md) first — it is the authoritative doc for the mount interface, Shadow DOM mechanics, ArchieML embedding, featured viz pages, and jotai-based cross-variant state.
 
 Before starting, **list `bespoke/projects/` and skim the one or two existing projects closest in shape to what you're building** — real projects are the best blueprint for current conventions, and the newest ones reflect them best. `example` is the minimal starter template, maintained to be copied rather than shipped. Projects cited below show where a pattern lives today, not canon — prefer newer precedent if it diverges.
 
