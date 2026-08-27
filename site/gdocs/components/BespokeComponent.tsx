@@ -1,4 +1,7 @@
-import { EnrichedBlockBespokeComponent } from "@ourworldindata/types"
+import {
+    EnrichedBlockBespokeComponent,
+    HIDE_IF_JS_DISABLED_CLASSNAME,
+} from "@ourworldindata/types"
 import { LoadingIndicator } from "@ourworldindata/components"
 import cx from "clsx"
 import { useEffect, useMemo, useRef, useState } from "react"
@@ -28,8 +31,9 @@ const makeAbsoluteWithBaseUrl = (url: string, baseUrl: string | undefined) => {
  * independently-built components that bundle their own JS and CSS,
  * isolated from the rest of the page styles.
  *
- * On the server, this renders an empty div. On the client, useEffect dynamically
- * imports the module and calls its `mount` function.
+ * On the server, this renders a loading indicator and the site's no-JS warning
+ * block. On the client, useEffect dynamically imports the module and calls its
+ * `mount` function.
  *
  * Example ArchieML:
  * {.bespoke-component}
@@ -138,7 +142,12 @@ export function BespokeComponent({
 
     return (
         <div className={className} ref={intersectionRef}>
-            {isLoading && <LoadingIndicator />}
+            {isLoading && (
+                <div className={HIDE_IF_JS_DISABLED_CLASSNAME}>
+                    <LoadingIndicator />
+                </div>
+            )}
+            <div className="js--show-warning-block-if-js-disabled" />
             <div ref={containerRef}></div>
         </div>
     )
