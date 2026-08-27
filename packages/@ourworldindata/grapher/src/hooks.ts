@@ -216,3 +216,21 @@ export function useElementBounds<T extends Bounds | null = Bounds>(
 
     return bounds
 }
+
+/**
+ * Runs `onDismiss` on the next pointerdown that reaches the document.
+ *
+ * A component marks its own area as inside by stopping pointerdown propagation
+ * at its root. Pointer type is deliberately not checked; on a hybrid
+ * mouse-and-touch device a highlight left by a tap has to be dismissable with
+ * the mouse.
+ */
+export function useDismissOnOutsidePointerDown(
+    onDismiss: (() => void) | undefined
+): void {
+    useEffect(() => {
+        if (!onDismiss) return
+        document.addEventListener("pointerdown", onDismiss, { passive: true })
+        return () => document.removeEventListener("pointerdown", onDismiss)
+    }, [onDismiss])
+}

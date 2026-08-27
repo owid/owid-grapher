@@ -5,6 +5,7 @@ import {
     resolveLegendTextStyle,
 } from "./LegendStyleConfig"
 import { HorizontalCategoricalColorLegendState } from "./HorizontalCategoricalColorLegendState"
+import { useDismissOnOutsidePointerDown } from "../hooks.js"
 import { HorizontalColorLegendProps } from "./HorizontalColorLegendTypes"
 import {
     CATEGORICAL_BIN_STROKE_WIDTH,
@@ -24,9 +25,11 @@ export function HorizontalCategoricalColorLegend(
         onMouseEnter,
         onMouseOver,
         onMouseLeave,
-        onTouchSelect,
     } = props
     const { marks, rectPadding } = state
+
+    const isHoverable = interactive && !!onMouseOver
+    useDismissOnOutsidePointerDown(isHoverable ? onMouseLeave : undefined)
 
     return (
         <g
@@ -87,33 +90,31 @@ export function HorizontalCategoricalColorLegend(
                     )
                 })}
             </g>
-            {interactive && (
-                <g>
+            {isHoverable && (
+                <g id={makeFigmaId("hit-areas")}>
                     {marks.map((mark, index) => {
-                        const isTouchSelection = (
-                            event: React.PointerEvent
-                        ): boolean =>
-                            event.pointerType === "touch" && !!onTouchSelect
                         const pointerEnter = (
                             event: React.PointerEvent
                         ): void => {
-                            if (!isTouchSelection(event))
+                            if (event.pointerType !== "touch")
                                 onMouseEnter?.(mark.bin)
                         }
                         const pointerOver = (
                             event: React.PointerEvent
                         ): void => {
-                            if (!isTouchSelection(event))
+                            if (event.pointerType !== "touch")
                                 onMouseOver?.(mark.bin)
                         }
                         const pointerLeave = (
                             event: React.PointerEvent
                         ): void => {
-                            if (!isTouchSelection(event)) onMouseLeave?.()
+                            if (event.pointerType !== "touch") onMouseLeave?.()
                         }
                         const pointerUp = (event: React.PointerEvent): void => {
-                            if (event.pointerType === "touch")
-                                onTouchSelect?.(mark.bin)
+                            if (event.pointerType === "touch") {
+                                onMouseEnter?.(mark.bin)
+                                onMouseOver?.(mark.bin)
+                            }
                         }
 
                         return (
@@ -124,7 +125,6 @@ export function HorizontalCategoricalColorLegend(
                                 onPointerLeave={pointerLeave}
                                 onPointerUp={pointerUp}
                             >
-                                {/* for hover interaction */}
                                 <rect
                                     x={x + mark.x}
                                     y={y + mark.y - rectPadding / 2}

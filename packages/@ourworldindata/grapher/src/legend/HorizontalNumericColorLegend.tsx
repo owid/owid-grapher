@@ -19,6 +19,7 @@ import {
     HorizontalColorLegendProps,
     PositionedBin,
 } from "./HorizontalColorLegendTypes"
+import { useDismissOnOutsidePointerDown } from "../hooks.js"
 import {
     ARROW_SIZE,
     DEFAULT_NUMERIC_BIN_STROKE,
@@ -39,7 +40,6 @@ export function HorizontalNumericColorLegend(
         onMouseEnter,
         onMouseOver,
         onMouseLeave,
-        onTouchSelect,
     } = props
     const {
         numericLabels,
@@ -49,6 +49,9 @@ export function HorizontalNumericColorLegend(
         title,
         titlePosition,
     } = state
+
+    const isHoverable = interactive && !!onMouseOver
+    useDismissOnOutsidePointerDown(isHoverable ? onMouseLeave : undefined)
 
     const defaultTextColor =
         styleConfig?.text?.default?.color ?? DEFAULT_TEXT_COLOR
@@ -65,14 +68,14 @@ export function HorizontalNumericColorLegend(
     const onPointerEnter =
         (bin: ColorScaleBin) =>
         (event: React.PointerEvent): void => {
-            if (event.pointerType === "touch" && onTouchSelect) return
+            if (event.pointerType === "touch") return
 
             onMouseEnter?.(bin)
             onMouseOver?.(bin)
         }
 
     const onPointerLeave = (event: React.PointerEvent): void => {
-        if (event.pointerType === "touch" && onTouchSelect) return
+        if (event.pointerType === "touch") return
 
         onMouseLeave?.()
     }
@@ -80,7 +83,10 @@ export function HorizontalNumericColorLegend(
     const onPointerUp =
         (bin: ColorScaleBin) =>
         (event: React.PointerEvent): void => {
-            if (event.pointerType === "touch") onTouchSelect?.(bin)
+            if (event.pointerType === "touch") {
+                onMouseEnter?.(bin)
+                onMouseOver?.(bin)
+            }
         }
 
     const renderBin = (
@@ -90,7 +96,7 @@ export function HorizontalNumericColorLegend(
         const bin = positionedBin.bin
         const style = markerStyleFor(bin)
         const fill = bin.patternRef ? `url(#${bin.patternRef})` : style.fill
-        const inert = isHighlightOverlay || !interactive
+        const inert = isHighlightOverlay || !isHoverable
 
         return (
             <NumericBinRect
@@ -116,8 +122,6 @@ export function HorizontalNumericColorLegend(
             />
         )
     }
-
-    const showTouchHitAreas = interactive && !!onTouchSelect
 
     return (
         <g
@@ -189,9 +193,7 @@ export function HorizontalNumericColorLegend(
                     )
                 })}
             </g>
-            {showTouchHitAreas && (
-                // Add invisible hit areas above each swatch for touch interaction.
-                // They are the height of the legend labels, and only handle touch events.
+            {isHoverable && (
                 <g id={makeFigmaId("swatch-hit-areas")} aria-hidden="true">
                     {positionedBins.map((positionedBin, index) => (
                         <rect
