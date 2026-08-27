@@ -3,6 +3,7 @@ import pluginReact from "@vitejs/plugin-react"
 import { viteCssPosition } from "vite-plugin-css-position"
 import pluginSwc from "@rollup/plugin-swc"
 
+import { DEDUPED_PACKAGES } from "../../shared/viteDedupe.js"
 import { entrypoints } from "./package.json"
 
 export default defineConfig({
@@ -38,22 +39,7 @@ export default defineConfig({
         }),
     ],
     resolve: {
-        // The linked @ourworldindata/* packages (and the shared bespoke
-        // components/hooks workspaces) resolve their dependencies relative
-        // to their real paths, which would load second copies and break
-        // hooks, the react-query context, and react-aria overlays. This
-        // forces all imports to resolve to the single copy in this
-        // project's node_modules.
-        dedupe: [
-            "react",
-            "react-dom",
-            "@react-stately/flags",
-            "react-aria",
-            "react-aria-components",
-            "react-stately",
-            "@react-aria/overlays",
-            "@tanstack/react-query",
-        ],
+        dedupe: DEDUPED_PACKAGES,
     },
     build: {
         lib: {
