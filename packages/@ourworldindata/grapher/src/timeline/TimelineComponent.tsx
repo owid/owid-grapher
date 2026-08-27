@@ -455,14 +455,14 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     private formatTime(time: number): string {
         const { timeColumn } = this.manager
         if (!timeColumn) return time.toString()
-        return timeColumn.formatTimeShort(time)
+        return timeColumn.formatTimePeriodStart(time)
     }
 
     /** Formats a time as the end of the period it stands for */
     private formatTimeEnd(time: number): string {
         const { timeColumn } = this.manager
         if (!timeColumn) return time.toString()
-        return timeColumn.formatTimeShortEnd(time)
+        return timeColumn.formatTimePeriodEnd(time)
     }
 
     @action.bound private togglePlay(): void {
