@@ -190,6 +190,22 @@ async function fetchMultiDimGrapherConfig(
     }
 }
 
+/**
+ * The by-slug routes read `config/by-slug-published`, which only ever holds
+ * published charts. The by-uuid routes read `config/by-uuid`, which holds a
+ * config for every chart, so they have to check publication themselves.
+ *
+ * Tests for `false` rather than "not true" deliberately: narrative charts are
+ * addressed by UUID too and their configs carry no `isPublished` field, so they
+ * must keep resolving.
+ */
+export function isUnpublishedChartRequestedByUuid(
+    identifier: GrapherIdentifier,
+    grapherConfig: GrapherInterface
+): boolean {
+    return identifier.type === "uuid" && grapherConfig.isPublished === false
+}
+
 export async function fetchGrapherConfig({
     identifier,
     env,
@@ -258,6 +274,9 @@ export async function fetchGrapherConfig({
         )
     } else {
         grapherConfig = config as GrapherInterface
+    }
+    if (isUnpublishedChartRequestedByUuid(identifier, grapherConfig)) {
+        throw new StatusError(404)
     }
     console.log("grapher title", grapherConfig.title)
     const result: FetchGrapherConfigResult = {

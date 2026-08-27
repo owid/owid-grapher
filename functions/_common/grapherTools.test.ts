@@ -6,7 +6,11 @@ import {
 } from "@ourworldindata/core-table"
 import { GrapherState } from "@ourworldindata/grapher"
 import { OwidTableSlugs } from "@ourworldindata/types"
-import { rewriteJsonLdText } from "./grapherTools.js"
+import {
+    GrapherIdentifier,
+    isUnpublishedChartRequestedByUuid,
+    rewriteJsonLdText,
+} from "./grapherTools.js"
 
 describe("download", () => {
     const originalTable = SynthesizeGDPTable()
@@ -86,6 +90,36 @@ describe(rewriteJsonLdText, () => {
         expect(rewritten).toBe(
             '{"description":"\\u003c/script>\\u003cscript>alert(1)\\u003c/script>"}'
         )
+    })
+})
+
+describe(isUnpublishedChartRequestedByUuid, () => {
+    const uuid: GrapherIdentifier = {
+        type: "uuid",
+        id: "0191b6c7-5595-70b2-8d30-fa03fccd7add",
+    }
+    const slug: GrapherIdentifier = { type: "slug", id: "life-expectancy" }
+
+    it("hides a chart that is not published", () => {
+        expect(
+            isUnpublishedChartRequestedByUuid(uuid, { isPublished: false })
+        ).toBe(true)
+    })
+
+    it("serves a published chart", () => {
+        expect(
+            isUnpublishedChartRequestedByUuid(uuid, { isPublished: true })
+        ).toBe(false)
+    })
+
+    it("serves a config with no isPublished field, as narrative charts have", () => {
+        expect(isUnpublishedChartRequestedByUuid(uuid, {})).toBe(false)
+    })
+
+    it("leaves the by-slug route alone, which serves published configs only", () => {
+        expect(
+            isUnpublishedChartRequestedByUuid(slug, { isPublished: false })
+        ).toBe(false)
     })
 })
 
