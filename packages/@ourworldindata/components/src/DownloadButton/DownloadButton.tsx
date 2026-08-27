@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload, faSpinner } from "@fortawesome/free-solid-svg-icons"
 import { DownloadIconFull } from "../icons/DownloadIconFull.js"
 import { DownloadIconSelected } from "../icons/DownloadIconSelected.js"
+import { useSpinDelay } from "@ourworldindata/utils"
 
 export function DownloadButton({
     className,
@@ -28,20 +29,18 @@ export function DownloadButton({
     disabled?: boolean
 }) {
     const [isDownloading, setIsDownloading] = useState(false)
-    const [showLoading, setShowLoading] = useState(false)
+    const showLoading = useSpinDelay(isDownloading, {
+        delay: 300,
+        ssr: false,
+    })
 
     const handleClick = useCallback(async () => {
         setIsDownloading(true)
 
-        // Delay showing the loading UI to prevent flashing for quick downloads.
-        const loadingTimeout = setTimeout(() => setShowLoading(true), 300)
-
         try {
             await onClick()
         } finally {
-            clearTimeout(loadingTimeout)
             setIsDownloading(false)
-            setShowLoading(false)
         }
     }, [onClick])
 
@@ -52,7 +51,7 @@ export function DownloadButton({
             })}
             onClick={handleClick}
             data-track-note={trackingNote}
-            disabled={disabled || isDownloading}
+            disabled={disabled || isDownloading || showLoading}
         >
             {icon && (
                 <div className="download-button__icon">

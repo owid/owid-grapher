@@ -6,11 +6,16 @@
 
 import * as _ from "lodash-es"
 import * as React from "react"
-import { bind, dayjs, Tippy, copyToClipboard } from "@ourworldindata/utils"
+import {
+    bind,
+    dayjs,
+    Tippy,
+    copyToClipboard,
+    useSpinDelay,
+} from "@ourworldindata/utils"
 import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import cx from "clsx"
-import { useSpinDelay } from "spin-delay"
 
 import { AdminColorPicker } from "./AdminColorPicker.js"
 import type { ColorPaletteKey } from "./colorPalettes.js"
