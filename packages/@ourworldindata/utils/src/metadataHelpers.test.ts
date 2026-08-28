@@ -10,7 +10,6 @@ import {
     getNextUpdateFromVariable,
     getOriginAttributions,
     getProcessingPhraseForAttribution,
-    getYearSuffixFromOrigin,
     prepareSourcesForDisplay,
 } from "./metadataHelpers.js"
 import dayjs from "./dayjs.js"
@@ -493,39 +492,6 @@ describe(prepareSourcesForDisplay, () => {
     })
 })
 
-describe(getYearSuffixFromOrigin, () => {
-    it("prefers the date accessed", () => {
-        expect(
-            getYearSuffixFromOrigin({
-                dateAccessed: "2024-03-07",
-                datePublished: "2019-01-01",
-            })
-        ).toEqual(" (2024)")
-    })
-
-    it("falls back to the date published", () => {
-        expect(
-            getYearSuffixFromOrigin({ datePublished: "2019-01-01" })
-        ).toEqual(" (2019)")
-    })
-
-    it("accepts year-only dates", () => {
-        expect(getYearSuffixFromOrigin({ datePublished: "2019" })).toEqual(
-            " (2019)"
-        )
-    })
-
-    it("returns an empty string if there is no date", () => {
-        expect(getYearSuffixFromOrigin({})).toEqual("")
-    })
-
-    it("returns an empty string if the date is unparseable", () => {
-        expect(getYearSuffixFromOrigin({ dateAccessed: "not a date" })).toEqual(
-            ""
-        )
-    })
-})
-
 describe(getIndicatorCitations, () => {
     const citations = (
         overrides: Partial<Parameters<typeof getIndicatorCitations>[0]> = {}
@@ -590,12 +556,13 @@ describe(getIndicatorCitations, () => {
             )
         })
 
-        // TODO: fire the intended fallback on an empty attributions array.
-        // `attributions ?? producersWithYear` only catches null and undefined,
-        // and every caller passes a non-optional string[], so
-        // `producersWithYear` is unreachable and the citation opens with a bare
-        // separator.
-        it("does not fall back to the origins if there are no attributions", () => {
+        it("credits us when there is nothing else to credit", () => {
+            expect(citations({ attributions: [] }).short).toEqual(
+                "Our World in Data – processed by Our World in Data"
+            )
+        })
+
+        it("ignores the origins when there are no attributions", () => {
             expect(
                 citations({
                     origins: [
@@ -603,16 +570,7 @@ describe(getIndicatorCitations, () => {
                     ],
                     attributions: [],
                 }).short
-            ).toEqual(" – processed by Our World in Data")
-        })
-
-        // TODO: return "Our World in Data" when there is no attribution at all,
-        // rather than a separator with nothing before it. Mirrors the rule that
-        // hides the processing phrase when the attribution is already us.
-        it("has nothing to attribute without attributions or origins", () => {
-            expect(citations({ attributions: [] }).short).toEqual(
-                " – processed by Our World in Data"
-            )
+            ).toEqual("Our World in Data – processed by Our World in Data")
         })
     })
 
@@ -642,10 +600,7 @@ describe(getIndicatorCitations, () => {
             )
         })
 
-        // TODO: fire the intended fallback on an empty attributions array, as
-        // in short above. The citation currently opens with a bare separator
-        // even though the origins name a producer.
-        it("does not fall back to the origins if there are no attributions", () => {
+        it("credits us when there is nothing else to credit", () => {
             expect(
                 citations({
                     origins: [
@@ -658,7 +613,7 @@ describe(getIndicatorCitations, () => {
                     attributions: [],
                 }).long
             ).toEqual(
-                " – processed by Our World in Data. " +
+                "Our World in Data – processed by Our World in Data. " +
                     "“Indicator” [dataset]. " +
                     "Producer, “Title” [original data]."
             )

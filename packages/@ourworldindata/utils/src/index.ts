@@ -165,7 +165,6 @@ export {
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
     getProcessingPhraseForAttribution,
-    getYearSuffixFromOrigin,
     prepareSourcesForDisplay,
     formatSourceDate,
     getDateRange,

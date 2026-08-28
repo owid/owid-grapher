@@ -148,6 +148,8 @@ export const getNextUpdateFromVariable = (
     return nextUpdate?.format("YYYY-MM-DD")
 }
 
+const OWID_ATTRIBUTION = "Our World in Data"
+
 /** How much we reshaped the data, e.g. `"with minor processing"` */
 const getPhraseForProcessingLevel = (
     processingLevel: OwidProcessingLevel | undefined
@@ -172,7 +174,7 @@ const isOwidTheSoleAttribution = (attribution: string | string[]): boolean => {
     const fragments = Array.isArray(attribution) ? attribution : [attribution]
     return (
         fragments.length === 1 &&
-        fragments[0].toLowerCase() === "our world in data"
+        fragments[0].toLowerCase() === OWID_ATTRIBUTION.toLowerCase()
     )
 }
 
@@ -235,50 +237,42 @@ export const prepareSourcesForDisplay = (
 }
 
 /**
- * The year to append to a producer's name, from `dateAccessed` or else
- * `datePublished`, e.g. `" (2024)"`. Renders inside the producer labels of the
- * citations.
+ * The line both citations open with, e.g. `"UN WPP (2024) – with minor
+ * processing by Our World in Data"`. An indicator with nothing else to credit is
+ * credited to us.
  */
-export const getYearSuffixFromOrigin = (origin: OwidOrigin): string => {
-    const year = origin.dateAccessed
-        ? dayjs(origin.dateAccessed, ["YYYY-MM-DD", "YYYY"]).year()
-        : origin.datePublished
-          ? dayjs(origin.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
-          : undefined
-    if (year) return ` (${year})`
-    else return ""
+const getAttributionWithProcessing = (
+    attributionText: string,
+    owidProcessingLevel: OwidProcessingLevel | undefined
+): string => {
+    const attribution = attributionText || OWID_ATTRIBUTION
+    const processingPhrase = getPhraseForProcessingLevel(owidProcessingLevel)
+
+    return `${attribution} – ${processingPhrase} by Our World in Data`
 }
 
 /**
  * The abbreviated indicator citation, e.g. `"UN WPP (2024); HYDE (2023) – with
  * minor processing by Our World in Data"`. More than three attributions collapse
- * to "UN WPP (2024) and other sources". `origins` is dead code. Renders as the
- * "In-line citation" under "How to cite this data".
+ * to "UN WPP (2024) and other sources". Renders as the "In-line citation" under
+ * "How to cite this data".
  */
 const getCitationShort = ({
-    origins,
     attributions,
     owidProcessingLevel,
 }: {
-    origins: OwidOrigin[]
     attributions: string[]
     owidProcessingLevel?: OwidProcessingLevel
 }): string => {
-    const producersWithYear = _.uniq(
-        origins.map(
-            (origin) => `${origin.producer}${getYearSuffixFromOrigin(origin)}`
-        )
-    )
-    const processingLevelPhrase =
-        getPhraseForProcessingLevel(owidProcessingLevel)
-
-    const attributionFragments = attributions ?? producersWithYear
     const attributionShortened =
-        attributionFragments.length > 3
-            ? `${attributionFragments[0]} and other sources`
-            : attributionFragments.join("; ")
+        attributions.length > 3
+            ? `${attributions[0]} and other sources`
+            : attributions.join("; ")
 
-    return `${attributionShortened} – ${processingLevelPhrase} by Our World in Data`
+    return getAttributionWithProcessing(
+        attributionShortened,
+        owidProcessingLevel
+    )
 }
 
 /**
@@ -311,17 +305,10 @@ const getCitationLong = ({
         attributionShort && titleVariant
             ? `${attributionShort} – ${titleVariant}`
             : attributionShort || titleVariant
-    const producersWithYear = _.uniq(
-        origins.map(
-            (origin) => `${origin.producer}${getYearSuffixFromOrigin(origin)}`
-        )
+    const attributionWithProcessing = getAttributionWithProcessing(
+        attributions.join("; "),
+        owidProcessingLevel
     )
-    const processingLevelPhrase =
-        getPhraseForProcessingLevel(owidProcessingLevel)
-
-    const attributionFragments = attributions ?? producersWithYear
-    const attributionUnshortened = attributionFragments.join("; ")
-    const attributionWithProcessing = `${attributionUnshortened} – ${processingLevelPhrase} by Our World in Data`
     const titleWithFragments = excludeUndefined([
         indicatorTitle.title,
         titleFragments,
@@ -429,7 +416,7 @@ export const getIndicatorCitations = ({
     archivalDate?: string
     primaryTopic?: PrimaryTopic
 }): { short: string; long: string; datapage?: string } => ({
-    short: getCitationShort({ origins, attributions, owidProcessingLevel }),
+    short: getCitationShort({ attributions, owidProcessingLevel }),
     long: getCitationLong({
         indicatorTitle,
         origins,
