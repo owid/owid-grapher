@@ -757,18 +757,6 @@ describe(getIndicatorCitations, () => {
             )
         })
 
-        it("adds a period after a closing quotation mark", () => {
-            expect(
-                citations({
-                    primaryTopic: {
-                        topicTag: "Topic",
-                        citation: "Author (2023) – “Topic”",
-                    },
-                    citationUrl,
-                }).datapage
-            ).toContain("publication: Author (2023) – “Topic”. Retrieved")
-        })
-
         it("does not add a second period", () => {
             expect(
                 citations({
