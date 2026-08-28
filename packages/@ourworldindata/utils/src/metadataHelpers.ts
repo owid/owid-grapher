@@ -248,7 +248,7 @@ const getCitationLong = ({
     citationUrl?: string
     archivalDate?: string
 }): string => {
-    const titleFragments =
+    const citationTitleFragments =
         attributionShort && titleVariant
             ? `${attributionShort} – ${titleVariant}`
             : attributionShort || titleVariant
@@ -258,7 +258,7 @@ const getCitationLong = ({
     )
     const titleWithFragments = excludeUndefined([
         indicatorTitle.title,
-        titleFragments,
+        citationTitleFragments,
     ]).join(" – ")
     const originCitations = _.uniq(
         origins.map((origin) => {
