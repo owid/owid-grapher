@@ -199,7 +199,7 @@ export const prepareSourcesForDisplay = (
     return sourcesForDisplay
 }
 
-const getAttributionWithProcessing = (
+export const getAttributionWithProcessing = (
     attributionText: string,
     owidProcessingLevel: OwidProcessingLevel | undefined
 ): string => {

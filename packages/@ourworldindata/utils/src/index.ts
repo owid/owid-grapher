@@ -166,6 +166,7 @@ export {
     getETLPathComponents,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
+    getAttributionWithProcessing,
     getProcessingPhraseForAttribution,
     prepareSourcesForDisplay,
     formatSourceDate,

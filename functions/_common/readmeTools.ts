@@ -5,7 +5,7 @@ import {
     getAttributionFragmentsFromVariable,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
-    getProcessingPhraseForAttribution,
+    getAttributionWithProcessing,
     OwidColumnDef,
     getDateRange,
     getIndicatorCitations,
@@ -161,18 +161,6 @@ export function* getSources(
     }
 }
 
-export function getSource(attribution: string, def: OwidColumnDef): string {
-    const processingLevelPhrase = getProcessingPhraseForAttribution(
-        attribution,
-        def.owidProcessingLevel
-    )
-    const fullProcessingPhrase = processingLevelPhrase
-        ? ` – ${processingLevelPhrase} by Our World In Data`
-        : ""
-    const source = `${attribution}${fullProcessingPhrase}`
-    return source
-}
-
 export function getAttribution(def: OwidColumnDef): string {
     const attributionFragments = getAttributionFragmentsFromVariable(def)
     const attribution = formatAttributions(attributionFragments)
@@ -217,7 +205,10 @@ function* columnReadmeText(col: CoreColumn) {
 
     const attribution = getAttribution(def)
 
-    const source = getSource(attribution, def)
+    const source = getAttributionWithProcessing(
+        attribution,
+        def.owidProcessingLevel
+    )
 
     yield* getCitationLines(def, col)
 
