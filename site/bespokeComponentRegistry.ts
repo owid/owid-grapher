@@ -19,6 +19,8 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     },
     "causes-of-death": {
         scriptUrl: "/causes-of-death/index.js",
+        metadataUrl:
+            "https://owid-public.owid.io/sophia-test/causes-of-death.bespoke-metadata.test.json",
     },
     demography: {
         scriptUrl: "/demography/index.js",
