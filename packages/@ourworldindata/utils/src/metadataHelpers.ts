@@ -200,10 +200,9 @@ export const prepareSourcesForDisplay = (
 }
 
 export const getAttributionWithProcessing = (
-    attributionText: string,
+    attribution: string,
     owidProcessingLevel: OwidProcessingLevel | undefined
 ): string => {
-    const attribution = attributionText || OWID_ATTRIBUTION
     const processingPhrase = getProcessingPhraseForAttribution(
         attribution,
         owidProcessingLevel

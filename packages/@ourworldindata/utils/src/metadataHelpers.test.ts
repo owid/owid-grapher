@@ -545,9 +545,9 @@ describe(getIndicatorCitations, () => {
             )
         })
 
-        it("credits us when there is nothing else to credit", () => {
+        it("credits nobody when there is nothing to credit", () => {
             expect(citations({ attributions: [] }).short).toEqual(
-                "Our World in Data"
+                " – processed by Our World in Data"
             )
         })
 
@@ -568,7 +568,7 @@ describe(getIndicatorCitations, () => {
                     ],
                     attributions: [],
                 }).short
-            ).toEqual("Our World in Data")
+            ).toEqual(" – processed by Our World in Data")
         })
     })
 
@@ -598,7 +598,7 @@ describe(getIndicatorCitations, () => {
             )
         })
 
-        it("credits us when there is nothing else to credit", () => {
+        it("credits nobody when there is nothing to credit", () => {
             expect(
                 citations({
                     origins: [
@@ -611,7 +611,7 @@ describe(getIndicatorCitations, () => {
                     attributions: [],
                 }).long
             ).toEqual(
-                "Our World in Data. " +
+                " – processed by Our World in Data. " +
                     "“Indicator” [dataset]. " +
                     "Producer, “Title” [original data]."
             )
