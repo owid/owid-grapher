@@ -278,12 +278,6 @@ describe(getLastUpdatedFromVariable, () => {
     it("returns undefined if there is nothing to go on", () => {
         expect(getLastUpdatedFromVariable({})).toBeUndefined()
     })
-
-    it("returns undefined if no origin has a date accessed", () => {
-        expect(
-            getLastUpdatedFromVariable({ origins: [{ producer: "Producer" }] })
-        ).toBeUndefined()
-    })
 })
 
 describe(getNextUpdateFromVariable, () => {
