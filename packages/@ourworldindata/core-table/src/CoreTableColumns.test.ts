@@ -141,6 +141,52 @@ describe(ColumnTypeNames.Week, () => {
     })
 })
 
+describe("periodEndTime", () => {
+    const day = (iso: string): number =>
+        convertDateToDaysSinceEpoch(dayjs.utc(iso))
+
+    it("moves a quarter's time to the quarter's last day", () => {
+        const col = new ColumnTypeMap.Quarter(new OwidTable(), { slug: "test" })
+        // 2026-04-01 is Q2 2026, which ends on Jun 30
+        expect(col.periodEndTime(day("2026-04-01"))).toEqual(day("2026-06-30"))
+        // Any day in the quarter lands on that same last day...
+        expect(col.periodEndTime(day("2026-05-15"))).toEqual(day("2026-06-30"))
+        // ...including the last day itself, so the method is idempotent
+        expect(col.periodEndTime(day("2026-06-30"))).toEqual(day("2026-06-30"))
+        // The formatted period end names the same month as the time it returns
+        expect(col.formatTimePeriodEnd(day("2026-04-01"))).toEqual("Jun 2026")
+    })
+
+    it("moves a week's time to the ISO week's Sunday", () => {
+        const col = new ColumnTypeMap.Week(new OwidTable(), { slug: "test" })
+        // Mon 2026-06-01 starts the ISO week that ends on Sun 2026-06-07
+        expect(col.periodEndTime(day("2026-06-01"))).toEqual(day("2026-06-07"))
+        expect(col.periodEndTime(day("2026-06-03"))).toEqual(day("2026-06-07"))
+        expect(col.periodEndTime(day("2026-06-07"))).toEqual(day("2026-06-07"))
+        // Weeks before the epoch, and across a year boundary, work the same:
+        // Mon 2019-12-30 starts the week ending Sun 2020-01-05
+        expect(col.periodEndTime(day("2019-12-30"))).toEqual(day("2020-01-05"))
+        // The formatted period end names the same day as the time it returns
+        expect(col.formatTimePeriodEnd(day("2026-06-01"))).toEqual(
+            "Jun 7, 2026"
+        )
+    })
+
+    it("leaves times that already are their own period end alone", () => {
+        for (const type of ["Month", "Day"] as const) {
+            const col = new ColumnTypeMap[type](new OwidTable(), {
+                slug: "test",
+            })
+            expect(col.periodEndTime(day("2026-05-15"))).toEqual(
+                day("2026-05-15")
+            )
+        }
+        // Yearly times are plain years rather than days-since-epoch
+        const year = new ColumnTypeMap.Year(new OwidTable(), { slug: "test" })
+        expect(year.periodEndTime(2005)).toEqual(2005)
+    })
+})
+
 describe("getUniformlySpacedTimes", () => {
     const table = new OwidTable()
 
