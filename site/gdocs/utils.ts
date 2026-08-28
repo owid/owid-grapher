@@ -34,12 +34,42 @@ import { AttachmentsContext } from "./AttachmentsContext.js"
 import { PROD_URL } from "../SiteConstants.js"
 import { BAKED_BASE_URL, IS_ARCHIVE } from "../../settings/clientSettings.js"
 
+const parseAbsoluteUrl = (url: string): URL | undefined => {
+    try {
+        return new URL(url)
+    } catch {
+        return undefined
+    }
+}
+
 const getOrigin = (url: string, base?: string): string | undefined => {
     try {
         return new URL(url, base).origin
     } catch {
         return undefined
     }
+}
+
+/**
+ * Gdoc authors write links as absolute production URLs (e.g.
+ * https://ourworldindata.org/energy). Point them at the environment the page
+ * is being rendered for instead, so that they don't send visitors of a
+ * staging or local site back to production.
+ *
+ * Links on archival pages deliberately keep pointing at the live site.
+ */
+export const rewriteProdUrlForEnvironment = (
+    url: string,
+    baseUrl: string = BAKED_BASE_URL
+): string => {
+    if (IS_ARCHIVE) return url
+
+    const prodHostname = parseAbsoluteUrl(PROD_URL)?.hostname
+    const parsedUrl = parseAbsoluteUrl(url)
+    if (!prodHostname || parsedUrl?.hostname !== prodHostname) return url
+
+    const { pathname, search, hash } = parsedUrl
+    return `${baseUrl}${pathname}${search}${hash}`
 }
 
 export function isExternalUrl(

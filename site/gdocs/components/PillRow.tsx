@@ -1,11 +1,11 @@
 import { EnrichedBlockPillRow } from "@ourworldindata/types"
-import { useLinkedDocument } from "../utils.js"
+import { rewriteProdUrlForEnvironment, useLinkedDocument } from "../utils.js"
 import { useDocumentContext } from "../DocumentContext.js"
 
 function Pill(props: { text?: string; url: string }) {
     const { linkedDocument, errorMessage } = useLinkedDocument(props.url)
     const { isPreviewing } = useDocumentContext()
-    const url = linkedDocument?.url ?? props.url
+    const url = linkedDocument?.url ?? rewriteProdUrlForEnvironment(props.url)
     const text = props.text ?? linkedDocument?.title
 
     if (isPreviewing) {

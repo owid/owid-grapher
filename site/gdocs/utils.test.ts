@@ -4,6 +4,7 @@ import {
     getAuthorTeamAnchorUrl,
     getLinkedDocumentUrl,
     isExternalUrl,
+    rewriteProdUrlForEnvironment,
 } from "./utils.js"
 import { ContentGraphLinkType, OwidGdocType } from "@ourworldindata/types"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
@@ -35,6 +36,62 @@ describe(isExternalUrl, () => {
         expect(isExternalUrl(ContentGraphLinkType.Url, "not-a-valid-url")).toBe(
             false
         )
+    })
+})
+
+describe(rewriteProdUrlForEnvironment, () => {
+    const baseUrl = "https://staging-site-my-branch.owid.io"
+
+    it("swaps the production origin for the environment's base URL", () => {
+        expect(
+            rewriteProdUrlForEnvironment(
+                "https://ourworldindata.org/energy",
+                baseUrl
+            )
+        ).toBe(`${baseUrl}/energy`)
+    })
+
+    it("keeps the query string and fragment", () => {
+        expect(
+            rewriteProdUrlForEnvironment(
+                "https://ourworldindata.org/grapher/life-expectancy?tab=map#chart",
+                baseUrl
+            )
+        ).toBe(`${baseUrl}/grapher/life-expectancy?tab=map#chart`)
+    })
+
+    it("rewrites insecure production URLs too", () => {
+        expect(
+            rewriteProdUrlForEnvironment(
+                "http://ourworldindata.org/poverty",
+                baseUrl
+            )
+        ).toBe(`${baseUrl}/poverty`)
+    })
+
+    it("defaults to the baked base URL", () => {
+        expect(
+            rewriteProdUrlForEnvironment("https://ourworldindata.org/energy")
+        ).toBe(`${BAKED_BASE_URL}/energy`)
+    })
+
+    it("leaves external URLs alone", () => {
+        expect(
+            rewriteProdUrlForEnvironment("https://example.com/energy", baseUrl)
+        ).toBe("https://example.com/energy")
+    })
+
+    it("leaves subdomains of the production site alone", () => {
+        expect(
+            rewriteProdUrlForEnvironment(
+                "https://assets.ourworldindata.org/logo.png",
+                baseUrl
+            )
+        ).toBe("https://assets.ourworldindata.org/logo.png")
+    })
+
+    it("leaves relative URLs alone", () => {
+        expect(rewriteProdUrlForEnvironment("/energy", baseUrl)).toBe("/energy")
     })
 })
 
