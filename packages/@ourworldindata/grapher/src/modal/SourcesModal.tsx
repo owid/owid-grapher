@@ -449,7 +449,7 @@ export class Source extends React.Component<SourceProps> {
         const attributionFragments =
             getAttributionFragmentsFromVariable(this.def) ?? this.producers
         if (attributionFragments.length === 0) return undefined
-        return attributionFragments.join(", ")
+        return attributionFragments.join("; ")
     }
 
     @computed get lastUpdated(): string | undefined {
