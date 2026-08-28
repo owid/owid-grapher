@@ -10,6 +10,7 @@ import { observable, action, toJS, computed, makeObservable } from "mobx"
 import classnames from "clsx"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { stringifyUnknownError } from "@ourworldindata/utils"
+import { SiteToolsButton } from "./SiteToolsButton.js"
 
 const sendFeedback = async (feedback: Feedback) => {
     const json = {
@@ -446,22 +447,18 @@ export class FeedbackPrompt extends React.Component {
                     </div>
                 </div>
                 {this.isOpen ? (
-                    <button
-                        aria-label="Close feedback form"
-                        className="prompt"
+                    <SiteToolsButton
+                        icon={faTimes}
+                        label="Close feedback form"
                         onClick={this.toggleOpen}
-                    >
-                        <FontAwesomeIcon icon={faTimes} /> Close
-                    </button>
+                    />
                 ) : (
-                    <button
-                        aria-label="Open feedback form"
-                        className="prompt"
-                        data-track-note="page_open_feedback"
+                    <SiteToolsButton
+                        icon={faCommentAlt}
+                        label="Feedback"
+                        dataTrackNote="page_open_feedback"
                         onClick={this.toggleOpen}
-                    >
-                        <FontAwesomeIcon icon={faCommentAlt} /> Feedback
-                    </button>
+                    />
                 )}
             </div>
         )

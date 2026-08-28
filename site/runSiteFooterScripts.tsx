@@ -17,7 +17,7 @@ import {
 import { Footnote } from "./Footnote.js"
 import { OwidGdoc } from "./gdocs/OwidGdoc.js"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
-import SiteTools, { SITE_TOOLS_CLASS } from "./SiteTools.js"
+import SiteTools, { SITE_TOOLS_ROOT_CLASS } from "./SiteTools.js"
 import { runDetailsOnDemand } from "./detailsOnDemand.js"
 import { hydrateCodeSnippets } from "@ourworldindata/components"
 import { hydrateDynamicCollectionPage } from "./collections/DynamicCollectionPageMain.js"
@@ -224,7 +224,7 @@ function runSiteNavigation({
 }
 
 function runSiteTools() {
-    const siteToolsElem = document.querySelector(`.${SITE_TOOLS_CLASS}`)
+    const siteToolsElem = document.querySelector(`.${SITE_TOOLS_ROOT_CLASS}`)
     if (siteToolsElem) {
         const root = createRoot(siteToolsElem)
         root.render(<SiteTools />)

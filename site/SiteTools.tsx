@@ -1,41 +1,25 @@
-import cx from "clsx"
 import { FeedbackPrompt } from "./Feedback.js"
-import { ScrollDirection, useScrollDirection } from "./hooks.js"
-// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-// import { faHeart } from "@fortawesome/free-solid-svg-icons"
-// import { faHandshake } from "@fortawesome/free-solid-svg-icons"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { NewsletterSubscription } from "./NewsletterSubscription.js"
+// Uncomment along with the Jobs button below when a job posting goes live.
+// import { faHandshake } from "@fortawesome/free-solid-svg-icons"
+// import { SiteToolsButton } from "./SiteToolsButton.js"
 
-export const SITE_TOOLS_CLASS = "site-tools"
+export const SITE_TOOLS_ROOT_CLASS = "site-tools-root"
 
 export default function SiteTools() {
-    const scrollDirection = useScrollDirection()
-    // const isDonatePage = window.location.pathname === "/donate"
-
     return (
-        <div
-            className={cx("hide-wrapper", {
-                hide: scrollDirection === ScrollDirection.Down,
-            })}
-        >
-            {/* {!isDonatePage && (
-                <a
-                    className="prompt prompt-donate"
-                    data-track-note="page_open_donate"
-                    href="/donate"
-                >
-                    <FontAwesomeIcon icon={faHeart} />
-                    Donate
-                </a>
-            )} */}
+        <div className="site-tools">
             <NewsletterSubscription
                 context={NewsletterSubscriptionContext.Floating}
             />
             <FeedbackPrompt />
-            {/* <a className="prompt" data-track-note="page_open_jobs" href="/jobs">
-                <FontAwesomeIcon icon={faHandshake} /> Jobs
-            </a> */}
+            {/* <SiteToolsButton
+                icon={faHandshake}
+                label="Jobs"
+                href="/jobs"
+                dataTrackNote="page_open_jobs"
+            /> */}
         </div>
     )
 }
