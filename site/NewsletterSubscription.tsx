@@ -2,11 +2,11 @@ import { useState } from "react"
 import * as React from "react"
 import cx from "clsx"
 import { faTimes, faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { TextInput } from "@ourworldindata/components"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { NewsletterIcon } from "./gdocs/components/NewsletterIcon.js"
+import { SiteToolsButton } from "./SiteToolsButton.js"
 
 const analytics = new SiteAnalytics()
 
@@ -38,25 +38,18 @@ export const NewsletterSubscription = ({
                 </>
             )}
             {isOpen ? (
-                <button
-                    aria-label="Close subscription form"
-                    className="prompt"
+                <SiteToolsButton
+                    icon={faTimes}
+                    label="Close subscription form"
                     onClick={() => setIsOpen(false)}
-                >
-                    <FontAwesomeIcon icon={faTimes} /> Close
-                </button>
+                />
             ) : (
-                <button
-                    aria-label={subscribeText}
-                    className="prompt"
-                    data-track-note="dialog_open_newsletter"
-                    onClick={() => {
-                        setIsOpen(!isOpen)
-                    }}
-                >
-                    <FontAwesomeIcon icon={faEnvelopeOpenText} />
-                    {subscribeText}
-                </button>
+                <SiteToolsButton
+                    icon={faEnvelopeOpenText}
+                    label={subscribeText}
+                    dataTrackNote="dialog_open_newsletter"
+                    onClick={() => setIsOpen(true)}
+                />
             )}
         </div>
     )
