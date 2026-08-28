@@ -25,11 +25,7 @@ import {
     CLOUDFLARE_IMAGES_URL,
 } from "../../settings/serverSettings.js"
 import { NotificationEmailItem } from "./emailNotificationsUtils.js"
-import {
-    resolveBodyLinks,
-    resolveExcerptLinks,
-    resolveLinkUrl,
-} from "./excerptLinks.js"
+import { resolveBodyLinks, resolveExcerptLinks } from "./excerptLinks.js"
 
 // Turns recently published gdocs into the items the notification email
 // renders. Kept out of sendEmailNotifications.ts so the dev-only email
@@ -122,8 +118,6 @@ function buildNotificationItem(
     }
 
     if (gdoc.content.type !== OwidGdocType.DataInsight) {
-        // Announcements with a top-level {.cta} have an empty body, so the
-        // excerpt stays as their fallback.
         item.excerpt =
             getExcerptFromGdoc(gdoc) || getFirstTextBlockPlainText(gdoc)
         if (gdoc.content.type === OwidGdocType.Article) {
@@ -143,18 +137,6 @@ function buildNotificationItem(
                 gdoc,
                 cloudflareImagesByFilename
             )
-        }
-        if (gdoc.content.type === OwidGdocType.Announcement) {
-            const cta = gdoc.content.cta
-            const url =
-                cta?.url && cta.text
-                    ? resolveLinkUrl(
-                          cta.url,
-                          gdoc.linkedDocuments,
-                          BAKED_BASE_URL
-                      )
-                    : undefined
-            if (url) item.cta = { text: cta!.text, url }
         }
     }
 
