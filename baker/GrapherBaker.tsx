@@ -342,6 +342,15 @@ export async function renderDataPageV2(
                         knex,
                         [id]
                     )
+                    // The indicator's grapher config is only consumed while
+                    // building the pane data above (title/license overrides).
+                    // Nothing reads it client-side — only the PRIMARY
+                    // indicator's chartConfig is used (DataPageV2 merges it
+                    // into the main chart) — and at ~5KB per indicator it
+                    // dominated the hydration props blob on many-indicator
+                    // charts (~150KB of 204KB on the 31-indicator deaths
+                    // page). Strip it before serialization.
+                    indicatorDatapageData.chartConfig = {}
                     return {
                         datapageData: indicatorDatapageData,
                         faqEntries: await resolveFaqsForOneVariable(
