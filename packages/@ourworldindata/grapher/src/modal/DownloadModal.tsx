@@ -409,13 +409,11 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
             previewHeight = (targetHeight / targetWidth) * previewWidth
         }
 
-        const imageStyle = {
-            minWidth: previewWidth,
-            minHeight: previewHeight,
-            maxWidth: previewWidth,
-            maxHeight: previewHeight,
-            opacity: this.isReady ? 1 : 0,
+        const previewImageDimensions = {
+            width: Math.round(previewWidth),
+            height: Math.round(previewHeight),
         }
+        const imageStyle = { opacity: this.isReady ? 1 : 0 }
 
         return (
             <div>
@@ -466,6 +464,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                 title="Image (PNG)"
                                 description="Suitable for most uses, widely compatible."
                                 previewImageUrl={pngPreviewUrl}
+                                previewImageDimensions={previewImageDimensions}
                                 onClick={this.onPngDownload}
                                 imageStyle={imageStyle}
                                 trackingNote="chart_download_modal_vis_png"
@@ -475,6 +474,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                 title="Vector graphic (SVG)"
                                 description="For high quality prints, or further editing the chart in graphics software."
                                 previewImageUrl={svgPreviewUrl}
+                                previewImageDimensions={previewImageDimensions}
                                 onClick={this.onSvgDownload}
                                 imageStyle={imageStyle}
                                 trackingNote="chart_download_modal_vis_svg"
