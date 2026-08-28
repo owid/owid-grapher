@@ -136,27 +136,28 @@ const IndicatorSelect = ({
     )
 }
 
-// Dropdown variant: the indicator title renders as an MDIM-style pill
-// button (mirrors .md-settings__dropdown-toggle) that opens a listbox of
-// all the chart's indicators.
-export const IndicatorDropdown = ({
-    activeDatapageData,
+// The dropdown's select control alone (no "About this data" label): an
+// MDIM-style pill button (mirrors .md-settings__dropdown-toggle) that opens
+// a listbox of all the chart's indicators. Used by the dropdown variant, and
+// by the h-pills variant as its mobile control (pills wrap into a ragged
+// stack of rows on narrow screens; a select is one row at any indicator
+// count).
+export const IndicatorDropdownSelect = ({
     indicators,
     activeIndex,
     onIndicatorChange,
 }: {
-    activeDatapageData: DataPageDataV2
     indicators: AdditionalIndicator[]
     activeIndex: number
     onIndicatorChange: (i: number) => void
 }) => {
+    const activeDatapageData = indicators[activeIndex].datapageData
     const indicatorTitle = activeDatapageData.title.title
     if (!indicatorTitle) return null
     const titleVariant = activeDatapageData.titleVariant?.trim()
 
     return (
         <>
-            <IndicatorAboutLabel indicatorCount={indicators.length} />
             <IndicatorSelect
                 indicators={indicators}
                 startIndex={0}
@@ -184,6 +185,26 @@ export const IndicatorDropdown = ({
         </>
     )
 }
+
+// Dropdown variant: "About this data (N)" label + the indicator select.
+export const IndicatorDropdown = ({
+    indicators,
+    activeIndex,
+    onIndicatorChange,
+}: {
+    indicators: AdditionalIndicator[]
+    activeIndex: number
+    onIndicatorChange: (i: number) => void
+}) => (
+    <>
+        <IndicatorAboutLabel indicatorCount={indicators.length} />
+        <IndicatorDropdownSelect
+            indicators={indicators}
+            activeIndex={activeIndex}
+            onIndicatorChange={onIndicatorChange}
+        />
+    </>
+)
 
 // The overflow "More ▾" trigger + its menu. The trigger reads as a normal
 // tab button (so it sits inline with the rest of the tab row) and inherits

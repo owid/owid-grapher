@@ -297,6 +297,44 @@
     margin-bottom: 8px;
 }
 
+// h-pills responsive swap: pills from the small breakpoint up, the dropdown
+// select on its own full-width row below it. Both are SSR'd; CSS picks one
+// per viewport (display: none), so there's no post-hydration flash.
+.indicator-metadata-box-wrap--h-pills {
+    .indicator-switcher__h-pills {
+        @include sm-only {
+            display: none;
+        }
+    }
+
+    .indicator-metadata-box-wrap__mobile-dropdown {
+        display: none;
+
+        @include sm-only {
+            display: block;
+            // The header is flex-wrap; a 100% basis pushes the dropdown onto
+            // its own row beneath "About this data (N indicators)".
+            flex-basis: 100%;
+        }
+
+        .indicator-switcher__dropdown-trigger {
+            @include sm-only {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    }
+
+    // While the dropdown is the control, its trigger already shows the active
+    // indicator's title — hide the in-box title line like the dropdown
+    // variant does (it stays in the DOM for raw-HTML consumers).
+    @include sm-only {
+        .indicator-metadata-box__indicator-title {
+            display: none;
+        }
+    }
+}
+
 // h-tabs: the tab row sits flush with the box top so the active tab can
 // visually fuse into the box below.
 .indicator-metadata-box-wrap--h-tabs .indicator-metadata-box-wrap__header {
