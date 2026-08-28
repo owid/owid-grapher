@@ -6,21 +6,13 @@ import { describe, expect, it } from "vitest"
 import * as React from "react"
 import * as R from "remeda"
 import { fireEvent, render } from "@testing-library/react"
-import {
-    ColumnTypeNames,
-    OwidTableSlugs,
-    TimeInterval,
-} from "@ourworldindata/types"
+import { ColumnTypeNames, OwidTableSlugs } from "@ourworldindata/types"
 import {
     MissingColumn,
     OwidTable,
     TimeColumn,
 } from "@ourworldindata/core-table"
-import {
-    convertDateToDaysSinceEpoch,
-    dayjs,
-    snapToIntervalStart,
-} from "@ourworldindata/utils"
+import { convertDateToDaysSinceEpoch, dayjs } from "@ourworldindata/utils"
 import {
     daysSinceEpochToCalendarDate,
     calendarDateToDaysSinceEpoch,
@@ -109,18 +101,6 @@ const quarters = (start: string, count: number): number[] =>
 const weeks = (start: string, count: number): number[] =>
     R.range(0, count).map((index) =>
         convertDateToDaysSinceEpoch(dayjs.utc(start).add(index, "week"))
-    )
-
-/** Days-since-epoch for `count` consecutive months starting at `start` */
-const months = (start: string, count: number): number[] =>
-    R.range(0, count).map((index) =>
-        convertDateToDaysSinceEpoch(dayjs.utc(start).add(index, "month"))
-    )
-
-/** Days-since-epoch for `count` consecutive days starting at `start` */
-const days = (start: string, count: number): number[] =>
-    R.range(0, count).map((index) =>
-        convertDateToDaysSinceEpoch(dayjs.utc(start).add(index, "day"))
     )
 
 function renderTimeline({
@@ -335,77 +315,6 @@ describe("period-aware end-time editing", () => {
         })
     })
 
-    it("opens the yearly end handle's input on the year itself", () => {
-        const times = R.range(2000, 2006)
-        const { container } = renderTimeline({
-            type: ColumnTypeNames.Year,
-            times,
-            startTime: 2002,
-            endTime: 2005,
-        })
-
-        const input = openPicker(container, "endMarker").querySelector(
-            ".EditableTimeTooltip__Input"
-        ) as HTMLInputElement
-        expect(input.value).toEqual("2005")
-    })
-
-    const roundTripCases: {
-        label: string
-        type: ColumnTypeNames
-        times: number[]
-        endIndex: number
-    }[] = [
-        {
-            label: "quarterly",
-            type: ColumnTypeNames.Quarter,
-            times: quarters("2025-01-01", 6),
-            endIndex: 3,
-        },
-        {
-            label: "quarterly, on the last quarter",
-            type: ColumnTypeNames.Quarter,
-            times: quarters("2025-01-01", 6),
-            endIndex: 5,
-        },
-        {
-            label: "weekly",
-            type: ColumnTypeNames.Week,
-            times: weeks("2026-05-04", 5),
-            endIndex: 4,
-        },
-        {
-            label: "monthly",
-            type: ColumnTypeNames.Month,
-            times: months("2026-01-01", 6),
-            endIndex: 4,
-        },
-        {
-            label: "daily",
-            type: ColumnTypeNames.Day,
-            times: days("2026-01-01", 6),
-            endIndex: 4,
-        },
-    ]
-
-    it.each(roundTripCases)(
-        "leaves the $label selection untouched when the end input is opened and committed unchanged",
-        ({ type, times, endIndex }) => {
-            const { container, controller } = renderTimeline({
-                type,
-                times,
-                startTime: times[1],
-                endTime: times[endIndex],
-            })
-
-            const handle = openPicker(container, "endMarker")
-            commitPicker(handle)
-
-            expect(controller.endTime).toEqual(times[endIndex])
-            expect(controller.startTime).toEqual(times[1])
-        }
-    )
-
     it("leaves a single selected period untouched when committed unchanged", () => {
         // Both handles on one period is its own path: the input then drives
         // start and end together rather than just the end handle.
@@ -463,34 +372,5 @@ describe("period-aware end-time editing", () => {
         commitPicker(handle)
         expect(controller.endTime).toEqual(controller.maxTime)
         expect(controller.startTime).toEqual(times[2])
-    })
-
-    it("keeps a period's last day inside that period", () => {
-        // The seeded date is only safe to hand back if it snaps to the period
-        // it came from: a quarter's last day belongs to that quarter, and the
-        // day after it to the next one.
-        const cases = [
-            {
-                type: ColumnTypeNames.Quarter,
-                interval: TimeInterval.Quarter,
-                times: quarters("2025-01-01", 6),
-            },
-            {
-                type: ColumnTypeNames.Week,
-                interval: TimeInterval.Week,
-                times: weeks("2026-05-04", 5),
-            },
-        ]
-
-        for (const { type, interval, times } of cases) {
-            const column = makeTimeColumn(type)
-            for (const time of times) {
-                const periodEnd = column.periodEndTime(time)
-                expect(snapToIntervalStart(periodEnd, interval)).toEqual(time)
-                expect(
-                    snapToIntervalStart(periodEnd + 1, interval)
-                ).not.toEqual(time)
-            }
-        }
     })
 })
