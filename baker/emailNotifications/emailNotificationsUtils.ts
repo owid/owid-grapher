@@ -53,9 +53,6 @@ export interface NotificationEmailItem {
     // blocks rather than a string.
     excerptBlocks?: EnrichedBlockText[]
     thumbnailUrl?: string
-    // An announcement written as a single call to action (a top-level {.cta}
-    // and no body) links out with its own wording.
-    cta?: { text: string; url: string }
     // Data insights carry their full content, rendered inline in the email.
     body?: OwidEnrichedGdocBlock[]
     // Cloudflare image URLs for the image blocks in `body`.
