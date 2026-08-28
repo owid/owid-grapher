@@ -73,13 +73,13 @@ interface ETLPathComponents {
 }
 
 /**
- * Splits an ETL catalog path into its parts. Real paths separate the indicator
- * with "#" rather than "/", so it arrives glued to `table` and `indicator` stays
- * undefined. Used in the admin to link to an indicator's ETL steps on GitHub.
+ * Splits an ETL catalog path into its parts, e.g.
+ * `"grapher/un/2024-07-12/world_population_prospects/population#population"`.
+ * The indicator is separated with "#", everything before it with "/".
  */
 export const getETLPathComponents = (path: string): ETLPathComponents => {
     const [channel, producer, version, dataset, table, indicator] =
-        path.split("/")
+        path.split(/[/#]/)
     return { channel, producer, version, dataset, table, indicator }
 }
 

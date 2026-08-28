@@ -147,7 +147,7 @@ describe(getETLPathComponents, () => {
     it("splits a full catalog path into its components", () => {
         expect(
             getETLPathComponents(
-                "grapher/un/2024-07-12/world_population_prospects/population/population"
+                "grapher/un/2024-07-12/world_population_prospects/population#population"
             )
         ).toEqual({
             channel: "grapher",
@@ -156,25 +156,6 @@ describe(getETLPathComponents, () => {
             dataset: "world_population_prospects",
             table: "population",
             indicator: "population",
-        })
-    })
-
-    // TODO: split on "#" as well as "/", so `indicator` is populated and
-    // `table` is usable. Every real catalog path hits this, which is why the
-    // ETL links in adminSiteClient/VariableEditPage.tsx point at
-    // `population#population.meta.yml`.
-    it("leaves a hash-separated indicator attached to the table", () => {
-        expect(
-            getETLPathComponents(
-                "grapher/un/2024-07-12/world_population_prospects/population#population"
-            )
-        ).toEqual({
-            channel: "grapher",
-            producer: "un",
-            version: "2024-07-12",
-            dataset: "world_population_prospects",
-            table: "population#population",
-            indicator: undefined,
         })
     })
 
