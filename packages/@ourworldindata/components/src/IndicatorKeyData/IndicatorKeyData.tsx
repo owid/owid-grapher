@@ -1,7 +1,7 @@
 import * as React from "react"
 import {
     OwidProcessingLevel,
-    getPhraseForProcessingLevel,
+    getProcessingPhraseForAttribution,
     formatSourceDate,
     getDateRange,
 } from "@ourworldindata/utils"
@@ -21,14 +21,14 @@ export const makeSource = ({
 }): React.ReactNode => {
     if (!attribution) return null
     const isEmbedded = isEmbeddedInADataPage ?? true
-    const processingLevelPhrase =
-        getPhraseForProcessingLevel(owidProcessingLevel)
-    const hideProcessingPhase =
-        attribution.toLowerCase() === "our world in data"
+    const processingLevelPhrase = getProcessingPhraseForAttribution(
+        attribution,
+        owidProcessingLevel
+    )
     return (
         <>
             <SimpleMarkdownText text={attribution} useParagraphs={false} />
-            {!hideProcessingPhase && (
+            {processingLevelPhrase && (
                 <>
                     {" – "}
                     {isEmbedded ? (

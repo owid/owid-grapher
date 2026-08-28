@@ -138,11 +138,8 @@ export const getNextUpdateFromVariable = (
     return nextUpdate?.format("YYYY-MM-DD")
 }
 
-/**
- * How much we reshaped the data, e.g. `"with minor processing"`. Renders after
- * the attribution in the "Source" row and in the citations.
- */
-export const getPhraseForProcessingLevel = (
+/** How much we reshaped the data, e.g. `"with minor processing"` */
+const getPhraseForProcessingLevel = (
     processingLevel: OwidProcessingLevel | undefined
 ): string => {
     switch (processingLevel) {
@@ -154,6 +151,32 @@ export const getPhraseForProcessingLevel = (
             return "processed"
     }
 }
+
+/**
+ * Whether we are the only party being credited, in which case saying we also
+ * processed the data adds nothing. Takes the fragments either as a list or
+ * already joined, since the surfaces that render prose have joined them by the
+ * time they ask.
+ */
+const isOwidTheSoleAttribution = (attribution: string | string[]): boolean => {
+    const fragments = Array.isArray(attribution) ? attribution : [attribution]
+    return (
+        fragments.length === 1 &&
+        fragments[0].toLowerCase() === "our world in data"
+    )
+}
+
+/**
+ * The processing phrase to show after an attribution, e.g. `"with minor
+ * processing"`, or nothing when we are the only party credited.
+ */
+export const getProcessingPhraseForAttribution = (
+    attribution: string | string[],
+    owidProcessingLevel: OwidProcessingLevel | undefined
+): string | undefined =>
+    isOwidTheSoleAttribution(attribution)
+        ? undefined
+        : getPhraseForProcessingLevel(owidProcessingLevel)
 
 const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
     let label = origin.producer ?? ""

@@ -164,12 +164,12 @@ export {
     getETLPathComponents,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
-    getPhraseForProcessingLevel,
+    getProcessingPhraseForAttribution,
+    getYearSuffixFromOrigin,
     prepareSourcesForDisplay,
     formatSourceDate,
     getDateRange,
     getIndicatorCitations,
-    getYearSuffixFromOrigin,
 } from "./metadataHelpers.js"
 
 export { getAllVariableIds } from "./multiDim.js"

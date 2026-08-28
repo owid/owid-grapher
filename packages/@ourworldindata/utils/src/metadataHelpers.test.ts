@@ -9,7 +9,7 @@ import {
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
     getOriginAttributionFragments,
-    getPhraseForProcessingLevel,
+    getProcessingPhraseForAttribution,
     getYearSuffixFromOrigin,
     prepareSourcesForDisplay,
 } from "./metadataHelpers.js"
@@ -322,21 +322,67 @@ describe(getNextUpdateFromVariable, () => {
     })
 })
 
-describe(getPhraseForProcessingLevel, () => {
+describe(getProcessingPhraseForAttribution, () => {
+    const attribution = "Producer"
+
     it("describes major processing", () => {
-        expect(getPhraseForProcessingLevel("major")).toEqual(
+        expect(getProcessingPhraseForAttribution(attribution, "major")).toEqual(
             "with major processing"
         )
     })
 
     it("describes minor processing", () => {
-        expect(getPhraseForProcessingLevel("minor")).toEqual(
+        expect(getProcessingPhraseForAttribution(attribution, "minor")).toEqual(
             "with minor processing"
         )
     })
 
     it("falls back to a generic phrase", () => {
-        expect(getPhraseForProcessingLevel(undefined)).toEqual("processed")
+        expect(
+            getProcessingPhraseForAttribution(attribution, undefined)
+        ).toEqual("processed")
+    })
+
+    it("says nothing when we are the only attribution", () => {
+        expect(
+            getProcessingPhraseForAttribution("Our World in Data", "major")
+        ).toBeUndefined()
+    })
+
+    it("ignores the case of our own name", () => {
+        expect(
+            getProcessingPhraseForAttribution("our world in data", "major")
+        ).toBeUndefined()
+    })
+
+    it("accepts the fragments as a list", () => {
+        expect(
+            getProcessingPhraseForAttribution(["Our World in Data"], "major")
+        ).toBeUndefined()
+    })
+
+    it("still describes processing when we are one of several attributions", () => {
+        expect(
+            getProcessingPhraseForAttribution(
+                ["Our World in Data", "Producer"],
+                "major"
+            )
+        ).toEqual("with major processing")
+    })
+
+    it("still describes processing when the joined attribution names others", () => {
+        expect(
+            getProcessingPhraseForAttribution(
+                "Our World in Data; Producer",
+                "major"
+            )
+        ).toEqual("with major processing")
+    })
+
+    it("describes processing when there is no attribution at all", () => {
+        expect(getProcessingPhraseForAttribution([], "major")).toEqual(
+            "with major processing"
+        )
     })
 })
 

@@ -5,7 +5,7 @@ import {
     getAttributionFragmentsFromVariable,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
-    getPhraseForProcessingLevel,
+    getProcessingPhraseForAttribution,
     OwidColumnDef,
     getDateRange,
     getIndicatorCitations,
@@ -162,10 +162,10 @@ export function* getSources(
 }
 
 export function getSource(attribution: string, def: OwidColumnDef): string {
-    const processingLevelPhrase =
-        attribution.toLowerCase() !== "our world in data"
-            ? getPhraseForProcessingLevel(def.owidProcessingLevel)
-            : undefined
+    const processingLevelPhrase = getProcessingPhraseForAttribution(
+        attribution,
+        def.owidProcessingLevel
+    )
     const fullProcessingPhrase = processingLevelPhrase
         ? ` – ${processingLevelPhrase} by Our World In Data`
         : ""

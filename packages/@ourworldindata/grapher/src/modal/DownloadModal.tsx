@@ -9,7 +9,7 @@ import {
     fetchWithTimeout,
     getOriginAttributionFragments,
     makeDownloadCodeExamples,
-    getPhraseForProcessingLevel,
+    getProcessingPhraseForAttribution,
     SERVER_SIDE_DOWNLOAD_HELP_TEXT,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
@@ -576,12 +576,10 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
             return undefined
         }, undefined)
 
-    const sourceIsOwid =
-        attributions.length === 1 &&
-        attributions[0].toLowerCase() === "our world in data"
-    const processingLevelPhrase = !sourceIsOwid
-        ? getPhraseForProcessingLevel(owidProcessingLevel)
-        : undefined
+    const processingLevelPhrase = getProcessingPhraseForAttribution(
+        attributions,
+        owidProcessingLevel
+    )
     const fullProcessingPhrase = processingLevelPhrase ? (
         <>
             {" "}
