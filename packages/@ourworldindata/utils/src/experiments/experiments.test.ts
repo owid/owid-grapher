@@ -27,14 +27,20 @@ describe("page-assigned experiments", () => {
         })
 
     it("derives paths from the assignment map", () => {
-        const exp = build({ "/grapher/a": "treatment", "/grapher/b": "control" })
+        const exp = build({
+            "/grapher/a": "treatment",
+            "/grapher/b": "control",
+        })
         expect(exp.paths).toEqual(["/grapher/a", "/grapher/b"])
         expect(exp.isUrlInPaths("/grapher/a")).toBe(true)
         expect(exp.isUrlInPaths("/grapher/c")).toBe(false)
     })
 
     it("resolves the arm from the path, with no cookie involved", () => {
-        const exp = build({ "/grapher/a": "treatment", "/grapher/b": "control" })
+        const exp = build({
+            "/grapher/a": "treatment",
+            "/grapher/b": "control",
+        })
         expect(exp.getArmForUrl("/grapher/a")).toBe("treatment")
         expect(exp.getArmForUrl("/grapher/b")).toBe("control")
         expect(exp.getArmForUrl("/grapher/c")).toBeUndefined()
@@ -83,15 +89,15 @@ describe("data-page-metadata-v2 pre-registered assignment", () => {
         expect(v2!.unitOfAssignment).toBe("page")
     })
 
-    it("enrols 200 pages, split 100 treatment / 100 control", () => {
+    it("enrols 300 pages, split 150 treatment / 150 control", () => {
         const arms = Object.values(v2!.pathArms!)
-        expect(arms).toHaveLength(200)
+        expect(arms).toHaveLength(300)
         expect(
             arms.filter(
                 (a) => a === DATA_PAGE_METADATA_EXPERIMENT_TREATMENT_ARM
             )
-        ).toHaveLength(100)
-        expect(arms.filter((a) => a === "control")).toHaveLength(100)
+        ).toHaveLength(150)
+        expect(arms.filter((a) => a === "control")).toHaveLength(150)
     })
 
     it("enrols only grapher pages", () => {
