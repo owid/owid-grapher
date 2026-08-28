@@ -1,5 +1,9 @@
 $site-tools-button-size: 40px;
 $site-tools-button-gap: 8px;
+// Space outside an open popover: the site header, the tool buttons, and the
+// margins above, between, and below them.
+$site-tools-popover-inset: $header-height-md + $vertical-spacing * 3 +
+    $site-tools-button-size;
 
 .site-tools-root {
     display: none;
@@ -55,18 +59,19 @@ $site-tools-button-gap: 8px;
         @include overlay;
     }
 
+    .site-tools .box .FeedbackForm {
+        max-height: min(
+            700px,
+            calc(var(--viewport-height) - #{$site-tools-popover-inset})
+        );
+    }
+
     .site-tools .box {
         position: absolute;
         right: 0;
         bottom: 100%;
         margin-bottom: $vertical-spacing;
-        // Keep the popover inside the viewport on short windows. This can't
-        // help once the buttons have come to rest above the donate banner at
-        // the end of the page: the popover opens upwards from wherever they
-        // are, so a tall one is clipped there until the reader scrolls up.
-        max-height: calc(
-            100vh - #{$vertical-spacing * 3 + $site-tools-button-size}
-        );
+        max-height: calc(var(--viewport-height) - #{$site-tools-popover-inset});
         overflow-y: auto;
         @include popover-box-styles;
 
