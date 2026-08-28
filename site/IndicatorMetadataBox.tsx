@@ -21,9 +21,7 @@ import {
 import { useRef } from "react"
 import {
     prepareSourcesForDisplay,
-    getCitationShort,
-    getCitationLong,
-    getCitationDatapage,
+    getIndicatorCitations,
     spansToUnformattedPlainText,
 } from "@ourworldindata/utils"
 import { Byline } from "./gdocs/components/Byline.js"
@@ -109,30 +107,22 @@ function ExpandableSection({
     })
 
     const citationUrl = archiveContext?.archiveUrl ?? canonicalUrl
-    const citationShort = getCitationShort(
-        origins,
-        datapageData.attributions,
-        datapageData.owidProcessingLevel
-    )
-    const citationLong = getCitationLong(
-        datapageData.title,
+    const {
+        short: citationShort,
+        long: citationLong,
+        datapage: citationDatapage,
+    } = getIndicatorCitations({
+        indicatorTitle: title,
         origins,
         source,
-        datapageData.attributions,
-        datapageData.attributionShort,
-        datapageData.titleVariant,
-        datapageData.owidProcessingLevel,
+        attributions: datapageData.attributions,
+        attributionShort: datapageData.attributionShort,
+        titleVariant: datapageData.titleVariant,
+        owidProcessingLevel: datapageData.owidProcessingLevel,
         citationUrl,
-        archiveContext?.archivalDate
-    )
-    const citationDatapage = getCitationDatapage(
-        title,
-        origins,
-        source,
+        archivalDate: archiveContext?.archivalDate,
         primaryTopic,
-        citationUrl,
-        archiveContext?.archivalDate
-    )
+    })
 
     const faqQuestions = groupFaqsByQuestion(faqEntries?.faqs ?? [])
 

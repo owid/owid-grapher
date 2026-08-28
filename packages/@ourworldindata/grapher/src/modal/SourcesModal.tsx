@@ -11,8 +11,7 @@ import {
     OwidSource,
     IndicatorTitleWithFragments,
     joinTitleFragments,
-    getCitationShort,
-    getCitationLong,
+    getIndicatorCitations,
 } from "@ourworldindata/utils"
 import {
     IndicatorSources,
@@ -392,26 +391,24 @@ export class Source extends React.Component<SourceProps> {
         return { ...this.column.def, source: this.column.source }
     }
 
+    @computed private get citations(): { short: string; long: string } {
+        return getIndicatorCitations({
+            indicatorTitle: this.titleWithFragments,
+            origins: this.def.origins ?? [],
+            source: this.source,
+            attributions: getAttributionFragmentsFromVariable(this.def),
+            attributionShort: this.def.presentation?.attributionShort,
+            titleVariant: this.def.presentation?.titleVariant,
+            owidProcessingLevel: this.def.owidProcessingLevel,
+        })
+    }
+
     @computed get citationShort(): string {
-        return getCitationShort(
-            this.def.origins ?? [],
-            getAttributionFragmentsFromVariable(this.def),
-            this.def.owidProcessingLevel
-        )
+        return this.citations.short
     }
 
     @computed get citationLong(): string {
-        return getCitationLong(
-            this.titleWithFragments,
-            this.def.origins ?? [],
-            this.source,
-            getAttributionFragmentsFromVariable(this.def),
-            this.def.presentation?.attributionShort,
-            this.def.presentation?.titleVariant,
-            this.def.owidProcessingLevel,
-            undefined,
-            undefined
-        )
+        return this.citations.long
     }
 
     @computed private get source(): OwidSource {

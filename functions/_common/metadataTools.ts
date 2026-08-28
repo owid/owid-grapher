@@ -4,9 +4,8 @@ import { OwidTableSlugs, OwidOrigin } from "@ourworldindata/types"
 import {
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
-    getCitationShort,
     getAttributionFragmentsFromVariable,
-    getCitationLong,
+    getIndicatorCitations,
     stripDetailOnDemandLinks,
 } from "@ourworldindata/utils"
 import { getGrapherFilters } from "./urlTools.js"
@@ -125,23 +124,16 @@ export function assembleMetadata(
 
         const def = col.def
 
-        const citationShort = getCitationShort(
-            condensedOrigins,
-            getAttributionFragmentsFromVariable(def),
-            def.owidProcessingLevel
-        )
-
-        const citationLong = getCitationLong(
-            col.titlePublicOrDisplayName,
-            def.origins ?? [],
-            col.source ?? {},
-            getAttributionFragmentsFromVariable(def),
-            def.presentation?.attributionShort,
-            def.presentation?.titleVariant,
-            def.owidProcessingLevel,
-            undefined,
-            undefined
-        )
+        const { short: citationShort, long: citationLong } =
+            getIndicatorCitations({
+                indicatorTitle: col.titlePublicOrDisplayName,
+                origins: def.origins ?? [],
+                source: col.source ?? {},
+                attributions: getAttributionFragmentsFromVariable(def),
+                attributionShort: def.presentation?.attributionShort,
+                titleVariant: def.presentation?.titleVariant,
+                owidProcessingLevel: def.owidProcessingLevel,
+            })
 
         const titleShort = col.titlePublicOrDisplayName.title
         const attributionShort = col.titlePublicOrDisplayName.attributionShort

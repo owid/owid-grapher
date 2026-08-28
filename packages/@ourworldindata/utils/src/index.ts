@@ -168,9 +168,7 @@ export {
     prepareSourcesForDisplay,
     formatSourceDate,
     getDateRange,
-    getCitationLong,
-    getCitationShort,
-    getCitationDatapage,
+    getIndicatorCitations,
     getYearSuffixFromOrigin,
 } from "./metadataHelpers.js"
 

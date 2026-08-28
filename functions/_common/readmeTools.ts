@@ -8,8 +8,7 @@ import {
     getPhraseForProcessingLevel,
     OwidColumnDef,
     getDateRange,
-    getCitationShort,
-    getCitationLong,
+    getIndicatorCitations,
     prepareSourcesForDisplay,
     formatDate,
     stripDetailOnDemandLinks,
@@ -36,28 +35,21 @@ export function* getCitationLines(
         ...def,
         source: { name: def.sourceName },
     })
-    const citationShort = getCitationShort(
-        def.origins ?? [],
-        attributionFragments,
-        def.owidProcessingLevel
-    )
+    const { short: citationShort, long: citationLong } = getIndicatorCitations({
+        indicatorTitle: col.titlePublicOrDisplayName,
+        origins: def.origins ?? [],
+        source: col.source ?? {},
+        attributions: attributionFragments,
+        attributionShort: def.presentation?.attributionShort,
+        titleVariant: def.presentation?.titleVariant,
+        owidProcessingLevel: def.owidProcessingLevel,
+    })
 
     yield citationShort
 
     yield ""
 
     yield "#### Full citation"
-    const citationLong = getCitationLong(
-        col.titlePublicOrDisplayName,
-        def.origins ?? [],
-        col.source ?? {},
-        attributionFragments,
-        def.presentation?.attributionShort,
-        def.presentation?.titleVariant,
-        def.owidProcessingLevel,
-        undefined,
-        undefined
-    )
     yield citationLong
 }
 

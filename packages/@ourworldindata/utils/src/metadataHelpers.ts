@@ -224,11 +224,15 @@ export const getYearSuffixFromOrigin = (origin: OwidOrigin): string => {
  * to "UN WPP (2024) and other sources". `origins` is dead code. Renders as the
  * "In-line citation" under "How to cite this data".
  */
-export const getCitationShort = (
-    origins: OwidOrigin[],
-    attributions: string[],
-    owidProcessingLevel: OwidProcessingLevel | undefined
-): string => {
+const getCitationShort = ({
+    origins,
+    attributions,
+    owidProcessingLevel,
+}: {
+    origins: OwidOrigin[]
+    attributions: string[]
+    owidProcessingLevel?: OwidProcessingLevel
+}): string => {
     const producersWithYear = _.uniq(
         origins.map(
             (origin) => `${origin.producer}${getYearSuffixFromOrigin(origin)}`
@@ -251,17 +255,27 @@ export const getCitationShort = (
  * title, the original data and the retrieval date, dropping any part with nothing
  * to say. Renders as the "Full citation" under "How to cite this data".
  */
-export const getCitationLong = (
-    indicatorTitle: IndicatorTitleWithFragments,
-    origins: OwidOrigin[],
-    source: OwidSource | undefined,
-    attributions: string[],
-    attributionShort: string | undefined,
-    titleVariant: string | undefined,
-    owidProcessingLevel: OwidProcessingLevel | undefined,
-    citationUrl: string | undefined,
-    archivalDate: string | undefined
-): string => {
+const getCitationLong = ({
+    indicatorTitle,
+    origins,
+    source,
+    attributions,
+    attributionShort,
+    titleVariant,
+    owidProcessingLevel,
+    citationUrl,
+    archivalDate,
+}: {
+    indicatorTitle: IndicatorTitleWithFragments
+    origins: OwidOrigin[]
+    source?: OwidSource
+    attributions: string[]
+    attributionShort?: string
+    titleVariant?: string
+    owidProcessingLevel?: OwidProcessingLevel
+    citationUrl?: string
+    archivalDate?: string
+}): string => {
     const titleFragments =
         attributionShort && titleVariant
             ? `${attributionShort} – ${titleVariant}`
@@ -311,14 +325,21 @@ export const getCitationLong = (
  * page it belongs to where there is one, Our World in Data otherwise. Renders
  * below the indicator citations.
  */
-export const getCitationDatapage = (
-    indicatorTitle: IndicatorTitleWithFragments,
-    origins: OwidOrigin[],
-    source: OwidSource | undefined,
-    primaryTopic: PrimaryTopic | undefined,
-    citationUrl: string | undefined,
-    archivalDate: string | undefined
-): string => {
+const getCitationDatapage = ({
+    indicatorTitle,
+    origins,
+    source,
+    primaryTopic,
+    citationUrl,
+    archivalDate,
+}: {
+    indicatorTitle: IndicatorTitleWithFragments
+    origins: OwidOrigin[]
+    source?: OwidSource
+    primaryTopic?: PrimaryTopic
+    citationUrl: string
+    archivalDate?: string
+}): string => {
     const currentYear = dayjs().year()
     const producers = _.uniq(origins.map((origin) => `${origin.producer}`))
     const adaptedFrom =
@@ -340,6 +361,66 @@ export const getCitationDatapage = (
         }`,
     ]).join(" ")
 }
+
+/**
+ * Every citation an indicator needs, built from one set of values rather than
+ * three overlapping argument lists. `datapage` is omitted when no `citationUrl`
+ * is given, which is how the callers that want only the indicator citations opt
+ * out of it.
+ *
+ * Renders as the "How to cite this data" section of a data page, and as the same
+ * section of Grapher's sources modal, which shows only `short` and `long`.
+ */
+export const getIndicatorCitations = ({
+    indicatorTitle,
+    origins,
+    source,
+    attributions,
+    attributionShort,
+    titleVariant,
+    owidProcessingLevel,
+    citationUrl,
+    archivalDate,
+    primaryTopic,
+}: {
+    indicatorTitle: IndicatorTitleWithFragments
+    origins: OwidOrigin[]
+    source?: OwidSource
+    attributions: string[]
+    attributionShort?: string
+    titleVariant?: string
+    owidProcessingLevel?: OwidProcessingLevel
+    citationUrl?: string
+    archivalDate?: string
+    primaryTopic?: PrimaryTopic
+}): { short: string; long: string; datapage?: string } => ({
+    short: getCitationShort({ origins, attributions, owidProcessingLevel }),
+    long: getCitationLong({
+        indicatorTitle,
+        origins,
+        source,
+        attributions,
+        attributionShort,
+        titleVariant,
+        owidProcessingLevel,
+        citationUrl,
+        archivalDate,
+    }),
+    // An empty citationUrl is not the same as none: mdim pages baked without a
+    // slug have one (MultiDimBaker.tsx), and cited the page anyway before this
+    // was one entry point
+    datapage:
+        citationUrl !== undefined
+            ? getCitationDatapage({
+                  indicatorTitle,
+                  origins,
+                  source,
+                  primaryTopic,
+                  citationUrl,
+                  archivalDate,
+              })
+            : undefined,
+})
 
 /**
  * Reformats an ETL date for display, e.g. `"July 11, 2024"`. Reads ISO and

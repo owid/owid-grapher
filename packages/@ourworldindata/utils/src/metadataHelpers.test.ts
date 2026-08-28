@@ -3,9 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import {
     formatSourceDate,
     getAttributionFragmentsFromVariable,
-    getCitationDatapage,
-    getCitationLong,
-    getCitationShort,
+    getIndicatorCitations,
     getDateRange,
     getETLPathComponents,
     getLastUpdatedFromVariable,
@@ -475,469 +473,348 @@ describe(getYearSuffixFromOrigin, () => {
     })
 })
 
-describe(getCitationShort, () => {
-    it("joins the attributions with the processing phrase", () => {
-        expect(
-            getCitationShort([], ["Producer A (2024)", "Producer B"], "major")
-        ).toEqual(
-            "Producer A (2024); Producer B – with major processing by Our World in Data"
-        )
-    })
+describe(getIndicatorCitations, () => {
+    const citations = (
+        overrides: Partial<Parameters<typeof getIndicatorCitations>[0]> = {}
+    ): ReturnType<typeof getIndicatorCitations> =>
+        getIndicatorCitations({
+            indicatorTitle: { title: "Indicator" },
+            origins: [],
+            attributions: ["Attribution"],
+            ...overrides,
+        })
 
-    it("uses the generic processing phrase if the level is unknown", () => {
-        expect(getCitationShort([], ["Producer A"], undefined)).toEqual(
-            "Producer A – processed by Our World in Data"
-        )
-    })
-
-    it("keeps three attributions", () => {
-        expect(getCitationShort([], ["A", "B", "C"], "minor")).toEqual(
-            "A; B; C – with minor processing by Our World in Data"
-        )
-    })
-
-    it("shortens more than three attributions", () => {
-        expect(getCitationShort([], ["A", "B", "C", "D"], "minor")).toEqual(
-            "A and other sources – with minor processing by Our World in Data"
-        )
-    })
-
-    // TODO: fire the intended fallback on an empty attributions array.
-    // `attributions ?? producersWithYear` only catches null and undefined, and
-    // every caller passes a non-optional string[], so `producersWithYear` is
-    // unreachable and the citation opens with a bare separator.
-    it("does not fall back to the origins if there are no attributions", () => {
-        expect(
-            getCitationShort(
-                [{ producer: "Producer", dateAccessed: "2024-07-11" }],
-                [],
-                undefined
-            )
-        ).toEqual(" – processed by Our World in Data")
-    })
-
-    // TODO: return "Our World in Data" when there is no attribution at all,
-    // rather than a separator with nothing before it. Mirrors the rule that
-    // hides the processing phrase when the attribution is already us.
-    it("has nothing to attribute without attributions or origins", () => {
-        expect(getCitationShort([], [], undefined)).toEqual(
-            " – processed by Our World in Data"
-        )
-    })
-})
-
-describe(getCitationLong, () => {
-    const origins = [
-        {
-            producer: "Producer",
-            title: "Title",
-            versionProducer: "v2",
-            dateAccessed: "2024-03-07",
-        },
-    ]
-
-    it("assembles a full citation", () => {
-        expect(
-            getCitationLong(
-                { title: "Indicator" },
-                origins,
-                undefined,
-                ["Producer (2024)"],
-                "Short",
-                "Variant",
-                "minor",
-                "https://ourworldindata.org/grapher/indicator",
-                undefined
-            )
-        ).toEqual(
-            "Producer (2024) – with minor processing by Our World in Data. " +
-                "“Indicator – Short – Variant” [dataset]. " +
-                "Producer, “Title v2” [original data]. " +
-                `Retrieved ${dayjs().format("MMMM D, YYYY")} from https://ourworldindata.org/grapher/indicator`
-        )
-    })
-
-    // TODO: fire the intended fallback on an empty attributions array, as in
-    // getCitationShort above. The citation currently opens with a bare
-    // separator even though the origins name a producer.
-    it("does not fall back to the origins if there are no attributions", () => {
-        expect(
-            getCitationLong(
-                { title: "Indicator" },
-                [
-                    {
-                        producer: "Producer",
-                        title: "Title",
-                        dateAccessed: "2024-07-11",
-                    },
-                ],
-                undefined,
-                [],
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined
-            )
-        ).toEqual(
-            " – processed by Our World in Data. " +
-                "“Indicator” [dataset]. " +
-                "Producer, “Title” [original data]."
-        )
-    })
-
-    it("uses only the attribution short if there is no title variant", () => {
-        expect(
-            getCitationLong(
-                { title: "Indicator" },
-                [],
-                undefined,
-                ["Attribution"],
-                "Short",
-                undefined,
-                undefined,
-                undefined,
-                undefined
-            )
-        ).toEqual(
-            "Attribution – processed by Our World in Data. “Indicator – Short” [dataset]."
-        )
-    })
-
-    it("uses only the title variant if there is no attribution short", () => {
-        expect(
-            getCitationLong(
-                { title: "Indicator" },
-                [],
-                undefined,
-                ["Attribution"],
-                undefined,
-                "Variant",
-                undefined,
-                undefined,
-                undefined
-            )
-        ).toEqual(
-            "Attribution – processed by Our World in Data. “Indicator – Variant” [dataset]."
-        )
-    })
-
-    it("uses the bare title if there is neither", () => {
-        expect(
-            getCitationLong(
-                { title: "Indicator" },
-                [],
-                undefined,
-                ["Attribution"],
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined
-            )
-        ).toEqual(
-            "Attribution – processed by Our World in Data. “Indicator” [dataset]."
-        )
-    })
-
-    it("joins multiple attributions", () => {
-        expect(
-            getCitationLong(
-                { title: "Indicator" },
-                [],
-                undefined,
-                ["A", "B", "C", "D"],
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined
-            )
-        ).toEqual(
-            "A; B; C; D – processed by Our World in Data. “Indicator” [dataset]."
-        )
-    })
-
-    it("deduplicates identical origins and joins the rest", () => {
-        expect(
-            getCitationLong(
-                { title: "Indicator" },
-                [
-                    { producer: "A", title: "One" },
-                    { producer: "B", title: "Two" },
-                    { producer: "A", title: "One" },
-                ],
-                undefined,
-                ["Attribution"],
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined
-            )
-        ).toEqual(
-            "Attribution – processed by Our World in Data. " +
-                "“Indicator” [dataset]. " +
-                "A, “One”; B, “Two” [original data]."
-        )
-    })
-
-    // TODO: omit the quoted title when an origin has neither `title` nor
-    // `titleSnapshot`, instead of quoting the string "undefined".
-    it("renders a literal undefined when an origin has no title", () => {
-        expect(
-            getCitationLong(
-                { title: "Indicator" },
-                [{ producer: "Producer" }],
-                undefined,
-                ["Attribution"],
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined
-            )
-        ).toEqual(
-            "Attribution – processed by Our World in Data. " +
-                "“Indicator” [dataset]. " +
-                "Producer, “undefined” [original data]."
-        )
-    })
-
-    it("falls back to the title snapshot of an origin", () => {
-        expect(
-            getCitationLong(
-                { title: "Indicator" },
-                [{ producer: "Producer", titleSnapshot: "Snapshot" }],
-                undefined,
-                ["Attribution"],
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined
-            )
-        ).toEqual(
-            "Attribution – processed by Our World in Data. " +
-                "“Indicator” [dataset]. " +
-                "Producer, “Snapshot” [original data]."
-        )
-    })
-
-    it("falls back to the source name if there are no origins", () => {
-        expect(
-            getCitationLong(
-                { title: "Indicator" },
-                [],
-                { name: "Source" },
-                ["Attribution"],
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined
-            )
-        ).toEqual(
-            "Attribution – processed by Our World in Data. " +
-                "“Indicator” [dataset]. " +
-                "Source [original data]."
-        )
-    })
-
-    it("omits the original data sentence if there is neither", () => {
-        expect(
-            getCitationLong(
-                { title: "Indicator" },
-                [],
-                {},
-                ["Attribution"],
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined
-            )
-        ).toEqual(
-            "Attribution – processed by Our World in Data. “Indicator” [dataset]."
-        )
-    })
-
-    it("appends the archival date to the retrieval sentence", () => {
-        expect(
-            getCitationLong(
-                { title: "Indicator" },
-                [],
-                undefined,
-                ["Attribution"],
-                undefined,
-                undefined,
-                undefined,
-                "https://ourworldindata.org/grapher/indicator",
-                "20250414-074331"
-            )
-        ).toEqual(
-            "Attribution – processed by Our World in Data. " +
-                "“Indicator” [dataset]. " +
-                `Retrieved ${dayjs().format("MMMM D, YYYY")} from https://ourworldindata.org/grapher/indicator (archived on April 14, 2025).`
-        )
-    })
-
-    it("ignores the archival date if there is no citation url", () => {
-        expect(
-            getCitationLong(
-                { title: "Indicator" },
-                [],
-                undefined,
-                ["Attribution"],
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                "20250414-074331"
-            )
-        ).toEqual(
-            "Attribution – processed by Our World in Data. “Indicator” [dataset]."
-        )
-    })
-})
-
-describe(getCitationDatapage, () => {
     const citationUrl = "https://ourworldindata.org/grapher/indicator"
 
-    it("cites the primary topic publication", () => {
-        expect(
-            getCitationDatapage(
-                { title: "Indicator" },
-                [{ producer: "Producer" }],
-                undefined,
-                { topicTag: "Topic", citation: "Author (2023) – “Topic”" },
-                citationUrl,
-                undefined
-            )
-        ).toEqual(
-            "“Data Page: Indicator”, part of the following publication: " +
-                "Author (2023) – “Topic”. " +
-                "Data adapted from Producer. " +
-                `Retrieved from ${citationUrl} [online resource]`
+    it("omits the datapage citation without a citation url", () => {
+        expect(citations().datapage).toBeUndefined()
+    })
+
+    it("still cites the page when the citation url is empty", () => {
+        // mdim pages baked without a slug have one (MultiDimBaker.tsx)
+        expect(citations({ citationUrl: "" }).datapage).toEqual(
+            "“Data Page: Indicator”. " +
+                `Our World in Data (${dayjs().year()}). ` +
+                "Retrieved from  [online resource]"
         )
     })
 
-    it("does not add a period after a question mark", () => {
-        expect(
-            getCitationDatapage(
-                { title: "Indicator" },
-                [],
-                undefined,
-                { topicTag: "Topic", citation: "Author (2023) – Why?" },
-                citationUrl,
-                undefined
+    describe("short", () => {
+        it("joins the attributions with the processing phrase", () => {
+            expect(
+                citations({
+                    attributions: ["Producer A (2024)", "Producer B"],
+                    owidProcessingLevel: "major",
+                }).short
+            ).toEqual(
+                "Producer A (2024); Producer B – with major processing by Our World in Data"
             )
-        ).toEqual(
-            "“Data Page: Indicator”, part of the following publication: " +
-                "Author (2023) – Why? " +
-                `Retrieved from ${citationUrl} [online resource]`
-        )
+        })
+
+        it("uses the generic processing phrase if the level is unknown", () => {
+            expect(citations({ attributions: ["Producer A"] }).short).toEqual(
+                "Producer A – processed by Our World in Data"
+            )
+        })
+
+        it("keeps three attributions", () => {
+            expect(
+                citations({
+                    attributions: ["A", "B", "C"],
+                    owidProcessingLevel: "minor",
+                }).short
+            ).toEqual("A; B; C – with minor processing by Our World in Data")
+        })
+
+        it("shortens more than three attributions", () => {
+            expect(
+                citations({
+                    attributions: ["A", "B", "C", "D"],
+                    owidProcessingLevel: "minor",
+                }).short
+            ).toEqual(
+                "A and other sources – with minor processing by Our World in Data"
+            )
+        })
+
+        // TODO: fire the intended fallback on an empty attributions array.
+        // `attributions ?? producersWithYear` only catches null and undefined,
+        // and every caller passes a non-optional string[], so
+        // `producersWithYear` is unreachable and the citation opens with a bare
+        // separator.
+        it("does not fall back to the origins if there are no attributions", () => {
+            expect(
+                citations({
+                    origins: [
+                        { producer: "Producer", dateAccessed: "2024-07-11" },
+                    ],
+                    attributions: [],
+                }).short
+            ).toEqual(" – processed by Our World in Data")
+        })
+
+        // TODO: return "Our World in Data" when there is no attribution at all,
+        // rather than a separator with nothing before it. Mirrors the rule that
+        // hides the processing phrase when the attribution is already us.
+        it("has nothing to attribute without attributions or origins", () => {
+            expect(citations({ attributions: [] }).short).toEqual(
+                " – processed by Our World in Data"
+            )
+        })
     })
 
-    it("adds a period after a closing quotation mark", () => {
-        expect(
-            getCitationDatapage(
-                { title: "Indicator" },
-                [],
-                undefined,
-                { topicTag: "Topic", citation: "Author (2023) – “Topic”" },
-                citationUrl,
-                undefined
+    describe("long", () => {
+        it("assembles a full citation", () => {
+            expect(
+                citations({
+                    origins: [
+                        {
+                            producer: "Producer",
+                            title: "Title",
+                            versionProducer: "v2",
+                            dateAccessed: "2024-03-07",
+                        },
+                    ],
+                    attributions: ["Producer (2024)"],
+                    attributionShort: "Short",
+                    titleVariant: "Variant",
+                    owidProcessingLevel: "minor",
+                    citationUrl,
+                }).long
+            ).toEqual(
+                "Producer (2024) – with minor processing by Our World in Data. " +
+                    "“Indicator – Short – Variant” [dataset]. " +
+                    "Producer, “Title v2” [original data]. " +
+                    `Retrieved ${dayjs().format("MMMM D, YYYY")} from ${citationUrl}`
             )
-        ).toContain("publication: Author (2023) – “Topic”. Retrieved")
+        })
+
+        // TODO: fire the intended fallback on an empty attributions array, as
+        // in short above. The citation currently opens with a bare separator
+        // even though the origins name a producer.
+        it("does not fall back to the origins if there are no attributions", () => {
+            expect(
+                citations({
+                    origins: [
+                        {
+                            producer: "Producer",
+                            title: "Title",
+                            dateAccessed: "2024-07-11",
+                        },
+                    ],
+                    attributions: [],
+                }).long
+            ).toEqual(
+                " – processed by Our World in Data. " +
+                    "“Indicator” [dataset]. " +
+                    "Producer, “Title” [original data]."
+            )
+        })
+
+        it("uses only the attribution short if there is no title variant", () => {
+            expect(citations({ attributionShort: "Short" }).long).toEqual(
+                "Attribution – processed by Our World in Data. “Indicator – Short” [dataset]."
+            )
+        })
+
+        it("uses only the title variant if there is no attribution short", () => {
+            expect(citations({ titleVariant: "Variant" }).long).toEqual(
+                "Attribution – processed by Our World in Data. “Indicator – Variant” [dataset]."
+            )
+        })
+
+        it("uses the bare title if there is neither", () => {
+            expect(citations().long).toEqual(
+                "Attribution – processed by Our World in Data. “Indicator” [dataset]."
+            )
+        })
+
+        it("joins multiple attributions", () => {
+            expect(
+                citations({ attributions: ["A", "B", "C", "D"] }).long
+            ).toEqual(
+                "A; B; C; D – processed by Our World in Data. “Indicator” [dataset]."
+            )
+        })
+
+        it("deduplicates identical origins and joins the rest", () => {
+            expect(
+                citations({
+                    origins: [
+                        { producer: "A", title: "One" },
+                        { producer: "B", title: "Two" },
+                        { producer: "A", title: "One" },
+                    ],
+                }).long
+            ).toEqual(
+                "Attribution – processed by Our World in Data. " +
+                    "“Indicator” [dataset]. " +
+                    "A, “One”; B, “Two” [original data]."
+            )
+        })
+
+        // TODO: omit the quoted title when an origin has neither `title` nor
+        // `titleSnapshot`, instead of quoting the string "undefined".
+        it("renders a literal undefined when an origin has no title", () => {
+            expect(
+                citations({ origins: [{ producer: "Producer" }] }).long
+            ).toEqual(
+                "Attribution – processed by Our World in Data. " +
+                    "“Indicator” [dataset]. " +
+                    "Producer, “undefined” [original data]."
+            )
+        })
+
+        it("falls back to the title snapshot of an origin", () => {
+            expect(
+                citations({
+                    origins: [
+                        { producer: "Producer", titleSnapshot: "Snapshot" },
+                    ],
+                }).long
+            ).toEqual(
+                "Attribution – processed by Our World in Data. " +
+                    "“Indicator” [dataset]. " +
+                    "Producer, “Snapshot” [original data]."
+            )
+        })
+
+        it("falls back to the source name if there are no origins", () => {
+            expect(citations({ source: { name: "Source" } }).long).toEqual(
+                "Attribution – processed by Our World in Data. " +
+                    "“Indicator” [dataset]. " +
+                    "Source [original data]."
+            )
+        })
+
+        it("omits the original data sentence if there is neither", () => {
+            expect(citations({ source: {} }).long).toEqual(
+                "Attribution – processed by Our World in Data. “Indicator” [dataset]."
+            )
+        })
+
+        it("appends the archival date to the retrieval sentence", () => {
+            expect(
+                citations({ citationUrl, archivalDate: "20250414-074331" }).long
+            ).toEqual(
+                "Attribution – processed by Our World in Data. " +
+                    "“Indicator” [dataset]. " +
+                    `Retrieved ${dayjs().format("MMMM D, YYYY")} from ${citationUrl} (archived on April 14, 2025).`
+            )
+        })
+
+        it("ignores the archival date if there is no citation url", () => {
+            expect(citations({ archivalDate: "20250414-074331" }).long).toEqual(
+                "Attribution – processed by Our World in Data. “Indicator” [dataset]."
+            )
+        })
     })
 
-    it("does not add a second period", () => {
-        expect(
-            getCitationDatapage(
-                { title: "Indicator" },
-                [],
-                undefined,
-                { topicTag: "Topic", citation: "Author (2023)." },
-                citationUrl,
-                undefined
+    describe("datapage", () => {
+        it("cites the primary topic publication", () => {
+            expect(
+                citations({
+                    origins: [{ producer: "Producer" }],
+                    primaryTopic: {
+                        topicTag: "Topic",
+                        citation: "Author (2023) – “Topic”",
+                    },
+                    citationUrl,
+                }).datapage
+            ).toEqual(
+                "“Data Page: Indicator”, part of the following publication: " +
+                    "Author (2023) – “Topic”. " +
+                    "Data adapted from Producer. " +
+                    `Retrieved from ${citationUrl} [online resource]`
             )
-        ).toEqual(
-            "“Data Page: Indicator”, part of the following publication: " +
-                "Author (2023). " +
-                `Retrieved from ${citationUrl} [online resource]`
-        )
-    })
+        })
 
-    it("credits Our World in Data if there is no primary topic", () => {
-        expect(
-            getCitationDatapage(
-                { title: "Indicator" },
-                [],
-                undefined,
-                undefined,
-                citationUrl,
-                undefined
+        it("does not add a period after a question mark", () => {
+            expect(
+                citations({
+                    primaryTopic: {
+                        topicTag: "Topic",
+                        citation: "Author (2023) – Why?",
+                    },
+                    citationUrl,
+                }).datapage
+            ).toEqual(
+                "“Data Page: Indicator”, part of the following publication: " +
+                    "Author (2023) – Why? " +
+                    `Retrieved from ${citationUrl} [online resource]`
             )
-        ).toEqual(
-            `“Data Page: Indicator”. Our World in Data (${dayjs().year()}). ` +
-                `Retrieved from ${citationUrl} [online resource]`
-        )
-    })
+        })
 
-    it("lists the deduplicated producers", () => {
-        expect(
-            getCitationDatapage(
-                { title: "Indicator" },
-                [{ producer: "A" }, { producer: "B" }, { producer: "A" }],
-                { name: "Source" },
-                undefined,
-                citationUrl,
-                undefined
-            )
-        ).toContain("Data adapted from A, B.")
-    })
+        it("adds a period after a closing quotation mark", () => {
+            expect(
+                citations({
+                    primaryTopic: {
+                        topicTag: "Topic",
+                        citation: "Author (2023) – “Topic”",
+                    },
+                    citationUrl,
+                }).datapage
+            ).toContain("publication: Author (2023) – “Topic”. Retrieved")
+        })
 
-    it("falls back to the source name if there are no origins", () => {
-        expect(
-            getCitationDatapage(
-                { title: "Indicator" },
-                [],
-                { name: "Source" },
-                undefined,
-                citationUrl,
-                undefined
+        it("does not add a second period", () => {
+            expect(
+                citations({
+                    primaryTopic: {
+                        topicTag: "Topic",
+                        citation: "Author (2023).",
+                    },
+                    citationUrl,
+                }).datapage
+            ).toEqual(
+                "“Data Page: Indicator”, part of the following publication: " +
+                    "Author (2023). " +
+                    `Retrieved from ${citationUrl} [online resource]`
             )
-        ).toContain("Data adapted from Source.")
-    })
+        })
 
-    it("omits the adapted-from sentence if there is neither", () => {
-        expect(
-            getCitationDatapage(
-                { title: "Indicator" },
-                [],
-                {},
-                undefined,
-                citationUrl,
-                undefined
+        it("credits Our World in Data if there is no primary topic", () => {
+            expect(citations({ citationUrl }).datapage).toEqual(
+                `“Data Page: Indicator”. Our World in Data (${dayjs().year()}). ` +
+                    `Retrieved from ${citationUrl} [online resource]`
             )
-        ).not.toContain("Data adapted from")
-    })
+        })
 
-    it("appends the archival date", () => {
-        expect(
-            getCitationDatapage(
-                { title: "Indicator" },
-                [],
-                undefined,
-                undefined,
-                citationUrl,
-                "20250414-074331"
+        it("lists the deduplicated producers", () => {
+            expect(
+                citations({
+                    origins: [
+                        { producer: "A" },
+                        { producer: "B" },
+                        { producer: "A" },
+                    ],
+                    source: { name: "Source" },
+                    citationUrl,
+                }).datapage
+            ).toContain("Data adapted from A, B.")
+        })
+
+        it("falls back to the source name if there are no origins", () => {
+            expect(
+                citations({ source: { name: "Source" }, citationUrl }).datapage
+            ).toContain("Data adapted from Source.")
+        })
+
+        it("omits the adapted-from sentence if there is neither", () => {
+            expect(
+                citations({ source: {}, citationUrl }).datapage
+            ).not.toContain("Data adapted from")
+        })
+
+        it("appends the archival date", () => {
+            expect(
+                citations({ citationUrl, archivalDate: "20250414-074331" })
+                    .datapage
+            ).toEqual(
+                `“Data Page: Indicator”. Our World in Data (${dayjs().year()}). ` +
+                    `Retrieved from ${citationUrl} [online resource] (archived on April 14, 2025).`
             )
-        ).toEqual(
-            `“Data Page: Indicator”. Our World in Data (${dayjs().year()}). ` +
-                `Retrieved from ${citationUrl} [online resource] (archived on April 14, 2025).`
-        )
+        })
     })
 })
 
