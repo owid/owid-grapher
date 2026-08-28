@@ -228,6 +228,7 @@ export const enrichedBlockExamples: Record<
     },
     callout: {
         type: "callout",
+        icon: "info",
         parseErrors: [],
         text: [
             {
@@ -296,7 +297,7 @@ export const enrichedBlockExamples: Record<
         filename: "https://ourworldindata.org/assets/images/example-poster.jpg",
         caption: boldLinkExampleText,
         shouldLoop: true,
-        shouldAutoplay: false,
+        shouldAutoplay: true,
         visibility: "mobile",
         parseErrors: [],
     },
