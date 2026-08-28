@@ -85,7 +85,10 @@ export function assembleMetadata(
                 indicatorTitle: col.titlePublicOrDisplayName,
                 origins: def.origins ?? [],
                 source: col.source ?? {},
-                attributions: getAttributionFragmentsFromVariable(def),
+                attributions: getAttributionFragmentsFromVariable({
+                    ...def,
+                    source: col.source,
+                }),
                 attributionShort: def.presentation?.attributionShort,
                 titleVariant: def.presentation?.titleVariant,
                 owidProcessingLevel: def.owidProcessingLevel,

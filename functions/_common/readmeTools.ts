@@ -31,10 +31,7 @@ export function* getCitationLines(
         `If you have limited space (e.g. in data visualizations), you can use this abbreviated in-line citation:` +
             markdownNewlineEnding
     )
-    const attributionFragments = getAttributionFragmentsFromVariable({
-        ...def,
-        source: { name: def.sourceName },
-    })
+    const attributionFragments = getAttributionFragments(col)
     const { short: citationShort, long: citationLong } = getIndicatorCitations({
         indicatorTitle: col.titlePublicOrDisplayName,
         origins: def.origins ?? [],
@@ -161,12 +158,13 @@ export function* getSources(
     }
 }
 
-export function getAttribution(def: OwidColumnDef): string {
-    const attributionFragments = getAttributionFragmentsFromVariable(def)
-    const attribution = formatAttributions(attributionFragments)
-    if (attribution === "") {
-        return def.sourceName ?? ""
-    } else return attribution
+function getAttributionFragments(col: CoreColumn): string[] {
+    const def = col.def as OwidColumnDef
+    return getAttributionFragmentsFromVariable({ ...def, source: col.source })
+}
+
+export function getAttribution(col: CoreColumn): string {
+    return formatAttributions(getAttributionFragments(col))
 }
 
 export function* getDescription(
@@ -203,7 +201,7 @@ function* columnReadmeText(col: CoreColumn) {
 
     yield ""
 
-    const attribution = getAttribution(def)
+    const attribution = getAttribution(col)
 
     const source = getAttributionWithProcessing(
         attribution,
