@@ -1,10 +1,10 @@
 import path from "node:path"
 import { readFileSync } from "node:fs"
-import { beforeAll, afterAll, beforeEach, describe, expect, it } from "vitest"
-import { unstable_startWorker } from "wrangler"
+import { beforeEach, describe, expect, it } from "vitest"
 import { R2GrapherConfigDirectory } from "@ourworldindata/types"
+import { setUpTestWorker } from "./setUpTestWorker.js"
 
-let worker: Awaited<ReturnType<typeof unstable_startWorker>>
+const workerFetch = setUpTestWorker("./functions/test/wrangler.e2e.jsonc")
 
 const lifeExpectancyFixturePath = path.join(
     process.cwd(),
@@ -18,10 +18,6 @@ function makeSlugKey(slug: string, bucketPath = "v1"): string {
         R2GrapherConfigDirectory.publishedGrapherBySlug,
         `${slug}.json`,
     ].join("/")
-}
-
-async function workerFetch(pathname: string, init?: unknown) {
-    return worker.fetch(`http://example.com${pathname}`, init as never)
 }
 
 async function clearBuckets() {
@@ -60,17 +56,6 @@ async function r2HasKey(params: {
 }
 
 describe("grapher config endpoint with local R2 bindings", () => {
-    beforeAll(async () => {
-        worker = await unstable_startWorker({
-            config: "./functions/test/wrangler.e2e.jsonc",
-            dev: { logLevel: "none" },
-        })
-    })
-
-    afterAll(async () => {
-        await worker.dispose()
-    })
-
     beforeEach(async () => {
         await clearBuckets()
     })
