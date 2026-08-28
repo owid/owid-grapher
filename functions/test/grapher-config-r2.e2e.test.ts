@@ -2,9 +2,9 @@ import path from "node:path"
 import { readFileSync } from "node:fs"
 import { beforeEach, describe, expect, it } from "vitest"
 import { R2GrapherConfigDirectory } from "@ourworldindata/types"
-import { setUpTestWorker } from "./setUpTestWorker.js"
+import { setUpTestHarness } from "./setUpTestHarness.js"
 
-const workerFetch = setUpTestWorker("./functions/test/wrangler.e2e.jsonc")
+const server = setUpTestHarness("./functions/test/wrangler.e2e.jsonc")
 
 const lifeExpectancyFixturePath = path.join(
     process.cwd(),
@@ -21,7 +21,9 @@ function makeSlugKey(slug: string, bucketPath = "v1"): string {
 }
 
 async function clearBuckets() {
-    const response = await workerFetch("/__test__/clear-r2", { method: "POST" })
+    const response = await server.fetch("/__test__/clear-r2", {
+        method: "POST",
+    })
     expect(response.status).toBe(200)
 }
 
@@ -30,7 +32,7 @@ async function seedR2(params: {
     key: string
     value: string
 }) {
-    const response = await workerFetch("/__test__/seed-r2", {
+    const response = await server.fetch("/__test__/seed-r2", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -45,7 +47,7 @@ async function r2HasKey(params: {
     bucket: "primary" | "fallback"
     key: string
 }) {
-    const response = await workerFetch(
+    const response = await server.fetch(
         `/__test__/r2-has-key?bucket=${params.bucket}&key=${encodeURIComponent(
             params.key
         )}`
@@ -68,7 +70,7 @@ describe("grapher config endpoint with local R2 bindings", () => {
             value: lifeExpectancyFixture,
         })
 
-        const response = await workerFetch(
+        const response = await server.fetch(
             "/grapher/life-expectancy.config.json"
         )
         expect(response.status).toBe(200)
@@ -91,12 +93,12 @@ describe("grapher config endpoint with local R2 bindings", () => {
             value: lifeExpectancyFixture,
         })
 
-        const first = await workerFetch("/grapher/life-expectancy.config.json")
+        const first = await server.fetch("/grapher/life-expectancy.config.json")
         expect(first.status).toBe(200)
         const etag = first.headers.get("ETag")
         expect(etag).toBeTruthy()
 
-        const second = await workerFetch(
+        const second = await server.fetch(
             "/grapher/life-expectancy.config.json",
             {
                 headers: { "If-None-Match": etag as string },
@@ -116,7 +118,7 @@ describe("grapher config endpoint with local R2 bindings", () => {
         expect(await r2HasKey({ bucket: "primary", key })).toBe(false)
         expect(await r2HasKey({ bucket: "fallback", key })).toBe(true)
 
-        const response = await workerFetch(
+        const response = await server.fetch(
             "/grapher/life-expectancy.config.json"
         )
         expect(response.status).toBe(200)
@@ -130,7 +132,7 @@ describe("grapher config endpoint with local R2 bindings", () => {
     })
 
     it("returns 404 when config is missing from both buckets", async () => {
-        const response = await workerFetch(
+        const response = await server.fetch(
             "/grapher/definitely-not-a-real-chart.config.json"
         )
         expect(response.status).toBe(404)
@@ -144,7 +146,7 @@ describe("grapher config endpoint with local R2 bindings", () => {
             value: lifeExpectancyFixture,
         })
 
-        const response = await workerFetch(
+        const response = await server.fetch(
             "/grapher/life-expectancy.config.json?nocache=1"
         )
         expect(response.status).toBe(200)
