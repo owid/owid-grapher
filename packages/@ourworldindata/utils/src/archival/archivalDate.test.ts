@@ -80,11 +80,7 @@ describe(getPhraseForArchivalDate, () => {
         )
     })
 
-    // TODO: return undefined when the date cannot be parsed, rather than
-    // putting "Invalid Date" into a citation.
-    it("renders an invalid date for an unparseable archival date", () => {
-        expect(getPhraseForArchivalDate("nope")).toEqual(
-            "(archived on Invalid Date)."
-        )
+    it("has no phrase for an unparseable archival date", () => {
+        expect(getPhraseForArchivalDate("nope")).toBeUndefined()
     })
 })
