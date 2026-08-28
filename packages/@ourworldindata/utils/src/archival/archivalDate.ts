@@ -46,3 +46,17 @@ export const getDateForArchival = (): ArchivalTimestamp => {
 
     return { date: date.toDate(), formattedDate }
 }
+
+export const formatDateForCitation = (date: dayjs.Dayjs): string =>
+    date.format("MMMM D, YYYY")
+
+/** Pins a citation to a snapshot: `"(archived on April 14, 2025)."` */
+export const getPhraseForArchivalDate = (
+    archivalDate: string | undefined
+): string | undefined => {
+    if (!archivalDate) return undefined
+
+    const parsedDate = parseArchivalDate(archivalDate)
+    const formatted = formatDateForCitation(parsedDate)
+    return `(archived on ${formatted}).`
+}

@@ -2,7 +2,6 @@ import * as React from "react"
 import {
     OwidProcessingLevel,
     getPhraseForProcessingLevel,
-    splitSourceTextIntoFragments,
     formatSourceDate,
     getDateRange,
 } from "@ourworldindata/utils"
@@ -86,6 +85,10 @@ export const makeUnitConversionFactor = ({
 }): React.ReactNode => {
     if (!unitConversionFactor || unitConversionFactor === 1) return null
     return unitConversionFactor
+}
+
+const splitSourceTextIntoFragments = (text: string | undefined): string[] => {
+    return text ? text.split(";").map((fragment) => fragment.trim()) : []
 }
 
 export const makeLinks = ({ link }: { link?: string }): React.ReactNode => {

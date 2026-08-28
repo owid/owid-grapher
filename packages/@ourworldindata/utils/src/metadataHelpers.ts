@@ -1,4 +1,3 @@
-import * as R from "remeda"
 import {
     OwidOrigin,
     OwidVariableWithSource,
@@ -11,7 +10,10 @@ import {
 import * as _ from "lodash-es"
 import { excludeUndefined } from "./Util"
 import dayjs from "./dayjs.js"
-import { parseArchivalDate } from "./archival/archivalDate.js"
+import {
+    formatDateForCitation,
+    getPhraseForArchivalDate,
+} from "./archival/archivalDate.js"
 
 /**
  * One label per origin: its explicit attribution, or its producer plus
@@ -35,17 +37,6 @@ export function getOriginAttributionFragments(
               )
           })
         : []
-}
-
-/**
- * Splits a semicolon-separated metadata field into trimmed fragments, e.g.
- * `["https://a.example", "https://b.example"]`. Renders as the individual links
- * in the "Links" row of the key-data table.
- */
-export const splitSourceTextIntoFragments = (
-    text: string | undefined
-): string[] => {
-    return text ? text.split(";").map((fragment) => fragment.trim()) : []
 }
 
 /**
@@ -90,26 +81,6 @@ export const getETLPathComponents = (path: string): ETLPathComponents => {
     const [channel, producer, version, dataset, table, indicator] =
         path.split("/")
     return { channel, producer, version, dataset, table, indicator }
-}
-
-/**
- * Author names as a prose list, e.g. `"Hannah Ritchie, Pablo Rosado, and Max
- * Roser"`. Renders as an article's byline and in homepage, latest and search
- * cards.
- */
-export function formatAuthors(authors: string[]): string {
-    if (authors.length === 0) return ""
-    if (authors.length === 1) return authors[0]
-    if (authors.length === 2) return authors.join(" and ")
-    return authors.slice(0, -1).join(", ") + `, and ${R.last(authors)}`
-}
-
-/**
- * Author names as BibTeX expects them, e.g. `"Hannah Ritchie and Max Roser"`.
- * Renders in the BibTeX entry of "Cite this work".
- */
-export function formatAuthorsForBibtex(authors: string[]): string {
-    return authors.join(" and ")
 }
 
 const isFullDate = (date: string): boolean => {
@@ -275,23 +246,6 @@ export const getCitationShort = (
     return `${attributionShortened} – ${processingLevelPhrase} by Our World in Data`
 }
 
-const getDateForCitation = (date: dayjs.Dayjs): string =>
-    date.format("MMMM D, YYYY")
-
-/**
- * Pins a citation to a snapshot: `"(archived on April 14, 2025)."`. Renders at
- * the end of the citations on archived pages only.
- */
-export const getPhraseForArchivalDate = (
-    archivalDate: string | undefined
-): string | undefined => {
-    if (!archivalDate) return undefined
-
-    const parsedDate = parseArchivalDate(archivalDate)
-    const formatted = getDateForCitation(parsedDate)
-    return `(archived on ${formatted}).`
-}
-
 /**
  * The full indicator citation. The attribution unshortened, then the dataset
  * title, the original data and the retrieval date, dropping any part with nothing
@@ -335,7 +289,7 @@ export const getCitationLong = (
                 }”`
         )
     ).join("; ")
-    const today = getDateForCitation(dayjs())
+    const today = formatDateForCitation(dayjs())
     const archivalPhrase = getPhraseForArchivalDate(archivalDate)
     return excludeUndefined([
         `${attributionWithProcessing}.`,

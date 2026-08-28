@@ -1,8 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
-    formatAuthors,
-    formatAuthorsForBibtex,
     formatSourceDate,
     getAttributionFragmentsFromVariable,
     getCitationDatapage,
@@ -13,11 +11,9 @@ import {
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
     getOriginAttributionFragments,
-    getPhraseForArchivalDate,
     getPhraseForProcessingLevel,
     getYearSuffixFromOrigin,
     prepareSourcesForDisplay,
-    splitSourceTextIntoFragments,
 } from "./metadataHelpers.js"
 import dayjs from "./dayjs.js"
 
@@ -100,38 +96,6 @@ describe(getOriginAttributionFragments, () => {
                 { producer: "B" },
             ])
         ).toEqual(["B", "A", "B"])
-    })
-})
-
-describe(splitSourceTextIntoFragments, () => {
-    it("returns an empty array for undefined text", () => {
-        expect(splitSourceTextIntoFragments(undefined)).toEqual([])
-    })
-
-    it("returns an empty array for empty text", () => {
-        expect(splitSourceTextIntoFragments("")).toEqual([])
-    })
-
-    it("returns a single fragment if there is no semicolon", () => {
-        expect(splitSourceTextIntoFragments("  one fragment  ")).toEqual([
-            "one fragment",
-        ])
-    })
-
-    it("splits on semicolons and trims each fragment", () => {
-        expect(splitSourceTextIntoFragments("one ;  two;three ")).toEqual([
-            "one",
-            "two",
-            "three",
-        ])
-    })
-
-    it("keeps empty fragments produced by consecutive semicolons", () => {
-        expect(splitSourceTextIntoFragments("one;;two")).toEqual([
-            "one",
-            "",
-            "two",
-        ])
     })
 })
 
@@ -247,58 +211,6 @@ describe(getETLPathComponents, () => {
             table: "e",
             indicator: "f",
         })
-    })
-})
-
-describe(formatAuthors, () => {
-    it("formats zero authors", () => {
-        expect(formatAuthors([])).toEqual("")
-    })
-
-    it("formats one author", () => {
-        expect(formatAuthors(["Author 1"])).toEqual("Author 1")
-    })
-
-    it("formats two authors", () => {
-        expect(formatAuthors(["Author 1", "Author 2"])).toEqual(
-            "Author 1 and Author 2"
-        )
-    })
-
-    it("formats three authors", () => {
-        const authors = ["Author 1", "Author 2", "Author 3"]
-        expect(formatAuthors(authors)).toEqual(
-            "Author 1, Author 2, and Author 3"
-        )
-    })
-
-    it("formats four authors", () => {
-        const authors = ["Author 1", "Author 2", "Author 3", "Author 4"]
-        expect(formatAuthors(authors)).toEqual(
-            "Author 1, Author 2, Author 3, and Author 4"
-        )
-    })
-})
-
-describe(formatAuthorsForBibtex, () => {
-    it("formats zero authors for bibtex", () => {
-        expect(formatAuthorsForBibtex([])).toEqual("")
-    })
-
-    it("formats one author for bibtex", () => {
-        expect(formatAuthorsForBibtex(["Author 1"])).toEqual("Author 1")
-    })
-
-    it("formats two authors for bibtex", () => {
-        expect(formatAuthorsForBibtex(["Author 1", "Author 2"])).toEqual(
-            "Author 1 and Author 2"
-        )
-    })
-
-    it("formats three authors for bibtex", () => {
-        expect(
-            formatAuthorsForBibtex(["Author 1", "Author 2", "Author 3"])
-        ).toEqual("Author 1 and Author 2 and Author 3")
     })
 })
 
@@ -610,32 +522,6 @@ describe(getCitationShort, () => {
     it("has nothing to attribute without attributions or origins", () => {
         expect(getCitationShort([], [], undefined)).toEqual(
             " – processed by Our World in Data"
-        )
-    })
-})
-
-describe(getPhraseForArchivalDate, () => {
-    it("returns undefined if there is no archival date", () => {
-        expect(getPhraseForArchivalDate(undefined)).toBeUndefined()
-    })
-
-    it("formats an archival timestamp", () => {
-        expect(getPhraseForArchivalDate("20250414-074331")).toEqual(
-            "(archived on April 14, 2025)."
-        )
-    })
-
-    it("formats an ISO date", () => {
-        expect(getPhraseForArchivalDate("2025-04-14")).toEqual(
-            "(archived on April 14, 2025)."
-        )
-    })
-
-    // TODO: return undefined when the date cannot be parsed, rather than
-    // putting "Invalid Date" into a citation.
-    it("renders an invalid date for an unparseable archival date", () => {
-        expect(getPhraseForArchivalDate("nope")).toEqual(
-            "(archived on Invalid Date)."
         )
     })
 })

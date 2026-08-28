@@ -33,7 +33,7 @@ function buildAuthorsNote(
 ): string | undefined {
     if (authors.length === 0) return undefined
     const kicker = LATEST_TYPE_LABELS[latestType].toLowerCase()
-    return `This ${kicker} was led by ${formatInlineList(authors, "and")}.`
+    return `This ${kicker} was led by ${formatInlineList(authors)}.`
 }
 
 export const AnnouncementPage = ({

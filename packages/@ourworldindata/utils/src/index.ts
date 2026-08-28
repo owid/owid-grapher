@@ -124,6 +124,8 @@ export {
     getAllChildrenOfArea,
     flattenNonTopicNodes,
     formatInlineList,
+    formatAuthors,
+    formatAuthorsForBibtex,
     lazy,
     getParentIndicatorIdFromChartConfig,
     isArrayDifferentFromReference,
@@ -160,19 +162,15 @@ export {
     getOriginAttributionFragments,
     getAttributionFragmentsFromVariable,
     getETLPathComponents,
-    formatAuthors,
-    formatAuthorsForBibtex,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
     getPhraseForProcessingLevel,
-    splitSourceTextIntoFragments,
     prepareSourcesForDisplay,
     formatSourceDate,
     getDateRange,
     getCitationLong,
     getCitationShort,
     getCitationDatapage,
-    getPhraseForArchivalDate,
     getYearSuffixFromOrigin,
 } from "./metadataHelpers.js"
 
@@ -380,6 +378,7 @@ export {
     convertToArchivalDateStringIfNecessary,
     formatAsArchivalDate,
     getDateForArchival,
+    getPhraseForArchivalDate,
     parseArchivalDate,
 } from "./archival/archivalDate.js"
 

@@ -331,10 +331,9 @@ export function makeTooltipRoundingNotice(
     { plural }: { plural: boolean } = { plural: true }
 ): string {
     const uniqueNumSigFigs = _.uniq(numSignificantFigures)
-    const formattedNumSigFigs = formatInlineList(
-        _.sortBy(uniqueNumSigFigs),
-        "or"
-    )
+    const formattedNumSigFigs = formatInlineList(_.sortBy(uniqueNumSigFigs), {
+        connector: "or",
+    })
 
     const values = plural ? "Values" : "Value"
     const are = plural ? "are" : "is"
