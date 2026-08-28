@@ -15,28 +15,42 @@ import {
     getPhraseForArchivalDate,
 } from "./archival/archivalDate.js"
 
+export interface OriginAttribution {
+    label: string
+    url?: string
+}
+
+/** How to credit one origin: its explicit attribution, or whatever names it */
+const getOriginAttributionLabel = (origin: OwidOrigin): string | undefined => {
+    if (origin.attribution) return origin.attribution
+
+    const name = origin.producer ?? origin.title ?? origin.urlMain
+    if (!name) return undefined
+
+    const yearPublished = origin.datePublished
+        ? dayjs(origin.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
+        : undefined
+
+    return yearPublished ? `${name} (${yearPublished})` : name
+}
+
 /**
- * One label per origin: its explicit attribution, or its producer plus
- * publication year, e.g. `["UN WPP (2024)", "HYDE"]`. Renders in a chart's
- * sources line and in the download modal's list of data sources.
+ * One credit per origin that can be named, e.g.
+ * `[{ label: "UN WPP (2024)", url: "https://population.un.org" }]`. Renders as
+ * the download modal's list of linked data sources, and unlinked in a chart's
+ * sources line.
  */
-export function getOriginAttributionFragments(
+export function getOriginAttributions(
     origins: OwidOrigin[] | undefined
-): string[] {
-    return origins
-        ? origins.map((origin) => {
-              const yearPublished = origin.datePublished
-                  ? dayjs(origin.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
-                  : undefined
-              const yearPublishedString = yearPublished
-                  ? ` (${yearPublished})`
-                  : ""
-              return (
-                  origin.attribution ??
-                  `${origin.producer}${yearPublishedString}`
-              )
-          })
-        : []
+): OriginAttribution[] {
+    if (!origins) return []
+
+    return excludeUndefined(
+        origins.map((origin) => {
+            const label = getOriginAttributionLabel(origin)
+            return label ? { label, url: origin.urlMain } : undefined
+        })
+    )
 }
 
 /**
@@ -56,11 +70,11 @@ export function getAttributionFragmentsFromVariable(
     )
         return [variable.presentation?.attribution]
 
-    const originAttributionFragments = getOriginAttributionFragments(
-        variable.origins
+    const originAttributions = getOriginAttributions(variable.origins).map(
+        (attribution) => attribution.label
     )
     const name = variable.source?.name
-    return _.uniq(_.compact([name, ...originAttributionFragments]))
+    return _.uniq(_.compact([name, ...originAttributions]))
 }
 
 interface ETLPathComponents {
@@ -175,10 +189,8 @@ export const getProcessingPhraseForAttribution = (
         : getPhraseForProcessingLevel(owidProcessingLevel)
 
 const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
-    let label = origin.producer ?? ""
-    if (origin.title && origin.title !== label) {
-        label += " – " + origin.title
-    }
+    const title = origin.title !== origin.producer ? origin.title : undefined
+    const label = excludeUndefined([origin.producer, title]).join(" – ")
 
     return {
         label,
@@ -315,12 +327,16 @@ const getCitationLong = ({
         titleFragments,
     ]).join(" – ")
     const originCitations = _.uniq(
-        origins.map(
-            (origin) =>
-                `${origin.producer}, “${origin.title ?? origin.titleSnapshot}${
-                    origin.versionProducer ? " " + origin.versionProducer : ""
-                }”`
-        )
+        origins.map((origin) => {
+            const title = origin.title ?? origin.titleSnapshot
+            const versionProducer = origin.versionProducer
+                ? " " + origin.versionProducer
+                : ""
+            return excludeUndefined([
+                origin.producer,
+                title ? `“${title}${versionProducer}”` : undefined,
+            ]).join(", ")
+        })
     ).join("; ")
     const today = formatDateForCitation(dayjs())
     const archivalPhrase = getPhraseForArchivalDate(archivalDate)

@@ -7,7 +7,7 @@ import {
     Bounds,
     canWriteToClipboard,
     fetchWithTimeout,
-    getOriginAttributionFragments,
+    getOriginAttributions,
     makeDownloadCodeExamples,
     getProcessingPhraseForAttribution,
     SERVER_SIDE_DOWNLOAD_HELP_TEXT,
@@ -55,7 +55,6 @@ import { Modal } from "./Modal"
 import { GrapherRasterizeFn } from "../captionedChart/StaticChartRasterizer.js"
 import { TabPanel } from "react-aria-components"
 import { TabItem, Tabs } from "../tabs/Tabs.js"
-import * as R from "remeda"
 import {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
@@ -551,20 +550,16 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
         (o) => o.urlMain ?? o.datePublished
     )
 
-    const attributions = getOriginAttributionFragments(originsUniq)
+    const attributions = getOriginAttributions(originsUniq)
 
-    const sourceLinks = R.zip(attributions, originsUniq).map(
-        ([attribution, origin]) => {
-            const link = origin?.urlMain
-
-            if (link)
-                return (
-                    <li key={link}>
-                        <a href={link}>{attribution}</a>
-                    </li>
-                )
-            else return <li key={attribution}>{attribution}</li>
-        }
+    const sourceLinks = attributions.map(({ label, url }) =>
+        url ? (
+            <li key={url}>
+                <a href={url}>{label}</a>
+            </li>
+        ) : (
+            <li key={label}>{label}</li>
+        )
     )
 
     // Find the highest processing level of all columns
@@ -577,7 +572,7 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
         }, undefined)
 
     const processingLevelPhrase = getProcessingPhraseForAttribution(
-        attributions,
+        attributions.map(({ label }) => label),
         owidProcessingLevel
     )
     const fullProcessingPhrase = processingLevelPhrase ? (

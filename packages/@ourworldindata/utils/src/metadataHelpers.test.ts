@@ -8,92 +8,118 @@ import {
     getETLPathComponents,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
-    getOriginAttributionFragments,
+    getOriginAttributions,
     getProcessingPhraseForAttribution,
     getYearSuffixFromOrigin,
     prepareSourcesForDisplay,
 } from "./metadataHelpers.js"
 import dayjs from "./dayjs.js"
 
-describe(getOriginAttributionFragments, () => {
+describe(getOriginAttributions, () => {
     it("returns an empty array for undefined origins", () => {
-        expect(getOriginAttributionFragments(undefined)).toEqual([])
+        expect(getOriginAttributions(undefined)).toEqual([])
     })
 
     it("returns an empty array for no origins", () => {
-        expect(getOriginAttributionFragments([])).toEqual([])
+        expect(getOriginAttributions([])).toEqual([])
     })
 
     it("prefers an explicit attribution over producer and year", () => {
         expect(
-            getOriginAttributionFragments([
+            getOriginAttributions([
                 {
                     attribution: "Custom attribution",
                     producer: "Producer",
                     datePublished: "2019-01-01",
                 },
             ])
-        ).toEqual(["Custom attribution"])
+        ).toEqual([{ label: "Custom attribution", url: undefined }])
     })
 
     it("appends the publication year to the producer", () => {
         expect(
-            getOriginAttributionFragments([
+            getOriginAttributions([
                 { producer: "Producer", datePublished: "2019-01-01" },
             ])
-        ).toEqual(["Producer (2019)"])
+        ).toEqual([{ label: "Producer (2019)", url: undefined }])
     })
 
     it("accepts a year-only publication date", () => {
         expect(
-            getOriginAttributionFragments([
+            getOriginAttributions([
                 { producer: "Producer", datePublished: "2019" },
             ])
-        ).toEqual(["Producer (2019)"])
+        ).toEqual([{ label: "Producer (2019)", url: undefined }])
     })
 
     it("omits the year if there is no publication date", () => {
-        expect(
-            getOriginAttributionFragments([{ producer: "Producer" }])
-        ).toEqual(["Producer"])
+        expect(getOriginAttributions([{ producer: "Producer" }])).toEqual([
+            { label: "Producer", url: undefined },
+        ])
     })
 
     it("omits the year if the publication date is unparseable", () => {
         expect(
-            getOriginAttributionFragments([
+            getOriginAttributions([
                 { producer: "Producer", datePublished: "not a date" },
             ])
-        ).toEqual(["Producer"])
+        ).toEqual([{ label: "Producer", url: undefined }])
     })
 
-    // TODO: fall back to the origin's title, or drop the origin, instead of
-    // interpolating a missing producer. This reaches the sources line under a
-    // chart and the download modal's source list.
-    it("renders a literal undefined when an origin has no producer", () => {
+    it("carries the origin's url", () => {
         expect(
-            getOriginAttributionFragments([{ datePublished: "2019" }])
-        ).toEqual(["undefined (2019)"])
-    })
-
-    // TODO: treat an empty attribution like a missing one and fall through to
-    // the producer. `??` only catches null and undefined, so the origin
-    // contributes a blank label.
-    it("keeps an empty attribution instead of using the producer", () => {
-        expect(
-            getOriginAttributionFragments([
-                { attribution: "", producer: "Producer" },
+            getOriginAttributions([
+                { producer: "Producer", urlMain: "https://example.org" },
             ])
-        ).toEqual([""])
+        ).toEqual([{ label: "Producer", url: "https://example.org" }])
+    })
+
+    it("falls back to the title if there is no producer", () => {
+        expect(
+            getOriginAttributions([{ title: "Title", datePublished: "2019" }])
+        ).toEqual([{ label: "Title (2019)", url: undefined }])
+    })
+
+    it("falls back to the url if there is no producer or title", () => {
+        expect(
+            getOriginAttributions([
+                { urlMain: "https://example.org", datePublished: "2019" },
+            ])
+        ).toEqual([
+            {
+                label: "https://example.org (2019)",
+                url: "https://example.org",
+            },
+        ])
+    })
+
+    it("drops an origin with nothing to name it", () => {
+        expect(
+            getOriginAttributions([
+                { datePublished: "2019" },
+                { producer: "Producer" },
+            ])
+        ).toEqual([{ label: "Producer", url: undefined }])
+    })
+
+    it("ignores an empty attribution and uses the producer", () => {
+        expect(
+            getOriginAttributions([{ attribution: "", producer: "Producer" }])
+        ).toEqual([{ label: "Producer", url: undefined }])
     })
 
     it("keeps duplicates and preserves the order of origins", () => {
         expect(
-            getOriginAttributionFragments([
+            getOriginAttributions([
                 { producer: "B" },
                 { producer: "A" },
                 { producer: "B" },
             ])
-        ).toEqual(["B", "A", "B"])
+        ).toEqual([
+            { label: "B", url: undefined },
+            { label: "A", url: undefined },
+            { label: "B", url: undefined },
+        ])
     })
 })
 
@@ -452,12 +478,10 @@ describe(prepareSourcesForDisplay, () => {
         ).toEqual([{ label: "Producer" }])
     })
 
-    // TODO: omit the separator when there is no producer, so the label reads
-    // "Title" rather than opening with a dangling dash.
-    it("starts the label with a separator when an origin has no producer", () => {
+    it("omits the separator when an origin has no producer", () => {
         expect(
             prepareSourcesForDisplay({ origins: [{ title: "Title" }] })
-        ).toEqual([{ label: " – Title" }])
+        ).toEqual([{ label: "Title" }])
     })
 
     it("keeps the order of the origins", () => {
@@ -682,15 +706,21 @@ describe(getIndicatorCitations, () => {
             )
         })
 
-        // TODO: omit the quoted title when an origin has neither `title` nor
-        // `titleSnapshot`, instead of quoting the string "undefined".
-        it("renders a literal undefined when an origin has no title", () => {
+        it("omits the quoted title when an origin has none", () => {
             expect(
                 citations({ origins: [{ producer: "Producer" }] }).long
             ).toEqual(
                 "Attribution – processed by Our World in Data. " +
                     "“Indicator” [dataset]. " +
-                    "Producer, “undefined” [original data]."
+                    "Producer [original data]."
+            )
+        })
+
+        it("omits the producer when an origin has none", () => {
+            expect(citations({ origins: [{ title: "Title" }] }).long).toEqual(
+                "Attribution – processed by Our World in Data. " +
+                    "“Indicator” [dataset]. " +
+                    "“Title” [original data]."
             )
         })
 
