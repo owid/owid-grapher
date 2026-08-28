@@ -58,8 +58,8 @@ export function getAttributionFragmentsFromVariable(
     )
         return [variable.presentation?.attribution]
 
-    const originAttributions = getOriginAttributions(variable.origins).map(
-        (attribution) => attribution.label
+    const originAttributions = excludeUndefined(
+        (variable.origins ?? []).map(getOriginAttributionLabel)
     )
     const name = variable.source?.name
     return _.uniq(_.compact([name, ...originAttributions]))
