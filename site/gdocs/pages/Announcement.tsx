@@ -3,7 +3,7 @@ import {
     LATEST_TYPE_LABELS,
     OwidGdocAnnouncementInterface,
 } from "@ourworldindata/types"
-import { formatInlineList } from "@ourworldindata/utils"
+import { formatAuthors } from "@ourworldindata/utils"
 import { useContext } from "react"
 import * as React from "react"
 import { AnnouncementContent } from "../../latest/AnnouncementContent.js"
@@ -33,7 +33,7 @@ function buildAuthorsNote(
 ): string | undefined {
     if (authors.length === 0) return undefined
     const kicker = LATEST_TYPE_LABELS[latestType].toLowerCase()
-    return `This ${kicker} was led by ${formatInlineList(authors)}.`
+    return `This ${kicker} was led by ${formatAuthors(authors)}.`
 }
 
 export const AnnouncementPage = ({
