@@ -1,5 +1,6 @@
 import * as _ from "lodash-es"
 import {
+    formatAttributions,
     formatSourceDate,
     getAttributionFragmentsFromVariable,
     getLastUpdatedFromVariable,
@@ -174,7 +175,7 @@ export function getSource(attribution: string, def: OwidColumnDef): string {
 
 export function getAttribution(def: OwidColumnDef): string {
     const attributionFragments = getAttributionFragmentsFromVariable(def)
-    const attribution = attributionFragments.join("; ")
+    const attribution = formatAttributions(attributionFragments)
     if (attribution === "") {
         return def.sourceName ?? ""
     } else return attribution

@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import * as R from "remeda"
 import {
     Bounds,
+    formatAttributions,
     getAttributionFragmentsFromVariable,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
@@ -436,7 +437,7 @@ export class Source extends React.Component<SourceProps> {
             this.def
         )
         if (attributionFragments.length === 0) return undefined
-        return attributionFragments.join("; ")
+        return formatAttributions(attributionFragments)
     }
 
     @computed get lastUpdated(): string | undefined {

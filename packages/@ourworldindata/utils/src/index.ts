@@ -161,6 +161,8 @@ export {
 export {
     getOriginAttributions,
     getAttributionFragmentsFromVariable,
+    formatAttributions,
+    formatAttributionsShortened,
     getETLPathComponents,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,

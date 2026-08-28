@@ -65,6 +65,14 @@ export function getAttributionFragmentsFromVariable(
     return _.uniq(_.compact([name, ...originAttributions]))
 }
 
+export const formatAttributions = (attributions: string[]): string =>
+    attributions.join("; ")
+
+export const formatAttributionsShortened = (attributions: string[]): string =>
+    attributions.length > 3
+        ? `${attributions[0]} and other sources`
+        : formatAttributions(attributions)
+
 interface ETLPathComponents {
     channel: string
     producer: string
@@ -213,13 +221,8 @@ const getCitationShort = ({
     attributions: string[]
     owidProcessingLevel?: OwidProcessingLevel
 }): string => {
-    const attributionShortened =
-        attributions.length > 3
-            ? `${attributions[0]} and other sources`
-            : attributions.join("; ")
-
     return getAttributionWithProcessing(
-        attributionShortened,
+        formatAttributionsShortened(attributions),
         owidProcessingLevel
     )
 }
@@ -250,7 +253,7 @@ const getCitationLong = ({
             ? `${attributionShort} – ${titleVariant}`
             : attributionShort || titleVariant
     const attributionWithProcessing = getAttributionWithProcessing(
-        attributions.join("; "),
+        formatAttributions(attributions),
         owidProcessingLevel
     )
     const titleWithFragments = excludeUndefined([

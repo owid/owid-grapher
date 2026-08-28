@@ -1,9 +1,3 @@
-export function getAttributionUnshortened(datapageData: {
-    attributions?: string[]
-}) {
-    return datapageData.attributions?.join("; ") ?? ""
-}
-
 interface MarkdownBlock {
     type: "heading" | "listItem" | "paragraph"
     lines: string[]

@@ -20,6 +20,7 @@ import {
 } from "@ourworldindata/types"
 import { useRef } from "react"
 import {
+    formatAttributions,
     prepareSourcesForDisplay,
     getIndicatorCitations,
     spansToUnformattedPlainText,
@@ -28,10 +29,7 @@ import { Byline } from "./gdocs/components/Byline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons"
-import {
-    getAttributionUnshortened,
-    splitDescriptionKey,
-} from "./datapageUtils.js"
+import { splitDescriptionKey } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
 
@@ -416,9 +414,9 @@ export default function IndicatorMetadataBox({
     // expander per indicator, so we don't merge owners across datasets here.
     const owners = datapageData.owners?.[0]?.owners ?? []
 
-    const attributionUnshortened = getAttributionUnshortened(datapageData)
+    const attribution = formatAttributions(datapageData.attributions ?? [])
     const sourceString = makeSource({
-        attribution: attributionUnshortened,
+        attribution,
         owidProcessingLevel: datapageData.owidProcessingLevel,
         processingId: INDICATOR_PROCESSING_SECTION_ID,
     })

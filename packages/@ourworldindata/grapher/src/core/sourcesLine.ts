@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import {
     ColumnSlug,
+    formatAttributionsShortened,
     getAttributionFragmentsFromVariable,
 } from "@ourworldindata/utils"
 import {
@@ -116,10 +117,5 @@ export const buildSourcesLineFromColumns = (columns: CoreColumn[]): string => {
         })
     )
 
-    const uniqueAttributions = _.uniq(attributions)
-
-    if (uniqueAttributions.length > 3)
-        return `${uniqueAttributions[0]} and other sources`
-
-    return uniqueAttributions.join("; ")
+    return formatAttributionsShortened(_.uniq(attributions))
 }
