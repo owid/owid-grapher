@@ -80,7 +80,7 @@ describe(getPhraseForArchivalDate, () => {
         )
     })
 
-    it("has no phrase for an unparseable archival date", () => {
-        expect(getPhraseForArchivalDate("nope")).toBeUndefined()
+    it("omits the date if the archival date is unparseable", () => {
+        expect(getPhraseForArchivalDate("nope")).toEqual("(archived).")
     })
 })

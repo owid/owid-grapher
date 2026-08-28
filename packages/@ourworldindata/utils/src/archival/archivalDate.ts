@@ -56,7 +56,7 @@ export const getPhraseForArchivalDate = (
     if (!archivalDate) return undefined
 
     const parsedDate = parseArchivalDate(archivalDate)
-    if (!parsedDate.isValid()) return undefined
+    if (!parsedDate.isValid()) return "(archived)."
 
     const formatted = formatDateForCitation(parsedDate)
     return `(archived on ${formatted}).`
