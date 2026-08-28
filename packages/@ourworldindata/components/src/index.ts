@@ -56,15 +56,15 @@ export {
 } from "./IndicatorKeyData/IndicatorKeyData.js"
 export { IndicatorProcessing } from "./IndicatorProcessing/IndicatorProcessing.js"
 
-export { MetadataBoxExpander } from "./MetadataBoxExpander/MetadataBoxExpander.js"
-export { MetadataBoxCollapseButton } from "./MetadataBoxCollapseButton/MetadataBoxCollapseButton.js"
-export { MetadataBoxSection } from "./MetadataBoxSection/MetadataBoxSection.js"
-export { MetadataBoxReuseNotice } from "./MetadataBoxReuseNotice/MetadataBoxReuseNotice.js"
-export { ChartLicenseNotice } from "./ChartLicenseNotice/ChartLicenseNotice.js"
+export { MetadataBoxExpander } from "./MetadataBox/MetadataBoxExpander.js"
+export { MetadataBoxCollapseButton } from "./MetadataBox/MetadataBoxCollapseButton.js"
+export { MetadataBoxSection } from "./MetadataBox/MetadataBoxSection.js"
+export { MetadataBoxReuseNotice } from "./MetadataBox/MetadataBoxReuseNotice.js"
 export {
     MetadataBoxKeyData,
     MetadataBoxKeyDataRow,
-} from "./MetadataBoxKeyData/MetadataBoxKeyData.js"
+} from "./MetadataBox/MetadataBoxKeyData.js"
+export { ChartLicenseNotice } from "./ChartLicenseNotice/ChartLicenseNotice.js"
 
 export { LabeledSwitch } from "./LabeledSwitch/LabeledSwitch.js"
 export { Checkbox } from "./Checkbox.js"
