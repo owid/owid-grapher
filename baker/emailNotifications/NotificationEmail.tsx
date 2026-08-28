@@ -367,7 +367,6 @@ function TeaserBody({ item }: { item: NotificationEmailItem }) {
                     imageUrlByFilename={item.imageUrlByFilename ?? {}}
                 />
             ))}
-            {/* For (rarely-used) cta announcements, just show the excerpt and CTA*/}
             {body.length === 0 && (
                 <>
                     {item.excerpt && (
@@ -375,14 +374,7 @@ function TeaserBody({ item }: { item: NotificationEmailItem }) {
                             {item.excerpt}
                         </Text>
                     )}
-                    {item.cta ? (
-                        <ReadMoreLink
-                            href={item.cta.url}
-                            label={item.cta.text}
-                        />
-                    ) : (
-                        <ReadMoreLink href={item.url} label="Read more" />
-                    )}
+                    <ReadMoreLink href={item.url} label="Read more" />
                 </>
             )}
         </>
