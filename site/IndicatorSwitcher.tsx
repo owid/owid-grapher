@@ -220,7 +220,9 @@ const IndicatorMoreDropdown = ({
             })}
             buttonContent={
                 <>
-                    {label}
+                    <span className="indicator-switcher__item-label">
+                        {label}
+                    </span>
                     <FontAwesomeIcon
                         icon={faCaretDown}
                         className="indicator-switcher__caret"
@@ -279,8 +281,11 @@ export const IndicatorTabsHorizontal = ({
                     })}
                     onClick={() => onIndicatorChange(i)}
                     data-track-note="metadata_box_indicator_switch"
+                    title={labelForIndicator(ind.datapageData)}
                 >
-                    {labelForIndicator(ind.datapageData)}
+                    <span className="indicator-switcher__item-label">
+                        {labelForIndicator(ind.datapageData)}
+                    </span>
                 </button>
             ))}
             {overflow.length > 0 && (

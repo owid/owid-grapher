@@ -20,7 +20,10 @@ export const useSwitcherVariant = (): SwitcherVariant => {
     useEffect(() => {
         if (typeof window === "undefined") return
         const sp = new URLSearchParams(window.location.search)
-        const v = sp.get("switcher")
+        const raw = sp.get("switcher")
+        // "v-pills" is what you'd guess from "h-pills", so accept it as an
+        // alias for the vertical variant (which is styled as tabs, not pills).
+        const v = raw === "v-pills" ? "v-tabs" : raw
         if (v && ALL_SWITCHER_VARIANTS.includes(v as SwitcherVariant)) {
             setVariant(v as SwitcherVariant)
         }

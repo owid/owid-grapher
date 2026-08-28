@@ -232,10 +232,6 @@ $hover-fill: #e3ebf5;
     border: 1px solid $blue-20;
     color: $blue-70;
     cursor: pointer;
-    // min-height (not height) + inline-flex centring lets the pill grow
-    // when its label wraps to a second line on narrow viewports. The
-    // border-radius is intentionally larger than the tallest expected pill
-    // height so wrapped pills still read as stadium-shaped.
     padding: 4px 14px;
     min-height: 30px;
     display: inline-flex;
@@ -244,10 +240,28 @@ $hover-fill: #e3ebf5;
     text-align: center;
     border-radius: 999px;
     line-height: 1.2;
+    // Labels never wrap; long ones ellipsize instead (the site convention for
+    // pill labels — see .latest-topic-facets__content-type-trigger-label).
+    // max-width: 100% guards against a label ever pushing the pill past the
+    // row/viewport; the sm-up cap keeps one verbose ETL name from hogging a
+    // desktop row. The full label stays available via the button's title
+    // attribute and the aria label.
+    max-width: 100%;
+    min-width: 0;
     transition:
         background-color 120ms ease,
         border-color 120ms ease,
         color 120ms ease;
+
+    @include sm-up {
+        max-width: min(320px, 100%);
+    }
+
+    .indicator-switcher__item-label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 
     &:hover {
         background: $hover-fill;
