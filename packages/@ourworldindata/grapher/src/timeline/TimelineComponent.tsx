@@ -465,6 +465,13 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         return timeColumn.formatTimeShortEnd(time)
     }
 
+    /** The time at which the period a time value stands for ends */
+    private periodEndTime(time: Time): Time {
+        const { timeColumn } = this.manager
+        if (!timeColumn) return time
+        return timeColumn.periodEndTime(time)
+    }
+
     @action.bound private togglePlay(): void {
         void this.controller.togglePlay()
     }
@@ -725,7 +732,11 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 position={position}
                 isEditing={isEditing}
                 formattedTime={formattedEndTime}
-                currentTime={endTime}
+                // Seed the input with the period's last day, so that opening
+                // the picker shows the same period end the label reads. Picked
+                // dates snap back to their own period's time, so re-applying
+                // this value is a no-op.
+                currentTime={this.periodEndTime(endTime)}
                 isDateValid={isDateValid}
                 granularity={this.dateInputGranularity}
                 onStartEditing={() => this.onStartEditing(MarkerType.End)}
