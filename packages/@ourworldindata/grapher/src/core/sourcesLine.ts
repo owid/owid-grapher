@@ -104,10 +104,6 @@ const getDimensionPropertiesForActiveTab = (
     return [y, x, color, size]
 }
 
-/**
- * Who to credit for the columns a chart draws, e.g. `"World Bank; UN WPP
- * (2024)"`.
- */
 export const buildSourcesLineFromColumns = (columns: CoreColumn[]): string => {
     const columnsWithSources = columns.filter(
         (column) => !!column.source.name || !_.isEmpty(column.def.origins)

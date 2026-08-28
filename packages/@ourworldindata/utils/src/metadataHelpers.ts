@@ -20,7 +20,6 @@ export interface OriginAttribution {
     url?: string
 }
 
-/** How to credit one origin: its explicit attribution, or whatever names it */
 const getOriginAttributionLabel = (origin: OwidOrigin): string | undefined => {
     if (origin.attribution) return origin.attribution
 
@@ -34,12 +33,6 @@ const getOriginAttributionLabel = (origin: OwidOrigin): string | undefined => {
     return yearPublished ? `${name} (${yearPublished})` : name
 }
 
-/**
- * One credit per origin that can be named, e.g.
- * `[{ label: "UN WPP (2024)", url: "https://population.un.org" }]`. Renders as
- * the download modal's list of linked data sources, and unlinked in a chart's
- * sources line.
- */
 export function getOriginAttributions(
     origins: OwidOrigin[] | undefined
 ): OriginAttribution[] {
@@ -53,11 +46,6 @@ export function getOriginAttributions(
     )
 }
 
-/**
- * Who to credit for an indicator. A hand-set attribution wins; otherwise the
- * source name and the origins, deduplicated. E.g. `["World Bank", "UN WPP
- * (2024)"]`. Feeds the "Source" row of the key-data table and both citations.
- */
 export function getAttributionFragmentsFromVariable(
     variable: Pick<
         OwidVariableWithSource,
@@ -86,11 +74,6 @@ interface ETLPathComponents {
     indicator: string
 }
 
-/**
- * Splits an ETL catalog path into its parts, e.g.
- * `"grapher/un/2024-07-12/world_population_prospects/population#population"`.
- * The indicator is separated with "#", everything before it with "/".
- */
 export const getETLPathComponents = (path: string): ETLPathComponents => {
     const [channel, producer, version, dataset, table, indicator] =
         path.split(/[/#]/)
@@ -102,11 +85,6 @@ const isFullDate = (date: string): boolean => {
     return !!date.match(fullDateRegex)
 }
 
-/**
- * When the data was last refreshed. Takes the catalog path version if that's a
- * full date, otherwise the latest `dateAccessed` of the origins, e.g.
- * `"2024-07-11"`. Renders as the "Last updated" row of the key-data table.
- */
 export const getLastUpdatedFromVariable = (
     variable: Pick<OwidVariableWithSource, "catalogPath" | "origins">
 ): string | undefined => {
@@ -115,20 +93,13 @@ export const getLastUpdatedFromVariable = (
     if (version && isFullDate(version)) return version
 
     const { origins = [] } = variable
-    const originDates = excludeUndefined(
+    const isoDatesAccessed = excludeUndefined(
         origins.map((origin) => origin.dateAccessed)
     )
 
-    // Alternatively, pick the latest dateAccessed from the origins. These are
-    // zero-padded YYYY-MM-DD, so the largest string is the latest date
-    return _.max(originDates)
+    return _.max(isoDatesAccessed)
 }
 
-/**
- * The last update plus the update period, e.g. `"2025-07-11"`, or a month from
- * today if that date has already passed. Renders as the "Next expected update"
- * row of the key-data table.
- */
 export const getNextUpdateFromVariable = (
     variable: Pick<OwidVariableWithSource, "catalogPath" | "updatePeriodDays">
 ): string | undefined => {
@@ -150,7 +121,6 @@ export const getNextUpdateFromVariable = (
 
 const OWID_ATTRIBUTION = "Our World in Data"
 
-/** How much we reshaped the data, e.g. `"with minor processing"` */
 const getPhraseForProcessingLevel = (
     processingLevel: OwidProcessingLevel | undefined
 ): string => {
@@ -164,12 +134,6 @@ const getPhraseForProcessingLevel = (
     }
 }
 
-/**
- * Whether we are the only party being credited, in which case saying we also
- * processed the data adds nothing. Takes the fragments either as a list or
- * already joined, since the surfaces that render prose have joined them by the
- * time they ask.
- */
 const isOwidTheSoleAttribution = (attribution: string | string[]): boolean => {
     const fragments = Array.isArray(attribution) ? attribution : [attribution]
     return (
@@ -178,10 +142,6 @@ const isOwidTheSoleAttribution = (attribution: string | string[]): boolean => {
     )
 }
 
-/**
- * The processing phrase to show after an attribution, e.g. `"with minor
- * processing"`, or nothing when we are the only party credited.
- */
 export const getProcessingPhraseForAttribution = (
     attribution: string | string[],
     owidProcessingLevel: OwidProcessingLevel | undefined
@@ -203,11 +163,6 @@ const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
     }
 }
 
-/**
- * An indicator's origins, plus its legacy source if that has provenance of its
- * own, as one displayable list. Labels read `"UN WPP – World Population
- * Prospects"`. Renders as the per-source blocks of "Sources and processing".
- */
 export const prepareSourcesForDisplay = (
     variable: Pick<OwidVariableWithSource, "origins" | "source">
 ): DisplaySource[] => {
@@ -236,11 +191,6 @@ export const prepareSourcesForDisplay = (
     return sourcesForDisplay
 }
 
-/**
- * The line both citations open with, e.g. `"UN WPP (2024) – with minor
- * processing by Our World in Data"`. An indicator with nothing else to credit is
- * credited to us.
- */
 const getAttributionWithProcessing = (
     attributionText: string,
     owidProcessingLevel: OwidProcessingLevel | undefined
@@ -256,12 +206,6 @@ const getAttributionWithProcessing = (
         : attribution
 }
 
-/**
- * The abbreviated indicator citation, e.g. `"UN WPP (2024); HYDE (2023) – with
- * minor processing by Our World in Data"`. More than three attributions collapse
- * to "UN WPP (2024) and other sources". Renders as the "In-line citation" under
- * "How to cite this data".
- */
 const getCitationShort = ({
     attributions,
     owidProcessingLevel,
@@ -280,11 +224,6 @@ const getCitationShort = ({
     )
 }
 
-/**
- * The full indicator citation. The attribution unshortened, then the dataset
- * title, the original data and the retrieval date, dropping any part with nothing
- * to say. Renders as the "Full citation" under "How to cite this data".
- */
 const getCitationLong = ({
     indicatorTitle,
     origins,
@@ -346,12 +285,6 @@ const getCitationLong = ({
     ]).join(" ")
 }
 
-/**
- * The "How to cite this page" citation, covering the OWID-authored data page as a
- * whole (descriptions, FAQs, etc.) rather than just the data. Credits the topic
- * page it belongs to where there is one, Our World in Data otherwise. Renders
- * below the indicator citations.
- */
 const getCitationDatapage = ({
     indicatorTitle,
     origins,
@@ -389,15 +322,6 @@ const getCitationDatapage = ({
     ]).join(" ")
 }
 
-/**
- * Every citation an indicator needs, built from one set of values rather than
- * three overlapping argument lists. `datapage` is omitted when no `citationUrl`
- * is given, which is how the callers that want only the indicator citations opt
- * out of it.
- *
- * Renders as the "How to cite this data" section of a data page, and as the same
- * section of Grapher's sources modal, which shows only `short` and `long`.
- */
 export const getIndicatorCitations = ({
     indicatorTitle,
     origins,
@@ -445,11 +369,6 @@ export const getIndicatorCitations = ({
         : undefined,
 })
 
-/**
- * Reformats an ETL date for display, e.g. `"July 11, 2024"`. Reads ISO and
- * day-first spellings; a date it can't parse passes through untouched. Renders in
- * the "Last updated" and "Retrieved on" rows.
- */
 export const formatSourceDate = (
     date: string | undefined,
     format: string
@@ -459,11 +378,6 @@ export const formatSourceDate = (
     return parsedDate.format(format)
 }
 
-/**
- * An indicator's timespan as a year range, e.g. `"1990–2020"` or `"5000 BCE –
- * 2020 CE"`. Null for anything that isn't two dash-separated years, since the
- * field is free text. Renders as the "Date range" row of the key-data table.
- */
 export const getDateRange = (timespan: string): string | null => {
     // This regex matches:
     //   Beginning of string
