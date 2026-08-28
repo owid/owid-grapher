@@ -221,10 +221,6 @@ describe(getLastUpdatedFromVariable, () => {
         ).toEqual("2020-01-01")
     })
 
-    // TODO: parse and format in UTC. `new Date("2022-05-05")` is UTC
-    // midnight but is formatted in local time, so this returns 2022-05-04 at
-    // negative UTC offsets. The assertion below only holds because CI and most
-    // of the team run at or ahead of UTC.
     it("picks the latest date accessed across origins", () => {
         expect(
             getLastUpdatedFromVariable({
@@ -246,6 +242,12 @@ describe(getLastUpdatedFromVariable, () => {
                 ],
             })
         ).toEqual("2020-01-01")
+    })
+
+    it("returns undefined if no origin has a date accessed", () => {
+        expect(
+            getLastUpdatedFromVariable({ origins: [{ producer: "Producer" }] })
+        ).toBeUndefined()
     })
 
     it("returns undefined if there is nothing to go on", () => {

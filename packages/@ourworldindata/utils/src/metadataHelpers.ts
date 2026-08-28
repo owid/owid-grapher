@@ -105,13 +105,9 @@ export const getLastUpdatedFromVariable = (
         origins.map((origin) => origin.dateAccessed)
     )
 
-    if (originDates.length === 0) return undefined
-
-    // alternatively, pick the latest dateAccessed from the origins
-    const latestDate = new Date(
-        Math.max(...originDates.map((date) => new Date(date).getTime()))
-    )
-    return dayjs(latestDate).format("YYYY-MM-DD")
+    // Alternatively, pick the latest dateAccessed from the origins. These are
+    // zero-padded YYYY-MM-DD, so the largest string is the latest date
+    return _.max(originDates)
 }
 
 /**
