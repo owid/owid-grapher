@@ -18,6 +18,7 @@ export interface EmbedModalManager {
     hideExternalControlsInEmbedUrl: boolean
     setHideExternalControlsInEmbedUrl: (value: boolean) => void
     frameBounds?: Bounds
+    base: React.RefObject<HTMLDivElement | null>
     recommendedIframeEmbedHeight?: number
 }
 
@@ -118,6 +119,8 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
         if (!embedOptions.length) return null
         return (
             <Modal
+                ariaLabel="Embed"
+                grapherRef={this.manager.base}
                 bounds={this.modalBounds}
                 alignVertical="bottom"
                 onDismiss={this.onDismiss}

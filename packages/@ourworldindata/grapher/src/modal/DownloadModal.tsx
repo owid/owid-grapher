@@ -76,6 +76,7 @@ export interface DownloadModalManager {
     detailsOrderedByReference?: string[]
     activeModal?: GrapherModal
     frameBounds?: Bounds
+    base: React.RefObject<HTMLDivElement | null>
     captionedChartBounds?: Bounds
     isOnChartOrMapTab?: boolean
     isOnArchivalPage?: boolean
@@ -152,6 +153,8 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     override render(): React.ReactElement {
         return (
             <Modal
+                ariaLabel="Download"
+                grapherRef={this.props.manager.base}
                 bounds={this.modalBounds}
                 onDismiss={this.onDismiss}
                 alignVertical="top"
