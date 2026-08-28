@@ -402,14 +402,6 @@ export class Source extends React.Component<SourceProps> {
         })
     }
 
-    @computed get citationShort(): string {
-        return this.citations.short
-    }
-
-    @computed get citationLong(): string {
-        return this.citations.long
-    }
-
     @computed private get source(): OwidSource {
         return this.def.source ?? {}
     }
@@ -577,8 +569,8 @@ export class Source extends React.Component<SourceProps> {
                     How to cite this data:
                 </h3>
                 <DataCitation
-                    citationShort={this.citationShort}
-                    citationLong={this.citationLong}
+                    citationShort={this.citations.short}
+                    citationLong={this.citations.long}
                 />
             </div>
         )
