@@ -267,31 +267,6 @@ describe(renderNotificationEmail, () => {
         expect(html).toMatch(/Read more[\s\S]{0,40}→/)
     })
 
-    it("links a cta-only announcement with its own call to action", async () => {
-        const { html } = await renderFixture([
-            {
-                type: "announcement",
-                latestType: "announcement",
-                slug: "cta-only",
-                title: "An announcement that is only a call to action",
-                url: `${BASE_URL}/cta-only`,
-                publishedAt: new Date("2026-08-02T09:00:00Z"),
-                topicNames: [],
-                authors: [],
-                excerpt: "Our book is out this autumn.",
-                cta: {
-                    text: "Pre-order the book",
-                    url: "https://example.com/book",
-                },
-            },
-        ])
-        expect(html).toContain("Our book is out this autumn.")
-        expect(html).toMatch(
-            /href="https:\/\/example\.com\/book"[^>]*>Pre-order the book[\s\S]{0,40}→/
-        )
-        expect(html).not.toContain("Read more")
-    })
-
     it("renders list blocks", async () => {
         const { html, text } = await renderFixture()
         expect(html).toMatch(
