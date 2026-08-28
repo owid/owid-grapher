@@ -1,4 +1,5 @@
 import * as React from "react"
+import cx from "clsx"
 import { UNSAFE_PortalProvider } from "react-aria"
 import { Dialog, Modal as AriaModal, ModalOverlay } from "react-aria-components"
 import { Bounds } from "@ourworldindata/utils"
@@ -37,9 +38,6 @@ export function Modal({
         contentStyle.bottom = bounds.y
     } else if (alignVertical === "top") {
         contentStyle.top = bounds.y
-    } else {
-        contentStyle.top = "50%"
-        contentStyle.transform = "translateY(-50%)"
     }
 
     return (
@@ -52,7 +50,13 @@ export function Modal({
                 }}
                 isDismissable
             >
-                <AriaModal className="modal-content" style={contentStyle}>
+                <AriaModal
+                    className={cx(
+                        "modal-content",
+                        `modal-content--${alignVertical}`
+                    )}
+                    style={contentStyle}
+                >
                     <Dialog className="modal-dialog" aria-label={ariaLabel}>
                         {/* Restore the default portal container for nested
                             overlays such as dropdowns. */}
