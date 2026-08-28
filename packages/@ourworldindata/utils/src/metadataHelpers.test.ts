@@ -558,8 +558,17 @@ describe(getIndicatorCitations, () => {
 
         it("credits us when there is nothing else to credit", () => {
             expect(citations({ attributions: [] }).short).toEqual(
-                "Our World in Data – processed by Our World in Data"
+                "Our World in Data"
             )
+        })
+
+        it("does not say we processed data that is only ours", () => {
+            expect(
+                citations({
+                    attributions: ["Our World in Data"],
+                    owidProcessingLevel: "minor",
+                }).short
+            ).toEqual("Our World in Data")
         })
 
         it("ignores the origins when there are no attributions", () => {
@@ -570,7 +579,7 @@ describe(getIndicatorCitations, () => {
                     ],
                     attributions: [],
                 }).short
-            ).toEqual("Our World in Data – processed by Our World in Data")
+            ).toEqual("Our World in Data")
         })
     })
 
@@ -613,7 +622,7 @@ describe(getIndicatorCitations, () => {
                     attributions: [],
                 }).long
             ).toEqual(
-                "Our World in Data – processed by Our World in Data. " +
+                "Our World in Data. " +
                     "“Indicator” [dataset]. " +
                     "Producer, “Title” [original data]."
             )

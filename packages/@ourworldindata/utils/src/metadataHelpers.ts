@@ -246,9 +246,14 @@ const getAttributionWithProcessing = (
     owidProcessingLevel: OwidProcessingLevel | undefined
 ): string => {
     const attribution = attributionText || OWID_ATTRIBUTION
-    const processingPhrase = getPhraseForProcessingLevel(owidProcessingLevel)
+    const processingPhrase = getProcessingPhraseForAttribution(
+        attribution,
+        owidProcessingLevel
+    )
 
-    return `${attribution} – ${processingPhrase} by Our World in Data`
+    return processingPhrase
+        ? `${attribution} – ${processingPhrase} by ${OWID_ATTRIBUTION}`
+        : attribution
 }
 
 /**
