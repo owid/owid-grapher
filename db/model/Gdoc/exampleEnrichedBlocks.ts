@@ -1073,6 +1073,7 @@ export const enrichedBlockExamples: Record<
         variant: "income-chart",
         size: BlockSize.Wide,
         config: { foo: "bar" },
+        fallbackImageFilename: "example-widget-fallback.png",
         parseErrors: [],
     },
 }
