@@ -433,20 +433,16 @@ export const getIndicatorCitations = ({
         citationUrl,
         archivalDate,
     }),
-    // An empty citationUrl is not the same as none: mdim pages baked without a
-    // slug have one (MultiDimBaker.tsx), and cited the page anyway before this
-    // was one entry point
-    datapage:
-        citationUrl !== undefined
-            ? getCitationDatapage({
-                  indicatorTitle,
-                  origins,
-                  source,
-                  primaryTopic,
-                  citationUrl,
-                  archivalDate,
-              })
-            : undefined,
+    datapage: citationUrl
+        ? getCitationDatapage({
+              indicatorTitle,
+              origins,
+              source,
+              primaryTopic,
+              citationUrl,
+              archivalDate,
+          })
+        : undefined,
 })
 
 /**

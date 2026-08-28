@@ -509,13 +509,8 @@ describe(getIndicatorCitations, () => {
         expect(citations().datapage).toBeUndefined()
     })
 
-    it("still cites the page when the citation url is empty", () => {
-        // mdim pages baked without a slug have one (MultiDimBaker.tsx)
-        expect(citations({ citationUrl: "" }).datapage).toEqual(
-            "“Data Page: Indicator”. " +
-                `Our World in Data (${dayjs().year()}). ` +
-                "Retrieved from  [online resource]"
-        )
+    it("omits the datapage citation when the citation url is empty", () => {
+        expect(citations({ citationUrl: "" }).datapage).toBeUndefined()
     })
 
     describe("short", () => {
