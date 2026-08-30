@@ -8,6 +8,7 @@ import { type MarimekkoChartProps } from "./MarimekkoChart.js"
 import {
     MarimekkoChartManager,
     PlacedMarimekkoSeries,
+    RenderMarimekkoSeries,
 } from "./MarimekkoChartConstants"
 import { Bounds } from "@ourworldindata/utils"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
@@ -19,7 +20,11 @@ import {
 } from "../core/GrapherConstants"
 import { MarimekkoBars } from "./MarimekkoBars"
 import { DualAxisComponent } from "../axis/AxisViews"
-import { toPlacedMarimekkoSeries } from "./MarimekkoChartHelpers"
+import {
+    toMarimekkoNoDataArea,
+    toPlacedMarimekkoSeries,
+    toRenderMarimekkoSeries,
+} from "./MarimekkoChartHelpers"
 import { MarimekkoInternalLabels } from "./MarimekkoInternalLabels"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 
@@ -114,9 +119,17 @@ export class MarimekkoChartThumbnail
     }
 
     @computed get placedSeries(): PlacedMarimekkoSeries[] {
-        return toPlacedMarimekkoSeries(this.chartState.sortedSeries, {
-            x0: this.chartState.x0,
+        const { x0, y0, sortedSeries } = this.chartState
+        return toPlacedMarimekkoSeries(sortedSeries, {
+            x0,
+            y0,
             dualAxis: this.dualAxis,
+        })
+    }
+
+    @computed private get renderSeries(): RenderMarimekkoSeries[] {
+        return toRenderMarimekkoSeries(this.placedSeries, {
+            selectedEntityNames: this.chartState.selectionArray.selectedSet,
         })
     }
 
@@ -154,13 +167,9 @@ export class MarimekkoChartThumbnail
             <g>
                 <DualAxisComponent dualAxis={this.dualAxis} showEndpointsOnly />
                 <MarimekkoBars
-                    dualAxis={this.dualAxis}
-                    placedSeries={this.placedSeries}
+                    series={this.renderSeries}
+                    noDataArea={toMarimekkoNoDataArea(this.placedSeries)}
                     fontSize={this.fontSize}
-                    x0={this.chartState.x0}
-                    y0={this.chartState.y0}
-                    selectionArray={this.chartState.selectionArray}
-                    selectedSeries={this.chartState.selectedSeries}
                     isFocusModeActive={this.chartState.isFocusModeActive}
                 />
                 <MarimekkoInternalLabels

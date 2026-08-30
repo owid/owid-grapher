@@ -55,9 +55,10 @@ import { ColorScale } from "../color/ColorScale"
 import { SelectionArray } from "../selection/SelectionArray"
 import {
     MarimekkoChartManager,
+    MarimekkoNoDataArea,
     MarimekkoSeries,
     PlacedMarimekkoSeries,
-    EntityWithSize,
+    RenderMarimekkoSeries,
     LabelCandidate,
     LabelWithPlacement,
     LabelCandidateWithElement,
@@ -65,7 +66,13 @@ import {
 import { MarimekkoChartState } from "./MarimekkoChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { MarimekkoBars } from "./MarimekkoBars"
-import { toPlacedMarimekkoSeries } from "./MarimekkoChartHelpers"
+import {
+    splitIntoEqualDomainSizeChunks,
+    toLabelCandidate,
+    toMarimekkoNoDataArea,
+    toPlacedMarimekkoSeries,
+    toRenderMarimekkoSeries,
+} from "./MarimekkoChartHelpers"
 
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25
@@ -261,10 +268,29 @@ export class MarimekkoChart
     }
 
     @computed get placedSeries(): PlacedMarimekkoSeries[] {
-        return toPlacedMarimekkoSeries(this.chartState.sortedSeries, {
-            x0: this.chartState.x0,
+        const { x0, y0, sortedSeries } = this.chartState
+        return toPlacedMarimekkoSeries(sortedSeries, {
+            x0,
+            y0,
             dualAxis: this.dualAxis,
         })
+    }
+
+    @computed private get hoveredEntityName(): string | undefined {
+        const { target, fading } = this.tooltipState
+        return target && !fading ? target.entityName : undefined
+    }
+
+    @computed private get renderSeries(): RenderMarimekkoSeries[] {
+        return toRenderMarimekkoSeries(this.placedSeries, {
+            hoveredEntityName: this.hoveredEntityName,
+            selectedEntityNames: this.selectionArray.selectedSet,
+            focusColorBin: this.focusColorBin,
+        })
+    }
+
+    @computed private get noDataArea(): MarimekkoNoDataArea | undefined {
+        return toMarimekkoNoDataArea(this.placedSeries)
     }
 
     @computed private get placedSeriesByEntityName(): Map<
@@ -589,15 +615,9 @@ export class MarimekkoChart
     private renderBars(): React.ReactElement {
         return (
             <MarimekkoBars
-                dualAxis={this.dualAxis}
-                focusColorBin={this.focusColorBin}
-                placedSeries={this.placedSeries}
-                tooltipState={this.tooltipState}
+                series={this.renderSeries}
+                noDataArea={this.noDataArea}
                 fontSize={this.fontSize}
-                x0={this.chartState.x0}
-                y0={this.chartState.y0}
-                selectionArray={this.selectionArray}
-                selectedSeries={this.chartState.selectedSeries}
                 onEntityClick={this.onEntityClick}
                 onEntityMouseLeave={this.dismissTooltip}
                 onEntityMouseOver={this.onEntityMouseOver}
@@ -606,63 +626,6 @@ export class MarimekkoChart
     }
 
     private readonly paddingInPixels = 5
-
-    private static labelCandidateFromItem(
-        item: EntityWithSize,
-        fontSize: number,
-        isSelected: boolean
-    ): LabelCandidate {
-        const label = item.shortEntityName ?? item.entityName
-        const labelBounds = Bounds.forText(label, { fontSize })
-
-        return {
-            item: item,
-            label,
-            bounds: labelBounds,
-            isPicked: isSelected,
-            isSelected,
-        }
-    }
-
-    /** This function splits label candidates into N groups so that each group has approximately
-    the same sum of x value metric. This is useful for picking labels because we want to have e.g.
-    20 labels relatively evenly spaced (in x domain space) and this function gives us 20 groups that
-    are roughly of equal size and then we can pick the largest of each group */
-    private static splitIntoEqualDomainSizeChunks(
-        series: readonly MarimekkoSeries[],
-        candidates: LabelCandidate[],
-        numChunks: number
-    ): LabelCandidate[][] {
-        // candidates contains all entities available in the chart for some time
-        // series is just the entities for the currently selected time, so can be a way smaller subset
-        const validItemNames = series.map(({ entityName }) => entityName)
-
-        // filter the list to remove any candidates that are not currently visible
-        // all further calculations are then done only with validCandidates
-        const validCandidates = candidates.filter((candidate) =>
-            validItemNames.includes(candidate.item.entityName)
-        )
-
-        const chunks: LabelCandidate[][] = []
-        let currentChunk: LabelCandidate[] = []
-        let domainSizeOfChunk = 0
-        const domainSizeThreshold = Math.ceil(
-            _.sumBy(validCandidates, (candidate) => candidate.item.xValue) /
-                numChunks
-        )
-        for (const candidate of validCandidates) {
-            while (domainSizeOfChunk > domainSizeThreshold) {
-                chunks.push(currentChunk)
-                currentChunk = []
-                domainSizeOfChunk -= domainSizeThreshold
-            }
-            domainSizeOfChunk += candidate.item.xValue
-            currentChunk.push(candidate)
-        }
-        chunks.push(currentChunk)
-
-        return chunks.filter((chunk) => chunk.length > 0)
-    }
 
     @computed private get pickedLabelCandidates(): LabelCandidate[] {
         const {
@@ -700,7 +663,7 @@ export class MarimekkoChart
 
         let labelCandidates: LabelCandidate[] =
             labelCandidateSource.owidRows.map((row) =>
-                MarimekkoChart.labelCandidateFromItem(
+                toLabelCandidate(
                     {
                         entityName: row.entityName,
                         shortEntityName: getShortNameForEntity(row.entityName),
@@ -769,7 +732,7 @@ export class MarimekkoChart
                 MAX_LABEL_COUNT
             )
         )
-        const chunks = MarimekkoChart.splitIntoEqualDomainSizeChunks(
+        const chunks = splitIntoEqualDomainSizeChunks(
             series,
             labelCandidates,
             numLabelsToAdd
@@ -803,41 +766,27 @@ export class MarimekkoChart
 
         const labelsWithPlacements: LabelWithPlacement[] = labels
             .map(({ candidate, labelElement }) => {
-                const item = placedSeriesByEntityName.get(
+                const series = placedSeriesByEntityName.get(
                     candidate.item.entityName
                 )
-                if (!item)
+                if (!series) {
                     console.error(
-                        "Could not find series in placedSeriesByEntityName"
-                    )
-                const xPoint = item?.xPoint?.value ?? 1
-                const barWidth =
-                    dualAxis.horizontalAxis.place(xPoint) -
-                    dualAxis.horizontalAxis.place(x0)
-
-                const labelId = candidate.item.entityName
-                if (!item) {
-                    console.error(
-                        "Could not find item",
+                        "Could not find series",
                         candidate.item.entityName
                     )
                     return null
-                } else {
-                    const currentX =
-                        dualAxis.horizontalAxis.place(x0) + item.xPosition
-                    const labelWithPlacement = {
-                        label: (
-                            <g
-                                transform={`translate(${0}, ${labelsYPosition})`}
-                            >
-                                {labelElement}
-                            </g>
-                        ),
-                        preferredPlacement: currentX + barWidth / 2,
-                        correctedPlacement: currentX + barWidth / 2,
-                        labelKey: labelId,
-                    }
-                    return labelWithPlacement
+                }
+
+                const centreX = series.barX + series.barWidth / 2
+                return {
+                    label: (
+                        <g transform={`translate(${0}, ${labelsYPosition})`}>
+                            {labelElement}
+                        </g>
+                    ),
+                    preferredPlacement: centreX,
+                    correctedPlacement: centreX,
+                    labelKey: candidate.item.entityName,
                 }
             })
             .filter(

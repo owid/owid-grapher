@@ -112,13 +112,14 @@ it("can display a Marimekko chart correctly", () => {
     ])
     expect(chartState.xSeries!.points).toEqual(expectedXPoints)
 
-    const placedSeriesWithoutXPosition = chart.placedSeries.map((series) =>
-        _.omit(series, "xPosition")
+    const placedSeriesWithoutGeometry = chart.placedSeries.map((series) =>
+        _.omit(series, ["barX", "barY", "barWidth", "barHeight"])
     )
-    const xPositions = chart.placedSeries.map((series) => series.xPosition)
+    const originX = chart["dualAxis"].horizontalAxis.place(0)
+    const xPositions = chart.placedSeries.map((series) => series.barX - originX)
 
     // placedSeries should be in default sort order
-    expect(placedSeriesWithoutXPosition).toEqual([
+    expect(placedSeriesWithoutGeometry).toEqual([
         {
             seriesName: "big",
             entityName: "big",
@@ -347,13 +348,14 @@ it("can filter years correctly", () => {
     ]
     expect(chartState.xSeries!.points).toEqual(expectedXPoints)
 
-    const placedSeriesWithoutXPosition = chart.placedSeries.map((series) =>
-        _.omit(series, "xPosition")
+    const placedSeriesWithoutGeometry = chart.placedSeries.map((series) =>
+        _.omit(series, ["barX", "barY", "barWidth", "barHeight"])
     )
-    const xPositions = chart.placedSeries.map((series) => series.xPosition)
+    const originX = chart["dualAxis"].horizontalAxis.place(0)
+    const xPositions = chart.placedSeries.map((series) => series.barX - originX)
 
     // placedSeries should be in default sort order
-    expect(placedSeriesWithoutXPosition).toEqual([
+    expect(placedSeriesWithoutGeometry).toEqual([
         {
             seriesName: "big",
             entityName: "big",
@@ -432,13 +434,14 @@ it("shows no data points at the end", () => {
     ]
     expect(chartState.xSeries!.points).toEqual(expectedXPoints)
 
-    const placedSeriesWithoutXPosition = chart.placedSeries.map((series) =>
-        _.omit(series, "xPosition")
+    const placedSeriesWithoutGeometry = chart.placedSeries.map((series) =>
+        _.omit(series, ["barX", "barY", "barWidth", "barHeight"])
     )
-    const xPositions = chart.placedSeries.map((series) => series.xPosition)
+    const originX = chart["dualAxis"].horizontalAxis.place(0)
+    const xPositions = chart.placedSeries.map((series) => series.barX - originX)
 
     // placedSeries should be in default sort order, no-data entities last
-    expect(placedSeriesWithoutXPosition).toEqual([
+    expect(placedSeriesWithoutGeometry).toEqual([
         {
             seriesName: "big",
             entityName: "big",
@@ -521,13 +524,14 @@ test("interpolation works as expected", () => {
     ]
     expect(chartState.xSeries!.points).toEqual(expectedXPoints)
 
-    const placedSeriesWithoutXPosition = chart.placedSeries.map((series) =>
-        _.omit(series, "xPosition")
+    const placedSeriesWithoutGeometry = chart.placedSeries.map((series) =>
+        _.omit(series, ["barX", "barY", "barWidth", "barHeight"])
     )
-    const xPositions = chart.placedSeries.map((series) => series.xPosition)
+    const originX = chart["dualAxis"].horizontalAxis.place(0)
+    const xPositions = chart.placedSeries.map((series) => series.barX - originX)
 
     // placedSeries should be in default sort order
-    expect(placedSeriesWithoutXPosition).toEqual([
+    expect(placedSeriesWithoutGeometry).toEqual([
         {
             seriesName: "big",
             entityName: "big",
@@ -606,12 +610,13 @@ it("can deal with a y column with missing values", () => {
     ]
     expect(chartState.xSeries!.points).toEqual(expectedXPoints)
 
-    const placedSeriesWithoutXPosition = chart.placedSeries.map((series) =>
-        _.omit(series, "xPosition")
+    const placedSeriesWithoutGeometry = chart.placedSeries.map((series) =>
+        _.omit(series, ["barX", "barY", "barWidth", "barHeight"])
     )
-    const xPositions = chart.placedSeries.map((series) => series.xPosition)
+    const originX = chart["dualAxis"].horizontalAxis.place(0)
+    const xPositions = chart.placedSeries.map((series) => series.barX - originX)
     // placedSeries should be in default sort order, no-data entities last
-    expect(placedSeriesWithoutXPosition).toEqual([
+    expect(placedSeriesWithoutGeometry).toEqual([
         {
             seriesName: "medium",
             entityName: "medium",

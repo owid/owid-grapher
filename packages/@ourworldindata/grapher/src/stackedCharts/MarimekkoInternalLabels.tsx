@@ -33,7 +33,7 @@ export class MarimekkoInternalLabels extends React.Component<MarimekkoInternalLa
     @computed get sortedSeries(): PlacedMarimekkoSeries[] {
         return _.sortBy(
             this.props.series,
-            (series) => series.xPoint?.value ?? series.xPosition
+            (series) => series.xPoint?.value ?? series.barX
         )
     }
 
@@ -42,9 +42,7 @@ export class MarimekkoInternalLabels extends React.Component<MarimekkoInternalLa
             .map((series) => {
                 if (series.yPoint === undefined) return undefined
 
-                const x =
-                    this.props.dualAxis.horizontalAxis.place(this.props.x0) +
-                    series.xPosition
+                const x = series.barX
 
                 const barY = this.props.dualAxis.verticalAxis.place(
                     series.yPoint.value

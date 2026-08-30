@@ -11,6 +11,7 @@ import {
 import { OwidTable } from "@ourworldindata/core-table"
 import { ChartSeries } from "../chart/ChartInterface"
 import { InteractionState } from "../interaction/InteractionState.js"
+import { Emphasis } from "../interaction/Emphasis.js"
 
 export interface MarimekkoChartManager extends ChartManager {
     endTime?: Time
@@ -60,7 +61,32 @@ export interface MarimekkoSeries extends ChartSeries {
 }
 
 export interface PlacedMarimekkoSeries extends MarimekkoSeries {
-    xPosition: number // x value (in pixel space) when placed in final sorted order and including shifts due to one pixel entity minimum
+    barX: number
+    barY: number // the baseline; the bar is drawn upwards from here
+    barWidth: number
+    barHeight: number
+}
+
+export interface RenderMarimekkoSeries extends PlacedMarimekkoSeries {
+    /**
+     * Drives the fill. A hovered bar reads as highlighted even while the rest of it
+     * is faded, so this can be `Highlighted` while `isMuted` is true.
+     */
+    emphasis: Emphasis
+    /** Faded because another bar is hovered, focused, or selected */
+    isMuted: boolean
+    /** Hovered or selected: thicker stroke, and drawn last so it overlaps its neighbours */
+    isOutlined: boolean
+}
+
+/** The hatched band covering the entities that have no y value */
+export interface MarimekkoNoDataArea {
+    x: number
+    y: number
+    width: number
+    height: number
+    labelX: number
+    labelY: number
 }
 
 export interface EntityWithSize {
