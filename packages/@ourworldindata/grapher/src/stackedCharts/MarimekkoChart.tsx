@@ -25,21 +25,14 @@ import { DualAxisComponent } from "../axis/AxisViews"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
-import {
-    EntityName,
-    VerticalAlign,
-    ColorScaleConfigInterface,
-} from "@ourworldindata/types"
+import { VerticalAlign } from "@ourworldindata/types"
 import {
     OwidTable,
     CoreColumn,
     ColumnTypeMap,
 } from "@ourworldindata/core-table"
 import { getShortNameForEntity } from "../chart/ChartUtils"
-import {
-    LEGEND_STYLE_FOR_STACKED_CHARTS,
-    StackedSeries,
-} from "./StackedConstants"
+import { LEGEND_STYLE_FOR_STACKED_CHARTS } from "./StackedConstants"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
     Tooltip,
@@ -62,18 +55,17 @@ import { ColorScale } from "../color/ColorScale"
 import { SelectionArray } from "../selection/SelectionArray"
 import {
     MarimekkoChartManager,
-    Item,
-    PlacedItem,
+    MarimekkoSeries,
+    PlacedMarimekkoSeries,
     EntityWithSize,
     LabelCandidate,
     LabelWithPlacement,
     LabelCandidateWithElement,
-    Bar,
 } from "./MarimekkoChartConstants"
 import { MarimekkoChartState } from "./MarimekkoChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { MarimekkoBars } from "./MarimekkoBars"
-import { toPlacedMarimekkoItems } from "./MarimekkoChartHelpers"
+import { toPlacedMarimekkoSeries } from "./MarimekkoChartHelpers"
 
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25
@@ -119,12 +111,12 @@ export class MarimekkoChart
         return this.chartState.inputTable
     }
 
-    @computed private get series(): readonly StackedSeries<EntityName>[] {
+    @computed private get series(): readonly MarimekkoSeries[] {
         return this.chartState.series
     }
 
-    @computed private get yColumnSlugs(): string[] {
-        return this.chartState.yColumnSlugs
+    @computed private get yColumnSlug(): string | undefined {
+        return this.chartState.yColumnSlug
     }
 
     @computed private get xColumnSlug(): string | undefined {
@@ -140,10 +132,11 @@ export class MarimekkoChart
     }
 
     @computed private get latestTime(): number | undefined {
-        const times =
-            this.manager.tableAfterAuthorTimelineAndActiveChartTransform?.getTimesUniqSortedAscForColumns(
-                this.yColumnSlugs
-            )
+        const times = this.yColumnSlug
+            ? this.manager.tableAfterAuthorTimelineAndActiveChartTransform?.getTimesUniqSortedAscForColumns(
+                  [this.yColumnSlug]
+              )
+            : undefined
 
         return times ? R.last(times) : undefined
     }
@@ -165,15 +158,15 @@ export class MarimekkoChart
         else return undefined
     }
 
-    @computed private get yColumnsAtLastTimePoint(): CoreColumn[] {
-        const columnSlugs = this.yColumnSlugs
-        return (
-            this.tableAtLatestTimelineTimepoint?.getColumns(columnSlugs) ?? []
-        )
+    @computed private get yColumnAtLastTimePoint(): CoreColumn | undefined {
+        if (this.yColumnSlug === undefined) return undefined
+        return this.tableAtLatestTimelineTimepoint?.getColumns([
+            this.yColumnSlug,
+        ])[0]
     }
 
-    @computed private get yColumns(): CoreColumn[] {
-        return this.chartState.yColumns
+    @computed private get yColumn(): CoreColumn {
+        return this.chartState.yColumn
     }
 
     @computed private get colorColumnSlug(): string | undefined {
@@ -182,12 +175,6 @@ export class MarimekkoChart
 
     @computed private get colorScale(): ColorScale {
         return this.chartState.colorScale
-    }
-
-    @computed private get colorScaleConfig():
-        | ColorScaleConfigInterface
-        | undefined {
-        return this.chartState.colorScaleConfig
     }
 
     @computed private get sortConfig(): SortConfig {
@@ -273,18 +260,20 @@ export class MarimekkoChart
         return this.chartState.selectionArray
     }
 
-    @computed private get items(): Item[] {
-        return this.chartState.items
-    }
-
-    @computed get placedItems(): PlacedItem[] {
-        return toPlacedMarimekkoItems(this.chartState, {
+    @computed get placedSeries(): PlacedMarimekkoSeries[] {
+        return toPlacedMarimekkoSeries(this.chartState.sortedSeries, {
+            x0: this.chartState.x0,
             dualAxis: this.dualAxis,
         })
     }
 
-    @computed private get placedItemsMap(): Map<string, PlacedItem> {
-        return new Map(this.placedItems.map((item) => [item.entityName, item]))
+    @computed private get placedSeriesByEntityName(): Map<
+        string,
+        PlacedMarimekkoSeries
+    > {
+        return new Map(
+            this.placedSeries.map((series) => [series.entityName, series])
+        )
     }
 
     // legend props
@@ -302,23 +291,8 @@ export class MarimekkoChart
     }
 
     @computed private get categoricalLegendData(): CategoricalBin[] {
-        const { colorColumnSlug, colorScale, series } = this
-        if (colorColumnSlug) {
-            return colorScale.categoricalLegendBins
-        } else if (series.length > 0) {
-            const customHiddenCategories =
-                this.colorScaleConfig?.customHiddenCategories
-            return series.map((series, index) => {
-                return new CategoricalBin({
-                    index,
-                    value: series.seriesName,
-                    label: series.seriesName,
-                    color: series.color,
-                    isHidden: !!customHiddenCategories?.[series.seriesName],
-                })
-            })
-        }
-        return []
+        if (!this.colorColumnSlug) return []
+        return this.colorScale.categoricalLegendBins
     }
 
     private readonly resolveLegendBinEmphasis = (
@@ -349,14 +323,14 @@ export class MarimekkoChart
 
     @computed get hoverColors(): string[] {
         if (this.focusColorBin) return [this.focusColorBin.color]
-        if (this.tooltipItem?.entityColor)
-            return [this.tooltipItem.entityColor.color]
+        if (this.tooltipSeries?.entityColor)
+            return [this.tooltipSeries.entityColor.color]
         if (this.selectionArray.hasSelection) {
-            const selectedItems = this.items.filter((item) =>
-                this.selectionArray.selectedSet.has(item.entityName)
+            const selectedSeries = this.series.filter((series) =>
+                this.selectionArray.selectedSet.has(series.entityName)
             )
             const uniqueSelectedColors = new Set(
-                selectedItems.map((item) => item.entityColor?.color)
+                selectedSeries.map((series) => series.entityColor?.color)
             )
             return this.categoricalLegendData
                 .filter((bin) => uniqueSelectedColors.has(bin.color as any))
@@ -366,10 +340,7 @@ export class MarimekkoChart
     }
 
     @computed private get showLegend(): boolean {
-        return (
-            (!!this.colorColumnSlug || this.categoricalLegendData.length > 1) &&
-            !!this.manager.showLegend
-        )
+        return !!this.colorColumnSlug && !!this.manager.showLegend
     }
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
@@ -419,11 +390,11 @@ export class MarimekkoChart
             addCountryMode !== EntitySelectionMode.Disabled) as boolean
     }
 
-    @computed private get tooltipItem(): Item | undefined {
+    @computed private get tooltipSeries(): MarimekkoSeries | undefined {
         const { target } = this.tooltipState
         return (
             target &&
-            this.items.find(
+            this.series.find(
                 ({ entityName }) => entityName === target.entityName
             )
         )
@@ -447,9 +418,9 @@ export class MarimekkoChart
             manager,
             bounds,
             dualAxis,
-            tooltipItem,
+            tooltipSeries,
             xColumn,
-            yColumns,
+            yColumn,
             colorColumn,
             colorScale,
             manager: { endTime, xOverrideTime },
@@ -457,27 +428,12 @@ export class MarimekkoChart
             tooltipState: { target, position, fading },
         } = this
 
-        const { entityName, xPoint, bars } = tooltipItem ?? {}
+        const { entityName, xPoint, yPoint } = tooltipSeries ?? {}
 
-        const yValues =
-            bars?.map((bar: Bar) => {
-                const column = this.chartState.transformedTable.get(
-                    bar.columnSlug
-                )
-
-                const shouldShowYTimeNotice =
-                    bar.yPoint.value !== undefined &&
-                    bar.yPoint.time !== endTime
-
-                return {
-                    name: bar.seriesName,
-                    value: bar.yPoint.value,
-                    column,
-                    originalTime: shouldShowYTimeNotice
-                        ? column.formatTime(bar.yPoint.time)
-                        : undefined,
-                }
-            }) ?? []
+        const yOriginalTimeFormatted =
+            yPoint && yPoint.time !== endTime
+                ? yColumn.formatTime(yPoint.time)
+                : undefined
 
         // TODO: when we have proper time support to work across date/year variables then
         // this should be set properly and the x axis time be passed in on it's own.
@@ -490,7 +446,7 @@ export class MarimekkoChart
             ? xColumn?.formatTime(xOriginalTime)
             : undefined
         const targetNotice =
-            xOriginalTime || yValues.some(({ originalTime }) => !!originalTime)
+            xOriginalTime || yOriginalTimeFormatted
                 ? timeColumn.formatValue(endTime)
                 : undefined
         const toleranceNotice = targetNotice
@@ -500,7 +456,7 @@ export class MarimekkoChart
               }
             : undefined
 
-        const columns = excludeUndefined([xColumn, ...yColumns])
+        const columns = excludeUndefined([xColumn, yColumn])
         const allRoundedToSigFigs = columns.every(
             (column) => column.roundsToSignificantFigures
         )
@@ -579,20 +535,17 @@ export class MarimekkoChart
                         dissolve={fading}
                         dismiss={() => (this.tooltipState.target = null)}
                     >
-                        {yValues.map(
-                            ({ name, value, column, originalTime }) => (
-                                <TooltipValue
-                                    key={name}
-                                    label={column.displayName}
-                                    unit={column.displayUnit}
-                                    value={column.formatValueShort(value)}
-                                    originalTime={originalTime}
-                                    showSignificanceSuperscript={
-                                        showSignificanceSuperscriptIfApplicable &&
-                                        column.roundsToSignificantFigures
-                                    }
-                                />
-                            )
+                        {yPoint && (
+                            <TooltipValue
+                                label={yColumn.displayName}
+                                unit={yColumn.displayUnit}
+                                value={yColumn.formatValueShort(yPoint.value)}
+                                originalTime={yOriginalTimeFormatted}
+                                showSignificanceSuperscript={
+                                    showSignificanceSuperscriptIfApplicable &&
+                                    yColumn.roundsToSignificantFigures
+                                }
+                            />
                         )}
                         {xColumn && !xColumn.isMissing && (
                             <TooltipValue
@@ -608,7 +561,7 @@ export class MarimekkoChart
                         )}
                         {colorColumn &&
                             !colorColumn.isMissing &&
-                            tooltipItem?.entityColor &&
+                            tooltipSeries?.entityColor &&
                             !(
                                 colorColumn instanceof ColumnTypeMap.Continent
                             ) && (
@@ -619,10 +572,11 @@ export class MarimekkoChart
                                     }
                                     value={
                                         colorScale.getBinForValue(
-                                            tooltipItem.entityColor
+                                            tooltipSeries.entityColor
                                                 .colorDomainValue
                                         )?.label ??
-                                        tooltipItem.entityColor.colorDomainValue
+                                        tooltipSeries.entityColor
+                                            .colorDomainValue
                                     }
                                 />
                             )}
@@ -637,13 +591,13 @@ export class MarimekkoChart
             <MarimekkoBars
                 dualAxis={this.dualAxis}
                 focusColorBin={this.focusColorBin}
-                placedItems={this.placedItems}
+                placedSeries={this.placedSeries}
                 tooltipState={this.tooltipState}
                 fontSize={this.fontSize}
                 x0={this.chartState.x0}
                 y0={this.chartState.y0}
                 selectionArray={this.selectionArray}
-                selectedItems={this.chartState.selectedItems}
+                selectedSeries={this.chartState.selectedSeries}
                 onEntityClick={this.onEntityClick}
                 onEntityMouseLeave={this.dismissTooltip}
                 onEntityMouseOver={this.onEntityMouseOver}
@@ -675,13 +629,13 @@ export class MarimekkoChart
     20 labels relatively evenly spaced (in x domain space) and this function gives us 20 groups that
     are roughly of equal size and then we can pick the largest of each group */
     private static splitIntoEqualDomainSizeChunks(
-        items: Item[],
+        series: readonly MarimekkoSeries[],
         candidates: LabelCandidate[],
         numChunks: number
     ): LabelCandidate[][] {
         // candidates contains all entities available in the chart for some time
-        // items is just the entities for the currently selected time, so can be a way smaller subset
-        const validItemNames = items.map(({ entityName }) => entityName)
+        // series is just the entities for the currently selected time, so can be a way smaller subset
+        const validItemNames = series.map(({ entityName }) => entityName)
 
         // filter the list to remove any candidates that are not currently visible
         // all further calculations are then done only with validCandidates
@@ -713,26 +667,26 @@ export class MarimekkoChart
     @computed private get pickedLabelCandidates(): LabelCandidate[] {
         const {
             xColumnAtLastTimePoint,
-            yColumnsAtLastTimePoint,
+            yColumnAtLastTimePoint,
             xRange,
             sortConfig,
             paddingInPixels,
-            items,
+            series,
         } = this
-        const { selectedItems } = this.chartState
+        const { selectedSeries } = this.chartState
 
-        if (yColumnsAtLastTimePoint.length === 0) return []
+        if (yColumnAtLastTimePoint === undefined) return []
 
         // Measure the labels (before any rotation, just normal horizontal labels)
-        const selectedItemsSet = new Set(
-            selectedItems.map((item) => item.entityName)
+        const selectedEntityNames = new Set(
+            selectedSeries.map((series) => series.entityName)
         )
 
-        // This is similar to what we would get with .sortedItems but
-        // we want this for the last year to pick all labels there - sortedItems
+        // This is similar to what we would get with .sortedSeries but
+        // we want this for the last year to pick all labels there - sortedSeries
         // changes with the time point the user selects
         const ySizeMap: Map<string, number> = new Map(
-            yColumnsAtLastTimePoint[0].owidRows.map((row) => [
+            yColumnAtLastTimePoint.owidRows.map((row) => [
                 row.entityName,
                 row.value,
             ])
@@ -741,9 +695,8 @@ export class MarimekkoChart
         // We want labels to be chosen according to the latest time point available in the chart.
         // The reason for this is that it makes it so the labels are pretty consistent across time,
         // and not very jumpy when the user drags across the timeline.
-        const labelCandidateSource = xColumnAtLastTimePoint
-            ? xColumnAtLastTimePoint
-            : yColumnsAtLastTimePoint[0]
+        const labelCandidateSource =
+            xColumnAtLastTimePoint ?? yColumnAtLastTimePoint
 
         let labelCandidates: LabelCandidate[] =
             labelCandidateSource.owidRows.map((row) =>
@@ -758,7 +711,7 @@ export class MarimekkoChart
                         ySortValue: ySizeMap.get(row.entityName),
                     },
                     this.entityLabelFontSize,
-                    selectedItemsSet.has(row.entityName)
+                    selectedEntityNames.has(row.entityName)
                 )
             )
 
@@ -817,7 +770,7 @@ export class MarimekkoChart
             )
         )
         const chunks = MarimekkoChart.splitIntoEqualDomainSizeChunks(
-            items,
+            series,
             labelCandidates,
             numLabelsToAdd
         )
@@ -839,7 +792,7 @@ export class MarimekkoChart
     @computed private get labelsWithPlacementInfo(): LabelWithPlacement[] {
         const {
             dualAxis,
-            placedItemsMap,
+            placedSeriesByEntityName,
             labels,
             unrotatedLongestLabelWidth,
             unrotatedHighestLabelHeight,
@@ -850,9 +803,13 @@ export class MarimekkoChart
 
         const labelsWithPlacements: LabelWithPlacement[] = labels
             .map(({ candidate, labelElement }) => {
-                const item = placedItemsMap.get(candidate.item.entityName)
+                const item = placedSeriesByEntityName.get(
+                    candidate.item.entityName
+                )
                 if (!item)
-                    console.error("Could not find item in placedItemsMap")
+                    console.error(
+                        "Could not find series in placedSeriesByEntityName"
+                    )
                 const xPoint = item?.xPoint?.value ?? 1
                 const barWidth =
                     dualAxis.horizontalAxis.place(xPoint) -
@@ -960,11 +917,11 @@ export class MarimekkoChart
 
     @computed private get labelLines(): React.ReactElement[] {
         const { labelsWithPlacementInfo, dualAxis } = this
-        const { selectedItems } = this.chartState
+        const { selectedSeries } = this.chartState
         const shiftedGroups: LabelWithPlacement[][] = []
         const unshiftedElements: LabelWithPlacement[] = []
-        const selectedItemsKeys = new Set(
-            selectedItems.map((item) => item.entityName)
+        const selectedEntityNames = new Set(
+            selectedSeries.map((series) => series.entityName)
         )
         let startNewGroup = true
 
@@ -996,7 +953,7 @@ export class MarimekkoChart
         for (const group of shiftedGroups) {
             let indexInGroup = 0
             for (const item of group) {
-                const lineColor = selectedItemsKeys.has(item.labelKey)
+                const lineColor = selectedEntityNames.has(item.labelKey)
                     ? "#999"
                     : "#bbb"
                 const markerBarEndpointX = item.preferredPlacement
@@ -1030,7 +987,7 @@ export class MarimekkoChart
             }
         }
         for (const item of unshiftedElements) {
-            const lineColor = selectedItemsKeys.has(item.labelKey)
+            const lineColor = selectedEntityNames.has(item.labelKey)
                 ? "#555"
                 : "#bbb"
             const markerBarEndpointX = item.preferredPlacement
@@ -1119,14 +1076,13 @@ export class MarimekkoChart
     }
 
     @computed private get labels(): LabelCandidateWithElement[] {
-        const { labelAngleInDegrees, series } = this
-        const { domainColorForEntityMap } = this.chartState
+        const { labelAngleInDegrees } = this
+        const { domainColorForEntityMap, yColumnColor } = this.chartState
         return this.pickedLabelCandidates.map((candidate) => {
             const domainColor = domainColorForEntityMap.get(
                 candidate.item.entityName
             )
-            const seriesColor = series[0].color
-            const color = domainColor?.color ?? seriesColor ?? "#000"
+            const color = domainColor?.color ?? yColumnColor ?? "#000"
             return {
                 candidate,
                 labelElement: (

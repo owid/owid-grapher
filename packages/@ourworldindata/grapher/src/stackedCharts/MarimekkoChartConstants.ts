@@ -7,11 +7,9 @@ import {
     Time,
     Bounds,
     EntityName,
-    ColumnSlug,
 } from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"
-import { StackedPoint } from "./StackedConstants"
-import { DualAxis } from "../axis/Axis"
+import { ChartSeries } from "../chart/ChartInterface"
 import { InteractionState } from "../interaction/InteractionState.js"
 
 export interface MarimekkoChartManager extends ChartManager {
@@ -41,37 +39,27 @@ export interface SimpleChartSeries {
     points: SimplePoint[]
 }
 
-export enum BarShape {
-    Bar,
-    BarPlaceholder,
+/** The y value of one entity */
+export interface MarimekkoPoint {
+    value: number
+    time: Time
 }
 
-export interface Bar {
-    kind: BarShape.Bar
-    color: Color // color from the variable
-    seriesName: string
-    yPoint: StackedPoint<EntityName>
-    columnSlug?: ColumnSlug
-}
-
-export interface BarPlaceholder {
-    kind: BarShape.BarPlaceholder
-    seriesName: string
-    height: number
-}
-
-export type BarOrPlaceholder = Bar | BarPlaceholder
-
-export interface Item {
-    entityName: string
+/**
+ * One entity's rectangle: width from the x indicator, height from the y indicator.
+ * Marimekko plots one series per entity, so `seriesName` and `entityName` always agree.
+ */
+export interface MarimekkoSeries extends ChartSeries {
+    entityName: EntityName
     shortEntityName?: string
+    /** Undefined when the entity has no y value, which draws the no-data placeholder */
+    yPoint: MarimekkoPoint | undefined
+    xPoint: SimplePoint | undefined
     entityColor: EntityColorData | undefined
-    bars: Bar[] // contains the y values for every y variable
-    xPoint: SimplePoint | undefined // contains the single x value
     focus: InteractionState
 }
 
-export interface PlacedItem extends Item {
+export interface PlacedMarimekkoSeries extends MarimekkoSeries {
     xPosition: number // x value (in pixel space) when placed in final sorted order and including shifts due to one pixel entity minimum
 }
 
@@ -101,22 +89,9 @@ export interface LabelCandidateWithElement {
     labelElement: React.ReactElement
 }
 
-export interface MarimekkoBarProps {
-    bar: BarOrPlaceholder
-    barWidth: number
-    isHovered: boolean
-    isSelected: boolean
-    isFaint: boolean
-    focus: InteractionState
-    entityColor: string | undefined
-    y0: number
-    dualAxis: DualAxis
-}
-
 export const MARIMEKKO_SORT_KEYS = [
     SortBy.custom,
     SortBy.entityName,
     SortBy.total,
-    SortBy.column,
 ] as const
 export type MarimekkoSortKey = (typeof MARIMEKKO_SORT_KEYS)[number]

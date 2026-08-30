@@ -1,21 +1,22 @@
 import { DualAxis } from "../axis/Axis"
-import { PlacedItem } from "./MarimekkoChartConstants"
-import { MarimekkoChartState } from "./MarimekkoChartState"
+import {
+    MarimekkoSeries,
+    PlacedMarimekkoSeries,
+} from "./MarimekkoChartConstants"
 
-export function toPlacedMarimekkoItems(
-    chartState: MarimekkoChartState,
-    { dualAxis }: { dualAxis: DualAxis }
-): PlacedItem[] {
-    const { x0, sortedItems } = chartState
-    const placedItems: PlacedItem[] = []
+export function toPlacedMarimekkoSeries(
+    sortedSeries: readonly MarimekkoSeries[],
+    { x0, dualAxis }: { x0: number; dualAxis: DualAxis }
+): PlacedMarimekkoSeries[] {
+    const placedSeries: PlacedMarimekkoSeries[] = []
     let currentX = 0
-    for (const item of sortedItems) {
-        placedItems.push({ ...item, xPosition: currentX })
-        const xValue = item.xPoint?.value ?? 1 // one is the default here because if no x dim is given we make all bars the same width
+    for (const series of sortedSeries) {
+        placedSeries.push({ ...series, xPosition: currentX })
+        const xValue = series.xPoint?.value ?? 1 // one is the default here because if no x dim is given we make all bars the same width
         const preciseX =
             dualAxis.horizontalAxis.place(xValue) -
             dualAxis.horizontalAxis.place(x0)
         currentX += preciseX
     }
-    return placedItems
+    return placedSeries
 }

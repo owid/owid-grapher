@@ -3,13 +3,13 @@ import { observer } from "mobx-react"
 import * as _ from "lodash-es"
 import * as R from "remeda"
 import { computed, makeObservable } from "mobx"
-import { Bar, BarShape, PlacedItem } from "./MarimekkoChartConstants"
+import { PlacedMarimekkoSeries } from "./MarimekkoChartConstants"
 import { DualAxis } from "../axis/Axis"
 import { Bounds } from "@ourworldindata/utils"
 import { Halo } from "@ourworldindata/components"
 
 interface MarimekkoInternalLabelsProps {
-    items: PlacedItem[]
+    series: PlacedMarimekkoSeries[]
     dualAxis: DualAxis
     x0: number
     y0: number
@@ -30,44 +30,33 @@ export class MarimekkoInternalLabels extends React.Component<MarimekkoInternalLa
         makeObservable(this)
     }
 
-    @computed get sortedItems(): PlacedItem[] {
+    @computed get sortedSeries(): PlacedMarimekkoSeries[] {
         return _.sortBy(
-            this.props.items,
-            (item) => item.xPoint?.value ?? item.xPosition
+            this.props.series,
+            (series) => series.xPoint?.value ?? series.xPosition
         )
     }
 
     @computed get placedLabels(): PlacedLabel[] {
-        return this.sortedItems
-            .map((item) => {
-                const bar: Bar | undefined = item.bars[0]
-                if (bar === undefined) return undefined
+        return this.sortedSeries
+            .map((series) => {
+                if (series.yPoint === undefined) return undefined
 
                 const x =
                     this.props.dualAxis.horizontalAxis.place(this.props.x0) +
-                    item.xPosition
+                    series.xPosition
 
-                const barY =
-                    bar === undefined
-                        ? this.props.dualAxis.verticalAxis.place(
-                              this.props.y0
-                          ) -
-                          (Bounds.forText("no data").height + 10)
-                        : this.props.dualAxis.verticalAxis.place(
-                              bar.yPoint.value
-                          )
+                const barY = this.props.dualAxis.verticalAxis.place(
+                    series.yPoint.value
+                )
                 const y = barY - this.props.labelPadding
 
-                const label = item.shortEntityName ?? item.entityName
+                const label = series.shortEntityName ?? series.entityName
                 const bounds = Bounds.forText(label, {
                     fontSize: this.props.fontSize,
                 }).set({ x, y })
 
-                const color =
-                    item.entityColor?.color ??
-                    (bar.kind === BarShape.Bar ? bar.color : "#555")
-
-                return { bounds, label, color }
+                return { bounds, label, color: series.color }
             })
             .filter((label) => label !== undefined)
     }
