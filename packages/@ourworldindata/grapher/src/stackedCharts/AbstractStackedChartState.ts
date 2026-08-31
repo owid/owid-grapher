@@ -238,13 +238,18 @@ export abstract class AbstractStackedChartState implements ChartState {
             this.selectionArray.selectedEntityNames.length > 1
         const hasMultipleYColumns = this.yColumnSlugs.length > 1
 
-        const isStackedAsShares = this.manager.stackMode === StackMode.relative
+        // The stack mode asked for, before grapher overrides it (Grapher
+        // derives the effective `isRelativeMode` from the facet strategy)
+        const isStackedAsShares = this.manager.stackMode
+            ? this.manager.stackMode === StackMode.relative
+            : !!this.manager.isRelativeMode
+
         const shortUnits = this.inputTable
             .getColumns(this.yColumnSlugs)
             .map((column) => column.shortUnit)
         const hasMultipleUnits =
             !isStackedAsShares && new Set(shortUnits).size > 1
-        const hasPercentageUnit = !isStackedAsShares && shortUnits.includes("%")
+        const hasPercentageUnit = shortUnits.includes("%")
 
         if (
             (!this.isEntitySeries && !areMultipleEntitiesSelected) ||
