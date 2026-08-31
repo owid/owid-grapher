@@ -1,0 +1,22 @@
+.bespoke-metadata-heading__title {
+    @include body-2-bold-tight;
+    margin: 0;
+}
+
+.bespoke-metadata-heading__title-variant {
+    @include note-13-medium;
+    margin-left: 8px;
+}
+
+.bespoke-metadata-heading__description {
+    @include note-13-medium;
+    margin-top: 8px;
+
+    p {
+        margin: 0;
+    }
+
+    a {
+        @include owid-link-90;
+    }
+}

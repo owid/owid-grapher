@@ -66,6 +66,7 @@ export {
 } from "./MetadataBox/MetadataBoxKeyData.js"
 export { ChartLicenseNotice } from "./ChartLicenseNotice/ChartLicenseNotice.js"
 
+export { BespokeMetadataHeading } from "./BespokeMetadata/BespokeMetadataHeading.js"
 export { BespokeMetadataKeyData } from "./BespokeMetadata/BespokeMetadataKeyData.js"
 export { BespokeMetadataSections } from "./BespokeMetadata/BespokeMetadataSections.js"
 

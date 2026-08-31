@@ -7,28 +7,16 @@
     overflow-anchor: none;
 }
 
-.bespoke-metadata-box__title {
-    margin: 0;
+.bespoke-metadata-box .bespoke-metadata-heading__title {
     color: $blue-90;
+    // Clears the collapse button
     max-width: calc(100% - 104px);
 }
 
-.bespoke-metadata-box__title-variant {
-    @include note-13-medium;
-    margin-left: 8px;
+.bespoke-metadata-box .bespoke-metadata-heading__title-variant {
     color: $blue-50;
 }
 
-.bespoke-metadata-box__description {
-    @include note-13-medium;
-    margin-top: 8px;
+.bespoke-metadata-box .bespoke-metadata-heading__description {
     color: $blue-90;
-
-    p {
-        margin: 0;
-    }
-
-    a {
-        @include owid-link-90;
-    }
 }

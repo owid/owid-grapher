@@ -1,6 +1,7 @@
 import { useRef } from "react"
 import cx from "clsx"
 import {
+    BespokeMetadataHeading,
     BespokeMetadataKeyData,
     BespokeMetadataSections,
     MetadataBoxCollapseButton,
@@ -33,19 +34,7 @@ export function BespokeMetadataBox({
     return (
         <div className={cx("metadata-box", "bespoke-metadata-box", className)}>
             <MetadataBoxCollapseButton detailsRef={detailsRef} />
-            <h2 className="bespoke-metadata-box__title body-2-bold-tight">
-                {metadata.title}
-                {metadata.titleVariant && (
-                    <span className="bespoke-metadata-box__title-variant">
-                        {metadata.titleVariant}
-                    </span>
-                )}
-            </h2>
-            {metadata.descriptionShort && (
-                <div className="bespoke-metadata-box__description">
-                    <SimpleMarkdownText text={metadata.descriptionShort} />
-                </div>
-            )}
+            <BespokeMetadataHeading metadata={metadata} />
             <BespokeMetadataKeyData metadata={metadata} />
             <MetadataBoxExpander
                 detailsRef={detailsRef}
