@@ -1,18 +1,20 @@
 import { GDOCS_URL_PLACEHOLDER, gdocUrlRegex } from "@ourworldindata/utils"
 import * as React from "react"
+import { useContext } from "react"
 import {
     GDOCS_ARTICLE_DUPLICATION_TEMPLATE_ID,
     GDOCS_CLIENT_EMAIL,
     GDOCS_DATA_INSIGHT_DUPLICATION_TEMPLATE_ID,
     GDOCS_ANNOUNCEMENT_DUPLICATION_TEMPLATE_ID,
 } from "../settings/clientSettings.js"
-import { useGdocsStore } from "./GdocsStoreContext.js"
+import { AdminAppContext } from "./AdminAppContext.js"
+import { createGdoc } from "./gdocsApi.js"
 
 export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
     const [documentUrl, setDocumentUrl] = React.useState("")
-    const store = useGdocsStore()
+    const { admin } = useContext(AdminAppContext)
 
-    const onSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()
 
         const [, id] = documentUrl.match(gdocUrlRegex) || []
@@ -20,11 +22,11 @@ export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
         // fallback for HTML5 validation below
         if (!id) return
 
-        await store.create(id)
+        await createGdoc(admin, id)
         onAdd(id)
     }
     return (
-        <form className="GdocsAddForm" onSubmit={onSubmit}>
+        <form className="GdocsAddForm" onSubmit={handleSubmit}>
             <div className="modal-header">
                 <h5 className="modal-title">Add a document</h5>
             </div>

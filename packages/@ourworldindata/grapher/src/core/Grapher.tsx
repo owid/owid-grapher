@@ -511,9 +511,7 @@ export class Grapher extends React.Component<GrapherProps> {
             return (
                 <FullScreen
                     onDismiss={this.dismissFullScreen}
-                    overlayColor={
-                        this.grapherState.isModalOpen ? "#999999" : "#fff"
-                    }
+                    isDimmed={this.grapherState.isModalOpen}
                 >
                     {this.renderGrapherComponent()}
                 </FullScreen>

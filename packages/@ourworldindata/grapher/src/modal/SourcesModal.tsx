@@ -15,6 +15,7 @@ export interface SourcesModalManager {
     showAdminControls?: boolean
     activeModal?: GrapherModal
     frameBounds?: Bounds
+    base: React.RefObject<HTMLDivElement | null>
     isEmbeddedInADataPage?: boolean
     isNarrow?: boolean
     fontSize?: number
@@ -77,6 +78,8 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
     override render(): React.ReactElement {
         return (
             <Modal
+                ariaLabel="Sources"
+                grapherRef={this.manager.base}
                 bounds={this.modalBounds}
                 isHeightFixed={true}
                 onDismiss={this.onDismiss}

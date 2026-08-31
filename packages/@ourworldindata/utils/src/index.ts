@@ -124,6 +124,8 @@ export {
     getAllChildrenOfArea,
     flattenNonTopicNodes,
     formatInlineList,
+    formatAuthors,
+    formatAuthorsForBibtex,
     lazy,
     getParentIndicatorIdFromChartConfig,
     isArrayDifferentFromReference,
@@ -157,23 +159,19 @@ export {
 } from "./Util.js"
 
 export {
-    getOriginAttributionFragments,
+    getOriginAttributions,
     getAttributionFragmentsFromVariable,
+    formatAttributions,
+    formatAttributionsShortened,
     getETLPathComponents,
-    formatAuthors,
-    formatAuthorsForBibtex,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
-    getPhraseForProcessingLevel,
-    splitSourceTextIntoFragments,
+    getAttributionWithProcessing,
+    getProcessingPhraseForAttribution,
     prepareSourcesForDisplay,
     formatSourceDate,
     getDateRange,
-    getCitationLong,
-    getCitationShort,
-    getCitationDatapage,
-    getPhraseForArchivalDate,
-    getYearSuffixFromOrigin,
+    getIndicatorCitations,
 } from "./metadataHelpers.js"
 
 export { getAllVariableIds } from "./multiDim.js"
@@ -342,6 +340,8 @@ export {
 
 export { Tippy, TippyIfInteractive } from "./Tippy.js"
 
+export { useSpinDelay } from "./useSpinDelay.js"
+
 // This re-exports everything in the types package from the utils package. This is done so that
 // the transition is easier - we might want to get rid of this and rewrite all the imports instead
 // but it's a lot of work
@@ -378,6 +378,7 @@ export {
     convertToArchivalDateStringIfNecessary,
     formatAsArchivalDate,
     getDateForArchival,
+    getPhraseForArchivalDate,
     parseArchivalDate,
 } from "./archival/archivalDate.js"
 

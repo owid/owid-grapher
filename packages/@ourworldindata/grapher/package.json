@@ -1,6 +1,6 @@
 {
     "name": "@ourworldindata/grapher",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "OWID's data exploration and visualization library.",
     "repository": {
         "type": "git",
@@ -8,30 +8,37 @@
         "directory": "packages/@ourworldindata/grapher"
     },
     "type": "module",
+    "engines": {
+        "node": ">=20"
+    },
     "main": "src/index.ts",
     "types": "src/index.ts",
     "publishConfig": {
         "registry": "https://packages.owid.io",
-        "main": "dist/grapher.js",
+        "main": "dist/grapher.standalone.min.js",
         "types": "dist/grapher.d.ts",
         "exports": {
             ".": {
                 "types": "./dist/grapher.d.ts",
-                "import": "./dist/grapher.js"
+                "import": "./dist/grapher.standalone.min.js"
+            },
+            "./react": {
+                "types": "./dist/grapher.d.ts",
+                "import": "./dist/grapher.react.js"
             },
             "./grapher.css": "./dist/grapher.css",
-            "./grapher-schema.json": "./dist/grapher-schema.json",
-            "./standalone": {
-                "types": "./dist/grapher.d.ts",
-                "import": "./dist/grapher.standalone.min.js"
-            }
+            "./grapher-schema.json": "./dist/grapher-schema.json"
         }
     },
     "peerDependencies": {
+        "@types/react": "^19.0.0",
         "react": "^19.0.0",
         "react-dom": "^19.0.0"
     },
     "peerDependenciesMeta": {
+        "@types/react": {
+            "optional": true
+        },
         "react": {
             "optional": true
         },
@@ -40,8 +47,8 @@
         }
     },
     "files": [
-        "dist/grapher.js",
-        "dist/grapher.js.map",
+        "dist/grapher.react.js",
+        "dist/grapher.react.js.map",
         "dist/grapher.standalone.min.js",
         "dist/grapher.standalone.min.js.map",
         "dist/grapher.css",
@@ -54,6 +61,8 @@
         "buildSchema": "tsx scripts/buildLatestGrapherSchema.ts",
         "clean": "rm -rf dist dist-package",
         "startDemoServer": "http-server . -p 8433 -c-1 -o /demo.html",
+        "buildDocsApi": "typedoc",
+        "buildDocsSchema": "tsx ../../../devTools/schema/generate-schema-docs.ts",
         "testPackage": "yarn testPackage:pack && yarn testPackage:vitest && yarn testPackage:attw",
         "testPackage:pack": "yarn pack --out dist-package/grapher.tgz",
         "testPackage:vitest": "vitest run --config vitest.package.config.ts",
@@ -116,6 +125,8 @@
         "ts-pattern": "^5.8.0",
         "tsdown": "^0.22.14",
         "tsx": "^4.23.0",
+        "typedoc": "^0.28.14",
+        "typedoc-plugin-markdown": "^4.9.0",
         "url-join": "^5.0.0",
         "usehooks-ts": "^3.1.1",
         "versor": "^0.2.0",

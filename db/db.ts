@@ -107,6 +107,7 @@ export function setKnexInstance(knexInstance: Knex<any, any[]>): void {
 const getNewKnexInstance = (): Knex<any, any[]> => {
     return knex({
         client: "mysql2",
+        asyncStackTraces: true,
         connection: {
             host: GRAPHER_DB_HOST,
             user: GRAPHER_DB_USER,

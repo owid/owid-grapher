@@ -9,7 +9,8 @@ $sources-panel-width: 560px;
     left: 0;
 
     z-index: $zindex-sources-panel;
-    background-color: rgba(0, 0, 0, 0.4);
+    // the shared scrim the in-frame modal and the slide-in drawer use
+    background-color: $overlay-scrim;
 }
 
 // The panel is portaled to the document body (see SourcesPanel.tsx), so unlike

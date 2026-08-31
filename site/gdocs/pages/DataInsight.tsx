@@ -3,7 +3,7 @@ import {
     LatestDataInsight,
     OwidGdocDataInsightInterface,
     copyToClipboard,
-    formatInlineList,
+    formatAuthors,
     MinimalTag,
 } from "@ourworldindata/utils"
 import { useContext, useState } from "react"
@@ -104,7 +104,7 @@ function CopyLinkButton(props: { slug: string }) {
 
 function buildAuthorsNote(authors: string[]): string | undefined {
     if (authors.length === 0) return undefined
-    return `(This Data Insight was written by ${formatInlineList(authors, "and")}.)`
+    return `(This Data Insight was written by ${formatAuthors(authors)}.)`
 }
 
 export const DataInsightBody = (

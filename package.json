@@ -31,6 +31,9 @@
         "revertLastDbMigration": "tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration:revert -d db/dataSource.ts",
         "startAdminServer": "tsx --tsconfig tsconfig.tsx.json adminSiteServer/app.ts",
         "buildBespoke": "bash bespoke/buildBespokeProjects.sh",
+        "buildPackageDocsGen": "yarn workspace @ourworldindata/grapher build && yarn workspace @ourworldindata/grapher buildDocsApi && yarn workspace @ourworldindata/grapher buildDocsSchema",
+        "buildPackageDocs": "yarn buildPackageDocsGen && cd packageDocs && uv sync && uv run zensical build --clean",
+        "startPackageDocsServer": "yarn buildPackageDocsGen && cd packageDocs && uv sync && uv run zensical serve",
         "startBespokeDevServer": "tsx bespoke/server/devServer.ts",
         "startAdminDevServer": "tsx watch --ignore '**.mjs' --tsconfig tsconfig.tsx.json adminSiteServer/app.ts",
         "startLocalCloudflareFunctions": "wrangler pages dev --port ${WRANGLER_PORT:-8788}",
@@ -167,7 +170,7 @@
         "workerpool": "^10.0.1",
         "yaml": "^2.8.3",
         "yargs": "^17.7.2",
-        "zod": "^4.4.3"
+        "zod": "^4.5.4"
     },
     "devDependencies": {
         "@playwright/test": "^1.60.0",
