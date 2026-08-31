@@ -41,11 +41,8 @@ export class MarimekkoInternalLabels extends React.Component<MarimekkoInternalLa
                 if (series.yPoint === undefined) return undefined
 
                 const x = series.barX
-
-                const barY = this.props.dualAxis.verticalAxis.place(
-                    series.yPoint.value
-                )
-                const y = barY - this.props.labelPadding
+                const y =
+                    series.barY - series.barHeight - this.props.labelPadding
 
                 const label = series.shortEntityName ?? series.entityName
                 const bounds = Bounds.forText(label, {
