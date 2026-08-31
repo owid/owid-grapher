@@ -153,7 +153,13 @@ export const getRelativeMouse = (
         | PointerEvent
         | { clientX: number; clientY: number }
 ): PointVector => {
-    const eventOwner = checkIsTouchEvent(event) ? event.targetTouches[0] : event
+    // Touchend events have no active target touches, but changedTouches still
+    // contains the touch point that ended the gesture.
+    const eventOwner = checkIsTouchEvent(event)
+        ? (event.targetTouches[0] ?? event.changedTouches[0])
+        : event
+
+    if (!eventOwner) return new PointVector(0, 0)
 
     const { clientX, clientY } = eventOwner
 
