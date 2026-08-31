@@ -54,7 +54,19 @@ function isValidEditorTab(tab: string): tab is EditorTab {
 export interface AbstractChartEditorManager {
     admin: Admin
     patchConfig: GrapherInterface
+    // For the main chart editor, `parentConfig` is the indicator's config
+    // (variables.patchConfigIdETL), if any. For other editor variants
+    // (narrative) it is whatever their parent layer happens to be.
     parentConfig?: GrapherInterface
+    // id of the indicator `parentConfig` was loaded from. Tracked explicitly
+    // because indicator-level configs don't carry `dimensions` and so can't be
+    // asked which indicator they belong to.
+    parentVariableId?: number
+    // For the main chart editor, the chart's own ETL-authored grapher config
+    // (stored as a separate chart_configs row, via charts.patchConfigIdETL).
+    // Always applied, independent of indicator inheritance. Undefined for
+    // editors that don't have this layer.
+    etlConfig?: GrapherInterface
     isInheritanceEnabled?: boolean
     variableIdsByCatalogPath?: Record<string, number | null>
 }
@@ -98,6 +110,12 @@ export abstract class AbstractChartEditor<
 
     // parent config derived from the current chart config
     parentConfig: GrapherInterface | undefined = undefined
+    // id of the indicator `parentConfig` was loaded from
+    parentVariableId: number | undefined = undefined
+    // chart's own ETL-authored grapher config layer (above parentConfig,
+    // below patchConfig in the merge chain). Always applied — independent of
+    // `isInheritanceEnabled`, which only governs `parentConfig`.
+    etlConfig: GrapherInterface | undefined = undefined
     // if inheritance is enabled, the parent config is applied to grapherState
     isInheritanceEnabled: boolean | undefined = undefined
 
@@ -113,6 +131,8 @@ export abstract class AbstractChartEditor<
             showStaticPreview: observable.ref,
             savedPatchConfig: observable.ref,
             parentConfig: observable.ref,
+            parentVariableId: observable.ref,
+            etlConfig: observable.ref,
             isInheritanceEnabled: observable.ref,
         })
         this.manager = props.manager
@@ -126,7 +146,15 @@ export abstract class AbstractChartEditor<
 
         when(
             () => this.manager.parentConfig !== undefined,
-            () => (this.parentConfig = this.manager.parentConfig)
+            () => {
+                this.parentConfig = this.manager.parentConfig
+                this.parentVariableId = this.manager.parentVariableId
+            }
+        )
+
+        when(
+            () => this.manager.etlConfig !== undefined,
+            () => (this.etlConfig = this.manager.etlConfig)
         )
 
         when(
@@ -178,9 +206,14 @@ export abstract class AbstractChartEditor<
 
     /** original grapher config used to init the grapherState instance */
     @computed get originalGrapherConfig(): GrapherInterface {
-        const { patchConfig, parentConfig, isInheritanceEnabled } = this.manager
-        if (!isInheritanceEnabled) return patchConfig
-        return mergeGrapherConfigs(parentConfig ?? {}, patchConfig)
+        const { patchConfig, parentConfig, etlConfig, isInheritanceEnabled } =
+            this.manager
+        const effectiveParent = mergeGrapherConfigs(
+            isInheritanceEnabled ? (parentConfig ?? {}) : {},
+            etlConfig ?? {}
+        )
+        if (_.isEmpty(effectiveParent)) return patchConfig
+        return mergeGrapherConfigs(effectiveParent, patchConfig)
     }
 
     /** live-updating config */
@@ -198,9 +231,19 @@ export abstract class AbstractChartEditor<
         return mergeGrapherConfigs(this.activeParentConfig, this.patchConfig)
     }
 
-    /** parent config currently applied to grapher */
+    /** parent config currently applied to grapher.
+     *
+     * Combines the indicator's grapher_config (if `isInheritanceEnabled`) with
+     * the chart's own etlConfig (always applied). Returns undefined only if
+     * neither layer contributes anything.
+     */
     @computed get activeParentConfig(): GrapherInterface | undefined {
-        return this.isInheritanceEnabled ? this.parentConfig : undefined
+        const variablePart = this.isInheritanceEnabled
+            ? (this.parentConfig ?? {})
+            : {}
+        const etlPart = this.etlConfig ?? {}
+        if (_.isEmpty(variablePart) && _.isEmpty(etlPart)) return undefined
+        return mergeGrapherConfigs(variablePart, etlPart)
     }
 
     @computed get activeParentConfigWithDefaults():
@@ -246,8 +289,10 @@ export abstract class AbstractChartEditor<
 
     // only works for top-level properties
     isPropertyInherited(property: keyof GrapherInterface): boolean {
-        if (!this.isInheritanceEnabled || !this.activeParentConfigWithDefaults)
-            return false
+        // A property is "inherited" when the active parent (variableConfig
+        // if inheritance is on, plus etlConfig if any) supplies it AND the
+        // chart's patch doesn't override it.
+        if (!this.activeParentConfigWithDefaults) return false
         return (
             !Object.hasOwn(this.patchConfig, property) &&
             Object.hasOwn(this.activeParentConfigWithDefaults, property)
@@ -256,7 +301,7 @@ export abstract class AbstractChartEditor<
 
     // only works for top-level properties
     canPropertyBeInherited(property: keyof GrapherInterface): boolean {
-        if (!this.isInheritanceEnabled || !this.activeParentConfig) return false
+        if (!this.activeParentConfig) return false
         return Object.hasOwn(this.activeParentConfig, property)
     }
 

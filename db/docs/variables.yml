@@ -82,7 +82,10 @@ fields:
   sort:
     description: JSON configuration for how the variable should be sorted
   patchConfigIdETL:
-    description: Foreign key to chart_configs table. ETL-authored default chart configuration that charts can inherit from.
+    description: |
+      Foreign key to chart_configs table. ETL-authored default chart configuration that charts can inherit from.
+
+      This is a parent layer only, so its config never carries a dimensions array: which indicators a chart plots is decided by the child (a chart's own patch, or the ETL config layer of an ETL-managed chart) and reaches the rendered config through ordinary inheritance.
   dataChecksum:
     description: Checksum of the variable's data values, used for change detection
   metadataChecksum:
