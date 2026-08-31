@@ -6,7 +6,11 @@ import Image from "../gdocs/components/Image.js"
 import { ArticleBlocks } from "../gdocs/components/ArticleBlocks.js"
 import cx from "clsx"
 import { LatestHitMetadata } from "./LatestHitMetadata.js"
-import { LATEST_HIT_GRID_CLASSES, makeAttachments } from "./latestUtils.js"
+import {
+    LATEST_HIT_GRID_CLASSES,
+    findThumbnailImageBlock,
+    makeAttachments,
+} from "./latestUtils.js"
 import { useLatestContext } from "./LatestContext.js"
 import { useIsLikelyBaked } from "./latestHooks.js"
 
@@ -25,7 +29,7 @@ export const LatestDataInsightHit = ({
         content: { type: OwidGdocType.DataInsight },
     })
     const isLikelyBaked = useIsLikelyBaked(href, hit.date)
-    const firstImage = hit.body.find((block) => block.type === "image")
+    const firstImage = findThumbnailImageBlock(hit.body)
     const otherBlocks = hit.body.filter((block) => block !== firstImage)
     const titleId = `latest-hit-${hit.slug}-title`
 
