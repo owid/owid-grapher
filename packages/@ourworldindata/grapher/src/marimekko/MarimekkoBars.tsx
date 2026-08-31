@@ -33,7 +33,6 @@ export function MarimekkoBars({
         <>
             {noDataArea && (
                 <rect
-                    key="noDataArea"
                     x={noDataArea.x}
                     y={noDataArea.y}
                     width={noDataArea.width}
@@ -53,7 +52,6 @@ export function MarimekkoBars({
             ))}
             {!isFocusModeActive && noDataArea && (
                 <text
-                    key={`noDataArea-label`}
                     transform={`translate(${noDataArea.labelX}, ${noDataArea.labelY}) rotate(-90)`}
                     fontWeight={700}
                     fill="#666"
