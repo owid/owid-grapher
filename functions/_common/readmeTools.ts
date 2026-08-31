@@ -1,15 +1,14 @@
 import * as _ from "lodash-es"
 import {
-    excludeUndefined,
+    formatAttributions,
     formatSourceDate,
     getAttributionFragmentsFromVariable,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
-    getPhraseForProcessingLevel,
+    getAttributionWithProcessing,
     OwidColumnDef,
     getDateRange,
-    getCitationShort,
-    getCitationLong,
+    getIndicatorCitations,
     prepareSourcesForDisplay,
     formatDate,
     stripDetailOnDemandLinks,
@@ -32,32 +31,22 @@ export function* getCitationLines(
         `If you have limited space (e.g. in data visualizations), you can use this abbreviated in-line citation:` +
             markdownNewlineEnding
     )
-    const attributionFragments = getAttributionFragmentsFromVariable({
-        ...def,
-        source: { name: def.sourceName },
+    const attributionFragments = getAttributionFragments(col)
+    const { short: citationShort, long: citationLong } = getIndicatorCitations({
+        indicatorTitle: col.titlePublicOrDisplayName,
+        origins: def.origins ?? [],
+        source: col.source ?? {},
+        attributions: attributionFragments,
+        attributionShort: def.presentation?.attributionShort,
+        titleVariant: def.presentation?.titleVariant,
+        owidProcessingLevel: def.owidProcessingLevel,
     })
-    const citationShort = getCitationShort(
-        def.origins ?? [],
-        attributionFragments,
-        def.owidProcessingLevel
-    )
 
     yield citationShort
 
     yield ""
 
     yield "#### Full citation"
-    const citationLong = getCitationLong(
-        col.titlePublicOrDisplayName,
-        def.origins ?? [],
-        col.source ?? {},
-        attributionFragments,
-        def.presentation?.attributionShort,
-        def.presentation?.titleVariant,
-        def.owidProcessingLevel,
-        undefined,
-        undefined
-    )
     yield citationLong
 }
 
@@ -169,29 +158,13 @@ export function* getSources(
     }
 }
 
-export function getSource(attribution: string, def: OwidColumnDef): string {
-    const processingLevelPhrase =
-        attribution.toLowerCase() !== "our world in data"
-            ? getPhraseForProcessingLevel(def.owidProcessingLevel)
-            : undefined
-    const fullProcessingPhrase = processingLevelPhrase
-        ? ` – ${processingLevelPhrase} by Our World In Data`
-        : ""
-    const source = `${attribution}${fullProcessingPhrase}`
-    return source
+function getAttributionFragments(col: CoreColumn): string[] {
+    const def = col.def as OwidColumnDef
+    return getAttributionFragmentsFromVariable({ ...def, source: col.source })
 }
 
-export function getAttribution(def: OwidColumnDef): string {
-    const producers = _.uniq(
-        excludeUndefined((def.origins ?? []).map((o) => o.producer))
-    )
-
-    const attributionFragments =
-        getAttributionFragmentsFromVariable(def) ?? producers
-    const attribution = attributionFragments.join(", ")
-    if (attribution === "") {
-        return def.sourceName ?? ""
-    } else return attribution
+export function getAttribution(col: CoreColumn): string {
+    return formatAttributions(getAttributionFragments(col))
 }
 
 export function* getDescription(
@@ -228,9 +201,12 @@ function* columnReadmeText(col: CoreColumn) {
 
     yield ""
 
-    const attribution = getAttribution(def)
+    const attribution = getAttribution(col)
 
-    const source = getSource(attribution, def)
+    const source = getAttributionWithProcessing(
+        attribution,
+        def.owidProcessingLevel
+    )
 
     yield* getCitationLines(def, col)
 

@@ -2405,11 +2405,23 @@ export function flattenNonTopicNodes(tagGraph: TagGraphRoot): TagGraphRoot {
 
 export function formatInlineList(
     array: unknown[],
-    connector: "and" | "or" = "and"
+    {
+        connector = "and",
+        oxfordComma = false,
+    }: { connector?: "and" | "or"; oxfordComma?: boolean } = {}
 ): string {
     if (array.length === 0) return ""
     if (array.length === 1) return `${array[0]}`
-    return `${array.slice(0, -1).join(", ")} ${connector} ${R.last(array)}`
+    const comma = oxfordComma && array.length > 2 ? "," : ""
+    return `${array.slice(0, -1).join(", ")}${comma} ${connector} ${R.last(array)}`
+}
+
+export function formatAuthors(authors: string[]): string {
+    return formatInlineList(authors, { oxfordComma: true })
+}
+
+export function formatAuthorsForBibtex(authors: string[]): string {
+    return authors.join(" and ")
 }
 
 // The below comment marks this function as side-effect free, meaning that the bundler

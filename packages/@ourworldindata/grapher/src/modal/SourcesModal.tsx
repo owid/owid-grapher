@@ -2,17 +2,16 @@ import * as _ from "lodash-es"
 import * as R from "remeda"
 import {
     Bounds,
+    formatAttributions,
     getAttributionFragmentsFromVariable,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
-    excludeUndefined,
     DisplaySource,
     prepareSourcesForDisplay,
     OwidSource,
     IndicatorTitleWithFragments,
     joinTitleFragments,
-    getCitationShort,
-    getCitationLong,
+    getIndicatorCitations,
 } from "@ourworldindata/utils"
 import {
     IndicatorSources,
@@ -392,26 +391,16 @@ export class Source extends React.Component<SourceProps> {
         return { ...this.column.def, source: this.column.source }
     }
 
-    @computed get citationShort(): string {
-        return getCitationShort(
-            this.def.origins ?? [],
-            getAttributionFragmentsFromVariable(this.def),
-            this.def.owidProcessingLevel
-        )
-    }
-
-    @computed get citationLong(): string {
-        return getCitationLong(
-            this.titleWithFragments,
-            this.def.origins ?? [],
-            this.source,
-            getAttributionFragmentsFromVariable(this.def),
-            this.def.presentation?.attributionShort,
-            this.def.presentation?.titleVariant,
-            this.def.owidProcessingLevel,
-            undefined,
-            undefined
-        )
+    @computed private get citations(): { short: string; long: string } {
+        return getIndicatorCitations({
+            indicatorTitle: this.titleWithFragments,
+            origins: this.def.origins ?? [],
+            source: this.source,
+            attributions: getAttributionFragmentsFromVariable(this.def),
+            attributionShort: this.def.presentation?.attributionShort,
+            titleVariant: this.def.presentation?.titleVariant,
+            owidProcessingLevel: this.def.owidProcessingLevel,
+        })
     }
 
     @computed private get source(): OwidSource {
@@ -443,16 +432,12 @@ export class Source extends React.Component<SourceProps> {
         return undefined
     }
 
-    @computed private get producers(): string[] {
-        if (!this.def.origins) return []
-        return _.uniq(excludeUndefined(this.def.origins.map((o) => o.producer)))
-    }
-
     @computed get attributions(): string | undefined {
-        const attributionFragments =
-            getAttributionFragmentsFromVariable(this.def) ?? this.producers
+        const attributionFragments = getAttributionFragmentsFromVariable(
+            this.def
+        )
         if (attributionFragments.length === 0) return undefined
-        return attributionFragments.join(", ")
+        return formatAttributions(attributionFragments)
     }
 
     @computed get lastUpdated(): string | undefined {
@@ -585,8 +570,8 @@ export class Source extends React.Component<SourceProps> {
                     How to cite this data:
                 </h3>
                 <DataCitation
-                    citationShort={this.citationShort}
-                    citationLong={this.citationLong}
+                    citationShort={this.citations.short}
+                    citationLong={this.citations.long}
                 />
             </div>
         )
