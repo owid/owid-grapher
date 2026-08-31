@@ -579,3 +579,73 @@
         border-radius: 4px;
     }
 }
+
+// Vertical fade used to soften the bottom edge of clipped card content
+// (a data insight or data update card whose body overflows). Apply to an
+// absolutely positioned overlay covering the clipped area; $color must match
+// the background it fades into, including on hover.
+@mixin fade-out-overlay($color, $start: 50%) {
+    background: linear-gradient(180deg, transparent $start, $color 100%);
+}
+
+// Makes a link cover its nearest positioned ancestor, so clicking anywhere
+// in that box follows the link (the /latest feed cards, where the whole card
+// leads somewhere but the box itself can't be an <a> — a link can't nest
+// inside a link, and these cards hold links of their own). Apply to the
+// link; give the box `position: relative` so the overlay stops there.
+// Anything inside the box that must stay separately clickable — an inline
+// link, a byline, another link — needs above-stretched-link.
+@mixin stretched-link {
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+    }
+}
+
+// Lifts an element above a stretched-link overlay so it keeps its own click
+// behavior.
+@mixin above-stretched-link {
+    position: relative;
+    z-index: 2;
+}
+
+// The link a /latest feed card ends on — "Read the article", "Explore the
+// updated data …" and their kin. It carries no underline at rest, and takes
+// one while the card around it is hovered: the card is one big link to the
+// same place (see stretched-link), so the underline coming up with the
+// card's own hover is what says the two agree, and the resting card stays
+// quiet.
+//
+// The arrow rides in the text's own inline flow, so it trails the last word
+// and lands on the same baseline offset in every card — don't make these
+// flex containers, which would centre it against the whole block and drift
+// once the label wraps.
+//
+// Colour and weight stay with the caller: the article card's is vermillion
+// body copy, the data cards' bold blue. Pass the selector of the card whose
+// hover drives it, or omit it to react only to the CTA itself.
+@mixin latest-card-cta($card-selector: null) {
+    // Explicit, because a caller whose CTA is itself an anchor would
+    // otherwise take the underline anchors get by default.
+    text-decoration: none;
+
+    svg {
+        width: 10px;
+        height: 10px;
+        margin-left: 4px;
+    }
+
+    @if $card-selector {
+        #{$card-selector}:hover & {
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
+    } @else {
+        &:hover {
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
+    }
+}

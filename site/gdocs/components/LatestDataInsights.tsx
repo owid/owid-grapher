@@ -10,12 +10,14 @@ import * as R from "remeda"
 
 import { Button, getPrefersReducedMotion } from "@ourworldindata/components"
 import {
-    EnrichedBlockImage,
     formatAuthors,
     OwidEnrichedGdocBlock,
     LatestDataInsight,
 } from "@ourworldindata/utils"
-import { buildLatestPagePath } from "../../latest/latestUtils.js"
+import {
+    buildLatestPagePath,
+    findThumbnailImageBlock,
+} from "../../latest/latestUtils.js"
 import Image from "./Image.js"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import DataInsightDateline from "./DataInsightDateline.js"
@@ -203,11 +205,8 @@ const DataInsightCard = memo(function DataInsightCard({
     href: string
 }) {
     const titleId = `latest-data-insights__card-title-${index}`
-    const firstImageIndex = body.findIndex((block) => block.type === "image")
-    const firstImageBlock = body[firstImageIndex] as
-        | EnrichedBlockImage
-        | undefined
-    const otherBlocks = body.filter((_, index) => index !== firstImageIndex)
+    const firstImageBlock = findThumbnailImageBlock(body)
+    const otherBlocks = body.filter((block) => block !== firstImageBlock)
     return (
         <li
             className={cx("latest-data-insights__card", {

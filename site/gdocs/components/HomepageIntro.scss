@@ -167,11 +167,7 @@
             position: absolute;
             left: 0;
             top: 0;
-            background: linear-gradient(
-                180deg,
-                rgba(219, 229, 240, 0) 50%,
-                $gray-5 100%
-            );
+            @include fade-out-overlay($gray-5);
         }
     }
 

@@ -1,0 +1,102 @@
+.latest-data-update-hit {
+    @include sm-only {
+        margin-left: 16px;
+        margin-right: 16px;
+    }
+}
+
+.latest-data-update-hit__card {
+    position: relative;
+    background-color: $white;
+    color: $blue-90;
+
+    // Room under the CTA the card ends on, which zeroes its own bottom
+    // margin (see `__blocks` below) and would otherwise sit right on the
+    // inset.
+    padding: 16px 16px 24px;
+
+    @include sm-only {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+}
+
+.latest-data-update-hit__title-link {
+    color: inherit;
+    text-decoration: none;
+
+    // Covers the whole card so clicking anywhere on it navigates. It stops
+    // at the card, leaving the metadata row above it alone.
+    @include stretched-link;
+}
+
+// A collapsed card ends in a clipped, faded body rather than a CTA, so it
+// has nothing to clear and keeps the data insight card's even inset.
+.latest-data-update-hit__card--collapsed {
+    padding-bottom: 16px;
+
+    &:hover {
+        background-color: $blue-5;
+
+        .latest-data-update-hit__content--collapsed:before {
+            @include fade-out-overlay($blue-5);
+        }
+    }
+}
+
+.latest-data-update-hit__image {
+    align-self: start;
+
+    img {
+        display: block;
+        outline: 1px solid $blue-10;
+    }
+}
+
+// Collapsed cards clip the body to the height of the thumbnail beside them
+// and fade out the cut, the way data insight cards do. Expanded cards drop
+// both — the reader asked for data updates specifically, so they get the
+// whole thing.
+.latest-data-update-hit__content--collapsed {
+    max-height: 286px;
+    overflow: hidden;
+    position: relative;
+
+    &:before {
+        content: "";
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+        @include fade-out-overlay($white);
+    }
+}
+
+.latest-data-update-hit__title {
+    line-height: 1.5rem;
+    margin: 0 0 8px 0;
+}
+
+.latest-data-update-hit__authors {
+    @include body-3-medium-italic;
+    color: $blue-50;
+    margin: 0 0 8px 0;
+}
+
+.latest-data-update-hit__blocks {
+    @include text-block-override {
+        @include body-3-medium;
+    }
+
+    .cta {
+        @include body-3-bold;
+        @include latest-card-cta;
+        color: $blue-90;
+    }
+
+    [class*="article-block__"]:last-child {
+        margin-bottom: 0;
+    }
+}
