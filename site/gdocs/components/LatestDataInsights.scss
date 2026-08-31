@@ -77,11 +77,7 @@ html:not(.js-enabled) .latest-data-insights__card,
         background: $accent-pale-blue;
 
         .latest-data-insights__card-body:before {
-            background: linear-gradient(
-                180deg,
-                rgba(231, 242, 255, 0) 50%,
-                #e7f2ff 100%
-            );
+            @include fade-out-overlay($accent-pale-blue);
         }
     }
 
@@ -151,11 +147,7 @@ html:not(.js-enabled) .latest-data-insights__card,
         position: absolute;
         left: 0;
         top: 0;
-        background: linear-gradient(
-            180deg,
-            rgba(219, 229, 240, 0) 50%,
-            $blue-20 100%
-        );
+        @include fade-out-overlay($blue-20);
     }
 }
 

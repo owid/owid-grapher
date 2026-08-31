@@ -16,11 +16,7 @@
     &:hover {
         background-color: $accent-pale-blue;
         .latest-data-insight-hit__content:before {
-            background: linear-gradient(
-                180deg,
-                rgba(231, 242, 255, 0) 50%,
-                $accent-pale-blue 100%
-            );
+            @include fade-out-overlay($accent-pale-blue);
         }
     }
     @include sm-only {
@@ -49,11 +45,7 @@
         position: absolute;
         left: 0;
         top: 0;
-        background: linear-gradient(
-            180deg,
-            rgba(219, 229, 240, 0) 50%,
-            $blue-20 100%
-        );
+        @include fade-out-overlay($blue-20);
     }
 }
 

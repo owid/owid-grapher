@@ -139,6 +139,13 @@ export const LatestSearch = ({
         // needlessly.
     }, [isLoading, hits.length])
 
+    // Announcements render expanded when we know the reader is after this
+    // content in particular: they filtered for data updates, or followed a
+    // link straight to one card. It's a hard override, not a default — the
+    // card renders without a Read more toggle and can't be collapsed.
+    const isExpanded = (slug: string) =>
+        latestType === "data-update" || slug === autoExpandedSlug
+
     return (
         <LatestContext.Provider value={{ analytics }}>
             <LatestPageHeader />
@@ -179,7 +186,7 @@ export const LatestSearch = ({
                             hit={hit}
                             selectedTopic={topics[0]}
                             position={i + 1}
-                            shouldAutoExpand={hit.slug === autoExpandedSlug}
+                            isExpanded={isExpanded(hit.slug)}
                         />
                     ))}
                     {/* Always render the signup block — with 0 or 1 hits it
@@ -195,7 +202,7 @@ export const LatestSearch = ({
                             hit={hit}
                             selectedTopic={topics[0]}
                             position={i + 3}
-                            shouldAutoExpand={hit.slug === autoExpandedSlug}
+                            isExpanded={isExpanded(hit.slug)}
                         />
                     ))}
                     {hasNextPage && (

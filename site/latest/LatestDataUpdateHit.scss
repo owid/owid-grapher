@@ -1,0 +1,94 @@
+.latest-data-update-hit {
+    @include sm-only {
+        margin-left: 16px;
+        margin-right: 16px;
+    }
+}
+
+.latest-data-update-hit__card {
+    background-color: $white;
+    color: $blue-90;
+    padding: 16px;
+
+    &:hover {
+        background-color: $blue-5;
+
+        // Mirrors the article card's "Read the article" CTA, which drops its
+        // underline on hover.
+        .cta {
+            text-decoration: none;
+        }
+
+        .latest-data-update-hit__content--collapsed:before {
+            @include fade-out-overlay($blue-5);
+        }
+    }
+
+    @include sm-only {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+}
+
+.latest-data-update-hit__image {
+    align-self: start;
+
+    img {
+        display: block;
+        outline: 1px solid $blue-10;
+    }
+}
+
+// Collapsed cards clip the body to the height of the thumbnail beside them
+// and fade out the cut, the way data insight cards do. Expanded cards drop
+// both — the reader asked for data updates specifically, so they get the
+// whole thing.
+.latest-data-update-hit__content--collapsed {
+    max-height: 286px;
+    overflow: hidden;
+    position: relative;
+
+    &:before {
+        content: "";
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+        @include fade-out-overlay($white);
+    }
+}
+
+.latest-data-update-hit__title {
+    line-height: 1.5rem;
+    margin: 0 0 8px 0;
+}
+
+.latest-data-update-hit__authors {
+    @include body-3-medium-italic;
+    color: $blue-50;
+    margin: 0 0 8px 0;
+}
+
+.latest-data-update-hit__blocks {
+    @include text-block-override {
+        @include body-3-medium;
+    }
+
+    .cta {
+        @include body-3-medium;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+
+        svg {
+            width: 10px;
+            height: 10px;
+            margin-left: 4px;
+        }
+    }
+
+    [class*="article-block__"]:last-child {
+        margin-bottom: 0;
+    }
+}
