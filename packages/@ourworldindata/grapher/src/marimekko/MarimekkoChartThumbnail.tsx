@@ -128,9 +128,7 @@ export class MarimekkoChartThumbnail
     }
 
     @computed private get renderSeries(): RenderMarimekkoSeries[] {
-        return toRenderMarimekkoSeries(this.placedSeries, {
-            selectedEntityNames: this.chartState.selectionArray.selectedSet,
-        })
+        return toRenderMarimekkoSeries(this.placedSeries)
     }
 
     @computed private get placedSeriesByEntityName(): Map<

@@ -87,13 +87,13 @@ export class MarimekkoChart
         super(props)
 
         makeObservable(this, {
-            focusColorBin: observable,
+            hoveredColorBin: observable,
             tooltipState: observable,
         })
     }
 
     // currently hovered legend color
-    focusColorBin: ColorScaleBin | undefined = undefined
+    hoveredColorBin: ColorScaleBin | undefined = undefined
 
     // current tooltip target & position
     tooltipState = new TooltipState<{
@@ -240,8 +240,7 @@ export class MarimekkoChart
     @computed private get renderSeries(): RenderMarimekkoSeries[] {
         return toRenderMarimekkoSeries(this.placedSeries, {
             hoveredEntityName: this.hoveredEntityName,
-            selectedEntityNames: this.chartState.selectionArray.selectedSet,
-            focusColorBin: this.focusColorBin,
+            hoveredColorBin: this.hoveredColorBin,
         })
     }
 
@@ -280,17 +279,17 @@ export class MarimekkoChart
     private readonly resolveLegendBinEmphasis = (
         bin: ColorScaleBin
     ): Emphasis => {
-        const { focusColorBin } = this
+        const { hoveredColorBin } = this
 
         // If nothing is focused, all items are active
-        if (!focusColorBin && this.hoverColors.length === 0)
+        if (!hoveredColorBin && this.hoverColors.length === 0)
             return Emphasis.Default
 
         const isHovered = this.hoverColors?.includes(bin.color)
         if (isHovered) return Emphasis.Highlighted
 
         // Check if this bin matches the focused color bin
-        const isFocused = focusColorBin && bin.equals(focusColorBin)
+        const isFocused = hoveredColorBin && bin.equals(hoveredColorBin)
         return isFocused ? Emphasis.Highlighted : Emphasis.Muted
     }
 
@@ -304,7 +303,7 @@ export class MarimekkoChart
     legendStyleConfig: LegendStyleConfig = LEGEND_STYLE_FOR_STACKED_CHARTS
 
     @computed get hoverColors(): string[] {
-        if (this.focusColorBin) return [this.focusColorBin.color]
+        if (this.hoveredColorBin) return [this.hoveredColorBin.color]
         if (this.tooltipSeries?.entityColor)
             return [this.tooltipSeries.entityColor.color]
         const { selectionArray } = this.chartState
@@ -327,11 +326,11 @@ export class MarimekkoChart
     }
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
-        this.focusColorBin = bin
+        this.hoveredColorBin = bin
     }
 
     @action.bound onLegendMouseLeave(): void {
-        this.focusColorBin = undefined
+        this.hoveredColorBin = undefined
     }
 
     @computed private get legendState(): HorizontalCategoricalColorLegendState {

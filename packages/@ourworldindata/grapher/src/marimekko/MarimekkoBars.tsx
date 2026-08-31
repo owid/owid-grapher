@@ -1,14 +1,12 @@
 import { dyFromAlign, makeFigmaId, VerticalAlign } from "@ourworldindata/utils"
 import {
+    MARIMEKKO_BAR_STYLE,
     MarimekkoNoDataArea,
     RenderMarimekkoSeries,
 } from "./MarimekkoChartConstants"
 import { GRAPHER_FONT_SCALE_12, Patterns } from "../core/GrapherConstants"
-import { Emphasis, OPACITY_BY_EMPHASIS } from "../interaction/Emphasis.js"
-import { GRAY_30 } from "../color/ColorConstants.js"
 
 const PLACEHOLDER_COLOR = "#555"
-const BACKGROUNDED_COLOR = GRAY_30
 
 interface MarimekkoBarsProps {
     series: RenderMarimekkoSeries[]
@@ -80,31 +78,12 @@ function MarimekkoBar({
     onEntityMouseLeave,
     onEntityMouseOver,
 }: MarimekkoBarProps): React.ReactElement {
-    const {
-        entityName,
-        emphasis,
-        isMuted,
-        isOutlined,
-        focus,
-        barX,
-        barY,
-        barWidth,
-        barHeight,
-    } = series
+    const { entityName, emphasis, barX, barY, barWidth, barHeight } = series
     const isPlaceholder = series.yPoint === undefined
 
-    const barColor = focus.background
-        ? BACKGROUNDED_COLOR
-        : isPlaceholder
-          ? PLACEHOLDER_COLOR
-          : series.color
-
-    // The one case the emphasis map cannot express, a selected placeholder being
-    // neither hovered nor faded but still picked out
-    const fillOpacity =
-        emphasis === Emphasis.Default && isOutlined && isPlaceholder
-            ? 0.3
-            : OPACITY_BY_EMPHASIS[emphasis]
+    const barColor = isPlaceholder ? PLACEHOLDER_COLOR : series.color
+    const { fillOpacity, strokeOpacity, strokeWidth } =
+        MARIMEKKO_BAR_STYLE[emphasis]
 
     return (
         <g
@@ -123,8 +102,8 @@ function MarimekkoBar({
                 fill={barColor}
                 fillOpacity={fillOpacity}
                 stroke={barColor}
-                strokeWidth={isOutlined ? 1 : 0.5}
-                strokeOpacity={isPlaceholder ? 0.8 : isMuted ? 0.2 : 1.0}
+                strokeWidth={strokeWidth}
+                strokeOpacity={isPlaceholder ? 0.8 : strokeOpacity}
                 opacity={isPlaceholder ? 0.2 : 1.0}
             />
         </g>

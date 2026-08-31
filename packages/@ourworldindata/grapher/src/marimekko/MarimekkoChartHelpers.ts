@@ -4,12 +4,16 @@ import { Bounds, Color, EntityName, SortOrder } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { DualAxis } from "../axis/Axis"
 import { ColorScaleBin } from "../color/ColorScaleBin"
-import { Emphasis } from "../interaction/Emphasis"
+import { resolveEmphasis } from "../interaction/Emphasis"
 import { FocusArray } from "../focus/FocusArray"
-import { getShortNameForEntity } from "../chart/ChartUtils"
+import {
+    getHoverStateForSeries,
+    getShortNameForEntity,
+} from "../chart/ChartUtils"
 import {
     EntityColorData,
     LABEL_ANGLE_IN_DEGREES,
+    MARIMEKKO_BAR_STYLE,
     MarimekkoLabelCandidate,
     MarimekkoLabelMeasurements,
     MarimekkoNoDataArea,
@@ -66,51 +70,42 @@ export function toRenderMarimekkoSeries(
     placedSeries: readonly PlacedMarimekkoSeries[],
     {
         hoveredEntityName,
-        selectedEntityNames,
-        focusColorBin,
+        hoveredColorBin,
     }: {
         hoveredEntityName?: EntityName
-        selectedEntityNames: Set<EntityName>
-        focusColorBin?: ColorScaleBin
-    }
+        hoveredColorBin?: ColorScaleBin
+    } = {}
 ): RenderMarimekkoSeries[] {
-    const hasSelection = placedSeries.some((series) =>
-        selectedEntityNames.has(series.entityName)
-    )
+    const hoveredSeriesNames = hoveredEntityName
+        ? [hoveredEntityName]
+        : hoveredColorBin
+          ? placedSeries
+                .filter((series) =>
+                    hoveredColorBin.contains(
+                        series.entityColor?.colorDomainValue
+                    )
+                )
+                .map((series) => series.seriesName)
+          : []
+
+    const isHoverModeActive =
+        hoveredEntityName !== undefined || hoveredColorBin !== undefined
 
     const renderSeries = placedSeries.map((series): RenderMarimekkoSeries => {
-        const isHovered = series.entityName === hoveredEntityName
-        const isSelected = selectedEntityNames.has(series.entityName)
-        const isMuted =
-            series.focus.background ||
-            (focusColorBin !== undefined &&
-                !focusColorBin.contains(
-                    series.entityColor?.colorDomainValue
-                )) ||
-            (focusColorBin === undefined && hasSelection && !isSelected) ||
-            (!isHovered && !isSelected && hoveredEntityName !== undefined)
-
-        const emphasis = isHovered
-            ? Emphasis.Highlighted
-            : isMuted
-              ? Emphasis.Muted
-              : Emphasis.Default
-
-        return {
-            ...series,
-            emphasis,
-            isMuted,
-            isOutlined: isHovered || isSelected,
-        }
+        const hover = getHoverStateForSeries(series, {
+            hoveredSeriesNames,
+            isHoverModeActive,
+        })
+        // A hovered legend bin decides membership on its own, so a selected bar outside it fades like any other
+        const focus = hoveredColorBin ? undefined : series.focus
+        return { ...series, emphasis: resolveEmphasis({ hover, focus }) }
     })
 
-    // Adjacent Marimekko bars share an edge, so an outlined bar has to paint after
-    // its neighbours for its thicker stroke to sit on top
-    const [outlined, plain] = _.partition(
+    // Adjacent marimekko bars share an edge, so a thicker stroke has to paint after its neighbours
+    return _.sortBy(
         renderSeries,
-        (series) => series.isOutlined
+        (series) => MARIMEKKO_BAR_STYLE[series.emphasis].strokeWidth
     )
-    return [...plain, ...outlined]
 }
 
 export function toMarimekkoNoDataArea(

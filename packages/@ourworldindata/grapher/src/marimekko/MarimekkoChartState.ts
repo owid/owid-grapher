@@ -35,6 +35,7 @@ import { ColorSchemes } from "../color/ColorSchemes"
 import { excludeUndefined } from "@ourworldindata/utils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { FocusArray } from "../focus/FocusArray"
+import { InteractionState } from "../interaction/InteractionState.js"
 import { AxisConfig } from "../axis/AxisConfig.js"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
 import { makeToleranceNotice } from "../chart/ToleranceNotice.js"
@@ -118,6 +119,15 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
 
     @computed get isFocusModeActive(): boolean {
         return this.focusArray.hasFocusedSeries
+    }
+
+    private focusOrSelectionState(entityName: EntityName): InteractionState {
+        const isSingledOut =
+            this.focusArray.has(entityName) ||
+            this.selectionArray.selectedSet.has(entityName)
+        const isModeActive =
+            this.focusArray.hasFocusedSeries || this.selectionArray.hasSelection
+        return new InteractionState(isSingledOut, isModeActive)
     }
 
     /** Marimekko plots a single y indicator; a config naming several keeps the first */
@@ -278,7 +288,7 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
                         : undefined,
                     color: entityColor?.color ?? yColumnColor,
                     entityColor,
-                    focus: this.focusArray.state(entityName),
+                    focus: this.focusOrSelectionState(entityName),
                 }
             })
         )

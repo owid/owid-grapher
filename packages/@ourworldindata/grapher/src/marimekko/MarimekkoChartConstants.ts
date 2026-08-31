@@ -4,7 +4,7 @@ import { Color, SortBy, Time, Bounds, EntityName } from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"
 import { ChartSeries } from "../chart/ChartInterface"
 import { InteractionState } from "../interaction/InteractionState.js"
-import { Emphasis } from "../interaction/Emphasis.js"
+import { Emphasis, OPACITY_BY_EMPHASIS } from "../interaction/Emphasis.js"
 
 export interface MarimekkoChartManager extends ChartManager {
     xOverrideTime?: number
@@ -33,6 +33,7 @@ export interface MarimekkoSeries extends ChartSeries {
     yPoint: MarimekkoPoint | undefined
     xPoint: MarimekkoPoint | undefined
     entityColor: EntityColorData | undefined
+    /** Covers both focus and selection, either of which singles the entity out */
     focus: InteractionState
 }
 
@@ -44,15 +45,34 @@ export interface PlacedMarimekkoSeries extends MarimekkoSeries {
 }
 
 export interface RenderMarimekkoSeries extends PlacedMarimekkoSeries {
-    /**
-     * Drives the fill. A hovered bar reads as highlighted even while the rest of it
-     * is faded, so this can be `Highlighted` while `isMuted` is true.
-     */
     emphasis: Emphasis
-    /** Faded because another bar is hovered, focused, or selected */
-    isMuted: boolean
-    /** Hovered or selected: thicker stroke, and drawn last so it overlaps its neighbours */
-    isOutlined: boolean
+}
+
+export interface MarimekkoBarStyle {
+    fillOpacity: number
+    strokeOpacity: number
+    strokeWidth: number
+}
+
+const DEFAULT_MARIMEKKO_BAR_STYLE: MarimekkoBarStyle = {
+    fillOpacity: OPACITY_BY_EMPHASIS[Emphasis.Default],
+    strokeOpacity: 1,
+    strokeWidth: 0.5,
+}
+
+export const MARIMEKKO_BAR_STYLE: Record<Emphasis, MarimekkoBarStyle> = {
+    [Emphasis.Default]: DEFAULT_MARIMEKKO_BAR_STYLE,
+    [Emphasis.Elevated]: DEFAULT_MARIMEKKO_BAR_STYLE,
+    [Emphasis.Highlighted]: {
+        fillOpacity: OPACITY_BY_EMPHASIS[Emphasis.Highlighted],
+        strokeOpacity: 1,
+        strokeWidth: 1,
+    },
+    [Emphasis.Muted]: {
+        fillOpacity: OPACITY_BY_EMPHASIS[Emphasis.Muted],
+        strokeOpacity: 0.2,
+        strokeWidth: 0.5,
+    },
 }
 
 /** The hatched band covering the entities that have no y value */
