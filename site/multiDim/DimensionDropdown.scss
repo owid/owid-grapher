@@ -1,12 +1,17 @@
 $toggle-height: 32px;
 $toggle-full-width-breakpoint: 520px;
 
+// The design uses a lighter blue for the open-state stroke and the
+// selected-hover fill than the palette's $blue-30 (Figma "Accent/Blue 30").
+$open-stroke: #bed2e7;
+$selected-hover-fill: #bed2e7;
+
 .md-settings__dropdown-toggle {
     display: flex;
     align-items: center;
-    color: $secondary-text;
+    color: $gray-80;
     background: white;
-    border: 1px solid $light-stroke;
+    border: 1px solid $gray-10;
     font: $medium 13px/16px $lato;
     letter-spacing: 0.01em;
     border-radius: 4px;
@@ -24,34 +29,22 @@ $toggle-full-width-breakpoint: 520px;
         outline: none !important;
     }
 
-    &:hover:not([data-disabled]),
-    &:focus:not([data-disabled]) {
-        border-color: $blue-30;
+    &:hover:not([data-disabled]):not([aria-expanded="true"]),
+    &:focus:not([data-disabled]):not([aria-expanded="true"]) {
+        background: $gray-10;
+        border-color: $gray-30;
     }
 
-    &:hover {
-        background: $gray-5;
-    }
-
-    &[data-pressed],
-    &:active {
-        background: $active-fill;
-        border: 1px solid $active-fill;
-    }
-
-    &[data-pressed] {
-        cursor: default;
-        color: $active-text;
+    &[aria-expanded="true"] {
+        background: white;
+        border-color: $open-stroke;
     }
 
     &[data-disabled] {
-        color: $gray-60;
+        color: $gray-70;
+        background: $gray-10;
+        border-color: $gray-10;
         cursor: default;
-        background: $gray-5;
-
-        .md-settings__dropdown-current-choice {
-            color: $gray-70;
-        }
     }
 
     @media (max-width: $toggle-full-width-breakpoint) {
@@ -59,27 +52,22 @@ $toggle-full-width-breakpoint: 520px;
     }
 }
 
-.md-settings__dropdown-label {
-    white-space: nowrap;
-
-    &::after {
-        content: ":";
-        margin-right: 3px;
-    }
-}
-
 .md-settings__dropdown-current-choice {
-    color: $primary-text;
     max-width: 150px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     min-width: 0;
-    margin-left: auto;
 
     @media (max-width: $toggle-full-width-breakpoint) {
         max-width: none;
     }
+}
+
+.md-settings__dropdown-caret {
+    // Pushes the caret to the right edge when the button is wider than its
+    // content (mobile full-width layout).
+    margin-left: auto;
 }
 
 .md-settings__dropdown {
@@ -91,18 +79,15 @@ $toggle-full-width-breakpoint: 520px;
 .md-menu {
     width: 400px;
     background: white;
-    padding: 16px 16px 8px;
+    // No horizontal padding: menu items are full-bleed, so the hover and
+    // selection fills span the menu's full width.
+    padding: 16px 0 8px;
     border-radius: 4px;
     box-shadow: 0px 4px 23px 4px #0000000f;
     z-index: $zindex-controls-popup;
     overflow-y: auto;
     scrollbar-gutter: stable;
     overscroll-behavior: contain;
-
-    // Reduce right padding in webkit browsers to accommodate scrollbar
-    @supports selector(::-webkit-scrollbar) {
-        padding-right: 6px;
-    }
 
     // Always show scrollbar in webkit browsers. This makes it clear that there
     // are more options to scroll through.
@@ -122,23 +107,15 @@ $toggle-full-width-breakpoint: 520px;
     }
 
     .md-menu__overlay-header {
-        display: flex;
-        justify-content: space-between;
+        padding: 0 16px;
         margin-bottom: 12px;
     }
 
     .md-menu__overlay-header-title {
         @include h5-black-caps;
         color: $light-text;
-
-        // Align with the close button. We don't use align-items: center,
-        // because the children below the title can have arbitrary height.
-        margin-top: 9px;
+        margin-top: 0;
         margin-bottom: 4px;
-    }
-
-    .md-menu__overlay-header-close-button {
-        margin-left: 8px;
     }
 
     .md-menu__dimension-description {
@@ -147,18 +124,6 @@ $toggle-full-width-breakpoint: 520px;
         line-height: normal;
         margin-top: 0;
         margin-bottom: 4px;
-    }
-
-    .md-label {
-        @include label-2-regular;
-        display: block;
-    }
-
-    .md-description {
-        @include note-2-regular;
-        display: block;
-        color: $gray-70;
-        margin-top: 4px;
     }
 
     .md-menu__group {
@@ -172,25 +137,64 @@ $toggle-full-width-breakpoint: 520px;
     .md-menu__group-label {
         @include label-2-bold;
         color: $light-text;
-        margin: 16px 0;
+        margin: 16px;
     }
 
-    .md-menu__radio-button {
-        padding: 16px 0;
-        border-bottom: 1px solid $gray-20;
+    .md-menu__item {
+        @include label-2-regular;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        min-height: 32px;
+        padding: 8px 16px;
+        color: $gray-80;
         cursor: pointer;
 
         &:focus-visible {
             outline: none !important;
         }
 
-        &:first-of-type {
-            padding-top: 0;
+        &:not(:first-child) {
+            margin-top: 4px;
         }
 
-        &:last-of-type {
-            border-bottom: none;
+        &[data-hovered],
+        &[data-focused] {
+            background: $gray-10;
         }
+
+        &[data-selected] {
+            color: $blue-90;
+            background: $blue-20;
+
+            &[data-hovered],
+            &[data-focused] {
+                background: $selected-hover-fill;
+            }
+        }
+    }
+
+    .md-menu__item-content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .md-menu__item-description {
+        @include note-2-regular;
+        color: $gray-70;
+    }
+
+    .md-menu__item[data-selected] .md-menu__item-description {
+        // Figma "Accent/Blue 50", lighter than the palette's $blue-50.
+        color: #6e87a2;
+    }
+
+    .md-menu__item-check {
+        flex-shrink: 0;
+        font-size: 12px;
     }
 
     @include sm-only {
