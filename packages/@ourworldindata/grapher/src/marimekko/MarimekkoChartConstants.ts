@@ -65,6 +65,9 @@ export interface MarimekkoNoDataArea {
     labelY: number
 }
 
+/** 0 is horizontal, -90 is vertical from bottom to top, ... */
+export const LABEL_ANGLE_IN_DEGREES = -45
+
 /** An entity that could be labelled under the x axis */
 export interface MarimekkoLabelCandidate {
     entityName: EntityName
@@ -87,6 +90,16 @@ export interface PlacedMarimekkoLabel {
     preferredX: number
     /** Shifted away from `preferredX` to clear neighbouring labels */
     correctedX: number
+}
+
+/**
+ * The label run's extent, before and after rotation by `LABEL_ANGLE_IN_DEGREES`
+ */
+export interface MarimekkoLabelMeasurements {
+    unrotatedMaxWidth: number
+    unrotatedMaxHeight: number
+    rotatedMaxWidth: number
+    rotatedMaxHeight: number
 }
 
 export const MARIMEKKO_SORT_KEYS = [

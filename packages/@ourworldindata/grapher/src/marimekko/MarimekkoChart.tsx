@@ -1,13 +1,10 @@
-import * as _ from "lodash-es"
 import React from "react"
 import * as R from "remeda"
 import {
     Bounds,
-    EntityName,
     excludeUndefined,
     HorizontalAlign,
     Position,
-    SortOrder,
     getRelativeMouse,
     EntitySelectionMode,
     makeFigmaId,
@@ -31,7 +28,6 @@ import {
     CoreColumn,
     ColumnTypeMap,
 } from "@ourworldindata/core-table"
-import { getShortNameForEntity } from "../chart/ChartUtils"
 import { LEGEND_STYLE_FOR_STACKED_CHARTS } from "../stackedCharts/StackedConstants"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
@@ -52,33 +48,31 @@ import {
 import { Emphasis } from "../interaction/Emphasis"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import {
+    LABEL_ANGLE_IN_DEGREES,
     MarimekkoChartManager,
+    MarimekkoLabelCandidate,
+    MarimekkoLabelMeasurements,
     MarimekkoNoDataArea,
     MarimekkoSeries,
+    PlacedMarimekkoLabel,
     PlacedMarimekkoSeries,
     RenderMarimekkoSeries,
-    MarimekkoLabelCandidate,
-    PlacedMarimekkoLabel,
 } from "./MarimekkoChartConstants"
 import { MarimekkoChartState } from "./MarimekkoChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { MarimekkoBars } from "./MarimekkoBars"
 import {
-    splitIntoEqualDomainSizeChunks,
+    measureMarimekkoLabels,
+    pickMarimekkoLabelCandidates,
     toMarimekkoNoDataArea,
+    toPlacedMarimekkoLabels,
     toPlacedMarimekkoSeries,
     toRenderMarimekkoSeries,
+    toShiftedLabelRuns,
 } from "./MarimekkoChartHelpers"
 
-const MARKER_MARGIN: number = 4
-const MARKER_AREA_HEIGHT: number = 25
-const MAX_LABEL_COUNT: number = 20
-
-/** Vertical gap between two stacked entity labels */
-const LABEL_SPACING: number = 5
-
-/** 0 is horizontal, -90 is vertical from bottom to top, ... */
-const LABEL_ANGLE_IN_DEGREES: number = -45
+const MARKER_MARGIN = 4
+const MARKER_AREA_HEIGHT = 25
 
 export type MarimekkoChartProps = ChartComponentProps<MarimekkoChartState>
 
@@ -170,10 +164,10 @@ export class MarimekkoChart
         // only pad left by the amount the longest label would exceed whatever space the
         // vertical axis needs anyhow for label and tickmarks
         const marginToEnsureWidestEntityLabelFitsEvenIfAtX0 =
-            Math.max(whiteSpaceOnLeft, this.longestLabelWidth) -
+            Math.max(whiteSpaceOnLeft, this.labelMeasurements.rotatedMaxWidth) -
             whiteSpaceOnLeft
         return this.bounds
-            .padBottom(this.longestLabelHeight + 2)
+            .padBottom(this.labelMeasurements.rotatedMaxHeight + 2)
             .padBottom(labelLinesHeight)
             .padTop(
                 this.showLegend
@@ -586,251 +580,44 @@ export class MarimekkoChart
     }
 
     @computed private get pickedLabelCandidates(): MarimekkoLabelCandidate[] {
-        const {
-            xColumnAtLastTimePoint,
-            yColumnAtLastTimePoint,
-            xRange,
-            series,
-        } = this
+        const { xColumnAtLastTimePoint, yColumnAtLastTimePoint, xRange } = this
         const { selectedSeries, sortConfig, focusArray } = this.chartState
 
-        if (yColumnAtLastTimePoint === undefined) return []
-
-        const selectedEntityNames = new Set(
-            selectedSeries.map((series) => series.entityName)
-        )
-
-        // This is similar to what we would get with .sortedSeries but
-        // we want this for the last year to pick all labels there - sortedSeries
-        // changes with the time point the user selects
-        const ySizeMap: Map<string, number> = new Map(
-            yColumnAtLastTimePoint.owidRows.map((row) => [
-                row.entityName,
-                row.value,
-            ])
-        )
-
-        // We want labels to be chosen according to the latest time point available in the chart.
-        // The reason for this is that it makes it so the labels are pretty consistent across time,
-        // and not very jumpy when the user drags across the timeline.
-        const labelCandidateSource =
-            xColumnAtLastTimePoint ?? yColumnAtLastTimePoint
-
-        // Measured before any rotation, just normal horizontal labels
-        let candidates: MarimekkoLabelCandidate[] =
-            labelCandidateSource.owidRows.map((row) => {
-                const text =
-                    getShortNameForEntity(row.entityName) ?? row.entityName
-                return {
-                    entityName: row.entityName,
-                    text,
-                    bounds: Bounds.forText(text, {
-                        fontSize: this.entityLabelFontSize,
-                    }),
-                    xValue:
-                        xColumnAtLastTimePoint !== undefined ? row.value : 1,
-                    ySortValue: ySizeMap.get(row.entityName),
-                    isSelected: selectedEntityNames.has(row.entityName),
-                }
-            })
-
-        // If focus mode is active, only label focused series
-        if (focusArray.hasFocusedSeries)
-            candidates = candidates.filter((candidate) =>
-                focusArray.has(candidate.entityName)
-            )
-
-        if (candidates.length === 0) return []
-
-        candidates.sort((a, b) => {
-            const yValueForA = a.ySortValue
-            const yValueForB = b.ySortValue
-
-            if (yValueForA !== undefined && yValueForB !== undefined) {
-                const diff = yValueForB - yValueForA
-                if (diff !== 0) return diff
-                else return b.entityName.localeCompare(a.entityName)
-            } else if (yValueForA === undefined && yValueForB !== undefined)
-                return -1
-            else if (yValueForA !== undefined && yValueForB === undefined)
-                return 1
-            // (yValueForA === undefined && yValueForB === undefined)
-            else return 0
+        return pickMarimekkoLabelCandidates({
+            series: this.series,
+            xColumnAtLastTimePoint,
+            yColumnAtLastTimePoint,
+            selectedEntityNames: new Set(
+                selectedSeries.map((series) => series.entityName)
+            ),
+            focusArray,
+            sortOrder: sortConfig.sortOrder,
+            availableWidth: xRange[1] - xRange[0],
+            fontSize: this.entityLabelFontSize,
         })
+    }
 
-        const isDescending = sortConfig.sortOrder === SortOrder.desc
-        if (isDescending) candidates.reverse()
-
-        const picked = new Set<EntityName>(
-            candidates
-                .filter((candidate) => candidate.isSelected)
-                .map((candidate) => candidate.entityName)
-        )
-
-        const [withValues, withoutValues] = _.partition(
-            candidates,
-            (candidate) =>
-                candidate.ySortValue !== 0 && candidate.ySortValue !== undefined
-        )
-
-        // Both ends of the sort always get a label
-        if (withValues.length) {
-            picked.add(R.first(withValues)!.entityName)
-            picked.add(R.last(withValues)!.entityName)
-        }
-        if (withoutValues.length)
-            picked.add(
-                isDescending
-                    ? R.first(withoutValues)!.entityName
-                    : R.last(withoutValues)!.entityName
-            )
-
-        const availablePixels = xRange[1] - xRange[0]
-        const labelHeight = candidates[0].bounds.height
-        const numLabelsToAdd = Math.floor(
-            Math.min(
-                availablePixels / (labelHeight + LABEL_SPACING) / 3, // factor 3 is arbitrary to taste
-                MAX_LABEL_COUNT
-            )
-        )
-
-        // Spread the rest evenly by labelling the widest bar of each chunk
-        const chunks = splitIntoEqualDomainSizeChunks(
-            series,
-            candidates,
-            numLabelsToAdd
-        )
-        for (const chunk of chunks) {
-            if (chunk.some((candidate) => picked.has(candidate.entityName)))
-                continue
-            const widest = _.maxBy(chunk, (candidate) => candidate.xValue)
-            if (widest) picked.add(widest.entityName)
-        }
-
-        return candidates.filter((candidate) =>
-            picked.has(candidate.entityName)
-        )
+    @computed private get labelMeasurements(): MarimekkoLabelMeasurements {
+        return measureMarimekkoLabels(this.pickedLabelCandidates, {
+            fontSize: this.fontSize,
+        })
     }
 
     @computed private get placedLabels(): PlacedMarimekkoLabel[] {
-        const {
-            dualAxis,
-            placedSeriesByEntityName,
-            pickedLabelCandidates,
-            unrotatedLongestLabelWidth,
-            unrotatedHighestLabelHeight,
-        } = this
         const { x0, domainColorForEntityMap, yColumnColor } = this.chartState
 
-        const labels: PlacedMarimekkoLabel[] = excludeUndefined(
-            pickedLabelCandidates.map((candidate) => {
-                const series = placedSeriesByEntityName.get(
-                    candidate.entityName
-                )
-                if (!series) {
-                    console.error("Could not find series", candidate.entityName)
-                    return undefined
-                }
-
-                const centreX = series.barX + series.barWidth / 2
-                const domainColor = domainColorForEntityMap.get(
-                    candidate.entityName
-                )
-                return {
-                    entityName: candidate.entityName,
-                    text: candidate.text,
-                    color: domainColor?.color ?? yColumnColor,
-                    isSelected: candidate.isSelected,
-                    preferredX: centreX,
-                    correctedX: centreX,
-                }
-            })
-        )
-
-        // This collision detection code is optimized for the particular
-        // case of distributing items in 1D, knowing that we picked a low
-        // enough number of labels that we will be able to fit all labels.
-        // The algorithm iterates the list twice, i.e. works in linear time
-        // with the number of labels to show
-        // The logic in pseudo code:
-        // for current, next in iterate-left-to-right-pairs:
-        //   if next.x < current.x + label-width:
-        //      next.x = current.x + label-width
-        // last.x = Math.min(last.x, max-x)
-        // for current, prev in iterate-right-to-left-pairs:
-        //   if prev.x > current.x - label-width:
-        //      prev.x = current.x - label-width
-
-        // The label width is uniform for now and starts with
-        // the height of a label when printed in normal horizontal layout
-        // Since labels are rotated we need to make a bit more space so that they
-        // stack correctly. Consider:
-        //     ╱---╱ ╱---╱
-        //    ╱   ╱ ╱   ╱
-        //   ╱   ╱ ╱   ╱
-        //  ╱---╱ ╱---╱
-        // If we would just use exactly the label width then the flatter the angle
-        // the more they would actually overlap so we need a correction factor. It turns
-        // out than tan(angle) is the correction factor we want, although for horizontal
-        // labels we don't want to use +infinity :) so we Math.min it with the longest label width
-        if (labels.length === 0) return []
-
-        labels.sort((a, b) => {
-            const diff = a.preferredX - b.preferredX
-            if (diff !== 0) return diff
-            else return a.entityName.localeCompare(b.entityName)
+        return toPlacedMarimekkoLabels(this.pickedLabelCandidates, {
+            placedSeriesByEntityName: this.placedSeriesByEntityName,
+            domainColorForEntityMap,
+            fallbackColor: yColumnColor,
+            measurements: this.labelMeasurements,
+            dualAxis: this.dualAxis,
+            x0,
         })
-
-        const labelWidth = unrotatedHighestLabelHeight
-        const correctionFactor =
-            1 +
-            Math.min(
-                unrotatedLongestLabelWidth / labelWidth,
-                Math.abs(Math.tan(LABEL_ANGLE_IN_DEGREES))
-            )
-        const correctedLabelWidth = labelWidth * correctionFactor
-
-        for (let i = 0; i < labels.length - 1; i++) {
-            const current = labels[i]
-            const next = labels[i + 1]
-            const minNextX = current.correctedX + correctedLabelWidth
-            if (next.correctedX < minNextX) next.correctedX = minNextX
-        }
-        const last = R.last(labels)!
-        last.correctedX = Math.min(
-            last.correctedX,
-            dualAxis.horizontalAxis.rangeSize +
-                dualAxis.horizontalAxis.place(x0)
-        )
-        for (let i = labels.length - 1; i > 0; i--) {
-            const current = labels[i]
-            const previous = labels[i - 1]
-            const maxPreviousX = current.correctedX - correctedLabelWidth
-            if (previous.correctedX > maxPreviousX)
-                previous.correctedX = maxPreviousX
-        }
-
-        return labels
     }
 
-    /**
-     * Runs of consecutive labels that the collision pass had to shift. Each run
-     * shares out the marker area's height so their connector lines don't overlap.
-     */
     @computed private get shiftedLabelRuns(): PlacedMarimekkoLabel[][] {
-        const runs: PlacedMarimekkoLabel[][] = []
-        let startNewRun = true
-        for (const label of this.placedLabels) {
-            if (label.preferredX === label.correctedX) {
-                startNewRun = true
-            } else if (startNewRun) {
-                runs.push([label])
-                startNewRun = false
-            } else {
-                R.last(runs)!.push(label)
-            }
-        }
-        return runs
+        return toShiftedLabelRuns(this.placedLabels)
     }
 
     private renderLabelLines(): React.ReactElement[] {
@@ -918,45 +705,6 @@ export class MarimekkoChart
                 </g>
             </g>
         ))
-    }
-
-    @computed private get unrotatedLongestLabelWidth(): number {
-        const widths = this.pickedLabelCandidates.map(
-            (candidate) => candidate.bounds.width
-        )
-        const maxWidth = Math.max(...widths)
-        return maxWidth
-    }
-
-    @computed private get unrotatedHighestLabelHeight(): number {
-        const heights = this.pickedLabelCandidates.map(
-            (candidate) => candidate.bounds.height
-        )
-        return Math.max(...heights)
-    }
-
-    @computed private get longestLabelHeight(): number {
-        // This takes the angle of rotation of the entity labels into account
-        // This is somewhat simplified as we treat this as a one-dimensional
-        // entity whereas in reality the textbox if of course 2D. To account
-        // for that we do max(fontSize, rotatedLabelHeight) in the end
-        // as a rough proxy
-        const rotatedLabelHeight =
-            this.unrotatedLongestLabelWidth *
-            Math.abs(Math.sin((LABEL_ANGLE_IN_DEGREES * Math.PI) / 180))
-        return Math.max(this.fontSize, rotatedLabelHeight)
-    }
-
-    @computed private get longestLabelWidth(): number {
-        // This takes the angle of rotation of the entity labels into account
-        // This is somewhat simplified as we treat this as a one-dimensional
-        // entity whereas in reality the textbox if of course 2D. To account
-        // for that we do max(fontSize, rotatedLabelHeight) in the end
-        // as a rough proxy
-        const rotatedLabelWidth =
-            this.unrotatedLongestLabelWidth *
-            Math.abs(Math.cos((LABEL_ANGLE_IN_DEGREES * Math.PI) / 180))
-        return Math.max(this.fontSize, rotatedLabelWidth)
     }
 
     @computed private get entityLabelFontSize(): number {
