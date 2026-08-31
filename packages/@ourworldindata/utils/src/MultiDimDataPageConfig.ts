@@ -1,7 +1,9 @@
 import {
     Choice,
     ChoicesEnriched,
+    Dimension,
     DimensionEnriched,
+    DimensionPresentationType,
     IndicatorsAfterPreProcessing,
     MultiDimDimensionChoices,
     View,
@@ -226,6 +228,24 @@ export class MultiDimDataPageConfig {
         }
         return dimensions
     }
+}
+
+/**
+ * Which control a dimension should be rendered as. An explicit
+ * `presentation.type` in the config always wins; otherwise dimensions with at
+ * most two ungrouped choices render as a radio group, everything else as a
+ * dropdown.
+ *
+ * Always resolve against the dimension's full choice list (not one filtered
+ * to the currently available choices), so the control type doesn't flip as
+ * other selections change.
+ */
+export function resolveDimensionPresentationType(
+    dimension: Dimension
+): DimensionPresentationType {
+    if (dimension.presentation?.type) return dimension.presentation.type
+    const hasGroups = dimension.choices.some((choice) => choice.group)
+    return dimension.choices.length <= 2 && !hasGroups ? "radio" : "dropdown"
 }
 
 export const extractMultiDimChoicesFromSearchParams = (

@@ -1,4 +1,4 @@
-.md-dropdowns {
+.md-controls {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -8,7 +8,12 @@
     gap: 8px;
 }
 
-.md-dropdowns__toggle {
+.md-settings__control--hidden {
+    position: absolute;
+    visibility: hidden;
+}
+
+.md-controls__toggle {
     @include label-2-medium;
     color: $blue-90;
     background: none;
@@ -19,14 +24,14 @@
     white-space: nowrap;
 }
 
-.md-dropdowns__toggle-icon {
+.md-controls__toggle-icon {
     font-size: 12px;
     color: $blue-50;
     margin-right: 8px;
     margin-left: 4px;
 }
 
-.md-dropdowns__toggle-text {
+.md-controls__toggle-text {
     text-decoration: underline;
 
     &:hover {
