@@ -3,14 +3,29 @@ import {
     LATEST_TYPE_LABELS,
     OwidGdocAnnouncementInterface,
 } from "@ourworldindata/types"
-import { formatAuthors } from "@ourworldindata/utils"
+import {
+    deriveAnnouncementLatestType,
+    formatAuthors,
+    OwidGdocType,
+} from "@ourworldindata/utils"
+import { getPrefixedGdocPath } from "@ourworldindata/components"
 import { useContext } from "react"
 import * as React from "react"
-import { AnnouncementContent } from "../../latest/AnnouncementContent.js"
-import { deriveAnnouncementLatestType } from "../../latest/latestUtils.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
+import LatestBreadcrumb from "../components/LatestBreadcrumb.js"
+import LatestCarouselSection from "../components/LatestCarouselSection.js"
+import CopyLinkButton from "../components/CopyLinkButton.js"
+import RelatedTopicsList from "../components/RelatedTopicsList.js"
+import StandalonePostBody, {
+    STANDALONE_POST_GRID_CLASSES,
+} from "../components/StandalonePostBody.js"
+import { announcementsToCarouselItems } from "../components/latestCarouselItems.js"
 import { CopySocialButton } from "../components/CopySocialButton.js"
 import { buildSocialText } from "../socialText.js"
+import {
+    buildLatestPagePath,
+    latestTypeLabelPlural,
+} from "../../latest/latestUtils.js"
 
 // Announcements posted on social media are data and topic updates; the other
 // kinds (website upgrades, general announcements) aren't, so they don't get
@@ -42,40 +57,65 @@ export const AnnouncementPage = ({
     slug,
     tags,
 }: AnnouncementProps): React.ReactElement => {
-    const { linkedDocuments } = useContext(AttachmentsContext)
+    const { linkedDocuments, latestAnnouncements } =
+        useContext(AttachmentsContext)
     const latestType = deriveAnnouncementLatestType(content.kicker)
     const shouldShowCopySocialButton =
         SOCIAL_LATEST_TYPES.includes(latestType) && content.body.length > 0
+    const path = getPrefixedGdocPath("", {
+        slug,
+        content: { type: OwidGdocType.Announcement },
+    })
+    // The carousel is fed announcements of this page's own kind, so the one
+    // we're looking at has to come out of it.
+    const otherAnnouncements =
+        latestAnnouncements?.filter(
+            (announcement) => announcement.slug !== slug
+        ) ?? []
+
     return (
-        <div className="announcement-page grid grid-cols-12-full-width">
-            <div className="announcement-page-content span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 span-sm-cols-14 col-sm-start-1">
-                <AnnouncementContent
-                    title={content.title}
-                    latestType={latestType}
-                    tags={tags?.map((t) => t.name) ?? []}
-                    slug={slug}
-                    publishedAt={publishedAt}
-                    authors={content.authors}
-                    body={content.body}
-                    isStandalone
-                />
-                {shouldShowCopySocialButton && (
-                    <div className="announcement-page-footer">
-                        <CopySocialButton
-                            className="announcement-page-copy-social-button"
-                            text={buildSocialText({
-                                title: content.title,
-                                body: content.body,
-                                authorsNote: buildAuthorsNote(
-                                    latestType,
-                                    content.authors
-                                ),
-                                linkedDocuments,
-                            })}
+        <div className="grid grid-cols-12-full-width standalone-post-page">
+            <LatestBreadcrumb
+                className={STANDALONE_POST_GRID_CLASSES}
+                latestType={latestType}
+                title={content.title}
+            />
+            <StandalonePostBody
+                title={content.title}
+                authors={content.authors}
+                body={content.body}
+                publishedAt={publishedAt}
+                footer={
+                    <>
+                        <RelatedTopicsList tags={tags ?? undefined} />
+                        <CopyLinkButton
+                            path={path}
+                            trackNote="announcement_copy_link"
                         />
-                    </div>
-                )}
-            </div>
+                        {shouldShowCopySocialButton && (
+                            <CopySocialButton
+                                className="copy-link-button"
+                                text={buildSocialText({
+                                    title: content.title,
+                                    body: content.body,
+                                    authorsNote: buildAuthorsNote(
+                                        latestType,
+                                        content.authors
+                                    ),
+                                    linkedDocuments,
+                                })}
+                            />
+                        )}
+                    </>
+                }
+            />
+            <LatestCarouselSection
+                className="span-cols-12 col-start-2"
+                heading={`Our latest ${latestTypeLabelPlural(latestType).toLowerCase()}`}
+                seeAllText={`See all ${latestTypeLabelPlural(latestType).toLowerCase()}`}
+                seeAllHref={buildLatestPagePath(latestType)}
+                items={announcementsToCarouselItems(otherAnnouncements)}
+            />
         </div>
     )
 }

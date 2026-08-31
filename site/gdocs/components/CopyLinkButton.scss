@@ -1,0 +1,25 @@
+// Also applied to the neighbouring "Copy for social" button (admins only), so
+// the two footer buttons match.
+.copy-link-button {
+    @include light-blue-button;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 24px 8px 24px;
+    color: $blue-90;
+    background-color: $blue-20;
+    min-width: 132px;
+    border-radius: 0;
+    margin-left: auto;
+    height: 40px;
+
+    &:hover {
+        background-color: $blue-10;
+    }
+
+    @include sm-only {
+        margin-left: 0;
+        width: 100%;
+    }
+}

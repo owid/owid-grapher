@@ -5,6 +5,8 @@ import dayjs from "./dayjs.js"
 import { formatLocale, FormatLocaleObject } from "d3-format"
 import striptags from "striptags"
 import {
+    ANNOUNCEMENT_LATEST_TYPES,
+    type AnnouncementLatestType,
     type Integer,
     IDEAL_PLOT_ASPECT_RATIO,
     EPOCH_DATE,
@@ -39,6 +41,7 @@ import {
     GRAPHER_CHART_TYPES,
     DbPlainTag,
     AssetMap,
+    OwidGdocAnnouncementInterface,
     OwidGdocAboutInterface,
     OwidGdocHomepageInterface,
     PrimitiveType,
@@ -1376,6 +1379,12 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
                 ...R.pick(dataInsightGdoc, ["latestDataInsights"]),
             }
         })
+        .when(checkIsAnnouncement, (announcementGdoc) => {
+            return {
+                ...commonProps,
+                ...R.pick(announcementGdoc, ["latestAnnouncements"]),
+            }
+        })
         .when(checkIsAuthor, (authorGdoc) => {
             return {
                 ...commonProps,
@@ -2234,6 +2243,29 @@ export function checkIsDataInsight(
     gdoc: OwidGdoc
 ): gdoc is OwidGdocDataInsightInterface {
     return gdoc.content.type === OwidGdocType.DataInsight
+}
+
+export function checkIsAnnouncement(
+    gdoc: OwidGdoc
+): gdoc is OwidGdocAnnouncementInterface {
+    return gdoc.content.type === OwidGdocType.Announcement
+}
+
+/**
+ * Resolve an Announcement's LatestType from its kicker. Slugifies so
+ * case/spacing variants ("Data Update", "Data update") still map to the
+ * canonical slug. Anything else — missing, blank, or unrecognized — falls
+ * back to "announcement". The save-side validator
+ * (GdocAnnouncement._validateSubclass) only accepts the canonical slugs,
+ * so any edit forces legacy values into shape.
+ */
+export function deriveAnnouncementLatestType(
+    kicker?: string
+): AnnouncementLatestType {
+    const slug = slugify(kicker ?? "")
+    return (ANNOUNCEMENT_LATEST_TYPES as readonly string[]).includes(slug)
+        ? (slug as AnnouncementLatestType)
+        : "announcement"
 }
 
 export function checkIsAboutPage(
