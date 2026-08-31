@@ -9,6 +9,8 @@ import { migrateGrapherConfigToLatestVersion } from "../schema/migrations/migrat
 import { useMaybeGlobalGrapherStateRef } from "../chart/guidedChartUtils.js"
 import { loadCatalogData } from "./loadCatalogData.js"
 import { useIsomorphicLayoutEffect } from "usehooks-ts"
+import { registerGrapherTools } from "../webmcp/grapherTools.js"
+import { isWebMcpAvailable } from "../webmcp/webmcpTypes.js"
 
 export interface FetchingGrapherProps {
     config?: GrapherProgrammaticInterface
@@ -19,6 +21,13 @@ export interface FetchingGrapherProps {
     queryStr?: string
     externalBounds?: Bounds
     noCache?: boolean
+    /**
+     * Expose this chart's WebMCP tools to browser agents. Only ever true for
+     * the single chart on a /grapher/ page: tool names are global to the
+     * document, so registering from every embedded chart in an article would
+     * collide.
+     */
+    registerWebMcpTools?: boolean
 }
 
 export function FetchingGrapher(
@@ -152,6 +161,15 @@ export function FetchingGrapher(
         props.noCache,
         grapherState,
     ])
+
+    // Tools read grapherState lazily when the agent calls them, so there's no
+    // need to wait for data — only for the state object to exist.
+    React.useEffect(() => {
+        if (!props.registerWebMcpTools || !isWebMcpAvailable()) return
+        const abortController = new AbortController()
+        void registerGrapherTools(grapherState.current, abortController.signal)
+        return (): void => abortController.abort()
+    }, [props.registerWebMcpTools, grapherState])
 
     return (
         <Grapher

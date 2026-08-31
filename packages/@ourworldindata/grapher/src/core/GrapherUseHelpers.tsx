@@ -17,6 +17,7 @@ export function renderGrapherIntoContainer({
     catalogUrl,
     archiveContext,
     noCache,
+    registerWebMcpTools,
 }: {
     config: GrapherProgrammaticInterface
     container: Element
@@ -24,6 +25,7 @@ export function renderGrapherIntoContainer({
     catalogUrl: string
     archiveContext?: ArchiveContext
     noCache?: boolean
+    registerWebMcpTools?: boolean
 }): void {
     const reactRoot = createRoot(container)
 
@@ -60,6 +62,7 @@ export function renderGrapherIntoContainer({
                     externalBounds={Bounds.fromRect(entry.contentRect)}
                     queryStr={grapherConfigWithBounds.queryStr}
                     noCache={noCache}
+                    registerWebMcpTools={registerWebMcpTools}
                 />
             </Sentry.ErrorBoundary>
         )
@@ -115,6 +118,9 @@ export function renderSingleGrapherOnGrapherPage({
             catalogUrl,
             archiveContext,
             noCache,
+            // The /grapher/ page has exactly one chart, so it is the only place
+            // where registering document-global tool names is unambiguous.
+            registerWebMcpTools: true,
         })
     } catch (err) {
         container.innerHTML = `<p>Unable to load interactive visualization</p>`
