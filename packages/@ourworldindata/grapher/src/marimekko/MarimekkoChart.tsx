@@ -32,7 +32,7 @@ import {
     ColumnTypeMap,
 } from "@ourworldindata/core-table"
 import { getShortNameForEntity } from "../chart/ChartUtils"
-import { LEGEND_STYLE_FOR_STACKED_CHARTS } from "./StackedConstants"
+import { LEGEND_STYLE_FOR_STACKED_CHARTS } from "../stackedCharts/StackedConstants"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
     Tooltip,

@@ -170,7 +170,7 @@ export type { StackedAreaChartState } from "./stackedCharts/StackedAreaChartStat
 export type { StackedBarChartState } from "./stackedCharts/StackedBarChartState.js"
 export type { StackedDiscreteBarChartState } from "./stackedCharts/StackedDiscreteBarChartState"
 export type { ScatterPlotChartState } from "./scatterCharts/ScatterPlotChartState"
-export type { MarimekkoChartState } from "./stackedCharts/MarimekkoChartState"
+export type { MarimekkoChartState } from "./marimekko/MarimekkoChartState"
 export type { DumbbellChartState } from "./dumbbellCharts/DumbbellChartState"
 
 export {

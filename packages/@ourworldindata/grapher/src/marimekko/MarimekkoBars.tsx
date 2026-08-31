@@ -4,7 +4,7 @@ import {
     RenderMarimekkoSeries,
 } from "./MarimekkoChartConstants"
 import { GRAPHER_FONT_SCALE_12, Patterns } from "../core/GrapherConstants"
-import { STACKED_BAR_STYLE } from "./StackedConstants.js"
+import { STACKED_BAR_STYLE } from "../stackedCharts/StackedConstants.js"
 import { Emphasis } from "../interaction/Emphasis.js"
 
 const PLACEHOLDER_COLOR = "#555"

@@ -227,7 +227,7 @@ import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants.
 import { ShareMenuManager } from "../controls/ShareMenu.js"
 import { EmbedModalManager } from "../modal/EmbedModal.js"
 import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants.js"
-import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants.js"
+import { MarimekkoChartManager } from "../marimekko/MarimekkoChartConstants.js"
 import { FacetChartManager } from "../facet/FacetChartConstants.js"
 import { EntitySelectorModalManager } from "../modal/EntitySelectorModal.js"
 import { SettingsMenuManager } from "../controls/SettingsMenu.js"

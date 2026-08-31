@@ -297,6 +297,7 @@
                 "packages/@ourworldindata/grapher/src/lineCharts/**/*",
                 "packages/@ourworldindata/grapher/src/loadingIndicator/**/*",
                 "packages/@ourworldindata/grapher/src/mapCharts/**/*",
+                "packages/@ourworldindata/grapher/src/marimekko/**/*",
                 "packages/@ourworldindata/grapher/src/noDataModal/**/*",
                 "packages/@ourworldindata/grapher/src/scatterCharts/**/*",
                 "packages/@ourworldindata/grapher/src/selection/**/*",
