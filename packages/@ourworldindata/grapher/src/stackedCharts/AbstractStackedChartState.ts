@@ -9,6 +9,7 @@ import {
     MissingDataStrategy,
     SeriesName,
     SeriesStrategy,
+    StackMode,
 } from "@ourworldindata/types"
 import { computed, makeObservable } from "mobx"
 import {
@@ -233,40 +234,28 @@ export abstract class AbstractStackedChartState implements ChartState {
     @computed get availableFacetStrategies(): FacetStrategy[] {
         const strategies: FacetStrategy[] = []
 
-        const { selectedEntityNames } = this.selectionArray
-        const areMultipleEntitiesSelected = selectedEntityNames.length > 1
-        const hasMultipleYColumns = this.yColumns.length > 1
-        const shortUnits = this.yColumns.map((column) => column.shortUnit)
-        const uniqueUnits = new Set(shortUnits)
-        const hasMultipleUnits = uniqueUnits.size > 1
-        const hasPercentageUnit = shortUnits.some(
-            (shortUnit) => shortUnit === "%"
-        )
+        const areMultipleEntitiesSelected =
+            this.selectionArray.selectedEntityNames.length > 1
+        const hasMultipleYColumns = this.yColumnSlugs.length > 1
 
-        // Normally StackedArea/StackedBar charts are always single-entity or single-column,
-        // but if we are ever in a mode where we have multiple entities selected and multiple columns, it only makes sense when faceted.
+        const isStackedAsShares = this.manager.stackMode === StackMode.relative
+        const shortUnits = this.inputTable
+            .getColumns(this.yColumnSlugs)
+            .map((column) => column.shortUnit)
+        const hasMultipleUnits =
+            !isStackedAsShares && new Set(shortUnits).size > 1
+        const hasPercentageUnit = !isStackedAsShares && shortUnits.includes("%")
+
         if (
-            // No facet strategy makes sense if columns are stacked and a single entity is selected
             (!this.isEntitySeries && !areMultipleEntitiesSelected) ||
-            // No facet strategy makes sense if entities are stacked and we have a single column
             (this.isEntitySeries && !hasMultipleYColumns)
         )
             strategies.push(FacetStrategy.none)
 
-        if (
-            // Facetting by entity makes sense if multiple entities are selected
-            areMultipleEntitiesSelected &&
-            // Stacking columns with different units isn't allowed
-            !hasMultipleUnits
-        )
+        if (areMultipleEntitiesSelected && !hasMultipleUnits)
             strategies.push(FacetStrategy.entity)
 
-        if (
-            // Facetting by column makes sense if we have multiple columns
-            hasMultipleYColumns &&
-            // Stacking percentages doesn't make sense unless we're in relative mode
-            (!hasPercentageUnit || this.manager.isRelativeMode)
-        )
+        if (hasMultipleYColumns && !hasPercentageUnit)
             strategies.push(FacetStrategy.metric)
 
         return strategies

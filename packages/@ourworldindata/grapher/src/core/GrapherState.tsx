@@ -3153,7 +3153,6 @@ export class GrapherState
     }
 
     @computed get isRelativeMode(): boolean {
-        // Don't allow relative mode in some cases
         if (
             this.hasSingleMetricInFacets ||
             this.hasSingleEntityInFacets ||
@@ -3170,11 +3169,8 @@ export class GrapherState
             hideRelativeToggle,
             areHandlesOnSameTime,
             yScaleType,
-            hasSingleEntityInFacets,
-            hasSingleMetricInFacets,
             xColumnSlug,
             isOnMarimekkoTab,
-            isStackedChartSplitByMetric,
         } = this
 
         if (isOnLineChartTab || isOnSlopeChartTab)
@@ -3186,9 +3182,9 @@ export class GrapherState
 
         // Exclude relative mode with just one metric or entity
         if (
-            hasSingleEntityInFacets ||
-            hasSingleMetricInFacets ||
-            isStackedChartSplitByMetric
+            this.hasSingleEntityInFacets ||
+            this.hasSingleMetricInFacets ||
+            this.isStackedChartSplitByMetric
         )
             return false
 
@@ -3550,20 +3546,19 @@ export class GrapherState
             isOnStackedDiscreteBarTab,
             isOnStackedAreaTab,
             isOnStackedBarTab,
-            selectedFacetStrategy,
             hasMultipleYColumns,
         } = this
 
         if (isOnStackedDiscreteBarTab) {
             return (
-                selectedFacetStrategy === FacetStrategy.entity ||
-                selectedFacetStrategy === FacetStrategy.metric
+                this.facetStrategy === FacetStrategy.entity ||
+                this.facetStrategy === FacetStrategy.metric
             )
         }
 
         if (isOnStackedAreaTab || isOnStackedBarTab) {
             return (
-                selectedFacetStrategy === FacetStrategy.entity &&
+                this.facetStrategy === FacetStrategy.entity &&
                 !hasMultipleYColumns
             )
         }
@@ -3572,16 +3567,11 @@ export class GrapherState
     }
 
     @computed private get hasSingleEntityInFacets(): boolean {
-        const {
-            isOnStackedAreaTab,
-            isOnStackedBarTab,
-            selectedFacetStrategy,
-            selection,
-        } = this
+        const { isOnStackedAreaTab, isOnStackedBarTab, selection } = this
 
         if (isOnStackedAreaTab || isOnStackedBarTab) {
             return (
-                selectedFacetStrategy === FacetStrategy.metric &&
+                this.facetStrategy === FacetStrategy.metric &&
                 selection.numSelectedEntities === 1
             )
         }
@@ -3589,17 +3579,11 @@ export class GrapherState
         return false
     }
 
-    // TODO: remove once #2136 is fixed
-    // Issue #2136 describes a correctness bug that relates to relative mode and
-    // affects all stacked area/bar charts that are split by metric. For now,
-    // we simply turn off relative mode in such cases. Once the bug is properly
-    // addressed, this computed property and its references can be removed
+    /** Relative mode is wrong for these charts: https://github.com/owid/owid-grapher/issues/2136 */
     @computed
     private get isStackedChartSplitByMetric(): boolean {
-        return (
-            (this.isOnStackedAreaTab || this.isOnStackedBarTab) &&
-            this.selectedFacetStrategy === FacetStrategy.metric
-        )
+        if (!this.isOnStackedAreaTab && !this.isOnStackedBarTab) return false
+        return this.facetStrategy === FacetStrategy.metric
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
