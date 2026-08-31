@@ -65,6 +65,9 @@ export interface DimensionPresentation {
     // When omitted, the control type is resolved heuristically: "radio" for
     // dimensions with at most two ungrouped choices, "dropdown" otherwise.
     type?: DimensionPresentationType
+    // Whether the dropdown menu includes a search field. When omitted,
+    // dropdowns with more than ten choices get one.
+    search?: boolean
 }
 
 export interface Dimension {

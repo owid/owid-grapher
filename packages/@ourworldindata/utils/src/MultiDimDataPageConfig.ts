@@ -248,6 +248,19 @@ export function resolveDimensionPresentationType(
     return dimension.choices.length <= 2 && !hasGroups ? "radio" : "dropdown"
 }
 
+/**
+ * Whether a dimension's dropdown menu should include a search field. An
+ * explicit `presentation.search` in the config always wins; otherwise
+ * dropdowns with more than ten choices get one.
+ *
+ * Like `resolveDimensionPresentationType`, resolve against the dimension's
+ * full choice list so the search field doesn't appear and disappear as other
+ * selections change.
+ */
+export function resolveDimensionShowsSearch(dimension: Dimension): boolean {
+    return dimension.presentation?.search ?? dimension.choices.length > 10
+}
+
 export const extractMultiDimChoicesFromSearchParams = (
     searchParams: URLSearchParams,
     config: MultiDimDataPageConfig

@@ -9,6 +9,7 @@ import {
 import {
     MultiDimDataPageConfig,
     resolveDimensionPresentationType,
+    resolveDimensionShowsSearch,
 } from "./MultiDimDataPageConfig.js"
 
 it("fromObject", () => {
@@ -129,6 +130,24 @@ describe(resolveDimensionPresentationType, () => {
         const dimension = makeDimension(2)
         dimension.choices[0].group = "Group"
         expect(resolveDimensionPresentationType(dimension)).toBe("dropdown")
+    })
+
+    it("shows a search field only for dropdowns with more than ten choices", () => {
+        expect(resolveDimensionShowsSearch(makeDimension(10))).toBe(false)
+        expect(resolveDimensionShowsSearch(makeDimension(11))).toBe(true)
+    })
+
+    it("respects an explicit search setting", () => {
+        expect(
+            resolveDimensionShowsSearch(
+                makeDimension(3, { presentation: { search: true } })
+            )
+        ).toBe(true)
+        expect(
+            resolveDimensionShowsSearch(
+                makeDimension(20, { presentation: { search: false } })
+            )
+        ).toBe(false)
     })
 
     it("respects an explicit presentation type", () => {

@@ -126,6 +126,64 @@ $selected-hover-fill: #bed2e7;
         margin-bottom: 4px;
     }
 
+    // The searchable menu shows the search field instead of the header with
+    // the dimension name and description.
+    &.md-menu--searchable {
+        padding-top: 4px;
+    }
+
+    .md-menu__search {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        height: 32px;
+        margin: 0 4px 4px;
+        padding: 0 8px;
+        border: 1px solid $gray-20;
+        border-radius: 4px;
+
+        &:focus-within {
+            border-color: $gray-30;
+        }
+    }
+
+    .md-menu__search-icon {
+        flex-shrink: 0;
+        font-size: 16px;
+        color: $gray-70;
+    }
+
+    .md-menu__search-input {
+        flex: 1;
+        min-width: 0;
+        height: 100%;
+        padding: 0;
+        color: $gray-80;
+        background: none;
+        border: none;
+        font: 400 14px/1 $lato;
+
+        &:focus-visible {
+            // Override global focus-visible style.
+            outline: none !important;
+        }
+
+        &::placeholder {
+            color: $gray-70;
+        }
+
+        // Hide webkit's built-in clear button on search inputs.
+        &::-webkit-search-cancel-button {
+            display: none;
+        }
+    }
+
+    .md-menu__empty {
+        @include label-2-regular;
+        padding: 8px 16px;
+        color: $gray-70;
+    }
+
     .md-menu__group {
         margin-bottom: 16px;
 
