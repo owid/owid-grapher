@@ -118,7 +118,10 @@ export function buildSiteTools(): WebMcpTool[] {
                 required: ["query"],
             },
             execute: async (
-                { query, entities = [] }: { query: string; entities?: string[] },
+                {
+                    query,
+                    entities = [],
+                }: { query: string; entities?: string[] },
                 options
             ) => {
                 const hits = await searchCharts(query, options?.signal)
@@ -128,7 +131,9 @@ export function buildSiteTools(): WebMcpTool[] {
                     0,
                     SEARCH_RESULT_LIMIT
                 )
-                const lines = ranked.map((entry) => describeHit(entry, entities))
+                const lines = ranked.map((entry) =>
+                    describeHit(entry, entities)
+                )
                 return toolResult(
                     `Charts matching "${query}" (best first — check the titles carefully, ` +
                         `OWID has several similar charts on most topics):\n\n${lines.join("\n")}\n\n` +

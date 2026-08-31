@@ -164,7 +164,8 @@ export function buildGrapherTools(grapherState: GrapherState): WebMcpTool[] {
                     entities: {
                         type: "array",
                         items: { type: "string" },
-                        description: "Exact entity names, e.g. ['Czechia', 'Slovakia']",
+                        description:
+                            "Exact entity names, e.g. ['Czechia', 'Slovakia']",
                     },
                 },
                 required: ["entities"],

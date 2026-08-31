@@ -11,7 +11,10 @@ import { WebMcpTool } from "./webmcpTypes.js"
  */
 
 const buildState = (): GrapherState => {
-    const table = SynthesizeGDPTable({ entityCount: 5, timeRange: [1990, 2020] }, 1)
+    const table = SynthesizeGDPTable(
+        { entityCount: 5, timeRange: [1990, 2020] },
+        1
+    )
     return new GrapherState({
         table,
         ySlugs: "GDP",
