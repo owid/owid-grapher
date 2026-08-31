@@ -2493,7 +2493,7 @@ __metadata:
   resolution: "@ourworldindata/types@workspace:packages/@ourworldindata/types"
   dependencies:
     vitest: "npm:^4.1.10"
-    zod: "npm:^4.4.3"
+    zod: "npm:^4.5.4"
   languageName: unknown
   linkType: soft
 
@@ -9407,7 +9407,7 @@ __metadata:
     wrangler: "npm:^4.120.0"
     yaml: "npm:^2.8.3"
     yargs: "npm:^17.7.2"
-    zod: "npm:^4.4.3"
+    zod: "npm:^4.5.4"
   languageName: unknown
   linkType: soft
 
@@ -11773,7 +11773,7 @@ __metadata:
     uuid: "npm:^14.0.0"
     vitest: "npm:^4.1.10"
     wrangler: "npm:^4.120.0"
-    zod: "npm:^4.4.3"
+    zod: "npm:^4.5.4"
   languageName: unknown
   linkType: soft
 
@@ -15570,10 +15570,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^4.4.3":
-  version: 4.4.3
-  resolution: "zod@npm:4.4.3"
-  checksum: 10/804b9a42aa8f35f2b3c5a8dff906291cb749115f83ee2afe3576d70b5b5c53c965365c7f4967690647a9c54af9838ff232a85ff9577a0a36c44b68bc6cdefe36
+"zod@npm:^4.5.4":
+  version: 4.5.4
+  resolution: "zod@npm:4.5.4"
+  checksum: 10/b2fd4aaf358359650a1f27f303a462f0f49b4e5582f517ad8894ed566fdceb9da391b59babffe3c70574c8064174883735657eb28e12db5c7021455a631866c4
   languageName: node
   linkType: hard
 
