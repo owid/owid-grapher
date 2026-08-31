@@ -26,6 +26,7 @@ import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
+import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
 
 const DEFAULT_AGE_GROUP = "All ages"
 const DEFAULT_SEX = "Both sexes"
@@ -156,15 +157,17 @@ function CausesOfDeathChart(props: {
                     setYear={setYear}
                 />
             )}
-            <CausesOfDeathCaptionedChart
-                data={activeData}
-                metadata={metadata}
-                ageGroup={activeAgeGroup}
-                sex={activeSex}
-                entityName={activeEntityName}
-                year={activeYear}
-                isLoading={isLoadingEntityData}
-            />
+            <BespokeMetadataProvider metadata={metadata.bespokeMetadata}>
+                <CausesOfDeathCaptionedChart
+                    data={activeData}
+                    metadata={metadata}
+                    ageGroup={activeAgeGroup}
+                    sex={activeSex}
+                    entityName={activeEntityName}
+                    year={activeYear}
+                    isLoading={isLoadingEntityData}
+                />
+            </BespokeMetadataProvider>
         </div>
     )
 }

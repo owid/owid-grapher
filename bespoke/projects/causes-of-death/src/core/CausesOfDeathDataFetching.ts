@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import { QueryStatus, useQuery } from "@tanstack/react-query"
 import { BespokeMetadata } from "@ourworldindata/types"
 import { DataJson, MetadataJson, DataRow } from "./CausesOfDeathConstants"
@@ -34,9 +35,11 @@ export const useCausesOfDeathMetadata = (): {
         },
     })
 
-    const data = result.data
-        ? new CausesOfDeathMetadata(result.data)
-        : undefined
+    const data = useMemo(
+        () =>
+            result.data ? new CausesOfDeathMetadata(result.data) : undefined,
+        [result.data]
+    )
 
     return { data: data, status: result.status }
 }

@@ -19,3 +19,16 @@
 @import "../../../components/TimeSlider/TimeSlider.scss";
 @import "../../../components/Switcher/Switcher.scss";
 @import "../../../components/Spinner/Spinner.scss";
+@import "../../../components/MetadataModal/MetadataModal.scss";
+
+// Composed by the metadata modal
+@import "../../../../packages/@ourworldindata/components/src/CodeSnippet/code-snippet.scss";
+@import "../../../../packages/@ourworldindata/components/src/ExpandableToggle/ExpandableToggle.scss";
+@import "../../../../packages/@ourworldindata/components/src/IndicatorSources/IndicatorSources.scss";
+@import "../../../../packages/@ourworldindata/components/src/IndicatorProcessing/IndicatorProcessing.scss";
+@import "../../../../packages/@ourworldindata/components/src/MetadataBox/MetadataBoxSection.scss";
+@import "../../../../packages/@ourworldindata/components/src/MetadataBox/MetadataBoxKeyData.scss";
+@import "../../../../packages/@ourworldindata/components/src/BespokeMetadata/BespokeMetadataHeading.scss";
+@import "../../../../packages/@ourworldindata/components/src/BespokeMetadata/BespokeMetadataSections.scss";
+@import "../../../../packages/@ourworldindata/components/src/OverlayHeader.scss";
+@import "../../../../packages/@ourworldindata/components/src/closeButton/CloseButton.scss";
