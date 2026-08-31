@@ -672,34 +672,29 @@ export class MarimekkoChart
     }
 
     private renderLabels(): React.ReactElement[] {
-        const labelsYPosition = this.dualAxis.verticalAxis.place(0)
+        const labelsY = MARKER_AREA_HEIGHT + this.dualAxis.verticalAxis.place(0)
         return this.placedLabels.map((label) => (
             <g
                 key={`label-${label.entityName}`}
                 id={makeFigmaId("label", label.entityName)}
-                transform={`translate(${label.correctedX}, ${MARKER_AREA_HEIGHT})`}
+                transform={`translate(${label.correctedX}, ${labelsY})`}
             >
-                <g transform={`translate(0, ${labelsYPosition})`}>
-                    <text
-                        y={0}
-                        fontWeight={label.isSelected ? 700 : 400}
-                        fill={label.color}
-                        transform={`rotate(${LABEL_ANGLE_IN_DEGREES}, 0, 0)`}
-                        opacity={1}
-                        fontSize={this.entityLabelFontSize}
-                        textAnchor="end"
-                        dy={dyFromAlign(VerticalAlign.middle)}
-                        onMouseOver={(): void =>
-                            this.onEntityMouseOver(label.entityName)
-                        }
-                        onMouseLeave={(): void => this.dismissTooltip()}
-                        onClick={(): void =>
-                            this.onEntityClick(label.entityName)
-                        }
-                    >
-                        {label.text}
-                    </text>
-                </g>
+                <text
+                    y={0}
+                    fontWeight={label.isSelected ? 700 : 400}
+                    fill={label.color}
+                    transform={`rotate(${LABEL_ANGLE_IN_DEGREES}, 0, 0)`}
+                    fontSize={this.entityLabelFontSize}
+                    textAnchor="end"
+                    dy={dyFromAlign(VerticalAlign.middle)}
+                    onMouseOver={(): void =>
+                        this.onEntityMouseOver(label.entityName)
+                    }
+                    onMouseLeave={(): void => this.dismissTooltip()}
+                    onClick={(): void => this.onEntityClick(label.entityName)}
+                >
+                    {label.text}
+                </text>
             </g>
         ))
     }

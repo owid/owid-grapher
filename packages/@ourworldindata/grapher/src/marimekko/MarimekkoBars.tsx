@@ -53,15 +53,9 @@ export function MarimekkoBars({
             {!isFocusModeActive && noDataArea && (
                 <text
                     key={`noDataArea-label`}
-                    x={0}
-                    transform={`rotate(-90, ${noDataArea.labelX}, ${noDataArea.labelY})
-                translate(${noDataArea.labelX}, ${noDataArea.labelY})`}
-                    y={0}
-                    width={noDataArea.width}
-                    height={noDataArea.height}
+                    transform={`translate(${noDataArea.labelX}, ${noDataArea.labelY}) rotate(-90)`}
                     fontWeight={700}
                     fill="#666"
-                    opacity={1}
                     fontSize={GRAPHER_FONT_SCALE_12 * fontSize}
                     textAnchor="middle"
                     dy={dyFromAlign(VerticalAlign.middle)}
@@ -122,22 +116,18 @@ function MarimekkoBar({
             onMouseLeave={(): void => onEntityMouseLeave?.()}
             onClick={(): void => onEntityClick?.(entityName)}
         >
-            <g>
-                <rect
-                    x={0}
-                    y={0}
-                    transform={`translate(0, ${barY - barHeight})`}
-                    width={barWidth}
-                    height={barHeight}
-                    fill={barColor}
-                    fillOpacity={fillOpacity}
-                    stroke={barColor}
-                    strokeWidth={isOutlined ? 1 : 0.5}
-                    strokeOpacity={isPlaceholder ? 0.8 : isMuted ? 0.2 : 1.0}
-                    opacity={isPlaceholder ? 0.2 : 1.0}
-                    style={{ transition: "translate 200ms ease" }}
-                />
-            </g>
+            <rect
+                x={0}
+                y={barY - barHeight}
+                width={barWidth}
+                height={barHeight}
+                fill={barColor}
+                fillOpacity={fillOpacity}
+                stroke={barColor}
+                strokeWidth={isOutlined ? 1 : 0.5}
+                strokeOpacity={isPlaceholder ? 0.8 : isMuted ? 0.2 : 1.0}
+                opacity={isPlaceholder ? 0.2 : 1.0}
+            />
         </g>
     )
 }
