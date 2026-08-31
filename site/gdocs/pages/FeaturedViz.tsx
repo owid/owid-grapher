@@ -26,6 +26,11 @@ import { buildGdocCitation } from "../utils.js"
 const CITATION_DESCRIPTION =
     "Our articles and data visualizations rely on work from many different people and organizations. When citing this page, please also cite the underlying data sources. This page can be cited as:"
 
+const HERO_CONFIG_OVERRIDES = {
+    urlSync: "true",
+    hideMetadataModal: "true",
+}
+
 type FeaturedVizProps = Omit<
     OwidGdocFeaturedVizInterface,
     "contentMd5" | "markdown" | "publicationContext" | "revisionId"
@@ -171,8 +176,10 @@ function splitFeaturedVizBody(
 
     return {
         before: body.slice(0, heroIndex),
-        // The page URL tracks the featured viz, ignoring the authored config
-        hero: { ...hero, config: { ...hero.config, urlSync: "true" } },
+        hero: {
+            ...hero,
+            config: { ...hero.config, ...HERO_CONFIG_OVERRIDES },
+        },
         after: body.slice(heroIndex + 1),
     }
 }
