@@ -11,7 +11,11 @@ import type { Manifest } from "vite"
 import { readFromAssetMap } from "@ourworldindata/utils"
 import urljoin from "url-join"
 import { AssetMap } from "@ourworldindata/types"
-import { VITE_ENTRYPOINT_INFO, ViteEntryPoint } from "./viteConstants.js"
+import {
+    VITE_ENTRYPOINT_INFO,
+    ViteEntryPoint,
+    ViteEntryPointName,
+} from "./viteConstants.js"
 import { IS_ARCHIVE } from "../settings/clientSettings.js"
 
 const VITE_PORT = process.env.VITE_PORT ?? "8090"
@@ -23,7 +27,7 @@ interface Assets {
 }
 
 // in dev: we need to load several vite core scripts and plugins; other than that we only need to load the entry point, and vite will take care of the rest.
-const devAssets = (entrypoint: ViteEntryPoint, baseUrl: string): Assets => {
+const devAssets = (entrypoint: ViteEntryPointName, baseUrl: string): Assets => {
     return {
         forHeader: [],
         forFooter: [
@@ -133,7 +137,7 @@ export const createTagsForManifestEntry = (
 // in prod: we need to make sure that we include <script> and <link> tags that are required for the entry point.
 // this could be, for example: owid.mjs, common.mjs, owid.css, common.css.
 const prodAssets = (
-    entrypoint: ViteEntryPoint,
+    entrypoint: ViteEntryPointName,
     baseUrl: string,
     prodAssetMap?: AssetMap
 ): Assets => {
@@ -169,7 +173,7 @@ const prodAssets = (
 const useProductionAssets = ENV !== "development" || VITE_PREVIEW || IS_ARCHIVE
 
 const viteAssets = (
-    entrypoint: ViteEntryPoint,
+    entrypoint: ViteEntryPointName,
     {
         prodBaseUrl,
         prodAssetMap,
