@@ -8,14 +8,15 @@ import {
     MarimekkoChartManager,
     MarimekkoSeries,
     MarimekkoSortKey,
-    SimpleChartSeries,
-    SimplePoint,
 } from "./MarimekkoChartConstants"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
     autoDetectYColumnSlugs,
     getShortNameForEntity,
+    keepInputOrder,
     makeSelectionArray,
+    SortKey,
+    sortByConfig,
 } from "../chart/ChartUtils"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import {
@@ -23,10 +24,8 @@ import {
     ColorSchemeName,
     EntityName,
     ColorScaleConfigInterface,
-    OwidVariableRow,
     SortConfig,
     SortBy,
-    SortOrder,
     ScaleType,
     Color,
 } from "@ourworldindata/types"
@@ -204,7 +203,7 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         return this.yColumn.def.color ?? this.colorScheme.getColors(1)[0]
     }
 
-    @computed private get sortConfig(): SortConfig {
+    @computed get sortConfig(): SortConfig {
         return this.manager.sortConfig ?? {}
     }
 
@@ -214,28 +213,6 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
 
     @computed get y0(): number {
         return 0
-    }
-
-    @computed get xSeries(): SimpleChartSeries | undefined {
-        const createStackedXPoints = (
-            rows: OwidVariableRow<any>[]
-        ): SimplePoint[] => {
-            const points: SimplePoint[] = []
-            for (const row of rows) {
-                points.push({
-                    time: row.originalTime,
-                    value: row.value,
-                    entity: row.entityName,
-                })
-            }
-            return points
-        }
-        if (this.xColumn === undefined) return undefined
-        const column = this.xColumn
-        return {
-            seriesName: column.displayName,
-            points: createStackedXPoints(column.owidRows),
-        }
     }
 
     @computed get domainColorForEntityMap(): Map<string, EntityColorData> {
@@ -268,7 +245,7 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
 
     @computed get series(): readonly MarimekkoSeries[] {
         const {
-            xSeries,
+            xColumn,
             yColumn,
             yColumnColor,
             domainColorForEntityMap,
@@ -278,15 +255,13 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         if (uniqueEntityNames === undefined) return []
 
         const yRowsByEntity = yColumn.owidRowsByEntityName
+        const xRowsByEntity = xColumn?.owidRowsByEntityName
 
         return excludeUndefined(
             uniqueEntityNames.map((entityName) => {
-                const xPoint = xSeries
-                    ? xSeries.points.find(
-                          (point) => point.entity === entityName
-                      )
-                    : undefined
-                if (xSeries && !xPoint) return undefined
+                const xRow = xRowsByEntity?.get(entityName)?.[0]
+                // An entity the x indicator says nothing about has no bar width
+                if (xColumn && !xRow) return undefined
 
                 const yRow = yRowsByEntity.get(entityName)?.[0]
                 const entityColor = domainColorForEntityMap.get(entityName)
@@ -295,7 +270,9 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
                     seriesName: entityName,
                     entityName,
                     shortEntityName: getShortNameForEntity(entityName),
-                    xPoint,
+                    xPoint: xRow
+                        ? { value: xRow.value, time: xRow.originalTime }
+                        : undefined,
                     yPoint: yRow
                         ? { value: yRow.value, time: yRow.originalTime }
                         : undefined,
@@ -308,33 +285,22 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get sortedSeries(): MarimekkoSeries[] {
-        const { series, sortConfig } = this
+        const byYValue = (series: MarimekkoSeries): number =>
+            series.yPoint?.value ?? 0
+        const byEntityName = (series: MarimekkoSeries): string =>
+            series.entityName
 
-        let sortByFuncs: ((
-            series: MarimekkoSeries
-        ) => number | string | undefined)[]
-        switch (sortConfig.sortBy) {
-            case SortBy.custom:
-                sortByFuncs = [(): undefined => undefined]
-                break
-            case SortBy.entityName:
-                sortByFuncs = [
-                    (series: MarimekkoSeries): string => series.entityName,
-                ]
-                break
+        const keyFns: Record<
+            MarimekkoSortKey | SortBy.column,
+            SortKey<MarimekkoSeries>
+        > = {
+            [SortBy.custom]: keepInputOrder,
+            [SortBy.entityName]: byEntityName,
+            [SortBy.total]: [byYValue, byEntityName],
             // With a single y indicator, sorting by column is sorting by total
-            default:
-            case SortBy.column:
-            case SortBy.total:
-                sortByFuncs = [
-                    (series: MarimekkoSeries): number =>
-                        series.yPoint?.value ?? 0,
-                    (series: MarimekkoSeries): string => series.entityName,
-                ]
+            [SortBy.column]: [byYValue, byEntityName],
         }
-        const sortedSeries = _.sortBy(series, sortByFuncs)
-        const sortOrder = sortConfig.sortOrder ?? SortOrder.desc
-        if (sortOrder === SortOrder.desc) sortedSeries.reverse()
+        const sortedSeries = sortByConfig(this.series, this.sortConfig, keyFns)
 
         // The no-data area is drawn as one rectangle spanning the entities without a
         // value, and MarimekkoBars asserts they are contiguous, so they go last.
@@ -368,9 +334,9 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get xDomainDefault(): [number, number] {
-        if (this.xSeries !== undefined) {
-            const sum = _.sumBy(this.xSeries.points, (point) => point.value)
-
+        const { xColumn } = this
+        if (xColumn !== undefined) {
+            const sum = _.sumBy(xColumn.owidRows, (row) => row.value)
             return [this.x0, sum]
         } else return [this.x0, this.series.length]
     }

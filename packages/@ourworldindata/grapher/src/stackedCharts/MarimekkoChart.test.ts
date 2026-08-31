@@ -40,7 +40,9 @@ it("can create a chart", () => {
 
     expect(chartState.errorInfo.reason).toEqual("")
     expect(chartState.series.length).toEqual(5)
-    expect(chartState.xSeries!.points.length).toEqual(5)
+    expect(
+        chartState.series.every((series) => series.xPoint !== undefined)
+    ).toBe(true)
     expect(chart.placedSeries.length).toEqual(5)
 })
 
@@ -74,9 +76,9 @@ it("can display a Marimekko chart correctly", () => {
     expect(chartState.series.length).toEqual(3)
 
     const expectedXPoints = [
-        { value: 4000, entity: "medium", time: 2001 },
-        { value: 5000, entity: "big", time: 2001 },
-        { value: 1000, entity: "small", time: 2001 },
+        { value: 4000, time: 2001 },
+        { value: 5000, time: 2001 },
+        { value: 1000, time: 2001 },
     ]
     expect(chartState.series).toEqual([
         {
@@ -110,7 +112,9 @@ it("can display a Marimekko chart correctly", () => {
             focus: new InteractionState(),
         },
     ])
-    expect(chartState.xSeries!.points).toEqual(expectedXPoints)
+    expect(chartState.series.map((series) => series.xPoint)).toEqual(
+        expectedXPoints
+    )
 
     const placedSeriesWithoutGeometry = chart.placedSeries.map((series) =>
         _.omit(series, ["barX", "barY", "barWidth", "barHeight"])
@@ -190,9 +194,9 @@ it("can do sorting", () => {
     expect(chartState.series.length).toEqual(3)
 
     const expectedXPoints = [
-        { value: 4000, entity: "AA", time: 2001 },
-        { value: 5000, entity: "BB", time: 2001 },
-        { value: 1000, entity: "CC", time: 2001 },
+        { value: 4000, time: 2001 },
+        { value: 5000, time: 2001 },
+        { value: 1000, time: 2001 },
     ]
     expect(chartState.series).toEqual([
         {
@@ -226,7 +230,9 @@ it("can do sorting", () => {
             focus: new InteractionState(),
         },
     ])
-    expect(chartState.xSeries!.points).toEqual(expectedXPoints)
+    expect(chartState.series.map((series) => series.xPoint)).toEqual(
+        expectedXPoints
+    )
 
     const series = new Map<string, MarimekkoSeries>([
         [
@@ -342,11 +348,13 @@ it("can filter years correctly", () => {
     expect(chartState.series.length).toEqual(3)
 
     const expectedXPoints = [
-        { value: 4000, entity: "medium", time: 2001 },
-        { value: 5000, entity: "big", time: 2001 },
-        { value: 1000, entity: "small", time: 2001 },
+        { value: 4000, time: 2001 },
+        { value: 5000, time: 2001 },
+        { value: 1000, time: 2001 },
     ]
-    expect(chartState.xSeries!.points).toEqual(expectedXPoints)
+    expect(chartState.series.map((series) => series.xPoint)).toEqual(
+        expectedXPoints
+    )
 
     const placedSeriesWithoutGeometry = chart.placedSeries.map((series) =>
         _.omit(series, ["barX", "barY", "barWidth", "barHeight"])
@@ -428,11 +436,13 @@ it("shows no data points at the end", () => {
     expect(chartState.series.length).toEqual(3)
 
     const expectedXPoints = [
-        { value: 4000, entity: "medium", time: 2001 },
-        { value: 5000, entity: "big", time: 2001 },
-        { value: 1000, entity: "small", time: 2001 },
+        { value: 4000, time: 2001 },
+        { value: 5000, time: 2001 },
+        { value: 1000, time: 2001 },
     ]
-    expect(chartState.xSeries!.points).toEqual(expectedXPoints)
+    expect(chartState.series.map((series) => series.xPoint)).toEqual(
+        expectedXPoints
+    )
 
     const placedSeriesWithoutGeometry = chart.placedSeries.map((series) =>
         _.omit(series, ["barX", "barY", "barWidth", "barHeight"])
@@ -518,11 +528,13 @@ test("interpolation works as expected", () => {
     expect(chartState.series.length).toEqual(3)
 
     const expectedXPoints = [
-        { value: 5000, entity: "big", time: 2000 },
-        { value: 4000, entity: "medium", time: 2001 },
-        { value: 1000, entity: "small", time: 2001 },
+        { value: 5000, time: 2000 },
+        { value: 4000, time: 2001 },
+        { value: 1000, time: 2001 },
     ]
-    expect(chartState.xSeries!.points).toEqual(expectedXPoints)
+    expect(chartState.series.map((series) => series.xPoint)).toEqual(
+        expectedXPoints
+    )
 
     const placedSeriesWithoutGeometry = chart.placedSeries.map((series) =>
         _.omit(series, ["barX", "barY", "barWidth", "barHeight"])
@@ -604,11 +616,13 @@ it("can deal with a y column with missing values", () => {
     expect(chartState.series.length).toEqual(3)
 
     const expectedXPoints = [
-        { value: 4000, entity: "medium", time: 2001 },
-        { value: 5000, entity: "big", time: 2001 },
-        { value: 1000, entity: "small", time: 2001 },
+        { value: 4000, time: 2001 },
+        { value: 5000, time: 2001 },
+        { value: 1000, time: 2001 },
     ]
-    expect(chartState.xSeries!.points).toEqual(expectedXPoints)
+    expect(chartState.series.map((series) => series.xPoint)).toEqual(
+        expectedXPoints
+    )
 
     const placedSeriesWithoutGeometry = chart.placedSeries.map((series) =>
         _.omit(series, ["barX", "barY", "barWidth", "barHeight"])

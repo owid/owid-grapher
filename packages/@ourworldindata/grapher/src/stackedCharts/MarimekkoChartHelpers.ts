@@ -5,8 +5,7 @@ import { DualAxis } from "../axis/Axis"
 import { ColorScaleBin } from "../color/ColorScaleBin"
 import { Emphasis } from "../interaction/Emphasis"
 import {
-    EntityWithSize,
-    LabelCandidate,
+    MarimekkoLabelCandidate,
     MarimekkoNoDataArea,
     MarimekkoSeries,
     PlacedMarimekkoSeries,
@@ -138,46 +137,30 @@ export function toMarimekkoNoDataArea(
     }
 }
 
-export function toLabelCandidate(
-    item: EntityWithSize,
-    fontSize: number,
-    isSelected: boolean
-): LabelCandidate {
-    const label = item.shortEntityName ?? item.entityName
-    return {
-        item,
-        label,
-        bounds: Bounds.forText(label, { fontSize }),
-        isPicked: isSelected,
-        isSelected,
-    }
-}
-
 /** This function splits label candidates into N groups so that each group has approximately
 the same sum of x value metric. This is useful for picking labels because we want to have e.g.
 20 labels relatively evenly spaced (in x domain space) and this function gives us 20 groups that
 are roughly of equal size and then we can pick the largest of each group */
 export function splitIntoEqualDomainSizeChunks(
     series: readonly MarimekkoSeries[],
-    candidates: LabelCandidate[],
+    candidates: readonly MarimekkoLabelCandidate[],
     numChunks: number
-): LabelCandidate[][] {
+): MarimekkoLabelCandidate[][] {
     // candidates contains all entities available in the chart for some time
     // series is just the entities for the currently selected time, so can be a way smaller subset
-    const validItemNames = series.map(({ entityName }) => entityName)
+    const validEntityNames = new Set(series.map(({ entityName }) => entityName))
 
     // filter the list to remove any candidates that are not currently visible
     // all further calculations are then done only with validCandidates
     const validCandidates = candidates.filter((candidate) =>
-        validItemNames.includes(candidate.item.entityName)
+        validEntityNames.has(candidate.entityName)
     )
 
-    const chunks: LabelCandidate[][] = []
-    let currentChunk: LabelCandidate[] = []
+    const chunks: MarimekkoLabelCandidate[][] = []
+    let currentChunk: MarimekkoLabelCandidate[] = []
     let domainSizeOfChunk = 0
     const domainSizeThreshold = Math.ceil(
-        _.sumBy(validCandidates, (candidate) => candidate.item.xValue) /
-            numChunks
+        _.sumBy(validCandidates, (candidate) => candidate.xValue) / numChunks
     )
     for (const candidate of validCandidates) {
         while (domainSizeOfChunk > domainSizeThreshold) {
@@ -185,7 +168,7 @@ export function splitIntoEqualDomainSizeChunks(
             currentChunk = []
             domainSizeOfChunk -= domainSizeThreshold
         }
-        domainSizeOfChunk += candidate.item.xValue
+        domainSizeOfChunk += candidate.xValue
         currentChunk.push(candidate)
     }
     chunks.push(currentChunk)

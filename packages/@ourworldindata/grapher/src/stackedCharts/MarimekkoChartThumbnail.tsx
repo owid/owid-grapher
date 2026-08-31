@@ -175,8 +175,6 @@ export class MarimekkoChartThumbnail
                 <MarimekkoInternalLabels
                     series={this.labelledSeries}
                     dualAxis={this.dualAxis}
-                    x0={this.chartState.x0}
-                    y0={this.chartState.y0}
                     fontSize={this.labelFontSize}
                     labelPadding={LABEL_PADDING}
                 />

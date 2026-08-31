@@ -11,13 +11,11 @@ import { Halo } from "@ourworldindata/components"
 interface MarimekkoInternalLabelsProps {
     series: PlacedMarimekkoSeries[]
     dualAxis: DualAxis
-    x0: number
-    y0: number
     fontSize: number
     labelPadding: number
 }
 
-interface PlacedLabel {
+interface PlacedInternalLabel {
     bounds: Bounds
     label: string
     color: string
@@ -37,7 +35,7 @@ export class MarimekkoInternalLabels extends React.Component<MarimekkoInternalLa
         )
     }
 
-    @computed get placedLabels(): PlacedLabel[] {
+    @computed get placedLabels(): PlacedInternalLabel[] {
         return this.sortedSeries
             .map((series) => {
                 if (series.yPoint === undefined) return undefined
@@ -59,7 +57,7 @@ export class MarimekkoInternalLabels extends React.Component<MarimekkoInternalLa
             .filter((label) => label !== undefined)
     }
 
-    @computed get visibleLabels(): PlacedLabel[] {
+    @computed get visibleLabels(): PlacedInternalLabel[] {
         const placedLabels = this.placedLabels.map((series) => ({
             ...series,
             // Hide label if it doesn't fit within the chart area

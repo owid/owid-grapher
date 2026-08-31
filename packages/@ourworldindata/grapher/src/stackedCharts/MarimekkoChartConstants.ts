@@ -1,26 +1,14 @@
 import { ChartManager } from "../chart/ChartManager"
 
-import {
-    Color,
-    SortBy,
-    SortConfig,
-    Time,
-    Bounds,
-    EntityName,
-} from "@ourworldindata/utils"
+import { Color, SortBy, Time, Bounds, EntityName } from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"
 import { ChartSeries } from "../chart/ChartInterface"
 import { InteractionState } from "../interaction/InteractionState.js"
 import { Emphasis } from "../interaction/Emphasis.js"
 
 export interface MarimekkoChartManager extends ChartManager {
-    endTime?: Time
-    matchingEntitiesOnly?: boolean
     xOverrideTime?: number
     tableAfterAuthorTimelineAndActiveChartTransform?: OwidTable
-    sortConfig?: SortConfig
-    hideNoDataArea?: boolean
-    hasScatter?: boolean // x-axis is ignored if a secondary scatter plot is present
 }
 
 export interface EntityColorData {
@@ -28,19 +16,7 @@ export interface EntityColorData {
     colorDomainValue: string
 }
 
-// Points used on the X axis
-export interface SimplePoint {
-    value: number
-    entity: string
-    time: number
-}
-
-export interface SimpleChartSeries {
-    seriesName: string
-    points: SimplePoint[]
-}
-
-/** The y value of one entity */
+/** One indicator's value for one entity, at the time it was observed */
 export interface MarimekkoPoint {
     value: number
     time: Time
@@ -55,7 +31,7 @@ export interface MarimekkoSeries extends ChartSeries {
     shortEntityName?: string
     /** Undefined when the entity has no y value, which draws the no-data placeholder */
     yPoint: MarimekkoPoint | undefined
-    xPoint: SimplePoint | undefined
+    xPoint: MarimekkoPoint | undefined
     entityColor: EntityColorData | undefined
     focus: InteractionState
 }
@@ -89,30 +65,28 @@ export interface MarimekkoNoDataArea {
     labelY: number
 }
 
-export interface EntityWithSize {
-    entityName: string
-    shortEntityName?: string
-    xValue: number
-    ySortValue: number | undefined
-}
-export interface LabelCandidate {
-    item: EntityWithSize
-    label: string
+/** An entity that could be labelled under the x axis */
+export interface MarimekkoLabelCandidate {
+    entityName: EntityName
+    text: string
     bounds: Bounds
-    isPicked: boolean
+    /** The entity's x indicator value, i.e. its bar width in domain units */
+    xValue: number
+    /** The y value at the latest time point, not at the selected one */
+    ySortValue: number | undefined
     isSelected: boolean
 }
 
-export interface LabelWithPlacement {
-    label: React.ReactElement
-    preferredPlacement: number
-    correctedPlacement: number
-    labelKey: string
-}
-
-export interface LabelCandidateWithElement {
-    candidate: LabelCandidate
-    labelElement: React.ReactElement
+/** A picked label, positioned along the x axis */
+export interface PlacedMarimekkoLabel {
+    entityName: EntityName
+    text: string
+    color: Color
+    isSelected: boolean
+    /** The centre of the entity's bar */
+    preferredX: number
+    /** Shifted away from `preferredX` to clear neighbouring labels */
+    correctedX: number
 }
 
 export const MARIMEKKO_SORT_KEYS = [

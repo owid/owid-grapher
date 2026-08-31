@@ -3,10 +3,10 @@ import React from "react"
 import * as R from "remeda"
 import {
     Bounds,
+    EntityName,
     excludeUndefined,
     HorizontalAlign,
     Position,
-    SortConfig,
     SortOrder,
     getRelativeMouse,
     EntitySelectionMode,
@@ -51,24 +51,20 @@ import {
 } from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import { ColorScale } from "../color/ColorScale"
-import { SelectionArray } from "../selection/SelectionArray"
 import {
     MarimekkoChartManager,
     MarimekkoNoDataArea,
     MarimekkoSeries,
     PlacedMarimekkoSeries,
     RenderMarimekkoSeries,
-    LabelCandidate,
-    LabelWithPlacement,
-    LabelCandidateWithElement,
+    MarimekkoLabelCandidate,
+    PlacedMarimekkoLabel,
 } from "./MarimekkoChartConstants"
 import { MarimekkoChartState } from "./MarimekkoChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { MarimekkoBars } from "./MarimekkoBars"
 import {
     splitIntoEqualDomainSizeChunks,
-    toLabelCandidate,
     toMarimekkoNoDataArea,
     toPlacedMarimekkoSeries,
     toRenderMarimekkoSeries,
@@ -77,6 +73,12 @@ import {
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25
 const MAX_LABEL_COUNT: number = 20
+
+/** Vertical gap between two stacked entity labels */
+const LABEL_SPACING: number = 5
+
+/** 0 is horizontal, -90 is vertical from bottom to top, ... */
+const LABEL_ANGLE_IN_DEGREES: number = -45
 
 export type MarimekkoChartProps = ChartComponentProps<MarimekkoChartState>
 
@@ -96,8 +98,6 @@ export class MarimekkoChart
         })
     }
 
-    labelAngleInDegrees = -45 // 0 is horizontal, -90 is vertical from bottom to top, ...
-
     // currently hovered legend color
     focusColorBin: ColorScaleBin | undefined = undefined
 
@@ -114,34 +114,15 @@ export class MarimekkoChart
         return this.chartState.manager
     }
 
-    @computed private get inputTable(): OwidTable {
-        return this.chartState.inputTable
-    }
-
     @computed private get series(): readonly MarimekkoSeries[] {
         return this.chartState.series
     }
 
-    @computed private get yColumnSlug(): string | undefined {
-        return this.chartState.yColumnSlug
-    }
-
-    @computed private get xColumnSlug(): string | undefined {
-        return this.chartState.xColumnSlug
-    }
-
-    @computed private get xColumn(): CoreColumn | undefined {
-        return this.chartState.xColumn
-    }
-
-    @computed private get colorColumn(): CoreColumn | undefined {
-        return this.chartState.colorColumn
-    }
-
     @computed private get latestTime(): number | undefined {
-        const times = this.yColumnSlug
+        const { yColumnSlug } = this.chartState
+        const times = yColumnSlug
             ? this.manager.tableAfterAuthorTimelineAndActiveChartTransform?.getTimesUniqSortedAscForColumns(
-                  [this.yColumnSlug]
+                  [yColumnSlug]
               )
             : undefined
 
@@ -158,34 +139,19 @@ export class MarimekkoChart
         else return undefined
     }
     @computed private get xColumnAtLastTimePoint(): CoreColumn | undefined {
-        if (this.xColumnSlug === undefined) return undefined
-        const columnSlug = [this.xColumnSlug]
+        const { xColumnSlug } = this.chartState
+        if (xColumnSlug === undefined) return undefined
         if (this.tableAtLatestTimelineTimepoint)
-            return this.tableAtLatestTimelineTimepoint.getColumns(columnSlug)[0]
+            return this.tableAtLatestTimelineTimepoint.getColumns([
+                xColumnSlug,
+            ])[0]
         else return undefined
     }
 
     @computed private get yColumnAtLastTimePoint(): CoreColumn | undefined {
-        if (this.yColumnSlug === undefined) return undefined
-        return this.tableAtLatestTimelineTimepoint?.getColumns([
-            this.yColumnSlug,
-        ])[0]
-    }
-
-    @computed private get yColumn(): CoreColumn {
-        return this.chartState.yColumn
-    }
-
-    @computed private get colorColumnSlug(): string | undefined {
-        return this.chartState.colorColumnSlug
-    }
-
-    @computed private get colorScale(): ColorScale {
-        return this.chartState.colorScale
-    }
-
-    @computed private get sortConfig(): SortConfig {
-        return this.manager.sortConfig ?? {}
+        const { yColumnSlug } = this.chartState
+        if (yColumnSlug === undefined) return undefined
+        return this.tableAtLatestTimelineTimepoint?.getColumns([yColumnSlug])[0]
     }
 
     @computed private get bounds(): Bounds {
@@ -234,7 +200,7 @@ export class MarimekkoChart
     }
 
     @computed private get xAxisConfig(): AxisConfig {
-        const { xColumnSlug } = this
+        const { xColumnSlug } = this.chartState
         return new AxisConfig(
             {
                 ...this.manager.xAxisConfig,
@@ -263,10 +229,6 @@ export class MarimekkoChart
         })
     }
 
-    @computed private get selectionArray(): SelectionArray {
-        return this.chartState.selectionArray
-    }
-
     @computed get placedSeries(): PlacedMarimekkoSeries[] {
         const { x0, y0, sortedSeries } = this.chartState
         return toPlacedMarimekkoSeries(sortedSeries, {
@@ -284,7 +246,7 @@ export class MarimekkoChart
     @computed private get renderSeries(): RenderMarimekkoSeries[] {
         return toRenderMarimekkoSeries(this.placedSeries, {
             hoveredEntityName: this.hoveredEntityName,
-            selectedEntityNames: this.selectionArray.selectedSet,
+            selectedEntityNames: this.chartState.selectionArray.selectedSet,
             focusColorBin: this.focusColorBin,
         })
     }
@@ -317,8 +279,8 @@ export class MarimekkoChart
     }
 
     @computed private get categoricalLegendData(): CategoricalBin[] {
-        if (!this.colorColumnSlug) return []
-        return this.colorScale.categoricalLegendBins
+        if (!this.chartState.colorColumnSlug) return []
+        return this.chartState.colorScale.categoricalLegendBins
     }
 
     private readonly resolveLegendBinEmphasis = (
@@ -351,9 +313,10 @@ export class MarimekkoChart
         if (this.focusColorBin) return [this.focusColorBin.color]
         if (this.tooltipSeries?.entityColor)
             return [this.tooltipSeries.entityColor.color]
-        if (this.selectionArray.hasSelection) {
+        const { selectionArray } = this.chartState
+        if (selectionArray.hasSelection) {
             const selectedSeries = this.series.filter((series) =>
-                this.selectionArray.selectedSet.has(series.entityName)
+                selectionArray.selectedSet.has(series.entityName)
             )
             const uniqueSelectedColors = new Set(
                 selectedSeries.map((series) => series.entityColor?.color)
@@ -366,7 +329,7 @@ export class MarimekkoChart
     }
 
     @computed private get showLegend(): boolean {
-        return !!this.colorColumnSlug && !!this.manager.showLegend
+        return !!this.chartState.colorColumnSlug && !!this.manager.showLegend
     }
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
@@ -408,7 +371,8 @@ export class MarimekkoChart
     }
 
     @action.bound private onSelectEntity(entityName: string): void {
-        if (this.canAddCountry) this.selectionArray.toggleSelection(entityName)
+        if (this.canAddCountry)
+            this.chartState.selectionArray.toggleSelection(entityName)
     }
     @computed private get canAddCountry(): boolean {
         const { addCountryMode } = this.manager
@@ -445,14 +409,11 @@ export class MarimekkoChart
             bounds,
             dualAxis,
             tooltipSeries,
-            xColumn,
-            yColumn,
-            colorColumn,
-            colorScale,
             manager: { endTime, xOverrideTime },
-            inputTable: { timeColumn },
             tooltipState: { target, position, fading },
         } = this
+        const { xColumn, yColumn, colorColumn, colorScale } = this.chartState
+        const { timeColumn } = this.chartState.inputTable
 
         const { entityName, xPoint, yPoint } = tooltipSeries ?? {}
 
@@ -544,8 +505,8 @@ export class MarimekkoChart
                     />
                 )}
                 {this.renderBars()}
-                {this.labelLines}
-                {this.placedLabels}
+                {this.renderLabelLines()}
+                {this.renderLabels()}
                 {target && (
                     <Tooltip
                         id="marimekkoTooltip"
@@ -585,8 +546,7 @@ export class MarimekkoChart
                                 }
                             />
                         )}
-                        {colorColumn &&
-                            !colorColumn.isMissing &&
+                        {!colorColumn.isMissing &&
                             tooltipSeries?.entityColor &&
                             !(
                                 colorColumn instanceof ColumnTypeMap.Continent
@@ -625,22 +585,17 @@ export class MarimekkoChart
         )
     }
 
-    private readonly paddingInPixels = 5
-
-    @computed private get pickedLabelCandidates(): LabelCandidate[] {
+    @computed private get pickedLabelCandidates(): MarimekkoLabelCandidate[] {
         const {
             xColumnAtLastTimePoint,
             yColumnAtLastTimePoint,
             xRange,
-            sortConfig,
-            paddingInPixels,
             series,
         } = this
-        const { selectedSeries } = this.chartState
+        const { selectedSeries, sortConfig, focusArray } = this.chartState
 
         if (yColumnAtLastTimePoint === undefined) return []
 
-        // Measure the labels (before any rotation, just normal horizontal labels)
         const selectedEntityNames = new Set(
             selectedSeries.map((series) => series.entityName)
         )
@@ -661,138 +616,136 @@ export class MarimekkoChart
         const labelCandidateSource =
             xColumnAtLastTimePoint ?? yColumnAtLastTimePoint
 
-        let labelCandidates: LabelCandidate[] =
-            labelCandidateSource.owidRows.map((row) =>
-                toLabelCandidate(
-                    {
-                        entityName: row.entityName,
-                        shortEntityName: getShortNameForEntity(row.entityName),
-                        xValue:
-                            xColumnAtLastTimePoint !== undefined
-                                ? row.value
-                                : 1,
-                        ySortValue: ySizeMap.get(row.entityName),
-                    },
-                    this.entityLabelFontSize,
-                    selectedEntityNames.has(row.entityName)
-                )
-            )
+        // Measured before any rotation, just normal horizontal labels
+        let candidates: MarimekkoLabelCandidate[] =
+            labelCandidateSource.owidRows.map((row) => {
+                const text =
+                    getShortNameForEntity(row.entityName) ?? row.entityName
+                return {
+                    entityName: row.entityName,
+                    text,
+                    bounds: Bounds.forText(text, {
+                        fontSize: this.entityLabelFontSize,
+                    }),
+                    xValue:
+                        xColumnAtLastTimePoint !== undefined ? row.value : 1,
+                    ySortValue: ySizeMap.get(row.entityName),
+                    isSelected: selectedEntityNames.has(row.entityName),
+                }
+            })
 
         // If focus mode is active, only label focused series
-        if (this.chartState.focusArray.hasFocusedSeries) {
-            labelCandidates = labelCandidates.filter((candidate) =>
-                this.chartState.focusArray.has(candidate.item.entityName)
+        if (focusArray.hasFocusedSeries)
+            candidates = candidates.filter((candidate) =>
+                focusArray.has(candidate.entityName)
             )
-        }
 
-        if (labelCandidates.length === 0) return []
+        if (candidates.length === 0) return []
 
-        labelCandidates.sort((a, b) => {
-            const yRowsForA = a.item.ySortValue
-            const yRowsForB = b.item.ySortValue
+        candidates.sort((a, b) => {
+            const yValueForA = a.ySortValue
+            const yValueForB = b.ySortValue
 
-            if (yRowsForA !== undefined && yRowsForB !== undefined) {
-                const diff = yRowsForB - yRowsForA
+            if (yValueForA !== undefined && yValueForB !== undefined) {
+                const diff = yValueForB - yValueForA
                 if (diff !== 0) return diff
-                else return b.item.entityName.localeCompare(a.item.entityName)
-            } else if (yRowsForA === undefined && yRowsForB !== undefined)
+                else return b.entityName.localeCompare(a.entityName)
+            } else if (yValueForA === undefined && yValueForB !== undefined)
                 return -1
-            else if (yRowsForA !== undefined && yRowsForB === undefined)
+            else if (yValueForA !== undefined && yValueForB === undefined)
                 return 1
-            // (yRowsForA === undefined && yRowsForB === undefined)
+            // (yValueForA === undefined && yValueForB === undefined)
             else return 0
         })
 
-        if (sortConfig.sortOrder === SortOrder.desc) {
-            labelCandidates.reverse()
-        }
+        const isDescending = sortConfig.sortOrder === SortOrder.desc
+        if (isDescending) candidates.reverse()
 
-        const [sortedLabelsWithValues, sortedLabelsWithoutValues] = _.partition(
-            labelCandidates,
-            (item) =>
-                item.item.ySortValue !== 0 && item.item.ySortValue !== undefined
+        const picked = new Set<EntityName>(
+            candidates
+                .filter((candidate) => candidate.isSelected)
+                .map((candidate) => candidate.entityName)
         )
 
-        if (sortedLabelsWithValues.length) {
-            R.first(sortedLabelsWithValues)!.isPicked = true
-            R.last(sortedLabelsWithValues)!.isPicked = true
+        const [withValues, withoutValues] = _.partition(
+            candidates,
+            (candidate) =>
+                candidate.ySortValue !== 0 && candidate.ySortValue !== undefined
+        )
+
+        // Both ends of the sort always get a label
+        if (withValues.length) {
+            picked.add(R.first(withValues)!.entityName)
+            picked.add(R.last(withValues)!.entityName)
         }
-        if (sortedLabelsWithoutValues.length) {
-            if (sortConfig.sortOrder === SortOrder.desc)
-                R.first(sortedLabelsWithoutValues)!.isPicked = true
-            else R.last(sortedLabelsWithoutValues)!.isPicked = true
-        }
+        if (withoutValues.length)
+            picked.add(
+                isDescending
+                    ? R.first(withoutValues)!.entityName
+                    : R.last(withoutValues)!.entityName
+            )
+
         const availablePixels = xRange[1] - xRange[0]
-
-        const labelHeight = labelCandidates[0].bounds.height
-
+        const labelHeight = candidates[0].bounds.height
         const numLabelsToAdd = Math.floor(
             Math.min(
-                availablePixels / (labelHeight + paddingInPixels) / 3, // factor 3 is arbitrary to taste
+                availablePixels / (labelHeight + LABEL_SPACING) / 3, // factor 3 is arbitrary to taste
                 MAX_LABEL_COUNT
             )
         )
+
+        // Spread the rest evenly by labelling the widest bar of each chunk
         const chunks = splitIntoEqualDomainSizeChunks(
             series,
-            labelCandidates,
+            candidates,
             numLabelsToAdd
         )
-        const picks = chunks.flatMap((chunk) => {
-            const picked = chunk.filter((candidate) => candidate.isPicked)
-            if (picked.length > 0) return picked
-            else {
-                return _.maxBy(chunk, (candidate) => candidate.item.xValue)
-            }
-        })
-        for (const max of picks) {
-            if (max) max.isPicked = true
+        for (const chunk of chunks) {
+            if (chunk.some((candidate) => picked.has(candidate.entityName)))
+                continue
+            const widest = _.maxBy(chunk, (candidate) => candidate.xValue)
+            if (widest) picked.add(widest.entityName)
         }
-        const picked = labelCandidates.filter((candidate) => candidate.isPicked)
 
-        return picked
+        return candidates.filter((candidate) =>
+            picked.has(candidate.entityName)
+        )
     }
 
-    @computed private get labelsWithPlacementInfo(): LabelWithPlacement[] {
+    @computed private get placedLabels(): PlacedMarimekkoLabel[] {
         const {
             dualAxis,
             placedSeriesByEntityName,
-            labels,
+            pickedLabelCandidates,
             unrotatedLongestLabelWidth,
             unrotatedHighestLabelHeight,
-            labelAngleInDegrees,
         } = this
-        const { x0 } = this.chartState
-        const labelsYPosition = dualAxis.verticalAxis.place(0)
+        const { x0, domainColorForEntityMap, yColumnColor } = this.chartState
 
-        const labelsWithPlacements: LabelWithPlacement[] = labels
-            .map(({ candidate, labelElement }) => {
+        const labels: PlacedMarimekkoLabel[] = excludeUndefined(
+            pickedLabelCandidates.map((candidate) => {
                 const series = placedSeriesByEntityName.get(
-                    candidate.item.entityName
+                    candidate.entityName
                 )
                 if (!series) {
-                    console.error(
-                        "Could not find series",
-                        candidate.item.entityName
-                    )
-                    return null
+                    console.error("Could not find series", candidate.entityName)
+                    return undefined
                 }
 
                 const centreX = series.barX + series.barWidth / 2
+                const domainColor = domainColorForEntityMap.get(
+                    candidate.entityName
+                )
                 return {
-                    label: (
-                        <g transform={`translate(${0}, ${labelsYPosition})`}>
-                            {labelElement}
-                        </g>
-                    ),
-                    preferredPlacement: centreX,
-                    correctedPlacement: centreX,
-                    labelKey: candidate.item.entityName,
+                    entityName: candidate.entityName,
+                    text: candidate.text,
+                    color: domainColor?.color ?? yColumnColor,
+                    isSelected: candidate.isSelected,
+                    preferredX: centreX,
+                    correctedX: centreX,
                 }
             })
-            .filter(
-                (item: LabelWithPlacement | null): item is LabelWithPlacement =>
-                    item !== null
-            )
+        )
 
         // This collision detection code is optimized for the particular
         // case of distributing items in 1D, knowing that we picked a low
@@ -820,12 +773,12 @@ export class MarimekkoChart
         // the more they would actually overlap so we need a correction factor. It turns
         // out than tan(angle) is the correction factor we want, although for horizontal
         // labels we don't want to use +infinity :) so we Math.min it with the longest label width
-        if (labelsWithPlacements.length === 0) return []
+        if (labels.length === 0) return []
 
-        labelsWithPlacements.sort((a, b) => {
-            const diff = a.preferredPlacement - b.preferredPlacement
+        labels.sort((a, b) => {
+            const diff = a.preferredX - b.preferredX
             if (diff !== 0) return diff
-            else return a.labelKey.localeCompare(b.labelKey)
+            else return a.entityName.localeCompare(b.entityName)
         })
 
         const labelWidth = unrotatedHighestLabelHeight
@@ -833,125 +786,98 @@ export class MarimekkoChart
             1 +
             Math.min(
                 unrotatedLongestLabelWidth / labelWidth,
-                Math.abs(Math.tan(labelAngleInDegrees))
+                Math.abs(Math.tan(LABEL_ANGLE_IN_DEGREES))
             )
         const correctedLabelWidth = labelWidth * correctionFactor
 
-        for (let i = 0; i < labelsWithPlacements.length - 1; i++) {
-            const current = labelsWithPlacements[i]
-            const next = labelsWithPlacements[i + 1]
-            const minNextX = current.correctedPlacement + correctedLabelWidth
-            if (next.correctedPlacement < minNextX)
-                next.correctedPlacement = minNextX
+        for (let i = 0; i < labels.length - 1; i++) {
+            const current = labels[i]
+            const next = labels[i + 1]
+            const minNextX = current.correctedX + correctedLabelWidth
+            if (next.correctedX < minNextX) next.correctedX = minNextX
         }
-        labelsWithPlacements[
-            labelsWithPlacements.length - 1
-        ].correctedPlacement = Math.min(
-            labelsWithPlacements[labelsWithPlacements.length - 1]
-                .correctedPlacement,
+        const last = R.last(labels)!
+        last.correctedX = Math.min(
+            last.correctedX,
             dualAxis.horizontalAxis.rangeSize +
                 dualAxis.horizontalAxis.place(x0)
         )
-        for (let i = labelsWithPlacements.length - 1; i > 0; i--) {
-            const current = labelsWithPlacements[i]
-            const previous = labelsWithPlacements[i - 1]
-            const maxPreviousX =
-                current.correctedPlacement - correctedLabelWidth
-            if (previous.correctedPlacement > maxPreviousX)
-                previous.correctedPlacement = maxPreviousX
+        for (let i = labels.length - 1; i > 0; i--) {
+            const current = labels[i]
+            const previous = labels[i - 1]
+            const maxPreviousX = current.correctedX - correctedLabelWidth
+            if (previous.correctedX > maxPreviousX)
+                previous.correctedX = maxPreviousX
         }
 
-        return labelsWithPlacements
+        return labels
     }
 
-    @computed private get labelLines(): React.ReactElement[] {
-        const { labelsWithPlacementInfo, dualAxis } = this
-        const { selectedSeries } = this.chartState
-        const shiftedGroups: LabelWithPlacement[][] = []
-        const unshiftedElements: LabelWithPlacement[] = []
-        const selectedEntityNames = new Set(
-            selectedSeries.map((series) => series.entityName)
-        )
-        let startNewGroup = true
-
-        const barEndpointY = dualAxis.verticalAxis.place(0)
-
-        for (const labelWithPlacement of labelsWithPlacementInfo) {
-            if (
-                labelWithPlacement.preferredPlacement ===
-                labelWithPlacement.correctedPlacement
-            ) {
-                unshiftedElements.push(labelWithPlacement)
-                startNewGroup = true
+    /**
+     * Runs of consecutive labels that the collision pass had to shift. Each run
+     * shares out the marker area's height so their connector lines don't overlap.
+     */
+    @computed private get shiftedLabelRuns(): PlacedMarimekkoLabel[][] {
+        const runs: PlacedMarimekkoLabel[][] = []
+        let startNewRun = true
+        for (const label of this.placedLabels) {
+            if (label.preferredX === label.correctedX) {
+                startNewRun = true
+            } else if (startNewRun) {
+                runs.push([label])
+                startNewRun = false
             } else {
-                if (startNewGroup) {
-                    shiftedGroups.push([labelWithPlacement])
-                    startNewGroup = false
-                } else {
-                    shiftedGroups[shiftedGroups.length - 1].push(
-                        labelWithPlacement
-                    )
-                }
+                R.last(runs)!.push(label)
             }
         }
-        // If we wanted to hide the label lines if all lines are straight
-        // then we could do this but this makes it jumpy over time
-        // if (shiftedGroups.length === 0) return []
-        // else {
+        return runs
+    }
+
+    private renderLabelLines(): React.ReactElement[] {
+        const barEndpointY = this.dualAxis.verticalAxis.place(0)
+        const markerBarEndpointY = barEndpointY + MARKER_MARGIN
+        const markerTextEndpointY =
+            barEndpointY + MARKER_AREA_HEIGHT - MARKER_MARGIN
+        const markerNetHeight = MARKER_AREA_HEIGHT - 2 * MARKER_MARGIN
+
         const labelLines: React.ReactElement[] = []
-        for (const group of shiftedGroups) {
-            let indexInGroup = 0
-            for (const item of group) {
-                const lineColor = selectedEntityNames.has(item.labelKey)
-                    ? "#999"
-                    : "#bbb"
-                const markerBarEndpointX = item.preferredPlacement
-                const markerTextEndpointX = item.correctedPlacement
-                const markerBarEndpointY = barEndpointY + MARKER_MARGIN
-                const markerTextEndpointY =
-                    barEndpointY + MARKER_AREA_HEIGHT - MARKER_MARGIN
-                const markerNetHeight = MARKER_AREA_HEIGHT - 2 * MARKER_MARGIN
-                const markerStepSize = markerNetHeight / (group.length + 1)
+        for (const run of this.shiftedLabelRuns) {
+            const markerStepSize = markerNetHeight / (run.length + 1)
+            run.forEach((label, indexInRun) => {
                 const directionUnawareMakerYMid =
-                    (indexInGroup + 1) * markerStepSize
+                    (indexInRun + 1) * markerStepSize
                 const markerYMid =
-                    markerBarEndpointX > markerTextEndpointX
+                    label.preferredX > label.correctedX
                         ? directionUnawareMakerYMid
                         : markerNetHeight - directionUnawareMakerYMid
                 labelLines.push(
                     <g
-                        id={makeFigmaId("label-line", item.labelKey)}
+                        id={makeFigmaId("label-line", label.entityName)}
                         className="indicator"
-                        key={`labelline-${item.labelKey}`}
+                        key={`labelline-${label.entityName}`}
                     >
                         <path
-                            d={`M${markerBarEndpointX},${markerBarEndpointY} v${markerYMid} H${markerTextEndpointX} V${markerTextEndpointY}`}
-                            stroke={lineColor}
+                            d={`M${label.preferredX},${markerBarEndpointY} v${markerYMid} H${label.correctedX} V${markerTextEndpointY}`}
+                            stroke={label.isSelected ? "#999" : "#bbb"}
                             strokeWidth={1}
                             fill="none"
                         />
                     </g>
                 )
-                indexInGroup++
-            }
+            })
         }
-        for (const item of unshiftedElements) {
-            const lineColor = selectedEntityNames.has(item.labelKey)
-                ? "#555"
-                : "#bbb"
-            const markerBarEndpointX = item.preferredPlacement
-            const markerBarEndpointY = barEndpointY + MARKER_MARGIN
-            const markerTextEndpointY =
-                barEndpointY + MARKER_AREA_HEIGHT - MARKER_MARGIN
-
+        const unshiftedLabels = this.placedLabels.filter(
+            (label) => label.preferredX === label.correctedX
+        )
+        for (const label of unshiftedLabels) {
             labelLines.push(
                 <g
-                    id={makeFigmaId("label-line", item.labelKey)}
-                    key={`labelline-${item.labelKey}`}
+                    id={makeFigmaId("label-line", label.entityName)}
+                    key={`labelline-${label.entityName}`}
                 >
                     <path
-                        d={`M${markerBarEndpointX},${markerBarEndpointY} V${markerTextEndpointY}`}
-                        stroke={lineColor}
+                        d={`M${label.preferredX},${markerBarEndpointY} V${markerTextEndpointY}`}
+                        stroke={label.isSelected ? "#555" : "#bbb"}
                         strokeWidth={1}
                         fill="none"
                     />
@@ -959,26 +885,39 @@ export class MarimekkoChart
             )
         }
         return labelLines
-        //}
     }
 
-    @computed private get placedLabels(): React.ReactElement[] {
-        const labelOffset = MARKER_AREA_HEIGHT
-        // old logic tried to hide labellines but that is too jumpy
-        // labelLines.length
-        //     ? MARKER_AREA_HEIGHT
-        //     : this.baseFontSize / 2
-        const placedLabels = this.labelsWithPlacementInfo.map((item) => (
+    private renderLabels(): React.ReactElement[] {
+        const labelsYPosition = this.dualAxis.verticalAxis.place(0)
+        return this.placedLabels.map((label) => (
             <g
-                key={`label-${item.labelKey}`}
-                id={makeFigmaId("label", item.labelKey)}
-                transform={`translate(${item.correctedPlacement}, ${labelOffset})`}
+                key={`label-${label.entityName}`}
+                id={makeFigmaId("label", label.entityName)}
+                transform={`translate(${label.correctedX}, ${MARKER_AREA_HEIGHT})`}
             >
-                {item.label}
+                <g transform={`translate(0, ${labelsYPosition})`}>
+                    <text
+                        y={0}
+                        fontWeight={label.isSelected ? 700 : 400}
+                        fill={label.color}
+                        transform={`rotate(${LABEL_ANGLE_IN_DEGREES}, 0, 0)`}
+                        opacity={1}
+                        fontSize={this.entityLabelFontSize}
+                        textAnchor="end"
+                        dy={dyFromAlign(VerticalAlign.middle)}
+                        onMouseOver={(): void =>
+                            this.onEntityMouseOver(label.entityName)
+                        }
+                        onMouseLeave={(): void => this.dismissTooltip()}
+                        onClick={(): void =>
+                            this.onEntityClick(label.entityName)
+                        }
+                    >
+                        {label.text}
+                    </text>
+                </g>
             </g>
         ))
-
-        return placedLabels
     }
 
     @computed private get unrotatedLongestLabelWidth(): number {
@@ -1004,7 +943,7 @@ export class MarimekkoChart
         // as a rough proxy
         const rotatedLabelHeight =
             this.unrotatedLongestLabelWidth *
-            Math.abs(Math.sin((this.labelAngleInDegrees * Math.PI) / 180))
+            Math.abs(Math.sin((LABEL_ANGLE_IN_DEGREES * Math.PI) / 180))
         return Math.max(this.fontSize, rotatedLabelHeight)
     }
 
@@ -1016,47 +955,11 @@ export class MarimekkoChart
         // as a rough proxy
         const rotatedLabelWidth =
             this.unrotatedLongestLabelWidth *
-            Math.abs(Math.cos((this.labelAngleInDegrees * Math.PI) / 180))
+            Math.abs(Math.cos((LABEL_ANGLE_IN_DEGREES * Math.PI) / 180))
         return Math.max(this.fontSize, rotatedLabelWidth)
     }
 
     @computed private get entityLabelFontSize(): number {
         return GRAPHER_FONT_SCALE_12 * this.fontSize
-    }
-
-    @computed private get labels(): LabelCandidateWithElement[] {
-        const { labelAngleInDegrees } = this
-        const { domainColorForEntityMap, yColumnColor } = this.chartState
-        return this.pickedLabelCandidates.map((candidate) => {
-            const domainColor = domainColorForEntityMap.get(
-                candidate.item.entityName
-            )
-            const color = domainColor?.color ?? yColumnColor ?? "#000"
-            return {
-                candidate,
-                labelElement: (
-                    <text
-                        key={`${candidate.item.entityName}-label`}
-                        y={0}
-                        fontWeight={candidate.isSelected ? 700 : 400}
-                        fill={color}
-                        transform={`rotate(${labelAngleInDegrees}, 0, 0)`}
-                        opacity={1}
-                        fontSize={this.entityLabelFontSize}
-                        textAnchor="end"
-                        dy={dyFromAlign(VerticalAlign.middle)}
-                        onMouseOver={(): void =>
-                            this.onEntityMouseOver(candidate.item.entityName)
-                        }
-                        onMouseLeave={(): void => this.dismissTooltip()}
-                        onClick={(): void =>
-                            this.onEntityClick(candidate.item.entityName)
-                        }
-                    >
-                        {candidate.label}
-                    </text>
-                ),
-            }
-        })
     }
 }
