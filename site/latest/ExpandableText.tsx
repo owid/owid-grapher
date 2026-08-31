@@ -45,10 +45,7 @@ export const ExpandableText = ({
     blocks: OwidEnrichedGdocBlock[]
     children?: React.ReactNode
     containerType?: Container
-    /** Render fully expanded with no Read more toggle. Used when the caller
-     * needs the same DOM/layout structure as the collapsible variant — e.g.
-     * the standalone announcement preview, which mirrors the feed card so
-     * grid layout and margin collapsing match. */
+    /** Render all blocks without a Read more toggle, e.g. for a deep-linked card. */
     alwaysExpanded?: boolean
     onReadMore?: () => void
 }) => {
