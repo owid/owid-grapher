@@ -42,6 +42,7 @@ const NewsletterOption = ({
         <div className="email-notifications-subscribe-form__newsletter-content">
             <Checkbox
                 id={id}
+                autoComplete="off"
                 checked={checked}
                 onChange={onChange}
                 label={
