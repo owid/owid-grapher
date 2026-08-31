@@ -235,8 +235,6 @@
         }
     }
 
-    // Drop the panel's scale only. The overlay's opacity transition is what
-    // React Aria waits on before unmounting, so it must survive.
     @media (prefers-reduced-motion: reduce) {
         .metadata-modal__panel {
             transition: none;
