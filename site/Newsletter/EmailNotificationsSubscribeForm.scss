@@ -49,6 +49,16 @@
     border-top: 1px solid $blue-20;
 }
 
+// Firefox may restore native form control values on reload without notifying
+// React. Derive the panel visibility from the checkbox itself so the restored
+// value remains the source of truth.
+.email-notifications-subscribe-form:not(
+        :has(#email-notifications-follow-topics:checked)
+    )
+    .email-notifications-subscribe-form__topic-preferences {
+    display: none;
+}
+
 .email-notifications-subscribe-form__privacy-notice {
     @include note-12-medium;
     margin-top: 8px;
