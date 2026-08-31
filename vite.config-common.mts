@@ -7,12 +7,12 @@ import {
     pluginSwcDecorators,
     scssPreprocessorOptions,
 } from "./rolldown.config-common.mts"
-import * as clientSettings from "./settings/clientSettings.js"
+import * as clientSettings from "./settings/clientSettings.mts"
 import {
     VITE_ASSET_SITE_ENTRY,
     VITE_ENTRYPOINT_INFO,
-    ViteEntryPoint,
-} from "./site/viteConstants.js"
+    type ViteEntryPointName,
+} from "./site/viteConstants.mts"
 
 export const commonPlugins = (): PluginOption[] => [
     pluginSwcDecorators(),
@@ -23,7 +23,9 @@ export const commonPlugins = (): PluginOption[] => [
 ]
 
 // https://vitejs.dev/config/
-export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
+export const defineViteConfigForEntrypoint = (
+    entrypoint: ViteEntryPointName
+) => {
     const entrypointInfo = VITE_ENTRYPOINT_INFO[entrypoint]
     const isBundlemon = process.env.BUNDLEMON === "true"
     const vitePort = parseInt(process.env.VITE_PORT || "8090", 10)
@@ -50,6 +52,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
             alias: {
                 // We don't want to load dotenv in the browser build, and don't need to fill in node imports like fs or path.
                 "./loadDotenv.js": "./loadDotenv.browser.js",
+                "./loadDotenv.mts": "./loadDotenv.browser.js",
             },
         },
         build: {
