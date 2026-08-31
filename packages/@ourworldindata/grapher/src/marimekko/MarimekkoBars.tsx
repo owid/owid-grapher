@@ -5,9 +5,10 @@ import {
 } from "./MarimekkoChartConstants"
 import { GRAPHER_FONT_SCALE_12, Patterns } from "../core/GrapherConstants"
 import { Emphasis, OPACITY_BY_EMPHASIS } from "../interaction/Emphasis.js"
+import { GRAY_30 } from "../color/ColorConstants.js"
 
 const PLACEHOLDER_COLOR = "#555"
-const BACKGROUNDED_COLOR = "#DADADA"
+const BACKGROUNDED_COLOR = GRAY_30
 
 interface MarimekkoBarsProps {
     series: RenderMarimekkoSeries[]
