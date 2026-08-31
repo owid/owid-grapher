@@ -42,6 +42,7 @@ const NewsletterOption = ({
         <div className="email-notifications-subscribe-form__newsletter-content">
             <Checkbox
                 id={id}
+                autoComplete="off"
                 checked={checked}
                 onChange={onChange}
                 label={
@@ -151,9 +152,11 @@ export const EmailNotificationsSubscribeForm = ({
                 onChange={() => setFollowTopics(!followTopics)}
             />
             {followTopics && (
-                <EmailNotificationsPreferenceFields
-                    {...preferences.fieldsProps}
-                />
+                <div className="email-notifications-subscribe-form__topic-preferences">
+                    <EmailNotificationsPreferenceFields
+                        {...preferences.fieldsProps}
+                    />
+                </div>
             )}
             {errorMessage && (
                 <div className="newsletter-form__alert">{errorMessage}</div>
