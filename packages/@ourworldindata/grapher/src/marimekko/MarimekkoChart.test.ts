@@ -728,3 +728,47 @@ it("ignores x-axis when scatter is also available", () => {
     // xColumnSlug should be undefined because scatter is available
     expect(marimekkoState.xColumnSlug).toBeUndefined()
 })
+
+it("doesn't label entities that are absent at the selected time", () => {
+    const csv = `year,entityName,population,percentBelow2USD
+2000,medium,4000,5
+2000,big,5000,10
+2000,small,800,2
+2001,medium,4000,4
+2001,big,5000,8
+2001,small,1000,3
+2001,newcomer,9000,99`
+    const table = new OwidTable(csv, [
+        { slug: "population", type: ColumnTypeNames.Numeric },
+        { slug: "percentBelow2USD", type: ColumnTypeNames.Numeric },
+        { slug: "year", type: ColumnTypeNames.Year },
+    ])
+
+    const grapher = new GrapherState({
+        chartTypes: [GRAPHER_CHART_TYPES.Marimekko],
+        table,
+        ySlugs: "percentBelow2USD",
+        xSlug: "population",
+        maxTime: 2000,
+    })
+    const chartState = new MarimekkoChartState({ manager: grapher })
+    const chart = new MarimekkoChart({
+        chartState,
+        bounds: new Bounds(0, 0, 1000, 1000),
+    })
+
+    expect(chart["latestTime"]).toEqual(2001)
+    expect(chart.placedSeries.map((series) => series.entityName)).toEqual([
+        "big",
+        "medium",
+        "small",
+    ])
+
+    const candidateNames = chart["pickedLabelCandidates"].map(
+        (candidate) => candidate.entityName
+    )
+    const labelNames = chart["placedLabels"].map((label) => label.entityName)
+
+    expect(candidateNames).not.toContain("newcomer")
+    expect(labelNames.toSorted()).toEqual(candidateNames.toSorted())
+})
