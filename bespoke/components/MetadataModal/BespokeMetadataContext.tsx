@@ -21,7 +21,6 @@ const BespokeMetadataContext = createContext<
     BespokeMetadataContextValue | undefined
 >(undefined)
 
-/** Connects a project's `ChartFooter` link to the modal its `Frame` renders */
 export function BespokeMetadataProvider({
     metadata,
     children,
@@ -47,7 +46,6 @@ export function BespokeMetadataProvider({
     )
 }
 
-/** `undefined` outside a provider */
 export function useBespokeMetadataContext():
     | BespokeMetadataContextValue
     | undefined {
