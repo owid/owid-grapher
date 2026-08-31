@@ -93,12 +93,12 @@
     // The rest is hard-coded in the components, so it can only be overridden by
     // selector
     .bespoke-metadata-heading__title {
-        @include grapher_h2-semibold;
+        @include grapher_h3-semibold;
         color: $dark-text;
     }
 
     .bespoke-metadata-heading__title-variant {
-        font-size: 16px;
+        font-size: 14px;
         color: $light-text;
     }
 
