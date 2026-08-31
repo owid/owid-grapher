@@ -1,20 +1,17 @@
 import { LatestType, OwidEnrichedGdocBlock } from "@ourworldindata/types"
-import cx from "clsx"
 import LinkedAuthor from "../gdocs/components/LinkedAuthor.js"
 import { ExpandableText } from "./ExpandableText.js"
 import { LatestHitMetadata } from "./LatestHitMetadata.js"
 import { announcementContentTitleId } from "./latestUtils.js"
 
-/** Shared inner content of an announcement, used by both /latest feed hits
- * (Algolia-backed) and the standalone preview page (gdoc-backed). Always
- * needs a wrapper that supplies the AttachmentsContext and surrounding
- * chrome — it is not a standalone component on its own. The two call sites
- * differ only in heading level (h1 vs h2) and whether <ExpandableText>
- * truncates with a Read more toggle (feed) or renders fully (standalone via
- * isExpanded). The standalone version passes isExpanded rather than
- * bypassing <ExpandableText>, so the DOM and grid layout stay identical to
- * the feed and editors previewing an announcement see what readers will see
- * in the feed. */
+/** Inner content of an announcement card in the /latest feed
+ * (Algolia-backed). Always needs a wrapper that supplies the
+ * AttachmentsContext and surrounding chrome — it is not a standalone
+ * component on its own. <ExpandableText> truncates with a Read more toggle
+ * unless isExpanded says the reader came looking for this kind of
+ * announcement specifically. The standalone announcement page is a different
+ * component (gdocs/pages/Announcement.tsx), built like the data insight
+ * page. */
 export const AnnouncementContent = ({
     title,
     latestType,
@@ -23,7 +20,6 @@ export const AnnouncementContent = ({
     publishedAt,
     authors,
     body,
-    isStandalone,
     isExpanded,
     selectedTopic,
     onReadMore,
@@ -35,9 +31,6 @@ export const AnnouncementContent = ({
     publishedAt: Date | string | null
     authors: string[]
     body: OwidEnrichedGdocBlock[]
-    /** When rendered as the standalone preview page: use h1, show full body
-     * (no Read more truncation). */
-    isStandalone?: boolean
     isExpanded?: boolean
     selectedTopic?: string
     onReadMore?: () => void
@@ -57,30 +50,24 @@ export const AnnouncementContent = ({
         </div>
     )
 
-    const Heading = isStandalone ? "h1" : "h2"
-
     return (
-        <div
-            className={cx("announcement-content", {
-                "announcement-content--standalone": isStandalone,
-            })}
-        >
+        <div className="announcement-content">
             <LatestHitMetadata
                 latestType={latestType}
                 tags={tags}
                 publishedAt={publishedAt}
                 selectedTopic={selectedTopic}
             />
-            <Heading
+            <h2
                 id={titleId}
                 className="announcement-content__title subtitle-2-bold"
             >
                 {title}
-            </Heading>
+            </h2>
             <ExpandableText
                 blocks={body}
                 containerType="latest-announcement"
-                alwaysExpanded={isExpanded || isStandalone}
+                alwaysExpanded={isExpanded}
                 onReadMore={onReadMore}
             >
                 {authorByline}

@@ -7,6 +7,7 @@ import {
     OwidGdocMinimalPostInterface,
     ImageMetadata,
     RelatedChart,
+    LatestAnnouncement,
     LatestDataInsight,
     OwidGdocHomepageMetadata,
     DbEnrichedLatestWork,
@@ -24,6 +25,7 @@ export type Attachments = {
     imageMetadata: Record<string, ImageMetadata>
     relatedCharts: RelatedChart[]
     latestDataInsights?: LatestDataInsight[]
+    latestAnnouncements?: LatestAnnouncement[]
     homepageMetadata?: OwidGdocHomepageMetadata
     latestWorkLinks?: DbEnrichedLatestWork[]
     linkedNarrativeCharts?: Record<string, NarrativeChartInfo>
@@ -40,6 +42,7 @@ export const AttachmentsContext = createContext<Attachments>({
     linkedIndicators: {},
     relatedCharts: [],
     latestDataInsights: [],
+    latestAnnouncements: [],
     homepageMetadata: {},
     latestWorkLinks: [],
     linkedNarrativeCharts: {},
