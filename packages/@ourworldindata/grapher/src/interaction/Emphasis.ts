@@ -1,3 +1,8 @@
+import {
+    GRAPHER_AREA_OPACITY_DEFAULT,
+    GRAPHER_AREA_OPACITY_HIGHLIGHTED,
+    GRAPHER_AREA_OPACITY_MUTED,
+} from "../core/GrapherConstants.js"
 import { InteractionState } from "./InteractionState.js"
 
 export enum Emphasis {
@@ -9,6 +14,13 @@ export enum Emphasis {
     Highlighted = "highlighted",
     /** Muted emphasis */
     Muted = "muted",
+}
+
+export const OPACITY_BY_EMPHASIS: Record<Emphasis, number> = {
+    [Emphasis.Default]: GRAPHER_AREA_OPACITY_DEFAULT,
+    [Emphasis.Elevated]: GRAPHER_AREA_OPACITY_DEFAULT,
+    [Emphasis.Highlighted]: GRAPHER_AREA_OPACITY_HIGHLIGHTED,
+    [Emphasis.Muted]: GRAPHER_AREA_OPACITY_MUTED,
 }
 
 export function resolveEmphasis({

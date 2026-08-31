@@ -4,8 +4,7 @@ import {
     RenderMarimekkoSeries,
 } from "./MarimekkoChartConstants"
 import { GRAPHER_FONT_SCALE_12, Patterns } from "../core/GrapherConstants"
-import { STACKED_BAR_STYLE } from "../stackedCharts/StackedConstants.js"
-import { Emphasis } from "../interaction/Emphasis.js"
+import { Emphasis, OPACITY_BY_EMPHASIS } from "../interaction/Emphasis.js"
 
 const PLACEHOLDER_COLOR = "#555"
 const BACKGROUNDED_COLOR = "#DADADA"
@@ -112,7 +111,7 @@ function MarimekkoBar({
     const fillOpacity =
         emphasis === Emphasis.Default && isOutlined && isPlaceholder
             ? 0.3
-            : STACKED_BAR_STYLE[emphasis].opacity
+            : OPACITY_BY_EMPHASIS[emphasis]
 
     return (
         <g
