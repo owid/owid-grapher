@@ -3532,10 +3532,7 @@ export class GrapherState
         if (
             this.isRelativeMode &&
             sortConfig.sortBy === SortBy.total &&
-            // No need to do this for Marimekko and discrete bar charts
-            // since relative mode means something else for Marimekko charts
-            // and discrete bar charts don't support relative mode
-            !this.isOnMarimekkoTab &&
+            // Discrete bar charts don't support relative mode
             !this.isOnDiscreteBarTab
         ) {
             sortConfig.sortBy = SortBy.entityName

@@ -4,19 +4,14 @@ import { ChartState } from "../chart/ChartInterface"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import {
     EntityColorData,
-    MARIMEKKO_SORT_KEYS,
     MarimekkoChartManager,
     MarimekkoSeries,
-    MarimekkoSortKey,
 } from "./MarimekkoChartConstants"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
     autoDetectYColumnSlugs,
     getShortNameForEntity,
-    keepInputOrder,
     makeSelectionArray,
-    SortKey,
-    sortByConfig,
 } from "../chart/ChartUtils"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import {
@@ -24,8 +19,6 @@ import {
     ColorSchemeName,
     EntityName,
     ColorScaleConfigInterface,
-    SortConfig,
-    SortBy,
     ScaleType,
     Color,
 } from "@ourworldindata/types"
@@ -130,7 +123,6 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         return new InteractionState(isSingledOut, isModeActive)
     }
 
-    /** Marimekko plots a single y indicator; a config naming several keeps the first */
     @computed get yColumnSlug(): string | undefined {
         const slugs =
             this.manager.yColumnSlugs ?? autoDetectYColumnSlugs(this.manager)
@@ -180,21 +172,7 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
     @computed get colorScaleColumn(): CoreColumn {
         const { manager, inputTable } = this
         return (
-            // For faceted charts, we have to get the values of inputTable before it's filtered by
-            // the faceting logic.
             manager.colorScaleColumnOverride ??
-            // We need to use filteredTable in order to get consistent coloring for a variable across
-            // charts, e.g. each continent being assigned to the same color.
-            // inputTable is unfiltered, so it contains every value that exists in the variable.
-
-            // 2022-05-25: I considered using the filtered table below to get rid of Antarctica automatically
-            // but the way things are currently done this leads to a shift in the colors assigned to continents
-            // (i.e. they are no longer consistent cross the site). I think this downside is heavier than the
-            // upside so I comment this out for now. Reconsider when we do colors differently.
-
-            // manager.tableAfterAuthorTimelineAndActiveChartTransform?.get(
-            //     this.colorColumnSlug
-            // ) ??
             inputTable.get(this.colorColumnSlug)
         )
     }
@@ -208,13 +186,8 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         )
     }
 
-    /** Fallback bar color for entities the color column says nothing about */
     @computed get yColumnColor(): Color {
         return this.yColumn.def.color ?? this.colorScheme.getColors(1)[0]
-    }
-
-    @computed get sortConfig(): SortConfig {
-        return this.manager.sortConfig ?? {}
     }
 
     @computed get x0(): number {
@@ -270,7 +243,6 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         return excludeUndefined(
             uniqueEntityNames.map((entityName) => {
                 const xRow = xRowsByEntity?.get(entityName)?.[0]
-                // An entity the x indicator says nothing about has no bar width
                 if (xColumn && !xRow) return undefined
 
                 const yRow = yRowsByEntity.get(entityName)?.[0]
@@ -294,36 +266,26 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         )
     }
 
+    /** Bars run left to right from the largest y value down, entities without a value last */
     @computed get sortedSeries(): MarimekkoSeries[] {
         const byYValue = (series: MarimekkoSeries): number =>
             series.yPoint?.value ?? 0
         const byEntityName = (series: MarimekkoSeries): string =>
             series.entityName
 
-        const keyFns: Record<
-            MarimekkoSortKey | SortBy.column,
-            SortKey<MarimekkoSeries>
-        > = {
-            [SortBy.custom]: keepInputOrder,
-            [SortBy.entityName]: byEntityName,
-            [SortBy.total]: [byYValue, byEntityName],
-            // With a single y indicator, sorting by column is sorting by total
-            [SortBy.column]: [byYValue, byEntityName],
-        }
-        const sortedSeries = sortByConfig(this.series, this.sortConfig, keyFns)
+        const descendingByYValue = _.sortBy(this.series, [
+            byYValue,
+            byEntityName,
+        ]).toReversed()
 
         // The no-data area is drawn as one rectangle spanning the entities without a
         // value, and MarimekkoBars asserts they are contiguous, so they go last.
         const [seriesWithValues, seriesWithoutValues] = _.partition(
-            sortedSeries,
+            descendingByYValue,
             (series) => series.yPoint !== undefined
         )
 
         return [...seriesWithValues, ...seriesWithoutValues]
-    }
-
-    @computed get availableSortKeys(): MarimekkoSortKey[] {
-        return [...MARIMEKKO_SORT_KEYS]
     }
 
     @computed get selectedSeries(): MarimekkoSeries[] {

@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
-import { Bounds, Color, EntityName, SortOrder } from "@ourworldindata/utils"
+import { Bounds, Color, EntityName } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { DualAxis } from "../axis/Axis"
 import { ColorScaleBin } from "../color/ColorScaleBin"
@@ -151,7 +151,6 @@ export function pickMarimekkoLabelCandidates({
     yColumnAtLastTimePoint,
     selectedEntityNames,
     focusArray,
-    sortOrder,
     availableWidth,
     fontSize,
 }: {
@@ -160,7 +159,6 @@ export function pickMarimekkoLabelCandidates({
     yColumnAtLastTimePoint: CoreColumn | undefined
     selectedEntityNames: Set<EntityName>
     focusArray: FocusArray
-    sortOrder: SortOrder | undefined
     availableWidth: number
     fontSize: number
 }): MarimekkoLabelCandidate[] {
@@ -202,23 +200,20 @@ export function pickMarimekkoLabelCandidates({
 
     if (candidates.length === 0) return []
 
+    // Ascending by y value, entities without a value last
     candidates.sort((a, b) => {
         const yValueForA = a.ySortValue
         const yValueForB = b.ySortValue
 
         if (yValueForA !== undefined && yValueForB !== undefined) {
-            const diff = yValueForB - yValueForA
+            const diff = yValueForA - yValueForB
             if (diff !== 0) return diff
-            else return b.entityName.localeCompare(a.entityName)
+            else return a.entityName.localeCompare(b.entityName)
         } else if (yValueForA === undefined && yValueForB !== undefined)
-            return -1
-        else if (yValueForA !== undefined && yValueForB === undefined) return 1
-        // (yValueForA === undefined && yValueForB === undefined)
+            return 1
+        else if (yValueForA !== undefined && yValueForB === undefined) return -1
         else return 0
     })
-
-    const isDescending = sortOrder === SortOrder.desc
-    if (isDescending) candidates.reverse()
 
     const picked = new Set<EntityName>(
         candidates
@@ -237,12 +232,7 @@ export function pickMarimekkoLabelCandidates({
         picked.add(R.first(withValues)!.entityName)
         picked.add(R.last(withValues)!.entityName)
     }
-    if (withoutValues.length)
-        picked.add(
-            isDescending
-                ? R.first(withoutValues)!.entityName
-                : R.last(withoutValues)!.entityName
-        )
+    if (withoutValues.length) picked.add(R.first(withoutValues)!.entityName)
 
     const labelHeight = candidates[0].bounds.height
     const numLabelsToAdd = Math.floor(

@@ -1,6 +1,6 @@
 import { ChartManager } from "../chart/ChartManager"
 
-import { Color, SortBy, Time, Bounds, EntityName } from "@ourworldindata/utils"
+import { Color, Time, Bounds, EntityName } from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"
 import { ChartSeries } from "../chart/ChartInterface"
 import { InteractionState } from "../interaction/InteractionState.js"
@@ -121,10 +121,3 @@ export interface MarimekkoLabelMeasurements {
     rotatedMaxWidth: number
     rotatedMaxHeight: number
 }
-
-export const MARIMEKKO_SORT_KEYS = [
-    SortBy.custom,
-    SortBy.entityName,
-    SortBy.total,
-] as const
-export type MarimekkoSortKey = (typeof MARIMEKKO_SORT_KEYS)[number]

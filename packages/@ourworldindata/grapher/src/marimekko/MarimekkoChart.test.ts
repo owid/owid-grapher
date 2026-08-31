@@ -12,14 +12,9 @@ import { GrapherState } from "../core/GrapherState"
 import {
     GRAPHER_CHART_TYPES,
     GRAPHER_TAB_CONFIG_OPTIONS,
-    SortBy,
-    SortOrder,
 } from "@ourworldindata/types"
 import { MarimekkoChart } from "./MarimekkoChart"
-import {
-    MarimekkoChartManager,
-    MarimekkoSeries,
-} from "./MarimekkoChartConstants"
+import { MarimekkoChartManager } from "./MarimekkoChartConstants"
 import { MarimekkoChartState } from "./MarimekkoChartState"
 import { InteractionState } from "../interaction/InteractionState.js"
 
@@ -160,7 +155,7 @@ it("can display a Marimekko chart correctly", () => {
     expect(xPositions[2]).toBeCloseTo(xAxisRange * 0.9, 0)
 })
 
-it("can do sorting", () => {
+it("sorts entities by y value, largest first", () => {
     const csv = `year,entityName,population,percentBelow2USD
 2001,AA,4000,4
 2001,BB,5000,8
@@ -171,143 +166,21 @@ it("can do sorting", () => {
         { slug: "year", type: ColumnTypeNames.Year },
     ])
 
-    const manager: MarimekkoChartManager = {
-        table,
-        yColumnSlugs: ["percentBelow2USD"],
-        xColumnSlug: "population",
-        endTime: 2001,
-        showNoDataArea: false,
-    }
-    let chartState = new MarimekkoChartState({
+    const chartState = new MarimekkoChartState({
         manager: {
-            ...manager,
-            sortConfig: {
-                sortBy: SortBy.total,
-                sortOrder: SortOrder.asc,
-            },
+            table,
+            yColumnSlugs: ["percentBelow2USD"],
+            xColumnSlug: "population",
+            endTime: 2001,
+            showNoDataArea: false,
         },
     })
 
     expect(chartState.errorInfo.reason).toEqual("")
-    expect(chartState.series.length).toEqual(3)
-
-    const expectedXPoints = [
-        { value: 4000, time: 2001 },
-        { value: 5000, time: 2001 },
-        { value: 1000, time: 2001 },
-    ]
-    expect(chartState.series).toEqual([
-        {
-            seriesName: "AA",
-            entityName: "AA",
-            shortEntityName: undefined,
-            yPoint: { value: 4, time: 2001 },
-            xPoint: expectedXPoints[0],
-            color: DefaultColorScheme.colorSets[0][0],
-            entityColor: undefined,
-            focus: new InteractionState(),
-        },
-        {
-            seriesName: "BB",
-            entityName: "BB",
-            shortEntityName: undefined,
-            yPoint: { value: 8, time: 2001 },
-            xPoint: expectedXPoints[1],
-            color: DefaultColorScheme.colorSets[0][0],
-            entityColor: undefined,
-            focus: new InteractionState(),
-        },
-        {
-            seriesName: "CC",
-            entityName: "CC",
-            shortEntityName: undefined,
-            yPoint: { value: 3, time: 2001 },
-            xPoint: expectedXPoints[2],
-            color: DefaultColorScheme.colorSets[0][0],
-            entityColor: undefined,
-            focus: new InteractionState(),
-        },
-    ])
-    expect(chartState.series.map((series) => series.xPoint)).toEqual(
-        expectedXPoints
-    )
-
-    const series = new Map<string, MarimekkoSeries>([
-        [
-            "big",
-            {
-                seriesName: "BB",
-                entityName: "BB",
-                shortEntityName: undefined,
-                yPoint: { value: 8, time: 2001 },
-                xPoint: expectedXPoints[1],
-                color: DefaultColorScheme.colorSets[0][0],
-                entityColor: undefined,
-                focus: new InteractionState(),
-            },
-        ],
-        [
-            "medium",
-            {
-                seriesName: "AA",
-                entityName: "AA",
-                shortEntityName: undefined,
-                yPoint: { value: 4, time: 2001 },
-                xPoint: expectedXPoints[0],
-                color: DefaultColorScheme.colorSets[0][0],
-                entityColor: undefined,
-                focus: new InteractionState(),
-            },
-        ],
-        [
-            "small",
-            {
-                seriesName: "CC",
-                entityName: "CC",
-                shortEntityName: undefined,
-                yPoint: { value: 3, time: 2001 },
-                xPoint: expectedXPoints[2],
-                color: DefaultColorScheme.colorSets[0][0],
-                entityColor: undefined,
-                focus: new InteractionState(),
-            },
-        ],
-    ])
-    expect(chartState.sortedSeries).toEqual([
-        series.get("small"),
-        series.get("medium"),
-        series.get("big"),
-    ])
-
-    chartState = new MarimekkoChartState({
-        manager: {
-            ...manager,
-            sortConfig: {
-                sortBy: SortBy.column,
-                sortColumnSlug: "percentBelow2USD",
-                sortOrder: SortOrder.asc,
-            },
-        },
-    })
-    expect(chartState.sortedSeries).toEqual([
-        series.get("small"),
-        series.get("medium"),
-        series.get("big"),
-    ])
-
-    chartState = new MarimekkoChartState({
-        manager: {
-            ...manager,
-            sortConfig: {
-                sortBy: SortBy.entityName,
-                sortOrder: SortOrder.asc,
-            },
-        },
-    })
-    expect(chartState.sortedSeries).toEqual([
-        series.get("medium"),
-        series.get("big"),
-        series.get("small"),
+    expect(chartState.sortedSeries.map((series) => series.entityName)).toEqual([
+        "BB",
+        "AA",
+        "CC",
     ])
 })
 
