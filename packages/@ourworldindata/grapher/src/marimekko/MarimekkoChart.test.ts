@@ -327,16 +327,13 @@ it("can filter years correctly", () => {
         { slug: "year", type: ColumnTypeNames.Year },
     ])
 
-    // TODO: why is it ySlugs and xSlug here instead of yColumnSlugs and xColumnSlug? Unify when we have config migrations?
-    const manager = {
+    const grapher = new GrapherState({
         chartTypes: [GRAPHER_CHART_TYPES.Marimekko],
         table,
-        selection: table.availableEntityNames,
         ySlugs: "percentBelow2USD",
         xSlug: "population",
-        endTime: 2001,
-    }
-    const grapher = new GrapherState(manager)
+        maxTime: 2001,
+    })
     const chartState = new MarimekkoChartState({ manager: grapher })
     const chart = new MarimekkoChart({
         chartState,
@@ -415,16 +412,13 @@ it("shows no data points at the end", () => {
         { slug: "year", type: ColumnTypeNames.Year },
     ])
 
-    // TODO: why is it ySlugs and xSlug here instead of yColumnSlugs and xColumnSlug? Unify when we have config migrations?
-    const manager = {
+    const grapher = new GrapherState({
         chartTypes: [GRAPHER_CHART_TYPES.Marimekko],
         table,
-        selection: table.availableEntityNames,
         ySlugs: "percentBelow2USD",
         xSlug: "population",
-        endTime: 2001,
-    }
-    const grapher = new GrapherState(manager)
+        maxTime: 2001,
+    })
     const chartState = new MarimekkoChartState({ manager: grapher })
     const chart = new MarimekkoChart({
         chartState,
@@ -507,16 +501,13 @@ test("interpolation works as expected", () => {
         { slug: "year", type: ColumnTypeNames.Year },
     ])
 
-    // TODO: why is it ySlugs and xSlug here instead of yColumnSlugs and xColumnSlug? Unify when we have config migrations?
-    const manager = {
+    const grapher = new GrapherState({
         chartTypes: [GRAPHER_CHART_TYPES.Marimekko],
         table,
-        selection: table.availableEntityNames,
         ySlugs: "percentBelow2USD",
         xSlug: "population",
-        endTime: 2001,
-    }
-    const grapher = new GrapherState(manager)
+        maxTime: 2001,
+    })
     const chartState = new MarimekkoChartState({ manager: grapher })
     const chart = new MarimekkoChart({
         chartState,
@@ -595,16 +586,13 @@ it("can deal with a y column with missing values", () => {
         { slug: "year", type: ColumnTypeNames.Year },
     ])
 
-    // TODO: why is it ySlugs and xSlug here instead of yColumnSlugs and xColumnSlug? Unify when we have config migrations?
-    const manager = {
+    const grapher = new GrapherState({
         chartTypes: [GRAPHER_CHART_TYPES.Marimekko],
         table,
-        selection: table.availableEntityNames,
         ySlugs: "percentBelow10USD",
         xSlug: "population",
-        endTime: 2001,
-    }
-    const grapher = new GrapherState(manager)
+        maxTime: 2001,
+    })
     const chartState = new MarimekkoChartState({ manager: grapher })
     const chart = new MarimekkoChart({
         chartState,
@@ -694,16 +682,14 @@ it("does not extend time range based on color column data", () => {
         { slug: "year", type: ColumnTypeNames.Year },
     ])
 
-    const manager = {
+    const grapher = new GrapherState({
         chartTypes: [GRAPHER_CHART_TYPES.Marimekko],
         table,
-        selection: table.availableEntityNames,
         ySlugs: "maternalMortality",
-        categoricalColorColumnSlug: "region",
-        endTime: 2023,
+        colorSlug: "region",
+        maxTime: 2023,
         showNoDataArea: false,
-    }
-    const grapher = new GrapherState(manager)
+    })
     const chartState = new MarimekkoChartState({ manager: grapher })
 
     // The transformed table should not include years 2021-2023,

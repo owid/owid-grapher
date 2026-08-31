@@ -416,10 +416,7 @@ export class MarimekkoChart
                 ? yColumn.formatTime(yPoint.time)
                 : undefined
 
-        // TODO: when we have proper time support to work across date/year variables then
-        // this should be set properly and the x axis time be passed in on it's own.
-        // For now we disable x axis notices when the xOverrideTime is set which is
-        // usually the case when matching day and year variables
+        // The x axis label already states an overridden x time
         const shouldShowXTimeNotice =
             xPoint && xPoint.time !== endTime && xOverrideTime === undefined
         const xOriginalTime = shouldShowXTimeNotice ? xPoint?.time : undefined
