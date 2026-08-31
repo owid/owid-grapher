@@ -15,6 +15,7 @@ import {
     GRAPHER_TAB_QUERY_PARAMS,
     TimeInterval,
     StackMode,
+    FacetStrategy,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -3100,5 +3101,108 @@ describe("adjustStateForTab", () => {
                 authoredSelection
             )
         })
+    })
+})
+
+describe("relative mode with an unavailable facet strategy (issue #4874)", () => {
+    const makeStackedDiscreteBarGrapher = (): GrapherState => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 4, timeRange: [2000, 2010] },
+            1
+        )
+        return new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.StackedDiscreteBar],
+            hideRelativeToggle: false,
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+                {
+                    slug: SampleColumnSlugs.Population,
+                    property: DimensionProperty.y,
+                    variableId: 2,
+                },
+            ],
+        })
+    }
+
+    it("keeps relative mode when facet=entity isn't offered by the chart", () => {
+        const grapher = makeStackedDiscreteBarGrapher()
+        grapher.selectedFacetStrategy = FacetStrategy.entity
+        grapher.stackMode = StackMode.relative
+
+        expect(grapher.availableFacetStrategies).not.toContain(
+            FacetStrategy.entity
+        )
+        expect(grapher.facetStrategy).toEqual(FacetStrategy.none)
+        expect(grapher.canToggleRelativeMode).toBe(true)
+        expect(grapher.isRelativeMode).toBe(true)
+    })
+
+    it("drops relative mode when facet=metric is offered and picked", () => {
+        const grapher = makeStackedDiscreteBarGrapher()
+        grapher.selectedFacetStrategy = FacetStrategy.metric
+        grapher.stackMode = StackMode.relative
+
+        expect(grapher.availableFacetStrategies).toContain(FacetStrategy.metric)
+        expect(grapher.facetStrategy).toEqual(FacetStrategy.metric)
+        expect(grapher.canToggleRelativeMode).toBe(false)
+        expect(grapher.isRelativeMode).toBe(false)
+    })
+
+    it("resolves the relative toggle on a stacked area chart without a MobX cycle", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 4, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.StackedArea],
+            hideRelativeToggle: false,
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+            ],
+        })
+        grapher.selectedFacetStrategy = FacetStrategy.metric
+        grapher.stackMode = StackMode.relative
+
+        expect(grapher.availableFacetStrategies).not.toContain(
+            FacetStrategy.metric
+        )
+        expect(grapher.canToggleRelativeMode).toBe(true)
+        expect(grapher.isRelativeMode).toBe(true)
+    })
+
+    it("resolves the relative toggle on a line chart without a MobX cycle", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 4, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+            hideRelativeToggle: false,
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+            ],
+        })
+        grapher.stackMode = StackMode.relative
+
+        expect(grapher.canToggleRelativeMode).toBe(true)
+        expect(grapher.isRelativeMode).toBe(true)
     })
 })
