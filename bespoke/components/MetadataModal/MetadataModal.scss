@@ -1,0 +1,111 @@
+.metadata-modal {
+    --modal-padding: 16px;
+
+    position: absolute;
+    inset: 0;
+    z-index: $zindex-modal;
+    background-color: $overlay-scrim;
+    opacity: 1;
+    transition: opacity var(--duration-popover) var(--ease-out);
+
+    .metadata-modal__panel {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        width: calc(100% - 2 * var(--modal-padding));
+        max-width: 640px;
+        max-height: calc(100% - 2 * var(--modal-padding));
+        background: white;
+        border-radius: 4px;
+        box-shadow: 0 4px 30px 0 rgba(0, 0, 0, 0.15);
+        transition: transform var(--duration-popover) var(--ease-out);
+    }
+
+    .metadata-modal__dialog {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        outline: none;
+    }
+
+    .metadata-modal__body {
+        overflow-y: auto;
+        padding: 0 var(--modal-padding) var(--modal-padding);
+    }
+
+    .bespoke-metadata-heading__title-variant {
+        color: $light-text;
+    }
+
+    .metadata-modal__prose {
+        margin-top: 16px;
+
+        p,
+        ul,
+        ol {
+            @include body-2-regular;
+            margin: 0 0 8px;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            @include body-2-bold-tight;
+            margin: 0 0 8px;
+
+            &:not(:first-child) {
+                margin-top: 16px;
+            }
+        }
+
+        p:last-child,
+        ul:last-child,
+        ol:last-child {
+            margin-bottom: 0;
+        }
+
+        ul,
+        ol {
+            padding-left: 1.5em;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        a {
+            @include owid-link-90;
+        }
+    }
+
+    &[data-entering],
+    &[data-exiting] {
+        opacity: 0;
+
+        .metadata-modal__panel {
+            transform: translate(-50%, -50%) scale(0.97);
+        }
+    }
+
+    // Drop the panel's scale only. The overlay's opacity transition is what
+    // React Aria waits on before unmounting, so it must survive.
+    @media (prefers-reduced-motion: reduce) {
+        .metadata-modal__panel {
+            transition: none;
+        }
+
+        &[data-entering],
+        &[data-exiting] {
+            .metadata-modal__panel {
+                transform: translate(-50%, -50%);
+            }
+        }
+    }
+}
