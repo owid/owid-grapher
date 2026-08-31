@@ -1,6 +1,4 @@
 import {
-    ANNOUNCEMENT_LATEST_TYPES,
-    AnnouncementLatestType,
     LATEST_PATH,
     LATEST_TYPE_LABELS,
     LATEST_TYPE_VALUES,
@@ -11,7 +9,10 @@ import {
     OwidEnrichedGdocBlock,
     PageChronologicalRecord,
 } from "@ourworldindata/types"
-import { OwidGdocType, slugify } from "@ourworldindata/utils"
+import {
+    deriveAnnouncementLatestType,
+    OwidGdocType,
+} from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
 /** Build the /latest page path, optionally pre-filtered by type. */
@@ -25,23 +26,6 @@ export function decodeLatestType(param: string | null): LatestType | null {
     return (LATEST_TYPE_VALUES as readonly string[]).includes(param)
         ? (param as LatestType)
         : null
-}
-
-/**
- * Resolve an Announcement's LatestType from its kicker. Slugifies so
- * case/spacing variants ("Data Update", "Data update") still map to the
- * canonical slug. Anything else — missing, blank, or unrecognized — falls
- * back to "announcement". The save-side validator
- * (GdocAnnouncement._validateSubclass) only accepts the canonical slugs,
- * so any edit forces legacy values into shape.
- */
-export function deriveAnnouncementLatestType(
-    kicker?: string
-): AnnouncementLatestType {
-    const slug = slugify(kicker ?? "")
-    return (ANNOUNCEMENT_LATEST_TYPES as readonly string[]).includes(slug)
-        ? (slug as AnnouncementLatestType)
-        : "announcement"
 }
 
 /**

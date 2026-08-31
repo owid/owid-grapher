@@ -31,6 +31,8 @@ import {
 } from "../baker/siteRenderers.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import {
+    AnnouncementLatestType,
+    deriveAnnouncementLatestType,
     LinkedAuthor,
     LinkedChart,
     LinkedIndicator,
@@ -61,6 +63,7 @@ import { getAllImages } from "../db/model/Image.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import { mapSlugsToConfigs } from "../db/model/Chart.js"
+import { GdocAnnouncement } from "../db/model/Gdoc/GdocAnnouncement.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import {
     GdocProfile,
@@ -73,6 +76,7 @@ import {
 import {
     gdocFromJSON,
     getMinimalGdocBaseObjects,
+    getLatestAnnouncements,
     getLatestDataInsights,
     getAndLoadGdocBySlug,
 } from "../db/model/Gdoc/GdocFactory.js"
@@ -751,6 +755,13 @@ export class SiteBaker {
                 }
             })
 
+        // Announcement pages carry a carousel of the latest announcements of
+        // their own kind
+        const latestAnnouncementsByType = new Map<
+            AnnouncementLatestType,
+            Awaited<ReturnType<typeof getLatestAnnouncements>>
+        >()
+
         if (gdocsToBake.length > 0)
             await this.getPrefetchedGdocAttachments(knex)
 
@@ -785,6 +796,30 @@ export class SiteBaker {
                         attachments.linkedNarrativeCharts
                     publishedGdoc.linkedStaticViz = attachments.linkedStaticViz
                     await publishedGdoc.loadAndClearLinkedCallouts(knex)
+
+                    if (publishedGdoc instanceof GdocAnnouncement) {
+                        const latestType = deriveAnnouncementLatestType(
+                            publishedGdoc.content.kicker
+                        )
+                        let latestOfType =
+                            latestAnnouncementsByType.get(latestType)
+                        if (!latestOfType) {
+                            latestOfType = await getLatestAnnouncements(
+                                knex,
+                                latestType
+                            )
+                            latestAnnouncementsByType.set(
+                                latestType,
+                                latestOfType
+                            )
+                        }
+                        publishedGdoc.latestAnnouncements =
+                            latestOfType.announcements
+                        publishedGdoc.imageMetadata = {
+                            ...publishedGdoc.imageMetadata,
+                            ...latestOfType.imageMetadata,
+                        }
+                    }
 
                     if (
                         !publishedGdoc.manualBreadcrumbs?.length &&
