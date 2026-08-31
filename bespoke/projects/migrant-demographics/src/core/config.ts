@@ -14,7 +14,6 @@ export interface PyramidVariantConfig {
     year?: number
     show?: ShowMode
     compare: boolean
-    urlSync: boolean
 }
 
 export function parseConfig(raw: Record<string, string>): PyramidVariantConfig {
@@ -26,6 +25,5 @@ export function parseConfig(raw: Record<string, string>): PyramidVariantConfig {
         year: parseNumber(raw.year),
         show: parseEnum(raw.show, SHOW_MODES),
         compare: parseBoolean(raw.compare),
-        urlSync: parseBoolean(raw.urlSync),
     }
 }

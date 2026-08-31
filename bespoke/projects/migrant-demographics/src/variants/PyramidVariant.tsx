@@ -14,6 +14,7 @@ import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
+import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import {
     isUserLocationCountry,
@@ -46,21 +47,23 @@ export function PyramidVariant({
     const isNarrow = width > 0 && width < NARROW_BREAKPOINT
 
     return (
-        <NuqsAdapter>
-            <QueryClientProvider client={queryClient}>
-                <div
-                    ref={ref}
-                    className={cx("migrant-pyramid", {
-                        "migrant-pyramid--narrow": isNarrow,
-                    })}
-                >
-                    <FetchingPyramidVariant
-                        config={config}
-                        isNarrow={isNarrow}
-                    />
-                </div>
-            </QueryClientProvider>
-        </NuqsAdapter>
+        <EmbedConfigProvider config={config}>
+            <NuqsAdapter>
+                <QueryClientProvider client={queryClient}>
+                    <div
+                        ref={ref}
+                        className={cx("migrant-pyramid", {
+                            "migrant-pyramid--narrow": isNarrow,
+                        })}
+                    >
+                        <FetchingPyramidVariant
+                            config={config}
+                            isNarrow={isNarrow}
+                        />
+                    </div>
+                </QueryClientProvider>
+            </NuqsAdapter>
+        </EmbedConfigProvider>
     )
 }
 
@@ -71,8 +74,6 @@ function FetchingPyramidVariant({
     config: PyramidVariantConfig
     isNarrow: boolean
 }): React.ReactElement {
-    const urlSync = config.urlSync
-
     const initialCountry =
         !config.country || isUserLocationCountry(config.country)
             ? DEFAULT_COUNTRY
@@ -82,25 +83,21 @@ function FetchingPyramidVariant({
         key: "migrantPyramidCountry",
         parser: parseAsString,
         defaultValue: initialCountry,
-        enabled: urlSync,
     })
     const [year, setYear] = useUrlState({
         key: "migrantPyramidYear",
         parser: parseAsInteger,
         defaultValue: config.year ?? 0, // 0 = latest available year
-        enabled: urlSync,
     })
     const [show, setShow] = useUrlState({
         key: "migrantPyramidShow",
         parser: parseAsStringEnum<ShowMode>(["number", "share"]),
         defaultValue: config.show ?? "number",
-        enabled: urlSync,
     })
     const [compare, setCompare] = useUrlState({
         key: "migrantPyramidCompare",
         parser: parseAsBoolean,
         defaultValue: config.compare,
-        enabled: urlSync,
     })
 
     const { data, status } = useMigrantDemographics()
@@ -112,7 +109,6 @@ function FetchingPyramidVariant({
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
         availableCountryNames,
-        urlSync,
         urlStateKey: "migrantPyramidCountry",
         setCountry,
     })
