@@ -37,8 +37,11 @@ export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
     const { bespokeMetadata } = useContext(AttachmentsContext)
 
     const { before, hero, after } = useMemo(
-        () => splitFeaturedVizBody(content.body),
-        [content.body]
+        () =>
+            splitFeaturedVizBody(content.body, {
+                hasMetadataBox: !!bespokeMetadata,
+            }),
+        [content.body, bespokeMetadata]
     )
 
     const canonicalUrl = getCanonicalUrl(BAKED_BASE_URL, {
@@ -162,7 +165,8 @@ interface FeaturedVizBodySplit {
  * block on its own full-bleed band
  */
 function splitFeaturedVizBody(
-    body: OwidEnrichedGdocBlock[] = []
+    body: OwidEnrichedGdocBlock[] = [],
+    { hasMetadataBox }: { hasMetadataBox: boolean }
 ): FeaturedVizBodySplit {
     // Find the first bespoke-component block at the top level
     const heroIndex = body.findIndex(
@@ -174,8 +178,14 @@ function splitFeaturedVizBody(
 
     return {
         before: body.slice(0, heroIndex),
-        // The page URL tracks the featured viz, ignoring the authored config
-        hero: { ...hero, config: { ...hero.config, urlSync: "true" } },
+        hero: {
+            ...hero,
+            config: {
+                ...hero.config,
+                urlSync: "true",
+                ...(hasMetadataBox && { hideMetadataModal: "true" }),
+            },
+        },
         after: body.slice(heroIndex + 1),
     }
 }

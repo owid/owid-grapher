@@ -10,6 +10,7 @@ import {
 import { BespokeMetadataWithProvenance } from "@ourworldindata/types"
 
 interface BespokeMetadataContextValue {
+    /** Absent where the viz offers no modal, not only where the manifest carries none */
     metadata: BespokeMetadataWithProvenance | undefined
     isModalOpen: boolean
     openModal: () => void
@@ -23,9 +24,11 @@ const BespokeMetadataContext = createContext<
 
 export function BespokeMetadataProvider({
     metadata,
+    isModalEnabled = true,
     children,
 }: {
     metadata: BespokeMetadataWithProvenance | undefined
+    isModalEnabled?: boolean
     children: React.ReactNode
 }): React.ReactElement {
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -35,8 +38,14 @@ export function BespokeMetadataProvider({
     const closeModal = useCallback(() => setIsModalOpen(false), [])
 
     const value = useMemo(
-        () => ({ metadata, isModalOpen, openModal, closeModal, frameRef }),
-        [metadata, isModalOpen, openModal, closeModal]
+        () => ({
+            metadata: isModalEnabled ? metadata : undefined,
+            isModalOpen,
+            openModal,
+            closeModal,
+            frameRef,
+        }),
+        [metadata, isModalEnabled, isModalOpen, openModal, closeModal]
     )
 
     return (
