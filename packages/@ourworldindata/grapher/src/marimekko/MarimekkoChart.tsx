@@ -2,6 +2,7 @@ import React from "react"
 import * as R from "remeda"
 import {
     Bounds,
+    Color,
     excludeUndefined,
     HorizontalAlign,
     Position,
@@ -279,18 +280,13 @@ export class MarimekkoChart
     private readonly resolveLegendBinEmphasis = (
         bin: ColorScaleBin
     ): Emphasis => {
-        const { hoveredColorBin } = this
-
-        // If nothing is focused, all items are active
-        if (!hoveredColorBin && this.hoverColors.length === 0)
-            return Emphasis.Default
+        if (!this.activeColors && !this.hoverColors) return Emphasis.Default
 
         const isHovered = this.hoverColors?.includes(bin.color)
         if (isHovered) return Emphasis.Highlighted
 
-        // Check if this bin matches the focused color bin
-        const isFocused = hoveredColorBin && bin.equals(hoveredColorBin)
-        return isFocused ? Emphasis.Highlighted : Emphasis.Muted
+        const isActive = this.activeColors?.includes(bin.color)
+        return isActive ? Emphasis.Highlighted : Emphasis.Muted
     }
 
     @computed private get categoricalLegendEmphasis(): BinEmphasis {
@@ -302,23 +298,21 @@ export class MarimekkoChart
 
     legendStyleConfig: LegendStyleConfig = LEGEND_STYLE_FOR_STACKED_CHARTS
 
-    @computed get hoverColors(): string[] {
+    @computed private get hoverColors(): Color[] | undefined {
         if (this.hoveredColorBin) return [this.hoveredColorBin.color]
-        if (this.tooltipSeries?.entityColor)
-            return [this.tooltipSeries.entityColor.color]
-        const { selectionArray } = this.chartState
-        if (selectionArray.hasSelection) {
-            const selectedSeries = this.series.filter((series) =>
-                selectionArray.selectedSet.has(series.entityName)
+        const { entityColor } = this.tooltipSeries ?? {}
+        return entityColor ? [entityColor.color] : undefined
+    }
+
+    @computed private get activeColors(): Color[] | undefined {
+        const colors = R.unique(
+            excludeUndefined(
+                this.series
+                    .filter((series) => series.focus.active)
+                    .map((series) => series.entityColor?.color)
             )
-            const uniqueSelectedColors = new Set(
-                selectedSeries.map((series) => series.entityColor?.color)
-            )
-            return this.categoricalLegendData
-                .filter((bin) => uniqueSelectedColors.has(bin.color as any))
-                .map((bin) => bin.color)
-        }
-        return []
+        )
+        return colors.length > 0 ? colors : undefined
     }
 
     @computed private get showLegend(): boolean {
@@ -326,6 +320,7 @@ export class MarimekkoChart
     }
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
+        this.chartState.focusArray.clear()
         this.hoveredColorBin = bin
     }
 
@@ -345,6 +340,7 @@ export class MarimekkoChart
     }
 
     @action.bound private onEntityMouseOver(entityName: string): void {
+        this.chartState.focusArray.clear()
         this.tooltipState.target = { entityName }
     }
 
