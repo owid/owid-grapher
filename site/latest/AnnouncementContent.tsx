@@ -11,7 +11,7 @@ import { announcementContentTitleId } from "./latestUtils.js"
  * chrome — it is not a standalone component on its own. The two call sites
  * differ only in heading level (h1 vs h2) and whether <ExpandableText>
  * truncates with a Read more toggle (feed) or renders fully (standalone via
- * alwaysExpanded). The standalone version passes alwaysExpanded rather than
+ * isExpanded). The standalone version passes isExpanded rather than
  * bypassing <ExpandableText>, so the DOM and grid layout stay identical to
  * the feed and editors previewing an announcement see what readers will see
  * in the feed. */
@@ -24,7 +24,7 @@ export const AnnouncementContent = ({
     authors,
     body,
     isStandalone,
-    shouldAutoExpand,
+    isExpanded,
     selectedTopic,
     onReadMore,
 }: {
@@ -38,7 +38,7 @@ export const AnnouncementContent = ({
     /** When rendered as the standalone preview page: use h1, show full body
      * (no Read more truncation). */
     isStandalone?: boolean
-    shouldAutoExpand?: boolean
+    isExpanded?: boolean
     selectedTopic?: string
     onReadMore?: () => void
 }) => {
@@ -80,7 +80,7 @@ export const AnnouncementContent = ({
             <ExpandableText
                 blocks={body}
                 containerType="latest-announcement"
-                alwaysExpanded={shouldAutoExpand || isStandalone}
+                alwaysExpanded={isExpanded || isStandalone}
                 onReadMore={onReadMore}
             >
                 {authorByline}
