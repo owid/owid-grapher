@@ -1,4 +1,5 @@
 import { QueryStatus, useQuery } from "@tanstack/react-query"
+import { BespokeMetadata } from "@ourworldindata/types"
 import { DataJson, MetadataJson, DataRow } from "./CausesOfDeathConstants"
 import { fetchJson } from "@ourworldindata/utils"
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
@@ -6,6 +7,11 @@ import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 const BASE_URL = "https://owid-public.owid.io/data/gbd"
 const METADATA_PATH = BASE_URL + "/causes-of-death.metadata.json"
 const DATA_PATH = BASE_URL + "/causes-of-death.{entityId}.json"
+
+// Provenance the metadata file will eventually carry itself, kept in a
+// hand-written file next to it until the ETL writes those fields
+const BESPOKE_METADATA_PATH =
+    "https://owid-public.owid.io/sophia-test/causes-of-death.bespoke-metadata.test.json"
 
 const queryKeys = {
     metadata: () => ["causes-of-death", "metadata"],
@@ -19,7 +25,13 @@ export const useCausesOfDeathMetadata = (): {
 } => {
     const result = useQuery({
         queryKey: queryKeys.metadata(),
-        queryFn: () => fetchJson<MetadataJson>(METADATA_PATH),
+        queryFn: async (): Promise<MetadataJson> => {
+            const [metadata, bespokeMetadata] = await Promise.all([
+                fetchJson<MetadataJson>(METADATA_PATH),
+                fetchJson<BespokeMetadata>(BESPOKE_METADATA_PATH),
+            ])
+            return { ...metadata, ...bespokeMetadata }
+        },
     })
 
     const data = result.data
