@@ -581,7 +581,9 @@ export class MarimekkoChart
         const { selectedSeries, sortConfig, focusArray } = this.chartState
 
         return pickMarimekkoLabelCandidates({
-            series: this.series,
+            entityNamesWithBars: new Set(
+                this.series.map(({ entityName }) => entityName)
+            ),
             xColumnAtLastTimePoint,
             yColumnAtLastTimePoint,
             selectedEntityNames: new Set(

@@ -1,12 +1,6 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
-import {
-    Bounds,
-    Color,
-    EntityName,
-    excludeUndefined,
-    SortOrder,
-} from "@ourworldindata/utils"
+import { Bounds, Color, EntityName, SortOrder } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { DualAxis } from "../axis/Axis"
 import { ColorScaleBin } from "../color/ColorScaleBin"
@@ -155,13 +149,9 @@ const LABEL_SPACING = 5
 
 const MAX_LABEL_COUNT = 20
 
-/**
- * Picks the entities to label under the x axis. Candidates are taken from the latest
- * time point rather than the selected one, so the labels stay put as the user drags
- * the timeline.
- */
+/** Picks the entities to label under the x axis */
 export function pickMarimekkoLabelCandidates({
-    series,
+    entityNamesWithBars,
     xColumnAtLastTimePoint,
     yColumnAtLastTimePoint,
     selectedEntityNames,
@@ -170,7 +160,7 @@ export function pickMarimekkoLabelCandidates({
     availableWidth,
     fontSize,
 }: {
-    series: readonly MarimekkoSeries[]
+    entityNamesWithBars: Set<EntityName>
     xColumnAtLastTimePoint: CoreColumn | undefined
     yColumnAtLastTimePoint: CoreColumn | undefined
     selectedEntityNames: Set<EntityName>
@@ -204,6 +194,10 @@ export function pickMarimekkoLabelCandidates({
                 isSelected: selectedEntityNames.has(row.entityName),
             }
         })
+
+    candidates = candidates.filter((candidate) =>
+        entityNamesWithBars.has(candidate.entityName)
+    )
 
     // If focus mode is active, only label focused series
     if (focusArray.hasFocusedSeries)
@@ -264,11 +258,7 @@ export function pickMarimekkoLabelCandidates({
     )
 
     // Spread the rest evenly by labelling the widest bar of each chunk
-    const chunks = splitIntoEqualDomainSizeChunks(
-        series,
-        candidates,
-        numLabelsToAdd
-    )
+    const chunks = splitIntoEqualDomainSizeChunks(candidates, numLabelsToAdd)
     for (const chunk of chunks) {
         if (chunk.some((candidate) => picked.has(candidate.entityName)))
             continue
@@ -328,28 +318,21 @@ export function toPlacedMarimekkoLabels(
         x0: number
     }
 ): PlacedMarimekkoLabel[] {
-    const labels: PlacedMarimekkoLabel[] = excludeUndefined(
-        candidates.map((candidate) => {
-            const series = placedSeriesByEntityName.get(candidate.entityName)
-            if (!series) {
-                console.error("Could not find series", candidate.entityName)
-                return undefined
-            }
+    const labels: PlacedMarimekkoLabel[] = candidates.map((candidate) => {
+        // pickMarimekkoLabelCandidates keeps only entities that have a bar
+        const series = placedSeriesByEntityName.get(candidate.entityName)!
 
-            const centreX = series.barX + series.barWidth / 2
-            const domainColor = domainColorForEntityMap.get(
-                candidate.entityName
-            )
-            return {
-                entityName: candidate.entityName,
-                text: candidate.text,
-                color: domainColor?.color ?? fallbackColor,
-                isSelected: candidate.isSelected,
-                preferredX: centreX,
-                correctedX: centreX,
-            }
-        })
-    )
+        const centreX = series.barX + series.barWidth / 2
+        const domainColor = domainColorForEntityMap.get(candidate.entityName)
+        return {
+            entityName: candidate.entityName,
+            text: candidate.text,
+            color: domainColor?.color ?? fallbackColor,
+            isSelected: candidate.isSelected,
+            preferredX: centreX,
+            correctedX: centreX,
+        }
+    })
 
     // This collision detection code is optimized for the particular
     // case of distributing items in 1D, knowing that we picked a low
@@ -443,27 +426,16 @@ the same sum of x value metric. This is useful for picking labels because we wan
 20 labels relatively evenly spaced (in x domain space) and this function gives us 20 groups that
 are roughly of equal size and then we can pick the largest of each group */
 function splitIntoEqualDomainSizeChunks(
-    series: readonly MarimekkoSeries[],
     candidates: readonly MarimekkoLabelCandidate[],
     numChunks: number
 ): MarimekkoLabelCandidate[][] {
-    // candidates contains all entities available in the chart for some time
-    // series is just the entities for the currently selected time, so can be a way smaller subset
-    const validEntityNames = new Set(series.map(({ entityName }) => entityName))
-
-    // filter the list to remove any candidates that are not currently visible
-    // all further calculations are then done only with validCandidates
-    const validCandidates = candidates.filter((candidate) =>
-        validEntityNames.has(candidate.entityName)
-    )
-
     const chunks: MarimekkoLabelCandidate[][] = []
     let currentChunk: MarimekkoLabelCandidate[] = []
     let domainSizeOfChunk = 0
     const domainSizeThreshold = Math.ceil(
-        _.sumBy(validCandidates, (candidate) => candidate.xValue) / numChunks
+        _.sumBy(candidates, (candidate) => candidate.xValue) / numChunks
     )
-    for (const candidate of validCandidates) {
+    for (const candidate of candidates) {
         while (domainSizeOfChunk > domainSizeThreshold) {
             chunks.push(currentChunk)
             currentChunk = []
