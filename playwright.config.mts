@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test"
 import { defineBddConfig } from "playwright-bdd"
-import { BAKED_BASE_URL, ENV } from "./settings/clientSettings.ts"
+import { BAKED_BASE_URL, ENV } from "./settings/clientSettings.mts"
 
 const testDir = defineBddConfig({
     features: "features/**/*.feature",
