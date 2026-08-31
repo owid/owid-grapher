@@ -59,7 +59,6 @@ it("can display a Marimekko chart correctly", () => {
 
     const manager: MarimekkoChartManager = {
         table,
-        selection: table.availableEntityNames,
         yColumnSlugs: ["percentBelow2USD"],
         xColumnSlug: "population",
         endTime: 2001,
@@ -174,7 +173,6 @@ it("can do sorting", () => {
 
     const manager: MarimekkoChartManager = {
         table,
-        selection: table.availableEntityNames,
         yColumnSlugs: ["percentBelow2USD"],
         xColumnSlug: "population",
         endTime: 2001,
