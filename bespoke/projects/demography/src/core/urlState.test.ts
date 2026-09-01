@@ -6,6 +6,7 @@ import {
     DEMOGRAPHY_FERTILITY_PARAM,
     DEMOGRAPHY_LIFE_EXPECTANCY_PARAM,
     DEMOGRAPHY_NET_MIGRATION_PARAM,
+    DEMOGRAPHY_RETIREMENT_AGE_PARAM,
     DEMOGRAPHY_TAB_PARAM,
     DEMOGRAPHY_YEAR_PARAM,
     parseSimulationUrlState,
@@ -44,9 +45,17 @@ describe(parseSimulationUrlState, () => {
             fertilityRateAssumptions: { 2030: 1.2, 2050: 1.4, 2100: 1.7 },
             lifeExpectancyAssumptions: { 2030: 84, 2050: 88, 2100: 92 },
             netMigrationRateAssumptions: { 2030: -1, 2050: 0, 2100: 1 },
+            retirementAgeAssumptions: undefined,
             tab: undefined,
             year: undefined,
         })
+    })
+
+    it("parses retirement age assumptions", () => {
+        expect(
+            parseSimulationUrlState("?demographyRetirementAge=65,67,70")
+                .retirementAgeAssumptions
+        ).toEqual({ 2030: 65, 2050: 67, 2100: 70 })
     })
 
     it("accepts legacy URLs that use the country name", () => {
@@ -188,6 +197,28 @@ describe(simulationStateToQueryParams, () => {
                 baselineTab: "fertilityRate",
             })
         ).toEqual({ [DEMOGRAPHY_TAB_PARAM]: "lifeExpectancy" })
+    })
+
+    it("serializes retirement age points that differ from the baseline", () => {
+        expect(
+            simulationStateToQueryParams({
+                ...baseWriteState,
+                baselineEntityName: "Japan",
+                retirementAgePoints: { 2030: 65, 2050: 67, 2100: 70 },
+                baselineRetirementAgePoints: { 2030: 65, 2050: 65, 2100: 65 },
+            })
+        ).toEqual({ [DEMOGRAPHY_RETIREMENT_AGE_PARAM]: ",67,70" })
+    })
+
+    it("omits retirement age points that match the baseline", () => {
+        expect(
+            simulationStateToQueryParams({
+                ...baseWriteState,
+                baselineEntityName: "Japan",
+                retirementAgePoints: { 2030: 65, 2050: 65, 2100: 65 },
+                baselineRetirementAgePoints: { 2030: 65, 2050: 65, 2100: 65 },
+            })
+        ).toEqual({})
     })
 
     it("serializes year when it differs from the baseline", () => {
