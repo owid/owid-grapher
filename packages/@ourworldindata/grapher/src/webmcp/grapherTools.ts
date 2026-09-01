@@ -338,7 +338,14 @@ export function buildGrapherTools(grapherState: GrapherState): WebMcpTool[] {
                 "chart's source, units, or revision.",
             inputSchema: { type: "object", properties: {} },
             execute: async () => {
-                const table = grapherState.tableForDownload
+                // filteredTableForDownload, not tableForDownload: the latter is
+                // every entity on the chart. Driving this on
+                // /grapher/electricity-mix with four countries selected
+                // returned 7,612 rows, and the 400-row cap then cut it off in
+                // the As — so the answer to "what is Czechia's share" was 400
+                // rows of ASEAN and Afghanistan, under a description promising
+                // the entities currently shown.
+                const table = grapherState.filteredTableForDownload
                 if (!table || table.numRows === 0)
                     return toolResult(
                         "No data is loaded for this chart yet. Wait a moment and try again."

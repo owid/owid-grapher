@@ -190,6 +190,23 @@ describe("grapher WebMCP tools", () => {
             const rows = result.split("\n").length
             expect(rows).toBeLessThan(500)
         })
+
+        it("returns the selected entities, not every entity on the chart", async () => {
+            // Found by driving the deployed preview: this read
+            // `tableForDownload`, which is the whole chart. On
+            // /grapher/electricity-mix with four countries selected it returned
+            // 7,612 rows, and the 400-row cap sliced off everything after the
+            // As — so none of the selected countries appeared at all, under a
+            // description promising "the entities currently shown".
+            const all = grapherState.availableEntityNames
+            const [kept, dropped] = [all[0], all[all.length - 1]]
+            expect(kept).not.toBe(dropped)
+            await call("select_entities", { entities: [kept] })
+
+            const result = await call("get_chart_data")
+            expect(result).toContain(kept)
+            expect(result).not.toContain(dropped)
+        })
     })
 
     describe("get_chart_metadata", () => {
