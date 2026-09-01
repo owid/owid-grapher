@@ -52,12 +52,15 @@ export function Modal({
             >
                 <AriaModal
                     className={cx(
-                        "modal-content",
-                        `modal-content--${alignVertical}`
+                        "modal-panel",
+                        `modal-panel--${alignVertical}`
                     )}
                     style={contentStyle}
                 >
-                    <Dialog className="modal-dialog" aria-label={ariaLabel}>
+                    <Dialog
+                        className="modal-panel-dialog"
+                        aria-label={ariaLabel}
+                    >
                         {/* Restore the default portal container for nested
                             overlays such as dropdowns. */}
                         <UNSAFE_PortalProvider getContainer={null}>
