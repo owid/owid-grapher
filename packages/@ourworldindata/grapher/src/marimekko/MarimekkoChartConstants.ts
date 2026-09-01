@@ -4,7 +4,12 @@ import { Color, Time, Bounds, EntityName } from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"
 import { ChartSeries } from "../chart/ChartInterface"
 import { InteractionState } from "../interaction/InteractionState.js"
-import { Emphasis, OPACITY_BY_EMPHASIS } from "../interaction/Emphasis.js"
+import { Emphasis } from "../interaction/Emphasis.js"
+import {
+    GRAPHER_AREA_OPACITY_DEFAULT,
+    GRAPHER_AREA_OPACITY_HIGHLIGHTED,
+    GRAPHER_AREA_OPACITY_MUTED,
+} from "../core/GrapherConstants.js"
 
 export interface MarimekkoChartManager extends ChartManager {
     xOverrideTime?: number
@@ -55,7 +60,7 @@ export interface MarimekkoBarStyle {
 }
 
 const DEFAULT_MARIMEKKO_BAR_STYLE: MarimekkoBarStyle = {
-    fillOpacity: OPACITY_BY_EMPHASIS[Emphasis.Default],
+    fillOpacity: GRAPHER_AREA_OPACITY_DEFAULT,
     strokeOpacity: 1,
     strokeWidth: 0.5,
 }
@@ -64,12 +69,12 @@ export const MARIMEKKO_BAR_STYLE: Record<Emphasis, MarimekkoBarStyle> = {
     [Emphasis.Default]: DEFAULT_MARIMEKKO_BAR_STYLE,
     [Emphasis.Elevated]: DEFAULT_MARIMEKKO_BAR_STYLE,
     [Emphasis.Highlighted]: {
-        fillOpacity: OPACITY_BY_EMPHASIS[Emphasis.Highlighted],
+        fillOpacity: GRAPHER_AREA_OPACITY_HIGHLIGHTED,
         strokeOpacity: 1,
         strokeWidth: 1,
     },
     [Emphasis.Muted]: {
-        fillOpacity: OPACITY_BY_EMPHASIS[Emphasis.Muted],
+        fillOpacity: GRAPHER_AREA_OPACITY_MUTED,
         strokeOpacity: 0.2,
         strokeWidth: 0.5,
     },
