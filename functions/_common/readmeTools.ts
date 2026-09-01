@@ -14,42 +14,44 @@ import {
     stripDetailOnDemandLinks,
 } from "@ourworldindata/utils"
 import type { CoreColumn } from "@ourworldindata/core-table"
+import type { DisplaySource } from "@ourworldindata/types"
 import { GrapherState } from "@ourworldindata/grapher"
 import { getGrapherFilters } from "./urlTools.js"
 
 const markdownNewlineEnding = "  "
 
+/**
+ * The readme used to print both the short in-line citation and a full one spelling
+ * out every origin. The full one repeats producer names that the document's Sources
+ * section now gives in far more detail, and on a multi-indicator download it was a
+ * fifth of the file, so only the short one is left. Nothing is lost: metadata.json
+ * still carries `citationLong` for every column, and each source's own requested
+ * citation is in the Sources section verbatim.
+ */
 export function* getCitationLines(
     def: OwidColumnDef,
     col: CoreColumn
 ): Generator<string, void, unknown> {
     yield ""
-    yield "### How to cite this data"
+    yield "#### How to cite this data"
     yield ""
-    yield "#### In-line citation"
-    yield (
-        `If you have limited space (e.g. in data visualizations), you can use this abbreviated in-line citation:` +
-            markdownNewlineEnding
-    )
-    const attributionFragments = getAttributionFragments(col)
-    const { short: citationShort, long: citationLong } = getIndicatorCitations({
+    const { short: citationShort } = getIndicatorCitations({
         indicatorTitle: col.titlePublicOrDisplayName,
         origins: def.origins ?? [],
         source: col.source ?? {},
-        attributions: attributionFragments,
+        attributions: getAttributionFragments(col),
         attributionShort: def.presentation?.attributionShort,
         titleVariant: def.presentation?.titleVariant,
         owidProcessingLevel: def.owidProcessingLevel,
     })
-
     yield citationShort
-
-    yield ""
-
-    yield "#### Full citation"
-    yield citationLong
 }
 
+/**
+ * The one heading not pushed a level deeper, because it already was: at `####` among
+ * `###` siblings it read as a child of whatever came last (the final source block).
+ * Now that its siblings are `####` too, it is where it belongs.
+ */
 export function* getDataProcessingLines(
     def: OwidColumnDef
 ): Generator<string, void, unknown> {
@@ -60,26 +62,32 @@ export function* getDataProcessingLines(
     }
 }
 
+/**
+ * The descriptionFromProducer heading used to name the producers. For an indicator
+ * combining several it ran to a full line of names and read as a question about a
+ * list ("How is this data described by its producer - Ember (2026), Energy Institute
+ * (2026), Pinto et al. (2023)?"). The plural heading works for one producer as well
+ * as seven.
+ */
 export function* getDescriptionLines(
-    def: OwidColumnDef,
-    attribution: string
+    def: OwidColumnDef
 ): Generator<string, void, unknown> {
     const descriptionKey = def.descriptionKey
     if (descriptionKey) {
         yield ""
-        yield `### What you should know about this data`
+        yield `#### What you should know about this data`
         yield descriptionKey.trim()
     }
 
     if (def.descriptionFromProducer) {
         yield ""
-        yield `### How is this data described by its producer - ${attribution}?`
+        yield `#### How this data is described by its producers`
         yield def.descriptionFromProducer.trim()
     }
 
     if (def.additionalInfo) {
         yield ""
-        yield `### Additional information about this data`
+        yield `#### Additional information about this data`
         yield def.additionalInfo.trim()
     }
 }
@@ -95,10 +103,12 @@ export function* getKeyDataLines(
                 markdownNewlineEnding
         )
 
+    // "Next expected update", not "Next update": the date is the producer's stated
+    // update period added to our last update, so it is our expectation, not a promise.
     const nextUpdate = getNextUpdateFromVariable(def)
     if (nextUpdate)
         yield (
-            `Next update: ${formatSourceDate(nextUpdate, "MMMM YYYY")}` +
+            `Next expected update: ${formatSourceDate(nextUpdate, "MMMM YYYY")}` +
                 markdownNewlineEnding
         )
 
@@ -123,38 +133,85 @@ export function yieldMultilineTextAsLines(line: string): string[] {
     return line.split("\n").map((l) => l.trim())
 }
 
-export function* getSources(
-    def: OwidColumnDef
+/**
+ * Every distinct source across the columns, in first-seen order.
+ *
+ * Deduplicated on everything that gets rendered rather than on the label alone: the
+ * same producer retrieved twice on different dates is two rows a reader may need, and
+ * collapsing them would quietly drop a retrieval date.
+ */
+export function collectUniqueSources(columns: CoreColumn[]): DisplaySource[] {
+    const sources = columns.flatMap((col) =>
+        prepareSourcesForDisplay(col.def as OwidColumnDef)
+    )
+    return _.uniqBy(sources, (source) =>
+        JSON.stringify([
+            source.label,
+            source.dataPublishedBy,
+            source.retrievedOn,
+            source.retrievedFrom,
+        ])
+    )
+}
+
+/**
+ * The document's Sources section, listing each source once instead of repeating it
+ * inside every indicator's block. Repeating them is bearable for a chart's handful of
+ * columns and unreadable for a complete-dataset download: 46 columns drawn from 7
+ * sources produced 354 blocks, most of the file.
+ *
+ * Listing them once is also what makes room for the detail someone re-using the data
+ * actually needs — what the source is, who published it and when, where to get it
+ * (including the direct file, where the origin records one), the terms it comes under,
+ * and how to cite it — rather than the retrieval date and URL the per-indicator blocks
+ * were limited to.
+ */
+export function* getSourcesSection(
+    columns: CoreColumn[]
 ): Generator<string, void, undefined> {
-    const sourcesForDisplay = _.uniqBy(prepareSourcesForDisplay(def), "label")
+    const sources = collectUniqueSources(columns)
+    if (sources.length === 0) return
 
-    if (sourcesForDisplay.length === 0) return
-    else if (sourcesForDisplay.length === 1) {
-        yield ""
-        yield "### Source"
-    } else {
-        yield ""
-        yield "### Sources"
-    }
+    yield ""
+    yield sources.length === 1 ? "## Source" : "## Sources"
+    yield ""
+    yield "These are the sources behind the data in this package. Each time series below names the ones it draws on in its citation."
 
-    for (const source of sourcesForDisplay) {
+    for (const source of sources) {
         yield ""
-        yield `#### ${source.label}`
-        if (source.dataPublishedBy)
-            yield (
-                `Data published by: ${source.dataPublishedBy.trim()}` +
-                    markdownNewlineEnding
-            )
-        if (source.retrievedOn)
-            yield (
-                `Retrieved on: ${source.retrievedOn.trim()}` +
-                    markdownNewlineEnding
-            )
-        if (source.retrievedFrom)
-            yield (
-                `Retrieved from: ${source.retrievedFrom.trim()}` +
-                    markdownNewlineEnding
-            )
+        yield `### ${source.label}`
+
+        const description = source.description?.trim()
+        if (description) {
+            yield ""
+            yield description
+        }
+
+        const facts = _.compact([
+            source.producer && `Producer: ${source.producer.trim()}`,
+            source.dataPublishedBy &&
+                `Data published by: ${source.dataPublishedBy.trim()}`,
+            source.datePublished && `Published: ${source.datePublished.trim()}`,
+            source.retrievedOn && `Retrieved on: ${source.retrievedOn.trim()}`,
+            source.retrievedFrom &&
+                `Retrieved from: ${source.retrievedFrom.trim()}`,
+            source.urlDownload &&
+                `Direct download: ${source.urlDownload.trim()}`,
+            source.license?.name &&
+                `License: ${source.license.name.trim()}${
+                    source.license.url ? ` (${source.license.url.trim()})` : ""
+                }`,
+        ])
+        if (facts.length > 0) {
+            yield ""
+            for (const fact of facts) yield fact + markdownNewlineEnding
+        }
+
+        const citation = source.citation?.trim()
+        if (citation) {
+            yield ""
+            yield `Citation: ${citation}`
+        }
     }
 }
 
@@ -188,33 +245,36 @@ export function getTitle(col: CoreColumn): string {
     return title
 }
 
+/**
+ * One indicator's section. Every heading sits a level deeper than it used to, because
+ * these sections are children of the document's "Detailed information ..." heading —
+ * at the old levels an indicator was a sibling of the heading introducing it, so the
+ * whole second half of the readme was flat.
+ */
 function* columnReadmeText(col: CoreColumn) {
     const def = col.def as OwidColumnDef
 
     const title = getTitle(col)
     yield ""
-    yield `## ${title}`
+    yield `### ${title}`
 
     yield* getDescription(def)
 
     yield* getKeyDataLines(def, col)
 
-    yield ""
-
-    const attribution = getAttribution(col)
-
+    // The attribution is a fact about the indicator like the ones above, so it goes
+    // with them. It used to print immediately after the full citation, where it read
+    // as a trailing fragment of it; with the full citation gone it would have sat next
+    // to the short one looking like a duplicate.
     const source = getAttributionWithProcessing(
-        attribution,
+        getAttribution(col),
         def.owidProcessingLevel
     )
+    yield `Source: ${source}` + markdownNewlineEnding
 
     yield* getCitationLines(def, col)
 
-    yield `Source: ${source}`
-
-    yield* getDescriptionLines(def, attribution)
-
-    yield* getSources(def)
+    yield* getDescriptionLines(def)
 
     yield* getDataProcessingLines(def)
     yield ""
@@ -244,6 +304,15 @@ function* activeFilterSettings(
     }
 }
 
+/**
+ * The chart's `readme.md`.
+ *
+ * The single- and multi-column readmes used to be two separately maintained template
+ * strings, which is how they came to disagree: only the multi-column one told readers
+ * how we process data. They are one template now, differing where they genuinely
+ * differ — whether a download date is stated, and how the data columns and the
+ * tolerance columns are described.
+ */
 export function constructReadme(
     grapherState: GrapherState,
     columns: CoreColumn[],
@@ -252,12 +321,13 @@ export function constructReadme(
 ): string {
     const isSingleColumn = columns.length === 1
     // Some computed columns have neither a source nor origins - filter these away
-    const sources = columns
-        .filter(
-            (column) => !!column.source.name || !_.isEmpty(column.def.origins)
-        )
-        .flatMap((col) => [...columnReadmeText(col)])
-    let readme: string
+    const columnsWithSources = columns.filter(
+        (column) => !!column.source.name || !_.isEmpty(column.def.origins)
+    )
+    const columnSections = columnsWithSources.flatMap((col) => [
+        ...columnReadmeText(col),
+    ])
+    const sourcesSection = [...getSourcesSection(columnsWithSources)].join("\n")
     const urlWithFilters = `${grapherState.canonicalUrl}`
 
     const downloadDate = formatDate(new Date()) // formats the date as "October 10, 2024"
@@ -270,71 +340,56 @@ export function constructReadme(
         (column) => column.def.derivedFrom?.relationship === "originalTime"
     )
 
-    if (isSingleColumn) {
-        const toleranceExplanation = `\nThe data file includes an additional column suffixed with (Original Year) or (Original Day). This column appears when we use "tolerance" to display data for time points where exact data is unavailable. For example, if a country does not have data for one or more years, we use tolerance to fill the gaps using the closest available data points. These suffix columns show you which year (or day) the value really came from, allowing you to see when the data was actually measured.`
-        readme = `# ${grapherState.effectiveTitle} - Data package
+    // A single-column download is the one served from the chart page itself, so it can
+    // say when it was downloaded; the multi-column one is also built ahead of time.
+    const downloadedOn = isSingleColumn
+        ? ` It was downloaded on ${downloadDate}.`
+        : ""
 
-This data package contains the data that powers the chart ["${grapherState.effectiveTitle}"](${urlWithFilters}) on the Our World in Data website. It was downloaded on ${downloadDate}.
+    const dataColumnBullet = isSingleColumn
+        ? `- The final column is the data column — the time series that powers the chart. Downloaded with the "full data" option it corresponds to the time series below; with "only selected data visible in the chart" it is transformed depending on the chart type, so the correspondence may be less direct.`
+        : `- Every remaining column is a data column, each one a time series. Downloaded with the "full data" option each corresponds to one time series below; with "only selected data visible in the chart" they are transformed depending on the chart type, so the correspondence may be less direct.`
+
+    const toleranceExplanation = isSingleColumn
+        ? `\nThe data file includes an additional column suffixed with (Original Year) or (Original Day). This column appears when we use "tolerance" to display data for time points where exact data is unavailable. For example, if a country does not have data for one or more years, we use tolerance to fill the gaps using the closest available data points. These suffix columns show you which year (or day) the value really came from, allowing you to see when the data was actually measured.`
+        : `\nThe data file includes additional columns suffixed with (Original Year) or (Original Day). These appear when we use "tolerance" to display data for time points where exact data is unavailable. For example, if a country does not have data for one or more years, we use tolerance to fill the gaps using the closest available data points. These suffix columns show you which year (or day) the value really came from, allowing you to see when the data was actually measured.`
+
+    const detailHeading = isSingleColumn
+        ? "Detailed information about the data"
+        : "Detailed information about each time series"
+
+    const readme = `# ${grapherState.effectiveTitle} - Data package
+
+This data package contains the data that powers the chart ["${grapherState.effectiveTitle}"](${urlWithFilters}) on the Our World in Data website.${downloadedOn}
 ${[...activeFilterSettings(searchParams, multiDimAvailableDimensions)].join("\n")}
-## CSV Structure
+## CSV structure
 
-The high level structure of the CSV file is that each row is an observation for an entity (usually a country or region) and a timepoint (usually a year).
+Each row is an observation for an entity (usually a country or region) at a timepoint.
 
-The first two columns in the CSV file are "Entity" and "Code". "Entity" is the name of the entity (e.g. "United States"). "Code" is the OWID internal entity code that we use if the entity is a country or region. For most countries, this is the same as the [iso alpha-3](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3) code of the entity (e.g. "USA") - for non-standard countries like historical countries these are custom codes.
-
-The third column is either "Year" or "Day". If the data is annual, this is "Year" and contains only the year as an integer. If the column is "Day", the column contains a date string in the form "YYYY-MM-DD".
-
-The final column is the data column, which is the time series that powers the chart. If the CSV data is downloaded using the "full data" option, then the column corresponds to the time series below. If the CSV data is downloaded using the "only selected data visible in the chart" option then the data column is transformed depending on the chart type and thus the association with the time series might not be as straightforward.
+- "Entity" — the name of the entity, e.g. "United States".
+- "Code" — our internal entity code. For most countries this is the [ISO alpha-3](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3) code, e.g. "USA"; historical and other non-standard entities get a custom code.
+- "Year" or "Day" — the timepoint. Annual data has a "Year" column holding an integer year; otherwise a "Day" column holds a date string in the form "YYYY-MM-DD".
+${dataColumnBullet}
 ${hasOriginalTimeColumn ? toleranceExplanation : ""}
 
 ## Metadata.json structure
 
 The .metadata.json file contains metadata about the data package. The "charts" key contains information to recreate the chart, like the title, subtitle etc.. The "columns" key contains information about each of the columns in the csv, like the unit, timespan covered, citation for the data etc..
 
-## About the data
+## How we process data at Our World in Data
 
 Our World in Data is almost never the original producer of the data - almost all of the data we use has been compiled by others. If you want to re-use data, it is your responsibility to ensure that you adhere to the sources' license and to credit them correctly. Please note that a single time series may have more than one source - e.g. when we stich together data from different time periods by different producers or when we calculate per capita metrics using population data from a second source.
 
-## Detailed information about the data
-
-${sources.join("\n")}
-
-    `
-    } else {
-        const toleranceExplanation = `\nThe data file includes additional columns suffixed with (Original Year) or (Original Day). These appear when we use "tolerance" to display data for time points where exact data is unavailable. For example, if a country does not have data for one or more years, we use tolerance to fill the gaps using the closest available data points. These suffix columns show you which year (or day) the value really came from, allowing you to see when the data was actually measured.`
-        readme = `# ${grapherState.effectiveTitle} - Data package
-
-This data package contains the data that powers the chart ["${grapherState.effectiveTitle}"](${urlWithFilters}) on the Our World in Data website.
-
-## CSV Structure
-
-The high level structure of the CSV file is that each row is an observation for an entity (usually a country or region) and a timepoint (usually a year).
-
-The first two columns in the CSV file are "Entity" and "Code". "Entity" is the name of the entity (e.g. "United States"). "Code" is the OWID internal entity code that we use if the entity is a country or region. For most countries, this is the same as the [iso alpha-3](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3) code of the entity (e.g. "USA") - for non-standard countries like historical countries these are custom codes.
-
-The third column is either "Year" or "Day". If the data is annual, this is "Year" and contains only the year as an integer. If the column is "Day", the column contains a date string in the form "YYYY-MM-DD".
-
-The remaining columns are the data columns, each of which is a time series. If the CSV data is downloaded using the "full data" option, then each column corresponds to one time series below. If the CSV data is downloaded using the "only selected data visible in the chart" option then the data columns are transformed depending on the chart type and thus the association with the time series might not be as straightforward.
-${hasOriginalTimeColumn ? toleranceExplanation : ""}
-
-## Metadata.json structure
-
-The .metadata.json file contains metadata about the data package. The "charts" key contains information to recreate the chart, like the title, subtitle etc.. The "columns" key contains information about each of the columns in the csv, like the unit, timespan covered, citation for the data etc..
-
-## About the data
-
-Our World in Data is almost never the original producer of the data - almost all of the data we use has been compiled by others. If you want to re-use data, it is your responsibility to ensure that you adhere to the sources' license and to credit them correctly. Please note that a single time series may have more than one source - e.g. when we stich together data from different time periods by different producers or when we calculate per capita metrics using population data from a second source.
-
-### How we process data at Our World In Data
 All data and visualizations on Our World in Data rely on data sourced from one or several original data providers. Preparing this original data involves several processing steps. Depending on the data, this can include standardizing country names and world region definitions, converting units, calculating derived indicators such as per capita measures, as well as adding or adapting metadata such as the name or the description given to an indicator.
 [Read about our data pipeline](https://docs.owid.io/projects/etl/)
 
-## Detailed information about each time series
+${sourcesSection}
 
-${sources.join("\n")}
+## ${detailHeading}
+
+${columnSections.join("\n")}
 
     `
-    }
     // Detail-on-demand links (e.g. [terawatt-hours](#dod:watt-hours)) render as
     // hover tooltips on the website, but the readme ships inside a downloaded
     // zip where they're just dead links. Strip them here, over the fully

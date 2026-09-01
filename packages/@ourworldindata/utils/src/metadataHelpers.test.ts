@@ -453,6 +453,7 @@ describe(prepareSourcesForDisplay, () => {
                 retrievedOn: "2024-02-02",
                 retrievedFrom: "https://origin.example.com",
                 citation: "Citation",
+                producer: "Producer",
             },
         ])
     })
@@ -460,7 +461,7 @@ describe(prepareSourcesForDisplay, () => {
     it("labels an origin with its producer only", () => {
         expect(
             prepareSourcesForDisplay({ origins: [{ producer: "Producer" }] })
-        ).toEqual([{ label: "Producer" }])
+        ).toEqual([{ label: "Producer", producer: "Producer" }])
     })
 
     it("does not repeat the producer if the title matches it", () => {
@@ -468,7 +469,7 @@ describe(prepareSourcesForDisplay, () => {
             prepareSourcesForDisplay({
                 origins: [{ producer: "Producer", title: "Producer" }],
             })
-        ).toEqual([{ label: "Producer" }])
+        ).toEqual([{ label: "Producer", producer: "Producer" }])
     })
 
     it("omits the separator when an origin has no producer", () => {
@@ -482,7 +483,41 @@ describe(prepareSourcesForDisplay, () => {
             prepareSourcesForDisplay({
                 origins: [{ producer: "B" }, { producer: "A" }],
             })
-        ).toEqual([{ label: "B" }, { label: "A" }])
+        ).toEqual([
+            { label: "B", producer: "B" },
+            { label: "A", producer: "A" },
+        ])
+    })
+
+    it("carries the fields only the data-download readme renders", () => {
+        // The Sources UIs read the fields above; the readme lists each source once and
+        // has room to say who published it, when, where the file is and on what terms.
+        expect(
+            prepareSourcesForDisplay({
+                origins: [
+                    {
+                        producer: "Producer",
+                        datePublished: "2024-01-01",
+                        urlDownload: "https://example.com/data.csv",
+                        license: {
+                            name: "CC BY 4.0",
+                            url: "https://example.com/license",
+                        },
+                    },
+                ],
+            })
+        ).toEqual([
+            {
+                label: "Producer",
+                producer: "Producer",
+                datePublished: "2024-01-01",
+                urlDownload: "https://example.com/data.csv",
+                license: {
+                    name: "CC BY 4.0",
+                    url: "https://example.com/license",
+                },
+            },
+        ])
     })
 })
 
