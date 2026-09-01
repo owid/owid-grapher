@@ -5,7 +5,7 @@ import {
     resolveLegendTextStyle,
 } from "./LegendStyleConfig"
 import { HorizontalCategoricalColorLegendState } from "./HorizontalCategoricalColorLegendState"
-import { useDismissOnOutsidePointerDownOrUnmount } from "../hooks.js"
+import { DismissOnOutsidePointerDown } from "./DismissOnOutsidePointerDown.js"
 import { HorizontalColorLegendProps } from "./HorizontalColorLegendTypes"
 import {
     CATEGORICAL_BIN_STROKE_WIDTH,
@@ -29,9 +29,6 @@ export function HorizontalCategoricalColorLegend(
     const { marks, rectPadding } = state
 
     const isHoverable = interactive && !!onMouseOver
-    useDismissOnOutsidePointerDownOrUnmount(
-        isHoverable ? onMouseLeave : undefined
-    )
 
     return (
         <g
@@ -39,6 +36,9 @@ export function HorizontalCategoricalColorLegend(
             className="categoricalColorLegend"
             onPointerDown={(event) => event.stopPropagation()}
         >
+            {isHoverable && onMouseLeave && (
+                <DismissOnOutsidePointerDown onDismiss={onMouseLeave} />
+            )}
             <g id={makeFigmaId("swatches")}>
                 {marks.map((mark, index) => {
                     const style = resolveLegendMarkerStyle(

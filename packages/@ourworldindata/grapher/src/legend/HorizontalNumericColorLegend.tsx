@@ -19,7 +19,7 @@ import {
     HorizontalColorLegendProps,
     PositionedBin,
 } from "./HorizontalColorLegendTypes"
-import { useDismissOnOutsidePointerDownOrUnmount } from "../hooks.js"
+import { DismissOnOutsidePointerDown } from "./DismissOnOutsidePointerDown.js"
 import {
     ARROW_SIZE,
     DEFAULT_NUMERIC_BIN_STROKE,
@@ -51,9 +51,6 @@ export function HorizontalNumericColorLegend(
     } = state
 
     const isHoverable = interactive && !!onMouseOver
-    useDismissOnOutsidePointerDownOrUnmount(
-        isHoverable ? onMouseLeave : undefined
-    )
 
     const defaultTextColor =
         styleConfig?.text?.default?.color ?? DEFAULT_TEXT_COLOR
@@ -132,6 +129,9 @@ export function HorizontalNumericColorLegend(
             className="numericColorLegend"
             onPointerDown={(event) => event.stopPropagation()}
         >
+            {isHoverable && onMouseLeave && (
+                <DismissOnOutsidePointerDown onDismiss={onMouseLeave} />
+            )}
             <g id={makeFigmaId("lines")}>
                 {numericLabels.map((label, index) => {
                     const style = markerStyleFor(label.bin)
