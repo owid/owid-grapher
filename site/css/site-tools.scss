@@ -40,6 +40,14 @@
             margin-bottom: $vertical-spacing;
             right: 0;
             @include popover-box-styles;
+
+            .FeedbackForm {
+                // reserve room for the row of prompt buttons this popover is
+                // anchored above, plus the page margins around it
+                max-height: min(700px, calc(100vh - 155px));
+                max-height: min(700px, calc(100dvh - 155px));
+            }
+
             .newsletter-subscription-header {
                 padding: 32px 40px 0 40px;
                 svg {

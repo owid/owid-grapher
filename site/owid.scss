@@ -797,8 +797,17 @@ a.ref sup {
 }
 
 .FeedbackForm {
-    height: calc(100vh - 155px);
-    max-height: 700px;
+    display: flex;
+    flex-direction: column;
+    // No `height`, so the form is as tall as its content and this is only an
+    // upper bound: when the content doesn't fit, `.formBody` scrolls instead
+    // of the header and footer being pushed out of view. Contexts with less
+    // room lower the bound; the mobile sheet raises it to fill the screen.
+    // `dvh` so the bound follows the mobile browser chrome rather than
+    // assuming it is retracted (`vh` is the fallback for browsers without
+    // dynamic viewport units).
+    max-height: min(700px, 100vh);
+    max-height: min(700px, 100dvh);
     transition: opacity var(--duration-panel) var(--ease-out);
 
     &.loading > * {
@@ -922,7 +931,10 @@ a.ref sup {
 
 .FeedbackPage {
     main {
-        height: calc(100vh - 100px);
+        // min-height, so a form taller than the viewport scrolls the page
+        // instead of being cropped
+        min-height: calc(100vh - 100px);
+        min-height: calc(100dvh - 100px);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -934,6 +946,13 @@ a.ref sup {
         @include popover-box-styles;
         box-shadow: none;
         outline: 1px solid $gray-10;
+    }
+
+    .FeedbackForm {
+        // keep the form inside <main> (see its min-height above) and the box
+        // margins, so the page doesn't scroll just to reach the submit button
+        max-height: min(700px, calc(100vh - 100px - 2 * $vertical-spacing));
+        max-height: min(700px, calc(100dvh - 100px - 2 * $vertical-spacing));
     }
 
     .FeedbackForm > .footer {
