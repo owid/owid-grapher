@@ -91,6 +91,12 @@
 .SiteMobileFeedbackModal {
     position: fixed;
     inset: 0;
+    // On mobile, `100vh` is the *large* viewport height: it assumes the browser
+    // chrome is retracted, so the modal stays taller than the visible area once
+    // the URL bar comes back (e.g. after focusing a text field) and its header
+    // and submit button are cropped out of view. `100dvh` follows the chrome.
+    height: 100vh;
+    height: 100dvh;
     z-index: $zindex-site-header + 1;
     display: flex;
     align-items: center;
@@ -104,7 +110,7 @@
 
 .SiteMobileFeedbackModal__box {
     position: relative;
-    height: 100vh;
+    height: 100%;
     @include popover-box-styles;
     width: 100vw;
     border-radius: 0;
