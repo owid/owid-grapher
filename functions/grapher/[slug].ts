@@ -135,7 +135,14 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                 return redirect || error(404, "Not found")
             } else if (e instanceof StatusError) {
                 return error(e.status, e.message)
-            } else return error(500, e)
+            } else {
+                // TEMPORARY DIAGNOSTIC - do not merge
+                const detail =
+                    e instanceof Error
+                        ? `${e.name}: ${e.message}\n${e.stack}`
+                        : String(e)
+                return error(500, detail)
+            }
         })
 }
 
