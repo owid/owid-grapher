@@ -14,7 +14,6 @@ import {
     DetailsMarker,
     GrapherVariant,
     SideWidths,
-    StackMode,
 } from "@ourworldindata/types"
 import { TooltipManager } from "../tooltip/TooltipProps"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
@@ -41,7 +40,6 @@ export interface ChartManager {
 
     isExportingToSvgOrPng?: boolean
     isRelativeMode?: boolean
-    stackMode?: StackMode
     comparisonLines?: ComparisonLineConfig[]
     showLegend?: boolean
     showSeriesLabels?: boolean

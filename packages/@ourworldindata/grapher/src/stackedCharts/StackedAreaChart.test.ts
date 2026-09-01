@@ -14,7 +14,7 @@ import { makeObservable, observable } from "mobx"
 import { AxisConfig } from "../axis/AxisConfig"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColumnTypeNames, GRAPHER_CHART_TYPES } from "@ourworldindata/utils"
-import { FacetStrategy, StackMode } from "@ourworldindata/types"
+import { FacetStrategy } from "@ourworldindata/types"
 import { StackedAreaChartState } from "./StackedAreaChartState.js"
 import { ChartManager } from "../chart/ChartManager"
 
@@ -278,33 +278,27 @@ describe("availableFacetStrategies", () => {
             },
         })
 
-    it("doesn't offer the metric strategy for percentages, even in relative mode", () => {
+    it("doesn't offer the metric strategy for percentages", () => {
         const table = makeTable("%", "%")
-        const chartState = makeChartState(table, {
-            stackMode: StackMode.relative,
-        })
-        expect(chartState.availableFacetStrategies).toEqual([
-            FacetStrategy.entity,
-        ])
-    })
-
-    it("offers the entity strategy for mixed units in relative mode", () => {
-        const table = makeTable("t", "kg")
         expect(
-            makeChartState(table, { stackMode: StackMode.absolute })
+            makeChartState(table, { isRelativeMode: false })
                 .availableFacetStrategies
-        ).toEqual([FacetStrategy.metric])
-        expect(
-            makeChartState(table, { stackMode: StackMode.relative })
-                .availableFacetStrategies
-        ).toEqual([FacetStrategy.entity, FacetStrategy.metric])
-    })
-
-    it("falls back to isRelativeMode when no stack mode is given", () => {
-        const table = makeTable("t", "kg")
+        ).toEqual([FacetStrategy.entity])
         expect(
             makeChartState(table, { isRelativeMode: true })
                 .availableFacetStrategies
-        ).toEqual([FacetStrategy.entity, FacetStrategy.metric])
+        ).toEqual([FacetStrategy.entity])
+    })
+
+    it("doesn't offer the entity strategy for mixed units", () => {
+        const table = makeTable("t", "kg")
+        expect(
+            makeChartState(table, { isRelativeMode: false })
+                .availableFacetStrategies
+        ).toEqual([FacetStrategy.metric])
+        expect(
+            makeChartState(table, { isRelativeMode: true })
+                .availableFacetStrategies
+        ).toEqual([FacetStrategy.metric])
     })
 })
