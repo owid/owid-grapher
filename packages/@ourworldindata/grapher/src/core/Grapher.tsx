@@ -49,6 +49,7 @@ import { EntitySelectorModal } from "../modal/EntitySelectorModal"
 import { DownloadModal } from "../modal/DownloadModal"
 import { observer } from "mobx-react"
 import { SourcesModal } from "../modal/SourcesModal"
+import { SourcesPanel } from "../modal/SourcesPanel"
 import { Command, CommandPalette } from "../controls/CommandPalette"
 import { EmbedModal } from "../modal/EmbedModal"
 import Mousetrap from "mousetrap"
@@ -462,6 +463,9 @@ export class Grapher extends React.Component<GrapherProps> {
     private renderGrapherComponent(): React.ReactElement {
         const containerClasses = classnames({
             GrapherComponent: true,
+            // scopes the sources styles, which the page-level sources panel
+            // shares even though it renders outside .GrapherComponent
+            "grapher-sources-scope": true,
             GrapherPortraitClass: this.grapherState.isPortrait,
             isStatic: this.grapherState.isStatic,
             isExportingToSvgOrPng: this.grapherState.isExportingToSvgOrPng,
@@ -542,9 +546,15 @@ export class Grapher extends React.Component<GrapherProps> {
 
                 {/* Modals */}
                 {this.grapherState.activeModal === GrapherModal.Sources &&
-                    this.grapherState.isReady && (
+                    this.grapherState.isReady &&
+                    // Embeds are always in an iframe and can't escape it, so
+                    // they keep the in-frame modal; on our own pages the same
+                    // content opens as a page-level panel instead.
+                    (this.grapherState.isInIFrame ? (
                         <SourcesModal manager={this.grapherState} />
-                    )}
+                    ) : (
+                        <SourcesPanel manager={this.grapherState} />
+                    ))}
                 {this.grapherState.activeModal === GrapherModal.Download &&
                     this.grapherState.isReady && (
                         <DownloadModal manager={this.grapherState} />
