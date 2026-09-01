@@ -160,6 +160,10 @@ export function collectUniqueSources(columns: CoreColumn[]): DisplaySource[] {
  * columns and unreadable for a complete-dataset download: 46 columns drawn from 7
  * sources produced 354 blocks, most of the file.
  *
+ * The section sits last, after the indicators: it is reference material a reader
+ * arrives at from a citation, not something to read past on the way to the column they
+ * opened the file for.
+ *
  * Listing them once is also what makes room for the detail someone re-using the data
  * actually needs — what the source is, who published it and when, where to get it
  * (including the direct file, where the origin records one), the terms it comes under,
@@ -175,7 +179,7 @@ export function* getSourcesSection(
     yield ""
     yield sources.length === 1 ? "## Source" : "## Sources"
     yield ""
-    yield "These are the sources behind the data in this package. Each time series below names the ones it draws on in its citation."
+    yield "These are the sources behind the data in this package. Each time series above names the ones it draws on in its citation."
 
     for (const source of sources) {
         yield ""
@@ -383,11 +387,10 @@ Our World in Data is almost never the original producer of the data - almost all
 All data and visualizations on Our World in Data rely on data sourced from one or several original data providers. Preparing this original data involves several processing steps. Depending on the data, this can include standardizing country names and world region definitions, converting units, calculating derived indicators such as per capita measures, as well as adding or adapting metadata such as the name or the description given to an indicator.
 [Read about our data pipeline](https://docs.owid.io/projects/etl/)
 
-${sourcesSection}
-
 ## ${detailHeading}
 
 ${columnSections.join("\n")}
+${sourcesSection}
 
     `
     // Detail-on-demand links (e.g. [terawatt-hours](#dod:watt-hours)) render as

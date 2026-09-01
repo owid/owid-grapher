@@ -166,11 +166,18 @@ describe(constructReadme, () => {
             "License: CC BY 4.0 (https://example.org/license)"
         )
         expect(readme).toContain("Citation: IHME (2020). GBD.")
-        // The Sources section is one of the document's own, above the per-indicator
-        // detail rather than repeated inside it.
-        expect(readme.indexOf("## Sources")).toBeLessThan(
-            readme.indexOf("## Detailed information")
-        )
+        // One heading for the document, after the indicators, rather than a block
+        // repeated inside each of them. Matched on the exact line because a single
+        // deduplicated source is titled "## Source", not "## Sources".
+        const headings = readme
+            .split("\n")
+            .filter((line) =>
+                /^## (Source|Sources|Detailed information)/.test(line)
+            )
+        expect(headings).toEqual([
+            "## Detailed information about each time series",
+            "## Source",
+        ])
     })
 })
 
