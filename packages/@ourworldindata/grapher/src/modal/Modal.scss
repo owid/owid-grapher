@@ -16,17 +16,17 @@
     &[data-entering] {
         opacity: 0;
 
-        .modal-content--top,
-        .modal-content--bottom {
+        .modal-panel--top,
+        .modal-panel--bottom {
             transform: scale(0.97);
         }
 
-        .modal-content--center {
+        .modal-panel--center {
             transform: translateY(-50%) scale(0.97);
         }
     }
 
-    .modal-content {
+    .modal-panel {
         position: absolute;
         border-radius: 4px;
         background: #fff;
@@ -35,20 +35,20 @@
         transition: transform var(--duration-popover) var(--ease-out);
     }
 
-    .modal-content--top {
+    .modal-panel--top {
         transform-origin: center top;
     }
 
-    .modal-content--bottom {
+    .modal-panel--bottom {
         transform-origin: center bottom;
     }
 
-    .modal-content--center {
+    .modal-panel--center {
         top: 50%;
         transform: translateY(-50%);
     }
 
-    .modal-dialog {
+    .modal-panel-dialog {
         height: 100%;
         outline: none;
     }
@@ -56,17 +56,17 @@
     // Drop the panel's scale only. The overlay's opacity transition is what
     // React Aria waits on before unmounting, so it must survive.
     @media (prefers-reduced-motion: reduce) {
-        .modal-content {
+        .modal-panel {
             transition: none;
         }
 
         &[data-entering] {
-            .modal-content--top,
-            .modal-content--bottom {
+            .modal-panel--top,
+            .modal-panel--bottom {
                 transform: none;
             }
 
-            .modal-content--center {
+            .modal-panel--center {
                 transform: translateY(-50%);
             }
         }
