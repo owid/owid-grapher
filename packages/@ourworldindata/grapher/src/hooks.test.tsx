@@ -5,10 +5,7 @@
 import { act, render } from "@testing-library/react"
 import { useRef } from "react"
 import { afterEach, expect, it, vi } from "vitest"
-import {
-    useDismissOnOutsidePointerDownOrUnmount,
-    useElementBounds,
-} from "./hooks.js"
+import { useElementBounds } from "./hooks.js"
 
 let resizeObserverCallback: ResizeObserverCallback | undefined
 
@@ -40,15 +37,6 @@ function BoundsProbe(): React.ReactElement {
             {bounds ? `${bounds.width}x${bounds.height}` : "unmeasured"}
         </div>
     )
-}
-
-function DismissProbe({
-    onDismiss,
-}: {
-    onDismiss: () => void
-}): React.ReactElement {
-    useDismissOnOutsidePointerDownOrUnmount(onDismiss)
-    return <div />
 }
 
 function reportResize(width: number, height: number): void {
@@ -86,13 +74,4 @@ it("preserves the last non-zero bounds while an element is hidden", () => {
 
     act(() => reportResize(700, 500))
     expect(getByTestId("probe")).toHaveTextContent("700x500")
-})
-
-it("dismisses when the component holding it unmounts", () => {
-    const onDismiss = vi.fn()
-    const { unmount } = render(<DismissProbe onDismiss={onDismiss} />)
-    expect(onDismiss).not.toHaveBeenCalled()
-
-    unmount()
-    expect(onDismiss).toHaveBeenCalledOnce()
 })

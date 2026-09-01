@@ -63,6 +63,7 @@ export interface HorizontalColorLegendProps<State> {
     onMouseEnter?: (bin: ColorScaleBin) => void
     onMouseOver?: (bin: ColorScaleBin) => void
     onMouseLeave?: () => void
+    onTouchSelect?: (bin: ColorScaleBin) => void
 }
 
 /**
