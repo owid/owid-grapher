@@ -5,7 +5,6 @@ import {
     EmailNotificationsFrequency,
     EmailNotificationsPreferences,
 } from "@ourworldindata/types"
-import { deserializeSet } from "../search/searchUtils.js"
 import { EmailNotificationsPreferenceFieldsProps } from "./EmailNotificationsPreferenceFields.js"
 import {
     getPreferencesValidationErrors,
@@ -24,20 +23,6 @@ export const DEFAULT_CONTENT_TYPES: EmailNotificationsContentType[] =
     )
 
 export const DEFAULT_FREQUENCY: EmailNotificationsFrequency = "weekly"
-
-/** Same `?topics=` param as /search and /latest: area names, `~`-separated. */
-export const TOPICS_QUERY_PARAM = "topics"
-
-export function topicAreasFromSearchParams(
-    searchParams: URLSearchParams,
-    topicAreaNames: string[]
-): string[] {
-    return [
-        ...deserializeSet(searchParams.get(TOPICS_QUERY_PARAM)).intersection(
-            new Set(topicAreaNames)
-        ),
-    ]
-}
 
 function toggleInArray<T>(items: T[], item: T): T[] {
     return items.includes(item)

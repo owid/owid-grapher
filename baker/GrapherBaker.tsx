@@ -230,7 +230,9 @@ export async function renderDataPageV2(
 
     const { byTagName, byChartId } =
         topicAreaLookup ?? (await getTopicAreaLookupForChart(knex, grapher))
-    datapageData.topicArea =
+    // The indicator's own topic tags come first: indicator-page previews have
+    // no chart id, so the byChartId route can't resolve them.
+    const topicArea =
         db.getTopicAreaNameForTagNames(
             datapageData.topicTagsLinks ?? [],
             byTagName
@@ -327,6 +329,7 @@ export async function renderDataPageV2(
         <DataPageV2
             grapher={grapher}
             datapageData={datapageData}
+            topicArea={topicArea}
             canonicalUrl={canonicalUrl}
             baseUrl={BAKED_BASE_URL}
             isPreviewing={isPreviewing}
