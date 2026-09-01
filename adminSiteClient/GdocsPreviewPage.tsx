@@ -20,6 +20,7 @@ import {
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     slugify,
+    MinimalTag,
     OwidGdocType,
     OwidGdoc,
     Tippy,
@@ -43,6 +44,7 @@ import {
 import { getErrors } from "./gdocsValidation.js"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
 import { deleteGdoc, updateGdoc } from "./gdocsApi.js"
+import { useUpdateGdocTags } from "./gdocsQueries.js"
 import { IconBadge } from "./IconBadge.js"
 import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
@@ -267,6 +269,18 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         history.push("/gdocs")
     }
 
+    const updateTagsMutation = useUpdateGdocTags()
+
+    // Tags are saved to the database immediately, so update both the original
+    // and current gdoc to avoid reporting phantom unsaved changes
+    const saveTags = async (tags: MinimalTag[]) => {
+        await updateTagsMutation.mutateAsync({ gdocId: id, tags })
+        setGdoc(({ original, current }) => ({
+            original: original && { ...original, tags },
+            current: current && { ...current, tags },
+        }))
+    }
+
     const toggleMobilePreview = () =>
         setIsMobilePreviewActive(
             (isMobilePreviewActive) => !isMobilePreviewActive
@@ -465,6 +479,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                         setCurrentGdoc(() => updatedGdoc)
                                     }
                                     errors={errors}
+                                    onSaveTags={saveTags}
                                 />
                             )
                         )
@@ -481,6 +496,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                         setCurrentGdoc(() => updatedGdoc)
                                     }
                                     errors={errors}
+                                    onSaveTags={saveTags}
                                 />
                             )
                         )
@@ -497,6 +513,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                         setCurrentGdoc(() => updatedGdoc)
                                     }
                                     errors={errors}
+                                    onSaveTags={saveTags}
                                 />
                             )
                         )
@@ -558,6 +575,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                         setCurrentGdoc(() => updatedGdoc)
                                     }
                                     errors={errors}
+                                    onSaveTags={saveTags}
                                     selectedEntity={selectedEntity}
                                     setSelectedEntity={setSelectedEntity}
                                     entitiesInScope={entitiesInScope}
