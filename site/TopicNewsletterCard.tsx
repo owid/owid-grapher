@@ -2,9 +2,9 @@ import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBell, faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "@ourworldindata/components"
+import { LatestUrlParam } from "@ourworldindata/types"
 import { IS_ARCHIVE } from "../settings/clientSettings.js"
 import { PROD_URL } from "./SiteConstants.js"
-import { TOPICS_QUERY_PARAM } from "./Newsletter/useNotificationPreferences.js"
 import { hasTopicNewsletterCard } from "./topicNewsletter.js"
 
 // We don't archive the subscribe page.
@@ -55,7 +55,7 @@ export default function TopicNewsletterCard({
                 text="Subscribe"
                 icon={faEnvelopeOpenText}
                 iconPosition="left"
-                href={`${BASE_URL}/subscribe?${new URLSearchParams({ [TOPICS_QUERY_PARAM]: topicArea })}`}
+                href={`${BASE_URL}/subscribe?${new URLSearchParams({ [LatestUrlParam.TOPICS]: topicArea })}`}
                 dataTrackNote="topic_newsletter_subscribe"
             />
         </div>
