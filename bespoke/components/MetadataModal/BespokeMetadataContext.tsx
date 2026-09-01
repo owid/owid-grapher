@@ -9,6 +9,8 @@ import {
 
 import { BespokeMetadataWithProvenance } from "@ourworldindata/types"
 
+import { useEmbedConfig } from "../../hooks/useEmbedConfig.js"
+
 interface BespokeMetadataContextValue {
     /** Absent where the viz offers no modal, not only where the manifest carries none */
     metadata: BespokeMetadataWithProvenance | undefined
@@ -24,13 +26,12 @@ const BespokeMetadataContext = createContext<
 
 export function BespokeMetadataProvider({
     metadata,
-    isModalEnabled = true,
     children,
 }: {
     metadata: BespokeMetadataWithProvenance | undefined
-    isModalEnabled?: boolean
     children: React.ReactNode
 }): React.ReactElement {
+    const { hideMetadataModal } = useEmbedConfig()
     const [isModalOpen, setIsModalOpen] = useState(false)
     const frameRef = useRef<HTMLDivElement | null>(null)
 
@@ -39,13 +40,13 @@ export function BespokeMetadataProvider({
 
     const value = useMemo(
         () => ({
-            metadata: isModalEnabled ? metadata : undefined,
+            metadata: hideMetadataModal ? undefined : metadata,
             isModalOpen,
             openModal,
             closeModal,
             frameRef,
         }),
-        [metadata, isModalEnabled, isModalOpen, openModal, closeModal]
+        [metadata, hideMetadataModal, isModalOpen, openModal, closeModal]
     )
 
     return (
