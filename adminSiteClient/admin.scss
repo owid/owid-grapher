@@ -3,6 +3,11 @@
 @import "../public/fonts.css";
 @import "bootstrap/scss/bootstrap";
 
+// Bare `section` also matches the react-aria dialogs grapher renders inside an
+// embedded chart. `:where` keeps the exclusion at zero specificity, so a page-level
+// `section` rule still wins on source order alone.
+$admin-section: "section:not(:where(.GrapherComponent *))";
+
 @mixin draft-background {
     background: repeating-linear-gradient(
         135deg,
@@ -127,7 +132,7 @@ $nav-height: 45px;
         font-size: 0.8em;
     }
 
-    section {
+    #{$admin-section} {
         h1 {
             font-size: 26px;
             font-weight: 700;
@@ -151,7 +156,7 @@ $nav-height: 45px;
         }
     }
 
-    section:not(:first-child) {
+    #{$admin-section}:not(:first-child) {
         margin-top: 40px;
     }
 }
@@ -363,7 +368,7 @@ $nav-height: 45px;
         }
     }
 
-    section {
+    #{$admin-section} {
         padding: 1.2em;
         border-radius: 0.4em;
         margin-bottom: 1.2em;
