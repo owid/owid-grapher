@@ -153,6 +153,7 @@ export function EditableTags(props: EditableTagsProps): React.ReactElement {
                     <>
                         {hasSuggestionsSupport && (
                             <button
+                                type="button"
                                 className="btn btn-link EditableTags__action"
                                 onClick={handleSuggest}
                                 disabled={
@@ -164,6 +165,7 @@ export function EditableTags(props: EditableTagsProps): React.ReactElement {
                             </button>
                         )}
                         <button
+                            type="button"
                             className="btn btn-link EditableTags__action"
                             onClick={(event) => {
                                 setInitialEditorTags(tags)

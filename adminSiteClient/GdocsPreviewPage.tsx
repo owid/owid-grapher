@@ -171,7 +171,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             try {
                 admin.loadingIndicatorSetting = "loading"
                 const [original, current] = await Promise.all([
-                    originalGdoc ?? fetchGdoc(GdocsContentSource.Internal),
+                    fetchGdoc(GdocsContentSource.Internal),
                     fetchGdoc(GdocsContentSource.Gdocs, acceptSuggestions),
                 ])
                 if (!isMounted || !original || !current) return
@@ -207,7 +207,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             isMounted = false
             admin.loadingIndicatorSetting = "default"
         }
-    }, [admin, acceptSuggestions, fetchGdoc, handleError, originalGdoc])
+    }, [admin, acceptSuggestions, fetchGdoc, handleError])
 
     const isLightningUpdate = useLightningUpdate(
         originalGdoc,

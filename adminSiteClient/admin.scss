@@ -1332,6 +1332,28 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     margin-bottom: 8px;
 }
 
+.GdocsTags__saved {
+    margin-left: 8px;
+    font-size: 13px;
+    font-weight: 400;
+    color: #52c41a;
+    animation: gdocs-tags-saved-fade 2.5s ease forwards;
+
+    svg {
+        margin-right: 2px;
+    }
+}
+
+@keyframes gdocs-tags-saved-fade {
+    0%,
+    70% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
 .GdocsSettingsContentField__imagePreview {
     margin-top: 12px;
 }
