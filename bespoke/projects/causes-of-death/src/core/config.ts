@@ -6,7 +6,6 @@ export interface CausesOfDeathConfig {
     ageGroup?: string
     year?: number
     hideControls?: boolean
-    urlSync?: boolean
 }
 
 export function parseConfig(raw: Record<string, string>): CausesOfDeathConfig {
@@ -16,6 +15,5 @@ export function parseConfig(raw: Record<string, string>): CausesOfDeathConfig {
         ageGroup: raw.ageGroup,
         year: parseNumber(raw.year),
         hideControls: parseBoolean(raw.hideControls),
-        urlSync: parseBoolean(raw.urlSync),
     }
 }
