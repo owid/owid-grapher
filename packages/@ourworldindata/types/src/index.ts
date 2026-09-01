@@ -458,6 +458,24 @@ export {
     type DbPlainChartXEntity,
 } from "./dbTypes/ChartsXEntities.js"
 export {
+    CommentsTableName,
+    CommentTargetType,
+    type CommentTarget,
+    type CommentViewState,
+    type DbInsertComment,
+    type DbRawComment,
+    type DbEnrichedComment,
+    type CommentWithAuthor,
+    AGENT_MENTION,
+    invokesAgent,
+    findMentionedCandidates,
+    type MentionCandidate,
+    parseCommentViewState,
+    serializeCommentViewState,
+    parseCommentRow,
+    serializeCommentRow,
+} from "./dbTypes/Comments.js"
+export {
     type DbPlainDatapage,
     DatapagesTableName,
 } from "./dbTypes/Datapages.js"
@@ -509,6 +527,9 @@ export {
     type DbPlainJob,
     type JobState,
     type JobType,
+    type JobPayload,
+    type ExplorerRefreshJobPayload,
+    type CommentAgentJobPayload,
     JobsTableName,
 } from "./dbTypes/Jobs.js"
 export {

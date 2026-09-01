@@ -69,6 +69,7 @@
         "@algolia/client-common": "^5.57.0",
         "@algolia/requester-fetch": "^5.57.0",
         "@ant-design/icons": "^6.3.2",
+        "@anthropic-ai/sdk": "^0.117.1",
         "@aws-sdk/client-s3": "^3.1089.0",
         "@codemirror/commands": "^6.10.4",
         "@codemirror/lang-markdown": "^6.5.2",

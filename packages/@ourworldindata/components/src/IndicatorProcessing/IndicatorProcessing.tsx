@@ -38,7 +38,12 @@ export const IndicatorProcessing = (props: IndicatorProcessingProps) => {
                     <h5 className="indicator-processing-callout__title">
                         Notes on our processing step for this indicator
                     </h5>
-                    <div className="indicator-processing-callout__content">
+                    <div
+                        className="indicator-processing-callout__content"
+                        // Lets the admin's commenting overlay find this field.
+                        // Inert everywhere else.
+                        data-comment-field="descriptionProcessing"
+                    >
                         <SimpleMarkdownText
                             text={props.descriptionProcessing.trim()}
                         />

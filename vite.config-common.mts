@@ -52,6 +52,23 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                 "./loadDotenv.js": "./loadDotenv.browser.js",
             },
         },
+        experimental: {
+            // A dynamically imported module is the one url vite has to resolve
+            // in the browser rather than write into the html, and it builds it
+            // from `base`. Our bundles are served from a path prefix (/assets,
+            // /assets-admin, ...) that isn't the build output root, so those
+            // urls came out missing the prefix and 404ed. Name the prefix here
+            // instead of moving `base`, which would also rewrite the urls of
+            // every asset on every page.
+            //
+            // Public files are exempt: they aren't copied into the bundle (see
+            // build.copyPublicDir) and are served from the site root, so
+            // returning undefined leaves their absolute urls alone.
+            renderBuiltUrl: (filename, { type }) =>
+                type === "public"
+                    ? undefined
+                    : `/${entrypointInfo.outDir}/${filename}`,
+        },
         build: {
             manifest: true, // creates a manifest.json file, which we use to determine which files to load in prod
             emptyOutDir: true,
