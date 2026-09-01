@@ -3104,7 +3104,7 @@ describe("adjustStateForTab", () => {
     })
 })
 
-describe("relative mode with an unavailable facet strategy (issue #4874)", () => {
+describe("relative mode follows the facet strategy in effect", () => {
     const makeStackedDiscreteBarGrapher = (): GrapherState => {
         const table = SynthesizeGDPTable(
             { entityCount: 4, timeRange: [2000, 2010] },
@@ -3154,12 +3154,71 @@ describe("relative mode with an unavailable facet strategy (issue #4874)", () =>
         expect(grapher.isRelativeMode).toBe(false)
     })
 
-    it("resolves the relative toggle on a stacked area chart without a MobX cycle", () => {
+    const makeStackedAreaGrapher = (
+        numSelectedEntities: number
+    ): GrapherState => {
         const table = SynthesizeGDPTable(
             { entityCount: 4, timeRange: [2000, 2010] },
             1
         )
-        const grapher = new GrapherState({
+        return new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.StackedArea],
+            hideRelativeToggle: false,
+            selectedEntityNames: table.availableEntityNames.slice(
+                0,
+                numSelectedEntities
+            ),
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+            ],
+        })
+    }
+
+    it("resolves the relative toggle on a stacked area chart without a MobX cycle", () => {
+        const grapher = makeStackedAreaGrapher(4)
+        grapher.selectedFacetStrategy = FacetStrategy.metric
+        grapher.stackMode = StackMode.relative
+
+        expect(grapher.availableFacetStrategies).not.toContain(
+            FacetStrategy.metric
+        )
+        expect(grapher.facetStrategy).toEqual(FacetStrategy.none)
+        expect(grapher.canToggleRelativeMode).toBe(true)
+        expect(grapher.isRelativeMode).toBe(true)
+    })
+
+    it("keeps relative mode for a single selected entity when facet=metric isn't offered", () => {
+        const grapher = makeStackedAreaGrapher(1)
+        grapher.selectedFacetStrategy = FacetStrategy.metric
+        grapher.stackMode = StackMode.relative
+
+        expect(grapher.availableFacetStrategies).not.toContain(
+            FacetStrategy.metric
+        )
+        expect(grapher.facetStrategy).toEqual(FacetStrategy.none)
+        expect(grapher.canToggleRelativeMode).toBe(true)
+        expect(grapher.isRelativeMode).toBe(true)
+    })
+
+    const makeStackedAreaPercentagesGrapher = (): GrapherState => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 4, timeRange: [2000, 2010] },
+            1
+        ).updateDefs((def) => {
+            // A Currency column reports "$" whatever its def says
+            if (
+                def.slug === SampleColumnSlugs.GDP ||
+                def.slug === SampleColumnSlugs.Population
+            )
+                def.type = ColumnTypeNames.Percentage
+            return def
+        })
+        return new GrapherState({
             table,
             chartTypes: [GRAPHER_CHART_TYPES.StackedArea],
             hideRelativeToggle: false,
@@ -3170,38 +3229,26 @@ describe("relative mode with an unavailable facet strategy (issue #4874)", () =>
                     property: DimensionProperty.y,
                     variableId: 1,
                 },
+                {
+                    slug: SampleColumnSlugs.Population,
+                    property: DimensionProperty.y,
+                    variableId: 2,
+                },
             ],
         })
-        grapher.selectedFacetStrategy = FacetStrategy.metric
+    }
+
+    it("never offers facet=metric for percentages, so relative mode survives it", () => {
+        const grapher = makeStackedAreaPercentagesGrapher()
         grapher.stackMode = StackMode.relative
 
         expect(grapher.availableFacetStrategies).not.toContain(
             FacetStrategy.metric
         )
-        expect(grapher.canToggleRelativeMode).toBe(true)
-        expect(grapher.isRelativeMode).toBe(true)
-    })
 
-    it("resolves the relative toggle on a line chart without a MobX cycle", () => {
-        const table = SynthesizeGDPTable(
-            { entityCount: 4, timeRange: [2000, 2010] },
-            1
-        )
-        const grapher = new GrapherState({
-            table,
-            chartTypes: [GRAPHER_CHART_TYPES.LineChart],
-            hideRelativeToggle: false,
-            selectedEntityNames: [...table.availableEntityNames],
-            dimensions: [
-                {
-                    slug: SampleColumnSlugs.GDP,
-                    property: DimensionProperty.y,
-                    variableId: 1,
-                },
-            ],
-        })
-        grapher.stackMode = StackMode.relative
+        grapher.selectedFacetStrategy = FacetStrategy.metric
 
+        expect(grapher.facetStrategy).toEqual(FacetStrategy.entity)
         expect(grapher.canToggleRelativeMode).toBe(true)
         expect(grapher.isRelativeMode).toBe(true)
     })
