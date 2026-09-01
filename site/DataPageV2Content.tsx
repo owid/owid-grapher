@@ -62,6 +62,7 @@ function DataPageDownloadSection({
 
 export const DataPageV2Content = ({
     datapageData,
+    topicArea,
     grapherConfig,
     isPreviewing = false,
     faqEntries,
@@ -164,7 +165,7 @@ export const DataPageV2Content = ({
                                     datapageData={datapageData}
                                     hasFaq={!!faqEntries?.faqs.length}
                                     id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
-                                    topicArea={datapageData.topicArea}
+                                    topicArea={topicArea}
                                 />
                             )}
                         </div>
@@ -182,7 +183,7 @@ export const DataPageV2Content = ({
                             // The right rail beside the metadata box.
                             <TopicNewsletterCard
                                 pageType="chart"
-                                topicArea={datapageData.topicArea}
+                                topicArea={topicArea}
                                 variant="narrow"
                                 className="topic-newsletter-card--datapage-metadata col-start-11 span-cols-3 col-md-start-2 span-md-cols-12"
                             />
