@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react"
 import * as React from "react"
 import { useMutation } from "@tanstack/react-query"
-import { EmailNotificationsSubscribeRequest } from "@ourworldindata/types"
+import {
+    EmailNotificationsSubscribeRequest,
+    LatestUrlParam,
+} from "@ourworldindata/types"
 import { getWindowUrl, setWindowUrl } from "@ourworldindata/utils"
 import { Button, Checkbox, TextInput } from "@ourworldindata/components"
 import { SiteAnalytics } from "../SiteAnalytics.js"
@@ -11,11 +14,8 @@ import {
     getErrorMessage,
     throwIfApiError,
 } from "./emailNotificationsApi.js"
-import {
-    TOPICS_QUERY_PARAM,
-    topicAreasFromSearchParams,
-    useNotificationPreferences,
-} from "./useNotificationPreferences.js"
+import { topicAreasFromSearchParams } from "../search/searchUtils.js"
+import { useNotificationPreferences } from "./useNotificationPreferences.js"
 
 const analytics = new SiteAnalytics()
 
@@ -98,7 +98,9 @@ export const EmailNotificationsSubscribeForm = ({
         )
         if (!topicAreas.length) return
         setTopicTags(topicAreas)
-        setWindowUrl(url.updateQueryParams({ [TOPICS_QUERY_PARAM]: undefined }))
+        setWindowUrl(
+            url.updateQueryParams({ [LatestUrlParam.TOPICS]: undefined })
+        )
     }, [topicAreaNames, setTopicTags])
 
     const subscribe = useMutation({

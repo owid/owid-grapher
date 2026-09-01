@@ -27,8 +27,6 @@ export default function AboutThisData({
     hasFaq: boolean
     className?: string
     id?: string
-    // A prop, not a datapageData field: multi-dim pages rebuild datapageData
-    // client-side on every view switch.
     topicArea?: string
 }) {
     const hasDescriptionKey = !!datapageData.descriptionKey
