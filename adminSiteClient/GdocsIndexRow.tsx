@@ -23,7 +23,7 @@ import {
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { EditableTags } from "./EditableTags.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
-import { checkCanTagGdocType } from "./GdocsTags.js"
+import { checkCanTagGdocType } from "./gdocsTagging.js"
 import { Link } from "./Link.js"
 
 const iconGdocTypeMap = {

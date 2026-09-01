@@ -1,22 +1,12 @@
-import {
-    DbChartTagJoin,
-    MinimalTag,
-    OwidGdoc,
-    OwidGdocType,
-} from "@ourworldindata/utils"
+import { useEffect, useRef, useState } from "react"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faCheck } from "@fortawesome/free-solid-svg-icons"
+import { DbChartTagJoin, MinimalTag, OwidGdoc } from "@ourworldindata/utils"
 import { EditableTags } from "./EditableTags.js"
+import { checkCanTagGdocType } from "./gdocsTagging.js"
 import { useTags } from "./tagQueries.js"
 
-const UNTAGGABLE_GDOC_TYPES = [
-    OwidGdocType.AboutPage,
-    OwidGdocType.Author,
-    OwidGdocType.Fragment,
-    OwidGdocType.Homepage,
-]
-
-export function checkCanTagGdocType(type: OwidGdocType | undefined): boolean {
-    return !!type && !UNTAGGABLE_GDOC_TYPES.includes(type)
-}
+const SAVED_INDICATOR_DURATION_MS = 2500
 
 export const GdocsTags = ({
     gdoc,
@@ -26,10 +16,19 @@ export const GdocsTags = ({
     onSaveTags: (tags: MinimalTag[]) => Promise<void>
 }) => {
     const { data: availableTags } = useTags()
+    // Incremented on every save; keys the indicator so its fade-out restarts
+    const [saveCount, setSaveCount] = useState(0)
+    const [showSaved, setShowSaved] = useState(false)
+    const savedTimeoutRef = useRef<number>(undefined)
+
+    useEffect(() => () => window.clearTimeout(savedTimeoutRef.current), [])
 
     if (!checkCanTagGdocType(gdoc.content.type)) return null
 
-    const suggestions = availableTags ?? []
+    // Tag badges need the tag graph metadata to render
+    if (!availableTags) return null
+
+    const suggestions = availableTags
 
     const handleSave = async (tags: DbChartTagJoin[]): Promise<void> => {
         const suggestionsById = new Map(suggestions.map((tag) => [tag.id, tag]))
@@ -38,16 +37,29 @@ export const GdocsTags = ({
                 .map((tag) => suggestionsById.get(tag.id))
                 .filter((tag) => tag !== undefined)
         )
+        setSaveCount((count) => count + 1)
+        setShowSaved(true)
+        window.clearTimeout(savedTimeoutRef.current)
+        savedTimeoutRef.current = window.setTimeout(
+            () => setShowSaved(false),
+            SAVED_INDICATOR_DURATION_MS
+        )
     }
 
     return (
         <div className="form-group">
-            <h3 className="form-section-heading">Tags</h3>
+            <h3 className="form-section-heading">
+                Tags
+                {showSaved && (
+                    <span key={saveCount} className="GdocsTags__saved">
+                        <FontAwesomeIcon icon={faCheck} /> Saved!
+                    </span>
+                )}
+            </h3>
             <EditableTags
                 tags={gdoc.tags ?? []}
                 onSave={handleSave}
                 suggestions={suggestions}
-                disabled={!availableTags}
             />
             <p className="form-text text-muted">
                 Tags are saved immediately. Without any topic tags, this
