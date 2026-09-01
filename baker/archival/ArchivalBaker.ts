@@ -1274,7 +1274,7 @@ export const bakeMultiDimDataPageForArchival = async (
 
     await bakeSingleMultiDimDataPageForArchival(dir, slug, config, trx, {
         imageMetadataDictionary,
-        topicAreaLookup,
+        topicAreaNamesByTagName: topicAreaLookup.byTagName,
         manifest,
         archiveInfo,
     })

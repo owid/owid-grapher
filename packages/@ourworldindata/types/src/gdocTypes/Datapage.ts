@@ -34,8 +34,6 @@ export interface DataPageDataV2 {
     attributionShort?: string
     topicTagsLinks?: string[]
     primaryTopic?: PrimaryTopic
-    /** Top-level topic area, resolved at bake time from the tag graph. */
-    topicArea?: string
     attributions: string[]
     description?: string
     descriptionShort?: string
@@ -78,6 +76,8 @@ export type Distribution =
 
 export interface DataPageV2ContentFields {
     datapageData: DataPageDataV2
+    /** Top-level topic area, resolved at bake time from the tag graph. */
+    topicArea?: string
     faqEntries: FaqEntryData | undefined
     // TODO: add gdocs for FAQs
     isPreviewing?: boolean

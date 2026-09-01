@@ -18,6 +18,7 @@ import {
     ChartRecordType,
     SearchChartHit,
     SearchUrlParam,
+    LatestUrlParam,
     SynonymMap,
     Ngram,
     WordPositioned,
@@ -419,6 +420,21 @@ export function serializeSet(set: Set<string>) {
 
 export function deserializeSet(str: string | null): Set<string> {
     return str ? new Set(str.split("~")) : new Set()
+}
+
+/**
+ * Area names from the shared `?topics=` param (`~`-separated; /search, /latest
+ * and /subscribe all read it), dropping names not in `topicAreaNames`.
+ */
+export function topicAreasFromSearchParams(
+    searchParams: URLSearchParams,
+    topicAreaNames: string[]
+): string[] {
+    return [
+        ...deserializeSet(searchParams.get(LatestUrlParam.TOPICS)).intersection(
+            new Set(topicAreaNames)
+        ),
+    ]
 }
 
 export const getFilterIcon = (filter: Filter) => {

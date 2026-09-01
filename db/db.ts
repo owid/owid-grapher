@@ -633,11 +633,13 @@ export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
 // a single array of unique parent tag names, including the original tags if they are topics.
 export async function getTagHierarchiesByChildName(
     trx: KnexReadonlyTransaction,
-    includeAreasAndTopicsOnly: boolean = false
+    includeAreasAndTopicsOnly: boolean = false,
+    flatTagGraphWithRootId?: FlatTagGraph & { __rootId: number }
 ): Promise<
     Record<DbPlainTag["name"], Pick<DbPlainTag, "id" | "name" | "slug">[][]>
 > {
-    const { __rootId, ...flatTagGraph } = await getFlatTagGraph(trx)
+    const { __rootId, ...flatTagGraph } =
+        flatTagGraphWithRootId ?? (await getFlatTagGraph(trx))
     const areaAndTopicTagNames = await getAllAreaAndTopicTagNames(trx)
     const tagGraph = createTagGraph(flatTagGraph, __rootId)
     const tagsById = await trx<DbPlainTag>("tags")
@@ -689,10 +691,11 @@ export async function getTagHierarchiesByChildName(
 }
 
 export const getTopicHierarchiesByChildName = (
-    trx: KnexReadonlyTransaction
+    trx: KnexReadonlyTransaction,
+    flatTagGraphWithRootId?: FlatTagGraph & { __rootId: number }
 ): Promise<
     Record<DbPlainTag["name"], Pick<DbPlainTag, "id" | "name" | "slug">[][]>
-> => getTagHierarchiesByChildName(trx, true)
+> => getTagHierarchiesByChildName(trx, true, flatTagGraphWithRootId)
 
 /**
  * Collapse `getTagHierarchiesByChildName` output into `tag name -> area name`.
@@ -716,10 +719,21 @@ export function topicAreaNamesFromTagHierarchies(
 
 /** The top-level areas of the tag graph, in `weight DESC, name ASC` order. */
 export async function getTopicAreaNames(
-    trx: KnexReadonlyTransaction
+    trx: KnexReadonlyTransaction,
+    flatTagGraphWithRootId?: FlatTagGraph & { __rootId: number }
 ): Promise<string[]> {
-    const { __rootId, ...flatTagGraph } = await getFlatTagGraph(trx)
+    const { __rootId, ...flatTagGraph } =
+        flatTagGraphWithRootId ?? (await getFlatTagGraph(trx))
     return (flatTagGraph[__rootId] ?? []).map(({ name }) => name)
+}
+
+/** `tag name -> area name`, for pages that resolve their area from topic tags alone. */
+export async function getTopicAreaNamesByTagName(
+    trx: KnexReadonlyTransaction
+): Promise<Record<string, string>> {
+    return topicAreaNamesFromTagHierarchies(
+        await getTopicHierarchiesByChildName(trx)
+    )
 }
 
 /**
@@ -766,10 +780,11 @@ export async function getTopicAreaLookup(
     trx: KnexReadonlyTransaction,
     chartIds?: number[]
 ): Promise<TopicAreaLookup> {
+    const flatTagGraph = await getFlatTagGraph(trx)
     const byTagName = topicAreaNamesFromTagHierarchies(
-        await getTopicHierarchiesByChildName(trx)
+        await getTopicHierarchiesByChildName(trx, flatTagGraph)
     )
-    const areaNames = await getTopicAreaNames(trx)
+    const areaNames = await getTopicAreaNames(trx, flatTagGraph)
     const byChartId = await getTopicAreaNamesByChartId(
         trx,
         byTagName,
@@ -844,10 +859,11 @@ export async function getTopicAreaNamesByChartId(
         const rank = areaRankByName.get(areaNamesByTagName[tagName])
         if (rank === undefined) continue
         const best = bestRankByChartId.get(chartId)
-        if (best !== undefined && best <= rank) continue
-        bestRankByChartId.set(chartId, rank)
-        areaNamesByChartId[chartId] = areaNames[rank]
+        if (best === undefined || rank < best)
+            bestRankByChartId.set(chartId, rank)
     }
+    for (const [chartId, rank] of bestRankByChartId)
+        areaNamesByChartId[chartId] = areaNames[rank]
 
     return areaNamesByChartId
 }
