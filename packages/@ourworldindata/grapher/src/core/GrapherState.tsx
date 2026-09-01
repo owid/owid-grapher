@@ -2051,8 +2051,9 @@ export class GrapherState
         // No-op if the current tab is a map or table tab
         if (!isChartTab(tab)) return
 
-        // Don't modify the selection for unusual scatters
-        if (this.isOnTimeScatterTab || this.isOnConnectedScatterTab) return
+        // Don't modify the selection for time scatters or primary scatter plots
+        if (this.isOnTimeScatterTab || (this.isOnScatterTab && this.isScatter))
+            return
 
         const isChartTypeThatShowsAllEntities =
             this.isChartTypeThatShowsAllEntities(tab)
@@ -2075,10 +2076,16 @@ export class GrapherState
         }
     }
 
+    /** Call after `setTab`, so that `activeTab` is already the given tab */
     @action.bound adjustStateForTab(tab: GrapherTabName): void {
         if (!this.isReady)
             console.warn(
                 "adjustStateForTab has been called before grapher has loaded its data, this is probably a mistake"
+            )
+
+        if (tab !== this.activeTab)
+            console.warn(
+                `adjustStateForTab has been called with ${tab} while the active tab is ${this.activeTab}; call setTab first, since the adjustments read the active tab`
             )
 
         // Skip in the editor: these adjustments mutate the entity selection
