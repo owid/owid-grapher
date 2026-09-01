@@ -8,6 +8,7 @@
 /** How the surrounding page embeds a bespoke component */
 export interface EmbedConfig {
     urlSync: boolean
+    hideMetadataModal: boolean
 }
 
 /** Props a variant component takes: its parsed config, embed flags included */
@@ -42,5 +43,8 @@ export function parseEnum<T extends string>(
 }
 
 export function parseEmbedConfig(raw: Record<string, string>): EmbedConfig {
-    return { urlSync: parseBoolean(raw.urlSync) }
+    return {
+        urlSync: parseBoolean(raw.urlSync),
+        hideMetadataModal: parseBoolean(raw.hideMetadataModal),
+    }
 }
