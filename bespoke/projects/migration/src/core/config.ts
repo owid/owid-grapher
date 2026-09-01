@@ -14,7 +14,6 @@ export interface SankeyVariantConfig {
     sex?: Sex
     year?: number
     flow?: MigrationView
-    urlSync?: boolean
 }
 
 export function parseConfig(raw: Record<string, string>): SankeyVariantConfig {
@@ -27,6 +26,5 @@ export function parseConfig(raw: Record<string, string>): SankeyVariantConfig {
         sex: parseEnum(raw.sex, SEXES),
         year: parseNumber(raw.year),
         flow: parseEnum(raw.flow, MIGRATION_VIEWS),
-        urlSync: parseBoolean(raw.urlSync),
     }
 }
