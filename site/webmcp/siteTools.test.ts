@@ -1,5 +1,5 @@
 import { expect, it, describe } from "vitest"
-import { rankHitsByEntityCoverage } from "./siteTools.js"
+import { rankHitsByEntityCoverage, validateSlug } from "./siteTools.js"
 
 // Shaped after the real /api/search response for "infant mortality", where the
 // actual infant-mortality chart ranks third behind two child/youth mortality
@@ -63,5 +63,25 @@ describe(rankHitsByEntityCoverage, () => {
             ["Czechia"]
         )
         expect(ranked[0].missing).toEqual(["Czechia"])
+    })
+})
+
+describe(validateSlug, () => {
+    it("accepts a real slug", () => {
+        expect(validateSlug("co-emissions-per-capita")).toBeUndefined()
+        expect(validateSlug("co2")).toBeUndefined()
+    })
+
+    it("rejects the filename an agent produces when it wants an image", () => {
+        // v1 accepted this and navigated the tab to a PNG, unloading every tool.
+        const error = validateSlug("co-emissions-per-capita.png")
+        expect(error).toContain("is a file, not a chart slug")
+    })
+
+    it("rejects other non-slugs without pretending they are files", () => {
+        expect(validateSlug("https://example.com/x")).toContain(
+            "not a valid chart slug"
+        )
+        expect(validateSlug("some slug")).toContain("not a valid chart slug")
     })
 })

@@ -39,6 +39,10 @@ describe("grapher WebMCP tools", () => {
     it("registers the expected tool set", () => {
         expect([...tools.keys()].sort()).toEqual([
             "add_entities",
+            "download_chart_data",
+            "get_chart_data",
+            "get_chart_image_url",
+            "get_chart_metadata",
             "get_chart_state",
             "list_chart_entities",
             "select_entities",
@@ -167,6 +171,45 @@ describe("grapher WebMCP tools", () => {
         it("requires at least one bound", async () => {
             const result = await call("set_time_range", {})
             expect(result).toContain("Nothing was changed")
+        })
+    })
+
+    describe("get_chart_data", () => {
+        it("returns real values as CSV, not a description of them", async () => {
+            // The tool exists because without it an agent answers numeric
+            // questions from memory; the trace showed exactly that.
+            const result = await call("get_chart_data")
+            expect(result).toContain("Entity")
+            expect(result).toMatch(/\d/)
+            expect(result.split("\n").length).toBeGreaterThan(1)
+        })
+
+        it("truncates rather than dumping an unbounded table", async () => {
+            const result = await call("get_chart_data")
+            const rows = result.split("\n").length
+            expect(rows).toBeLessThan(500)
+        })
+    })
+
+    describe("get_chart_metadata", () => {
+        it("reports the chart identity and its sources", async () => {
+            const result = await call("get_chart_metadata")
+            expect(result).toContain("Chart:")
+            expect(result).toContain("Sources:")
+        })
+    })
+
+    describe("get_chart_image_url", () => {
+        it("declines when the chart has no public URL", async () => {
+            // A synthetic chart is unpublished, so there is nothing to link.
+            const result = await call("get_chart_image_url")
+            expect(result).toContain("no public URL")
+        })
+
+        it("never navigates", async () => {
+            const before = globalThis.location?.href
+            await call("get_chart_image_url", { format: "svg" })
+            expect(globalThis.location?.href).toBe(before)
         })
     })
 

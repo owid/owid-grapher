@@ -123,6 +123,11 @@ export {
     registerGrapherTools,
     matchEntities,
 } from "./webmcp/grapherTools.js"
+export {
+    isPrimaryChartPage,
+    claimDocumentTools,
+    resetDocumentToolClaim,
+} from "./webmcp/webmcpPage.js"
 export { FocusArray } from "./focus/FocusArray"
 export {
     setSelectedEntityNamesParam,

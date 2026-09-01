@@ -2,6 +2,10 @@ import { GRAPHER_TAB_NAMES, GrapherTabName } from "@ourworldindata/types"
 import { GrapherState } from "../core/GrapherState.js"
 import { WebMcpTool, registerTools, toolResult } from "./webmcpTypes.js"
 
+/** Rows of CSV handed to an agent before we truncate. Keeps a broad selection
+ *  from swamping the model's context; agents that want everything get the URL. */
+const MAX_DATA_ROWS = 400
+
 /**
  * WebMCP tools for a single Grapher chart.
  *
@@ -309,6 +313,147 @@ export function buildGrapherTools(grapherState: GrapherState): WebMcpTool[] {
                     )
                 grapherState.setTab(requested)
                 return toolResult(`Switched to the ${requested} view.`)
+            },
+        },
+        {
+            name: "get_chart_data",
+            description:
+                "Read the actual data values behind the chart on this page, as CSV, " +
+                "for the entities and time range currently shown. ALWAYS call this " +
+                "before stating any number, trend, or comparison — do not answer " +
+                "from memory, because the figures you recall may not match this " +
+                "chart's source, units, or revision.",
+            inputSchema: { type: "object", properties: {} },
+            execute: async () => {
+                const table = grapherState.tableForDownload
+                if (!table || table.numRows === 0)
+                    return toolResult(
+                        "No data is loaded for this chart yet. Wait a moment and try again."
+                    )
+                const csv = table.toPrettyCsv()
+                const lines = csv.split("\n")
+                if (lines.length - 1 <= MAX_DATA_ROWS) return toolResult(csv)
+                const head = lines.slice(0, MAX_DATA_ROWS + 1).join("\n")
+                return toolResult(
+                    `${head}\n\n[Truncated: showing ${MAX_DATA_ROWS} of ${lines.length - 1} rows. ` +
+                        `Narrow the selection with select_entities or set_time_range, ` +
+                        `or use download_chart_data for the complete file.]`
+                )
+            },
+        },
+
+        {
+            name: "get_chart_metadata",
+            description:
+                "Read this chart's sources, units, and Our World in Data's own " +
+                "curated notes about how the data should and should not be " +
+                "interpreted. Call this before explaining what a chart means or " +
+                "why values differ between countries — these caveats are written " +
+                "by the researchers who assembled the data.",
+            inputSchema: { type: "object", properties: {} },
+            execute: async () => {
+                const columns = grapherState.yColumnsFromDimensionsOrSlugsOrAuto
+                const parts: string[] = [
+                    `Chart: ${grapherState.title ?? grapherState.displaySlug}`,
+                ]
+                if (grapherState.subtitle)
+                    parts.push(`Subtitle: ${grapherState.subtitle}`)
+                if (grapherState.note) parts.push(`Note: ${grapherState.note}`)
+                parts.push(
+                    `Sources: ${grapherState.sourcesLine || "(not stated)"}`
+                )
+                if (grapherState.baseUrl)
+                    parts.push(`Canonical URL: ${grapherState.baseUrl}`)
+
+                for (const column of columns) {
+                    const def: any = column.def ?? {}
+                    const lines = [`\nIndicator: ${column.displayName}`]
+                    if (column.unit) lines.push(`  Unit: ${column.unit}`)
+                    if (def.descriptionShort)
+                        lines.push(`  Description: ${def.descriptionShort}`)
+                    if (def.descriptionKey)
+                        lines.push(
+                            `  Key information from OWID researchers: ${def.descriptionKey}`
+                        )
+                    if (def.descriptionProcessing)
+                        lines.push(
+                            `  How OWID processed this: ${def.descriptionProcessing}`
+                        )
+                    parts.push(lines.join("\n"))
+                }
+                return toolResult(parts.join("\n"))
+            },
+        },
+
+        {
+            name: "get_chart_image_url",
+            description:
+                "Get a URL for a static PNG or SVG image of the chart as it is " +
+                "currently configured, for embedding in a reply or sharing. This " +
+                "returns a link only — it does NOT navigate the page. Never " +
+                "navigate the tab to an image: doing so unloads the chart and all " +
+                "of these tools stop working.",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    format: {
+                        type: "string",
+                        enum: ["png", "svg"],
+                        description: "Image format, defaults to png",
+                    },
+                },
+            },
+            execute: async ({ format }: { format?: string }) => {
+                const base = grapherState.baseUrl
+                if (!base)
+                    return toolResult(
+                        "This chart has no public URL, so no image can be linked."
+                    )
+                const extension = format === "svg" ? "svg" : "png"
+                return toolResult(
+                    `${base}.${extension}${grapherState.queryStr}\n\n` +
+                        `This image reflects the current selection and time range. ` +
+                        `Present it as a link or an image; do not navigate to it.`
+                )
+            },
+        },
+
+        {
+            name: "download_chart_data",
+            description:
+                "Give the user a download link for this chart's data as a CSV " +
+                "file, covering the entities and time range currently shown. Use " +
+                "when the user asks to download, export, or save the data.",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    scope: {
+                        type: "string",
+                        enum: ["shown", "full"],
+                        description:
+                            "'shown' (default) respects the current selection and time range; " +
+                            "'full' downloads every entity and year on the chart",
+                    },
+                },
+            },
+            execute: async ({ scope }: { scope?: string }) => {
+                const base = grapherState.baseUrl
+                if (!base)
+                    return toolResult(
+                        "This chart has no public URL, so no download can be linked."
+                    )
+                const filtered = scope !== "full"
+                const params = new URLSearchParams(
+                    grapherState.queryStr.replace(/^\?/, "")
+                )
+                params.set("csvType", filtered ? "filtered" : "full")
+                params.set("useColumnShortNames", "true")
+                const query = params.toString().replaceAll("%7E", "~")
+                return toolResult(
+                    `${base}.csv?${query}\n\n` +
+                        `CSV covering ${filtered ? "the current selection and time range" : "the full chart"}. ` +
+                        `Offer this to the user as a download link.`
+                )
             },
         },
     ]

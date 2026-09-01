@@ -33,7 +33,7 @@ interface SearchHit {
     availableEntities?: string[]
 }
 
-const SEARCH_RESULT_LIMIT = 8
+const SEARCH_RESULT_LIMIT = 4
 
 async function searchCharts(
     query: string,
@@ -76,18 +76,37 @@ export function rankHitsByEntityCoverage(
 
 const describeHit = (
     { hit, missing }: { hit: SearchHit; missing: string[] },
-    entities: string[]
+    /**
+     * Only annotate coverage when it actually separates the candidates. In the
+     * common case every hit carries the requested entities — "Germany" is on
+     * almost every chart — and a column of identical "has all requested
+     * entities" notes is noise the model has to read past.
+     */
+    coverageDiscriminates: boolean
 ): string => {
     const name = hit.variantName
         ? `${hit.title} (${hit.variantName})`
         : hit.title
-    const coverage = !entities.length
-        ? ""
-        : missing.length
-          ? ` — does NOT have: ${missing.join(", ")}`
-          : ` — has all requested entities`
+    const coverage =
+        coverageDiscriminates && missing.length
+            ? ` — MISSING: ${missing.join(", ")}`
+            : ""
     const subtitle = hit.subtitle ? ` ${hit.subtitle}` : ""
     return `slug: ${hit.slug} | ${name}${coverage}\n   ${subtitle}`.trimEnd()
+}
+
+/** A slug, not a filename or a URL. `co-emissions-per-capita.png` is the shape
+ *  an agent produces when it wants an image, and v1 happily navigated to it. */
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/i
+
+export function validateSlug(slug: string): string | undefined {
+    if (SLUG_PATTERN.test(slug)) return undefined
+    if (/\.(png|svg|csv|json|zip)$/i.test(slug))
+        return (
+            `"${slug}" is a file, not a chart slug. Drop the extension and use ` +
+            `the chart's own tools for images or downloads.`
+        )
+    return `"${slug}" is not a valid chart slug. Use one returned by find_chart.`
 }
 
 export function buildSiteTools(): WebMcpTool[] {
@@ -131,13 +150,20 @@ export function buildSiteTools(): WebMcpTool[] {
                     0,
                     SEARCH_RESULT_LIMIT
                 )
+                const coverageDiscriminates =
+                    entities.length > 0 &&
+                    ranked.some(({ missing }) => missing.length > 0) &&
+                    ranked.some(({ missing }) => missing.length === 0)
                 const lines = ranked.map((entry) =>
-                    describeHit(entry, entities)
+                    describeHit(entry, coverageDiscriminates)
                 )
                 return toolResult(
-                    `Charts matching "${query}" (best first — check the titles carefully, ` +
-                        `OWID has several similar charts on most topics):\n\n${lines.join("\n")}\n\n` +
-                        `Use open_chart with one of these slugs.`
+                    `Charts matching "${query}":\n\n${lines.join("\n")}\n\n` +
+                        `OWID has several similar charts on most topics and these titles ` +
+                        `differ in ways that matter — "child mortality" is not "infant ` +
+                        `mortality". If more than one plausibly fits, ask the user which ` +
+                        `they meant rather than picking for them. Then use open_chart. ` +
+                        `If the user wants to browse rather than see one chart, use open_search.`
                 )
             },
         },
@@ -178,6 +204,21 @@ export function buildSiteTools(): WebMcpTool[] {
                 startYear?: number
                 endYear?: number
             }) => {
+                const slugError = validateSlug(slug)
+                if (slugError)
+                    return toolResult(`${slugError} Nothing was changed.`)
+
+                // Navigation unloads the page and every tool registered on it,
+                // so it is reserved for actually changing chart. Adjusting the
+                // chart already on screen belongs to that chart's own tools.
+                if (window.location.pathname === `/grapher/${slug}`)
+                    return toolResult(
+                        `You are already on the "${slug}" chart. Do not navigate — ` +
+                            `use this page's own tools (select_entities, add_entities, ` +
+                            `set_time_range, set_chart_view) to change what it shows, ` +
+                            `and get_chart_state to see what it is showing now.`
+                    )
+
                 const params = new URLSearchParams()
                 if (entities?.length)
                     params.set(
@@ -195,6 +236,50 @@ export function buildSiteTools(): WebMcpTool[] {
                 return toolResult(
                     `Opening ${url}. Once the chart loads, use get_chart_state to see ` +
                         `what it is showing and the chart's tools to adjust it.`
+                )
+            },
+        },
+        {
+            name: "open_search",
+            description:
+                "Open Our World in Data's search results page for a topic, so the " +
+                "user can browse everything we have on it. Use this when the user " +
+                "wants to explore or search a subject rather than see one specific " +
+                "chart — 'search for population density', 'what do you have on " +
+                "malaria'. Prefer this over picking a single chart for them.",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    query: {
+                        type: "string",
+                        description: "Search terms, e.g. 'population density'",
+                    },
+                    resultType: {
+                        type: "string",
+                        enum: ["all", "data", "writing"],
+                        description:
+                            "'data' for charts and indicators, 'writing' for articles, " +
+                            "'all' (default) for both",
+                    },
+                },
+                required: ["query"],
+            },
+            execute: async ({
+                query,
+                resultType,
+            }: {
+                query: string
+                resultType?: string
+            }) => {
+                const params = new URLSearchParams({
+                    q: query,
+                    resultType: resultType ?? "all",
+                })
+                const url = `/search?${params.toString()}`
+                window.location.assign(url)
+                return toolResult(
+                    `Opening the search results for "${query}" at ${url}. ` +
+                        `The user can browse the results themselves from here.`
                 )
             },
         },
