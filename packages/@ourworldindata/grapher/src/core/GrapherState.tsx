@@ -227,7 +227,7 @@ import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants.
 import { ShareMenuManager } from "../controls/ShareMenu.js"
 import { EmbedModalManager } from "../modal/EmbedModal.js"
 import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants.js"
-import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants.js"
+import { MarimekkoChartManager } from "../marimekko/MarimekkoChartConstants.js"
 import { FacetChartManager } from "../facet/FacetChartConstants.js"
 import { EntitySelectorModalManager } from "../modal/EntitySelectorModal.js"
 import { SettingsMenuManager } from "../controls/SettingsMenu.js"
@@ -3053,7 +3053,7 @@ export class GrapherState
     }
 
     @computed get supportsMultipleYColumns(): boolean {
-        return !this.isScatter
+        return !this.isScatter && !this.isMarimekko
     }
 
     /** Time scatters plot time on the x-axis */
@@ -3532,10 +3532,7 @@ export class GrapherState
         if (
             this.isRelativeMode &&
             sortConfig.sortBy === SortBy.total &&
-            // No need to do this for Marimekko and discrete bar charts
-            // since relative mode means something else for Marimekko charts
-            // and discrete bar charts don't support relative mode
-            !this.isOnMarimekkoTab &&
+            // Discrete bar charts don't support relative mode
             !this.isOnDiscreteBarTab
         ) {
             sortConfig.sortBy = SortBy.entityName

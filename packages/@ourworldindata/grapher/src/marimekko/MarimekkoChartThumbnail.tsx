@@ -5,7 +5,11 @@ import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { MarimekkoChartState } from "./MarimekkoChartState"
 import { type MarimekkoChartProps } from "./MarimekkoChart.js"
-import { MarimekkoChartManager, PlacedItem } from "./MarimekkoChartConstants"
+import {
+    MarimekkoChartManager,
+    PlacedMarimekkoSeries,
+    RenderMarimekkoSeries,
+} from "./MarimekkoChartConstants"
 import { Bounds } from "@ourworldindata/utils"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { AxisConfig } from "../axis/AxisConfig"
@@ -16,7 +20,11 @@ import {
 } from "../core/GrapherConstants"
 import { MarimekkoBars } from "./MarimekkoBars"
 import { DualAxisComponent } from "../axis/AxisViews"
-import { toPlacedMarimekkoItems } from "./MarimekkoChartHelpers"
+import {
+    toMarimekkoNoDataArea,
+    toPlacedMarimekkoSeries,
+    toRenderMarimekkoSeries,
+} from "./MarimekkoChartHelpers"
 import { MarimekkoInternalLabels } from "./MarimekkoInternalLabels"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 
@@ -110,25 +118,37 @@ export class MarimekkoChartThumbnail
         return this.dualAxis.verticalAxis
     }
 
-    @computed get placedItems(): PlacedItem[] {
-        return toPlacedMarimekkoItems(this.chartState, {
+    @computed get placedSeries(): PlacedMarimekkoSeries[] {
+        const { x0, y0, sortedSeries } = this.chartState
+        return toPlacedMarimekkoSeries(sortedSeries, {
+            x0,
+            y0,
             dualAxis: this.dualAxis,
         })
     }
 
-    @computed private get placedItemsMap(): Map<string, PlacedItem> {
-        return new Map(this.placedItems.map((item) => [item.entityName, item]))
+    @computed private get renderSeries(): RenderMarimekkoSeries[] {
+        return toRenderMarimekkoSeries(this.placedSeries)
+    }
+
+    @computed private get placedSeriesByEntityName(): Map<
+        string,
+        PlacedMarimekkoSeries
+    > {
+        return new Map(
+            this.placedSeries.map((series) => [series.entityName, series])
+        )
     }
 
     @computed private get shouldShowLabels(): boolean {
         return this.chartState.isFocusModeActive
     }
 
-    @computed private get labelledItems(): PlacedItem[] {
+    @computed private get labelledSeries(): PlacedMarimekkoSeries[] {
         if (!this.shouldShowLabels) return []
         return this.chartState.focusArray.seriesNames
-            .map((entityName) => this.placedItemsMap.get(entityName))
-            .filter((item) => item !== undefined)
+            .map((entityName) => this.placedSeriesByEntityName.get(entityName))
+            .filter((series) => series !== undefined)
     }
 
     override render(): React.ReactElement {
@@ -145,20 +165,14 @@ export class MarimekkoChartThumbnail
             <g>
                 <DualAxisComponent dualAxis={this.dualAxis} showEndpointsOnly />
                 <MarimekkoBars
-                    dualAxis={this.dualAxis}
-                    placedItems={this.placedItems}
+                    series={this.renderSeries}
+                    noDataArea={toMarimekkoNoDataArea(this.placedSeries)}
                     fontSize={this.fontSize}
-                    x0={this.chartState.x0}
-                    y0={this.chartState.y0}
-                    selectionArray={this.chartState.selectionArray}
-                    selectedItems={this.chartState.selectedItems}
                     isFocusModeActive={this.chartState.isFocusModeActive}
                 />
                 <MarimekkoInternalLabels
-                    items={this.labelledItems}
+                    series={this.labelledSeries}
                     dualAxis={this.dualAxis}
-                    x0={this.chartState.x0}
-                    y0={this.chartState.y0}
                     fontSize={this.labelFontSize}
                     labelPadding={LABEL_PADDING}
                 />
