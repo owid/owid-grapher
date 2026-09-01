@@ -9,9 +9,6 @@ import { migrateGrapherConfigToLatestVersion } from "../schema/migrations/migrat
 import { useMaybeGlobalGrapherStateRef } from "../chart/guidedChartUtils.js"
 import { loadCatalogData } from "./loadCatalogData.js"
 import { useIsomorphicLayoutEffect } from "usehooks-ts"
-import { registerGrapherTools } from "../webmcp/grapherTools.js"
-import { isWebMcpAvailable } from "../webmcp/webmcpTypes.js"
-import { isPrimaryChartPage, claimDocumentTools } from "../webmcp/webmcpPage.js"
 
 export interface FetchingGrapherProps {
     config?: GrapherProgrammaticInterface
@@ -155,19 +152,6 @@ export function FetchingGrapher(
         props.noCache,
         grapherState,
     ])
-
-    // Expose this chart's tools to browser agents. Gated on the page being a
-    // chart page and on being the first Grapher to mount there — see
-    // webmcpPage.ts for why that is the right test rather than the render path.
-    // Tools read grapherState lazily when called, so there is no need to wait
-    // for data; only for the state object to exist.
-    React.useEffect(() => {
-        if (!isWebMcpAvailable() || !isPrimaryChartPage()) return
-        if (!claimDocumentTools()) return
-        const abortController = new AbortController()
-        void registerGrapherTools(grapherState.current, abortController.signal)
-        return (): void => abortController.abort()
-    }, [grapherState])
 
     return (
         <Grapher

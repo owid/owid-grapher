@@ -274,33 +274,46 @@ export function buildGrapherTools(grapherState: GrapherState): WebMcpTool[] {
         {
             name: "set_chart_view",
             description:
-                "Switch which view of the data is shown — the chart itself, the " +
-                "world map, or the data table. Call get_chart_state first to see " +
-                "which views this chart offers.",
+                "Switch which view of the data is shown — a line chart, the world " +
+                "map, the data table, or any other view this chart offers. Use this " +
+                "for 'show it as a line chart' or 'show me the map': many OWID " +
+                "charts open on the map, and switching view does NOT require " +
+                "navigating. Call get_chart_state to see which views are available.",
             inputSchema: {
                 type: "object",
                 properties: {
                     view: {
                         type: "string",
                         description:
-                            "One of the values listed in get_chart_state's 'Available views', " +
-                            "or the shorthand 'map', 'table', or 'chart'",
+                            "One of the values listed in get_chart_state's 'Available " +
+                            "views', or a plain name like 'line', 'line chart', 'map', " +
+                            "'table', 'slope' or 'bar'",
                     },
                 },
                 required: ["view"],
             },
             execute: async ({ view }: { view: string }) => {
                 const available = grapherState.availableTabs
+                // Tab names are internal identifiers ("LineChart"), but a model
+                // relays what the user said ("line chart", "line"). Comparing
+                // on alphanumerics only, and letting a bare "line" match
+                // "LineChart", closes the gap without a synonym table.
+                const normalize = (value: string): string =>
+                    value.toLowerCase().replace(/[^a-z0-9]/g, "")
+                const wanted = normalize(view)
                 const shorthand: Record<string, GrapherTabName> = {
                     map: GRAPHER_TAB_NAMES.WorldMap,
+                    worldmap: GRAPHER_TAB_NAMES.WorldMap,
                     table: GRAPHER_TAB_NAMES.Table,
+                    datatable: GRAPHER_TAB_NAMES.Table,
                 }
                 const requested =
-                    shorthand[view.toLowerCase()] ??
+                    shorthand[wanted] ??
+                    available.find((tab) => normalize(tab) === wanted) ??
                     available.find(
-                        (tab) => tab.toLowerCase() === view.toLowerCase()
+                        (tab) => normalize(tab) === `${wanted}chart`
                     ) ??
-                    (view.toLowerCase() === "chart"
+                    (wanted === "chart"
                         ? available.find(
                               (tab) =>
                                   tab !== GRAPHER_TAB_NAMES.WorldMap &&

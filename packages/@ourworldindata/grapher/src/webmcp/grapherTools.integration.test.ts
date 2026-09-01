@@ -3,6 +3,7 @@ import { SynthesizeGDPTable } from "@ourworldindata/core-table"
 import { GrapherState } from "../core/GrapherState.js"
 import { buildGrapherTools } from "./grapherTools.js"
 import { WebMcpTool } from "./webmcpTypes.js"
+import { GRAPHER_TAB_NAMES } from "@ourworldindata/types"
 
 /**
  * Exercises the tools against a real GrapherState, the way an agent would.
@@ -225,6 +226,20 @@ describe("grapher WebMCP tools", () => {
             const result = await call("set_chart_view", { view: target })
             expect(grapherState.activeTab).toBe(target)
             expect(result).toContain(target)
+        })
+
+        it("accepts the name a user actually says", async () => {
+            // Tabs are named "LineChart" internally; a model relays "line
+            // chart". Before this, asking for a line chart was answered with
+            // "this chart does not offer a line view".
+            expect(grapherState.availableTabs).toContain(
+                GRAPHER_TAB_NAMES.LineChart
+            )
+            for (const spoken of ["line", "Line Chart", "line-chart"]) {
+                grapherState.setTab(GRAPHER_TAB_NAMES.Table)
+                await call("set_chart_view", { view: spoken })
+                expect(grapherState.activeTab).toBe(GRAPHER_TAB_NAMES.LineChart)
+            }
         })
     })
 })
