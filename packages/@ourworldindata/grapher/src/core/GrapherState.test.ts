@@ -16,6 +16,8 @@ import {
     TimeInterval,
     StackMode,
     FacetStrategy,
+    GrapherChartType,
+    GrapherTabName,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -2969,6 +2971,14 @@ describe("adjustStateForTab", () => {
         })
     }
 
+    // Mirrors how the UI drives a tab switch: activeTab becomes the destination
+    // while the time handles still sit where the previous tab left them
+    const switchTab = (grapher: GrapherState, tab: GrapherTabName): void => {
+        const previousTab = grapher.activeTab
+        grapher.setTab(tab)
+        grapher.onTabChange(previousTab, tab)
+    }
+
     describe("time handle adjustment", () => {
         it("collapses time range to single time when switching to a single-time tab", () => {
             const grapher = createGrapher()
@@ -2979,7 +2989,7 @@ describe("adjustStateForTab", () => {
                 grapher.endHandleTimeBound
             )
 
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.DiscreteBar)
+            switchTab(grapher, GRAPHER_TAB_NAMES.DiscreteBar)
 
             // A single time is now selected
             expect(grapher.startHandleTimeBound).toBe(
@@ -2993,7 +3003,7 @@ describe("adjustStateForTab", () => {
             // Start with a single time
             grapher.timelineHandleTimeBounds = [2005, 2005]
 
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.LineChart)
+            switchTab(grapher, GRAPHER_TAB_NAMES.LineChart)
 
             // A time range is now selected
             expect(grapher.startHandleTimeBound).not.toBe(
@@ -3013,7 +3023,7 @@ describe("adjustStateForTab", () => {
             grapher.selection.clearSelection()
             grapher.timelineHandleTimeBounds = [2005, 2005]
 
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.LineChart)
+            switchTab(grapher, GRAPHER_TAB_NAMES.LineChart)
 
             expect(grapher.endHandleTimeBound).toBe(2005)
             expect(grapher.startHandleTimeBound).toBe(-Infinity)
@@ -3024,24 +3034,32 @@ describe("adjustStateForTab", () => {
 
             // Already a range — switching to LineChart should be a no-op
             grapher.timelineHandleTimeBounds = [2000, 2010]
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.LineChart)
+            switchTab(grapher, GRAPHER_TAB_NAMES.LineChart)
             expect(grapher.timelineHandleTimeBounds).toEqual([2000, 2010])
 
             // Already single time — switching to DiscreteBar should be a no-op
             grapher.timelineHandleTimeBounds = [2005, 2005]
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.DiscreteBar)
+            switchTab(grapher, GRAPHER_TAB_NAMES.DiscreteBar)
             expect(grapher.timelineHandleTimeBounds).toEqual([2005, 2005])
         })
 
-        it("collapses time range for StackedArea (range-preferred) tabs", () => {
-            const grapher = createGrapher()
+        it("expands a single time for StackedArea, which prefers a range", () => {
+            // The stacked chart types form their own valid combination, so a
+            // fixture mixing them with line and bar drops them from
+            // validChartTypes and never reaches a StackedArea tab
+            const grapher = createGrapher({
+                chartTypes: [
+                    GRAPHER_CHART_TYPES.StackedArea,
+                    GRAPHER_CHART_TYPES.StackedDiscreteBar,
+                ],
+            })
 
             // Start with a single time
             grapher.timelineHandleTimeBounds = [2005, 2005]
 
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.StackedArea)
+            switchTab(grapher, GRAPHER_TAB_NAMES.StackedArea)
 
-            // StackedArea prefers a range, so the single time should be expanded to a range
+            expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.StackedArea)
             expect(grapher.startHandleTimeBound).not.toBe(
                 grapher.endHandleTimeBound
             )
@@ -3049,54 +3067,199 @@ describe("adjustStateForTab", () => {
     })
 
     describe("entity selection adjustment", () => {
-        it("clears selection for all-entity chart type when selection matches authored", () => {
-            const grapher = createGrapher({
-                xSlug: SampleColumnSlugs.GDP,
-                chartTypes: [
-                    GRAPHER_CHART_TYPES.LineChart,
-                    GRAPHER_CHART_TYPES.ScatterPlot,
-                ],
+        const createGrapherWithSecondaryScatter = (
+            primaryChartType: GrapherChartType
+        ): GrapherState =>
+            createGrapher({
+                xSlug: SampleColumnSlugs.Population,
+                chartTypes: [primaryChartType, GRAPHER_CHART_TYPES.ScatterPlot],
             })
 
-            expect(grapher.selection.hasSelection).toBe(true)
+        // Mirrors a fresh load of ?tab=scatter&country=, which runs no adjustment
+        const loadOnScatterTab = (grapher: GrapherState): void => {
+            grapher.populateFromQueryParams({ tab: "scatter", country: "" })
+        }
 
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.ScatterPlot)
+        const swapMdimView = (
+            grapher: GrapherState,
+            view: GrapherProgrammaticInterface
+        ): void => {
+            // Mirrors how MultiDim swaps a view in: replace the authored config
+            // on the live state, then adjust once the table is in place
+            grapher.setAuthoredVersion(view)
+            grapher.reset()
+            grapher.updateFromObject(view)
+            grapher.inputTable = view.table!
+            grapher.adjustStateForTab(grapher.activeTab)
+        }
 
-            expect(grapher.selection.hasSelection).toBe(false)
+        it.each([
+            GRAPHER_CHART_TYPES.LineChart,
+            GRAPHER_CHART_TYPES.SlopeChart,
+            GRAPHER_CHART_TYPES.DiscreteBar,
+        ])(
+            "clears a secondary scatter's selection after a round trip via %s",
+            (primaryChartType) => {
+                const grapher =
+                    createGrapherWithSecondaryScatter(primaryChartType)
+                loadOnScatterTab(grapher)
+                expect(grapher.selection.hasSelection).toBe(false)
+
+                switchTab(grapher, primaryChartType)
+                expect(grapher.selection.hasSelection).toBe(true)
+
+                switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
+                expect(grapher.selection.selectedEntityNames).toEqual([])
+                expect(grapher.queryStr).toContain("country=")
+            }
+        )
+
+        it("clears a secondary scatter's selection in relative mode", () => {
+            const grapher = createGrapherWithSecondaryScatter(
+                GRAPHER_CHART_TYPES.LineChart
+            )
+            loadOnScatterTab(grapher)
+            grapher.stackMode = StackMode.relative
+            expect(grapher.isRelativeMode).toBe(true)
+
+            switchTab(grapher, GRAPHER_TAB_NAMES.LineChart)
+            switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
+
+            expect(grapher.selection.selectedEntityNames).toEqual([])
         })
 
-        it("preserves selection for all-entity chart types when user changed it", () => {
-            const grapher = createGrapher({
-                xSlug: SampleColumnSlugs.GDP,
-                chartTypes: [
-                    GRAPHER_CHART_TYPES.LineChart,
-                    GRAPHER_CHART_TYPES.ScatterPlot,
-                ],
-            })
-
-            // Simulate user changing the selection away from authored
+        it("keeps a secondary scatter's selection when the user changed it", () => {
+            const grapher = createGrapherWithSecondaryScatter(
+                GRAPHER_CHART_TYPES.LineChart
+            )
             grapher.selection.deselectEntity(
                 grapher.selection.selectedEntityNames[0]
             )
             expect(grapher.areSelectedEntitiesDifferentThanAuthors).toBe(true)
+            const userSelection = grapher.selection.selectedEntityNames
 
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.ScatterPlot)
+            switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
 
-            expect(grapher.selection.hasSelection).toBe(true)
+            expect(grapher.selection.selectedEntityNames).toEqual(userSelection)
         })
 
-        it("restores authored selection when selection is empty", () => {
+        it.each([
+            { label: "time range", minTime: 2000, maxTime: 2010 },
+            { label: "single time", minTime: 2010, maxTime: 2010 },
+        ])(
+            "keeps the authored selection and time handles of a scatter-only chart ($label)",
+            ({ minTime, maxTime }) => {
+                const grapher = createGrapher({
+                    xSlug: SampleColumnSlugs.Population,
+                    chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+                    minTime,
+                    maxTime,
+                })
+                const authoredSelection = grapher.selection.selectedEntityNames
+                const authoredHandles = [...grapher.timelineHandleTimeBounds]
+
+                switchTab(grapher, GRAPHER_TAB_NAMES.Table)
+                switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
+
+                expect(grapher.selection.selectedEntityNames).toEqual(
+                    authoredSelection
+                )
+                expect(grapher.timelineHandleTimeBounds).toEqual(
+                    authoredHandles
+                )
+            }
+        )
+
+        // A time scatter has no x dimension, so it draws a line per entity and
+        // plotting every one of them is unreadable
+        it("keeps a time scatter's selection when it is the only chart type", () => {
             const grapher = createGrapher({
-                chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+                chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
             })
             const authoredSelection = grapher.selection.selectedEntityNames
 
-            // Clear selection
-            grapher.selection.clearSelection()
+            switchTab(grapher, GRAPHER_TAB_NAMES.Table)
+            switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
+
+            expect(grapher.selection.selectedEntityNames).toEqual(
+                authoredSelection
+            )
+        })
+
+        it("keeps a secondary time scatter's selection", () => {
+            const grapher = createGrapher({
+                chartTypes: [
+                    GRAPHER_CHART_TYPES.LineChart,
+                    GRAPHER_CHART_TYPES.ScatterPlot,
+                ],
+            })
+            const authoredSelection = grapher.selection.selectedEntityNames
+            loadOnScatterTab(grapher)
+
+            switchTab(grapher, GRAPHER_TAB_NAMES.LineChart)
+            switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
+
+            expect(grapher.selection.selectedEntityNames).toEqual(
+                authoredSelection
+            )
+        })
+
+        it("keeps the authored selection of an mdim's scatter view", () => {
+            const table = SynthesizeGDPTable({
+                entityCount: 3,
+                timeRange: [2000, 2010],
+            })
+            const authoredSelection = table.availableEntityNames.slice(0, 2)
+            const lineView = {
+                table,
+                ySlugs: SampleColumnSlugs.GDP,
+                selectedEntityNames: authoredSelection,
+                chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+            }
+            const grapher = new GrapherState(lineView)
+
+            swapMdimView(grapher, {
+                ...lineView,
+                xSlug: SampleColumnSlugs.Population,
+                chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+                minTime: 2010,
+                maxTime: 2010,
+            })
+
+            expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.ScatterPlot)
+            expect(grapher.selection.selectedEntityNames).toEqual(
+                authoredSelection
+            )
+        })
+
+        it("re-applies the authored selection when an mdim leaves a Marimekko view", () => {
+            const table = SynthesizeGDPTable({
+                entityCount: 3,
+                timeRange: [2000, 2010],
+            })
+            const authoredSelection = table.availableEntityNames.slice(0, 2)
+            const grapher = new GrapherState({
+                table,
+                ySlugs: SampleColumnSlugs.GDP,
+                xSlug: SampleColumnSlugs.Population,
+                selectedEntityNames: authoredSelection,
+                chartTypes: [
+                    GRAPHER_CHART_TYPES.LineChart,
+                    GRAPHER_CHART_TYPES.Marimekko,
+                ],
+            })
+            grapher.populateFromQueryParams({ tab: "marimekko", country: "" })
+            expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.Marimekko)
             expect(grapher.selection.hasSelection).toBe(false)
 
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.LineChart)
+            swapMdimView(grapher, {
+                table,
+                ySlugs: SampleColumnSlugs.GDP,
+                selectedEntityNames: authoredSelection,
+                chartTypes: [GRAPHER_CHART_TYPES.StackedArea],
+            })
 
+            expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.StackedArea)
             expect(grapher.selection.selectedEntityNames).toEqual(
                 authoredSelection
             )
