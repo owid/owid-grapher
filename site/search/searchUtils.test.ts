@@ -9,6 +9,7 @@ import {
     extractFiltersFromQuery,
     createCountryFilter,
     getFeaturedVizFilters,
+    topicAreasFromSearchParams,
 } from "./searchUtils"
 
 import { FilterType, SynonymMap } from "@ourworldindata/types"
@@ -838,5 +839,42 @@ describe(getFeaturedVizFilters, () => {
 
     it("returns null when the query is only punctuation and there is no topic", () => {
         expect(getFeaturedVizFilters("?!")).toBeNull()
+    })
+})
+
+describe(topicAreasFromSearchParams, () => {
+    const areas = ["Energy and Environment", "CO2 & Greenhouse Gas Emissions"]
+
+    it("reads ?topics= the way /search and /latest do", () => {
+        expect(
+            topicAreasFromSearchParams(
+                new URLSearchParams({
+                    topics: "CO2 & Greenhouse Gas Emissions",
+                }),
+                areas
+            )
+        ).toEqual(["CO2 & Greenhouse Gas Emissions"])
+        expect(
+            topicAreasFromSearchParams(
+                new URLSearchParams({
+                    topics: "Energy and Environment~CO2 & Greenhouse Gas Emissions",
+                }),
+                areas
+            )
+        ).toEqual(areas)
+    })
+
+    it("drops unknown areas", () => {
+        expect(
+            topicAreasFromSearchParams(
+                new URLSearchParams({
+                    topics: "Health~Energy and Environment",
+                }),
+                areas
+            )
+        ).toEqual(["Energy and Environment"])
+        expect(
+            topicAreasFromSearchParams(new URLSearchParams(), areas)
+        ).toEqual([])
     })
 })
