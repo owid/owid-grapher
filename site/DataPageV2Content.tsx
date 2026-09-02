@@ -196,7 +196,6 @@ export const DataPageV2Content = ({
                             />
                         )}
                         {useNewDatapageDesign && (
-                            // The right rail beside the metadata box.
                             <TopicNewsletterCard
                                 pageType="chart"
                                 topicArea={topicArea}
