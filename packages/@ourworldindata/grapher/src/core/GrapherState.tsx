@@ -1018,7 +1018,7 @@ export class GrapherState
      */
     @computed get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
         const table = this.table
-        if (!this.isReady || !this.isOnChartOrMapTab) return table
+        if (!this.isReady) return table
 
         const startMark = performance.now()
 
@@ -1807,13 +1807,16 @@ export class GrapherState
 
         const columnSlugs = this.isOnMapTab ? mapColumnSlugs : yColumnSlugs
 
-        // Generate the times only after the chart transform has been applied, so that we don't show
-        // times on the timeline for which data may not exist, e.g. when the selected entity
-        // doesn't contain data for all years in the table.
-        // -@danielgavrilov, 2020-10-22
-        return this.tableAfterAuthorTimelineAndActiveChartTransform.getTimesUniqSortedAscForColumns(
-            columnSlugs
-        )
+        // Generate the times only after the chart transform has been applied,
+        // so that we don't show times on the timeline for which data may not
+        // exist, e.g. when the selected entity doesn't contain data for all
+        // years in the table. The table tab is the exception: it uses the
+        // untransformed table so that the timeline includes all data available
+        // in the table.
+        const table = this.isOnTableTab
+            ? this.table
+            : this.tableAfterAuthorTimelineAndActiveChartTransform
+        return table.getTimesUniqSortedAscForColumns(columnSlugs)
     }
 
     /** Plots time on the x-axis */
