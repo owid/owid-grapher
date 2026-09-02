@@ -2,7 +2,10 @@
  * @vitest-environment happy-dom
  */
 import { describe, expect, it } from "vitest"
-import { storeSubscribePrefill, takeSubscribePrefill } from "./subscribePrefill.js"
+import {
+    storeSubscribePrefill,
+    takeSubscribePrefill,
+} from "./subscribePrefill.js"
 
 describe("subscribe prefill hand-off", () => {
     it("is read once and then cleared", () => {
