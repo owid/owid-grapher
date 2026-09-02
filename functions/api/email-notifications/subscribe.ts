@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/cloudflare"
 import * as z from "zod/mini"
 import {
     EmailNotificationsPreferences,
@@ -14,7 +13,8 @@ import {
     sendWelcomeEmail,
     validateEmailNotificationsDatabase,
 } from "../../_common/emailNotifications.js"
-import { upsertOwidBriefSubscription } from "../../_common/mailchimp.js"
+import { logErrorAndCaptureInSentry } from "../../_common/errorLog.js"
+import { enableOwidBriefSubscriptionForAudienceMember } from "../../_common/mailchimp.js"
 import {
     POSTMARK_REACTIVATION_USER_MESSAGE,
     PostmarkRecipientReactivationError,
@@ -92,22 +92,32 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             })
         }
 
-        if (data.subscribeToOwidBrief) {
-            // The OWID Brief newsletter stays in Mailchimp and uses single
-            // opt-in, like email notifications.
-            await upsertOwidBriefSubscription(env, email, true)
-        }
+        const mailchimpSignupRequired = data.subscribeToOwidBrief
+            ? !(await enableOwidBriefSubscriptionForAudienceMember(env, email))
+            : false
 
-        return makeJsonResponse({ ok: true }, 200)
+        return makeJsonResponse(
+            {
+                ok: true,
+                mailchimpSignupRequired,
+            },
+            200
+        )
     } catch (error) {
         if (error instanceof PostmarkRecipientReactivationError) {
-            Sentry.captureException(error)
+            logErrorAndCaptureInSentry(
+                "Failed to reactivate a Postmark recipient while subscribing",
+                error
+            )
             return makeJsonResponse(
                 { error: POSTMARK_REACTIVATION_USER_MESSAGE },
                 500
             )
         }
-        return handleJsonError(error)
+        return handleJsonError(
+            error,
+            "Failed to handle an email notifications subscription"
+        )
     }
 }
 

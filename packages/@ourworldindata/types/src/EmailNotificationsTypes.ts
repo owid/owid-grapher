@@ -111,6 +111,13 @@ export function mergeEmailNotificationsPreferences(
 
 export interface EmailNotificationsSubscribeResponse {
     ok?: boolean
+    mailchimpSignupRequired?: boolean
+    error?: string
+}
+
+export interface EmailNotificationsUpdatePreferencesResponse {
+    ok?: boolean
+    mailchimpSignupRequired?: boolean
     error?: string
 }
 

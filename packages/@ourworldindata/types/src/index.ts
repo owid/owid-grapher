@@ -24,6 +24,7 @@ export {
     type EmailNotificationsSubscribeResponse,
     type EmailNotificationsRequestLinkRequest,
     type EmailNotificationsUpdatePreferencesRequest,
+    type EmailNotificationsUpdatePreferencesResponse,
     type EmailNotificationsPreferencesResponse,
 } from "./EmailNotificationsTypes.js"
 

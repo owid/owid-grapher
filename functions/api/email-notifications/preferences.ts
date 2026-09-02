@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/cloudflare"
 import * as z from "zod/mini"
 import {
     EmailNotificationsPreferences,
@@ -16,9 +15,11 @@ import {
     makeJsonResponse,
     validateEmailNotificationsDatabase,
 } from "../../_common/emailNotifications.js"
+import { logErrorAndCaptureInSentry } from "../../_common/errorLog.js"
 import {
+    disableOwidBriefSubscription,
+    enableOwidBriefSubscriptionForAudienceMember,
     getOwidBriefStatus,
-    upsertOwidBriefSubscription,
 } from "../../_common/mailchimp.js"
 import {
     POSTMARK_BROADCAST_MESSAGE_STREAM,
@@ -75,7 +76,10 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
                 env,
                 user.email
             ).catch((error) => {
-                Sentry.captureException(error)
+                logErrorAndCaptureInSentry(
+                    "Failed to load the OWID Brief subscription status",
+                    error
+                )
                 return null
             }),
             // Brief-only identities intentionally have no notification
@@ -92,17 +96,21 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
         }
         return makeJsonResponse(response, 200)
     } catch (error) {
-        return handleJsonError(error)
+        return handleJsonError(
+            error,
+            "Failed to load email notification preferences"
+        )
     }
 }
 
 /**
  * Save target of the magic-link preferences page. The magic link itself was
  * the proof of inbox control, so changes apply immediately. Notification
- * status and preferences are stored in D1; the optional Brief selection is
- * written directly to Mailchimp. Cross-system updates cannot be atomic, so
- * failures are surfaced rather than claiming that every requested preference
- * was saved.
+ * status and preferences are stored in D1. Brief opt-outs disable the
+ * Mailchimp interest directly. Opt-ins update the interest directly for
+ * active audience members, while globally unsubscribed or missing contacts
+ * return a signal that lets the browser continue through Mailchimp's hosted
+ * signup form.
  */
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     try {
@@ -198,24 +206,39 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             ])
         }
 
-        if (data.subscribeToOwidBrief !== undefined) {
-            await upsertOwidBriefSubscription(
-                env,
-                user.email,
-                data.subscribeToOwidBrief
-            )
+        let mailchimpSignupRequired = false
+        if (data.subscribeToOwidBrief === false) {
+            await disableOwidBriefSubscription(env, user.email)
+        } else if (data.subscribeToOwidBrief === true) {
+            mailchimpSignupRequired =
+                !(await enableOwidBriefSubscriptionForAudienceMember(
+                    env,
+                    user.email
+                ))
         }
 
-        return makeJsonResponse({ ok: true }, 200)
+        return makeJsonResponse(
+            {
+                ok: true,
+                mailchimpSignupRequired,
+            },
+            200
+        )
     } catch (error) {
         if (error instanceof PostmarkRecipientReactivationError) {
-            Sentry.captureException(error)
+            logErrorAndCaptureInSentry(
+                "Failed to reactivate a Postmark recipient while saving preferences",
+                error
+            )
             return makeJsonResponse(
                 { error: POSTMARK_REACTIVATION_USER_MESSAGE },
                 500
             )
         }
-        return handleJsonError(error)
+        return handleJsonError(
+            error,
+            "Failed to save email notification preferences"
+        )
     }
 }
 

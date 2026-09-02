@@ -55,23 +55,14 @@ export const SubscribeFlow = ({
 }
 
 const SubscribedText = ({
-    subscription: { email, followTopics, subscribeToOwidBrief },
+    subscription: { email },
 }: {
     subscription: Subscription
 }) => (
-    <>
-        {followTopics && (
-            <p className="subscribe-page__confirmation-text">
-                We have sent a confirmation email to <strong>{email}</strong>{" "}
-                with a summary of your preferences.
-            </p>
-        )}
-        {subscribeToOwidBrief && (
-            <p className="subscribe-page__confirmation-text">
-                Your subscription to The OWID Brief is active.
-            </p>
-        )}
-    </>
+    <p className="subscribe-page__confirmation-text">
+        We have sent a confirmation email to <strong>{email}</strong> with a
+        summary of your preferences.
+    </p>
 )
 
 const SubscribeFormScreen = ({

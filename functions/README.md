@@ -207,10 +207,12 @@ edit preferences directly. Requesting a link for an unknown address produces
 the same public response without sending email, avoiding both address
 enumeration and an arbitrary-mail endpoint.
 
-The OWID Brief remains a separate Mailchimp subscription but uses the same
-single-opt-in policy. Mailchimp failures are fail-soft when saving notification
-preferences because the two subscriptions have different owners and should not
-make each other unavailable.
+The OWID Brief remains a separate Mailchimp subscription. Opt-ins continue in
+the browser through Mailchimp's hosted signup form, including when a contact
+previously unsubscribed themselves; the Functions API never forces that global
+status transition. The API reads the live status for the preferences page and
+disables only the Brief interest for opt-outs. Status reads fail soft so a
+Mailchimp outage does not make Follow Topics preferences unavailable.
 
 The relevant routes and their trust boundaries are:
 

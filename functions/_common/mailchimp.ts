@@ -1,9 +1,10 @@
 import { Env } from "./env.js"
 
 /**
- * Helpers for the OWID Brief newsletter, which stays in Mailchimp: the
- * subscribe form and the magic-link preferences page manage the Brief
- * interest (group) on the Mailchimp list member.
+ * API helpers for the OWID Brief newsletter, which stays in Mailchimp.
+ * Opt-ins for active audience members update the Brief interest directly.
+ * Contacts in a compliance state still go through Mailchimp's hosted signup
+ * form so they can resubscribe.
  */
 
 function validateMailchimpConfiguration(env: Env): void {
@@ -45,47 +46,32 @@ function makeAuthHeader(env: Env): string {
 }
 
 /**
- * Enable or disable the OWID Brief interest on a Mailchimp list member.
- * Enabling creates or re-subscribes the member using single opt-in. Disabling
- * only patches an existing member; an address that has never joined the
- * Mailchimp audience remains absent rather than being created with the Brief
- * interest turned off.
+ * Disable the OWID Brief interest on an existing Mailchimp list member. An
+ * address that has never joined the audience is already not subscribed, so a
+ * missing member is an idempotent success.
  */
-export async function upsertOwidBriefSubscription(
+export async function disableOwidBriefSubscription(
     env: Env,
-    email: string,
-    shouldSubscribe: boolean
+    email: string
 ): Promise<void> {
     validateMailchimpConfiguration(env)
-
-    const member = shouldSubscribe
-        ? {
-              email_address: email,
-              status_if_new: "subscribed",
-              // status_if_new only applies when creating a member. An
-              // explicit Brief opt-in also re-subscribes an existing globally
-              // unsubscribed member.
-              status: "subscribed",
-              interests: { [env.MAILCHIMP_OWID_BRIEF_INTEREST_ID]: true },
-          }
-        : {
-              interests: { [env.MAILCHIMP_OWID_BRIEF_INTEREST_ID]: false },
-          }
 
     const response = await fetch(
         makeMemberUrl(env, await makeSubscriberHash(email)),
         {
-            method: shouldSubscribe ? "PUT" : "PATCH",
+            method: "PATCH",
             headers: {
                 Authorization: makeAuthHeader(env),
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(member),
+            body: JSON.stringify({
+                interests: {
+                    [env.MAILCHIMP_OWID_BRIEF_INTEREST_ID]: false,
+                },
+            }),
         }
     )
-    // An absent member is already not subscribed, so disabling their Brief
-    // interest is an idempotent success rather than an error.
-    if (!shouldSubscribe && response.status === 404) return
+    if (response.status === 404) return
     if (!response.ok) {
         const data = await response.json()
         console.error("Failed to update the OWID Brief subscription", data)
@@ -93,6 +79,64 @@ export async function upsertOwidBriefSubscription(
             `Failed to update the OWID Brief subscription (${response.status})`
         )
     }
+}
+
+/**
+ * Enable the OWID Brief interest when the address is an active Mailchimp
+ * audience member. Returns false when the hosted signup form is required to
+ * add or globally resubscribe the address.
+ */
+export async function enableOwidBriefSubscriptionForAudienceMember(
+    env: Env,
+    email: string
+): Promise<boolean> {
+    validateMailchimpConfiguration(env)
+
+    const memberUrl = makeMemberUrl(env, await makeSubscriberHash(email))
+    const memberResponse = await fetch(`${memberUrl}?fields=status,interests`, {
+        headers: { Authorization: makeAuthHeader(env) },
+    })
+    if (memberResponse.status === 404) return false
+    if (!memberResponse.ok) {
+        console.error(
+            `Failed to fetch the OWID Brief status (${memberResponse.status})`
+        )
+        throw new Error(
+            `Failed to fetch the OWID Brief status (${memberResponse.status})`
+        )
+    }
+
+    const member = (await memberResponse.json()) as {
+        status?: string
+        interests?: Record<string, boolean>
+    }
+    if (member.status !== "subscribed") return false
+    if (member.interests?.[env.MAILCHIMP_OWID_BRIEF_INTEREST_ID] === true) {
+        return true
+    }
+
+    const updateResponse = await fetch(memberUrl, {
+        method: "PATCH",
+        headers: {
+            Authorization: makeAuthHeader(env),
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            interests: {
+                [env.MAILCHIMP_OWID_BRIEF_INTEREST_ID]: true,
+            },
+        }),
+    })
+    // The member may have disappeared between the read and update.
+    if (updateResponse.status === 404) return false
+    if (!updateResponse.ok) {
+        const data = await updateResponse.json()
+        console.error("Failed to update the OWID Brief subscription", data)
+        throw new Error(
+            `Failed to update the OWID Brief subscription (${updateResponse.status})`
+        )
+    }
+    return true
 }
 
 /**

@@ -7,6 +7,7 @@ import {
     EmailNotificationsPreferencesResponse,
     EmailNotificationsRequestLinkRequest,
     EmailNotificationsUpdatePreferencesRequest,
+    EmailNotificationsUpdatePreferencesResponse,
 } from "@ourworldindata/types"
 import { Button, Checkbox, TextInput } from "@ourworldindata/components"
 import { SiteQueryClientProvider } from "../SiteQueryClientProvider.js"
@@ -18,6 +19,7 @@ import {
     throwIfApiError,
 } from "./emailNotificationsApi.js"
 import { useNotificationPreferences } from "./useNotificationPreferences.js"
+import { submitOwidBriefSignupToMailchimp } from "./mailchimpSignup.js"
 import {
     SUBSCRIBE_PAGE_CONTENT_GRID_CLASSES,
     SubscribePageConfirmation,
@@ -319,31 +321,51 @@ const PreferencesEditor = ({
     )
 
     const update = useMutation({
-        mutationFn: async (
+        mutationFn: async ({
+            request,
+            successResult,
+        }: {
             request: EmailNotificationsUpdatePreferencesRequest
-        ) => {
+            successResult: TokenScreenResult
+        }) => {
             const response = await apiPost("/preferences", request)
-            if (response.status === 410) return "expired" as const
+            if (response.status === 410) {
+                return {
+                    result: "expired" as const,
+                    mailchimpSignupRequired: false,
+                }
+            }
             await throwIfApiError(response)
-            return !request.subscribeToTopicNotifications &&
-                request.subscribeToOwidBrief === false
-                ? "unsubscribed"
-                : "saved"
+            const data =
+                (await response.json()) as EmailNotificationsUpdatePreferencesResponse
+            return {
+                result: successResult,
+                mailchimpSignupRequired: data.mailchimpSignupRequired ?? false,
+            }
         },
-        onSuccess: onDone,
+        onSuccess: ({ result, mailchimpSignupRequired }) => {
+            if (mailchimpSignupRequired) {
+                submitOwidBriefSignupToMailchimp(email)
+                return
+            }
+            onDone(result)
+        },
     })
 
     const handleSave = (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
         preferences.resetValidation()
         if (subscribedToTopicNotifications && !preferences.validate()) return
+        const briefSubscriptionChange =
+            subscribedToOwidBrief === initialSubscribedToOwidBrief
+                ? undefined
+                : (subscribedToOwidBrief ?? undefined)
         const commonRequest = {
             token,
-            // Only included when the toggle was shown.
-            subscribeToOwidBrief: subscribedToOwidBrief ?? undefined,
+            subscribeToOwidBrief: briefSubscriptionChange,
         }
-        update.mutate(
-            subscribedToTopicNotifications
+        update.mutate({
+            request: subscribedToTopicNotifications
                 ? {
                       ...commonRequest,
                       subscribeToTopicNotifications: true,
@@ -352,16 +374,26 @@ const PreferencesEditor = ({
                 : {
                       ...commonRequest,
                       subscribeToTopicNotifications: false,
-                  }
-        )
+                  },
+            successResult:
+                !subscribedToTopicNotifications &&
+                subscribedToOwidBrief === false
+                    ? "unsubscribed"
+                    : "saved",
+        })
     }
 
     const handleUnsubscribe = () => {
         preferences.resetValidation()
         update.mutate({
-            token,
-            subscribeToTopicNotifications: false,
-            subscribeToOwidBrief: false,
+            request: {
+                token,
+                subscribeToTopicNotifications: false,
+                subscribeToOwidBrief: initialSubscribedToOwidBrief
+                    ? false
+                    : undefined,
+            },
+            successResult: "unsubscribed",
         })
     }
 

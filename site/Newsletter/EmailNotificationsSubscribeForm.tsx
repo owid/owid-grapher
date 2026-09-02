@@ -1,7 +1,10 @@
 import { useState } from "react"
 import * as React from "react"
 import { useMutation } from "@tanstack/react-query"
-import { EmailNotificationsSubscribeRequest } from "@ourworldindata/types"
+import {
+    EmailNotificationsSubscribeRequest,
+    EmailNotificationsSubscribeResponse,
+} from "@ourworldindata/types"
 import { Button, Checkbox, TextInput } from "@ourworldindata/components"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { EmailNotificationsPreferenceFields } from "./EmailNotificationsPreferenceFields.js"
@@ -11,6 +14,7 @@ import {
     throwIfApiError,
 } from "./emailNotificationsApi.js"
 import { useNotificationPreferences } from "./useNotificationPreferences.js"
+import { submitOwidBriefSignupToMailchimp } from "./mailchimpSignup.js"
 
 const analytics = new SiteAnalytics()
 
@@ -65,8 +69,6 @@ const NewsletterOption = ({
 
 export interface Subscription {
     email: string
-    followTopics: boolean
-    subscribeToOwidBrief: boolean
 }
 
 export const EmailNotificationsSubscribeForm = ({
@@ -86,16 +88,19 @@ export const EmailNotificationsSubscribeForm = ({
         mutationFn: async (request: EmailNotificationsSubscribeRequest) => {
             const response = await apiPost("/subscribe", request)
             await throwIfApiError(response)
+            return (await response.json()) as EmailNotificationsSubscribeResponse
         },
-        onSuccess: (_, request) => {
+        onSuccess: (response, request) => {
             analytics.logSiteFormSubmit(
                 "newsletter-subscribe",
                 "Subscribe [email-notifications]"
             )
+            if (response.mailchimpSignupRequired) {
+                submitOwidBriefSignupToMailchimp(request.email)
+                return
+            }
             onSubscribed({
                 email: request.email,
-                followTopics: request.notifications !== undefined,
-                subscribeToOwidBrief: request.subscribeToOwidBrief,
             })
         },
     })
