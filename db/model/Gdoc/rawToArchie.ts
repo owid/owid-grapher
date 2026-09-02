@@ -1071,6 +1071,7 @@ function* rawBlockBespokeComponentToArchieMLString(
     yield* propertyToArchieMLString("bundle", block.value)
     yield* propertyToArchieMLString("variant", block.value)
     yield* propertyToArchieMLString("size", block.value)
+    yield* propertyToArchieMLString("fallbackImageFilename", block.value)
     if (block.value.config) {
         yield `{.config}`
         for (const [key, value] of Object.entries(block.value.config)) {

@@ -46,3 +46,18 @@ export const getDateForArchival = (): ArchivalTimestamp => {
 
     return { date: date.toDate(), formattedDate }
 }
+
+export const formatDateForCitation = (date: dayjs.Dayjs): string =>
+    date.format("MMMM D, YYYY")
+
+export const getPhraseForArchivalDate = (
+    archivalDate: string | undefined
+): string | undefined => {
+    if (!archivalDate) return undefined
+
+    const parsedDate = parseArchivalDate(archivalDate)
+    if (!parsedDate.isValid()) return "(archived)."
+
+    const formatted = formatDateForCitation(parsedDate)
+    return `(archived on ${formatted}).`
+}

@@ -1,6 +1,7 @@
 import {
     EnrichedTopicPageIntroRelatedTopic,
     EnrichedBlockTopicPageIntro,
+    getTopicPageHeading,
 } from "@ourworldindata/utils"
 import { useLinkedDocument } from "../utils.js"
 import { useDocumentContext } from "../DocumentContext.js"
@@ -29,6 +30,9 @@ function TopicPageRelatedTopic({
 }
 
 export function TopicPageIntro(props: TopicPageIntroProps) {
+    const { gdocType } = useDocumentContext()
+    const heading = getTopicPageHeading("relatedTopics", gdocType)
+
     return (
         <div className={props.className} id="introduction">
             <div className="topic-page-intro__content body-1-regular span-cols-6 span-md-cols-8 span-sm-cols-12">
@@ -46,7 +50,7 @@ export function TopicPageIntro(props: TopicPageIntroProps) {
                 ) : null}
                 {props.relatedTopics?.length ? (
                     <aside className="topic-page-intro__related-topics">
-                        <h4 className="overline-black-caps">Related topics</h4>
+                        <h4 className="overline-black-caps">{heading}</h4>
                         <ul>
                             {props.relatedTopics.map((relatedTopic) => (
                                 <TopicPageRelatedTopic

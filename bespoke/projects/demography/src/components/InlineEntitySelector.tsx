@@ -20,8 +20,11 @@ import { EntityName } from "@ourworldindata/types"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 import { orderOptionsByRelevance } from "../../../../components/EntityDropdown/EntityDropdown.js"
 
-import { DemographyMetadata } from "../helpers/types.js"
-import { displayEntityName, entityNameForSentence } from "../helpers/utils.js"
+import { DemographyMetadata } from "../core/types.js"
+import {
+    formatEntityNameForSentence,
+    stripEntityNameSuffixes,
+} from "../../../../helpers/entityNames.js"
 
 interface Option {
     value: string
@@ -63,7 +66,7 @@ export function InlineEntitySelector({
     return (
         <DialogTrigger isOpen={isOpen} onOpenChange={setIsOpen}>
             <Button className="inline-entity-selector__trigger">
-                {entityNameForSentence(entityName)}
+                {formatEntityNameForSentence(entityName, ["UN"])}
                 <span className="inline-entity-selector__arrow">
                     {"\u00a0"}▾
                 </span>
@@ -98,7 +101,7 @@ function EntityListBox({
     const options: OptionCollection = useMemo(() => {
         const flat = availableCountries.map((name) => ({
             value: name,
-            label: displayEntityName(name),
+            label: stripEntityNameSuffixes(name, ["UN"]),
         }))
         return orderOptionsByRelevance(flat, {
             userCountryInfo,
@@ -150,7 +153,10 @@ function EntityListBox({
                                     className="option"
                                     key={option.value}
                                     id={option.value}
-                                    textValue={displayEntityName(option.value)}
+                                    textValue={stripEntityNameSuffixes(
+                                        option.value,
+                                        ["UN"]
+                                    )}
                                 >
                                     {option.label}
                                 </ListBoxItem>
@@ -161,7 +167,9 @@ function EntityListBox({
                             className="option"
                             key={item.value}
                             id={item.value}
-                            textValue={displayEntityName(item.value)}
+                            textValue={stripEntityNameSuffixes(item.value, [
+                                "UN",
+                            ])}
                         >
                             {item.label}
                         </ListBoxItem>

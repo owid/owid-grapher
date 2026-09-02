@@ -5,17 +5,21 @@ import {
     OwidGdocProfileInterface,
     CITATION_ID,
     LICENSE_ID,
-    formatAuthorsForBibtex,
 } from "@ourworldindata/utils"
-import { CodeSnippet, getCanonicalUrl } from "@ourworldindata/components"
+import { getCanonicalUrl } from "@ourworldindata/components"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 import { OwidGdocType } from "@ourworldindata/types"
-import { getShortPageCitation } from "../utils.js"
+import { buildGdocCitation } from "../utils.js"
+import { CitationSection } from "../components/CitationSection.js"
+import { LicenseSection } from "../components/LicenseSection.js"
 import { Byline } from "../components/Byline.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBook } from "@fortawesome/free-solid-svg-icons"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
 import { SidebarTableOfContents } from "../../SidebarTableOfContents.js"
+
+const CITATION_DESCRIPTION =
+    "Our articles and data visualizations rely on work from many different people and organizations. When citing this profile page, please also cite the underlying data sources. This profile page can be cited as:"
 
 type ProfileProps = Omit<
     OwidGdocProfileInterface,
@@ -32,24 +36,16 @@ export function Profile({ content, publishedAt, slug, tags }: ProfileProps) {
             : content.toc
     const instantiatedEntity = content.instantiatedEntity
 
-    const shortPageCitation = getShortPageCitation(
-        content.authors,
-        content.title ?? "",
-        publishedAt
-    )
-    const profileUrl = getCanonicalUrl(BAKED_BASE_URL, {
+    const { citationText, bibtex } = buildGdocCitation({
+        authors: content.authors,
+        title: content.title ?? "",
+        publishedAt,
         slug,
-        content: { type: OwidGdocType.Profile },
+        canonicalUrl: getCanonicalUrl(BAKED_BASE_URL, {
+            slug,
+            content: { type: OwidGdocType.Profile },
+        }),
     })
-    const citationText = `${shortPageCitation} Published online at OurWorldinData.org. Retrieved from: '${profileUrl}' [Online Resource]`
-
-    const bibtex = `@article{owid-${slug.replace(/\//g, "-")},
-    author = {${formatAuthorsForBibtex(content.authors)}},
-    title = {${content.title}},
-    journal = {Our World in Data},
-    year = {${publishedAt?.getFullYear()}},
-    note = {${profileUrl}}
-}`
 
     return (
         <article className="centered-article-container grid grid-cols-12-full-width centered-article-container--profile">
@@ -105,68 +101,12 @@ export function Profile({ content, publishedAt, slug, tags }: ProfileProps) {
             {content.refs && !_.isEmpty(content.refs.definitions) ? (
                 <Footnotes definitions={content.refs.definitions} />
             ) : null}
-            <section
-                id={CITATION_ID}
-                className="grid grid-cols-12-full-width col-start-1 col-end-limit"
-            >
-                <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
-                    <h3 className="align-center">Cite this work</h3>
-                    <p>
-                        Our articles and data visualizations rely on work from
-                        many different people and organizations. When citing
-                        this profile page, please also cite the underlying data
-                        sources. This profile page can be cited as:
-                    </p>
-                    <div>
-                        <CodeSnippet code={citationText} />
-                    </div>
-                    <p>BibTeX citation</p>
-                    <div>
-                        <CodeSnippet code={bibtex} />
-                    </div>
-                </div>
-            </section>
-            <section
-                id={LICENSE_ID}
-                className="grid grid-cols-12-full-width col-start-1 col-end-limit"
-            >
-                <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
-                    <img
-                        src="/owid-logo.svg"
-                        alt="Our World in Data logo"
-                        loading="lazy"
-                        width={104}
-                        height={57}
-                    />
-                    <h3>Reuse this work freely</h3>
-                    <p>
-                        All visualizations, data, and articles produced by Our
-                        World in Data are completely open access under the{" "}
-                        <a
-                            href="https://creativecommons.org/licenses/by/4.0/"
-                            target="_blank"
-                            rel="noopener"
-                        >
-                            Creative Commons BY license
-                        </a>
-                        . You have the permission to use, distribute, and
-                        reproduce these in any medium, provided the source and
-                        authors are credited.
-                    </p>
-                    <p>
-                        The data produced by third parties and made available by
-                        Our World in Data is subject to the license terms from
-                        the original third-party authors. We will always
-                        indicate the original source of the data in our
-                        documentation, so you should always check the license of
-                        any such third-party data before use and redistribution.
-                    </p>
-                    <p>
-                        All of <a href="https://github.com/owid">our charts</a>{" "}
-                        can be embedded in any site.
-                    </p>
-                </div>
-            </section>
+            <CitationSection
+                citationText={citationText}
+                bibtex={bibtex}
+                description={CITATION_DESCRIPTION}
+            />
+            <LicenseSection />
         </article>
     )
 }

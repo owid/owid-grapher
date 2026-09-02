@@ -3,6 +3,7 @@
     "packageManager": "yarn@4.17.1",
     "workspaces": [
         "components/",
+        "helpers/",
         "hooks/",
         "projects/*"
     ],

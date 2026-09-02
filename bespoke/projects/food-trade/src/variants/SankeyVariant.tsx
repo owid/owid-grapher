@@ -11,9 +11,10 @@ import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
-import { SankeyVariantConfig, Flow, VariantProps } from "../config.js"
-import { FoodTradeMetadata, ProductTradeData, Mode } from "../types.js"
-import { useFoodTradeMetadata, useProductTradeData } from "../data.js"
+import { SankeyVariantConfig, Flow } from "../core/config.js"
+import type { VariantProps } from "../../../../helpers/config.js"
+import { FoodTradeMetadata, ProductTradeData, Mode } from "../core/types.js"
+import { useFoodTradeMetadata, useProductTradeData } from "../core/data.js"
 import { FoodTradeControls } from "../components/FoodTradeControls.js"
 import { FoodTradeChart } from "../components/FoodTradeChart.js"
 import {
@@ -21,8 +22,9 @@ import {
     formatTrade,
     isAllCountry,
     BILATERAL_LOW_VOLUME_THRESHOLD,
-} from "../helpers.js"
+} from "../core/helpers.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
+import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import {
@@ -44,18 +46,20 @@ export function SankeyVariant({
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 
     return (
-        <NuqsAdapter>
-            <QueryClientProvider client={queryClient}>
-                <div
-                    ref={ref}
-                    className={cx("food-trade-chart", {
-                        "food-trade-chart--narrow": isNarrow,
-                    })}
-                >
-                    <FetchingSankeyVariant config={config} />
-                </div>
-            </QueryClientProvider>
-        </NuqsAdapter>
+        <EmbedConfigProvider config={config}>
+            <NuqsAdapter>
+                <QueryClientProvider client={queryClient}>
+                    <div
+                        ref={ref}
+                        className={cx("food-trade-chart", {
+                            "food-trade-chart--narrow": isNarrow,
+                        })}
+                    >
+                        <FetchingSankeyVariant config={config} />
+                    </div>
+                </QueryClientProvider>
+            </NuqsAdapter>
+        </EmbedConfigProvider>
     )
 }
 
@@ -68,25 +72,20 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         !isUserLocation && isAllCountry(initialCountry)
             ? "both"
             : (config.flow ?? DEFAULT_VIEW)
-    const urlSync = config.urlSync ?? false
-
     const [product, setProduct] = useUrlState({
         key: "foodTradeProduct",
         parser: parseAsString,
         defaultValue: initialProduct,
-        enabled: urlSync,
     })
     const [country, _setCountry] = useUrlState({
         key: "foodTradeCountry",
         parser: parseAsString,
         defaultValue: initialCountry,
-        enabled: urlSync,
     })
     const [_view, setView] = useUrlState({
         key: "foodTradeFlow",
         parser: parseAsStringEnum<Flow>(["both", "import", "export"]),
         defaultValue: initialView,
-        enabled: urlSync,
     })
 
     const { data: metadata, status: metadataStatus } = useFoodTradeMetadata()
@@ -137,7 +136,6 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
         availableCountryNames,
-        urlSync,
         urlStateKey: "foodTradeCountry",
         setCountry,
     })

@@ -7,23 +7,18 @@ import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import Footnotes from "../components/Footnotes.js"
 import {
     OwidGdocPostInterface,
-    CITATION_ID,
-    LICENSE_ID,
     OwidGdocType,
-    formatAuthorsForBibtex,
     EnrichedBlockText,
     getPhraseForArchivalDate,
 } from "@ourworldindata/utils"
-import { CodeSnippet } from "@ourworldindata/components"
-import { BAKED_BASE_URL, IS_ARCHIVE } from "../../../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 import { OwidGdocHeader } from "../components/OwidGdocHeader.js"
 import StickyNav from "../../blocks/StickyNav.js"
-import { getShortPageCitation } from "../utils.js"
+import { buildGdocCitation } from "../utils.js"
+import { CitationSection } from "../components/CitationSection.js"
+import { LicenseSection } from "../components/LicenseSection.js"
 import { SidebarTableOfContents } from "../../SidebarTableOfContents.js"
 import { useDocumentContext } from "../DocumentContext.js"
-import { PROD_URL } from "../../SiteConstants.js"
-
-const BASE_URL = IS_ARCHIVE ? PROD_URL : ""
 
 const citationDescriptionsByArticleType: Record<
     | OwidGdocType.Article
@@ -65,17 +60,16 @@ export function GdocPost({
     const { archiveContext } = useDocumentContext()
     const postType = content.type ?? OwidGdocType.Article
     const citationDescription = citationDescriptionsByArticleType[postType]
-    const shortPageCitation = getShortPageCitation(
-        content.authors,
-        content.title ?? "",
-        publishedAt
-    )
     const citationUrl =
         archiveContext?.archiveUrl ?? `${BAKED_BASE_URL}/${slug}`
-    const archivalPhrase = getPhraseForArchivalDate(
-        archiveContext?.archivalDate
-    )
-    const citationText = `${shortPageCitation} Published online at OurWorldinData.org. Retrieved from: '${citationUrl}' [Online Resource]${archivalPhrase ? ` ${archivalPhrase}` : ""}`
+    const { citationText, bibtex } = buildGdocCitation({
+        authors: content.authors,
+        title: content.title ?? "",
+        publishedAt,
+        slug,
+        canonicalUrl: citationUrl,
+        archivalPhrase: getPhraseForArchivalDate(archiveContext?.archivalDate),
+    })
     const hasSidebarToc = content["sidebar-toc"]
     const sidebarHeadings =
         content.toc && content["sidebar-toc-h1-only"]
@@ -87,14 +81,6 @@ export function GdocPost({
     const isDeprecated =
         postType === OwidGdocType.Article &&
         Boolean(content["deprecation-notice"])
-    const bibtex = `@article{owid-${slug.replace(/\//g, "-")},
-    author = {${formatAuthorsForBibtex(content.authors)}},
-    title = {${content.title}},
-    journal = {Our World in Data},
-    year = {${publishedAt?.getFullYear()}},
-    note = {${citationUrl}}
-}`
-
     const stickyNavLinks = content["sticky-nav"]
 
     return (
@@ -143,88 +129,14 @@ export function GdocPost({
                 <Footnotes definitions={content.refs.definitions} />
             ) : null}
             {!content["hide-citation"] && (
-                <section
-                    id={CITATION_ID}
-                    className="grid grid-cols-12-full-width col-start-1 col-end-limit no-dividers"
-                >
-                    <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
-                        <h3
-                            className={
-                                isDeprecated ? "align-left" : "align-center"
-                            }
-                        >
-                            Cite this work
-                        </h3>
-                        {isDeprecated && (
-                            <p className="citation-deprecated-notice">
-                                <span className="citation-deprecated-notice__highlight">
-                                    This content is outdated
-                                </span>
-                                , but if you would still like to use it, here is
-                                how to cite it:
-                                <br />
-                            </p>
-                        )}
-                        <p>{citationDescription}</p>
-                        <div>
-                            <CodeSnippet code={citationText} />
-                        </div>
-                        <p>BibTeX citation</p>
-                        <div>
-                            <CodeSnippet code={bibtex} />
-                        </div>
-                    </div>
-                </section>
+                <CitationSection
+                    citationText={citationText}
+                    bibtex={bibtex}
+                    description={citationDescription}
+                    isDeprecated={isDeprecated}
+                />
             )}
-            <section
-                id={LICENSE_ID}
-                className="grid grid-cols-12-full-width col-start-1 col-end-limit"
-            >
-                <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
-                    {!isDeprecated && (
-                        <>
-                            <img
-                                src="/owid-logo.svg"
-                                alt="Our World in Data logo"
-                                loading="lazy"
-                                width={104}
-                                height={57}
-                            />
-                            <h3>Reuse this work freely</h3>
-                        </>
-                    )}
-
-                    <p>
-                        All visualizations, data, and articles produced by Our
-                        World in Data are completely open access under the{" "}
-                        <a href="https://creativecommons.org/licenses/by/4.0/">
-                            Creative Commons BY license
-                        </a>
-                        . You have the permission to use, distribute, and
-                        reproduce these in any medium, provided the source and
-                        authors are credited.
-                    </p>
-                    <p>
-                        The data produced by third parties and made available by
-                        Our World in Data is subject to the license terms from
-                        the original third-party authors. We will always
-                        indicate the original source of the data in our
-                        documentation, so you should always check the license of
-                        any such third-party data before use and redistribution.
-                    </p>
-                    {!isDeprecated && (
-                        <p>
-                            All of{" "}
-                            <a
-                                href={`${BASE_URL}/faqs#how-can-i-embed-one-of-your-interactive-charts-in-my-website`}
-                            >
-                                our charts can be embedded
-                            </a>{" "}
-                            in any site.
-                        </p>
-                    )}
-                </div>
-            </section>
+            <LicenseSection isDeprecated={isDeprecated} />
         </article>
     )
 }

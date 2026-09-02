@@ -17,23 +17,28 @@
         }
     }
 
-    .section__header,
-    .SiteNavigationToggle--lvl1 .SiteNavigationToggle__button {
+    summary {
+        list-style: none;
+        cursor: pointer;
+
+        &::-webkit-details-marker {
+            display: none;
+        }
+    }
+
+    .section__header {
         @include h3-bold;
         color: $blue-60;
         margin: 0;
         padding: 12px 16px;
-        background: none;
-        border: none;
         width: 100%;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        cursor: pointer;
+    }
 
-        &.active {
-            color: $blue-90;
-        }
+    details[open] > .section__header {
+        color: $blue-90;
     }
 
     .section__dropdown--topics {
@@ -43,11 +48,14 @@
         row-gap: 4px;
     }
 
-    .SiteNavigationToggle__caret {
+    .SiteMobileMenu__caret {
         font-size: 12px;
         margin-right: 8px;
     }
-    .SiteNavigationToggle__dropdown {
+    details[open] > summary .SiteMobileMenu__caret {
+        transform: rotate(180deg);
+    }
+    .SiteMobileMenu__dropdown {
         ul {
             padding-bottom: 12px;
             display: flex;

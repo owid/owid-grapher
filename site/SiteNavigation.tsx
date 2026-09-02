@@ -121,8 +121,6 @@ export const SiteNavigation = ({
                             className="SiteNavigationToggle--mobile-menu hide-sm-up"
                             dropdown={
                                 <SiteMobileMenu
-                                    menu={menu}
-                                    toggleMenu={toggleMenu}
                                     tagGraph={tagGraph}
                                     className="hide-sm-up"
                                 />

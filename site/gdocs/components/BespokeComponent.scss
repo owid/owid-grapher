@@ -8,3 +8,17 @@
     color: $vermillion;
     font-size: 14px;
 }
+
+.bespoke-component__fallback-image {
+    picture {
+        // fixes strange extra height that is otherwise added to the element on firefox
+        display: flex;
+
+        border: 1px solid $gray-20;
+    }
+
+    img {
+        width: 100%;
+        height: auto;
+    }
+}

@@ -37,6 +37,12 @@ $svg-tester-error-frame: #dda4a0;
     }
 }
 
+.SvgTesterSuitePage__suite-note {
+    color: $gray-60;
+    font-size: 11px;
+    margin-left: 4px;
+}
+
 .SvgTesterSuitePage__summary {
     background: $white;
     border-bottom: 1px solid $gray-20;
@@ -73,6 +79,32 @@ $svg-tester-error-frame: #dda4a0;
     color: $svg-tester-error;
 }
 
+.SvgTesterSuitePage__visual-note {
+    color: $gray-70;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+}
+
+.SvgTesterSuitePage__progress {
+    margin-top: 4px;
+    max-width: 480px;
+
+    // The bar's own bottom margin is the gap to the notes below it
+    .ant-progress {
+        margin-bottom: 0;
+    }
+}
+
+.SvgTesterSuitePage__progress-note {
+    font-size: 13px;
+}
+
+.SvgTesterSuitePage__refreshed {
+    color: $gray-60;
+    font-size: 13px;
+    margin-top: 16px;
+}
+
 .SvgTesterSuitePage__commit {
     border-bottom: 1px dotted $gray-60;
     cursor: help;
@@ -80,6 +112,10 @@ $svg-tester-error-frame: #dda4a0;
 
 .SvgTesterSuitePage__controls {
     margin-bottom: 20px;
+
+    .ant-segmented-item {
+        margin-bottom: 0;
+    }
 }
 
 .SvgTesterSuitePage__card {
@@ -87,6 +123,11 @@ $svg-tester-error-frame: #dda4a0;
     border-radius: 2px;
     margin-bottom: 20px;
     padding: 12px;
+
+    // Skip rendering off-screen cards
+    content-visibility: auto;
+    // Roughly a card's height, so the scrollbar doesn't lurch as they render
+    contain-intrinsic-size: auto 700px;
 
     &:target {
         border-color: $blue-40;
@@ -117,8 +158,15 @@ $svg-tester-error-frame: #dda4a0;
     }
 }
 
-.SvgTesterSuitePage__chart-type {
+.SvgTesterSuitePage__chart-type,
+.SvgTesterSuitePage__status {
     margin-left: 8px;
+}
+
+// The chart type beside it is neutral, so the one status that is a finding
+// needs the weight the headline gives its numbers
+.SvgTesterSuitePage__status.is-changed {
+    font-weight: bold;
 }
 
 .SvgTesterQueryParams {
@@ -332,10 +380,37 @@ $svg-tester-error-frame: #dda4a0;
 }
 
 .SvgTesterSlider__images {
-    border: 1px solid $gray-10;
     cursor: ew-resize;
     line-height: 0;
     position: relative;
+}
+
+// Frame each side of the divider in the reference/current colours, so it's
+// obvious which rendering you're looking at
+.SvgTesterSlider__images::before,
+.SvgTesterSlider__images::after {
+    border: 2px solid;
+    bottom: 0;
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    z-index: 1;
+}
+
+// No border where the two halves meet: that's the handle's line
+.SvgTesterSlider__images::before {
+    border-color: $svg-tester-reference-frame;
+    border-right: 0;
+    left: 0;
+    right: calc(100% - var(--position));
+}
+
+.SvgTesterSlider__images::after {
+    border-color: $svg-tester-current-frame;
+    border-left: 0;
+    left: var(--position);
+    right: 0;
 }
 
 .SvgTesterSlider__images img {

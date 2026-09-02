@@ -90,6 +90,40 @@ export function useDataApiDownloadConfig({
     }
 }
 
+/**
+ * The element's content box, i.e. what a ResizeObserver reports as
+ * `entry.contentRect`: the space available inside the element, excluding its
+ * border and padding. Measuring the border box here instead would size a child
+ * larger than the room it actually has, and would disagree with the
+ * ResizeObserver updates that follow.
+ *
+ * Note this reads back layout, so only call it from a layout effect.
+ */
+function getContentBoxSize(element: HTMLElement): {
+    width: number
+    height: number
+} {
+    const rect = element.getBoundingClientRect()
+    const style = window.getComputedStyle(element)
+    // Coerce to 0 rather than NaN: test DOMs don't always resolve these.
+    const px = (value: string): number => parseFloat(value) || 0
+    const horizontal =
+        px(style.borderLeftWidth) +
+        px(style.borderRightWidth) +
+        px(style.paddingLeft) +
+        px(style.paddingRight)
+    const vertical =
+        px(style.borderTopWidth) +
+        px(style.borderBottomWidth) +
+        px(style.paddingTop) +
+        px(style.paddingBottom)
+
+    return {
+        width: Math.max(0, rect.width - horizontal),
+        height: Math.max(0, rect.height - vertical),
+    }
+}
+
 // Auto-updating Bounds object based on ResizeObserver
 // Optionally throttles the bounds updates
 //
@@ -99,13 +133,34 @@ export function useDataApiDownloadConfig({
 export function useElementBounds<T extends Bounds | null = Bounds>(
     ref: RefObject<HTMLElement | null>,
     initialValue: T = DEFAULT_GRAPHER_BOUNDS as T,
-    throttleTime: number = 100
+    throttleTimeOrOptions:
+        | number
+        | {
+              throttleTime?: number
+              preserveLastNonZeroBounds?: boolean
+          } = {}
 ): Bounds | T {
+    const options =
+        typeof throttleTimeOrOptions === "number"
+            ? { throttleTime: throttleTimeOrOptions }
+            : throttleTimeOrOptions
+    const { throttleTime = 100, preserveLastNonZeroBounds = false } = options
     const [bounds, setBounds] = useState<Bounds | T>(initialValue)
 
     const updateBoundsImmediately = useCallback(
         (width: number, height: number) => {
             setBounds((currentBounds) => {
+                // A temporarily hidden element can be reported as 0x0. For
+                // responsive children such as Grapher, retaining their last
+                // usable layout avoids a malformed render before the next
+                // non-zero ResizeObserver update arrives.
+                if (
+                    preserveLastNonZeroBounds &&
+                    (width === 0 || height === 0)
+                ) {
+                    return currentBounds
+                }
+
                 if (
                     currentBounds?.width === width &&
                     currentBounds.height === height
@@ -116,14 +171,16 @@ export function useElementBounds<T extends Bounds | null = Bounds>(
                 return new Bounds(0, 0, width, height)
             })
         },
-        []
+        [preserveLastNonZeroBounds]
     )
 
     useIsomorphicLayoutEffect(() => {
         const element = ref.current
         if (!element) return
 
-        const { width, height } = element.getBoundingClientRect()
+        // Same box the ResizeObserver below reports, so the first measurement
+        // agrees with every update after it.
+        const { width, height } = getContentBoxSize(element)
         updateBoundsImmediately(width, height)
     }, [ref, updateBoundsImmediately])
 

@@ -43,9 +43,7 @@ interface VariablePageData extends Omit<
 > {
     datasetNamespace: string
     charts: ChartListItem[]
-    grapherConfig: GrapherInterface | undefined
     grapherConfigETL: GrapherInterface | undefined
-    grapherConfigAdmin: GrapherInterface | undefined
     source: { id: number; name: string }
     origins: OwidOrigin[]
 }
@@ -120,10 +118,6 @@ class VariableEditor extends Component<{
             : undefined
 
         const isV2MetadataVariable = (variable?.schemaVersion ?? 1) >= 2
-
-        const grapherConfigAdminYAML = YAML.stringify(
-            variable.grapherConfigAdmin
-        )
 
         return (
             <main className="VariableEditPage">
@@ -398,56 +392,6 @@ class VariableEditor extends Component<{
                             disabled
                             rows={8}
                         />
-                        <div>
-                            <TextAreaField
-                                key={grapherConfigAdminYAML}
-                                label="Grapher Config (edited in the admin)"
-                                value={grapherConfigAdminYAML}
-                                disabled
-                                rows={8}
-                            />
-                            <a
-                                className="btn btn-primary"
-                                href={`/admin/variables/${variable.id}/config`}
-                                target="_blank"
-                                rel="noopener"
-                            >
-                                {variable.grapherConfigAdmin
-                                    ? "Edit"
-                                    : "Create"}
-                            </a>
-                            {variable.grapherConfigAdmin && (
-                                <button
-                                    type="button"
-                                    className="btn btn-danger ml-2"
-                                    onClick={async () => {
-                                        if (
-                                            !window.confirm(
-                                                `Are you sure you want to delete the admin-authored Grapher config for variable ${variable.id}? This action cannot be undone!`
-                                            )
-                                        )
-                                            return
-
-                                        const json =
-                                            await this.context.admin.requestJSON(
-                                                `/api/variables/${variable.id}/grapherConfigAdmin`,
-                                                {},
-                                                "DELETE"
-                                            )
-
-                                        if (json.success) {
-                                            runInAction(
-                                                () =>
-                                                    (this.props.variable.grapherConfigAdmin =
-                                                        undefined)
-                                            )
-                                        }
-                                    }}
-                                >
-                                    Delete
-                                </button>
-                            )}
-                        </div>
                     </FieldsRow>
                 </section>
                 <hr></hr>
@@ -461,27 +405,24 @@ class VariableEditor extends Component<{
 
     @computed private get grapherConfig(): GrapherInterface {
         const { variable } = this.props
-        const grapherConfig = variable.grapherConfig
-        if (grapherConfig)
-            return {
-                ...grapherConfig,
-                hasMapTab: true,
-                tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
-            }
-        else
-            return {
-                yAxis: { min: 0 },
-                map: { columnSlug: this.props.variable.id.toString() },
-                tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
-                hasMapTab: true,
-                dimensions: [
-                    {
-                        property: DimensionProperty.y,
-                        variableId: this.props.variable.id,
-                        display: _.clone(variable.display),
-                    },
-                ],
-            }
+        const grapherConfig = variable.grapherConfigETL
+
+        // If the variable has a grapher config, use it as-is
+        if (grapherConfig) return grapherConfig
+
+        // Otherwise, create a default config with a map tab
+        return {
+            yAxis: { min: 0 },
+            map: { columnSlug: this.props.variable.id.toString() },
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+            hasMapTab: true,
+            dimensions: [
+                {
+                    property: DimensionProperty.y,
+                    variableId: this.props.variable.id,
+                },
+            ],
+        }
     }
 
     dispose!: IReactionDisposer
