@@ -111,6 +111,7 @@ import {
     observable,
     autorun,
     runInAction,
+    untracked,
 } from "mobx"
 import React from "react"
 import * as R from "remeda"
@@ -1055,7 +1056,7 @@ export class GrapherState
         if (
             this.isOnDiscreteBarTab ||
             this.isOnMarimekkoTab ||
-            this.checkIsTwoColumnDumbbell(this.activeTab)
+            this.isOnTwoColumnDumbbellTab
         )
             return table.filterByTargetTimes([endTime])
 
@@ -1583,9 +1584,12 @@ export class GrapherState
         })
     }
 
+    @computed private get activeChartTypeOrDefault(): GrapherChartType {
+        return this.activeChartType ?? this.defaultChartType
+    }
+
     @computed get chartStateExceptMap(): ChartState {
-        const chartType = this.activeChartType ?? this.defaultChartType
-        return makeChartState(chartType, this)
+        return makeChartState(this.activeChartTypeOrDefault, this)
     }
 
     @computed private get chartSeriesNames(): SeriesName[] {
@@ -1709,7 +1713,8 @@ export class GrapherState
     // Exclusively used for the performance.measurement API, so that DevTools can show some context
     createPerformanceMeasurement(name: string, startMark: number): void {
         const endMark = performance.now()
-        const detail = {
+        // This runs inside computeds; keep performance metadata reads from becoming dependencies
+        const detail = untracked(() => ({
             devtools: {
                 track: "Grapher",
                 properties: [
@@ -1719,7 +1724,7 @@ export class GrapherState
                     ["tab", this.tab],
                 ],
             },
-        }
+        }))
 
         try {
             performance.measure(name, {
@@ -3021,6 +3026,10 @@ export class GrapherState
 
     @computed get isOnDumbbellTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.Dumbbell
+    }
+
+    @computed private get isOnTwoColumnDumbbellTab(): boolean {
+        return this.checkIsTwoColumnDumbbell(this.activeTab)
     }
 
     @computed get hasLineChart(): boolean {
