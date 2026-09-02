@@ -133,7 +133,12 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             })
         )
     } catch (error) {
-        if (isJson) return handleJsonError(error)
+        if (isJson) {
+            return handleJsonError(
+                error,
+                "Failed to request an email notification preferences link"
+            )
+        }
         throw error
     }
 }

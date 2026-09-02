@@ -40,7 +40,14 @@ export const SubscribeFlow = ({
             </SiteQueryClientProvider>
         ))
         .with({ name: "success" }, ({ subscription }) => (
-            <SubscribePageConfirmation heading="You are now subscribed">
+            <SubscribePageConfirmation
+                heading={
+                    // Stay neutral: the public API hides whether confirmation is needed.
+                    subscription.followTopics
+                        ? "You are now subscribed"
+                        : "Thanks for signing up"
+                }
+            >
                 <SubscribedText subscription={subscription} />
                 <Button
                     className="subscribe-page__confirmation-action"
@@ -54,6 +61,10 @@ export const SubscribeFlow = ({
         .exhaustive()
 }
 
+/**
+ * Covers both immediate and double-opt-in Brief signups without exposing the
+ * address's Mailchimp history.
+ */
 const SubscribedText = ({
     subscription: { email, followTopics, subscribeToOwidBrief },
 }: {
@@ -68,7 +79,9 @@ const SubscribedText = ({
         )}
         {subscribeToOwidBrief && (
             <p className="subscribe-page__confirmation-text">
-                Your subscription to The OWID Brief is active.
+                We have added <strong>{email}</strong> to The OWID Brief. If you
+                had unsubscribed from it before, you will first receive an email
+                asking you to confirm your subscription.
             </p>
         )}
     </>
