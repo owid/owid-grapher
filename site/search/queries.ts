@@ -32,6 +32,7 @@ import {
     buildChartsFacetFilters,
     searchSingleForHits,
     searchSingleForHitsWithClosestMatches,
+    MAX_FACET_VALUES,
 } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 
@@ -466,6 +467,16 @@ export async function queryLatestPages(
             offset: 0,
             length: 0,
             facets: ["tags"],
+            // Algolia returns at most 100 values per facet unless asked for
+            // more, and this index carries appreciably more topic tags than
+            // that. Today the caller only looks up the tag graph's ~10
+            // top-level areas, all of which are common enough to survive the
+            // truncation, so nothing is visibly wrong — but a tag absent from
+            // these counts reads as "0 results" and disables its pill (see
+            // LatestSearch), and the same hook already exposes the full
+            // searchable-topic list next to the areas. Ask for the lot rather
+            // than leave that waiting to happen.
+            maxValuesPerFacet: MAX_FACET_VALUES,
         },
     ]
 
