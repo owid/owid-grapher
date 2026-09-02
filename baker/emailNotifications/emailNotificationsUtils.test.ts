@@ -3,6 +3,7 @@ import {
     EmailNotificationsSubscriber,
     NotificationEmailItem,
     filterItemsForSubscriber,
+    formatItemDate,
     getWindowStart,
     parseSubscriberRow,
 } from "./emailNotificationsUtils.js"
@@ -26,6 +27,7 @@ const makeItem = (
     overrides: Partial<NotificationEmailItem> = {}
 ): NotificationEmailItem => ({
     type: "article",
+    latestType: "article",
     slug: "test-article",
     title: "Test article",
     url: "https://ourworldindata.org/test-article",
@@ -187,5 +189,25 @@ describe(filterItemsForSubscriber, () => {
                 NOW
             )
         ).toEqual([])
+    })
+})
+
+describe(formatItemDate, () => {
+    it("formats a date in the send year without the year", () => {
+        expect(
+            formatItemDate(
+                new Date("2026-08-03T09:00:00Z"),
+                new Date("2026-08-07T06:00:00Z")
+            )
+        ).toBe("August 3")
+    })
+
+    it("includes the year for content from a previous year", () => {
+        expect(
+            formatItemDate(
+                new Date("2025-12-28T09:00:00Z"),
+                new Date("2026-01-04T06:00:00Z")
+            )
+        ).toBe("December 28, 2025")
     })
 })
