@@ -18,15 +18,11 @@ export {
     type EmailNotificationsFrequency,
     EMAIL_NOTIFICATIONS_STATUSES,
     type EmailNotificationsStatus,
-    EmailNotificationsPreferencesTypeObject,
     type EmailNotificationsPreferences,
     mergeEmailNotificationsPreferences,
-    EmailNotificationsSubscribeRequestTypeObject,
     type EmailNotificationsSubscribeRequest,
     type EmailNotificationsSubscribeResponse,
-    EmailNotificationsRequestLinkRequestTypeObject,
     type EmailNotificationsRequestLinkRequest,
-    EmailNotificationsUpdatePreferencesRequestTypeObject,
     type EmailNotificationsUpdatePreferencesRequest,
     type EmailNotificationsPreferencesResponse,
 } from "./EmailNotificationsTypes.js"
@@ -758,6 +754,7 @@ export {
 
 export {
     RedirectsTableName,
+    type DbInsertRedirect,
     type DbPlainRedirect,
 } from "./dbTypes/Redirects.js"
 
