@@ -2054,6 +2054,30 @@ describe("tableForDisplay", () => {
                 .length
         ).toBe(5)
     })
+
+    it("drops the entities a scatter plot never plots", () => {
+        const scatterTable = new OwidTable(
+            [
+                ["entityName", "year", "x", "y"],
+                ["France", 2000, 1, 1],
+                ["Germany", 2000, null, null],
+            ],
+            [
+                { slug: "x", type: ColumnTypeNames.Numeric },
+                { slug: "y", type: ColumnTypeNames.Numeric },
+            ]
+        )
+        const grapher = new GrapherState({
+            table: scatterTable,
+            tab: "table",
+            chartTypes: ["ScatterPlot"],
+            xSlug: "x",
+            ySlugs: "y",
+        })
+        expect(
+            grapher.tableForDisplayBeforeEntityFilter.availableEntityNames
+        ).toEqual(["France"])
+    })
 })
 
 describe("projectionColumnInfoBySlug", () => {
