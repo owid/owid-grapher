@@ -1,6 +1,6 @@
-import * as Sentry from "@sentry/cloudflare"
 import { Env } from "../../_common/env.js"
 import { validateEmailNotificationsDatabase } from "../../_common/emailNotifications.js"
+import { logErrorAndCaptureInSentry } from "../../_common/errorLog.js"
 import {
     PostmarkWebhookEvent,
     applyPostmarkWebhookEvent,
@@ -29,7 +29,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     try {
         event = await request.json<PostmarkWebhookEvent>()
     } catch (error) {
-        reportWebhookError("Failed to parse Postmark webhook payload", error)
+        logErrorAndCaptureInSentry(
+            "Failed to parse Postmark webhook payload",
+            error
+        )
         return new Response(null, { status: 500 })
     }
 
@@ -37,14 +40,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         await applyPostmarkWebhookEvent(env.EMAIL_NOTIFICATIONS_DB, event)
         return new Response(null, { status: 200 })
     } catch (error) {
-        reportWebhookError("Failed to process Postmark webhook", error)
+        logErrorAndCaptureInSentry("Failed to process Postmark webhook", error)
         return new Response(null, { status: 500 })
     }
-}
-
-function reportWebhookError(message: string, error: unknown): void {
-    console.error(message, error)
-    Sentry.captureException(error)
 }
 
 function validatePostmarkWebhookConfiguration(env: Env): void {

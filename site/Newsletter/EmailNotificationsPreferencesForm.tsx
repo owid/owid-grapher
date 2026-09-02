@@ -7,6 +7,8 @@ import {
     EmailNotificationsPreferencesResponse,
     EmailNotificationsRequestLinkRequest,
     EmailNotificationsUpdatePreferencesRequest,
+    EmailNotificationsUpdatePreferencesResponse,
+    OwidBriefOptInResult,
 } from "@ourworldindata/types"
 import { Button, TextInput } from "@ourworldindata/components"
 import { SiteQueryClientProvider } from "../SiteQueryClientProvider.js"
@@ -218,7 +220,10 @@ async function fetchPreferences(token: string): Promise<TokenLookup> {
     }
 }
 
-type TokenScreenResult = "saved" | "unsubscribed" | "expired"
+type TokenScreenResult =
+    | { state: "saved"; owidBriefOptIn?: OwidBriefOptInResult }
+    | { state: "unsubscribed" }
+    | { state: "expired" }
 
 const TokenScreen = ({
     token,
@@ -237,14 +242,22 @@ const TokenScreen = ({
 
     if (result) {
         return match(result)
-            .with("saved", () => (
+            .with({ state: "saved" }, ({ owidBriefOptIn }) => (
                 <SubscribePageConfirmation heading="Preferences updated">
                     <p className="subscribe-page__confirmation-text">
                         Your email preferences have been saved.
                     </p>
+                    {owidBriefOptIn === "pending" && (
+                        <p className="subscribe-page__confirmation-text">
+                            To start receiving The OWID Brief again, please
+                            confirm your subscription using the link in the
+                            confirmation email from Mailchimp. If you no longer
+                            have that email, please contact us.
+                        </p>
+                    )}
                 </SubscribePageConfirmation>
             ))
-            .with("unsubscribed", () => (
+            .with({ state: "unsubscribed" }, () => (
                 <SubscribePageConfirmation heading="You have been successfully unsubscribed">
                     <p className="subscribe-page__confirmation-text">
                         You will no longer receive emails from us. You can
@@ -259,7 +272,9 @@ const TokenScreen = ({
                     />
                 </SubscribePageConfirmation>
             ))
-            .with("expired", () => <ExpiredLinkScreen token={token} />)
+            .with({ state: "expired" }, () => (
+                <ExpiredLinkScreen token={token} />
+            ))
             .exhaustive()
     }
 
@@ -322,14 +337,15 @@ const PreferencesEditor = ({
     const update = useMutation({
         mutationFn: async (
             request: EmailNotificationsUpdatePreferencesRequest
-        ) => {
+        ): Promise<TokenScreenResult> => {
             const response = await apiPost("/preferences", request)
-            if (response.status === 410) return "expired" as const
+            if (response.status === 410) return { state: "expired" }
             await throwIfApiError(response)
-            return !request.subscribeToTopicNotifications &&
-                request.subscribeToOwidBrief === false
-                ? "unsubscribed"
-                : "saved"
+            if (request.action === "unsubscribeAll")
+                return { state: "unsubscribed" }
+            const data =
+                (await response.json()) as EmailNotificationsUpdatePreferencesResponse
+            return { state: "saved", owidBriefOptIn: data.owidBriefOptIn }
         },
         onSuccess: onDone,
     })
@@ -338,10 +354,14 @@ const PreferencesEditor = ({
         event.preventDefault()
         preferences.resetValidation()
         if (subscribedToTopicNotifications && !preferences.validate()) return
+        // Send only changes, since pending Brief subscriptions appear unchecked.
         const commonRequest = {
+            action: "updatePreferences" as const,
             token,
-            // Only included when the toggle was shown.
-            subscribeToOwidBrief: subscribedToOwidBrief ?? undefined,
+            subscribeToOwidBrief:
+                subscribedToOwidBrief === initialSubscribedToOwidBrief
+                    ? undefined
+                    : (subscribedToOwidBrief ?? undefined),
         }
         update.mutate(
             subscribedToTopicNotifications
@@ -360,9 +380,8 @@ const PreferencesEditor = ({
     const handleUnsubscribe = () => {
         preferences.resetValidation()
         update.mutate({
+            action: "unsubscribeAll",
             token,
-            subscribeToTopicNotifications: false,
-            subscribeToOwidBrief: false,
         })
     }
 
