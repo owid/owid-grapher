@@ -15,6 +15,9 @@ import {
     GRAPHER_TAB_QUERY_PARAMS,
     TimeInterval,
     StackMode,
+    FacetStrategy,
+    GrapherChartType,
+    GrapherTabName,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -2968,6 +2971,12 @@ describe("adjustStateForTab", () => {
         })
     }
 
+    const switchTab = (grapher: GrapherState, tab: GrapherTabName): void => {
+        const previousTab = grapher.activeTab
+        grapher.setTab(tab)
+        grapher.onTabChange(previousTab, tab)
+    }
+
     describe("time handle adjustment", () => {
         it("collapses time range to single time when switching to a single-time tab", () => {
             const grapher = createGrapher()
@@ -2978,7 +2987,7 @@ describe("adjustStateForTab", () => {
                 grapher.endHandleTimeBound
             )
 
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.DiscreteBar)
+            switchTab(grapher, GRAPHER_TAB_NAMES.DiscreteBar)
 
             // A single time is now selected
             expect(grapher.startHandleTimeBound).toBe(
@@ -2992,7 +3001,7 @@ describe("adjustStateForTab", () => {
             // Start with a single time
             grapher.timelineHandleTimeBounds = [2005, 2005]
 
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.LineChart)
+            switchTab(grapher, GRAPHER_TAB_NAMES.LineChart)
 
             // A time range is now selected
             expect(grapher.startHandleTimeBound).not.toBe(
@@ -3012,7 +3021,7 @@ describe("adjustStateForTab", () => {
             grapher.selection.clearSelection()
             grapher.timelineHandleTimeBounds = [2005, 2005]
 
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.LineChart)
+            switchTab(grapher, GRAPHER_TAB_NAMES.LineChart)
 
             expect(grapher.endHandleTimeBound).toBe(2005)
             expect(grapher.startHandleTimeBound).toBe(-Infinity)
@@ -3023,24 +3032,29 @@ describe("adjustStateForTab", () => {
 
             // Already a range — switching to LineChart should be a no-op
             grapher.timelineHandleTimeBounds = [2000, 2010]
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.LineChart)
+            switchTab(grapher, GRAPHER_TAB_NAMES.LineChart)
             expect(grapher.timelineHandleTimeBounds).toEqual([2000, 2010])
 
             // Already single time — switching to DiscreteBar should be a no-op
             grapher.timelineHandleTimeBounds = [2005, 2005]
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.DiscreteBar)
+            switchTab(grapher, GRAPHER_TAB_NAMES.DiscreteBar)
             expect(grapher.timelineHandleTimeBounds).toEqual([2005, 2005])
         })
 
-        it("collapses time range for StackedArea (range-preferred) tabs", () => {
-            const grapher = createGrapher()
+        it("expands a single time for StackedArea, which prefers a range", () => {
+            const grapher = createGrapher({
+                chartTypes: [
+                    GRAPHER_CHART_TYPES.StackedArea,
+                    GRAPHER_CHART_TYPES.StackedDiscreteBar,
+                ],
+            })
 
             // Start with a single time
             grapher.timelineHandleTimeBounds = [2005, 2005]
 
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.StackedArea)
+            switchTab(grapher, GRAPHER_TAB_NAMES.StackedArea)
 
-            // StackedArea prefers a range, so the single time should be expanded to a range
+            expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.StackedArea)
             expect(grapher.startHandleTimeBound).not.toBe(
                 grapher.endHandleTimeBound
             )
@@ -3048,57 +3062,282 @@ describe("adjustStateForTab", () => {
     })
 
     describe("entity selection adjustment", () => {
-        it("clears selection for all-entity chart type when selection matches authored", () => {
-            const grapher = createGrapher({
-                xSlug: SampleColumnSlugs.GDP,
-                chartTypes: [
-                    GRAPHER_CHART_TYPES.LineChart,
-                    GRAPHER_CHART_TYPES.ScatterPlot,
-                ],
+        const createGrapherWithSecondaryScatter = (
+            primaryChartType: GrapherChartType
+        ): GrapherState =>
+            createGrapher({
+                xSlug: SampleColumnSlugs.Population,
+                chartTypes: [primaryChartType, GRAPHER_CHART_TYPES.ScatterPlot],
             })
 
-            expect(grapher.selection.hasSelection).toBe(true)
+        it.each([
+            GRAPHER_CHART_TYPES.LineChart,
+            GRAPHER_CHART_TYPES.SlopeChart,
+            GRAPHER_CHART_TYPES.DiscreteBar,
+        ])(
+            "clears a secondary scatter's selection after a round trip via %s",
+            (primaryChartType) => {
+                const grapher =
+                    createGrapherWithSecondaryScatter(primaryChartType)
+                grapher.populateFromQueryParams({ tab: "scatter", country: "" })
+                expect(grapher.selection.hasSelection).toBe(false)
 
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.ScatterPlot)
+                switchTab(grapher, primaryChartType)
+                expect(grapher.selection.hasSelection).toBe(true)
 
-            expect(grapher.selection.hasSelection).toBe(false)
+                switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
+                expect(grapher.selection.selectedEntityNames).toEqual([])
+                expect(grapher.queryStr).toContain("country=")
+            }
+        )
+
+        it("clears a secondary scatter's selection in relative mode", () => {
+            const grapher = createGrapherWithSecondaryScatter(
+                GRAPHER_CHART_TYPES.LineChart
+            )
+            grapher.populateFromQueryParams({ tab: "scatter", country: "" })
+            grapher.stackMode = StackMode.relative
+            expect(grapher.isRelativeMode).toBe(true)
+
+            switchTab(grapher, GRAPHER_TAB_NAMES.LineChart)
+            switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
+
+            expect(grapher.selection.selectedEntityNames).toEqual([])
         })
 
-        it("preserves selection for all-entity chart types when user changed it", () => {
-            const grapher = createGrapher({
-                xSlug: SampleColumnSlugs.GDP,
-                chartTypes: [
-                    GRAPHER_CHART_TYPES.LineChart,
-                    GRAPHER_CHART_TYPES.ScatterPlot,
-                ],
-            })
-
-            // Simulate user changing the selection away from authored
+        it("keeps a secondary scatter's selection when the user changed it", () => {
+            const grapher = createGrapherWithSecondaryScatter(
+                GRAPHER_CHART_TYPES.LineChart
+            )
             grapher.selection.deselectEntity(
                 grapher.selection.selectedEntityNames[0]
             )
             expect(grapher.areSelectedEntitiesDifferentThanAuthors).toBe(true)
+            const userSelection = grapher.selection.selectedEntityNames
 
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.ScatterPlot)
+            switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
 
-            expect(grapher.selection.hasSelection).toBe(true)
+            expect(grapher.selection.selectedEntityNames).toEqual(userSelection)
         })
 
-        it("restores authored selection when selection is empty", () => {
+        it("keeps the authored selection and time range of a scatter-only chart", () => {
             const grapher = createGrapher({
-                chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+                xSlug: SampleColumnSlugs.Population,
+                chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+                minTime: 2000,
+                maxTime: 2010,
+            })
+            const authoredSelection = grapher.selection.selectedEntityNames
+            const authoredHandles = [...grapher.timelineHandleTimeBounds]
+
+            switchTab(grapher, GRAPHER_TAB_NAMES.Table)
+            switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
+
+            expect(grapher.selection.selectedEntityNames).toEqual(
+                authoredSelection
+            )
+            expect(grapher.timelineHandleTimeBounds).toEqual(authoredHandles)
+        })
+
+        it("keeps the authored selection and single time of a scatter-only chart", () => {
+            const grapher = createGrapher({
+                xSlug: SampleColumnSlugs.Population,
+                chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+                minTime: 2010,
+                maxTime: 2010,
+            })
+            const authoredSelection = grapher.selection.selectedEntityNames
+            const authoredHandles = [...grapher.timelineHandleTimeBounds]
+
+            switchTab(grapher, GRAPHER_TAB_NAMES.Table)
+            switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
+
+            expect(grapher.selection.selectedEntityNames).toEqual(
+                authoredSelection
+            )
+            expect(grapher.timelineHandleTimeBounds).toEqual(authoredHandles)
+        })
+
+        it("keeps a time scatter's selection when it is the only chart type", () => {
+            const grapher = createGrapher({
+                chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
             })
             const authoredSelection = grapher.selection.selectedEntityNames
 
-            // Clear selection
-            grapher.selection.clearSelection()
-            expect(grapher.selection.hasSelection).toBe(false)
-
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.LineChart)
+            switchTab(grapher, GRAPHER_TAB_NAMES.Table)
+            switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
 
             expect(grapher.selection.selectedEntityNames).toEqual(
                 authoredSelection
             )
         })
+
+        it("keeps a secondary time scatter's selection", () => {
+            const grapher = createGrapher({
+                chartTypes: [
+                    GRAPHER_CHART_TYPES.LineChart,
+                    GRAPHER_CHART_TYPES.ScatterPlot,
+                ],
+            })
+            const authoredSelection = grapher.selection.selectedEntityNames
+            grapher.populateFromQueryParams({ tab: "scatter", country: "" })
+
+            switchTab(grapher, GRAPHER_TAB_NAMES.LineChart)
+            switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
+
+            expect(grapher.selection.selectedEntityNames).toEqual(
+                authoredSelection
+            )
+        })
+    })
+})
+
+describe("relative mode follows the facet strategy in effect", () => {
+    const makeStackedDiscreteBarGrapher = (): GrapherState => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 4, timeRange: [2000, 2010] },
+            1
+        )
+        return new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.StackedDiscreteBar],
+            hideRelativeToggle: false,
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+                {
+                    slug: SampleColumnSlugs.Population,
+                    property: DimensionProperty.y,
+                    variableId: 2,
+                },
+            ],
+        })
+    }
+
+    it("keeps relative mode when facet=entity isn't offered by the chart", () => {
+        const grapher = makeStackedDiscreteBarGrapher()
+        grapher.selectedFacetStrategy = FacetStrategy.entity
+        grapher.stackMode = StackMode.relative
+
+        expect(grapher.availableFacetStrategies).not.toContain(
+            FacetStrategy.entity
+        )
+        expect(grapher.facetStrategy).toEqual(FacetStrategy.none)
+        expect(grapher.canToggleRelativeMode).toBe(true)
+        expect(grapher.isRelativeMode).toBe(true)
+    })
+
+    it("drops relative mode when facet=metric is offered and picked", () => {
+        const grapher = makeStackedDiscreteBarGrapher()
+        grapher.selectedFacetStrategy = FacetStrategy.metric
+        grapher.stackMode = StackMode.relative
+
+        expect(grapher.availableFacetStrategies).toContain(FacetStrategy.metric)
+        expect(grapher.facetStrategy).toEqual(FacetStrategy.metric)
+        expect(grapher.canToggleRelativeMode).toBe(false)
+        expect(grapher.isRelativeMode).toBe(false)
+    })
+
+    const makeStackedAreaGrapher = (
+        numSelectedEntities: number
+    ): GrapherState => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 4, timeRange: [2000, 2010] },
+            1
+        )
+        return new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.StackedArea],
+            hideRelativeToggle: false,
+            selectedEntityNames: table.availableEntityNames.slice(
+                0,
+                numSelectedEntities
+            ),
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+            ],
+        })
+    }
+
+    it("resolves the relative toggle on a stacked area chart without a MobX cycle", () => {
+        const grapher = makeStackedAreaGrapher(4)
+        grapher.selectedFacetStrategy = FacetStrategy.metric
+        grapher.stackMode = StackMode.relative
+
+        expect(grapher.availableFacetStrategies).not.toContain(
+            FacetStrategy.metric
+        )
+        expect(grapher.facetStrategy).toEqual(FacetStrategy.none)
+        expect(grapher.canToggleRelativeMode).toBe(true)
+        expect(grapher.isRelativeMode).toBe(true)
+    })
+
+    it("keeps relative mode for a single selected entity when facet=metric isn't offered", () => {
+        const grapher = makeStackedAreaGrapher(1)
+        grapher.selectedFacetStrategy = FacetStrategy.metric
+        grapher.stackMode = StackMode.relative
+
+        expect(grapher.availableFacetStrategies).not.toContain(
+            FacetStrategy.metric
+        )
+        expect(grapher.facetStrategy).toEqual(FacetStrategy.none)
+        expect(grapher.canToggleRelativeMode).toBe(true)
+        expect(grapher.isRelativeMode).toBe(true)
+    })
+
+    const makeStackedAreaPercentagesGrapher = (): GrapherState => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 4, timeRange: [2000, 2010] },
+            1
+        ).updateDefs((def) => {
+            // A Currency column reports "$" whatever its def says
+            if (
+                def.slug === SampleColumnSlugs.GDP ||
+                def.slug === SampleColumnSlugs.Population
+            )
+                def.type = ColumnTypeNames.Percentage
+            return def
+        })
+        return new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.StackedArea],
+            hideRelativeToggle: false,
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+                {
+                    slug: SampleColumnSlugs.Population,
+                    property: DimensionProperty.y,
+                    variableId: 2,
+                },
+            ],
+        })
+    }
+
+    it("never offers facet=metric for percentages, so relative mode survives it", () => {
+        const grapher = makeStackedAreaPercentagesGrapher()
+        grapher.stackMode = StackMode.relative
+
+        expect(grapher.availableFacetStrategies).not.toContain(
+            FacetStrategy.metric
+        )
+
+        grapher.selectedFacetStrategy = FacetStrategy.metric
+
+        expect(grapher.facetStrategy).toEqual(FacetStrategy.entity)
+        expect(grapher.canToggleRelativeMode).toBe(true)
+        expect(grapher.isRelativeMode).toBe(true)
     })
 })
