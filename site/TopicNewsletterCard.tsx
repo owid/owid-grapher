@@ -10,12 +10,6 @@ import { hasTopicNewsletterCard } from "./topicNewsletter.js"
 // We don't archive the subscribe page.
 const BASE_URL = IS_ARCHIVE ? PROD_URL : ""
 
-/**
- * Card inviting readers to subscribe to updates about the top-level topic
- * area a page belongs to. Renders nothing when the page doesn't resolve to one
- * or the email notifications feature is off. The link preselects the area on
- * /subscribe.
- */
 export default function TopicNewsletterCard({
     topicArea,
     pageType = "topic",
