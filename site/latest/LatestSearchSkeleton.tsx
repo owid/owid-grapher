@@ -22,8 +22,6 @@ const LatestHitSkeleton = () => (
     </div>
 )
 
-// The newsletter slot is rendered for real so it doesn't change between the
-// skeleton and the loaded feed.
 export const LatestSearchSkeleton = ({ topicArea }: { topicArea?: string }) => (
     <>
         <LatestHitSkeleton />

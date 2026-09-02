@@ -109,8 +109,6 @@ export default function AboutThisData({
                             />
                         )}
                         {isNewsletterCardOnLeft && (
-                            // Inside the column, not a grid item of its own: a
-                            // third row would sit below the taller column.
                             <TopicNewsletterCard
                                 pageType="chart"
                                 topicArea={topicArea}
