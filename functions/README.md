@@ -207,10 +207,33 @@ edit preferences directly. Requesting a link for an unknown address produces
 the same public response without sending email, avoiding both address
 enumeration and an arbitrary-mail endpoint.
 
-The OWID Brief remains a separate Mailchimp subscription but uses the same
-single-opt-in policy. Mailchimp failures are fail-soft when saving notification
-preferences because the two subscriptions have different owners and should not
-make each other unavailable.
+The OWID Brief remains a separate Mailchimp subscription, managed through the
+Mailchimp Marketing API by both the public subscribe form and the
+authenticated preferences API. A Brief signup depends on the address's
+Mailchimp status:
+
+- **New address:** created as an active member with the Brief interest enabled.
+  This is single opt-in, like Follow Topics.
+- **Active member:** the Brief interest is enabled immediately.
+- **Previously unsubscribed:** set to `pending`, which makes Mailchimp send a
+  double-opt-in confirmation email. Other interests are cleared because
+  confirmation resubscribes the contact to the whole audience, but they
+  consented only to the Brief.
+- **Already pending:** keeps the interests from the unconfirmed signup.
+  Mailchimp does not resend the confirmation email.
+- **Cleaned (hard bounce):** cannot be resubscribed through the API or receive
+  a confirmation email.
+
+The APIs report these outcomes differently:
+
+- **Token-gated preferences API:** reports whether the Brief is active,
+  awaiting confirmation, or the address is cleaned.
+- **Public subscribe form:** returns the same response in every case to avoid
+  revealing an address's Mailchimp history. Its confirmation copy covers both
+  immediate subscription and email confirmation.
+
+Brief status reads fail soft so a Mailchimp outage does not make Follow Topics
+preferences unavailable.
 
 The relevant routes and their trust boundaries are:
 
