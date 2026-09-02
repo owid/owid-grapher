@@ -11,6 +11,14 @@ import {
     throwIfApiError,
 } from "./emailNotificationsApi.js"
 import { storeSubscribePrefill } from "./subscribePrefill.js"
+import {
+    FOLLOW_TOPICS_DESCRIPTION,
+    FOLLOW_TOPICS_TITLE,
+    OWID_BRIEF_CADENCE,
+    OWID_BRIEF_DESCRIPTION,
+    OWID_BRIEF_TITLE,
+    PrivacyNotice,
+} from "./newsletterCopy.js"
 
 const analytics = new SiteAnalytics()
 
@@ -20,6 +28,7 @@ const NewsletterOption = ({
     cadence,
     description,
     checked,
+    disabled,
     onChange,
 }: {
     id: string
@@ -27,12 +36,14 @@ const NewsletterOption = ({
     cadence: string
     description: string
     checked: boolean
+    disabled?: boolean
     onChange: () => void
 }) => (
     <Checkbox
         id={id}
         className="newsletter-signup-form__option"
         checked={checked}
+        disabled={disabled}
         onChange={onChange}
         label={
             <>
@@ -77,13 +88,14 @@ export const NewsletterSignupForm = ({
 
     const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
+        if (!isSubmittable) return
         const trimmedEmail = email.trim()
-        analytics.logSiteFormSubmit(
-            "newsletter-subscribe",
-            `Subscribe [${context}]`
-        )
 
         if (followTopics) {
+            analytics.logSiteClick(
+                "newsletter-follow-topics-handoff",
+                `Subscribe [${context}]`
+            )
             storeSubscribePrefill({ email: trimmedEmail, subscribeToOwidBrief })
             window.location.assign("/subscribe")
             return
@@ -94,9 +106,13 @@ export const NewsletterSignupForm = ({
         try {
             const request: EmailNotificationsSubscribeRequest = {
                 email: trimmedEmail,
-                subscribeToOwidBrief: true,
+                subscribeToOwidBrief,
             }
             await throwIfApiError(await apiPost("/subscribe", request))
+            analytics.logSiteFormSubmit(
+                "newsletter-subscribe",
+                `Subscribe [${context}]`
+            )
             setIsSubscribed(true)
         } catch (caught) {
             setError(getErrorMessage(caught))
@@ -114,29 +130,35 @@ export const NewsletterSignupForm = ({
             </p>
         )
 
+    // Until the page hydrates, submits are handled natively by the browser:
+    // the action sends them to /subscribe, and the email input has no `name`
+    // so the address can't leak into the URL as a query param.
     return (
         <form
             className={cx("newsletter-signup-form", className)}
+            action="/subscribe"
             onSubmit={handleSubmit}
         >
             <NewsletterOption
                 id={`newsletter-signup-brief-${context}`}
-                title="The OWID Brief"
-                cadence="Twice a month"
-                description="Stay up to date with our latest work plus curated highlights from across Our World in Data, twice a month."
+                title={OWID_BRIEF_TITLE}
+                cadence={OWID_BRIEF_CADENCE}
+                description={OWID_BRIEF_DESCRIPTION}
                 checked={subscribeToOwidBrief}
+                disabled={isSubscribing}
                 onChange={() => setSubscribeToOwidBrief(!subscribeToOwidBrief)}
             />
             <NewsletterOption
                 id={`newsletter-signup-topics-${context}`}
-                title="Follow Topics"
+                title={FOLLOW_TOPICS_TITLE}
                 cadence={
                     followTopics
                         ? "Choose topics in next step"
                         : "Pick your cadence"
                 }
-                description="Receive updates on the topics you follow as we publish them, at your preferred frequency."
+                description={FOLLOW_TOPICS_DESCRIPTION}
                 checked={followTopics}
+                disabled={isSubscribing}
                 onChange={() => setFollowTopics(!followTopics)}
             />
             {!isSubmittable && (
@@ -150,10 +172,11 @@ export const NewsletterSignupForm = ({
             <TextInput
                 className="newsletter-signup-form__email sentry-mask"
                 type="email"
-                name="email"
+                autoComplete="email"
                 placeholder="Your email address"
                 required={true}
                 value={email}
+                disabled={isSubscribing}
                 onChange={(event) => setEmail(event.target.value)}
             />
             <Button
@@ -170,10 +193,7 @@ export const NewsletterSignupForm = ({
                           : "Subscribe"
                 }
             />
-            <div className="newsletter-signup-form__privacy-notice">
-                By subscribing you are agreeing to the terms of our{" "}
-                <a href="/privacy-policy">privacy policy</a>.
-            </div>
+            <PrivacyNotice className="newsletter-signup-form__privacy-notice" />
         </form>
     )
 }
