@@ -13,9 +13,17 @@ import {
     SearchChartHit,
     FilterType,
     ALL_CHARTS_ID,
+    GRAPHER_TAB_NAMES,
+    GrapherTabName,
 } from "@ourworldindata/types"
 import { listedRegionsNames } from "@ourworldindata/utils"
 import { Button } from "@ourworldindata/components"
+import {
+    GRAPHER_THUMBNAIL_HEIGHT,
+    GRAPHER_THUMBNAIL_WIDTH,
+    makeLabelForGrapherTab,
+    mapGrapherTabNameToQueryParam,
+} from "@ourworldindata/grapher"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { useDocumentContext } from "./gdocs/DocumentContext.js"
 import {
@@ -30,6 +38,8 @@ import {
     createCountryFilter,
     createDatasetProducerFilter,
     constructConfigUrl,
+    constructPreviewUrl,
+    toGrapherQueryParams,
     getEntityQueryStr,
     extractFiltersFromQuery,
     pickEntitiesForChartHit,
@@ -51,6 +61,7 @@ import { buildSynonymMap } from "./search/synonymUtils.js"
 import { SearchDataResultsSkeleton } from "./search/SearchDataResultsSkeleton.js"
 import { SearchFilterPill } from "./search/SearchFilterPill.js"
 import { useVisibleChartHits } from "./useVisibleChartHits.js"
+import { PreviewVariant } from "./search/SearchChartHitRichDataTypes.js"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "./SiteConstants.js"
 import { TOPIC_VOCABULARY_URL } from "../settings/clientSettings.js"
 
@@ -495,6 +506,13 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
     const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
     const isAccordionLayout = useMediaQuery(ACCORDION_LAYOUT_MEDIA_QUERY)
 
+    // Which view of the selected chart to show, when it was picked from a row's
+    // thumbnails; `undefined` is the chart's own default view, which is what
+    // selecting a row by its text goes back to.
+    const [selectedTab, setSelectedTab] = useState<GrapherTabName | undefined>(
+        undefined
+    )
+
     // Where a result set starts out. On the accordion layout the first row opens
     // with its chart showing, so the block never presents a phone with a list of
     // titles and no chart at all — the counterpart of the desktop sidecar, which
@@ -531,7 +549,18 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
     const handleRowClick = (index: number) => {
         const hit = hits[index]
         if (hit) setSelectedIdentity(getChartHitIdentity(hit))
+        setSelectedTab(undefined)
         setExpandedIndex((prev) => (prev === index ? null : index))
+    }
+
+    // A thumbnail selects its row like the row's text does, and additionally
+    // sets the view. It never collapses the row it belongs to: on the accordion
+    // layout the chart it just picked a view for is the one inside that row.
+    const handleThumbnailClick = (index: number, tab?: GrapherTabName) => {
+        const hit = hits[index]
+        if (hit) setSelectedIdentity(getChartHitIdentity(hit))
+        setSelectedTab(tab)
+        if (isAccordionLayout) setExpandedIndex(index)
     }
 
     const selectedHit = hits[selectedIndex]
@@ -572,7 +601,9 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                             hits={visibleHits}
                             selectedIndex={selectedIndex}
                             expandedIndex={expandedIndex}
+                            selectedTab={selectedTab}
                             onRowClick={handleRowClick}
+                            onThumbnailClick={handleThumbnailClick}
                             detectedCountries={detectedCountries}
                             searchPhrase={searchPhrase}
                             duplicatedTitles={duplicatedTitles}
@@ -623,6 +654,7 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                     <AllChartsSidecar
                         hit={selectedHit}
                         detectedCountries={detectedCountries}
+                        tab={selectedTab}
                     />
                 )}
             </div>
@@ -700,7 +732,9 @@ const AllChartsTable = ({
     hits,
     selectedIndex,
     expandedIndex,
+    selectedTab,
     onRowClick,
+    onThumbnailClick,
     detectedCountries,
     searchPhrase,
     duplicatedTitles,
@@ -711,7 +745,9 @@ const AllChartsTable = ({
     hits: readonly SearchChartHit[]
     selectedIndex: number
     expandedIndex: number | null
+    selectedTab?: GrapherTabName
     onRowClick: (index: number) => void
+    onThumbnailClick: (index: number, tab?: GrapherTabName) => void
     detectedCountries: string[]
     searchPhrase: string
     duplicatedTitles: ReadonlySet<string>
@@ -736,7 +772,9 @@ const AllChartsTable = ({
                     hit={hit}
                     isSelected={index === selectedIndex}
                     isExpanded={index === expandedIndex}
+                    selectedTab={selectedTab}
                     onSelect={() => onRowClick(index)}
+                    onSelectTab={(tab) => onThumbnailClick(index, tab)}
                     detectedCountries={detectedCountries}
                     searchPhrase={searchPhrase}
                     duplicatedTitles={duplicatedTitles}
@@ -749,13 +787,112 @@ const AllChartsTable = ({
 /**
  * The Grapher view the sidecar is showing for a hit, as a query string — e.g.
  * "?country=~ESP" when the search names a country this chart has data for, and
- * "" when it doesn't.
+ * "" when it doesn't. `tab` is the view picked from the row's thumbnails, if
+ * any; without one the chart opens on its own default view.
  */
 function getSidecarViewQueryStr(
     hit: SearchChartHit,
-    detectedCountries: string[]
+    detectedCountries: string[],
+    tab?: GrapherTabName
 ): string {
-    return getEntityQueryStr(pickEntitiesForChartHit(hit, detectedCountries))
+    const entityQueryStr = getEntityQueryStr(
+        pickEntitiesForChartHit(hit, detectedCountries)
+    )
+    if (!tab) return entityQueryStr
+    const tabQueryStr = `tab=${mapGrapherTabNameToQueryParam(tab)}`
+    return entityQueryStr
+        ? `${entityQueryStr}&${tabQueryStr}`
+        : `?${tabQueryStr}`
+}
+
+// How many of a chart's views a row offers as thumbnails. The rest stay
+// reachable through the sidecar's own tab bar.
+const MAX_ROW_THUMBNAILS = 3
+
+/**
+ * The views a row offers as thumbnails, in priority order: the chart's own
+ * default view, then its map, then its remaining chart types. `undefined` is
+ * that default view — the Algolia record says which tabs a chart has but not
+ * which one it opens on, so it is requested with no `tab` param at all, exactly
+ * as the sidecar loads it. A chart whose only view is a map therefore already
+ * has that map in the first slot, and is not offered it twice.
+ *
+ * The table is never offered: the thumbnail renderer has no table to draw and
+ * answers a `tab=table` request with the chart instead.
+ */
+function getRowThumbnailTabs(
+    hit: SearchChartHit
+): (GrapherTabName | undefined)[] {
+    const chartTabs = hit.availableTabs.filter(
+        (tab) =>
+            tab !== GRAPHER_TAB_NAMES.Table &&
+            tab !== GRAPHER_TAB_NAMES.WorldMap
+    )
+    const hasSeparateMapTab =
+        hit.availableTabs.includes(GRAPHER_TAB_NAMES.WorldMap) &&
+        chartTabs.length > 0
+    return [
+        undefined,
+        ...(hasSeparateMapTab ? [GRAPHER_TAB_NAMES.WorldMap] : []),
+        ...chartTabs.slice(1),
+    ].slice(0, MAX_ROW_THUMBNAILS)
+}
+
+/**
+ * A row's thumbnails: one static preview per view of the chart, from the same
+ * thumbnail endpoint the search results' previews use (see constructPreviewUrl).
+ * Clicking one selects the row and puts that view in the chart beside it.
+ */
+const AllChartsRowThumbnails = ({
+    hit,
+    selectedTab,
+    isSelected,
+    onSelectTab,
+}: {
+    hit: SearchChartHit
+    selectedTab?: GrapherTabName
+    isSelected: boolean
+    onSelectTab: (tab?: GrapherTabName) => void
+}) => {
+    const tabs = useMemo(() => getRowThumbnailTabs(hit), [hit])
+
+    return (
+        <div className="all-charts-block__row-thumbnails">
+            {tabs.map((tab) => {
+                const label = tab
+                    ? makeLabelForGrapherTab(tab, { format: "long" })
+                    : "Default view"
+                return (
+                    <button
+                        key={tab ?? "default"}
+                        type="button"
+                        className={cx("all-charts-block__row-thumbnail", {
+                            "all-charts-block__row-thumbnail--active":
+                                isSelected && selectedTab === tab,
+                        })}
+                        aria-pressed={isSelected && selectedTab === tab}
+                        aria-label={`${label}: ${hit.title}`}
+                        onClick={() => onSelectTab(tab)}
+                    >
+                        <img
+                            src={constructPreviewUrl({
+                                hit,
+                                grapherParams: toGrapherQueryParams({ tab }),
+                                variant: PreviewVariant.Thumbnail,
+                            })}
+                            alt=""
+                            loading="lazy"
+                            // The thumbnail's own dimensions, so the browser can
+                            // reserve the right box before the image lands — a
+                            // topic page can hold nearly 200 rows of these.
+                            width={GRAPHER_THUMBNAIL_WIDTH}
+                            height={GRAPHER_THUMBNAIL_HEIGHT}
+                        />
+                    </button>
+                )
+            })}
+        </div>
+    )
 }
 
 /**
@@ -791,7 +928,9 @@ const AllChartsTableRow = ({
     hit,
     isSelected,
     isExpanded,
+    selectedTab,
     onSelect,
+    onSelectTab,
     detectedCountries,
     searchPhrase,
     duplicatedTitles,
@@ -799,7 +938,9 @@ const AllChartsTableRow = ({
     hit: SearchChartHit
     isSelected: boolean
     isExpanded: boolean
+    selectedTab?: GrapherTabName
     onSelect: () => void
+    onSelectTab: (tab?: GrapherTabName) => void
     detectedCountries: string[]
     searchPhrase: string
     duplicatedTitles: ReadonlySet<string>
@@ -896,6 +1037,16 @@ const AllChartsTableRow = ({
                         </span>
                     )}
                 </div>
+                {/* A sibling of the text target rather than part of it: these
+                    are buttons of their own, and a button inside a
+                    role="button" would hand every thumbnail click to the row
+                    as well. */}
+                <AllChartsRowThumbnails
+                    hit={hit}
+                    selectedTab={selectedTab}
+                    isSelected={isSelected}
+                    onSelectTab={onSelectTab}
+                />
             </div>
             {/* Mobile/tablet accordion panel: the persistent sidecar
                 (all-charts-block__right) is hidden below that breakpoint, so
@@ -907,6 +1058,7 @@ const AllChartsTableRow = ({
                     <AllChartsSidecar
                         hit={hit}
                         detectedCountries={detectedCountries}
+                        tab={isSelected ? selectedTab : undefined}
                     />
                 </div>
             )}
@@ -917,9 +1069,11 @@ const AllChartsTableRow = ({
 const AllChartsSidecar = ({
     hit,
     detectedCountries,
+    tab,
 }: {
     hit: SearchChartHit
     detectedCountries: string[]
+    tab?: GrapherTabName
 }) => {
     const { isPreviewing } = useDocumentContext()
 
@@ -928,7 +1082,7 @@ const AllChartsSidecar = ({
     // don't track entity changes made inside Grapher back to the search bar.
     // Shared with the row's "Explore the data" href — see
     // getSidecarViewQueryStr.
-    const queryStr = getSidecarViewQueryStr(hit, detectedCountries)
+    const queryStr = getSidecarViewQueryStr(hit, detectedCountries, tab)
 
     // Plain charts can be loaded by slug; mdim/explorer views need a config URL.
     const configUrl =

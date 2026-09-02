@@ -306,11 +306,13 @@
 }
 
 // A row has no column structure: its text is one block (title, then the
-// "Source: …" line, with the subtitle between them once a search reveals it).
-// This wrapper carries the row's own hover/selected treatment, so the accent
-// border and background span the full width of the row.
+// "Source: …" line, with the subtitle between them once a search reveals it),
+// with the strip of view thumbnails under it. This wrapper carries the row's
+// own hover/selected treatment, so the accent border and background span the
+// full width of the row.
 .all-charts-block__row-body {
     display: flex;
+    flex-direction: column;
     border-left: 3px solid transparent;
 
     &:hover {
@@ -448,6 +450,51 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+
+// The strip of view thumbnails under the row's text: one per view of the
+// chart, up to three (see getRowThumbnailTabs). Left-aligned and inset to the
+// same 16px as the text above it (3px accent border + 13px).
+//
+// Each thumbnail keeps the mockup's proportions rather than its 270px width:
+// three of those need 826px and the list pane is 523px at the full grid width,
+// so they take an equal share of whatever the pane gives them and stop growing
+// at 270px.
+.all-charts-block__row-thumbnails {
+    display: flex;
+    gap: 8px;
+    padding: 0 13px 12px;
+}
+
+.all-charts-block__row-thumbnail {
+    flex: 0 1 270px;
+    // Without this the flex item won't shrink below the image's intrinsic
+    // width, and the strip overflows the row instead of fitting the pane.
+    min-width: 0;
+    padding: 0;
+    border: 1px solid $gray-20;
+    background-color: $white;
+    cursor: pointer;
+    // The image is the whole content, so there is no line box to leave a
+    // descender's worth of space under it.
+    line-height: 0;
+
+    &:hover {
+        border-color: $blue-40;
+    }
+
+    img {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+}
+
+// The view currently in the chart beside the list, on the selected row. Uses
+// the same vermillion as the selected row's own accent border.
+.all-charts-block__row-thumbnail--active {
+    border-color: $vermillion;
+    box-shadow: inset 0 0 0 1px $vermillion;
 }
 
 // Mobile/tablet accordion panel holding the inline chart for the currently
