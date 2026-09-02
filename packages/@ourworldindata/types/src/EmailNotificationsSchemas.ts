@@ -56,23 +56,34 @@ export type EmailNotificationsRequestLinkRequest = z.infer<
     typeof EmailNotificationsRequestLinkRequestTypeObject
 >
 
+const EmailNotificationsPreferencesToken = z
+    .string()
+    .check(z.minLength(1), z.maxLength(100))
+
 const EmailNotificationsUpdatePreferencesCommonShape = {
-    token: z.string().check(z.minLength(1), z.maxLength(100)),
+    action: z.literal("updatePreferences"),
+    token: EmailNotificationsPreferencesToken,
     subscribeToOwidBrief: z.optional(z.boolean()),
 }
 
 export const EmailNotificationsUpdatePreferencesRequestTypeObject =
-    z.discriminatedUnion("subscribeToTopicNotifications", [
-        z.object({
-            ...EmailNotificationsUpdatePreferencesCommonShape,
-            subscribeToTopicNotifications: z.literal(true),
-            preferences: EmailNotificationsPreferencesTypeObject,
+    z.discriminatedUnion("action", [
+        z.strictObject({
+            action: z.literal("unsubscribeAll"),
+            token: EmailNotificationsPreferencesToken,
         }),
-        z.object({
-            ...EmailNotificationsUpdatePreferencesCommonShape,
-            subscribeToTopicNotifications: z.literal(false),
-            preferences: z.optional(z.never()),
-        }),
+        z.discriminatedUnion("subscribeToTopicNotifications", [
+            z.strictObject({
+                ...EmailNotificationsUpdatePreferencesCommonShape,
+                subscribeToTopicNotifications: z.literal(true),
+                preferences: EmailNotificationsPreferencesTypeObject,
+            }),
+            z.strictObject({
+                ...EmailNotificationsUpdatePreferencesCommonShape,
+                subscribeToTopicNotifications: z.literal(false),
+                preferences: z.optional(z.never()),
+            }),
+        ]),
     ])
 
 export type EmailNotificationsUpdatePreferencesRequest = z.infer<
