@@ -6,7 +6,7 @@ import { viteAssetsForSite } from "./viteUtils.js"
 import { ScriptLoadErrorDetector } from "./NoJSDetector.js"
 import { ABOUT_LINKS, PROD_URL, RSS_FEEDS, SOCIALS } from "./SiteConstants.js"
 import { Button } from "@ourworldindata/components"
-import { SITE_TOOLS_CLASS } from "./SiteTools.js"
+import { SITE_TOOLS_ROOT_CLASS } from "./SiteTools.js"
 import { OxfordAndGcdlLogos } from "./SiteLogos.js"
 import { IS_ARCHIVE } from "../settings/clientSettings.js"
 import { SEARCH_BASE_PATH } from "./search/searchUtils.js"
@@ -134,6 +134,7 @@ export const SiteFooter = (props: SiteFooterProps) => {
 
     return (
         <>
+            <div className={SITE_TOOLS_ROOT_CLASS} />
             {!props.hideDonate && (
                 <section className="donate-footer grid grid-cols-12-full-width">
                     <div className="donate-footer-inner span-cols-12 col-start-2">
@@ -225,7 +226,6 @@ export const SiteFooter = (props: SiteFooterProps) => {
                     </div>
                 </div>
 
-                <div className={SITE_TOOLS_CLASS} />
                 {viteAssetsForSite({ staticAssetMap }).forFooter}
                 <ScriptLoadErrorDetector />
                 <script

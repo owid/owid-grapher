@@ -4,39 +4,6 @@ import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import { getWindowQueryStr } from "@ourworldindata/utils"
 import { reaction } from "mobx"
 
-export enum ScrollDirection {
-    Up = "up",
-    Down = "down",
-}
-
-export const useScrollDirection = () => {
-    const [direction, setDirection] = useState<null | ScrollDirection>(null)
-
-    useEffect(() => {
-        let lastScrollY = window.pageYOffset
-        const updateDirection = () => {
-            const scrollY = window.pageYOffset
-            setDirection(
-                scrollY > lastScrollY
-                    ? ScrollDirection.Down
-                    : ScrollDirection.Up
-            )
-            lastScrollY = scrollY
-        }
-
-        const updateDirectionThrottled = _.throttle(() => {
-            updateDirection()
-        }, 500)
-
-        document.addEventListener("scroll", updateDirectionThrottled)
-        return () => {
-            document.removeEventListener("scroll", updateDirectionThrottled)
-        }
-    })
-
-    return direction
-}
-
 // True while the user is actively scrolling; flips back to false once
 // scrolling has paused for `idleMs`. Lets consumers react to "scrolling
 // settled" by watching for the transition back to false.
