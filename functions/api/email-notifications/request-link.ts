@@ -2,9 +2,9 @@ import * as _ from "lodash-es"
 import * as z from "zod/mini"
 import {
     EMAIL_NOTIFICATIONS_MAGIC_LINK_TTL_MS,
-    EmailNotificationsRequestLinkRequestTypeObject,
     JsonError,
 } from "@ourworldindata/utils"
+import { EmailNotificationsRequestLinkRequestTypeObject } from "@ourworldindata/types/email-notifications-schemas"
 import { Env } from "../../_common/env.js"
 import {
     createEmailToken,
