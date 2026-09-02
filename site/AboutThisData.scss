@@ -90,7 +90,6 @@
     @include sm-up {
         padding-left: 24px;
         border-left: 1px solid $blue-20;
-        // Stop the border running past the key data table.
         align-self: start;
     }
 }
@@ -103,8 +102,6 @@
     }
 }
 
-// Stop the metadata block three columns short of the section's right edge so
-// the newsletter card fits beside it at md-up.
 .about-this-data__key-data--with-newsletter-card {
     @include md-up {
         grid-column-end: 10;
