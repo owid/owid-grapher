@@ -76,7 +76,6 @@ export type Distribution =
 
 export interface DataPageV2ContentFields {
     datapageData: DataPageDataV2
-    /** Top-level topic area, resolved at bake time from the tag graph. */
     topicArea?: string
     faqEntries: FaqEntryData | undefined
     // TODO: add gdocs for FAQs

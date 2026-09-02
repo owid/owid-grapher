@@ -149,7 +149,6 @@ export interface OwidGdocBaseInterface {
     tags?: MinimalTag[] | null
     errors?: OwidGdocErrorMessage[]
     breadcrumbs?: BreadcrumbItem[] | null
-    /** Top-level topic area of `tags[0]`; see db.getTopicAreaNameForTagNames. */
     topicArea?: string
     markdown: string | null
 }

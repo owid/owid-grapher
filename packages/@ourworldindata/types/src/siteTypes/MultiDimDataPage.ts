@@ -137,7 +137,6 @@ export interface MultiDimDataPageProps {
     tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic
-    /** Top-level topic area of `config.topicTags[0]`. */
     topicArea?: string
     relatedResearchCandidates: DataPageRelatedResearch[]
     imageMetadata: Record<string, ImageMetadata>

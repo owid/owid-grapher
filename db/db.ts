@@ -699,9 +699,7 @@ export const getTopicHierarchiesByChildName = (
 
 /**
  * Collapse `getTagHierarchiesByChildName` output into `tag name -> area name`.
- * Areas are the root's direct children; every path is root-stripped so
- * `path[0]` is the area, and `paths[0]` is the highest-weight path for tags
- * that sit under several areas.
+ * A tag that sits under several areas resolves to the highest-weight one.
  */
 export function topicAreaNamesFromTagHierarchies(
     tagHierarchiesByChildName: Record<
@@ -717,6 +715,14 @@ export function topicAreaNamesFromTagHierarchies(
     return areaNamesByTagName
 }
 
+/** `tag name -> area name`, for pages that resolve their area from topic tags alone. */
+export async function getTopicAreaNamesByTagName(
+    trx: KnexReadonlyTransaction
+): Promise<Record<string, string>> {
+    const tagHierarchies = await getTopicHierarchiesByChildName(trx)
+    return topicAreaNamesFromTagHierarchies(tagHierarchies)
+}
+
 /** The top-level areas of the tag graph, in `weight DESC, name ASC` order. */
 export async function getTopicAreaNames(
     trx: KnexReadonlyTransaction,
@@ -727,20 +733,6 @@ export async function getTopicAreaNames(
     return (flatTagGraph[__rootId] ?? []).map(({ name }) => name)
 }
 
-/** `tag name -> area name`, for pages that resolve their area from topic tags alone. */
-export async function getTopicAreaNamesByTagName(
-    trx: KnexReadonlyTransaction
-): Promise<Record<string, string>> {
-    return topicAreaNamesFromTagHierarchies(
-        await getTopicHierarchiesByChildName(trx)
-    )
-}
-
-/**
- * First tag wins, matching `getPrimaryTopic` and the `tags[0]` convention
- * (not `getBestBreadcrumbs`' longest-path rule). Undefined when the first tag
- * doesn't resolve to an area, in which case callers render nothing.
- */
 export function getTopicAreaNameForTagNames(
     tagNames: string[],
     areaNamesByTagName: Record<string, string>
