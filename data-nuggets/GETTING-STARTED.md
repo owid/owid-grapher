@@ -123,10 +123,17 @@ The skills enforce most of this, but it helps to know the house rules:
   chart that shows it (that's when a nugget earns a second chart).
 - **Be conservative with `keyInsightLevel`.** `key` is reserved for genuine global
   state-of-the-world facts; most nuggets are `null`.
+- **Read the review ledger before drafting.** `data-nuggets/REVIEW-LEDGER.md` holds
+  every past reviewer comment, grouped by chart. If a nugget on your chart was sent
+  back before, assume the same objection is live for yours until you can say why it
+  isn't. It's precedent, not a rulebook — reviewers contradict themselves across
+  cases, and that's the point.
 
 ## Where things live
 
 - Skills: `.claude/skills/{investigate-chart,generate-data-nuggets,fact-check-data-nuggets,refine-data-nuggets,push-data-nuggets,data-nuggets}/`
-- Local working files (gitignored): `data-nuggets/{reports,views}/`
+- Local working files (gitignored): `data-nuggets/{reports,views,reviews}/`
+- Reviewer precedent (tracked, generated): `data-nuggets/REVIEW-LEDGER.md` — rebuild with
+  `yarn tsx devTools/pullAgenticWriting.ts --branch data-nuggets && yarn tsx devTools/buildReviewLedger.ts`
 - Schema, layout, and the review/versioning model: [README.md](./README.md)
 - The admin code: `adminSiteClient/AgenticWriting*.tsx`, `adminSiteServer/agenticWritingStore.ts`

@@ -11,7 +11,10 @@ Data nuggets are the first content type in the broader **agentic-writing playgro
 ```
 data-nuggets/
 ├── README.md                              (tracked)
+├── REVIEW-LEDGER.md                       (tracked, generated — reviewer precedent, read while drafting)
 ├── index.html                             (static prototype browse page)
+├── reviews/                               (gitignored — raw review snapshots pulled from the admin)
+│   └── pull-{timestamp}.json
 ├── .scratch/                              (gitignored — temp working files)
 ├── reports/                               (gitignored — HTML investigation reports)
 │   └── {key}-{YYYY-MM-DD-HH-MM-SS}.html
@@ -25,7 +28,7 @@ Where `{key}` is either a single chart slug (`child-mortality`) or multiple slug
 
 **Storage**: once pushed, lineages + versions live in MySQL (`agentic_writing_lineages` and `agentic_writing_versions`). The `versions/` directory exists only as a historical artifact from the pre-migration file-backed store; nothing reads or writes to it anymore and it can be safely deleted after running `devTools/migrateAgenticWritingToDb.ts`.
 
-Everything except this README and `index.html` is gitignored.
+Everything except this README, `REVIEW-LEDGER.md` and `index.html` is gitignored.
 
 ## Surfaces
 
@@ -63,6 +66,31 @@ chart slug(s)
 Each step is a discrete skill — invoke them in order. Steps 1–4 are local craft (files on disk); step 5 bridges to the shared admin DB so the nugget enters the My drafts queue for review and eventual submission/publication.
 
 For the common case, the **`/data-nuggets`** orchestrator skill runs steps 1–5 end to end for one or more chart slugs and deletes the local working JSON after a successful push (the DB becomes the source of truth). Use the discrete skills directly only when you want manual control over a single stage.
+
+## Review feedback loop
+
+Reviewer comments are the only human signal in this pipeline, and they feed back into it along two paths:
+
+```
+admin DB (review decisions + comments)
+   │
+   ▼
+devTools/pullAgenticWriting.ts   → reviews/pull-{ts}.json   (gitignored snapshot)
+   │
+   ▼
+devTools/buildReviewLedger.ts    → REVIEW-LEDGER.md         (tracked; verbatim, grouped by chart slug)
+   │
+   ├──▶ read by [2] /generate-data-nuggets (and [4] /refine) while drafting — as precedent, not rules
+   │
+   ▼
+/retrospective                   → proposes skill-file edits, for mechanical failures only
+```
+
+The split is the point. An objection that is **mechanically checkable** — false precision, a title missing its baseline year, an undefined index, an unstated currency basis — becomes a rule in the relevant skill file, because a reviewer will object to it every time. An objection that is a **judgment** — is this interesting? is this pairing justified? is this too obvious for our audience? — does not survive compression into a rule; the corpus routinely holds comments pulling in opposite directions on the same question. Those stay in the ledger, attached to the case they came from, and the generator decides whether they apply to what it's drafting.
+
+The generator records what it expects a reviewer to say in each nugget's `metadata.anticipatedCritique`. `/retrospective` scores those predictions against what the reviewer actually wrote — the only direct measure of whether the loop is working.
+
+Reviews live on a staging server that is destroyed after two weeks of inactivity, so `REVIEW-LEDGER.md` is committed while the raw snapshots are not: it is how the signal outlives the box.
 
 ## Local JSON schema (data nugget draft file)
 

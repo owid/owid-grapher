@@ -30,9 +30,26 @@ echo "${OWID_ADMIN_API_KEY:+set}"
 
 ## Steps
 
-Process each input key **independently and sequentially** (one key fully through
-the pipeline before starting the next), so a failure on one doesn't strand the
-others. For each key:
+**First, once per run: refresh the review ledger.**
+
+```bash
+yarn tsx devTools/pullAgenticWriting.ts --branch data-nuggets
+yarn tsx devTools/buildReviewLedger.ts
+```
+
+This rewrites `data-nuggets/REVIEW-LEDGER.md` — every past reviewer verdict and
+comment, grouped by chart slug — which [[generate-data-nuggets]] reads as
+precedent while drafting. Do it once at the start of the run, not per key.
+
+If the pull fails (the staging server is destroyed after two weeks of
+inactivity), **carry on with the committed ledger** and note the staleness in
+your final summary. It is committed precisely so the signal outlives the server,
+and a stale ledger is worth far more than none. The _pull_ is best-effort; the
+generator reading the ledger is not optional.
+
+Then process each input key **independently and sequentially** (one key fully
+through the pipeline before starting the next), so a failure on one doesn't
+strand the others. For each key:
 
 1. **Investigation.** Look for an existing report at
    `data-nuggets/reports/{key}-*.html`. If one exists, use the most recent. If

@@ -1,0 +1,5 @@
+# Generated, and holds human review comments verbatim. The formatter rewrites
+# emphasis markers (*x* -> _x_) inside those quoted comments and would fight
+# devTools/buildReviewLedger.ts on every regeneration. The generator is the
+# authority on this file's contents.
+data-nuggets/REVIEW-LEDGER.md

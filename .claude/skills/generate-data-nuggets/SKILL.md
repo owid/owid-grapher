@@ -30,6 +30,7 @@ Alternatively (or in addition), the input can be **a piece of OWID written conte
 2. **Read all existing artifacts** for this set of slugs:
     - `data-nuggets/reports/{key}-*.html` — investigation reports (HTML, read as plain text)
     - `data-nuggets/views/{key}-*.json` — any prior view files (avoid duplicating earlier views)
+    - `data-nuggets/REVIEW-LEDGER.md` — every past reviewer verdict and comment, grouped by chart slug. **Read the section for each of your slugs, plus every entry sharing the structure you intend to use.** See [Learning from past reviews](#learning-from-past-reviews).
 
     Use the latest report by timestamp as the primary input if multiple exist. The report is HTML — you can read it as text; the content is the prose, tables, and metadata, not the styling.
 
@@ -48,6 +49,25 @@ Alternatively (or in addition), the input can be **a piece of OWID written conte
 
 7. **Write the views** to `data-nuggets/views/{key}-{YYYY-MM-DD-HH-MM-SS}.json` using the schema below. `{key}` is the input slug (single-chart) or slugs joined with `+` in the order given (multi-chart) — preserve user order so the key is predictable.
 
+## Learning from past reviews
+
+`data-nuggets/REVIEW-LEDGER.md` holds every reviewer verdict and comment to date, grouped by chart slug. Regenerate it with `yarn tsx devTools/buildReviewLedger.ts` after a fresh `pullAgenticWriting` run. After the investigation report this is the most useful input to this step, because it is the only place a human has said what they actually think.
+
+**Read it as precedent, not as rules.** Most of what a reviewer objects to is a judgment about whether a nugget is interesting or comprehensible enough, and those judgments are context-dependent in ways a rule can't capture. The same reviewer who dismissed one simple regional comparison as "common knowledge" also wrote that "we need some nuggets that are simple like this for certain audiences." Compressing that into a rule would be a mistranslation; compressing it into "here is what they said, and here is why I think it does or doesn't apply to mine" is not.
+
+What to read, in order:
+
+1. **Every entry under each slug you're generating for.** The strongest signal by far. Much of the feedback is indicator-specific — how to present a composite index, which comparison groups are meaningful for this metric, what counts as common knowledge in this domain. If a past nugget on your chart was sent back, assume the same objection is live for yours until you can say why it isn't.
+2. **Every entry sharing your intended structure** (the ledger's structure index). Multi-chart pairings in particular carry recurring objections that single-chart views don't.
+3. **The remainder**, while the ledger is still short enough to read in one pass.
+
+Then, for each nugget you draft, record what you expect the reviewer to say in `metadata.anticipatedCritique` (see the schema below). Two reasons it earns the keystrokes:
+
+- It forces the precedent to bear on the draft, rather than being read and forgotten.
+- It makes the prediction checkable. [[retrospective]] compares what you anticipated against what the reviewer actually wrote, which is the only real measure of whether this loop works at all.
+
+Be honest in that field: "no close precedent" is a legitimate and useful answer, and a fabricated objection is worse than none. And don't let an all-criticism corpus make you timid — a nugget that superficially resembles a rejected one is not thereby doomed, and the absence of an approved example of some framing says nothing about that framing.
+
 ## Output schema
 
 ```json
@@ -61,7 +81,7 @@ Alternatively (or in addition), the input can be **a piece of OWID written conte
         {
             "id": "view-01",
             "title": "Child mortality has fallen 91% globally since 1800",
-            "description": "Two short sentences describing what's shown and what's interesting. Stay factual; avoid speculation; the values cited here must come straight from the data.",
+            "description": "Two or three short sentences describing what's shown and what's interesting — plus, where the reader needs it, one defining an index, threshold or aggregate entity. Stay factual; avoid speculation; the values cited here must come straight from the data.",
             "grapherViews": [
                 {
                     "slug": "child-mortality",
@@ -85,6 +105,11 @@ Alternatively (or in addition), the input can be **a piece of OWID written conte
                 "publishedBy": null,
                 "embedding": [],
                 "keyInsightLevel": null,
+                "anticipatedCritique": {
+                    "precedent": "prevalence-of-undernourishment+child-mortality-2026-06-16-22-44-07__view-01",
+                    "objection": "Pairing two indicators that both track income was dismissed as too obvious to publish.",
+                    "assessment": "Partly applies — this pairing is also income-correlated, so the description states what the second chart adds instead of leaning on the correlation itself."
+                },
                 "factCheck": null,
                 "refinement": null
             }
@@ -98,7 +123,7 @@ Alternatively (or in addition), the input can be **a piece of OWID written conte
 - `status`: always `"draft"` at the end of this step. Downstream skills bump it to `"fact-checked"` then `"refined"`.
 - `views[].id`: stable, zero-padded per file (`view-01`, `view-02`, ...).
 - `views[].title`: short and scannable. Aim for ≤ 12 words. State the finding, not a category.
-- `views[].description`: 2 sentences max. Factual and accessible — OWID-article voice. No bullets. May contain at most one inline link in Markdown `[text](url)` syntax — see [Links in descriptions](#links-in-descriptions).
+- `views[].description`: **2–3 sentences.** Two is the default: what the chart shows, and why it's interesting. Add a third **only** where it earns its place by defining a threshold, index, unit or aggregate the reader can't be assumed to know — see [Exposition](#exposition). Never a third sentence carrying an extra finding; that's a second nugget. Factual and accessible — OWID-article voice. No bullets. May contain at most one inline link in Markdown `[text](url)` syntax — see [Links in descriptions](#links-in-descriptions).
 - `views[].grapherViews`: array with **1 or more** entries.
     - A single-chart view has one entry.
     - A multi-chart "collage/carousel" view (e.g. GDP jump + oil-production jump for the same country) has multiple entries. Use `caption` to label each chart's role in that case.
@@ -112,6 +137,7 @@ Alternatively (or in addition), the input can be **a piece of OWID written conte
     - Use this honestly: "An 82-fold gap separates Niger from San Marino" is `["NER", "SMR"]` — relevant to people interested in Niger or in the poorest places, but **niche**, not global. That niche-ness should be reflected in a low `keyInsightLevel`.
 - `views[].metadata.embedding`: leave as `[]`. A future step will populate.
 - `views[].metadata.keyInsightLevel`: `null` (default), `"notable"`, or `"key"`. **Be conservative — see the calibration below.** Most views are `null`.
+- `views[].metadata.anticipatedCritique`: what you expect a reviewer to object to, grounded in `REVIEW-LEDGER.md`. An object of `{precedent, objection, assessment}` — the closest past entry (its `lineageKey`, or `null` if there genuinely isn't one), the objection that entry recorded, and your honest read on whether it applies here and what you did about it. Never invent a precedent to fill the field. See [Learning from past reviews](#learning-from-past-reviews).
 - `views[].metadata.factCheck` / `refinement`: leave as `null`. Filled by later skills.
 
 ### keyInsightLevel calibration
@@ -265,6 +291,15 @@ Specialized formats (use when they genuinely fit):
 - **Faceting (`facet=entity` or `facet=metric`)** — a grid of small-multiple mini-charts; use only when the _repetition_ of a pattern across entities or indicators is itself the point, since each facet gets tiny.
 - **Log scale (`yScale=log`)** — a modifier on a line/scatter view: constant growth _rates_ become straight lines, exposing exponential dynamics and making wide-range comparisons legible. Use sparingly — a casual reader can misread a log axis.
 
+### Make the thumbnail carry the claim
+
+The chart is evidence for the sentence, not decoration. Before finalising a view, ask whether someone who reads the title and glances at the thumbnail can see the thing being claimed.
+
+- **A rank claim needs a ranked chart.** "The US slipped from 1st to 19th" drawn as a five-country line chart shows nothing legible; a `discrete-bar` of the top 20 with the US focused shows it instantly. Reach for `tab=discrete-bar` (plus `focus=`) whenever the claim is positional.
+- **Give a single-entity view a reference series.** A lone country line has no scale — add the world, or a regional/peer aggregate, so the reader can see what "high" or "falling fast" means. Tag only the focal entity in `metadata.entities`; the context series isn't what the view is about.
+- **If the text leans on a threshold, show the threshold.** A claim built on a 5.0 index line or a 2.1 replacement rate is far stronger when the crossing is visible. Where grapher can't draw that reference line, pick a framing whose chart doesn't depend on one.
+- **Prefer the format that needs least explaining at thumbnail size.** If the picture only makes sense after a paragraph, choose a different cut of the data.
+
 ## Cross-cutting themes
 
 Independently of template, OWID likes views that touch these recurring themes. Tag-worthy framings, not separate templates — a "state of the world" or "interesting entity" view can also carry one of these:
@@ -308,7 +343,15 @@ When in doubt, the `peerCountries=parentRegions` param gives the cleanest, most 
 - **One nugget, one point.** Each view should make exactly one observation. If a finding contains a second point (a gap that has also widened over time, the pace of a decline after a peak), split it into its own view rather than appending it — reviewers consistently ask for multi-point nuggets to be split.
 - **No causal explanations the displayed data doesn't directly support.** Don't write "the decline reflects deindustrialisation and the shift to renewables" when the view only shows an emissions line. Either cut the "why" (leave deeper context to articles and data insights), or add a chart to the view that actually shows the explanatory variable (e.g. a population chart to support "the reason is population growth").
 - **Precise titles.** Name the metric explicitly ("China overtook the US **in annual CO₂ emissions**", not just "China overtook the US"). Any change-over-time claim needs its baseline year ("has nearly doubled **since 1990**"). Use present perfect tense ("has fallen", "has doubled") when the data runs to the present.
+    - **Say what domain the title is about.** "Sub-Saharan Africa and South Asia still trail the rest of the world" — at what? A title the reader can't place without looking at the chart has failed.
+    - **State the direction of the finding.** If the story is a decline, the title should say something declined. Don't leave the direction to be inferred from numbers in the description.
+    - **Numerals, not written-out fractions** — "75%", not "three-quarters".
+    - **One clause, conventionally phrased.** Cut trailing subordinate clauses that qualify the finding ("British inequality surged in the 1980s and never fully receded" → "British inequality surged in the 1980s"), and unpack contorted constructions ("East Asia went from 15% of Western Europe's income to over half" → "Per capita income in East Asia was 15% of Western Europe's in 1950; today it is over half").
 - **Every numeric claim must come from a computation you ran in this session.** Before writing "X fell from A to B" or "the ratio is N×", actually compute A, B, and N from the CSV and copy the printed result. Memory and estimation are forbidden. Investigation reports are a good starting point but do not exempt you from re-confirming any value you cite.
+- **Numbers a reader can hold in their head.** Cite figures at the precision the claim needs, which is almost always less than the CSV prints.
+    - **Round hard.** Two decimals on a Gini, not three. "$2k" and "$3.4k", not "$2,037" and "$3,437". "Over 50%", not "51.6%". Exact values belong on the data page, not in a nugget.
+    - **Give every currency figure its basis.** "$56,568" is unreadable without knowing which dollars these are — name the international-dollar/price-year basis, in a clause.
+    - **Keep bare index values out of the prose.** An HDI of 0.878, a gain of +0.060, a Democracy Index score of 4.92 — these mean nothing to a non-specialist and actively cause readers to disengage. State the substantive claim (the rank, the change, the comparison) and let the chart carry the index values. If an index score genuinely is the point, define the scale first — see [Exposition](#exposition).
 - **OWID article voice**: factual, accessible, lightly engaged. Avoid sensationalism and speculation.
 - **No social/political context** in the description text — leave it to the data.
 - **No bullets in `description`.** Write prose.
@@ -316,6 +359,19 @@ When in doubt, the `peerCountries=parentRegions` param gives the cleanest, most 
 - **Don't reuse the same `(title, description)` shape across views.** A run that's mostly "X has fallen by Y% since Z" is boring.
 - **Don't repeat earlier insights.** Read prior view files for these slugs and skip already-covered angles. Add the angle as a fresh view only if you can say something materially new.
 - **Multi-chart views are valuable but rarer.** They need a genuine story across indicators, not just two unrelated charts pasted together. If the multi-chart input doesn't yield strong cross-indicator stories, generate single-chart views instead.
+
+## Exposition
+
+More nuggets are sent back for being unreadable than for being wrong. A nugget citing a number the reader cannot interpret has communicated nothing. Spend the third sentence (see [Schema field notes](#schema-field-notes)) on whichever of these the view actually needs:
+
+- **Define any threshold you invoke.** If the text leans on a line in the data — replacement fertility of 2.1, a Democracy Index score of 5.0, an undernourishment reporting floor — say in-text what the threshold means and what sits on either side of it. "Below the 5.0 threshold" is meaningless to a reader who doesn't know the scale.
+- **Never invent a threshold or category label.** Only use a cut-off or label the source itself defines. Don't coin "extreme inequality" for a Gini of 0.5+ and present it as though it were the source's term. If you need a cut-off the source doesn't supply, say plainly that it is your own ("above 0.5 — a level reached by only 13 countries since 2015").
+- **Explain what an index measures before quoting its values.** For any composite index (HDI, Democracy Index, Gini), a bare score carries no meaning. Give its range and roughly what it captures, in a clause.
+- **Name the members of a non-obvious aggregate.** "Western offshoots", "East Asia", "upper-middle-income economies" and most regional groupings are opaque — add a short "which includes X, Y and Z" the first time the view leans on one. A reader can't judge a claim about a group they can't picture.
+- **Justify a non-obvious comparison group.** If you compare low-income countries against _upper-middle_-income ones rather than high-income ones, say why (usually: the obvious comparator is pinned at a floor or ceiling and shows nothing). An unexplained choice reads as arbitrary or cherry-picked.
+- **Explain the mechanism when the metric is unfamiliar.** For a risk factor or cause of death, a clause on how it actually harms people ("high blood pressure, which damages arteries and drives strokes and heart disease") orients a reader who doesn't think about the topic.
+
+Concision still applies — each of these is a clause or one short sentence, never a paragraph. The test: could a reader who has never met the term parse the nugget's central claim without leaving the page?
 
 ## Links in descriptions
 

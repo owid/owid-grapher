@@ -32,6 +32,7 @@ A path to a views file: `data-nuggets/views/{key}-{ts}.json` (typically `status:
     - **Trend claims:** "rising", "falling", "doubled", "tripled", "U-shape" — verify by checking the time series for the entity(ies) named, over the period implied.
     - **Comparison claims:** "X times more than", "the highest", "the lowest", "above the world average" — verify against the actual values in the relevant year.
     - **Period framing:** "since 1990", "in 2024" — verify the data actually covers that period for the entities named.
+    - **Named thresholds and category labels.** If the text uses a cut-off or label as though it were established — "extreme inequality" for a Gini ≥ 0.5, a "reporting floor", "replacement level" — verify the source actually defines it that way. Check the chart's data page and source notes, not just the CSV. A threshold the generator invented and presented as the source's own is a `corrected` issue: either attribute it honestly as an arbitrary cut-off, or drop the label.
     - **Superlatives — special attention.** Words like _only_, _first_, _largest_, _worst_, _highest_, _lowest_, _fastest_, _never_, _unprecedented_ are easy to write and hard to verify. For each one, run a sweep that would disprove it: if a view claims "the only multi-year reversal since 1950," compute year-on-year diffs across the full series and look for counterexamples. Spot-checking the cited numbers is not enough — the superlative is its own claim.
 
 4. **Validate each `grapherViews[]` entry**:
