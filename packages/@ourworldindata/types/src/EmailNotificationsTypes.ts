@@ -109,8 +109,17 @@ export function mergeEmailNotificationsPreferences(
     }
 }
 
+/** Whether the opt-in is active or awaits Mailchimp confirmation. */
+export type OwidBriefOptInResult = "active" | "pending"
+
 export interface EmailNotificationsSubscribeResponse {
     ok?: boolean
+    error?: string
+}
+
+export interface EmailNotificationsUpdatePreferencesResponse {
+    ok?: boolean
+    owidBriefOptIn?: OwidBriefOptInResult
     error?: string
 }
 
