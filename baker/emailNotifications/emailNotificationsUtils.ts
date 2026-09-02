@@ -1,7 +1,6 @@
 import {
     EmailNotificationsContentType,
     EmailNotificationsFrequency,
-    EmailNotificationsPreferencesTypeObject,
     OwidEnrichedGdocBlock,
 } from "@ourworldindata/types"
 
@@ -59,18 +58,15 @@ export const FREQUENCY_WINDOW_MS: Record<EmailNotificationsFrequency, number> =
 export function parseSubscriberRow(
     row: D1SubscriberRow
 ): EmailNotificationsSubscriber {
-    const preferences = EmailNotificationsPreferencesTypeObject.parse({
-        topicTags: JSON.parse(row.topicTags),
-        contentTypes: JSON.parse(row.contentTypes),
-        frequency: row.frequency,
-    })
     return {
         userId: row.userId,
         email: row.email,
         token: row.token,
-        topicTags: preferences.topicTags,
-        contentTypes: preferences.contentTypes,
-        frequency: preferences.frequency,
+        topicTags: JSON.parse(row.topicTags) as string[],
+        contentTypes: JSON.parse(
+            row.contentTypes
+        ) as EmailNotificationsContentType[],
+        frequency: row.frequency as EmailNotificationsFrequency,
         lastSentAt: row.lastSentAt ? new Date(row.lastSentAt) : null,
     }
 }

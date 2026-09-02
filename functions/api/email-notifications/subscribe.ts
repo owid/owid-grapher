@@ -2,11 +2,10 @@ import * as Sentry from "@sentry/cloudflare"
 import * as z from "zod/mini"
 import {
     EmailNotificationsPreferences,
-    EmailNotificationsPreferencesTypeObject,
-    EmailNotificationsSubscribeRequestTypeObject,
     JsonError,
     mergeEmailNotificationsPreferences,
 } from "@ourworldindata/utils"
+import { EmailNotificationsSubscribeRequestTypeObject } from "@ourworldindata/types/email-notifications-schemas"
 import { Env } from "../../_common/env.js"
 import {
     handleJsonError,
@@ -185,8 +184,7 @@ async function resubscribeUser(
 }
 
 /**
- * The user's stored preferences, or null if the row is missing or no longer
- * matches the schema (fail-safe: the submitted preferences then apply as-is).
+ * The user's stored preferences, or null if the row is missing.
  */
 async function findPreferences(
     db: D1Database,
@@ -204,10 +202,13 @@ async function findPreferences(
             frequency: string
         }>()
     if (!row) return null
-    const { data } = EmailNotificationsPreferencesTypeObject.safeParse({
-        topicTags: JSON.parse(row.topicTags),
-        contentTypes: JSON.parse(row.contentTypes),
-        frequency: row.frequency,
-    })
-    return data ?? null
+    return {
+        topicTags: JSON.parse(
+            row.topicTags
+        ) as EmailNotificationsPreferences["topicTags"],
+        contentTypes: JSON.parse(
+            row.contentTypes
+        ) as EmailNotificationsPreferences["contentTypes"],
+        frequency: row.frequency as EmailNotificationsPreferences["frequency"],
+    }
 }
