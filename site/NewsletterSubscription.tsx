@@ -7,6 +7,13 @@ import { SiteAnalytics } from "./SiteAnalytics.js"
 import { TextInput } from "@ourworldindata/components"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { NewsletterIcon } from "./gdocs/components/NewsletterIcon.js"
+import {
+    MAILCHIMP_NEWSLETTER_GROUP_ID,
+    MAILCHIMP_NEWSLETTER_SIGNUP_FORM_ACTION,
+    MAILCHIMP_OWID_BRIEF_GROUP_VALUE,
+    MAILCHIMP_SIGNUP_HONEYPOT_NAME,
+    makeMailchimpNewsletterGroupInputName,
+} from "./Newsletter/mailchimpSignup.js"
 
 const analytics = new SiteAnalytics()
 
@@ -90,11 +97,9 @@ export const NewsletterSubscriptionForm = ({
     className?: string
 }) => {
     const DATA_INSIGHTS = "16"
-    const BIWEEKLY = "2"
-    const idDataInsights = `mce-group[85302]-85302-0${
-        context ? "-" + context : ""
-    }`
-    const idBiweekly = `mce-group[85302]-85302-1${context ? "-" + context : ""}`
+    const BIWEEKLY = MAILCHIMP_OWID_BRIEF_GROUP_VALUE
+    const idDataInsights = `mce-group[${MAILCHIMP_NEWSLETTER_GROUP_ID}]-${MAILCHIMP_NEWSLETTER_GROUP_ID}-0${context ? "-" + context : ""}`
+    const idBiweekly = `mce-group[${MAILCHIMP_NEWSLETTER_GROUP_ID}]-${MAILCHIMP_NEWSLETTER_GROUP_ID}-1${context ? "-" + context : ""}`
 
     const [frequencies, setFrequencies] = useState([DATA_INSIGHTS, BIWEEKLY])
     const isSubmittable = frequencies.length !== 0
@@ -112,7 +117,7 @@ export const NewsletterSubscriptionForm = ({
     return (
         <form
             className={cx("newsletter-subscription-form", className)}
-            action="https://ourworldindata.us8.list-manage.com/subscribe/post?u=18058af086319ba6afad752ec&id=2e166c1fc1"
+            action={MAILCHIMP_NEWSLETTER_SIGNUP_FORM_ACTION}
             method="post"
             id="mc-embedded-subscribe-banner"
             name="mc-embedded-subscribe-banner"
@@ -134,7 +139,7 @@ export const NewsletterSubscriptionForm = ({
                 <input
                     type="checkbox"
                     value={BIWEEKLY}
-                    name={`group[85302][${BIWEEKLY}]`}
+                    name={makeMailchimpNewsletterGroupInputName(BIWEEKLY)}
                     id={idBiweekly}
                     checked={frequencies.includes(BIWEEKLY)}
                     onChange={updateFrequencies}
@@ -169,7 +174,7 @@ export const NewsletterSubscriptionForm = ({
                 <input
                     type="checkbox"
                     value={DATA_INSIGHTS}
-                    name={`group[85302][${DATA_INSIGHTS}]`}
+                    name={makeMailchimpNewsletterGroupInputName(DATA_INSIGHTS)}
                     id={idDataInsights}
                     checked={frequencies.includes(DATA_INSIGHTS)}
                     onChange={updateFrequencies}
@@ -226,7 +231,7 @@ export const NewsletterSubscriptionForm = ({
             element instead */}
             <input
                 type="hidden"
-                name="b_18058af086319ba6afad752ec_2e166c1fc1"
+                name={MAILCHIMP_SIGNUP_HONEYPOT_NAME}
                 tabIndex={-1}
             />
             <div className="newsletter-subscription-form__privacy-notice">
