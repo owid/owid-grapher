@@ -3,7 +3,6 @@ import { useQuery, keepPreviousData } from "@tanstack/react-query"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
-    faArrowRight,
     faChevronDown,
     faMagnifyingGlass,
     faTimesCircle,
@@ -31,11 +30,13 @@ import {
     createCountryFilter,
     createDatasetProducerFilter,
     constructConfigUrl,
-    constructChartUrl,
     getEntityQueryStr,
     extractFiltersFromQuery,
     pickEntitiesForChartHit,
     filterChartHitsByQueryWords,
+    splitTextByQueryWordMatches,
+    getDuplicatedChartTitles,
+    getChartHitVariantName,
     removeMatchedWordsWithStopWords,
     splitIntoWords,
     sortHitsByBaselineOrder,
@@ -225,6 +226,15 @@ export const AllChartsBlock = ({
         staleTime: Infinity,
     })
 
+    // Which of the topic's titles more than one chart carries, computed over the
+    // *unfiltered* result set so that a row's variant name is a stable property
+    // of that row rather than something that appears and disappears as a query
+    // narrows the list around it.
+    const duplicatedTitles = useMemo(
+        () => getDuplicatedChartTitles(baseHits ?? []),
+        [baseHits]
+    )
+
     // Shown in the order the vocabulary publishes them — see suggestedKeywords.
     // Independent of the chart list, so the line appears as soon as the
     // vocabulary does rather than waiting for a second request.
@@ -403,6 +413,11 @@ export const AllChartsBlock = ({
                     isLoading={isLoading || isBaselinePending}
                     isFetching={isFetching}
                     detectedCountries={detectedCountries}
+                    // The typed words, minus any country name (which is
+                    // applied as a facet instead) — what the rows were
+                    // filtered on, and so what they bold.
+                    searchPhrase={searchPhrase}
+                    duplicatedTitles={duplicatedTitles}
                     topicName={topicName}
                     searchParams={stateToSearchParams(searchState)}
                 />
@@ -418,6 +433,8 @@ type AllChartsLeftPaneProps = {
     isLoading: boolean
     isFetching: boolean
     detectedCountries: string[]
+    searchPhrase: string
+    duplicatedTitles: ReadonlySet<string>
     topicName: string
     searchParams: URLSearchParams
 }
@@ -430,6 +447,8 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
         isLoading,
         isFetching,
         detectedCountries,
+        searchPhrase,
+        duplicatedTitles,
         topicName,
         searchParams,
     } = props
@@ -555,6 +574,8 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                             expandedIndex={expandedIndex}
                             onRowClick={handleRowClick}
                             detectedCountries={detectedCountries}
+                            searchPhrase={searchPhrase}
+                            duplicatedTitles={duplicatedTitles}
                             // True while a new debounced query is fetching in
                             // the background (see the keepPreviousData note
                             // above) — a subtle dim on the still-visible
@@ -577,9 +598,7 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                                     // $blue-20 fill with $blue-90 text: the
                                     // same theme the search page's own "Show
                                     // more" control uses (see
-                                    // SearchHorizontalDivider), reading as
-                                    // secondary to the row's solid-blue
-                                    // "Explore the data". An outline theme
+                                    // SearchHorizontalDivider). An outline theme
                                     // can't be used here: those declare no
                                     // background, which is invisible on the
                                     // <a> elements they're used on elsewhere
@@ -683,6 +702,8 @@ const AllChartsTable = ({
     expandedIndex,
     onRowClick,
     detectedCountries,
+    searchPhrase,
+    duplicatedTitles,
     isRefreshing,
 }: {
     // Only the rows on screen — the first slice of the result set, or all of it
@@ -692,6 +713,8 @@ const AllChartsTable = ({
     expandedIndex: number | null
     onRowClick: (index: number) => void
     detectedCountries: string[]
+    searchPhrase: string
+    duplicatedTitles: ReadonlySet<string>
     isRefreshing: boolean
 }) => {
     return (
@@ -715,6 +738,8 @@ const AllChartsTable = ({
                     isExpanded={index === expandedIndex}
                     onSelect={() => onRowClick(index)}
                     detectedCountries={detectedCountries}
+                    searchPhrase={searchPhrase}
+                    duplicatedTitles={duplicatedTitles}
                 />
             ))}
         </ul>
@@ -725,15 +750,6 @@ const AllChartsTable = ({
  * The Grapher view the sidecar is showing for a hit, as a query string — e.g.
  * "?country=~ESP" when the search names a country this chart has data for, and
  * "" when it doesn't.
- *
- * Deliberately the single source of that string. `AllChartsSidecar` hands it
- * to `GrapherWithFallback` to render the chart, and the row's "Explore the
- * data" link puts the very same string on its href, so following the link
- * opens the chart page on the view the sidecar was showing — country selected
- * and all — rather than on the bare chart. Rebuilding an equivalent param list
- * for the link separately would be free to drift from what the sidecar
- * actually applied; both callers passing identical arguments to one function
- * can't.
  */
 function getSidecarViewQueryStr(
     hit: SearchChartHit,
@@ -742,34 +758,72 @@ function getSidecarViewQueryStr(
     return getEntityQueryStr(pickEntitiesForChartHit(hit, detectedCountries))
 }
 
+/**
+ * A row's text with the words the search matched in bold. The segments come from
+ * the same normalisation the row filter uses, so the bold words are exactly the
+ * ones that kept this row in the list (see splitTextByQueryWordMatches).
+ */
+const HighlightedQueryText = ({
+    text,
+    searchPhrase,
+}: {
+    text: string
+    searchPhrase: string
+}) => {
+    const segments = useMemo(
+        () => splitTextByQueryWordMatches(text, searchPhrase),
+        [text, searchPhrase]
+    )
+    return (
+        <>
+            {segments.map((segment, index) =>
+                segment.isMatch ? (
+                    <strong key={index}>{segment.text}</strong>
+                ) : (
+                    <Fragment key={index}>{segment.text}</Fragment>
+                )
+            )}
+        </>
+    )
+}
+
 const AllChartsTableRow = ({
     hit,
     isSelected,
     isExpanded,
     onSelect,
     detectedCountries,
+    searchPhrase,
+    duplicatedTitles,
 }: {
     hit: SearchChartHit
     isSelected: boolean
     isExpanded: boolean
     onSelect: () => void
     detectedCountries: string[]
+    searchPhrase: string
+    duplicatedTitles: ReadonlySet<string>
 }) => {
     // Entities from the query that are actually available on this chart.
     const shownEntities = pickEntitiesForChartHit(hit, detectedCountries)
 
-    // Carries the sidecar's current view (the selected country) through to the
-    // chart page, so "Explore the data" lands on the same thing the visitor is
-    // already looking at instead of resetting to the chart's default entities.
-    const chartUrl = constructChartUrl({
-        hit,
-        grapherQueryStr: getSidecarViewQueryStr(hit, detectedCountries),
-    })
-
-    // Rendered as a single "Source: …" line under the subtitle (see below)
-    // rather than in a column of its own, so the row reads as one block of
-    // text instead of a table cell.
+    // Rendered as a single "Source: …" line under the title rather than in a
+    // column of its own, so the row reads as one block of text instead of a
+    // table cell.
     const source = (hit.datasetProducers ?? []).join(", ")
+
+    // Only shown where two charts on the topic share a title, which is the one
+    // case a reader needs it to tell the rows apart. See getChartHitVariantName.
+    const variantName = getChartHitVariantName(hit, duplicatedTitles)
+
+    // The subtitle is hidden in the block's default view — the list reads as a
+    // scannable index of titles — and revealed as soon as the visitor searches,
+    // since the row filter matches subtitle text too and a row kept for words
+    // that are only in its subtitle would otherwise look like a stray result.
+    // A country counts as a search even though it is applied as a facet rather
+    // than as a phrase, so it leaves nothing in `searchPhrase` to bold.
+    const isSearching =
+        searchPhrase.trim() !== "" || detectedCountries.length > 0
 
     // Enter/Space activate the row the same way a native <button> would —
     // needed because the click target below is a div (it wraps a multi-line
@@ -791,9 +845,7 @@ const AllChartsTableRow = ({
             <div className="all-charts-block__row-body">
                 {/* The row's text stack is a single click/keyboard target for
                     selecting the row on desktop or expanding/collapsing its
-                    mobile accordion. The "Explore the data" link below is a
-                    sibling rather than a child so its own click never has to
-                    be stopped from bubbling into this handler. */}
+                    mobile accordion. */}
                 <div
                     className="all-charts-block__row-main"
                     role="button"
@@ -804,11 +856,22 @@ const AllChartsTableRow = ({
                     onKeyDown={handleRowKeyDown}
                 >
                     <span className="all-charts-block__row-title">
-                        {hit.title}
+                        <HighlightedQueryText
+                            text={hit.title}
+                            searchPhrase={searchPhrase}
+                        />
+                        {variantName && (
+                            <span className="all-charts-block__row-variant">
+                                {variantName}
+                            </span>
+                        )}
                     </span>
-                    {hit.subtitle && (
+                    {isSearching && hit.subtitle && (
                         <span className="all-charts-block__row-subtitle">
-                            {hit.subtitle}
+                            <HighlightedQueryText
+                                text={hit.subtitle}
+                                searchPhrase={searchPhrase}
+                            />
                         </span>
                     )}
                     {source && (
@@ -820,7 +883,10 @@ const AllChartsTableRow = ({
                                 Source:
                             </span>
                             <span className="all-charts-block__row-source-value">
-                                {source}
+                                <HighlightedQueryText
+                                    text={source}
+                                    searchPhrase={searchPhrase}
+                                />
                             </span>
                         </span>
                     )}
@@ -830,27 +896,6 @@ const AllChartsTableRow = ({
                         </span>
                     )}
                 </div>
-                {/* Shown on the selected row only: once a visitor has picked a
-                    row (and is looking at its chart, in the sidecar on desktop
-                    or the accordion below on mobile), this is the way on to
-                    the chart's own page. Its own navigation action, distinct
-                    from selecting/expanding the row. */}
-                {isSelected && (
-                    <div className="all-charts-block__row-action">
-                        <Button
-                            // $blue-60, matching the "SUGGESTED:" links and
-                            // the button fill in the designer's mockup.
-                            theme="solid-blue"
-                            className="all-charts-block__row-explore-button"
-                            text="Explore the data"
-                            href={chartUrl}
-                            ariaLabel={`Explore the data on ${hit.title}`}
-                            dataTrackNote="all-charts-row-explore"
-                            icon={faArrowRight}
-                            iconPosition="right"
-                        />
-                    </div>
-                )}
             </div>
             {/* Mobile/tablet accordion panel: the persistent sidecar
                 (all-charts-block__right) is hidden below that breakpoint, so

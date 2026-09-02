@@ -249,6 +249,131 @@ export function filterChartHitsByQueryWords<T extends ChartHitMatchFields>(
     )
 }
 
+/** A run of `text`, flagged with whether the query matched it. */
+export type QueryMatchSegment = { text: string; isMatch: boolean }
+
+// Runs of letters and digits, which is what a "word" is on both sides of the
+// comparison below. `\p{N}` rather than `\d` so a subscript digit stays part of
+// the word it belongs to: "CO₂" has to arrive at splitIntoMatchWords whole for
+// it to fold that to "co2".
+const MATCH_WORD_RUN_REGEX = /[\p{L}\p{N}]+/gu
+
+/**
+ * Splits `text` into alternating matched/unmatched runs, so a caller can bold
+ * the words a query matched (site/AllChartsBlock.tsx bolds them in a row's
+ * title, subtitle and producer list).
+ *
+ * A word is flagged exactly when it is one of the words
+ * `textContainsAllQueryWords` looked for — the same normalisation, and the same
+ * prefix rule on the query's last word — so what a row shows in bold is what
+ * kept that row in the list rather than a second, looser notion of a match.
+ * Anything the block strips out of the query before filtering (country names,
+ * see extractFiltersFromQuery) is therefore not bolded either, because it never
+ * reaches this function.
+ *
+ * Not Algolia's `_highlightResult`: the block's filtering is client-side and
+ * strictly narrower than the query Algolia answered, so its highlights would
+ * mark up words that had nothing to do with the row surviving.
+ *
+ * Whitespace and hyphens *between* two matched words are marked as matched too,
+ * so a multi-word query reads as one bold phrase instead of several bold words
+ * with unbolded gaps.
+ */
+export function splitTextByQueryWordMatches(
+    text: string,
+    query: string
+): QueryMatchSegment[] {
+    const queryWords = splitIntoMatchWords(query)
+    if (queryWords.length === 0 || text === "")
+        return text === "" ? [] : [{ text, isMatch: false }]
+
+    const leadingWords = new Set(queryWords.slice(0, -1))
+    const lastWord = queryWords[queryWords.length - 1]
+
+    const segments: QueryMatchSegment[] = []
+    const push = (chunk: string, isMatch: boolean) => {
+        if (chunk === "") return
+        const previous = segments.at(-1)
+        // Merged rather than appended, so adjacent runs of the same kind come
+        // out as one segment (and one <strong> in the markup).
+        if (previous?.isMatch === isMatch) previous.text += chunk
+        else segments.push({ text: chunk, isMatch })
+    }
+
+    const words = [...text.matchAll(MATCH_WORD_RUN_REGEX)]
+    const wordMatches = words.map((word) =>
+        splitIntoMatchWords(word[0]).some(
+            (normalized) =>
+                leadingWords.has(normalized) || normalized.startsWith(lastWord)
+        )
+    )
+
+    let cursor = 0
+    words.forEach((word, index) => {
+        const gap = text.slice(cursor, word.index)
+        const bridgesTwoMatches =
+            wordMatches[index] &&
+            index > 0 &&
+            wordMatches[index - 1] &&
+            /^[\s-]*$/.test(gap)
+        push(gap, bridgesTwoMatches)
+        push(word[0], wordMatches[index])
+        cursor = word.index + word[0].length
+    })
+    push(text.slice(cursor), false)
+
+    return segments
+}
+
+// Titles compared the same way query words are, so two titles differing only in
+// punctuation or in a subscript ("CO₂ emissions" vs "CO2 emissions") count as
+// the collision they visibly are.
+function getChartTitleMatchKey(title: string): string {
+    return splitIntoMatchWords(title).join(" ")
+}
+
+/**
+ * The titles that more than one of `hits` carries.
+ *
+ * Fed the block's *unfiltered* topic result set, so a row's variant name doesn't
+ * appear and disappear as a query narrows the list around it.
+ */
+export function getDuplicatedChartTitles(
+    hits: readonly { title?: string }[]
+): Set<string> {
+    const seen = new Set<string>()
+    const duplicated = new Set<string>()
+    for (const hit of hits) {
+        const key = getChartTitleMatchKey(hit.title ?? "")
+        if (key === "") continue
+        if (seen.has(key)) duplicated.add(key)
+        else seen.add(key)
+    }
+    return duplicated
+}
+
+/**
+ * The variant name to show beside a row's title ("age-standardized"), or
+ * `undefined` for a row that doesn't need one.
+ *
+ * Only shown where it does some work: a topic listing two charts called
+ * "Greenhouse gas emissions by sector" needs "Lines" and "Stacked areas" to
+ * tell them apart, and a title only one chart carries doesn't. A variant name
+ * that merely repeats the title is dropped as well — explorer-view records
+ * carry the view's own title there.
+ */
+export function getChartHitVariantName(
+    hit: { title?: string; variantName?: string },
+    duplicatedTitles: ReadonlySet<string>
+): string | undefined {
+    const variantName = hit.variantName?.trim()
+    if (!variantName) return undefined
+    const titleKey = getChartTitleMatchKey(hit.title ?? "")
+    if (!duplicatedTitles.has(titleKey)) return undefined
+    if (getChartTitleMatchKey(variantName) === titleKey) return undefined
+    return variantName
+}
+
 /**
  * Re-orders `hits` into the relative order the same charts appear in
  * `baselineHits`. The result is always a permutation of `hits`: nothing is

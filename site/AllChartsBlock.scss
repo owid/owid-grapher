@@ -305,25 +305,16 @@
     }
 }
 
-// A row has no column structure: its text is one block (title, then subtitle,
-// then a "Source: …" line), with the selected row's "Explore the data" link
-// sitting at the right-hand edge. This wrapper holds those two side by side
-// and carries the row's own hover/selected treatment, so the accent border and
-// background span the link too.
+// A row has no column structure: its text is one block (title, then the
+// "Source: …" line, with the subtitle between them once a search reveals it).
+// This wrapper carries the row's own hover/selected treatment, so the accent
+// border and background span the full width of the row.
 .all-charts-block__row-body {
     display: flex;
-    align-items: center;
     border-left: 3px solid transparent;
 
     &:hover {
         background-color: $gray-5;
-    }
-
-    // Not enough width on a phone to fit the "Explore the data" link beside
-    // the row's text without squeezing the title, so the link wraps onto its
-    // own line underneath (see .all-charts-block__row-action below).
-    @include sm-only {
-        flex-wrap: wrap;
     }
 }
 
@@ -354,6 +345,27 @@
     // the row's 2px stack gap.
     line-height: 1.25;
     color: $text-color;
+}
+
+// The words a search matched, bolded wherever the row shows them (see
+// splitTextByQueryWordMatches). The title is already semibold, so its matches
+// step up to 800 — 700 against 600 in Playfair is too fine a distinction to
+// read as emphasis. The subtitle and source lines are 400, where <strong>'s
+// own 700 is contrast enough.
+.all-charts-block__row-title strong {
+    font-weight: 800;
+}
+
+// The chart's variant name ("age-standardized", "Stacked areas"), appended to
+// the title on the rows that need it — only where two charts on the topic share
+// a title (see getChartHitVariantName). Subdued and lighter than the title it
+// qualifies, following the site's existing .variantName treatment: it is a
+// disambiguator, not part of the name.
+.all-charts-block__row-variant {
+    margin-left: 4px;
+    color: $gray-70;
+    font-weight: 400;
+    font-size: 0.85em;
 }
 
 .all-charts-block__row-subtitle {
@@ -392,13 +404,14 @@
     align-self: flex-start;
 }
 
-// The "Source: …" line, sitting directly beneath the subtitle rather than in
-// a column of its own. Shares the subtitle's size, weight and line-height so
-// the two sit as one continuous block of supporting text, but deliberately a
-// darker hue: $blue-90 against the subtitle's $blue-50, which gives the
-// attribution more presence than the description above it.
+// The "Source: …" line, sitting directly under the title rather than in a
+// column of its own. Shares the subtitle's size, weight, line-height *and*
+// colour, so the two read as one continuous block of supporting text once a
+// search reveals the subtitle above it. It used to be the darker $blue-90,
+// giving the attribution more presence than the description above it; with the
+// description hidden by default there is nothing left for it to compete with.
 .all-charts-block__row-source {
-    color: $blue-90;
+    color: $blue-50;
     font-size: 12px;
     font-weight: 400;
     line-height: 1.5;
@@ -415,7 +428,7 @@
 }
 
 // The "Source:" label itself. Bold, but deliberately *not* given a colour of
-// its own: it inherits $blue-90 from .all-charts-block__row-source above, so
+// its own: it inherits $blue-50 from .all-charts-block__row-source above, so
 // the label and the producer names beside it are one hue and only the weight
 // distinguishes the label. An earlier version set this to $gray-70, which
 // read as a stray grey against the blue text around it.
@@ -435,46 +448,6 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-}
-
-// Holds the selected row's "Explore the data" link at the right-hand edge of
-// the row.
-.all-charts-block__row-action {
-    flex: 0 0 auto;
-    padding: 12px 16px 12px 0;
-
-    // Wrapped onto its own line under the row's text (see the flex-wrap on
-    // .all-charts-block__row-body above), so it needs its left inset back.
-    @include sm-only {
-        flex-basis: 100%;
-        padding: 0 16px 12px 13px;
-    }
-}
-
-// The shared .owid-btn is sized for page-level calls to action: 14px
-// body-3-medium text in 8.5px/24px padding, which renders ~35px tall. Design
-// wants a compact 32px control inside a table row, so the size is overridden
-// here rather than in the shared component, which is used at full size
-// elsewhere. These selectors are no more specific than .owid-btn's own, but
-// this file is imported after Button.scss (see site/owid.scss), so they win.
-.all-charts-block__row-explore-button {
-    // A fixed height plus flex centring is what pins the *rendered* height to
-    // 32px. Overriding padding and line-height alone doesn't: the arrow svg
-    // sits in the line box with its own height and baseline offset, so it,
-    // not the declared padding, ends up setting how tall the button comes
-    // out. Centring the content in a fixed-height box takes both out of the
-    // equation. box-sizing: border-box is global, so the 1px transparent
-    // border .owid-btn draws is included in the 32px.
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 32px;
-    padding: 0 12px;
-    font-size: 12px;
-    line-height: 1;
-    // The label reads as one unit with its arrow; wrapping it mid-phrase to
-    // fit a narrow row would look broken.
-    white-space: nowrap;
 }
 
 // Mobile/tablet accordion panel holding the inline chart for the currently

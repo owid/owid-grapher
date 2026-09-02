@@ -15,6 +15,9 @@ import {
     hasHiddenChartHits,
     filterChartHitsByQueryWords,
     textContainsAllQueryWords,
+    splitTextByQueryWordMatches,
+    getDuplicatedChartTitles,
+    getChartHitVariantName,
     ALL_CHARTS_INITIAL_ROW_COUNT,
 } from "./searchUtils"
 
@@ -1376,5 +1379,161 @@ describe(textContainsAllQueryWords, () => {
                 "emissions by sector"
             )
         ).toBe(false)
+    })
+})
+
+describe(splitTextByQueryWordMatches, () => {
+    // What a caller renders in bold; the plain runs between them are the rest
+    // of the text.
+    const matched = (text: string, query: string) =>
+        splitTextByQueryWordMatches(text, query)
+            .filter((segment) => segment.isMatch)
+            .map((segment) => segment.text)
+
+    // The segments always reassemble into the text they came from — nothing is
+    // dropped, duplicated or re-cased on the way through.
+    const assertLosslessFor = (text: string, query: string) =>
+        expect(
+            splitTextByQueryWordMatches(text, query)
+                .map((segment) => segment.text)
+                .join("")
+        ).toEqual(text)
+
+    it("marks a multi-word query as one run, gaps included", () => {
+        expect(
+            matched(
+                "Per capita CO₂ emissions from cement",
+                "per capita co2 emissions"
+            )
+        ).toEqual(["Per capita CO₂ emissions"])
+        assertLosslessFor(
+            "Per capita CO₂ emissions from cement",
+            "per capita co2 emissions"
+        )
+    })
+
+    it("marks the words wherever they are, in any order", () => {
+        // The row filter no longer requires the typed words to be adjacent, so
+        // neither does this: bolding only an adjacent run would leave a row
+        // that matched looking as though it hadn't.
+        expect(
+            matched("Per capita methane emissions", "emissions per capita")
+        ).toEqual(["Per capita", "emissions"])
+    })
+
+    it("folds a subscript the way the filter does", () => {
+        expect(matched("Annual CO₂ emissions", "co2")).toEqual(["CO₂"])
+        expect(matched("Annual CO2 emissions", "co₂")).toEqual(["CO2"])
+    })
+
+    it("marks a prefix match on the last word only", () => {
+        // Mid-typing: "emissions per cap" bolds the half-typed word too,
+        // because that is the word the filter matched on.
+        expect(
+            matched("Per capita CO₂ emissions", "emissions per cap")
+        ).toEqual(["Per capita", "emissions"])
+        // Only the last word gets the prefix rule: a half-typed leading word
+        // matches nothing, and nothing is bolded for it. (A row like this is
+        // filtered out anyway — the filter needs every leading word — so this
+        // is about the rule being the same on both sides, not about the row.)
+        expect(matched("Per capita CO₂ emissions", "capit emissions")).toEqual([
+            "emissions",
+        ])
+    })
+
+    it("marks nothing when the text does not contain the query", () => {
+        expect(
+            splitTextByQueryWordMatches("Annual CO₂ emissions", "poverty")
+        ).toEqual([{ text: "Annual CO₂ emissions", isMatch: false }])
+    })
+
+    it("marks nothing for an empty query", () => {
+        // What the block passes for a country-only search: "china" is applied
+        // as an entity facet and taken out of the phrase, so the country name
+        // printed on the row is not bolded. Same for the untyped default view.
+        expect(
+            splitTextByQueryWordMatches("CO₂ emissions in China", "")
+        ).toEqual([{ text: "CO₂ emissions in China", isMatch: false }])
+        // ...and with a word left over beside the country, only that word is
+        // bolded.
+        expect(matched("CO₂ emissions in China", "emissions")).toEqual([
+            "emissions",
+        ])
+    })
+})
+
+describe(getDuplicatedChartTitles, () => {
+    it("collects only the titles more than one chart carries", () => {
+        const duplicated = getDuplicatedChartTitles([
+            { title: "Greenhouse gas emissions by sector" },
+            { title: "Greenhouse gas emissions by sector" },
+            { title: "Annual CO₂ emissions" },
+        ])
+        expect([...duplicated]).toEqual(["greenhouse gas emissions by sector"])
+    })
+
+    it("counts titles that differ only in punctuation as the same", () => {
+        // Two rows a reader can't tell apart are a collision whatever the
+        // records say — "CO₂" and "CO2" render as different characters but the
+        // titles read identically.
+        const duplicated = getDuplicatedChartTitles([
+            { title: "Annual CO₂ emissions" },
+            { title: "Annual CO2 emissions!" },
+        ])
+        expect(duplicated.size).toEqual(1)
+    })
+})
+
+describe(getChartHitVariantName, () => {
+    const duplicated = getDuplicatedChartTitles([
+        { title: "Greenhouse gas emissions by sector" },
+        { title: "Greenhouse gas emissions by sector" },
+    ])
+
+    it("shows the variant name on a title two charts share", () => {
+        expect(
+            getChartHitVariantName(
+                {
+                    title: "Greenhouse gas emissions by sector",
+                    variantName: "Stacked areas",
+                },
+                duplicated
+            )
+        ).toEqual("Stacked areas")
+    })
+
+    it("shows nothing on a title only one chart carries", () => {
+        expect(
+            getChartHitVariantName(
+                { title: "Annual CO₂ emissions", variantName: "Lines" },
+                duplicated
+            )
+        ).toBeUndefined()
+    })
+
+    it("shows nothing when there is no variant name to show", () => {
+        expect(
+            getChartHitVariantName(
+                {
+                    title: "Greenhouse gas emissions by sector",
+                    variantName: "",
+                },
+                duplicated
+            )
+        ).toBeUndefined()
+    })
+
+    it("shows nothing when the variant name just repeats the title", () => {
+        // Explorer-view records carry the view's own title as their variant
+        // name, which would render as the title twice over.
+        expect(
+            getChartHitVariantName(
+                {
+                    title: "Greenhouse gas emissions by sector",
+                    variantName: "Greenhouse gas emissions by sector",
+                },
+                duplicated
+            )
+        ).toBeUndefined()
     })
 })
