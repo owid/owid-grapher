@@ -495,6 +495,14 @@
 .all-charts-block__row-thumbnail--active {
     border-color: $vermillion;
     box-shadow: inset 0 0 0 1px $vermillion;
+
+    // The hover border above is a class plus a pseudo-class, so it outranks
+    // this rule's plain class and would grey out the active thumbnail for as
+    // long as the pointer sits on it — including straight after the click that
+    // activated it.
+    &:hover {
+        border-color: $vermillion;
+    }
 }
 
 // Mobile/tablet accordion panel holding the inline chart for the currently
