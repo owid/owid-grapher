@@ -6,20 +6,19 @@
 
 import * as _ from "lodash-es"
 import * as React from "react"
-import { useState } from "react"
 import {
     bind,
     dayjs,
     Tippy,
     copyToClipboard,
-    ColorSchemeName,
+    useSpinDelay,
 } from "@ourworldindata/utils"
 import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import cx from "clsx"
-import { useTimeout } from "usehooks-ts"
 
 import { AdminColorPicker } from "./AdminColorPicker.js"
+import type { ColorPaletteKey } from "./colorPalettes.js"
 import {
     faCog,
     faLink,
@@ -153,11 +152,12 @@ export class TextField extends React.Component<TextFieldProps> {
                         {props.secondaryLabel && (
                             <>
                                 <span> </span>
-                                <FontAwesomeIcon
-                                    icon={faCircleInfo}
-                                    className="text-muted"
-                                    title={props.secondaryLabel}
-                                />
+                                <span title={props.secondaryLabel}>
+                                    <FontAwesomeIcon
+                                        icon={faCircleInfo}
+                                        className="text-muted"
+                                    />
+                                </span>
                             </>
                         )}
                     </label>
@@ -251,11 +251,12 @@ export class TextAreaField extends React.Component<TextFieldProps> {
                         {props.secondaryLabel && (
                             <>
                                 <span> </span>
-                                <FontAwesomeIcon
-                                    icon={faCircleInfo}
-                                    className="text-muted"
-                                    title={props.secondaryLabel}
-                                />
+                                <span title={props.secondaryLabel}>
+                                    <FontAwesomeIcon
+                                        icon={faCircleInfo}
+                                        className="text-muted"
+                                    />
+                                </span>
                             </>
                         )}
                     </label>
@@ -622,11 +623,12 @@ export class Toggle extends React.Component<ToggleProps> {
                     {props.secondaryLabel && (
                         <>
                             {" "}
-                            <FontAwesomeIcon
-                                icon={faCircleInfo}
-                                className="text-muted"
-                                title={props.secondaryLabel}
-                            />
+                            <span title={props.secondaryLabel}>
+                                <FontAwesomeIcon
+                                    icon={faCircleInfo}
+                                    className="text-muted"
+                                />
+                            </span>
                         </>
                     )}
                 </label>
@@ -673,8 +675,7 @@ export class EditableListItem extends React.Component<EditableListItemProps> {
 interface ColorBoxProps {
     color: string | undefined
     onColor: (color: string | undefined) => void
-    showLineChartColors: boolean
-    baseColorScheme?: ColorSchemeName
+    palette: ColorPaletteKey
 }
 
 @observer
@@ -699,8 +700,7 @@ export class ColorBox extends React.Component<ColorBoxProps> {
                         <AdminColorPicker
                             color={color}
                             onColor={this.props.onColor}
-                            showLineChartColors={this.props.showLineChartColors}
-                            baseColorScheme={this.props.baseColorScheme}
+                            palette={this.props.palette}
                             onResize={this.handleResize}
                         />
                         <div
@@ -1376,15 +1376,17 @@ export const CatalogPathField = ({
     )
 }
 
-export function LoadingBlocker() {
-    const [isVisible, setIsVisible] = useState(false)
-    useTimeout(() => setIsVisible(true), 200)
-    // When an action completes fast (which is quite often) the user won't be
-    // annoyed by an intermediate flash of the spinner on the screen.
+export function LoadingBlocker({
+    isLoading,
+}: {
+    isLoading: boolean
+}): React.ReactElement | null {
+    const isVisible = useSpinDelay(isLoading, { ssr: false })
+
     if (!isVisible) return null
     return (
         <div className="LoadingBlocker">
-            <FontAwesomeIcon icon={faCog} spin fixedWidth size="3x" />
+            <FontAwesomeIcon icon={faCog} spin className="fa-fw" size="3x" />
         </div>
     )
 }

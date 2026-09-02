@@ -480,7 +480,7 @@ export function Sankey({
             >
                 <g className="sankey__links">
                     {linksInRenderOrder.map((link) => (
-                        <SankeyLink
+                        <SankeyLinkView
                             key={makeLinkKey(
                                 makeNodeId(link.source),
                                 makeNodeId(link.target)
@@ -496,7 +496,7 @@ export function Sankey({
                 </g>
                 <g className="sankey__nodes">
                     {layout.nodes.map((node) => (
-                        <SankeyNode
+                        <SankeyNodeView
                             key={node.id}
                             node={node}
                             bandWidth={bandWidth}
@@ -539,7 +539,7 @@ export function Sankey({
     )
 }
 
-function SankeyLink({
+function SankeyLinkView({
     link,
     linkColor,
     isHovered,
@@ -612,7 +612,7 @@ function makeSankeyRibbonPath(link: LaidOutLink): string | null {
     ].join("")
 }
 
-function SankeyNode({
+function SankeyNodeView({
     node,
     bandWidth,
     nodeColor,

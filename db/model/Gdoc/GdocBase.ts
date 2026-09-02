@@ -1500,7 +1500,6 @@ export function rawGdocToMinimalPost(
         type: row.type as OwidGdocType,
         "featured-image": featuredImage,
         kicker: content.kicker,
-        cta: content.cta,
     }
 }
 

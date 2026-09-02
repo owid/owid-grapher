@@ -2,6 +2,8 @@ import { useContext, useEffect, useMemo, useState } from "react"
 import {
     Alert,
     FloatButton,
+    Progress,
+    Segmented,
     Select,
     Space,
     Spin,
@@ -15,22 +17,39 @@ import { useQuery } from "@tanstack/react-query"
 import { Link, useHistory, useLocation, useParams } from "react-router-dom"
 import * as _ from "lodash-es"
 import {
+    SVG_TESTER_PROGRESS_INTERVAL_MS,
     SvgTesterDirectory,
     SvgTesterSuiteOverview,
     SvgTesterSuiteStatus,
     SvgTesterVerifyDifferenceEntry,
     SvgTesterVerifyErrorEntry,
+    SvgTesterVerifyRunSummary,
 } from "@ourworldindata/types"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Timeago } from "./Forms.js"
+import { SvgTesterRefreshedLabel } from "./SvgTesterRefreshedLabel.js"
 import {
     displayStatus,
     DISPLAY_STATUS_LABELS,
     formatDuration,
     hasFindings,
     hasReportedResult,
+    isUnderway,
+    runProgress,
 } from "./svgTesterHelpers.js"
+import pMap from "p-map"
+import {
+    compareSvgsVisually,
+    encodeVerdicts,
+    groupByVisualStatus,
+    readVerdicts,
+    VISUAL_DIFF_CONCURRENCY,
+    VISUAL_STATUSES,
+    type VisualStatus,
+    type VisualVerdict,
+    writeVerdicts,
+} from "./svgVisualDiff.js"
 
 const LIVE_URL = "https://ourworldindata.org"
 
@@ -51,6 +70,49 @@ const KIND_LABELS: Record<SvgTesterVerifyErrorEntry["kind"], string> = {
 
 const CHART_TYPE_PARAM = "chartType"
 
+const VISUAL_STATUS_LABELS: Record<VisualStatus, string> = {
+    changed: "Visible change",
+    unknown: "Couldn't check",
+    pending: "Not checked yet",
+    identical: "No visible change",
+}
+
+/** Only where the label leaves a question, which is where the check has no answer */
+const VISUAL_STATUS_HINTS: Partial<Record<VisualStatus, string>> = {
+    unknown:
+        "This chart's pixels can't be read — an embedded <foreignObject> taints the canvas — so it may not have changed at all",
+    pending: "The check hasn't got to this chart yet",
+}
+
+/** Which differences to list, once we know which ones only changed in markup */
+type VisualFilter = VisualStatus | "all"
+
+/** How many of a run's differences turned out to be markup-only */
+interface VisualSummary {
+    total: number
+    /** Partial while the check is still going, empty before it starts */
+    counts: Partial<Record<VisualVerdict, number>>
+    remainingCount: number
+    /** False while the check is still going, when the counts are partial */
+    isComplete: boolean
+}
+
+/** How often to look for a new run when the last one has already reported */
+const IDLE_REFRESH_INTERVAL_MS = 30_000
+
+/** How often the countdown is allowed to move, out of thousands of answers */
+const VISUAL_DIFF_PROGRESS_MS = 250
+
+/**
+ * How often the answers so far are written down. Rarer than the countdown: this
+ * one touches storage, and its point is only that leaving mid-check shouldn't
+ * cost minutes of work.
+ */
+const VISUAL_DIFF_SAVE_MS = 2_000
+
+/** Stable identity, so holding results back doesn't itself rebuild the list */
+const NO_VISUAL_RESULTS: Record<string, VisualVerdict> = {}
+
 export function SvgTesterSuitePage() {
     const { admin } = useContext(AdminAppContext)
     const { suite } = useParams<{ suite: string }>()
@@ -67,17 +129,38 @@ export function SvgTesterSuitePage() {
         history.replace({ search: params.toString(), hash: "" })
     }
 
-    const { data, isLoading } = useQuery({
+    // Not in the URL, unlike the chart type: which differences render
+    // identically is only known once this session has checked them
+    // Unset until the reader picks one, so the default can follow the check
+    const [visualFilter, setVisualFilter] = useState<VisualFilter>()
+
+    const { data, isLoading, isError, dataUpdatedAt } = useQuery({
         queryKey: ["svgtester-results", suite],
         queryFn: () =>
-            admin.getJSON<SvgTesterSuiteStatus>(
-                `/api/svgtester/${suite}/results.json`
+            admin.requestJSON<SvgTesterSuiteStatus>(
+                `/api/svgtester/${suite}/results.json`,
+                {},
+                "GET",
+                { onFailure: "continue", isBackground: true }
             ),
         refetchOnWindowFocus: true,
+        // Keep pace with a live run; once it has reported, the only thing left to
+        // catch is the next run starting, which can wait.
+        refetchInterval: (query) =>
+            query.state.data && hasReportedResult(query.state.data)
+                ? IDLE_REFRESH_INTERVAL_MS
+                : SVG_TESTER_PROGRESS_INTERVAL_MS,
     })
 
     const results = data?.results
-    const differences = useMemo(() => results?.differences ?? [], [results])
+
+    // Deduplicated: the pipeline lists some views twice, and rows that are equal
+    // collide on their React key. Remove once it stops emitting them.
+    const differences = useMemo(
+        () =>
+            _.uniqBy(results?.differences ?? [], (entry) => entry.svgFilename),
+        [results?.differences]
+    )
 
     const chartTypeCounts = useMemo(
         () => _.countBy(differences, (entry) => entry.chartType ?? "Unknown"),
@@ -94,19 +177,103 @@ export function SvgTesterSuitePage() {
         [differences, chartType]
     )
 
-    const status = data ? displayStatus(data) : undefined
-
     const isReported = data ? hasReportedResult(data) : false
+
+    // Check visual differences once the run has reported
+    const { verdictBySvg, remainingCount, isComplete } = useVisualDiffs(
+        suite,
+        differences,
+        isReported ? results?.startedAt : undefined,
+        {
+            grapherCommit: results?.grapherCommit ?? null,
+            svgsCommit: results?.svgsCommit ?? null,
+        }
+    )
+
+    const applied = verdictBySvg ?? NO_VISUAL_RESULTS
+
+    const grouped = useMemo(
+        () => groupByVisualStatus(visible, applied),
+        [visible, applied]
+    )
+
+    const populatedStatuses = VISUAL_STATUSES.filter(
+        (status) => grouped[status].length > 0
+    )
+    // Nothing to filter when every difference is in the same bucket
+    const showVisualFilter = populatedStatuses.length > 1
+
+    const visualFilterOptions = [
+        ...populatedStatuses.map((status) => ({
+            value: status,
+            label: `${VISUAL_STATUS_LABELS[status]} (${grouped[status].length.toLocaleString()})`,
+        })),
+        {
+            value: "all" as const,
+            label: `All (${visible.length.toLocaleString()})`,
+        },
+    ]
+
+    // What is worth reading moves as the check runs: the charts nobody has
+    // looked at yet while it is going, the ones that changed once it is done.
+    // The reader's own choice, once made, outranks both — and sticks, so it can
+    // name a bucket since emptied.
+    const wantedVisualFilter =
+        visualFilter ?? (isComplete ? "changed" : "pending")
+    const effectiveVisualFilter: VisualFilter = visualFilterOptions.some(
+        (option) => option.value === wantedVisualFilter
+    )
+        ? wantedVisualFilter
+        : "all"
+
+    // Paired with the bucket each one was drawn from, so a card cannot label
+    // itself as something other than what it is listed under
+    const shown = useMemo(
+        () =>
+            (effectiveVisualFilter === "all"
+                ? VISUAL_STATUSES
+                : [effectiveVisualFilter]
+            ).flatMap((status) =>
+                grouped[status].map((entry) => ({ entry, status }))
+            ),
+        [effectiveVisualFilter, grouped]
+    )
+
+    const cards = useMemo(
+        () =>
+            shown.map(({ entry, status }) => (
+                <DifferenceCard
+                    key={anchorId(entry.viewId, entry.queryStr)}
+                    suite={suite}
+                    entry={entry}
+                    status={status}
+                />
+            )),
+        [shown, suite]
+    )
+
+    const visualSummary = differences.length
+        ? {
+              total: differences.length,
+              counts: _.countBy(Object.values(applied)) as Partial<
+                  Record<VisualVerdict, number>
+              >,
+              remainingCount,
+              isComplete,
+          }
+        : undefined
+
+    const status = data ? displayStatus(data) : undefined
 
     // The browser jumps to the fragment before the cards it names exist: they
     // only render once the results have loaded.
     useEffect(() => {
         if (!location.hash) return
         document.getElementById(location.hash.slice(1))?.scrollIntoView()
-    }, [location.hash, results])
+    }, [location.hash, differences])
 
     return (
-        <AdminLayout title={`SVG tester: ${suite}`}>
+        <AdminLayout title={pageTitle(suite, data)}>
             <main className="SvgTesterSuitePage">
                 <div className="SvgTesterSuitePage__nav">
                     <Link to="/svgtester">← All suites</Link>
@@ -117,27 +284,10 @@ export function SvgTesterSuitePage() {
                         <div className="SvgTesterSuitePage__summary">
                             <div className="SvgTesterSuitePage__headline-row">
                                 <div className="SvgTesterSuitePage__headline">
-                                    {results && isReported ? (
-                                        <>
-                                            <strong>
-                                                {results.counts.differences.toLocaleString()}
-                                            </strong>{" "}
-                                            of{" "}
-                                            {results.counts.total.toLocaleString()}{" "}
-                                            charts rendered differently
-                                            {results.counts.errors > 0 && (
-                                                <span className="SvgTesterSuitePage__errors">
-                                                    {", "}
-                                                    <strong>
-                                                        {results.counts.errors.toLocaleString()}
-                                                    </strong>{" "}
-                                                    failed to render
-                                                </span>
-                                            )}
-                                        </>
-                                    ) : (
-                                        status && DISPLAY_STATUS_LABELS[status]
-                                    )}
+                                    <SuiteHeadline
+                                        status={data}
+                                        visual={visualSummary}
+                                    />
                                 </div>
                                 <SuiteSwitcher currentSuite={suite} />
                             </div>
@@ -171,6 +321,12 @@ export function SvgTesterSuitePage() {
                                     )}
                                 </div>
                             )}
+                            {results && !isReported && (
+                                <SuiteRunProgress
+                                    results={results}
+                                    isStalled={status === "stalled"}
+                                />
+                            )}
                         </div>
                     )}
 
@@ -191,7 +347,7 @@ export function SvgTesterSuitePage() {
                     {!!differences.length && (
                         <>
                             <div className="SvgTesterSuitePage__controls">
-                                <Space size="middle" wrap>
+                                <Space size="middle" align="center" wrap>
                                     <Select
                                         value={chartType}
                                         onChange={setChartType}
@@ -210,28 +366,182 @@ export function SvgTesterSuitePage() {
                                             })),
                                         ]}
                                     />
+                                    {showVisualFilter && (
+                                        <Segmented<VisualFilter>
+                                            value={effectiveVisualFilter}
+                                            onChange={setVisualFilter}
+                                            options={visualFilterOptions}
+                                        />
+                                    )}
                                     <Typography.Text type="secondary">
-                                        Showing{" "}
-                                        {visible.length.toLocaleString()} of{" "}
-                                        {differences.length.toLocaleString()}
+                                        Showing {shown.length.toLocaleString()}{" "}
+                                        of {differences.length.toLocaleString()}
                                     </Typography.Text>
                                 </Space>
                             </div>
 
-                            {visible.map((entry) => (
-                                <DifferenceCard
-                                    key={anchorId(entry.viewId, entry.queryStr)}
-                                    suite={suite}
-                                    entry={entry}
-                                />
-                            ))}
+                            {cards}
                         </>
                     )}
                 </Spin>
 
+                <p className="SvgTesterSuitePage__refreshed">
+                    <SvgTesterRefreshedLabel
+                        isError={isError}
+                        dataUpdatedAt={dataUpdatedAt}
+                    />
+                </p>
+
                 <FloatButton.BackTop duration={1} />
             </main>
         </AdminLayout>
+    )
+}
+
+/** What the run has found, or how far it has got if it is still going */
+function SuiteHeadline({
+    status,
+    visual,
+}: {
+    status: SvgTesterSuiteStatus
+    visual: VisualSummary | undefined
+}) {
+    const results = status.results
+    const display = displayStatus(status)
+
+    if (results && hasReportedResult(status))
+        return (
+            <>
+                <strong>{results.counts.differences.toLocaleString()}</strong>{" "}
+                of {results.counts.total.toLocaleString()} charts rendered
+                differently
+                <VisualHeadlineClause visual={visual} />
+                {results.counts.errors > 0 && (
+                    <span className="SvgTesterSuitePage__errors">
+                        {", "}
+                        <strong>
+                            {results.counts.errors.toLocaleString()}
+                        </strong>{" "}
+                        failed to render
+                    </span>
+                )}
+            </>
+        )
+
+    const progress = results ? runProgress(results) : undefined
+    if (!progress) return <>{DISPLAY_STATUS_LABELS[display]}</>
+
+    return (
+        <>
+            {DISPLAY_STATUS_LABELS[display]} ·{" "}
+            <strong>{progress.done.toLocaleString()}</strong> of{" "}
+            {progress.total.toLocaleString()} charts checked
+        </>
+    )
+}
+
+/**
+ * How many of the flagged charts actually look different. Markup can change
+ * without moving a pixel, so this is the number that says how much there is to
+ * review.
+ */
+function VisualHeadlineClause({
+    visual,
+}: {
+    visual: VisualSummary | undefined
+}) {
+    if (!visual) return null
+
+    if (!visual.isComplete)
+        return (
+            <span className="SvgTesterSuitePage__visual-note">
+                {" · "}
+                {visual.remainingCount > 0
+                    ? `${visual.remainingCount.toLocaleString()} left to check for visible changes…`
+                    : "rechecking what couldn't be checked…"}
+            </span>
+        )
+
+    const changedCount = visual.counts.changed ?? 0
+    const unknownCount = visual.counts.unknown ?? 0
+
+    // "none changed visibly" would be a finding, and there isn't one to report
+    if (unknownCount === visual.total)
+        return (
+            <span className="SvgTesterSuitePage__visual-note">
+                {" — "}
+                none could be checked for visible changes
+            </span>
+        )
+
+    return (
+        <>
+            {" — "}
+            {changedCount === visual.total ? (
+                "all changed visibly"
+            ) : changedCount ? (
+                <>
+                    only <strong>{changedCount.toLocaleString()}</strong>{" "}
+                    changed visibly
+                </>
+            ) : (
+                "none changed visibly"
+            )}
+            {unknownCount > 0 && (
+                <span className="SvgTesterSuitePage__visual-note">
+                    {", "}
+                    {unknownCount.toLocaleString()} couldn't be checked
+                </span>
+            )}
+        </>
+    )
+}
+
+/** How a run that hasn't reported yet is getting on */
+function SuiteRunProgress({
+    results,
+    isStalled,
+}: {
+    results: SvgTesterVerifyRunSummary
+    isStalled: boolean
+}) {
+    const progress = runProgress(results)
+    // Nothing to say yet: the run is still working out what it has to do, which
+    // the headline already covers.
+    if (!progress && !isStalled) return null
+
+    const { differences, errors } = results.counts
+
+    const parts = [
+        `${differences.toLocaleString()} differences so far`,
+        ...(errors > 0 ? [`${errors.toLocaleString()} failed to render`] : []),
+    ]
+
+    return (
+        <div className="SvgTesterSuitePage__progress">
+            {progress && (
+                <Progress
+                    percent={progress.percent}
+                    status={isStalled ? "exception" : "active"}
+                    size="small"
+                />
+            )}
+            {progress && (
+                <div className="SvgTesterSuitePage__progress-note">
+                    <Typography.Text type="secondary">
+                        {parts.join(" · ")}
+                    </Typography.Text>
+                </div>
+            )}
+            {isStalled && (
+                <div className="SvgTesterSuitePage__progress-note">
+                    <Typography.Text type="warning">
+                        No progress since <Timeago time={results.updatedAt} /> —
+                        the run was probably killed.
+                    </Typography.Text>
+                </div>
+            )}
+        </div>
     )
 }
 
@@ -242,35 +552,68 @@ function SuiteSwitcher({ currentSuite }: { currentSuite: string | undefined }) {
     const { data } = useQuery({
         queryKey: ["svgtester-suites"],
         queryFn: () =>
-            admin.getJSON<{ suites: SvgTesterSuiteOverview[] }>(
-                "/api/svgtester/suites.json"
+            admin.requestJSON<{ suites: SvgTesterSuiteOverview[] }>(
+                "/api/svgtester/suites.json",
+                {},
+                "GET",
+                { onFailure: "continue", isBackground: true }
             ),
+        refetchOnWindowFocus: true,
+        // Slower than the run it sits next to: these notes are a hint about the
+        // other suites, and this route asks git about every one of them.
+        refetchInterval: IDLE_REFRESH_INTERVAL_MS,
     })
 
     // The current suite stays listed even without findings, so the switcher
     // doesn't lose the page you are on.
     const suites = (data?.suites ?? []).filter(
-        (status) => hasFindings(status) || status.suite === currentSuite
+        (status) =>
+            hasFindings(status) ||
+            isUnderway(status) ||
+            status.suite === currentSuite
     )
 
     if (suites.length < 2) return null
 
     return (
         <nav className="SvgTesterSuitePage__suites" aria-label="Test suites">
-            {suites.map(({ suite }) => (
-                <Link
-                    key={suite}
-                    to={`/svgtester/${suite}`}
-                    className={cx("SvgTesterSuitePage__suite", {
-                        "is-active": suite === currentSuite,
-                    })}
-                    aria-current={suite === currentSuite ? "page" : undefined}
-                >
-                    {suite}
-                </Link>
-            ))}
+            {suites.map((status) => {
+                const note = suiteNote(status)
+                return (
+                    <Link
+                        key={status.suite}
+                        to={`/svgtester/${status.suite}`}
+                        className={cx("SvgTesterSuitePage__suite", {
+                            "is-active": status.suite === currentSuite,
+                        })}
+                        aria-current={
+                            status.suite === currentSuite ? "page" : undefined
+                        }
+                    >
+                        {status.suite}
+                        {note && (
+                            <span className="SvgTesterSuitePage__suite-note">
+                                {note}
+                            </span>
+                        )}
+                    </Link>
+                )
+            })}
         </nav>
     )
+}
+
+/**
+ * What the other suites are up to, so a run in one doesn't hide what another
+ * already found
+ */
+function suiteNote(status: SvgTesterSuiteOverview): string {
+    if (isUnderway(status))
+        return DISPLAY_STATUS_LABELS[displayStatus(status)].toLowerCase()
+    const counts = status.results?.counts
+    if (!counts) return ""
+    const findings = counts.differences + counts.errors
+    return findings ? findings.toLocaleString() : ""
 }
 
 function CommitLabel({
@@ -298,9 +641,11 @@ function CommitLabel({
 function DifferenceCard({
     suite,
     entry,
+    status,
 }: {
     suite: string
     entry: SvgTesterVerifyDifferenceEntry
+    status: VisualStatus
 }) {
     const [mode, setMode] = useState<ViewMode>("side-by-side")
     const beforeUrl = svgUrl(suite, "references", entry)
@@ -335,6 +680,14 @@ function DifferenceCard({
                             {entry.chartType}
                         </Tag>
                     )}
+                    <Tag
+                        className={cx("SvgTesterSuitePage__status", {
+                            "is-changed": status === "changed",
+                        })}
+                        title={VISUAL_STATUS_HINTS[status]}
+                    >
+                        {VISUAL_STATUS_LABELS[status]}
+                    </Tag>
                 </span>
                 <SvgTesterChartLinks entry={entry} />
             </header>
@@ -561,6 +914,7 @@ function SvgTesterDiff({
     // every entry in a large report just to render its images.
     const { data, isLoading, error } = useQuery({
         queryKey: ["svgtester-diff", beforeUrl, afterUrl],
+        meta: { blocksPage: false },
         queryFn: async () => {
             const [before, after] = await Promise.all([
                 fetchText(beforeUrl),
@@ -586,12 +940,12 @@ function SvgTesterDiff({
         <ReactDiffViewer
             oldValue={data.before}
             newValue={data.after}
-            // LINES, not the WORDS mode: word-granularity over a thousand lines of SVG markup is too slow
-            compareMethod={DiffMethod.LINES}
+            compareMethod={DiffMethod.WORDS_WITH_SPACE}
             splitView={true}
             showDiffOnly={true}
             extraLinesSurroundingDiff={3}
             styles={{ contentText: { wordBreak: "break-all" } }}
+            highlightLanguage="svg"
         />
     )
 }
@@ -618,6 +972,162 @@ function SvgTesterInteractive({ chartPath }: { chartPath: string }) {
             </figure>
         </div>
     )
+}
+
+/** Readable in a browser tab: which suite, and where it stands */
+function pageTitle(
+    suite: string | undefined,
+    data: SvgTesterSuiteStatus | undefined
+): string {
+    const base = `SVG tester: ${suite}`
+    if (!data) return base
+    const display = displayStatus(data)
+    if (display === "differences")
+        return `${base} (${data.results!.counts.differences.toLocaleString()} differences)`
+    return `${base} (${DISPLAY_STATUS_LABELS[display].toLowerCase()})`
+}
+
+/** Checks every difference for a real visual change */
+function useVisualDiffs(
+    suite: string | undefined,
+    differences: SvgTesterVerifyDifferenceEntry[],
+    runKey: string | undefined,
+    commits: { grapherCommit: string | null; svgsCommit: string | null }
+): {
+    verdictBySvg: Record<string, VisualVerdict> | undefined
+    remainingCount: number
+    isComplete: boolean
+} {
+    const [verdictBySvg, setVerdictBySvg] =
+        useState<Record<string, VisualVerdict>>()
+    const [isComplete, setIsComplete] = useState(false)
+    const [checkedCount, setCheckedCount] = useState(0)
+    const [todoCount, setTodoCount] = useState(0)
+
+    // Pulled out so the effect depends on the values rather than the object
+    const { grapherCommit, svgsCommit } = commits
+
+    useEffect(() => {
+        setVerdictBySvg(undefined)
+        setIsComplete(false)
+        setCheckedCount(0)
+        setTodoCount(0)
+        if (!suite || !runKey || !differences.length) return
+
+        const svgFilenames = differences.map((entry) => entry.svgFilename)
+
+        // Whatever this run was already checked for, so a reopened report
+        // doesn't rasterize thousands of pairs to reach the same answers
+        const verdicts: Record<string, VisualVerdict> =
+            readVerdicts(suite, runKey, svgFilenames) ?? {}
+
+        // A stored "unknown" is worth asking about again: it says the pair
+        // couldn't be read, not that it was read and found to differ
+        const todo = differences.filter(
+            (entry) =>
+                !verdicts[entry.svgFilename] ||
+                verdicts[entry.svgFilename] === "unknown"
+        )
+
+        // Shown straight away, so the report reads correctly while the rest of
+        // the work goes on behind it. A copy, since `verdicts` goes on being
+        // written to and state that mutates under React renders inconsistently.
+        setVerdictBySvg({ ...verdicts })
+        setTodoCount(todo.length)
+        if (!todo.length) {
+            setIsComplete(true)
+            return
+        }
+
+        // Leaving the suite abandons whatever has not started: those answers are
+        // for a report nobody is looking at any more.
+        const abandon = new AbortController()
+        let checked = 0
+        // Thousands of answers, and only the countdown shows them arriving
+        const publishProgress = _.throttle(
+            () => setCheckedCount(checked),
+            VISUAL_DIFF_PROGRESS_MS,
+            { leading: false }
+        )
+
+        const saveVerdicts = (): void =>
+            writeVerdicts(
+                suite,
+                encodeVerdicts({
+                    runKey,
+                    svgFilenames,
+                    verdicts,
+                    grapherCommit,
+                    svgsCommit,
+                })
+            )
+        const saveProgress = _.throttle(saveVerdicts, VISUAL_DIFF_SAVE_MS, {
+            leading: false,
+        })
+
+        const check = async (
+            entry: SvgTesterVerifyDifferenceEntry
+        ): Promise<void> => {
+            verdicts[entry.svgFilename] = await compareSvgsVisually(
+                svgUrl(suite, "references", entry),
+                svgUrl(suite, "differences", entry)
+            )
+        }
+        const options = {
+            concurrency: VISUAL_DIFF_CONCURRENCY,
+            signal: abandon.signal,
+        }
+
+        void pMap(
+            todo,
+            async (entry) => {
+                await check(entry)
+                checked++
+                publishProgress()
+                saveProgress()
+            },
+            options
+        )
+            // Whatever couldn't be checked gets one more go once the rest has
+            // drained. Nothing else will ask again: a run that has reported
+            // keeps handing back the same results, so the check doesn't run
+            // again until the page is reloaded.
+            .then(() =>
+                pMap(
+                    todo.filter(
+                        (entry) => verdicts[entry.svgFilename] === "unknown"
+                    ),
+                    check,
+                    options
+                )
+            )
+            .then(
+                () => {
+                    publishProgress.cancel()
+                    saveProgress.cancel()
+                    setVerdictBySvg({ ...verdicts })
+                    setIsComplete(true)
+                    saveVerdicts()
+                },
+                () => {
+                    // Abandoned, so there is nothing to report
+                }
+            )
+
+        return () => {
+            publishProgress.cancel()
+            saveProgress.cancel()
+            // Leaving shouldn't cost the answers already in hand
+            saveVerdicts()
+            abandon.abort()
+        }
+    }, [suite, runKey, differences, grapherCommit, svgsCommit])
+
+    return {
+        verdictBySvg,
+        remainingCount: todoCount - checkedCount,
+        isComplete,
+    }
 }
 
 function svgUrl(

@@ -8,4 +8,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    background-color: #fff;
+}
+
+.FullScreenOverlay--dimmed {
+    background-color: #ccc;
+    transition: background-color var(--duration-popover) var(--ease-out);
 }

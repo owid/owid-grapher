@@ -256,7 +256,7 @@
     },
     {
         "name": "bespoke-component",
-        "text": "{.bespoke-component}\nbundle: \nvariant: \nsize: \n{.config}\nfoo: \n{}\n{}",
+        "text": "{.bespoke-component}\nbundle: \nvariant: \nsize: \nfallbackImageFilename: \n{.config}\nfoo: \n{}\n{}",
         "keyword": "+bespoke-component"
     },
     {

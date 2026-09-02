@@ -8,8 +8,11 @@ import {
     ALL_CHARTS_ID,
     KeyChartLevel,
     queryParamsToStr,
+    getTopicPageHeading,
+    sentenceCaseIfNotTopicPage,
 } from "@ourworldindata/utils"
 import { AttachmentsContext } from "../AttachmentsContext.js"
+import { useDocumentContext } from "../DocumentContext.js"
 import { RelatedCharts } from "../../blocks/RelatedCharts.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 import { Button } from "@ourworldindata/components"
@@ -42,6 +45,8 @@ function sortRelatedCharts(
 export function AllCharts(props: AllChartsProps) {
     const { heading, top, className, id = ALL_CHARTS_ID } = props
     const { relatedCharts, tags } = useContext(AttachmentsContext)
+    const { gdocType } = useDocumentContext()
+    const defaultHeadingFragment = getTopicPageHeading("keyCharts", gdocType)
     if (relatedCharts.length === 0) return null
 
     const topSlugs = top.map((item) => Url.fromURL(item.url).slug as string)
@@ -56,7 +61,9 @@ export function AllCharts(props: AllChartsProps) {
         <section className={cx(className, "needs-dividers")}>
             <h1 className="article-block__heading h1-semibold" id={id}>
                 <span>
-                    {firstTag ? `Key Charts on ${firstTag.name}` : heading}
+                    {firstTag
+                        ? `${defaultHeadingFragment} on ${sentenceCaseIfNotTopicPage(firstTag.name, gdocType, false)}`
+                        : heading}
                 </span>
                 <a className="deep-link" aria-labelledby={id} href={`#${id}`} />
             </h1>

@@ -1,6 +1,7 @@
 import { ColorScaleBin } from "../color/ColorScaleBin"
 import { Bounds, ColumnSlug } from "@ourworldindata/utils"
 import {
+    EntityName,
     MapRegionName,
     SeriesName,
     GlobeRegionName,
@@ -107,6 +108,7 @@ export interface ChoroplethMapManager {
     isStatic?: boolean
     binColors?: string[]
     hasProjectedData?: boolean
+    inapplicableEntityNamesSet?: Set<EntityName>
     mapViewport?: MapViewport
     isFaceted?: boolean
 }
@@ -137,6 +139,7 @@ export interface GlobeRenderFeature extends RenderFeature {
 export interface MapChartManager extends ChartManager {
     mapColumnSlug?: ColumnSlug
     mapConfig?: MapConfig
+    inapplicableEntityNames?: EntityName[]
     targetTime?: Time
     globeController?: GlobeController
     isMapSelectionEnabled?: boolean

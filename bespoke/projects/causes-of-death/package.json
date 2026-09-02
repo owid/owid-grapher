@@ -12,9 +12,9 @@
         "typecheck": "tsc"
     },
     "dependencies": {
-        "@fortawesome/fontawesome-svg-core": "^6.7.2",
-        "@fortawesome/free-solid-svg-icons": "^6.7.2",
-        "@fortawesome/react-fontawesome": "^0.2.2",
+        "@fortawesome/fontawesome-svg-core": "^7.3.1",
+        "@fortawesome/free-solid-svg-icons": "^7.3.1",
+        "@fortawesome/react-fontawesome": "^3.5.0",
         "@ourworldindata/components": "link:../../../packages/@ourworldindata/components",
         "@ourworldindata/grapher": "link:../../../packages/@ourworldindata/grapher",
         "@ourworldindata/types": "link:../../../packages/@ourworldindata/types",
@@ -27,6 +27,7 @@
         "normalize.css": "^8.0.1",
         "nuqs": "^2.8.9",
         "react": "^19.2.7",
+        "react-aria-components": "^1.18.0",
         "react-dom": "^19.2.7",
         "remeda": "^2.39.0",
         "ts-pattern": "^5.9.0",

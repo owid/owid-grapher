@@ -1,6 +1,6 @@
 import { dyFromAlign, Point, VerticalAlign } from "@ourworldindata/utils"
 
-import { PlacedCategory } from "../helpers/CausesOfDeathCategoryAnnotationsHelpers.js"
+import { PlacedCategory } from "../core/CausesOfDeathCategoryAnnotationsHelpers.js"
 
 import { BezierArrow } from "@ourworldindata/grapher"
 

@@ -130,7 +130,13 @@
         right: 50%;
         height: 100%;
         background-color: var(--bg-color);
-        transition: all 0.3s ease;
+        // Animating left/right reflows. The compositor-friendly version is a
+        // permanent -50vw box with scaleX(0) → scaleX(1), but that gives the
+        // pseudo-element a 100vw layout width at all times and risks horizontal
+        // overflow on the page — deferred deliberately.
+        transition:
+            left 0.3s ease,
+            right 0.3s ease;
         z-index: -1;
     }
 
@@ -1179,7 +1185,9 @@ div.raw-html-table__container {
         border: 1px solid $blue-50;
         border-radius: 32px;
         padding: 4.5px 12px;
-        transition: 0.125s;
+        transition:
+            color 125ms ease,
+            border-color 125ms ease;
         &:visited {
             color: $blue-20;
         }

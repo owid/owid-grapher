@@ -384,8 +384,12 @@ export class ChartEditorView<
         return (
             <AdminLayout noSidebar>
                 <main className="ChartEditorPage">
-                    {(this.editor === undefined ||
-                        this.editor.currentRequest) && <LoadingBlocker />}
+                    <LoadingBlocker
+                        isLoading={
+                            this.editor === undefined ||
+                            !!this.editor.currentRequest
+                        }
+                    />
                     {this.editor !== undefined && this.renderReady(this.editor)}
                 </main>
             </AdminLayout>

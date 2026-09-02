@@ -1,5 +1,5 @@
 // Polyfills must be loaded before all other code.
-import "./polyfills.js"
+import "@ourworldindata/utils/src/polyfills.js"
 
 // This should be imported as early as possible so the global error handler is
 // set up before any errors are thrown.

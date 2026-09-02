@@ -15,6 +15,9 @@ import {
     GRAPHER_TAB_QUERY_PARAMS,
     TimeInterval,
     StackMode,
+    FacetStrategy,
+    GrapherChartType,
+    GrapherTabName,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -35,6 +38,7 @@ import {
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { setSelectedEntityNamesParam } from "./EntityUrlBuilder"
 import { MapConfig } from "../mapCharts/MapConfig"
+import { TimelineDragTarget } from "../timeline/TimelineController"
 import { SelectionArray } from "../selection/SelectionArray"
 import { latestGrapherConfigSchema } from "./GrapherConstants.js"
 import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable.js"
@@ -659,6 +663,253 @@ describe("title", () => {
 
         expect(grapher.titleAnnotation).toBeUndefined()
         expect(grapher.fullTitle).toEqual(grapher.mainTitle)
+    })
+})
+
+describe("toleranceNotice", () => {
+    // Germany lacks data for 2002 and Italy for 2000
+    const makeTable = (extraRows: (string | number)[][] = []): OwidTable =>
+        new OwidTable(
+            [
+                ["entityName", "year", "gdp"],
+                ["France", 1990, 50],
+                ["France", 2000, 100],
+                ["France", 2001, 200],
+                ["France", 2002, 300],
+                ["Germany", 2000, 400],
+                ["Germany", 2001, 500],
+                ["Italy", 2001, 600],
+                ["Italy", 2002, 700],
+                ...extraRows,
+            ],
+            [
+                { slug: "gdp", type: ColumnTypeNames.Numeric, tolerance: 1 },
+                { slug: "year", type: ColumnTypeNames.Year },
+            ]
+        )
+
+    const makeGrapherWithTolerance = (
+        props?: Partial<GrapherProgrammaticInterface>
+    ): GrapherState =>
+        new GrapherState({
+            table: makeTable(),
+            ySlugs: "gdp",
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+            hasMapTab: true,
+            map: { timeTolerance: 3 },
+            ...props,
+        })
+
+    it("explains the tolerance on the map tab", () => {
+        const grapher = makeGrapherWithTolerance()
+        expect(grapher.toleranceNotice).toEqual(
+            "Where data for 2002 is unavailable, the value from the closest year between 1999 and 2001 is shown instead."
+        )
+    })
+
+    it("only explains the tolerance when necessary", () => {
+        const grapher = makeGrapherWithTolerance()
+        const noteAt = (year: number): string | undefined => {
+            grapher.timelineHandleTimeBounds = [year, year]
+            return grapher.toleranceNotice
+        }
+        // Italy has no 2000 value and Germany no 2002 one, but 2001 is the one
+        // year every country has data for
+        expect(noteAt(2000)).toBeDefined()
+        expect(noteAt(2001)).toBeUndefined()
+        expect(noteAt(2002)).toBeDefined()
+    })
+
+    describe("frozen while the timeline is in motion", () => {
+        const drag = (grapher: GrapherState): void => {
+            grapher.timelineDragTarget = TimelineDragTarget.End
+            grapher.setToleranceNoticeFrozen(true)
+        }
+        const release = (grapher: GrapherState): void => {
+            grapher.timelineDragTarget = undefined
+            grapher.setToleranceNoticeFrozen(false)
+        }
+        const goTo = (grapher: GrapherState, year: number): void => {
+            grapher.timelineHandleTimeBounds = [year, year]
+        }
+
+        it("keeps a notice that was up when the drag started", () => {
+            const grapher = makeGrapherWithTolerance()
+            goTo(grapher, 2000) // tolerance applies here
+            drag(grapher)
+            goTo(grapher, 2001) // but not here
+            expect(grapher.toleranceNotice).toBeDefined()
+            release(grapher)
+            expect(grapher.toleranceNotice).toBeUndefined()
+        })
+
+        it("keeps a notice that was down when the drag started", () => {
+            const grapher = makeGrapherWithTolerance()
+            goTo(grapher, 2001)
+            drag(grapher)
+            goTo(grapher, 2000)
+            expect(grapher.toleranceNotice).toBeUndefined()
+            release(grapher)
+            expect(grapher.toleranceNotice).toBeDefined()
+        })
+
+        it("freezes nothing when the timeline is idle", () => {
+            const grapher = makeGrapherWithTolerance()
+            goTo(grapher, 2000)
+            grapher.setToleranceNoticeFrozen(true)
+            goTo(grapher, 2001)
+            expect(grapher.toleranceNotice).toBeUndefined()
+        })
+    })
+
+    it("is only as wide as the columns that were substituted", () => {
+        const grapher = new GrapherState({
+            table: new OwidTable(
+                [
+                    ["entityName", "year", "gdp", "pop"],
+                    ["France", 1990, 10, 1],
+                    ["France", 2001, 200, 20],
+                    // Only gdp is missing its 2002 value
+                    ["France", 2002, "", 30],
+                    ["Germany", 1990, 20, 2],
+                    ["Germany", 2001, 300, 30],
+                    ["Germany", 2002, 400, 40],
+                ],
+                [
+                    {
+                        slug: "gdp",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 3,
+                    },
+                    {
+                        slug: "pop",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 10,
+                    },
+                    { slug: "year", type: ColumnTypeNames.Year },
+                ]
+            ),
+            ySlugs: "gdp pop",
+            chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+            selectedEntityNames: ["France", "Germany"],
+        })
+
+        // gdp's 3 years, not pop's 10, which isn't currently applied
+        expect(grapher.toleranceNotice).toEqual(
+            "Where data is unavailable, the closest value within 3 years is shown instead."
+        )
+    })
+
+    describe("only when tolerance is actually applied", () => {
+        // Every country has data for every year
+        const completeTable = (): OwidTable =>
+            new OwidTable(
+                [
+                    ["entityName", "year", "gdp"],
+                    ["France", 1990, 50],
+                    ["France", 2000, 100],
+                    ["France", 2002, 300],
+                    ["Germany", 1990, 60],
+                    ["Germany", 2000, 400],
+                    ["Germany", 2002, 600],
+                ],
+                [
+                    {
+                        slug: "gdp",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 3,
+                    },
+                    { slug: "year", type: ColumnTypeNames.Year },
+                ]
+            )
+
+        it("is absent on a chart tab whose data has no gaps", () => {
+            const grapher = new GrapherState({
+                table: completeTable(),
+                ySlugs: "gdp",
+                chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+                selectedEntityNames: ["France", "Germany"],
+            })
+            expect(grapher.toleranceNotice).toBeUndefined()
+        })
+
+        // A gap only counts if the entity carrying it is on screen
+        const gapInSpainTable = (): OwidTable =>
+            new OwidTable(
+                [
+                    ["entityName", "year", "gdp"],
+                    ["France", 2000, 100],
+                    ["France", 2001, 200],
+                    ["France", 2002, 300],
+                    ["Germany", 2000, 400],
+                    ["Germany", 2001, 500],
+                    ["Germany", 2002, 600],
+                    ["Spain", 2000, 700],
+                    ["Spain", 2001, 800],
+                    // Spain has no 2002 value, which is the slope's end point
+                ],
+                [
+                    {
+                        slug: "gdp",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 3,
+                    },
+                    { slug: "year", type: ColumnTypeNames.Year },
+                ]
+            )
+
+        const makeSlopeGrapher = (
+            selectedEntityNames: string[]
+        ): GrapherState =>
+            new GrapherState({
+                table: gapInSpainTable(),
+                ySlugs: "gdp",
+                chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
+                selectedEntityNames,
+            })
+
+        it("ignores a gap in an entity that isn't selected", () => {
+            expect(
+                makeSlopeGrapher(["France", "Germany"]).toleranceNotice
+            ).toBeUndefined()
+            expect(
+                makeSlopeGrapher(["France", "Germany", "Spain"]).toleranceNotice
+            ).toBeDefined()
+        })
+    })
+
+    describe("appending to the authored note", () => {
+        const NOTICE =
+            "Where data for 2002 is unavailable, the value from the closest year between 1999 and 2001 is shown instead."
+
+        it("separates the notice from a note ending in a period", () => {
+            const grapher = makeGrapherWithTolerance({
+                note: "Values are adjusted.",
+            })
+            expect(grapher.effectiveNote).toEqual(
+                `Values are adjusted. ${NOTICE}`
+            )
+        })
+
+        it("terminates a note that ends without punctuation", () => {
+            const grapher = makeGrapherWithTolerance({
+                note: "Values are adjusted",
+            })
+            expect(grapher.effectiveNote).toEqual(
+                `Values are adjusted. ${NOTICE}`
+            )
+        })
+
+        it("keeps a note's own end punctuation", () => {
+            const grapher = makeGrapherWithTolerance({
+                note: "Is this adjusted?",
+            })
+            expect(grapher.effectiveNote).toEqual(`Is this adjusted? ${NOTICE}`)
+        })
+
+        it("stands alone when there is no authored note", () => {
+            expect(makeGrapherWithTolerance().effectiveNote).toEqual(NOTICE)
+        })
     })
 })
 
@@ -1803,6 +2054,30 @@ describe("tableForDisplay", () => {
                 .length
         ).toBe(5)
     })
+
+    it("drops the entities a scatter plot never plots", () => {
+        const scatterTable = new OwidTable(
+            [
+                ["entityName", "year", "x", "y"],
+                ["France", 2000, 1, 1],
+                ["Germany", 2000, null, null],
+            ],
+            [
+                { slug: "x", type: ColumnTypeNames.Numeric },
+                { slug: "y", type: ColumnTypeNames.Numeric },
+            ]
+        )
+        const grapher = new GrapherState({
+            table: scatterTable,
+            tab: "table",
+            chartTypes: ["ScatterPlot"],
+            xSlug: "x",
+            ySlugs: "y",
+        })
+        expect(
+            grapher.tableForDisplayBeforeEntityFilter.availableEntityNames
+        ).toEqual(["France"])
+    })
 })
 
 describe("projectionColumnInfoBySlug", () => {
@@ -2720,6 +2995,12 @@ describe("adjustStateForTab", () => {
         })
     }
 
+    const switchTab = (grapher: GrapherState, tab: GrapherTabName): void => {
+        const previousTab = grapher.activeTab
+        grapher.setTab(tab)
+        grapher.onTabChange(previousTab, tab)
+    }
+
     describe("time handle adjustment", () => {
         it("collapses time range to single time when switching to a single-time tab", () => {
             const grapher = createGrapher()
@@ -2730,7 +3011,7 @@ describe("adjustStateForTab", () => {
                 grapher.endHandleTimeBound
             )
 
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.DiscreteBar)
+            switchTab(grapher, GRAPHER_TAB_NAMES.DiscreteBar)
 
             // A single time is now selected
             expect(grapher.startHandleTimeBound).toBe(
@@ -2744,7 +3025,7 @@ describe("adjustStateForTab", () => {
             // Start with a single time
             grapher.timelineHandleTimeBounds = [2005, 2005]
 
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.LineChart)
+            switchTab(grapher, GRAPHER_TAB_NAMES.LineChart)
 
             // A time range is now selected
             expect(grapher.startHandleTimeBound).not.toBe(
@@ -2764,7 +3045,7 @@ describe("adjustStateForTab", () => {
             grapher.selection.clearSelection()
             grapher.timelineHandleTimeBounds = [2005, 2005]
 
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.LineChart)
+            switchTab(grapher, GRAPHER_TAB_NAMES.LineChart)
 
             expect(grapher.endHandleTimeBound).toBe(2005)
             expect(grapher.startHandleTimeBound).toBe(-Infinity)
@@ -2775,24 +3056,29 @@ describe("adjustStateForTab", () => {
 
             // Already a range — switching to LineChart should be a no-op
             grapher.timelineHandleTimeBounds = [2000, 2010]
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.LineChart)
+            switchTab(grapher, GRAPHER_TAB_NAMES.LineChart)
             expect(grapher.timelineHandleTimeBounds).toEqual([2000, 2010])
 
             // Already single time — switching to DiscreteBar should be a no-op
             grapher.timelineHandleTimeBounds = [2005, 2005]
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.DiscreteBar)
+            switchTab(grapher, GRAPHER_TAB_NAMES.DiscreteBar)
             expect(grapher.timelineHandleTimeBounds).toEqual([2005, 2005])
         })
 
-        it("collapses time range for StackedArea (range-preferred) tabs", () => {
-            const grapher = createGrapher()
+        it("expands a single time for StackedArea, which prefers a range", () => {
+            const grapher = createGrapher({
+                chartTypes: [
+                    GRAPHER_CHART_TYPES.StackedArea,
+                    GRAPHER_CHART_TYPES.StackedDiscreteBar,
+                ],
+            })
 
             // Start with a single time
             grapher.timelineHandleTimeBounds = [2005, 2005]
 
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.StackedArea)
+            switchTab(grapher, GRAPHER_TAB_NAMES.StackedArea)
 
-            // StackedArea prefers a range, so the single time should be expanded to a range
+            expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.StackedArea)
             expect(grapher.startHandleTimeBound).not.toBe(
                 grapher.endHandleTimeBound
             )
@@ -2800,57 +3086,282 @@ describe("adjustStateForTab", () => {
     })
 
     describe("entity selection adjustment", () => {
-        it("clears selection for all-entity chart type when selection matches authored", () => {
-            const grapher = createGrapher({
-                xSlug: SampleColumnSlugs.GDP,
-                chartTypes: [
-                    GRAPHER_CHART_TYPES.LineChart,
-                    GRAPHER_CHART_TYPES.ScatterPlot,
-                ],
+        const createGrapherWithSecondaryScatter = (
+            primaryChartType: GrapherChartType
+        ): GrapherState =>
+            createGrapher({
+                xSlug: SampleColumnSlugs.Population,
+                chartTypes: [primaryChartType, GRAPHER_CHART_TYPES.ScatterPlot],
             })
 
-            expect(grapher.selection.hasSelection).toBe(true)
+        it.each([
+            GRAPHER_CHART_TYPES.LineChart,
+            GRAPHER_CHART_TYPES.SlopeChart,
+            GRAPHER_CHART_TYPES.DiscreteBar,
+        ])(
+            "clears a secondary scatter's selection after a round trip via %s",
+            (primaryChartType) => {
+                const grapher =
+                    createGrapherWithSecondaryScatter(primaryChartType)
+                grapher.populateFromQueryParams({ tab: "scatter", country: "" })
+                expect(grapher.selection.hasSelection).toBe(false)
 
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.ScatterPlot)
+                switchTab(grapher, primaryChartType)
+                expect(grapher.selection.hasSelection).toBe(true)
 
-            expect(grapher.selection.hasSelection).toBe(false)
+                switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
+                expect(grapher.selection.selectedEntityNames).toEqual([])
+                expect(grapher.queryStr).toContain("country=")
+            }
+        )
+
+        it("clears a secondary scatter's selection in relative mode", () => {
+            const grapher = createGrapherWithSecondaryScatter(
+                GRAPHER_CHART_TYPES.LineChart
+            )
+            grapher.populateFromQueryParams({ tab: "scatter", country: "" })
+            grapher.stackMode = StackMode.relative
+            expect(grapher.isRelativeMode).toBe(true)
+
+            switchTab(grapher, GRAPHER_TAB_NAMES.LineChart)
+            switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
+
+            expect(grapher.selection.selectedEntityNames).toEqual([])
         })
 
-        it("preserves selection for all-entity chart types when user changed it", () => {
-            const grapher = createGrapher({
-                xSlug: SampleColumnSlugs.GDP,
-                chartTypes: [
-                    GRAPHER_CHART_TYPES.LineChart,
-                    GRAPHER_CHART_TYPES.ScatterPlot,
-                ],
-            })
-
-            // Simulate user changing the selection away from authored
+        it("keeps a secondary scatter's selection when the user changed it", () => {
+            const grapher = createGrapherWithSecondaryScatter(
+                GRAPHER_CHART_TYPES.LineChart
+            )
             grapher.selection.deselectEntity(
                 grapher.selection.selectedEntityNames[0]
             )
             expect(grapher.areSelectedEntitiesDifferentThanAuthors).toBe(true)
+            const userSelection = grapher.selection.selectedEntityNames
 
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.ScatterPlot)
+            switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
 
-            expect(grapher.selection.hasSelection).toBe(true)
+            expect(grapher.selection.selectedEntityNames).toEqual(userSelection)
         })
 
-        it("restores authored selection when selection is empty", () => {
+        it("keeps the authored selection and time range of a scatter-only chart", () => {
             const grapher = createGrapher({
-                chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+                xSlug: SampleColumnSlugs.Population,
+                chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+                minTime: 2000,
+                maxTime: 2010,
+            })
+            const authoredSelection = grapher.selection.selectedEntityNames
+            const authoredHandles = [...grapher.timelineHandleTimeBounds]
+
+            switchTab(grapher, GRAPHER_TAB_NAMES.Table)
+            switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
+
+            expect(grapher.selection.selectedEntityNames).toEqual(
+                authoredSelection
+            )
+            expect(grapher.timelineHandleTimeBounds).toEqual(authoredHandles)
+        })
+
+        it("keeps the authored selection and single time of a scatter-only chart", () => {
+            const grapher = createGrapher({
+                xSlug: SampleColumnSlugs.Population,
+                chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+                minTime: 2010,
+                maxTime: 2010,
+            })
+            const authoredSelection = grapher.selection.selectedEntityNames
+            const authoredHandles = [...grapher.timelineHandleTimeBounds]
+
+            switchTab(grapher, GRAPHER_TAB_NAMES.Table)
+            switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
+
+            expect(grapher.selection.selectedEntityNames).toEqual(
+                authoredSelection
+            )
+            expect(grapher.timelineHandleTimeBounds).toEqual(authoredHandles)
+        })
+
+        it("keeps a time scatter's selection when it is the only chart type", () => {
+            const grapher = createGrapher({
+                chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
             })
             const authoredSelection = grapher.selection.selectedEntityNames
 
-            // Clear selection
-            grapher.selection.clearSelection()
-            expect(grapher.selection.hasSelection).toBe(false)
-
-            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.LineChart)
+            switchTab(grapher, GRAPHER_TAB_NAMES.Table)
+            switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
 
             expect(grapher.selection.selectedEntityNames).toEqual(
                 authoredSelection
             )
         })
+
+        it("keeps a secondary time scatter's selection", () => {
+            const grapher = createGrapher({
+                chartTypes: [
+                    GRAPHER_CHART_TYPES.LineChart,
+                    GRAPHER_CHART_TYPES.ScatterPlot,
+                ],
+            })
+            const authoredSelection = grapher.selection.selectedEntityNames
+            grapher.populateFromQueryParams({ tab: "scatter", country: "" })
+
+            switchTab(grapher, GRAPHER_TAB_NAMES.LineChart)
+            switchTab(grapher, GRAPHER_TAB_NAMES.ScatterPlot)
+
+            expect(grapher.selection.selectedEntityNames).toEqual(
+                authoredSelection
+            )
+        })
+    })
+})
+
+describe("relative mode follows the facet strategy in effect", () => {
+    const makeStackedDiscreteBarGrapher = (): GrapherState => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 4, timeRange: [2000, 2010] },
+            1
+        )
+        return new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.StackedDiscreteBar],
+            hideRelativeToggle: false,
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+                {
+                    slug: SampleColumnSlugs.Population,
+                    property: DimensionProperty.y,
+                    variableId: 2,
+                },
+            ],
+        })
+    }
+
+    it("keeps relative mode when facet=entity isn't offered by the chart", () => {
+        const grapher = makeStackedDiscreteBarGrapher()
+        grapher.selectedFacetStrategy = FacetStrategy.entity
+        grapher.stackMode = StackMode.relative
+
+        expect(grapher.availableFacetStrategies).not.toContain(
+            FacetStrategy.entity
+        )
+        expect(grapher.facetStrategy).toEqual(FacetStrategy.none)
+        expect(grapher.canToggleRelativeMode).toBe(true)
+        expect(grapher.isRelativeMode).toBe(true)
+    })
+
+    it("drops relative mode when facet=metric is offered and picked", () => {
+        const grapher = makeStackedDiscreteBarGrapher()
+        grapher.selectedFacetStrategy = FacetStrategy.metric
+        grapher.stackMode = StackMode.relative
+
+        expect(grapher.availableFacetStrategies).toContain(FacetStrategy.metric)
+        expect(grapher.facetStrategy).toEqual(FacetStrategy.metric)
+        expect(grapher.canToggleRelativeMode).toBe(false)
+        expect(grapher.isRelativeMode).toBe(false)
+    })
+
+    const makeStackedAreaGrapher = (
+        numSelectedEntities: number
+    ): GrapherState => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 4, timeRange: [2000, 2010] },
+            1
+        )
+        return new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.StackedArea],
+            hideRelativeToggle: false,
+            selectedEntityNames: table.availableEntityNames.slice(
+                0,
+                numSelectedEntities
+            ),
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+            ],
+        })
+    }
+
+    it("resolves the relative toggle on a stacked area chart without a MobX cycle", () => {
+        const grapher = makeStackedAreaGrapher(4)
+        grapher.selectedFacetStrategy = FacetStrategy.metric
+        grapher.stackMode = StackMode.relative
+
+        expect(grapher.availableFacetStrategies).not.toContain(
+            FacetStrategy.metric
+        )
+        expect(grapher.facetStrategy).toEqual(FacetStrategy.none)
+        expect(grapher.canToggleRelativeMode).toBe(true)
+        expect(grapher.isRelativeMode).toBe(true)
+    })
+
+    it("keeps relative mode for a single selected entity when facet=metric isn't offered", () => {
+        const grapher = makeStackedAreaGrapher(1)
+        grapher.selectedFacetStrategy = FacetStrategy.metric
+        grapher.stackMode = StackMode.relative
+
+        expect(grapher.availableFacetStrategies).not.toContain(
+            FacetStrategy.metric
+        )
+        expect(grapher.facetStrategy).toEqual(FacetStrategy.none)
+        expect(grapher.canToggleRelativeMode).toBe(true)
+        expect(grapher.isRelativeMode).toBe(true)
+    })
+
+    const makeStackedAreaPercentagesGrapher = (): GrapherState => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 4, timeRange: [2000, 2010] },
+            1
+        ).updateDefs((def) => {
+            // A Currency column reports "$" whatever its def says
+            if (
+                def.slug === SampleColumnSlugs.GDP ||
+                def.slug === SampleColumnSlugs.Population
+            )
+                def.type = ColumnTypeNames.Percentage
+            return def
+        })
+        return new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.StackedArea],
+            hideRelativeToggle: false,
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+                {
+                    slug: SampleColumnSlugs.Population,
+                    property: DimensionProperty.y,
+                    variableId: 2,
+                },
+            ],
+        })
+    }
+
+    it("never offers facet=metric for percentages, so relative mode survives it", () => {
+        const grapher = makeStackedAreaPercentagesGrapher()
+        grapher.stackMode = StackMode.relative
+
+        expect(grapher.availableFacetStrategies).not.toContain(
+            FacetStrategy.metric
+        )
+
+        grapher.selectedFacetStrategy = FacetStrategy.metric
+
+        expect(grapher.facetStrategy).toEqual(FacetStrategy.entity)
+        expect(grapher.canToggleRelativeMode).toBe(true)
+        expect(grapher.isRelativeMode).toBe(true)
     })
 })

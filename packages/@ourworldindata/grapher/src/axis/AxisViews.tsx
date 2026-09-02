@@ -1,7 +1,6 @@
 import * as React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import * as R from "remeda"
 import {
     Bounds,
     HorizontalAlign,
@@ -352,14 +351,11 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
             showTickMarks,
             showEndpointsOnly,
         } = this.props
-        const { tickLabels, labelTextWrap, logNoticeTextWrap, config } = axis
+        const { labelTextWrap, logNoticeTextWrap, config } = axis
 
-        let visibleTickLabels = tickLabels
-        if (showEndpointsOnly) {
-            visibleTickLabels = pickFirstAndLastElement(
-                R.sortBy(tickLabels, (label) => label.x)
-            )
-        }
+        const visibleTickLabels = showEndpointsOnly
+            ? axis.endpointTickLabels
+            : axis.tickLabels
 
         const shouldShowLogNotice =
             axis.shouldShowLogNotice &&
@@ -498,7 +494,7 @@ export class HorizontalAxisComponent extends React.Component<{
             detailsMarker,
             showEndpointsOnly,
         } = this.props
-        const { tickLabels, labelTextWrap: label, labelOffset, orient } = axis
+        const { labelTextWrap: label, labelOffset, orient } = axis
         const tickSize = 5
         const horizontalAxisLabelsOnTop = orient === Position.top
         const labelYPosition = horizontalAxisLabelsOnTop
@@ -515,12 +511,9 @@ export class HorizontalAxisComponent extends React.Component<{
 
         const showTickLabels = !axis.config.hideTickLabels
 
-        let visibleTickLabels = tickLabels
-        if (showEndpointsOnly) {
-            visibleTickLabels = pickFirstAndLastElement(
-                R.sortBy(tickLabels, (label) => label.x)
-            )
-        }
+        const visibleTickLabels = showEndpointsOnly
+            ? axis.endpointTickLabels
+            : axis.tickLabels
 
         return (
             <g id={makeFigmaId("horizontal-axis")} className="HorizontalAxis">
@@ -621,9 +614,4 @@ export class VerticalAxisTickMark extends React.Component<{
             />
         )
     }
-}
-
-function pickFirstAndLastElement<T>(array: T[]): T[] {
-    if (array.length < 2) return array
-    return [array.at(0), array.at(-1)] as [T, T]
 }

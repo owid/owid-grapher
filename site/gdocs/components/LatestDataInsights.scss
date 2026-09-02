@@ -7,35 +7,42 @@
     }
 }
 
-.latest-data-insights__viewport {
-    overflow: hidden;
-    // Let box-shadow of the focused card overflow the container. It would
-    // happen by default with the initial value of `overflow`, which is
-    // `visible`, but we need it to be `hidden` for the carousel. We exclude
-    // the right side to keep the content clipped correctly.
-    padding: 24px 0 24px 24px;
-    margin: -24px 0 -24px -24px;
-}
-
-html:not(.js-enabled) .latest-data-insights__viewport {
-    overflow: auto;
-}
-
 .latest-data-insights__card-container {
     display: flex;
     gap: var(--grid-gap);
-    scrollbar-width: thin;
     list-style: none;
-    margin: 0;
-    padding: 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    // Let box-shadow of the focused card overflow the container: pad the
+    // scroller and pull it back out with negative margins. We exclude the
+    // right side to keep the content clipped correctly, and offset the snap
+    // positions by the extra left padding.
+    padding: 24px 0 24px 24px;
+    margin: -24px 0 -24px -24px;
+    scroll-padding-left: 24px;
+    scrollbar-width: thin;
+}
+
+html.js-enabled .latest-data-insights__card-container {
+    // Hide the scrollbar; the carousel is controlled via the arrow buttons
+    // (desktop) and swiping (mobile). Without JS there are no buttons, so we
+    // keep a thin scrollbar as a scroll affordance.
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
 }
 
 .latest-data-insights__card {
     flex: 0 0 845px;
     height: 322px;
+    scroll-snap-align: start;
+    // A flick advances at most one card instead of flying past several.
+    scroll-snap-stop: always;
     transition:
-        opacity 0.2s ease-in-out,
-        box-shadow 0.2s ease-in-out;
+        opacity var(--duration-popover) var(--ease-out),
+        box-shadow var(--duration-popover) var(--ease-out);
     opacity: 0.6;
 
     @include md-down {
@@ -46,7 +53,7 @@ html:not(.js-enabled) .latest-data-insights__viewport {
 }
 
 html:not(.js-enabled) .latest-data-insights__card,
-.latest-data-insights__card.is-snapped {
+.latest-data-insights__card--snapped {
     opacity: 1;
 }
 
@@ -83,13 +90,19 @@ html:not(.js-enabled) .latest-data-insights__card,
     }
 }
 
-.latest-data-insights__card.is-snapped
-    .latest-data-insights__card__data-insight {
+.latest-data-insights__card--snapped .latest-data-insights__card__data-insight {
     box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.08);
 }
 
 .latest-data-insights__card__see-all {
     padding: 257px 0;
+}
+
+@include sm-up {
+    .latest-data-insights__card--see-all,
+    .latest-data-insights__dot--see-all {
+        display: none;
+    }
 }
 
 // Sizing flex child picture elements is finnicky on Safari.
@@ -238,21 +251,15 @@ html:not(.js-enabled) .latest-data-insights__card,
 
 .latest-data-insights__dot {
     background-color: $blue-30;
-    display: inline-flex;
-    text-decoration: none;
-    border: 0;
-    padding: 0;
-    margin: 0;
     width: 8px;
     height: 8px;
-    align-items: center;
-    justify-content: center;
     border-radius: 50%;
-    transition: all 0.2s ease-in-out;
+    transition:
+        transform var(--duration-popover) var(--ease-out),
+        background-color var(--duration-popover) var(--ease-out);
+}
 
-    &--selected {
-        background-color: $blue-70;
-        width: 12px;
-        height: 12px;
-    }
+.latest-data-insights__dot--selected {
+    background-color: $blue-70;
+    transform: scale(1.5);
 }

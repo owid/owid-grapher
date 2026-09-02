@@ -3,6 +3,11 @@
 @import "../public/fonts.css";
 @import "bootstrap/scss/bootstrap";
 
+// Bare `section` also matches the react-aria dialogs grapher renders inside an
+// embedded chart. `:where` keeps the exclusion at zero specificity, so a page-level
+// `section` rule still wins on source order alone.
+$admin-section: "section:not(:where(.GrapherComponent *))";
+
 @mixin draft-background {
     background: repeating-linear-gradient(
         135deg,
@@ -17,7 +22,7 @@
 @import "tippy.js/dist/tippy.css";
 @import "tippy.js/themes/light.css";
 
-@import "@react-awesome-query-builder/antd/css/styles.css";
+@import "react-querybuilder/dist/query-builder.css";
 
 @import "../packages/@ourworldindata/components/src/styles/colors.scss";
 @import "../packages/@ourworldindata/components/src/styles/variables.scss";
@@ -127,7 +132,7 @@ $nav-height: 45px;
         font-size: 0.8em;
     }
 
-    section {
+    #{$admin-section} {
         h1 {
             font-size: 26px;
             font-weight: 700;
@@ -151,7 +156,7 @@ $nav-height: 45px;
         }
     }
 
-    section:not(:first-child) {
+    #{$admin-section}:not(:first-child) {
         margin-top: 40px;
     }
 }
@@ -295,12 +300,8 @@ $nav-height: 45px;
         overflow-y: auto;
     }
 
-    .query-builder {
-        margin: 0;
-        label {
-            margin-left: 5px;
-            margin-right: 5px;
-        }
+    .queryBuilder {
+        margin: 8px 0;
     }
 
     .rich-editor-confirm-buttons {
@@ -367,7 +368,7 @@ $nav-height: 45px;
         }
     }
 
-    section {
+    #{$admin-section} {
         padding: 1.2em;
         border-radius: 0.4em;
         margin-bottom: 1.2em;
@@ -1165,7 +1166,9 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     border-bottom-right-radius: 5px;
     background-color: #fff;
     cursor: pointer;
-    transition: 0.1s;
+    transition:
+        background-color var(--duration-hover) ease,
+        color var(--duration-hover) ease;
 
     &:hover {
         background-color: #eee;
@@ -1327,6 +1330,28 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
 
 .GdocsSettingsForm__alert {
     margin-bottom: 8px;
+}
+
+.GdocsTags__saved {
+    margin-left: 8px;
+    font-size: 13px;
+    font-weight: 400;
+    color: #52c41a;
+    animation: gdocs-tags-saved-fade 2.5s ease forwards;
+
+    svg {
+        margin-right: 2px;
+    }
+}
+
+@keyframes gdocs-tags-saved-fade {
+    0%,
+    70% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
 }
 
 .GdocsSettingsContentField__imagePreview {
@@ -1541,7 +1566,7 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
             justify-content: center;
             color: white;
             text-decoration: none;
-            transition: all 0.2s;
+            transition: opacity 0.2s ease;
             opacity: 0;
         }
 
@@ -1812,7 +1837,10 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     border: 2px dashed #d9d9d9;
     color: #8c8c8c;
     font-size: 14px;
-    transition: all 0.2s ease;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease;
     border-radius: 4px;
     padding: 8px;
     text-align: center;
@@ -1922,6 +1950,16 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
 .SvgTesterIndexPage__status {
     display: inline-flex;
     gap: 8px;
+}
+
+.SvgTesterIndexPage__charts {
+    align-items: center;
+    display: inline-flex;
+    gap: 8px;
+}
+
+.SvgTesterIndexPage__progress {
+    width: 56px;
 }
 
 .SvgTesterIndexPage__refreshed {
