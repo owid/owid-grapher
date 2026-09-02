@@ -9357,7 +9357,7 @@ __metadata:
     mobx-react: "npm:^7.6.0"
     mousetrap: "npm:^1.6.5"
     multer: "npm:^2.2.0"
-    mysql2: "npm:^3.18.2"
+    mysql2: "npm:^3.22.0"
     nodejs-polars: "npm:^0.7.2"
     normalize.css: "npm:^8.0.1"
     openai: "npm:^7.0.0"
@@ -11357,9 +11357,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mysql2@npm:^3.18.2":
-  version: 3.18.2
-  resolution: "mysql2@npm:3.18.2"
+"mysql2@npm:^3.22.0":
+  version: 3.22.0
+  resolution: "mysql2@npm:3.22.0"
   dependencies:
     aws-ssl-profiles: "npm:^1.1.2"
     denque: "npm:^2.1.0"
@@ -11371,7 +11371,7 @@ __metadata:
     sql-escaper: "npm:^1.3.3"
   peerDependencies:
     "@types/node": ">= 8"
-  checksum: 10/0ea2867ed26d26f01f431e4e8fa65ee6e612f1aa1f129911a1c9c848fd20a7aac78bc65b61b4923476f776aaa96c95c78796a6ce256f7dc43ff4572ee3bc8474
+  checksum: 10/fbfa0665624f479eeef9d0a9027157f035f07f2f5e782a32ec8b74af95342d3deb8f22f39817e25476fb86d7f93b194a6a319b82ac3af273e011b7a6208ca14e
   languageName: node
   linkType: hard
 
@@ -13677,9 +13677,9 @@ __metadata:
   linkType: hard
 
 "sql-escaper@npm:^1.3.3":
-  version: 1.3.3
-  resolution: "sql-escaper@npm:1.3.3"
-  checksum: 10/bc53ff84eba322ba76bd10f95c2a180b477e13453236583dbed3bed48d6ade3ca73922eaa860372c2b3a9427e3345fd1a19d1e3b8d0e36fa1d79c450f113b962
+  version: 1.5.1
+  resolution: "sql-escaper@npm:1.5.1"
+  checksum: 10/787ff7b829152380ac996bdba29a631f2005b772c302426d4676b24246ee47787cbdf9b0e565060851e078e2d15f7a014d6c48e637ec9a0127f0cbb436743ef4
   languageName: node
   linkType: hard
 
