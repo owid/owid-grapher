@@ -318,17 +318,44 @@
     }
 }
 
-// The row's text stack, and its single click/keyboard target (role="button" in
-// the markup) for selecting the row on desktop or toggling its mobile
-// accordion.
+// The row's text stack beside its thumbnail, and the row's single
+// click/keyboard target (role="button" in the markup) for selecting the row on
+// desktop or toggling its mobile accordion.
 .all-charts-block__row-main {
     flex: 1 1 auto;
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    align-items: flex-start;
+    gap: 12px;
     min-width: 0;
     padding: 12px 13px; // 3px accent border + 13px = 16px of left inset
     cursor: pointer;
+}
+
+.all-charts-block__row-text {
+    // Takes whatever the thumbnail beside it leaves, and no more: without
+    // min-width: 0 the title's longest word would push the thumbnail out of
+    // the row rather than wrapping.
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+// A preview of the chart's default view, flush to the row's right edge. Fixed
+// at the mockup's width on desktop rather than sharing the row proportionally:
+// the title and source beside it are what the list is scanned by, so the
+// thumbnail is the part that gives way when the pane is narrow.
+.all-charts-block__row-thumbnail {
+    flex: 0 0 auto;
+    width: 200px;
+    height: auto;
+    border: 1px solid $gray-20;
+    background-color: $white;
+
+    @include sm-only {
+        width: 120px;
+    }
 }
 
 .all-charts-block__row-title {

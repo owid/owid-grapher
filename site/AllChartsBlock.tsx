@@ -16,6 +16,10 @@ import {
 } from "@ourworldindata/types"
 import { listedRegionsNames } from "@ourworldindata/utils"
 import { Button } from "@ourworldindata/components"
+import {
+    GRAPHER_THUMBNAIL_HEIGHT,
+    GRAPHER_THUMBNAIL_WIDTH,
+} from "@ourworldindata/grapher"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { useDocumentContext } from "./gdocs/DocumentContext.js"
 import {
@@ -30,6 +34,7 @@ import {
     createCountryFilter,
     createDatasetProducerFilter,
     constructConfigUrl,
+    constructPreviewUrl,
     getEntityQueryStr,
     extractFiltersFromQuery,
     pickEntitiesForChartHit,
@@ -51,6 +56,7 @@ import { buildSynonymMap } from "./search/synonymUtils.js"
 import { SearchDataResultsSkeleton } from "./search/SearchDataResultsSkeleton.js"
 import { SearchFilterPill } from "./search/SearchFilterPill.js"
 import { useVisibleChartHits } from "./useVisibleChartHits.js"
+import { PreviewVariant } from "./search/SearchChartHitRichDataTypes.js"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "./SiteConstants.js"
 import { TOPIC_VOCABULARY_URL } from "../settings/clientSettings.js"
 
@@ -855,46 +861,68 @@ const AllChartsTableRow = ({
                     onClick={onSelect}
                     onKeyDown={handleRowKeyDown}
                 >
-                    <span className="all-charts-block__row-title">
-                        <HighlightedQueryText
-                            text={hit.title}
-                            searchPhrase={searchPhrase}
-                        />
-                        {variantName && (
-                            <span className="all-charts-block__row-variant">
-                                {variantName}
-                            </span>
-                        )}
-                    </span>
-                    {isSearching && hit.subtitle && (
-                        <span className="all-charts-block__row-subtitle">
+                    <span className="all-charts-block__row-text">
+                        <span className="all-charts-block__row-title">
                             <HighlightedQueryText
-                                text={hit.subtitle}
+                                text={hit.title}
                                 searchPhrase={searchPhrase}
                             />
+                            {variantName && (
+                                <span className="all-charts-block__row-variant">
+                                    {variantName}
+                                </span>
+                            )}
                         </span>
-                    )}
-                    {source && (
-                        <span className="all-charts-block__row-source">
-                            {/* The label and the producer list are separate
-                                elements so the list can be truncated to one
-                                line on its own while "Source:" stays whole. */}
-                            <span className="all-charts-block__row-source-label">
-                                Source:
-                            </span>
-                            <span className="all-charts-block__row-source-value">
+                        {isSearching && hit.subtitle && (
+                            <span className="all-charts-block__row-subtitle">
                                 <HighlightedQueryText
-                                    text={source}
+                                    text={hit.subtitle}
                                     searchPhrase={searchPhrase}
                                 />
                             </span>
-                        </span>
-                    )}
-                    {shownEntities.length > 0 && (
-                        <span className="all-charts-block__row-tag">
-                            {shownEntities.join(", ")}
-                        </span>
-                    )}
+                        )}
+                        {source && (
+                            <span className="all-charts-block__row-source">
+                                {/* The label and the producer list are separate
+                                elements so the list can be truncated to one
+                                line on its own while "Source:" stays whole. */}
+                                <span className="all-charts-block__row-source-label">
+                                    Source:
+                                </span>
+                                <span className="all-charts-block__row-source-value">
+                                    <HighlightedQueryText
+                                        text={source}
+                                        searchPhrase={searchPhrase}
+                                    />
+                                </span>
+                            </span>
+                        )}
+                        {shownEntities.length > 0 && (
+                            <span className="all-charts-block__row-tag">
+                                {shownEntities.join(", ")}
+                            </span>
+                        )}
+                    </span>
+                    {/* A static preview of the chart's own default view — no
+                        `tab` param, the same view the chart beside the list
+                        opens on. Part of the row's click target rather than a
+                        control of its own: clicking it selects the row, like
+                        clicking the row's text. Same thumbnail endpoint the
+                        search results' previews use. */}
+                    <img
+                        className="all-charts-block__row-thumbnail"
+                        src={constructPreviewUrl({
+                            hit,
+                            variant: PreviewVariant.Thumbnail,
+                        })}
+                        alt=""
+                        loading="lazy"
+                        // The thumbnail's own dimensions, so the browser can
+                        // reserve the right box before the image lands — a
+                        // topic page can hold nearly 200 rows of these.
+                        width={GRAPHER_THUMBNAIL_WIDTH}
+                        height={GRAPHER_THUMBNAIL_HEIGHT}
+                    />
                 </div>
             </div>
             {/* Mobile/tablet accordion panel: the persistent sidecar
