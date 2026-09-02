@@ -1584,8 +1584,7 @@ export class GrapherState
     }
 
     @computed get chartStateExceptMap(): ChartState {
-        const chartType = this.activeChartType ?? GRAPHER_CHART_TYPES.LineChart
-
+        const chartType = this.activeChartType ?? this.defaultChartType
         return makeChartState(chartType, this)
     }
 
