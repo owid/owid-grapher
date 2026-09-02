@@ -27,6 +27,8 @@ describe(NewsletterSignupForm, () => {
         renderForm()
         fireEvent.click(screen.getByLabelText(/The OWID Brief/))
         expect(screen.getByRole("button")).toBeDisabled()
-        expect(screen.getByText("Please select at least one option.")).toBeTruthy()
+        expect(
+            screen.getByText("Please select at least one option.")
+        ).toBeTruthy()
     })
 })
