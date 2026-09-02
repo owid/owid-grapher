@@ -1,28 +1,58 @@
 This folder contains the JSON schema for the configuration of Grapher.
 
-## How to evolve the schema
+## What `$schema` means
 
-The schema is versioned. There is one yaml file with a version number. For nonbreaking changes (e.g. additions of optional fields) you can just
-edit the yaml file as is. A github action will then generate a .latest.yaml and two json files (one .latest.json and one with the version number.json)
-and upload them to S3 so they can be accessed publicly.
+The schema is versioned, and every config records its version in `$schema`. That version tells
+the code which migrations the config still has to run. A config stamped N goes through the
+migrations from N to the latest version before a current build reads it.
 
-If you update the default value of an existing property or you add a new property with a default value, make sure to regenerate the default object from the schema and save it to `defaultGrapherConfig.ts` (see below).
+Bump the version if, and only if, stored configs have to be rewritten for the new code to
+render them as before. Removing a field, renaming one or narrowing an enum needs a bump. So
+does changing a default when existing charts should not change. Every other edit lands in the
+current version, with no rename and no migration. Adding an optional field or widening an enum
+is an edit, not a bump, and so is changing a default when every chart should pick it up.
 
-Breaking changes should be done by renaming the schema file to an increased version number. Make sure to also rename the authorative url
-inside the schema file (the "$id" field at the top level) to point to the new version number json. Then write the migrations from the last to
-the current version of the schema, including the migration of pointing to the URL of the new schema version.s
+Every bump ships the same rewrite twice. The database migration rewrites the stored rows. The
+migration in `migrations/migrations.ts` rewrites a config at the boundary, as it enters the code.
 
-Checklist for breaking changes:
+A write must migrate the config to the latest version and reject it if it fails validation. A
+read only migrates, never validates. Reads can skip validation because every stored config
+passed it on the way in.
 
-- Rename the schema file to an increased version number
-- Rename the authorative url inside the schema file to point to the new version number json
-- Write the migrations from the last to the current version of the schema, including the migration of pointing to the URL of the new schema version
-- Regenerate the default object from the schema and save it to `defaultGrapherConfig.ts` (see below)
-- Write a migration to update the `chart_configs.full` column in the database for all stand-alone charts
-- Write a migration to update configs in code (see `migrations/migrations.ts`)
-- Update the hardcoded default schema version in ETL
+## Bumping the version
 
-To regenerate `defaultGrapherConfig.ts` from the schema, replace `XXX` with the current schema version number and run:
+In one commit:
+
+- Rename `grapher-schema.NNN.yaml` to `grapher-schema.MMM.yaml` and change the URL inside it
+  in all three places: the `$id` and the `default` and `const` of the `$schema` property.
+- Update the version in the docs that name it: `packageDocs/docs/chart-config/index.md` and
+  `docs/chart-api.openapi.yaml`.
+- Add `migrateFromNNNToMMM` to `migrations/migrations.ts` and add a case for `NNN` to the
+  match in `runMigration`. The match is exhaustive, so a missing case fails typecheck.
+- Write the DB migration in `db/migration/` that rewrites the stored rows and restamps
+  `$schema` in `chart_configs.config` and `chart_revisions.config`. Ship the restamp and the
+  rewrite together.
+- Regenerate `defaultGrapherConfig.ts`, see below.
+
+Before merging:
+
+- Prepare a sibling PR in the etl repo, following the version-bump section of its
+  `/sync-grapher-schema` skill. It moves `DEFAULT_GRAPHER_SCHEMA` in `etl/config.py`, updates
+  the `$ref`s in the ETL's own schemas and re-vendors the schema.
+
+After merging:
+
+- `sync-grapher-schema-to-r2.yml` uploads this folder to the `schemas` prefix of the
+  `owid-public` bucket on Cloudflare R2, as JSON and YAML plus a `.latest` alias of each.
+  `files.ourworldindata.org/schemas/` serves that bucket. The sync never deletes, so every
+  version ever published keeps resolving.
+- Once this repo has deployed, merge the sibling ETL PR. Never before, since the ETL pushes
+  configs stamped with that version.
+
+## Regenerating the default config
+
+Regenerate `defaultGrapherConfig.ts` whenever the schema changes. Replace `XXX` with the
+current schema version number and run:
 
 ```bash
 # generate json from the yaml schema
