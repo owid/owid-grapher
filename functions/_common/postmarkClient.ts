@@ -3,7 +3,7 @@ import { Env } from "./env.js"
 
 export const POSTMARK_BROADCAST_MESSAGE_STREAM = "broadcast"
 export const POSTMARK_REACTIVATION_USER_MESSAGE =
-    "We couldn't reactivate email notifications for this address. Please contact us for help."
+    "We couldn't reactivate email notifications for this address. Please contact us at info@ourworldindata.org for help."
 
 export class PostmarkRecipientReactivationError extends Error {}
 
