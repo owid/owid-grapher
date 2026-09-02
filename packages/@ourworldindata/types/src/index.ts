@@ -24,7 +24,9 @@ export {
     type EmailNotificationsSubscribeResponse,
     type EmailNotificationsRequestLinkRequest,
     type EmailNotificationsUpdatePreferencesRequest,
+    type EmailNotificationsUpdatePreferencesResponse,
     type EmailNotificationsPreferencesResponse,
+    type OwidBriefOptInResult,
 } from "./EmailNotificationsTypes.js"
 
 export {
