@@ -2,6 +2,8 @@ import { EMAIL_NOTIFICATIONS_API_BASE_URL } from "../../settings/clientSettings.
 
 export const GENERIC_ERROR_MESSAGE = "Something went wrong. Please try again."
 
+export class ApiError extends Error {}
+
 /**
  * These return the raw response rather than using `fetchJson` from utils,
  * because callers need the status: 410 marks an expired magic link and drives
@@ -34,9 +36,9 @@ export async function throwIfApiError(response: Response): Promise<void> {
     const json: { error?: string } | null = await response
         .json()
         .catch(() => null)
-    throw new Error(json?.error ?? GENERIC_ERROR_MESSAGE)
+    throw new ApiError(json?.error ?? GENERIC_ERROR_MESSAGE)
 }
 
 export function getErrorMessage(error: unknown): string {
-    return error instanceof Error ? error.message : GENERIC_ERROR_MESSAGE
+    return error instanceof ApiError ? error.message : GENERIC_ERROR_MESSAGE
 }

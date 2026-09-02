@@ -246,7 +246,8 @@
         margin-bottom: 16px;
     }
 
-    .newsletter-subscription-form {
+    .newsletter-subscription-form,
+    .newsletter-signup-form {
         border-bottom: 1px solid #bdd4f7;
         padding-bottom: 16px;
     }
@@ -278,7 +279,8 @@
         background-color: $gray-5;
         padding-top: 8px;
         .newsletter-subscription-header,
-        .newsletter-subscription-form {
+        .newsletter-subscription-form,
+        .newsletter-signup-form {
             display: none;
         }
         .owid-socials__heading {
