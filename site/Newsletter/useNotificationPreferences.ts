@@ -33,6 +33,7 @@ function toggleInArray<T>(items: T[], item: T): T[] {
 interface NotificationPreferencesState {
     /** Spread onto <EmailNotificationsPreferenceFields>. */
     fieldsProps: EmailNotificationsPreferenceFieldsProps
+    setTopicTags: (topicTags: string[]) => void
     /** The shape the API stores, with "all topics" collapsed to []. */
     forStorage: () => EmailNotificationsPreferences
     /** Records per-field errors and returns whether the selection is valid. */
@@ -82,6 +83,7 @@ export function useNotificationPreferences(
             onSetFrequency: setFrequency,
             validationErrors,
         },
+        setTopicTags,
         forStorage: () => ({
             topicTags: topicTagsForStorage(topicTags, topicAreaNames),
             contentTypes,

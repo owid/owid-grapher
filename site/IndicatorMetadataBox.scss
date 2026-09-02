@@ -6,13 +6,13 @@
     grid-column-start: 2;
     grid-column-end: span 12;
     // Compensate for neighbour element padding from V1 datapage
-    margin-top: -104px;
+    margin-top: -$indicator-metadata-box-pull-up;
     margin-right: -6px;
     margin-bottom: 48px;
     @include sm-only {
         margin-top: -56px;
-        margin-right: -8px;
-        margin-left: -8px;
+        margin-right: -$indicator-metadata-box-bleed-sm;
+        margin-left: -$indicator-metadata-box-bleed-sm;
         margin-bottom: 32px;
     }
 }

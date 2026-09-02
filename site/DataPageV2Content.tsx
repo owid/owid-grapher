@@ -30,6 +30,7 @@ import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { useWindowQueryParams } from "./hooks.js"
 import IndicatorMetadataBox from "./IndicatorMetadataBox.js"
 import AboutThisData from "./AboutThisData.js"
+import TopicNewsletterCard from "./TopicNewsletterCard.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
 import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
@@ -70,6 +71,7 @@ function DataPageDownloadSection({
 
 export const DataPageV2Content = ({
     datapageData,
+    topicArea,
     grapherConfig,
     isPreviewing = false,
     faqEntries,
@@ -179,6 +181,7 @@ export const DataPageV2Content = ({
                                     datapageData={datapageData}
                                     hasFaq={!!faqEntries?.faqs.length}
                                     id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
+                                    topicArea={topicArea}
                                 />
                             )}
                         </div>
@@ -190,6 +193,14 @@ export const DataPageV2Content = ({
                                 archiveContext={archiveContext}
                                 id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
                                 license={grapherConfig.license}
+                            />
+                        )}
+                        {useNewDatapageDesign && (
+                            <TopicNewsletterCard
+                                pageType="chart"
+                                topicArea={topicArea}
+                                variant="narrow"
+                                className="topic-newsletter-card--datapage-metadata col-start-11 span-cols-3 col-md-start-2 span-md-cols-12"
                             />
                         )}
                         {useNewDatapageDesign && (

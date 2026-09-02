@@ -120,6 +120,7 @@ export async function renderMultiDimDataPageFromConfig({
     slug,
     config,
     imageMetadataDictionary,
+    topicAreaNamesByTagName,
     isPreviewing = false,
     archiveContext,
 }: {
@@ -127,6 +128,7 @@ export async function renderMultiDimDataPageFromConfig({
     slug: string | null
     config: MultiDimDataPageConfigEnriched
     imageMetadataDictionary?: Record<string, ImageMetadata>
+    topicAreaNamesByTagName?: Record<string, string>
     isPreviewing?: boolean
     archiveContext?: ArchiveContext
 }) {
@@ -162,6 +164,11 @@ export async function renderMultiDimDataPageFromConfig({
 
     // PRIMARY TOPIC
     const primaryTopic = await getPrimaryTopic(knex, config.topicTags)
+
+    const topicArea = db.getTopicAreaNameForTagNames(
+        config.topicTags ?? [],
+        topicAreaNamesByTagName ?? (await db.getTopicAreaNamesByTagName(knex))
+    )
 
     let tagToSlugMap: Record<string, string> = {}
     let relatedResearchCandidates: DataPageRelatedResearch[] = []
@@ -218,6 +225,7 @@ export async function renderMultiDimDataPageFromConfig({
         tagToSlugMap,
         faqEntries,
         primaryTopic,
+        topicArea,
         relatedResearchCandidates,
         imageMetadata,
         isPreviewing,
@@ -283,13 +291,15 @@ export const bakeMultiDimDataPage = async (
     slug: string,
     config: MultiDimDataPageConfigEnriched,
     imageMetadata: Record<string, ImageMetadata>,
-    archivedVersion?: ArchiveContext
+    archivedVersion?: ArchiveContext,
+    topicAreaNamesByTagName?: Record<string, string>
 ) => {
     const renderedHtml = await renderMultiDimDataPageFromConfig({
         knex,
         slug,
         config,
         imageMetadataDictionary: imageMetadata,
+        topicAreaNamesByTagName,
         archiveContext: archivedVersion,
     })
     const outPath = path.join(bakedSiteDir, `grapher/${slug}.html`)
@@ -312,6 +322,7 @@ export const bakeAllMultiDimDataPages = async (
         knex,
         multiDimIds
     )
+    const topicAreaNamesByTagName = await db.getTopicAreaNamesByTagName(knex)
 
     const progressBar = new ProgressBar(
         "bake multi-dim page [:bar] :current/:total :elapseds :rate/s :name\n",
@@ -328,7 +339,8 @@ export const bakeAllMultiDimDataPages = async (
             slug,
             row.config,
             imageMetadata,
-            archivedVersions[row.id]
+            archivedVersions[row.id],
+            topicAreaNamesByTagName
         )
         progressBar.tick({ name: slug })
     }
@@ -347,10 +359,12 @@ export const bakeSingleMultiDimDataPageForArchival = async (
     knex: db.KnexReadonlyTransaction,
     {
         imageMetadataDictionary,
+        topicAreaNamesByTagName,
         archiveInfo,
         manifest,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
+        topicAreaNamesByTagName?: Record<string, string>
         archiveInfo: ArchiveMetaInformation
         manifest: MultiDimArchivalManifest
     }
@@ -363,6 +377,7 @@ export const bakeSingleMultiDimDataPageForArchival = async (
             slug,
             config,
             imageMetadataDictionary,
+            topicAreaNamesByTagName,
             isPreviewing: false,
             archiveContext: archiveInfo,
         })

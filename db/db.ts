@@ -633,11 +633,13 @@ export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
 // a single array of unique parent tag names, including the original tags if they are topics.
 export async function getTagHierarchiesByChildName(
     trx: KnexReadonlyTransaction,
-    includeAreasAndTopicsOnly: boolean = false
+    includeAreasAndTopicsOnly: boolean = false,
+    flatTagGraphWithRootId?: FlatTagGraph & { __rootId: number }
 ): Promise<
     Record<DbPlainTag["name"], Pick<DbPlainTag, "id" | "name" | "slug">[][]>
 > {
-    const { __rootId, ...flatTagGraph } = await getFlatTagGraph(trx)
+    const { __rootId, ...flatTagGraph } =
+        flatTagGraphWithRootId ?? (await getFlatTagGraph(trx))
     const areaAndTopicTagNames = await getAllAreaAndTopicTagNames(trx)
     const tagGraph = createTagGraph(flatTagGraph, __rootId)
     const tagsById = await trx<DbPlainTag>("tags")
@@ -689,10 +691,174 @@ export async function getTagHierarchiesByChildName(
 }
 
 export const getTopicHierarchiesByChildName = (
-    trx: KnexReadonlyTransaction
+    trx: KnexReadonlyTransaction,
+    flatTagGraphWithRootId?: FlatTagGraph & { __rootId: number }
 ): Promise<
     Record<DbPlainTag["name"], Pick<DbPlainTag, "id" | "name" | "slug">[][]>
-> => getTagHierarchiesByChildName(trx, true)
+> => getTagHierarchiesByChildName(trx, true, flatTagGraphWithRootId)
+
+/**
+ * Collapse `getTagHierarchiesByChildName` output into `tag name -> area name`.
+ * A tag that sits under several areas resolves to the highest-weight one.
+ */
+export function topicAreaNamesFromTagHierarchies(
+    tagHierarchiesByChildName: Record<
+        string,
+        Pick<DbPlainTag, "id" | "name" | "slug">[][]
+    >
+): Record<string, string> {
+    const areaNamesByTagName: Record<string, string> = {}
+    for (const [tagName, paths] of Object.entries(tagHierarchiesByChildName)) {
+        const areaName = paths[0]?.[0]?.name
+        if (areaName) areaNamesByTagName[tagName] = areaName
+    }
+    return areaNamesByTagName
+}
+
+/** `tag name -> area name`, for pages that resolve their area from topic tags alone. */
+export async function getTopicAreaNamesByTagName(
+    trx: KnexReadonlyTransaction
+): Promise<Record<string, string>> {
+    const tagHierarchies = await getTopicHierarchiesByChildName(trx)
+    return topicAreaNamesFromTagHierarchies(tagHierarchies)
+}
+
+/** The top-level areas of the tag graph, in `weight DESC, name ASC` order. */
+export async function getTopicAreaNames(
+    trx: KnexReadonlyTransaction,
+    flatTagGraphWithRootId?: FlatTagGraph & { __rootId: number }
+): Promise<string[]> {
+    const { __rootId, ...flatTagGraph } =
+        flatTagGraphWithRootId ?? (await getFlatTagGraph(trx))
+    return (flatTagGraph[__rootId] ?? []).map(({ name }) => name)
+}
+
+export function getTopicAreaNameForTagNames(
+    tagNames: string[],
+    areaNamesByTagName: Record<string, string>
+): string | undefined {
+    const primaryTagName = tagNames[0]
+    if (!primaryTagName) return undefined
+    return areaNamesByTagName[primaryTagName]
+}
+
+/**
+ * Gdoc tags come from a many-to-many table with no ordering column, so sort a
+ * copy by name first: the same gdoc must resolve to the same area whether its
+ * tags were loaded in bulk (JSON_ARRAYAGG, unspecified order) or one by one.
+ */
+export function getTopicAreaNameForGdocTags(
+    tags: { name: string }[],
+    areaNamesByTagName: Record<string, string>
+): string | undefined {
+    const tagNames = tags
+        .map((tag) => tag.name)
+        .sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
+    return getTopicAreaNameForTagNames(tagNames, areaNamesByTagName)
+}
+
+export interface TopicAreaLookup {
+    /** tag name -> area name */
+    byTagName: Record<string, string>
+    /** chart id -> area name; see getTopicAreaNamesByChartId */
+    byChartId: Record<number, string>
+}
+
+/**
+ * Everything needed to resolve a page's topic area, resolved once per bake
+ * and handed to the workers. Omit `chartIds` to cover every chart.
+ */
+export async function getTopicAreaLookup(
+    trx: KnexReadonlyTransaction,
+    chartIds?: number[]
+): Promise<TopicAreaLookup> {
+    const flatTagGraph = await getFlatTagGraph(trx)
+    const byTagName = topicAreaNamesFromTagHierarchies(
+        await getTopicHierarchiesByChildName(trx, flatTagGraph)
+    )
+    const areaNames = await getTopicAreaNames(trx, flatTagGraph)
+    const byChartId = await getTopicAreaNamesByChartId(
+        trx,
+        byTagName,
+        areaNames,
+        chartIds
+    )
+    return { byTagName, byChartId }
+}
+
+/**
+ * `chart id -> area name`, by two routes in order:
+ *
+ * 1. the first y indicator's authored topic tags (`tags_variables_topic_tags`,
+ *    the DB mirror of `presentation.topicTagsLinks`), first tag wins — the
+ *    same rule data pages apply to their own indicator;
+ * 2. the chart's own `chart_tags`. That table has no ordering column, so
+ *    with several tags the candidate areas are ranked by `areaNames` order
+ *    (the root's child order, weight DESC then name), the same tie-break
+ *    `topicAreaNamesFromTagHierarchies` applies to a tag under several areas.
+ *
+ * Charts that resolve through neither route are absent from the result.
+ */
+export async function getTopicAreaNamesByChartId(
+    trx: KnexReadonlyTransaction,
+    areaNamesByTagName: Record<string, string>,
+    areaNames: string[],
+    chartIds?: number[]
+): Promise<Record<number, string>> {
+    if (_.isEmpty(areaNamesByTagName)) return {}
+    if (chartIds && chartIds.length === 0) return {}
+    const chartFilter = chartIds ? "AND chartId IN (:chartIds)" : ""
+    const params = chartIds ? { chartIds } : {}
+
+    const areaNamesByChartId: Record<number, string> = {}
+
+    const indicatorRows = await knexRaw<{
+        chartId: number
+        tagName: string | null
+    }>(
+        trx,
+        `-- sql
+        SELECT cd.chartId, t.name AS tagName
+        FROM chart_dimensions cd
+        LEFT JOIN tags_variables_topic_tags tv ON tv.variableId = cd.variableId
+        LEFT JOIN tags t ON t.id = tv.tagId
+        WHERE cd.property = 'y' ${chartFilter}
+        ORDER BY cd.chartId, cd.\`order\`, tv.displayOrder`,
+        params
+    )
+    // Only the first row per chart counts: the first y indicator's first tag.
+    const seenChartIds = new Set<number>()
+    for (const { chartId, tagName } of indicatorRows) {
+        if (seenChartIds.has(chartId)) continue
+        seenChartIds.add(chartId)
+        const areaName = tagName ? areaNamesByTagName[tagName] : undefined
+        if (areaName) areaNamesByChartId[chartId] = areaName
+    }
+
+    const areaRankByName = new Map(areaNames.map((name, i) => [name, i]))
+    const chartTagRows = await knexRaw<{ chartId: number; tagName: string }>(
+        trx,
+        `-- sql
+        SELECT ct.chartId, t.name AS tagName
+        FROM chart_tags ct
+        JOIN tags t ON t.id = ct.tagId
+        WHERE 1 ${chartFilter}`,
+        params
+    )
+    const bestRankByChartId = new Map<number, number>()
+    for (const { chartId, tagName } of chartTagRows) {
+        if (areaNamesByChartId[chartId]) continue
+        const rank = areaRankByName.get(areaNamesByTagName[tagName])
+        if (rank === undefined) continue
+        const best = bestRankByChartId.get(chartId)
+        if (best === undefined || rank < best)
+            bestRankByChartId.set(chartId, rank)
+    }
+    for (const [chartId, rank] of bestRankByChartId)
+        areaNamesByChartId[chartId] = areaNames[rank]
+
+    return areaNamesByChartId
+}
 
 export function getBestBreadcrumbs(
     tags: MinimalTag[],

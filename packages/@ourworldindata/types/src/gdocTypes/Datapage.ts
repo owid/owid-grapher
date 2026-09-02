@@ -76,6 +76,7 @@ export type Distribution =
 
 export interface DataPageV2ContentFields {
     datapageData: DataPageDataV2
+    topicArea?: string
     faqEntries: FaqEntryData | undefined
     // TODO: add gdocs for FAQs
     isPreviewing?: boolean

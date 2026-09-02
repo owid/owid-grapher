@@ -8,6 +8,7 @@ import {
     createTopicFilter,
     extractFiltersFromQuery,
     createCountryFilter,
+    topicAreasFromSearchParams,
 } from "./searchUtils"
 
 import { FilterType, SynonymMap } from "@ourworldindata/types"
@@ -760,5 +761,42 @@ describe("offset pagination for useInfiniteSearchOffset hook", () => {
         expect(getNbPaginatedItemsRequested(0, 3, 6, 3)).toBe(3)
         expect(getNbPaginatedItemsRequested(1, 3, 6, 6)).toBe(9)
         expect(getNbPaginatedItemsRequested(2, 3, 6, 2)).toBe(11)
+    })
+})
+
+describe(topicAreasFromSearchParams, () => {
+    const areas = ["Energy and Environment", "CO2 & Greenhouse Gas Emissions"]
+
+    it("reads ?topics= the way /search and /latest do", () => {
+        expect(
+            topicAreasFromSearchParams(
+                new URLSearchParams({
+                    topics: "CO2 & Greenhouse Gas Emissions",
+                }),
+                areas
+            )
+        ).toEqual(["CO2 & Greenhouse Gas Emissions"])
+        expect(
+            topicAreasFromSearchParams(
+                new URLSearchParams({
+                    topics: "Energy and Environment~CO2 & Greenhouse Gas Emissions",
+                }),
+                areas
+            )
+        ).toEqual(areas)
+    })
+
+    it("drops unknown areas", () => {
+        expect(
+            topicAreasFromSearchParams(
+                new URLSearchParams({
+                    topics: "Health~Energy and Environment",
+                }),
+                areas
+            )
+        ).toEqual(["Energy and Environment"])
+        expect(
+            topicAreasFromSearchParams(new URLSearchParams(), areas)
+        ).toEqual([])
     })
 })

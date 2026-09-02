@@ -658,6 +658,10 @@ export class SiteBaker {
         const tagHierarchiesByChildName =
             await db.getTagHierarchiesByChildName(knex)
 
+        const topicAreaNamesByTagName = db.topicAreaNamesFromTagHierarchies(
+            tagHierarchiesByChildName
+        )
+
         const gdocsToBake =
             slugsToBake !== undefined
                 ? publishedGdocs.filter((gdoc) =>
@@ -722,6 +726,11 @@ export class SiteBaker {
                     tagHierarchiesByChildName
                 )
             }
+
+            publishedGdoc.topicArea = db.getTopicAreaNameForGdocTags(
+                publishedGdoc.tags ?? [],
+                topicAreaNamesByTagName
+            )
 
             // this is a no-op if the gdoc doesn't have an all-chart block
             if ("loadRelatedCharts" in publishedGdoc) {
