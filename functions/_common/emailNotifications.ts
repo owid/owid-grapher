@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/cloudflare"
 import {
     EMAIL_NOTIFICATIONS_CONTENT_TYPE_LABELS,
     EMAIL_NOTIFICATIONS_FREQUENCY_LABELS,
@@ -8,6 +7,7 @@ import {
 import { JsonError } from "@ourworldindata/utils"
 import * as _ from "lodash-es"
 import { Env } from "./env.js"
+import { logErrorAndCaptureInSentry } from "./errorLog.js"
 import { getPostmarkClient } from "./postmarkClient.js"
 
 export function validateEmailNotificationsDatabase(env: Env): void {
@@ -313,12 +313,12 @@ export function makeJsonResponse(body: object, status: number): Response {
     })
 }
 
-/** Catch-block handler for JSON endpoints: report to Sentry, answer generically. */
-export function handleJsonError(error: unknown): Response {
+/** Reports unexpected errors without exposing provider details. */
+export function handleJsonError(error: unknown, message: string): Response {
     if (isExpectedClientError(error)) {
         return makeJsonResponse({ error: error.message }, error.status)
     }
-    Sentry.captureException(error)
+    logErrorAndCaptureInSentry(message, error)
     return makeJsonResponse(
         { error: GENERIC_ERROR_MESSAGE },
         error instanceof JsonError ? error.status : 500
