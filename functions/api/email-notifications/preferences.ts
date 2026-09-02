@@ -3,10 +3,10 @@ import * as z from "zod/mini"
 import {
     EmailNotificationsPreferences,
     EmailNotificationsPreferencesResponse,
-    EmailNotificationsUpdatePreferencesRequestTypeObject,
     JsonError,
     EmailNotificationsStatus,
 } from "@ourworldindata/utils"
+import { EmailNotificationsUpdatePreferencesRequestTypeObject } from "@ourworldindata/types/email-notifications-schemas"
 import { Env } from "../../_common/env.js"
 import {
     EmailTokenLookup,

@@ -69,6 +69,7 @@
                     {
                         "group": [
                             "@ourworldindata/*/**",
+                            "!@ourworldindata/types/email-notifications-schemas",
                             // Polyfills must be bundled from source ahead of all other code
                             "!@ourworldindata/utils/src/polyfills.js",
                             // scss can only be imported from source
