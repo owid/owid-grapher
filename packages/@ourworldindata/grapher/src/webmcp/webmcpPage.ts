@@ -39,6 +39,13 @@ let toolsClaimed = false
  * remounting chart re-claim, but it would also let a *second* chart claim while
  * the first is still on screen, so the claim is deliberately one-way for the
  * lifetime of the document.
+ *
+ * This assumes the claiming Grapher stays mounted for as long as the page does.
+ * That holds today: DataPage, MultiDim and Explorer each create one
+ * GrapherState and mount <Grapher> once, mutating the state in place. If a
+ * chart page ever remounts its Grapher (client-side routing, an error boundary
+ * reset), the page would be left without chart tools until reload — release
+ * the claim on unmount at that point.
  */
 export function claimDocumentTools(): boolean {
     if (toolsClaimed) return false

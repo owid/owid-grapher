@@ -1,4 +1,8 @@
-import { GRAPHER_TAB_NAMES, GrapherTabName } from "@ourworldindata/types"
+import {
+    GRAPHER_TAB_NAMES,
+    GrapherTabName,
+    OwidColumnDef,
+} from "@ourworldindata/types"
 import { GrapherState } from "../core/GrapherState.js"
 import { WebMcpTool, registerTools, toolResult } from "./webmcpTypes.js"
 
@@ -89,6 +93,15 @@ const describeTimeRange = (grapherState: GrapherState): string => {
     return `${startTime} to ${endTime}`
 }
 
+/** Before the data has loaded, `times` is empty and the naive template reads
+ *  "years undefined to undefined" — which an agent will happily relay. */
+const describeDataYears = (grapherState: GrapherState): string => {
+    const { times } = grapherState
+    if (!times.length)
+        return "Data not loaded yet; call this again in a moment for the year range"
+    return `Data available for years ${times[0]} to ${times[times.length - 1]}`
+}
+
 export function buildGrapherTools(grapherState: GrapherState): WebMcpTool[] {
     return [
         {
@@ -109,9 +122,7 @@ export function buildGrapherTools(grapherState: GrapherState): WebMcpTool[] {
                             ) || "(none)"
                         }`,
                         `Time range shown: ${describeTimeRange(grapherState)}`,
-                        `Data available for years ${grapherState.times[0]} to ${
-                            grapherState.times[grapherState.times.length - 1]
-                        }`,
+                        describeDataYears(grapherState),
                         `Active view: ${grapherState.activeTab}`,
                         `Available views: ${grapherState.availableTabs.join(", ")}`,
                         `${grapherState.availableEntityNames.length} entities available on this chart`,
@@ -386,7 +397,9 @@ export function buildGrapherTools(grapherState: GrapherState): WebMcpTool[] {
                     parts.push(`Canonical URL: ${grapherState.baseUrl}`)
 
                 for (const column of columns) {
-                    const def: any = column.def ?? {}
+                    // Grapher's columns are typed as CoreColumn, but every
+                    // column of an OwidTable carries an OwidColumnDef.
+                    const def = column.def as OwidColumnDef
                     const lines = [`\nIndicator: ${column.displayName}`]
                     if (column.unit) lines.push(`  Unit: ${column.unit}`)
                     if (def.descriptionShort)

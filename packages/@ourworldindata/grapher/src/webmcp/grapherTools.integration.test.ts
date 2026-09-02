@@ -68,6 +68,16 @@ describe("grapher WebMCP tools", () => {
             expect(result).toContain(String(times[times.length - 1]))
             expect(result).not.toContain("Infinity")
         })
+
+        it("does not report 'undefined' years before the data has loaded", async () => {
+            const empty = new GrapherState({})
+            const tool = buildGrapherTools(empty).find(
+                (t) => t.name === "get_chart_state"
+            )!
+            const result = await tool.execute({})
+            expect(result).not.toContain("undefined")
+            expect(result).toContain("not loaded yet")
+        })
     })
 
     describe("select_entities", () => {

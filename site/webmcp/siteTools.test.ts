@@ -2,6 +2,7 @@ import { expect, it, describe } from "vitest"
 import {
     rankHitsByEntityCoverage,
     validateSlug,
+    validateArticlePath,
     hitPath,
     dedupeByPath,
     parseChartRef,
@@ -287,5 +288,27 @@ describe(validateSlug, () => {
             "not a valid chart slug"
         )
         expect(validateSlug("some slug")).toContain("not a valid chart slug")
+    })
+})
+
+describe(validateArticlePath, () => {
+    it("accepts the nested slugs the pages index returns", () => {
+        // /api/search?type=pages&q=solar lists these; open_article used to
+        // refuse them as "not a valid article slug" right after find_article
+        // had offered them.
+        expect(
+            validateArticlePath("sdgs/affordable-clean-energy")
+        ).toBeUndefined()
+        expect(validateArticlePath("battery-price-decline")).toBeUndefined()
+    })
+
+    it("still refuses files and foreign URLs, naming articles not charts", () => {
+        expect(validateArticlePath("battery-price-decline.png")).toContain(
+            "is a file, not a"
+        )
+        expect(validateArticlePath("https://example.com/x")).toContain(
+            "not a valid article slug"
+        )
+        expect(validateArticlePath("")).toContain("No article")
     })
 })

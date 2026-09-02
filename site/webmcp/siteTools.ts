@@ -156,6 +156,23 @@ export function validateSlug(slug: string): string | undefined {
     return `"${slug}" is not a valid chart slug. Use one returned by find_chart.`
 }
 
+/**
+ * Article paths are not chart slugs: the pages index returns nested ones
+ * (`sdgs/affordable-clean-energy`), which `find_article` listed and
+ * `open_article` then refused as "not a valid article slug" — leaving the agent
+ * with nowhere to go. Each segment is still held to the slug shape, so a file
+ * name or a foreign URL is refused with the same messages as for charts.
+ */
+export function validateArticlePath(path: string): string | undefined {
+    const segments = path.split("/").filter(Boolean)
+    if (!segments.length) return `No article was given.`
+    for (const segment of segments) {
+        const error = validateSlug(segment)
+        if (error) return error.replace("chart slug", "article slug")
+    }
+    return undefined
+}
+
 export interface ParsedChartRef {
     path: string
     /** Params that select *which* chart/view this is, as opposed to the state
@@ -468,12 +485,11 @@ export function buildSiteTools(): WebMcpTool[] {
                 required: ["article"],
             },
             execute: async ({ article }: { article: string }) => {
-                const slug = article.trim().replace(/^\/+/, "")
-                const slugError = validateSlug(slug)
-                if (slugError)
+                const slug = article.trim().replace(/^\/+|\/+$/g, "")
+                const pathError = validateArticlePath(slug)
+                if (pathError)
                     return toolResult(
-                        `${slugError.replace("chart slug", "article slug")} ` +
-                            `Use a path from find_article. Nothing was changed.`
+                        `${pathError} Use a path from find_article. Nothing was changed.`
                     )
                 if (window.location.pathname === `/${slug}`)
                     return toolResult(
