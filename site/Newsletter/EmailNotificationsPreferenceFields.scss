@@ -42,12 +42,21 @@
     }
 }
 
+.newsletter-preference-fields__header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    align-items: center;
+    legend {
+        margin-bottom: 0;
+    }
+}
+
 .newsletter-preference-fields__select-all {
     @include body-3-medium;
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    margin-top: 8px;
     padding: 4px 0;
     border: none;
     background: none;
