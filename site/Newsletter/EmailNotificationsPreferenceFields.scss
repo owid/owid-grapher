@@ -5,8 +5,8 @@
 
 .newsletter-preference-fields__pills {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
     gap: 8px;
 }
 
@@ -42,12 +42,21 @@
     }
 }
 
+.newsletter-preference-fields__header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    align-items: center;
+    legend {
+        margin-bottom: 0;
+    }
+}
+
 .newsletter-preference-fields__select-all {
     @include body-3-medium;
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    margin-top: 8px;
     padding: 4px 0;
     border: none;
     background: none;
@@ -140,9 +149,11 @@
 }
 
 .newsletter-preference-fields__frequency-options {
-    display: flex;
+    display: inline-flex;
     flex-wrap: wrap;
-    gap: 8px;
+    border: 1px solid $blue-20;
+    padding: 2px;
+    gap: 4px;
 }
 
 .newsletter-preference-fields__frequency-option {
@@ -152,7 +163,7 @@
     align-items: center;
     height: 40px;
     padding: 8px 16px;
-    border: 1px solid $blue-20;
+    border: 1px solid #fff;
     color: $blue-50;
     cursor: pointer;
 
@@ -182,5 +193,30 @@
 
     &:hover {
         background-color: $accent-pale-blue;
+    }
+}
+
+.newsletter-preference-fields__toggle {
+    @include body-3-medium;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: $vermillion;
+    cursor: pointer;
+
+    svg {
+        font-size: 0.75rem;
+    }
+
+    span {
+        text-decoration: underline;
+    }
+
+    &:hover {
+        color: $accent-vermillion;
     }
 }

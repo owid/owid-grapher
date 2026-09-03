@@ -93,11 +93,6 @@ const FREQUENCY_LABELS: Record<EmailNotificationsFrequency, string> = {
     weekly: "weekly",
 }
 
-const FREQUENCY_PERIODS: Record<EmailNotificationsFrequency, string> = {
-    daily: "day",
-    weekly: "week",
-}
-
 export function makeNotificationEmailSubject(
     frequency: EmailNotificationsFrequency
 ): string {
@@ -167,32 +162,6 @@ function NotificationEmail({
                         className="content"
                         style={{ padding: `32px ${CONTENT_PADDING}px 40px` }}
                     >
-                        <Text style={{ margin: "0 0 32px", fontSize: 14 }}>
-                            Here is what we published in the last{" "}
-                            {FREQUENCY_PERIODS[subscriber.frequency]} across the
-                            topics you follow.
-                            <br />
-                            <Link
-                                href={updatePreferencesUrl}
-                                style={{
-                                    color: COLORS.text,
-                                    textDecoration: "underline",
-                                }}
-                            >
-                                Update your preferences
-                            </Link>{" "}
-                            or, if this was forwarded to you,{" "}
-                            <Link
-                                href={`${baseUrl}/subscribe`}
-                                style={{
-                                    color: COLORS.text,
-                                    textDecoration: "underline",
-                                }}
-                            >
-                                subscribe here
-                            </Link>
-                            .
-                        </Text>
                         {items.map((item, index) => (
                             <Fragment key={item.url}>
                                 {index > 0 && <Spacer height={32} />}
@@ -458,6 +427,17 @@ function DataInsightCard({ item }: { item: NotificationEmailItem }) {
                 />
             ))}
             <ItemTitle item={item} />
+            {item.authors.length > 0 && (
+                <Text
+                    style={{
+                        ...BODY_TEXT,
+                        color: COLORS.muted,
+                        fontStyle: "italic",
+                    }}
+                >
+                    {formatAuthors(item.authors)}
+                </Text>
+            )}
             {body.slice(splitIndex).map((block, index) => (
                 <Block
                     key={index}
@@ -465,17 +445,6 @@ function DataInsightCard({ item }: { item: NotificationEmailItem }) {
                     imageUrlByFilename={imageUrlByFilename}
                 />
             ))}
-            {item.authors.length > 0 && (
-                <Text
-                    style={{
-                        ...BODY_TEXT,
-                        margin: "16px 0 0",
-                        color: COLORS.muted,
-                    }}
-                >
-                    By {formatAuthors(item.authors)}
-                </Text>
-            )}
         </Section>
     )
 }
@@ -683,7 +652,7 @@ function Footer({
             <Text
                 style={{
                     ...BODY_TEXT,
-                    margin: "0 0 24px",
+                    margin: "0 0 40px",
                     textAlign: "center",
                 }}
             >
@@ -698,9 +667,47 @@ function Footer({
                         textDecoration: "none",
                     }}
                 >
-                    Browse the latest on Our World in Data
+                    Keep browsing
                 </Link>
             </Text>
+            <Section
+                style={{
+                    backgroundColor: COLORS.cardMuted,
+                    padding: `16px`,
+                }}
+            >
+                <Text>
+                    The{" "}
+                    <Link
+                        href={`${baseUrl}/about#our-mission`}
+                        style={{ ...footerLinkStyle, color: COLORS.text }}
+                    >
+                        mission of Our World in Data
+                    </Link>{" "}
+                    is to make data and research on the world's largest problems
+                    understandable and accessible.
+                </Text>
+                <Text>
+                    We are a nonprofit, building Our World in Data as a public
+                    good that's freely available to everyone. Help us do more by
+                    supporting us with a donation.
+                </Text>
+                <Link
+                    href={`${baseUrl}/donate`}
+                    style={{
+                        display: "inline-block",
+                        padding: "12px 24px",
+                        backgroundColor: COLORS.vermillion,
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        textDecoration: "none",
+                        marginBottom: "12px",
+                    }}
+                >
+                    Donate now
+                </Link>
+            </Section>
+            <Spacer height={24} />
             <Text style={footerTextStyle}>
                 This email was sent to {email} because you subscribed to email
                 updates from Our World in Data.

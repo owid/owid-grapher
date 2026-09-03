@@ -1,7 +1,7 @@
 import * as z from "zod/mini"
 import { LatestType } from "./domainTypes/Latest.js"
 
-export const EMAIL_NOTIFICATIONS_FREQUENCIES = ["daily", "weekly"] as const
+export const EMAIL_NOTIFICATIONS_FREQUENCIES = ["weekly", "daily"] as const
 
 // From address of all email notification emails, used both by the
 // subscribe Cloudflare Function (welcome email) and the send job
