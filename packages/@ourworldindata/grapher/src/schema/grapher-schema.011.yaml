@@ -9,6 +9,7 @@ type: object
 description: |
   Our World In Data grapher configuration. Most of the fields can be left empty
   and will be filled with reasonable default values.
+  Dummy edit to test the preview upload; not to be merged.
 properties:
   $schema:
     type: string
