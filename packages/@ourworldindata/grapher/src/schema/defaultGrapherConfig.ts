@@ -25,6 +25,7 @@ export const defaultGrapherConfig = {
     focusedSeriesNames: [],
     excludedEntityNames: [],
     includedEntityNames: [],
+    inapplicableEntityNames: [],
     addCountryMode: "add-country",
     entityType: "country or region",
     entityTypePlural: "countries and regions",

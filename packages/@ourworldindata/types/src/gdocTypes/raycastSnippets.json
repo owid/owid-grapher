@@ -106,7 +106,7 @@
     },
     {
         "name": "key-insights",
-        "text": "{.key-insights}\nheading: \n[.insights]\ntitle: \nfilename: \n[.+content]\n\n\n[]\ntitle: \nurl: \n[.+content]\n\n\n[]\ntitle: \nnarrativeChartName: \n[.+content]\n\n\n[]\n[]\n{}",
+        "text": "{.key-insights}\nheading: \n[.insights]\ntitle: \nfilename: \n[.+content]\n\n\n[]\ntitle: \nurl: \n[.+content]\n\n\n[]\ntitle: \nnarrativeChartName: \n[.+content]\n\n\n[]\ntitle: \n[.+asset]\n{.bespoke-component}\nbundle: \nvariant: \nsize: \n{.config}\nregion: \n{}\n{}\n[]\n[.+content]\n\n[]\n[]\n{}",
         "keyword": "+key-insights"
     },
     {
@@ -256,12 +256,12 @@
     },
     {
         "name": "bespoke-component",
-        "text": "{.bespoke-component}\nbundle: \nvariant: \nsize: \n{.config}\nfoo: \n{}\n{}",
+        "text": "{.bespoke-component}\nbundle: \nvariant: \nsize: \nfallbackImageFilename: \n{.config}\nfoo: \n{}\n{}",
         "keyword": "+bespoke-component"
     },
     {
         "name": "chart-rows",
-        "text": "{.chart-rows}\nkicker: \ntitle: \nsource: \n[.rows]\nimage: \nurl: \n[.+content]\n\n[]\nimage: \nurl: \n[.+content]\n\n[]\n[]\n{}",
+        "text": "{.chart-rows}\nkicker: \ntitle: \nsource: \n[.rows]\nimage: \nurl: \ncaption: \n[.+content]\n\n[]\nimage: \nurl: \ncaption: \n[.+content]\n\n[]\n[]\n{}",
         "keyword": "+chart-rows"
     },
     {

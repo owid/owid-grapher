@@ -34,6 +34,7 @@ const gridSpan5 = generateResponsiveSizes(5)
 const gridSpan6 = generateResponsiveSizes(6)
 const gridSpan7 = generateResponsiveSizes(7)
 const gridSpan8 = generateResponsiveSizes(8)
+const gridSpan12 = generateResponsiveSizes(12)
 
 export type ImageParentContainer =
     | Exclude<Container, "sticky-right-left-heading-column">
@@ -45,6 +46,9 @@ export type ImageParentContainer =
     | "latest-data-insight"
     | "chart-rows"
     | "pull-chart"
+    | "bespoke-component--narrow"
+    | "bespoke-component--wide"
+    | "bespoke-component--widest"
 
 const containerSizes: Record<ImageParentContainer, string> = {
     ["default"]: gridSpan8,
@@ -58,6 +62,7 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["data-insight"]: "100%",
     ["full-width"]: "100vw",
     ["key-insight"]: gridSpan5,
+    ["key-insight-asset"]: gridSpan7,
     ["about-page"]: gridSpan8,
     ["author-byline"]: "48px",
     ["author-header"]: gridSpan2,
@@ -67,6 +72,9 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["latest-announcement"]: gridSpan6,
     ["chart-rows"]: gridSpan3Sm,
     ["pull-chart"]: gridSpan3Sm,
+    ["bespoke-component--narrow"]: gridSpan6,
+    ["bespoke-component--wide"]: gridSpan8,
+    ["bespoke-component--widest"]: gridSpan12,
 }
 
 export const LIGHTBOX_IMAGE_CLASS = "lightbox-image"
@@ -181,7 +189,7 @@ export default function Image(props: {
         isInteractive && !shouldHideDownloadButton ? (
             <FloatingDownloadButton
                 label="Download"
-                onClick={() => void handleDownload()}
+                onClick={() => handleDownload()}
             />
         ) : null
 
@@ -192,7 +200,6 @@ export default function Image(props: {
                     <source
                         key={i}
                         {...props}
-                        type="image/png"
                         sizes={
                             containerSizes[containerType] ??
                             containerSizes.default

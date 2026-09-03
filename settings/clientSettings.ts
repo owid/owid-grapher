@@ -64,6 +64,15 @@ export const ALGOLIA_SEARCH_KEY: string = process.env.ALGOLIA_SEARCH_KEY ?? ""
 export const ALGOLIA_INDEX_PREFIX: string =
     process.env.ALGOLIA_INDEX_PREFIX ?? ""
 
+// Endpoint of the Cloudflare function that proxies empty-query Algolia
+// searches and caches their results aggressively (see
+// functions/api/search/cached-queries.ts).
+// Set it to http://localhost:8788/api/search/cached-queries to test against
+// `yarn startLocalCloudflareFunctions`.
+export const ALGOLIA_CACHED_QUERIES_URL: string =
+    process.env.ALGOLIA_CACHED_QUERIES_URL ??
+    (ENV === "development" ? "" : `${BAKED_BASE_URL}/api/search/cached-queries`)
+
 export const CLOUDFLARE_IMAGES_URL = process.env.CLOUDFLARE_IMAGES_URL ?? ""
 
 export const DONATE_API_URL: string =
@@ -122,8 +131,8 @@ export const SLACK_DI_PITCHES_CHANNEL_ID: string =
 
 export const IS_RUNNING_INSIDE_VITEST: boolean = !!process.env.VITEST
 
-// Base URL for bespoke component assets. When set, scriptUrl and cssUrl from
-// the bespoke component registry are resolved relative to this URL instead of
+// Base URL for bespoke component assets. When set, the scriptUrl from the
+// bespoke component registry is resolved relative to this URL instead of
 // the current origin. Useful for pointing to the bespoke dev server during
 // local development (e.g. "http://localhost:8089").
 export const BESPOKE_BASE_URL: string =

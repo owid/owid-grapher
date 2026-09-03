@@ -1,92 +1,74 @@
 import * as React from "react"
-import { Bounds, bind } from "@ourworldindata/utils"
-import {
-    isElementInteractive,
-    isTargetOutsideElement,
-} from "../chart/ChartUtils"
-import { isOwidDropdownOpen } from "../controls/Dropdown"
+import cx from "clsx"
+import { UNSAFE_PortalProvider } from "react-aria"
+import { Dialog, Modal as AriaModal, ModalOverlay } from "react-aria-components"
+import { Bounds } from "@ourworldindata/utils"
 
-export class Modal extends React.Component<{
+interface ModalProps {
     bounds: Bounds
     onDismiss: () => void
+    ariaLabel: string
+    grapherRef: React.RefObject<HTMLDivElement | null>
     children?: React.ReactNode
-    isHeightFixed?: boolean // by default, the modal height is not fixed but fits to the content
+    /** By default the modal height fits its content */
+    isHeightFixed?: boolean
     alignVertical?: "top" | "center" | "bottom"
-}> {
-    contentRef = React.createRef<HTMLDivElement>()
+}
 
-    private get bounds(): Bounds {
-        return this.props.bounds
+export function Modal({
+    bounds,
+    onDismiss,
+    ariaLabel,
+    grapherRef,
+    children,
+    isHeightFixed = false,
+    alignVertical = "center",
+}: ModalProps): React.ReactElement {
+    const contentStyle: React.CSSProperties = {
+        left: bounds.left,
+        width: bounds.width,
+        maxHeight: bounds.height,
     }
 
-    private get isHeightFixed(): boolean {
-        return this.props.isHeightFixed ?? false
+    if (isHeightFixed) {
+        contentStyle.height = bounds.height
     }
 
-    private get alignVertical(): "top" | "center" | "bottom" {
-        return this.props.alignVertical ?? "center"
+    if (alignVertical === "bottom") {
+        contentStyle.bottom = bounds.y
+    } else if (alignVertical === "top") {
+        contentStyle.top = bounds.y
     }
 
-    @bind onDocumentClick(e: MouseEvent): void {
-        if (
-            this.contentRef?.current &&
-            isTargetOutsideElement(e.target!, this.contentRef.current) &&
-            // clicking on an interactive element should not dismiss the modal
-            // (this is especially important for the suggested chart review tool)
-            !isElementInteractive(e.target as HTMLElement) &&
-            !isOwidDropdownOpen()
-        )
-            this.props.onDismiss()
-    }
-
-    @bind onDocumentKeyDown(e: KeyboardEvent): void {
-        if (e.key === "Escape") this.props.onDismiss()
-    }
-
-    override componentDidMount(): void {
-        document.addEventListener("click", this.onDocumentClick)
-        document.addEventListener("keydown", this.onDocumentKeyDown)
-    }
-
-    override componentWillUnmount(): void {
-        document.removeEventListener("click", this.onDocumentClick)
-        document.removeEventListener("keydown", this.onDocumentKeyDown)
-    }
-
-    override render(): React.ReactElement {
-        const { bounds } = this
-
-        const contentStyle: React.CSSProperties = {
-            left: bounds.left,
-            width: bounds.width,
-            maxHeight: bounds.height,
-        }
-
-        if (this.isHeightFixed) {
-            contentStyle.height = bounds.height
-        }
-
-        if (this.alignVertical === "bottom") {
-            contentStyle.bottom = bounds.y
-        } else if (this.alignVertical === "top") {
-            contentStyle.top = bounds.y
-        } else {
-            contentStyle.top = "50%"
-            contentStyle.transform = "translateY(-50%)"
-        }
-
-        return (
-            <div className="modal-overlay">
-                <div className="modal-wrapper">
-                    <div
-                        className="modal-content"
-                        style={contentStyle}
-                        ref={this.contentRef}
+    return (
+        <UNSAFE_PortalProvider getContainer={() => grapherRef.current}>
+            <ModalOverlay
+                className="modal-overlay"
+                isOpen
+                onOpenChange={(isOpen) => {
+                    if (!isOpen) onDismiss()
+                }}
+                isDismissable
+            >
+                <AriaModal
+                    className={cx(
+                        "modal-panel",
+                        `modal-panel--${alignVertical}`
+                    )}
+                    style={contentStyle}
+                >
+                    <Dialog
+                        className="modal-panel-dialog"
+                        aria-label={ariaLabel}
                     >
-                        {this.props.children}
-                    </div>
-                </div>
-            </div>
-        )
-    }
+                        {/* Restore the default portal container for nested
+                            overlays such as dropdowns. */}
+                        <UNSAFE_PortalProvider getContainer={null}>
+                            {children}
+                        </UNSAFE_PortalProvider>
+                    </Dialog>
+                </AriaModal>
+            </ModalOverlay>
+        </UNSAFE_PortalProvider>
+    )
 }

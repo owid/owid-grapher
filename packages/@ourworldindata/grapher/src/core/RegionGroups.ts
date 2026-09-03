@@ -1,41 +1,75 @@
 import * as _ from "lodash-es"
 import { EntityName } from "@ourworldindata/types"
 import {
-    RegionDataProvider,
-    getRegionDataProviders,
+    getRegionPublishers,
     Country,
     excludeUndefined,
     getRegionByName,
+    parseRegionNameSuffix,
+    toPublisherLookupKey,
+    type RegionPublisher,
 } from "@ourworldindata/utils"
 import {
-    ADDITIONAL_REGION_DATA_PROVIDERS,
-    AdditionalRegionDataProvider,
+    ADDITIONAL_REGION_PUBLISHERS,
     isWorldEntityName,
+    type AdditionalRegionPublisher,
 } from "./GrapherConstants"
 import * as R from "remeda"
 
-/** Region data providers defined in the regions.data.ts file */
-const regionDataProviders = getRegionDataProviders()
-/** Additional region data providers not specified by the ETL */
-const additionalRegionDataProviders = ADDITIONAL_REGION_DATA_PROVIDERS.filter(
-    (provider) => !regionDataProviders.includes(provider as RegionDataProvider)
-)
+type OwidRegionGroup =
+    | "countries"
+    | "continents"
+    | "incomeGroups"
+    | "historicalCountries"
 
-const allRegionDataProviders = [
-    ...regionDataProviders,
-    ...additionalRegionDataProviders,
-]
-const allRegionDataProviderSet = new Set(allRegionDataProviders)
+/** Any institution we can recognise from an entity name's suffix */
+export type AnyRegionPublisher = RegionPublisher | AdditionalRegionPublisher
 
-const regionGroupKeys = [
-    "countries",
-    "continents", // OWID continents
-    "incomeGroups",
-    "historicalCountries", // e.g. USSR, Austria-Hungary
-    ...regionDataProviders,
-    ...additionalRegionDataProviders,
-] as const
-export type RegionGroupKey = (typeof regionGroupKeys)[number]
+export type RegionGroupKey = OwidRegionGroup | AnyRegionPublisher
+
+/**
+ * The name each group of regions is shown under in the entity selector
+ * and on the data tab
+ */
+export const regionGroupLabels: Record<RegionGroupKey, string> = {
+    // OWID-defined region groups
+    countries: "Countries",
+    continents: "Continents", // OWID-defined continents
+    incomeGroups: "Income groups",
+    historicalCountries: "Historical countries and regions", // e.g. USSR, Austria-Hungary
+
+    // Publishers whose regions are defined in regions.ts
+    who: "World Health Organization regions",
+    wb: "World Bank regions",
+    pew: "Pew Research Center regions",
+    un: "United Nations regions",
+    un_m49: "United Nations M49 regions",
+    un_sdg: "UN Sustainable Development Goals regions",
+    iea: "International Energy Agency regions",
+    ei: "Energy Institute regions",
+    ember: "Ember regions",
+    maddison: "Maddison Project Database regions",
+    wid: "World Inequality Database regions",
+    ilo: "International Labour Organization regions",
+    fao: "Food and Agriculture Organization regions",
+    ihme_gbd: "IHME Global Burden of Disease regions",
+
+    // Publishers with no region definitions in regions.ts
+    unsd: "UN Statistics Division regions",
+    pip: "PIP regions", // World Bank’s Poverty and Inequality Platform
+    gcp: "Global Carbon Project regions",
+    niaid: "NIAID regions", // National Institute of Allergy and Infectious Diseases
+    unicef: "UNICEF regions",
+    unaids: "UNAIDS regions", // Joint United Nations Programme on HIV and AIDS
+    undp: "UN Development Programme regions",
+    oecd: "OECD regions", // Organisation for Economic Co-operation and Development
+}
+
+const regionGroupKeySet = new Set<string>(Object.keys(regionGroupLabels))
+const regionPublisherSet = new Set<string>([
+    ...getRegionPublishers(),
+    ...ADDITIONAL_REGION_PUBLISHERS,
+])
 
 export interface RegionGroup {
     regionGroupKey: RegionGroupKey
@@ -44,56 +78,12 @@ export interface RegionGroup {
 
 export type EntitiesByRegionGroup = Map<RegionGroupKey, EntityName[]>
 
-export type AnyRegionDataProvider =
-    | RegionDataProvider
-    | AdditionalRegionDataProvider
-
-export const regionGroupLabels: Record<RegionGroupKey, string> = {
-    countries: "Countries",
-    continents: "Continents", // OWID-defined continents
-    incomeGroups: "Income groups",
-    historicalCountries: "Historical countries and regions", // e.g. USSR, Austria-Hungary
-
-    // Regions defined by an institution, and where we have region definition about what constitutes these regions in regions.ts
-    who: "World Health Organization regions",
-    wb: "World Bank regions",
-    pew: "Pew Research Center regions",
-    un: "United Nations regions",
-    un_m49_1: "United Nations regions",
-    un_m49_2: "United Nations regions",
-    un_m49_3: "United Nations regions",
-    iea: "International Energy Agency regions",
-    ei: "Energy Institute regions",
-    ember: "Ember regions",
-    maddison: "Maddison Project Database regions",
-    wid: "World Inequality Database regions",
-    ilo_1: "International Labour Organization regions",
-    ilo_2: "International Labour Organization regions",
-    fao_1: "Food and Agriculture Organization regions",
-    fao_2: "Food and Agriculture Organization regions",
-    fao_sdg: "Food and Agriculture Organization regions",
-
-    // Regions defined by an institution, but we don't have region definitions in regions.ts for these (we recognize them by their suffix)
-    unsdg: "UN Sustainable Development Goals regions",
-    unm49: "United Nations M49 regions",
-    unsd: "UN Statistics Division regions",
-    fao: "Food and Agriculture Organization regions", // suffix handle; per-level defs under fao_1/fao_2
-    pip: "PIP regions", // World Bank’s Poverty and Inequality Platform
-    gcp: "Global Carbon Project regions",
-    niaid: "NIAID regions", // National Institute of Allergy and Infectious Diseases
-    unicef: "UNICEF regions",
-    unaids: "UNAIDS regions", // Joint United Nations Programme on HIV and AIDS
-    undp: "UN Development Programme regions",
-    oecd: "OECD regions", // Organisation for Economic Co-operation and Development
-    ilo: "International Labour Organization regions", // suffix handle; per-level defs under ilo_1/ilo_2
-}
-
-function toProviderKey(
-    providerSuffix: string
-): AnyRegionDataProvider | undefined {
-    const candidate = providerSuffix.toLowerCase().replaceAll(" ", "")
-    return isAnyRegionDataProviderKey(candidate) ? candidate : undefined
-}
+const publishersByLookupKey = new Map<string, AnyRegionPublisher>(
+    [...regionPublisherSet].map((key) => [
+        toPublisherLookupKey(key),
+        key as AnyRegionPublisher,
+    ])
+)
 
 export function groupEntitiesByRegionType(
     entityNames: EntityName[]
@@ -158,19 +148,13 @@ export function groupEntitiesByRegionType(
         })
     }
 
-    const entitiesByProvider = new Map<AnyRegionDataProvider, EntityName[]>()
-    for (const entityName of availableEntityNames) {
-        const parsedEntityName = parseLabel(entityName)
-        if (parsedEntityName.providerKey) {
-            const providerKey = parsedEntityName.providerKey
-            if (!entitiesByProvider.get(providerKey))
-                entitiesByProvider.set(providerKey, [])
-            entitiesByProvider.get(providerKey)!.push(entityName)
-        }
-    }
+    const entitiesByPublisher = R.groupBy(
+        availableEntityNames,
+        (entityName) => parseLabel(entityName).publisherKey
+    )
 
-    for (const [provider, entityNames] of entitiesByProvider) {
-        entitiesByRegionGroup.push({ regionGroupKey: provider, entityNames })
+    for (const [publisher, entityNames] of R.entries(entitiesByPublisher)) {
+        entitiesByRegionGroup.push({ regionGroupKey: publisher, entityNames })
     }
 
     // Add a group for historical countries
@@ -188,32 +172,28 @@ export interface ParsedLabel {
     raw: string // e.g. "Africa (UN)"
     name: string // e.g. "Africa"
     suffix?: string // e.g. "UN"
-    providerKey?: AnyRegionDataProvider // e.g. "un"
+    publisherKey?: AnyRegionPublisher // e.g. "un"
 }
 
 export function parseLabel(raw: string): ParsedLabel {
-    const match = raw.match(/^(.+)\s+\(([^)]+)\)$/)
-    if (!match) return { raw, name: raw }
+    const parsed = parseRegionNameSuffix(raw)
+    if (!parsed) return { raw, name: raw }
 
-    const [, name, suffix] = match
+    const { name, suffix } = parsed
+    const publisherKey = publishersByLookupKey.get(toPublisherLookupKey(suffix))
+    if (!publisherKey) return { raw, name, suffix }
 
-    if (!suffix) return { raw, name: raw }
-
-    const providerKey = toProviderKey(suffix)
-    if (!providerKey || !isAnyRegionDataProviderKey(providerKey))
-        return { raw, name, suffix }
-
-    return { raw, name, suffix, providerKey }
+    return { raw, name, suffix, publisherKey }
 }
 
-export function isAnyRegionDataProviderKey(
+export function isAnyRegionPublisher(
     candidate: string
-): candidate is AnyRegionDataProvider {
-    return allRegionDataProviderSet.has(candidate as any)
+): candidate is AnyRegionPublisher {
+    return regionPublisherSet.has(candidate)
 }
 
 export function isEntityRegionGroupKey(
     candidate: string
 ): candidate is RegionGroupKey {
-    return regionGroupKeys.includes(candidate as any)
+    return regionGroupKeySet.has(candidate)
 }

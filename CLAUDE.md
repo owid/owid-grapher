@@ -11,7 +11,8 @@ The Our World in Data monorepo: the Grapher charting library, the chart/data adm
 ### Dev environment
 
 - `make up` — full dev stack in tmux (Docker MySQL, admin server on :3030, Vite on :8090). First run downloads the DB snapshot (10–20 min).
-- `make up.headless` — same without tmux; servers run in the background with logs in `logs/`. Use it when you need the running site or database and no dev environment is up yet (e.g. in sandboxes/CI). The environment is ready when the output prints `Dev environment is up` — wait for that exact line; don't grep for vite/admin startup patterns, they never appear. Stop with `make down.headless`. **Never run it on a developer machine where a dev environment may already be running** (check with `pgrep -f adminSiteServer` first) — it kills existing dev servers.
+- `make up.headless` — same without tmux; servers run in the background with logs in `logs/`. Use it when you need the running site or database and no dev environment is up yet (e.g. in sandboxes/CI). The environment is ready when the output prints `Dev environment is up` — wait for that exact line; don't grep for vite/admin startup patterns, they never appear. Stop with `make down.headless`. **Never run it on a developer machine where a dev environment may already be running** (check with `pgrep -f adminSiteServer` first) — it kills existing dev servers. In a git worktree, use `make up.worktree` instead.
+- `make up.worktree` — the same stack for a git worktree, running alongside whatever the main checkout has up: its own admin/vite ports, its own detached tmux session (`grapher-<worktree>`), and the MySQL every checkout shares. Kills nothing outside its own session, so it's the safe one to run from a worktree manager (Orca) or an agent. On first run it writes the worktree's `.env` with a random free port pair (admin `30xx` and Vite `80xx`, sharing an offset), so check that `.env` rather than assuming 3030/8090; `make setup.worktree` does only that part (usable as a worktree-manager setup hook alongside `yarn install`). Ready when the output prints `Dev environment for this worktree is up`; attach with `tmux attach -t grapher-<worktree>`, stop with `make down.worktree` (leaves MySQL up).
 - `make refresh` — re-download the shared MySQL snapshot and reload the local DB.
 - `make migrate` (or `yarn runDbMigrations`) — apply pending DB migrations.
 - Admin UI: http://localhost:3030/admin/charts. MySQL is exposed on port **3307** (root / `weeniest-stretch-contaminate-gnarl`).
@@ -31,6 +32,7 @@ The Our World in Data monorepo: the Grapher charting library, the chart/data adm
 ### Git
 
 - When you want to create a commit, follow `docs/agent-guidelines/commit-messages.md` — it covers the pre-commit checks and the gitmoji + 🤖 message format.
+- PR descriptions are two-part. First, a **concise** human-facing part: what changed and why, important considerations and pitfalls, and anything that needs discussion — a few sentences or bullets, no padding. Then a `<details><summary>Details</summary>` block for everything only useful to an agent picking the work back up or to automated code review: implementation notes, file-by-file breakdowns, edge cases handled, test plans. If a detail doesn't change what a human reviewer does, it goes in the details block or gets cut.
 - Branch names: short and descriptive, no prefix (in particular no `claude/` prefix and no random suffix). Every branch gets a staging server named `staging-site-<branch>` with slashes turned into hyphens and the name truncated to 28 characters, so long or prefixed branch names produce unusable staging names.
 
 ## Architecture
@@ -43,7 +45,7 @@ Dependency layers, enforced via TypeScript project references (diagram: `docs/im
 4. **Applications** — `adminSiteServer/` (Express admin API, entry `adminSiteServer/app.ts`), `adminSiteClient/` (admin React SPA), `baker/` (bakes the static public site), `site/` (React components for public pages, shared by baker and admin previews; uses React hooks, not MobX), `explorerAdminServer/`.
 5. **Edge** — `functions/`: Cloudflare Pages Functions serving dynamic routes (`/grapher/[slug]`, thumbnails, data downloads, `/api`, donations) with file-based routing plus `_routes.json`. Separate workspace with its own `package.json`; local dev via `yarn startLocalCloudflareFunctions` or `make up.full`.
 
-Other directories: `bespoke/` (self-contained custom data-viz components embedded in articles via Shadow DOM; each project under `bespoke/projects/` has its own build — see `bespoke/readme.md`), `devTools/` (various utilities).
+Other directories: `bespoke/` (self-contained custom data-viz components embedded in articles via Shadow DOM; each project under `bespoke/projects/` has its own build — see `bespoke/readme.md`), `devTools/` (various utilities), `packageDocs/` (public docs site for the `@ourworldindata/grapher` npm package, deployed to https://docs.owid.io/projects/grapher/ — keep it in sync when changing the package's public API, schema, or consumer-facing behavior).
 
 Key facts that span multiple directories:
 
@@ -66,15 +68,21 @@ Use the `test-on-staging` skill when checking a change on `staging-site-<branch>
 
 ## Team
 
-Everything you post to GitHub or Slack goes out under a **human's identity**.
+When AI-authored text is posted through a **human's account**, it must be clearly attributed so readers do not mistake it for the human's own words.
 
-1. **Attribute the work.** Any prose you author for GitHub or Slack — PR bodies, issue and review comments (including replies to Codex/Copilot/reviewers), Slack messages or drafts — must start with this blockquote:
+1. **Attribute posts made under a human identity.** Any prose that will appear under a human user's GitHub or Slack account — PR bodies, issue and review comments (including replies to Codex/Copilot/reviewers), Slack messages, or drafts intended for a human to post — must start with this blockquote:
 
     ```
     > _Written by <model provider> <model name> — @<handle> at the wheel._
     ```
 
-    Use the actual provider and model (e.g. "Claude Sonnet 5", never "Code" or a bare version number) and the handle of the human directing the work (usually the current git user; ask if ambiguous). The only exemption is a bare mechanical token with no prose (a lone `@codex review`, a 👍); when in doubt, include the line.
+    Use the actual provider and model (e.g. "Claude Sonnet 5", never "Code" or a bare version number) and the handle of the human directing the work, usually the authenticated or current git user. Ask if it is ambiguous.
+
+    **Do not add this attribution when posting through an account that is clearly identified as an AI agent or bot**, such as the Codex GitHub user. In that case, the posting identity already provides the necessary disclosure, and claiming that a human is "at the wheel" may be inaccurate.
+
+    A bare mechanical token with no prose, such as a lone `@codex review` ping or 👍, also requires no attribution.
+
+    If the posting identity cannot be determined, assume it is a human account and include the attribution.
 
 2. **Never guess GitHub handles** — a wrong `@`-tag pings a real person. Use the exact handle from the list below; if a name isn't on it, write the plain name (e.g. "Bastian") and ask the user for the handle.
 
@@ -112,10 +120,11 @@ Everything you post to GitHub or Slack goes out under a **human's identity**.
 - Double quotes for string literals.
 - Type function params and return values; reuse existing shared type definitions. Avoid `any` — only use it if you have to, and ask for permission.
 - `packages/@ourworldindata/*/**` (and a few other dirs) additionally _enforce_ return types via `explicit-function-return-type`/`explicit-module-boundary-types` overrides in `.oxlintrc.jsonc`; `site/**` doesn't. Moving a function from `site/` into a shared package therefore needs an explicit return type added, or `oxlint --deny-warnings` fails.
-- In Grapher and the admin (MobX 6) we use a nonstandard setup: class-based components with TC-39 stage 3 decorators, but only for `@computed` and `@action`. Observable props are NOT marked `@observable`; they are listed in a `makeObservable` call in the constructor. That call must mention all observable props, but none of the `@computed`/`@action` ones.
+- In Grapher and the admin (MobX 6) we use a nonstandard setup: class-based components with TC-39 stage 3 decorators, but only for `@computed` and `@action`. Observable props are NOT marked `@observable`; they are listed in a `makeObservable` call in the constructor. That call must mention all observable props, but none of the `@computed`/`@action` ones. A component that observes is a class with the `@observer` decorator, not a function component wrapped in `observer()` — a few old admin components still use the wrapper, but don't add new ones. Components that don't need to observe stay plain functions.
 - CSS: named style classes following BEM in separate `.scss` files; avoid inline styles unless the component already uses them for a similar case. Components usually have a companion scss file with the same name. Entry points: `site/owid.scss` for the site, `packages/@ourworldindata/grapher/src/core/grapher.scss` for grapher.
 - In SCSS, do NOT use the parent selector to concatenate BEM class names (`&__element`, `&--modifier`) — write out full class names (`.block__element`) so it's easy to grep between JSX and SCSS. `&` with pseudo-classes/elements or state attributes (`&:hover`, `&::before`, `&[data-selected]`) is fine.
 - Check [docs/browser-support.md](./docs/browser-support.md) before using modern JS or CSS features. It lists our supported browsers, the "most breaking" features we rely on, and features we can't yet use.
+- For inline `<script>` JSON, use `escapeJSONStringForInlineScript` from `@ourworldindata/utils` — it also escapes U+2028/U+2029.
 - package.json scripts are camelCase and descriptive: `startXXX` for long-lived processes, `buildXXX` for scripts that write output (`docs/coding-style.md`). Server-side scripts run via `tsx --tsconfig tsconfig.tsx.json`.
 
 ## Other conventions

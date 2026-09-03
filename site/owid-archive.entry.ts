@@ -1,5 +1,5 @@
 // Polyfills must be loaded before all other code.
-import "./polyfills.js"
+import "@ourworldindata/utils/src/polyfills.js"
 
 import "@ourworldindata/grapher/src/core/grapher.scss"
 import "./owid.scss"

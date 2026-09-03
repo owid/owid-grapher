@@ -26,9 +26,11 @@ $slide-content-height: $grapher-height;
         font-size: 1.5rem;
         width: 3rem;
         padding: 0;
-        transition: all 0.2s;
+        transition:
+            color var(--duration-popover) ease,
+            opacity var(--duration-press) var(--ease-out);
+        opacity: 1;
         cursor: pointer;
-        animation: fadeIn 850ms;
         color: $blue-90;
 
         &:hover {
@@ -167,4 +169,11 @@ $slide-content-height: $grapher-height;
     @include text-block-override {
         @include body-2-regular;
     }
+}
+
+// The asset column supplies its own vertical spacing (`.key-insight__asset-container`
+// in Image.scss), so blocks rendered into it must not add theirs on top.
+.key-insight__asset-container > [class*="article-block__"] {
+    margin-top: 0;
+    margin-bottom: 0;
 }

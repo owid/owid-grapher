@@ -16,6 +16,7 @@ import {
 } from "../../../../components/Sankey/SankeyHelpers.js"
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
+import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import {
@@ -23,16 +24,22 @@ import {
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 
-import { SankeyVariantConfig, VariantProps } from "../config.js"
-import { MigrationFlow, MigrationRow, MigrationView, Sex } from "../types.js"
-import { useMigrationData, useMigrationMetadata } from "../data.js"
+import { SankeyVariantConfig } from "../core/config.js"
+import type { VariantProps } from "../../../../helpers/config.js"
+import {
+    MigrationFlow,
+    MigrationRow,
+    MigrationView,
+    Sex,
+} from "../core/types.js"
+import { useMigrationData, useMigrationMetadata } from "../core/data.js"
 import {
     formatPeople,
     getPopulation,
     getSexAdjective,
     getSexNoun,
     OTHERS_ENTITY_NAME,
-} from "../helpers.js"
+} from "../core/helpers.js"
 import { MigrationChart } from "../components/MigrationChart.js"
 import { MigrationControls } from "../components/MigrationControls.js"
 
@@ -48,26 +55,26 @@ export function SankeyVariant({
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 
     return (
-        <NuqsAdapter>
-            <QueryClientProvider client={queryClient}>
-                <div
-                    ref={ref}
-                    className={cx("migration-chart", {
-                        "migration-chart--narrow": isNarrow,
-                    })}
-                >
-                    <FetchingSankeyVariant config={config} />
-                </div>
-            </QueryClientProvider>
-        </NuqsAdapter>
+        <EmbedConfigProvider config={config}>
+            <NuqsAdapter>
+                <QueryClientProvider client={queryClient}>
+                    <div
+                        ref={ref}
+                        className={cx("migration-chart", {
+                            "migration-chart--narrow": isNarrow,
+                        })}
+                    >
+                        <FetchingSankeyVariant config={config} />
+                    </div>
+                </QueryClientProvider>
+            </NuqsAdapter>
+        </EmbedConfigProvider>
     )
 }
 
 type Metadata = NonNullable<ReturnType<typeof useMigrationMetadata>["data"]>
 
 function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
-    const urlSync = config.urlSync ?? false
-
     const initialCountry =
         !config.country || isUserLocationCountry(config.country)
             ? DEFAULT_COUNTRY
@@ -77,19 +84,16 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         key: "migrationCountry",
         parser: parseAsString,
         defaultValue: initialCountry,
-        enabled: urlSync,
     })
     const [year, setYear] = useUrlState({
         key: "migrationYear",
         parser: parseAsInteger,
         defaultValue: config.year ?? 2024,
-        enabled: urlSync,
     })
     const [sex, setSex] = useUrlState({
         key: "migrationSex",
         parser: parseAsStringEnum<Sex>(["both", "female", "male"]),
         defaultValue: config.sex ?? "both",
-        enabled: urlSync,
     })
     const [_view, setView] = useUrlState({
         key: "migrationFlow",
@@ -99,7 +103,6 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
             "emigrants",
         ]),
         defaultValue: config.flow ?? DEFAULT_VIEW,
-        enabled: urlSync,
     })
 
     const { data: metadata, status: metadataStatus } = useMigrationMetadata()
@@ -114,7 +117,6 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
         availableCountryNames,
-        urlSync,
         urlStateKey: "migrationCountry",
         setCountry,
     })

@@ -147,6 +147,25 @@ export abstract class AbstractCoreColumn<
         return this.originalTimeColumn.formatValue(time)
     }
 
+    formatTimeShort(time: number): string {
+        return this.formatTime(time)
+    }
+
+    /** Where the period a time value stands for ends, formatted short */
+    formatTimeShortEnd(time: number): string {
+        return this.formatTimeShort(time)
+    }
+
+    /** Formats a start/end time pair */
+    formatTimeRange(startTime: number, endTime: number): string {
+        return `${this.formatTime(startTime)} to ${this.formatTime(endTime)}`
+    }
+
+    /** Formats a start/end time pair as a comparison of two time points */
+    formatTimeComparison(startTime: number, endTime: number): string {
+        return `${this.formatTime(startTime)} vs. ${this.formatTime(endTime)}`
+    }
+
     @imemo get roundingMode(): OwidVariableRoundingMode {
         return (
             this.display?.roundingMode ?? OwidVariableRoundingMode.decimalPlaces
@@ -973,12 +992,9 @@ const memoFormatMonth = _.memoize(
 const memoFormatMonthCsv = _.memoize(
     (value: number): string => formatDay(value, { format: "YYYY-MM" }) // "2023-01"
 )
-// The ISO week number and week-year. Because the ISO week is the same for
-// every day of the week, indicators that pick a different representative
-// day for the same week still show the same label
 const memoFormatWeek = _.memoize((value: number): string => {
-    const date = convertDaysSinceEpochToDate(value)
-    return `W${date.isoWeek()} ${date.isoWeekYear()}` // "W3 2023"
+    const monday = convertDaysSinceEpochToDate(value).startOf("isoWeek")
+    return `Week of ${monday.format("MMM D, YYYY")}` // "Week of Jan 20, 2020"
 })
 const memoFormatWeekCsv = _.memoize((value: number): string => {
     const date = convertDaysSinceEpochToDate(value)
@@ -993,8 +1009,8 @@ const memoFormatQuarterCsv = _.memoize((value: number): string => {
     const date = convertDaysSinceEpochToDate(value)
     return `${date.year()}-Q${date.quarter()}` // "2023-Q1"
 })
-const memoParseDate = _.memoize(
-    (value: string): Time => convertDateToDaysSinceEpoch(dayjs.utc(value))
+const memoParseDate = _.memoize((value: string): Time =>
+    convertDateToDaysSinceEpoch(dayjs.utc(value))
 )
 
 class DayColumn<
@@ -1097,11 +1113,29 @@ class WeekColumn<
     }
 
     override formatValue(value: number): string {
-        return memoFormatWeek(value) // "W3 2023"
+        return memoFormatWeek(value) // "Week of Jan 20, 2020"
     }
 
     override formatForCsv(value: number): string {
         return memoFormatWeekCsv(value) // "2023-W03"
+    }
+
+    // The plain week-start date (ISO-week Monday), e.g. "Jun 1, 2026"
+    override formatTimeShort(time: number): string {
+        const monday = convertDaysSinceEpochToDate(time).startOf("isoWeek")
+        return monday.format("MMM D, YYYY")
+    }
+
+    // The plain week-end date (ISO-week Sunday), e.g. "Jun 7, 2026"
+    override formatTimeShortEnd(time: number): string {
+        const sunday = convertDaysSinceEpochToDate(time).endOf("isoWeek")
+        return sunday.format("MMM D, YYYY")
+    }
+
+    // The span from the first day of the start week (ISO-week Monday) to the
+    // last day of the end week (Sunday), e.g. "Jun 1, 2026 to Jul 12, 2026".
+    override formatTimeRange(startTime: number, endTime: number): string {
+        return `${this.formatTimeShort(startTime)} to ${this.formatTimeShortEnd(endTime)}`
     }
 }
 
@@ -1124,6 +1158,26 @@ class QuarterColumn<
 
     override formatForCsv(value: number): string {
         return memoFormatQuarterCsv(value) // "2023-Q1"
+    }
+
+    // The quarter's start month, e.g. "Jan 2026"
+    override formatTimeShort(time: number): string {
+        return convertDaysSinceEpochToDate(time)
+            .startOf("quarter")
+            .format("MMM YYYY")
+    }
+
+    // The quarter's end month, e.g. "Mar 2026"
+    override formatTimeShortEnd(time: number): string {
+        return convertDaysSinceEpochToDate(time)
+            .endOf("quarter")
+            .format("MMM YYYY")
+    }
+
+    // The span from the first month of the start quarter to the last month of
+    // the end quarter, e.g. "Jan 2025 to Dec 2026"
+    override formatTimeRange(startTime: number, endTime: number): string {
+        return `${this.formatTimeShort(startTime)} to ${this.formatTimeShortEnd(endTime)}`
     }
 
     // The first of the epoch's quarter, used as the anchor for counting quarters.

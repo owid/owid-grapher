@@ -33,8 +33,9 @@ export interface DropdownOptionGroup<
     options: DropdownOption[]
 }
 
-export type DropdownCollectionItem<DropdownOption extends BasicDropdownOption> =
-    DropdownOption | DropdownOptionGroup<DropdownOption>
+export type DropdownCollectionItem<
+    DropdownOption extends BasicDropdownOption,
+> = DropdownOption | DropdownOptionGroup<DropdownOption>
 
 export type DropdownCollection<DropdownOption extends BasicDropdownOption> =
     DropdownCollectionItem<DropdownOption>[]
@@ -58,14 +59,6 @@ export interface DropdownProps<DropdownOption extends BasicDropdownOption> {
     renderMenuOption?: (option: DropdownOption) => React.ReactNode
     "data-track-note"?: string
     "aria-label"?: string
-}
-
-// This attribute and function are being used to detect whether a dropdown is currently open in order to prevent modals or drawers from being dismissed by their click-outside handler.
-// React-Aria portals popovers (used for the dropdown menu) to the end of the document body, so we can't rely on simple DOM containment checks to determine if a click is happening inside the dropdown or not.
-const owidDropdownDataAttribute = "data-owid-dropdown"
-
-export function isOwidDropdownOpen(): boolean {
-    return document.querySelector(`[${owidDropdownDataAttribute}]`) !== null
 }
 
 function isOptionGroup<DropdownOption extends BasicDropdownOption>(
@@ -169,7 +162,6 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
     const popover = (
         <Popover
             className={cx("grapher-dropdown-menu", menuClassName)}
-            data-owid-dropdown=""
             offset={4}
         >
             {isSearchable ? (

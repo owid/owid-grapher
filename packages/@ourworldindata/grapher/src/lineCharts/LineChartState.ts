@@ -236,9 +236,8 @@ export class LineChartState implements ChartState, ColorScaleManager {
 
     @computed get series(): readonly LineChartSeries[] {
         const series = this.yColumns.flatMap((col) =>
-            col.uniqEntityNames.map(
-                (entityName): LineChartSeries =>
-                    this.constructSingleSeries(entityName, col)
+            col.uniqEntityNames.map((entityName): LineChartSeries =>
+                this.constructSingleSeries(entityName, col)
             )
         )
 
@@ -264,9 +263,9 @@ export class LineChartState implements ChartState, ColorScaleManager {
         if (this.selectionArray.numSelectedEntities > 1)
             strategies.push(FacetStrategy.entity)
 
-        const numNonProjectionColumns = this.yColumns.filter(
-            (c) => !c.display?.isProjection
-        ).length
+        const numNonProjectionColumns = this.inputTable
+            .getColumns(this.yColumnSlugs)
+            .filter((column) => !column.display?.isProjection).length
         if (numNonProjectionColumns > 1) strategies.push(FacetStrategy.metric)
 
         return strategies

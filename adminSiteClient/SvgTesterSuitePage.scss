@@ -1,0 +1,470 @@
+$svg-tester-reference: #b3261e;
+$svg-tester-reference-frame: #dda4a0;
+$svg-tester-current: #146c2e;
+$svg-tester-current-frame: #94c2a0;
+$svg-tester-error: #b3261e;
+$svg-tester-error-frame: #dda4a0;
+
+.AdminLayout > main.SvgTesterSuitePage {
+    height: auto;
+}
+
+.SvgTesterSuitePage__nav {
+    margin-bottom: 16px;
+}
+
+.SvgTesterSuitePage__suites {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.SvgTesterSuitePage__suite {
+    border-bottom: 2px solid transparent;
+    color: $gray-70;
+    font-size: 13px;
+    padding-bottom: 2px;
+    text-decoration: none;
+
+    &:hover {
+        color: $gray-100;
+        text-decoration: none;
+    }
+
+    &.is-active {
+        border-bottom-color: $gray-100;
+        color: $gray-100;
+    }
+}
+
+.SvgTesterSuitePage__suite-note {
+    color: $gray-60;
+    font-size: 11px;
+    margin-left: 4px;
+}
+
+.SvgTesterSuitePage__summary {
+    background: $white;
+    border-bottom: 1px solid $gray-20;
+    margin-bottom: 16px;
+    padding: 12px 0;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.SvgTesterSuitePage__headline-row {
+    align-items: baseline;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+}
+
+.SvgTesterSuitePage__headline {
+    color: $gray-100;
+    font-size: 18px;
+
+    strong {
+        font-size: 22px;
+    }
+}
+
+.SvgTesterSuitePage__meta {
+    color: $gray-70;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.SvgTesterSuitePage__errors {
+    color: $svg-tester-error;
+}
+
+.SvgTesterSuitePage__visual-note {
+    color: $gray-70;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+}
+
+.SvgTesterSuitePage__progress {
+    margin-top: 4px;
+    max-width: 480px;
+
+    // The bar's own bottom margin is the gap to the notes below it
+    .ant-progress {
+        margin-bottom: 0;
+    }
+}
+
+.SvgTesterSuitePage__progress-note {
+    font-size: 13px;
+}
+
+.SvgTesterSuitePage__refreshed {
+    color: $gray-60;
+    font-size: 13px;
+    margin-top: 16px;
+}
+
+.SvgTesterSuitePage__commit {
+    border-bottom: 1px dotted $gray-60;
+    cursor: help;
+}
+
+.SvgTesterSuitePage__controls {
+    margin-bottom: 20px;
+
+    .ant-segmented-item {
+        margin-bottom: 0;
+    }
+}
+
+.SvgTesterSuitePage__card {
+    border: 1px solid $gray-20;
+    border-radius: 2px;
+    margin-bottom: 20px;
+    padding: 12px;
+
+    // Skip rendering off-screen cards
+    content-visibility: auto;
+    // Roughly a card's height, so the scrollbar doesn't lurch as they render
+    contain-intrinsic-size: auto 700px;
+
+    &:target {
+        border-color: $blue-40;
+        box-shadow: 0 0 0 3px $blue-10;
+    }
+}
+
+.SvgTesterSuitePage__card-header {
+    align-items: baseline;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+}
+
+.SvgTesterSuitePage__identity {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.SvgTesterSuitePage__anchor {
+    color: $gray-60;
+    font-weight: bold;
+    text-decoration: none;
+
+    &:hover {
+        color: $gray-100;
+        text-decoration: none;
+    }
+}
+
+.SvgTesterSuitePage__chart-type,
+.SvgTesterSuitePage__status {
+    margin-left: 8px;
+}
+
+// The chart type beside it is neutral, so the one status that is a finding
+// needs the weight the headline gives its numbers
+.SvgTesterSuitePage__status.is-changed {
+    font-weight: bold;
+}
+
+.SvgTesterQueryParams {
+    margin-left: 6px;
+}
+
+.SvgTesterErrors__item .SvgTesterQueryParams {
+    font-size: 12px;
+}
+
+.SvgTesterSuitePage__modes {
+    border-bottom: 1px solid $gray-10;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 16px;
+    margin-top: 8px;
+    padding-bottom: 12px;
+}
+
+.SvgTesterSuitePage__mode {
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    color: $gray-70;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 0 0 4px;
+
+    &:hover {
+        color: $gray-100;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $gray-60;
+        outline-offset: 2px;
+    }
+
+    &.is-active {
+        border-bottom-color: $gray-100;
+        color: $gray-100;
+    }
+}
+
+.SvgTesterChartLinks {
+    color: $gray-70;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.SvgTesterErrors {
+    border: 1px solid $svg-tester-error-frame;
+    border-radius: 2px;
+    margin-bottom: 20px;
+    padding: 12px;
+}
+
+.SvgTesterErrors__heading {
+    color: $svg-tester-error;
+    font-size: 14px;
+    font-weight: bold;
+    margin: 0 0 8px;
+}
+
+.SvgTesterErrors__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.SvgTesterErrors__item + .SvgTesterErrors__item {
+    border-top: 1px solid $gray-10;
+    margin-top: 8px;
+    padding-top: 8px;
+}
+
+.SvgTesterErrors__view {
+    align-items: baseline;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+}
+
+.SvgTesterErrors__identity {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.SvgTesterErrors__kind {
+    color: $gray-70;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+.SvgTesterErrors__message {
+    color: $gray-90;
+    font-size: 12px;
+    margin: 4px 0 0;
+    max-height: 8em;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+// Difference blend: the base rendering, then the current one subtracted from
+// it, so identical pixels cancel out and only changes survive.
+//
+// The blend leaves "unchanged" as black, which makes a page of near-identical
+// charts a wall of black. Inverting the composited result flips that: unchanged
+// is white, changes are dark. The filter has to sit on the parent so it applies
+// after the two images have blended, not to either one of them.
+.SvgTesterOverlay {
+    // Same frame as the other views. Outside the filter, or it would invert.
+    border: 1px solid $gray-10;
+    line-height: 0;
+    max-width: 100%;
+    width: fit-content;
+}
+
+.SvgTesterOverlay__stack {
+    background: #000;
+    filter: invert(1);
+    position: relative;
+}
+
+.SvgTesterOverlay img {
+    display: block;
+    max-width: 100%;
+}
+
+.SvgTesterOverlay__difference {
+    left: 0;
+    mix-blend-mode: difference;
+    position: absolute;
+    top: 0;
+}
+
+.SvgTesterSuitePage__side-by-side {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, max-content));
+    justify-content: start;
+}
+
+.SvgTesterSuitePage__pane {
+    margin: 0;
+}
+
+.SvgTesterSuitePage__pane figcaption,
+.SvgTesterInteractive__pane figcaption {
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.SvgTesterSuitePage__pane a {
+    display: block;
+}
+
+.SvgTesterSuitePage__pane img {
+    border: 2px solid transparent;
+    display: block;
+    max-width: 100%;
+}
+
+.SvgTesterSuitePage__pane--before figcaption {
+    color: $svg-tester-reference;
+}
+
+.SvgTesterSuitePage__pane--before img {
+    border-color: $svg-tester-reference-frame;
+}
+
+.SvgTesterSuitePage__pane--after figcaption {
+    color: $svg-tester-current;
+}
+
+.SvgTesterSuitePage__pane--after img {
+    border-color: $svg-tester-current-frame;
+}
+
+.SvgTesterInteractive {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: 1fr 1fr;
+}
+
+.SvgTesterInteractive__pane {
+    margin: 0;
+}
+
+.SvgTesterInteractive__pane figcaption {
+    color: $gray-70;
+}
+
+.SvgTesterInteractive iframe {
+    border: 1px solid $gray-10;
+    display: block;
+    height: 600px;
+    width: 100%;
+}
+
+// Shrink-wrap the image: the divider and the drag area are positioned as a
+// percentage of this box, while clip-path is a percentage of the image, so the
+// two only line up if the box is exactly the image's width.
+.SvgTesterSlider {
+    max-width: 100%;
+    width: fit-content;
+}
+
+.SvgTesterSlider__images {
+    cursor: ew-resize;
+    line-height: 0;
+    position: relative;
+}
+
+// Frame each side of the divider in the reference/current colours, so it's
+// obvious which rendering you're looking at
+.SvgTesterSlider__images::before,
+.SvgTesterSlider__images::after {
+    border: 2px solid;
+    bottom: 0;
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    z-index: 1;
+}
+
+// No border where the two halves meet: that's the handle's line
+.SvgTesterSlider__images::before {
+    border-color: $svg-tester-reference-frame;
+    border-right: 0;
+    left: 0;
+    right: calc(100% - var(--position));
+}
+
+.SvgTesterSlider__images::after {
+    border-color: $svg-tester-current-frame;
+    border-left: 0;
+    left: var(--position);
+    right: 0;
+}
+
+.SvgTesterSlider__images img {
+    display: block;
+    max-width: 100%;
+}
+
+.SvgTesterSlider__after {
+    clip-path: inset(0 0 0 var(--position));
+    left: 0;
+    position: absolute;
+    top: 0;
+}
+
+// The range input covers the whole chart and is invisible
+.SvgTesterSlider__range {
+    appearance: none;
+    background: transparent;
+    cursor: ew-resize;
+    height: 100%;
+    left: 0;
+    margin: 0;
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    z-index: 2;
+}
+
+.SvgTesterSlider__range::-webkit-slider-thumb {
+    appearance: none;
+    height: 100%;
+    width: 2px;
+}
+
+.SvgTesterSlider__range::-moz-range-thumb {
+    border: 0;
+    height: 100%;
+    width: 2px;
+}
+
+.SvgTesterSlider__handle {
+    background: $gray-80;
+    bottom: 0;
+    left: var(--position);
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    width: 2px;
+    z-index: 3;
+}
+
+// The input is invisible, so its focus ring has to show up on the divider.
+.SvgTesterSlider__range:focus-visible ~ .SvgTesterSlider__handle {
+    box-shadow: 0 0 0 2px rgba(91, 91, 91, 0.35);
+    width: 4px;
+}

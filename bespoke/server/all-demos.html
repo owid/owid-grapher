@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>All bespoke demos</title>
+        <style>
+            body {
+                margin: 0;
+            }
+
+            .all-demos-frame {
+                display: block;
+                width: 100%;
+                border: 0;
+                border-bottom: 1px solid #dadada;
+
+                /*
+                 * A non-zero starting height is required for loading="lazy" to
+                 * stagger: zero-height frames all count as being in the
+                 * viewport, so every project would start building at once.
+                 * Overridden per frame once its content can be measured.
+                 */
+                height: 600px;
+            }
+        </style>
+    </head>
+    <body>
+        <script type="module">
+            const projects = {{PROJECTS_JSON}}
+
+            for (const project of projects) {
+                const frame = document.createElement("iframe")
+                frame.className = "all-demos-frame"
+                frame.src = `/${project}/demo`
+                frame.title = project
+                frame.loading = "lazy"
+                frame.scrolling = "no"
+
+                // Same origin, so the frame can be sized to its content — and
+                // kept in sync as the viz re-lays out or the window resizes.
+                frame.addEventListener("load", () => {
+                    const body = frame.contentDocument?.body
+                    if (!body) return
+                    const fit = () => {
+                        frame.style.height = `${body.scrollHeight}px`
+                    }
+                    fit()
+                    new ResizeObserver(fit).observe(body)
+                })
+
+                document.body.appendChild(frame)
+            }
+        </script>
+    </body>
+</html>

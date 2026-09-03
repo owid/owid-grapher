@@ -109,6 +109,12 @@ export const enrichedBlockExamples: Record<
             {
                 image: "life-expectancy-thumbnail.png",
                 url: "/grapher/life-expectancy",
+                caption: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "Life expectancy at birth",
+                    },
+                ],
                 content: [
                     {
                         type: "text",
@@ -125,6 +131,9 @@ export const enrichedBlockExamples: Record<
             {
                 image: "gdp-per-capita-thumbnail.png",
                 url: "/grapher/gdp-per-capita",
+                caption: [
+                    { spanType: "span-simple-text", text: "GDP per capita" },
+                ],
                 content: [
                     {
                         type: "text",
@@ -641,6 +650,32 @@ export const enrichedBlockExamples: Record<
                     },
                 ],
             },
+            {
+                title: "Key insight number 4",
+                type: "key-insight-slide",
+                asset: [
+                    {
+                        type: "bespoke-component",
+                        bundle: "causes-of-death",
+                        variant: "treemap",
+                        size: BlockSize.Wide,
+                        config: { region: "World" },
+                        parseErrors: [],
+                    },
+                ],
+                content: [
+                    {
+                        type: "text",
+                        parseErrors: [],
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "I am the first paragraph of the fourth insight.",
+                            },
+                        ],
+                    },
+                ],
+            },
         ],
         parseErrors: [],
     },
@@ -1038,6 +1073,7 @@ export const enrichedBlockExamples: Record<
         variant: "income-chart",
         size: BlockSize.Wide,
         config: { foo: "bar" },
+        fallbackImageFilename: "example-widget-fallback.png",
         parseErrors: [],
     },
 }

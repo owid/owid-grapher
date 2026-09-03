@@ -204,7 +204,9 @@
         color: $vermillion;
         padding: 8px 24px;
         height: 40px;
-        transition: 200ms;
+        transition:
+            color var(--duration-hover) ease,
+            border-color var(--duration-hover) ease;
 
         &:hover {
             color: $accent-vermillion;

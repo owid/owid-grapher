@@ -10,6 +10,7 @@ import {
     getWindowUrl,
     slugify,
 } from "@ourworldindata/utils"
+import { BlockSize } from "@ourworldindata/types"
 import { fireEvent, render, screen } from "@testing-library/react"
 import "@testing-library/jest-dom/vitest"
 
@@ -19,11 +20,25 @@ import * as _ from "lodash-es"
 
 const KEY_INSIGHTS_SLUG = "key-insights"
 
-//from https://stackoverflow.com/a/62148101
+// Mock that reports every observed element as immediately intersecting,
+// so lazily-mounted components (e.g. BespokeComponent) render right away
 beforeAll(() => {
     const IntersectionObserverMock = class IntersectionObserverMock {
+        constructor(private readonly callback: IntersectionObserverCallback) {}
+        thresholds = [0]
         disconnect = vi.fn()
-        observe = vi.fn()
+        observe = vi.fn((target: Element) => {
+            this.callback(
+                [
+                    {
+                        target,
+                        isIntersecting: true,
+                        intersectionRatio: 1,
+                    } as IntersectionObserverEntry,
+                ],
+                this as unknown as IntersectionObserver
+            )
+        })
         unobserve = vi.fn()
     }
 
@@ -97,4 +112,35 @@ it("updates the URL", () => {
     expect(getWindowUrl().queryStr).toEqual(
         `?${KEY_INSIGHTS_INSIGHT_PARAM}=${slugifiedTitle}`
     )
+})
+
+it("renders an asset block in the asset column", () => {
+    const keyInsights: EnrichedBlockKeyInsights = {
+        type: "key-insights",
+        heading: "Key insights",
+        parseErrors: [],
+        insights: [
+            {
+                type: "key-insight-slide",
+                title: "Key insight with a bespoke asset",
+                asset: [
+                    {
+                        type: "bespoke-component",
+                        bundle: "not-a-real-bundle",
+                        size: BlockSize.Wide,
+                        config: {},
+                        parseErrors: [],
+                    },
+                ],
+                content: [],
+            },
+        ],
+    }
+    renderKeyInsights(keyInsights)
+
+    const assetContainer = document
+        .querySelector(".key-insight__asset-container")
+        ?.querySelector(".bespoke-component__error")
+    expect(assetContainer).toBeInTheDocument()
+    expect(assetContainer).toHaveTextContent("not-a-real-bundle")
 })

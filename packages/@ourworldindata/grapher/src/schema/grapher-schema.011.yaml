@@ -221,6 +221,15 @@ properties:
     default: []
     items:
       type: string
+  inapplicableEntityNames:
+    type: array
+    description: |
+      Entities the indicator's data can't apply to by construction, e.g. Mexico for
+      "Where do Mexican emigrants live?". On the map, they are excluded from the
+      color scale and rendered in a dedicated pattern.
+    default: []
+    items:
+      type: string
   selectedEntityColors:
     type: object
     description: Colors for selected entities
@@ -606,7 +615,7 @@ properties:
   sortBy:
     type: string
     description: |
-      Sort criterion (used by discrete bar, stacked discrete bar, marimekko, and dumbbell charts).
+      Sort criterion (used by discrete bar, stacked discrete bar, and dumbbell charts).
       - column: sort by the value of a specific column, identified by sortColumnSlug
       - total: sort by the total across all columns
       - entityName: sort alphabetically by entity name
@@ -784,7 +793,6 @@ $defs:
       - BinaryMapPaletteC
       - BinaryMapPaletteD
       - BinaryMapPaletteE
-      - BinaryMapPaletteF
       - SingleColorGradientDenim
       - SingleColorGradientTeal
       - SingleColorGradientPurple

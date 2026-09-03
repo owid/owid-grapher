@@ -1,8 +1,8 @@
 import { createRoot } from "react-dom/client"
 import { enableShadowDOM } from "@react-stately/flags"
 
-import { VariantName } from "./types.js"
-import { parseConfig } from "./config.js"
+import { VariantName } from "./core/types.js"
+import { parseConfig } from "./core/config.js"
 import { SankeyVariant } from "./variants/SankeyVariant"
 
 import type {
@@ -10,6 +10,8 @@ import type {
     BespokeComponentVariantsList,
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
+
+import { parseEmbedConfig } from "../../../helpers/config.js"
 
 import "./index.scss"
 
@@ -31,7 +33,11 @@ export const mount: BespokeComponentMountFn = (
         return
     }
 
-    const config = parseConfig(opts.config ?? {})
+    const rawConfig = opts.config ?? {}
+    const config = {
+        ...parseConfig(rawConfig),
+        ...parseEmbedConfig(rawConfig),
+    }
 
     const root = createRoot(container)
     root.render(

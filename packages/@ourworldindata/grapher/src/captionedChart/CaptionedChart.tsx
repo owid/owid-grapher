@@ -58,7 +58,6 @@ export interface CaptionedChartManager
         ControlsRowManager {
     bakedGrapherURL?: string
     isReady?: boolean
-    whatAreWeWaitingFor?: string
 
     // bounds
     captionedChartBounds?: Bounds
@@ -242,12 +241,7 @@ export class CaptionedChart extends AbstractCaptionedChart {
     }
 
     private renderLoadingIndicator(): React.ReactElement {
-        return (
-            <LoadingIndicator
-                title={this.manager.whatAreWeWaitingFor}
-                bounds={this.bounds}
-            />
-        )
+        return <LoadingIndicator title="Loading data..." bounds={this.bounds} />
     }
 
     private renderTimeline(): React.ReactElement {

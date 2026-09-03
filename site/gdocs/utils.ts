@@ -22,6 +22,7 @@ import {
 } from "@ourworldindata/components"
 import {
     formatAuthors,
+    formatAuthorsForBibtex,
     getCalloutValue,
     getRegionByNameOrVariantName,
     makeLinkedCalloutKey,
@@ -227,7 +228,10 @@ export const useLinkedChart = (
     const linkedChart = linkedCharts?.[urlTarget]
     if (!linkedChart) {
         return {
-            errorMessage: `${linkType} chart with slug ${urlTarget} not found`,
+            errorMessage:
+                linkType === "explorer"
+                    ? `Explorer with slug "${urlTarget}" not found`
+                    : `Chart or multi-dim data page with slug "${urlTarget}" not found`,
         }
     }
 
@@ -319,6 +323,39 @@ export function getShortPageCitation(
     publishedAt: Date | null
 ) {
     return `${formatAuthors(authors)} (${publishedAt?.getFullYear()}) - “${title}”`
+}
+
+/**
+ * Build the citation string and BibTeX entry shown in a gdoc page's
+ * "Cite this work" section.
+ */
+export function buildGdocCitation({
+    authors,
+    title,
+    publishedAt,
+    slug,
+    canonicalUrl,
+    archivalPhrase,
+}: {
+    authors: string[]
+    title: string
+    publishedAt: Date | null
+    slug: string
+    canonicalUrl: string
+    archivalPhrase?: string
+}): { citationText: string; bibtex: string } {
+    const shortPageCitation = getShortPageCitation(authors, title, publishedAt)
+    const citationText = `${shortPageCitation} Published online at OurWorldinData.org. Retrieved from: '${canonicalUrl}' [Online Resource]${archivalPhrase ? ` ${archivalPhrase}` : ""}`
+
+    const bibtex = `@article{owid-${slug.replace(/\//g, "-")},
+    author = {${formatAuthorsForBibtex(authors)}},
+    title = {${title}},
+    journal = {Our World in Data},
+    year = {${publishedAt?.getFullYear()}},
+    note = {${canonicalUrl}}
+}`
+
+    return { citationText, bibtex }
 }
 
 /**

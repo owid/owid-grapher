@@ -2,8 +2,6 @@ import { KnexReadWriteTransaction, knexRaw } from "../db.js"
 import {
     DbInsertExplorerView,
     DbRawExplorerView,
-    serializeChartConfig,
-    DbInsertChartConfig,
     parseChartConfig,
     GrapherInterface,
     DbPlainChart,
@@ -16,10 +14,9 @@ import {
     ExplorerProps,
 } from "@ourworldindata/explorer"
 import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerCatalogResolver.js"
-import { insertChartConfig, updateExistingConfigPair } from "./ChartConfigs.js"
-import { v7 as uuidv7 } from "uuid"
+import { insertChartConfig, updateChartConfig } from "./ChartConfigs.js"
 import * as _ from "lodash-es"
-import { mergeGrapherConfigs, dimensionsToViewId } from "@ourworldindata/utils"
+import { dimensionsToViewId } from "@ourworldindata/utils"
 import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 import {
     ADMIN_BASE_URL,
@@ -64,11 +61,11 @@ async function fetchExplorerDataForViews(
     let grapherConfigRows: ChartRow[] = []
     if (requiredGrapherIds.length)
         grapherConfigRows = await knexRaw<
-            Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
+            Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["config"] }
         >(
             knex,
             `-- sql
-                SELECT c.id, cc.full as config
+                SELECT c.id, cc.config as config
                 FROM charts c
                 JOIN chart_configs cc ON c.configId=cc.id
                 WHERE c.id IN (?)
@@ -78,7 +75,6 @@ async function fetchExplorerDataForViews(
 
     let partialGrapherConfigRows: {
         id: number
-        grapherConfigAdmin: string | null
         grapherConfigETL: string | null
     }[] = []
     if (requiredVariableIds.length) {
@@ -87,11 +83,9 @@ async function fetchExplorerDataForViews(
             `-- sql
                 SELECT
                     v.id,
-                    cc_etl.patch AS grapherConfigETL,
-                    cc_admin.patch AS grapherConfigAdmin
+                    cc.config AS grapherConfigETL
                 FROM variables v
-                    LEFT JOIN chart_configs cc_admin ON cc_admin.id=v.grapherConfigIdAdmin
-                    LEFT JOIN chart_configs cc_etl ON cc_etl.id=v.grapherConfigIdETL
+                    LEFT JOIN chart_configs cc ON cc.id=v.patchConfigIdETL
                 WHERE v.id IN (?)
             `,
             [requiredVariableIds]
@@ -118,27 +112,14 @@ async function fetchExplorerDataForViews(
     }
     const grapherConfigs = grapherConfigRows.map(parseGrapherConfigFromRow)
     const partialGrapherConfigs = partialGrapherConfigRows
-        .filter((row) => row.grapherConfigAdmin || row.grapherConfigETL)
+        .filter((row) => row.grapherConfigETL)
         .map((row) => {
-            const adminConfig = row.grapherConfigAdmin
-                ? parseGrapherConfigFromRow({
-                      id: row.id,
-                      config: row.grapherConfigAdmin,
-                  })
-                : {}
-            const etlConfig = row.grapherConfigETL
-                ? parseGrapherConfigFromRow({
-                      id: row.id,
-                      config: row.grapherConfigETL,
-                  })
-                : {}
-            const mergedConfig = mergeGrapherConfigs(etlConfig, adminConfig)
+            const config = parseGrapherConfigFromRow({
+                id: row.id,
+                config: row.grapherConfigETL!,
+            })
             // explorers set their own dimensions, so we don't need to include them here
-            const mergedConfigWithoutDimensions = {
-                ...mergedConfig,
-                dimensions: undefined,
-            }
-            return mergedConfigWithoutDimensions
+            return { ...config, dimensions: undefined }
         })
 
     return {
@@ -207,7 +188,7 @@ async function iterateExplorerViews(
             // the important properties with the fallback defaults here
             config.title = config.title ?? explorer.grapherState.defaultTitle
             config.subtitle =
-                config.subtitle ?? explorer.grapherState.currentSubtitle
+                config.subtitle ?? explorer.grapherState.effectiveSubtitle
 
             if (!config) {
                 throw new Error(
@@ -280,11 +261,17 @@ export async function refreshExplorerViewsForSlug(
         DbRawExplorerView,
         "id" | "viewId" | "chartConfigId" | "error"
     > & {
-        full: string | null
+        config: string | null
     }
 
     const existingViews: ExistingView[] = await knex
-        .select("ev.id", "ev.viewId", "ev.chartConfigId", "ev.error", "cc.full")
+        .select(
+            "ev.id",
+            "ev.viewId",
+            "ev.chartConfigId",
+            "ev.error",
+            "cc.config"
+        )
         .from("explorer_views as ev")
         .leftJoin("chart_configs as cc", "ev.chartConfigId", "cc.id")
         .where("ev.explorerSlug", slug)
@@ -342,12 +329,12 @@ export async function refreshExplorerViewsForSlug(
             } else if (
                 !existingView.error &&
                 !generatedView.error &&
-                existingView.full &&
+                existingView.config &&
                 generatedView.config
             ) {
                 // Both have successful configs, compare them
                 try {
-                    const existingConfig = parseChartConfig(existingView.full)
+                    const existingConfig = parseChartConfig(existingView.config)
                     configsEqual = _.isEqual(
                         existingConfig,
                         generatedView.config
@@ -425,10 +412,9 @@ export async function refreshExplorerViewsForSlug(
             }
         } else if (generated.config && existing.chartConfigId) {
             // Update existing chart config
-            await updateExistingConfigPair(knex, {
+            await updateChartConfig(knex, {
                 configId: existing.chartConfigId,
-                patchConfig: generated.config,
-                fullConfig: generated.config,
+                config: generated.config,
                 updatedAt: new Date(),
             })
 
@@ -440,13 +426,9 @@ export async function refreshExplorerViewsForSlug(
                 .update({ error: null })
         } else if (generated.config && !existing.chartConfigId) {
             // Create new chart config for previously failed view
-            const chartConfigId = uuidv7()
-            const chartConfig: DbInsertChartConfig = {
-                id: chartConfigId,
-                patch: serializeChartConfig(generated.config),
-                full: serializeChartConfig(generated.config),
-            }
-            await insertChartConfig(knex, chartConfig)
+            const chartConfigId = await insertChartConfig(knex, {
+                config: generated.config,
+            })
 
             await knex(ExplorerViewDimensionsTableName).insert({
                 chartConfigId,
@@ -472,13 +454,9 @@ export async function refreshExplorerViewsForSlug(
                 explorerViewsToInsert.push(insertView)
             } else if (newView.config) {
                 // Create chart config first
-                const chartConfigId = uuidv7()
-                const chartConfig: DbInsertChartConfig = {
-                    id: chartConfigId,
-                    patch: serializeChartConfig(newView.config),
-                    full: serializeChartConfig(newView.config),
-                }
-                await insertChartConfig(knex, chartConfig)
+                const chartConfigId = await insertChartConfig(knex, {
+                    config: newView.config,
+                })
 
                 await knex(ExplorerViewDimensionsTableName).insert({
                     chartConfigId,

@@ -88,6 +88,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
     private slider?: Element | HTMLElement | null
     private playButton?: Element | HTMLElement | null
+    private chartRowAnimationResetFrame?: number
     private readonly disposers: (() => void)[] = []
 
     constructor(props: TimelineComponentProps) {
@@ -424,13 +425,37 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         this.slider?.removeEventListener("touchstart", this.onSliderTouchStart)
         this.playButton?.removeEventListener("touchend", this.onPlayTouchEnd)
 
+        if (this.chartRowAnimationResetFrame !== undefined) {
+            cancelAnimationFrame(this.chartRowAnimationResetFrame)
+            this.enableChartRowAnimation()
+        }
+
         this.disposers.forEach((dispose) => dispose())
+    }
+
+    @action.bound private disableChartRowAnimationForNextFrame(): void {
+        this.manager.disableChartRowAnimation = true
+
+        if (this.chartRowAnimationResetFrame !== undefined) {
+            cancelAnimationFrame(this.chartRowAnimationResetFrame)
+        }
+
+        this.chartRowAnimationResetFrame = requestAnimationFrame(() => {
+            this.chartRowAnimationResetFrame = requestAnimationFrame(
+                this.enableChartRowAnimation
+            )
+        })
+    }
+
+    @action.bound private enableChartRowAnimation(): void {
+        this.chartRowAnimationResetFrame = undefined
+        this.manager.disableChartRowAnimation = false
     }
 
     private formatTime(time: number): string {
         const { timeColumn } = this.manager
         if (!timeColumn) return time.toString()
-        return timeColumn.formatTime(time)
+        return timeColumn.formatTimeShort(time)
     }
 
     @action.bound private togglePlay(): void {
@@ -831,6 +856,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                         onKeyDown={action((e) => {
                             if (isRelevantNavigationKey(e.key)) {
                                 e.preventDefault() // Prevent scrolling
+                                this.disableChartRowAnimationForNextFrame()
                                 this.updateStartTimeOnKeyDown(e.key)
                             }
                         })}
@@ -868,6 +894,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                         onKeyDown={action((e) => {
                             if (isRelevantNavigationKey(e.key)) {
                                 e.preventDefault() // prevent scrolling
+                                this.disableChartRowAnimationForNextFrame()
                                 this.updateEndTimeOnKeyDown(e.key)
                             }
                         })}

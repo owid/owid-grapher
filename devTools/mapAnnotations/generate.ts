@@ -68,7 +68,10 @@ function calculatePoleOfInaccessibility(
         const projectedRing = excludeNull(
             ring.map((pos) => projection(pos as [number, number]))
         )
-        return projectedRing.map(([x, y]) => [x / aspectRatio, y])
+        return projectedRing.map(([x, y]): [number, number] => [
+            x / aspectRatio,
+            y,
+        ])
     })
 
     // calculate the pole of inaccessibility

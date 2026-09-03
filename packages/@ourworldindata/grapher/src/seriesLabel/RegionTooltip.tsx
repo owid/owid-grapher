@@ -12,7 +12,7 @@ export function RegionTooltip({
     initiallyHighlightedRegion,
 }: {
     description: string
-    regions: TooltipRegion[]
+    regions: readonly TooltipRegion[]
     initiallyHighlightedRegion: string
 }): React.ReactElement {
     const [activeRegion, setActiveRegion, clearActiveRegion] =
@@ -56,7 +56,7 @@ function RegionLegend({
     onRegionHover,
     onRegionLeave,
 }: {
-    regions: TooltipRegion[]
+    regions: readonly TooltipRegion[]
     highlightedRegion?: string
     onRegionHover: (name: string) => void
     onRegionLeave: () => void

@@ -1,0 +1,17 @@
+{
+    // Standalone config used only by TypeDoc (see typedoc.json), which reads
+    // the bundled declaration file the package build emits. It deliberately
+    // does NOT extend the repo's base configs: those are written for
+    // TypeScript 7 / tsgo, whose `lib` entries TypeDoc's TypeScript 5 doesn't
+    // know about.
+    "compilerOptions": {
+        "target": "es2022",
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "strict": true,
+        "skipLibCheck": true,
+        "jsx": "react-jsx",
+        "types": []
+    },
+    "include": ["dist/grapher.d.ts"]
+}

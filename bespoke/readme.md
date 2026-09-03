@@ -52,14 +52,13 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
 > = {
     "income-plots": {
         scriptUrl: "/income-plots/index.js",
-        cssUrl: "/income-plots/index.css", // optional
     },
 }
 ```
 
-The URLs are resolved against `BESPOKE_BASE_URL` (defaults to the local dev server, `http://localhost:8089`).
+The URL is resolved against `BESPOKE_BASE_URL` (defaults to the local dev server, `http://localhost:8089`).
 
-The `cssUrl` is optional — if your component manages its own styles (e.g. via `vite-plugin-css-position` injecting CSS into the Shadow DOM from JS), you can omit it.
+A bundle carries its own styles. `vite-plugin-css-position` inlines them into the ES module so they land inside the shadow root.
 
 ## Embedding in Google Docs
 
@@ -85,6 +84,42 @@ Use the `{.bespoke-component}` ArchieML block:
 | `variant` | No       | —       | Identifier for this instance; multiple instances of the same bundle can use variants to share state |
 | `size`    | No       | `wide`  | Layout width: `narrow`, `wide`, or `widest`                                                         |
 | `config`  | No       | `{}`    | Key-value pairs passed to the mount function. Values must be strings (no nesting).                  |
+
+### Embedding in a key insight
+
+A key insight slide normally takes an image (`filename`), a grapher/explorer chart (`url`) or a narrative chart (`narrativeChartName`). To put a bespoke component in the asset column instead, use the `[.+asset]` array, which accepts any block:
+
+```yaml
+{.key-insights}
+  heading: Key insights
+  [.insights]
+    title: Most children die from preventable causes
+    [.+asset]
+      {.bespoke-component}
+        bundle: causes-of-death
+        variant: treemap
+        {.config}
+          ageGroup: Children under 5
+        {}
+      {}
+    []
+    [.+content]
+      Text of the insight goes here.
+    []
+  []
+{}
+```
+
+`asset` is mutually exclusive with `filename`, `url` and `narrativeChartName` — specify exactly one.
+
+The asset column holds one visual filling one slot, so it accepts `bespoke-component`, `chart`, `narrative-chart`, `image`, `static-viz`, `video` and `html`. Layout containers (`side-by-side`, `sticky-left`, `sticky-right`, …) are rejected with a parse error: their grid classes are written for the full 12-column page grid, and the asset column is 7 of those columns, so they would lay out wrong rather than fail. The list is `KEY_INSIGHT_ASSET_BLOCK_TYPES` in `db/model/Gdoc/rawToEnriched.ts`.
+
+Two things to know when authoring one of these:
+
+- **The `size` property has no effect inside a key insight.** The asset column already sets the width (7 of 12 columns on desktop, full width on mobile), and the component fills it.
+- **Don't turn on URL syncing.** The key insights block writes the active slide to the `?insight=` query param; a component that also syncs its state to the URL will fight it.
+
+Note that every slide of a key insights block is in the DOM from page load, not just the active one — so a bespoke component in slide 3 mounts and fetches its data even if the reader never opens that slide.
 
 ## Sizing
 
@@ -144,14 +179,14 @@ Each project under `bespoke/projects/` is fully self-contained. A project has it
 This means each project is responsible for:
 
 - Managing its own dependencies (projects are yarn workspaces of `bespoke/` — run `yarn install` from there)
-- Defining its own build command that produces the ES-module output (and optionally a CSS file)
+- Defining its own build command that produces the ES-module output, with its styles bundled in
 - Bundling everything it needs — shared site styles, fonts, etc. are not available inside the Shadow DOM
 
 Projects can import shared code from `bespoke/components/` if needed, but must bundle it into their output.
 
 ### Build setup
 
-Projects use [Vite library mode](https://vite.dev/guide/build.html#library-mode) to produce the ESM module and optionally a CSS file. A minimal `vite.config.ts`:
+Projects use [Vite library mode](https://vite.dev/guide/build.html#library-mode) to produce the ESM module. A minimal `vite.config.ts`:
 
 ```ts
 import { defineConfig } from "vite"
@@ -242,7 +277,7 @@ A dev server at [bespoke/server/](server/) provides a local environment for work
 yarn startBespokeDevServer
 ```
 
-Visit `http://localhost:8089/<project>/demo` to see a demo page that mounts all of a project's variants inside Shadow DOM — matching the production embedding behavior.
+Visit `http://localhost:8089/<project>/demo` to see a demo page that mounts all of a project's variants inside Shadow DOM — matching the production embedding behavior. `http://localhost:8089/__all` stacks every project's demo page below each other (except `example`), for comparing across projects.
 
 Pass `--build` to build each project and serve the production output via `vite preview` instead of `vite dev`:
 
@@ -260,7 +295,6 @@ To fix this, add a `dev-only-global-css` entrypoint to your project's `package.j
 {
     "entrypoints": {
         "js": "src/index.tsx",
-        "css": "src/index.css", // optional
         "dev-only-global-css": "src/dev-only-global-css.css"
     }
 }
@@ -271,7 +305,7 @@ The dev server will inject this stylesheet into the demo page's `<head>` (outsid
 ## Creating a new bespoke component
 
 1. Create a new directory under `bespoke/projects/`
-2. Set up your project with its own `package.json` and build tooling to output an ESM module (`.mjs`) and optionally a CSS file
+2. Set up your project with its own `package.json` and build tooling to output an ESM module (`.mjs`) with its styles bundled in
 3. Export a `mount` function from the entry point
 4. Register the bundle in [site/bespokeComponentRegistry.ts](../site/bespokeComponentRegistry.ts)
 5. Add the `{.bespoke-component}` block in your Google Doc

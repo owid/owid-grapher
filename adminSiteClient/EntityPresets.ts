@@ -2,14 +2,12 @@ import { EntityName } from "@ourworldindata/types"
 import {
     getContinents,
     getIncomeGroups,
-    getAggregatesByProvider,
-    RegionDataProvider,
-    getRegionDataProviders,
+    getAggregatesInRegionSet,
+    getRegionSets,
+    RegionSet,
 } from "@ourworldindata/utils"
-import {
-    ADDITIONAL_REGION_DATA_PROVIDERS,
-    AdditionalRegionDataProvider,
-} from "@ourworldindata/grapher"
+import { parseLabel, regionGroupLabels } from "@ourworldindata/grapher"
+import * as R from "remeda"
 import { CoreColumn } from "@ourworldindata/core-table"
 import * as _ from "lodash-es"
 
@@ -20,15 +18,16 @@ export interface EntityPreset {
     entities: EntityName[]
 }
 
-const REGION_DATA_PROVIDER_LABELS: Record<RegionDataProvider, string> = {
+/** Short names used in the admin */
+export const regionSetLabels: Record<RegionSet, string> = {
     un: "UN regions",
-    wb: "WB regions",
-    who: "WHO regions",
     un_m49_1: "UN M49 (top)",
     un_m49_2: "UN M49 (mid)",
     un_m49_3: "UN M49 (detailed)",
-    pew: "Pew regions",
     unsdg: "UN SDG regions",
+    wb: "WB regions",
+    who: "WHO regions",
+    pew: "Pew regions",
     iea: "IEA regions",
     ei: "EI regions",
     ember: "Ember regions",
@@ -39,34 +38,8 @@ const REGION_DATA_PROVIDER_LABELS: Record<RegionDataProvider, string> = {
     fao_1: "FAO (continents)",
     fao_2: "FAO (subregions)",
     fao_sdg: "FAO (SDG regions)",
-}
-
-const ADDITIONAL_REGION_DATA_PROVIDER_LABELS: Record<
-    AdditionalRegionDataProvider,
-    string
-> = {
-    fao: "FAO regions",
-    pip: "PIP regions",
-    gcp: "GCP regions",
-    niaid: "NIAID regions",
-    unicef: "UNICEF regions",
-    unaids: "UNAIDS regions",
-    undp: "UNDP regions",
-    oecd: "OECD regions",
-    unsd: "UNSD regions",
-    unm49: "UN M49 regions",
-    ilo: "ILO regions",
-}
-
-/** Extracts entities matching a custom source pattern like "Africa (FAO)" */
-function getEntitiesForAdditionalProvider(
-    availableEntities: EntityName[],
-    provider: AdditionalRegionDataProvider
-): EntityName[] {
-    const suffix = ` (${provider.toLowerCase()})`
-    return availableEntities.filter((name) =>
-        name.trim().toLowerCase().endsWith(suffix)
-    )
+    ihme_gbd_1: "IHME GBD (super-regions)",
+    ihme_gbd_2: "IHME GBD (regions)",
 }
 
 /**
@@ -112,15 +85,16 @@ export const STATIC_ENTITY_PRESETS: EntityPreset[] = [
         description: "World Bank income groups",
         entities: getIncomeGroups().map((r) => r.name),
     },
-    // Add all region providers as separate presets (UN, WB, WHO, etc.)
-    ...getRegionDataProviders().map(
-        (provider): EntityPreset => ({
-            id: provider,
-            label: REGION_DATA_PROVIDER_LABELS[provider],
-            description: `Regions defined by ${provider.toUpperCase()}`,
-            entities: getAggregatesByProvider(provider).map((r) => r.name),
-        })
-    ),
+    // Add each region set as its own preset (UN, WB, WHO, FAO subregions, etc.)
+    ...getRegionSets().map((regionSet): EntityPreset => {
+        const aggregates = getAggregatesInRegionSet(regionSet)
+        return {
+            id: regionSet,
+            label: regionSetLabels[regionSet],
+            description: regionGroupLabels[aggregates[0].publisher],
+            entities: aggregates.map((r) => r.name),
+        }
+    }),
 ]
 
 export interface AvailablePreset {
@@ -146,42 +120,37 @@ export function getAvailablePresets(
         return { preset, entities: availableEntities }
     }).filter(({ entities }) => entities.length >= 3)
 
-    // Check custom region sources (entities like "Africa (FAO)")
-    const additionalPresets = ADDITIONAL_REGION_DATA_PROVIDERS.map(
-        (provider) => {
-            const entities = getEntitiesForAdditionalProvider(
-                availableEntityNames,
-                provider
-            )
-
+    // Check custom region sources (entities like "Africa (PIP)")
+    const entitiesByPublisher = R.groupBy(
+        availableEntityNames,
+        (name) => parseLabel(name).publisherKey
+    )
+    const entitiesInStaticPresets = new Set(
+        staticPresets.flatMap(({ entities }) => entities)
+    )
+    const additionalPresets = R.entries(entitiesByPublisher)
+        .map(([publisher, entities]) => {
             const preset: EntityPreset = {
-                id: `custom_${provider}`,
-                label: ADDITIONAL_REGION_DATA_PROVIDER_LABELS[provider],
-                description: `Regions defined by ${provider.toUpperCase()}`,
+                id: `custom_${publisher}`,
+                label: regionGroupLabels[publisher],
+                description: `Regions defined by ${publisher.toUpperCase()}`,
                 entities,
             }
 
             return { preset, entities }
-        }
-    ).filter(({ entities }) => entities.length >= 3)
+        })
+        .filter(
+            ({ entities }) =>
+                entities.length >= 3 &&
+                entities.some((name) => !entitiesInStaticPresets.has(name))
+        )
 
     return [...staticPresets, ...additionalPresets]
 }
 
-/**
- * Tries presets in priority order and returns entities from the first
- * preset that has enough available entities.
- */
+/** Returns the entities of the highest-priority preset that has enough of them available */
 export function pickFirstAvailablePreset(
     availableEntityNames: EntityName[]
 ): EntityName[] | undefined {
-    const availableSet = new Set(availableEntityNames)
-
-    const entityPresets = getAvailablePresets(availableEntityNames)
-
-    for (const preset of entityPresets) {
-        return preset.entities.filter((name) => availableSet.has(name))
-    }
-
-    return undefined
+    return getAvailablePresets(availableEntityNames)[0]?.entities
 }
