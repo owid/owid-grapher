@@ -306,11 +306,13 @@
 }
 
 // A row has no column structure: its text is one block (title, then the
-// "Source: …" line, with the subtitle between them once a search reveals it).
-// This wrapper carries the row's own hover/selected treatment, so the accent
-// border and background span the full width of the row.
+// "Source: …" line, with the subtitle between them once a search reveals it),
+// with the strip of view thumbnails under it. This wrapper carries the row's
+// own hover/selected treatment, so the accent border and background span the
+// full width of the row.
 .all-charts-block__row-body {
     display: flex;
+    flex-direction: column;
     border-left: 3px solid transparent;
 
     &:hover {
@@ -457,6 +459,80 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+
+// The strip of view thumbnails under the row's text: one per view of the
+// chart, up to three (see getRowThumbnailTabs). Left-aligned and inset to the
+// same 16px as the text above it (3px accent border + 13px).
+//
+// Each thumbnail keeps the mockup's proportions rather than its 270px width:
+// three of those need 826px and the list pane is 523px at the full grid width,
+// so a thumbnail is a third of the strip (about 160px) instead — a third of it
+// on every row, however few views that row has.
+// The gap between a row's thumbnails, and part of the width each one is given
+// below, so the two can't drift apart.
+$all-charts-thumbnail-gap: 8px;
+
+// How many thumbnails a full row holds — MAX_ROW_THUMBNAILS in
+// site/AllChartsBlock.tsx. Every thumbnail is sized as if the row were full,
+// so rows with fewer views don't render bigger ones.
+$all-charts-thumbnails-per-row: 3;
+
+.all-charts-block__row-thumbnails {
+    display: flex;
+    gap: $all-charts-thumbnail-gap;
+    padding: 0 13px 12px;
+}
+
+.all-charts-block__row-thumbnail {
+    // A fixed share of the strip — the three-up width — rather than a flexible
+    // one. With `flex: 0 1 270px` the items shrank to share whatever the row
+    // had between them, so a two-view row rendered them at about 244px against
+    // about 160px in a three-view row and nothing lined up down the list
+    // (Marwa, 2026-09-03). A row with one or two views now leaves the rest of
+    // the strip empty instead. The percentage resolves against this strip's own
+    // width, so it still tracks the list pane at every breakpoint.
+    flex: 0 0
+        calc(
+            (100% - (#{$all-charts-thumbnails-per-row} - 1) *
+                    #{$all-charts-thumbnail-gap}) /
+                #{$all-charts-thumbnails-per-row}
+        );
+    // Without this the flex item won't shrink below the image's intrinsic
+    // width, and the strip overflows the row instead of fitting the pane.
+    min-width: 0;
+    padding: 0;
+    border: 1px solid $gray-20;
+    background-color: $white;
+    cursor: pointer;
+    // The image is the whole content, so there is no line box to leave a
+    // descender's worth of space under it.
+    line-height: 0;
+
+    &:hover {
+        border-color: $blue-40;
+    }
+
+    img {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+}
+
+// The view currently in the chart beside the list, on the selected row. Uses
+// the same vermillion as the selected row's own accent border.
+.all-charts-block__row-thumbnail--active {
+    border-color: $vermillion;
+    box-shadow: inset 0 0 0 1px $vermillion;
+
+    // The hover border above is a class plus a pseudo-class, so it outranks
+    // this rule's plain class and would grey out the active thumbnail for as
+    // long as the pointer sits on it — including straight after the click that
+    // activated it.
+    &:hover {
+        border-color: $vermillion;
+    }
 }
 
 // Mobile/tablet accordion panel holding the inline chart for the currently
