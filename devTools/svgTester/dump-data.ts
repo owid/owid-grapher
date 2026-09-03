@@ -4,17 +4,18 @@ import path from "path"
 import { match } from "ts-pattern"
 import {
     TransactionCloseMode,
+    knexRaw,
     knexReadonlyTransaction,
     type KnexReadonlyTransaction,
 } from "../../db/db.js"
 import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
-import { getPublishedGraphersBySlug } from "../../baker/GrapherImageBaker.js"
 import { getMostViewedGrapherIdsByChartType } from "../../db/model/Chart.js"
 import { getAllPublishedMultiDimDataPages } from "../../db/model/MultiDimDataPage.js"
 import {
     ALL_GRAPHER_CHART_TYPES,
     GrapherInterface,
     ChartConfigsTableName,
+    DbPlainChart,
     DbRawChartConfig,
     SVG_TESTER_SUITES,
     type SvgTesterSuite,
@@ -34,6 +35,29 @@ interface ChartInfo {
     config: GrapherInterface
 }
 
+async function getPublishedGraphersById(
+    trx: KnexReadonlyTransaction
+): Promise<Map<number, GrapherInterface>> {
+    const rows = await knexRaw<
+        Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["config"] }
+    >(
+        trx,
+        `-- sql
+        SELECT c.id, cc.config as config
+        FROM charts c
+        JOIN chart_configs cc ON c.configId = cc.id
+        WHERE cc.config ->> "$.isPublished" = 'true'
+    `
+    )
+    return new Map(
+        rows.map((row) => {
+            const config: GrapherInterface = JSON.parse(row.config)
+            config.id = row.id
+            return [row.id, config]
+        })
+    )
+}
+
 async function getMostViewedGraphersPerChartType(
     trx: KnexReadonlyTransaction,
     topN = 10
@@ -45,11 +69,11 @@ async function getMostViewedGraphersPerChartType(
     )
     const chartIds = (await Promise.all(promises)).flatMap((ids) => ids)
 
-    const allGraphers = await getPublishedGraphersBySlug(trx)
+    const graphersById = await getPublishedGraphersById(trx)
 
     const relevantGraphers = chartIds
         .map((chartId) => {
-            const config = allGraphers.graphersById.get(chartId)
+            const config = graphersById.get(chartId)
             if (!config) return undefined
             return {
                 id: config.slug!, // All published graphers have slugs
@@ -64,8 +88,8 @@ async function getMostViewedGraphersPerChartType(
 async function getAllPublishedGraphers(
     trx: KnexReadonlyTransaction
 ): Promise<ChartInfo[]> {
-    const allGraphers = await getPublishedGraphersBySlug(trx)
-    return allGraphers.graphersBySlug
+    const graphersById = await getPublishedGraphersById(trx)
+    return graphersById
         .values()
         .map((config) => ({
             id: config.slug!, // All published graphers have slugs
