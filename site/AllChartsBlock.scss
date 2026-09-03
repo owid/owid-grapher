@@ -467,16 +467,37 @@
 //
 // Each thumbnail keeps the mockup's proportions rather than its 270px width:
 // three of those need 826px and the list pane is 523px at the full grid width,
-// so they take an equal share of whatever the pane gives them and stop growing
-// at 270px.
+// so a thumbnail is a third of the strip (about 160px) instead — a third of it
+// on every row, however few views that row has.
+// The gap between a row's thumbnails, and part of the width each one is given
+// below, so the two can't drift apart.
+$all-charts-thumbnail-gap: 8px;
+
+// How many thumbnails a full row holds — MAX_ROW_THUMBNAILS in
+// site/AllChartsBlock.tsx. Every thumbnail is sized as if the row were full,
+// so rows with fewer views don't render bigger ones.
+$all-charts-thumbnails-per-row: 3;
+
 .all-charts-block__row-thumbnails {
     display: flex;
-    gap: 8px;
+    gap: $all-charts-thumbnail-gap;
     padding: 0 13px 12px;
 }
 
 .all-charts-block__row-thumbnail {
-    flex: 0 1 270px;
+    // A fixed share of the strip — the three-up width — rather than a flexible
+    // one. With `flex: 0 1 270px` the items shrank to share whatever the row
+    // had between them, so a two-view row rendered them at about 244px against
+    // about 160px in a three-view row and nothing lined up down the list
+    // (Marwa, 2026-09-03). A row with one or two views now leaves the rest of
+    // the strip empty instead. The percentage resolves against this strip's own
+    // width, so it still tracks the list pane at every breakpoint.
+    flex: 0 0
+        calc(
+            (100% - (#{$all-charts-thumbnails-per-row} - 1) *
+                    #{$all-charts-thumbnail-gap}) /
+                #{$all-charts-thumbnails-per-row}
+        );
     // Without this the flex item won't shrink below the image's intrinsic
     // width, and the strip overflows the row instead of fitting the pane.
     min-width: 0;
