@@ -9,8 +9,11 @@ import * as _ from "lodash-es"
 
 import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import * as utils from "./utils.js"
-import { JOB_TIMEOUT_MS, MAX_WORKERS } from "./utils.js"
-import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
+import {
+    JOB_TIMEOUT_MS,
+    MAX_WORKERS,
+    grapherSlugToExportFileKey,
+} from "./utils.js"
 import {
     ALL_GRAPHER_CHART_TYPES,
     SVG_TESTER_SUITES,
