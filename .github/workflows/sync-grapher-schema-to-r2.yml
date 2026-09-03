@@ -5,6 +5,7 @@ on:
       - master
     paths:
       - "packages/@ourworldindata/grapher/src/schema/**"
+      - "devTools/schema/**"
   workflow_dispatch:
 
 permissions:
