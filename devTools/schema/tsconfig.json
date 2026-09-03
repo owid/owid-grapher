@@ -5,5 +5,13 @@
         "rootDir": ".",
         "types": ["node"]
     },
-    "references": []
+    "references": [
+        { "path": "../../packages/@ourworldindata/grapher" },
+        { "path": "../../packages/@ourworldindata/types" },
+        { "path": "../../packages/@ourworldindata/utils" },
+
+        { "path": "../../db" },
+        { "path": "../../serverUtils" },
+        { "path": "../../settings" }
+    ]
 }
