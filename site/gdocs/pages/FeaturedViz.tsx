@@ -65,14 +65,26 @@ export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
                 />
             )}
             <ArticleBlocks blocks={before} />
-            {hero && <FeaturedVizHero block={hero} />}
-            {bespokeMetadata && (
-                <BespokeMetadataBox
-                    className={getLayout(metadataBoxLayoutKey(hero?.size))}
-                    metadata={bespokeMetadata}
-                    citationUrl={canonicalUrl}
-                    pageCitation={citationText}
-                />
+            {hero && (
+                <div className="featured-viz-hero span-cols-14 grid grid-cols-12-full-width">
+                    <BespokeComponent
+                        className={cx(
+                            "featured-viz-hero__viz",
+                            getLayout(`bespoke-component--${hero.size}`)
+                        )}
+                        block={hero}
+                    />
+                    {bespokeMetadata && (
+                        <BespokeMetadataBox
+                            className={getLayout(
+                                metadataBoxLayoutKey(hero.size)
+                            )}
+                            metadata={bespokeMetadata}
+                            citationUrl={canonicalUrl}
+                            pageCitation={citationText}
+                        />
+                    )}
+                </div>
             )}
             <ArticleBlocks blocks={after} />
             {content.refs && !_.isEmpty(content.refs.definitions) ? (
@@ -133,21 +145,6 @@ function metadataBoxLayoutKey(heroSize: BlockSize | undefined): string {
     if (heroSize === undefined || heroSize === BlockSize.Narrow)
         return "default"
     return "bespoke-component--wide"
-}
-
-/** The page's featured viz: a full-bleed band behind the bespoke component. */
-function FeaturedVizHero({ block }: { block: EnrichedBlockBespokeComponent }) {
-    return (
-        <div className="featured-viz-hero span-cols-14 grid grid-cols-12-full-width">
-            <BespokeComponent
-                className={cx(
-                    "featured-viz-hero__viz",
-                    getLayout(`bespoke-component--${block.size}`)
-                )}
-                block={block}
-            />
-        </div>
-    )
 }
 
 interface FeaturedVizBodySplit {
