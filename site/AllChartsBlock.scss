@@ -348,7 +348,11 @@
 // thumbnail is the part that gives way when the pane is narrow.
 .all-charts-block__row-thumbnail {
     flex: 0 0 auto;
-    width: 200px;
+    // 15% off the 200px this started at (Marwa, 2026-09-03: the thumbnails
+    // read as a bit big). Width only: the height comes from the aspect ratio
+    // the img's own width/height attributes give it, so 170 renders ~91 tall
+    // and the browser still reserves the right box before the image lands.
+    width: 170px;
     height: auto;
     border: 1px solid $gray-20;
     background-color: $white;
