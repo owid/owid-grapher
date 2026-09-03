@@ -318,17 +318,54 @@
     }
 }
 
-// The row's text stack, and its single click/keyboard target (role="button" in
-// the markup) for selecting the row on desktop or toggling its mobile
-// accordion.
+// The row's thumbnail and the text stack beside it, and the row's single
+// click/keyboard target (role="button" in the markup) for selecting the row on
+// desktop or toggling its mobile accordion. Stays a two-column flex row at
+// every width — it is never stacked — so below md the thumbnail simply leads
+// a narrower row (and shrinks to 120px at sm) rather than sitting above the
+// title.
 .all-charts-block__row-main {
     flex: 1 1 auto;
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    align-items: flex-start;
+    gap: 12px;
     min-width: 0;
     padding: 12px 13px; // 3px accent border + 13px = 16px of left inset
     cursor: pointer;
+}
+
+.all-charts-block__row-text {
+    // Takes whatever the thumbnail beside it leaves, and no more: without
+    // min-width: 0 the title's longest word would push the thumbnail out of
+    // the row rather than wrapping.
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+// A preview of the chart's default view, leading the row at its left edge
+// (Marwa, 2026-09-03: chart on the left, title and source on the right). It
+// comes first in the markup rather than being flipped here with `order` or
+// `row-reverse`, so the DOM order and the visual order agree. Fixed at the
+// mockup's width on desktop rather than sharing the row proportionally: the
+// title and source beside it are what the list is scanned by, so the
+// thumbnail is the part that gives way when the pane is narrow.
+.all-charts-block__row-thumbnail {
+    flex: 0 0 auto;
+    // 15% off the 200px this started at (Marwa, 2026-09-03: the thumbnails
+    // read as a bit big). Width only: the height comes from the aspect ratio
+    // the img's own width/height attributes give it, so 170 renders ~91 tall
+    // and the browser still reserves the right box before the image lands.
+    width: 170px;
+    height: auto;
+    border: 1px solid $gray-20;
+    background-color: $white;
+
+    @include sm-only {
+        width: 120px;
+    }
 }
 
 .all-charts-block__row-title {
