@@ -318,9 +318,12 @@
     }
 }
 
-// The row's text stack beside its thumbnail, and the row's single
+// The row's thumbnail and the text stack beside it, and the row's single
 // click/keyboard target (role="button" in the markup) for selecting the row on
-// desktop or toggling its mobile accordion.
+// desktop or toggling its mobile accordion. Stays a two-column flex row at
+// every width — it is never stacked — so below md the thumbnail simply leads
+// a narrower row (and shrinks to 120px at sm) rather than sitting above the
+// title.
 .all-charts-block__row-main {
     flex: 1 1 auto;
     display: flex;
@@ -342,9 +345,12 @@
     gap: 2px;
 }
 
-// A preview of the chart's default view, flush to the row's right edge. Fixed
-// at the mockup's width on desktop rather than sharing the row proportionally:
-// the title and source beside it are what the list is scanned by, so the
+// A preview of the chart's default view, leading the row at its left edge
+// (Marwa, 2026-09-03: chart on the left, title and source on the right). It
+// comes first in the markup rather than being flipped here with `order` or
+// `row-reverse`, so the DOM order and the visual order agree. Fixed at the
+// mockup's width on desktop rather than sharing the row proportionally: the
+// title and source beside it are what the list is scanned by, so the
 // thumbnail is the part that gives way when the pane is narrow.
 .all-charts-block__row-thumbnail {
     flex: 0 0 auto;

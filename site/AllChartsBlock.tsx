@@ -855,9 +855,9 @@ const AllChartsTableRow = ({
             })}
         >
             <div className="all-charts-block__row-body">
-                {/* The row's text stack is a single click/keyboard target for
-                    selecting the row on desktop or expanding/collapsing its
-                    mobile accordion. */}
+                {/* The row's thumbnail and text stack together form a
+                    single click/keyboard target for selecting the row on
+                    desktop or expanding/collapsing its mobile accordion. */}
                 <div
                     className="all-charts-block__row-main"
                     role="button"
@@ -867,6 +867,30 @@ const AllChartsTableRow = ({
                     onClick={onSelect}
                     onKeyDown={handleRowKeyDown}
                 >
+                    {/* A static preview of the chart's own default view — no
+                        `tab` param, the same view the chart beside the list
+                        opens on. Leads the row, with the title and source
+                        beside it (Marwa, 2026-09-03). Part of the row's click
+                        target rather than a control of its own: clicking it
+                        selects the row, like clicking the row's text. Same
+                        thumbnail endpoint the search results' previews use.
+                        `alt=""` keeps it out of the accessibility tree, so
+                        leading the row visually doesn't put anything ahead of
+                        the title for a screen reader. */}
+                    <img
+                        className="all-charts-block__row-thumbnail"
+                        src={constructPreviewUrl({
+                            hit,
+                            variant: PreviewVariant.Thumbnail,
+                        })}
+                        alt=""
+                        loading="lazy"
+                        // The thumbnail's own dimensions, so the browser can
+                        // reserve the right box before the image lands — a
+                        // topic page can hold nearly 200 rows of these.
+                        width={GRAPHER_THUMBNAIL_WIDTH}
+                        height={GRAPHER_THUMBNAIL_HEIGHT}
+                    />
                     <span className="all-charts-block__row-text">
                         <span className="all-charts-block__row-title">
                             <HighlightedQueryText
@@ -909,26 +933,6 @@ const AllChartsTableRow = ({
                             </span>
                         )}
                     </span>
-                    {/* A static preview of the chart's own default view — no
-                        `tab` param, the same view the chart beside the list
-                        opens on. Part of the row's click target rather than a
-                        control of its own: clicking it selects the row, like
-                        clicking the row's text. Same thumbnail endpoint the
-                        search results' previews use. */}
-                    <img
-                        className="all-charts-block__row-thumbnail"
-                        src={constructPreviewUrl({
-                            hit,
-                            variant: PreviewVariant.Thumbnail,
-                        })}
-                        alt=""
-                        loading="lazy"
-                        // The thumbnail's own dimensions, so the browser can
-                        // reserve the right box before the image lands — a
-                        // topic page can hold nearly 200 rows of these.
-                        width={GRAPHER_THUMBNAIL_WIDTH}
-                        height={GRAPHER_THUMBNAIL_HEIGHT}
-                    />
                 </div>
             </div>
             {/* Mobile/tablet accordion panel: the persistent sidecar
