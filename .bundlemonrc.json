@@ -4,12 +4,12 @@
     "files": [
         {
             "path": "owid.mjs",
-            "maxSize": "800kB",
+            "maxSize": "810kB",
             "maxPercentIncrease": 2
         },
         {
             "path": "owid.css",
-            "maxSize": "62kB"
+            "maxSize": "63kB"
         }
     ],
     "groups": [

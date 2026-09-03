@@ -52,6 +52,7 @@ export interface AssistantPanelManager {
     displayTitle?: string
     currentSubtitle?: string
     frameBounds?: Bounds
+    base: React.RefObject<HTMLDivElement | null>
 }
 
 /** Trailing window for "fastest decline/increase" options */
@@ -526,7 +527,12 @@ export const AssistantPanel = observer(function AssistantPanel({
                 )}
             </div>
             {keyModalState !== "closed" && (
-                <Modal bounds={keyModalBounds} onDismiss={dismissKeyModal}>
+                <Modal
+                    bounds={keyModalBounds}
+                    onDismiss={dismissKeyModal}
+                    ariaLabel="Internal demo setup"
+                    grapherRef={manager.base}
+                >
                     <div className="assistant-key-modal">
                         <h3 className="assistant-key-modal__title">
                             Internal demo setup
