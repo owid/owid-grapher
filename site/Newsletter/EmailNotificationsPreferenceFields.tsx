@@ -121,11 +121,14 @@ export interface EmailNotificationsPreferenceFieldsProps {
     onToggleContentType: (contentType: EmailNotificationsContentType) => void
     onSetFrequency: (frequency: EmailNotificationsFrequency) => void
     validationErrors?: PreferencesValidationErrors | null
+    isExpanded: boolean
+    onToggleExpanded: () => void
 }
 
 /**
  * The topics / content types / frequency fieldsets, shared between the
- * subscribe form and the magic-link preferences form.
+ * subscribe form and the magic-link preferences form. They sit behind a
+ * disclosure toggle, since the defaults suit most readers.
  */
 export const EmailNotificationsPreferenceFields = ({
     topicAreaNames,
@@ -136,7 +139,57 @@ export const EmailNotificationsPreferenceFields = ({
     onToggleContentType,
     onSetFrequency,
     validationErrors,
+    isExpanded,
+    onToggleExpanded,
 }: EmailNotificationsPreferenceFieldsProps) => {
+    const toggle = (
+        <button
+            type="button"
+            className="newsletter-preference-fields__toggle"
+            aria-expanded={isExpanded}
+            onClick={onToggleExpanded}
+        >
+            <FontAwesomeIcon icon={isExpanded ? faMinus : faPlus} />
+            <span>
+                {isExpanded
+                    ? "Hide your preferences"
+                    : "Choose your preferences"}
+            </span>
+        </button>
+    )
+
+    if (!isExpanded) return toggle
+
+    return (
+        <>
+            {toggle}
+            <PreferenceFieldsets
+                topicAreaNames={topicAreaNames}
+                topicTags={topicTags}
+                contentTypes={contentTypes}
+                frequency={frequency}
+                onToggleTopicTag={onToggleTopicTag}
+                onToggleContentType={onToggleContentType}
+                onSetFrequency={onSetFrequency}
+                validationErrors={validationErrors}
+            />
+        </>
+    )
+}
+
+const PreferenceFieldsets = ({
+    topicAreaNames,
+    topicTags,
+    contentTypes,
+    frequency,
+    onToggleTopicTag,
+    onToggleContentType,
+    onSetFrequency,
+    validationErrors,
+}: Omit<
+    EmailNotificationsPreferenceFieldsProps,
+    "isExpanded" | "onToggleExpanded"
+>) => {
     const allTopicsSelected = areAllTopicsSelected(topicTags, topicAreaNames)
 
     // The toggle callbacks use functional state updates, so toggling every
