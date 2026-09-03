@@ -65,7 +65,7 @@ export class ChartRow extends React.Component<ChartRowProps> {
         makeObservable(this)
     }
 
-    async saveTags(tags: DbChartTagJoin[]) {
+    async saveTags(tags: DbChartTagJoin[]): Promise<void> {
         const { chart } = this.props
         const json = await this.context.admin.requestJSON(
             `/api/charts/${chart.id}/setTags`,
@@ -77,8 +77,8 @@ export class ChartRow extends React.Component<ChartRowProps> {
         }
     }
 
-    @action.bound onSaveTags(tags: DbChartTagJoin[]) {
-        void this.saveTags(tags)
+    @action.bound onSaveTags(tags: DbChartTagJoin[]): Promise<void> {
+        return this.saveTags(tags)
     }
 
     override render() {

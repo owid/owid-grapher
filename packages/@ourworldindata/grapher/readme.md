@@ -1,86 +1,103 @@
 # Grapher
 
-This folder contains the code for Grapher, our client side data exploration and visualization library. The Grapher pipeline is explained below.
+Grapher is [Our World in Data](https://ourworldindata.org/)'s client-side data exploration and visualization library. A chart is a JSON **config** (what to show: title, chart type, selected entities, …) plus the **data** it renders, which Grapher can ingest from several sources.
 
-## Step 1: The Grapher Config
+**📖 Full documentation: [docs.owid.io/projects/grapher](https://docs.owid.io/projects/grapher/)** — quickstarts, data loading, the chart config schema, API reference, and how the library works internally. The docs source lives in [`packageDocs/`](../../../packageDocs/) at the repo root. This readme covers the essentials of installing and using the package, plus notes for [developing the package itself](#developing-the-package).
 
-The user navigates to a grapher page and the browser fetches the **Grapher Config**.
+## Using the package
 
-The _Grapher Config_ contains 3 main ingredients:
+### Installation
 
-- Where to get the **Data** and **Metadata**
-- Any **Transforms** to apply to the data
-- What **Chart Components** to show
-
-## Step 2: The Data
-
-Once the **Grapher Library** has parsed the _Grapher Config_, it fetches the _Data_ from the URLs in that config (or in some cases the _Data_ is embedded right in the _Grapher Config_).
-
-The _Data_ is downloaded in two pieces (though technically the second piece is optional):
-
-1. The _Data_ in CSV (or TSV, JSON, etc). For example:
+The package is published as `@ourworldindata/grapher` to OWID's private npm registry at `https://packages.owid.io`, so installing it requires an auth token for that registry. Point your package manager at it — for npm, in the consuming project's `.npmrc`:
 
 ```
-Country,GDP,Year
-Iceland,123,2020
-France,456,2020
-...
+@ourworldindata:registry=https://packages.owid.io
+//packages.owid.io/:_authToken=<your auth token>
 ```
 
-2. The _Metadata_ about the **Columns** in the _Data_ (including source information). For example:
+(For Yarn Berry, set the equivalent `npmScopes.ourworldindata.npmRegistryServer` and `npmAuthToken` in `.yarnrc.yml`.) Then install as usual:
 
-```
-Column,Name,Source
-GDP,Gross Domestic Product,World Bank
-...
+```bash
+npm install @ourworldindata/grapher
 ```
 
-Then Grapher's **Table Library** parsed the _Data_ into memory as a **Table**. This _Table_ has **Rows** and _Columns_.
+The package has two entry points sharing the same API and type declarations: the root export (`@ourworldindata/grapher`) is the standalone bundle with React baked in, and `@ourworldindata/grapher/react` is the library build for React apps and bundler environments, with `react` and `react-dom` (19) as peer dependencies. React apps must use `/react` — importing the root export there would silently ship a second copy of React. The package is ESM-only.
 
-The initial _Table_ is called the **Root Table**.
+Two things to include on any page that shows a chart:
 
-## Step 3: Global Transforms
+- **Styles**: import `@ourworldindata/grapher/grapher.css` (or link it as a stylesheet).
+- **Fonts** (optional but recommended): charts are designed for **Lato** and **Playfair Display** and fall back to system fonts if they're absent. Load them yourself, or include OWID's font stylesheet like the demo pages do: `<link rel="stylesheet" href="https://ourworldindata.org/fonts.css" />`.
 
-If the _Grapher Config_ specified any _Transforms_ such as filtering or grouping, the _Table Library_ will apply those.
+### Quick start
 
-For example, if a "Min Year Transform" is specified, rows earlier than that year will be filtered.
+`GrapherLoader` is the main entry point: pick a data source via one of its static factories (`fromTable`, `fromCsv`, `fromApi`), then `mount` it into a sized container element.
 
-## Step 4: Child Tables
+```tsx
+import { useEffect, useRef } from "react"
+import { DimensionProperty, GrapherLoader } from "@ourworldindata/grapher/react"
+import "@ourworldindata/grapher/grapher.css"
 
-The _Grapher Library_ then derives one **Child Table** for each _Chart Component_ from the _Root Table_.
+function LifeExpectancyChart() {
+    const ref = useRef<HTMLDivElement>(null)
 
-If the author specified different _Transforms_ for different _Chart Components_—i.e. a different year to show on the Map Component—those are applied.
+    useEffect(() => {
+        const loader = GrapherLoader.fromApi({
+            config: {
+                title: "Life expectancy",
+                selectedEntityNames: ["World", "Africa", "Europe"],
+                dimensions: [
+                    { property: DimensionProperty.y, variableId: 1118466 },
+                ],
+            },
+        }).mount(ref.current!)
 
-All _Chart Components_ can now also make any changes they want to their _Child Table_ without affecting other _Chart Components_. If _Transforms_ are
-made to the "Root Table", those changes automatically propagate down to all _Child Tables_.
+        return () => loader.dispose()
+    }, [])
 
-## Step 5: Rendering
-
-Now all the _Chart Components_ have all their own _Tables_ and Grapher renders to the user's screen.
-
-As the user interacts with **Chart Controls**, changes are made to the respective _Tables_ and the visualizations update.
-
-### Flowchart
-
-<img src="readme.svg">
-
-```mermaid
-graph LR
-UserVisitsPage((When User Visits Page))
-UserVisitsPage --> Load[Load Grapher Config]
-Load --> DataNeeds[Determine Data Needs]
-DataNeeds --> Data[Download Data]
-DataNeeds --> Metadata[Download Metadata]
-Data --> RootTable[Make Root Table]
-Metadata --> RootTable[Make Root Table]
-RootTable --> GlobalTransforms[Apply Global Transforms]
-GlobalTransforms --> ChildTable1[Derive Table for Map Chart]
-GlobalTransforms --> ChildTable2[Derive Table for Line Chart]
-GlobalTransforms --> ChildTableN[Derive Table for ...]
-ChildTable1 --> Render
-ChildTable2 --> Render
-ChildTableN --> Render
-Render --> UserEditsTransforms((When User Uses Controls))
-UserEditsTransforms --> GlobalTransforms
-UserEditsTransforms --> DataNeeds
+    return <div style={{ aspectRatio: "850 / 600" }} ref={ref} />
+}
 ```
+
+For loading your own data (CSV or in-memory tables), providing source metadata, the standalone bundle for non-React pages, sizing, and the full `GrapherLoader` API, see the [documentation](https://docs.owid.io/projects/grapher/). A complete working example of all three data sources is in [`demo.html`](./demo.html) (`yarn startDemoServer`).
+
+## Developing the package
+
+### Build outputs
+
+Running the build script produces the following outputs under `dist/`:
+
+- `grapher.react.js`: The ES module library build, published as the `@ourworldindata/grapher/react` export. React and React DOM are marked as external peer dependencies (ideal for modern React apps or bundler environments).
+- `grapher.standalone.min.js`: The minified standalone bundle, published as the root `@ourworldindata/grapher` export. All dependencies (including React and React DOM) are bundled, enabling plug-and-play usage directly in any HTML page.
+- `grapher.css`: The stylesheet containing all Grapher layouts and components styles.
+- `grapher-schema.json`: The latest JSON schema for Grapher configs, also available through the `@ourworldindata/grapher/grapher-schema.json` package export.
+- `grapher.d.ts`: TypeScript declaration entry point for the public API.
+
+To compile these assets:
+
+```bash
+cd packages/@ourworldindata/grapher
+yarn build
+```
+
+### Testing the build outputs
+
+Two tools help verify the built package (both expect `yarn build` to have run first):
+
+- `yarn testPackage` verifies the package as it would be published. It first packs it to `dist-package/grapher.tgz` (`yarn testPackage:pack` — a `yarn pack`, which applies `publishConfig`, then runs two checks over that tarball, each of which can also run individually after a pack:
+    - `yarn testPackage:vitest` runs the smoke tests in `packageTest/`: they import both JS builds, mount a chart from the built code into a DOM, typecheck a simulated external consumer against the tarball's bundled type declarations — with `moduleResolution: bundler` and `nodenext`, plus a full check of the declaration bundle itself — and run a [publint](https://publint.dev) pass over the tarball's packaging metadata (with one known publint false positive excepted, documented in `packageTest/publint.packagetest.ts`). These tests are intentionally not part of the repo-wide `yarn test` since they depend on `dist/` and the packed tarball.
+    - `yarn testPackage:attw` runs an [`@arethetypeswrong/cli`](https://github.com/arethetypeswrong/arethetypeswrong.github.io) pass over the tarball's types/exports wiring. It checks the `esm-only` profile since the package ships no CJS, and excludes the `./grapher.css` entrypoint, which isn't a resolvable module.
+- `yarn startDemoServer` serves this directory on http://localhost:8433 via `http-server` and opens `/demo.html`, which shows the three `GrapherLoader` variants. It's a plain static server, so the demo page loads `dist/` exactly like a CDN consumer would.
+
+### Documentation
+
+The public docs site at [docs.owid.io/projects/grapher](https://docs.owid.io/projects/grapher/) is built from `packageDocs/` at the repo root and deployed by the [Deploy package docs](../../../.github/workflows/deploy-docs-cf.yml) workflow. The API reference and schema reference pages are generated (`yarn buildDocsApi` / `yarn buildDocsSchema`, both after a `yarn build`); the rest is hand-written — keep it in sync when changing the public API or consumer-facing behavior. Preview locally with `yarn startPackageDocsServer` from the repo root.
+
+### Publishing a release
+
+Releases go to OWID's private registry at `https://packages.owid.io` (set as `publishConfig.registry`). From this directory, with the build verified (`yarn build` + `yarn testPackage`):
+
+```bash
+yarn bumpp
+```
+
+Once that commit & tag are pushed to `master`, a Buildkite pipeline runs a publish and will put the package release both onto our private npm registry, and will make the built files available on our Tailnet.

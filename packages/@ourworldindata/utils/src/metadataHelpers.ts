@@ -1,4 +1,3 @@
-import * as R from "remeda"
 import {
     OwidOrigin,
     OwidVariableWithSource,
@@ -11,31 +10,40 @@ import {
 import * as _ from "lodash-es"
 import { excludeUndefined } from "./Util"
 import dayjs from "./dayjs.js"
-import { parseArchivalDate } from "./archival/archivalDate.js"
+import {
+    formatDateForCitation,
+    getPhraseForArchivalDate,
+} from "./archival/archivalDate.js"
 
-export function getOriginAttributionFragments(
-    origins: OwidOrigin[] | undefined
-): string[] {
-    return origins
-        ? origins.map((origin) => {
-              const yearPublished = origin.datePublished
-                  ? dayjs(origin.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
-                  : undefined
-              const yearPublishedString = yearPublished
-                  ? ` (${yearPublished})`
-                  : ""
-              return (
-                  origin.attribution ??
-                  `${origin.producer}${yearPublishedString}`
-              )
-          })
-        : []
+export interface OriginAttribution {
+    label: string
+    url?: string
 }
 
-export const splitSourceTextIntoFragments = (
-    text: string | undefined
-): string[] => {
-    return text ? text.split(";").map((fragment) => fragment.trim()) : []
+const getOriginAttributionLabel = (origin: OwidOrigin): string | undefined => {
+    if (origin.attribution) return origin.attribution
+
+    const name = origin.producer ?? origin.title ?? origin.urlMain
+    if (!name) return undefined
+
+    const yearPublished = origin.datePublished
+        ? dayjs(origin.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
+        : undefined
+
+    return yearPublished ? `${name} (${yearPublished})` : name
+}
+
+export function getOriginAttributions(
+    origins: OwidOrigin[] | undefined
+): OriginAttribution[] {
+    if (!origins) return []
+
+    return excludeUndefined(
+        origins.map((origin) => {
+            const label = getOriginAttributionLabel(origin)
+            return label ? { label, url: origin.urlMain } : undefined
+        })
+    )
 }
 
 export function getAttributionFragmentsFromVariable(
@@ -50,12 +58,20 @@ export function getAttributionFragmentsFromVariable(
     )
         return [variable.presentation?.attribution]
 
-    const originAttributionFragments = getOriginAttributionFragments(
-        variable.origins
+    const originAttributions = excludeUndefined(
+        (variable.origins ?? []).map(getOriginAttributionLabel)
     )
     const name = variable.source?.name
-    return _.uniq(_.compact([name, ...originAttributionFragments]))
+    return _.uniq(_.compact([name, ...originAttributions]))
 }
+
+export const formatAttributions = (attributions: string[]): string =>
+    attributions.join("; ")
+
+export const formatAttributionsShortened = (attributions: string[]): string =>
+    attributions.length > 3
+        ? `${attributions[0]} and other sources`
+        : formatAttributions(attributions)
 
 interface ETLPathComponents {
     channel: string
@@ -68,24 +84,13 @@ interface ETLPathComponents {
 
 export const getETLPathComponents = (path: string): ETLPathComponents => {
     const [channel, producer, version, dataset, table, indicator] =
-        path.split("/")
+        path.split(/[/#]/)
     return { channel, producer, version, dataset, table, indicator }
 }
 
-export function formatAuthors(authors: string[]): string {
-    if (authors.length === 0) return ""
-    if (authors.length === 1) return authors[0]
-    if (authors.length === 2) return authors.join(" and ")
-    return authors.slice(0, -1).join(", ") + `, and ${R.last(authors)}`
-}
-
-export function formatAuthorsForBibtex(authors: string[]): string {
-    return authors.join(" and ")
-}
-
-const isDate = (date: string): boolean => {
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-    return !!date.match(dateRegex)
+const isFullDate = (date: string): boolean => {
+    const fullDateRegex = /^\d{4}-\d{2}-\d{2}$/
+    return !!date.match(fullDateRegex)
 }
 
 export const getLastUpdatedFromVariable = (
@@ -93,20 +98,14 @@ export const getLastUpdatedFromVariable = (
 ): string | undefined => {
     // if possible, extract date from the catalog path
     const version = getETLPathComponents(variable.catalogPath ?? "")?.version
-    if (version && isDate(version)) return version
+    if (version && isFullDate(version)) return version
 
     const { origins = [] } = variable
-    const originDates = excludeUndefined(
+    const isoDatesAccessed = excludeUndefined(
         origins.map((origin) => origin.dateAccessed)
     )
 
-    if (originDates.length === 0) return undefined
-
-    // alternatively, pick the latest dateAccessed from the origins
-    const latestDate = new Date(
-        Math.max(...originDates.map((date) => new Date(date).getTime()))
-    )
-    return dayjs(latestDate).format("YYYY-MM-DD")
+    return _.max(isoDatesAccessed)
 }
 
 export const getNextUpdateFromVariable = (
@@ -115,17 +114,22 @@ export const getNextUpdateFromVariable = (
     const lastUpdated = getLastUpdatedFromVariable(variable)
     let nextUpdate = undefined
     if (variable.updatePeriodDays) {
-        const date = dayjs(lastUpdated)
-        const nextUpdateDate = date.add(variable.updatePeriodDays, "day")
+        const lastUpdatedDate = dayjs(lastUpdated)
+        const scheduledUpdate = lastUpdatedDate.add(
+            variable.updatePeriodDays,
+            "day"
+        )
         // If the next update date is in the past, we set it to the next month
-        if (nextUpdateDate.isBefore(dayjs()))
+        if (scheduledUpdate.isBefore(dayjs()))
             nextUpdate = dayjs().add(1, "month")
-        else nextUpdate = nextUpdateDate
+        else nextUpdate = scheduledUpdate
     }
     return nextUpdate?.format("YYYY-MM-DD")
 }
 
-export const getPhraseForProcessingLevel = (
+const OWID_ATTRIBUTION = "Our World in Data"
+
+const getPhraseForProcessingLevel = (
     processingLevel: OwidProcessingLevel | undefined
 ): string => {
     switch (processingLevel) {
@@ -138,11 +142,25 @@ export const getPhraseForProcessingLevel = (
     }
 }
 
+const isOwidTheSoleAttribution = (attribution: string | string[]): boolean => {
+    const fragments = Array.isArray(attribution) ? attribution : [attribution]
+    return (
+        fragments.length === 1 &&
+        fragments[0].toLowerCase() === OWID_ATTRIBUTION.toLowerCase()
+    )
+}
+
+export const getProcessingPhraseForAttribution = (
+    attribution: string | string[],
+    owidProcessingLevel: OwidProcessingLevel | undefined
+): string | undefined =>
+    isOwidTheSoleAttribution(attribution)
+        ? undefined
+        : getPhraseForProcessingLevel(owidProcessingLevel)
+
 const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
-    let label = origin.producer ?? ""
-    if (origin.title && origin.title !== label) {
-        label += " – " + origin.title
-    }
+    const title = origin.title !== origin.producer ? origin.title : undefined
+    const label = excludeUndefined([origin.producer, title]).join(" – ")
 
     return {
         label,
@@ -181,113 +199,111 @@ export const prepareSourcesForDisplay = (
     return sourcesForDisplay
 }
 
-export const getYearSuffixFromOrigin = (o: OwidOrigin): string => {
-    const year = o.dateAccessed
-        ? dayjs(o.dateAccessed, ["YYYY-MM-DD", "YYYY"]).year()
-        : o.datePublished
-          ? dayjs(o.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
-          : undefined
-    if (year) return ` (${year})`
-    else return ""
-}
-
-export const getCitationShort = (
-    origins: OwidOrigin[],
-    attributions: string[],
+export const getAttributionWithProcessing = (
+    attribution: string,
     owidProcessingLevel: OwidProcessingLevel | undefined
 ): string => {
-    const producersWithYear = _.uniq(
-        origins.map((o) => `${o.producer}${getYearSuffixFromOrigin(o)}`)
+    const processingPhrase = getProcessingPhraseForAttribution(
+        attribution,
+        owidProcessingLevel
     )
-    const processingLevelPhrase =
-        getPhraseForProcessingLevel(owidProcessingLevel)
 
-    const attributionFragments = attributions ?? producersWithYear
-    const attributionPotentiallyShortened =
-        attributionFragments.length > 3
-            ? `${attributionFragments[0]} and other sources`
-            : attributionFragments.join("; ")
-
-    return `${attributionPotentiallyShortened} – ${processingLevelPhrase} by Our World in Data`
+    return processingPhrase
+        ? `${attribution} – ${processingPhrase} by ${OWID_ATTRIBUTION}`
+        : attribution
 }
 
-const getDateForCitation = (date: dayjs.Dayjs): string =>
-    date.format("MMMM D, YYYY")
-
-export const getPhraseForArchivalDate = (
-    archivalDate: string | undefined
-): string | undefined => {
-    if (!archivalDate) return undefined
-
-    const parsedDate = parseArchivalDate(archivalDate)
-    const formatted = getDateForCitation(parsedDate)
-    return `(archived on ${formatted}).`
+const getCitationShort = ({
+    attributions,
+    owidProcessingLevel,
+}: {
+    attributions: string[]
+    owidProcessingLevel?: OwidProcessingLevel
+}): string => {
+    return getAttributionWithProcessing(
+        formatAttributionsShortened(attributions),
+        owidProcessingLevel
+    )
 }
 
-export const getCitationLong = (
-    indicatorTitle: IndicatorTitleWithFragments,
-    origins: OwidOrigin[],
-    source: OwidSource | undefined,
-    attributions: string[],
-    attributionShort: string | undefined,
-    titleVariant: string | undefined,
-    owidProcessingLevel: OwidProcessingLevel | undefined,
-    citationUrl: string | undefined,
-    archivalDate: string | undefined
-): string => {
-    const sourceShortName =
+const getCitationLong = ({
+    indicatorTitle,
+    origins,
+    source,
+    attributions,
+    attributionShort,
+    titleVariant,
+    owidProcessingLevel,
+    citationUrl,
+    archivalDate,
+}: {
+    indicatorTitle: IndicatorTitleWithFragments
+    origins: OwidOrigin[]
+    source?: OwidSource
+    attributions: string[]
+    attributionShort?: string
+    titleVariant?: string
+    owidProcessingLevel?: OwidProcessingLevel
+    citationUrl?: string
+    archivalDate?: string
+}): string => {
+    const citationTitleFragments =
         attributionShort && titleVariant
             ? `${attributionShort} – ${titleVariant}`
             : attributionShort || titleVariant
-    const producersWithYear = _.uniq(
-        origins.map((o) => `${o.producer}${getYearSuffixFromOrigin(o)}`)
+    const attributionWithProcessing = getAttributionWithProcessing(
+        formatAttributions(attributions),
+        owidProcessingLevel
     )
-    const processingLevelPhrase =
-        getPhraseForProcessingLevel(owidProcessingLevel)
-
-    const attributionFragments = attributions ?? producersWithYear
-    const attributionUnshortened = attributionFragments.join("; ")
-    const citationLonger = `${attributionUnshortened} – ${processingLevelPhrase} by Our World in Data`
-    const titleWithOptionalFragments = excludeUndefined([
+    const titleWithFragments = excludeUndefined([
         indicatorTitle.title,
-        sourceShortName,
+        citationTitleFragments,
     ]).join(" – ")
-    const originsLong = _.uniq(
-        origins.map(
-            (o) =>
-                `${o.producer}, “${o.title ?? o.titleSnapshot}${
-                    o.versionProducer ? " " + o.versionProducer : ""
-                }”`
-        )
+    const originCitations = _.uniq(
+        origins.map((origin) => {
+            const title = origin.title ?? origin.titleSnapshot
+            const versionProducer = origin.versionProducer
+                ? " " + origin.versionProducer
+                : ""
+            return excludeUndefined([
+                origin.producer,
+                title ? `“${title}${versionProducer}”` : undefined,
+            ]).join(", ")
+        })
     ).join("; ")
-    const today = getDateForCitation(dayjs())
-    const archivalString = getPhraseForArchivalDate(archivalDate)
+    const today = formatDateForCitation(dayjs())
+    const archivalPhrase = getPhraseForArchivalDate(archivalDate)
     return excludeUndefined([
-        `${citationLonger}.`,
-        `“${titleWithOptionalFragments}” [dataset].`,
-        originsLong
-            ? `${originsLong} [original data].`
+        `${attributionWithProcessing}.`,
+        `“${titleWithFragments}” [dataset].`,
+        originCitations
+            ? `${originCitations} [original data].`
             : source?.name
               ? `${source?.name} [original data].`
               : undefined,
         citationUrl
-            ? `Retrieved ${today} from ${citationUrl}${archivalString ? ` ${archivalString}` : ""}`
+            ? `Retrieved ${today} from ${citationUrl}${archivalPhrase ? ` ${archivalPhrase}` : ""}`
             : undefined,
     ]).join(" ")
 }
 
-// The "How to cite this page" citation, covering the OWID-authored data page as
-// a whole (descriptions, FAQs, etc.) rather than just the underlying data.
-export const getCitationDatapage = (
-    indicatorTitle: IndicatorTitleWithFragments,
-    origins: OwidOrigin[],
-    source: OwidSource | undefined,
-    primaryTopic: PrimaryTopic | undefined,
-    citationUrl: string | undefined,
-    archivalDate: string | undefined
-): string => {
+const getCitationDatapage = ({
+    indicatorTitle,
+    origins,
+    source,
+    primaryTopic,
+    citationUrl,
+    archivalDate,
+}: {
+    indicatorTitle: IndicatorTitleWithFragments
+    origins: OwidOrigin[]
+    source?: OwidSource
+    primaryTopic?: PrimaryTopic
+    citationUrl: string
+    archivalDate?: string
+}): string => {
     const currentYear = dayjs().year()
-    const producers = _.uniq(origins.map((o) => `${o.producer}`))
+    const producers = _.uniq(origins.map((origin) => `${origin.producer}`))
     const adaptedFrom =
         producers.length > 0 ? producers.join(", ") : source?.name
 
@@ -296,17 +312,64 @@ export const getCitationDatapage = (
     const maybeAddPeriod = (s: string): string =>
         s.endsWith("?") || s.endsWith(".") ? s : `${s}.`
     const primaryTopicCitation = maybeAddPeriod(primaryTopic?.citation ?? "")
-    const archivalString = getPhraseForArchivalDate(archivalDate)
+    const archivalPhrase = getPhraseForArchivalDate(archivalDate)
     return excludeUndefined([
         primaryTopic
             ? `“Data Page: ${indicatorTitle.title}”, part of the following publication: ${primaryTopicCitation}`
             : `“Data Page: ${indicatorTitle.title}”. Our World in Data (${currentYear}).`,
         adaptedFrom ? `Data adapted from ${adaptedFrom}.` : undefined,
         `Retrieved from ${citationUrl} [online resource]${
-            archivalString ? ` ${archivalString}` : ""
+            archivalPhrase ? ` ${archivalPhrase}` : ""
         }`,
     ]).join(" ")
 }
+
+export const getIndicatorCitations = ({
+    indicatorTitle,
+    origins,
+    source,
+    attributions,
+    attributionShort,
+    titleVariant,
+    owidProcessingLevel,
+    citationUrl,
+    archivalDate,
+    primaryTopic,
+}: {
+    indicatorTitle: IndicatorTitleWithFragments
+    origins: OwidOrigin[]
+    source?: OwidSource
+    attributions: string[]
+    attributionShort?: string
+    titleVariant?: string
+    owidProcessingLevel?: OwidProcessingLevel
+    citationUrl?: string
+    archivalDate?: string
+    primaryTopic?: PrimaryTopic
+}): { short: string; long: string; datapage?: string } => ({
+    short: getCitationShort({ attributions, owidProcessingLevel }),
+    long: getCitationLong({
+        indicatorTitle,
+        origins,
+        source,
+        attributions,
+        attributionShort,
+        titleVariant,
+        owidProcessingLevel,
+        citationUrl,
+        archivalDate,
+    }),
+    datapage: citationUrl
+        ? getCitationDatapage({
+              indicatorTitle,
+              origins,
+              source,
+              primaryTopic,
+              citationUrl,
+              archivalDate,
+          })
+        : undefined,
+})
 
 export const formatSourceDate = (
     date: string | undefined,
@@ -317,7 +380,7 @@ export const formatSourceDate = (
     return parsedDate.format(format)
 }
 
-export const getDateRange = (dateRange: string): string | null => {
+export const getDateRange = (timespan: string): string | null => {
     // This regex matches:
     //   Beginning of string
     //   Ignore whitespace
@@ -332,8 +395,8 @@ export const getDateRange = (dateRange: string): string | null => {
     //     1 or more digits
     //   Ignore whitespace
     //   End of string
-    const dateRangeRegex = /^\s*(?<start>(-)?\d+)\s*(-|–)\s*(?<end>(-)?\d+)\s*$/
-    const match = dateRange.match(dateRangeRegex)
+    const timespanRegex = /^\s*(?<start>(-)?\d+)\s*(-|–)\s*(?<end>(-)?\d+)\s*$/
+    const match = timespan.match(timespanRegex)
     if (match) {
         const firstYearString = match.groups?.start
         const lastYearString = match.groups?.end

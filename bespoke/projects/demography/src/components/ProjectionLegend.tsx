@@ -5,7 +5,7 @@ import {
     BENCHMARK_LINE_COLOR,
     DENIM_BLUE,
     USER_MODIFIED_COLOR,
-} from "../helpers/constants.js"
+} from "../core/constants.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 
 export function ProjectionLegend({

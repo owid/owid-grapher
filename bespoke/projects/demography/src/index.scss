@@ -4,6 +4,7 @@
 @import "tippy.js/themes/light.css";
 
 @import "@fortawesome/fontawesome-svg-core/styles.css";
+@import "../../../../packages/@ourworldindata/components/src/styles/fontawesome.scss";
 
 @import "./grapher.scss";
 @import "./base.scss";
@@ -16,3 +17,4 @@
 @import "../../../components/TimeSlider/TimeSlider.scss";
 @import "../../../components/Frame/Frame.scss";
 @import "../../../components/Spinner/Spinner.scss";
+@import "../../../components/ResponsiveContainer/ResponsiveContainer.scss";

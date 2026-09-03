@@ -15,7 +15,7 @@ import { Admin } from "./Admin.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
 async function fetchOrphans(admin: Admin): Promise<TopicPageOrphanReport[]> {
-    return admin.getJSON<TopicPageOrphanReport[]>(
+    return admin.getJSONInBackground<TopicPageOrphanReport[]>(
         "/api/gdocs/researchAndWritingOrphans"
     )
 }

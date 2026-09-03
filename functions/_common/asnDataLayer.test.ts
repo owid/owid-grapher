@@ -37,6 +37,26 @@ describe(buildDataLayerScript, () => {
         ).toContain(`{"as_org":"Cloudflare"}`)
     })
 
+    it("includes verified_bot_category when Cloudflare flagged a verified bot", () => {
+        expect(
+            buildDataLayerScript({
+                asn: 15169,
+                asOrganization: "Google LLC",
+                verifiedBotCategory: "Search Engine Crawler",
+            })
+        ).toContain(`"verified_bot_category":"Search Engine Crawler"`)
+    })
+
+    it("omits verified_bot_category for non-bot traffic", () => {
+        // Absent means "not a verified bot", so the key must not be sent empty
+        expect(buildDataLayerScript({ asn: 680 })).not.toContain(
+            "verified_bot_category"
+        )
+        expect(
+            buildDataLayerScript({ asn: 680, verifiedBotCategory: "" })
+        ).not.toContain("verified_bot_category")
+    })
+
     it("returns undefined when cf info is absent (e.g. local dev)", () => {
         expect(buildDataLayerScript(undefined)).toBeUndefined()
         expect(buildDataLayerScript({})).toBeUndefined()

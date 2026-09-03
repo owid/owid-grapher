@@ -9,10 +9,17 @@
     display: flex;
     flex-direction: column;
 
+    .download-modal__tabs {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
     .download-modal__tab-list {
         --tabs-font-size: 14px;
 
-        padding: 0 var(--modal-padding);
+        margin: 0 var(--modal-padding);
 
         .Tabs__Tab {
             // Tabs should fill the whole available width
@@ -34,6 +41,11 @@
     .download-modal__tab-content {
         padding: 0 var(--modal-padding);
         margin-bottom: 24px;
+
+        // the inactive tab panel stays mounted (react-aria marks it as inert)
+        &[data-inert] {
+            display: none;
+        }
     }
 
     .download-modal__vis-section {

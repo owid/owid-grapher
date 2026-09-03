@@ -11,6 +11,9 @@ export type SvgTesterDirectory = (typeof SVG_TESTER_DIRECTORIES)[number]
 
 export const SVG_TESTER_VERIFY_RESULTS_FILENAME = "verify-results.json"
 
+export const SVG_TESTER_PROGRESS_INTERVAL_MS = 5_000
+export const SVG_TESTER_HEARTBEAT_STALE_MS = 90_000
+
 export type SvgTesterVerifyRunStatus =
     | "running"
     | "ok"
@@ -35,6 +38,7 @@ export interface SvgTesterVerifyRunSummary {
     suite: SvgTesterSuite
     status: SvgTesterVerifyRunStatus
     startedAt: string
+    updatedAt: string
     durationMs: number
     grapherCommit: string | null
     svgsCommit: string | null
@@ -54,7 +58,6 @@ export type SvgTesterVerifyRunOverview = Omit<
     "differences" | "errors"
 >
 
-/** What the suite list needs: headline numbers, no per-chart entries */
 export interface SvgTesterSuiteOverview {
     suite: SvgTesterSuite
     /** Null when the suite has never run */

@@ -7,8 +7,10 @@ import type {
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
 
+import { parseEmbedConfig } from "../../../helpers/config.js"
+
 import { CausesOfDeathChartWithProviders } from "./components/CausesOfDeathChart.js"
-import { CausesOfDeathConfig } from "./helpers/CausesOfDeathConstants.js"
+import { parseConfig } from "./core/config.js"
 
 import "./index.scss"
 
@@ -34,13 +36,9 @@ export const mount: BespokeComponentMountFn = (
     }
 
     const rawConfig = opts.config ?? {}
-    const config: CausesOfDeathConfig = {
-        region: rawConfig.region,
-        sex: rawConfig.sex,
-        ageGroup: rawConfig.ageGroup,
-        year: rawConfig.year ? parseInt(rawConfig.year, 10) : undefined,
-        hideControls: rawConfig.hideControls === "true",
-        urlSync: rawConfig.urlSync === "true",
+    const config = {
+        ...parseConfig(rawConfig),
+        ...parseEmbedConfig(rawConfig),
     }
 
     const root = createRoot(container)

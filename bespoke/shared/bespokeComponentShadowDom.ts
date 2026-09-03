@@ -1,28 +1,10 @@
 import type { BespokeComponentModule } from "./bespokeComponentTypes.ts"
 
 /**
- * Load a CSS stylesheet into a shadow root by appending a <link> element.
- * Resolves when the stylesheet has finished loading.
- */
-export function loadCssIntoShadow(
-    shadowRoot: ShadowRoot,
-    cssUrl: string
-): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-        const link = document.createElement("link")
-        link.rel = "stylesheet"
-        link.href = cssUrl
-        link.onload = () => resolve()
-        link.onerror = () => reject(new Error(`Failed to load CSS: ${cssUrl}`))
-        shadowRoot.appendChild(link)
-    })
-}
-
-/**
  * Mount a bespoke component into a shadow DOM container.
  *
- * Creates (or reuses) a shadow root on the given element, loads the CSS,
- * dynamically imports the JS module, and calls its `mount` function.
+ * Creates (or reuses) a shadow root on the given element, dynamically imports
+ * the JS module, and calls its `mount` function.
  *
  * Returns a dispose function that cleans up the mounted component.
  * Respects the provided AbortSignal to cancel mid-flight.
@@ -30,14 +12,12 @@ export function loadCssIntoShadow(
 export async function mountBespokeComponentInShadow({
     container,
     scriptUrl,
-    cssUrl,
     variant,
     config,
     signal,
 }: {
     container: HTMLDivElement
     scriptUrl: string
-    cssUrl?: string
     variant?: string
     config?: Record<string, string>
     signal?: AbortSignal
@@ -48,18 +28,10 @@ export async function mountBespokeComponentInShadow({
     }
     shadowRoot.replaceChildren()
 
-    const promises = []
-    if (cssUrl) {
-        promises.push(loadCssIntoShadow(shadowRoot, cssUrl))
-    }
-    const jsPromise = import(
+    const module = (await import(
         /* @vite-ignore */
         scriptUrl
-    ) as Promise<BespokeComponentModule>
-    promises.push(jsPromise)
-
-    await Promise.all(promises)
-    const module = await jsPromise
+    )) as BespokeComponentModule
 
     if (signal?.aborted) return {}
 

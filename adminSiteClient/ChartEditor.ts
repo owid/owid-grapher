@@ -11,9 +11,8 @@ import {
     ChartRedirect,
     Json,
     GrapherInterface,
-    getParentVariableIdFromChartConfig,
+    getParentIndicatorIdFromChartConfig,
     mergeGrapherConfigs,
-    NARRATIVE_CHART_PROPS_TO_OMIT,
 } from "@ourworldindata/utils"
 import { DbChartTagJoin } from "@ourworldindata/types"
 import { action, computed, observable, runInAction, makeObservable } from "mobx"
@@ -24,6 +23,7 @@ import {
     EditorTab,
     References,
 } from "./AbstractChartEditor.js"
+import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
 import { Admin } from "./Admin.js"
 import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
 
@@ -115,9 +115,9 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         return this.manager.forceDatapage ?? false
     }
 
-    /** parent variable id, derived from the config */
-    @computed get parentVariableId(): number | undefined {
-        return getParentVariableIdFromChartConfig(this.liveConfig)
+    /** parent indicator id, derived from the config */
+    @computed get parentIndicatorId(): number | undefined {
+        return getParentIndicatorIdFromChartConfig(this.liveConfig)
     }
 
     @computed get availableTabs(): EditorTab[] {
@@ -137,9 +137,8 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     }
 
     @action.bound async updateParentConfig() {
-        const currentParentIndicatorId =
-            this.parentConfig?.dimensions?.[0].variableId
-        const newParentIndicatorId = getParentVariableIdFromChartConfig(
+        const currentParentIndicatorId = this.parentVariableId
+        const newParentIndicatorId = getParentIndicatorIdFromChartConfig(
             this.grapherState.object
         )
 
@@ -149,23 +148,33 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         // fetch the new parent config
         let newParentConfig: GrapherInterface | undefined
         if (newParentIndicatorId) {
-            newParentConfig = await fetchMergedGrapherConfigByVariableId(
+            newParentConfig = await fetchChartConfigByIndicatorId(
                 this.manager.admin,
                 newParentIndicatorId
             )
         }
 
-        // if inheritance is enabled, update the live grapher object
-        if (this.isInheritanceEnabled) {
-            const newConfig = mergeGrapherConfigs(
-                newParentConfig ?? {},
-                this.patchConfig
-            )
-            this.updateLiveGrapher(newConfig)
-        }
+        // Capture the admin's genuine overrides *before* swapping in the new
+        // indicator layer: `patchConfig` is computed against the active parent
+        // stack, so reading it afterwards would fold the old indicator's
+        // inherited values into the patch as if the admin had authored them.
+        const { patchConfig } = this
 
         // update the parent config in any case
         this.parentConfig = newParentConfig
+        this.parentVariableId = newParentIndicatorId
+
+        // if inheritance is enabled, update the live grapher object. Rebuild
+        // from the whole parent stack rather than the indicator layer alone:
+        // the chart's own etlConfig sits between them, and `updateLiveGrapher`
+        // resets grapherState first, so a layer left out of the merge falls
+        // back to grapher defaults — which the next save would then diff into
+        // the patch as explicit overrides of the layer that actually owns them.
+        if (this.isInheritanceEnabled) {
+            this.updateLiveGrapher(
+                mergeGrapherConfigs(this.activeParentConfig ?? {}, patchConfig)
+            )
+        }
     }
 
     async saveGrapher({
@@ -185,7 +194,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 
         // it only makes sense to enable inheritance if the chart has a parent
         const shouldEnableInheritance =
-            !!this.parentVariableId && this.isInheritanceEnabled
+            !!this.parentIndicatorId && this.isInheritanceEnabled
 
         const query = new URLSearchParams({
             inheritance: shouldEnableInheritance ? "enable" : "disable",
@@ -219,9 +228,14 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     }
 
     async saveAsNewGrapher(): Promise<void> {
-        const { patchConfig } = this
-
-        const chartJson = { ...patchConfig }
+        // Start from what the source chart actually renders — the whole parent
+        // stack plus the admin patch — and let the save diff the inherited
+        // layers back out against the new chart's own parent. Copying
+        // `patchConfig` alone would silently drop everything an ETL-managed
+        // chart keeps in its ETL layer. `fullConfig` carries no grapher
+        // defaults (`liveConfig` strips them), so nothing spurious survives
+        // that diff as a fake override.
+        const chartJson = { ...this.fullConfig }
         delete chartJson.id
         delete chartJson.isPublished
         delete chartJson.slug
@@ -231,7 +245,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 
         // it only makes sense to enable inheritance if the chart has a parent
         const shouldEnableInheritance =
-            !!this.parentVariableId && this.isInheritanceEnabled
+            !!this.parentIndicatorId && this.isInheritanceEnabled
 
         const query = new URLSearchParams({
             inheritance: shouldEnableInheritance ? "enable" : "disable",
@@ -253,9 +267,12 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     async saveAsNarrativeChart(
         name: string
     ): Promise<{ success: boolean; errorMsg?: string }> {
-        const { patchConfig, grapherState } = this
+        const { grapherState } = this
 
-        const chartJson = _.omit(patchConfig, NARRATIVE_CHART_PROPS_TO_OMIT)
+        const chartJson = makeNarrativeChartPatchConfig(
+            this.liveConfigWithDefaults,
+            this.activeParentConfigWithDefaults
+        )
 
         const body = {
             type: "chart",
@@ -356,12 +373,12 @@ export async function deleteChart(params: {
     if (json.success) onSuccess?.()
 }
 
-export async function fetchMergedGrapherConfigByVariableId(
+export async function fetchChartConfigByIndicatorId(
     admin: Admin,
     indicatorId: number
 ): Promise<GrapherInterface | undefined> {
     const indicatorChart = await admin.getJSON(
-        `/api/variables/mergedGrapherConfig/${indicatorId}.json`
+        `/api/variables/${indicatorId}.config.json`
     )
     return _.isEmpty(indicatorChart) ? undefined : indicatorChart
 }

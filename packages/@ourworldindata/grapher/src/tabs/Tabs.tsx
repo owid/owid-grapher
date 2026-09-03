@@ -18,16 +18,23 @@ export const Tabs = <TabKey extends string = string>({
     selectedKey,
     onChange,
     className,
+    containerClassName,
     variant = "default",
+    children,
 }: {
     items: TabItem<TabKey>[]
     selectedKey: TabKey
     onChange: (key: TabKey) => void
     className?: string
+    containerClassName?: string
     variant?: "default" | "slim" | "stretch" | "scroll"
+    // TabPanels associated with the tabs; must be react-aria <TabPanel>
+    // elements (or wrappers around them) so they pick up the tabs context
+    children?: React.ReactNode
 }) => {
     return (
         <AriaTabs
+            className={containerClassName}
             selectedKey={selectedKey}
             onSelectionChange={(key) => {
                 if (typeof key === "string") onChange(key as TabKey)
@@ -49,6 +56,7 @@ export const Tabs = <TabKey extends string = string>({
                     </Tab>
                 ))}
             </TabList>
+            {children}
         </AriaTabs>
     )
 }

@@ -30,7 +30,6 @@ import {
     OwidGdocType,
     OwidGdoc,
     TombstonePageData,
-    mergeGrapherConfigs,
     flattenNonTopicNodes,
 } from "@ourworldindata/utils"
 import {
@@ -577,11 +576,11 @@ export const renderExplorerPage = async (
     let grapherConfigRows: ChartRow[] = []
     if (requiredGrapherIds.length)
         grapherConfigRows = await knexRaw<
-            Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
+            Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["config"] }
         >(
             knex,
             `-- sql
-                SELECT c.id, cc.full as config
+                SELECT c.id, cc.config as config
                 FROM charts c
                 JOIN chart_configs cc ON c.configId=cc.id
                 WHERE c.id IN (?)
@@ -591,7 +590,6 @@ export const renderExplorerPage = async (
 
     let partialGrapherConfigRows: {
         id: number
-        grapherConfigAdmin: string | null
         grapherConfigETL: string | null
     }[] = []
     if (requiredVariableIds.length) {
@@ -600,11 +598,9 @@ export const renderExplorerPage = async (
             `-- sql
                 SELECT
                     v.id,
-                    cc_etl.patch AS grapherConfigETL,
-                    cc_admin.patch AS grapherConfigAdmin
+                    cc.config AS grapherConfigETL
                 FROM variables v
-                    LEFT JOIN chart_configs cc_admin ON cc_admin.id=v.grapherConfigIdAdmin
-                    LEFT JOIN chart_configs cc_etl ON cc_etl.id=v.grapherConfigIdETL
+                    LEFT JOIN chart_configs cc ON cc.id=v.patchConfigIdETL
                 WHERE v.id IN (?)
             `,
             [requiredVariableIds]
@@ -632,27 +628,14 @@ export const renderExplorerPage = async (
     }
     const grapherConfigs = grapherConfigRows.map(parseGrapherConfigFromRow)
     const partialGrapherConfigs = partialGrapherConfigRows
-        .filter((row) => row.grapherConfigAdmin || row.grapherConfigETL)
+        .filter((row) => row.grapherConfigETL)
         .map((row) => {
-            const adminConfig = row.grapherConfigAdmin
-                ? parseGrapherConfigFromRow({
-                      id: row.id,
-                      config: row.grapherConfigAdmin,
-                  })
-                : {}
-            const etlConfig = row.grapherConfigETL
-                ? parseGrapherConfigFromRow({
-                      id: row.id,
-                      config: row.grapherConfigETL,
-                  })
-                : {}
-            const mergedConfig = mergeGrapherConfigs(etlConfig, adminConfig)
+            const config = parseGrapherConfigFromRow({
+                id: row.id,
+                config: row.grapherConfigETL!,
+            })
             // explorers set their own dimensions, so we don't need to include them here
-            const mergedConfigWithoutDimensions = _.omit(
-                mergedConfig,
-                "dimensions"
-            )
-            return mergedConfigWithoutDimensions
+            return _.omit(config, "dimensions")
         })
 
     const wpContent = transformedProgram.wpBlockId

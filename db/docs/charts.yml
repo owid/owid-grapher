@@ -23,11 +23,27 @@ metadata:
       column: relatedChartId
 fields:
   id:
-    description: Unique identifier for the chart
+    description: |
+      Internal auto-increment identifier for the chart. Note that these ids are minted independently per environment (production, staging servers, dev machines), so the same numeric id can refer to different charts on different servers. For referencing charts from external systems, prefer the chart's config UUID (see configId).
   configId:
-    description: Foreign key to chart_configs table. Charts store their configuration separately to enable inheritance and efficient updates. The chart_configs table contains the actual config, the slug of the chart etc., so in many queries, these two tables have to be joined.
+    description: |
+      Foreign key to chart_configs table, pointing at the config that is actually rendered (the merge of the indicator layers and this chart's patch). The chart_configs table contains the actual config, the slug of the chart etc., so in many queries, these two tables have to be joined. This is the pointer you want unless you specifically need what a user authored.
+
+      This column is also the chart's stable external identity, and for many applications the preferred identifier for referencing a chart. It is a client-generated UUIDv7, unique per chart, assigned once at creation and — by invariant — never changed over the chart's lifetime (chart updates modify the chart_configs row in place, they never swap it). Unlike the numeric id it does not collide across environments (copies of the production database keep the same UUIDs, and chart-sync carries it along when syncing staging charts to production), and unlike the slug it exists for unpublished charts and never changes. The admin API accepts this UUID wherever a :chartId route param is expected, and the ETL uses it to reference charts. Code that replaces a chart's config row instead of updating it in place would break this invariant and must not be written.
+  patchConfigId:
+    description: Foreign key to chart_configs table, pointing at the layer authored in the chart editor, i.e. the changes made on top of the inherited indicator config. Equals the rendered config when inheritance is disabled. Written together with configId in a single transaction, and only read when reopening the editor or re-merging after an indicator config change.
+  patchConfigIdETL:
+    description: |
+      Foreign key to chart_configs table, holding the chart's ETL-authored config layer, if any — mirroring variables.patchConfigIdETL, but per chart rather than per indicator. Like patchConfigId it names an authored layer, never a config that renders. The rendered config a chart displays (configId's row) is merge(indicator config, this row's config, patchConfigId's row) — admin edits always win. NULL until the ETL first pushes a config for this chart.
+  etlConfigCatalogPath:
+    description: |
+      The ETL step that authored this chart's ETL config layer (patchConfigIdETL), i.e. the step that currently owns the chart, in ETL catalog-path form (e.g. animal_welfare/latest/banning_of_chick_culling#banning_of_chick_culling), mirroring multi_dim_data_pages.catalogPath. NULL for hand-authored charts and for ETL-authored charts that predate this column. It is set from the `catalogPath` query parameter of the ETL config push route.
+
+      This is not an identifier. A chart is identified by its config UUID (configId), which never changes; the catalog path records which step owns the chart and may change when a step is renamed or moved. Its purpose is to let the ETL sanity-check whether a chart has already been adopted — never to resolve which chart a push is for.
+
+      Enforced unique at the DB level (one chart per catalog path). A push that carries a different path than the one recorded simply updates it; a push that would assign a path already used by a different chart is rejected with a 409, turning the raw duplicate-key failure into an actionable error. Malformed paths are rejected with a 400 (same `namespace/version/step#indicator` shape the multi-dim routes enforce).
   isInheritanceEnabled:
-    description: When true, chart inherits configuration from parent variable's grapherConfigIdAdmin or grapherConfigIdETL. This allows variables to define default chart settings that are automatically applied to all inheriting charts.
+    description: When true, chart inherits configuration from parent variable's patchConfigIdETL. This allows variables to define default chart settings that are automatically applied to all inheriting charts.
   forceDatapage:
     description: When true, force rendering this chart as a data page using metadata from the first Y indicator.
   createdAt:

@@ -2,17 +2,16 @@ import * as _ from "lodash-es"
 import * as R from "remeda"
 import {
     Bounds,
+    formatAttributions,
     getAttributionFragmentsFromVariable,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
-    excludeUndefined,
     DisplaySource,
     prepareSourcesForDisplay,
     OwidSource,
     IndicatorTitleWithFragments,
     joinTitleFragments,
-    getCitationShort,
-    getCitationLong,
+    getIndicatorCitations,
 } from "@ourworldindata/utils"
 import {
     IndicatorSources,
@@ -57,6 +56,7 @@ export interface SourcesModalManager {
     showAdminControls?: boolean
     activeModal?: GrapherModal
     frameBounds?: Bounds
+    base: React.RefObject<HTMLDivElement | null>
     isEmbeddedInADataPage?: boolean
     isNarrow?: boolean
     fontSize?: number
@@ -310,7 +310,19 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
         )
     }
 
+    private renderNoSources(): React.ReactElement {
+        return (
+            <p className="note-no-sources">
+                No source information is available for the data shown in this
+                chart.
+            </p>
+        )
+    }
+
     private renderModalContent(): React.ReactElement | null {
+        // Charts fed with external data (e.g. via GrapherLoader.fromCsv) may
+        // have no columns with source information at all
+        if (this.tabs.length === 0) return this.renderNoSources()
         return this.tabs.length === 1
             ? this.renderSource({ column: this.tabs[0].column })
             : this.renderMultipleSources()
@@ -323,6 +335,8 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
     override render(): React.ReactElement {
         return (
             <Modal
+                ariaLabel="Sources"
+                grapherRef={this.manager.base}
                 bounds={this.modalBounds}
                 isHeightFixed={true}
                 onDismiss={this.onDismiss}
@@ -377,26 +391,16 @@ export class Source extends React.Component<SourceProps> {
         return { ...this.column.def, source: this.column.source }
     }
 
-    @computed get citationShort(): string {
-        return getCitationShort(
-            this.def.origins ?? [],
-            getAttributionFragmentsFromVariable(this.def),
-            this.def.owidProcessingLevel
-        )
-    }
-
-    @computed get citationLong(): string {
-        return getCitationLong(
-            this.titleWithFragments,
-            this.def.origins ?? [],
-            this.source,
-            getAttributionFragmentsFromVariable(this.def),
-            this.def.presentation?.attributionShort,
-            this.def.presentation?.titleVariant,
-            this.def.owidProcessingLevel,
-            undefined,
-            undefined
-        )
+    @computed private get citations(): { short: string; long: string } {
+        return getIndicatorCitations({
+            indicatorTitle: this.titleWithFragments,
+            origins: this.def.origins ?? [],
+            source: this.source,
+            attributions: getAttributionFragmentsFromVariable(this.def),
+            attributionShort: this.def.presentation?.attributionShort,
+            titleVariant: this.def.presentation?.titleVariant,
+            owidProcessingLevel: this.def.owidProcessingLevel,
+        })
     }
 
     @computed private get source(): OwidSource {
@@ -428,16 +432,12 @@ export class Source extends React.Component<SourceProps> {
         return undefined
     }
 
-    @computed private get producers(): string[] {
-        if (!this.def.origins) return []
-        return _.uniq(excludeUndefined(this.def.origins.map((o) => o.producer)))
-    }
-
     @computed get attributions(): string | undefined {
-        const attributionFragments =
-            getAttributionFragmentsFromVariable(this.def) ?? this.producers
+        const attributionFragments = getAttributionFragmentsFromVariable(
+            this.def
+        )
         if (attributionFragments.length === 0) return undefined
-        return attributionFragments.join(", ")
+        return formatAttributions(attributionFragments)
     }
 
     @computed get lastUpdated(): string | undefined {
@@ -570,8 +570,8 @@ export class Source extends React.Component<SourceProps> {
                     How to cite this data:
                 </h3>
                 <DataCitation
-                    citationShort={this.citationShort}
-                    citationLong={this.citationLong}
+                    citationShort={this.citations.short}
+                    citationLong={this.citations.long}
                 />
             </div>
         )

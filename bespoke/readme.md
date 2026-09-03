@@ -52,14 +52,13 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
 > = {
     "income-plots": {
         scriptUrl: "/income-plots/index.js",
-        cssUrl: "/income-plots/index.css", // optional
     },
 }
 ```
 
-The URLs are resolved against `BESPOKE_BASE_URL` (defaults to the local dev server, `http://localhost:8089`).
+The URL is resolved against `BESPOKE_BASE_URL` (defaults to the local dev server, `http://localhost:8089`).
 
-The `cssUrl` is optional — if your component manages its own styles (e.g. via `vite-plugin-css-position` injecting CSS into the Shadow DOM from JS), you can omit it.
+A bundle carries its own styles. `vite-plugin-css-position` inlines them into the ES module so they land inside the shadow root.
 
 ## Embedding in Google Docs
 
@@ -180,14 +179,14 @@ Each project under `bespoke/projects/` is fully self-contained. A project has it
 This means each project is responsible for:
 
 - Managing its own dependencies (projects are yarn workspaces of `bespoke/` — run `yarn install` from there)
-- Defining its own build command that produces the ES-module output (and optionally a CSS file)
+- Defining its own build command that produces the ES-module output, with its styles bundled in
 - Bundling everything it needs — shared site styles, fonts, etc. are not available inside the Shadow DOM
 
 Projects can import shared code from `bespoke/components/` if needed, but must bundle it into their output.
 
 ### Build setup
 
-Projects use [Vite library mode](https://vite.dev/guide/build.html#library-mode) to produce the ESM module and optionally a CSS file. A minimal `vite.config.ts`:
+Projects use [Vite library mode](https://vite.dev/guide/build.html#library-mode) to produce the ESM module. A minimal `vite.config.ts`:
 
 ```ts
 import { defineConfig } from "vite"
@@ -278,7 +277,7 @@ A dev server at [bespoke/server/](server/) provides a local environment for work
 yarn startBespokeDevServer
 ```
 
-Visit `http://localhost:8089/<project>/demo` to see a demo page that mounts all of a project's variants inside Shadow DOM — matching the production embedding behavior.
+Visit `http://localhost:8089/<project>/demo` to see a demo page that mounts all of a project's variants inside Shadow DOM — matching the production embedding behavior. `http://localhost:8089/__all` stacks every project's demo page below each other (except `example`), for comparing across projects.
 
 Pass `--build` to build each project and serve the production output via `vite preview` instead of `vite dev`:
 
@@ -296,7 +295,6 @@ To fix this, add a `dev-only-global-css` entrypoint to your project's `package.j
 {
     "entrypoints": {
         "js": "src/index.tsx",
-        "css": "src/index.css", // optional
         "dev-only-global-css": "src/dev-only-global-css.css"
     }
 }
@@ -307,7 +305,7 @@ The dev server will inject this stylesheet into the demo page's `<head>` (outsid
 ## Creating a new bespoke component
 
 1. Create a new directory under `bespoke/projects/`
-2. Set up your project with its own `package.json` and build tooling to output an ESM module (`.mjs`) and optionally a CSS file
+2. Set up your project with its own `package.json` and build tooling to output an ESM module (`.mjs`) with its styles bundled in
 3. Export a `mount` function from the entry point
 4. Register the bundle in [site/bespokeComponentRegistry.ts](../site/bespokeComponentRegistry.ts)
 5. Add the `{.bespoke-component}` block in your Google Doc

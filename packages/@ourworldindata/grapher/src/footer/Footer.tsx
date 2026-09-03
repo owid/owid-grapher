@@ -11,6 +11,7 @@ import {
 import {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
+    getPrefersReducedMotion,
     MarkdownTextWrap,
     MarkdownTextWrapHtml,
     MarkdownTextWrapSvg,
@@ -136,11 +137,13 @@ abstract class AbstractFooter<
     }
 
     @computed protected get noteText(): string {
-        return this.manager.note ? `Note: ${this.manager.note}` : ""
+        const note = this.manager.effectiveNote
+        return note ? `Note: ${note}` : ""
     }
 
     @computed protected get markdownNoteText(): string {
-        return this.manager.note ? `**Note:** ${this.manager.note}` : ""
+        const note = this.manager.effectiveNote
+        return note ? `**Note:** ${note}` : ""
     }
 
     @computed protected get license(): LicenseOption {
@@ -486,7 +489,9 @@ abstract class AbstractFooter<
             return
         }
         sourcesElement.closest("details")?.setAttribute("open", "")
-        sourcesElement.scrollIntoView({ behavior: "smooth" })
+        sourcesElement.scrollIntoView({
+            behavior: getPrefersReducedMotion() ? "auto" : "smooth",
+        })
         this.manager.isInFullScreenMode = false
     }
 
@@ -568,7 +573,9 @@ abstract class AbstractFooter<
                             document.getElementById(datapageSectionId)
                         if (sourcesElement && sourcesElement.scrollIntoView) {
                             sourcesElement.scrollIntoView({
-                                behavior: "smooth",
+                                behavior: getPrefersReducedMotion()
+                                    ? "auto"
+                                    : "smooth",
                             })
                             this.manager.isInFullScreenMode = false
                         } else if (sourcesElement) {
