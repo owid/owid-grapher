@@ -2,7 +2,12 @@ import * as _ from "lodash-es"
 import { GrapherInterface } from "@ourworldindata/types"
 
 import { defaultGrapherConfig } from "../defaultGrapherConfig"
-import { hasValidSchema, hasOutdatedSchema, type AnyConfig } from "./helpers"
+import {
+    hasValidSchema,
+    getSchemaVersion,
+    isOutdatedVersion,
+    type AnyConfig,
+} from "./helpers"
 import { runMigration } from "./migrations"
 import * as Sentry from "@sentry/browser"
 
@@ -20,10 +25,12 @@ export const migrateGrapherConfigToLatestVersion = (
 ): GrapherInterface => {
     if (config.$schema === undefined) throw new Error("Schema missing")
 
-    const migrated = _.cloneDeep(config)
-    if (hasValidSchema(migrated)) {
-        while (hasOutdatedSchema(migrated)) runMigration(migrated)
-        return migrated
+    const clone = _.cloneDeep(config)
+    if (hasValidSchema(clone)) {
+        let version = getSchemaVersion(clone)
+        while (isOutdatedVersion(version))
+            version = runMigration(clone, version)
+        return clone
     }
 
     /**
@@ -38,7 +45,7 @@ export const migrateGrapherConfigToLatestVersion = (
     console.warn(message)
     Sentry.captureMessage(message, { level: "warning" })
 
-    return migrated
+    return clone
 }
 
 export const migrateGrapherConfigToLatestVersionAndFailOnError = (

@@ -30,7 +30,9 @@ In one commit:
 - Update the version in the docs that name it: `packageDocs/docs/chart-config/index.md` and
   `docs/chart-api.openapi.yaml`.
 - Add `migrateFromNNNToMMM` to `migrations/migrations.ts` and its `"NNN"` entry in
-  `MIGRATION_STEPS`. A missing entry fails typecheck.
+  `MIGRATION_STEPS`; a missing entry fails typecheck. The runner restamps `$schema`, so the
+  step does not. Pin each branch of the step with a before/after pair in
+  `migrations/migrations.fixture.ts`.
 - Write the DB migration in `db/migration/` that rewrites the stored rows and restamps
   `$schema` in `chart_configs.config` and `chart_revisions.config`. Ship the restamp and the
   rewrite together.

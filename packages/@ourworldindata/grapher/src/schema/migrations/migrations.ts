@@ -1,20 +1,18 @@
 // Schema migrations
 //
 // To add a migration: write `migrateFromNNNToMMM`, which rewrites a config's content from
-// version NNN to NNN+1 and nothing else, then add its `"NNN"` entry to `MIGRATION_STEPS`.
-// `runMigration` restamps `$schema`, so a step does not.
+// version NNN to MMM and nothing else, then add its `"NNN"` entry to `MIGRATION_STEPS`.
 
 import {
     type AnyConfigWithValidSchema,
     createSchemaForVersion,
-    getSchemaVersion,
-    isLatestVersion,
     getNextSchemaVersion,
     type OutdatedSchemaVersion,
+    type SchemaVersion,
 } from "./helpers"
 import { GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
-export type MigrationStep = (config: AnyConfigWithValidSchema) => void
+type MigrationStep = (config: AnyConfigWithValidSchema) => void
 
 // see https://github.com/owid/owid-grapher/commit/26f2a0d1790c71bdda7e12f284ca552945d2f6ef
 const migrateFrom001To002 = (config: AnyConfigWithValidSchema): void => {
@@ -140,14 +138,13 @@ const MIGRATION_STEPS: Record<OutdatedSchemaVersion, MigrationStep> = {
     "010": migrateFrom010To011,
 }
 
+/** Applies the step for `version`, restamps `$schema` and returns the new version */
 export const runMigration = (
-    config: AnyConfigWithValidSchema
-): AnyConfigWithValidSchema => {
-    const version = getSchemaVersion(config)
-    if (isLatestVersion(version)) return config
-
-    const migrateToNextVersion = MIGRATION_STEPS[version]
-    migrateToNextVersion(config)
-    config.$schema = createSchemaForVersion(getNextSchemaVersion(version))
-    return config
+    config: AnyConfigWithValidSchema,
+    version: OutdatedSchemaVersion
+): SchemaVersion => {
+    MIGRATION_STEPS[version](config)
+    const nextVersion = getNextSchemaVersion(version)
+    config.$schema = createSchemaForVersion(nextVersion)
+    return nextVersion
 }

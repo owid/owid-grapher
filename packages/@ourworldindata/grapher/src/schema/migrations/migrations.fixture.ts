@@ -2,10 +2,12 @@ import { AnyConfigWithValidSchema } from "./helpers"
 
 /** Before/after pairs pinning what each migration step rewrites */
 export const MIGRATION_FIXTURES: {
+    name: string
     before: AnyConfigWithValidSchema
     after: AnyConfigWithValidSchema
 }[] = [
     {
+        name: "drops selectedData",
         before: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.001.json",
@@ -19,6 +21,7 @@ export const MIGRATION_FIXTURES: {
         },
     },
     {
+        name: "expands hideTitleAnnotation into hideTitleAnnotations",
         before: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.002.json",
@@ -31,6 +34,19 @@ export const MIGRATION_FIXTURES: {
         },
     },
     {
+        name: "drops a false hideTitleAnnotation",
+        before: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.002.json",
+            hideTitleAnnotation: false,
+        },
+        after: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.003.json",
+        },
+    },
+    {
+        name: "drops data",
         before: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.003.json",
@@ -42,6 +58,7 @@ export const MIGRATION_FIXTURES: {
         },
     },
     {
+        name: "drops hideLinesOutsideTolerance",
         before: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.004.json",
@@ -53,6 +70,7 @@ export const MIGRATION_FIXTURES: {
         },
     },
     {
+        name: "turns a non-line type into chartTypes",
         before: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
@@ -66,6 +84,33 @@ export const MIGRATION_FIXTURES: {
         },
     },
     {
+        name: "turns a hidden chart tab into empty chartTypes",
+        before: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+            type: "ScatterPlot",
+            hasChartTab: false,
+        },
+        after: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.006.json",
+            chartTypes: [],
+        },
+    },
+    {
+        name: "leaves the default line chart without chartTypes",
+        before: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+            type: "LineChart",
+        },
+        after: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.006.json",
+        },
+    },
+    {
+        name: "renames map.projection to map.region",
         before: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.006.json",
@@ -86,6 +131,7 @@ export const MIGRATION_FIXTURES: {
         },
     },
     {
+        name: "folds map.colorScale.customNumericMinValue into customNumericValues",
         before: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.007.json",
@@ -109,6 +155,25 @@ export const MIGRATION_FIXTURES: {
         },
     },
     {
+        name: "folds colorScale.customNumericMinValue into customNumericValues",
+        before: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.007.json",
+            colorScale: {
+                customNumericMinValue: 10,
+                customNumericValues: [20, 30],
+            },
+        },
+        after: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.008.json",
+            colorScale: {
+                customNumericValues: [10, 20, 30],
+            },
+        },
+    },
+    {
+        name: "resets non-manual binningStrategy to auto and drops the bin count",
         before: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.008.json",
@@ -137,6 +202,7 @@ export const MIGRATION_FIXTURES: {
         },
     },
     {
+        name: "replaces yearIsDay with timeInterval",
         before: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.010.json",

@@ -5,7 +5,7 @@ import {
 
 const allSchemaVersions = [...outdatedSchemaVersions, latestSchemaVersion]
 
-export type LatestSchemaVersion = typeof latestSchemaVersion
+type LatestSchemaVersion = typeof latestSchemaVersion
 export type OutdatedSchemaVersion = (typeof outdatedSchemaVersions)[number]
 export type SchemaVersion = OutdatedSchemaVersion | LatestSchemaVersion
 
@@ -50,16 +50,10 @@ export function getNextSchemaVersion(
     return allSchemaVersions[allSchemaVersions.indexOf(version) + 1]
 }
 
-export const isOutdatedVersion = (version: SchemaVersion) =>
-    outdatedSchemaVersions.includes(version as any)
+export const isOutdatedVersion = (
+    version: SchemaVersion
+): version is OutdatedSchemaVersion => !isLatestVersion(version)
 
 export const hasValidSchema = (
     config: AnyConfig
 ): config is AnyConfigWithValidSchema => getSchemaVersion(config) !== null
-
-export const hasOutdatedSchema = (
-    config: AnyConfigWithValidSchema
-): boolean => {
-    const version = getSchemaVersion(config)
-    return isOutdatedVersion(version)
-}

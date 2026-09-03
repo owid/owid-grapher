@@ -1,9 +1,9 @@
-import { expect, it, vi } from "vitest"
+import { assert, expect, it, vi } from "vitest"
 
 import { defaultGrapherConfig } from "../defaultGrapherConfig"
 import { migrateGrapherConfigToLatestVersion } from "./migrate"
 import { runMigration } from "./migrations"
-import { getSchemaVersion } from "./helpers"
+import { getSchemaVersion, isOutdatedVersion } from "./helpers"
 import { MIGRATION_FIXTURES } from "./migrations.fixture"
 import * as _ from "lodash-es"
 
@@ -62,8 +62,13 @@ it("doesn't mutate the given config", () => {
     })
 })
 
-for (const { before, after } of MIGRATION_FIXTURES) {
-    it(`migrates ${getSchemaVersion(before)} to ${getSchemaVersion(after)}`, () => {
-        expect(runMigration(_.cloneDeep(before))).toEqual(after)
+for (const { name, before, after } of MIGRATION_FIXTURES) {
+    const from = getSchemaVersion(before)
+    const to = getSchemaVersion(after)
+    it(`migrates ${from} to ${to}: ${name}`, () => {
+        assert(isOutdatedVersion(from))
+        const migrated = _.cloneDeep(before)
+        runMigration(migrated, from)
+        expect(migrated).toStrictEqual(after)
     })
 }
