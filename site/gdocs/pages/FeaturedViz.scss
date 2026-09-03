@@ -49,13 +49,17 @@ hr.featured-viz-divider {
 
 .featured-viz-hero {
     background-color: $blue-5;
-    padding: 36px 0 32px;
+    padding: 36px 0 36px;
     margin: 16px 0 24px;
 
     // The band supplies the vertical padding, so the margin a bespoke component
     // carries for in-article use would double it
     .featured-viz-hero__viz {
         margin: 0;
+    }
+
+    .bespoke-metadata-box {
+        margin-top: 16px;
     }
 }
 

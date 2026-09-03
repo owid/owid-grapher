@@ -1,8 +1,6 @@
 .bespoke-metadata-box {
     padding: 24px;
-    // Matches the gap the hero band leaves above it
-    margin-bottom: 24px;
-    background-color: $blue-5;
+    background-color: $white;
     // MetadataBoxExpander's scroll compensation is only correct without anchoring
     overflow-anchor: none;
 }
