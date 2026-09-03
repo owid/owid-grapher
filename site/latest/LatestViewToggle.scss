@@ -1,0 +1,89 @@
+.latest-view-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 16px;
+
+    // Top of the sidebar column, level with the first card. Pinned to the
+    // same row as the newsletter block below it rather than auto-placed:
+    // that block explicitly spans rows 4-8 of this column, so an auto-placed
+    // item would be pushed past it, taking the cards with it. It clears this
+    // line with a top margin instead (see LatestPage.scss).
+    grid-row: 4;
+    align-self: start;
+
+    // Its own row above the first card once the sidebar column collapses,
+    // where it lines up with the left-aligned filters above it instead. The
+    // grid classes put it in the same column as the cards there, so the
+    // page's side inset is inherited rather than restated.
+    @include md-down {
+        grid-row: unset;
+        justify-content: flex-start;
+        margin-bottom: 24px;
+    }
+
+    @include sm-only {
+        margin-left: 16px;
+        margin-right: 16px;
+    }
+}
+
+// react-aria wraps each radio in a RadioField. Left as a block it would lay
+// its label out as an inline box, and the label's baseline shifts by 4px
+// depending on whether the radio's dot is there — so the selected option sat
+// lower than the other. Flex all the way down keeps baselines out of it.
+.latest-view-toggle__field {
+    display: flex;
+}
+
+// Centres the caps text on the radios beside it: its own line box is
+// tighter than theirs, so matching heights is what lines the two up.
+.latest-view-toggle__label {
+    display: flex;
+    align-items: center;
+    height: 16px;
+    color: $blue-60;
+}
+
+.latest-view-toggle__option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 16px;
+    color: $blue-90;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+// Same radio as the "Filter by type" dropdown's options, so the two controls
+// on this page read as one family.
+.latest-view-toggle__radio {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    border: 1px solid $blue-30;
+    border-radius: 50%;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    // Always present, so both radios have the same box structure and only
+    // the fill changes with selection.
+    &::after {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: transparent;
+    }
+}
+
+.latest-view-toggle__option[data-selected] .latest-view-toggle__radio::after {
+    background-color: $blue-30;
+}
+
+.latest-view-toggle__option[data-focus-visible] .latest-view-toggle__radio {
+    outline: 2px solid $blue-60;
+    outline-offset: 2px;
+}

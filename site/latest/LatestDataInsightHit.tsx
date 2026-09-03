@@ -8,13 +8,62 @@ import cx from "clsx"
 import { LatestHitMetadata } from "./LatestHitMetadata.js"
 import {
     LATEST_HIT_GRID_CLASSES,
+    LatestFeedView,
     findThumbnailImageBlock,
     makeAttachments,
 } from "./latestUtils.js"
 import { useLatestContext } from "./LatestContext.js"
 import { useIsLikelyBaked } from "./latestHooks.js"
+import { LatestDataInsightExpandable } from "./LatestDataInsightExpandable.js"
 
+/**
+ * Data insight card for the /latest feed. Two presentations, picked by
+ * `view`:
+ *
+ * - No view (the unfiltered feed): a condensed teaser — thumbnail beside a
+ *   clipped body — that links to the insight's own page.
+ * - A view (the data-insight-filtered feed, which offers the View toggle):
+ *   the whole insight read in place, expanded or compact. See
+ *   LatestDataInsightExpandable.
+ */
 export const LatestDataInsightHit = ({
+    hit,
+    selectedTopic,
+    position,
+    view,
+    isExpanded,
+}: {
+    hit: PageChronologicalDataInsightRecord
+    selectedTopic?: string
+    position: number
+    view?: LatestFeedView
+    /** For the in-place presentation: start expanded (the View toggle says
+     * so, or the reader deep-linked to this card). */
+    isExpanded: boolean
+}) => {
+    if (view) {
+        return (
+            <LatestDataInsightExpandable
+                // Remount on toggle so a card the reader expanded by hand
+                // collapses again when they switch back to Compact.
+                key={view}
+                hit={hit}
+                selectedTopic={selectedTopic}
+                position={position}
+                isExpanded={isExpanded}
+            />
+        )
+    }
+    return (
+        <CondensedDataInsightHit
+            hit={hit}
+            selectedTopic={selectedTopic}
+            position={position}
+        />
+    )
+}
+
+const CondensedDataInsightHit = ({
     hit,
     selectedTopic,
     position,

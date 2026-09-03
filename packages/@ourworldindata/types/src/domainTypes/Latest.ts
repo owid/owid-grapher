@@ -134,11 +134,17 @@ export type PageChronologicalRecordBase = z.infer<
 
 // Data insight
 
+// linkedCharts / linkedDocuments resolve the CTA and inline links when the
+// insight is read in place on /latest; linkedAuthors feed the avatar byline.
 const PageChronologicalDataInsightRecordPayloadSchema = z.strictObject({
+    ...LinkedAttachmentsShape,
     ...ImageAttachmentShape,
     type: z.literal(OwidGdocType.DataInsight),
     latestType: z.literal("data-insight"),
     body: OwidEnrichedGdocBlocksSchema,
+    linkedAuthors: z.optional(
+        castSchemaOutput<LinkedAuthor[]>(z.array(z.any()))
+    ),
 })
 export type PageChronologicalDataInsightRecordPayload = z.infer<
     typeof PageChronologicalDataInsightRecordPayloadSchema
