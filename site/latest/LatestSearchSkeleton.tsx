@@ -1,6 +1,9 @@
 import { NewsletterSignupBlock } from "../NewsletterSignupBlock.js"
 import { NewsletterSubscriptionContext } from "../newsletter.js"
-import { LATEST_HIT_GRID_CLASSES } from "./latestUtils.js"
+import {
+    LATEST_HIT_GRID_CLASSES,
+    LATEST_NEWSLETTER_SIGNUP_CLASSES,
+} from "./latestUtils.js"
 
 const LatestHitSkeleton = () => (
     <div
@@ -28,7 +31,7 @@ export const LatestSearchSkeleton = () => (
         <LatestHitSkeleton />
         <LatestHitSkeleton />
         <NewsletterSignupBlock
-            className="latest-page__newsletter-signup col-start-11 span-cols-3 col-lg-start-10 span-lg-cols-4 span-md-cols-14 col-md-start-1"
+            className={LATEST_NEWSLETTER_SIGNUP_CLASSES}
             context={NewsletterSubscriptionContext.Latest}
         />
         <LatestHitSkeleton />

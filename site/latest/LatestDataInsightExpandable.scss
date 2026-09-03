@@ -1,0 +1,120 @@
+.latest-data-insight-expandable {
+    @include sm-only {
+        margin-left: 16px;
+        margin-right: 16px;
+    }
+}
+
+.latest-data-insight-expandable__card {
+    position: relative;
+    background-color: $blue-20;
+    color: $blue-90;
+    padding: 16px;
+}
+
+// Only the compact card is clickable, so only it gets a hover state — the
+// same swap the condensed data insight card makes.
+.latest-data-insight-expandable__card--compact:hover {
+    background-color: $accent-pale-blue;
+}
+
+.latest-data-insight-expandable__card--compact:hover
+    .latest-data-insight-expandable__blocks--clipped:before {
+    @include fade-out-overlay($accent-pale-blue);
+}
+
+.latest-data-insight-expandable__title {
+    margin: 0 0 8px;
+}
+
+.latest-data-insight-expandable__authors {
+    // Above the expand overlay, so author links stay clickable on a compact
+    // card.
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 16px;
+    color: $blue-60;
+    margin-bottom: 16px;
+}
+
+.latest-data-insight-expandable__author {
+    color: inherit;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.latest-data-insight-expandable__image {
+    margin-bottom: 16px;
+
+    img {
+        display: block;
+        width: 100%;
+        outline: 1px solid $blue-10;
+    }
+}
+
+.latest-data-insight-expandable__blocks {
+    @include text-block-override {
+        @include body-3-medium;
+    }
+
+    [class*="article-block__"]:last-child,
+    .cta:last-child {
+        margin-bottom: 0;
+    }
+
+    .cta {
+        @include body-3-bold;
+        color: $blue-90;
+
+        svg {
+            width: 10px;
+            height: 10px;
+            margin-left: 4px;
+        }
+    }
+}
+
+// Compact: the opening paragraph and a glimpse of the next one, the lower
+// half fading into the card so the cut reads as "there's more". Five body
+// lines covers a two-to-three-line opener, its paragraph gap, and the first
+// line or two of what follows — three lines showed the opener and then just
+// its bottom margin, which looked complete rather than clipped. Sized in text
+// lines rather than pixels so the chart above is never cut.
+.latest-data-insight-expandable__blocks--clipped {
+    max-height: calc(5 * 1.3125rem); // 5 × body-3 line height (14px × 1.5)
+    overflow: hidden;
+    position: relative;
+
+    &:before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        @include fade-out-overlay($blue-20);
+    }
+}
+
+// Invisible button stretched over the compact card: the whole card is the
+// hit area, the button is what assistive tech and the keyboard see.
+.latest-data-insight-expandable__expand {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+
+    &:focus-visible {
+        outline: 2px solid $blue-60;
+        outline-offset: 2px;
+    }
+}
