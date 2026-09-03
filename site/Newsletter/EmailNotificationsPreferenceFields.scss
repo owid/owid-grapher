@@ -140,9 +140,11 @@
 }
 
 .newsletter-preference-fields__frequency-options {
-    display: flex;
+    display: inline-flex;
     flex-wrap: wrap;
-    gap: 8px;
+    border: 1px solid $blue-20;
+    padding: 2px;
+    gap: 4px;
 }
 
 .newsletter-preference-fields__frequency-option {
@@ -152,7 +154,7 @@
     align-items: center;
     height: 40px;
     padding: 8px 16px;
-    border: 1px solid $blue-20;
+    border: 1px solid #fff;
     color: $blue-50;
     cursor: pointer;
 
