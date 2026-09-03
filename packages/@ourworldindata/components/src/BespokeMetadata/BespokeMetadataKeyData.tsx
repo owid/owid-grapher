@@ -1,4 +1,4 @@
-import { BespokeMetadataWithProvenance } from "@ourworldindata/types"
+import { BespokeMetadata } from "@ourworldindata/types"
 import {
     getAttributionFragmentsFromBespokeMetadata,
     getLastUpdatedFromVariable,
@@ -26,7 +26,7 @@ interface BespokeMetadataKeyDataRow {
 export function BespokeMetadataKeyData({
     metadata,
 }: {
-    metadata: BespokeMetadataWithProvenance
+    metadata: BespokeMetadata
 }): React.ReactElement | null {
     const attributions = getAttributionFragmentsFromBespokeMetadata(metadata)
 

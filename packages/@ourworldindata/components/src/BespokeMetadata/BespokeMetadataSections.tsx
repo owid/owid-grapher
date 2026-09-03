@@ -1,4 +1,4 @@
-import { BespokeMetadataWithProvenance } from "@ourworldindata/types"
+import { BespokeMetadata } from "@ourworldindata/types"
 import {
     getAttributionFragmentsFromBespokeMetadata,
     getIndicatorCitations,
@@ -19,20 +19,20 @@ export function BespokeMetadataSections({
     citationUrl,
     pageCitation,
 }: {
-    metadata: BespokeMetadataWithProvenance
+    metadata: BespokeMetadata
     citationUrl?: string
     /** The page's own citation, shown alongside the data's */
     pageCitation?: string
 }): React.ReactElement {
     const faqs = metadata.faqs ?? []
     const sources = prepareSourcesForDisplay({
-        origins: metadata.origins,
+        origins: metadata.origins ?? [],
         source: undefined,
     })
     const attributions = getAttributionFragmentsFromBespokeMetadata(metadata)
     const { short: citationShort, long: citationLong } = getIndicatorCitations({
-        indicatorTitle: { title: metadata.title },
-        origins: metadata.origins,
+        indicatorTitle: { title: metadata.title ?? "" },
+        origins: metadata.origins ?? [],
         attributions,
         attributionShort: metadata.attributionShort,
         titleVariant: metadata.titleVariant,
@@ -114,7 +114,7 @@ export function BespokeMetadataSections({
                         }
                     />
                 )}
-                {attributions.length > 0 && (
+                {attributions.length > 0 && metadata.title && (
                     <ExpandableToggle
                         label="How to cite this data"
                         content={

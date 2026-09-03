@@ -1,6 +1,6 @@
 import {
+    BespokeMetadata,
     BespokeMetadataSchema,
-    BespokeMetadataWithProvenance,
     OwidGdocBaseInterface,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
@@ -8,7 +8,7 @@ import {
     OwidGdocFeaturedVizInterface,
     excludeNullish,
     fetchJson,
-    hasProvenance,
+    shouldRenderBespokeMetadata,
 } from "@ourworldindata/utils"
 import {
     EnrichedBlockBespokeComponent,
@@ -25,7 +25,7 @@ export class GdocFeaturedViz
     implements OwidGdocFeaturedVizInterface
 {
     declare content: OwidGdocFeaturedVizContent
-    bespokeMetadata?: BespokeMetadataWithProvenance
+    bespokeMetadata?: BespokeMetadata
 
     constructor(id?: string) {
         super(id)
@@ -84,13 +84,13 @@ export class GdocFeaturedViz
             return
         }
 
-        if (!hasProvenance(parsed.data)) {
+        if (!shouldRenderBespokeMetadata(parsed.data)) {
             // z.object strips unknown keys, so a metadata file carrying none
             // of the schema's fields parses to {}.
             if (Object.keys(parsed.data).length > 0) {
                 await logErrorAndMaybeCaptureInSentry(
                     new Error(
-                        `Metadata for bespoke component "${bundle}" at ${metadataUrl} carries provenance fields but not both a title and origins, so "${this.slug}" will render without a methods block`
+                        `Metadata for bespoke component "${bundle}" at ${metadataUrl} carries some of the schema's fields but neither origins nor a descriptionKey, so "${this.slug}" will render without a methods block`
                     )
                 )
             }

@@ -32,12 +32,8 @@ export const BespokeMetadataSchema = z.object({
 
 export type BespokeMetadata = z.infer<typeof BespokeMetadataSchema>
 
-/** A `BespokeMetadata` complete enough to render a methods and sources block */
-export type BespokeMetadataWithProvenance = BespokeMetadata &
-    Required<Pick<BespokeMetadata, "title" | "origins">>
-
-export function hasProvenance(
+export function shouldRenderBespokeMetadata(
     metadata: BespokeMetadata
-): metadata is BespokeMetadataWithProvenance {
-    return !!metadata.title && !!metadata.origins?.length
+): boolean {
+    return !!metadata.origins?.length || !!metadata.descriptionKey
 }

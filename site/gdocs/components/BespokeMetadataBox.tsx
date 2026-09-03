@@ -1,6 +1,7 @@
 import { useRef } from "react"
 import cx from "clsx"
 import {
+    BESPOKE_METADATA_FALLBACK_TITLE,
     BespokeMetadataHeading,
     BespokeMetadataKeyData,
     BespokeMetadataSections,
@@ -8,7 +9,7 @@ import {
     MetadataBoxExpander,
     SimpleMarkdownText,
 } from "@ourworldindata/components"
-import { BespokeMetadataWithProvenance } from "@ourworldindata/types"
+import { BespokeMetadata } from "@ourworldindata/types"
 import { splitDescriptionKey } from "../../datapageUtils.js"
 
 /** Methods and sources for a bespoke data viz */
@@ -18,7 +19,7 @@ export function BespokeMetadataBox({
     pageCitation,
     className,
 }: {
-    metadata: BespokeMetadataWithProvenance
+    metadata: BespokeMetadata
     citationUrl?: string
     pageCitation?: string
     className?: string
@@ -34,7 +35,10 @@ export function BespokeMetadataBox({
     return (
         <div className={cx("metadata-box", "bespoke-metadata-box", className)}>
             <MetadataBoxCollapseButton detailsRef={detailsRef} />
-            <BespokeMetadataHeading metadata={metadata} />
+            <BespokeMetadataHeading
+                metadata={metadata}
+                fallbackTitle={BESPOKE_METADATA_FALLBACK_TITLE}
+            />
             <BespokeMetadataKeyData metadata={metadata} />
             <MetadataBoxExpander
                 detailsRef={detailsRef}
