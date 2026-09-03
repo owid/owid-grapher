@@ -23,7 +23,7 @@ jobs:
       - uses: ./.github/actions/setup-node-yarn-deps
 
       - name: Build schema artefacts
-        run: yarn buildGrapherSchema --out-dir "$RUNNER_TEMP/schemas" --latest
+        run: yarn buildGrapherSchema --publish-dir "$RUNNER_TEMP/schemas" --latest
 
       # Now upload all files in that folder to Cloudflare R2.
       - name: Upload to R2

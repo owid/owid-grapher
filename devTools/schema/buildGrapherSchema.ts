@@ -13,10 +13,9 @@ import {
 } from "./grapherSchemaSource.js"
 import {
     generateDefaultConfig,
-    buildSchemaArtefact,
+    formatSchemaFileName,
     renderDefaultConfigFile,
     serializeJson,
-    toPatchSchema,
 } from "./grapherSchemaArtefacts.js"
 
 function toDisplayPath(filePath: string): string {
@@ -31,14 +30,11 @@ async function writeArtefact(filePath: string, content: string): Promise<void> {
 
 async function main(): Promise<void> {
     const {
-        values: {
-            "out-dir": outDir = SCHEMA_DIR,
-            latest: withLatestAlias = false,
-        },
+        values: { "publish-dir": publishDir, latest: withLatestAlias = false },
     } = parseArgs({
         strict: true,
         options: {
-            "out-dir": { type: "string" },
+            "publish-dir": { type: "string" },
             latest: { type: "boolean" },
         },
     })
@@ -48,26 +44,25 @@ async function main(): Promise<void> {
     assertSchemaIdMatchesVersion(schema, version)
     const defs = schema.$defs ?? {}
 
-    const schemaJson = serializeJson(schema)
-    const patchSchemaJson = serializeJson(toPatchSchema(schema))
     const defaultConfigFile = await renderDefaultConfigFile(
         version,
         generateDefaultConfig(schema, defs)
     )
-
-    const versions = withLatestAlias ? [version, "latest"] : [version]
-    const schemaArtefacts = versions.flatMap((artefactVersion) => [
-        buildSchemaArtefact(artefactVersion, "json", schemaJson),
-        buildSchemaArtefact(artefactVersion, "patch.json", patchSchemaJson),
-    ])
-
-    await fs.mkdir(outDir, { recursive: true })
-    for (const { fileName, content } of schemaArtefacts)
-        await writeArtefact(path.join(outDir, fileName), content)
     await writeArtefact(
         path.join(SCHEMA_DIR, "defaultGrapherConfig.ts"),
         defaultConfigFile
     )
+
+    if (publishDir) {
+        const schemaJson = serializeJson(schema)
+        const publishedFileNames = [
+            formatSchemaFileName(version),
+            ...(withLatestAlias ? [formatSchemaFileName("latest")] : []),
+        ]
+        await fs.mkdir(publishDir, { recursive: true })
+        for (const fileName of publishedFileNames)
+            await writeArtefact(path.join(publishDir, fileName), schemaJson)
+    }
 }
 
 void main()
