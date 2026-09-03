@@ -213,7 +213,7 @@ export const EmailNotificationsPreferenceFields = ({
                 )}
             </fieldset>
             <fieldset className="newsletter-form__fieldset">
-                <legend className="h6-black-caps">Send me, at most</legend>
+                <legend className="h6-black-caps">Send me</legend>
                 <div className="newsletter-preference-fields__frequency-options">
                     {EMAIL_NOTIFICATIONS_FREQUENCIES.map((frequencyOption) => (
                         <label
