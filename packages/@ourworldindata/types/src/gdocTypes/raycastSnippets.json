@@ -11,7 +11,7 @@
     },
     {
         "name": "all-charts",
-        "text": "{.all-charts}\nheading: \n[.top]\nurl: \n[]\n{}",
+        "text": "{.all-charts}\nheading: \n[.top]\nurl: \n[]\n[.suggested]\n* \n* \n* \n[]\n{}",
         "keyword": "+all-charts"
     },
     {
