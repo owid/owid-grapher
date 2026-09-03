@@ -358,14 +358,17 @@
 
 // The chart's variant name ("age-standardized", "Stacked areas"), appended to
 // the title on the rows that need it — only where two charts on the topic share
-// a title (see getChartHitVariantName). Subdued and lighter than the title it
-// qualifies, following the site's existing .variantName treatment: it is a
-// disambiguator, not part of the name.
+// a title (see getChartHitVariantName). It is a disambiguator, not part of the
+// name, so typographically it *is* the "Source:" line beneath it: same family,
+// size, weight and $blue-50 (Marwa, 2026-09-03, replacing a grey 0.85em span).
+// Those four come from that line's own rule, whose selector list this joins
+// below, rather than being restated here.
 .all-charts-block__row-variant {
     margin-left: 4px;
-    color: $gray-70;
-    font-weight: 400;
-    font-size: 0.85em;
+    // The one thing the shared rule can't supply: this span is nested inside
+    // the serif title, so the body font has to be reasserted to match the
+    // source line, which simply inherits it.
+    font-family: $sans-serif-font-stack;
 }
 
 .all-charts-block__row-subtitle {
@@ -410,11 +413,17 @@
 // search reveals the subtitle above it. It used to be the darker $blue-90,
 // giving the attribution more presence than the description above it; with the
 // description hidden by default there is nothing left for it to compete with.
-.all-charts-block__row-source {
+// The variant name is styled from here too (see above); only the flex layout
+// below it is the source line's own.
+.all-charts-block__row-source,
+.all-charts-block__row-variant {
     color: $blue-50;
     font-size: 12px;
     font-weight: 400;
     line-height: 1.5;
+}
+
+.all-charts-block__row-source {
     // The source stays on one line however long the producer list is — some
     // run to a dozen organisations ("Food and Agriculture Organization of the
     // United Nations, Eurostat, OECD, IMF, and World Bank, …") and wrapping

@@ -513,6 +513,40 @@ export function hasHiddenChartHits(
     return totalHitCount > initialRowCount
 }
 
+/**
+ * How many "Suggested:" searches the all-charts block offers.
+ *
+ * The line has two possible sources — an editorially curated list on the gdoc
+ * block, or the OWID topic vocabulary fetched at runtime — and neither is
+ * bounded at source: the vocabulary's generator publishes as many terms per
+ * topic as it is asked for (eight, at the time of writing) and an author can
+ * list any number. Five is a length that still scans as a suggestion rather
+ * than a second navigation, which is what eight read as (Marwa, 2026-09-03).
+ *
+ * A cap of five is where this started; it was removed in 4652205c3 so that the
+ * generator's `--max-terms` alone decided the line's length, on the argument
+ * that one number in one repo beats two. The line then grew to eight, so the
+ * cap is back — and back in the block, because the block is what has to look
+ * right, and the vocabulary is shared with whatever else comes to use it.
+ */
+export const ALL_CHARTS_MAX_SUGGESTED_SEARCHES = 5
+
+/**
+ * The suggested searches the all-charts block actually renders: the first
+ * `maxCount` of whichever list supplies them.
+ *
+ * Applied to the chosen list rather than to each source, so a curated list and
+ * a vocabulary one are capped identically, and applied by truncation so the
+ * order the source chose is kept — the vocabulary's terms are ranked by what
+ * each reveals of this topic's charts, so its first five are its best five.
+ */
+export function capSuggestedSearches<T>(
+    suggestions: readonly T[],
+    maxCount: number = ALL_CHARTS_MAX_SUGGESTED_SEARCHES
+): T[] {
+    return suggestions.slice(0, Math.max(maxCount, 0))
+}
+
 export function pickEntitiesForChartHit(
     hit: SearchChartHit,
     selectedRegionNames: string[] | undefined

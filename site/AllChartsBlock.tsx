@@ -44,6 +44,7 @@ import {
     resolveSelectedChartIndex,
     getFilterIcon,
     getFilterAriaLabel,
+    capSuggestedSearches,
     SEARCH_BASE_PATH,
 } from "./search/searchUtils.js"
 import { stateToSearchParams } from "./search/searchState.js"
@@ -299,6 +300,7 @@ export const AllChartsBlock = ({
     // input with its label, so it drives the same full-text search path as if
     // the visitor had typed it themselves. A vocabulary chip whose term the
     // visitor has already typed is hidden rather than offered back to them.
+    // Either list is capped at ALL_CHARTS_MAX_SUGGESTED_SEARCHES.
     const suggestedChips: SuggestedChip[] = useMemo(() => {
         const labels =
             suggested.length > 0
@@ -307,7 +309,11 @@ export const AllChartsBlock = ({
                       (keyword) =>
                           query.trim().toLowerCase() !== keyword.toLowerCase()
                   )
-        return labels.map((label) => ({
+        // Capped after that choice, so the line is the same length whichever
+        // source filled it, and after the already-typed term is dropped, so
+        // hiding one doesn't shorten the line to four. See
+        // capSuggestedSearches.
+        return capSuggestedSearches(labels).map((label) => ({
             key: `query:${label}`,
             label,
             onClick: () => setQuery(label),

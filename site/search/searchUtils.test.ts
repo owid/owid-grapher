@@ -19,6 +19,8 @@ import {
     getDuplicatedChartTitles,
     getChartHitVariantName,
     ALL_CHARTS_INITIAL_ROW_COUNT,
+    capSuggestedSearches,
+    ALL_CHARTS_MAX_SUGGESTED_SEARCHES,
 } from "./searchUtils"
 
 import { FilterType, SynonymMap } from "@ourworldindata/types"
@@ -1032,6 +1034,64 @@ describe(hasHiddenChartHits, () => {
             const isHiding = getVisibleChartHits(all, false).length < all.length
             expect(hasHiddenChartHits(total)).toBe(isHiding)
         }
+    })
+})
+
+describe(capSuggestedSearches, () => {
+    // The suggested-search line as each source hands it over: the OWID topic
+    // vocabulary publishes eight terms for a topic, already ranked by what
+    // each reveals of that topic's charts.
+    const vocabularyTerms = [
+        "co2 emissions",
+        "greenhouse gas emissions",
+        "carbon intensity",
+        "methane",
+        "emissions per capita",
+        "cumulative emissions",
+        "consumption-based emissions",
+        "carbon price",
+    ]
+
+    it("offers five suggestions out of the vocabulary's eight", () => {
+        expect(capSuggestedSearches(vocabularyTerms)).toHaveLength(
+            ALL_CHARTS_MAX_SUGGESTED_SEARCHES
+        )
+    })
+
+    it("keeps the source's own order, taking its first five", () => {
+        // Load-bearing: the vocabulary ranks its terms by coverage, so its
+        // first five are its best five — the cap must truncate rather than
+        // choose. Same for a curated list, where the author chose the order.
+        expect(capSuggestedSearches(vocabularyTerms)).toEqual(
+            vocabularyTerms.slice(0, ALL_CHARTS_MAX_SUGGESTED_SEARCHES)
+        )
+    })
+
+    it("caps a curated list from the gdoc block the same way", () => {
+        // The block picks between its two sources and caps the result, so a
+        // long editorial list is bounded exactly like a vocabulary one.
+        const curated = ["a", "b", "c", "d", "e", "f", "g"]
+        expect(capSuggestedSearches(curated)).toEqual([
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+        ])
+    })
+
+    it("leaves a list already at or under the cap alone", () => {
+        const four = vocabularyTerms.slice(0, 4)
+        expect(capSuggestedSearches(four)).toEqual(four)
+        const five = vocabularyTerms.slice(0, 5)
+        expect(capSuggestedSearches(five)).toEqual(five)
+        expect(capSuggestedSearches([])).toEqual([])
+    })
+
+    it("does not mutate the list it caps", () => {
+        const terms = [...vocabularyTerms]
+        capSuggestedSearches(terms)
+        expect(terms).toEqual(vocabularyTerms)
     })
 })
 
