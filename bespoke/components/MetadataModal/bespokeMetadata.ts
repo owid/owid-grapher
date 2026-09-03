@@ -1,13 +1,13 @@
 import {
     BespokeMetadataSchema,
-    hasProvenance,
-    type BespokeMetadataWithProvenance,
+    shouldRenderBespokeMetadata,
+    type BespokeMetadata,
 } from "@ourworldindata/types"
 
 /** Read a project's metadata file into the shape the modal renders */
 export function parseBespokeMetadata(
     json: unknown
-): BespokeMetadataWithProvenance | undefined {
+): BespokeMetadata | undefined {
     const parsed = BespokeMetadataSchema.safeParse(json)
     if (!parsed.success) {
         console.warn(
@@ -16,5 +16,5 @@ export function parseBespokeMetadata(
         return undefined
     }
 
-    return hasProvenance(parsed.data) ? parsed.data : undefined
+    return shouldRenderBespokeMetadata(parsed.data) ? parsed.data : undefined
 }
