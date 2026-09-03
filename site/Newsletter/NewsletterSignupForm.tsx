@@ -154,7 +154,7 @@ export const NewsletterSignupForm = ({
                 cadence={
                     followTopics
                         ? "Choose topics in next step"
-                        : "Pick your cadence"
+                        : "Daily or weekly"
                 }
                 description={FOLLOW_TOPICS_DESCRIPTION}
                 checked={followTopics}
