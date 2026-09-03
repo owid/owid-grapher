@@ -7,13 +7,13 @@ import {
     useState,
 } from "react"
 
-import { BespokeMetadataWithProvenance } from "@ourworldindata/types"
+import { BespokeMetadata } from "@ourworldindata/types"
 
 import { useEmbedConfig } from "../../hooks/useEmbedConfig.js"
 
 interface BespokeMetadataContextValue {
     /** Absent where the viz offers no modal, not only where the manifest carries none */
-    metadata: BespokeMetadataWithProvenance | undefined
+    metadata: BespokeMetadata | undefined
     isModalOpen: boolean
     openModal: () => void
     closeModal: () => void
@@ -28,7 +28,7 @@ export function BespokeMetadataProvider({
     metadata,
     children,
 }: {
-    metadata: BespokeMetadataWithProvenance | undefined
+    metadata: BespokeMetadata | undefined
     children: React.ReactNode
 }): React.ReactElement {
     const { hideMetadataModal } = useEmbedConfig()

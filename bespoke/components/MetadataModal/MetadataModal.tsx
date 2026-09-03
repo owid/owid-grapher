@@ -1,18 +1,17 @@
 import {
+    BESPOKE_METADATA_FALLBACK_TITLE,
     BespokeMetadataHeading,
     BespokeMetadataKeyData,
     BespokeMetadataSections,
     OverlayHeader,
     SimpleMarkdownText,
 } from "@ourworldindata/components"
-import { BespokeMetadataWithProvenance } from "@ourworldindata/types"
+import { BespokeMetadata } from "@ourworldindata/types"
 import { UNSAFE_PortalProvider } from "react-aria"
 import { Dialog, Modal as AriaModal, ModalOverlay } from "react-aria-components"
 
-const MODAL_TITLE = "About this data"
-
 interface MetadataModalProps {
-    metadata: BespokeMetadataWithProvenance
+    metadata: BespokeMetadata
     /** The positioned element the overlay covers */
     frameRef: React.RefObject<HTMLElement | null>
     isOpen: boolean
@@ -39,13 +38,13 @@ export function MetadataModal({
                 <AriaModal className="metadata-modal__panel">
                     <Dialog
                         className="metadata-modal__dialog"
-                        aria-label={MODAL_TITLE}
+                        aria-label={BESPOKE_METADATA_FALLBACK_TITLE}
                     >
                         {/* Restore the default portal container for nested
                             overlays such as dropdowns. */}
                         <UNSAFE_PortalProvider getContainer={null}>
                             <OverlayHeader
-                                title={MODAL_TITLE}
+                                title={BESPOKE_METADATA_FALLBACK_TITLE}
                                 onDismiss={onDismiss}
                             />
                             <div className="metadata-modal__body">
