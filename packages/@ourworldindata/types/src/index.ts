@@ -322,9 +322,8 @@ export type { OwidOrigin } from "./OwidOrigin.js"
 
 export {
     type BespokeMetadata,
-    type BespokeMetadataWithProvenance,
     BespokeMetadataSchema,
-    hasProvenance,
+    shouldRenderBespokeMetadata,
 } from "./domainTypes/BespokeMetadata.js"
 
 export {
