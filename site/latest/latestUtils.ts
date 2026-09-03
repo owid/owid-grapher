@@ -76,9 +76,38 @@ export function findThumbnailImageBlock(
     return blocks.find((block) => block.type === "image")
 }
 
+/**
+ * How cards render in a type-filtered feed that offers the View toggle:
+ * "expanded" shows each card in full, "compact" clips it and lets the reader
+ * expand it in place. Local UI state, deliberately not in the URL.
+ */
+export const LATEST_FEED_VIEWS = ["expanded", "compact"] as const
+export type LatestFeedView = (typeof LATEST_FEED_VIEWS)[number]
+export const DEFAULT_LATEST_FEED_VIEW: LatestFeedView = "expanded"
+
+/**
+ * Types whose filtered feed offers the View toggle. Data insights only for
+ * now; data updates are the obvious next candidate — add the type here and
+ * make its hit component honour `view` (see LatestDataInsightHit).
+ */
+const LATEST_TYPES_WITH_VIEW_TOGGLE: readonly LatestType[] = ["data-insight"]
+
+export function hasViewToggle(latestType: LatestType | null): boolean {
+    return (
+        latestType !== null &&
+        LATEST_TYPES_WITH_VIEW_TOGGLE.includes(latestType)
+    )
+}
+
 /** Grid positioning applied to the root of every hit card. */
 export const LATEST_HIT_GRID_CLASSES =
     "span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1"
+
+/** The newsletter block sits in the right-hand column beside the first
+ * cards, and goes full-bleed once that column collapses. Shared by the live
+ * UI and the baked skeleton so the two layouts can't drift apart. */
+export const LATEST_NEWSLETTER_SIGNUP_CLASSES =
+    "latest-page__newsletter-signup col-start-11 span-cols-3 col-lg-start-10 span-lg-cols-4 span-md-cols-14 col-md-start-1"
 
 /** Grid positioning for the facets row and the divider beneath it — shared
  * between the live UI (LatestSearch) and the baked skeleton

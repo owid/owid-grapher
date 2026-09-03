@@ -45,13 +45,15 @@ A single Algolia call ([`queryLatestPages`](../search/queries.ts)) issues three 
 
 The `/latest` filter offers five options: article, data insight, data update, website upgrade, announcement. The first two are distinct gdoc types, but the last three are all _announcement_ gdocs distinguished only by their editorial _kicker_. The indexer derives a `latestType` per record (kicker for announcements, gdoc type otherwise) so the filter can treat them as five separate values. The raw gdoc type stays on the record for card dispatch and the atom feed.
 
-### 6. Articles are the only type with card variants
+### 6. Card variants: authored (articles) and view-driven (data insights)
 
 Articles expose two card-only override fields, and each follows the same shape: an authoring choice in the gdoc → conditional behavior in the indexer (which linked content to load) → variant rendering in the card.
 
 `latest-feed-featured-image` swaps the card thumbnail (the article page itself still uses `featured-image`). `latest-feed-excerpt` switches the excerpt from the default plain text to ArticleBlocks (with internal links and formatting) plus a "Read the article" affordance — see [`LatestArticleHit`](./LatestArticleHit.tsx). The rich-excerpt path is also why the indexer conditionally loads linked charts/documents for articles.
 
-Every other type renders one way, so the indexer loads their linked content unconditionally.
+Data insights vary by _where_ they render, not by authoring. In the unfiltered feed they're a condensed teaser linking to their page. With the data-insight type filter on, the feed instead shows each insight whole, read in place, and offers a **View: Expanded / Compact** toggle ([`LatestViewToggle`](./LatestViewToggle.tsx)) — a grid item of its own, rendered before the cards it governs, sitting at the top of the right-hand column above the newsletter block on desktop and at the top of the page on mobile — compact cards clip the text and expand in place on click, one-way. The toggle is local UI state, not URL state, and resets when the type filter changes. It renders only for the type filters that offer it, so its absence is what says "not applicable here" — which means the feeds that have one sit 40px lower on mobile, where the toggle takes a row of its own. The baked skeleton can't know the active filter (one static shell serves every query string), so it renders no toggle and a deep-linked filtered feed gains one when the app mounts. Which type filters offer it is a list, `LATEST_TYPES_WITH_VIEW_TOGGLE` in [`latestUtils.ts`](./latestUtils.ts), so extending it to data updates is a matter of adding the type and having its hit component honour `view`. The in-place card needs the authors' avatars, which is why the indexer loads `linkedAuthors` for data insights.
+
+Announcements and data updates render one way each, so the indexer loads their linked content unconditionally.
 
 ### 7. Standalone announcement pages are a preview surface
 
@@ -63,8 +65,11 @@ Each announcement is also baked as a standalone page, primarily for editor previ
 LatestSearchWrapper            (Algolia LiteClient + QueryClientProvider)
   └── LatestSearch             (URL state, queries, result list)
         ├── LatestTopicFacets  (topic pills + content-type dropdown)
+        ├── LatestViewToggle   (Expanded / Compact; disabled unless the type filter offers it)
         └── LatestHit          (per-type dispatcher)
               ├── LatestArticleHit
               ├── LatestDataInsightHit
+              │     └── LatestDataInsightExpandable  (filtered feed: read in place)
+              ├── LatestDataUpdateHit
               └── LatestAnnouncementHit
 ```
