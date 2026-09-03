@@ -1071,13 +1071,7 @@ describe(capSuggestedSearches, () => {
         // The block picks between its two sources and caps the result, so a
         // long editorial list is bounded exactly like a vocabulary one.
         const curated = ["a", "b", "c", "d", "e", "f", "g"]
-        expect(capSuggestedSearches(curated)).toEqual([
-            "a",
-            "b",
-            "c",
-            "d",
-            "e",
-        ])
+        expect(capSuggestedSearches(curated)).toEqual(["a", "b", "c", "d", "e"])
     })
 
     it("leaves a list already at or under the cap alone", () => {
