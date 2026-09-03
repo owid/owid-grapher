@@ -32,7 +32,7 @@ In one commit:
 - Write the DB migration in `db/migration/` that rewrites the stored rows and restamps
   `$schema` in `chart_configs.config` and `chart_revisions.config`. Ship the restamp and the
   rewrite together.
-- Regenerate `defaultGrapherConfig.ts`, see below.
+- Run `yarn buildGrapherSchema`, see below.
 
 Before merging:
 
@@ -42,22 +42,22 @@ Before merging:
 
 After merging:
 
-- `sync-grapher-schema-to-r2.yml` uploads this folder to the `schemas` prefix of the
-  `owid-public` bucket on Cloudflare R2, as JSON and YAML plus a `.latest` alias of each.
-  `files.ourworldindata.org/schemas/` serves that bucket. The sync never deletes, so every
-  version ever published keeps resolving.
+- `sync-grapher-schema-to-r2.yml` uploads the full JSON and the layer JSON to the `schemas`
+  prefix of the `owid-public` bucket on Cloudflare R2, each with a `.latest` alias.
+  The layer document is the same schema with `required` reduced to `$schema`, for configs that
+  are merged into a chart rather than rendered on their own. `files.ourworldindata.org/schemas/`
+  serves that bucket. The sync never deletes, so every version ever published keeps resolving.
 - Once this repo has deployed, merge the sibling ETL PR. Never before, since the ETL pushes
   configs stamped with that version.
 
-## Regenerating the default config
+## Regenerating the generated files
 
-Regenerate `defaultGrapherConfig.ts` whenever the schema changes. Replace `XXX` with the
-current schema version number and run:
+`yarn buildGrapherSchema` reads the newest `grapher-schema.NNN.yaml` and writes
+`grapher-schema.NNN.json`, `grapher-schema.NNN.layer.json` and `defaultGrapherConfig.ts` next to
+it. Run it whenever the schema changes. CI runs it on every push that touches this folder.
+With `--out-dir <dir>` the two JSON files go to `<dir>` instead, and `--latest` adds a
+`.latest` alias of each; the R2 upload uses both.
 
 ```bash
-# generate json from the yaml schema
-nu -c 'open packages/@ourworldindata/grapher/src/schema/grapher-schema.XXX.yaml | to json' > packages/@ourworldindata/grapher/src/schema/grapher-schema.XXX.json
-
-# generate the default object from the schema
-yarn tsx --tsconfig tsconfig.tsx.json devTools/schema/generate-default-object-from-schema.ts packages/@ourworldindata/grapher/src/schema/grapher-schema.XXX.json --save-ts packages/@ourworldindata/grapher/src/schema/defaultGrapherConfig.ts
+yarn buildGrapherSchema
 ```

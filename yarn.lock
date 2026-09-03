@@ -9296,6 +9296,7 @@ __metadata:
     "@types/geojson": "npm:^7946.0.16"
     "@types/history": "npm:^4.7.11"
     "@types/ini": "npm:^4.1.1"
+    "@types/json-schema": "npm:^7.0.15"
     "@types/lodash-es": "npm:^4.17.12"
     "@types/mdast": "npm:^4.0.4"
     "@types/minimist": "npm:^1.2.5"
