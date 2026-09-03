@@ -100,11 +100,6 @@ const FREQUENCY_LABELS: Record<EmailNotificationsFrequency, string> = {
     weekly: "weekly",
 }
 
-const FREQUENCY_PERIODS: Record<EmailNotificationsFrequency, string> = {
-    daily: "day",
-    weekly: "week",
-}
-
 export function makeNotificationEmailSubject(
     frequency: EmailNotificationsFrequency
 ): string {
@@ -176,32 +171,6 @@ function NotificationEmail({
                         className="content"
                         style={{ padding: `32px ${CONTENT_PADDING}px 40px` }}
                     >
-                        <Text style={{ margin: "0 0 32px", fontSize: 14 }}>
-                            Here is what we published in the last{" "}
-                            {FREQUENCY_PERIODS[subscriber.frequency]} across the
-                            topics you follow.
-                            <br />
-                            <Link
-                                href={updatePreferencesUrl}
-                                style={{
-                                    color: COLORS.text,
-                                    textDecoration: "underline",
-                                }}
-                            >
-                                Update your preferences
-                            </Link>{" "}
-                            or, if this was forwarded to you,{" "}
-                            <Link
-                                href={`${baseUrl}/subscribe`}
-                                style={{
-                                    color: COLORS.text,
-                                    textDecoration: "underline",
-                                }}
-                            >
-                                subscribe here
-                            </Link>
-                            .
-                        </Text>
                         {items.map((item, index) => (
                             <Fragment key={item.url}>
                                 {index > 0 && <Spacer height={32} />}
@@ -474,7 +443,17 @@ function DataInsightCard({ item }: { item: NotificationEmailItem }) {
                 />
             ))}
             <ItemTitle item={item} />
-            <ItemAuthors item={item} />
+            {item.authors.length > 0 && (
+                <Text
+                    style={{
+                        ...BODY_TEXT,
+                        color: COLORS.muted,
+                        fontStyle: "italic",
+                    }}
+                >
+                    {formatAuthors(item.authors)}
+                </Text>
+            )}
             {body.slice(splitIndex).map((block, index) => (
                 <Block
                     key={index}
@@ -700,7 +679,7 @@ function Footer({
                         fontWeight: 700,
                     }}
                 >
-                    Browse the latest on Our World in Data
+                    Keep browsing
                 </Button>
             </Text>
             <Text style={footerTextStyle}>
