@@ -1,6 +1,6 @@
 import { expect, it, describe } from "vitest"
 
-import { grapherSlugToExportFileKey } from "./GrapherBakingUtils.js"
+import { grapherSlugToExportFileKey } from "./utils.js"
 
 describe(grapherSlugToExportFileKey, () => {
     it("can handle empty query string", () => {
