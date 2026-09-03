@@ -39,14 +39,20 @@ Before merging:
 - Prepare a sibling PR in the etl repo, following the version-bump section of its
   `/sync-grapher-schema` skill. It moves `DEFAULT_GRAPHER_SCHEMA` in `etl/config.py`, updates
   the `$ref`s in the ETL's own schemas and re-vendors the schema.
+- Every push to a branch that touches this folder uploads the full JSON and the layer JSON
+  to `schemas/preview/<branch>/` on R2, without `.latest` aliases. The sibling ETL PR can pin
+  the new version against
+  `files.ourworldindata.org/schemas/preview/<branch>/grapher-schema.MMM.json` before this repo
+  publishes it.
 
 After merging:
 
-- `sync-grapher-schema-to-r2.yml` uploads the full JSON and the layer JSON to the `schemas`
-  prefix of the `owid-public` bucket on Cloudflare R2, each with a `.latest` alias.
-  The layer document is the same schema with `required` reduced to `$schema`, for configs that
-  are merged into a chart rather than rendered on their own. `files.ourworldindata.org/schemas/`
-  serves that bucket. The sync never deletes, so every version ever published keeps resolving.
+- The push to master runs `sync-grapher-schema-to-r2.yml`, which uploads the full JSON and the
+  layer JSON to the `schemas` prefix of the `owid-public` bucket on Cloudflare R2, each with a
+  `.latest` alias. The layer document is the same schema with `required` reduced to `$schema`,
+  for configs that are merged into a chart rather than rendered on their own.
+  `files.ourworldindata.org/schemas/` serves that bucket. The sync never deletes, so every
+  version ever published keeps resolving.
 - Once this repo has deployed, merge the sibling ETL PR. Never before, since the ETL pushes
   configs stamped with that version.
 

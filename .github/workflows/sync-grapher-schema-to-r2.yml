@@ -1,8 +1,8 @@
-name: Upload to R2
+name: Upload grapher schema to R2
 on:
   push:
     branches:
-      - master
+      - "**"
     paths:
       - "packages/@ourworldindata/grapher/src/schema/**"
       - "devTools/schema/**"
@@ -22,16 +22,19 @@ jobs:
 
       - uses: ./.github/actions/setup-node-yarn-deps
 
-      - name: Build schema artefacts
-        run: yarn buildGrapherSchema --out-dir "$RUNNER_TEMP/schemas" --latest
-
-      # Now upload all files in that folder to Cloudflare R2.
-      - name: Upload to R2
+      - name: Build and upload the schema artefacts
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
         run: |
-          aws s3 sync "$RUNNER_TEMP/schemas" s3://owid-public/schemas \
+          if [ "$GITHUB_REF_NAME" = master ]; then
+            prefix="schemas"
+            yarn buildGrapherSchema --out-dir "$RUNNER_TEMP/schemas" --latest
+          else
+            prefix="schemas/preview/$GITHUB_REF_NAME"
+            yarn buildGrapherSchema --out-dir "$RUNNER_TEMP/schemas"
+          fi
+          aws s3 sync "$RUNNER_TEMP/schemas" "s3://owid-public/$prefix" \
             --endpoint-url https://${{ secrets.CLOUDFLARE_R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
 
       # The etl repo vendors this schema and its integration tests compare the vendored copy
@@ -41,6 +44,7 @@ jobs:
       # Needs a token with contents:write on owid/etl — GITHUB_TOKEN cannot dispatch across
       # repos. A failure here must not fail the upload that already succeeded.
       - name: Tell owid/etl the schema was published
+        if: github.ref_name == 'master'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.ETL_SCHEMA_SYNC_TOKEN }}
