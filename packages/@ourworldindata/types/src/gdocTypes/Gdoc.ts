@@ -3,7 +3,7 @@ import {
     GrapherTabConfigOption,
     RelatedChart,
 } from "../grapherTypes/GrapherTypes.js"
-import { BespokeMetadataWithProvenance } from "../domainTypes/BespokeMetadata.js"
+import { BespokeMetadata } from "../domainTypes/BespokeMetadata.js"
 import { BreadcrumbItem } from "../domainTypes/Site.js"
 import { TocHeadingWithSupertitle } from "../domainTypes/Toc.js"
 import { ImageMetadata } from "./Image.js"
@@ -349,7 +349,7 @@ export interface OwidGdocFeaturedVizContent {
 
 export interface OwidGdocFeaturedVizInterface extends OwidGdocBaseInterface {
     content: OwidGdocFeaturedVizContent
-    bespokeMetadata?: BespokeMetadataWithProvenance
+    bespokeMetadata?: BespokeMetadata
 }
 
 export interface OwidGdocHomepageContent {
