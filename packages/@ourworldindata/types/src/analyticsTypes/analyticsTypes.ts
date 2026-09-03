@@ -41,6 +41,7 @@ export enum EventCategory {
     SiteInstantSearchClick = "owid.site_instantsearch_click",
     SiteLatest = "owid.site_latest",
     SiteLatestAnnouncementExpand = "owid.site_latest_announcement_expand",
+    SiteLatestDataInsightExpand = "owid.site_latest_data_insight_expand",
     SiteLatestResultClick = "owid.site_latest_result_click",
     SiteSearch = "owid.site_search",
     SiteSearchAutocompleteClick = "owid.site_search_autocomplete_click",
@@ -60,7 +61,8 @@ export enum EventCategory {
 
 export type EventParamsMap = {
     [EventCategory.SiteLatest]: SiteLatestParams
-    [EventCategory.SiteLatestAnnouncementExpand]: SiteLatestAnnouncementExpandParams
+    [EventCategory.SiteLatestAnnouncementExpand]: SiteLatestExpandParams
+    [EventCategory.SiteLatestDataInsightExpand]: SiteLatestExpandParams
     [EventCategory.SiteLatestResultClick]: SiteLatestResultClickParams
     [EventCategory.SiteSearch]: SiteSearchParams
     [EventCategory.SiteSearchAutocompleteClick]: SiteSearchAutocompleteClickParams
@@ -446,19 +448,21 @@ export interface ExpanderParams {
     grapherPath?: string
 }
 
-export interface SiteLatestAnnouncementExpandParams {
-    /** Always 'expand' for this event — the announcement card's Read more
-     * toggle is one-way (no collapse), so there's no 'open'/'close'
-     * distinction the way Expander has. */
+/** Shared by the two in-feed expand events on /latest: an announcement's
+ * Read more toggle and a compact data insight card. */
+export interface SiteLatestExpandParams {
+    /** Always 'expand' for these events — expanding a card in the feed is
+     * one-way (no collapse), so there's no 'open'/'close' distinction the way
+     * Expander has. */
     eventAction: "expand"
-    /** Slug of the announcement that was expanded */
+    /** Slug of the card that was expanded */
     eventTarget: string
-    /** 1-indexed position of the announcement in the /latest feed at the
-     * time of expansion (chronological order, includes all hit types). */
+    /** 1-indexed position of the card in the /latest feed at the time of
+     * expansion (chronological order, includes all hit types). */
     latestPosition: number
-    /** Content type of the announcement. One of the announcement
-     * `LatestType` subtypes (announcement / data-update / website-upgrade)
-     * since only announcement hits render the Read more toggle. */
+    /** Content type of the card: one of the announcement `LatestType`
+     * subtypes for the announcement event, "data-insight" for the data
+     * insight one. */
     latestType?: string
 }
 

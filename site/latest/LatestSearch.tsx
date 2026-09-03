@@ -16,9 +16,14 @@ import {
 import { LatestTopicFacets } from "./LatestTopicFacets.js"
 import { LatestPageHeader } from "./LatestPageHeader.js"
 import {
+    DEFAULT_LATEST_FEED_VIEW,
     LATEST_FACETS_CONTAINER_CLASSES,
     LATEST_FILTERS_DIVIDER_CLASSES,
+    LATEST_NEWSLETTER_SIGNUP_CLASSES,
+    LatestFeedView,
+    hasViewToggle,
 } from "./latestUtils.js"
+import { LatestViewToggle } from "./LatestViewToggle.js"
 import {
     searchParamsToState,
     stateToSearchParams,
@@ -56,6 +61,13 @@ export const LatestSearch = ({
         [searchParams, allAreas]
     )
     const { topics, latestType } = state
+
+    // Expanded/Compact for type filters that offer the toggle. Local, not in
+    // the URL, and back to the default whenever the type filter changes.
+    const [view, setView] = useState<LatestFeedView>(DEFAULT_LATEST_FEED_VIEW)
+    useEffect(() => setView(DEFAULT_LATEST_FEED_VIEW), [latestType])
+    const showViewToggle = hasViewToggle(latestType)
+    const activeView = showViewToggle ? view : undefined
 
     useLatestAnalytics(state, analytics)
 
@@ -152,12 +164,15 @@ export const LatestSearch = ({
         // needlessly.
     }, [isLoading, hits.length])
 
-    // Announcements render expanded when we know the reader is after this
-    // content in particular: they filtered for data updates, or followed a
-    // link straight to one card. It's a hard override, not a default — the
-    // card renders without a Read more toggle and can't be collapsed.
+    // A card renders expanded when we know the reader is after this content
+    // in particular: they followed a link straight to it, the View toggle is
+    // on Expanded, or — for data updates, which don't have the toggle yet —
+    // they filtered for that type. It's a hard override, not a default: the
+    // card renders without a Read more affordance and can't be collapsed.
     const isExpanded = (slug: string) =>
-        latestType === "data-update" || slug === autoExpandedSlug
+        slug === autoExpandedSlug ||
+        activeView === "expanded" ||
+        latestType === "data-update"
 
     return (
         <LatestContext.Provider value={{ analytics }}>
@@ -174,6 +189,12 @@ export const LatestSearch = ({
                 />
             </div>
             <hr className={LATEST_FILTERS_DIVIDER_CLASSES} />
+            {/* Tied to the type filter alone, so it can't mount or unmount
+                while a feed loads: gating on the hits as well would flash it
+                in and out on a feed that turns out to be empty. */}
+            {showViewToggle && (
+                <LatestViewToggle view={view} onViewChange={setView} />
+            )}
             {isLoading ? (
                 <LatestSearchSkeleton />
             ) : hits.length === 0 ? (
@@ -200,13 +221,14 @@ export const LatestSearch = ({
                             selectedTopic={topics[0]}
                             position={i + 1}
                             isExpanded={isExpanded(hit.slug)}
+                            view={activeView}
                         />
                     ))}
                     {/* Always render the signup block — with 0 or 1 hits it
                         falls below whatever cards exist, which is the
                         intended layout. */}
                     <NewsletterSignupBlock
-                        className="latest-page__newsletter-signup col-start-11 span-cols-3 col-lg-start-10 span-lg-cols-4 span-md-cols-14 col-md-start-1"
+                        className={LATEST_NEWSLETTER_SIGNUP_CLASSES}
                         context={NewsletterSubscriptionContext.Latest}
                     />
                     {hits.slice(2).map((hit, i) => (
@@ -216,6 +238,7 @@ export const LatestSearch = ({
                             selectedTopic={topics[0]}
                             position={i + 3}
                             isExpanded={isExpanded(hit.slug)}
+                            view={activeView}
                         />
                     ))}
                     {hasNextPage && (
