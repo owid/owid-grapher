@@ -5,9 +5,9 @@ import {
 
 const allSchemaVersions = [...outdatedSchemaVersions, latestSchemaVersion]
 
-type LatestSchemaVersion = typeof latestSchemaVersion
-type OutdatedSchemaVersion = (typeof outdatedSchemaVersions)[number]
-type SchemaVersion = OutdatedSchemaVersion | LatestSchemaVersion
+export type LatestSchemaVersion = typeof latestSchemaVersion
+export type OutdatedSchemaVersion = (typeof outdatedSchemaVersions)[number]
+export type SchemaVersion = OutdatedSchemaVersion | LatestSchemaVersion
 
 type Schema =
     `https://files.ourworldindata.org/schemas/grapher-schema.${SchemaVersion}.json`
@@ -40,8 +40,15 @@ export function createSchemaForVersion(version: SchemaVersion): Schema {
     return `https://files.ourworldindata.org/schemas/grapher-schema.${version}.json`
 }
 
-export const isLatestVersion = (version: SchemaVersion) =>
-    version === latestSchemaVersion
+export const isLatestVersion = (
+    version: SchemaVersion
+): version is LatestSchemaVersion => version === latestSchemaVersion
+
+export function getNextSchemaVersion(
+    version: OutdatedSchemaVersion
+): SchemaVersion {
+    return allSchemaVersions[allSchemaVersions.indexOf(version) + 1]
+}
 
 export const isOutdatedVersion = (version: SchemaVersion) =>
     outdatedSchemaVersions.includes(version as any)

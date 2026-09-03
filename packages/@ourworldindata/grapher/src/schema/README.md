@@ -27,8 +27,8 @@ In one commit:
   in all three places: the `$id` and the `default` and `const` of the `$schema` property.
 - Update the version in the docs that name it: `packageDocs/docs/chart-config/index.md` and
   `docs/chart-api.openapi.yaml`.
-- Add `migrateFromNNNToMMM` to `migrations/migrations.ts` and add a case for `NNN` to the
-  match in `runMigration`. The match is exhaustive, so a missing case fails typecheck.
+- Add `migrateFromNNNToMMM` to `migrations/migrations.ts` and its `"NNN"` entry in
+  `MIGRATION_STEPS`. A missing entry fails typecheck.
 - Write the DB migration in `db/migration/` that rewrites the stored rows and restamps
   `$schema` in `chart_configs.config` and `chart_revisions.config`. Ship the restamp and the
   rewrite together.
