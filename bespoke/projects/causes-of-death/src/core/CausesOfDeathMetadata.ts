@@ -1,8 +1,5 @@
 import * as R from "remeda"
-import {
-    BespokeMetadataWithProvenance,
-    EntityName,
-} from "@ourworldindata/types"
+import { BespokeMetadata, EntityName } from "@ourworldindata/types"
 
 import { parseBespokeMetadata } from "../../../../components/MetadataModal/bespokeMetadata.js"
 import {
@@ -22,8 +19,8 @@ export class CausesOfDeathMetadata {
     source: MetadataJson["source"]
     timeRange: MetadataJson["timeRange"]
 
-    /** `undefined` until the manifest carries a title and origins */
-    bespokeMetadata: BespokeMetadataWithProvenance | undefined
+    /** `undefined` until the manifest carries origins or a descriptionKey */
+    bespokeMetadata: BespokeMetadata | undefined
 
     private _entityNameToId?: Map<EntityName, number>
     private _variableById?: Map<number, VariableMetadata>
