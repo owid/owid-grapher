@@ -7,6 +7,7 @@ import {
     GrapherTabName,
     GrapherTabQueryParam,
     OwidGdocType,
+    TagGraphNode,
     TagGraphRoot,
     TimeBounds,
     SearchIndexName,
@@ -411,6 +412,42 @@ export function getSelectableTopics(
         return new Set(getAllChildrenOfArea(area).map((node) => node.name))
 
     return new Set()
+}
+
+/**
+ * Ranks the topics behind a set of chart results, most common first, given the
+ * charts index's `tags` facet counts for a query. Only tags that are topics
+ * with a topic page count; areas are skipped even though they carry the
+ * highest counts by construction (every chart in a topic is also in its
+ * area), because an area has no page of its own to recommend.
+ *
+ * This is how the search page picks the topic pages to show for a query:
+ * charts describe their subject in their titles ("GDP per capita"), while
+ * topic pages are mostly charts and key indicators whose text isn't indexed,
+ * so a full-text search over topic pages misses the very page a query is
+ * about and surfaces pages that mention the term in passing instead.
+ */
+export function rankTopicsByChartTagCounts(
+    tagCounts: Record<string, number>,
+    tagGraph: TagGraphRoot
+): { name: string; slug: string }[] {
+    const areaNames = new Set(tagGraph.children.map((area) => area.name))
+    const slugByTopicName = new Map<string, string>()
+    const collectTopics = (node: TagGraphNode): void => {
+        for (const child of node.children) {
+            if (child.isTopic && child.slug && !areaNames.has(child.name))
+                slugByTopicName.set(child.name, child.slug)
+            collectTopics(child)
+        }
+    }
+    collectTopics(tagGraph)
+
+    return R.pipe(
+        Object.entries(tagCounts),
+        R.filter(([name]) => slugByTopicName.has(name)),
+        R.sortBy([([, count]) => count, "desc"]),
+        R.map(([name]) => ({ name, slug: slugByTopicName.get(name)! }))
+    )
 }
 
 export function serializeSet(set: Set<string>) {

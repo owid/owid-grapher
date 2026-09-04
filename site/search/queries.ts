@@ -22,6 +22,7 @@ import {
     formatCountryFacetFilters,
     formatTopicFacetFilters,
     getSelectableTopics,
+    rankTopicsByChartTagCounts,
     CHARTS_INDEX,
     PAGES_INDEX,
     PAGES_CHRONOLOGICAL_INDEX,
@@ -280,26 +281,117 @@ export async function queryArticles(
     )
 }
 
+const TOPIC_PAGE_TYPE_FILTER = `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`
+const TOPIC_PAGE_ATTRIBUTES = [
+    "title",
+    "type",
+    "slug",
+    "excerpt",
+    "excerptLong",
+]
+
+/**
+ * Topic pages to recommend for the current search.
+ *
+ * With a query, the topics come from the charts that match it: the charts
+ * index's `tags` facet says which topics those charts belong to, and the
+ * topic pages are shown in that order (see rankTopicsByChartTagCounts for
+ * why the topic pages' own text is a poor guide). Without a query, or when
+ * no chart matches, the topic pages are searched directly, as any other page.
+ */
 export async function queryTopicPages(
     liteSearchClient: LiteClient,
     state: SearchState,
+    tagGraph: TagGraphRoot,
     offset: number = 0,
     length: number
-) {
+): Promise<SearchResponse<TopicPageHit>> {
+    if (state.query.trim()) {
+        const response = await queryTopicPagesOfMatchingCharts(
+            liteSearchClient,
+            state,
+            tagGraph,
+            offset,
+            length
+        )
+        if (response) return response
+    }
+    return queryTopicPagesByText(liteSearchClient, state, offset, length)
+}
+
+async function queryTopicPagesOfMatchingCharts(
+    liteSearchClient: LiteClient,
+    state: SearchState,
+    tagGraph: TagGraphRoot,
+    offset: number,
+    length: number
+): Promise<SearchResponse<TopicPageHit> | undefined> {
+    const chartsResponse = await searchSingleForHits<SearchChartHit>(
+        liteSearchClient,
+        {
+            indexName: CHARTS_INDEX,
+            query: state.query,
+            facetFilters: buildChartsFacetFilters({
+                query: state.query,
+                filters: state.filters,
+                requireAllCountries: state.requireAllCountries,
+            }),
+            facets: ["tags"],
+            maxValuesPerFacet: MAX_FACET_VALUES,
+            hitsPerPage: 0,
+        }
+    )
+    const topics = rankTopicsByChartTagCounts(
+        chartsResponse.facets?.tags ?? {},
+        tagGraph
+    )
+    if (topics.length === 0) return undefined
+
+    // The topic list is short (a few dozen at most), so fetch every page in
+    // one request and paginate locally. Algolia returns them in its own
+    // order; the facet order is what we want.
+    const pagesResponse = await searchSingleForHits<TopicPageHit>(
+        liteSearchClient,
+        {
+            indexName: PAGES_INDEX,
+            query: "",
+            filters: TOPIC_PAGE_TYPE_FILTER,
+            facetFilters: formatDisjunctiveFacetFilters(
+                new Set(topics.map((topic) => `/${topic.slug}`)),
+                "path"
+            ),
+            attributesToRetrieve: TOPIC_PAGE_ATTRIBUTES,
+            hitsPerPage: topics.length,
+        }
+    )
+    const hitBySlug = new Map(pagesResponse.hits.map((hit) => [hit.slug, hit]))
+    const orderedHits = topics.flatMap(
+        (topic) => hitBySlug.get(topic.slug) ?? []
+    )
+
+    return {
+        ...pagesResponse,
+        hits: orderedHits.slice(offset, offset + length),
+        nbHits: orderedHits.length,
+        offset,
+        length,
+    }
+}
+
+async function queryTopicPagesByText(
+    liteSearchClient: LiteClient,
+    state: SearchState,
+    offset: number,
+    length: number
+): Promise<SearchResponse<TopicPageHit>> {
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
 
     const searchParams = {
         indexName: PAGES_INDEX,
         query: state.query,
-        filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
+        filters: TOPIC_PAGE_TYPE_FILTER,
         facetFilters: formatTopicFacetFilters(selectedTopics),
-        attributesToRetrieve: [
-            "title",
-            "type",
-            "slug",
-            "excerpt",
-            "excerptLong",
-        ],
+        attributesToRetrieve: TOPIC_PAGE_ATTRIBUTES,
         highlightPreTag: "<mark>",
         highlightPostTag: "</mark>",
         offset,

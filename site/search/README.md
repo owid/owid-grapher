@@ -117,6 +117,10 @@ sequenceDiagram
 - **Facet Filtering**: Dynamic filters for countries and topics
 - **Search Analytics**: Algolia Insights for click tracking (pending porting from legacy system)
 
+#### Topic page recommendations
+
+The "Topic page" cards in the Research & Writing section are not a text search over topic pages. Topic pages consist mostly of charts and key indicators, whose text isn't indexed, so their records rarely contain the words a user searches for ("gdp" appears nowhere in the Economic Growth page's records) while long-form pages match on passing mentions. Instead, `queryTopicPages` asks the charts index for the `tags` facet of the charts matching the query and shows the topic pages of those tags, most common first (`rankTopicsByChartTagCounts`). Text search over topic pages remains the fallback for empty queries and queries no chart matches.
+
 #### Empty-query caching proxy
 
 Requests with empty queries are routed through a caching Cloudflare function (`functions/api/search/cached-queries.ts`) which caches them for 24h.
