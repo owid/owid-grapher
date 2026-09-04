@@ -2,6 +2,7 @@ import { OwidOrigin } from "../OwidOrigin.js"
 import { OwidSource } from "../OwidSource.js"
 import {
     IndicatorTitleWithFragments,
+    OwidLicense,
     OwidProcessingLevel,
 } from "../OwidVariable.js"
 import { LicenseOption, RelatedChart } from "../grapherTypes/GrapherTypes.js"
@@ -92,4 +93,10 @@ export interface DisplaySource {
     retrievedOn?: string
     retrievedFrom?: string
     citation?: string
+    // Only the data-download readme reads these; the Sources UIs render the
+    // fields above. They are here so both start from one shape.
+    producer?: string
+    datePublished?: string
+    urlDownload?: string
+    license?: OwidLicense
 }
