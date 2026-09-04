@@ -41,7 +41,7 @@ export const LatestDataUpdateHit = ({
         slug: hit.slug,
         content: { type: OwidGdocType.Announcement },
     })
-    const isLikelyBaked = useIsLikelyBaked(announcementHref, hit.date)
+    const isLikelyBaked = useIsLikelyBaked(hit)
     const firstImage = findThumbnailImageBlock(hit.body)
     const otherBlocks = hit.body.filter((block) => block !== firstImage)
     const titleId = `latest-hit-${hit.slug}-title`
