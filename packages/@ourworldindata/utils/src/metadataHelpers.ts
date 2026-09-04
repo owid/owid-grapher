@@ -6,6 +6,7 @@ import {
     IndicatorTitleWithFragments,
     OwidSource,
     PrimaryTopic,
+    type BespokeMetadata,
 } from "@ourworldindata/types"
 import * as _ from "lodash-es"
 import { excludeUndefined } from "./Util"
@@ -63,6 +64,15 @@ export function getAttributionFragmentsFromVariable(
     )
     const name = variable.source?.name
     return _.uniq(_.compact([name, ...originAttributions]))
+}
+
+export function getAttributionFragmentsFromBespokeMetadata(
+    metadata: Pick<BespokeMetadata, "attribution" | "origins">
+): string[] {
+    return getAttributionFragmentsFromVariable({
+        presentation: { attribution: metadata.attribution },
+        origins: metadata.origins,
+    })
 }
 
 export const formatAttributions = (attributions: string[]): string =>

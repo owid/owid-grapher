@@ -1,19 +1,31 @@
 import {
+    BespokeMetadata,
+    BespokeMetadataSchema,
     OwidGdocBaseInterface,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     OwidGdocFeaturedVizContent,
     OwidGdocFeaturedVizInterface,
     excludeNullish,
+    fetchJson,
+    shouldRenderBespokeMetadata,
 } from "@ourworldindata/utils"
-import { OwidEnrichedGdocBlock } from "@ourworldindata/types"
+import {
+    EnrichedBlockBespokeComponent,
+    OwidEnrichedGdocBlock,
+} from "@ourworldindata/types"
+import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
+import { BESPOKE_COMPONENT_REGISTRY } from "../../../site/bespokeComponentRegistry.js"
 import { GdocBase } from "./GdocBase.js"
+
+const METADATA_FETCH_TIMEOUT_MS = 10_000
 
 export class GdocFeaturedViz
     extends GdocBase
     implements OwidGdocFeaturedVizInterface
 {
     declare content: OwidGdocFeaturedVizContent
+    bespokeMetadata?: BespokeMetadata
 
     constructor(id?: string) {
         super(id)
@@ -30,6 +42,62 @@ export class GdocFeaturedViz
         return Object.values(gdoc.content.refs.definitions).flatMap(
             (definition) => definition.content
         )
+    }
+
+    override _loadSubclassAttachments = async (): Promise<void> => {
+        await this.loadBespokeMetadata()
+    }
+
+    // Called from the baker too, which bakes published gdocs without loadState
+    loadBespokeMetadata = async (): Promise<void> => {
+        const heroBlock = (this.content.body ?? []).find(
+            (block): block is EnrichedBlockBespokeComponent =>
+                block.type === "bespoke-component"
+        )
+        if (!heroBlock) return
+
+        const { bundle } = heroBlock
+        const metadataUrl = BESPOKE_COMPONENT_REGISTRY[bundle]?.metadataUrl
+        if (!metadataUrl) return
+
+        let json: unknown
+        try {
+            json = await fetchJson<unknown>(metadataUrl, {
+                timeoutMs: METADATA_FETCH_TIMEOUT_MS,
+            })
+        } catch (error) {
+            await logErrorAndMaybeCaptureInSentry(
+                new Error(
+                    `Could not fetch metadata for bespoke component "${bundle}" from ${metadataUrl}, so "${this.slug}" will render without a methods block: ${error}`
+                )
+            )
+            return
+        }
+
+        const parsed = BespokeMetadataSchema.safeParse(json)
+        if (!parsed.success) {
+            await logErrorAndMaybeCaptureInSentry(
+                new Error(
+                    `Metadata for bespoke component "${bundle}" at ${metadataUrl} does not match BespokeMetadataSchema, so "${this.slug}" will render without a methods block: ${parsed.error.message}`
+                )
+            )
+            return
+        }
+
+        if (!shouldRenderBespokeMetadata(parsed.data)) {
+            // z.object strips unknown keys, so a metadata file carrying none
+            // of the schema's fields parses to {}.
+            if (Object.keys(parsed.data).length > 0) {
+                await logErrorAndMaybeCaptureInSentry(
+                    new Error(
+                        `Metadata for bespoke component "${bundle}" at ${metadataUrl} carries some of the schema's fields but neither origins nor a descriptionKey, so "${this.slug}" will render without a methods block`
+                    )
+                )
+            }
+            return
+        }
+
+        this.bespokeMetadata = parsed.data
     }
 
     override _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {

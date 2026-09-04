@@ -729,6 +729,11 @@ export class SiteBaker {
                 )
             }
 
+            // this is a no-op if the gdoc has no bespoke metadata to load
+            if ("loadBespokeMetadata" in publishedGdoc) {
+                await publishedGdoc.loadBespokeMetadata()
+            }
+
             await publishedGdoc.validate(knex)
             const archiveContext = archivedVersions[publishedGdoc.id]
             try {

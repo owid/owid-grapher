@@ -66,6 +66,14 @@ export {
 } from "./MetadataBox/MetadataBoxKeyData.js"
 export { ChartLicenseNotice } from "./ChartLicenseNotice/ChartLicenseNotice.js"
 
+export {
+    BespokeMetadataHeading,
+    BESPOKE_METADATA_FALLBACK_TITLE,
+} from "./BespokeMetadata/BespokeMetadataHeading.js"
+export { BespokeMetadataKeyData } from "./BespokeMetadata/BespokeMetadataKeyData.js"
+export { getBespokeKeyDataRows } from "./BespokeMetadata/bespokeKeyDataRows.js"
+export { BespokeMetadataSections } from "./BespokeMetadata/BespokeMetadataSections.js"
+
 export { LabeledSwitch } from "./LabeledSwitch/LabeledSwitch.js"
 export { Checkbox } from "./Checkbox.js"
 export { RadioButton } from "./RadioButton.js"
