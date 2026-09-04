@@ -114,7 +114,15 @@ export async function runCreateTestDoc(options: TestDocOptions): Promise<void> {
         "non-paragraph-lines": 0,
     }
     for (const gdocId of sourceIds) {
-        const document = await client.getDocument(gdocId)
+        let document
+        try {
+            document = await client.getDocument(gdocId)
+        } catch (error) {
+            const message =
+                error instanceof Error ? error.message : String(error)
+            console.warn(`Skipping ${gdocId}: could not fetch (${message})`)
+            continue
+        }
         const lines = gdocToSourceMappedLines(document)
         const scan = scanScopes(lines)
         const collection =
