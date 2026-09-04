@@ -630,7 +630,6 @@ export const OWID_GDOC_ANNOUNCEMENT_CONTENT_KEY_KINDS = {
     authors: "authored",
     "featured-image": "authored",
     kicker: "authored",
-    cta: "authored",
     authorRoles: "computed", // from authors
 } as const satisfies Record<
     keyof OwidGdocAnnouncementContent,
