@@ -11,6 +11,7 @@
     + .metadata-box-expander
     .metadata-box-expander__details[open] {
     border-top: 1px solid $blue-20;
+    margin-top: 16px;
 }
 
 .bespoke-metadata-box .bespoke-metadata-heading__title {
@@ -30,4 +31,29 @@
 .bespoke-metadata-box .metadata-box-key-data {
     gap: 8px 24px;
     margin-top: 12px;
+}
+
+.bespoke-metadata-box .metadata-box-expander__preview {
+    margin-top: 8px;
+}
+
+.bespoke-metadata-box
+    .metadata-box-expander__details
+    .metadata-box-expander__summary {
+    align-self: stretch;
+    margin-top: 16px;
+    @include body-3-medium;
+    color: $blue-60;
+
+    &:hover {
+        color: $blue-50;
+    }
+}
+
+.bespoke-metadata-box .metadata-box-collapse-button {
+    color: $blue-60;
+
+    &:hover {
+        color: $blue-50;
+    }
 }
