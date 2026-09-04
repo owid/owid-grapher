@@ -39,15 +39,22 @@ jobs:
       # fails on a change made here. Telling etl the moment we publish gets its sync PR opened
       # in minutes; it also polls daily, but that left a Friday publish red until Monday.
       # Needs a token with contents:write on owid/etl — GITHUB_TOKEN cannot dispatch across
-      # repos. A failure here must not fail the upload that already succeeded.
+      # repos. A missing token is a misconfiguration and must fail loudly; a dispatch that
+      # merely doesn't land is covered by etl's daily poll and must not fail an upload that
+      # already succeeded.
       - name: Tell owid/etl the schema was published
-        continue-on-error: true
         env:
-          GH_TOKEN: ${{ secrets.ETL_SCHEMA_SYNC_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_OWIDBOT_ACCESS_TOKEN }}
         run: |
-          gh api repos/owid/etl/dispatches --input - <<EOF
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::GH_OWIDBOT_ACCESS_TOKEN is missing — etl cannot be notified"
+            exit 1
+          fi
+          cat > "$RUNNER_TEMP/dispatch.json" <<EOF
           {
             "event_type": "grapher-schema-published",
             "client_payload": { "commit": "$GITHUB_SHA" }
           }
           EOF
+          gh api repos/owid/etl/dispatches --input "$RUNNER_TEMP/dispatch.json" \
+            || echo "::warning::dispatching owid/etl failed; its daily poll will catch up"
