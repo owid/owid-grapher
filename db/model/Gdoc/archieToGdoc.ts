@@ -173,8 +173,18 @@ function* lineToBatchUpdates(line: Line): Generator<docs_v1.Schema$Request> {
 function articleToBatchUpdates(
     content: OwidGdocPostContent
 ): docs_v1.Schema$Request[] {
-    const archieMlLines = [...owidArticleToArchieMLStringGenerator(content)]
+    return archieMlLinesToBatchUpdates([
+        ...owidArticleToArchieMLStringGenerator(content),
+    ])
+}
 
+/**
+ * Turns ArchieML lines (with our span markup: <b>, <i>, <a href>, …) into the
+ * batchUpdate requests that write them, styled, into an empty document.
+ */
+export function archieMlLinesToBatchUpdates(
+    archieMlLines: string[]
+): docs_v1.Schema$Request[] {
     let isInsideHtmlBlock = false
 
     const lines: Line[] = archieMlLines.map((line) => {
@@ -301,6 +311,37 @@ export async function createGdocAndInsertOwidGdocPostContent(
     })
 
     return documentId!
+}
+
+/**
+ * Creates a new Google Doc in `targetFolder` containing the given ArchieML
+ * lines, optionally sharing it (as an editor) with the given email addresses.
+ * Used to build test docs for gdoc migrations.
+ */
+export async function createGdocFromArchieMlLines(
+    title: string,
+    archieMlLines: string[],
+    targetFolder: string,
+    shareWith: string[] = []
+): Promise<string> {
+    const auth = OwidGoogleAuth.getGoogleReadWriteAuth()
+    const client = googleDocs({ version: "v1", auth })
+    const driveClient = googleDrive({ version: "v3", auth })
+
+    const documentId = await createGdoc(driveClient, title, targetFolder)
+    await client.documents.batchUpdate({
+        documentId,
+        requestBody: { requests: archieMlLinesToBatchUpdates(archieMlLines) },
+    })
+    for (const emailAddress of shareWith) {
+        await driveClient.permissions.create({
+            fileId: documentId,
+            supportsAllDrives: true,
+            sendNotificationEmail: false,
+            requestBody: { type: "user", role: "writer", emailAddress },
+        })
+    }
+    return documentId
 }
 
 export async function createGdocFromTemplate(

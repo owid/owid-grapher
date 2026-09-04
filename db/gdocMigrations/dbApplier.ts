@@ -25,6 +25,28 @@ export interface DbApplyResult {
     updated: number
 }
 
+/** One posts_gdocs row the migration would change */
+export interface DbRowChange {
+    id: string
+    before: unknown
+    after: unknown
+    /**
+     * Denormalized posts_gdocs columns re-derived from the changed
+     * frontmatter (type, slug, authors), keyed by column name
+     */
+    columnUpdates: Record<string, unknown>
+}
+
+export interface DbPlanResult {
+    scanned: number
+    changes: DbRowChange[]
+}
+
+export interface DbPlanOptions {
+    /** Restrict to these posts_gdocs ids (default: every row) */
+    ids?: string[]
+}
+
 /**
  * Applies a gdoc migration's dbTransform to every posts_gdocs.content row,
  * for use from a thin deploy-time db/migration wrapper:
@@ -49,39 +71,79 @@ export async function applyGdocMigrationToDb(
     queryRunner: ContentQueryRunner,
     migration: GdocMigration
 ): Promise<DbApplyResult> {
-    if (migration.mode === "frontmatter") {
-        return applyFrontmatterMigrationToDb(queryRunner, migration)
+    const plan = await planGdocMigrationDb(queryRunner, migration)
+    for (const change of plan.changes) {
+        const sets = ["content = ?"]
+        const parameters: unknown[] = [JSON.stringify(change.after)]
+        for (const [column, value] of Object.entries(change.columnUpdates)) {
+            sets.push(`\`${column}\` = ?`)
+            parameters.push(value)
+        }
+        await queryRunner.query(
+            `UPDATE posts_gdocs SET ${sets.join(", ")} WHERE id = ?`,
+            [...parameters, change.id]
+        )
     }
-    return applyComponentMigrationToDb(queryRunner, migration)
+    console.log(
+        `gdoc migration "${migration.name}": scanned ${plan.scanned} posts_gdocs rows, updated ${plan.changes.length}`
+    )
+    return { scanned: plan.scanned, updated: plan.changes.length }
+}
+
+/**
+ * The read-only half of applyGdocMigrationToDb: computes what the migration
+ * would change in posts_gdocs without writing anything. The CLI's `db-plan`
+ * command prints this as a report so a dbTransform can be checked against
+ * real stored content before the deploy that applies it.
+ */
+export async function planGdocMigrationDb(
+    queryRunner: ContentQueryRunner,
+    migration: GdocMigration,
+    options: DbPlanOptions = {}
+): Promise<DbPlanResult> {
+    const rows = await fetchContentRows(queryRunner, options.ids)
+    const changes =
+        migration.mode === "frontmatter"
+            ? planFrontmatterRows(rows, migration)
+            : await planComponentRows(rows, migration, queryRunner)
+    return { scanned: rows.length, changes }
+}
+
+interface ContentRow {
+    id: string
+    content: string
 }
 
 async function fetchContentRows(
-    queryRunner: ContentQueryRunner
-): Promise<Array<{ id: string; content: string }>> {
+    queryRunner: ContentQueryRunner,
+    ids?: string[]
+): Promise<ContentRow[]> {
+    if (ids && ids.length === 0) return []
+    const filter = ids ? ` AND id IN (${ids.map(() => "?").join(",")})` : ""
     return (await queryRunner.query(
-        "SELECT id, content FROM posts_gdocs WHERE content IS NOT NULL"
-    )) as Array<{ id: string; content: string }>
+        `SELECT id, content FROM posts_gdocs WHERE content IS NOT NULL${filter}`,
+        ids
+    )) as ContentRow[]
 }
 
-async function applyComponentMigrationToDb(
-    queryRunner: ContentQueryRunner,
-    migration: ComponentGdocMigration
-): Promise<DbApplyResult> {
+async function planComponentRows(
+    rows: ContentRow[],
+    migration: ComponentGdocMigration,
+    queryRunner: ContentQueryRunner
+): Promise<DbRowChange[]> {
     const dbTransform = migration.dbTransform
     if (!dbTransform) {
         throw new Error(
             `migration "${migration.name}" has no dbTransform — nothing to apply to posts_gdocs.content`
         )
     }
-
-    const rows = await fetchContentRows(queryRunner)
     const helpers: MigrationHelpers = {
         resolveOwidUrlToGdocUrl: createOwidUrlResolver((sql, parameters) =>
             queryRunner.query(sql, parameters)
         ),
     }
 
-    let updated = 0
+    const changes: DbRowChange[] = []
     for (const row of rows) {
         const content = JSON.parse(row.content) as unknown
         const context: MigrationContext = { gdocId: row.id, ...helpers }
@@ -92,17 +154,14 @@ async function applyComponentMigrationToDb(
             context
         )
         if (!result.changed) continue
-        await queryRunner.query(
-            "UPDATE posts_gdocs SET content = ? WHERE id = ?",
-            [JSON.stringify(result.node), row.id]
-        )
-        updated++
+        changes.push({
+            id: row.id,
+            before: content,
+            after: result.node,
+            columnUpdates: {},
+        })
     }
-
-    console.log(
-        `gdoc migration "${migration.name}": scanned ${rows.length} posts_gdocs rows, updated ${updated}`
-    )
-    return { scanned: rows.length, updated }
+    return changes
 }
 
 /**
@@ -112,13 +171,11 @@ async function applyComponentMigrationToDb(
  */
 const DENORMALIZED_FRONTMATTER_KEYS = ["type", "slug", "authors"]
 
-async function applyFrontmatterMigrationToDb(
-    queryRunner: ContentQueryRunner,
+function planFrontmatterRows(
+    rows: ContentRow[],
     migration: FrontmatterGdocMigration
-): Promise<DbApplyResult> {
-    const rows = await fetchContentRows(queryRunner)
-
-    let updated = 0
+): DbRowChange[] {
+    const changes: DbRowChange[] = []
     for (const row of rows) {
         const parsed = JSON.parse(row.content) as unknown
         if (!_.isPlainObject(parsed)) continue
@@ -128,8 +185,7 @@ async function applyFrontmatterMigrationToDb(
         )
         if (changedKeys.length === 0) continue
 
-        const sets = ["content = ?"]
-        const parameters: unknown[] = [JSON.stringify(content)]
+        const columnUpdates: Record<string, unknown> = {}
         for (const key of DENORMALIZED_FRONTMATTER_KEYS) {
             if (!changedKeys.includes(key)) continue
             const value = content[key]
@@ -139,21 +195,17 @@ async function applyFrontmatterMigrationToDb(
                 )
                 continue
             }
-            sets.push(`\`${key}\` = ?`)
-            parameters.push(key === "authors" ? JSON.stringify(value) : value)
+            columnUpdates[key] =
+                key === "authors" ? JSON.stringify(value) : value
         }
-
-        await queryRunner.query(
-            `UPDATE posts_gdocs SET ${sets.join(", ")} WHERE id = ?`,
-            [...parameters, row.id]
-        )
-        updated++
+        changes.push({
+            id: row.id,
+            before: parsed,
+            after: content,
+            columnUpdates,
+        })
     }
-
-    console.log(
-        `gdoc migration "${migration.name}": scanned ${rows.length} posts_gdocs rows, updated ${updated}`
-    )
-    return { scanned: rows.length, updated }
+    return changes
 }
 
 /** Mirrors the frontmatter parser's boolean coercion for stored values */

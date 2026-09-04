@@ -10,6 +10,8 @@ import {
     runVerify,
     teardownDb,
 } from "./engine/runner.js"
+import { runDbPlan } from "./engine/dbPlan.js"
+import { runCreateTestDoc } from "./engine/testDoc.js"
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url))
 const migrationsDir = path.join(moduleDir, "../../db/gdocMigrations/migrations")
@@ -20,9 +22,9 @@ function printHelp(): void {
 See docs/gdoc-migrations.md for the full workflow.
 
 Usage:
-    yarn gdocMigration <plan|apply|verify|status> --migration <name> [options]
+    yarn gdocMigration <command> --migration <name> [options]
 
-Commands:
+Commands (gdoc side):
     plan      Fetch candidate docs, compute edits, print a grouped report.
               Writes the journal but never writes to Google or the DB.
     apply     Re-plan each doc against a fresh fetch and apply the edits,
@@ -31,15 +33,32 @@ Commands:
     verify    Re-check docs: the migration must be a no-op everywhere.
     status    Print the journal summary.
 
+Commands (authoring a migration):
+    db-plan          Dry-run the DB side (dbTransform / frontmatter ops)
+                     against the local posts_gdocs table and print what
+                     would change, grouped by diff shape. Writes nothing.
+    create-test-doc  Create a Google Doc filled with real samples of the
+                     migration's target (one per distinct shape, copied
+                     from discovered docs) to plan/apply/verify against.
+
 Options:
     --migration, -m <name>   Migration name (a file in migrations/).
     --id <docId>             Target specific doc id(s); repeatable. Skips SQL
                              discovery, so it works for docs not in the DB
-                             (e.g. a personal test doc).
+                             (e.g. a personal test doc). For create-test-doc:
+                             the docs to sample from.
     --published-only         Restrict discovered docs to published gdocs.
     --concurrency <n>        Max concurrent docs/API calls (default: 4).
     --journal-dir <path>     Where journals live (default: devTools/gdocMigrations/runs).
     --force                  Re-process docs the journal considers done.
+    --limit <n>              db-plan: changed docs to print in full (default: 5).
+    --sample-docs <n>        create-test-doc: source docs to fetch (default: 15).
+    --max-samples <n>        create-test-doc: distinct samples to keep (default: 12).
+    --folder <driveFolderId> create-test-doc: where to create the doc
+                             (default: GDOCS_MIGRATION_TEST_FOLDER).
+    --share <email>          create-test-doc: share the doc with this address
+                             as an editor; repeatable.
+    --dry-run                create-test-doc: print the ArchieML, create nothing.
     -h, --help               Show this message.
 `)
 }
@@ -96,6 +115,38 @@ interface CliOptions {
     concurrency: number
     journalDir: string
     force: boolean
+    limit: number
+    sampleDocs: number
+    maxSamples: number
+    folder?: string
+    shareWith: string[]
+    dryRun: boolean
+}
+
+const COMMANDS = [
+    "plan",
+    "apply",
+    "verify",
+    "status",
+    "db-plan",
+    "create-test-doc",
+]
+
+function positiveInteger(
+    value: unknown,
+    flag: string,
+    fallback: number
+): number {
+    const number = Number(value ?? fallback)
+    if (!Number.isInteger(number) || number <= 0) {
+        throw new Error(`${flag} must be a positive integer`)
+    }
+    return number
+}
+
+function stringList(value: unknown): string[] | undefined {
+    if (value === undefined) return undefined
+    return (Array.isArray(value) ? value : [value]).map(String)
 }
 
 function parseCli(): CliOptions | null {
@@ -105,32 +156,29 @@ function parseCli(): CliOptions | null {
         return null
     }
     const command = String(parsed._[0])
-    if (!["plan", "apply", "verify", "status"].includes(command)) {
+    if (!COMMANDS.includes(command)) {
         throw new Error(`unknown command "${command}" — see --help`)
     }
     const migrationName = parsed.migration ?? parsed.m
     if (typeof migrationName !== "string") {
         throw new Error("--migration <name> is required")
     }
-    const rawIds = parsed.id
-    const ids =
-        rawIds === undefined
-            ? undefined
-            : (Array.isArray(rawIds) ? rawIds : [rawIds]).map(String)
-    const concurrency = Number(parsed.concurrency ?? 4)
-    if (!Number.isInteger(concurrency) || concurrency <= 0) {
-        throw new Error("--concurrency must be a positive integer")
-    }
     return {
         command,
         migrationName,
-        ids,
+        ids: stringList(parsed.id),
         publishedOnly: Boolean(parsed["published-only"]),
-        concurrency,
+        concurrency: positiveInteger(parsed.concurrency, "--concurrency", 4),
         journalDir: parsed["journal-dir"]
             ? String(parsed["journal-dir"])
             : defaultJournalDir,
         force: Boolean(parsed.force),
+        limit: positiveInteger(parsed.limit, "--limit", 5),
+        sampleDocs: positiveInteger(parsed["sample-docs"], "--sample-docs", 15),
+        maxSamples: positiveInteger(parsed["max-samples"], "--max-samples", 12),
+        folder: parsed.folder ? String(parsed.folder) : undefined,
+        shareWith: stringList(parsed.share) ?? [],
+        dryRun: Boolean(parsed["dry-run"]),
     }
 }
 
@@ -159,6 +207,26 @@ async function main(): Promise<void> {
                 break
             case "status":
                 runStatus(runnerOptions)
+                break
+            case "db-plan":
+                await runDbPlan({
+                    migration,
+                    ids: options.ids,
+                    limit: options.limit,
+                })
+                break
+            case "create-test-doc":
+                await runCreateTestDoc({
+                    migration,
+                    ids: options.ids,
+                    publishedOnly: options.publishedOnly,
+                    concurrency: options.concurrency,
+                    sampleDocs: options.sampleDocs,
+                    maxSamples: options.maxSamples,
+                    folder: options.folder,
+                    shareWith: options.shareWith,
+                    dryRun: options.dryRun,
+                })
                 break
         }
     } catch (error) {
