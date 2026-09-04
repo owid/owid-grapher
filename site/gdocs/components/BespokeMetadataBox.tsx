@@ -45,6 +45,7 @@ export function BespokeMetadataBox({
             <BespokeMetadataKeyData metadata={metadata} />
             <MetadataBoxExpander
                 detailsRef={detailsRef}
+                showMoreLabel="More about this data"
                 preview={
                     descriptionKeyPreview ? (
                         <SimpleMarkdownText text={descriptionKeyPreview} />
