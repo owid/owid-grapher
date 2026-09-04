@@ -10,7 +10,7 @@ import {
     Sample,
     SampleSkipReason,
 } from "./sampleBlocks.js"
-import { resolveIds } from "./runner.js"
+import { errorMessage, resolveIds } from "./runner.js"
 import { ThrottledDocsClient } from "./throttledDocsClient.js"
 
 export interface TestDocOptions {
@@ -113,8 +113,18 @@ export async function runCreateTestDoc(options: TestDocOptions): Promise<void> {
         "contains-inline-object": 0,
         "non-paragraph-lines": 0,
     }
+    let unreadable = 0
     for (const gdocId of sourceIds) {
-        const document = await client.getDocument(gdocId)
+        let document
+        try {
+            document = await client.getDocument(gdocId)
+        } catch (error) {
+            // e.g. a doc the service account isn't shared on; the plan
+            // runner reports these per doc, so just skip them here
+            console.warn(`Skipping ${gdocId}: ${errorMessage(error)}`)
+            unreadable++
+            continue
+        }
         const lines = gdocToSourceMappedLines(document)
         const scan = scanScopes(lines)
         const collection =
@@ -134,6 +144,11 @@ export async function runCreateTestDoc(options: TestDocOptions): Promise<void> {
 
     const samples = dedupeSamples(allSamples, options.maxSamples)
     const shapes = new Set(allSamples.map((sample) => sample.shape))
+    if (unreadable > 0) {
+        console.log(
+            `Skipped ${unreadable} source doc(s) that couldn't be fetched (see warnings above)`
+        )
+    }
     console.log(
         `Found ${allSamples.length} sample(s) in ${shapes.size} distinct shape(s); keeping ${samples.length}:`
     )
