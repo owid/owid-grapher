@@ -12,6 +12,7 @@ interface MetadataBoxExpanderProps {
      * https://chromestatus.com/feature/5032469667512320
      */
     children: React.ReactNode
+    showMoreLabel?: string
     detailsRef?: React.RefObject<HTMLDetailsElement | null>
     onToggle?: (isOpen: boolean) => void
     className?: string
@@ -27,6 +28,7 @@ interface MetadataBoxExpanderProps {
 export function MetadataBoxExpander({
     preview,
     children,
+    showMoreLabel = "Show more",
     detailsRef,
     onToggle,
     className,
@@ -70,7 +72,7 @@ export function MetadataBoxExpander({
                     onClick={handleSummaryClick}
                 >
                     <span className="metadata-box-expander__show-more">
-                        Show more{" "}
+                        {showMoreLabel}{" "}
                         <FontAwesomeIcon
                             className="metadata-box-expander__chevron"
                             icon={faChevronDown}
