@@ -5,6 +5,7 @@ import {
     OwidGdocType,
     checkIsChronologicalGdoc,
     getUniqueNamesFromTagHierarchies,
+    deriveAnnouncementLatestType,
 } from "@ourworldindata/utils"
 import {
     ChronologicalGdoc,
@@ -28,7 +29,6 @@ import { GdocDataInsight } from "../../../db/model/Gdoc/GdocDataInsight.js"
 import { GdocAnnouncement } from "../../../db/model/Gdoc/GdocAnnouncement.js"
 import { getAlgoliaClient } from "../configureAlgolia.js"
 import { getIndexName } from "../../../site/search/searchClient.js"
-import { deriveAnnouncementLatestType } from "../../../site/latest/latestUtils.js"
 import { ALGOLIA_INDEXING } from "../../../settings/serverSettings.js"
 import { getThumbnailUrl, getExcerptFromGdoc } from "./pages.js"
 import { match, P } from "ts-pattern"
