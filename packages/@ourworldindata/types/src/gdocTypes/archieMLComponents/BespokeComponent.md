@@ -1,3 +1,7 @@
+---
+decision: none
+---
+
 A self-contained custom data viz component bundled under
 `bespoke/projects/` and embedded via Shadow DOM. Each bundle can
 expose multiple variants and accepts a free-form `config` map.
@@ -15,6 +19,10 @@ Undocumented in the author reference (developer-facing).
 - `size`: How wide the component renders — `narrow` (text column),
   `wide` (what you get when it is omitted), or `widest`. Any other
   value drops the block with a parse error.
+- `fallbackImageFilename`: Filename of an image (in the image library) to
+  show in place of the component when JavaScript is disabled — the
+  component itself needs JS to render anything. Omitted, readers without
+  JS get the generic "this content requires JavaScript" warning instead.
 - `config`: Free-form key–value settings passed to the component,
   authored as a nested `{.config}` … `{}` with one `key: value` line
   per setting. Values must be plain text — nested structures are
