@@ -8,16 +8,9 @@ import {
     createTopicFilter,
     extractFiltersFromQuery,
     createCountryFilter,
-    rankTopicsByChartTagCounts,
 } from "./searchUtils"
 
-import {
-    FilterType,
-    SynonymMap,
-    TagGraphNode,
-    TagGraphRoot,
-    TagGraphRootName,
-} from "@ourworldindata/types"
+import { FilterType, SynonymMap } from "@ourworldindata/types"
 import { listedRegionsNames } from "@ourworldindata/utils"
 
 describe("Fuzzy search in search autocomplete", () => {
@@ -767,94 +760,5 @@ describe("offset pagination for useInfiniteSearchOffset hook", () => {
         expect(getNbPaginatedItemsRequested(0, 3, 6, 3)).toBe(3)
         expect(getNbPaginatedItemsRequested(1, 3, 6, 6)).toBe(9)
         expect(getNbPaginatedItemsRequested(2, 3, 6, 2)).toBe(11)
-    })
-})
-
-describe(rankTopicsByChartTagCounts, () => {
-    let nextId = 1
-    const node = (
-        name: string,
-        options: {
-            slug?: string | null
-            isTopic?: boolean
-            children?: TagGraphNode[]
-        } = {}
-    ): TagGraphNode => ({
-        id: nextId++,
-        name,
-        slug: options.slug ?? null,
-        isTopic: options.isTopic ?? Boolean(options.slug),
-        isSearchable: true,
-        children: options.children ?? [],
-        path: [],
-        weight: 0,
-    })
-    const tagGraph: TagGraphRoot = {
-        ...node(TagGraphRootName, {
-            children: [
-                node("Poverty and Economic Development", {
-                    children: [
-                        node("Economic Growth", { slug: "economic-growth" }),
-                        node("Poverty", { slug: "poverty" }),
-                        // Searchable tag without a topic page (see
-                        // tags.searchableInAlgolia)
-                        node("Crime", { isTopic: false }),
-                    ],
-                }),
-                node("Energy and Environment", {
-                    children: [
-                        node("CO2 & Greenhouse Gas Emissions", {
-                            slug: "co2-and-greenhouse-gas-emissions",
-                            children: [
-                                node("Climate Change", {
-                                    slug: "climate-change",
-                                }),
-                            ],
-                        }),
-                    ],
-                }),
-            ],
-        }),
-        name: TagGraphRootName,
-        isTopic: false,
-        isSearchable: false,
-        slug: null,
-        weight: 0,
-        path: [0],
-    }
-
-    it("orders topics by chart count, skipping areas", () => {
-        const topics = rankTopicsByChartTagCounts(
-            {
-                "Poverty and Economic Development": 171,
-                "Energy and Environment": 137,
-                "Economic Growth": 111,
-                Poverty: 40,
-                "CO2 & Greenhouse Gas Emissions": 60,
-            },
-            tagGraph
-        )
-        expect(topics).toEqual([
-            { name: "Economic Growth", slug: "economic-growth" },
-            {
-                name: "CO2 & Greenhouse Gas Emissions",
-                slug: "co2-and-greenhouse-gas-emissions",
-            },
-            { name: "Poverty", slug: "poverty" },
-        ])
-    })
-
-    it("finds nested topics and ignores tags without a topic page", () => {
-        const topics = rankTopicsByChartTagCounts(
-            { "Climate Change": 5, Crime: 30, Unknown: 99 },
-            tagGraph
-        )
-        expect(topics).toEqual([
-            { name: "Climate Change", slug: "climate-change" },
-        ])
-    })
-
-    it("returns nothing when no chart matched", () => {
-        expect(rankTopicsByChartTagCounts({}, tagGraph)).toEqual([])
     })
 })

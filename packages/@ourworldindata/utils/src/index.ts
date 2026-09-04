@@ -423,6 +423,13 @@ export {
     searchSingleForHitsWithClosestMatches,
 } from "./search/searchClosestMatches.js"
 
+export {
+    TOPIC_PAGE_TYPES,
+    isTopicPageType,
+    rankTopicsByChartTagCounts,
+    searchTopicPagesOfMatchingCharts,
+} from "./search/searchTopicPages.js"
+
 export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
 
 export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"

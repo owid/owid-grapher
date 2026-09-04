@@ -144,7 +144,7 @@ GET /api/detect-country
 
 ## `/api/search`
 
-This route provides a search API for both charts and pages (articles, about pages).
+This route provides a search API for both charts and pages (articles, about pages). A `type=pages` search restricted to topic pages returns topic recommendations derived from the matching charts, the same way the site's search page does (see "Topic page recommendations" in `site/search/README.md`); it reads the baked `/topicTagGraph.json` to map chart tags to topic pages.
 
 For detailed API documentation, including all parameters, response schemas, and examples, see [search-api.openapi.yaml](../docs/search-api.openapi.yaml).
 

@@ -22,7 +22,6 @@ import {
     formatCountryFacetFilters,
     formatTopicFacetFilters,
     getSelectableTopics,
-    rankTopicsByChartTagCounts,
     CHARTS_INDEX,
     PAGES_INDEX,
     PAGES_CHRONOLOGICAL_INDEX,
@@ -33,6 +32,7 @@ import {
     buildChartsFacetFilters,
     searchSingleForHits,
     searchSingleForHitsWithClosestMatches,
+    searchTopicPagesOfMatchingCharts,
     MAX_FACET_VALUES,
 } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
@@ -295,8 +295,8 @@ const TOPIC_PAGE_ATTRIBUTES = [
  *
  * With a query, the topics come from the charts that match it: the charts
  * index's `tags` facet says which topics those charts belong to, and the
- * topic pages are shown in that order (see rankTopicsByChartTagCounts for
- * why the topic pages' own text is a poor guide). Without a query, or when
+ * topic pages are shown in that order (see searchTopicPagesOfMatchingCharts
+ * in @ourworldindata/utils for why the topic pages' own text is a poor guide). Without a query, or when
  * no chart matches, the topic pages are searched directly, as any other page.
  */
 export async function queryTopicPages(
@@ -326,56 +326,20 @@ async function queryTopicPagesOfMatchingCharts(
     offset: number,
     length: number
 ): Promise<SearchResponse<TopicPageHit> | undefined> {
-    const chartsResponse = await searchSingleForHits<SearchChartHit>(
-        liteSearchClient,
-        {
-            indexName: CHARTS_INDEX,
+    return searchTopicPagesOfMatchingCharts<TopicPageHit>(liteSearchClient, {
+        chartsIndexName: CHARTS_INDEX,
+        pagesIndexName: PAGES_INDEX,
+        query: state.query,
+        chartsFacetFilters: buildChartsFacetFilters({
             query: state.query,
-            facetFilters: buildChartsFacetFilters({
-                query: state.query,
-                filters: state.filters,
-                requireAllCountries: state.requireAllCountries,
-            }),
-            facets: ["tags"],
-            maxValuesPerFacet: MAX_FACET_VALUES,
-            hitsPerPage: 0,
-        }
-    )
-    const topics = rankTopicsByChartTagCounts(
-        chartsResponse.facets?.tags ?? {},
-        tagGraph
-    )
-    if (topics.length === 0) return undefined
-
-    // The topic list is short (a few dozen at most), so fetch every page in
-    // one request and paginate locally. Algolia returns them in its own
-    // order; the facet order is what we want.
-    const pagesResponse = await searchSingleForHits<TopicPageHit>(
-        liteSearchClient,
-        {
-            indexName: PAGES_INDEX,
-            query: "",
-            filters: TOPIC_PAGE_TYPE_FILTER,
-            facetFilters: formatDisjunctiveFacetFilters(
-                new Set(topics.map((topic) => `/${topic.slug}`)),
-                "path"
-            ),
-            attributesToRetrieve: TOPIC_PAGE_ATTRIBUTES,
-            hitsPerPage: topics.length,
-        }
-    )
-    const hitBySlug = new Map(pagesResponse.hits.map((hit) => [hit.slug, hit]))
-    const orderedHits = topics.flatMap(
-        (topic) => hitBySlug.get(topic.slug) ?? []
-    )
-
-    return {
-        ...pagesResponse,
-        hits: orderedHits.slice(offset, offset + length),
-        nbHits: orderedHits.length,
+            filters: state.filters,
+            requireAllCountries: state.requireAllCountries,
+        }),
+        tagGraph,
+        attributesToRetrieve: TOPIC_PAGE_ATTRIBUTES,
         offset,
         length,
-    }
+    })
 }
 
 async function queryTopicPagesByText(
