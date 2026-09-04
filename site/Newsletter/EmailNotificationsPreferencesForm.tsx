@@ -183,7 +183,7 @@ const InvalidLinkScreen = () => (
             className="subscribe-page__confirmation-action"
             theme="outline-vermillion"
             icon={null}
-            href="/subscribe/preferences"
+            href="/preferences"
             text="Request a new link"
         />
     </SubscribePageConfirmation>
