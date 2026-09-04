@@ -39,7 +39,6 @@ export function getBespokeKeyDataRows(
                 owidProcessingLevel: metadata.processingLevel,
                 isEmbeddedInADataPage: false,
             }),
-            isFullWidth: true,
             labelClassName: "metadata-box-key-data__key--source",
         },
         {
