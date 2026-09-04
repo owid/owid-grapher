@@ -1,4 +1,11 @@
 .bespoke-metadata-box {
+    --expandable-toggle-title-size: 0.875rem;
+    --expandable-toggle-content: #{$blue-90};
+    --non-expandable-title-size: 0.875rem;
+    --indicator-sources-content: #{$blue-90};
+    --indicator-sources-key-data-title: #{$blue-50};
+    --data-processing-content: #{$blue-90};
+    --indicator-processing-content: #{$blue-90};
     padding: 24px;
     background-color: $white;
     // MetadataBoxExpander's scroll compensation is only correct without anchoring
@@ -56,4 +63,43 @@
     &:hover {
         color: $blue-50;
     }
+}
+
+.bespoke-metadata-box .metadata-box-section:last-of-type {
+    margin-bottom: 0;
+
+    > p:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.bespoke-metadata-box .metadata-box-section__title {
+    @include body-3-bold;
+}
+
+.bespoke-metadata-box .metadata-box-expander__prose {
+    p,
+    ul,
+    ol {
+        @include body-3-medium;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @include body-3-bold;
+    }
+}
+
+.bespoke-metadata-box .metadata-box-expander .ExpandableToggle[open] {
+    background-color: $blue-5;
+}
+
+.bespoke-metadata-box
+    .bespoke-metadata-sections__citation
+    .citation__paragraph {
+    color: $blue-90;
 }
