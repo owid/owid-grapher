@@ -25,7 +25,6 @@ import {
 } from "../adminShared/search.js"
 import {
     makeSearchFilter,
-    SearchField,
     searchWordsToHighlight,
 } from "../adminShared/searchFilter.js"
 import { TextField } from "./Forms.js"
@@ -33,6 +32,9 @@ import { Tooltip } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { deleteChart } from "./ChartEditor.js"
+import { CHART_SEARCH_FIELDS } from "./chartListSearch.js"
+import { isWebMcpAvailable } from "./webmcp/webmcpTypes.js"
+import { registerChartListTools } from "./webmcp/chartListTools.js"
 
 // These properties are coming from OldChart.ts
 export interface ChartListItem {
@@ -72,79 +74,13 @@ interface ChartListProps {
     charts: ChartListItem[]
     autofocusSearchInput?: boolean
     onDelete?: (chart: ChartListItem) => void
+    /**
+     * Expose this list's search box as a WebMCP tool. Only the charts index
+     * page sets it; the lists embedded in indicator and dataset pages would
+     * make "search the chart list" mean something else.
+     */
+    enableWebMcpTools?: boolean
 }
-
-const CHART_SEARCH_FIELDS: SearchField<ChartListItem>[] = [
-    {
-        name: "title",
-        type: "string",
-        description: "Chart title",
-        get: (chart) => chart.title,
-    },
-    {
-        name: "variant",
-        type: "string",
-        description: "Variant name",
-        get: (chart) => chart.variantName,
-    },
-    {
-        name: "slug",
-        type: "string",
-        description: "Slug",
-        get: (chart) => chart.slug,
-    },
-    {
-        name: "notes",
-        type: "string",
-        description: "Internal notes",
-        get: (chart) => chart.internalNotes,
-    },
-    {
-        name: "by",
-        type: "string",
-        description: "Who published or last edited it",
-        get: (chart) => [chart.publishedBy, chart.lastEditedBy],
-    },
-    {
-        name: "tag",
-        type: "string",
-        description: "Tag",
-        get: (chart) => chart.tags.map((tag) => tag.name),
-    },
-    {
-        name: "type",
-        type: "string",
-        description: "Chart type, or Map",
-        get: (chart) => [
-            chart.hasChartTab !== false ? chart.type : undefined,
-            chart.hasMapTab ? "Map" : undefined,
-        ],
-    },
-    {
-        name: "id",
-        type: "number",
-        description: "Chart id",
-        get: (chart) => chart.id,
-    },
-    {
-        name: "published",
-        type: "boolean",
-        description: "Published",
-        get: (chart) => chart.isPublished,
-    },
-    {
-        name: "views",
-        type: "number",
-        description: "Grapher views per day",
-        get: (chart) => chart.grapherViewsPerDay,
-    },
-    {
-        name: "edited",
-        type: "date",
-        description: "When it was last edited",
-        get: (chart) => chart.lastEditedAt,
-    },
-]
 
 @observer
 export class ChartList extends React.Component<ChartListProps> {
@@ -220,9 +156,28 @@ export class ChartList extends React.Component<ChartListProps> {
         window.history.replaceState({}, "", newUrl)
     }
 
+    private webMcpAbortController: AbortController | undefined
+
     override componentDidMount() {
         this.searchInput = this.getSearchInputFromUrl()
         void this.getTags()
+
+        if (this.props.enableWebMcpTools && isWebMcpAvailable()) {
+            this.webMcpAbortController = new AbortController()
+            void registerChartListTools(
+                {
+                    getCharts: () => this.props.charts,
+                    getFilteredCharts: () => this.chartsFiltered,
+                    getSearchInput: () => this.searchInput,
+                    setSearchInput: this.onSearchInput,
+                },
+                this.webMcpAbortController.signal
+            )
+        }
+    }
+
+    override componentWillUnmount() {
+        this.webMcpAbortController?.abort()
     }
 
     @action.bound onSort(sortConfig: SortConfig) {
