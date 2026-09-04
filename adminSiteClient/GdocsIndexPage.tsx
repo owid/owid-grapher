@@ -43,6 +43,7 @@ const DEFAULT_FILTERS: GdocsSearchFilters = {
     [OwidGdocType.Author]: false,
     [OwidGdocType.Announcement]: false,
     [OwidGdocType.Profile]: false,
+    [OwidGdocType.FeaturedViz]: false,
     publishStatus: GdocPublishStatus.All,
 }
 
@@ -65,6 +66,7 @@ function GdocsIndexPageSearch({
         OwidGdocType.Author,
         OwidGdocType.Announcement,
         OwidGdocType.Profile,
+        OwidGdocType.FeaturedViz,
     ]
     return (
         <div className="d-flex flex-grow-1 flex-wrap">

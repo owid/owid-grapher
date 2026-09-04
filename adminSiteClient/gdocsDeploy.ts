@@ -9,6 +9,7 @@ import {
     OwidGdocHomepageContent,
     OwidGdocAuthorContent,
     OwidGdocAnnouncementContent,
+    OwidGdocFeaturedVizContent,
     OwidGdocProfileContent,
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
@@ -179,6 +180,23 @@ export const checkIsLightningUpdate = (
         instantiatedEntity: false, // NA, derived field
     }
 
+    const featuredVizLightningPropContentConfigMap: Record<
+        keyof OwidGdocFeaturedVizContent,
+        boolean
+    > = {
+        type: false, // should never be changed
+        title: false, // requires updating references to this page
+        subtitle: false,
+        authors: false, // requires updating references to this page
+        authorRoles: false, // derived from authors
+        dateline: false,
+        excerpt: false, // requires updating references to this page
+        "featured-image": false, // requires updating references to this page
+        "hide-citation": false,
+        body: false,
+        refs: false,
+    }
+
     const contentPropsMap: Record<OwidGdocType, Record<string, boolean>> = {
         [OwidGdocType.Article]: postlightningPropContentConfigMap,
         [OwidGdocType.Fragment]: postlightningPropContentConfigMap,
@@ -190,6 +208,7 @@ export const checkIsLightningUpdate = (
         [OwidGdocType.Author]: authorLightningPropContentConfigMap,
         [OwidGdocType.Announcement]: announcementLightningPropContentConfigMap,
         [OwidGdocType.Profile]: profileLightningPropContentConfigMap,
+        [OwidGdocType.FeaturedViz]: featuredVizLightningPropContentConfigMap,
     }
 
     const getLightningPropKeys = (configMap: Record<string, boolean>) =>

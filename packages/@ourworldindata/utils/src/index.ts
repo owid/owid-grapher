@@ -114,6 +114,7 @@ export {
     checkIsGdocPostExcludingFragments,
     checkIsDataInsight,
     checkIsAuthor,
+    checkIsFeaturedViz,
     checkIsChronologicalGdoc,
     checkIsLatestFeedGdoc,
     cartesian,
