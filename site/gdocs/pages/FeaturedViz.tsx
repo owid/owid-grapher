@@ -80,12 +80,25 @@ export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
                         block={hero}
                     />
                     {bespokeMetadata && (
-                        <BespokeMetadataBox
-                            className={getMetadataBoxColumns(hero.size)}
-                            metadata={bespokeMetadata}
-                            citationUrl={canonicalUrl}
-                            pageCitation={citationText}
-                        />
+                        <>
+                            <BespokeMetadataBox
+                                className={getMetadataBoxColumns(hero.size)}
+                                metadata={bespokeMetadata}
+                                citationUrl={canonicalUrl}
+                                pageCitation={citationText}
+                            />
+                            {/* Debug: the same box with nothing but a descriptionKey and origins */}
+                            <BespokeMetadataBox
+                                className={getMetadataBoxColumns(hero.size)}
+                                metadata={{
+                                    descriptionKey:
+                                        bespokeMetadata.descriptionKey,
+                                    origins: bespokeMetadata.origins,
+                                }}
+                                citationUrl={canonicalUrl}
+                                pageCitation={citationText}
+                            />
+                        </>
                     )}
                 </div>
             )}
