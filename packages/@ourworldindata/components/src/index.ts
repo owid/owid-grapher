@@ -71,6 +71,7 @@ export {
     BESPOKE_METADATA_FALLBACK_TITLE,
 } from "./BespokeMetadata/BespokeMetadataHeading.js"
 export { BespokeMetadataKeyData } from "./BespokeMetadata/BespokeMetadataKeyData.js"
+export { getBespokeKeyDataRows } from "./BespokeMetadata/bespokeKeyDataRows.js"
 export { BespokeMetadataSections } from "./BespokeMetadata/BespokeMetadataSections.js"
 
 export { LabeledSwitch } from "./LabeledSwitch/LabeledSwitch.js"
