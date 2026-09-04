@@ -43,7 +43,7 @@ async function mapConcurrent<T, R>(
     return results
 }
 
-async function resolveIds(options: RunnerOptions): Promise<string[]> {
+export async function resolveIds(options: RunnerOptions): Promise<string[]> {
     if (options.ids?.length) return options.ids
 
     const knex = db.knexInstance()

@@ -76,7 +76,7 @@ db/gdocMigrations/           # importable from db/migration wrappers (no ref cyc
     2026-07-XX-chart-caption-to-subtitle.ts
 
 devTools/gdocMigrations/
-  cli.ts                     # plan | apply | verify | status (yarn gdocMigration)
+  cli.ts                     # plan | apply | verify | status | db-plan | create-test-doc (yarn gdocMigration)
   types.ts                   # engine types: SourceLine, PatchFlag, PatchResult
   engine/
     sourceMap.ts             # gdocToArchie variant that records line → char-range mapping
@@ -89,7 +89,13 @@ devTools/gdocMigrations/
     throttledDocsClient.ts   # concurrency cap + retry/backoff around the Docs API
     journal.ts               # per-run, per-doc state for resumability
     runner.ts                # plan/apply/verify orchestration
+    dbPlan.ts                # db-plan: dry run of the DB side, grouped diff report
+    jsonDiff.ts              # human-readable JSON diffs for the db-plan report
+    sampleBlocks.ts          # picks one real block per distinct shape for test docs
+    testDoc.ts               # create-test-doc: assembles and creates the test doc
   runs/                      # journals (gitignored)
+
+.claude/skills/create-gdoc-migration/   # agent skill sequencing the authoring workflow
 ```
 
 ### The engine, per document
@@ -309,8 +315,10 @@ parse time, an author republishing an un-migrated doc still produces
 new-form content in the DB — the system self-heals and the DB can never
 regress.
 
-1. Write the migration; test it against a personal gdoc with `--id <docId>`
-   (works for docs that aren't in the DB at all).
+1. Write the migration (the `create-gdoc-migration` skill walks through
+   this). Check the DB side with `db-plan`, then create a test doc with
+   `create-test-doc` and run `plan`/`apply`/`verify` against it with
+   `--id <docId>` (works for docs that aren't in the DB at all).
 2. PR: migration file, the thin `db/migration` wrapper, and — for
    schema-changing migrations — the interface changes and parser alias, plus
    any rendering changes. Deploy: this transforms stored content and re-bakes
@@ -352,6 +360,31 @@ yarn gdocMigration status --migration chart-caption-to-subtitle
   no flags) everywhere. Running `GdocBase.validate()` over migrated docs is a
   possible future addition.
 - **status**: prints the journal.
+
+Two further commands support _writing_ a migration; neither touches real
+content:
+
+```
+yarn gdocMigration db-plan         --migration chart-caption-to-subtitle [--id <gdocId>] [--limit <n>]
+yarn gdocMigration create-test-doc --migration chart-caption-to-subtitle [--id <gdocId>] [--share <email>] [--dry-run]
+```
+
+- **db-plan**: dry-runs the DB side (`dbTransform` or the frontmatter ops)
+  against the local `posts_gdocs` table and prints what would change,
+  grouped by diff shape with per-doc details, plus a cross-check of the
+  changed set against the `discover` query (a doc that changes but isn't
+  discovered is a `discover` bug — the gdoc run would miss it). Writes
+  nothing.
+- **create-test-doc**: fetches a spread of the discovered docs (or the
+  `--id`s given), copies one real `{.blockType}` block per distinct shape —
+  property set, link-styled/empty/multi-line values, nested blocks — and
+  writes them into a fresh Google Doc in `GDOCS_MIGRATION_TEST_FOLDER`
+  (falling back to `GDOCS_BACKPORTING_TARGET_FOLDER`), shared with
+  `--share` addresses. Blocks the Docs API can't re-create faithfully
+  (chips, bullets, tables, images) are skipped and counted. For frontmatter
+  migrations the doc holds one line per key. `--dry-run` prints the
+  ArchieML instead. The printed `plan`/`apply`/`verify --id` commands then
+  exercise the migration on that doc alone.
 
 ### The plan report
 
@@ -422,7 +455,9 @@ synthetic-line hits.
   touching `refs`/`faqs`/`details` are out of scope.
 - No gdoc-side rollback beyond snapshots + version history.
 - No admin UI — this is a dev-piloted CLI, expected to run on the prod
-  server a few times a year.
+  server a few times a year. Any engineer can author a migration (see the
+  `create-gdoc-migration` skill); the prod run stays with the CMS
+  maintainers.
 
 ## Worked example: prominent-link URL rewrite
 

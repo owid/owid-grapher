@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest"
-import { applyGdocMigrationToDb, ContentQueryRunner } from "./dbApplier.js"
+import {
+    applyGdocMigrationToDb,
+    ContentQueryRunner,
+    planGdocMigrationDb,
+} from "./dbApplier.js"
 import {
     mapValue,
     removeKey,
@@ -56,6 +60,45 @@ const migration = defineGdocMigration({
     discover: "SELECT 1",
     transform: (block) => block,
     dbTransform: renameEnrichedProperty("caption", "subtitle"),
+})
+
+describe(planGdocMigrationDb, () => {
+    it("reports the changes without writing anything", async () => {
+        const content = {
+            body: [
+                {
+                    type: "chart",
+                    url: "https://x.org/a",
+                    caption: captionSpans,
+                },
+            ],
+        }
+        const { runner, updates, sqls } = fakeQueryRunner([
+            { id: "doc-1", content: JSON.stringify(content) },
+            { id: "doc-2", content: JSON.stringify({ body: [] }) },
+        ])
+        const plan = await planGdocMigrationDb(runner, migration)
+        expect(plan.scanned).toBe(2)
+        expect(plan.changes).toHaveLength(1)
+        expect(plan.changes[0].id).toBe("doc-1")
+        expect(plan.changes[0].before).toEqual(content)
+        expect((plan.changes[0].after as typeof content).body[0]).toEqual({
+            type: "chart",
+            url: "https://x.org/a",
+            subtitle: captionSpans,
+        })
+        expect(updates).toEqual([])
+        expect(sqls.every((sql) => sql.startsWith("SELECT"))).toBe(true)
+    })
+
+    it("restricts the scan to the given ids", async () => {
+        const { runner, sqls } = fakeQueryRunner([])
+        await planGdocMigrationDb(runner, migration, { ids: ["a", "b"] })
+        expect(sqls[0]).toContain("AND id IN (?,?)")
+        expect(
+            await planGdocMigrationDb(runner, migration, { ids: [] })
+        ).toEqual({ scanned: 0, changes: [] })
+    })
 })
 
 describe(applyGdocMigrationToDb, () => {
