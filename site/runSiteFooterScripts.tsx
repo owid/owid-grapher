@@ -40,9 +40,15 @@ import {
 import { BrowserRouter } from "react-router-dom-v5-compat"
 import { REDUCED_TRACKING } from "../settings/clientSettings.js"
 import { SiteHeaderNavigation } from "./SiteHeader.js"
+import {
+    OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID,
+    PREFERENCES_PAGE_ROOT_ID,
+    SUBSCRIBE_PAGE_ROOT_ID,
+} from "@ourworldindata/types"
+import { SubscribeFlow } from "./Newsletter/SubscribeFlow.js"
+import { EmailNotificationsPreferencesForm } from "./Newsletter/EmailNotificationsPreferencesForm.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
-import { SUBSCRIBE_PAGE_FORM_CONTAINER_ID } from "@ourworldindata/types"
 import UserSurvey from "./gdocs/components/UserSurvey.js"
 import {
     SlideshowPresentation,
@@ -62,13 +68,39 @@ function runSearchPage() {
 }
 
 function hydrateSubscribePage() {
-    const newsletterContainer = document.getElementById(
-        SUBSCRIBE_PAGE_FORM_CONTAINER_ID
-    )
+    // The whole <main> is hydrated, not just the form: submitting it replaces
+    // the hero and aside with the confirmation screen.
+    const root = document.getElementById(SUBSCRIBE_PAGE_ROOT_ID)
+    const topicAreaNames = window._OWID_TOPIC_AREA_NAMES
+    if (root && topicAreaNames) {
+        hydrateRoot(root, <SubscribeFlow topicAreaNames={topicAreaNames} />)
+    }
+}
 
-    if (newsletterContainer) {
+function renderEmailNotificationsPreferencesPage() {
+    // The page bakes an empty <main>: every screen is client-driven (the mode
+    // depends on the token in the URL fragment), so it is rendered rather than
+    // hydrated.
+    const root = document.getElementById(PREFERENCES_PAGE_ROOT_ID)
+    const topicAreaNames = window._OWID_TOPIC_AREA_NAMES
+    if (root && topicAreaNames) {
+        createRoot(root).render(
+            <EmailNotificationsPreferencesForm
+                topicAreaNames={topicAreaNames}
+            />
+        )
+    }
+}
+
+// Baked instead of the new form when the EmailNotifications feature flag is
+// off.
+function hydrateOldSubscribePage() {
+    const container = document.getElementById(
+        OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID
+    )
+    if (container) {
         hydrateRoot(
-            newsletterContainer,
+            container,
             <NewsletterSubscriptionForm
                 context={NewsletterSubscriptionContext.SubscribePage}
             />
@@ -395,6 +427,8 @@ export const runSiteFooterScripts = async (
         // falls through
         case SiteFooterContext.subscribePage:
             hydrateSubscribePage()
+            renderEmailNotificationsPreferencesPage()
+            hydrateOldSubscribePage()
         // falls through
         default:
             // Features that were not ported over to gdocs, are only being run on WP pages:

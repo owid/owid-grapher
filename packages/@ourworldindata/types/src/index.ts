@@ -7,6 +7,31 @@ export {
 } from "./DonationTypes.js"
 
 export {
+    EMAIL_NOTIFICATIONS_CONTENT_TYPES,
+    type EmailNotificationsContentType,
+    EMAIL_NOTIFICATIONS_CONTENT_TYPE_BY_LATEST_TYPE,
+    EMAIL_NOTIFICATIONS_CONTENT_TYPE_LABELS,
+    EMAIL_NOTIFICATIONS_FREQUENCIES,
+    EMAIL_NOTIFICATIONS_FREQUENCY_LABELS,
+    EMAIL_NOTIFICATIONS_FROM_ADDRESS,
+    EMAIL_NOTIFICATIONS_MAGIC_LINK_TTL_MS,
+    type EmailNotificationsFrequency,
+    EMAIL_NOTIFICATIONS_STATUSES,
+    type EmailNotificationsStatus,
+    EmailNotificationsPreferencesTypeObject,
+    type EmailNotificationsPreferences,
+    mergeEmailNotificationsPreferences,
+    EmailNotificationsSubscribeRequestTypeObject,
+    type EmailNotificationsSubscribeRequest,
+    type EmailNotificationsSubscribeResponse,
+    EmailNotificationsRequestLinkRequestTypeObject,
+    type EmailNotificationsRequestLinkRequest,
+    EmailNotificationsUpdatePreferencesRequestTypeObject,
+    type EmailNotificationsUpdatePreferencesRequest,
+    type EmailNotificationsPreferencesResponse,
+} from "./EmailNotificationsTypes.js"
+
+export {
     DodLinksTableName,
     type DbInsertDodLink,
     type DbPlainDodLink,
@@ -797,7 +822,9 @@ export {
     SENTRY_DEFAULT_REPLAYS_SESSION_SAMPLE_RATE,
     SENTRY_SESSION_STORAGE_KEY,
     SENTRY_SAMPLED_RATE_KEY,
-    SUBSCRIBE_PAGE_FORM_CONTAINER_ID,
+    SUBSCRIBE_PAGE_ROOT_ID,
+    OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID,
+    PREFERENCES_PAGE_ROOT_ID,
 } from "./siteTypes/SiteConstants.js"
 export {
     ARCHIVE_DATE_TIME_FORMAT,

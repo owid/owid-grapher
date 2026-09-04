@@ -24,6 +24,25 @@ MAILCHIMP_API_KEY=
 MAILCHIMP_API_SERVER=
 MAILCHIMP_DONOR_LIST_ID=
 
+# required for managing the OWID Brief newsletter via our custom forms
+MAILCHIMP_NEWSLETTER_LIST_ID=
+# Mailchimp interest (group) id of "The OWID Brief" in the newsletter list
+MAILCHIMP_OWID_BRIEF_INTEREST_ID=
+
+# required locally because the site and Functions run on different ports;
+# use this worktree's admin server port when it differs from 3030
+EMAIL_NOTIFICATIONS_SITE_BASE_URL=http://localhost:3030
+
+# Required for sending email notifications. A real server token sends emails,
+# while POSTMARK_SERVER_TOKEN=POSTMARK_API_TEST validates requests without
+# sending them. To inspect emails and click their links locally, run `yarn
+# postmarkCatcher` and set POSTMARK_API_BASE_URL=http://localhost:8025.
+POSTMARK_SERVER_TOKEN=
+POSTMARK_API_BASE_URL=
+
+# Basic-auth password used to authenticate incoming Postmark webhooks.
+POSTMARK_WEBHOOK_SECRET=
+
 # analytics
 CLOUDFLARE_GOOGLE_ANALYTICS_MEASUREMENT_PROTOCOL_KEY=
 CLOUDFLARE_GOOGLE_ANALYTICS_MEASUREMENT_ID=

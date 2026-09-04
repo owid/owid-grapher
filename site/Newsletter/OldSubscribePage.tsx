@@ -1,21 +1,21 @@
-import { Head } from "./Head.js"
-import { Html } from "./Html.js"
-import { SiteHeader } from "./SiteHeader.js"
-import { SiteFooter } from "./SiteFooter.js"
+import { Head } from "../Head.js"
+import { Html } from "../Html.js"
+import { SiteHeader } from "../SiteHeader.js"
+import { SiteFooter } from "../SiteFooter.js"
 import {
     SiteFooterContext,
-    SUBSCRIBE_PAGE_FORM_CONTAINER_ID,
+    OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID,
 } from "@ourworldindata/types"
-import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
-import { NewsletterSubscriptionContext } from "./newsletter.js"
-import { OwidSocials } from "./OwidSocials.js"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { NewsletterSubscriptionForm } from "../NewsletterSubscription.js"
+import { NewsletterSubscriptionContext } from "../newsletter.js"
+import { OwidSocials } from "../OwidSocials.js"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 
-export interface SubscribePageProps {
+export interface OldSubscribePageProps {
     baseUrl: string
 }
 
-export const SubscribePage = ({ baseUrl }: SubscribePageProps) => {
+export const OldSubscribePage = ({ baseUrl }: OldSubscribePageProps) => {
     return (
         <Html>
             <Head
@@ -27,12 +27,12 @@ export const SubscribePage = ({ baseUrl }: SubscribePageProps) => {
             />
             <body>
                 <SiteHeader />
-                <main className="subscribe-page grid grid-cols-12-full-width">
-                    <h1 className="subscribe-page__heading display-2-semibold span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
+                <main className="old-subscribe-page grid grid-cols-12-full-width">
+                    <h1 className="old-subscribe-page__heading display-2-semibold span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
                         Subscribe to our newsletters
                     </h1>
                     <div className="span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
-                        <div id={SUBSCRIBE_PAGE_FORM_CONTAINER_ID}>
+                        <div id={OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID}>
                             <NewsletterSubscriptionForm
                                 context={
                                     NewsletterSubscriptionContext.SubscribePage

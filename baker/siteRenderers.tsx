@@ -7,7 +7,9 @@ import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.j
 import NotFoundPage from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
 import { ExplorerIndexPage } from "../site/ExplorerIndexPage.js"
-import { SubscribePage } from "../site/SubscribePage.js"
+import { SubscribePage } from "../site/Newsletter/SubscribePage.js"
+import { OldSubscribePage } from "../site/Newsletter/OldSubscribePage.js"
+import { EmailNotificationsPreferencesPage } from "../site/Newsletter/EmailNotificationsPreferencesPage.js"
 import { ThankYouPage } from "../site/ThankYouPage.js"
 import TombstonePage from "../site/TombstonePage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
@@ -23,6 +25,8 @@ import {
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
     CLOUDFLARE_IMAGES_URL,
+    FEATURE_FLAGS,
+    Features,
 } from "../settings/clientSettings.js"
 import { FeedbackPage } from "../site/FeedbackPage.js"
 import {
@@ -536,8 +540,38 @@ export const renderExplorerIndexPage = async (
     )
 }
 
-export const renderSubscribePage = async (): Promise<string> => {
-    return renderToHtmlPage(<SubscribePage baseUrl={BAKED_BASE_URL} />)
+export const renderSubscribePage = async (
+    knex: KnexReadonlyTransaction
+): Promise<string> => {
+    if (!FEATURE_FLAGS.has(Features.EmailNotifications)) {
+        return renderToHtmlPage(<OldSubscribePage baseUrl={BAKED_BASE_URL} />)
+    }
+    return renderToHtmlPage(
+        <SubscribePage
+            baseUrl={BAKED_BASE_URL}
+            topicAreaNames={await getTopicAreaNames(knex)}
+        />
+    )
+}
+
+export const renderEmailNotificationsPreferencesPage = async (
+    knex: KnexReadonlyTransaction
+): Promise<string> => {
+    return renderToHtmlPage(
+        <EmailNotificationsPreferencesPage
+            baseUrl={BAKED_BASE_URL}
+            topicAreaNames={await getTopicAreaNames(knex)}
+        />
+    )
+}
+
+async function getTopicAreaNames(
+    knex: KnexReadonlyTransaction
+): Promise<string[]> {
+    const topicTagGraph = flattenNonTopicNodes(
+        await generateTopicTagGraph(knex)
+    )
+    return topicTagGraph.children.map((area) => area.name)
 }
 
 interface ExplorerRenderOpts {
