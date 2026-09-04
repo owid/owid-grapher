@@ -16,6 +16,7 @@ import {
     ComponentUsage,
     GdocsReferenceUsage,
     OwidGdocType,
+    proseText,
     TemplateDoc,
     TemplateFieldDoc,
 } from "@ourworldindata/types"
@@ -26,10 +27,6 @@ import {
     GdocsReferenceMarkdown,
     InlineMarkdownText,
 } from "./GdocsReferenceMarkdown.js"
-import {
-    sidecarNotesMarkdown,
-    splitSidecarBody,
-} from "./gdocsReferenceSidecar.js"
 import {
     componentsUsedInTemplate,
     ScopedNavComponent,
@@ -65,7 +62,7 @@ function matchesSearch(haystackParts: string[], query: string): boolean {
 // Relevance of a doc for the query, for Enter-to-open: name matches beat
 // matches buried in the body text.
 function searchScore(
-    doc: { id: string; title: string; body: string },
+    doc: { id: string; title: string },
     query: string
 ): number {
     const id = doc.id.toLowerCase()
@@ -162,7 +159,13 @@ export class GdocsReferencePage extends Component<
         if (!this.query) return this.components
         return this.components.filter((doc) =>
             matchesSearch(
-                [doc.title, doc.id, doc.typeName, doc.category, doc.body],
+                [
+                    doc.title,
+                    doc.id,
+                    doc.typeName,
+                    doc.category,
+                    proseText(doc.prose),
+                ],
                 this.query
             )
         )
@@ -171,7 +174,7 @@ export class GdocsReferencePage extends Component<
     @computed private get filteredTemplates(): TemplateDoc[] {
         if (!this.query) return this.templates
         return this.templates.filter((doc) =>
-            matchesSearch([doc.title, doc.id, doc.body], this.query)
+            matchesSearch([doc.title, doc.id, proseText(doc.prose)], this.query)
         )
     }
 
@@ -529,7 +532,9 @@ export class GdocsReferencePage extends Component<
                 </div>
                 <code className="gdocs-ref__card-id">{`{.${doc.id}}`}</code>
                 <p className="gdocs-ref__card-desc">
-                    <InlineMarkdownText text={firstParagraph(doc.body)} />
+                    <InlineMarkdownText
+                        text={firstParagraph(doc.prose.intro)}
+                    />
                 </p>
             </Link>
         )
@@ -581,7 +586,9 @@ export class GdocsReferencePage extends Component<
                 </div>
                 <code className="gdocs-ref__card-id">{`type: ${doc.id}`}</code>
                 <p className="gdocs-ref__card-desc">
-                    <InlineMarkdownText text={firstParagraph(doc.body)} />
+                    <InlineMarkdownText
+                        text={firstParagraph(doc.prose.intro)}
+                    />
                 </p>
             </Link>
         )
@@ -732,14 +739,8 @@ export class GdocsReferencePage extends Component<
     }
 
     private renderComponentDetail(doc: ComponentDoc): React.ReactElement {
-        const { intro, whenToUse, whenNotToUse, rest } = splitSidecarBody(
-            doc.body
-        )
+        const { intro, whenToUse, whenNotToUse, notes } = doc.prose
         const previewPath = this.previewPathForComponent(doc)
-        // The sidecar's remaining prose renders as authored notes under the
-        // derived properties table. Examples live in the intro by convention
-        // (generator-enforced) and render there, in place.
-        const notesMarkdown = sidecarNotesMarkdown(rest)
         return (
             <article className="gdocs-ref__detail">
                 <header className="gdocs-ref__detail-header">
@@ -780,9 +781,9 @@ export class GdocsReferencePage extends Component<
                     usage={this.usageOf(doc)}
                     typeLinks={this.propTypeLinks}
                     notes={
-                        notesMarkdown ? (
+                        notes ? (
                             <GdocsReferenceMarkdown
-                                body={notesMarkdown}
+                                body={notes}
                                 examples={doc.examples}
                                 previewPathForExample={previewPath}
                                 componentIds={this.componentIds}
@@ -895,9 +896,7 @@ export class GdocsReferencePage extends Component<
     }
 
     private renderTemplateDetail(doc: TemplateDoc): React.ReactElement {
-        const { intro, whenToUse, whenNotToUse, rest } = splitSidecarBody(
-            doc.body
-        )
+        const { intro, whenToUse, whenNotToUse, notes } = doc.prose
         return (
             <article className="gdocs-ref__detail">
                 <header className="gdocs-ref__detail-header">
@@ -922,9 +921,9 @@ export class GdocsReferencePage extends Component<
                     usage={this.usage}
                     components={this.components}
                 />
-                {rest && (
+                {notes && (
                     <GdocsReferenceMarkdown
-                        body={rest}
+                        body={notes}
                         componentIds={this.componentIds}
                     />
                 )}

@@ -1459,7 +1459,7 @@ export function TemplateComponentShortlist({
                             )}`}
                         />
                         <span className="gdocs-ref-live__shortlist-desc">
-                            {firstSentence(doc.body)}
+                            {firstSentence(doc.prose.intro)}
                         </span>
                     </li>
                 ))}
