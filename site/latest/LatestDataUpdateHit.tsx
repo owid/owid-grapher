@@ -41,7 +41,7 @@ export const LatestDataUpdateHit = ({
         slug: hit.slug,
         content: { type: OwidGdocType.Announcement },
     })
-    const isLikelyBaked = useIsLikelyBaked(announcementHref, hit.date)
+    const isLikelyBaked = useIsLikelyBaked(hit)
     const href = isExpanded
         ? (findCtaUrl(hit.body) ?? announcementHref)
         : announcementHref
