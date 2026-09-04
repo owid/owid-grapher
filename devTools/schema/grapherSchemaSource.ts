@@ -14,6 +14,7 @@ export const SCHEMA_DIR = path.join(
 )
 
 const schemaFilePattern = /^grapher-schema\.(?<version>\d+)\.yaml$/
+const schemaIdPattern = /grapher-schema\.(?<version>\d+)\.json$/
 
 export async function findLatestSchemaFile(): Promise<{
     filePath: string
@@ -62,4 +63,15 @@ export function resolveRef(
         throw new Error(`Definition "${schema.$ref}" not found`)
     // Fields set alongside the $ref (e.g. a more specific description) win.
     return { ...toSchemaObject(def), ...schema, $ref: undefined }
+}
+
+export function assertSchemaIdMatchesVersion(
+    schema: JSONSchema7,
+    version: string
+): void {
+    const idVersion = schema.$id?.match(schemaIdPattern)?.groups?.version
+    if (idVersion !== version)
+        throw new Error(
+            `Expected $id to name version ${version}, got ${JSON.stringify(schema.$id)}`
+        )
 }

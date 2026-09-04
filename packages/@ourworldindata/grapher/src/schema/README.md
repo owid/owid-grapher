@@ -23,8 +23,10 @@ passed it on the way in.
 
 In one commit:
 
-- Rename `grapher-schema.NNN.yaml` to `grapher-schema.MMM.yaml` and change the URL inside it
-  in all three places: the `$id` and the `default` and `const` of the `$schema` property.
+- Rename `grapher-schema.NNN.yaml` to `grapher-schema.MMM.yaml` and change the URL in its
+  `$id`. The `default` and `const` of the `$schema` property are YAML aliases of it, and
+  `yarn buildGrapherSchema` refuses to build when the `$id` and the file name disagree on
+  the version.
 - Update the version in the docs that name it: `packageDocs/docs/chart-config/index.md` and
   `docs/chart-api.openapi.yaml`.
 - Add `migrateFromNNNToMMM` to `migrations/migrations.ts` and add a case for `NNN` to the

@@ -8,6 +8,7 @@ import type { JSONSchema7 } from "json-schema"
 import {
     REPO_ROOT,
     SCHEMA_DIR,
+    assertSchemaIdMatchesVersion,
     findLatestSchemaFile,
 } from "./grapherSchemaSource.js"
 import {
@@ -44,6 +45,7 @@ async function main(): Promise<void> {
 
     const { filePath: sourcePath, version } = await findLatestSchemaFile()
     const schema = parse(await fs.readFile(sourcePath, "utf8")) as JSONSchema7
+    assertSchemaIdMatchesVersion(schema, version)
     const defs = schema.$defs ?? {}
 
     const schemaJson = serializeJson(schema)

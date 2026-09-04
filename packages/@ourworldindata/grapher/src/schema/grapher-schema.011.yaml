@@ -1,7 +1,5 @@
 $schema: "http://json-schema.org/draft-07/schema#"
-$id: "https://files.ourworldindata.org/schemas/grapher-schema.011.json"
-# If you update the required keys, make sure that the mergeGrapherConfigs and
-# diffGrapherConfigs functions both reflect this change
+$id: &schemaUrl "https://files.ourworldindata.org/schemas/grapher-schema.011.json"
 required:
   - $schema
   - dimensions
@@ -14,12 +12,8 @@ properties:
     type: string
     description: Url of the concrete schema version to use to validate this document
     format: uri
-    default: "https://files.ourworldindata.org/schemas/grapher-schema.011.json"
-    # We restrict the $schema field to a single value since we expect all
-    # configs in our database to be valid against the latest schema.
-    # If we ever need to validate configs against multiple schema versions,
-    # we can remove this constraint.
-    const: "https://files.ourworldindata.org/schemas/grapher-schema.011.json"
+    default: *schemaUrl
+    const: *schemaUrl
   id:
     type: integer
     description: Internal database id
