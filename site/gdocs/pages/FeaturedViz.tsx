@@ -14,7 +14,7 @@ import { getCanonicalUrl } from "@ourworldindata/components"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
-import { getLayout } from "../components/layout.js"
+import { getGridColumns, getLayout } from "../components/layout.js"
 import { BespokeComponent } from "../components/BespokeComponent.js"
 import { BespokeMetadataBox } from "../components/BespokeMetadataBox.js"
 import { Byline } from "../components/Byline.js"
@@ -76,9 +76,7 @@ export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
                     />
                     {bespokeMetadata && (
                         <BespokeMetadataBox
-                            className={getLayout(
-                                metadataBoxLayoutKey(hero.size)
-                            )}
+                            className={getMetadataBoxColumns(hero.size)}
                             metadata={bespokeMetadata}
                             citationUrl={canonicalUrl}
                             pageCitation={citationText}
@@ -139,12 +137,12 @@ function FeaturedVizHeader({
 
 /**
  * The box tracks the hero's width, except that a `widest` hero would give it
- * lines too long to read comfortably.
+ * lines too long to read comfortably. It takes the hero's columns without the
+ * hero's block class, which carries a bespoke component's min-height.
  */
-function metadataBoxLayoutKey(heroSize: BlockSize | undefined): string {
-    if (heroSize === undefined || heroSize === BlockSize.Narrow)
-        return "default"
-    return "bespoke-component--wide"
+function getMetadataBoxColumns(heroSize: BlockSize | undefined): string {
+    const size = heroSize === BlockSize.Widest ? BlockSize.Wide : heroSize
+    return getGridColumns(size ? `bespoke-component--${size}` : "default")
 }
 
 interface FeaturedVizBodySplit {
