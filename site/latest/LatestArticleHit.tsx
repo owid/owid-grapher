@@ -39,7 +39,7 @@ export const LatestArticleHit = ({
         slug: hit.slug,
         content: { type: OwidGdocType.Article },
     })
-    const isLikelyBaked = useIsLikelyBaked(href, hit.date)
+    const isLikelyBaked = useIsLikelyBaked(hit)
     const titleId = `latest-hit-${hit.slug}-title`
     const handleResultClick = () =>
         analytics.logLatestResultClick(hit, position)
