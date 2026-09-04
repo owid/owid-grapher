@@ -1,0 +1,250 @@
+.metadata-modal {
+    // How far the panel sits from the frame's edges, as against --modal-padding,
+    // which is the padding inside it
+    --panel-inset: 16px;
+    --modal-padding: 24px;
+
+    @include sm-only {
+        --modal-padding: 16px;
+    }
+
+    position: absolute;
+    inset: 0;
+    z-index: $zindex-modal;
+    background-color: $overlay-scrim;
+    opacity: 1;
+    transition: opacity var(--duration-popover) var(--ease-out);
+
+    .metadata-modal__panel {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        width: calc(100% - 2 * var(--panel-inset));
+        max-width: 640px;
+        max-height: calc(100% - 2 * var(--panel-inset));
+        min-height: 150px;
+        background: white;
+        border-radius: 4px;
+        box-shadow: 0 4px 30px 0 rgba(0, 0, 0, 0.15);
+        transition: transform var(--duration-popover) var(--ease-out);
+    }
+
+    .metadata-modal__dialog {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        outline: none;
+    }
+
+    // The composed metadata components default to the site's blue palette and
+    // type scale. What follows puts them on grapher's grays at the sizes
+    // grapher's own SourcesModal uses for a small chart.
+    .metadata-modal__body {
+        --text-small: 13px;
+
+        overflow-y: auto;
+        padding: 0 var(--modal-padding) var(--modal-padding);
+        color: $light-text;
+
+        --expandable-toggle-title: #{$dark-text};
+        --expandable-toggle-content: #{$light-text};
+        --expandable-toggle-border: #{$gray-20};
+        --expandable-toggle-button: #{$dark-text};
+        --expandable-toggle-button-hover: #{$light-text};
+
+        --non-expandable-title: #{$dark-text};
+        --non-expandable-border: #{$gray-20};
+
+        --indicator-sources-description-heading: #{$dark-text};
+        --indicator-sources-key-data-title: #{$dark-text};
+        --indicator-sources-content: #{$light-text};
+
+        --indicator-processing-background: #{$gray-10};
+        --indicator-processing-title: #{$dark-text};
+        --indicator-processing-content: #{$light-text};
+
+        --data-processing-content: #{$light-text};
+
+        --expandable-toggle-title-size: 14px;
+        --expandable-toggle-content-size: var(--text-small);
+        --non-expandable-title-size: 14px;
+        --non-expandable-content-size: var(--text-small);
+        --indicator-processing-content-size: var(--text-small);
+        --data-processing-content-size: var(--text-small);
+
+        --code-snippet-text: #{$light-text};
+        --code-snippet-border: #{$gray-20};
+        --code-snippet-background: #{$gray-10};
+        --code-snippet-button: #{$dark-text};
+        --code-snippet-button-hover: #{$light-text};
+        --code-snippet-button-active: #{$gray-100};
+    }
+
+    // IndicatorSources.scss sets this itself, so the override needs to match
+    // its specificity
+    .indicator-sources .source .source-key-data-blocks {
+        --code-snippet-text: #{$light-text};
+    }
+
+    // The rest is hard-coded in the components, so it can only be overridden by
+    // selector
+    .bespoke-metadata-heading__title {
+        @include grapher_h3-semibold;
+        color: $dark-text;
+    }
+
+    .bespoke-metadata-heading__title-variant {
+        font-size: 14px;
+        color: $light-text;
+    }
+
+    .bespoke-metadata-heading__description {
+        @include grapher_body-3-medium;
+        color: $dark-text;
+    }
+
+    // Grapher lays the key data out as a two-column table with each label
+    // stacked over its value, rather than the site's inline label/value pairs
+    .metadata-box-key-data {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+
+        @include sm-only {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+
+    .metadata-box-key-data__row {
+        display: block;
+    }
+
+    .metadata-box-key-data__row:has(> .metadata-box-key-data__key--source) {
+        grid-column: 1 / -1;
+    }
+
+    .metadata-box-key-data__key {
+        display: block;
+        margin-bottom: 4px;
+        color: $light-text;
+    }
+
+    .metadata-box-key-data__value {
+        color: $dark-text;
+    }
+
+    // Grapher sets the key description apart in a shaded panel
+    .metadata-modal__prose {
+        margin-top: 24px;
+        padding: 24px;
+        background-color: $gray-10;
+        color: $dark-text;
+
+        @include sm-only {
+            padding: 16px;
+        }
+
+        p,
+        ul,
+        ol {
+            @include grapher_body-3-medium;
+            margin: 0 0 8px;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            @include grapher_h4-semibold;
+            font-size: 14px;
+            margin: 0 0 8px;
+
+            &:not(:first-child) {
+                margin-top: 16px;
+            }
+        }
+
+        p:last-child,
+        ul:last-child,
+        ol:last-child {
+            margin-bottom: 0;
+        }
+
+        ul,
+        ol {
+            padding-left: 1.5em;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+    }
+
+    .metadata-box-section__title {
+        @include grapher_h3-semibold;
+        margin-bottom: 16px;
+        color: $dark-text;
+    }
+
+    .metadata-box-section:first-of-type .metadata-box-section__title {
+        margin-top: 32px;
+    }
+
+    .metadata-box-section:last-of-type {
+        margin-bottom: 0;
+    }
+
+    .citation__paragraph {
+        font-size: var(--text-small);
+        color: $light-text;
+    }
+
+    .citation__type {
+        font-size: var(--text-small);
+        color: $dark-text;
+    }
+
+    // Grapher underlines links and leaves them the colour of their surrounding
+    // text, rather than tinting them blue and purple like the site does. The
+    // redundant-looking `__dialog` outranks the `:visited` colours the site's
+    // owid-link mixins bake into the composed components.
+    .metadata-modal__dialog .metadata-modal__body a,
+    .metadata-modal__dialog .metadata-modal__body a:visited {
+        color: inherit;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+    }
+
+    .metadata-modal__dialog .metadata-modal__body a:hover {
+        text-decoration: none;
+    }
+
+    &[data-entering],
+    &[data-exiting] {
+        opacity: 0;
+
+        .metadata-modal__panel {
+            transform: translate(-50%, -50%) scale(0.97);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .metadata-modal__panel {
+            transition: none;
+        }
+
+        &[data-entering],
+        &[data-exiting] {
+            .metadata-modal__panel {
+                transform: translate(-50%, -50%);
+            }
+        }
+    }
+}
