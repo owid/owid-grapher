@@ -45,7 +45,7 @@ export const SubscribeFlow = ({
                 <Button
                     className="subscribe-page__confirmation-action"
                     theme="outline-vermillion"
-                    href="/subscribe/preferences"
+                    href="/preferences"
                     text="Update your preferences"
                     icon={null}
                 />
@@ -102,10 +102,7 @@ const SubscribeFormScreen = ({
                 <p className="subscribe-page__aside-heading h6-black-caps">
                     Already subscribed?
                 </p>
-                <a
-                    className="subscribe-page__manage-link"
-                    href="/subscribe/preferences"
-                >
+                <a className="subscribe-page__manage-link" href="/preferences">
                     Update your preferences{" "}
                     <FontAwesomeIcon icon={faArrowRight} />
                 </a>
