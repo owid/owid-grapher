@@ -124,7 +124,7 @@
         display: block;
     }
 
-    .metadata-box-key-data__row--full-width {
+    .metadata-box-key-data__row:has(> .metadata-box-key-data__key--source) {
         grid-column: 1 / -1;
     }
 
