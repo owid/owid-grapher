@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import { useContext, useMemo } from "react"
 import cx from "clsx"
 import {
+    BespokeMetadata,
     BlockSize,
     EnrichedBlockBespokeComponent,
     OwidEnrichedGdocBlock,
@@ -30,6 +31,13 @@ const HERO_CONFIG_OVERRIDES = {
     urlSync: "true",
     hideMetadataModal: "true",
 }
+
+/** Debug: metadata subsets rendered as extra boxes under the real one */
+const DEBUG_METADATA_SUBSETS: (keyof BespokeMetadata)[][] = [
+    ["title", "descriptionKey", "origins"],
+    ["descriptionKey", "origins"],
+    ["descriptionKey"],
+]
 
 type FeaturedVizProps = Omit<
     OwidGdocFeaturedVizInterface,
@@ -80,12 +88,23 @@ export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
                         block={hero}
                     />
                     {bespokeMetadata && (
-                        <BespokeMetadataBox
-                            className={getMetadataBoxColumns(hero.size)}
-                            metadata={bespokeMetadata}
-                            citationUrl={canonicalUrl}
-                            pageCitation={citationText}
-                        />
+                        <>
+                            <BespokeMetadataBox
+                                className={getMetadataBoxColumns(hero.size)}
+                                metadata={bespokeMetadata}
+                                citationUrl={canonicalUrl}
+                                pageCitation={citationText}
+                            />
+                            {DEBUG_METADATA_SUBSETS.map((keys) => (
+                                <BespokeMetadataBox
+                                    key={keys.join()}
+                                    className={getMetadataBoxColumns(hero.size)}
+                                    metadata={_.pick(bespokeMetadata, keys)}
+                                    citationUrl={canonicalUrl}
+                                    pageCitation={citationText}
+                                />
+                            ))}
+                        </>
                     )}
                 </div>
             )}
