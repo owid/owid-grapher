@@ -1,6 +1,5 @@
 .metadata-box-expander {
     margin-top: 16px;
-    border-top: 1px solid $blue-20;
 
     details {
         display: flex;
@@ -64,10 +63,6 @@
             background-color: $blue-20;
         }
     }
-}
-
-.metadata-box-expander__preview {
-    margin-top: 16px;
 }
 
 .metadata-box-expander__chevron {

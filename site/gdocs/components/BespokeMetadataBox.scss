@@ -5,6 +5,14 @@
     overflow-anchor: none;
 }
 
+// The divider needs key data above it and revealed content below it
+.bespoke-metadata-box
+    .metadata-box-key-data
+    + .metadata-box-expander
+    .metadata-box-expander__details[open] {
+    border-top: 1px solid $blue-20;
+}
+
 .bespoke-metadata-box .bespoke-metadata-heading__title {
     color: $blue-90;
     // Clears the collapse button
