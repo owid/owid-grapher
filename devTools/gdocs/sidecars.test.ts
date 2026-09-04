@@ -12,7 +12,10 @@
 import { describe, expect, test } from "vitest"
 import fs from "node:fs"
 import path from "node:path"
-import { GDOC_TEMPLATE_CONTENT_INTERFACES } from "@ourworldindata/types"
+import {
+    ALL_GDOC_TYPES,
+    GDOC_TEMPLATE_CONTENT_INTERFACES,
+} from "@ourworldindata/types"
 
 const REPO_ROOT = path.resolve(__dirname, "../..")
 const COMPONENTS_DIR = path.join(
@@ -92,4 +95,12 @@ describe("gdoc template sidecars", () => {
             ).toBe(true)
         })
     }
+
+    test("every OwidGdocType is documented with a template", () => {
+        for (const type of ALL_GDOC_TYPES)
+            expect(
+                documentedTypes,
+                type + " has no entry in GDOC_TEMPLATE_CONTENT_INTERFACES"
+            ).toContain(type)
+    })
 })

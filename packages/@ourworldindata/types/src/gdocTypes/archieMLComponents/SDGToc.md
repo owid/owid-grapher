@@ -1,5 +1,6 @@
 ---
 title: SDG Table of Contents
+decision: none
 ---
 
 Table of contents for the SDG tracker. Legacy block. Undocumented in
