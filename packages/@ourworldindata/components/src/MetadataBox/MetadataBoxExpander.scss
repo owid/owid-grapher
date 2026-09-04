@@ -1,6 +1,4 @@
 .metadata-box-expander {
-    margin-top: 16px;
-
     details {
         display: flex;
         flex-direction: column;
@@ -10,19 +8,6 @@
             display: inline-block;
             cursor: pointer;
             align-self: start;
-            @include body-2-semibold;
-            margin-left: -24px;
-            margin-bottom: -24px;
-            width: calc(100% + 48px);
-            padding: 16px;
-            @include note-13-medium;
-            color: $blue-50;
-            text-align: center;
-            transition: background-color 0.15s;
-
-            &:hover {
-                background-color: $blue-20;
-            }
 
             &::marker,
             &::-webkit-details-marker {
