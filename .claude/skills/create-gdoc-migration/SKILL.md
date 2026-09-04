@@ -11,10 +11,6 @@ Produces a reviewed, tested migration PR. The production run (`plan` → `apply`
 → `verify` on the prod server) is **not** part of this skill: it is done by
 the CMS maintainers, and the PR hands off to them with a checklist.
 
-Read [docs/gdoc-migrations.md](../../../docs/gdoc-migrations.md) first — it
-is the spec for the engine, the lifecycle and the safety model. This skill
-only sequences the work.
-
 ## Prerequisites
 
 - The dev stack is up (`pgrep -f adminSiteServer`), with a recent DB snapshot.
@@ -95,8 +91,10 @@ writing it. Parse-time aliases hide legacy raw syntax from the DB (e.g.
 
 ## Step 3 — schema-changing migrations: interface changes
 
-Follow the checklist in the spec's "Interface changes and the stored-content
-flip" section, in the same PR:
+Raw interfaces are transitional (both spellings are legitimately on the wire
+during a migration); enriched interfaces are the canonical internal form and
+change atomically, which is why the DB side must flip at the same deploy. In
+the same PR:
 
 1. Raw interface: add the new property, keep the old one optional and
    `@deprecated`.
@@ -194,7 +192,8 @@ all are clean.
 
     `plan` must show exactly the intended edits per sample and no flags.
     Understand every flag before moving on — `PatchFlagReason` in
-    `devTools/gdocMigrations/types.ts` lists them. `apply` must end with
+    `devTools/gdocMigrations/types.ts` lists them, and
+    `docs/gdoc-migrations.md` explains the safety model and known edge cases. `apply` must end with
     every doc `verified`; open the doc and eyeball the result. `verify` must
     report the doc clean.
 
