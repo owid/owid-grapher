@@ -12,6 +12,7 @@ import {
     queryParamsToStr,
 } from "@ourworldindata/utils"
 import { createRoot } from "react-dom/client"
+import { navigateTo } from "./webmcp/navigation.js"
 
 type HTTPMethod = "GET" | "PUT" | "POST" | "DELETE" | "PATCH"
 
@@ -78,8 +79,10 @@ export class Admin {
         return urljoin(this.basePath, path)
     }
 
+    /** Navigate within the admin SPA; throws if a page refuses (unsaved changes). */
     goto(path: string): void {
-        this.url(path)
+        const result = navigateTo(path)
+        if (!result.ok) throw new Error(result.reason)
     }
 
     // Make a request with no error or response handling

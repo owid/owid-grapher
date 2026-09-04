@@ -229,6 +229,17 @@ export async function getVariableJson(
 ) {
     const variableId = expectInt(req.params.variableId)
 
+    // The metadata fetch below retries with exponential backoff, so an id that
+    // doesn't exist would otherwise take about two minutes to come back 404.
+    const exists = await db.knexRawFirst<{ id: number }>(
+        trx,
+        `-- sql
+            SELECT id FROM variables WHERE id = ?
+        `,
+        [variableId]
+    )
+    if (!exists) throw new JsonError(`Variable ${variableId} not found`, 404)
+
     const variable = await fetchS3MetadataByPath(
         getVariableMetadataRoute(DATA_API_URL, variableId, { noCache: true })
     )
