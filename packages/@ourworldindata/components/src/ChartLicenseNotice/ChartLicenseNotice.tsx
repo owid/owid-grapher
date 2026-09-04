@@ -11,7 +11,7 @@ export function ChartLicenseNotice({
     license = DEFAULT_CHART_LICENSE,
 }: {
     license?: LicenseOption
-}) {
+}): React.ReactElement {
     const ccBy = CHART_LICENSES[DEFAULT_CHART_LICENSE]
 
     if (license === DEFAULT_CHART_LICENSE)
