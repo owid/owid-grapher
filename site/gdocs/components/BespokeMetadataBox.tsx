@@ -5,12 +5,13 @@ import {
     BespokeMetadataHeading,
     BespokeMetadataKeyData,
     BespokeMetadataSections,
+    getBespokeKeyDataRows,
     MetadataBoxCollapseButton,
     MetadataBoxExpander,
     SimpleMarkdownText,
 } from "@ourworldindata/components"
 import { BespokeMetadata } from "@ourworldindata/types"
-import { splitDescriptionKey } from "../../datapageUtils.js"
+import { splitDescriptionKeyAfterFirstBlock } from "../../datapageUtils.js"
 
 /** Methods and sources for a bespoke data viz */
 export function BespokeMetadataBox({
@@ -26,11 +27,13 @@ export function BespokeMetadataBox({
 }) {
     const detailsRef = useRef<HTMLDetailsElement | null>(null)
 
-    // Only the start of a long descriptionKey is shown above the fold; the
-    // rest goes inside the <details> so that it works without JavaScript and
-    // browsers auto-expand it when in-page search matches hidden text.
+    const hasKeyData = getBespokeKeyDataRows(metadata).length > 0
+    const shouldPreviewDescriptionKey =
+        !metadata.descriptionShort && !hasKeyData
     const { preview: descriptionKeyPreview, remainder: descriptionKeyRest } =
-        splitDescriptionKey(metadata.descriptionKey ?? "")
+        shouldPreviewDescriptionKey
+            ? splitDescriptionKeyAfterFirstBlock(metadata.descriptionKey ?? "")
+            : { preview: "", remainder: metadata.descriptionKey ?? "" }
 
     return (
         <div className={cx("metadata-box", "bespoke-metadata-box", className)}>
