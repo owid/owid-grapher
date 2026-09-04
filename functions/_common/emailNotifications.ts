@@ -92,7 +92,7 @@ export async function sendMagicLinkEmail(
     origin: string,
     props: { userId: number; to: string; token: string }
 ): Promise<void> {
-    const magicLinkUrl = `${origin}/subscribe/preferences#token=${props.token}`
+    const magicLinkUrl = `${origin}/preferences#token=${props.token}`
     await sendPostmarkEmail(env, {
         to: props.to,
         subject: "Update your Our World in Data notification preferences",

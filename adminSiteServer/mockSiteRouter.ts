@@ -335,7 +335,7 @@ getPlainRouteWithROTransaction(
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
-    "/subscribe/preferences",
+    "/preferences",
     async (_, res, trx) => {
         if (!FEATURE_FLAGS.has(Features.EmailNotifications)) {
             res.status(404).send("Not found")
