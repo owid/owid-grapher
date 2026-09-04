@@ -24,6 +24,14 @@
     }
 }
 
+.indicator-metadata-box .metadata-box-expander {
+    border-top: 1px solid $blue-20;
+}
+
+.indicator-metadata-box .metadata-box-expander__preview {
+    margin-top: 16px;
+}
+
 .indicator-metadata-box__title {
     margin: 0;
     color: $blue-90;
