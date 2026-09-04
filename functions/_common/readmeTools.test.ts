@@ -167,16 +167,13 @@ describe(constructReadme, () => {
         )
         expect(readme).toContain("Citation: IHME (2020). GBD.")
         // One heading for the document, after the indicators, rather than a block
-        // repeated inside each of them. Matched on the exact line because a single
-        // deduplicated source is titled "## Source", not "## Sources".
+        // repeated inside each of them.
         const headings = readme
             .split("\n")
-            .filter((line) =>
-                /^## (Source|Sources|Detailed information)/.test(line)
-            )
+            .filter((line) => /^## (Sources|Detailed information)/.test(line))
         expect(headings).toEqual([
             "## Detailed information about each time series",
-            "## Source",
+            "## Sources",
         ])
     })
 })
