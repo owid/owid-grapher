@@ -830,7 +830,7 @@ export class SiteBaker {
         // notifications system sends, so it only exists behind the flag.
         if (FEATURE_FLAGS.has(Features.EmailNotifications)) {
             await this.stageWrite(
-                `${this.bakedSiteDir}/subscribe/preferences.html`,
+                `${this.bakedSiteDir}/preferences.html`,
                 await renderEmailNotificationsPreferencesPage(knex)
             )
         }

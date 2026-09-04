@@ -5,7 +5,7 @@ import { faCheck, faLinkSlash } from "@fortawesome/free-solid-svg-icons"
 
 /**
  * The pieces shared by the two email notification pages (/subscribe and
- * /subscribe/preferences). Both render into a `main.subscribe-page` grid, and
+ * /preferences). Both render into a `main.subscribe-page` grid, and
  * both swap between an editing screen and a terminal confirmation screen.
  */
 export const SUBSCRIBE_PAGE_CONTENT_GRID_CLASSES =
