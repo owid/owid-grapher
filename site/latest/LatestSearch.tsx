@@ -63,11 +63,12 @@ export const LatestSearch = ({
     const { topics, latestType } = state
 
     // Expanded/Compact for type filters that offer the toggle. Local, not in
-    // the URL, and back to the default whenever the type filter changes.
+    // the URL, and shared by all such filters. Deliberately never reset:
+    // only the reader's own click changes it, so it can't change under the
+    // cards that stay on screen while the next results load
+    // (keepPreviousData) the way a reset-on-filter-change would.
     const [view, setView] = useState<LatestFeedView>(DEFAULT_LATEST_FEED_VIEW)
-    useEffect(() => setView(DEFAULT_LATEST_FEED_VIEW), [latestType])
     const showViewToggle = hasViewToggle(latestType)
-    const activeView = showViewToggle ? view : undefined
 
     useLatestAnalytics(state, analytics)
 
@@ -164,6 +165,15 @@ export const LatestSearch = ({
         // needlessly.
     }, [isLoading, hits.length])
 
+    // Cards are judged by the type filter recorded on the *displayed*
+    // results, not the URL's: during a filter change the previous results
+    // stay on screen while the next page loads (keepPreviousData), and the
+    // incoming type would flash them expanded/collapsed. Only the type
+    // filter affects how a card renders; topics only change which hits
+    // come back.
+    const displayedLatestType = data?.pages[0]?.latestType ?? null
+    const activeView = hasViewToggle(displayedLatestType) ? view : undefined
+
     // A card renders expanded when we know the reader is after this content
     // in particular: they followed a link straight to it, the View toggle is
     // on Expanded, or — for data updates, which don't have the toggle yet —
@@ -172,7 +182,7 @@ export const LatestSearch = ({
     const isExpanded = (slug: string) =>
         slug === autoExpandedSlug ||
         activeView === "expanded" ||
-        latestType === "data-update"
+        displayedLatestType === "data-update"
 
     return (
         <LatestContext.Provider value={{ analytics }}>
