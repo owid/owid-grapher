@@ -22,7 +22,6 @@ import { runDetailsOnDemand } from "./detailsOnDemand.js"
 import { hydrateCodeSnippets } from "@ourworldindata/components"
 import { hydrateDynamicCollectionPage } from "./collections/DynamicCollectionPageMain.js"
 import { LatestSearchWrapper } from "./latest/LatestSearchWrapper.js"
-import { runGrapherLoadingTracker } from "./runGrapherLoadingTracker.js"
 import {
     __OWID_EXPLORER_INDEX_PAGE_PROPS,
     ExplorerIndex,
@@ -285,7 +284,6 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
     switch (context) {
         case SiteFooterContext.dataPageV2:
             hydrateDataPageV2Content({ isPreviewing })
-            // runGrapherLoadingTracker()
             runSiteNavigation({ isPreviewing })
             // runSiteTools()
             // runCookiePreferencesManager()
@@ -293,7 +291,6 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
             break
         case SiteFooterContext.multiDimDataPage:
             hydrateMultiDimDataPageContent(isPreviewing)
-            // runGrapherLoadingTracker()
             runSiteNavigation({ isPreviewing })
             // runSiteTools()
             // runCookiePreferencesManager()
@@ -302,14 +299,12 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
             runSiteNavigation({ isPreviewing })
-            // runGrapherLoadingTracker()
             // runSiteTools()
             // runCookiePreferencesManager()
             void runDetailsOnDemand()
             break
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
-            // runGrapherLoadingTracker()
             runSiteNavigation({ isPreviewing })
             runFootnotes()
             void runDetailsOnDemand()
@@ -335,7 +330,6 @@ export const runSiteFooterScripts = async (
     switch (context) {
         case SiteFooterContext.dataPageV2:
             hydrateDataPageV2Content({ isPreviewing })
-            runGrapherLoadingTracker()
             runSiteNavigation({ hideDonationFlag, isPreviewing })
             runSiteTools()
             runCookiePreferencesManager()
@@ -344,7 +338,6 @@ export const runSiteFooterScripts = async (
             break
         case SiteFooterContext.multiDimDataPage:
             hydrateMultiDimDataPageContent(isPreviewing)
-            runGrapherLoadingTracker()
             runSiteNavigation({ hideDonationFlag, isPreviewing })
             runSiteTools()
             runCookiePreferencesManager()
@@ -354,7 +347,6 @@ export const runSiteFooterScripts = async (
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
             runSiteNavigation({ hideDonationFlag, isPreviewing })
-            runGrapherLoadingTracker()
             runSiteTools()
             runCookiePreferencesManager()
             runUserSurveyWidget()
@@ -368,7 +360,6 @@ export const runSiteFooterScripts = async (
             break
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
-            runGrapherLoadingTracker()
             runSiteNavigation({ hideDonationFlag, isPreviewing })
             runFootnotes()
             void runDetailsOnDemand()
@@ -402,7 +393,6 @@ export const runSiteFooterScripts = async (
             runSiteNavigation({ hideDonationFlag, isPreviewing })
             hydrateCodeSnippets()
             MultiEmbedderSingleton.embedAll(isPreviewing)
-            runGrapherLoadingTracker()
             runFootnotes()
             runSiteTools()
             runCookiePreferencesManager()
