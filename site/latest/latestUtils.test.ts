@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { BlockSize, OwidEnrichedGdocBlock, Span } from "@ourworldindata/types"
-import { findCtaUrl } from "./latestUtils.js"
+import { findCtaUrl, hasViewToggle } from "./latestUtils.js"
 
 describe(findCtaUrl, () => {
     const text = (...value: Span[]): OwidEnrichedGdocBlock => ({
@@ -39,5 +39,17 @@ describe(findCtaUrl, () => {
             image("chart.png"),
         ]
         expect(findCtaUrl(body)).toBe("/grapher/military-spending")
+    })
+})
+
+describe(hasViewToggle, () => {
+    it("offers the Expanded/Compact toggle for data insights only", () => {
+        expect(hasViewToggle("data-insight")).toBe(true)
+        expect(hasViewToggle("data-update")).toBe(false)
+        expect(hasViewToggle("article")).toBe(false)
+    })
+
+    it("offers nothing when no type filter is active", () => {
+        expect(hasViewToggle(null)).toBe(false)
     })
 })

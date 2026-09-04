@@ -39,11 +39,27 @@
     }
 }
 
+// Pinned beside the first cards: rows 1–3 are the header, the filters and
+// the divider. The View toggle, on the feeds that have one, sits at the top
+// of this same column and row, so clear it — its 16px row of controls plus a
+// 24px gap. The two are separate grid items because once the column collapses
+// they go to different places: the toggle to the top of the page, this block
+// below the first cards.
 .latest-page__newsletter-signup {
     grid-row: 4 / span 5;
+    margin-top: 40px;
 
     @include md-down {
         grid-row: unset;
+        margin-top: 0;
         margin-bottom: 40px;
     }
+}
+
+// Feeds without a toggle have nothing to clear. Written as the exception
+// rather than the rule so that a browser without `:has()` support (Firefox
+// below 121) keeps a stray 40px gap instead of running this block over the
+// toggle.
+.latest-page:not(:has(.latest-view-toggle)) .latest-page__newsletter-signup {
+    margin-top: 0;
 }

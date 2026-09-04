@@ -88,6 +88,21 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
+    /** A compact data insight card in the filtered /latest feed was expanded
+     * in place. */
+    logLatestDataInsightExpand(
+        hit: LatestPageChronologicalRecord,
+        position: number
+    ) {
+        this.logToGA({
+            event: EventCategory.SiteLatestDataInsightExpand,
+            eventAction: "expand",
+            eventTarget: hit.slug,
+            latestPosition: position,
+            latestType: hit.latestType,
+        })
+    }
+
     logSearch(state: SearchState) {
         const topics = Array.from(
             getFilterNamesOfType(state.filters, FilterType.TOPIC)
