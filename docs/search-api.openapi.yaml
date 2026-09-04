@@ -123,8 +123,8 @@ paths:
 
             Asking for topic pages alone (`topic-page`, `linear-topic-page`, or
             both) with a non-empty query returns topic *recommendations* rather
-            than a text search: the topics of the charts matching the query,
-            most common first, so `q=gdp` leads with the Economic Growth page.
+            than a text search: the topics of the best-ranked charts matching the
+            query, weighted by rank, so `q=gdp` leads with the Economic Growth page.
             `countries`, `topics` and `requireAllCountries` then apply to that
             chart search. Falls back to a text search when no chart matches;
             `closestMatches` is never set on a recommendation response.

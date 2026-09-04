@@ -5,7 +5,7 @@ import {
     TagGraphRootName,
 } from "@ourworldindata/types"
 import {
-    rankTopicsByChartTagCounts,
+    rankTopicsOfChartHits,
     searchTopicPagesOfMatchingCharts,
 } from "./searchTopicPages.js"
 
@@ -59,16 +59,17 @@ const tagGraph: TagGraphRoot = {
     path: [0],
 }
 
-describe(rankTopicsByChartTagCounts, () => {
-    it("orders topics by chart count, skipping areas", () => {
-        const topics = rankTopicsByChartTagCounts(
-            {
-                "Poverty and Economic Development": 171,
-                "Energy and Environment": 137,
-                "Economic Growth": 111,
-                Poverty: 40,
-                "CO2 & Greenhouse Gas Emissions": 60,
-            },
+const hit = (...tags: string[]): { tags: string[] } => ({ tags })
+
+describe(rankTopicsOfChartHits, () => {
+    it("lets the best-ranked charts decide, skipping areas", () => {
+        const topics = rankTopicsOfChartHits(
+            [
+                hit("Poverty and Economic Development", "Economic Growth"),
+                hit("Poverty and Economic Development", "Economic Growth"),
+                hit("Energy and Environment", "CO2 & Greenhouse Gas Emissions"),
+                hit("Poverty and Economic Development", "Poverty"),
+            ],
             tagGraph
         )
         expect(topics).toEqual([
@@ -81,9 +82,27 @@ describe(rankTopicsByChartTagCounts, () => {
         ])
     })
 
+    it("does not let many low-ranked charts outvote the top hits", () => {
+        // One chart at rank 1 vs. five charts at ranks 20-24: the sum of the
+        // low ranks' reciprocal weights (~0.23) stays below the top hit's 1.
+        const lowRanked = Array.from({ length: 19 }, () => hit())
+        const topics = rankTopicsOfChartHits(
+            [
+                hit("Economic Growth"),
+                ...lowRanked,
+                ...Array.from({ length: 5 }, () => hit("Poverty")),
+            ],
+            tagGraph
+        )
+        expect(topics.map((topic) => topic.name)).toEqual([
+            "Economic Growth",
+            "Poverty",
+        ])
+    })
+
     it("finds nested topics and ignores tags without a topic page", () => {
-        const topics = rankTopicsByChartTagCounts(
-            { "Climate Change": 5, Crime: 30, Unknown: 99 },
+        const topics = rankTopicsOfChartHits(
+            [hit("Crime", "Unknown"), hit("Climate Change")],
             tagGraph
         )
         expect(topics).toEqual([
@@ -92,18 +111,32 @@ describe(rankTopicsByChartTagCounts, () => {
     })
 
     it("returns nothing when no chart matched", () => {
-        expect(rankTopicsByChartTagCounts({}, tagGraph)).toEqual([])
+        expect(rankTopicsOfChartHits([], tagGraph)).toEqual([])
     })
 })
 
 type MockHit = { slug: string; title: string }
 
-function makeClient(responses: unknown[]) {
+function makeClient(responses: unknown[]): {
+    searchForHits: ReturnType<typeof vi.fn>
+} {
     const searchForHits = vi.fn()
     for (const response of responses) {
         searchForHits.mockResolvedValueOnce({ results: [response] })
     }
     return { searchForHits }
+}
+
+const tagGraphWithPopulation: TagGraphRoot = {
+    ...tagGraph,
+    children: [
+        ...tagGraph.children,
+        node("Population and Demographic Change", {
+            children: [
+                node("Population Growth", { slug: "population-growth" }),
+            ],
+        }),
+    ],
 }
 
 describe(searchTopicPagesOfMatchingCharts, () => {
@@ -121,14 +154,10 @@ describe(searchTopicPagesOfMatchingCharts, () => {
     it("returns the topic pages in facet order, whatever order Algolia returns them", async () => {
         const client = makeClient([
             {
-                hits: [],
-                facets: {
-                    tags: {
-                        "Poverty and Economic Development": 100,
-                        Poverty: 5,
-                        "Economic Growth": 50,
-                    },
-                },
+                hits: [
+                    hit("Poverty and Economic Development", "Economic Growth"),
+                    hit("Poverty and Economic Development", "Poverty"),
+                ],
             },
             {
                 hits: [
@@ -154,8 +183,8 @@ describe(searchTopicPagesOfMatchingCharts, () => {
         expect(chartsRequest).toMatchObject({
             indexName: "charts",
             query: "gdp",
-            facets: ["tags"],
-            hitsPerPage: 0,
+            attributesToRetrieve: ["tags"],
+            queryType: "prefixNone",
         })
         const [pagesRequest] = client.searchForHits.mock.calls[1][0]
         expect(pagesRequest).toMatchObject({
@@ -169,14 +198,11 @@ describe(searchTopicPagesOfMatchingCharts, () => {
     it("paginates locally and skips topics whose page is not in the index", async () => {
         const client = makeClient([
             {
-                hits: [],
-                facets: {
-                    tags: {
-                        "Economic Growth": 50,
-                        "Climate Change": 20,
-                        Poverty: 5,
-                    },
-                },
+                hits: [
+                    hit("Economic Growth"),
+                    hit("Climate Change"),
+                    hit("Poverty"),
+                ],
             },
             {
                 // No record for climate-change
@@ -199,8 +225,32 @@ describe(searchTopicPagesOfMatchingCharts, () => {
         expect(result?.length).toBe(1)
     })
 
+    it("falls back to prefix matching only when whole words match nothing", async () => {
+        const client = makeClient([
+            { hits: [] }, // "popul" as a whole word
+            { hits: [hit("Population Growth")] }, // as a prefix
+            {
+                hits: [{ slug: "population-growth", title: "Population" }],
+                nbHits: 1,
+            },
+        ])
+
+        const result = await searchTopicPagesOfMatchingCharts<MockHit>(
+            client as never,
+            { ...params, query: "popul", tagGraph: tagGraphWithPopulation }
+        )
+
+        expect(result?.hits.map((hit) => hit.slug)).toEqual([
+            "population-growth",
+        ])
+        const [firstRequest] = client.searchForHits.mock.calls[0][0]
+        const [secondRequest] = client.searchForHits.mock.calls[1][0]
+        expect(firstRequest.queryType).toBe("prefixNone")
+        expect(secondRequest.queryType).toBe("prefixLast")
+    })
+
     it("returns undefined without querying pages when no chart matched", async () => {
-        const client = makeClient([{ hits: [], facets: {} }])
+        const client = makeClient([{ hits: [] }, { hits: [] }])
 
         const result = await searchTopicPagesOfMatchingCharts<MockHit>(
             client as never,
@@ -208,6 +258,6 @@ describe(searchTopicPagesOfMatchingCharts, () => {
         )
 
         expect(result).toBeUndefined()
-        expect(client.searchForHits).toHaveBeenCalledOnce()
+        expect(client.searchForHits).toHaveBeenCalledTimes(2)
     })
 })

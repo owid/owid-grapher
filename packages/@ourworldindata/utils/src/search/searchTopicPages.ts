@@ -6,10 +6,7 @@ import {
 } from "@ourworldindata/types"
 import { type SearchResponse } from "algoliasearch"
 import { type LiteClient } from "algoliasearch/lite"
-import {
-    formatDisjunctiveFacetFilters,
-    MAX_FACET_VALUES,
-} from "./searchFacetFilters.js"
+import { formatDisjunctiveFacetFilters } from "./searchFacetFilters.js"
 import { searchSingleForHits } from "./searchClosestMatches.js"
 
 // Shared between the site's search page (site/search/queries.ts) and the
@@ -26,11 +23,24 @@ export function isTopicPageType(type: string): boolean {
 }
 
 /**
- * Ranks the topics behind a set of chart results, most common first, given the
- * charts index's `tags` facet counts for a query. Only tags that are topics
- * with a topic page count; areas are skipped even though they carry the
- * highest counts by construction (every chart in a topic is also in its
- * area), because an area has no page of its own to recommend.
+ * How many of the best-ranked chart hits vote for the topics to recommend:
+ * roughly the first few pages of chart results, i.e. the charts a searcher
+ * would actually look at.
+ */
+export const TOPIC_VOTING_CHART_HITS = 50
+
+/**
+ * Ranks the topics behind a list of chart hits, best first. Each hit votes
+ * for its topic tags with a weight that decays with its rank (reciprocal
+ * rank), so the topics of the charts a searcher sees first win; a topic with
+ * hundreds of poorly-ranked matches does not. Facet counts over every match
+ * would do exactly that: "population" matches thousands of explorer views
+ * about migration and natural disasters, which would outvote the Population
+ * Growth charts ranked at the top.
+ *
+ * Only tags that are topics with a topic page count; areas are skipped even
+ * though every chart carries one (they have no page of their own), and so
+ * are searchable tags without a page.
  *
  * This is how search picks the topic pages to show for a query: charts
  * describe their subject in their titles ("GDP per capita"), while topic
@@ -38,8 +48,8 @@ export function isTopicPageType(type: string): boolean {
  * full-text search over topic pages misses the very page a query is about
  * and surfaces pages that mention the term in passing instead.
  */
-export function rankTopicsByChartTagCounts(
-    tagCounts: Record<string, number>,
+export function rankTopicsOfChartHits(
+    hits: { tags?: string[] }[],
     tagGraph: TagGraphRoot
 ): { name: string; slug: string }[] {
     const areaNames = new Set(tagGraph.children.map((area) => area.name))
@@ -53,8 +63,17 @@ export function rankTopicsByChartTagCounts(
     }
     collectTopics(tagGraph)
 
-    return Object.entries(tagCounts)
-        .filter(([name]) => slugByTopicName.has(name))
+    // Map insertion order is first appearance, which breaks ties in favour
+    // of the topic seen higher up.
+    const scores = new Map<string, number>()
+    hits.forEach((hit, rank) => {
+        for (const tag of hit.tags ?? []) {
+            if (!slugByTopicName.has(tag)) continue
+            scores.set(tag, (scores.get(tag) ?? 0) + 1 / (rank + 1))
+        }
+    })
+
+    return [...scores.entries()]
         .sort(([, a], [, b]) => b - a)
         .map(([name]) => ({ name, slug: slugByTopicName.get(name)! }))
 }
@@ -82,21 +101,29 @@ export async function searchTopicPagesOfMatchingCharts<
         length: number
     }
 ): Promise<SearchResponse<THit> | undefined> {
-    const chartsResponse = await searchSingleForHits<unknown>(
-        liteSearchClient,
-        {
+    const searchCharts = (
+        queryType: "prefixNone" | "prefixLast"
+    ): Promise<SearchResponse<{ tags?: string[] }>> =>
+        searchSingleForHits<{ tags?: string[] }>(liteSearchClient, {
             indexName: params.chartsIndexName,
             query: params.query,
             facetFilters: params.chartsFacetFilters,
-            facets: ["tags"],
-            maxValuesPerFacet: MAX_FACET_VALUES,
-            hitsPerPage: 0,
-        }
-    )
-    const topics = rankTopicsByChartTagCounts(
-        chartsResponse.facets?.tags ?? {},
-        params.tagGraph
-    )
+            attributesToRetrieve: ["tags"],
+            hitsPerPage: TOPIC_VOTING_CHART_HITS,
+            queryType,
+        })
+
+    // The words of a submitted search are whole words: "ai" means AI, not
+    // the beginning of "air" or "aid". Algolia's default (prefixLast) treats
+    // the last word as a prefix, which lets the many charts about air
+    // pollution and foreign aid outvote the AI charts. So match whole words
+    // first (Algolia's synonyms, e.g. ai → artificial intelligence, still
+    // apply) and only fall back to prefix matching when that finds nothing,
+    // i.e. when the word really is unfinished ("popul").
+    let chartsResponse = await searchCharts("prefixNone")
+    if (chartsResponse.hits.length === 0)
+        chartsResponse = await searchCharts("prefixLast")
+    const topics = rankTopicsOfChartHits(chartsResponse.hits, params.tagGraph)
     if (topics.length === 0) return undefined
 
     // The topic list is short (a few dozen at most), so fetch every page in

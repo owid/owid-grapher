@@ -293,9 +293,8 @@ const TOPIC_PAGE_ATTRIBUTES = [
 /**
  * Topic pages to recommend for the current search.
  *
- * With a query, the topics come from the charts that match it: the charts
- * index's `tags` facet says which topics those charts belong to, and the
- * topic pages are shown in that order (see searchTopicPagesOfMatchingCharts
+ * With a query, the topics come from the best-ranked charts that match it,
+ * weighted by rank, and the topic pages are shown in that order (see searchTopicPagesOfMatchingCharts
  * in @ourworldindata/utils for why the topic pages' own text is a poor guide). Without a query, or when
  * no chart matches, the topic pages are searched directly, as any other page.
  */
