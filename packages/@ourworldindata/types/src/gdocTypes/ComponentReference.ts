@@ -8,6 +8,33 @@ export interface ComponentExample {
 }
 
 /**
+ * A sidecar's prose, split into its declared sections by the generator (see
+ * devTools/gdocs/sidecarSections.ts for the vocabulary and the rules). The
+ * split happens exactly once, at generation time, so the reference page
+ * renders these fields instead of re-parsing markdown headings.
+ */
+export interface SidecarProse {
+    /** Everything before the first section heading; fenced examples live here */
+    intro: string
+    /** Decision prose: what the block is the right choice for */
+    whenToUse?: string
+    /** Decision prose: when to reach for something else */
+    whenNotToUse?: string
+    /**
+     * The "## Notes" section (heading dropped — the notes area carries its
+     * own title) followed by any free-form sections, headings intact.
+     */
+    notes?: string
+}
+
+/** Every piece of a sidecar's prose as one string, for search indexing. */
+export function proseText(prose: SidecarProse): string {
+    return [prose.intro, prose.whenToUse, prose.whenNotToUse, prose.notes]
+        .filter(Boolean)
+        .join("\n\n")
+}
+
+/**
  * A curated pointer to a real usage of the component in a published document,
  * authored in the sidecar front matter and resolved live by the admin server.
  */
@@ -76,7 +103,7 @@ export interface ComponentDoc {
     category: ComponentCategory
     sourceFile: string
     sidecarFile: string
-    body: string
+    prose: SidecarProse
     examples: ComponentExample[]
     /** Every declared property of the block, derived from its type alias */
     props: ComponentPropDoc[]

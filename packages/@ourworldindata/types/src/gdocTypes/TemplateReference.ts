@@ -5,6 +5,7 @@
 // gdoc type.
 
 import type { GdocContentKeyKind } from "./Gdoc.js"
+import type { SidecarProse } from "./ComponentReference.js"
 
 export interface TemplateFieldDoc {
     name: string
@@ -37,7 +38,7 @@ export interface TemplateDoc {
     contentTypeName: string
     sidecarFile: string
     title: string
-    body: string
+    prose: SidecarProse
     fields: TemplateFieldDoc[]
     /** Gdoc properties managed in the admin, never authored in the document */
     adminManagedFields: string[]

@@ -16,6 +16,28 @@ and every gdoc type they can create. It lives in the admin at
    `OwidGdocPostContent.md`). Sidecars carry the prose: what a component is
    for, when (not) to use it, and fenced ` ```archie ` examples.
 
+    A sidecar's `## ` sections are a **declared vocabulary**, listed in
+    `devTools/gdocs/sidecarSections.ts`:
+
+    | Section                           | What it becomes                                                     |
+    | --------------------------------- | ------------------------------------------------------------------- |
+    | (intro, before the first `## `)   | the lead prose, and where the ` ```archie ` examples live           |
+    | `## When to use`                  | the "Use it for" panel; its `{.other-id}` mentions become `related` |
+    | `## When NOT to use`              | the "Reach for something else when" panel                           |
+    | `## Properties` (components only) | the effect column of the properties table                           |
+    | `## Notes`                        | authored notes under the derived material (heading dropped)         |
+    | any other `## ` heading           | free prose, rendered with the notes                                 |
+
+    Headings are matched past casing and punctuation, but a **near miss**
+    fails the build rather than drifting into the free prose: `## When to
+ use it` or `## Propertes` are errors naming the heading you meant. So
+    are a repeated section, an empty one, a `### ` subsection inside one
+    (promote it), and a sidecar with no intro. Every component needs
+    `## When to use` — a block with no authorial choice (an internal
+    primitive, a legacy block) declares `decision: none` in its front
+    matter instead, and one whose guidance is simply unwritten declares
+    `decision: todo`, which the generator counts out on every run.
+
 2. **The generator — derives the registries.**
    `yarn generateGdocsReferences` (in `devTools/gdocs/`) walks the type
    definitions with the TypeScript compiler, joins them with the sidecars,
@@ -55,10 +77,10 @@ type file (with a `@see ./<Name>.md` line in the type's JSDoc) and add the
 component id to `COMPONENT_CATEGORY_BY_ID` in
 `devTools/gdocs/generate-gdocs-references.ts` — a missing sidecar or category
 fails `devTools/gdocs/sidecars.test.ts` and the generator. Sidecar
-conventions: `## When to use` / `## When NOT to use` prose (whose
-`{.other-id}` mentions become the structured `related` links) and at least
-one fenced ` ```archie ` example, validated by parsing — prefer the verbatim
-ArchieML of a real published instance once one exists.
+conventions: the sections listed above — `## When to use` / `## When NOT to
+use` prose (whose `{.other-id}` mentions become the structured `related`
+links) and at least one fenced ` ```archie ` example, validated by parsing —
+prefer the verbatim ArchieML of a real published instance once one exists.
 
 A `## Properties` section (required whenever the type declares props)
 documents the _effect_ of each property,

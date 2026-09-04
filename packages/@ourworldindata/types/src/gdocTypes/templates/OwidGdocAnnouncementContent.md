@@ -17,7 +17,5 @@ entry.
   buckets the announcement on /latest; unrecognized values are rejected at
   publish time.
 - `body`: The announcement body: a few short paragraphs, usually a closing
-  cta, and often one image.
+  call to action, and often one image.
 - `type`: Always "announcement".
-- `cta`: Nested { text, url } link for the empty-body, homepage-carousel
-  variant of announcement.

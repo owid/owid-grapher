@@ -186,6 +186,8 @@ export {
     type ComponentPropDoc,
     type ComponentRegistry,
     type PinnedExampleRef,
+    proseText,
+    type SidecarProse,
 } from "./gdocTypes/ComponentReference.js"
 
 export type {

@@ -14,6 +14,7 @@
  *     docs/templates.registry.generated.json
  *
  * Exits non-zero on: missing sidecar, missing "type:" discriminator, an
+ * unrecognized or misspelled sidecar section, missing decision prose, an
  * archie example that fails to parse/validate, or a field description that
  * does not match the content interface. The registries are committed; the
  * "gdocs-references" CI job re-runs this generator and fails the build
@@ -30,12 +31,17 @@
  *      system flag, pinned real-example refs) + harvest every fenced archie
  *      block, and derive the id from the alias body's "type" property
  *      literal.
- *   4. Validate every archie example by parsing it through the real
+ *   4. Split the sidecar prose into its declared sections — the vocabulary
+ *      lives in ./sidecarSections.ts, and an unrecognized or near-miss
+ *      heading fails the build. This is the only place sidecar markdown is
+ *      parsed: the registries carry the split prose, so no consumer
+ *      re-derives it.
+ *   5. Validate every archie example by parsing it through the real
  *      pipeline (archieToEnriched): parser errors fail the build, and an
  *      example that parses to zero blocks is rejected as silently dropped.
- *   5. Harvest the {.component-id} cross-references in each sidecar's
- *      "## When (NOT) to use" prose into `related` — derived, so the
- *      structured links can never drift from the prose.
+ *   6. Harvest the {.component-id} cross-references in each sidecar's
+ *      decision prose into `related` — derived, so the structured links can
+ *      never drift from the prose.
  *
  * Templates pipeline:
  *   1. For each type in GDOC_TEMPLATE_CONTENT_INTERFACES, walk its content
@@ -95,6 +101,7 @@ import {
 } from "typescript/unstable/ast/is"
 
 import { archieToEnriched } from "../../db/model/Gdoc/archieToEnriched.js"
+import { splitSidecarProse } from "./sidecarSections.js"
 import { getParseFindings } from "@ourworldindata/utils"
 import {
     GDOC_TEMPLATE_CONTENT_INTERFACES,
@@ -107,6 +114,7 @@ import {
     type ComponentRegistry,
     type GdocContentKeyKind,
     type PinnedExampleRef,
+    type SidecarProse,
     type TemplateDoc,
     type TemplateFieldDoc,
     type TemplateSkeletonPart,
@@ -590,13 +598,20 @@ interface ComponentFrontMatter {
     title?: string
     system?: boolean
     pinned?: PinnedExampleRef[]
+    /**
+     * Why the sidecar has no decision prose — required whenever the "## When
+     * to use" section is absent, so that a gap reads as what it is:
+     * "none" for a block with no authorial choice (an internal primitive, a
+     * paragraph, a legacy block), "todo" for guidance still to be written.
+     */
+    decision?: "none" | "todo"
 }
 
 function parseComponentFrontMatter(
     fm: Record<string, unknown>,
     file: string
 ): ComponentFrontMatter {
-    assertAllowedKeys(fm, ["title", "system", "pinned"], file)
+    assertAllowedKeys(fm, ["title", "system", "pinned", "decision"], file)
     const result: ComponentFrontMatter = { title: parseOptionalTitle(fm, file) }
     if (fm.system !== undefined) {
         if (fm.system !== true)
@@ -606,6 +621,17 @@ function parseComponentFrontMatter(
                     inspect(fm.system)
             )
         result.system = true
+    }
+    if (fm.decision !== undefined) {
+        if (fm.decision !== "none" && fm.decision !== "todo")
+            throw new Error(
+                file +
+                    ': decision must be "none" (the block carries no ' +
+                    'authorial choice) or "todo" (guidance still to be ' +
+                    "written), got " +
+                    inspect(fm.decision)
+            )
+        result.decision = fm.decision
     }
     if (fm.pinned !== undefined) {
         if (!Array.isArray(fm.pinned) || fm.pinned.length === 0)
@@ -739,43 +765,27 @@ function parseTemplateFrontMatter(
     return result
 }
 
-// The decision prose in a sidecar ("## When to use" / "## When NOT to use")
-// cross-references alternatives as {.component-id}. Harvest those mentions
-// into ComponentDoc.related — derived, so it can never drift from the prose.
 /**
- * Splits the authored "## Properties" section off a component sidecar body:
- * the per-prop effect descriptions (same bullet shape as the template field
- * files) become structured data on the props, so the page renders them in
- * the properties table instead of as a second, prose copy of it.
+ * Parses the "## Properties" section of a component sidecar: the per-prop
+ * effect descriptions (same bullet shape as the template field files) become
+ * structured data on the props, so the page renders them in the properties
+ * table instead of as a second, prose copy of it.
  *
  * Every component with declared props must carry the section (enforced in
  * the component loop); it must describe every declared prop, and may not
  * name a prop the type does not declare.
  */
-function extractPropDescriptions(
-    body: string,
+function parsePropDescriptions(
+    section: string,
     sidecarPathRel: string
-): { body: string; descriptions: Map<string, string> } {
-    const sections = body.split(/^(?=## )/m)
-    const kept: string[] = []
-    let descriptions = new Map<string, string>()
-    for (const section of sections) {
-        if (!/^## +Properties[ \t]*\r?\n/i.test(section)) {
-            kept.push(section)
-            continue
-        }
-        if (descriptions.size > 0)
-            throw new Error(
-                sidecarPathRel + " has more than one '## Properties' section"
-            )
-        descriptions = parseFieldDescriptions(section, sidecarPathRel)
-        if (descriptions.size === 0)
-            throw new Error(
-                sidecarPathRel +
-                    ": '## Properties' has no `prop`: description bullets"
-            )
-    }
-    return { body: kept.join("").trim(), descriptions }
+): Map<string, string> {
+    const descriptions = parseFieldDescriptions(section, sidecarPathRel)
+    if (descriptions.size === 0)
+        throw new Error(
+            sidecarPathRel +
+                ": '## Properties' has no `prop`: description bullets"
+        )
+    return descriptions
 }
 
 /**
@@ -814,15 +824,17 @@ function applyPropDescriptions(
     for (const prop of props) prop.description = descriptions.get(prop.name)
 }
 
+// The decision prose in a sidecar ("## When to use" / "## When NOT to use")
+// cross-references alternatives as {.component-id}. Harvest those mentions
+// into ComponentDoc.related — derived, so it can never drift from the prose.
 function deriveRelatedComponents(
-    body: string,
+    prose: SidecarProse,
     selfId: string,
     validIds: Set<string>
 ): string[] {
     const related: string[] = []
-    for (const section of body.split(/^(?=## )/m)) {
-        if (!/^## When (NOT )?to use/i.test(section)) continue
-        for (const match of section.matchAll(/\{\.([a-z0-9-]+)\}/g)) {
+    for (const section of [prose.whenToUse, prose.whenNotToUse]) {
+        for (const match of (section ?? "").matchAll(/\{\.([a-z0-9-]+)\}/g)) {
             const id = match[1]
             if (id === selfId || !validIds.has(id)) continue
             if (!related.includes(id)) related.push(id)
@@ -957,6 +969,10 @@ function extractComponentDocs(
 
     const docs: ComponentDoc[] = []
     const seenIds = new Set<string>()
+    // Sidecars whose front matter admits the decision prose is missing —
+    // reported at the end so the backlog stays visible instead of blending
+    // into the components that genuinely have nothing to decide.
+    const decisionTodos: string[] = []
     for (const ident of memberIds) {
         const typeName = ident.text
         const decl = aliasIndex.get(typeName)
@@ -1022,12 +1038,38 @@ function extractComponentDocs(
                     "examples belong in the intro, before the decision sections"
             )
 
+        // Split the prose into its declared sections once, here: the
+        // registry carries the pieces, so the reference page renders them
+        // without re-parsing markdown headings.
+        const { prose, properties } = splitSidecarProse(
+            body,
+            sidecarPathRel,
+            "component"
+        )
+        if (fm.decision) {
+            if (prose.whenToUse || prose.whenNotToUse)
+                throw new Error(
+                    sidecarPathRel +
+                        ": front matter says decision: " +
+                        fm.decision +
+                        ", but the sidecar " +
+                        "has decision prose — drop the key or the section(s)"
+                )
+        } else if (!prose.whenToUse)
+            throw new Error(
+                sidecarPathRel +
+                    ': has no "## When to use" section. Add one, or declare ' +
+                    "decision: none in the front matter if the block carries " +
+                    "no authorial choice (an internal primitive, a legacy " +
+                    "block) — decision: todo if the guidance is simply not " +
+                    "written yet"
+            )
+
         // Per-prop effect descriptions live in a "## Properties" section that
         // the page renders as the properties table, not as prose.
-        const { body: prose, descriptions } = extractPropDescriptions(
-            body,
-            sidecarPathRel
-        )
+        const descriptions = properties
+            ? parsePropDescriptions(properties, sidecarPathRel)
+            : new Map<string, string>()
         const props = extractProps(decl, typeIndex)
         if (props.length > 0 && descriptions.size === 0)
             throw new Error(
@@ -1045,13 +1087,14 @@ function extractComponentDocs(
             category,
             sourceFile,
             sidecarFile: sidecarPathRel,
-            body: prose,
+            prose,
             examples: examples.map(({ archie }) => ({ archie })),
             props,
             valueProps: extractValueProps(decl, typeIndex),
             ...(fm.system && { system: true }),
             ...(fm.pinned && { pinned: fm.pinned }),
         })
+        if (fm.decision === "todo") decisionTodos.push(id)
     }
     const staleCategoryIds = Object.keys(COMPONENT_CATEGORY_BY_ID).filter(
         (id) => !seenIds.has(id)
@@ -1064,9 +1107,15 @@ function extractComponentDocs(
     // Second pass, once every id is known: harvest the {.component-id}
     // cross-references in each doc's decision prose into `related`.
     for (const doc of docs) {
-        const related = deriveRelatedComponents(doc.body, doc.id, seenIds)
+        const related = deriveRelatedComponents(doc.prose, doc.id, seenIds)
         if (related.length > 0) doc.related = related
     }
+    if (decisionTodos.length > 0)
+        console.log(
+            decisionTodos.length +
+                " component(s) still need decision prose (decision: todo): " +
+                decisionTodos.join(", ")
+        )
     return { docs, typeSources: extractTypeSources(docs, typeIndex) }
 }
 
@@ -1262,6 +1311,11 @@ function extractTemplateDocs(
                     '" contains a fenced archie example — templates are ' +
                     "described by their skeleton, not by example documents"
             )
+        const { prose } = splitSidecarProse(body, sidecarPathRel, "template")
+        if (!prose.whenToUse)
+            throw new Error(
+                sidecarPathRel + ': has no "## When to use" section'
+            )
         const fm = parseTemplateFrontMatter(frontMatter, sidecarPathRel)
         if (!fm.skeleton)
             throw new Error(
@@ -1288,7 +1342,7 @@ function extractTemplateDocs(
             contentTypeName,
             sidecarFile: sidecarPathRel,
             title: fm.title ?? deriveTitle(sidecarName),
-            body,
+            prose,
             fields,
             adminManagedFields: [...OWID_GDOC_ADMIN_MANAGED_KEYS],
             skeleton: fm.skeleton,

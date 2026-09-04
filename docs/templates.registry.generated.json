@@ -4,7 +4,11 @@
     "contentTypeName": "OwidGdocPostContent",
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/Article.md",
     "title": "Article",
-    "body": "A standalone piece of writing: our default document type for essays, data\nexplainers and topic deep-dives. Published under `/{slug}`.\n\n## When to use\n\n- Any self-contained narrative piece that is not the entry page of a topic.\n\n## When NOT to use\n\n- Prefer `data-insight` for a short, chart-led observation.\n- Prefer `topic-page` / `linear-topic-page` for the entry page of a topic.",
+    "prose": {
+      "intro": "A standalone piece of writing: our default document type for essays, data\nexplainers and topic deep-dives. Published under `/{slug}`.",
+      "whenToUse": "- Any self-contained narrative piece that is not the entry page of a topic.",
+      "whenNotToUse": "- Prefer `data-insight` for a short, chart-led observation.\n- Prefer `topic-page` / `linear-topic-page` for the entry page of a topic."
+    },
     "fields": [
       {
         "name": "body",
@@ -250,7 +254,11 @@
     "contentTypeName": "OwidGdocPostContent",
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/TopicPage.md",
     "title": "Topic Page",
-    "body": "The entry page for a topic: a modular page that opens with a\n`{.topic-page-intro}` block and typically composes key insights, featured\nmetrics and an `{.all-charts}` section. Published under `/{slug}`.\n\n## When to use\n\n- The canonical landing page for a topic in the site navigation.\n\n## When NOT to use\n\n- Prefer `linear-topic-page` when the topic reads as one continuous essay.\n- Prefer `article` for standalone pieces within a topic.",
+    "prose": {
+      "intro": "The entry page for a topic: a modular page that opens with a\n`{.topic-page-intro}` block and typically composes key insights, featured\nmetrics and an `{.all-charts}` section. Published under `/{slug}`.",
+      "whenToUse": "- The canonical landing page for a topic in the site navigation.",
+      "whenNotToUse": "- Prefer `linear-topic-page` when the topic reads as one continuous essay.\n- Prefer `article` for standalone pieces within a topic."
+    },
     "fields": [
       {
         "name": "body",
@@ -493,7 +501,11 @@
     "contentTypeName": "OwidGdocPostContent",
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/LinearTopicPage.md",
     "title": "Linear Topic Page",
-    "body": "A topic entry page that reads as one continuous essay rather than a modular\ngrid. Gets a sticky navigation generated from its headings (override with\n`sticky-nav`). Published under `/{slug}`.\n\n## When to use\n\n- A topic whose content is best presented as a single narrative flow.\n\n## When NOT to use\n\n- Prefer `topic-page` for modular topic pages composed of self-contained\n  sections.",
+    "prose": {
+      "intro": "A topic entry page that reads as one continuous essay rather than a modular\ngrid. Gets a sticky navigation generated from its headings (override with\n`sticky-nav`). Published under `/{slug}`.",
+      "whenToUse": "- A topic whose content is best presented as a single narrative flow.",
+      "whenNotToUse": "- Prefer `topic-page` for modular topic pages composed of self-contained\n  sections."
+    },
     "fields": [
       {
         "name": "body",
@@ -739,7 +751,11 @@
     "contentTypeName": "OwidGdocPostContent",
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/Fragment.md",
     "title": "Fragment",
-    "body": "Reusable content that is not published as a standalone page: fragments hold\nshared material other documents pull in — most commonly the details-on-demand\ndictionary and the FAQ content used by data pages.\n\n## When to use\n\n- Content referenced from other documents or systems rather than read in\n  place.\n\n## Limitations\n\n- Most existing fragments are built around the `details` and `faqs`\n  front-matter structures rather than a body — see the field descriptions\n  for how each is consumed.",
+    "prose": {
+      "intro": "Reusable content that is not published as a standalone page: fragments hold\nshared material other documents pull in — most commonly the details-on-demand\ndictionary and the FAQ content used by data pages.",
+      "whenToUse": "- Content referenced from other documents or systems rather than read in\n  place.",
+      "notes": "## Limitations\n\n- Most existing fragments are built around the `details` and `faqs`\n  front-matter structures rather than a body — see the field descriptions\n  for how each is consumed."
+    },
     "fields": [
       {
         "name": "body",
@@ -959,7 +975,12 @@
     "contentTypeName": "OwidGdocDataInsightContent",
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/DataInsight.md",
     "title": "Data Insight",
-    "body": "A short, chart-led observation: a single static image or chart and a few\nparagraphs making one point. Published in the data-insights feed under\n`/data-insights/{slug}`.\n\n## When to use\n\n- One interesting pattern in the data, explained in a few hundred words.\n\n## When NOT to use\n\n- Prefer `article` when the piece needs sections, multiple charts, or a\n  narrative arc.\n\n## Variations\n\n- Set `grapher-url` when the insight is based on a live grapher chart,\n  `narrative-chart` when it is based on a narrative chart, and `figma-url`\n  to point at the Figma file for the static image.",
+    "prose": {
+      "intro": "A short, chart-led observation: a single static image or chart and a few\nparagraphs making one point. Published in the data-insights feed under\n`/data-insights/{slug}`.",
+      "whenToUse": "- One interesting pattern in the data, explained in a few hundred words.",
+      "whenNotToUse": "- Prefer `article` when the piece needs sections, multiple charts, or a\n  narrative arc.",
+      "notes": "## Variations\n\n- Set `grapher-url` when the insight is based on a live grapher chart,\n  `narrative-chart` when it is based on a narrative chart, and `figma-url`\n  to point at the Figma file for the static image."
+    },
     "fields": [
       {
         "name": "title",
@@ -1057,7 +1078,11 @@
     "contentTypeName": "OwidGdocAnnouncementContent",
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/Announcement.md",
     "title": "Announcement",
-    "body": "A short site-news item: a data update, website upgrade, or organizational\nannouncement, published in the `/latest` feed under `/latest/{slug}` and\ncategorized there by its kicker.\n\n## When to use\n\n- Telling readers something changed on the site: refreshed data, a new\n  feature, or news about the team or organization.\n\n## When NOT to use\n\n- Prefer `data-insight` for a chart-led observation about the data itself —\n  an announcement points at what changed, it does not explain a pattern.\n- Prefer `article` for any standalone narrative piece.\n\n## Limitations\n\n- A small variant of announcement has an empty body and a top-level `cta`\n  front-matter property instead (used for the homepage announcement\n  carousel).",
+    "prose": {
+      "intro": "A short site-news item: a data update, website upgrade, or organizational\nannouncement, published in the `/latest` feed under `/latest/{slug}` and\ncategorized there by its kicker.",
+      "whenToUse": "- Telling readers something changed on the site: refreshed data, a new\n  feature, or news about the team or organization.",
+      "whenNotToUse": "- Prefer `data-insight` for a chart-led observation about the data itself —\n  an announcement points at what changed, it does not explain a pattern.\n- Prefer `article` for any standalone narrative piece."
+    },
     "fields": [
       {
         "name": "title",
@@ -1105,7 +1130,7 @@
         "type": "OwidEnrichedGdocBlock[]",
         "optional": false,
         "kind": "authored",
-        "description": "The announcement body: a few short paragraphs, usually a closing cta, and often one image."
+        "description": "The announcement body: a few short paragraphs, usually a closing call to action, and often one image."
       },
       {
         "name": "type",
@@ -1113,13 +1138,6 @@
         "optional": false,
         "kind": "authored",
         "description": "Always \"announcement\"."
-      },
-      {
-        "name": "cta",
-        "type": "{ text: string url: string }",
-        "optional": true,
-        "kind": "authored",
-        "description": "Nested { text, url } link for the empty-body, homepage-carousel variant of announcement."
       }
     ],
     "adminManagedFields": [

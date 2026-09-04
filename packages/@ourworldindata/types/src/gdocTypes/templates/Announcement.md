@@ -35,9 +35,3 @@ categorized there by its kicker.
 - Prefer `data-insight` for a chart-led observation about the data itself —
   an announcement points at what changed, it does not explain a pattern.
 - Prefer `article` for any standalone narrative piece.
-
-## Limitations
-
-- A small variant of announcement has an empty body and a top-level `cta`
-  front-matter property instead (used for the homepage announcement
-  carousel).
