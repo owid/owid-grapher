@@ -414,6 +414,10 @@ export async function queryProfiles(
 
 export interface LatestPagesResult {
     response: SearchResponse<PageChronologicalRecord>
+    /** The type filter this page was fetched with. The UI judges displayed
+     *  results by the filters that produced them (not the URL's, which run
+     *  ahead of the data during a filter change). */
+    latestType: LatestType | null
     /** Tag facet counts filtered by the active type, disjunctive on topics.
      *  Used to determine which topic pills to disable. */
     tagFacetCounts: Record<string, number>
@@ -507,6 +511,7 @@ export async function queryLatestPages(
     const [mainResult, typeResult, topicResult] = response.results
     return {
         response: mainResult,
+        latestType,
         tagFacetCounts: topicResult.facets?.tags ?? {},
         latestTypeFacetCounts: typeResult.facets?.latestType ?? {},
     }
