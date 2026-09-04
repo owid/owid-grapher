@@ -579,3 +579,11 @@
         border-radius: 4px;
     }
 }
+
+// Vertical fade used to soften the bottom edge of clipped card content
+// (a data insight or data update card whose body overflows). Apply to an
+// absolutely positioned overlay covering the clipped area; $color must match
+// the background it fades into, including on hover.
+@mixin fade-out-overlay($color, $start: 50%) {
+    background: linear-gradient(180deg, transparent $start, $color 100%);
+}

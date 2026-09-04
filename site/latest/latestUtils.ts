@@ -6,7 +6,9 @@ import {
     LATEST_TYPE_VALUES,
     LatestFeedGdoc,
     LatestType,
+    EnrichedBlockImage,
     LatestUrlParam,
+    OwidEnrichedGdocBlock,
     PageChronologicalRecord,
 } from "@ourworldindata/types"
 import { OwidGdocType, slugify } from "@ourworldindata/utils"
@@ -65,6 +67,30 @@ export function deriveLatestType(gdoc: LatestFeedGdoc): LatestType {
  * /latest's "Filter by type" filter ("Articles", "Data Insights", …). */
 export const latestTypeLabelPlural = (type: LatestType): string =>
     `${LATEST_TYPE_LABELS[type]}s`
+
+/**
+ * Where a data update ultimately points the reader. Every data update ends
+ * on a `cta` block (e.g. "Explore the updated data in our interactive chart")
+ * which is what an expanded card links to.
+ */
+export function findCtaUrl(
+    blocks: OwidEnrichedGdocBlock[]
+): string | undefined {
+    return blocks.findLast((block) => block.type === "cta")?.url
+}
+
+/**
+ * The image a feed card shows beside its text: the first image block in the
+ * body. Data insight and data update cards both lift it out of the body flow
+ * and render it as the card thumbnail, so they filter it back out of the
+ * blocks they pass to ArticleBlocks — keep the returned block identical (not
+ * a copy) so callers can do that by identity.
+ */
+export function findThumbnailImageBlock(
+    blocks: OwidEnrichedGdocBlock[]
+): EnrichedBlockImage | undefined {
+    return blocks.find((block) => block.type === "image")
+}
 
 /** Grid positioning applied to the root of every hit card. */
 export const LATEST_HIT_GRID_CLASSES =
