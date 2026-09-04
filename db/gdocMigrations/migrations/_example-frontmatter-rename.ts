@@ -21,4 +21,5 @@ export default defineGdocMigration({
         WHERE JSON_CONTAINS_PATH(content, 'one', '$."hide-subscribe-banner"')
     `,
     ops: [renameKey("hide-subscribe-banner", "hide-newsletter-banner")],
+    downOps: [renameKey("hide-newsletter-banner", "hide-subscribe-banner")],
 })

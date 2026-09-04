@@ -3,6 +3,7 @@ import {
     applyGdocMigrationToDb,
     ContentQueryRunner,
     planGdocMigrationDb,
+    revertGdocMigrationInDb,
 } from "./dbApplier.js"
 import {
     mapValue,
@@ -98,6 +99,80 @@ describe(planGdocMigrationDb, () => {
         expect(
             await planGdocMigrationDb(runner, migration, { ids: [] })
         ).toEqual({ scanned: 0, changes: [] })
+    })
+})
+
+describe(revertGdocMigrationInDb, () => {
+    const reversible = defineGdocMigration({
+        name: "test-db-reversible",
+        mode: "component",
+        blockType: "chart",
+        discover: "SELECT 1",
+        transform: (block) => block,
+        dbTransform: renameEnrichedProperty("caption", "subtitle"),
+        dbDownTransform: renameEnrichedProperty("subtitle", "caption"),
+    })
+
+    it("applies dbDownTransform, undoing the forward migration", async () => {
+        const migrated = {
+            body: [{ type: "chart", subtitle: captionSpans }],
+        }
+        const { runner, updates } = fakeQueryRunner([
+            { id: "doc-1", content: JSON.stringify(migrated) },
+        ])
+        const result = await revertGdocMigrationInDb(runner, reversible)
+        expect(result).toEqual({ scanned: 1, updated: 1 })
+        expect(JSON.parse(updates[0].content).body[0]).toEqual({
+            type: "chart",
+            caption: captionSpans,
+        })
+    })
+
+    it("can be planned with direction down", async () => {
+        const { runner, updates } = fakeQueryRunner([
+            {
+                id: "doc-1",
+                content: JSON.stringify({
+                    body: [{ type: "chart", subtitle: captionSpans }],
+                }),
+            },
+        ])
+        const plan = await planGdocMigrationDb(runner, reversible, {
+            direction: "down",
+        })
+        expect(plan.changes).toHaveLength(1)
+        expect(updates).toEqual([])
+    })
+
+    it("refuses migrations without a reverse", async () => {
+        const { runner } = fakeQueryRunner([])
+        await expect(
+            revertGdocMigrationInDb(runner, migration)
+        ).rejects.toThrow("not reversible")
+        const frontmatter = defineGdocMigration({
+            name: "test-fm-irreversible",
+            mode: "frontmatter",
+            discover: "SELECT 1",
+            ops: [removeKey("old")],
+        })
+        await expect(
+            revertGdocMigrationInDb(runner, frontmatter)
+        ).rejects.toThrow("not reversible")
+    })
+
+    it("applies downOps for frontmatter migrations", async () => {
+        const rename = defineGdocMigration({
+            name: "test-fm-reversible",
+            mode: "frontmatter",
+            discover: "SELECT 1",
+            ops: [renameKey("old-key", "new-key")],
+            downOps: [renameKey("new-key", "old-key")],
+        })
+        const { runner, updates } = fakeQueryRunner([
+            { id: "doc-1", content: JSON.stringify({ "new-key": true }) },
+        ])
+        await revertGdocMigrationInDb(runner, rename)
+        expect(JSON.parse(updates[0].content)).toEqual({ "old-key": true })
     })
 })
 

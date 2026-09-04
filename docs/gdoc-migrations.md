@@ -257,9 +257,21 @@ export class GdocMigrationChartCaptionToSubtitle1751xxxxxxxxx implements Migrati
     public async up(queryRunner: QueryRunner): Promise<void> {
         await applyGdocMigrationToDb(queryRunner, chartCaptionToSubtitle)
     }
-    public async down(): Promise<void> {} // content migrations are not reversible
+    public async down(queryRunner: QueryRunner): Promise<void> {
+        // only for migrations that declare dbDownTransform / downOps;
+        // otherwise leave down() empty — content migrations are not reversible
+        await revertGdocMigrationInDb(queryRunner, chartCaptionToSubtitle)
+    }
 }
 ```
+
+The DB side is reversible when the migration declares its inverse —
+`dbDownTransform` for component migrations (e.g.
+`renameEnrichedProperty("subtitle", "caption")`), `downOps` for frontmatter
+ones. Removals and lossy value rewrites have no inverse and leave `down()`
+empty. `yarn gdocMigration db-plan --down` dry-runs the reverse. The gdoc
+side is never reverted automatically: recovery there is the pre-edit
+snapshots plus Google's version history.
 
 The transform still lives in exactly one file; the wrapper just gives it a
 deploy-ordered execution slot. Staging and dev environments stay correct
@@ -365,7 +377,7 @@ Two further commands support _writing_ a migration; neither touches real
 content:
 
 ```
-yarn gdocMigration db-plan         --migration chart-caption-to-subtitle [--id <gdocId>] [--limit <n>]
+yarn gdocMigration db-plan         --migration chart-caption-to-subtitle [--id <gdocId>] [--limit <n>] [--down]
 yarn gdocMigration create-test-doc --migration chart-caption-to-subtitle [--id <gdocId>] [--share <email>] [--dry-run]
 ```
 

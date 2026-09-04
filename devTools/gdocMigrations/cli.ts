@@ -52,6 +52,7 @@ Options:
     --journal-dir <path>     Where journals live (default: devTools/gdocMigrations/runs).
     --force                  Re-process docs the journal considers done.
     --limit <n>              db-plan: changed docs to print in full (default: 5).
+    --down                   db-plan: plan the reverse (dbDownTransform / downOps).
     --sample-docs <n>        create-test-doc: source docs to fetch (default: 15).
     --max-samples <n>        create-test-doc: distinct samples to keep (default: 12).
     --folder <driveFolderId> create-test-doc: where to create the doc
@@ -116,6 +117,7 @@ interface CliOptions {
     journalDir: string
     force: boolean
     limit: number
+    down: boolean
     sampleDocs: number
     maxSamples: number
     folder?: string
@@ -174,6 +176,7 @@ function parseCli(): CliOptions | null {
             : defaultJournalDir,
         force: Boolean(parsed.force),
         limit: positiveInteger(parsed.limit, "--limit", 5),
+        down: Boolean(parsed.down),
         sampleDocs: positiveInteger(parsed["sample-docs"], "--sample-docs", 15),
         maxSamples: positiveInteger(parsed["max-samples"], "--max-samples", 12),
         folder: parsed.folder ? String(parsed.folder) : undefined,
@@ -213,6 +216,7 @@ async function main(): Promise<void> {
                     migration,
                     ids: options.ids,
                     limit: options.limit,
+                    direction: options.down ? "down" : "up",
                 })
                 break
             case "create-test-doc":

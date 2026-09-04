@@ -115,16 +115,27 @@ Use the `create-migration` skill to create a `db/migration` file, then make
 it a thin wrapper:
 
 ```ts
-import { applyGdocMigrationToDb } from "../gdocMigrations/dbApplier.js"
+import {
+    applyGdocMigrationToDb,
+    revertGdocMigrationInDb,
+} from "../gdocMigrations/dbApplier.js"
 import migration from "../gdocMigrations/migrations/YYYY-MM-<slug>.js"
 
 export class GdocMigration<Name><timestamp> implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await applyGdocMigrationToDb(queryRunner, migration)
     }
-    public async down(): Promise<void> {} // content migrations are not reversible
+    public async down(queryRunner: QueryRunner): Promise<void> {
+        await revertGdocMigrationInDb(queryRunner, migration)
+    }
 }
 ```
+
+If the DB side is reversible (a rename, a lossless value map), declare the
+inverse on the migration — `dbDownTransform` for component migrations,
+`downOps` for frontmatter — and check it with `db-plan --down`. If it is
+not (a removal, a lossy rewrite), leave `down()` empty with a comment; the
+gdoc side is never reverted automatically either way.
 
 Skip the wrapper only when there is no `dbTransform`.
 

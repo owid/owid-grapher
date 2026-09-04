@@ -42,9 +42,13 @@ export interface DbPlanResult {
     changes: DbRowChange[]
 }
 
+export type DbMigrationDirection = "up" | "down"
+
 export interface DbPlanOptions {
     /** Restrict to these posts_gdocs ids (default: every row) */
     ids?: string[]
+    /** "down" plans the reverse migration (dbDownTransform / downOps) */
+    direction?: DbMigrationDirection
 }
 
 /**
@@ -71,7 +75,34 @@ export async function applyGdocMigrationToDb(
     queryRunner: ContentQueryRunner,
     migration: GdocMigration
 ): Promise<DbApplyResult> {
-    const plan = await planGdocMigrationDb(queryRunner, migration)
+    return writeDbPlan(queryRunner, migration, "up")
+}
+
+/**
+ * Applies the migration's reverse (dbDownTransform / downOps) to
+ * posts_gdocs.content, for the wrapper's down():
+ *
+ *   public async down(queryRunner: QueryRunner): Promise<void> {
+ *       await revertGdocMigrationInDb(queryRunner, fooMigration)
+ *   }
+ *
+ * Throws for migrations that declare no reverse.
+ */
+export async function revertGdocMigrationInDb(
+    queryRunner: ContentQueryRunner,
+    migration: GdocMigration
+): Promise<DbApplyResult> {
+    return writeDbPlan(queryRunner, migration, "down")
+}
+
+async function writeDbPlan(
+    queryRunner: ContentQueryRunner,
+    migration: GdocMigration,
+    direction: DbMigrationDirection
+): Promise<DbApplyResult> {
+    const plan = await planGdocMigrationDb(queryRunner, migration, {
+        direction,
+    })
     for (const change of plan.changes) {
         const sets = ["content = ?"]
         const parameters: unknown[] = [JSON.stringify(change.after)]
@@ -85,7 +116,7 @@ export async function applyGdocMigrationToDb(
         )
     }
     console.log(
-        `gdoc migration "${migration.name}": scanned ${plan.scanned} posts_gdocs rows, updated ${plan.changes.length}`
+        `gdoc migration "${migration.name}" (${direction}): scanned ${plan.scanned} posts_gdocs rows, updated ${plan.changes.length}`
     )
     return { scanned: plan.scanned, updated: plan.changes.length }
 }
@@ -101,11 +132,12 @@ export async function planGdocMigrationDb(
     migration: GdocMigration,
     options: DbPlanOptions = {}
 ): Promise<DbPlanResult> {
+    const direction = options.direction ?? "up"
     const rows = await fetchContentRows(queryRunner, options.ids)
     const changes =
         migration.mode === "frontmatter"
-            ? planFrontmatterRows(rows, migration)
-            : await planComponentRows(rows, migration, queryRunner)
+            ? planFrontmatterRows(rows, migration, direction)
+            : await planComponentRows(rows, migration, direction, queryRunner)
     return { scanned: rows.length, changes }
 }
 
@@ -129,12 +161,16 @@ async function fetchContentRows(
 async function planComponentRows(
     rows: ContentRow[],
     migration: ComponentGdocMigration,
+    direction: DbMigrationDirection,
     queryRunner: ContentQueryRunner
 ): Promise<DbRowChange[]> {
-    const dbTransform = migration.dbTransform
+    const dbTransform =
+        direction === "up" ? migration.dbTransform : migration.dbDownTransform
     if (!dbTransform) {
         throw new Error(
-            `migration "${migration.name}" has no dbTransform — nothing to apply to posts_gdocs.content`
+            direction === "up"
+                ? `migration "${migration.name}" has no dbTransform — nothing to apply to posts_gdocs.content`
+                : `migration "${migration.name}" has no dbDownTransform — its DB side is not reversible`
         )
     }
     const helpers: MigrationHelpers = {
@@ -173,15 +209,22 @@ const DENORMALIZED_FRONTMATTER_KEYS = ["type", "slug", "authors"]
 
 function planFrontmatterRows(
     rows: ContentRow[],
-    migration: FrontmatterGdocMigration
+    migration: FrontmatterGdocMigration,
+    direction: DbMigrationDirection
 ): DbRowChange[] {
+    const ops = direction === "up" ? migration.ops : migration.downOps
+    if (!ops) {
+        throw new Error(
+            `migration "${migration.name}" has no downOps — its DB side is not reversible`
+        )
+    }
     const changes: DbRowChange[] = []
     for (const row of rows) {
         const parsed = JSON.parse(row.content) as unknown
         if (!_.isPlainObject(parsed)) continue
         const { content, changedKeys } = applyFrontmatterOpsToContent(
             parsed as Record<string, unknown>,
-            migration.ops
+            ops
         )
         if (changedKeys.length === 0) continue
 
