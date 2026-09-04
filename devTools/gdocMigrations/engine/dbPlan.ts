@@ -1,5 +1,6 @@
 import * as db from "../../../db/db.js"
 import {
+    DbMigrationDirection,
     DbRowChange,
     planGdocMigrationDb,
 } from "../../../db/gdocMigrations/dbApplier.js"
@@ -12,6 +13,7 @@ export interface DbPlanRunnerOptions {
     ids?: string[]
     /** How many changed docs to print in full */
     limit: number
+    direction: DbMigrationDirection
 }
 
 const MAX_IDS_SHOWN = 10
@@ -30,12 +32,13 @@ export async function runDbPlan(options: DbPlanRunnerOptions): Promise<void> {
             db.knexRaw(knex, sql, parameters),
     }
     console.log(
-        `Planning the DB side of "${options.migration.name}"` +
+        `Planning the DB side of "${options.migration.name}" (${options.direction})` +
             (options.ids ? ` for ${options.ids.length} doc(s)` : "") +
             "…"
     )
     const plan = await planGdocMigrationDb(queryRunner, options.migration, {
         ids: options.ids,
+        direction: options.direction,
     })
     const changes = plan.changes.map((change) => ({
         ...change,
@@ -75,7 +78,9 @@ export async function runDbPlan(options: DbPlanRunnerOptions): Promise<void> {
         for (const change of shown) printChange(change)
     }
 
-    if (!options.ids) await printDiscoverCrossCheck(options.migration, changes)
+    // discover describes the *forward* migration's docs
+    if (!options.ids && options.direction === "up")
+        await printDiscoverCrossCheck(options.migration, changes)
 }
 
 function printChange(change: DbRowChange & { diff: JsonDiffLine[] }): void {

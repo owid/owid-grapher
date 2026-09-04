@@ -80,6 +80,14 @@ export interface ComponentGdocMigration {
      * Omit only for migrations that never need to touch stored content.
      */
     dbTransform?: EnrichedTransformFn
+    /**
+     * The inverse of dbTransform, for migrations whose DB side can be
+     * reversed (a rename, say — not a removal). When present, the
+     * db/migration wrapper's down() can call revertGdocMigrationInDb.
+     * The gdoc side has no equivalent: docs are restored from snapshots
+     * and version history.
+     */
+    dbDownTransform?: EnrichedTransformFn
 }
 
 /**
@@ -122,6 +130,12 @@ export interface FrontmatterGdocMigration {
     /** SQL returning a gdocId column, usually against posts_gdocs.content */
     discover: string
     ops: FrontmatterOp[]
+    /**
+     * Ops that undo `ops` on the DB side (e.g. the reverse renameKey), for
+     * reversible migrations; used by revertGdocMigrationInDb from the
+     * wrapper's down(). Removals and lossy value maps have no inverse.
+     */
+    downOps?: FrontmatterOp[]
 }
 
 export type GdocMigration = ComponentGdocMigration | FrontmatterGdocMigration
@@ -138,7 +152,7 @@ function frontmatterOpKeys(op: FrontmatterOp): string[] {
 
 export function defineGdocMigration<M extends GdocMigration>(migration: M): M {
     if (migration.mode === "frontmatter") {
-        for (const op of migration.ops) {
+        for (const op of [...migration.ops, ...(migration.downOps ?? [])]) {
             for (const key of frontmatterOpKeys(op)) {
                 if (FORBIDDEN_FRONTMATTER_KEYS.includes(key.toLowerCase())) {
                     throw new Error(

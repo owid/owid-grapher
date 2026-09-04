@@ -10,9 +10,11 @@ import { renameEnrichedProperty, renameProperty } from "../helpers.js"
  * The service account (GDOCS_CLIENT_EMAIL) needs edit access to the doc.
  *
  * A real migration also ships a thin db/migration wrapper that applies
- * `dbTransform` to posts_gdocs.content at deploy time:
+ * `dbTransform` to posts_gdocs.content at deploy time, and — when the
+ * migration declares `dbDownTransform` — reverts it in down():
  *
- *   await applyGdocMigrationToDb(queryRunner, chartCaptionToSubtitle)
+ *   up:   await applyGdocMigrationToDb(queryRunner, chartCaptionToSubtitle)
+ *   down: await revertGdocMigrationInDb(queryRunner, chartCaptionToSubtitle)
  */
 export default defineGdocMigration({
     name: "_example-chart-caption-to-subtitle",
@@ -26,4 +28,6 @@ export default defineGdocMigration({
     `,
     transform: renameProperty("caption", "subtitle"),
     dbTransform: renameEnrichedProperty("caption", "subtitle"),
+    // a rename is reversible, so the wrapper's down() can revert the DB side
+    dbDownTransform: renameEnrichedProperty("subtitle", "caption"),
 })
