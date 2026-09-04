@@ -6,7 +6,10 @@ import {
 } from "@ourworldindata/types"
 import { type SearchResponse } from "algoliasearch"
 import { type LiteClient } from "algoliasearch/lite"
-import { formatDisjunctiveFacetFilters, MAX_FACET_VALUES } from "./searchFacetFilters.js"
+import {
+    formatDisjunctiveFacetFilters,
+    MAX_FACET_VALUES,
+} from "./searchFacetFilters.js"
 import { searchSingleForHits } from "./searchClosestMatches.js"
 
 // Shared between the site's search page (site/search/queries.ts) and the

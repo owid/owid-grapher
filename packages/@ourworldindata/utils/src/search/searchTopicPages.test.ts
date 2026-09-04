@@ -211,4 +211,3 @@ describe(searchTopicPagesOfMatchingCharts, () => {
         expect(client.searchForHits).toHaveBeenCalledOnce()
     })
 })
-
