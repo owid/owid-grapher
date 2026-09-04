@@ -24,8 +24,8 @@ export type EmailNotificationsStatus =
 // cheap because the expired-link page offers to email a fresh link.
 export const EMAIL_NOTIFICATIONS_MAGIC_LINK_TTL_MS = 30 * 60 * 1000
 
-// User-facing labels for the subscribe/preferences form and the welcome
-// email.
+// User-facing labels for the subscription and preferences forms and the
+// welcome email.
 export const EMAIL_NOTIFICATIONS_FREQUENCY_LABELS: Record<
     EmailNotificationsFrequency,
     string
