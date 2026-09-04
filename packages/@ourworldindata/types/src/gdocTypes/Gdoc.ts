@@ -564,6 +564,128 @@ export interface OwidGdocPostContent {
 
 export type OwidGdocStickyNavItem = { target: string; text: string }
 
+/**
+ * Whether a content key is authored in the Google Doc or computed during
+ * enrichment:
+ * - "authored": written by the document's author (front matter or body)
+ * - "computed": derived from other content at parse time, never authored
+ */
+export type GdocContentKeyKind = "authored" | "computed"
+
+/** Kind of every OwidGdocPostContent key. The `satisfies` clause breaks the
+ *  build when the interface gains a key that has not been classified here,
+ *  keeping the writing reference's field documentation complete. */
+export const OWID_GDOC_POST_CONTENT_KEY_KINDS = {
+    body: "authored",
+    type: "authored",
+    title: "authored",
+    supertitle: "authored",
+    subtitle: "authored",
+    authors: "authored",
+    dateline: "authored",
+    excerpt: "authored",
+    refs: "authored",
+    "deprecation-notice": "authored",
+    "latest-feed-featured-image": "authored",
+    "latest-feed-excerpt": "authored",
+    "hide-citation": "authored",
+    "cover-image": "authored",
+    "featured-image": "authored",
+    "atom-title": "authored",
+    "atom-excerpt": "authored",
+    "sidebar-toc": "authored",
+    "sidebar-toc-h1-only": "authored",
+    "heading-variant": "authored",
+    "hide-subscribe-banner": "authored",
+    "cover-color": "authored",
+    "sticky-nav": "authored",
+    details: "authored",
+    faqs: "authored",
+    authorRoles: "computed", // from authors
+    toc: "computed", // from body
+    parsedFaqs: "computed", // from faqs
+} as const satisfies Record<keyof OwidGdocPostContent, GdocContentKeyKind>
+
+/** Kind of every OwidGdocDataInsightContent key. */
+export const OWID_GDOC_DATA_INSIGHT_CONTENT_KEY_KINDS = {
+    body: "authored",
+    type: "authored",
+    title: "authored",
+    authors: "authored",
+    "narrative-chart": "authored",
+    "grapher-url": "authored",
+    "figma-url": "authored",
+    authorRoles: "computed", // from authors
+} as const satisfies Record<
+    keyof OwidGdocDataInsightContent,
+    GdocContentKeyKind
+>
+
+/** Kind of every OwidGdocAnnouncementContent key. */
+export const OWID_GDOC_ANNOUNCEMENT_CONTENT_KEY_KINDS = {
+    body: "authored",
+    type: "authored",
+    title: "authored",
+    excerpt: "authored",
+    authors: "authored",
+    "featured-image": "authored",
+    kicker: "authored",
+    authorRoles: "computed", // from authors
+} as const satisfies Record<
+    keyof OwidGdocAnnouncementContent,
+    GdocContentKeyKind
+>
+
+/** The gdoc types the writing reference documents with a template page,
+ *  mapped to the content interface behind each — the system/generated types
+ *  (homepage, author, about pages) have no authored template. */
+export const GDOC_TEMPLATE_CONTENT_INTERFACES = {
+    [OwidGdocType.Article]: {
+        interfaceName: "OwidGdocPostContent",
+        keyKinds: OWID_GDOC_POST_CONTENT_KEY_KINDS,
+    },
+    [OwidGdocType.TopicPage]: {
+        interfaceName: "OwidGdocPostContent",
+        keyKinds: OWID_GDOC_POST_CONTENT_KEY_KINDS,
+    },
+    [OwidGdocType.LinearTopicPage]: {
+        interfaceName: "OwidGdocPostContent",
+        keyKinds: OWID_GDOC_POST_CONTENT_KEY_KINDS,
+    },
+    [OwidGdocType.Fragment]: {
+        interfaceName: "OwidGdocPostContent",
+        keyKinds: OWID_GDOC_POST_CONTENT_KEY_KINDS,
+    },
+    [OwidGdocType.DataInsight]: {
+        interfaceName: "OwidGdocDataInsightContent",
+        keyKinds: OWID_GDOC_DATA_INSIGHT_CONTENT_KEY_KINDS,
+    },
+    [OwidGdocType.Announcement]: {
+        interfaceName: "OwidGdocAnnouncementContent",
+        keyKinds: OWID_GDOC_ANNOUNCEMENT_CONTENT_KEY_KINDS,
+    },
+} as const satisfies Partial<
+    Record<
+        OwidGdocType,
+        {
+            interfaceName: string
+            keyKinds: Record<string, GdocContentKeyKind>
+        }
+    >
+>
+
+/** Gdoc properties that live on the posts_gdocs row rather than in the
+ *  document's content — managed in the admin UI, never authored as front
+ *  matter. Documented so the writing reference can list them. */
+export const OWID_GDOC_ADMIN_MANAGED_KEYS = [
+    "slug",
+    "published",
+    "publishedAt",
+    "publicationContext",
+    "manualBreadcrumbs",
+    "tags",
+] as const satisfies readonly (keyof OwidGdocBaseInterface)[]
+
 export type GdocsPatch = Partial<OwidGdocPostInterface>
 
 export enum GdocsContentSource {
