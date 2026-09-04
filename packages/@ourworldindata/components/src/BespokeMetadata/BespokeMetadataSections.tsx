@@ -54,16 +54,18 @@ export function BespokeMetadataSections({
                         content={<SimpleMarkdownText text={faq.answer} />}
                     />
                 ))}
-                <ExpandableToggle
-                    label="How did Our World in Data process this data?"
-                    content={
-                        <IndicatorProcessing
-                            descriptionProcessing={
-                                metadata.descriptionProcessing
-                            }
-                        />
-                    }
-                />
+                {metadata.descriptionProcessing && (
+                    <ExpandableToggle
+                        label="How did Our World in Data process this data?"
+                        content={
+                            <IndicatorProcessing
+                                descriptionProcessing={
+                                    metadata.descriptionProcessing
+                                }
+                            />
+                        }
+                    />
+                )}
             </MetadataBoxSection>
             <MetadataBoxSection title="Documentation from data sources">
                 {metadata.descriptionFromProducer && (
