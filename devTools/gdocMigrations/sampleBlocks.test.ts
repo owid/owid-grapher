@@ -16,7 +16,7 @@ function sampleFrom(specs: Parameters<typeof buildDoc>[0], blockType: string) {
     return collectBlockSamples("src", lines, scanScopes(lines), blockType)
 }
 
-describe("collectBlockSamples", () => {
+describe(collectBlockSamples, () => {
     it("copies each matching block's ArchieML with its span markup", () => {
         const { samples } = sampleFrom(
             [
@@ -106,7 +106,7 @@ describe("collectBlockSamples", () => {
     })
 })
 
-describe("collectFrontmatterSamples", () => {
+describe(collectFrontmatterSamples, () => {
     it("takes top-level lines for the requested keys, case-insensitively", () => {
         const lines = gdocToSourceMappedLines(
             buildDoc([
@@ -144,7 +144,7 @@ describe("dedupeSamples", () => {
     })
 })
 
-describe("buildTestDocLines", () => {
+describe(buildTestDocLines, () => {
     it("wraps component samples in a minimal article", () => {
         const migration = defineGdocMigration({
             name: "m",

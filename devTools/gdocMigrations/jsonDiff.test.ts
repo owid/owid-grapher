@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { describeJsonDiff, diffShape } from "./engine/jsonDiff.js"
 
-describe("describeJsonDiff", () => {
+describe(describeJsonDiff, () => {
     it("reports renames, removals, additions and value changes with paths", () => {
         const before = {
             body: [
@@ -62,7 +62,7 @@ describe("describeJsonDiff", () => {
     })
 })
 
-describe("diffShape", () => {
+describe(diffShape, () => {
     it("dedupes and sorts shapes so equivalent diffs group together", () => {
         const diff = describeJsonDiff(
             { body: [{ x: 1 }, { x: 1 }], a: 0 },
