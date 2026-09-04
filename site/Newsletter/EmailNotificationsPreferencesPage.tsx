@@ -25,7 +25,7 @@ export const EmailNotificationsPreferencesPage = ({
     return (
         <Html>
             <Head
-                canonicalUrl={`${baseUrl}/subscribe/preferences`}
+                canonicalUrl={`${baseUrl}/preferences`}
                 pageTitle="Update your email preferences"
                 pageDesc="View and update your Our World in Data email notification preferences."
                 baseUrl={baseUrl}
