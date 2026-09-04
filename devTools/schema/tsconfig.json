@@ -2,7 +2,8 @@
     "extends": "../tsconfigs/tsconfig.base.json",
     "compilerOptions": {
         "outDir": "../../itsJustJavascript/devTools/schema",
-        "rootDir": "."
+        "rootDir": ".",
+        "types": ["node"]
     },
     "references": []
 }
