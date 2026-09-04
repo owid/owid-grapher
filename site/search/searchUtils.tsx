@@ -470,11 +470,23 @@ export function findTopicAndRegionFilters(
 ): ScoredFilter[] {
     const searchTerm = words.join(" ")
 
-    const searchCountryTopics = (term: string) => {
+    // A synonym is a rewrite of the query, not a typo of it, so it may only
+    // name a country exactly. Fuzzy matching a synonym against country names
+    // compounds two approximations and produces suggestions like
+    // "population" -> "people" -> "Yemen People's Republic" or
+    // "price" -> "cost" -> "Costa Rica". Country aliases in the synonym map
+    // ("us" -> "united states") are exact by construction, so they still
+    // match. Topics keep fuzzy matching on synonyms: their synonym groups
+    // exist to widen the net ("carbon dioxide" -> "co2" -> "CO2 & Greenhouse
+    // Gas Emissions").
+    const searchCountryTopics = (
+        term: string,
+        { isSynonym }: { isSynonym: boolean }
+    ) => {
         const countryFilters: ScoredFilter[] = FuzzySearch.withKey(
             allRegionsNames,
             _.identity,
-            sortOptions
+            isSynonym ? { ...sortOptions, threshold: 1 } : sortOptions
         )
             .searchResults(term)
             .filter(
@@ -500,7 +512,7 @@ export function findTopicAndRegionFilters(
     }
 
     // 1. Perform original search
-    let filters = searchCountryTopics(searchTerm)
+    let filters = searchCountryTopics(searchTerm, { isSynonym: false })
 
     // 2. Search with synonyms
     const synonyms = synonymMap.get(searchTerm.toLowerCase())
@@ -508,7 +520,9 @@ export function findTopicAndRegionFilters(
     if (synonyms && synonyms.length > 0) {
         // Search with each synonym and combine results
         for (const synonym of synonyms) {
-            const filtersFromSynonym = searchCountryTopics(synonym)
+            const filtersFromSynonym = searchCountryTopics(synonym, {
+                isSynonym: true,
+            })
             filters.push(...filtersFromSynonym)
         }
     }
