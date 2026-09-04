@@ -15,7 +15,6 @@ import { Link } from "./Link.js"
 import { FieldsRow, TextAreaField, CatalogPathField } from "./Forms.js"
 import {
     OwidVariableWithDataAndSource,
-    DimensionProperty,
     getETLPathComponents,
     OwidOrigin,
 } from "@ourworldindata/utils"
@@ -23,10 +22,8 @@ import { ChartList, ChartListItem } from "./ChartList.js"
 import { OriginList } from "./OriginList.js"
 import { SourceList } from "./SourceList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import {
-    GRAPHER_TAB_CONFIG_OPTIONS,
-    GrapherInterface,
-} from "@ourworldindata/types"
+import { GrapherInterface } from "@ourworldindata/types"
+import { makeChartConfigForIndicator } from "./indicatorChartConfig.js"
 import {
     fetchInputTableForConfig,
     Grapher,
@@ -405,24 +402,10 @@ class VariableEditor extends Component<{
 
     @computed private get grapherConfig(): GrapherInterface {
         const { variable } = this.props
-        const grapherConfig = variable.grapherConfigETL
-
-        // If the variable has a grapher config, use it as-is
-        if (grapherConfig) return grapherConfig
-
-        // Otherwise, create a default config with a map tab
-        return {
-            yAxis: { min: 0 },
-            map: { columnSlug: this.props.variable.id.toString() },
-            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
-            hasMapTab: true,
-            dimensions: [
-                {
-                    property: DimensionProperty.y,
-                    variableId: this.props.variable.id,
-                },
-            ],
-        }
+        return makeChartConfigForIndicator(
+            variable.id,
+            variable.grapherConfigETL
+        )
     }
 
     dispose!: IReactionDisposer

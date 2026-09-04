@@ -32,7 +32,11 @@ import {
     Switch,
     Redirect,
     RouteComponentProps,
+    useHistory,
 } from "react-router-dom"
+import { isWebMcpAvailable } from "./webmcp/webmcpTypes.js"
+import { registerAdminTools } from "./webmcp/adminTools.js"
+import { setAdminHistory } from "./webmcp/navigation.js"
 import { LoadingBlocker, Modal } from "./Forms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { ExplorerCreatePage } from "./ExplorerCreatePage.js"
@@ -140,12 +144,42 @@ const AdminLoader = observer(function AdminLoader({
     )
 })
 
+/**
+ * Hands the router's history object to code outside React (WebMCP tools,
+ * `window.admin.goto`), since react-router v5 doesn't expose it otherwise.
+ */
+function WebMcpHistoryBridge(): null {
+    const history = useHistory()
+    React.useEffect(() => {
+        setAdminHistory(history)
+        return () => setAdminHistory(undefined)
+    }, [history])
+    return null
+}
+
 @observer
 export class AdminApp extends React.Component<{
     admin: Admin
 }> {
+    private webMcpAbortController: AbortController | undefined
+
     get childContext() {
         return { admin: this.props.admin }
+    }
+
+    override componentDidMount(): void {
+        // Registers the admin-wide WebMCP tools. No-op in browsers without
+        // `document.modelContext`; page-scoped tools register from their pages.
+        if (!isWebMcpAvailable()) return
+        this.webMcpAbortController = new AbortController()
+        void registerAdminTools(
+            { admin: this.props.admin },
+            this.webMcpAbortController.signal
+        )
+    }
+
+    override componentWillUnmount(): void {
+        this.webMcpAbortController?.abort()
     }
 
     override render(): React.ReactElement {
@@ -155,6 +189,7 @@ export class AdminApp extends React.Component<{
             <QueryClientProvider client={queryClient}>
                 <AdminAppContext.Provider value={this.childContext}>
                     <Router basename={admin.basePath}>
+                        <WebMcpHistoryBridge />
                         <div className="AdminApp">
                             <AdminErrorMessage admin={admin} />
                             <AdminLoader admin={admin} />
