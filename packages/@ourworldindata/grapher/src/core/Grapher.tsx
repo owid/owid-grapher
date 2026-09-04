@@ -62,6 +62,9 @@ import { FocusArray } from "../focus/FocusArray"
 import { Chart } from "../chart/Chart.js"
 import { flushSync } from "react-dom"
 import { GrapherState } from "./GrapherState.js"
+import { registerGrapherTools } from "../webmcp/grapherTools.js"
+import { isWebMcpAvailable } from "../webmcp/webmcpTypes.js"
+import { isPrimaryChartPage, claimDocumentTools } from "../webmcp/webmcpPage.js"
 
 // Exactly the same as GrapherInterface, but contains options that developers want but authors won't be touching.
 export interface GrapherProgrammaticInterface extends GrapherInterface {
@@ -777,6 +780,31 @@ export class Grapher extends React.Component<GrapherProps> {
 
         this.clearFocusMode()
         this.freezeToleranceNoticeWhileTimelineMoves()
+
+        this.registerWebMcpTools()
+    }
+
+    private webMcpAbortController: AbortController | undefined
+
+    /**
+     * Offer this chart's WebMCP tools to a browser-resident AI agent.
+     *
+     * This lives on Grapher rather than on a specific render path because we
+     * have now guessed that path wrong twice: v1 hooked
+     * `renderSingleGrapherOnGrapherPage`, which never runs on the deployed
+     * site, and v2 hooked FetchingGrapher, which multi-dim pages and explorers
+     * bypass by rendering <Grapher> directly. Every chart page mounts *this*
+     * component, so the page gate plus the one-shot document claim decide who
+     * registers, not the shape of the tree above us.
+     */
+    private registerWebMcpTools(): void {
+        if (!isWebMcpAvailable() || !isPrimaryChartPage()) return
+        if (!claimDocumentTools()) return
+        this.webMcpAbortController = new AbortController()
+        void registerGrapherTools(
+            this.grapherState,
+            this.webMcpAbortController.signal
+        )
     }
 
     private _shortcutsBound = false
@@ -806,6 +834,7 @@ export class Grapher extends React.Component<GrapherProps> {
 
     override componentWillUnmount(): void {
         this.unbindKeyboardShortcuts()
+        this.webMcpAbortController?.abort()
         this.dispose()
     }
 

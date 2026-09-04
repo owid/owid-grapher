@@ -112,6 +112,22 @@ export {
     type EllipseCoords,
 } from "./mapCharts/MapChartConstants"
 export { SelectionArray } from "./selection/SelectionArray"
+export {
+    type WebMcpTool,
+    isWebMcpAvailable,
+    registerTools,
+    toolResult,
+} from "./webmcp/webmcpTypes.js"
+export {
+    buildGrapherTools,
+    registerGrapherTools,
+    matchEntities,
+} from "./webmcp/grapherTools.js"
+export {
+    isPrimaryChartPage,
+    claimDocumentTools,
+    resetDocumentToolClaim,
+} from "./webmcp/webmcpPage.js"
 export { FocusArray } from "./focus/FocusArray"
 export {
     setSelectedEntityNamesParam,
