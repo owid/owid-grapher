@@ -84,7 +84,8 @@ paths:
         - name: countries
           in: query
           description: |
-            Country names separated by `~` (tilde). Only applicable when `type=charts`.
+            Country names separated by `~` (tilde). Only applicable when `type=charts`
+            or when `pageTypes` requests topic pages alone (see `pageTypes`).
           required: false
           schema:
             type: string
@@ -93,7 +94,8 @@ paths:
         - name: topics
           in: query
           description: |
-            Topic name for filtering charts. Only applicable when `type=charts`.
+            Topic name for filtering charts. Only applicable when `type=charts`
+            or when `pageTypes` requests topic pages alone (see `pageTypes`).
 
             [View all available topics](https://datasette-public.owid.io/owid/tags?slug__notnull=1&_sort=createdAt)
           required: false
@@ -118,6 +120,14 @@ paths:
           description: |
             Comma-separated list of page content types to search. Only applicable
             when `type=pages`. Defaults to `article,about-page` when omitted.
+
+            Asking for topic pages alone (`topic-page`, `linear-topic-page`, or
+            both) with a non-empty query returns topic *recommendations* rather
+            than a text search: the topics of the best-ranked charts matching the
+            query, weighted by rank, so `q=gdp` leads with the Economic Growth page.
+            `countries`, `topics` and `requireAllCountries` then apply to that
+            chart search. Falls back to a text search when no chart matches;
+            `closestMatches` is never set on a recommendation response.
           required: false
           schema:
             type: string
