@@ -113,7 +113,12 @@ describe("prepareTableForDownload", () => {
             })
 
             const downloadTable = grapher.filteredTableForDownload
-            expect(downloadTable.numRows).toBe(2) // Only 2020 and 2022
+            expect(
+                downloadTable.rows.map(({ year, gdp }) => [year, gdp])
+            ).toEqual([
+                [2020, 2500],
+                [2022, 2700],
+            ])
         })
 
         it("attempts to fill in missing entity codes from inputTable", () => {
@@ -137,9 +142,13 @@ describe("prepareTableForDownload", () => {
                 (r) => r.entityName === "United Kingdom"
             )
 
-            // All UK rows should have the code backfilled
-            expect(ukRows.length).toBeGreaterThan(0)
-            expect(ukRows.every((r) => r.entityCode === "GBR")).toBe(true)
+            // Preserve both observations, including the row that needed a code.
+            expect(
+                ukRows.map(({ year, entityCode }) => [year, entityCode])
+            ).toEqual([
+                [2020, "GBR"],
+                [2021, "GBR"],
+            ])
         })
 
         it("handles empty tables gracefully", () => {
@@ -190,16 +199,20 @@ describe("prepareTableForDownload", () => {
             // Should include rows with valid values
             expect(downloadTable.numRows).toBeGreaterThan(0)
 
-            // Error values should appear as empty cells in the CSV output
-            const csv = downloadTable.toCsv()
-            const lines = csv.split("\n")
-            expect(lines.length).toBeGreaterThan(1)
+            // 2020 borrows the equally close later observation (2021). Only
+            // that row needs a source year; error placeholders serialize blank.
+            expect(downloadTable.toCsv()).toBe(
+                "entityName,entityCode,year,gdp,gdp-originalTime\n" +
+                    "France,FRA,2019,2500,\n" +
+                    "France,FRA,2020,2600,2021\n" +
+                    "France,FRA,2021,2600,"
+            )
         })
     })
 
     // Borrowed observations need their source time; redundant source times stay blank.
     describe("original observation times", () => {
-        it("uses original time as main time column when there's only one y column", () => {
+        it("keeps observed years without source-time columns when no interpolation was applied", () => {
             const table = new OwidTable(
                 [
                     ["entityName", "entityCode", "year", "gdp"],
@@ -225,14 +238,13 @@ describe("prepareTableForDownload", () => {
 
             const downloadTable = grapher.filteredTableForDownload
 
-            // Should not have the separate original time column when there's only one y
-            // (it gets renamed to the main time column)
+            // A tolerance setting alone does not interpolate this line table.
+            // The missing 2020 observation drops out; no source-time column exists.
             expect(downloadTable.has("gdp-originalTime")).toBe(false)
 
-            // The year column should exist and contain some years
             expect(downloadTable.has("year")).toBe(true)
             const years = downloadTable.get("year").values
-            expect(years.length).toBeGreaterThan(0)
+            expect(years).toEqual([2019, 2021])
         })
 
         it("keeps original time columns separate when there are multiple y columns", () => {
@@ -330,19 +342,12 @@ describe("prepareTableForDownload", () => {
             const originalTimes =
                 downloadTable.get("gdp-originalTime").valuesIncludingErrorValues
 
-            // When the original time and actual time are the same, the original
-            // time should be replaced with a missing value placeholder
-            expect(originalTimes[0]).toBe(
-                ErrorValueTypes.MissingValuePlaceholder
-            )
-            expect(originalTimes[2]).toBe(
-                ErrorValueTypes.MissingValuePlaceholder
-            )
-
-            // But not when they differ
-            expect(originalTimes[1]).not.toBe(
-                ErrorValueTypes.MissingValuePlaceholder
-            )
+            // Only 2020 borrows data: its equally close later source is 2021.
+            expect(originalTimes).toEqual([
+                ErrorValueTypes.MissingValuePlaceholder,
+                2021,
+                ErrorValueTypes.MissingValuePlaceholder,
+            ])
         })
     })
 
