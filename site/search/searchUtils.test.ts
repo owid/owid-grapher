@@ -122,11 +122,12 @@ describe("Fuzzy search in search autocomplete", () => {
                 sortOptions: limitedSortOptions,
             })
 
-            // Should not exceed the limit even with multiple synonym matches
+            // Enough distinct matches exist to fill the limit; returning nothing
+            // would satisfy an upper-bound-only assertion.
             const topicResults = result.filter(
                 (f) => f.type === FilterType.TOPIC
             )
-            expect(topicResults.length).toBeLessThanOrEqual(2)
+            expect(topicResults).toHaveLength(2)
         })
 
         it("should deduplicate results and keep highest scores", () => {
@@ -145,6 +146,8 @@ describe("Fuzzy search in search autocomplete", () => {
                 (r) => r.name === "Artificial Intelligence"
             )
             expect(aiResults).toHaveLength(1)
+            // The exact synonym must beat the original partial match.
+            expect(aiResults[0].score).toBe(1)
         })
 
         it("should expand country synonyms (variant names)", () => {
