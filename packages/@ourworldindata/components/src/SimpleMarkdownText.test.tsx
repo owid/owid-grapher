@@ -2,111 +2,84 @@
  * @vitest-environment happy-dom
  */
 
-import { describe, expect, it } from "vitest"
 import { render } from "@testing-library/react"
+import { describe, expect, it } from "vitest"
 import { SimpleMarkdownText } from "./SimpleMarkdownText.js"
 
+function getColoredSpans(container: HTMLElement): NodeListOf<HTMLSpanElement> {
+    return container.querySelectorAll("span[style]")
+}
+
 describe(SimpleMarkdownText, () => {
-    it("renders text", () => {
+    // Ordinary markdown must remain ordinary text unless it uses the explicit
+    // color syntax. This guards against accidentally styling unrelated text.
+    it("leaves ordinary text unstyled", () => {
         const { container } = render(
             <SimpleMarkdownText text="Just plain text" />
         )
-        const span = container.querySelector("span[style]")
-        expect(span).toBeNull()
+
+        expect(getColoredSpans(container)).toHaveLength(0)
         expect(container.textContent).toBe("Just plain text")
     })
-})
 
-describe("SimpleMarkdownText color syntax", () => {
-    it("renders {#hex: text} as a colored span", () => {
-        const { container } = render(
-            <SimpleMarkdownText text="Normal {#f00: red text} normal" />
-        )
-        const span = container.querySelector("span[style]")
-        expect(span).toBeTruthy()
-        expect(span?.getAttribute("style")).toBe("color: #f00;")
-        expect(span?.textContent).toBe("red text")
-    })
+    // Authors can color a text fragment with `{#hex: text}`. The parser must
+    // accept the supported CSS hex lengths, preserve all surrounding content,
+    // and continue to compose with regular markdown.
+    describe("author color syntax", () => {
+        it.each([
+            { label: "three-digit", color: "#f00" },
+            { label: "six-digit", color: "#ff0000" },
+            { label: "eight-digit alpha", color: "#ff000080" },
+        ])("renders a $label hex color", ({ color }) => {
+            const { container } = render(
+                <SimpleMarkdownText text={`{${color}: colored text}`} />
+            )
+            const [span] = getColoredSpans(container)
 
-    it("preserves surrounding text", () => {
-        const { container } = render(
-            <SimpleMarkdownText text="Before {#00f: blue} after" />
-        )
-        const p = container.querySelector("p")
-        expect(p?.textContent).toBe("Before blue after")
-    })
+            expect(span.getAttribute("style")).toBe(`color: ${color};`)
+            expect(span.textContent).toBe("colored text")
+        })
 
-    it("handles multiple color spans in the same text", () => {
-        const { container } = render(
-            <SimpleMarkdownText text="{#f00: red} and {#00f: blue}" />
-        )
-        const spans = container.querySelectorAll("span[style]")
-        expect(spans).toHaveLength(2)
-        expect(spans[0].getAttribute("style")).toBe("color: #f00;")
-        expect(spans[0].textContent).toBe("red")
-        expect(spans[1].getAttribute("style")).toBe("color: #00f;")
-        expect(spans[1].textContent).toBe("blue")
-    })
+        it("preserves text on both sides of a colored fragment", () => {
+            const { container } = render(
+                <SimpleMarkdownText text="Before {#00f: blue} after" />
+            )
 
-    it("supports 6-digit hex codes", () => {
-        const { container } = render(
-            <SimpleMarkdownText text="{#ff0000: red text}" />
-        )
-        const span = container.querySelector("span[style]")
-        expect(span?.getAttribute("style")).toBe("color: #ff0000;")
-    })
+            expect(container.textContent).toBe("Before blue after")
+        })
 
-    it("supports 8-digit hex codes (with alpha)", () => {
-        const { container } = render(
-            <SimpleMarkdownText text="{#ff000080: semi-transparent}" />
-        )
-        const span = container.querySelector("span[style]")
-        expect(span?.getAttribute("style")).toBe("color: #ff000080;")
-    })
+        it("renders multiple colored fragments independently", () => {
+            const { container } = render(
+                <SimpleMarkdownText text="{#f00: red} and {#00f: blue}" />
+            )
+            const spans = getColoredSpans(container)
 
-    it("does not match invalid hex codes", () => {
-        const { container } = render(
-            <SimpleMarkdownText text="{#xyz: not a color}" />
-        )
-        const span = container.querySelector("span[style]")
-        expect(span).toBeNull()
-        expect(container.textContent).toContain("{#xyz: not a color}")
-    })
+            expect(spans).toHaveLength(2)
+            expect(spans[0].getAttribute("style")).toBe("color: #f00;")
+            expect(spans[0].textContent).toBe("red")
+            expect(spans[1].getAttribute("style")).toBe("color: #00f;")
+            expect(spans[1].textContent).toBe("blue")
+        })
 
-    it("does not match without the # prefix", () => {
-        const { container } = render(
-            <SimpleMarkdownText text="{ff0000: no hash}" />
-        )
-        const span = container.querySelector("span[style]")
-        expect(span).toBeNull()
-    })
+        it.each([
+            { label: "a non-hex value", text: "{#xyz: not a color}" },
+            { label: "a missing hash prefix", text: "{ff0000: no hash}" },
+        ])("leaves $label untouched", ({ text }) => {
+            const { container } = render(<SimpleMarkdownText text={text} />)
 
-    it("handles color syntax alongside regular markdown", () => {
-        const { container } = render(
-            <SimpleMarkdownText text="**bold** and {#f00: red}" />
-        )
-        const strong = container.querySelector("strong")
-        expect(strong?.textContent).toBe("bold")
-        const span = container.querySelector("span[style]")
-        expect(span?.getAttribute("style")).toBe("color: #f00;")
-        expect(span?.textContent).toBe("red")
-    })
+            expect(getColoredSpans(container)).toHaveLength(0)
+            expect(container.textContent).toContain(text)
+        })
 
-    it("handles color syntax at the start of text", () => {
-        const { container } = render(
-            <SimpleMarkdownText text="{#f00: starts red} then normal" />
-        )
-        const span = container.querySelector("span[style]")
-        expect(span?.textContent).toBe("starts red")
-        expect(container.textContent).toContain("then normal")
-    })
+        it("composes colored fragments with regular markdown", () => {
+            const { container } = render(
+                <SimpleMarkdownText text="**bold** and {#f00: red}" />
+            )
+            const [span] = getColoredSpans(container)
 
-    it("handles color syntax at the end of text", () => {
-        const { container } = render(
-            <SimpleMarkdownText text="Normal then {#f00: ends red}" />
-        )
-        const span = container.querySelector("span[style]")
-        expect(span?.textContent).toBe("ends red")
-        expect(container.textContent).toContain("Normal then")
+            expect(container.querySelector("strong")?.textContent).toBe("bold")
+            expect(span.getAttribute("style")).toBe("color: #f00;")
+            expect(span.textContent).toBe("red")
+        })
     })
 })
