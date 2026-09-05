@@ -330,34 +330,19 @@ describe("label point strategies", () => {
         table,
     }
 
-    it("year", () => {
+    // Each label source reads a different coordinate from this same point.
+    it.each<[ScatterPointLabelStrategy, string]>([
+        [ScatterPointLabelStrategy.year, "2000"],
+        [ScatterPointLabelStrategy.y, "2"],
+        [ScatterPointLabelStrategy.x, "1"],
+    ])("labels points using the %s strategy", (strategy, expectedLabel) => {
         const chartState = new ScatterPlotChartState({
             manager: {
                 ...manager,
-                scatterPointLabelStrategy: ScatterPointLabelStrategy.year,
+                scatterPointLabelStrategy: strategy,
             },
         })
-        expect(chartState.allPoints[0].label).toEqual("2000")
-    })
-
-    it("y", () => {
-        const chartState = new ScatterPlotChartState({
-            manager: {
-                ...manager,
-                scatterPointLabelStrategy: ScatterPointLabelStrategy.y,
-            },
-        })
-        expect(chartState.allPoints[0].label).toEqual("2")
-    })
-
-    it("x", () => {
-        const chartState = new ScatterPlotChartState({
-            manager: {
-                ...manager,
-                scatterPointLabelStrategy: ScatterPointLabelStrategy.x,
-            },
-        })
-        expect(chartState.allPoints[0].label).toEqual("1")
+        expect(chartState.allPoints[0].label).toEqual(expectedLabel)
     })
 })
 
