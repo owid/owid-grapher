@@ -953,6 +953,33 @@ describe("filteredTableForDownload", () => {
     })
 })
 
+describe("on the table tab", () => {
+    it("applies the chart transform, but keeps the timeline over all entities", () => {
+        const table = new OwidTable(
+            [
+                ["entityName", "year", "gdp"],
+                ["France", 2000, 100],
+                ["France", 2001, 200],
+                ["Germany", 2000, 300],
+                ["Germany", 2003, 400],
+            ],
+            [{ slug: "gdp", type: ColumnTypeNames.Numeric }]
+        )
+        const grapher = new GrapherState({
+            table,
+            ySlugs: "gdp",
+            selectedEntityNames: ["France"],
+        })
+
+        grapher.setTab(GRAPHER_TAB_NAMES.Table)
+
+        expect(grapher.transformedTable.availableEntityNames).toEqual([
+            "France",
+        ])
+        expect(grapher.times).toContain(2003)
+    })
+})
+
 describe("authors can use maxTime", () => {
     it("can can create a discretebar chart with correct maxtime", () => {
         const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
