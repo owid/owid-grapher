@@ -1,36 +1,132 @@
 # Testing strategy
 
-This document tells coding agents how to choose, discuss, and write tests when
-changing this repository. It should also help engineers understand and review
-those choices. It records the current testing regimes and proposes a direction
-to validate against real changes, defects, runtime, and maintenance cost.
+Use this guide when choosing, writing, or reviewing tests. Tests should explain
+important behavior to a reviewer and give agents a clear contract to preserve.
+Optimize for useful evidence per line of maintained code, not a target test count
+or the shortest possible suite.
 
-## Principles
+## Agent checklist
 
-1. **Test in proportion to risk.** A change does not deserve tests merely
-   because it changed code. The test plan should reflect the importance of the
-   behavior, the likelihood and impact of regression, and how easily a failure
-   would otherwise be detected.
-2. **Write tests for the reviewer to read first.** The ideal test suite is an
-   inviting introduction to a pull request: it makes learning the scope,
-   important behavior, and impact of the change pleasant before the reviewer
-   reads its implementation. A small number of well-explained scenarios is
-   more useful than comprehensive-looking test noise.
-3. **Prefer the lowest-cost boundary that proves the claim.** Start with a
-   deterministic unit or state-level test. Cross process, database, browser,
-   rendering, packaging, or deployment boundaries only when the behavior
-   depends on them.
-4. **Test invariants and representative partitions, not permutations.** Derive
-   the meaningful dimensions, identify equivalence classes and risky
-   interactions, then choose cases that explain the rule. Do not generate a
-   Cartesian product to increase a coverage number.
-5. **Agree on intent with the user.** An agent must ask the engineer directing
-   the work about testing strategy rather than silently generating tests. The
-   engineer owns which claims are important; the agent helps expose options,
-   risks, fixtures, and edge cases.
-6. **Make failures actionable.** A failure should identify the behavior that
-   regressed and provide enough diagnostics to reproduce it. Flaky tests are
-   defects in the feedback system, not an accepted cost of broad coverage.
+1. **State the claim and risk.** What behavior matters, and what plausible wrong
+   result should the test reject? Existing coverage may already be sufficient.
+2. **Agree on the strategy.** Discuss the boundary, representative scenarios,
+   failure cases, and depth with the engineer. Recommend a concrete plan. An
+   already-agreed strategy carries forward; ask again only when a new risk or
+   change of scope requires a decision.
+3. **Choose the lowest-cost faithful boundary.** Start with deterministic
+   in-process tests. Use a database, browser, renderer, built package, or Workers
+   runtime when the claim depends on that boundary. Most changes need one or two
+   regimes, not every regime below.
+4. **Make the evidence discriminating.** Use explicit expected results that
+   distinguish correct behavior from plausible regressions. For a bug fix,
+   propose a failing test first and check that it fails for the expected reason.
+5. **Make the tests readable on their own.** Name the rule, expose significant
+   inputs, and explain non-obvious scenarios. Keep incidental setup subordinate
+   to the behavior.
+6. **Preserve existing guarantees when rewriting tests.** Follow the refactoring
+   protocol below. Passing before and after is not evidence of equivalence.
+7. **Run relevant checks and report their limits.** Static checks establish
+   structural validity, not runtime behavior. Report incomplete checks and
+   pre-existing failures separately from regressions.
+
+For a well-understood regression, discuss the test plan and TDD before changing
+production code. For exploratory work, agree on the important invariants once
+the behavior stabilizes and before preparing the PR. For a small obvious change,
+propose a brief default, including when existing checks suffice.
+
+## Writing high-value tests
+
+A meaningful group should explain why the behavior matters, which contract it
+protects, and how its cases exercise that contract. Use a short comment where
+names and fixtures do not already communicate the rationale; avoid boilerplate
+that merely repeats the tests. Order cases around the rule, its boundaries, and
+counterexamples.
+
+### Assertions must distinguish plausible wrong results
+
+Assert enough to reject the wrong outcomes that matter. Include completeness,
+ordering, absence, and intermediate state when they are part of the contract.
+A containment assertion does not prove exact membership or ranking; a row count
+does not prove which rows survived. Empty results can satisfy an upper-bound
+check, and an empty array can satisfy `every`.
+
+Use exact comparisons for small contractual outputs. Project onto relevant
+fields when unrelated metadata is incidental, but do not silently replace an
+existing exact comparison with a weaker subset comparison during a refactor.
+Snapshots are useful only when a reviewer can judge the output.
+
+Expected results must be independent of the rule under test. A fixture helper
+may call production code for incidental setup, but do not calculate the expected
+answer with the transformation whose correctness the test claims to establish.
+Integration tests may rely on separately tested helpers; be explicit about what
+that reliance leaves unproven, and assert important conflicting values directly.
+
+### Compress plumbing, preserve distinctions
+
+- Use small fixture builders or request helpers for incidental setup. Keep
+  behavior-defining input values and expected results at the call site.
+- Use named table rows when setup, action, and assertion shape are the same.
+  Include a readable case name in the failure output. Do not add conditional
+  assertions to make unrelated scenarios fit one table.
+- Keep separate cases when the rule, control flow, or failure explanation differs.
+  Keep a multi-step scenario when the sequence itself is the regression, and
+  assert intermediate states that make the sequence meaningful.
+- Choose representative partitions and risky interactions. Explain why omitted
+  cases are equivalent; similar final outputs alone do not establish equivalence
+  across different paths or state transitions.
+- Avoid generated Cartesian products without a distinct risk for each dimension.
+  Small finite sets of contractual options can appropriately cover every option.
+- Do not weaken assertions or add retries to hide flaky tests. Improve isolation,
+  diagnostics, and fixtures instead.
+
+For example, scatter label strategies can use three named rows: year → `"2000"`,
+y → `"2"`, and x → `"1"`, sharing a point whose coordinates are visible in the
+fixture. All three options remain covered. In contrast, the scatter-tab round
+trip tests in `GrapherState.test.ts` need intermediate selection assertions and
+separate cases for explicit user changes and scatter-only charts. Those are
+distinct contracts, not interchangeable rows.
+
+## Refactoring existing tests without losing guarantees
+
+Treat a test rewrite as a change to the evidence. Preserve the boundary being
+exercised as well as the assertions: a state test does not replace API persistence
+evidence even when its expected values match.
+
+1. **Inventory the old guarantees.** For each assertion or coherent assertion
+   group, record its significant inputs, action/sequence, expected property,
+   and replacement location. Include negative assertions and intermediate states.
+   Test names are a starting point, not proof of what is currently covered.
+2. **Separate structure from stronger evidence.** First preserve inputs, expected
+   values, matcher strength, checkpoints, and test boundary while naming cases,
+   extracting plumbing, or grouping tests. Put added or strengthened assertions
+   in a subsequent commit or stacked PR. Record gaps between names and actual
+   assertions rather than silently claiming the old suite protected them.
+3. **Account for every removal.** Map each removed assertion to an equivalent
+   replacement. Removing a case as redundant requires an explanation of why its
+   inputs and path add no distinct protection. Any intentional reduction in
+   protection must be an explicit review decision.
+4. **Check the mapping and execution.** Run the focused suite before and after.
+   Compare assertions and case inputs, not just test counts or line coverage.
+   For an important or ambiguous guarantee, temporarily introduce a targeted
+   defect and verify whether old and new tests reject it for the intended reason.
+   Restore the defect and rerun the final suite. Mutation checks add confidence;
+   they are not a proof of equivalence and need not be exhaustive.
+5. **Keep review bounded.** Prefer one coherent behavior group per PR. Put the
+   preservation mapping, intentional evidence changes, and validation results in
+   the PR's Details block. Avoid maintaining a second permanent copy of the suite
+   or a general-purpose test DSL solely to shorten a pilot.
+
+Example preservation mapping:
+
+| Existing evidence                                                         | Replacement                                                     | Evidence change                       |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------- |
+| One deduplicated topic for an original query plus its synonym             | Same query, synonym map, and count assertion behind named setup | None                                  |
+| A test name claims the highest score wins, but only checks count          | Add an explicit expected score in a follow-up                   | Stronger evidence; a pre-existing gap |
+| A tab round trip checks empty → populated → empty selection and URL state | Keep all checkpoints in the same scenario                       | None                                  |
+
+A useful review asks: which plausible defects can these tests detect, where can
+I see the expected behavior, and what evidence changed? LOC and runtime are
+secondary measurements; neither measures semantic preservation.
 
 ## What exists today
 
@@ -154,161 +250,32 @@ domain logic and reusable helpers.
 These regimes are complementary rather than levels that every change must
 climb. Most changes should use only one or two.
 
-## Explain the rationale in the test file
-
-Every meaningful group of tests should briefly explain:
-
-- why this behavior is important enough to protect;
-- the invariant or contract being protected; and
-- how the scenarios below exercise that invariant.
-
-Use terse domain language. In a short test file, put this explanation near the
-top, after imports and before the tests. In a large file that covers several
-behaviors, divide it into coherent `describe` sections and put a short
-explanation before each group. Do not add a comment that merely restates the
-test names or implementation.
-
-The explanation and scenarios should form a readable outline of the change.
-A reviewer opening the tests first should understand what matters, where the
-behavioral boundaries are, and why omitted permutations are equivalent. Keep
-incidental setup out of that narrative while leaving significant input values
-visible.
-
-## Choosing tests for a change
-
-Before writing tests, an agent should discuss the strategy with the user. Use
-these questions to make the options concrete rather than asking only “Should I
-add tests?”:
-
-1. **Behavior:** What user-visible behavior or system invariant changes?
-2. **Risk:** What plausible regression would matter, and how severe would it
-   be?
-3. **Boundary:** What is the cheapest test boundary that would catch that
-   regression for the right reason?
-4. **Scenarios:** Which representative cases explain the rule? Which apparent
-   permutations are equivalent and intentionally omitted?
-5. **Evidence:** Which automated checks and manual observations demonstrate
-   the result?
-6. **Depth:** Should the change receive a minimal regression test, a focused
-   set of representative cases, or broader boundary and failure coverage?
-
-Offer two or three reasonable setups with their tradeoffs when the answer is
-not obvious. Recommend one, but let the user choose the intended confidence
-and maintenance cost. Record the resulting rationale in the test file and
-summarize it in the pull request when it helps review.
-
-The timing of this conversation depends on the work:
-
-- **Regression or well-understood behavior change:** ask before implementation.
-  Propose reproducing the undesired behavior with a failing test first; TDD is
-  often the clearest way to prove that the test detects the bug and the change
-  fixes it.
-- **Large or exploratory feature:** do not force a detailed suite onto a design
-  that is still moving. Iterate until the engineer is happy with the behavior.
-  Before preparing the pull request, interview them about the important
-  invariants, suitable test boundary, representative scenarios, failure cases,
-  and desired depth. Then implement the agreed test plan.
-- **Small, obvious change:** ask briefly or present the proposed strategy as a
-  confirmable default. The user may decide that existing checks are sufficient.
-
-A useful default by change shape is:
-
-- **Refactor with no intended behavior change:** existing focused tests plus a
-  broad detector where relevant (for example SVG or package tests). Add a test
-  only if review reveals an undocumented invariant.
-- **Bug fix:** first capture a minimal failing example at the lowest faithful
-  boundary; make the fix; preserve the regression test. Use before/after
-  evidence when practical.
-- **New domain rule:** concise examples for the main rule, meaningful boundary
-  conditions, and one counterexample. Prefer table-driven cases only when the
-  table remains easier to understand than separate scenarios.
-- **New or changed critical interaction:** state-level tests for rule detail
-  plus one browser test for the integrated user journey.
-- **Persistence or API change:** unit-test extracted logic and add focused
-  database/API integration evidence for the actual boundary.
-- **Rendering change:** focused semantic assertions for intent and SVG
-  regression review for breadth.
-- **Packaging or runtime change:** exercise the built artifact or deployed
-  runtime rather than relying on source imports.
-- **Trivial or mechanically safe change:** explain why existing checks are
-  sufficient; adding no test can be the correct decision.
-
-## Readability standard
-
-Assume that a pull request reviewer will open the tests before the production
-code. The tests should reward that choice: after one pass, the reviewer should
-have a clear mental model of the behavior, the important invariants, the
-change's impact, and the evidence that it works. Optimize for a coherent
-reading experience, not only for execution:
-
-- introduce each group with the terse rationale described above;
-- describe outcomes in domain language rather than method-call language;
-- order scenarios so they tell a story: normal behavior, meaningful boundary
-  cases, then failures or counterexamples;
-- make the reason for non-obvious scenarios explicit in the test name or a
-  short comment;
-- use realistic but minimal fixtures;
-- extract setup that is incidental, but do not hide the values that make a
-  scenario meaningful;
-- assert the smallest stable observable result that proves the claim;
-- avoid snapshots when reviewers cannot readily judge the serialized output;
-  and
-- do not weaken assertions or add retries merely to make an intermittent test
-  pass.
-
-For layered Grapher behavior, first state the precedence or inheritance rule,
-then cover the distinct sources and the interactions most likely to violate
-that rule. Do not mirror every layer against every chart type unless those
-combinations genuinely have different behavior.
-
-## Workflow for coding agents
-
-Your job as a coding agent is to increase the quality of evidence, not the
-quantity of test code:
-
-1. Summarize the intended behavior and enumerate plausible risks.
-2. At the appropriate time described above, interview the user about the test
-   boundary, scenarios, failure cases, and desired depth. Offer concrete
-   options and a recommendation.
-3. For a regression, offer to reproduce the defect with a failing test before
-   changing production code. Confirm that it fails for the expected reason.
-4. Implement only the agreed representative scenarios. Introduce each group
-   with its rationale and keep fixtures subordinate to the behavioral story.
-5. Read the tests on their own, in the order a reviewer will encounter them.
-   Rewrite them if they do not explain the change without production-code
-   archaeology.
-6. Run each relevant regime and report what its result proves. Do not present
-   typechecking, linting, or formatting as behavioral evidence.
-7. If review exposes an uncovered concern, propose one focused scenario and,
-   where practical, demonstrate that it fails before adjusting the
-   implementation.
-
-Generated tests should not be accepted because they raise line or branch
-coverage. Coverage can reveal unexamined code, but it cannot decide whether a
-scenario is meaningful. Never generate permutations without explaining the
-distinct risk represented by each one.
-
 ## Recommended experiments
 
-Before changing the whole suite, run a few bounded experiments:
+Start with bounded changes to existing tests before adding new infrastructure:
 
-1. **Add direct Playwright coverage for two Grapher behaviors.** Choose one
-   navigation/state journey (such as tab and URL synchronization) and one
-   visual-control journey (such as binning). Keep each test centered on a
-   single user story and record runtime and failure diagnostics.
-2. **Compare direct Playwright with Gherkin.** Implement or rewrite one small
-   behavior each way. Ask reviewers which version communicates intent better
-   and measure the indirection and maintenance involved. Preserve support for
-   both styles during the experiment.
-3. **Pilot test rationales on substantial PRs.** Add the five-question
-   rationale above to a small sample of pull requests, then assess whether it
-   improves review and whether any question becomes boilerplate.
-4. **Practice reviewer-added regression tests.** On suitable bug fixes, have a
-   reviewer contribute one missing scenario before approval and record whether
-   it exposed a real ambiguity or merely duplicated coverage.
-5. **Classify failures for a month.** For each CI or pre-merge failure, record
-   regime, true regression versus infrastructure/flakiness, time to diagnose,
-   and whether the failure message identified the relevant behavior.
+1. Refactor the `findTopicAndRegionFilters` group in `searchUtils.test.ts` using
+   named setup options, preserving every existing assertion. Then address any
+   gaps between its names and evidence in a separate PR.
+2. Apply the same protocol to download-table tests in `GrapherState.test.ts`.
+   Make row eligibility and original-time contracts explicit without removing
+   chart-specific cases.
+3. Simplify chart API request plumbing while preserving the ownership lifecycle,
+   persistence checks, and timestamps/version assertions. Review explicit
+   expected layer values separately from a structural rewrite.
+4. Use the small scatter-label table as a mechanically reviewable example of
+   compression without removing cases.
+
+For each pilot, record the preservation mapping, focused run results, meaningful
+assertion changes, and any targeted defect checks. Ask reviewers whether they can
+understand the contract without production-code archaeology and trace old
+assertions to their replacements. Avoid numeric LOC-reduction targets.
+
+Separately, experiment with direct Playwright tests for a critical tab/URL journey
+and a visual-control journey. Compare one small behavior with the existing
+Gherkin style for readability, diagnostics, fixture stability, and authoring
+cost before standardizing. Browser infrastructure and new journey coverage are
+separate decisions from making existing in-process tests easier to review.
 
 ## Decisions still to make
 
