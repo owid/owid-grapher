@@ -10,7 +10,7 @@ import {
     GrapherInterface,
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
-import { mergeGrapherConfigs, omitUndefinedValues } from "@ourworldindata/utils"
+import { omitUndefinedValues } from "@ourworldindata/utils"
 import { v7 as uuidv7 } from "uuid"
 import {
     datasetId,
@@ -740,6 +740,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
             indicator?: GrapherInterface
             etl?: GrapherInterface
             patch?: GrapherInterface
+            full: GrapherInterface
         }
     ): Promise<void> {
         const parent = await env.fetchJson(`/charts/${chartId}.parent.json`)
@@ -758,9 +759,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
             indicator: selectLayerFields(indicator),
             etl: selectLayerFields(etl),
             patch: selectLayerFields(expectedPatch),
-            full: selectLayerFields(
-                mergeGrapherConfigs(indicator, etl, expectedPatch)
-            ),
+            full: selectLayerFields(expected.full),
         })
     }
 
@@ -788,10 +787,19 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
             body: JSON.stringify(initialEtl),
         })
         expect(attached.created).toBe(false)
+        // Spell out the winning values independently of production merge logic.
+        const initialFull: GrapherInterface = {
+            title: "Title set on chart create",
+            subtitle: "Subtitle from chart's ETL config",
+            note: "Note from chart ETL",
+            hasMapTab: true,
+            dimensions,
+        }
         await expectLayers(chartId, {
             indicator: testIndicatorConfig,
             etl: initialEtl,
             patch: initialPatch,
+            full: initialFull,
         })
 
         // Admin saves derive a patch against both lower layers.
@@ -801,10 +809,12 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
             note: "Note from admin",
         })
         const adminPatch = { ...initialPatch, note: "Note from admin" }
+        const adminFull = { ...initialFull, note: "Note from admin" }
         await expectLayers(chartId, {
             indicator: testIndicatorConfig,
             etl: initialEtl,
             patch: adminPatch,
+            full: adminFull,
         })
 
         // Updating the bottom layer retains both higher layers.
@@ -818,10 +828,16 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
             `/variables/${variableId}/grapherConfigETL`,
             updatedIndicator
         )
+        const updatedFull = {
+            ...adminFull,
+            hasMapTab: false,
+            hideRelativeToggle: true,
+        }
         await expectLayers(chartId, {
             indicator: updatedIndicator,
             etl: initialEtl,
             patch: adminPatch,
+            full: updatedFull,
         })
 
         // Supplying the admin title verbatim transfers ownership to ETL even
@@ -836,14 +852,17 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
             indicator: updatedIndicator,
             etl: adoptedEtl,
             patch: patchAfterAdoption,
+            full: updatedFull, // Ownership changes without changing rendered values.
         })
 
         const finalEtl = { ...adoptedEtl, title: "ETL-owned title" }
         await putConfig(await etlConfigPath(chartId), finalEtl)
+        const finalFull = { ...updatedFull, title: "ETL-owned title" }
         await expectLayers(chartId, {
             indicator: updatedIndicator,
             etl: finalEtl,
             patch: patchAfterAdoption,
+            full: finalFull,
         })
 
         // Detaching is render-neutral: ETL values are absorbed into the patch,
@@ -868,6 +887,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         await expectLayers(chartId, {
             indicator: updatedIndicator,
             patch: detachedPatch,
+            full: finalFull, // Detachment also preserves the rendered values.
         })
         const detachedChart = await env
             .testKnex(ChartsTableName)
@@ -888,7 +908,15 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
             method: "DELETE",
             path: `/variables/${variableId}/grapherConfigETL`,
         })
-        await expectLayers(chartId, { patch: detachedPatch })
+        await expectLayers(chartId, {
+            patch: detachedPatch,
+            full: {
+                title: "ETL-owned title",
+                subtitle: "Subtitle from chart's ETL config",
+                note: "Note from admin",
+                dimensions,
+            },
+        })
     })
 
     it("DELETE preserves the grapher dimensions the patch no longer carries", async () => {
