@@ -10,7 +10,7 @@ import {
     createCountryFilter,
 } from "./searchUtils"
 
-import { FilterType, SynonymMap } from "@ourworldindata/types"
+import { FilterType, ScoredFilter, SynonymMap } from "@ourworldindata/types"
 import { listedRegionsNames } from "@ourworldindata/utils"
 
 describe("Fuzzy search in search autocomplete", () => {
@@ -47,17 +47,37 @@ describe("Fuzzy search in search autocomplete", () => {
         ])
     })
 
+    // Autocomplete combines direct and synonym matches, caps each filter type,
+    // and excludes selections. Keep query words and departures from the shared
+    // threshold/limit visible; transport into the positional API is incidental.
     describe(findTopicAndRegionFilters, () => {
-        it("should return original results when no synonyms exist", () => {
-            const result = findTopicAndRegionFilters(
-                ["france"],
+        function findFilters({
+            words,
+            synonyms = synonymMap,
+            selectedCountries = new Set<string>(),
+            selectedTopics = new Set<string>(),
+            sortOptions = sortOptionsMultiple,
+        }: {
+            words: string[]
+            synonyms?: SynonymMap
+            selectedCountries?: Set<string>
+            selectedTopics?: Set<string>
+            sortOptions?: Parameters<typeof findTopicAndRegionFilters>[6]
+        }): ScoredFilter[] {
+            return findTopicAndRegionFilters(
+                words,
                 regions,
                 mockTopics,
-                new Set(),
-                new Set(),
-                synonymMap,
-                sortOptionsMultiple
+                selectedCountries,
+                selectedTopics,
+                synonyms,
+                sortOptions
             )
+        }
+        it("should return original results when no synonyms exist", () => {
+            const result = findFilters({
+                words: ["france"],
+            })
 
             const countryResults = result.filter(
                 (f) => f.type === FilterType.COUNTRY
@@ -67,15 +87,9 @@ describe("Fuzzy search in search autocomplete", () => {
         })
 
         it("should combine original and synonym results", () => {
-            const result = findTopicAndRegionFilters(
-                ["ai"],
-                regions,
-                mockTopics,
-                new Set(),
-                new Set(),
-                synonymMap,
-                sortOptionsMultiple
-            )
+            const result = findFilters({
+                words: ["ai"],
+            })
 
             const topicResults = result.filter(
                 (f) => f.type === FilterType.TOPIC
@@ -102,15 +116,11 @@ describe("Fuzzy search in search autocomplete", () => {
             ])
             const limitedSortOptions = { threshold: 0.1, limit: 2 }
 
-            const result = findTopicAndRegionFilters(
-                ["test"],
-                regions,
-                mockTopics,
-                new Set(),
-                new Set(),
-                largeSynonymMap,
-                limitedSortOptions
-            )
+            const result = findFilters({
+                words: ["test"],
+                synonyms: largeSynonymMap,
+                sortOptions: limitedSortOptions,
+            })
 
             // Should not exceed the limit even with multiple synonym matches
             const topicResults = result.filter(
@@ -125,15 +135,10 @@ describe("Fuzzy search in search autocomplete", () => {
                 ["artificial", ["artificial intelligence"]],
             ])
 
-            const result = findTopicAndRegionFilters(
-                ["artificial"],
-                regions,
-                mockTopics,
-                new Set(),
-                new Set(),
-                duplicateSynonymMap,
-                sortOptionsMultiple
-            )
+            const result = findFilters({
+                words: ["artificial"],
+                synonyms: duplicateSynonymMap,
+            })
 
             // Should only return "Artificial Intelligence" once, not twice
             const aiResults = result.filter(
@@ -143,15 +148,9 @@ describe("Fuzzy search in search autocomplete", () => {
         })
 
         it("should expand country synonyms (variant names)", () => {
-            const result = findTopicAndRegionFilters(
-                ["us"],
-                regions,
-                mockTopics,
-                new Set(),
-                new Set(),
-                synonymMap,
-                sortOptionsMultiple
-            )
+            const result = findFilters({
+                words: ["us"],
+            })
 
             const countryResults = result.filter(
                 (f) => f.type === FilterType.COUNTRY
@@ -163,15 +162,11 @@ describe("Fuzzy search in search autocomplete", () => {
             const selectedCountries = new Set(["United States"])
             const selectedTopics = new Set(["Artificial Intelligence"])
 
-            const topicResults = findTopicAndRegionFilters(
-                ["ai"],
-                regions,
-                mockTopics,
+            const topicResults = findFilters({
+                words: ["ai"],
                 selectedCountries,
                 selectedTopics,
-                synonymMap,
-                sortOptionsMultiple
-            )
+            })
 
             expect(
                 topicResults
@@ -179,15 +174,11 @@ describe("Fuzzy search in search autocomplete", () => {
                     .some((name) => name === "Artificial Intelligence")
             ).toBe(false) // AI should be filtered out
 
-            const countryResults = findTopicAndRegionFilters(
-                ["us"],
-                regions,
-                mockTopics,
+            const countryResults = findFilters({
+                words: ["us"],
                 selectedCountries,
                 selectedTopics,
-                synonymMap,
-                sortOptionsMultiple
-            )
+            })
             expect(
                 countryResults
                     .map((r) => r.name)
@@ -196,15 +187,9 @@ describe("Fuzzy search in search autocomplete", () => {
         })
 
         it("should handle case-insensitive synonym matching", () => {
-            const result = findTopicAndRegionFilters(
-                ["AI"], // Uppercase
-                regions,
-                mockTopics,
-                new Set(),
-                new Set(),
-                synonymMap,
-                sortOptionsMultiple
-            )
+            const result = findFilters({
+                words: ["AI"],
+            })
 
             const topicResults = result.filter(
                 (f) => f.type === FilterType.TOPIC
@@ -215,15 +200,9 @@ describe("Fuzzy search in search autocomplete", () => {
         })
 
         it("should handle multi-word synonyms", () => {
-            const result = findTopicAndRegionFilters(
-                ["carbon", "dioxide"],
-                regions,
-                mockTopics,
-                new Set(),
-                new Set(),
-                synonymMap,
-                sortOptionsMultiple
-            )
+            const result = findFilters({
+                words: ["carbon", "dioxide"],
+            })
 
             // Should match "CO2 & Greenhouse Gas Emissions" via the synonym
             const topicResults = result.filter(
@@ -239,15 +218,10 @@ describe("Fuzzy search in search autocomplete", () => {
         it("should handle empty synonym arrays", () => {
             const emptySynonymMap = new Map([["test", []]])
 
-            const result = findTopicAndRegionFilters(
-                ["test"],
-                regions,
-                mockTopics,
-                new Set(),
-                new Set(),
-                emptySynonymMap,
-                sortOptionsMultiple
-            )
+            const result = findFilters({
+                words: ["test"],
+                synonyms: emptySynonymMap,
+            })
 
             expect(result.length).toBe(0)
         })
