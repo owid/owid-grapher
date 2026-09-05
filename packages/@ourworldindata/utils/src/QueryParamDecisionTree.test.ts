@@ -1,333 +1,298 @@
-import { expect, test, describe } from "vitest"
+import { describe, expect, test } from "vitest"
 import {
     buildQueryParamDecisionTree,
-    matchQueryParamDecisionTree,
-    serializeDecisionTree,
     deserializeDecisionTree,
-    QueryParamMatchRule,
+    matchQueryParamDecisionTree,
+    type QueryParamMatchRule,
+    serializeDecisionTree,
 } from "./QueryParamDecisionTree.js"
 
+type ExpectedMatch<T> = {
+    query: Record<string, string | null>
+    target: T | undefined
+}
+
+function expectMatches<T>(
+    rules: QueryParamMatchRule<T>[],
+    cases: ExpectedMatch<T>[]
+): void {
+    const tree = buildQueryParamDecisionTree(rules)
+
+    for (const { query, target } of cases) {
+        expect(
+            matchQueryParamDecisionTree(tree, query),
+            JSON.stringify(query)
+        ).toBe(target)
+    }
+}
+
 describe("QueryParamDecisionTree", () => {
-    test("basic exact matching", () => {
-        const rules: QueryParamMatchRule<string>[] = [
-            { condition: { country: "USA", tab: "chart" }, target: "targetA" },
-            { condition: { country: "USA", tab: "map" }, target: "targetB" },
-            { condition: { country: "CAN", tab: null }, target: "targetC" },
-            { condition: {}, target: "defaultTarget" },
-        ]
-
-        const tree = buildQueryParamDecisionTree(rules)
-
-        expect(
-            matchQueryParamDecisionTree(tree, {
-                country: "USA",
-                tab: "chart",
-            })
-        ).toBe("targetA")
-        expect(
-            matchQueryParamDecisionTree(tree, { country: "USA", tab: "map" })
-        ).toBe("targetB")
-        expect(
-            matchQueryParamDecisionTree(tree, {
-                country: "USA",
-                tab: "other",
-            })
-        ).toBe("defaultTarget")
-        expect(matchQueryParamDecisionTree(tree, { country: "CAN" })).toBe(
-            "targetC"
-        )
-        expect(
-            matchQueryParamDecisionTree(tree, {
-                country: "CAN",
-                tab: "chart",
-            })
-        ).toBe("targetC")
-        expect(matchQueryParamDecisionTree(tree, { country: "MEX" })).toBe(
-            "defaultTarget"
-        )
-        expect(matchQueryParamDecisionTree(tree, {})).toBe("defaultTarget")
-    })
-
-    test("matching with null parameter values as wildcards", () => {
-        const rules: QueryParamMatchRule<string>[] = [
-            {
-                condition: { country: "USA", tab: "chart" },
-                target: "targetSpecific",
-            },
-            {
-                condition: { country: "USA", tab: null },
-                target: "targetWildcard",
-            },
-            { condition: {}, target: "ultimateFallback" },
-        ]
-
-        const tree = buildQueryParamDecisionTree(rules)
-
-        // Matches specific rule (chart)
-        expect(
-            matchQueryParamDecisionTree(tree, {
-                country: "USA",
-                tab: "chart",
-            })
-        ).toBe("targetSpecific")
-
-        // Matches wildcard rule because tab is "map" and tab is wildcard in rule 2
-        expect(
-            matchQueryParamDecisionTree(tree, {
-                country: "USA",
-                tab: "map",
-            })
-        ).toBe("targetWildcard")
-
-        // Matches wildcard rule when tab is missing/undefined
-        expect(
-            matchQueryParamDecisionTree(tree, {
-                country: "USA",
-            })
-        ).toBe("targetWildcard")
-
-        // Matches wildcard rule when tab is explicitly null
-        expect(
-            matchQueryParamDecisionTree(tree, {
-                country: "USA",
-                tab: null,
-            })
-        ).toBe("targetWildcard")
-
-        // Fallback because country doesn't match
-        expect(
-            matchQueryParamDecisionTree(tree, {
-                country: "CAN",
-                tab: "chart",
-            })
-        ).toBe("ultimateFallback")
-    })
-
-    test("specificity priority resolution", () => {
-        // More specific rules should win over less specific rules
-        const rules: QueryParamMatchRule<string>[] = [
-            { condition: { country: "USA" }, target: "lowSpecificity" },
-            {
-                condition: { country: "USA", tab: "chart" },
-                target: "highSpecificity",
-            },
-            { condition: { tab: "chart" }, target: "mediumSpecificity" },
-        ]
-
-        const tree = buildQueryParamDecisionTree(rules)
-
-        // Both USA and chart match: high specificity (USA + chart) wins.
-        expect(
-            matchQueryParamDecisionTree(tree, {
-                country: "USA",
-                tab: "chart",
-            })
-        ).toBe("highSpecificity")
-
-        // Only USA matches
-        expect(
-            matchQueryParamDecisionTree(tree, { country: "USA", tab: "map" })
-        ).toBe("lowSpecificity")
-
-        // Only chart matches
-        expect(
-            matchQueryParamDecisionTree(tree, {
-                country: "CAN",
-                tab: "chart",
-            })
-        ).toBe("mediumSpecificity")
-    })
-
-    test("resolves overall specificity even across different branch keys", () => {
-        // R1 is the most specific rule (3 conditions), but it shares no single key
-        // with R2 that would let a naive branch-then-concatenate strategy keep R1
-        // ahead of R2 once both rules become simultaneous fallbacks deeper in the tree.
-        const rules: QueryParamMatchRule<string>[] = [
-            { condition: { a: "1", b: "2", c: "3" }, target: "mostSpecific" },
-            { condition: { b: "2", d: "4" }, target: "lessSpecific" },
-            { condition: { a: "1" }, target: "leastSpecific" },
-        ]
-
-        const tree = buildQueryParamDecisionTree(rules)
-
-        // Matches all three rules: the most specific one should win.
-        expect(
-            matchQueryParamDecisionTree(tree, {
-                a: "1",
-                b: "2",
-                c: "3",
-                d: "4",
-            })
-        ).toBe("mostSpecific")
-
-        // Only matches rule 2 (b + d).
-        expect(
-            matchQueryParamDecisionTree(tree, { a: "9", b: "2", d: "4" })
-        ).toBe("lessSpecific")
-
-        // Only matches rule 3 (a).
-        expect(matchQueryParamDecisionTree(tree, { a: "1", b: "9" })).toBe(
-            "leastSpecific"
-        )
-    })
-
-    test("prunes redundant branches beneath a dominating higher-priority rule", () => {
-        // Both rules have equal specificity, so the first-listed one (matching on
-        // `a`) has higher priority. In the `a=1` subtree, the `a` rule reduces to
-        // an unconditional match that outranks the `b` rule, so there is no point
-        // branching on `b` there — the subtree should collapse to a single leaf.
-        const rules: QueryParamMatchRule<string>[] = [
-            { condition: { a: "1" }, target: "aWins" },
-            { condition: { b: "2" }, target: "bWins" },
-        ]
-
-        const tree = buildQueryParamDecisionTree(rules)
-
-        // Structural assertion: the `a=1` branch is a pruned leaf, not a nested
-        // decision on `b`.
-        expect(tree.type).toBe("decision")
-        if (tree.type === "decision") {
-            expect(tree.paramName).toBe("a")
-            const aBranch = tree.branches["1"]
-            expect(aBranch.type).toBe("leaf")
-            if (aBranch.type === "leaf") {
-                expect(aBranch.target).toBe("aWins")
-            }
-        }
-
-        // Matching is unaffected by the pruning.
-        // Both match: higher-priority `a` rule wins.
-        expect(matchQueryParamDecisionTree(tree, { a: "1", b: "2" })).toBe(
-            "aWins"
-        )
-        // Only `a` matches.
-        expect(matchQueryParamDecisionTree(tree, { a: "1" })).toBe("aWins")
-        // Only `b` matches.
-        expect(matchQueryParamDecisionTree(tree, { b: "2" })).toBe("bWins")
-        // Neither matches.
-        expect(matchQueryParamDecisionTree(tree, { c: "3" })).toBeUndefined()
-    })
-
-    test("does not treat Object.prototype property names as matching branch values", () => {
-        const rules: QueryParamMatchRule<string>[] = [
-            { condition: { country: "USA" }, target: "targetUSA" },
-            { condition: {}, target: "defaultTarget" },
-        ]
-
-        const tree = buildQueryParamDecisionTree(rules)
-
-        for (const value of [
-            "constructor",
-            "toString",
-            "__proto__",
-            "hasOwnProperty",
-            "valueOf",
-        ]) {
-            expect(matchQueryParamDecisionTree(tree, { country: value })).toBe(
-                "defaultTarget"
+    // Consumers provide overlapping rules, so matching must consistently
+    // choose the most specific applicable rule. Null values are wildcards and
+    // an empty condition is the final fallback.
+    describe("matching precedence", () => {
+        test("distinguishes exact matches, wildcards, and the default", () => {
+            expectMatches(
+                [
+                    {
+                        condition: { country: "USA", tab: "chart" },
+                        target: "usaChart",
+                    },
+                    {
+                        condition: { country: "USA", tab: "map" },
+                        target: "usaMap",
+                    },
+                    {
+                        condition: { country: "CAN", tab: null },
+                        target: "canadaAnyTab",
+                    },
+                    { condition: {}, target: "default" },
+                ],
+                [
+                    {
+                        query: { country: "USA", tab: "chart" },
+                        target: "usaChart",
+                    },
+                    {
+                        query: { country: "USA", tab: "map" },
+                        target: "usaMap",
+                    },
+                    {
+                        query: { country: "USA", tab: "other" },
+                        target: "default",
+                    },
+                    { query: { country: "CAN" }, target: "canadaAnyTab" },
+                    {
+                        query: { country: "CAN", tab: "chart" },
+                        target: "canadaAnyTab",
+                    },
+                    { query: { country: "MEX" }, target: "default" },
+                    { query: {}, target: "default" },
+                ]
             )
-        }
+        })
 
-        // Sanity check: a real value still matches as expected.
-        expect(matchQueryParamDecisionTree(tree, { country: "USA" })).toBe(
-            "targetUSA"
-        )
+        test("treats a null condition as a wildcard", () => {
+            expectMatches(
+                [
+                    {
+                        condition: { country: "USA", tab: "chart" },
+                        target: "specific",
+                    },
+                    {
+                        condition: { country: "USA", tab: null },
+                        target: "anyUsaTab",
+                    },
+                    { condition: {}, target: "default" },
+                ],
+                [
+                    {
+                        query: { country: "USA", tab: "chart" },
+                        target: "specific",
+                    },
+                    {
+                        query: { country: "USA", tab: "map" },
+                        target: "anyUsaTab",
+                    },
+                    { query: { country: "USA" }, target: "anyUsaTab" },
+                    {
+                        query: { country: "USA", tab: null },
+                        target: "anyUsaTab",
+                    },
+                    {
+                        query: { country: "CAN", tab: "chart" },
+                        target: "default",
+                    },
+                ]
+            )
+        })
+
+        test("prefers the rule with more matching conditions", () => {
+            expectMatches(
+                [
+                    { condition: { country: "USA" }, target: "country" },
+                    {
+                        condition: { country: "USA", tab: "chart" },
+                        target: "countryAndTab",
+                    },
+                    { condition: { tab: "chart" }, target: "tab" },
+                ],
+                [
+                    {
+                        query: { country: "USA", tab: "chart" },
+                        target: "countryAndTab",
+                    },
+                    {
+                        query: { country: "USA", tab: "map" },
+                        target: "country",
+                    },
+                    {
+                        query: { country: "CAN", tab: "chart" },
+                        target: "tab",
+                    },
+                ]
+            )
+        })
+
+        test("preserves overall specificity across different branch keys", () => {
+            expectMatches(
+                [
+                    {
+                        condition: { a: "1", b: "2", c: "3" },
+                        target: "mostSpecific",
+                    },
+                    {
+                        condition: { b: "2", d: "4" },
+                        target: "lessSpecific",
+                    },
+                    { condition: { a: "1" }, target: "leastSpecific" },
+                ],
+                [
+                    {
+                        query: { a: "1", b: "2", c: "3", d: "4" },
+                        target: "mostSpecific",
+                    },
+                    {
+                        query: { a: "9", b: "2", d: "4" },
+                        target: "lessSpecific",
+                    },
+                    {
+                        query: { a: "1", b: "9" },
+                        target: "leastSpecific",
+                    },
+                ]
+            )
+        })
     })
 
-    test("serialization and deserialization", () => {
-        const rules: QueryParamMatchRule<string>[] = [
-            { condition: { country: "USA", tab: "chart" }, target: "targetA" },
-            { condition: {}, target: "defaultTarget" },
-        ]
+    // The built tree is serialized and reused at runtime. Its compact shape
+    // must not change matching semantics, and object-prototype names must
+    // behave like ordinary unrecognized input rather than inherited branches.
+    describe("tree representation", () => {
+        test("prunes a subtree once its highest-priority rule wins", () => {
+            const rules: QueryParamMatchRule<string>[] = [
+                { condition: { a: "1" }, target: "aWins" },
+                { condition: { b: "2" }, target: "bWins" },
+            ]
+            const tree = buildQueryParamDecisionTree(rules)
 
-        const tree = buildQueryParamDecisionTree(rules)
-        const serialized = serializeDecisionTree(tree)
-        const deserialized = deserializeDecisionTree<string>(serialized)
+            expect(tree.type).toBe("decision")
+            if (tree.type === "decision") {
+                expect(tree.paramName).toBe("a")
+                expect(tree.branches["1"]).toEqual({
+                    type: "leaf",
+                    target: "aWins",
+                })
+            }
 
-        expect(
-            matchQueryParamDecisionTree(deserialized, {
-                country: "USA",
-                tab: "chart",
-            })
-        ).toBe("targetA")
-        expect(matchQueryParamDecisionTree(deserialized, {})).toBe(
-            "defaultTarget"
-        )
+            expectMatches(rules, [
+                { query: { a: "1", b: "2" }, target: "aWins" },
+                { query: { a: "1" }, target: "aWins" },
+                { query: { b: "2" }, target: "bWins" },
+                { query: { c: "3" }, target: undefined },
+            ])
+        })
+
+        test("does not match inherited Object.prototype property names", () => {
+            const rules: QueryParamMatchRule<string>[] = [
+                { condition: { country: "USA" }, target: "usa" },
+                { condition: {}, target: "default" },
+            ]
+            const prototypePropertyNames = [
+                "constructor",
+                "toString",
+                "__proto__",
+                "hasOwnProperty",
+                "valueOf",
+            ]
+
+            expectMatches(rules, [
+                ...prototypePropertyNames.map((country) => ({
+                    query: { country },
+                    target: "default",
+                })),
+                { query: { country: "USA" }, target: "usa" },
+            ])
+        })
+
+        test("preserves matching through serialization", () => {
+            const tree = buildQueryParamDecisionTree([
+                {
+                    condition: { country: "USA", tab: "chart" },
+                    target: "usaChart",
+                },
+                { condition: {}, target: "default" },
+            ])
+            const deserialized = deserializeDecisionTree<string>(
+                serializeDecisionTree(tree)
+            )
+
+            expect(
+                matchQueryParamDecisionTree(deserialized, {
+                    country: "USA",
+                    tab: "chart",
+                })
+            ).toBe("usaChart")
+            expect(matchQueryParamDecisionTree(deserialized, {})).toBe(
+                "default"
+            )
+        })
     })
 
-    test("scaling to 1000 rules", () => {
-        const rules: QueryParamMatchRule<string>[] = []
-
-        // Generate 1000 rules testing different combinations of parameters
-        // parameters: country, tab, year, type
+    // A large generated rule set exercises construction, serialization, exact
+    // lookup at both ends of the input, and fallback behavior without treating
+    // every generated permutation as an independently meaningful scenario.
+    test("keeps exact and fallback matches with 1,000 rules", () => {
         const countries = ["USA", "CAN", "GBR", "FRA", "DEU", "IND", "CHN"]
         const tabs = ["chart", "map", "table"]
         const types = ["line", "bar", "scatter"]
-
-        for (let i = 0; i < 1000; i++) {
-            const country = countries[i % countries.length]
-            const tab = tabs[(i >> 1) % tabs.length]
-            const type = types[(i >> 2) % types.length]
-            const year = i.toString()
-
-            rules.push({
-                condition: { country, tab, type, year },
-                target: `target-${i}`,
+        const rules: QueryParamMatchRule<string>[] = Array.from(
+            { length: 1000 },
+            (_, index) => ({
+                condition: {
+                    country: countries[index % countries.length],
+                    tab: tabs[(index >> 1) % tabs.length],
+                    type: types[(index >> 2) % types.length],
+                    year: index.toString(),
+                },
+                target: `target-${index}`,
             })
-        }
+        )
+        rules.push({ condition: { country: "USA" }, target: "usaFallback" })
+        rules.push({ condition: {}, target: "default" })
 
-        // Add a few generic fallback rules
-        rules.push({ condition: { country: "USA" }, target: "fallback-usa" })
-        rules.push({ condition: {}, target: "ultimate-fallback" })
+        const tree = deserializeDecisionTree<string>(
+            serializeDecisionTree(buildQueryParamDecisionTree(rules))
+        )
 
-        const tree = buildQueryParamDecisionTree(rules)
-
-        const serialized = serializeDecisionTree(tree)
-
-        const deserialized = deserializeDecisionTree<string>(serialized)
-
-        // Matches one of the generated 1000 rules exactly (first rule: i=0)
-        const matchResultExact = matchQueryParamDecisionTree(deserialized, {
-            country: "USA",
-            tab: "chart",
-            type: "line",
-            year: "0",
-            otherParam: "ignoredValue",
-        })
-
-        expect(matchResultExact).toBe("target-0")
-
-        // Matches i=999
-        // country = countries[999 % 7] = countries[5] = IND
-        // tab = tabs[(999 >> 1) % 3] = tabs[499 % 3] = tabs[1] = map
-        // type = types[(999 >> 2) % 3] = types[249 % 3] = types[0] = line
-        // year = 999
-        const matchResult999 = matchQueryParamDecisionTree(deserialized, {
-            country: "IND",
-            tab: "map",
-            type: "line",
-            year: "999",
-        })
-        expect(matchResult999).toBe("target-999")
-
-        // Matches USA fallback
-        const matchResultFallbackUsa = matchQueryParamDecisionTree(
-            deserialized,
-            {
+        expect(
+            matchQueryParamDecisionTree(tree, {
+                country: "USA",
+                tab: "chart",
+                type: "line",
+                year: "0",
+                otherParam: "ignored",
+            })
+        ).toBe("target-0")
+        expect(
+            matchQueryParamDecisionTree(tree, {
+                country: "IND",
+                tab: "map",
+                type: "line",
+                year: "999",
+            })
+        ).toBe("target-999")
+        expect(
+            matchQueryParamDecisionTree(tree, {
                 country: "USA",
                 tab: "unrelated",
-            }
-        )
-        expect(matchResultFallbackUsa).toBe("fallback-usa")
-
-        // Matches ultimate fallback
-        const matchResultUltimateFallback = matchQueryParamDecisionTree(
-            deserialized,
-            {
+            })
+        ).toBe("usaFallback")
+        expect(
+            matchQueryParamDecisionTree(tree, {
                 country: "MEX",
                 tab: "unrelated",
-            }
-        )
-        expect(matchResultUltimateFallback).toBe("ultimate-fallback")
+            })
+        ).toBe("default")
     })
 })
