@@ -1,0 +1,21 @@
+{
+    "data": {
+        "documentId": "publication-fixture",
+        "revisionId": "fixture-revision",
+        "body": {
+            "content": [
+                {
+                    "paragraph": {
+                        "elements": [
+                            {
+                                "textRun": {
+                                    "content": "title: Publication fixture\ntype: article\n[+body]\nDraft words.\n[]\n"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}
