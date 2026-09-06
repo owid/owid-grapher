@@ -60,7 +60,8 @@
         "query": "tsx --tsconfig tsconfig.tsx.json devTools/db-ai-helpers/query.ts",
         "regenerateGdocMarkdown": "tsx --tsconfig tsconfig.tsx.json devTools/regenerateGdocMarkdown.ts",
         "addIncomingForeignKeys": "tsx --tsconfig tsconfig.tsx.json devTools/db-ai-helpers/addIncomingForeignKeys.ts",
-        "compareArchiveR2WithDb": "tsx --tsconfig tsconfig.tsx.json devTools/compareArchiveR2WithDb.ts"
+        "compareArchiveR2WithDb": "tsx --tsconfig tsconfig.tsx.json devTools/compareArchiveR2WithDb.ts",
+        "testGrapherBrowser": "playwright test -c playwright.grapher.config.ts"
     },
     "dependencies": {
         "@algolia/autocomplete-js": "^1.19.9",

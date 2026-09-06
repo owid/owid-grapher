@@ -12,6 +12,7 @@ export default defineConfig({
             "adminSiteServer/app.test.ts",
             "adminSiteServer/tests/**",
             "bespoke/**",
+            "features/grapher/**",
         ],
         pool: "threads",
         setupFiles: ["devTools/vitest-setup.ts"],
