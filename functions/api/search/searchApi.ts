@@ -285,6 +285,7 @@ export async function searchPages(
         const {
             _highlightResult,
             _snippetResult,
+            _rankingInfo,
             objectID: _objectID,
             ...cleanHit
         } = hit as any

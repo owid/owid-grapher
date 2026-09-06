@@ -220,11 +220,13 @@ tests and repository typechecking cannot prove.
 
 ### Runtime-specific and external-service tests
 
-The `functions/test` area includes Node-level integration tests and opt-in E2E
-tests that run handlers in a real Workers runtime or contact services such as
-Algolia and R2. They protect compatibility and integration assumptions that a
-mock cannot establish, but external state makes them slower and less
-deterministic. They should be narrowly scoped, clearly labelled, and kept out
+The `functions/test` area includes tests that run handlers in a real Workers
+runtime, including local R2 tests and live Algolia search tests. The Node-level
+`functions/api/search/searchApi.integration.test.ts` also contacts live Algolia.
+These search and local R2 files are currently included in default Vitest discovery
+and the main CI `test` job; dedicated scripts do not make them opt-in. They protect
+compatibility and integration assumptions that a mock cannot establish, but
+external state makes them slower and less deterministic. They should be narrowly scoped, clearly labelled, and kept out
 of the fast suite unless their environment can be made reliable.
 
 ### Bespoke project tests and builds

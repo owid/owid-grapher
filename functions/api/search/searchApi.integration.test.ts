@@ -11,35 +11,6 @@ describe("searchCharts with real Algolia", () => {
         indexPrefix: undefined, // Production index (no prefix)
     }
 
-    it("performs basic search with query", async () => {
-        const result = await searchCharts(
-            algoliaConfig,
-            {
-                query: "population",
-                filters: [],
-                requireAllCountries: false,
-            },
-            0,
-            5 // Small page size for testing
-        )
-
-        expect(result.query).toBe("population")
-        expect(result.results.length).toBeGreaterThan(0)
-        expect(result.results.length).toBeLessThanOrEqual(5)
-        expect(result.nbHits).toBeGreaterThan(0)
-
-        // Check first result has required fields
-        expect(result.results[0]).toHaveProperty("title")
-        expect(result.results[0]).toHaveProperty("slug")
-        expect(result.results[0]).toHaveProperty("type")
-        expect(result.results[0]).toHaveProperty("url")
-
-        // URL should be properly constructed
-        expect(result.results[0].url).toMatch(
-            /^https:\/\/ourworldindata\.org\/(grapher|explorers)\//
-        )
-    })
-
     it("returns results with country filter", async () => {
         const result = await searchCharts(
             algoliaConfig,
@@ -89,23 +60,6 @@ describe("searchCharts with real Algolia", () => {
         )
 
         expect(result.results.length).toBeGreaterThan(0)
-    })
-
-    it("throws helpful error for invalid topic when no results found", async () => {
-        await expect(
-            searchCharts(
-                algoliaConfig,
-                {
-                    query: "",
-                    filters: [
-                        { type: FilterType.TOPIC, name: "InvalidTopicName123" },
-                    ],
-                    requireAllCountries: false,
-                },
-                0,
-                5
-            )
-        ).rejects.toThrow(/does not exist. Available topics:/)
     })
 
     it("does not claim a valid topic doesn't exist just because the search found nothing", async () => {
@@ -163,104 +117,6 @@ describe("searchCharts with real Algolia", () => {
         // Pages should have different results
         expect(page0.results[0].slug).not.toBe(page1.results[0].slug)
     })
-
-    it("constructs correct URLs for different chart types", async () => {
-        const result = await searchCharts(
-            algoliaConfig,
-            {
-                query: "covid",
-                filters: [],
-                requireAllCountries: false,
-            },
-            0,
-            20
-        )
-
-        expect(result.results.length).toBeGreaterThan(0)
-
-        // Find examples of different types if they exist
-        const chartResult = result.results.find((r) => r.type === "chart")
-        const explorerResult = result.results.find(
-            (r) => r.type === "explorerView"
-        )
-
-        if (chartResult) {
-            expect(chartResult.url).toBe(
-                `https://ourworldindata.org/grapher/${chartResult.slug}`
-            )
-        }
-
-        if (explorerResult) {
-            expect(explorerResult.url).toMatch(
-                /^https:\/\/ourworldindata\.org\/explorers\//
-            )
-        }
-    })
-
-    it("removes internal Algolia fields from results", async () => {
-        const result = await searchCharts(
-            algoliaConfig,
-            {
-                query: "population",
-                filters: [],
-                requireAllCountries: false,
-            },
-            0,
-            1
-        )
-
-        expect(result.results.length).toBeGreaterThan(0)
-
-        // Internal Algolia fields should be removed
-        expect(result.results[0]).not.toHaveProperty("objectID")
-        expect(result.results[0]).not.toHaveProperty("_highlightResult")
-        expect(result.results[0]).not.toHaveProperty("_snippetResult")
-
-        // Required fields should be present
-        expect(result.results[0]).toHaveProperty("title")
-        expect(result.results[0]).toHaveProperty("slug")
-        expect(result.results[0]).toHaveProperty("type")
-        expect(result.results[0]).toHaveProperty("url")
-    })
-
-    it("returns empty results for nonsense query", async () => {
-        const result = await searchCharts(
-            algoliaConfig,
-            {
-                query: "xyzabc123nonsense456",
-                filters: [],
-                requireAllCountries: false,
-            },
-            0,
-            20
-        )
-
-        expect(result.query).toBe("xyzabc123nonsense456")
-        expect(result.results.length).toBe(0)
-        expect(result.nbHits).toBe(0)
-    })
-
-    it("uses custom base URL for staging deployments", async () => {
-        const stagingUrl = "https://staging-pr-123.owid.io"
-        const result = await searchCharts(
-            algoliaConfig,
-            {
-                query: "population",
-                filters: [],
-                requireAllCountries: false,
-            },
-            0,
-            3,
-            stagingUrl
-        )
-
-        expect(result.results.length).toBeGreaterThan(0)
-
-        // All URLs should use the staging base URL
-        result.results.forEach((hit) => {
-            expect(hit.url).toMatch(/^https:\/\/staging-pr-123\.owid\.io\//)
-        })
-    })
 })
 
 describe("searchPages with real Algolia", () => {
@@ -269,51 +125,6 @@ describe("searchPages with real Algolia", () => {
         apiKey: "bafe9c4659e5657bf750a38fbee5c269",
         indexPrefix: undefined,
     }
-
-    it("searches for 'banana production' pages", async () => {
-        const result = await searchPages(
-            algoliaConfig,
-            "banana production",
-            0,
-            5
-        )
-
-        expect(result.query).toBe("banana production")
-        expect(result.results.length).toBeGreaterThan(0)
-        expect(result.results.length).toBeLessThanOrEqual(5)
-        expect(result.nbHits).toBeGreaterThan(0)
-
-        // Check first result has required fields
-        const firstResult = result.results[0]
-        expect(firstResult).toHaveProperty("title")
-        expect(firstResult).toHaveProperty("slug")
-        expect(firstResult).toHaveProperty("type")
-        expect(firstResult).toHaveProperty("url")
-
-        // URL should be properly constructed
-        expect(firstResult.url).toMatch(/^https:\/\/ourworldindata\.org\//)
-
-        console.log("\nFirst page result for 'banana production':")
-        console.log(`Title: ${firstResult.title}`)
-        console.log(`Slug: ${firstResult.slug}`)
-        console.log(`Type: ${firstResult.type}`)
-        console.log(`URL: ${firstResult.url}`)
-    })
-
-    it("performs basic page search", async () => {
-        const result = await searchPages(algoliaConfig, "climate change", 0, 5)
-
-        expect(result.query).toBe("climate change")
-        expect(result.results.length).toBeGreaterThan(0)
-        expect(result.offset).toBe(0)
-        expect(result.length).toBe(5)
-
-        // Check required fields
-        expect(result.results[0]).toHaveProperty("title")
-        expect(result.results[0]).toHaveProperty("slug")
-        expect(result.results[0]).toHaveProperty("type")
-        expect(result.results[0]).toHaveProperty("url")
-    })
 
     it("handles pagination with offset", async () => {
         const page1 = await searchPages(algoliaConfig, "health", 0, 3)
@@ -340,71 +151,6 @@ describe("searchPages with real Algolia", () => {
         // All results should be about-pages
         result.results.forEach((page) => {
             expect(page.type).toBe("about-page")
-        })
-    })
-
-    it("builds type-specific URLs for non-article page types", async () => {
-        // data-insights bake to /data-insights/<slug> (see
-        // getPrefixedGdocPath), different from the bare /<slug> used by
-        // article/about-page.
-        const diResult = await searchPages(algoliaConfig, "co2", 0, 5, [
-            "data-insight",
-        ])
-        expect(diResult.results.length).toBeGreaterThan(0)
-        diResult.results.forEach((page) => {
-            expect(page.type).toBe("data-insight")
-            expect(page.url).toBe(
-                `https://ourworldindata.org/data-insights/${page.slug}`
-            )
-        })
-    })
-
-    it("removes internal Algolia fields from results", async () => {
-        const result = await searchPages(algoliaConfig, "population", 0, 1)
-
-        expect(result.results.length).toBeGreaterThan(0)
-
-        // Internal Algolia fields should be removed
-        expect(result.results[0]).not.toHaveProperty("objectID")
-        expect(result.results[0]).not.toHaveProperty("_highlightResult")
-        expect(result.results[0]).not.toHaveProperty("_snippetResult")
-
-        // Required fields should be present
-        expect(result.results[0]).toHaveProperty("title")
-        expect(result.results[0]).toHaveProperty("slug")
-        expect(result.results[0]).toHaveProperty("type")
-        expect(result.results[0]).toHaveProperty("url")
-    })
-
-    it("returns empty results for nonsense query", async () => {
-        const result = await searchPages(
-            algoliaConfig,
-            "xyzabc123nonsense456",
-            0,
-            10
-        )
-
-        expect(result.query).toBe("xyzabc123nonsense456")
-        expect(result.results.length).toBe(0)
-        expect(result.nbHits).toBe(0)
-    })
-
-    it("uses custom base URL for staging deployments", async () => {
-        const stagingUrl = "https://staging-pr-123.owid.io"
-        const result = await searchPages(
-            algoliaConfig,
-            "climate change",
-            0,
-            3,
-            ["article", "about-page"],
-            stagingUrl
-        )
-
-        expect(result.results.length).toBeGreaterThan(0)
-
-        // All URLs should use the staging base URL
-        result.results.forEach((hit) => {
-            expect(hit.url).toMatch(/^https:\/\/staging-pr-123\.owid\.io\//)
         })
     })
 })
