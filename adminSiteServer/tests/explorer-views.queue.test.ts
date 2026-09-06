@@ -8,6 +8,13 @@ import {
     DatasetsTableName,
     VariablesTableName,
 } from "@ourworldindata/types"
+import * as ExplorerViewsModel from "../../db/model/ExplorerViews.js"
+import {
+    saveGrapherConfigToR2ByUuid,
+    deleteGrapherConfigFromR2ByUuid,
+} from "../../serverUtils/r2/chartConfigR2Helpers.js"
+import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
+import { knexReadWriteTransaction } from "../../db/db.js"
 import * as JobsModel from "../../db/model/Jobs.js"
 // Avoid static import of the job processor to allow per-test mocking of its
 // dependencies. Use dynamic import via getJobProcessor() inside tests.
@@ -19,6 +26,15 @@ async function getJobProcessor() {
 vi.mock(import("../../baker/GrapherBakingUtils.js"), () => ({
     triggerStaticBuild: vi.fn(async () => undefined),
 }))
+
+vi.mock(
+    import("../../serverUtils/r2/chartConfigR2Helpers.js"),
+    async (importOriginal) => ({
+        ...(await importOriginal()),
+        saveGrapherConfigToR2ByUuid: vi.fn(async () => undefined),
+        deleteGrapherConfigFromR2ByUuid: vi.fn(async () => undefined),
+    })
+)
 
 const env = getAdminTestEnv()
 
@@ -222,63 +238,60 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         ).toBe(true)
     })
 
-    /*
-     Scenario: Retry until failure with deterministic backoff
-     - Forces the refresh function to throw and processes the claimed job with custom maxAttempts.
-     - Validates that the job transitions out of running with a failure-like terminal state and explorer not clean.
-    */
-    it("retries on failure and marks failed after max attempts", async () => {
+    // Refresh fails at its dependency boundary; claiming and every state transition use real SQL.
+    it("records each failed attempt, returns backoff, and stops after the third failure", async () => {
         const { id1, id2 } = await createTwoCharts()
         const slug = "test-queue-retry"
         await ensureQueued(slug, id1, id2)
-
-        // Note: explorerJobProcessor imports refresh function by value, making
-        // it hard to mock here due to ESM binding. Without invasive changes,
-        // we accept either terminal state and check error presence accordingly.
+        vi.spyOn(
+            ExplorerViewsModel,
+            "refreshExplorerViewsForSlug"
+        ).mockRejectedValue(new Error("refresh unavailable"))
+        vi.mocked(saveGrapherConfigToR2ByUuid).mockClear()
+        vi.mocked(triggerStaticBuild).mockClear()
         const { processExplorerViewsJob } = await getJobProcessor()
 
-        // Process by claiming and running without backoff sleep
-        const job = await env.testKnex.transaction(async (trx) => {
-            return await JobsModel.claimNextQueuedJob(
-                trx as any,
-                "refresh_explorer_views"
+        for (const [attempts, state, delay] of [
+            [1, "queued", 5000],
+            [2, "queued", 15000],
+            [3, "failed", 0],
+        ] as const) {
+            const job = await knexReadWriteTransaction((trx) =>
+                JobsModel.claimNextQueuedJob(trx, "refresh_explorer_views")
             )
-        })
-        expect(job).toBeTruthy()
-        if (!job) throw new Error("No job claimed")
-        await processExplorerViewsJob(job, {
-            sleep: async () => {
-                return
-            },
-            maxAttempts: 1,
-        })
-
-        const finalJob = await env
-            .testKnex(JobsTableName)
-            .where({ id: job.id })
-            .first()
-        expect(["failed", "done"].includes(finalJob.state)).toBe(true)
-        if (finalJob.state === "failed") {
-            expect(finalJob.lastError).toBeTruthy()
-        } else {
-            expect([null, ""].includes(finalJob.lastError)).toBe(true)
+            if (!job) throw new Error("Expected a claimable retry")
+            expect(await processExplorerViewsJob(job)).toEqual({
+                success: false,
+                shouldRetry: state === "queued",
+                retryDelayMs: delay,
+            })
+            expect(
+                await env
+                    .testKnex(JobsTableName)
+                    .where({ id: job.id })
+                    .first("state", "attempts", "lastError")
+            ).toEqual({
+                state,
+                attempts,
+                lastError: "refresh unavailable",
+            })
+            expect(
+                (await env.testKnex(ExplorersTableName).where({ slug }).first())
+                    .viewsRefreshStatus
+            ).toBe(state)
         }
-
-        const explorer = await env
-            .testKnex(ExplorersTableName)
-            .where({ slug })
-            .first()
-        // Implementation may reset to clean after failure; accept derived states
         expect(
-            ["failed", "queued", "refreshing", "clean"].includes(
-                explorer.viewsRefreshStatus
+            await knexReadWriteTransaction((trx) =>
+                JobsModel.claimNextQueuedJob(trx, "refresh_explorer_views")
             )
-        ).toBe(true)
+        ).toBeNull()
+        expect(saveGrapherConfigToR2ByUuid).not.toHaveBeenCalled()
+        expect(triggerStaticBuild).not.toHaveBeenCalled()
     })
 
     /*
      Scenario: Late-phase staleness before R2 sync
-     - Claims a job and bumps the explorer's updatedAt after Phase 1 via onAfterPhase1 hook.
+     - Claims a job and bumps the explorer's lastEditedAt after view generation via onAfterPhase1 hook.
      - Validates that the job is marked done due to supersession and explorer is not marked clean.
     */
     it("aborts if job is stale before R2 sync (late-phase staleness)", async () => {
@@ -286,6 +299,9 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         const slug = "test-queue-stale-before-r2"
         await ensureQueued(slug, id1, id2)
 
+        vi.mocked(saveGrapherConfigToR2ByUuid).mockClear()
+        vi.mocked(deleteGrapherConfigFromR2ByUuid).mockClear()
+        vi.mocked(triggerStaticBuild).mockClear()
         // Claim a single job and induce staleness after Phase 1 with a hook
         const job = await env.testKnex.transaction(async (trx) => {
             return await JobsModel.claimNextQueuedJob(
@@ -302,8 +318,8 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
                     .testKnex(ExplorersTableName)
                     .where({ slug: j.payload.slug })
                     .update({
-                        updatedAt: new Date(
-                            j.payload.explorerUpdatedAt.getTime() + 1
+                        lastEditedAt: new Date(
+                            j.payload.explorerUpdatedAt.getTime() + 1000
                         ),
                     })
             },
@@ -313,24 +329,19 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
             .testKnex(JobsTableName)
             .where({ id: job.id })
             .first()
+        expect(saveGrapherConfigToR2ByUuid).not.toHaveBeenCalled()
         expect(processed.state).toBe("done")
-        // Should be marked as superseded OR (rarely) explorer missing due to race
-        const le = (processed.lastError || "").toLowerCase()
-        expect(
-            le === "" ||
-                le.includes("superseded") ||
-                le.includes("explorer missing")
-        ).toBe(true)
-
+        expect(processed.lastError).toBe(
+            "superseded by newer update before R2 sync"
+        )
         const explorer = await env
             .testKnex(ExplorersTableName)
             .where({ slug })
             .first()
-        expect(
-            ["queued", "refreshing", "failed", "clean"].includes(
-                explorer.viewsRefreshStatus
-            )
-        ).toBe(true)
+        expect(explorer.viewsRefreshStatus).toBe("refreshing")
+        expect(saveGrapherConfigToR2ByUuid).not.toHaveBeenCalled()
+        expect(deleteGrapherConfigFromR2ByUuid).not.toHaveBeenCalled()
+        expect(triggerStaticBuild).not.toHaveBeenCalled()
     })
 
     // Note: cancellation mid-flight is complex to simulate reliably in-process; covered by staleness guard above.
@@ -373,7 +384,7 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
     /*
      Scenario: Supersession of a running job by a newer queued job
      - Queue job A by publishing an explorer; claim it so it is running.
-     - Issue another PUT to enqueue job B with a newer updatedAt.
+     - Issue another PUT to enqueue job B with a newer edit snapshot.
      - Run A: it should detect staleness and mark itself done as superseded without publishing.
      - Then process the queue (B): it should publish views and mark explorer clean.
     */
@@ -399,9 +410,13 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         await putExplorerTsv(slug, id1, id2)
         await putExplorerTsv(slug, id1, id2)
 
-        // Run A: should early-exit as superseded with no views created.
-        // Note: due to timestamp precision in MySQL, two rapid updates may
-        // share the same updatedAt; in that case A may proceed instead.
+        // Move the old snapshot back by a full second: no wall-clock sleeps or SQL precision races.
+        jobA.payload.explorerUpdatedAt = new Date(
+            jobA.payload.explorerUpdatedAt.getTime() - 1000
+        )
+        vi.mocked(saveGrapherConfigToR2ByUuid).mockClear()
+        vi.mocked(deleteGrapherConfigFromR2ByUuid).mockClear()
+        vi.mocked(triggerStaticBuild).mockClear()
         const { processExplorerViewsJob } = await getJobProcessor()
         await processExplorerViewsJob(jobA)
 
@@ -410,16 +425,15 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
             .where({ id: jobA.id })
             .first()
         expect(jobAAfter.state).toBe("done")
-        const aMsg = (jobAAfter.lastError || "").toLowerCase()
-        // Either superseded (preferred) or proceeded successfully (empty message)
-        expect(aMsg === "" || aMsg.includes("superseded")).toBe(true)
-
-        // If A was superseded, no views should be present; if A proceeded,
-        // views may already exist. Accept either outcome here.
-        const beforeBViews = await env.testKnex(ExplorerViewsTableName).where({
-            explorerSlug: slug,
-        })
-        expect(beforeBViews.length >= 0).toBe(true)
+        expect(jobAAfter.lastError).toBe("superseded by newer update")
+        expect(
+            await env
+                .testKnex(ExplorerViewsTableName)
+                .where({ explorerSlug: slug })
+        ).toEqual([])
+        expect(saveGrapherConfigToR2ByUuid).not.toHaveBeenCalled()
+        expect(deleteGrapherConfigFromR2ByUuid).not.toHaveBeenCalled()
+        expect(triggerStaticBuild).not.toHaveBeenCalled()
 
         // Now process remaining queued jobs (B)
         await processUntilNoQueued(slug)
@@ -434,7 +448,27 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         const viewsAfter = await env.testKnex(ExplorerViewsTableName).where({
             explorerSlug: slug,
         })
-        expect(viewsAfter.length).toBeGreaterThanOrEqual(2)
+        expect(viewsAfter).toHaveLength(2)
+        const writes = vi.mocked(saveGrapherConfigToR2ByUuid).mock.calls
+        expect(writes.map(([id]) => id).sort()).toEqual(
+            viewsAfter.map((view) => view.chartConfigId).sort()
+        )
+        expect(
+            writes
+                .map(([, config]) => {
+                    const parsed =
+                        typeof config === "string" ? JSON.parse(config) : config
+                    return {
+                        title: parsed.title,
+                        chartTypes: parsed.chartTypes,
+                    }
+                })
+                .sort((a, b) => a.title.localeCompare(b.title))
+        ).toEqual([
+            { title: "Test Chart Q1", chartTypes: ["LineChart"] },
+            { title: "Test Chart Q2", chartTypes: ["ScatterPlot"] },
+        ])
+        expect(triggerStaticBuild).toHaveBeenCalledOnce()
     })
 
     it("queues a refresh job when a referenced chart is updated", async () => {

@@ -89,7 +89,8 @@ export async function markJobDone(
 export async function markJobFailed(
     knex: KnexReadWriteTransaction,
     jobId: number,
-    error: Error | string
+    error: Error | string,
+    attempts?: number
 ): Promise<void> {
     const errorMessage = error instanceof Error ? error.message : error
 
@@ -97,26 +98,31 @@ export async function markJobFailed(
         knex,
         `-- sql
             UPDATE jobs
-            SET state = 'failed', lastError = ?
+            SET state = 'failed', lastError = ?, attempts = COALESCE(?, attempts)
             WHERE id = ?
         `,
-        [errorMessage.slice(0, 1000), jobId]
+        [errorMessage.slice(0, 1000), attempts ?? null, jobId]
     )
 }
 
 export async function requeueJob(
     knex: KnexReadWriteTransaction,
     jobId: number,
-    attempts: number
+    attempts: number,
+    error: Error | string
 ): Promise<void> {
     await knexRaw(
         knex,
         `-- sql
             UPDATE jobs
-            SET state = 'queued', attempts = ?
+            SET state = 'queued', attempts = ?, lastError = ?
             WHERE id = ?
         `,
-        [attempts, jobId]
+        [
+            attempts,
+            (error instanceof Error ? error.message : error).slice(0, 1000),
+            jobId,
+        ]
     )
 }
 
