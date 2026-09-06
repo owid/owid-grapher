@@ -405,7 +405,7 @@ export async function deleteIndicatorChartConfig(
     return { success: true }
 }
 
-async function updateGrapherConfigsInR2(
+export async function updateGrapherConfigsInR2(
     knex: db.KnexReadonlyTransaction,
     updatedCharts: { chartConfigId: string; isPublished: boolean }[],
     updatedMultiDimViews: { chartConfigId: string; isPublished: boolean }[]
