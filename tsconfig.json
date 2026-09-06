@@ -24,6 +24,7 @@
         { "path": "./devTools/svgTester" },
         { "path": "./devTools/syncGraphersToR2" },
         { "path": "./settings" },
-        { "path": "./site" }
+        { "path": "./site" },
+        { "path": "./features/grapher" }
     ]
 }
