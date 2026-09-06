@@ -17,13 +17,25 @@ import {
     DbRawPostGdocDraft,
     DbRawPostGdocRevision,
 } from "@ourworldindata/types"
-import { slugify } from "@ourworldindata/utils"
+import {
+    extractGdocPageData,
+    GdocsContentSource,
+    getEntitiesForProfile,
+    OwidGdocPageData,
+    slugify,
+} from "@ourworldindata/utils"
+import {
+    GdocProfile,
+    instantiateProfileForEntity,
+} from "../../db/model/Gdoc/GdocProfile.js"
 import { randomUUID } from "crypto"
 import * as db from "../../db/db.js"
 import {
     GdocLinkUpdateMode,
     gdocFromJSON,
     getAndLoadGdocById,
+    getGdocBaseObjectById,
+    loadGdocFromGdocBase,
     setImagesInContentGraph,
     setLinksForGdoc,
     updateDerivedGdocPostsComponents,
@@ -57,6 +69,8 @@ import {
     RichEditorSaveBodyResponse,
     RichEditorSaveConflictResponse,
     RichEditorCommentAnchorUpdate,
+    RichEditorPreviewRequest,
+    RichEditorPreviewResponse,
     RichEditorSaveSettingsRequest,
     RichEditorUpdateThreadRequest,
 } from "../../adminShared/RichEditorTypes.js"
@@ -293,6 +307,75 @@ export async function getGdocForEditor(
             : row.updatedAt
               ? new Date(row.updatedAt).toISOString()
               : null,
+    }
+}
+
+/**
+ * Everything the site needs to render the draft: the draft content (with the
+ * body the editor currently has, if given) run through the same attachment
+ * loading as a published page. The client renders the result through the
+ * site's own `OwidGdoc` component, so the preview is the page as it would
+ * be published — nothing is written.
+ */
+export async function previewGdocForEditor(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadonlyTransaction
+): Promise<RichEditorPreviewResponse> {
+    const { id } = req.params
+    const { body, entity } = (req.body ?? {}) as RichEditorPreviewRequest
+
+    const base = await getGdocBaseObjectById(trx, id, true)
+    if (!base) throw new JsonError(`No document with id ${id} found`, 404)
+
+    const draft = await trx
+        .table(PostsGdocsDraftsTableName)
+        .where({ gdocId: id })
+        .first<DbRawPostGdocDraft | undefined>()
+    const draftContent: OwidGdocContent = draft
+        ? JSON.parse(draft.content)
+        : base.content
+    const content = withoutBlockIds(
+        body !== undefined
+            ? { ...draftContent, body: validateBodyBlocks(body) }
+            : draftContent
+    )
+
+    const gdoc = await loadGdocFromGdocBase(
+        trx,
+        { ...base, content },
+        GdocsContentSource.Internal
+    )
+
+    let pageGdoc: Parameters<typeof extractGdocPageData>[0] = gdoc
+    let profileEntities: RichEditorPreviewResponse["profileEntities"]
+    let profileEntity: RichEditorPreviewResponse["profileEntity"]
+    if (gdoc.content.type === OwidGdocType.Profile) {
+        // a profile is a template; the site only ever shows it instantiated
+        // for one entity
+        profileEntities = getEntitiesForProfile(
+            gdoc.content.scope,
+            gdoc.content.exclude
+        )
+        profileEntity =
+            profileEntities.find((candidate) => candidate.code === entity) ??
+            profileEntities[0]
+        if (profileEntity) {
+            pageGdoc = await instantiateProfileForEntity(
+                gdoc as GdocProfile,
+                profileEntity,
+                { knex: trx }
+            )
+        }
+    }
+
+    res.set("Cache-Control", "no-store")
+    return {
+        // dates are serialized on the wire; the client deserializes them
+        gdoc: extractGdocPageData(pageGdoc) as unknown as OwidGdocPageData,
+        errors: gdoc.errors,
+        profileEntities,
+        profileEntity,
     }
 }
 

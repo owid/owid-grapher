@@ -7,6 +7,13 @@
 
 @import "../../packages/@ourworldindata/components/src/styles/typography-constants.scss";
 
+// AdminLayout gives <main> a fixed viewport height (content overflows it);
+// the sticky topbar needs the page to be as tall as its content
+.AdminLayout > main.rich-editor-page {
+    height: auto;
+    min-height: calc(100vh - 45px);
+}
+
 .rich-editor-page {
     padding: 16px 24px;
     // full width up to a wide maximum, so the canvas can show the desktop
@@ -19,11 +26,21 @@
     max-width: 640px;
 }
 
+// the page's own toolbar stays reachable while scrolling (mode toggle,
+// history, publish); the sticky elements below it are offset by its height,
+// which RichEditorPage measures into --rich-editor-topbar-height
 .rich-editor-page__topbar {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 12px;
+    gap: 16px;
+    margin: -16px -24px 12px;
+    padding: 12px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #f5f5f5;
+    border-bottom: 1px solid #e5e1d8;
 }
 
 .rich-editor-page__workspace {
@@ -31,12 +48,33 @@
     gap: 24px;
     align-items: flex-start;
     margin-top: 12px;
+
+    // the workspace stays mounted while the preview is shown
+    &[hidden] {
+        display: none;
+    }
+}
+
+// --- preview (the document rendered through the site components) ---
+
+.rich-editor-page__preview {
+    margin-top: 12px;
+
+    &[hidden] {
+        display: none;
+    }
+}
+
+.rich-editor-page__preview-loading {
+    padding: 48px;
+    text-align: center;
+    color: #8a8577;
 }
 
 .rich-editor-page__palette {
     flex: 0 0 200px;
     position: sticky;
-    top: 16px;
+    top: calc(var(--rich-editor-topbar-height, 0px) + 16px);
     background: #faf9f6;
     border: 1px solid #e5e1d8;
     border-radius: 8px;
@@ -61,12 +99,17 @@
     background: none;
     border: none;
     border-radius: 6px;
-    cursor: pointer;
+    // click inserts at the cursor, drag inserts at the drop point
+    cursor: grab;
     font-size: 13px;
     text-align: left;
 
     &:hover {
         background: #efece4;
+    }
+
+    &:active {
+        cursor: grabbing;
     }
 }
 
@@ -503,7 +546,7 @@ $canvas-wide-measure: 1280px;
 .rich-editor-page__rail {
     flex: 0 0 320px;
     position: sticky;
-    top: 16px;
+    top: calc(var(--rich-editor-topbar-height, 0px) + 16px);
     background: #faf9f6;
     border: 1px solid #e5e1d8;
     border-radius: 8px;
@@ -667,7 +710,7 @@ $canvas-wide-measure: 1280px;
 
 .rich-editor-toolbar {
     position: sticky;
-    top: 0;
+    top: var(--rich-editor-topbar-height, 0px);
     z-index: 5;
     background: #fff;
     border: 1px solid #e5e1d8;

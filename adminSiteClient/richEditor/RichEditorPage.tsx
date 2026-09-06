@@ -18,6 +18,7 @@ import {
     List,
     Modal,
     Popconfirm,
+    Segmented,
     Select,
     Space,
     Tabs,
@@ -26,7 +27,11 @@ import {
 } from "antd"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Editor } from "@tiptap/core"
-import { OwidGdocAuthoringMode, OwidGdocType } from "@ourworldindata/types"
+import {
+    OwidEnrichedGdocBlock,
+    OwidGdocAuthoringMode,
+    OwidGdocType,
+} from "@ourworldindata/types"
 import { dayjs } from "@ourworldindata/utils"
 import {
     RichEditorCommentThreadsResponse,
@@ -41,6 +46,7 @@ import { AdminLayout } from "../AdminLayout.js"
 import { RichEditor } from "./RichEditor.js"
 import {
     getBlockItemsForDocType,
+    RICH_EDITOR_PALETTE_DRAG_MIME,
     RichEditorBlockItem,
 } from "./blockRegistry.js"
 import { pmDocToEnrichedBlocks } from "../../adminShared/richEditor/serialization/serialization.js"
@@ -54,6 +60,7 @@ import {
     InspectedBlock,
     hasTextRangeSelection,
     inspectedBlockFromSelection,
+    placeCursorAtBlockBoundary,
     placeCursorBelowSelectedBlock,
     replaceSelectedBlockWithCursor,
     selectionBlockKey,
@@ -70,6 +77,11 @@ import {
 // the assistant pulls in the pi agent framework + its stylesheet; load it
 // only when the rich editor page actually renders the tab
 const AssistantPanel = lazy(() => import("./assistant/AssistantPanel.js"))
+// the preview renders the document through the site's components and pulls
+// in the (scoped) site stylesheet; load it on first use
+const GdocPreview = lazy(() => import("./preview/GdocPreview.js"))
+
+type ViewMode = "edit" | "preview"
 
 type SaveState =
     | { kind: "saved"; at: Date | null }
@@ -266,6 +278,85 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
     const [pendingInsert, setPendingInsert] =
         useState<RichEditorBlockItem | null>(null)
     const [publishing, setPublishing] = useState(false)
+
+    // Edit the document, or preview it as the site would render it. The
+    // editor stays mounted (hidden) while previewing, so selection, undo
+    // history and the live graphers survive switching back and forth; each
+    // mode remembers its own scroll position.
+    const [viewMode, setViewMode] = useState<ViewMode>("edit")
+    const scrollByMode = useRef<Record<ViewMode, number>>({
+        edit: 0,
+        preview: 0,
+    })
+    const [preview, setPreview] = useState<{
+        body: OwidEnrichedGdocBlock[]
+        version: number
+    } | null>(null)
+    const [previewEntity, setPreviewEntity] = useState<string | undefined>()
+
+    const snapshotPreview = useCallback(
+        (options?: { force: boolean }): void => {
+            const editor = editorRef.current
+            if (!editor) return
+            const body = pmDocToEnrichedBlocks(editor.getJSON())
+            setPreview((current) => {
+                // unchanged body: keep the rendered preview (and its cache key),
+                // unless an explicit refresh asks to re-resolve the attachments
+                if (
+                    current &&
+                    !options?.force &&
+                    JSON.stringify(current.body) === JSON.stringify(body)
+                )
+                    return current
+                return { body, version: (current?.version ?? 0) + 1 }
+            })
+        },
+        []
+    )
+
+    const switchViewMode = useCallback(
+        (mode: ViewMode): void => {
+            if (mode === viewMode) return
+            scrollByMode.current[viewMode] = window.scrollY
+            if (mode === "preview") snapshotPreview()
+            setViewMode(mode)
+        },
+        [snapshotPreview, viewMode]
+    )
+
+    // The topbar (with the Edit/Preview toggle) is sticky; the canvas
+    // toolbar and side panels stick below it, so publish its height to CSS.
+    // A callback ref, because the topbar only exists once the doc has loaded.
+    const topbarObserver = useRef<ResizeObserver | null>(null)
+    const topbarRef = useCallback((topbar: HTMLElement | null): void => {
+        topbarObserver.current?.disconnect()
+        topbarObserver.current = null
+        const main = topbar?.parentElement
+        if (!topbar || !main) return
+        const update = (): void => {
+            main.style.setProperty(
+                "--rich-editor-topbar-height",
+                `${topbar.offsetHeight}px`
+            )
+        }
+        update()
+        topbarObserver.current = new ResizeObserver(update)
+        topbarObserver.current.observe(topbar)
+    }, [])
+
+    // restore the scroll position the mode was left at (after the hidden
+    // workspace/preview has been shown again and laid out)
+    const viewModeMounted = useRef(false)
+    useEffect(() => {
+        if (!viewModeMounted.current) {
+            viewModeMounted.current = true
+            return undefined
+        }
+        const frame = requestAnimationFrame(() => {
+            window.scrollTo({ top: scrollByMode.current[viewMode] })
+        })
+        return () => cancelAnimationFrame(frame)
+    }, [viewMode])
 
     // Local overrides for fields the page mutates without refetching
     const [published, setPublished] = useState<boolean | null>(null)
@@ -580,6 +671,14 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
         })
     }
 
+    // a palette item was dragged onto the canvas: insert it at the drop point
+    const onPaletteDrop = (itemKey: string, pos: number): void => {
+        const editor = editorRef.current
+        const item = paletteItems.find((candidate) => candidate.key === itemKey)
+        if (!editor || !item) return
+        if (placeCursorAtBlockBoundary(editor, pos)) runInsertItem(item)
+    }
+
     const confirmPendingInsert = (mode: "replace" | "below"): void => {
         const editor = editorRef.current
         const item = pendingInsert
@@ -595,7 +694,7 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
     return (
         <AdminLayout title={`Editing: ${title}`} noSidebar fixedNav={false}>
             <main className="rich-editor-page">
-                <header className="rich-editor-page__topbar">
+                <header className="rich-editor-page__topbar" ref={topbarRef}>
                     <div>
                         <Typography.Title level={4} style={{ margin: 0 }}>
                             {title}
@@ -616,6 +715,21 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                         </Space>
                     </div>
                     <Space>
+                        <Segmented<ViewMode>
+                            value={viewMode}
+                            onChange={switchViewMode}
+                            options={[
+                                { label: "Edit", value: "edit" },
+                                { label: "Preview", value: "preview" },
+                            ]}
+                        />
+                        {viewMode === "preview" && (
+                            <Button
+                                onClick={() => snapshotPreview({ force: true })}
+                            >
+                                Refresh preview
+                            </Button>
+                        )}
                         <Button onClick={() => setRevisionsOpen(true)}>
                             History
                         </Button>
@@ -736,8 +850,34 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                     />
                 )}
 
+                {preview && (
+                    <div
+                        className="rich-editor-page__preview"
+                        hidden={viewMode !== "preview"}
+                    >
+                        <Suspense
+                            fallback={
+                                <div className="rich-editor-page__preview-loading">
+                                    Loading preview…
+                                </div>
+                            }
+                        >
+                            <GdocPreview
+                                gdocId={id}
+                                body={preview.body}
+                                version={preview.version}
+                                entity={previewEntity}
+                                onEntityChange={setPreviewEntity}
+                            />
+                        </Suspense>
+                    </div>
+                )}
+
                 <ChartEditingContext.Provider value={chartEditing.contextValue}>
-                    <div className="rich-editor-page__workspace">
+                    <div
+                        className="rich-editor-page__workspace"
+                        hidden={viewMode !== "edit"}
+                    >
                         <aside className="rich-editor-page__palette">
                             <h4>Insert</h4>
                             {paletteItems.map((item) => (
@@ -745,7 +885,16 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                     key={item.key}
                                     type="button"
                                     className="rich-editor-page__palette-item"
-                                    title={item.description}
+                                    title={`${item.description} — click to insert at the cursor, or drag into the document`}
+                                    draggable
+                                    onDragStart={(event) => {
+                                        event.dataTransfer.setData(
+                                            RICH_EDITOR_PALETTE_DRAG_MIME,
+                                            item.key
+                                        )
+                                        event.dataTransfer.effectAllowed =
+                                            "copy"
+                                    }}
                                     onClick={() => {
                                         const editor = editorRef.current
                                         if (!editor) return
@@ -765,8 +914,9 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                 </button>
                             ))}
                             <p className="rich-editor-page__palette-hint">
-                                Tip: type <code>/</code> in the text to insert
-                                blocks without leaving the keyboard.
+                                Drag a block into the document to insert it
+                                there, or type <code>/</code> in the text to
+                                insert blocks without leaving the keyboard.
                             </p>
                         </aside>
                         <div className="rich-editor-page__canvas-col">
@@ -804,6 +954,7 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                             : null
                                     }
                                     onCreate={setEditorInstance}
+                                    onPaletteDrop={onPaletteDrop}
                                     onSelectionChange={(editor) => {
                                         setHasTextSelection(
                                             hasTextRangeSelection(editor)

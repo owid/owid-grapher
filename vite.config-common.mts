@@ -8,6 +8,7 @@ import {
     VITE_ENTRYPOINT_INFO,
     ViteEntryPoint,
 } from "./site/viteConstants.js"
+import { pluginScopedCss } from "./devTools/vite/pluginScopedCss.mts"
 
 // https://vitejs.dev/config/
 export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
@@ -117,6 +118,12 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
             pluginReact(),
             pluginOptimizeReactAriaLocales({
                 locales: ["en-US"],
+            }),
+            pluginScopedCss({
+                // the rich editor's preview renders the site's components
+                // (and stylesheet) inside the admin page
+                "adminSiteClient/richEditor/preview/siteStyles.scss":
+                    ".rich-editor-preview",
             }),
             // Put the Sentry vite plugin after all other plugins.
             clientSettings.LOAD_SENTRY &&
