@@ -222,12 +222,15 @@ export default function MultiDim({
                         grapherConfig.selectedEntityColors
                     )
                     .then((table) => {
+                        if (ignoreFetchedData) return
                         if (table) {
                             runInAction(() => {
                                 grapherState.inputTable = table
                             })
                         }
                     })
+
+                if (ignoreFetchedData) return
 
                 // The below code needs to run after the data has been loaded, so that it has access
                 // to the table and its time range
