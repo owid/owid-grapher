@@ -255,7 +255,12 @@ export async function processExplorerViewsJob(
                 console.warn(
                     `Requeueing job ${job.id} for explorer ${slug} (attempt ${attempts}/${maxAttempts})`
                 )
-                await requeueJob(trx, job.id, attempts)
+                await requeueJob(
+                    trx,
+                    job.id,
+                    attempts,
+                    error instanceof Error ? error : String(error)
+                )
                 await updateExplorerRefreshStatus(trx, slug, "queued")
 
                 const delayMs = backoffDelay(attempts)
@@ -268,7 +273,8 @@ export async function processExplorerViewsJob(
                 await markJobFailed(
                     trx,
                     job.id,
-                    error instanceof Error ? error : new Error(String(error))
+                    error instanceof Error ? error : new Error(String(error)),
+                    attempts
                 )
                 await updateExplorerRefreshStatus(trx, slug, "failed")
                 return { shouldRetry: false, delayMs: 0 }
