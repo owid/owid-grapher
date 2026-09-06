@@ -10479,6 +10479,7 @@ __metadata:
     papaparse: "npm:^5.5.3"
     playwright-bdd: "npm:^9.1.0"
     polylabel: "npm:^2.0.1"
+    postcss: "npm:^8.5.6"
     progress: "npm:^2.0.3"
     react: "npm:^19.2.4"
     react-aria-components: "npm:^1.20.0"
@@ -13594,7 +13595,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.5.25":
+"postcss@npm:^8.5.25, postcss@npm:^8.5.6":
   version: 8.5.26
   resolution: "postcss@npm:8.5.26"
   dependencies:

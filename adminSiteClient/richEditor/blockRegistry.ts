@@ -6,6 +6,13 @@ import { pmNodeNames } from "../../adminShared/richEditor/serialization/pmJson.j
 // (see devTools/richEditor and the project plan). Powers both the slash menu
 // and the insert palette.
 
+/**
+ * The dataTransfer type a palette item sets when dragged into the canvas;
+ * its data is the item's `key`. See paletteDrop.ts for the drop side.
+ */
+export const RICH_EDITOR_PALETTE_DRAG_MIME =
+    "application/x-owid-rich-editor-block"
+
 export interface RichEditorBlockItem {
     key: string
     title: string
