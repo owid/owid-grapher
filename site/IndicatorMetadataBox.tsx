@@ -159,11 +159,10 @@ function IndicatorMetadataSections({
                 id="faqs"
                 className="metadata-box-section--faqs"
             >
-                {faqQuestions.map((faq, i) => (
+                {faqQuestions.map((faq) => (
                     <ExpandableToggle
                         key={faq.question}
                         label={faq.question}
-                        isStacked={i < faqQuestions.length - 1}
                         content={
                             <ArticleBlocks
                                 blocks={faq.answer}
@@ -231,7 +230,6 @@ function IndicatorMetadataSections({
                     {citationDatapage && (
                         <ExpandableToggle
                             label="How to cite this page"
-                            isStacked
                             content={
                                 <>
                                     <p>
@@ -258,58 +256,52 @@ function IndicatorMetadataSections({
                             }
                         />
                     )}
-                    <section className="indicator-sources">
-                        {citationShort && (
-                            <ExpandableToggle
-                                label="How to cite this data"
-                                isStacked={!!citationLong}
-                                content={
-                                    <>
-                                        <p className="citation__paragraph">
-                                            If you have limited space (e.g. in
-                                            data visualizations), you can use
-                                            this abbreviated in-line citation:
-                                        </p>
-                                        <CodeSnippet
-                                            code={citationShort}
-                                            theme="light"
-                                            useMarkdown={true}
-                                            onCopy={() =>
-                                                analytics.logSiteClick(
-                                                    "copy_citation",
-                                                    "citation_data_short"
-                                                )
-                                            }
-                                        />
-                                        {citationLong && (
-                                            <>
-                                                <p className="citation__paragraph">
-                                                    Full citation
-                                                </p>
-                                                <CodeSnippet
-                                                    code={citationLong}
-                                                    theme="light"
-                                                    useMarkdown={true}
-                                                    onCopy={() =>
-                                                        analytics.logSiteClick(
-                                                            "copy_citation",
-                                                            "citation_data_full"
-                                                        )
-                                                    }
-                                                />
-                                            </>
-                                        )}
-                                    </>
-                                }
-                                onToggle={(isOpen) =>
-                                    logExpandableToggle(
-                                        "how_to_cite_data",
-                                        isOpen
-                                    )
-                                }
-                            />
-                        )}
-                    </section>
+                    {citationShort && (
+                        <ExpandableToggle
+                            label="How to cite this data"
+                            content={
+                                <>
+                                    <p className="citation__paragraph">
+                                        If you have limited space (e.g. in data
+                                        visualizations), you can use this
+                                        abbreviated in-line citation:
+                                    </p>
+                                    <CodeSnippet
+                                        code={citationShort}
+                                        theme="light"
+                                        useMarkdown={true}
+                                        onCopy={() =>
+                                            analytics.logSiteClick(
+                                                "copy_citation",
+                                                "citation_data_short"
+                                            )
+                                        }
+                                    />
+                                    {citationLong && (
+                                        <>
+                                            <p className="citation__paragraph">
+                                                Full citation
+                                            </p>
+                                            <CodeSnippet
+                                                code={citationLong}
+                                                theme="light"
+                                                useMarkdown={true}
+                                                onCopy={() =>
+                                                    analytics.logSiteClick(
+                                                        "copy_citation",
+                                                        "citation_data_full"
+                                                    )
+                                                }
+                                            />
+                                        </>
+                                    )}
+                                </>
+                            }
+                            onToggle={(isOpen) =>
+                                logExpandableToggle("how_to_cite_data", isOpen)
+                            }
+                        />
+                    )}
                 </MetadataBoxSection>
             )}
             <MetadataBoxSection className="indicator-metadata-box__reuse-notice">
