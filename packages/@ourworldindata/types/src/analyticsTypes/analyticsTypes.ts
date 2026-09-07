@@ -51,6 +51,7 @@ export enum EventCategory {
     SiteChartPreviewMouseover = "owid.site_chart_preview_mouseover",
     SiteStaticVizDownload = "owid.site_static_viz_download",
     SiteUserSurvey = "owid.site_user_survey",
+    SiteAskAi = "owid.site_ask_ai",
     TranslatePage = "owid.translate_page",
 }
 
@@ -79,6 +80,7 @@ export type EventParamsMap = {
     [EventCategory.SiteChartPreviewMouseover]: SiteChartPreviewMouseoverParams
     [EventCategory.SiteStaticVizDownload]: SiteStaticVizDownloadParams
     [EventCategory.SiteUserSurvey]: SiteUserSurveyParams
+    [EventCategory.SiteAskAi]: SiteAskAiParams
     [EventCategory.SiteClick]: SiteClickParams
     [EventCategory.SiteFormSubmit]: SiteFormSubmitParams
     [EventCategory.SiteInstantSearchClick]: SiteInstantSearchClickParams
@@ -227,6 +229,53 @@ export interface SiteStaticVizDownloadParams {
     /** Additional context (e.g., 'desktop' or 'mobile' for images, URL for data/source) */
     eventContext?: string
 }
+
+// Ask-AI probe (data page). See experiments/briefs/ask_ai_button_20260828 in
+// the analytics repo. Arms match the design canvas: v2 = framed buttons only,
+// v3 = free-text box, v5 = presets that fill an editable box.
+export type AskAiArm = "v2" | "v3" | "v5"
+
+export type AskAiEngine = "claude" | "chatgpt"
+
+/** Where the text sent to the assistant came from. */
+export type AskAiPromptSource = "default" | "preset" | "freeform"
+
+export type SiteAskAiParams =
+    | {
+          /** Always 'ask_ai_show' for this event */
+          eventAction: "ask_ai_show"
+          /** Which arm the visitor was shown */
+          askAiArm: AskAiArm
+          /** Grapher slug the block was rendered under */
+          askAiSlug: string
+      }
+    | {
+          /** Always 'ask_ai_preset_click' for this event */
+          eventAction: "ask_ai_preset_click"
+          askAiArm: AskAiArm
+          askAiSlug: string
+          /** Stable id of the preset chosen */
+          askAiPresetId: string
+      }
+    | {
+          /** Always 'ask_ai_submit' for this event — the outbound click */
+          eventAction: "ask_ai_submit"
+          askAiArm: AskAiArm
+          askAiSlug: string
+          /** Assistant the visitor was sent to */
+          askAiEngine: AskAiEngine
+          askAiPromptSource: AskAiPromptSource
+          /** Preset id, when askAiPromptSource is 'preset' */
+          askAiPresetId?: string
+          /**
+           * The visitor's own words. GA4 truncates every string parameter at
+           * 100 characters, so this is the first 100 only — pair it with
+           * askAiQuestionLength to see how much was lost.
+           */
+          askAiQuestion?: string
+          /** Full length of the visitor's question, before truncation */
+          askAiQuestionLength?: number
+      }
 
 export type UserSurveyExperimentArm = "long-list" | "short-list" | "free-form"
 
