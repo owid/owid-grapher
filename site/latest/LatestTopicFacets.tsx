@@ -28,6 +28,7 @@ import { latestTypeLabelPlural } from "./latestUtils.js"
  * unconditionally (and in the baked skeleton) so CSS can show it before
  * the app mounts. */
 export const LATEST_TOPIC_FACETS_LABEL = "Filter by topic"
+const LATEST_TOPIC_FACETS_LABEL_ID = "latest-topic-facets-label"
 
 /**
  * Wrapper that accepts the `itemId` prop required by
@@ -69,6 +70,7 @@ const LeftArrow = () => {
     return (
         <button
             className="latest-topic-facets__scroll-arrow latest-topic-facets__scroll-arrow--left"
+            aria-label="Scroll to previous topics"
             onClick={() => scrollPrev()}
         >
             <FontAwesomeIcon icon={faCaretLeft} />
@@ -126,6 +128,7 @@ const RightArrow = () => {
     return (
         <button
             className="latest-topic-facets__scroll-arrow latest-topic-facets__scroll-arrow--right"
+            aria-label="Scroll to next topics"
             onClick={() => scrollNext()}
         >
             <FontAwesomeIcon icon={faCaretRight} />
@@ -177,11 +180,15 @@ export const LatestTopicFacets = ({
         <div className="latest-topic-facets">
             <div className="latest-topic-facets__filters">
                 <div className="latest-topic-facets__topics">
-                    <span className="latest-topic-facets__topics-label">
+                    <span
+                        id={LATEST_TOPIC_FACETS_LABEL_ID}
+                        className="latest-topic-facets__topics-label"
+                    >
                         {LATEST_TOPIC_FACETS_LABEL}
                     </span>
                     <ToggleButtonGroup
                         className="latest-topic-facets__topic-pills"
+                        aria-labelledby={LATEST_TOPIC_FACETS_LABEL_ID}
                         selectionMode="single"
                         selectedKeys={selectedKeys}
                         onSelectionChange={handleSelectionChange}
@@ -226,6 +233,7 @@ export const LatestTopicFacets = ({
                 </div>
                 <Select
                     className="latest-topic-facets__content-type-dropdown"
+                    aria-label="Filter by type"
                     value={selectedType ?? "all"}
                     onChange={(key) =>
                         onLatestTypeChange(
