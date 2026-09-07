@@ -48,7 +48,10 @@ import { getPublishedLinksTo } from "../../db/model/Link.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import { getChartConfigByUuid } from "../../db/model/ChartConfigs.js"
 import { narrativeChartExists } from "../../db/model/NarrativeChart.js"
-import { ingestGrapherConfig } from "../../db/grapherConfigValidation.js"
+import {
+    assertValidGrapherConfig,
+    ingestGrapherConfig,
+} from "../../db/grapherConfigValidation.js"
 import { getMultiDimDataPageById } from "../../db/model/MultiDimDataPage.js"
 
 const createPatchConfigAndQueryParamsForNarrativeChart = async (
@@ -79,6 +82,7 @@ const createPatchConfigAndQueryParamsForNarrativeChart = async (
     const queryParams = grapherConfigToQueryParams(patchConfigToSave)
 
     const fullConfig = mergeGrapherConfigs(parentChartConfig, patchConfigToSave)
+    assertValidGrapherConfig(fullConfig, "chart")
     return { patchConfig: patchConfigToSave, fullConfig, queryParams }
 }
 
