@@ -64,6 +64,10 @@ hr.featured-viz-divider {
 }
 
 .centered-article-container--featured-viz {
+    @include text-block-override {
+        @include body-3-regular;
+    }
+
     .footnote-container {
         margin-top: 0;
     }
