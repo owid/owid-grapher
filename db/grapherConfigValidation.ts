@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import Ajv, { ErrorObject, ValidateFunction } from "ajv"
 import addFormats from "ajv-formats"
 import { GrapherInterface, JsonError } from "@ourworldindata/types"
@@ -49,6 +50,11 @@ export function ingestGrapherConfig(
     config: AnyConfig,
     kind: GrapherConfigKind
 ): GrapherInterface {
+    if (!_.isPlainObject(config))
+        throw new GrapherConfigValidationError(kind, [
+            { pointer: "", message: "must be object" },
+        ])
+
     // rejected before migrating, which reports an unknown version as a stale reader
     const version = getSchemaVersion(config)
     if (version === null)
