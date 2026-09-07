@@ -60,27 +60,40 @@ $latest-sticky-filters-padding: 16px;
 // fixed in LatestTopicFacets.scss.
 $latest-sticky-filters-mobile-dropdown-row: 32px + 16px;
 
+@mixin latest-sticky-filters-pinned($top: var(--latest-sticky-filters-top)) {
+    position: sticky;
+    top: $top;
+    z-index: $zindex-global-entity-select;
+    background-color: $gray-5;
+}
+
+// Breathing room around the bar once it's pinned, without moving the block
+// in its normal position (the two cancel out). Applied in both states, not
+// just the pinned one: the reveal arm parks the bar its own height above
+// the pin point, so its height and top margin have to stay put as it pins
+// and unpins.
+@mixin latest-sticky-filters-spacing {
+    @include sm-up {
+        padding: $latest-sticky-filters-padding 0;
+        margin: -$latest-sticky-filters-padding 0;
+    }
+}
+
 @each $arm in $latest-sticky-filters-arms {
     .exp-latest-sticky-filters-v1--#{$arm} {
+        // The pin offset lives in a custom property so LatestSearch can
+        // read it without parsing the `top` shorthand back out.
         .latest-search__facets-container {
-            position: sticky;
-            z-index: $zindex-global-entity-select;
-            background-color: $gray-5;
+            --latest-sticky-filters-top: 0px;
 
-            @include sm-up {
-                top: 0;
-                // Breathing room when stuck, without moving the block in
-                // its normal position.
-                padding: $latest-sticky-filters-padding 0;
-                margin: -$latest-sticky-filters-padding 0;
-            }
-
-            @include sm-only {
-                top: -$latest-sticky-filters-mobile-dropdown-row;
-            }
+            @include latest-sticky-filters-spacing;
         }
 
         @include sm-only {
+            .latest-search__facets-container {
+                --latest-sticky-filters-top: #{-$latest-sticky-filters-mobile-dropdown-row};
+            }
+
             .latest-topic-facets__topics {
                 order: 2;
             }
@@ -107,12 +120,30 @@ $latest-sticky-filters-mobile-dropdown-row: 32px + 16px;
     }
 }
 
+.exp-latest-sticky-filters-v1--fully-sticky .latest-search__facets-container {
+    @include latest-sticky-filters-pinned;
+}
+
+// No height fallback: before the hook measures the bar, top computes to auto.
 .exp-latest-sticky-filters-v1--reveal-on-scroll-up {
     .latest-search__facets-container {
-        transition: transform var(--duration-popover) var(--ease-out);
+        @include latest-sticky-filters-pinned(
+            calc(
+                var(--latest-sticky-filters-top) -
+                    var(--latest-sticky-filters-height)
+            )
+        );
+
+        transition: top var(--duration-popover) var(--ease-out);
     }
 
-    .latest-search__facets-container--hidden {
-        transform: translateY(-100%);
+    .latest-search__facets-container--revealed {
+        top: var(--latest-sticky-filters-top);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .latest-search__facets-container {
+            transition: none;
+        }
     }
 }
