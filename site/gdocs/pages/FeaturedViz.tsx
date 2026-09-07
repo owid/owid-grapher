@@ -52,6 +52,7 @@ export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
         slug,
         canonicalUrl,
     })
+    const shouldShowCitation = !content["hide-citation"]
 
     return (
         <article className="centered-article-container centered-article-container--featured-viz grid grid-cols-12-full-width">
@@ -79,7 +80,9 @@ export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
                             className={getMetadataBoxColumns(hero.size)}
                             metadata={bespokeMetadata}
                             citationUrl={canonicalUrl}
-                            pageCitation={citationText}
+                            pageCitation={
+                                shouldShowCitation ? citationText : undefined
+                            }
                         />
                     )}
                 </div>
@@ -88,7 +91,7 @@ export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
             {content.refs && !_.isEmpty(content.refs.definitions) ? (
                 <Footnotes definitions={content.refs.definitions} />
             ) : null}
-            {!content["hide-citation"] && (
+            {shouldShowCitation && (
                 <CitationSection
                     citationText={citationText}
                     bibtex={bibtex}
