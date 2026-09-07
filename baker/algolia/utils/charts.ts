@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import {
     KeyChartLevel,
     ContentGraphLinkType,
-    parseChartConfig,
     ChartRecord,
     ChartRecordType,
     ChartsIndexingContext,
@@ -12,6 +11,7 @@ import {
 import * as db from "../../../db/db.js"
 import { getRelatedArticles } from "../../../db/model/Post.js"
 import { getPublishedLinksTo } from "../../../db/model/Link.js"
+import { parseChartConfig } from "../../../db/model/ChartConfigs.js"
 import { ParsedChartRecordRow, RawChartRecordRow } from "./types.js"
 import {
     excludeNullish,

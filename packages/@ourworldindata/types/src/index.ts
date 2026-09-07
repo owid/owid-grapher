@@ -469,8 +469,6 @@ export {
     type DbInsertChartConfig,
     type DbRawChartConfig,
     type DbEnrichedChartConfig,
-    parseChartConfig,
-    serializeChartConfig,
     ChartConfigsTableName,
 } from "./dbTypes/ChartConfigs.js"
 export {
@@ -483,8 +481,6 @@ export {
     type DbRawChartRevision,
     type DbEnrichedChartRevision,
     ChartRevisionsTableName,
-    parseChartRevisionsRow,
-    serializeChartRevisionsRow,
 } from "./dbTypes/ChartRevisions.js"
 export {
     type DbInsertChart,
