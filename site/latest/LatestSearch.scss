@@ -54,10 +54,11 @@
 //
 // The edge middleware adds `exp-latest-sticky-filters-v1--<arm>` to <body>,
 // so these rules apply to the baked skeleton as well as the mounted app —
-// no flash when the app takes over. Two of the three arms stick; they share
-// the same layout and differ only in whether the sticky container hides
-// while scrolling down (reveal-on-scroll-up, toggled by
-// `.latest-search__facets-container--hidden` from LatestSearch).
+// no flash when the app takes over. Two of the three arms pin the filters
+// and share the same layout; they differ in *where* the container is
+// sticky: at the pin point (fully-sticky), or a full bar-height above it,
+// out of view, until the reader scrolls up (reveal-on-scroll-up, where
+// LatestSearch toggles `--revealed`).
 //
 // The sticky element has to be the grid item (a sticky element can only move
 // within its parent's box, and the facets' own wrappers are no taller than
@@ -72,27 +73,40 @@ $latest-sticky-filters-padding: 16px;
 // fixed in LatestTopicFacets.scss.
 $latest-sticky-filters-mobile-dropdown-row: 32px + 16px;
 
+@mixin latest-sticky-filters-pinned($top: var(--latest-sticky-filters-top)) {
+    position: sticky;
+    top: $top;
+    z-index: $zindex-global-entity-select;
+    background-color: $gray-5;
+}
+
+// Breathing room around the bar once it's pinned, without moving the block
+// in its normal position (the two cancel out). Applied in both states, not
+// just the pinned one: the reveal arm parks the bar its own height above
+// the pin point, so its height and top margin have to stay put as it pins
+// and unpins.
+@mixin latest-sticky-filters-spacing {
+    @include sm-up {
+        padding: $latest-sticky-filters-padding 0;
+        margin: -$latest-sticky-filters-padding 0;
+    }
+}
+
 @each $arm in $latest-sticky-filters-arms {
     .exp-latest-sticky-filters-v1--#{$arm} {
+        // The pin offset lives in a custom property so LatestSearch can
+        // read it without parsing the `top` shorthand back out.
         .latest-search__facets-container {
-            position: sticky;
-            z-index: $zindex-global-entity-select;
-            background-color: $gray-5;
+            --latest-sticky-filters-top: 0px;
 
-            @include sm-up {
-                top: 0;
-                // Breathing room when stuck, without moving the block in
-                // its normal position.
-                padding: $latest-sticky-filters-padding 0;
-                margin: -$latest-sticky-filters-padding 0;
-            }
-
-            @include sm-only {
-                top: -$latest-sticky-filters-mobile-dropdown-row;
-            }
+            @include latest-sticky-filters-spacing;
         }
 
         @include sm-only {
+            .latest-search__facets-container {
+                --latest-sticky-filters-top: #{-$latest-sticky-filters-mobile-dropdown-row};
+            }
+
             .latest-topic-facets__topics {
                 order: 2;
             }
@@ -119,12 +133,38 @@ $latest-sticky-filters-mobile-dropdown-row: 32px + 16px;
     }
 }
 
+.exp-latest-sticky-filters-v1--fully-sticky .latest-search__facets-container {
+    @include latest-sticky-filters-pinned;
+}
+
+// Reveal on scroll up: the bar is sticky at a *parked* offset a bar-height
+// above the pin point, so it scrolls away with the content and sits just
+// out of view; scrolling up moves the offset down to the pin point, and
+// transitioning between the two is the slide. Sticking rather than
+// transforming means the bar renders at `max(its place in the flow, top)`
+// in every state, so it can never be displaced from where the flow puts
+// it. The height comes from `useRevealOnScrollUp`, since CSS can't measure
+// it; it deliberately has no fallback, so until it lands `top` is invalid,
+// computes to `auto`, and the bar never sticks at all.
 .exp-latest-sticky-filters-v1--reveal-on-scroll-up {
     .latest-search__facets-container {
-        transition: transform var(--duration-popover) var(--ease-out);
+        @include latest-sticky-filters-pinned(
+            calc(
+                var(--latest-sticky-filters-top) -
+                    var(--latest-sticky-filters-height)
+            )
+        );
+
+        transition: top var(--duration-popover) var(--ease-out);
     }
 
-    .latest-search__facets-container--hidden {
-        transform: translateY(-100%);
+    .latest-search__facets-container--revealed {
+        top: var(--latest-sticky-filters-top);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .latest-search__facets-container {
+            transition: none;
+        }
     }
 }

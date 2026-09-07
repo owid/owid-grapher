@@ -12,7 +12,8 @@ import { useTagGraphTopics } from "../search/searchHooks.js"
 import {
     useAreFreshProbesSettled,
     useInfiniteLatestPages,
-    useIsStickyElementHidden,
+    getStickyLayout,
+    useRevealOnScrollUp,
     useLatestAnalytics,
     useLatestStickyFiltersArm,
 } from "./latestHooks.js"
@@ -46,34 +47,19 @@ import { PoweredBy } from "react-instantsearch"
 import { getPrefersReducedMotion } from "@ourworldindata/components"
 
 /**
- * If a sticky element is currently stuck, scroll so it sits exactly at its
- * stuck position with the content below it starting right underneath — the
+ * If the facets are currently pinned, scroll so they sit exactly at their
+ * pinned position with the content below starting right underneath — the
  * reader just changed a filter from the pinned bar and expects to see the
  * new results from the top, not wherever they had scrolled to. No-op when
- * the element isn't stuck (e.g. the reader is at the top of the page).
- *
- * The element's own geometry can't tell us where it sits when not stuck:
- * both getBoundingClientRect and offsetTop report the pinned position once
- * it is stuck. Its layout position is derived from the previous grid row
- * instead: the element is a grid item, so its track starts where the
- * previous sibling's margin box ends (grid rows have no row gap here), and
- * its own top margin offsets it from there. A dedicated zero-height marker
- * would be simpler but would add a grid row, and the newsletter block is
- * pinned to an explicit row.
+ * the bar isn't pinned (at the top of the page, or in the flow).
  */
-function scrollToTopOfStuckElement(el: HTMLElement): void {
-    const previous = el.previousElementSibling
-    if (!(previous instanceof HTMLElement)) return
-    const style = getComputedStyle(el)
-    const stickyTop = parseFloat(style.top) || 0
-    if (el.getBoundingClientRect().top > stickyTop) return
-    const naturalTop =
-        window.scrollY +
-        previous.getBoundingClientRect().bottom +
-        (parseFloat(getComputedStyle(previous).marginBottom) || 0) +
-        (parseFloat(style.marginTop) || 0)
+function scrollToTopOfPinnedElement(el: HTMLElement): void {
+    if (getComputedStyle(el).position !== "sticky") return
+    const layout = getStickyLayout(el)
+    if (!layout) return
+    if (el.getBoundingClientRect().top > layout.stickyTop) return
     window.scrollTo({
-        top: naturalTop - stickyTop,
+        top: layout.layoutTop - layout.stickyTop,
         behavior: getPrefersReducedMotion() ? "auto" : "smooth",
     })
 }
@@ -116,11 +102,11 @@ export const LatestSearch = ({
     useLatestAnalytics(state, analytics)
 
     // Sticky filters experiment. The arm's layout is pure CSS keyed off the
-    // body class; the reveal-on-scroll-up arm additionally hides the (sticky)
-    // facets container while scrolling down.
+    // body class; the reveal-on-scroll-up arm additionally needs JS to
+    // reveal the facets container when the reader scrolls up.
     const stickyFiltersArm = useLatestStickyFiltersArm()
     const facetsContainerRef = useRef<HTMLDivElement>(null)
-    const areFacetsHidden = useIsStickyElementHidden(
+    const areFiltersRevealed = useRevealOnScrollUp(
         stickyFiltersArm === LATEST_STICKY_FILTERS_ARMS.revealOnScrollUp,
         facetsContainerRef
     )
@@ -137,7 +123,7 @@ export const LatestSearch = ({
     const updateParams = (updater: (current: LatestState) => LatestState) => {
         setSearchParams(stateToSearchParams(updater(state)))
         if (facetsContainerRef.current)
-            scrollToTopOfStuckElement(facetsContainerRef.current)
+            scrollToTopOfPinnedElement(facetsContainerRef.current)
     }
 
     const onTopicsChange = (newTopics: string[]) => {
@@ -245,7 +231,8 @@ export const LatestSearch = ({
             <div
                 ref={facetsContainerRef}
                 className={cx(LATEST_FACETS_CONTAINER_CLASSES, {
-                    "latest-search__facets-container--hidden": areFacetsHidden,
+                    "latest-search__facets-container--revealed":
+                        areFiltersRevealed,
                 })}
             >
                 <LatestTopicFacets
