@@ -300,6 +300,7 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                         />
                         <OwidSocials
                             context={NewsletterSubscriptionContext.Homepage}
+                            excludeTitles={["Threads", "Facebook"]}
                         />
                     </div>
                     <DonationCta />

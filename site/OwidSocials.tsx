@@ -4,12 +4,17 @@ import { NewsletterSubscriptionContext } from "./newsletter.js"
 
 export const OwidSocials = ({
     includeRss = false,
+    excludeTitles = [],
     context,
 }: {
     includeRss?: boolean
+    excludeTitles?: string[]
     context: NewsletterSubscriptionContext
 }) => {
-    const items = includeRss ? [...SOCIALS, ...RSS_FEEDS] : SOCIALS
+    const socials = SOCIALS.filter(
+        ({ title }) => !excludeTitles.includes(title)
+    )
+    const items = includeRss ? [...socials, ...RSS_FEEDS] : socials
     return (
         <div className="owid-socials">
             <p className="owid-socials__heading">Follow us</p>
