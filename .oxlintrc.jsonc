@@ -255,6 +255,14 @@
             }
         },
         {
+            // bespoke build configs import the shared build config from the repo
+            // root, which lives outside the bespoke workspace
+            "files": ["bespoke/**/vite.config.ts", "bespoke/vitest.config.ts"],
+            "rules": {
+                "import-x-js/no-relative-packages": "off"
+            }
+        },
+        {
             // node scripts that may also contain browser-side callbacks (e.g. page.evaluate)
             "files": ["devTools/**/*.mjs"],
             "env": {
