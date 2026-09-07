@@ -130,7 +130,7 @@
         "url-join": "^5.0.0",
         "usehooks-ts": "^3.1.1",
         "versor": "^0.2.0",
-        "vitest": "^4.1.10",
+        "vitest": "^5.0.0",
         "yaml": "^2.8.3"
     },
     "license": "SEE LICENSE IN LICENSE.md"

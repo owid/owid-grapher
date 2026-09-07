@@ -6,6 +6,7 @@ export default defineConfig({
     test: {
         exclude: [
             ...configDefaults.exclude,
+            ".features-gen/**", // generated files from Playwright BDD tests
             "itsJustJavascript/**",
             "**/dist/**",
             "db/tests/**",
