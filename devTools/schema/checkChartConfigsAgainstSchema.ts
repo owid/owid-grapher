@@ -16,16 +16,16 @@ import {
     GRAPHER_DB_PORT,
 } from "../../settings/serverSettings.js"
 import { parseChartConfig } from "../../db/model/ChartConfigs.js"
-export type ConfigOwner = "chart" | "indicator" | "narrativeChart" | "multiDim"
+type ConfigOwner = "chart" | "indicator" | "narrativeChart" | "multiDim"
 type ConfigRole = "patch" | "full"
 
-export type OwnerRef =
+type OwnerRef =
     | { owner: "chart"; id: string }
     | { owner: "indicator"; id: string }
     | { owner: "narrativeChart"; id: string }
     | { owner: "multiDim"; id: string; viewId: string }
 
-export type ConfigReference =
+type ConfigReference =
     | {
           owner: "chart" | "indicator" | "narrativeChart"
           role: ConfigRole
@@ -42,7 +42,7 @@ export type ConfigReference =
  * All database columns referencing `chart_configs`, mapped to their owner and
  * validation role, or `null` if ignored
  */
-export const REFERENCING_COLUMNS: Record<string, ConfigReference | null> = {
+const REFERENCING_COLUMNS: Record<string, ConfigReference | null> = {
     "charts.configId": {
         owner: "chart",
         role: "full",
@@ -88,7 +88,7 @@ export const REFERENCING_COLUMNS: Record<string, ConfigReference | null> = {
 const BATCH_SIZE = 2000
 const MAX_LISTED_IDS = 20
 
-export interface ValidationIssueGroup {
+interface ValidationIssueGroup {
     column: string
     pointer: string
     message: string
@@ -96,7 +96,7 @@ export interface ValidationIssueGroup {
     exampleOwners: OwnerRef[]
 }
 
-export interface RawReferenceRow {
+interface RawReferenceRow {
     id: string
     reference: string
     ownerId: string | null
@@ -166,7 +166,7 @@ async function assertReferencingColumnsUpToDate(
     throw new Error(lines.join("\n"))
 }
 
-export function buildReferenceIndexQuery(): string {
+function buildReferenceIndexQuery(): string {
     return Object.entries(REFERENCING_COLUMNS)
         .map(([columnKey, reference]) => {
             const [table, column] = columnKey.split(".")
@@ -193,10 +193,7 @@ function buildOwnerIdentityExpression(
     return `CAST(\`${table}\`.\`${column}\` AS CHAR)`
 }
 
-export function parseOwnerRef(
-    owner: ConfigOwner,
-    row: RawReferenceRow
-): OwnerRef {
+function parseOwnerRef(owner: ConfigOwner, row: RawReferenceRow): OwnerRef {
     if (row.ownerId === null)
         throw new Error(`chart_configs row ${row.id} has no owner id`)
     switch (owner) {
@@ -213,7 +210,7 @@ export function parseOwnerRef(
     }
 }
 
-export function adminUrlForOwner(owner: OwnerRef): string {
+function adminUrlForOwner(owner: OwnerRef): string {
     switch (owner.owner) {
         case "chart":
             return `${ADMIN_BASE_URL}/admin/charts/${owner.id}/edit`
@@ -226,12 +223,12 @@ export function adminUrlForOwner(owner: OwnerRef): string {
     }
 }
 
-export function formatOwnerRef(owner: OwnerRef): string {
+function formatOwnerRef(owner: OwnerRef): string {
     const url = adminUrlForOwner(owner)
     return owner.owner === "multiDim" ? `${url} (view ${owner.viewId})` : url
 }
 
-export function buildReferenceIndex(rows: RawReferenceRow[]): {
+function buildReferenceIndex(rows: RawReferenceRow[]): {
     index: Map<string, IndexedReference>
     conflicts: ReferenceConflict[]
 } {
@@ -382,7 +379,7 @@ function partitionReferencingColumns(): {
     return { validated, notValidated }
 }
 
-export function renderValidationIssues(
+function renderValidationIssues(
     issues: Map<string, ValidationIssueGroup>,
     validatedCounts: Map<string, number>
 ): string[] {
