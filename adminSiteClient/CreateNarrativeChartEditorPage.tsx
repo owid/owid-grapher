@@ -16,6 +16,13 @@ import {
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
+import { AdminLayout } from "./AdminLayout.js"
+import {
+    adminDetailsProvider,
+    adminIndicatorCatalog,
+    DetailsProvider,
+    IndicatorCatalog,
+} from "./editorProviders.js"
 import {
     NarrativeChartEditor,
     NarrativeChartEditorManager,
@@ -95,6 +102,14 @@ class CreateNarrativeChartEditorPageInternal
         return this.context.admin
     }
 
+    @computed get indicators(): IndicatorCatalog {
+        return adminIndicatorCatalog(this.admin)
+    }
+
+    @computed get details(): DetailsProvider {
+        return adminDetailsProvider(this.admin)
+    }
+
     @computed get history(): History {
         return this.props.history
     }
@@ -129,6 +144,10 @@ class CreateNarrativeChartEditorPageInternal
     }
 
     override render(): React.ReactElement {
-        return <ChartEditorView manager={this} />
+        return (
+            <AdminLayout noSidebar>
+                <ChartEditorView manager={this} />
+            </AdminLayout>
+        )
     }
 }

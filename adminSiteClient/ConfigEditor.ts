@@ -1,0 +1,89 @@
+/* ConfigEditor.ts
+ * ===============
+ *
+ * The chart editor with no notion of a chart record: it takes a grapher
+ * config, lets the user edit it against a live preview, and hands the edited
+ * config back through `onSave`. Where the config comes from and where it goes
+ * is the host's business — the admin's charts table, a YAML file in ETL, a
+ * JSON file in someone else's repo.
+ *
+ * This is the editor the future npm package exposes. `ChartEditor` and
+ * `NarrativeChartEditor` are the admin's own flavours, with saving, tags,
+ * revisions and references wired to the admin API.
+ */
+
+import { comparer, computed, makeObservable, reaction, runInAction } from "mobx"
+import { GrapherInterface } from "@ourworldindata/types"
+import {
+    AbstractChartEditor,
+    AbstractChartEditorManager,
+    EditorTab,
+    References,
+} from "./AbstractChartEditor.js"
+
+export interface ConfigEditorManager extends AbstractChartEditorManager {
+    /** Receives the patch config (the diff against `parentConfig`, if any). */
+    onSave: (config: GrapherInterface) => void | Promise<void>
+    /** Fires on every change of the patch config. */
+    onChange?: (config: GrapherInterface) => void
+    /**
+     * Restrict which tabs the editor shows. Tabs that don't apply to the
+     * chart type (map, scatter, marimekko) are hidden regardless.
+     */
+    tabs?: EditorTab[]
+}
+
+export class ConfigEditor extends AbstractChartEditor<ConfigEditorManager> {
+    constructor(props: { manager: ConfigEditorManager }) {
+        super(props)
+        makeObservable(this)
+
+        this.disposers.push(
+            reaction(
+                () => this.patchConfig,
+                (config) => this.manager.onChange?.(config),
+                { equals: comparer.structural }
+            )
+        )
+    }
+
+    get references(): References | undefined {
+        return undefined
+    }
+
+    @computed get availableTabs(): EditorTab[] {
+        const tabs: EditorTab[] = ["basic", "data", "text", "customize"]
+        if (this.grapherState.hasMapTab) tabs.push("map")
+        if (this.grapherState.isScatter) tabs.push("scatter")
+        if (this.grapherState.isMarimekko) tabs.push("marimekko")
+        tabs.push("export", "debug")
+
+        const allowed = this.manager.tabs
+        return allowed ? tabs.filter((tab) => allowed.includes(tab)) : tabs
+    }
+
+    get isNewGrapher(): boolean {
+        return false
+    }
+
+    async saveGrapher({
+        onError,
+    }: { onError?: () => void } = {}): Promise<void> {
+        const { patchConfig } = this
+        try {
+            await this.manager.onSave(patchConfig)
+        } catch {
+            onError?.()
+            return
+        }
+        runInAction(() => {
+            this.savedPatchConfig = patchConfig
+        })
+    }
+}
+
+export function isConfigEditorInstance(
+    editor: AbstractChartEditor
+): editor is ConfigEditor {
+    return editor instanceof ConfigEditor
+}

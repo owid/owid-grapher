@@ -8,6 +8,7 @@ import {
 } from "./AbstractChartEditor.js"
 import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
 import { GrapherInterface } from "@ourworldindata/types"
+import { Admin } from "./Admin.js"
 
 export interface Chart {
     id: number
@@ -17,6 +18,7 @@ export interface Chart {
 }
 
 export interface NarrativeChartEditorManager extends AbstractChartEditorManager {
+    admin: Admin
     history: History
     narrativeChartId?: number
     name?: string

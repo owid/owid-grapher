@@ -29,7 +29,10 @@ import {
 } from "@ourworldindata/grapher"
 import { NarrativeChartMinimalInformation } from "./ChartEditor.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
-import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.js"
+import {
+    defaultEditorEnvironment,
+    EditorEnvironment,
+} from "./editorProviders.js"
 
 const EDITOR_TABS = [
     "basic",
@@ -52,7 +55,11 @@ function isValidEditorTab(tab: string): tab is EditorTab {
 }
 
 export interface AbstractChartEditorManager {
-    admin: Admin
+    // Only editors that talk to the admin API need this (charts, narrative
+    // charts). A config-only editor runs without it.
+    admin?: Admin
+    // URLs the editor loads indicator data from. Defaults to the admin's.
+    environment?: EditorEnvironment
     patchConfig: GrapherInterface
     // For the main chart editor, `parentConfig` is the indicator's config
     // (variables.patchConfigIdETL), if any. For other editor variants
@@ -92,15 +99,8 @@ export abstract class AbstractChartEditor<
 > {
     manager: Manager
 
-    grapherState = new GrapherState({
-        additionalDataLoaderFn: (catalogKey) =>
-            loadCatalogData(catalogKey, { baseUrl: CATALOG_URL }),
-    })
-    cachingGrapherDataLoader = getCachingInputTableFetcher(
-        DATA_API_URL,
-        undefined,
-        true
-    )
+    grapherState: GrapherState
+    cachingGrapherDataLoader: ReturnType<typeof getCachingInputTableFetcher>
     currentRequest: Promise<any> | undefined // Whether the current chart state is saved or not
     tab: EditorTab = "basic"
     errorMessage: { title: string; content: string } | undefined = undefined
@@ -119,9 +119,23 @@ export abstract class AbstractChartEditor<
     // if inheritance is enabled, the parent config is applied to grapherState
     isInheritanceEnabled: boolean | undefined = undefined
 
-    private readonly disposers: IReactionDisposer[] = []
+    protected readonly disposers: IReactionDisposer[] = []
 
     constructor(props: { manager: Manager }) {
+        const environment =
+            props.manager.environment ?? defaultEditorEnvironment
+        this.grapherState = new GrapherState({
+            additionalDataLoaderFn: (catalogKey) =>
+                loadCatalogData(catalogKey, {
+                    baseUrl: environment.catalogUrl,
+                }),
+        })
+        this.cachingGrapherDataLoader = getCachingInputTableFetcher(
+            environment.dataApiUrl,
+            undefined,
+            true
+        )
+
         makeObservable(this, {
             grapherState: observable.ref,
             currentRequest: observable.ref,

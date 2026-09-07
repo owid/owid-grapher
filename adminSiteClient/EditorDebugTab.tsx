@@ -17,6 +17,7 @@ import {
     isNarrativeChartEditorInstance,
 } from "./NarrativeChartEditor.js"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
+import { ConfigEditor, isConfigEditorInstance } from "./ConfigEditor.js"
 import { stringify } from "safe-stable-stringify"
 
 @observer
@@ -31,7 +32,38 @@ export class EditorDebugTab<
             return <EditorDebugTabForChart editor={editor} />
         else if (isNarrativeChartEditorInstance(editor))
             return <EditorDebugTabForNarrativeChart editor={editor} />
+        else if (isConfigEditorInstance(editor))
+            return <EditorDebugTabForConfig editor={editor} />
         else return null
+    }
+}
+
+@observer
+class EditorDebugTabForConfig extends Component<{ editor: ConfigEditor }> {
+    override render() {
+        const { patchConfig, parentConfig } = this.props.editor
+        return (
+            <div>
+                <Section name="Config">
+                    <textarea
+                        rows={12}
+                        readOnly
+                        className="form-control"
+                        value={YAML.stringify(patchConfig)}
+                    />
+                </Section>
+                {parentConfig && (
+                    <Section name="Parent config">
+                        <textarea
+                            rows={7}
+                            readOnly
+                            className="form-control"
+                            value={YAML.stringify(parentConfig)}
+                        />
+                    </Section>
+                )}
+            </div>
+        )
     }
 }
 

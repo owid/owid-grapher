@@ -65,7 +65,10 @@ export class EditorTextTab<
     }
 
     async fetchTopicSlugs(): Promise<void> {
+        // Topic slugs come from the admin's gdocs; a config-only editor has
+        // no admin and simply offers no autocomplete for the origin URL.
         const { admin } = this.props.editor.manager
+        if (!admin) return
         const json = await admin.getJSON<{ slugs: string[] }>(
             "/api/gdocs/publishedTopicSlugs"
         )

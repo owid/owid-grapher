@@ -1,0 +1,38 @@
+.EditorPlaygroundPage {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+
+    > .ChartEditorPage {
+        min-height: 0;
+    }
+}
+
+.EditorPlaygroundPage__toolbar {
+    padding: 8px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9f9f9;
+}
+
+.EditorPlaygroundPage__status {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.EditorPlaygroundPage__textarea {
+    width: 100%;
+    min-height: 360px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+}
+
+.EditorPlaygroundPage__json {
+    max-height: 40vh;
+    overflow: auto;
+    font-size: 12px;
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    padding: 8px 10px;
+}

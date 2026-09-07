@@ -65,6 +65,7 @@ export const getFullReferencesCount = (references: References): number => {
 }
 
 export interface ChartEditorManager extends AbstractChartEditorManager {
+    admin: Admin
     logs: Log[]
     references: References | undefined
     redirects: ChartRedirect[]

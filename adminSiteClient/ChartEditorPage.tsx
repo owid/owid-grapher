@@ -18,6 +18,13 @@ import {
 } from "./ChartEditor.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
+import { AdminLayout } from "./AdminLayout.js"
+import {
+    adminDetailsProvider,
+    adminIndicatorCatalog,
+    DetailsProvider,
+    IndicatorCatalog,
+} from "./editorProviders.js"
 import { References } from "./AbstractChartEditor.js"
 import {
     GDP_PER_CAPITA_CATALOG_PATH,
@@ -192,6 +199,14 @@ export class ChartEditorPage
         return this.context.admin
     }
 
+    @computed get indicators(): IndicatorCatalog {
+        return adminIndicatorCatalog(this.admin)
+    }
+
+    @computed get details(): DetailsProvider {
+        return adminDetailsProvider(this.admin)
+    }
+
     @computed get editor(): ChartEditor {
         return new ChartEditor({ manager: this })
     }
@@ -224,6 +239,10 @@ export class ChartEditorPage
     }
 
     override render(): React.ReactElement {
-        return <ChartEditorView manager={this} />
+        return (
+            <AdminLayout noSidebar>
+                <ChartEditorView manager={this} />
+            </AdminLayout>
+        )
     }
 }

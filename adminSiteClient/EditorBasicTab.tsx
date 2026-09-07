@@ -398,7 +398,8 @@ export class DimensionSlotView<
                         </SortableList.Item>
                     )}
                 />
-                {canAddMore && (
+                {/* Without an indicator catalog there is nothing to pick from */}
+                {canAddMore && !this.props.database.isEmpty && (
                     <div
                         className="dimensionSlot"
                         onClick={action(

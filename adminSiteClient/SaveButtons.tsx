@@ -14,6 +14,7 @@ import {
     isNarrativeChartEditorInstance,
 } from "./NarrativeChartEditor.js"
 import { NarrativeChartNameModal } from "./NarrativeChartNameModal.js"
+import { ConfigEditor, isConfigEditorInstance } from "./ConfigEditor.js"
 import { CreateDataInsightModal } from "./CreateDataInsightModal.js"
 
 interface SaveButtonsProps<Editor extends AbstractChartEditor> {
@@ -38,7 +39,52 @@ export class SaveButtons<Editor extends AbstractChartEditor> extends Component<
                     {...passthroughProps}
                 />
             )
+        else if (isConfigEditorInstance(editor))
+            return (
+                <SaveButtonsForConfig editor={editor} {...passthroughProps} />
+            )
         else return null
+    }
+}
+
+@observer
+class SaveButtonsForConfig extends Component<SaveButtonsProps<ConfigEditor>> {
+    @action.bound onSave() {
+        void this.props.editor.saveGrapher()
+    }
+
+    @computed get editingErrors(): string[] {
+        const { errorMessages, errorMessagesForDimensions } = this.props
+        return excludeUndefined([
+            ...Object.values(errorMessages),
+            ...Object.values(errorMessagesForDimensions).flat(),
+        ])
+    }
+
+    override render() {
+        const { editingErrors } = this
+        const { editor } = this.props
+        const { grapherState } = editor
+        const isSavingDisabled =
+            grapherState.hasFatalErrors || editingErrors.length > 0
+
+        return (
+            <div className="SaveButtons">
+                <button
+                    className="btn btn-success"
+                    onClick={this.onSave}
+                    disabled={isSavingDisabled || !editor.isModified}
+                >
+                    Save config
+                </button>
+                {grapherState.isReady &&
+                    editingErrors.map((error, i) => (
+                        <div key={i} className="alert alert-danger mt-2">
+                            {error}
+                        </div>
+                    ))}
+            </div>
+        )
     }
 }
 

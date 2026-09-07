@@ -32,7 +32,6 @@ import {
     GrapherState,
     hasValidConfigForBinningStrategy,
 } from "@ourworldindata/grapher"
-import { Admin } from "./Admin.js"
 import { getFullReferencesCount, isChartEditorInstance } from "./ChartEditor.js"
 import { EditorBasicTab } from "./EditorBasicTab.js"
 import { EditorDataTab } from "./EditorDataTab.js"
@@ -45,7 +44,6 @@ import { EditorReferencesTab } from "./EditorReferencesTab.js"
 import { EditorDebugTab } from "./EditorDebugTab.js"
 import { SaveButtons } from "./SaveButtons.js"
 import { LoadingBlocker } from "./Forms.js"
-import { AdminLayout } from "./AdminLayout.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faMobile, faDesktop } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -62,13 +60,17 @@ import {
     ErrorMessagesForDimensions,
     FieldWithDetailReferences,
 } from "./ChartEditorTypes.js"
-import { Dataset, EditorDatabase } from "./EditorDatabase.js"
+import { EditorDatabase } from "./EditorDatabase.js"
+import { DetailsProvider, IndicatorCatalog } from "./editorProviders.js"
 
 export type DetailReferences = Record<FieldWithDetailReferences, string[]>
 
 export interface ChartEditorViewManager<Editor> {
-    admin: Admin
     editor: Editor
+    /** Indicators the variable selector can offer. Absent → none. */
+    indicators?: IndicatorCatalog
+    /** Details on demand, for validating text fields. Absent → none. */
+    details?: DetailsProvider
     /**
      * Query params to apply to the grapher once, after the initial data load.
      * Used when creating a narrative chart from a customized chart, so that the
@@ -86,7 +88,7 @@ interface ChartEditorViewProps<Editor> {
 export class ChartEditorView<
     Editor extends AbstractChartEditor,
 > extends React.Component<ChartEditorViewProps<Editor>> {
-    database = new EditorDatabase({})
+    database = EditorDatabase.empty()
     details: DetailDictionary = {}
     private cleanupDetailsOnDemand: (() => void) | undefined
 
@@ -136,49 +138,21 @@ export class ChartEditorView<
         }
     }
 
-    @action.bound private setDb(json: any): void {
-        this.database = new EditorDatabase(json)
+    @action.bound private setDb(database: EditorDatabase): void {
+        this.database = database
         this._isDbSet = true
     }
 
     async fetchData(): Promise<void> {
-        const { admin } = this.manager
-
-        const [namespaces, variables] = await Promise.all([
-            admin.getJSON(`/api/editorData/namespaces.json`),
-            admin.getJSON(`/api/editorData/variables.json`),
-        ])
-
-        this.setDb(namespaces)
-
-        const groupedByNamespace = _.groupBy(
-            variables.datasets,
-            (d) => d.namespace
-        )
-        for (const namespace in groupedByNamespace) {
-            this.database.dataByNamespace.set(namespace, {
-                datasets: groupedByNamespace[namespace] as Dataset[],
-            })
-        }
-
-        const usageData = await admin.getJSON<
-            {
-                variableId: number
-                usageCount: number
-            }[]
-        >(`/api/variables.usages.json`)
-        this.database.variableUsageCounts = new Map(
-            usageData.map(({ variableId, usageCount }) => [
-                variableId,
-                +usageCount,
-            ])
-        )
+        const { indicators } = this.manager
+        const catalog = indicators
+            ? await indicators.load()
+            : { namespaces: [], datasets: [] }
+        this.setDb(new EditorDatabase(catalog))
     }
 
     async fetchDetails(): Promise<void> {
-        const details = await this.manager.admin.getJSON<DetailDictionary>(
-            "/api/parsed-dods.json"
-        )
+        const details = (await this.manager.details?.load()) ?? {}
 
         this.cleanupDetailsOnDemand = initializeDetailsOnDemand({ details })
 
@@ -340,7 +314,10 @@ export class ChartEditorView<
     }
 
     override componentDidMount(): void {
-        this.refresh()
+        // Register the reactions before kicking off the fetches: without an
+        // indicator catalog to await, `fetchData` marks the view ready
+        // synchronously, and a reaction set up afterwards would never see
+        // the editor appear.
         this.disposers.push(
             reaction(
                 () => this.editor,
@@ -371,6 +348,7 @@ export class ChartEditorView<
                 { equals: comparer.structural }
             )
         )
+        this.refresh()
     }
 
     disposers: IReactionDisposer[] = []
@@ -382,17 +360,15 @@ export class ChartEditorView<
 
     override render(): React.ReactElement {
         return (
-            <AdminLayout noSidebar>
-                <main className="ChartEditorPage">
-                    <LoadingBlocker
-                        isLoading={
-                            this.editor === undefined ||
-                            !!this.editor.currentRequest
-                        }
-                    />
-                    {this.editor !== undefined && this.renderReady(this.editor)}
-                </main>
-            </AdminLayout>
+            <main className="ChartEditorPage">
+                <LoadingBlocker
+                    isLoading={
+                        this.editor === undefined ||
+                        !!this.editor.currentRequest
+                    }
+                />
+                {this.editor !== undefined && this.renderReady(this.editor)}
+            </main>
         )
     }
 
