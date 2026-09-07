@@ -10,6 +10,7 @@ import {
     ingestGrapherConfig,
 } from "../../db/grapherConfigValidation.js"
 import {
+    ADMIN_BASE_URL,
     GRAPHER_DB_HOST,
     GRAPHER_DB_NAME,
     GRAPHER_DB_PORT,
@@ -212,15 +213,22 @@ export function parseOwnerRef(
     }
 }
 
-export function formatOwnerRef(owner: OwnerRef): string {
+export function adminUrlForOwner(owner: OwnerRef): string {
     switch (owner.owner) {
         case "chart":
-        case "indicator":
+            return `${ADMIN_BASE_URL}/admin/charts/${owner.id}/edit`
         case "narrativeChart":
-            return owner.id
+            return `${ADMIN_BASE_URL}/admin/narrative-charts/${owner.id}/edit`
         case "multiDim":
-            return `${owner.id} (view ${owner.viewId})`
+            return `${ADMIN_BASE_URL}/admin/multi-dims/${owner.id}`
+        case "indicator":
+            return `${ADMIN_BASE_URL}/admin/variables/${owner.id}`
     }
+}
+
+export function formatOwnerRef(owner: OwnerRef): string {
+    const url = adminUrlForOwner(owner)
+    return owner.owner === "multiDim" ? `${url} (view ${owner.viewId})` : url
 }
 
 export function buildReferenceIndex(rows: RawReferenceRow[]): {
