@@ -10,6 +10,10 @@
     background-color: $white;
     // MetadataBoxExpander's scroll compensation is only correct without anchoring
     overflow-anchor: none;
+
+    @include sm-only {
+        padding: 16px;
+    }
 }
 
 // The divider needs key data above it and revealed content below it
