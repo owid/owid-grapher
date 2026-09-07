@@ -119,6 +119,19 @@ export class GdocFeaturedViz
             })
         }
 
+        const creditsBlockCount = (this.content.body ?? []).filter(
+            (block) => block.type === "credits"
+        ).length
+
+        if (creditsBlockCount > 1) {
+            errors.push({
+                property: "body",
+                message:
+                    "A featured viz page can only have one {.credits} block at the top level of its body.",
+                type: OwidGdocErrorMessageType.Error,
+            })
+        }
+
         return errors
     }
 

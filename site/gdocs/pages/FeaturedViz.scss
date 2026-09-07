@@ -73,15 +73,15 @@ hr.featured-viz-divider {
         @include body-3-regular;
     }
 
-    .footnote-container {
-        margin-top: 0;
+    // Each footer band opens with 48px of space. The footnote container brings
+    // its own from centered-article.scss
+    > .credits-section,
+    > #article-citation {
+        margin-top: 48px;
     }
 
-    // Whichever block comes before the footnote container or citation footer
-    > [class*="article-block__"]:has(+ .footnote-container),
-    > [class*="article-block__"]:has(+ #article-citation),
-    > .featured-viz-hero:has(+ .footnote-container),
-    > .featured-viz-hero:has(+ #article-citation) {
-        margin-bottom: 48px;
+    // The footnotes and the citation share a background and are meant to touch
+    > .footnote-container + #article-citation {
+        margin-top: 0;
     }
 }
