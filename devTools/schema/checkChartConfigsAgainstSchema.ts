@@ -87,13 +87,12 @@ export const REFERENCING_COLUMNS: Record<string, ConfigReference | null> = {
 const BATCH_SIZE = 2000
 const MAX_LISTED_IDS = 20
 
-interface ValidationIssueGroup {
-    owner: ConfigOwner
-    role: ConfigRole
+export interface ValidationIssueGroup {
+    column: string
     pointer: string
     message: string
     count: number
-    exampleIds: string[]
+    exampleOwners: OwnerRef[]
 }
 
 export interface RawReferenceRow {
@@ -105,8 +104,7 @@ export interface RawReferenceRow {
 
 interface IndexedReference {
     column: string
-    reference: ConfigReference | null
-    owner: OwnerRef | null
+    validated: { reference: ConfigReference; owner: OwnerRef } | null
 }
 
 interface ReferenceConflict {
@@ -115,12 +113,12 @@ interface ReferenceConflict {
 }
 
 interface UnexpectedFailure {
-    id: string
+    owner: OwnerRef
     message: string
 }
 
 interface Report {
-    ownerRoleCounts: Map<string, number>
+    validatedCounts: Map<string, number>
     notValidatedCounts: Map<string, number>
     validationIssues: Map<string, ValidationIssueGroup>
     conflicts: ReferenceConflict[]
@@ -214,6 +212,17 @@ export function parseOwnerRef(
     }
 }
 
+export function formatOwnerRef(owner: OwnerRef): string {
+    switch (owner.owner) {
+        case "chart":
+        case "indicator":
+        case "narrativeChart":
+            return owner.id
+        case "multiDim":
+            return `${owner.id} (view ${owner.viewId})`
+    }
+}
+
 export function buildReferenceIndex(rows: RawReferenceRow[]): {
     index: Map<string, IndexedReference>
     conflicts: ReferenceConflict[]
@@ -223,26 +232,26 @@ export function buildReferenceIndex(rows: RawReferenceRow[]): {
 
     for (const row of rows) {
         const reference = REFERENCING_COLUMNS[row.reference]
-        const owner =
-            reference === null ? null : parseOwnerRef(reference.owner, row)
         const indexed: IndexedReference = {
             column: row.reference,
-            reference,
-            owner,
+            validated:
+                reference === null
+                    ? null
+                    : { reference, owner: parseOwnerRef(reference.owner, row) },
         }
         const existing = index.get(row.id)
         if (existing === undefined) {
             index.set(row.id, indexed)
             continue
         }
-        if (existing.reference === null) {
+        if (existing.validated === null) {
             if (reference !== null) index.set(row.id, indexed)
             continue
         }
         if (reference === null) continue
         if (
-            existing.reference.owner !== reference.owner ||
-            existing.reference.role !== reference.role
+            existing.validated.reference.owner !== reference.owner ||
+            existing.validated.reference.role !== reference.role
         )
             conflicts.push({
                 id: row.id,
@@ -255,7 +264,7 @@ export function buildReferenceIndex(rows: RawReferenceRow[]): {
 
 function createReport(): Report {
     return {
-        ownerRoleCounts: new Map(),
+        validatedCounts: new Map(),
         notValidatedCounts: new Map(),
         validationIssues: new Map(),
         conflicts: [],
@@ -270,25 +279,24 @@ function increment(counts: Map<string, number>, key: string): void {
 
 function recordValidationIssue(
     report: Report,
-    owner: ConfigOwner,
-    role: ConfigRole,
-    issue: GrapherConfigValidationIssue,
-    configId: string
+    column: string,
+    owner: OwnerRef,
+    issue: GrapherConfigValidationIssue
 ): void {
-    const key = `${owner}|${role}|${issue.pointer}|${issue.message}`
+    const key = `${column}|${issue.pointer}|${issue.message}`
     const existing = report.validationIssues.get(key)
     if (existing) {
         existing.count++
-        if (existing.exampleIds.length < 3) existing.exampleIds.push(configId)
+        if (existing.exampleOwners.length < 3)
+            existing.exampleOwners.push(owner)
         return
     }
     report.validationIssues.set(key, {
-        owner,
-        role,
+        column,
         pointer: issue.pointer,
         message: issue.message,
         count: 1,
-        exampleIds: [configId],
+        exampleOwners: [owner],
     })
 }
 
@@ -303,25 +311,24 @@ function processRow(
         return
     }
 
-    if (indexed.reference === null) {
+    if (indexed.validated === null) {
         increment(report.notValidatedCounts, indexed.column)
         return
     }
 
-    const { owner, role } = indexed.reference
-    increment(report.ownerRoleCounts, `${owner}/${role}`)
+    const { owner } = indexed.validated
+    increment(report.validatedCounts, indexed.column)
 
-    // The report validates the stored version, not a migrated config
     const config = parseChartConfig(row.config, { skipMigration: true })
     try {
         ingestGrapherConfig(config)
     } catch (error) {
         if (error instanceof GrapherConfigValidationError) {
             for (const issue of error.issues)
-                recordValidationIssue(report, owner, role, issue, row.id)
+                recordValidationIssue(report, indexed.column, owner, issue)
         } else
             report.unexpectedFailures.push({
-                id: row.id,
+                owner,
                 message: error instanceof Error ? error.message : String(error),
             })
     }
@@ -345,50 +352,38 @@ async function walkChartConfigs(
     }
 }
 
-function orderedOwnerRoles(): ConfigReference[] {
-    const seen = new Set<string>()
-    const ordered: ConfigReference[] = []
-    for (const reference of Object.values(REFERENCING_COLUMNS)) {
-        if (reference === null) continue
-        const key = `${reference.owner}/${reference.role}`
-        if (seen.has(key)) continue
-        seen.add(key)
-        ordered.push(reference)
-    }
-    return ordered
-}
-
-function printOwnerRoleCounts(counts: Map<string, number>): void {
-    const pairs = orderedOwnerRoles().map((reference) => ({
-        ...reference,
-        label: `${reference.owner}/${reference.role}`,
-    }))
-    const width = Math.max(...pairs.map(({ label }) => label.length))
-    for (const { label } of pairs)
-        console.log(`  ${label.padEnd(width)}  ${counts.get(label) ?? 0}`)
-}
-
-function printNotValidatedCounts(counts: Map<string, number>): void {
-    const columns = Object.entries(REFERENCING_COLUMNS)
-        .filter(([, reference]) => reference === null)
-        .map(([column]) => column)
+function printColumnCounts(
+    columns: string[],
+    counts: Map<string, number>
+): void {
     const width = Math.max(...columns.map((column) => column.length))
     for (const column of columns)
         console.log(`  ${column.padEnd(width)}  ${counts.get(column) ?? 0}`)
 }
 
-function printValidationIssues(
-    issues: Map<string, ValidationIssueGroup>
-): void {
-    if (issues.size === 0) {
-        console.log("  none")
-        return
+function partitionReferencingColumns(): {
+    validated: string[]
+    notValidated: string[]
+} {
+    const validated: string[] = []
+    const notValidated: string[] = []
+    for (const [column, reference] of Object.entries(REFERENCING_COLUMNS)) {
+        if (reference === null) notValidated.push(column)
+        else validated.push(column)
     }
+    return { validated, notValidated }
+}
+
+export function renderValidationIssues(
+    issues: Map<string, ValidationIssueGroup>,
+    validatedCounts: Map<string, number>
+): string[] {
+    if (issues.size === 0) return ["  none"]
     const sorted = [...issues.values()].sort((a, b) => b.count - a.count)
-    for (const issue of sorted)
-        console.log(
-            `  ${issue.owner}/${issue.role} ${issue.pointer || "(root)"}: ${issue.message} (${issue.count}, e.g. ${issue.exampleIds.join(", ")})`
-        )
+    return sorted.map((issue) => {
+        const total = validatedCounts.get(issue.column) ?? 0
+        return `  ${issue.column} ${issue.pointer || "(root)"}: ${issue.message} (${issue.count} of ${total}, e.g. ${issue.exampleOwners.map(formatOwnerRef).join(", ")})`
+    })
 }
 
 function printConflicts(conflicts: ReferenceConflict[]): void {
@@ -419,11 +414,11 @@ function printUnexpectedFailures(failures: UnexpectedFailure[]): void {
         return
     }
     for (const failure of failures)
-        console.log(`  ${failure.id}: ${failure.message}`)
+        console.log(`  ${formatOwnerRef(failure.owner)}: ${failure.message}`)
 }
 
 function printReport(report: Report, elapsedSeconds: number): void {
-    const counted = [...report.ownerRoleCounts.values()].reduce(
+    const counted = [...report.validatedCounts.values()].reduce(
         (total, count) => total + count,
         0
     )
@@ -431,6 +426,7 @@ function printReport(report: Report, elapsedSeconds: number): void {
         (total, count) => total + count,
         0
     )
+    const { validated, notValidated } = partitionReferencingColumns()
 
     console.log("Validated stored grapher configs")
     console.log(
@@ -440,16 +436,20 @@ function printReport(report: Report, elapsedSeconds: number): void {
     console.log(`Date: ${new Date().toISOString()}`)
     console.log("")
 
-    console.log("Validated, by owner and role:")
-    printOwnerRoleCounts(report.ownerRoleCounts)
+    console.log("Validated, by the column that references them:")
+    printColumnCounts(validated, report.validatedCounts)
     console.log("")
 
-    console.log("Not validated, by the column that names them:")
-    printNotValidatedCounts(report.notValidatedCounts)
+    console.log("Not validated, by the column that references them:")
+    printColumnCounts(notValidated, report.notValidatedCounts)
     console.log("")
 
     console.log("Validation issues:")
-    printValidationIssues(report.validationIssues)
+    for (const line of renderValidationIssues(
+        report.validationIssues,
+        report.validatedCounts
+    ))
+        console.log(line)
     console.log("")
 
     console.log("Rows referenced with conflicting roles:")
