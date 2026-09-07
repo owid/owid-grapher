@@ -10,7 +10,6 @@ import {
     DbPlainNarrativeChart,
     JsonString,
     JsonError,
-    parseChartConfig,
     DbInsertNarrativeChart,
     NarrativeChartsTableName,
     ChartConfigsTableName,
@@ -46,7 +45,10 @@ import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import { getPublishedLinksTo } from "../../db/model/Link.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
-import { getChartConfigByUuid } from "../../db/model/ChartConfigs.js"
+import {
+    getChartConfigByUuid,
+    parseChartConfig,
+} from "../../db/model/ChartConfigs.js"
 import { narrativeChartExists } from "../../db/model/NarrativeChart.js"
 import {
     assertValidGrapherConfig,

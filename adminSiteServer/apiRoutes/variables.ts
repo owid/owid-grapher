@@ -11,7 +11,6 @@ import {
     DbRawChartConfig,
     GrapherInterface,
     OwidVariableWithSource,
-    parseChartConfig,
     ChartConfigsTableName,
     R2GrapherConfigDirectory,
 } from "@ourworldindata/types"
@@ -27,6 +26,7 @@ import {
     updateIndicatorChartConfig,
     deleteIndicators,
 } from "../../db/model/Variable.js"
+import { parseChartConfig } from "../../db/model/ChartConfigs.js"
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
 import { ingestGrapherConfig } from "../../db/grapherConfigValidation.js"
 import { DATA_API_URL } from "../../settings/clientSettings.mjs"

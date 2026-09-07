@@ -5,8 +5,6 @@ import {
     GrapherInterface,
     JsonError,
     DbPlainUser,
-    parseChartConfig,
-    serializeChartConfig,
     DbPlainChart,
     DbRawChartConfig,
     R2GrapherConfigDirectory,
@@ -59,6 +57,8 @@ import {
 } from "../chartConfigHelpers.js"
 import {
     insertChartConfig,
+    parseChartConfig,
+    serializeChartConfig,
     updateChartConfig,
 } from "../../db/model/ChartConfigs.js"
 import { deleteGrapherConfigFromR2 } from "../../serverUtils/r2/chartConfigR2Helpers.js"

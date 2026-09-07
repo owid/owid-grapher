@@ -21,11 +21,3 @@ export type DbRawChartConfig = Required<DbInsertChartConfig> & {
 export type DbEnrichedChartConfig = Omit<DbRawChartConfig, "config"> & {
     config: GrapherInterface
 }
-
-export function parseChartConfig(config: JsonString): GrapherInterface {
-    return JSON.parse(config)
-}
-
-export function serializeChartConfig(config: GrapherInterface): JsonString {
-    return JSON.stringify(config)
-}

@@ -7,12 +7,12 @@ import {
     merge,
     dimensionsToViewId,
     MultiDimDataPageConfig,
-    parseChartConfig,
 } from "@ourworldindata/utils"
 import { toPlaintext } from "@ourworldindata/components"
 import * as db from "../../../db/db.js"
 import { getAllPublishedMultiDimDataPages } from "../../../db/model/MultiDimDataPage.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
+import { parseChartConfig } from "../../../db/model/ChartConfigs.js"
 import {
     ChartRecord,
     ChartRecordType,

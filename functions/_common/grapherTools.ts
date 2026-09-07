@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import { runInAction } from "mobx"
 import {
+    type AnyConfig,
     CsvDownloadType,
     type DataDownloadContextBase,
     generateGrapherImageSrcSet,
@@ -8,6 +9,7 @@ import {
     Grapher,
     GrapherState,
     loadCatalogData,
+    migrateGrapherConfigToLatestVersion,
 } from "@ourworldindata/grapher"
 import {
     type DownloadRewriteTarget,
@@ -184,7 +186,9 @@ async function fetchMultiDimGrapherConfig(
         }
     }
     return {
-        grapherConfig: await response.json(),
+        grapherConfig: migrateGrapherConfigToLatestVersion(
+            await response.json()
+        ),
         status: response.status,
         etag: response.headers.get("etag") ?? undefined,
     }
@@ -257,7 +261,7 @@ export async function fetchGrapherConfig({
             (dim) => dim.slug
         )
     } else {
-        grapherConfig = config as GrapherInterface
+        grapherConfig = migrateGrapherConfigToLatestVersion(config as AnyConfig)
     }
     console.log("grapher title", grapherConfig.title)
     const result: FetchGrapherConfigResult = {

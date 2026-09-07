@@ -15,7 +15,6 @@ import {
     GrapherInterface,
     RelatedChart,
     DbPlainChart,
-    parseChartConfig,
     ChartRedirect,
     DbPlainTag,
     DbRawChartConfig,
@@ -23,6 +22,7 @@ import {
     GrapherChartType,
     RelatedChartsTableName,
 } from "@ourworldindata/types"
+import { parseChartConfig } from "./ChartConfigs.js"
 import { OpenAI } from "openai"
 import { zodResponseFormat } from "openai/helpers/zod"
 import { OPENAI_API_KEY } from "../../settings/serverSettings.js"
@@ -97,7 +97,7 @@ export async function mapSlugsToConfigs(
         .then((results) =>
             results.map((result) => ({
                 ...result,
-                config: JSON.parse(result.config),
+                config: parseChartConfig(result.config),
             }))
         )
 }
