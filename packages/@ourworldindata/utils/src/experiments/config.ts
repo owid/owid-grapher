@@ -1,6 +1,8 @@
 import {
     DATA_PAGE_METADATA_EXPERIMENT_ID,
     EXPERIMENT_PREFIX,
+    LATEST_STICKY_FILTERS_ARMS,
+    LATEST_STICKY_FILTERS_EXPERIMENT_ID,
 } from "./constants.js"
 import { Experiment } from "./Experiment.js"
 
@@ -117,6 +119,34 @@ export const experiments: Experiment[] = [
             "/grapher/daily-per-capita-caloric-supply",
             "/grapher/per-capita-energy-use",
         ],
+    }),
+    /*
+     * Experiment: latest-sticky-filters-v1
+     *
+     * Trials keeping the /latest feed's filters within reach while the reader
+     * scrolls through the feed. On desktop the whole filter row is affected;
+     * on mobile only the topic pills stick — the content-type dropdown moves
+     * above them (and gains a "Filter by topic" label for the pills) so the
+     * sticky part is always the top of the filter block.
+     *
+     * Conditions:
+     * - (a) not-sticky: status quo, filters scroll away with the page
+     * - (b) reveal-on-scroll-up: filters stick, but hide while scrolling
+     *       down and slide back in on scroll up
+     * - (c) fully-sticky: filters stay pinned to the top of the viewport
+     */
+    new Experiment({
+        id: LATEST_STICKY_FILTERS_EXPERIMENT_ID,
+        expires: "2026-11-30T00:00:00.000Z",
+        arms: [
+            { id: LATEST_STICKY_FILTERS_ARMS.notSticky, fraction: 1 / 3 },
+            {
+                id: LATEST_STICKY_FILTERS_ARMS.revealOnScrollUp,
+                fraction: 1 / 3,
+            },
+            { id: LATEST_STICKY_FILTERS_ARMS.fullySticky, fraction: 1 / 3 },
+        ],
+        paths: ["/latest"],
     }),
 ]
 

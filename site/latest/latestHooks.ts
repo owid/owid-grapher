@@ -6,7 +6,7 @@ import {
     useQuery,
 } from "@tanstack/react-query"
 import { LiteClient } from "algoliasearch/lite"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import * as R from "remeda"
 import {
     latestPagesQueryKey,
@@ -19,10 +19,16 @@ import {
     type LatestType,
     type PageChronologicalRecord,
 } from "@ourworldindata/types"
-import { OwidGdocType } from "@ourworldindata/utils"
+import {
+    EXPERIMENT_PREFIX,
+    LATEST_STICKY_FILTERS_EXPERIMENT_ID,
+    OwidGdocType,
+    getExperimentState,
+} from "@ourworldindata/utils"
 import { getPrefixedGdocPath } from "@ourworldindata/components"
 import { match } from "ts-pattern"
 import { SiteAnalytics } from "../SiteAnalytics.js"
+import { ScrollDirection, useScrollDirection } from "../hooks.js"
 
 const DEFAULT_PAGE_SIZE = 20
 
@@ -228,4 +234,56 @@ export function useInfiniteLatestPages({
         tagFacetCounts,
         latestTypeFacetCounts,
     }
+}
+
+/*
+ * Sticky filters experiment (exp-latest-sticky-filters-v1).
+ */
+
+/** The visitor's arm in the /latest sticky filters experiment, read once on
+ * mount. The layout for each arm is applied by CSS keyed off the body class
+ * the edge middleware adds, so this is only needed for the behaviour CSS
+ * can't express: the reveal-on-scroll-up arm's hide/show. */
+export function useLatestStickyFiltersArm(): string | undefined {
+    const [arm, setArm] = useState<string | undefined>(undefined)
+    useEffect(() => {
+        setArm(
+            getExperimentState()[
+                `${EXPERIMENT_PREFIX}-${LATEST_STICKY_FILTERS_EXPERIMENT_ID}`
+            ]?.arm
+        )
+    }, [])
+    return arm
+}
+
+/**
+ * Whether a sticky element should be hidden for the reveal-on-scroll-up arm:
+ * only while the reader scrolls down *and* the element is actually stuck
+ * (its box has reached the `top` its CSS pins it at — negative on mobile,
+ * where the top of the container is meant to scroll out of view). Hiding
+ * it before it's stuck would slide it over the content above it. Once
+ * hidden (translated off-screen) its box top is lower still, which counts
+ * as stuck, so it stays hidden until the reader scrolls up.
+ */
+export function useIsStickyElementHidden(
+    enabled: boolean,
+    stickyRef: React.RefObject<HTMLElement | null>
+): boolean {
+    const direction = useScrollDirection()
+    const [isStuck, setIsStuck] = useState(false)
+
+    useEffect(() => {
+        if (!enabled) return
+        const update = () => {
+            const el = stickyRef.current
+            if (!el) return
+            const stickyTop = parseFloat(getComputedStyle(el).top) || 0
+            setIsStuck(el.getBoundingClientRect().top <= stickyTop)
+        }
+        update()
+        window.addEventListener("scroll", update, { passive: true })
+        return () => window.removeEventListener("scroll", update)
+    }, [enabled, stickyRef])
+
+    return enabled && isStuck && direction === ScrollDirection.Down
 }

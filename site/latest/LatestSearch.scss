@@ -49,3 +49,82 @@
         border-right: 4px solid $gray-5;
     }
 }
+
+// ---------- Experiment: sticky filters (exp-latest-sticky-filters-v1) ----------
+//
+// The edge middleware adds `exp-latest-sticky-filters-v1--<arm>` to <body>,
+// so these rules apply to the baked skeleton as well as the mounted app —
+// no flash when the app takes over. Two of the three arms stick; they share
+// the same layout and differ only in whether the sticky container hides
+// while scrolling down (reveal-on-scroll-up, toggled by
+// `.latest-search__facets-container--hidden` from LatestSearch).
+//
+// The sticky element has to be the grid item (a sticky element can only move
+// within its parent's box, and the facets' own wrappers are no taller than
+// the facets). Desktop: the whole filter block stays in view. Mobile: the
+// content-type dropdown moves above the topic pills, and a negative `top`
+// lets exactly that dropdown row scroll out of view so only the pills — now
+// with a "Filter by topic" label — stay pinned.
+
+$latest-sticky-filters-arms: (reveal-on-scroll-up, fully-sticky);
+$latest-sticky-filters-padding: 16px;
+// Height of the content-type trigger plus the column gap beneath it, both
+// fixed in LatestTopicFacets.scss.
+$latest-sticky-filters-mobile-dropdown-row: 32px + 16px;
+
+@each $arm in $latest-sticky-filters-arms {
+    .exp-latest-sticky-filters-v1--#{$arm} {
+        .latest-search__facets-container {
+            position: sticky;
+            z-index: $zindex-global-entity-select;
+            background-color: $gray-5;
+
+            @include sm-up {
+                top: 0;
+                // Breathing room when stuck, without moving the block in
+                // its normal position.
+                padding: $latest-sticky-filters-padding 0;
+                margin: -$latest-sticky-filters-padding 0;
+            }
+
+            @include sm-only {
+                top: -$latest-sticky-filters-mobile-dropdown-row;
+            }
+        }
+
+        @include sm-only {
+            .latest-topic-facets__topics {
+                order: 2;
+            }
+
+            .latest-topic-facets__content-type-dropdown {
+                order: 1;
+            }
+
+            .latest-topic-facets__topics-label {
+                display: block;
+            }
+
+            // Outside the experiment the rule under the pills is what
+            // separates the filters from the feed on mobile. The pinned
+            // bar has its own bottom edge and padding, so here the rule
+            // and the space above it read as a stray line floating
+            // inside the bar — drop both and let the bar's padding do
+            // the separating.
+            .latest-topic-facets__topic-pills {
+                padding-bottom: 0;
+                border-bottom: none;
+            }
+        }
+    }
+}
+
+.exp-latest-sticky-filters-v1--reveal-on-scroll-up {
+    .latest-search__facets-container {
+        transition: transform var(--duration-popover) var(--ease-out);
+    }
+
+    .latest-search__facets-container--hidden {
+        transform: translateY(-100%);
+    }
+}
