@@ -3,6 +3,7 @@ import { faCaretDown, faFilter } from "@fortawesome/free-solid-svg-icons"
 import { TagGraphRoot } from "@ourworldindata/types"
 import { LatestPageHeader } from "./LatestPageHeader.js"
 import { LatestSearchSkeleton } from "./LatestSearchSkeleton.js"
+import { LATEST_TOPIC_FACETS_LABEL } from "./LatestTopicFacets.js"
 import {
     LATEST_FACETS_CONTAINER_CLASSES,
     LATEST_FILTERS_DIVIDER_CLASSES,
@@ -28,22 +29,27 @@ export const LatestPageSkeleton = ({
             <div className={LATEST_FACETS_CONTAINER_CLASSES}>
                 <div className="latest-topic-facets" aria-hidden="true">
                     <div className="latest-topic-facets__filters">
-                        <div className="latest-topic-facets__topic-pills">
-                            <div className="latest-topic-facets-skeleton__pill-row">
-                                <div
-                                    className="latest-topic-facets__topic-pill"
-                                    data-selected="true"
-                                >
-                                    All
-                                </div>
-                                {areas.map((area) => (
+                        <div className="latest-topic-facets__topics">
+                            <span className="latest-topic-facets__topics-label">
+                                {LATEST_TOPIC_FACETS_LABEL}
+                            </span>
+                            <div className="latest-topic-facets__topic-pills">
+                                <div className="latest-topic-facets-skeleton__pill-row">
                                     <div
-                                        key={area}
                                         className="latest-topic-facets__topic-pill"
+                                        data-selected="true"
                                     >
-                                        {area}
+                                        All
                                     </div>
-                                ))}
+                                    {areas.map((area) => (
+                                        <div
+                                            key={area}
+                                            className="latest-topic-facets__topic-pill"
+                                        >
+                                            {area}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                         <div className="latest-topic-facets__content-type-dropdown">
