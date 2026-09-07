@@ -3,6 +3,7 @@
  * unsaved changes; the Refs tab lists where the chart is used and manages the
  * URLs that redirect to it.
  */
+import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import { expect, test } from "./harness.js"
 import { indicators } from "./fixture.js"
 import { lineChart } from "./charts.js"
@@ -128,7 +129,10 @@ test.describe("Refs tab", () => {
                 type: "chart",
                 name,
                 parentChartId: chart.id,
-                config: { title: "A narrative about life expectancy" },
+                config: {
+                    $schema: latestGrapherConfigSchema,
+                    title: "A narrative about life expectancy",
+                },
             },
         })
         const { narrativeChartId } = await response.json()
@@ -160,7 +164,7 @@ test.describe("Refs tab", () => {
                 type: "chart",
                 name: `keeps-alive-${chart.id}`,
                 parentChartId: chart.id,
-                config: {},
+                config: { $schema: latestGrapherConfigSchema },
             },
         })
         const editor = await openEditor(chart)

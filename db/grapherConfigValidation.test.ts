@@ -59,6 +59,17 @@ describe(ingestGrapherConfig, () => {
         })
     })
 
+    it("rejects a config that is not an object", () => {
+        const error = catchValidationError(() =>
+            ingestGrapherConfig(null as unknown as AnyConfig, "chart")
+        )
+
+        expect(error.status).toBe(400)
+        expect(error.issues).toEqual([
+            { pointer: "", message: "must be object" },
+        ])
+    })
+
     it("rejects a config with no $schema", () => {
         const error = catchValidationError(() =>
             ingestGrapherConfig({ title: "Untitled" }, "chart")

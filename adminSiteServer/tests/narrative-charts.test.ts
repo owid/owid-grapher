@@ -164,6 +164,24 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
         })
     })
 
+    it("rejects a narrative chart config with an unknown key", async () => {
+        const { chartId } = await createParentChart()
+
+        const response = await env.request({
+            method: "POST",
+            path: "/narrative-charts",
+            body: JSON.stringify({
+                type: "chart",
+                name: "test-narrative-chart-invalid",
+                parentChartId: chartId,
+                config: { ...narrativeChartConfig, hideLegend: true },
+            }),
+            expectStatus: 400,
+        })
+        expect(response.error.message).toContain("/hideLegend")
+        expect(await env.getCount(NarrativeChartsTableName)).toBe(0)
+    })
+
     it("updates a narrative chart in place", async () => {
         const { chartId } = await createParentChart()
         const narrativeChartId = await createNarrativeChart(chartId)

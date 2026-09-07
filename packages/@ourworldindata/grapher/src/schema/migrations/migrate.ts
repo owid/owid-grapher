@@ -47,16 +47,3 @@ export const migrateGrapherConfigToLatestVersion = (
 
     return clone
 }
-
-export const migrateGrapherConfigToLatestVersionAndFailOnError = (
-    config: AnyConfig
-): GrapherInterface => {
-    const migrated = migrateGrapherConfigToLatestVersion(config)
-
-    if (migrated.$schema !== defaultGrapherConfig.$schema) {
-        throw new Error(
-            `Invalid schema version after schema migration: ${migrated.$schema}. Expected: ${defaultGrapherConfig.$schema}`
-        )
-    }
-    return migrated
-}
