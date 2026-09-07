@@ -47,15 +47,13 @@ export interface NotificationEmailItem {
     topicLabel?: string
     authors: string[]
     excerpt?: string
-    // An article's authored `latest-feed-excerpt`, used in preference to the
-    // plain-text `excerpt` when set. Several paragraphs, so it's kept as
-    // blocks rather than a string.
+    // An article's authored `latest-feed-excerpt`
     excerptBlocks?: EnrichedBlockText[]
     thumbnailUrl?: string
     // Data insights carry their full content, rendered inline in the email.
     body?: OwidEnrichedGdocBlock[]
     // Cloudflare image URLs for the image blocks in `body`.
-    imageUrlByFilename?: Record<string, string>
+    imageUrlsByFilename?: Record<string, string>
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000
