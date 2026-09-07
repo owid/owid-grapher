@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest"
 import { type AnyConfig, defaultGrapherConfig } from "@ourworldindata/grapher"
 import {
+    assertValidGrapherConfig,
+    assertValidGrapherConfigs,
     GrapherConfigValidationError,
     ingestGrapherConfig,
     validateGrapherConfig,
@@ -94,6 +96,61 @@ describe(ingestGrapherConfig, () => {
 
         expect(error.status).toBe(400)
         expect(error.issues.map((issue) => issue.pointer)).toEqual(["/$schema"])
+    })
+})
+
+describe(assertValidGrapherConfig, () => {
+    it("does nothing when the config is valid", () => {
+        expect(() =>
+            assertValidGrapherConfig(baseChartConfig, "chart")
+        ).not.toThrow()
+    })
+
+    it("throws on an invalid config", () => {
+        const error = catchValidationError(() =>
+            assertValidGrapherConfig(basePatchConfig, "chart")
+        )
+        expect(error.message).toBe(
+            "Invalid grapher chart config:\n  (root): must have required property 'dimensions'"
+        )
+    })
+})
+
+describe(assertValidGrapherConfigs, () => {
+    it("returns silently when every config is valid", () => {
+        const configs = [
+            { label: "chart 1", config: baseChartConfig },
+            { label: "chart 2", config: baseChartConfig },
+        ]
+        expect(() => assertValidGrapherConfigs(configs, "chart")).not.toThrow()
+    })
+
+    it("throws once, naming every failing label with an N of M header", () => {
+        const configs = [
+            { label: "chart 1", config: baseChartConfig },
+            { label: "chart 2", config: basePatchConfig },
+            {
+                label: "chart 3",
+                config: { ...baseChartConfig, hideLegend: true },
+            },
+        ]
+        const error = catchValidationError(() =>
+            assertValidGrapherConfigs(configs, "chart")
+        )
+
+        expect(error.message.split("\n")[0]).toBe(
+            "Invalid grapher chart config for 2 of 3 charts:"
+        )
+        expect(error.message).toContain(
+            "  chart 2\n    (root): must have required property 'dimensions'"
+        )
+        expect(error.message).toContain(
+            "  chart 3\n    /hideLegend: must NOT have additional properties"
+        )
+        expect(error.issues.map((issue) => issue.label)).toEqual([
+            "chart 2",
+            "chart 3",
+        ])
     })
 })
 

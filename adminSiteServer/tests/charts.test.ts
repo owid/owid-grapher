@@ -103,6 +103,30 @@ describe("Charts API", { timeout: 15000 }, () => {
         expect(await env.getCount(ChartsTableName)).toBe(0)
         expect(await env.getCount(ChartConfigsTableName)).toBe(0)
     })
+
+    it("rejects a save whose merged full config loses dimensions", async () => {
+        const createResponse = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+        const chartId = createResponse.chartId
+
+        const droppedDimensionsConfig = omitUndefinedValues({
+            ...testChartConfig,
+            dimensions: undefined,
+        })
+        const response = await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}?inheritance=disable`,
+            body: JSON.stringify(droppedDimensionsConfig),
+        })
+        expect(response.success).toBe(false)
+        expect(response.error.message).toContain("dimensions")
+
+        const fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig.dimensions).toEqual(testChartConfig.dimensions)
+    })
 })
 
 describe("Indicator-level chart configs", { timeout: 15000 }, () => {
