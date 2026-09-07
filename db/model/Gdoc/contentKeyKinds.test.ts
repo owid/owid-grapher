@@ -57,16 +57,22 @@ function keysTagged(
 
 /** Keys the pipeline adds to a minimal document of the type */
 async function keysAddedByEnrichment(type: OwidGdocType): Promise<string[]> {
+    const interfaceName = GDOC_TEMPLATE_CONTENT_INTERFACES[type].interfaceName
     // Some computed keys only appear when their authored source is present:
     // a profile's toc is generated at instantiation and only when asked for,
     // and parsedFaqs only from authored faqs.
-    const extraSource: Record<string, string> =
-        type === OwidGdocType.Profile
+    const extraSource: Record<string, string> = {
+        ...(type === OwidGdocType.Profile
             ? { "sidebar-toc": "true", scope: "World" }
-            : GDOC_TEMPLATE_CONTENT_INTERFACES[type].interfaceName ===
-                "OwidGdocPostContent"
-              ? { faqs: "\n[.+content]\nAnswer\n[]\nid: q1\n" }
-              : {}
+            : {}),
+        ...(interfaceName === "OwidGdocPostContent"
+            ? { faqs: "\n[.+content]\nAnswer\n[]\nid: q1\n" }
+            : {}),
+        ...(interfaceName === "OwidGdocPostContent" ||
+        interfaceName === "OwidGdocFeaturedVizContent"
+            ? { contributors: "Max Roser (Editor)" }
+            : {}),
+    }
     const sourceKeys = [...SOURCE_KEYS, ...Object.keys(extraSource)]
     const extra = Object.entries(extraSource)
         .map(([key, value]) =>
