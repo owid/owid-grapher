@@ -15,35 +15,69 @@ import {
     GRAPHER_DB_PORT,
 } from "../../settings/serverSettings.js"
 import { parseChartConfig } from "../../db/model/ChartConfigs.js"
-type ConfigOwner = "chart" | "indicator" | "narrativeChart" | "multiDim"
+export type ConfigOwner = "chart" | "indicator" | "narrativeChart" | "multiDim"
 type ConfigRole = "patch" | "full"
 
-interface ConfigReference {
-    owner: ConfigOwner
-    role: ConfigRole
-}
+export type OwnerRef =
+    | { owner: "chart"; id: string }
+    | { owner: "indicator"; id: string }
+    | { owner: "narrativeChart"; id: string }
+    | { owner: "multiDim"; id: string; viewId: string }
+
+export type ConfigReference =
+    | {
+          owner: "chart" | "indicator" | "narrativeChart"
+          role: ConfigRole
+          ownerIdColumn: string
+      }
+    | {
+          owner: "multiDim"
+          role: ConfigRole
+          ownerIdColumn: string
+          ownerViewIdColumn: string
+      }
 
 /**
  * All database columns referencing `chart_configs`, mapped to their owner and
  * validation role, or `null` if ignored
  */
-const REFERENCING_COLUMNS: Record<string, ConfigReference | null> = {
-    "charts.configId": { owner: "chart", role: "full" },
-    "charts.patchConfigId": { owner: "chart", role: "patch" },
-    "charts.patchConfigIdETL": { owner: "chart", role: "patch" },
+export const REFERENCING_COLUMNS: Record<string, ConfigReference | null> = {
+    "charts.configId": {
+        owner: "chart",
+        role: "full",
+        ownerIdColumn: "id",
+    },
+    "charts.patchConfigId": {
+        owner: "chart",
+        role: "patch",
+        ownerIdColumn: "id",
+    },
+    "charts.patchConfigIdETL": {
+        owner: "chart",
+        role: "patch",
+        ownerIdColumn: "id",
+    },
     "multi_dim_x_chart_configs.chartConfigId": {
         owner: "multiDim",
         role: "full",
+        ownerIdColumn: "multiDimId",
+        ownerViewIdColumn: "viewId",
     },
     "narrative_charts.chartConfigId": {
         owner: "narrativeChart",
         role: "full",
+        ownerIdColumn: "id",
     },
     "narrative_charts.patchConfigId": {
         owner: "narrativeChart",
         role: "patch",
+        ownerIdColumn: "id",
     },
-    "variables.patchConfigIdETL": { owner: "indicator", role: "patch" },
+    "variables.patchConfigIdETL": {
+        owner: "indicator",
+        role: "patch",
+        ownerIdColumn: "id",
+    },
 
     // Not validated
     "explorer_views.chartConfigId": null,
@@ -62,9 +96,17 @@ interface ValidationIssueGroup {
     exampleIds: string[]
 }
 
+export interface RawReferenceRow {
+    id: string
+    reference: string
+    ownerId: string | null
+    ownerViewId: string | null
+}
+
 interface IndexedReference {
     column: string
     reference: ConfigReference | null
+    owner: OwnerRef | null
 }
 
 interface ReferenceConflict {
@@ -125,16 +167,54 @@ async function assertReferencingColumnsUpToDate(
     throw new Error(lines.join("\n"))
 }
 
-function buildReferenceIndexQuery(): string {
-    return Object.keys(REFERENCING_COLUMNS)
-        .map((reference) => {
-            const [table, column] = reference.split(".")
-            return `SELECT \`${column}\` AS id, '${reference}' AS reference FROM \`${table}\` WHERE \`${column}\` IS NOT NULL`
+export function buildReferenceIndexQuery(): string {
+    return Object.entries(REFERENCING_COLUMNS)
+        .map(([columnKey, reference]) => {
+            const [table, column] = columnKey.split(".")
+            const ownerId = buildOwnerIdentityExpression(
+                table,
+                reference?.ownerIdColumn ?? null
+            )
+            const ownerViewId = buildOwnerIdentityExpression(
+                table,
+                reference?.owner === "multiDim"
+                    ? reference.ownerViewIdColumn
+                    : null
+            )
+            return `SELECT \`${column}\` AS id, '${columnKey}' AS reference, ${ownerId} AS ownerId, ${ownerViewId} AS ownerViewId FROM \`${table}\` WHERE \`${column}\` IS NOT NULL`
         })
         .join("\nUNION ALL\n")
 }
 
-function buildReferenceIndex(rows: { id: string; reference: string }[]): {
+function buildOwnerIdentityExpression(
+    table: string,
+    column: string | null
+): string {
+    if (column === null) return "NULL"
+    return `CAST(\`${table}\`.\`${column}\` AS CHAR)`
+}
+
+export function parseOwnerRef(
+    owner: ConfigOwner,
+    row: RawReferenceRow
+): OwnerRef {
+    if (row.ownerId === null)
+        throw new Error(`chart_configs row ${row.id} has no owner id`)
+    switch (owner) {
+        case "multiDim":
+            if (row.ownerViewId === null)
+                throw new Error(
+                    `chart_configs row ${row.id} is a multiDim owner with no view id`
+                )
+            return { owner, id: row.ownerId, viewId: row.ownerViewId }
+        case "chart":
+        case "indicator":
+        case "narrativeChart":
+            return { owner, id: row.ownerId }
+    }
+}
+
+export function buildReferenceIndex(rows: RawReferenceRow[]): {
     index: Map<string, IndexedReference>
     conflicts: ReferenceConflict[]
 } {
@@ -143,7 +223,13 @@ function buildReferenceIndex(rows: { id: string; reference: string }[]): {
 
     for (const row of rows) {
         const reference = REFERENCING_COLUMNS[row.reference]
-        const indexed = { column: row.reference, reference }
+        const owner =
+            reference === null ? null : parseOwnerRef(reference.owner, row)
+        const indexed: IndexedReference = {
+            column: row.reference,
+            reference,
+            owner,
+        }
         const existing = index.get(row.id)
         if (existing === undefined) {
             index.set(row.id, indexed)
@@ -389,7 +475,7 @@ async function main(): Promise<void> {
     await knexReadonlyTransaction(async (trx) => {
         await assertReferencingColumnsUpToDate(trx)
 
-        const referenceRows = await knexRaw<{ id: string; reference: string }>(
+        const referenceRows = await knexRaw<RawReferenceRow>(
             trx,
             buildReferenceIndexQuery()
         )
