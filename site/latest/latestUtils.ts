@@ -80,26 +80,22 @@ export function hasViewToggle(latestType: LatestType | null): boolean {
 }
 
 /**
- * Topic areas by popularity, most popular first. The order the /latest topic
- * pills render in, so the pills readers are most likely to want are the ones
- * visible without scrolling the pill row.
- *
- * Source: header-navigation clicks on each area's topics over the year to
- * September 2026 (the analytics database doesn't ingest the /latest filter
- * events themselves). Areas missing from this list sort last, in tag-graph
- * order, so a new area still shows up.
+ * Topic filter usage, most popular first, measured from 2026-06-05 to
+ * 2026-07-30. Usage was similar across areas (0.4–0.7% of sessions) under
+ * the previous order, so the ranking is indicative. Keep it fixed during
+ * the sticky filters experiment; unranked areas retain tag-graph order.
  */
 export const LATEST_TOPIC_AREAS_BY_POPULARITY: readonly string[] = [
-    "Health",
-    "Population and Demographic Change",
     "Energy and Environment",
     "Poverty and Economic Development",
-    "Food and Agriculture",
-    "Education and Knowledge",
-    "Human Rights and Democracy",
     "Violence and War",
     "Innovation and Technological Change",
+    "Food and Agriculture",
+    "Health",
     "Living Conditions, Community and Wellbeing",
+    "Population and Demographic Change",
+    "Education and Knowledge",
+    "Human Rights and Democracy",
 ]
 
 export function sortTopicAreasByPopularity(areas: string[]): string[] {
