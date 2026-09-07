@@ -10,9 +10,9 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { action, computed, observable, makeObservable } from "mobx"
-import { Button, Drawer, Modal, Segmented, Space, Switch } from "antd"
+import { Button, Drawer, Modal, Segmented, Space, Switch, Tabs } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCopy, faFileImport } from "@fortawesome/free-solid-svg-icons"
+import { faCode, faCopy, faFileImport } from "@fortawesome/free-solid-svg-icons"
 import {
     ColumnTypeNames,
     DimensionProperty,
@@ -22,8 +22,7 @@ import {
 import { copyToClipboard } from "@ourworldindata/utils"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
-import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
-import { ConfigEditor, ConfigEditorManager } from "./ConfigEditor.js"
+import { GrapherEditor } from "./GrapherEditor.js"
 import { EditorTab } from "./AbstractChartEditor.js"
 import {
     adminDetailsProvider,
@@ -98,71 +97,35 @@ const EXAMPLE_CSV_CONFIG: GrapherInterface = {
 
 const LITE_TABS: EditorTab[] = ["basic", "data", "text", "customize", "map"]
 
+// From react-chart-editor's readme, for comparison in the "Show code" drawer.
+const PLOTLY_SNIPPET = `import plotly from "plotly.js/dist/plotly"
+import PlotlyEditor from "react-chart-editor"
+import "react-chart-editor/lib/react-chart-editor.css"
+
+const dataSources = {
+    year: [2015, 2017, 2019],
+    rent_index: [100, 112, 124],
+}
+const dataSourceOptions = Object.keys(dataSources).map((name) => ({
+    value: name,
+    label: name,
+}))
+
+<PlotlyEditor
+    data={data}          // traces, each referencing columns by name (xsrc/ysrc)
+    layout={layout}
+    frames={frames}
+    config={{ editable: true }}
+    dataSources={dataSources}
+    dataSourceOptions={dataSourceOptions}
+    plotly={plotly}
+    onUpdate={(data, layout, frames) => setState({ data, layout, frames })}
+    useResizeHandler
+    advancedTraceTypeSelector
+/>`
+
 type TabPreset = "all" | "lite"
 type StoreMode = "api" | "csv"
-
-interface ConfigEditorHostProps {
-    config: GrapherInterface
-    store: IndicatorStore
-    indicators?: IndicatorCatalog
-    details?: DetailsProvider
-    tabs?: EditorTab[]
-    onSave: (config: GrapherInterface) => void | Promise<void>
-    onChange?: (config: GrapherInterface) => void
-}
-
-/**
- * The glue between props and the editor's two manager interfaces. A package
- * consumer's `GrapherEditor.mount(...)` would be this component.
- */
-@observer
-class ConfigEditorHost
-    extends React.Component<ConfigEditorHostProps>
-    implements ConfigEditorManager, ChartEditorViewManager<ConfigEditor>
-{
-    constructor(props: ConfigEditorHostProps) {
-        super(props)
-        makeObservable(this)
-    }
-
-    isInheritanceEnabled = false
-
-    get patchConfig(): GrapherInterface {
-        return this.props.config
-    }
-
-    get store(): IndicatorStore {
-        return this.props.store
-    }
-
-    get indicators(): IndicatorCatalog | undefined {
-        return this.props.indicators
-    }
-
-    get details(): DetailsProvider | undefined {
-        return this.props.details
-    }
-
-    get tabs(): EditorTab[] | undefined {
-        return this.props.tabs
-    }
-
-    get onSave(): (config: GrapherInterface) => void | Promise<void> {
-        return this.props.onSave
-    }
-
-    get onChange(): ((config: GrapherInterface) => void) | undefined {
-        return this.props.onChange
-    }
-
-    @computed get editor(): ConfigEditor {
-        return new ConfigEditor({ manager: this })
-    }
-
-    override render(): React.ReactElement {
-        return <ChartEditorView manager={this} />
-    }
-}
 
 @observer
 export class EditorPlaygroundPage extends React.Component {
@@ -186,6 +149,7 @@ export class EditorPlaygroundPage extends React.Component {
     savedAt: Date | undefined = undefined
     isInputOpen = false
     isOutputOpen = false
+    isCodeOpen = false
 
     constructor(props: Record<string, never>) {
         super(props)
@@ -205,7 +169,44 @@ export class EditorPlaygroundPage extends React.Component {
             savedAt: observable.ref,
             isInputOpen: observable,
             isOutputOpen: observable,
+            isCodeOpen: observable,
         })
+    }
+
+    /** The exact props the playground is passing right now, as the code a
+     *  host would write. Generated from state so it never drifts. */
+    @computed get mountSnippet(): string {
+        const storeLine =
+            this.storeMode === "csv"
+                ? `const store = csvIndicatorStore({\n    csv,          // the pasted CSV text\n    columnDefs,   // name, unit, description, source per column\n    name: "pasted CSV",\n})`
+                : `const store = dataApiIndicatorStore({\n    dataApiUrl: "${defaultEditorEnvironment.dataApiUrl}",\n    // catalog: what "Add indicator" offers; the admin passes its own\n})`
+        const indicatorsLine = this.withIndicatorCatalog
+            ? this.storeMode === "api"
+                ? "    indicators={adminIndicatorCatalog(admin)} // OWID admin only"
+                : "    // indicators: defaults to store.catalog (the CSV's columns)"
+            : "    indicators={null}                          // no picker"
+        const tabsLine =
+            this.tabPreset === "lite"
+                ? `    tabs={${JSON.stringify(LITE_TABS)}}`
+                : "    // tabs: all that apply to the chart type"
+        return `import { GrapherEditor, ${
+            this.storeMode === "csv"
+                ? "csvIndicatorStore"
+                : "dataApiIndicatorStore"
+        } } from "@ourworldindata/grapher-editor" // today: adminSiteClient/GrapherEditor.tsx
+
+${storeLine}
+
+const config = ${JSON.stringify(this.loadedConfig, null, 4)}
+
+<GrapherEditor
+    config={config}
+    store={store}
+${indicatorsLine}
+${tabsLine}
+    onChange={(config) => setLiveConfig(config)}  // every edit, in the store's form
+    onSave={(config) => saveSomewhere(config)}     // "Save config" button
+/>`
     }
 
     /** Builds the store for the current inputs. Throws on a bad CSV or defs. */
@@ -355,6 +356,12 @@ export class EditorPlaygroundPage extends React.Component {
                             >
                                 Output config
                             </Button>
+                            <Button
+                                icon={<FontAwesomeIcon icon={faCode} />}
+                                onClick={action(() => (this.isCodeOpen = true))}
+                            >
+                                Show code
+                            </Button>
                             <span className="EditorPlaygroundPage__status">
                                 {this.savedAt
                                     ? `Saved at ${this.savedAt.toLocaleTimeString()}`
@@ -363,11 +370,11 @@ export class EditorPlaygroundPage extends React.Component {
                         </Space>
                     </div>
 
-                    <ConfigEditorHost
+                    <GrapherEditor
                         key={this.editorKey}
                         config={this.loadedConfig}
                         store={this.loadedStore}
-                        indicators={this.indicators}
+                        indicators={this.indicators ?? null}
                         details={this.details}
                         tabs={this.tabs}
                         onChange={this.onChange}
@@ -480,6 +487,146 @@ export class EditorPlaygroundPage extends React.Component {
                                 ? JSON.stringify(this.savedConfig, null, 2)
                                 : "—"}
                         </pre>
+                    </Drawer>
+
+                    <Drawer
+                        title="How this editor is mounted"
+                        open={this.isCodeOpen}
+                        onClose={action(() => (this.isCodeOpen = false))}
+                        size={640}
+                    >
+                        <Tabs
+                            items={[
+                                {
+                                    key: "ours",
+                                    label: "This editor",
+                                    children: (
+                                        <>
+                                            <p className="text-muted">
+                                                Generated from the current
+                                                toolbar state. The component is
+                                                real (
+                                                <code>GrapherEditor.tsx</code>
+                                                ); the import path is where it
+                                                would live as a package.
+                                            </p>
+                                            <Button
+                                                size="small"
+                                                icon={
+                                                    <FontAwesomeIcon
+                                                        icon={faCopy}
+                                                    />
+                                                }
+                                                onClick={() => {
+                                                    copyToClipboard(
+                                                        this.mountSnippet
+                                                    ).catch(() => undefined)
+                                                }}
+                                            >
+                                                Copy
+                                            </Button>
+                                            <pre className="EditorPlaygroundPage__json">
+                                                {this.mountSnippet}
+                                            </pre>
+                                        </>
+                                    ),
+                                },
+                                {
+                                    key: "plotly",
+                                    label: "Plotly react-chart-editor",
+                                    children: (
+                                        <>
+                                            <p className="text-muted">
+                                                The closest existing equivalent,
+                                                from its readme. Same idea:
+                                                config in, data as named
+                                                columns, callback out.
+                                            </p>
+                                            <pre className="EditorPlaygroundPage__json">
+                                                {PLOTLY_SNIPPET}
+                                            </pre>
+                                            <table className="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Plotly</th>
+                                                        <th>Here</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <code>data</code> +{" "}
+                                                            <code>layout</code>
+                                                        </td>
+                                                        <td>
+                                                            <code>config</code>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <code>
+                                                                dataSources
+                                                            </code>{" "}
+                                                            (column arrays)
+                                                        </td>
+                                                        <td>
+                                                            <code>store</code>{" "}
+                                                            (columns + name,
+                                                            unit, source)
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <code>
+                                                                dataSourceOptions
+                                                            </code>
+                                                        </td>
+                                                        <td>
+                                                            <code>
+                                                                store.catalog
+                                                            </code>{" "}
+                                                            /{" "}
+                                                            <code>
+                                                                indicators
+                                                            </code>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <code>
+                                                                onUpdate
+                                                            </code>
+                                                        </td>
+                                                        <td>
+                                                            <code>
+                                                                onChange
+                                                            </code>{" "}
+                                                            +{" "}
+                                                            <code>onSave</code>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <code>plotly</code>{" "}
+                                                            (the renderer)
+                                                        </td>
+                                                        <td>bundled grapher</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            panel composition
+                                                        </td>
+                                                        <td>
+                                                            <code>tabs</code>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </>
+                                    ),
+                                },
+                            ]}
+                        />
                     </Drawer>
                 </div>
             </AdminLayout>
