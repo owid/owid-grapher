@@ -22,6 +22,7 @@ import * as db from "../db/db.js"
 import pMap from "p-map"
 import { mapEntityNamesToEntityIds } from "../db/model/Entity.js"
 import { getVariableData } from "../db/model/Variable.js"
+import { parseChartConfig } from "../db/model/ChartConfigs.js"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 
@@ -163,7 +164,7 @@ export const obtainAvailableEntitiesForGraphers = async (
     await pMap(
         allPublishedGraphers,
         async (grapher) => {
-            const config = JSON.parse(grapher.config) as GrapherInterface
+            const config = parseChartConfig(grapher.config)
             const availableEntities =
                 await obtainAvailableEntitiesForGrapherConfig(config)
             const availableEntityIds = availableEntities.flatMap(

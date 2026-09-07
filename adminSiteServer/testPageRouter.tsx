@@ -4,6 +4,7 @@ import { Router } from "express"
 
 import { renderToHtmlPage, expectInt } from "../serverUtils/serverUtil.js"
 import { getChartConfigBySlug } from "../db/model/Chart.js"
+import { parseChartConfig } from "../db/model/ChartConfigs.js"
 import { Head } from "../site/Head.js"
 import * as db from "../db/db.js"
 import {
@@ -24,7 +25,6 @@ import {
     EntitySelectionMode,
     GRAPHER_TAB_CONFIG_OPTIONS,
     StackMode,
-    parseChartConfig,
     GRAPHER_MAP_TYPE,
     GrapherTabConfigOption,
     GrapherChartOrMapType,
@@ -535,7 +535,9 @@ getPlainRouteWithROTransaction(
     }
 )
 
-function PreviewTestPage(props: { charts: any[] }) {
+function PreviewTestPage(props: {
+    charts: { slug: DbRawChartConfig["slug"] }[]
+}) {
     const style = `
         html, body {
             height: 100%;
@@ -682,17 +684,16 @@ getPlainRouteWithROTransaction(
     testPageRouter,
     "/previews",
     async (req, res, trx) => {
-        const rows = await db.knexRaw<{ config: DbRawChartConfig["config"] }>(
+        const charts = await db.knexRaw<{ slug: DbRawChartConfig["slug"] }>(
             trx,
             `-- sql
-                SELECT cc.config as config
+                SELECT cc.slug as slug
                 FROM charts ca
                 JOIN chart_configs cc
                 ON ca.configId = cc.id
                 LIMIT 200
             `
         )
-        const charts = rows.map((row: any) => JSON.parse(row.config))
 
         res.send(renderToHtmlPage(<PreviewTestPage charts={charts} />))
     }
@@ -702,17 +703,16 @@ getPlainRouteWithROTransaction(
     testPageRouter,
     "/embedVariants",
     async (req, res, trx) => {
-        const rows = await db.knexRaw<{ config: DbRawChartConfig["config"] }>(
+        const charts = await db.knexRaw<ChartItem>(
             trx,
             `-- sql
-                SELECT cc.config as config
+                SELECT ca.id as id, cc.slug as slug
                 FROM charts ca
                 JOIN chart_configs cc
                 ON ca.configId = cc.id
                 WHERE ca.id=64
             `
         )
-        const charts = rows.map((row: any) => JSON.parse(row.config))
         const viewProps = getViewPropsFromQueryParams(req.query)
 
         res.send(

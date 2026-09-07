@@ -11,6 +11,7 @@ import {
 import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import { getMostViewedGrapherIdsByChartType } from "../../db/model/Chart.js"
 import { getAllPublishedMultiDimDataPages } from "../../db/model/MultiDimDataPage.js"
+import { parseChartConfig } from "../../db/model/ChartConfigs.js"
 import {
     ALL_GRAPHER_CHART_TYPES,
     GrapherInterface,
@@ -20,7 +21,7 @@ import {
     SVG_TESTER_SUITES,
     type SvgTesterSuite,
 } from "@ourworldindata/types"
-import { parseChartConfig, queryParamsToStr } from "@ourworldindata/utils"
+import { queryParamsToStr } from "@ourworldindata/utils"
 
 import fs from "fs-extra"
 
@@ -51,7 +52,7 @@ async function getPublishedGraphersById(
     )
     return new Map(
         rows.map((row) => {
-            const config: GrapherInterface = JSON.parse(row.config)
+            const config = parseChartConfig(row.config)
             config.id = row.id
             return [row.id, config]
         })
