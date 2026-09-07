@@ -215,8 +215,7 @@ export const AdminSidebar = (): React.ReactElement => (
             </li>
             <li>
                 <Link to="/email-notifications-preview">
-                    <FontAwesomeIcon icon={faEnvelope} fixedWidth /> Email
-                    preview
+                    <FontAwesomeIcon icon={faEnvelope} /> Email preview
                 </Link>
             </li>
         </ul>
