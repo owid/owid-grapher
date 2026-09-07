@@ -17,9 +17,4 @@
     .indicator-processing .indicator-processing-callout {
         margin: 16px 8px;
     }
-
-    // Prevent borders stacking when FAQ and "How we process this data" is present
-    > .ExpandableToggle:nth-last-child(2) {
-        border-bottom: none;
-    }
 }

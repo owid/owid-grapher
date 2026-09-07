@@ -46,11 +46,10 @@ export function BespokeMetadataSections({
                 title="Frequently asked questions"
                 className="metadata-box-section--faqs"
             >
-                {faqs.map((faq, i) => (
+                {faqs.map((faq) => (
                     <ExpandableToggle
                         key={faq.question}
                         label={faq.question}
-                        isStacked={i < faqs.length - 1}
                         content={<SimpleMarkdownText text={faq.answer} />}
                     />
                 ))}
@@ -98,7 +97,6 @@ export function BespokeMetadataSections({
                 {pageCitation && (
                     <ExpandableToggle
                         label="How to cite this page"
-                        isStacked
                         content={
                             <>
                                 <p className="citation__paragraph">
