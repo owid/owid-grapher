@@ -175,6 +175,7 @@
     },
     "devDependencies": {
         "@playwright/test": "^1.60.0",
+        "@react-aria/optimize-locales-plugin": "^2.0.2",
         "@rmp135/sql-ts": "^2.1.0",
         "@rollup/plugin-swc": "^0.4.1",
         "@swc/core": "^1.16.1",

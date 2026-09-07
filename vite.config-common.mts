@@ -1,9 +1,9 @@
 import { defineConfig, type PluginOption } from "vite"
 import pluginReact from "@vitejs/plugin-react"
+import optimizeReactAriaLocales from "@react-aria/optimize-locales-plugin"
 import { sentryVitePlugin } from "@sentry/vite-plugin"
 import {
     BUILD_TARGET,
-    pluginOptimizeReactAriaLocales,
     pluginSwcDecorators,
     scssPreprocessorOptions,
 } from "./rolldown.config-common.mts"
@@ -17,7 +17,7 @@ import {
 export const commonPlugins = (): PluginOption[] => [
     pluginSwcDecorators(),
     pluginReact(),
-    pluginOptimizeReactAriaLocales({
+    optimizeReactAriaLocales.vite({
         locales: ["en-US"],
     }),
 ]

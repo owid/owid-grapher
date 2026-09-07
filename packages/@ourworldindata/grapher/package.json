@@ -83,6 +83,7 @@
         "@ourworldindata/core-table": "workspace:^",
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
+        "@react-aria/optimize-locales-plugin": "^2.0.2",
         "@react-spring/web": "^10.0.3",
         "@sentry/browser": "^10.70.0",
         "@sentry/react": "^10.70.0",

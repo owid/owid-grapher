@@ -2425,6 +2425,7 @@ __metadata:
     "@ourworldindata/core-table": "workspace:^"
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
+    "@react-aria/optimize-locales-plugin": "npm:^2.0.2"
     "@react-spring/web": "npm:^10.0.3"
     "@sentry/browser": "npm:^10.70.0"
     "@sentry/react": "npm:^10.70.0"
@@ -3672,6 +3673,15 @@ __metadata:
     react: ">=18.0.0"
     react-dom: ">=18.0.0"
   checksum: 10/c331151b244070c05e3da53e690c01885b3a0a60e51bf4120ad7114ab0850652d1957e685eed31e8a47b7ff5c86cbed55a93ddd6560062334a2a2b691787cbb0
+  languageName: node
+  linkType: hard
+
+"@react-aria/optimize-locales-plugin@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "@react-aria/optimize-locales-plugin@npm:2.0.2"
+  dependencies:
+    unplugin: "npm:^2.3.11"
+  checksum: 10/ee8a4e978597fe4af0827772be81d0025850ba2116e484697f2f5bdaf72540cad622e67ca0651863bbcf677bf07ef4299a7a9335455973a954adb83501d91a37
   languageName: node
   linkType: hard
 
@@ -9254,6 +9264,7 @@ __metadata:
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@playwright/test": "npm:^1.60.0"
+    "@react-aria/optimize-locales-plugin": "npm:^2.0.2"
     "@react-querybuilder/antd": "npm:^8.23.1"
     "@rmp135/sql-ts": "npm:^2.1.0"
     "@rollup/plugin-swc": "npm:^0.4.1"
@@ -12195,7 +12206,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"picomatch@npm:^4.0.2, picomatch@npm:^4.0.4, picomatch@npm:^4.0.5, picomatch@npm:^4.0.7":
+"picomatch@npm:^4.0.2, picomatch@npm:^4.0.3, picomatch@npm:^4.0.4, picomatch@npm:^4.0.5, picomatch@npm:^4.0.7":
   version: 4.0.7
   resolution: "picomatch@npm:4.0.7"
   checksum: 10/66e1df34bc39c72fa3756be4069f7887ea3e35e94bba1c3f6167763007698cb04b8a0a365161d186fda6e9571a2d3efb606b2966eb6a7dea6252911224dc2f48
@@ -14667,6 +14678,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"unplugin@npm:^2.3.11":
+  version: 2.3.11
+  resolution: "unplugin@npm:2.3.11"
+  dependencies:
+    "@jridgewell/remapping": "npm:^2.3.5"
+    acorn: "npm:^8.15.0"
+    picomatch: "npm:^4.0.3"
+    webpack-virtual-modules: "npm:^0.6.2"
+  checksum: 10/7b4adbfaac8894e8491c452c0b67c612b57e103761e842d9013ebea89a4ae92a78df4ec0aa30e5e3eaaefd47dd287973d5a662271624b7346a15d9236d257f9d
+  languageName: node
+  linkType: hard
+
 "unrs-resolver@npm:^1.9.2":
   version: 1.11.1
   resolution: "unrs-resolver@npm:1.11.1"
@@ -15022,6 +15045,13 @@ __metadata:
   version: 3.3.3
   resolution: "web-streams-polyfill@npm:3.3.3"
   checksum: 10/8e7e13501b3834094a50abe7c0b6456155a55d7571312b89570012ef47ec2a46d766934768c50aabad10a9c30dd764a407623e8bfcc74fcb58495c29130edea9
+  languageName: node
+  linkType: hard
+
+"webpack-virtual-modules@npm:^0.6.2":
+  version: 0.6.2
+  resolution: "webpack-virtual-modules@npm:0.6.2"
+  checksum: 10/d9a0d035f7ec0c7f1055aaf88bfe48b7f96458043916a1b2926d9012fd61de3810a6b768e31a8cd4b3c84a9b6d55824361a9dd20aaf9f5ccfb6f017af216a178
   languageName: node
   linkType: hard
 
