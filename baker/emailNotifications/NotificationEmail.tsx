@@ -1,6 +1,7 @@
 import { CSSProperties, Fragment, ReactNode } from "react"
 import {
     Body,
+    Button,
     Container,
     Column,
     Head,
@@ -57,6 +58,12 @@ const HEADER_IMAGE_WIDTH = CONTAINER_WIDTH
 const HEADER_IMAGE_HEIGHT = Math.round((CONTAINER_WIDTH * 250) / 1200)
 // Roughly the header's height on a ~400px-wide phone
 const MOBILE_HEADER_IMAGE_HEIGHT = 80
+
+// Outlook on Windows ignores max-width, so the fluid container would stretch
+// to the reading pane. These wrap it in a fixed-width "ghost" table that only
+// Outlook sees. React can't emit comments, hence the raw HTML.
+const MSO_GHOST_TABLE_OPEN = `<!--[if mso]><table role="presentation" align="center" width="${CONTAINER_WIDTH}" border="0" cellpadding="0" cellspacing="0"><tr><td><![endif]-->`
+const MSO_GHOST_TABLE_CLOSE = `<!--[if mso]></td></tr></table><![endif]-->`
 
 // The inline styles win by default, so the mobile overrides need !important.
 // Mobile clients (iOS Mail, Gmail app, Outlook mobile) honor <style> media
@@ -154,6 +161,9 @@ function NotificationEmail({
                     lineHeight: "24px",
                 }}
             >
+                <div
+                    dangerouslySetInnerHTML={{ __html: MSO_GHOST_TABLE_OPEN }}
+                />
                 <Container
                     style={{
                         width: "100%",
@@ -207,6 +217,9 @@ function NotificationEmail({
                         updatePreferencesUrl={updatePreferencesUrl}
                     />
                 </Container>
+                <div
+                    dangerouslySetInnerHTML={{ __html: MSO_GHOST_TABLE_CLOSE }}
+                />
             </Body>
         </Html>
     )
@@ -687,19 +700,17 @@ function Footer({
                     textAlign: "center",
                 }}
             >
-                <Link
+                <Button
                     href={`${baseUrl}/latest`}
                     style={{
-                        display: "inline-block",
                         padding: "12px 24px",
                         backgroundColor: COLORS.navy,
                         color: "#ffffff",
                         fontWeight: 700,
-                        textDecoration: "none",
                     }}
                 >
                     Browse the latest on Our World in Data
-                </Link>
+                </Button>
             </Text>
             <Text style={footerTextStyle}>
                 This email was sent to {email} because you subscribed to email
