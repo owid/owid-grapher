@@ -46,6 +46,10 @@ import type {
     EnrichedBlockCookieNotice,
     RawBlockCookieNotice,
 } from "./archieMLComponents/CookieNotice.js"
+import type {
+    EnrichedBlockCredits,
+    RawBlockCredits,
+} from "./archieMLComponents/Credits.js"
 import type { EnrichedBlockCta, RawBlockCta } from "./archieMLComponents/Cta.js"
 import type {
     EnrichedBlockDataCallout,
@@ -279,6 +283,7 @@ export type OwidRawGdocBlock =
     | RawBlockGraySection
     | RawBlockExploreDataSection
     | RawBlockConditionalSection
+    | RawBlockCredits
     | RawBlockProminentLink
     | RawBlockSDGToc
     | RawBlockLTPToc
@@ -343,6 +348,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockGraySection
     | EnrichedBlockExploreDataSection
     | EnrichedBlockConditionalSection
+    | EnrichedBlockCredits
     | EnrichedBlockProminentLink
     | EnrichedBlockSDGToc
     | EnrichedBlockLTPToc
@@ -409,6 +415,7 @@ export type * from "./archieMLComponents/ChartStory.js"
 export type * from "./archieMLComponents/Code.js"
 export type * from "./archieMLComponents/ConditionalSection.js"
 export type * from "./archieMLComponents/CookieNotice.js"
+export type * from "./archieMLComponents/Credits.js"
 export type * from "./archieMLComponents/Cta.js"
 export type * from "./archieMLComponents/CountryProfileSelector.js"
 export type * from "./archieMLComponents/DataCallout.js"

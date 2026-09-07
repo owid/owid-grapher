@@ -270,6 +270,7 @@ export function extractFilenamesFromBlock(
                     "conditional-section",
                     "code",
                     "cookie-notice",
+                    "credits",
                     "cta",
                     "data-callout",
                     "donors",

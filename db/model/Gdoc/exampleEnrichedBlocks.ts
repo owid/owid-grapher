@@ -265,6 +265,32 @@ export const enrichedBlockExamples: Record<
         ],
         title: "Hey, listen!",
     },
+    credits: {
+        type: "credits",
+        parseErrors: [],
+        contributors: [
+            {
+                name: "Max Roser",
+                role: "Editorial feedback",
+            },
+            {
+                name: "Edouard Mathieu",
+                role: "Editorial feedback",
+            },
+        ],
+        acknowledgements: [
+            {
+                type: "text",
+                value: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "Many thanks to Marcel Gerber for his help in building this interactive visualization.",
+                    },
+                ],
+                parseErrors: [],
+            },
+        ],
+    },
     "chart-story": {
         type: "chart-story",
         items: [

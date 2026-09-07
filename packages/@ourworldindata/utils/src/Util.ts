@@ -1725,6 +1725,14 @@ export function traverseEnrichedBlock(
                 )
             }
         })
+        .with({ type: "credits" }, (credits) => {
+            callback(credits)
+            if (spanCallback) {
+                credits.acknowledgements.forEach((textBlock) =>
+                    traverseEnrichedBlock(textBlock, callback, spanCallback)
+                )
+            }
+        })
         .with({ type: "aside" }, (aside) => {
             callback(aside)
             if (spanCallback) {

@@ -910,6 +910,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "conditional-section",
                         "code",
                         "cookie-notice",
+                        "credits",
                         "donors",
                         "expandable-paragraph",
                         "expander",
