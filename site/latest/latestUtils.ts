@@ -78,8 +78,9 @@ export function findThumbnailImageBlock(
 
 /**
  * How cards render in a type-filtered feed that offers the View toggle:
- * "expanded" shows each card in full, "compact" clips it and lets the reader
- * expand it in place. Local UI state, deliberately not in the URL.
+ * "expanded" shows each card in full, read in place; "compact" shows the same
+ * teaser card the unfiltered feed does, linking out to the page. Local UI
+ * state, deliberately not in the URL.
  */
 export const LATEST_FEED_VIEWS = ["expanded", "compact"] as const
 export type LatestFeedView = (typeof LATEST_FEED_VIEWS)[number]

@@ -14,17 +14,18 @@ import {
 } from "./latestUtils.js"
 import { useLatestContext } from "./LatestContext.js"
 import { useIsLikelyBaked } from "./latestHooks.js"
-import { LatestDataInsightExpandable } from "./LatestDataInsightExpandable.js"
+import { LatestDataInsightExpanded } from "./LatestDataInsightExpanded.js"
 
 /**
- * Data insight card for the /latest feed. Two presentations, picked by
- * `view`:
+ * Data insight card for the /latest feed. Two presentations:
  *
- * - No view (the unfiltered feed): a condensed teaser — thumbnail beside a
- *   clipped body — that links to the insight's own page.
- * - A view (the data-insight-filtered feed, which offers the View toggle):
- *   the whole insight read in place, expanded or compact. See
- *   LatestDataInsightExpandable.
+ * - Condensed: a teaser — thumbnail beside a clipped body — that links to the
+ *   insight's own page. The unfiltered feed always shows this, and so does
+ *   the data-insight-filtered feed with its View toggle on Compact. Same
+ *   card, same link, wherever it appears.
+ * - Expanded: the whole insight read in place, see LatestDataInsightExpanded.
+ *   Only in the filtered feed, when the toggle says Expanded or the reader
+ *   deep-linked to this card.
  */
 export const LatestDataInsightHit = ({
     hit,
@@ -36,21 +37,18 @@ export const LatestDataInsightHit = ({
     hit: PageChronologicalDataInsightRecord
     selectedTopic?: string
     position: number
+    /** Set in the data-insight-filtered feed, which offers the View toggle. */
     view?: LatestFeedView
-    /** For the in-place presentation: start expanded (the View toggle says
-     * so, or the reader deep-linked to this card). */
+    /** The View toggle says Expanded, or the reader deep-linked to this card.
+     * Only honoured in the filtered feed (`view` set): the unfiltered feed
+     * links out regardless. */
     isExpanded: boolean
 }) => {
-    if (view) {
+    if (view && isExpanded) {
         return (
-            <LatestDataInsightExpandable
-                // Remount on toggle so a card the reader expanded by hand
-                // collapses again when they switch back to Compact.
-                key={view}
+            <LatestDataInsightExpanded
                 hit={hit}
                 selectedTopic={selectedTopic}
-                position={position}
-                isExpanded={isExpanded}
             />
         )
     }
