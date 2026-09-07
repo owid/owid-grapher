@@ -63,6 +63,8 @@ Each announcement is also baked as a standalone page, primarily for editor previ
 
 `exp-latest-sticky-filters-v1` (registered in `packages/@ourworldindata/utils/src/experiments/config.ts`) trials keeping the filters in reach while scrolling: control, "reveal on scroll up", and "fully sticky". Each arm's layout is pure CSS keyed off the `exp-latest-sticky-filters-v1--<arm>` body class the edge middleware adds (see [`LatestSearch.scss`](./LatestSearch.scss)), so the baked skeleton and the mounted app look identical and nothing flashes when the app takes over. The sticky element is the facets grid item, not the facets themselves: a sticky element only moves within its parent's box. On mobile the content-type dropdown moves above the topic pills, the pills gain a "Filter by topic" label (rendered in every arm, shown by CSS), and a negative `top` lets exactly the dropdown row scroll out so only the pills stay pinned.
 
+Alongside the experiment (in every arm, so it isn't a confound), the topic pills render most-popular-first per `LATEST_TOPIC_AREAS_BY_POPULARITY` in [`latestUtils.ts`](./latestUtils.ts), a hardcoded ranking derived from header-navigation clicks; areas not in the list fall to the end in tag-graph order.
+
 The reveal-on-scroll-up arm is the one piece CSS can't express: `useIsStickyElementHidden` in [`latestHooks.ts`](./latestHooks.ts) reuses the site's `useScrollDirection` and hides the container only while scrolling down _and_ actually stuck, so it never slides over the header. The arm is read once on mount via `getExperimentState()`, and `SiteAnalytics` tags every `/latest` event with it as `experimentArm`.
 
 ## Component layout

@@ -100,6 +100,38 @@ export function hasViewToggle(latestType: LatestType | null): boolean {
     )
 }
 
+/**
+ * Topic areas by popularity, most popular first. The order the /latest topic
+ * pills render in, so the pills readers are most likely to want are the ones
+ * visible without scrolling the pill row.
+ *
+ * Source: header-navigation clicks on each area's topics over the year to
+ * September 2026 (the analytics database doesn't ingest the /latest filter
+ * events themselves). Areas missing from this list sort last, in tag-graph
+ * order, so a new area still shows up.
+ */
+export const LATEST_TOPIC_AREAS_BY_POPULARITY: readonly string[] = [
+    "Health",
+    "Population and Demographic Change",
+    "Energy and Environment",
+    "Poverty and Economic Development",
+    "Food and Agriculture",
+    "Education and Knowledge",
+    "Human Rights and Democracy",
+    "Violence and War",
+    "Innovation and Technological Change",
+    "Living Conditions, Community and Wellbeing",
+]
+
+export function sortTopicAreasByPopularity(areas: string[]): string[] {
+    const rank = (area: string): number => {
+        const i = LATEST_TOPIC_AREAS_BY_POPULARITY.indexOf(area)
+        return i === -1 ? Number.MAX_SAFE_INTEGER : i
+    }
+    // Array.prototype.sort is stable, so unranked areas keep their order.
+    return [...areas].sort((a, b) => rank(a) - rank(b))
+}
+
 /** Grid positioning applied to the root of every hit card. */
 export const LATEST_HIT_GRID_CLASSES =
     "span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1"

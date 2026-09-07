@@ -25,6 +25,7 @@ import {
     LATEST_NEWSLETTER_SIGNUP_CLASSES,
     LatestFeedView,
     hasViewToggle,
+    sortTopicAreasByPopularity,
 } from "./latestUtils.js"
 import { LatestViewToggle } from "./LatestViewToggle.js"
 import {
@@ -54,7 +55,11 @@ export const LatestSearch = ({
 }) => {
     const [searchParams, setSearchParams] = useSearchParams()
 
-    const { allAreas } = useTagGraphTopics(topicTagGraph)
+    const { allAreas: tagGraphAreas } = useTagGraphTopics(topicTagGraph)
+    const allAreas = useMemo(
+        () => sortTopicAreasByPopularity(tagGraphAreas),
+        [tagGraphAreas]
+    )
 
     const [autoExpandedSlug, setAutoExpandedSlug] = useState<null | string>(
         null
