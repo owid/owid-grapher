@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
-    migrateGrapherConfigToLatestVersionAndFailOnError,
 } from "@ourworldindata/grapher"
 import {
     DbRawVariable,
@@ -29,6 +28,7 @@ import {
     deleteIndicators,
 } from "../../db/model/Variable.js"
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
+import { ingestGrapherConfig } from "../../db/grapherConfigValidation.js"
 import { DATA_API_URL } from "../../settings/clientSettings.mjs"
 import * as db from "../../db/db.js"
 import {
@@ -294,17 +294,7 @@ export async function putIndicatorChartConfig(
 ) {
     const variableId = expectInt(req.params.variableId)
 
-    let validConfig: GrapherInterface
-    try {
-        validConfig = migrateGrapherConfigToLatestVersionAndFailOnError(
-            req.body
-        )
-    } catch (err) {
-        return {
-            success: false,
-            error: String(err),
-        }
-    }
+    const validConfig = ingestGrapherConfig(req.body, "patch")
 
     const indicator = await getIndicatorChartConfigRecord(trx, variableId)
     if (!indicator) {
