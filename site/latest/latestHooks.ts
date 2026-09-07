@@ -21,7 +21,8 @@ import {
 } from "@ourworldindata/types"
 import { getPrefixedGdocPath, OwidGdocType } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
-import { SiteAnalytics } from "../SiteAnalytics.js"
+import { SiteAnalytics, getLatestExperimentArm } from "../SiteAnalytics.js"
+import { ScrollDirection, useScrollDirection } from "../hooks.js"
 
 const DEFAULT_PAGE_SIZE = 20
 
@@ -236,4 +237,48 @@ export function useInfiniteLatestPages({
         tagFacetCounts,
         latestTypeFacetCounts,
     }
+}
+
+/*
+ * Sticky filters experiment (exp-latest-sticky-filters-v1).
+ */
+
+/** Read the sticky-filter arm once on mount for the reveal-on-scroll-up hook.
+ * Read during render: /latest mounts with createRoot, not hydration, so there
+ * is no server render for a cookie read to disagree with. */
+export function useLatestStickyFiltersArm(): string | undefined {
+    const [arm] = useState(getLatestExperimentArm)
+    return arm
+}
+
+/**
+ * Whether a sticky element should be hidden for the reveal-on-scroll-up arm:
+ * only while the reader scrolls down *and* the element is actually stuck
+ * (its box has reached the `top` its CSS pins it at — negative on mobile,
+ * where the top of the container is meant to scroll out of view). Hiding
+ * it before it's stuck would slide it over the content above it. Once
+ * hidden (translated off-screen) its box top is lower still, which counts
+ * as stuck, so it stays hidden until the reader scrolls up.
+ */
+export function useIsStickyElementHidden(
+    enabled: boolean,
+    stickyRef: React.RefObject<HTMLElement | null>
+): boolean {
+    const direction = useScrollDirection()
+    const [isStuck, setIsStuck] = useState(false)
+
+    useEffect(() => {
+        if (!enabled) return
+        const update = () => {
+            const el = stickyRef.current
+            if (!el) return
+            const stickyTop = parseFloat(getComputedStyle(el).top) || 0
+            setIsStuck(el.getBoundingClientRect().top <= stickyTop)
+        }
+        update()
+        window.addEventListener("scroll", update, { passive: true })
+        return () => window.removeEventListener("scroll", update)
+    }, [enabled, stickyRef])
+
+    return enabled && isStuck && direction === ScrollDirection.Down
 }
