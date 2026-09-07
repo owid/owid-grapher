@@ -5,16 +5,12 @@ import { LatestDataInsightHit } from "./LatestDataInsightHit.js"
 import { LatestAnnouncementHit } from "./LatestAnnouncementHit.js"
 import { LatestDataUpdateHit } from "./LatestDataUpdateHit.js"
 import { match } from "ts-pattern"
-import { LatestFeedView } from "./latestUtils.js"
 
 type LatestHitProps = {
     hit: PageChronologicalRecord
     selectedTopic?: string
     position: number
     isExpanded: boolean
-    /** Set when the current type filter offers the View toggle; only the hit
-     * types that support it (see `LATEST_TYPES_WITH_VIEW_TOGGLE`) read it. */
-    view?: LatestFeedView
 }
 
 /** Dispatches to the appropriate per-type hit card. */
@@ -23,7 +19,6 @@ export const LatestHit = ({
     selectedTopic,
     position,
     isExpanded,
-    view,
 }: LatestHitProps) => {
     return match(hit)
         .with({ type: OwidGdocType.Article }, (hit) => (
@@ -38,7 +33,6 @@ export const LatestHit = ({
                 hit={hit}
                 selectedTopic={selectedTopic}
                 position={position}
-                view={view}
                 isExpanded={isExpanded}
             />
         ))
