@@ -370,10 +370,18 @@ export class GdocBase implements OwidGdocBaseInterface {
         return [...details]
     }
 
+    get linkedAuthorNames(): string[] {
+        const contributors =
+            "contributors" in this.content
+                ? (this.content.contributors ?? [])
+                : []
+        return _.uniq([...this.content.authors, ...contributors])
+    }
+
     async loadLinkedAuthors(knex: db.KnexReadonlyTransaction): Promise<void> {
         this.linkedAuthors = await getMinimalAuthorsByNames(
             knex,
-            this.content.authors
+            this.linkedAuthorNames
         )
     }
 
@@ -1090,7 +1098,7 @@ export class GdocBase implements OwidGdocBaseInterface {
             })
         }
 
-        const authorErrors = this.content.authors.reduce(
+        const authorErrors = this.linkedAuthorNames.reduce(
             (errors: OwidGdocErrorMessage[], name): OwidGdocErrorMessage[] => {
                 if (!this.linkedAuthors.some((a) => a.name === name)) {
                     errors.push({

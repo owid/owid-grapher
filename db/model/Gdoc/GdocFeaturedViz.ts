@@ -11,6 +11,10 @@ import {
     shouldRenderBespokeMetadata,
 } from "@ourworldindata/utils"
 import {
+    parseAcknowledgements,
+    parseContributors,
+} from "@ourworldindata/gdoc-pipeline"
+import {
     EnrichedBlockBespokeComponent,
     OwidEnrichedGdocBlock,
 } from "@ourworldindata/types"
@@ -40,10 +44,27 @@ export class GdocFeaturedViz
     override _getSubclassEnrichedBlocks = (
         gdoc: this
     ): OwidEnrichedGdocBlock[] => {
-        if (!gdoc.content.refs?.definitions) return []
-        return Object.values(gdoc.content.refs.definitions).flatMap(
-            (definition) => definition.content
-        )
+        const refBlocks = Object.values(
+            gdoc.content.refs?.definitions ?? {}
+        ).flatMap((definition) => definition.content)
+        const acknowledgements = gdoc.content.acknowledgements ?? []
+        return [...refBlocks, ...acknowledgements]
+    }
+
+    override _enrichSubclassContent = (content: Record<string, any>): void => {
+        if (content.contributors !== undefined) {
+            const { contributors, contributorRoles } = parseContributors(
+                content.contributors
+            )
+            content.contributors = contributors
+            content.contributorRoles = contributorRoles
+        }
+
+        if (content.acknowledgements) {
+            content.acknowledgements = parseAcknowledgements(
+                content.acknowledgements
+            )
+        }
     }
 
     override _loadSubclassAttachments = async (): Promise<void> => {

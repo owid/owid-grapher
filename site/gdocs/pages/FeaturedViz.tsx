@@ -21,6 +21,7 @@ import { BespokeMetadataBox } from "../components/BespokeMetadataBox.js"
 import { Byline } from "../components/Byline.js"
 import { CitationSection } from "../components/CitationSection.js"
 import { LicenseSection } from "../components/LicenseSection.js"
+import Credits from "../components/Credits.js"
 import Footnotes from "../components/Footnotes.js"
 import { buildGdocCitation } from "../utils.js"
 
@@ -92,6 +93,13 @@ export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
                 </div>
             )}
             <ArticleBlocks blocks={after} />
+            <Credits
+                authors={content.authors}
+                authorRoles={content.authorRoles}
+                contributors={content.contributors}
+                contributorRoles={content.contributorRoles}
+                acknowledgements={content.acknowledgements}
+            />
             {content.refs && !_.isEmpty(content.refs.definitions) ? (
                 <Footnotes definitions={content.refs.definitions} />
             ) : null}
