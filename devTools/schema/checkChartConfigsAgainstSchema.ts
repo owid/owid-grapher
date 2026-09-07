@@ -1,3 +1,8 @@
+// This should be imported as early as possible so the global error handler is
+// set up before any errors are thrown.
+import "../../serverUtils/instrument.js"
+
+import * as Sentry from "@sentry/node"
 import {
     knexRaw,
     knexReadonlyTransaction,
@@ -496,8 +501,10 @@ async function main(): Promise<void> {
 }
 
 main()
-    .catch((error) => {
+    .catch(async (error) => {
         console.error(error)
+        Sentry.captureException(error)
+        await Sentry.close()
         process.exitCode = 1
     })
     .finally(() => {
