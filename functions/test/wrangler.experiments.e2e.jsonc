@@ -1,0 +1,6 @@
+{
+    "$schema": "../../node_modules/wrangler/config-schema.json",
+    "name": "owid-functions-experiments-e2e-tests",
+    "main": "./experiments.e2e.worker.ts",
+    "compatibility_date": "2025-05-05"
+}
