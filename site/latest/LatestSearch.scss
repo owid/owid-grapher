@@ -1,10 +1,3 @@
-// Zero-height marker of where the facets container sits in the layout, for
-// scrolling back to it while it's stuck — see scrollToTopOfStuckElement.
-.latest-search__facets-sentinel {
-    grid-column: 1 / -1;
-    height: 0;
-}
-
 .latest-search__facets-container {
     margin-bottom: 0;
     @include sm-only {

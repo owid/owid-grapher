@@ -54,19 +54,23 @@ import { getPrefersReducedMotion } from "@ourworldindata/components"
  *
  * The element's own geometry can't tell us where it sits when not stuck:
  * both getBoundingClientRect and offsetTop report the pinned position once
- * it is stuck. So the layout position is read off a zero-height sentinel
- * rendered immediately before it, adjusted for the element's top margin.
+ * it is stuck. Its layout position is derived from the previous grid row
+ * instead: the element is a grid item, so its track starts where the
+ * previous sibling's margin box ends (grid rows have no row gap here), and
+ * its own top margin offsets it from there. A dedicated zero-height marker
+ * would be simpler but would add a grid row, and the newsletter block is
+ * pinned to an explicit row.
  */
-function scrollToTopOfStuckElement(
-    el: HTMLElement,
-    sentinel: HTMLElement
-): void {
+function scrollToTopOfStuckElement(el: HTMLElement): void {
+    const previous = el.previousElementSibling
+    if (!(previous instanceof HTMLElement)) return
     const style = getComputedStyle(el)
     const stickyTop = parseFloat(style.top) || 0
     if (el.getBoundingClientRect().top > stickyTop) return
     const naturalTop =
         window.scrollY +
-        sentinel.getBoundingClientRect().top +
+        previous.getBoundingClientRect().bottom +
+        (parseFloat(getComputedStyle(previous).marginBottom) || 0) +
         (parseFloat(style.marginTop) || 0)
     window.scrollTo({
         top: naturalTop - stickyTop,
@@ -116,7 +120,6 @@ export const LatestSearch = ({
     // facets container while scrolling down.
     const stickyFiltersArm = useLatestStickyFiltersArm()
     const facetsContainerRef = useRef<HTMLDivElement>(null)
-    const facetsSentinelRef = useRef<HTMLDivElement>(null)
     const areFacetsHidden = useIsStickyElementHidden(
         stickyFiltersArm === LATEST_STICKY_FILTERS_ARMS.revealOnScrollUp,
         facetsContainerRef
@@ -133,11 +136,8 @@ export const LatestSearch = ({
 
     const updateParams = (updater: (current: LatestState) => LatestState) => {
         setSearchParams(stateToSearchParams(updater(state)))
-        if (facetsContainerRef.current && facetsSentinelRef.current)
-            scrollToTopOfStuckElement(
-                facetsContainerRef.current,
-                facetsSentinelRef.current
-            )
+        if (facetsContainerRef.current)
+            scrollToTopOfStuckElement(facetsContainerRef.current)
     }
 
     const onTopicsChange = (newTopics: string[]) => {
@@ -242,10 +242,6 @@ export const LatestSearch = ({
     return (
         <LatestContext.Provider value={{ analytics }}>
             <LatestPageHeader />
-            <div
-                ref={facetsSentinelRef}
-                className="latest-search__facets-sentinel"
-            />
             <div
                 ref={facetsContainerRef}
                 className={cx(LATEST_FACETS_CONTAINER_CLASSES, {
