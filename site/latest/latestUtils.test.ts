@@ -75,7 +75,7 @@ describe(sortTopicAreasByPopularity, () => {
                 "New Area A",
                 "Health",
             ])
-        ).toEqual(["Health", "Violence and War", "New Area B", "New Area A"])
+        ).toEqual(["Violence and War", "Health", "New Area B", "New Area A"])
     })
 
     it("does not mutate its input", () => {

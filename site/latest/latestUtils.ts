@@ -105,22 +105,31 @@ export function hasViewToggle(latestType: LatestType | null): boolean {
  * pills render in, so the pills readers are most likely to want are the ones
  * visible without scrolling the pill row.
  *
- * Source: header-navigation clicks on each area's topics over the year to
- * September 2026 (the analytics database doesn't ingest the /latest filter
- * events themselves). Areas missing from this list sort last, in tag-graph
- * order, so a new area still shows up.
+ * Source: the share of /latest sessions that set each topic filter on the
+ * page (GA `owid.site_latest` events, `latest_topics` param, sessions that
+ * arrived unfiltered), 2026-06-05 to 2026-07-30, from the /latest redesign
+ * retrospective (owid/analytics#994, Figure 12 —
+ * `experiments/briefs/latest_page_20260714/topic_breakdown_exact.png`, which
+ * labels each area with its rank under the old order). Usage was spread fairly
+ * evenly (0.4–0.7% of sessions each) and measured under the previous
+ * tag-graph order, so treat the ranking as indicative. Kept static for the
+ * duration of the sticky filters experiment so the order can't shift
+ * underneath it; making it live would mean a dbt export in owid/analytics
+ * synced to an `analytics_*` MySQL table the baker reads (see
+ * docs/bigquery-to-mysql.md there). Areas missing from this list sort last,
+ * in tag-graph order, so a new area still shows up.
  */
 export const LATEST_TOPIC_AREAS_BY_POPULARITY: readonly string[] = [
-    "Health",
-    "Population and Demographic Change",
     "Energy and Environment",
     "Poverty and Economic Development",
-    "Food and Agriculture",
-    "Education and Knowledge",
-    "Human Rights and Democracy",
     "Violence and War",
     "Innovation and Technological Change",
+    "Food and Agriculture",
+    "Health",
     "Living Conditions, Community and Wellbeing",
+    "Population and Demographic Change",
+    "Education and Knowledge",
+    "Human Rights and Democracy",
 ]
 
 export function sortTopicAreasByPopularity(areas: string[]): string[] {
