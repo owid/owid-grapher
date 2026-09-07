@@ -115,11 +115,11 @@ export const experiments: Experiment[] = [
             "/grapher/share-of-population-in-extreme-poverty",
             "/grapher/human-rights-index-vdem",
             "/grapher/daily-per-capita-caloric-supply",
-            "/grapher/per-capita-energy-use",
+            "/grapher/child-mortality",
             // multi-indicator data pages (rendered as data pages via
             // forceDatapage; the metadata box shows an indicator switcher)
             "/grapher/annual-number-of-deaths-by-cause",
-            "/grapher/electricity-prod-source-stacked",
+            "/grapher/share-elec-by-source",
             "/grapher/population-with-un-projections",
             "/grapher/global-primary-energy-by-source",
             "/grapher/population-growth-rates",
