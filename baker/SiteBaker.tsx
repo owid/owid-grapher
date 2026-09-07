@@ -213,7 +213,7 @@ export class SiteBaker {
                     const attachments = await this.getPrefetchedGdocAttachments(
                         knex,
                         [
-                            profileTemplate.content.authors,
+                            profileTemplate.linkedAuthorNames,
                             profileTemplate.linkedDocumentIds,
                             profileTemplate.linkedImageFilenames,
                             profileTemplate.linkedChartSlugs.grapher,
@@ -761,7 +761,7 @@ export class SiteBaker {
                     const attachments = await this.getPrefetchedGdocAttachments(
                         knex,
                         [
-                            publishedGdoc.content.authors,
+                            publishedGdoc.linkedAuthorNames,
                             publishedGdoc.linkedDocumentIds,
                             publishedGdoc.linkedImageFilenames,
                             publishedGdoc.linkedChartSlugs.grapher,
@@ -1073,7 +1073,7 @@ export class SiteBaker {
                     const attachments = await this.getPrefetchedGdocAttachments(
                         knex,
                         [
-                            dataInsight.content.authors,
+                            dataInsight.linkedAuthorNames,
                             dataInsight.linkedDocumentIds,
                             dataInsight.linkedImageFilenames,
                             dataInsight.linkedChartSlugs.grapher,
@@ -1135,7 +1135,7 @@ export class SiteBaker {
                     const attachments = await this.getPrefetchedGdocAttachments(
                         knex,
                         [
-                            publishedAuthor.content.authors,
+                            publishedAuthor.linkedAuthorNames,
                             publishedAuthor.linkedDocumentIds,
                             publishedAuthor.linkedImageFilenames,
                             publishedAuthor.linkedChartSlugs.grapher,

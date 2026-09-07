@@ -414,10 +414,29 @@ export class GdocBase implements OwidGdocBaseInterface {
         return [...details]
     }
 
+    /** Names this page resolves against author pages */
+    get linkedAuthorNames(): string[] {
+        const names = new Set(this.content.authors)
+
+        for (const enrichedBlockSource of this.enrichedBlockSources) {
+            enrichedBlockSource.forEach((block) =>
+                traverseEnrichedBlock(block, (block) => {
+                    if (block.type === "credits") {
+                        for (const contributor of block.contributors) {
+                            names.add(contributor.name)
+                        }
+                    }
+                })
+            )
+        }
+
+        return [...names]
+    }
+
     async loadLinkedAuthors(knex: db.KnexReadonlyTransaction): Promise<void> {
         const authors = await getMinimalAuthorsByNames(
             knex,
-            this.content.authors
+            this.linkedAuthorNames
         )
         const authorRoles = this.content.authorRoles
         if (authorRoles) {
@@ -1143,7 +1162,7 @@ export class GdocBase implements OwidGdocBaseInterface {
             })
         }
 
-        const authorErrors = this.content.authors.reduce(
+        const authorErrors = this.linkedAuthorNames.reduce(
             (errors: OwidGdocErrorMessage[], name): OwidGdocErrorMessage[] => {
                 if (!this.linkedAuthors.some((a) => a.name === name)) {
                     errors.push({
