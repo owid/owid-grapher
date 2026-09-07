@@ -4,7 +4,9 @@ import {
     buildReferenceIndexQuery,
     parseOwnerRef,
     REFERENCING_COLUMNS,
+    renderValidationIssues,
     type RawReferenceRow,
+    type ValidationIssueGroup,
 } from "./checkChartConfigsAgainstSchema.js"
 
 describe(buildReferenceIndexQuery, () => {
@@ -93,13 +95,64 @@ describe(buildReferenceIndex, () => {
 
         expect(index.get("chart-config-id")).toEqual({
             column: "charts.configId",
-            reference: REFERENCING_COLUMNS["charts.configId"],
-            owner: { owner: "chart", id: "1" },
+            validated: {
+                reference: REFERENCING_COLUMNS["charts.configId"],
+                owner: { owner: "chart", id: "1" },
+            },
         })
         expect(index.get("explorer-config-id")).toEqual({
             column: "explorer_views.chartConfigId",
-            reference: null,
-            owner: null,
+            validated: null,
         })
+    })
+})
+
+describe(renderValidationIssues, () => {
+    it("names the referencing column and the count out of the validated total", () => {
+        const issues = new Map<string, ValidationIssueGroup>([
+            [
+                "charts.configId|/title|must be a string",
+                {
+                    column: "charts.configId",
+                    pointer: "/title",
+                    message: "must be a string",
+                    count: 1,
+                    exampleOwners: [{ owner: "chart", id: "42" }],
+                },
+            ],
+        ])
+        const validatedCounts = new Map([["charts.configId", 5122]])
+
+        expect(renderValidationIssues(issues, validatedCounts)).toEqual([
+            "  charts.configId /title: must be a string (1 of 5122, e.g. 42)",
+        ])
+    })
+
+    it("includes the view id in an mdim group's example", () => {
+        const issues = new Map<string, ValidationIssueGroup>([
+            [
+                "multi_dim_x_chart_configs.chartConfigId|/title|must be a string",
+                {
+                    column: "multi_dim_x_chart_configs.chartConfigId",
+                    pointer: "/title",
+                    message: "must be a string",
+                    count: 1,
+                    exampleOwners: [
+                        { owner: "multiDim", id: "7", viewId: "energy" },
+                    ],
+                },
+            ],
+        ])
+        const validatedCounts = new Map([
+            ["multi_dim_x_chart_configs.chartConfigId", 9503],
+        ])
+
+        expect(renderValidationIssues(issues, validatedCounts)).toEqual([
+            "  multi_dim_x_chart_configs.chartConfigId /title: must be a string (1 of 9503, e.g. 7 (view energy))",
+        ])
+    })
+
+    it("renders 'none' for an empty map", () => {
+        expect(renderValidationIssues(new Map(), new Map())).toEqual(["  none"])
     })
 })
