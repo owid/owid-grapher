@@ -103,11 +103,19 @@ const migrateFrom008To009 = (config: MigratableConfig): void => {
 }
 
 const migrateFrom009To010 = (config: MigratableConfig): void => {
-    // Rename hideLegend to hideSeriesLabels
-    if (config.hideLegend) {
-        config.hideSeriesLabels = true
-        delete config.hideLegend
-    }
+    const relevantChartTypes = [
+        GRAPHER_CHART_TYPES.LineChart,
+        GRAPHER_CHART_TYPES.SlopeChart,
+        GRAPHER_CHART_TYPES.StackedArea,
+    ]
+
+    const chartType = config.chartTypes?.[0] ?? GRAPHER_CHART_TYPES.LineChart
+    if (
+        config.hideLegend !== undefined &&
+        relevantChartTypes.includes(chartType)
+    )
+        config.hideSeriesLabels = config.hideLegend
+    delete config.hideLegend
 }
 
 const migrateFrom010To011 = (config: MigratableConfig): void => {
