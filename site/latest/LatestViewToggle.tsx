@@ -11,16 +11,7 @@ const VIEW_LABELS: Record<LatestFeedView, string> = {
     compact: "Compact",
 }
 
-/**
- * "View: Expanded / Compact" radio row. A grid item of its own, rendered
- * before the cards it governs, at the top of the right-hand column above the
- * newsletter block.
- *
- * Rendered only for the type filters that offer it (see
- * `LATEST_TYPES_WITH_VIEW_TOGGLE`), so its absence is what says "not
- * applicable here" — and hidden below the breakpoint where that column
- * collapses (see the scss).
- */
+/** Desktop Expanded/Compact control, placed above the newsletter sidebar. */
 export const LatestViewToggle = ({
     view,
     onViewChange,

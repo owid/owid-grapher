@@ -4,6 +4,7 @@ import {
     LATEST_TYPE_VALUES,
     LatestState,
     LatestType,
+    PageChronologicalRecord,
     TagGraphRoot,
 } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
@@ -30,6 +31,7 @@ import {
     urlNeedsSanitization,
 } from "./latestState.js"
 import { LatestHit } from "./LatestHit.js"
+import { OwidGdocType } from "@ourworldindata/utils"
 import { LatestSearchSkeleton } from "./LatestSearchSkeleton.js"
 import { LatestContext } from "./LatestContext.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
@@ -128,10 +130,8 @@ export const LatestSearch = ({
     }, [latestType, latestTypeFacetCounts])
 
     // Disable topics that would yield 0 results given the current filters.
-    // Never disable a topic that is already selected (so the user can deselect
-    // it). When topics are selected the facet counts are narrowed by Algolia's
-    // conjunctive filtering, so the counts reflect co-occurrence with the
-    // current selection — topics with 0 count genuinely add no results.
+    // Keep selected topics enabled so they can be deselected. Counts exclude
+    // the topic filter, reflecting what each replacement selection would show.
     const disabledTopics = useMemo(() => {
         const disabled = new Set<string>()
         for (const area of allAreas) {
@@ -171,15 +171,17 @@ export const LatestSearch = ({
     const displayedLatestType = data?.pages[0]?.latestType ?? null
     const activeView = hasViewToggle(displayedLatestType) ? view : undefined
 
-    // A card renders expanded when we know the reader is after this content
-    // in particular: they followed a link straight to it, the View toggle is
-    // on Expanded, or — for data updates, which don't have the toggle yet —
-    // they filtered for that type. It's a hard override, not a default: the
-    // card renders without a Read more affordance and can't be collapsed.
-    const isExpanded = (slug: string) =>
-        slug === hashSlug ||
-        activeView === "expanded" ||
-        displayedLatestType === "data-update"
+    // Insights expand only in their type-filtered feed. Other announcements
+    // expand for a deep link; data updates also expand under their type filter.
+    const isExpanded = (hit: PageChronologicalRecord): boolean => {
+        const isDeepLinked = hit.slug === hashSlug
+        if (hit.type === OwidGdocType.DataInsight)
+            return (
+                activeView !== undefined &&
+                (activeView === "expanded" || isDeepLinked)
+            )
+        return isDeepLinked || displayedLatestType === "data-update"
+    }
 
     return (
         <LatestContext.Provider value={{ analytics }}>
@@ -227,8 +229,7 @@ export const LatestSearch = ({
                             hit={hit}
                             selectedTopic={topics[0]}
                             position={i + 1}
-                            isExpanded={isExpanded(hit.slug)}
-                            view={activeView}
+                            isExpanded={isExpanded(hit)}
                         />
                     ))}
                     {/* Always render the signup block — with 0 or 1 hits it
@@ -244,8 +245,7 @@ export const LatestSearch = ({
                             hit={hit}
                             selectedTopic={topics[0]}
                             position={i + 3}
-                            isExpanded={isExpanded(hit.slug)}
-                            view={activeView}
+                            isExpanded={isExpanded(hit)}
                         />
                     ))}
                     {hasNextPage && (

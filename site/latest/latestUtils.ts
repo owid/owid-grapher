@@ -52,24 +52,7 @@ export function deriveLatestType(gdoc: LatestFeedGdoc): LatestType {
 export const latestTypeLabelPlural = (type: LatestType): string =>
     `${LATEST_TYPE_LABELS[type]}s`
 
-/**
- * Where a data update ultimately points the reader. Every data update ends
- * on a `cta` block (e.g. "Explore the updated data in our interactive chart")
- * which is what an expanded card links to.
- */
-export function findCtaUrl(
-    blocks: OwidEnrichedGdocBlock[]
-): string | undefined {
-    return blocks.findLast((block) => block.type === "cta")?.url
-}
-
-/**
- * The image a feed card shows beside its text: the first image block in the
- * body. Data insight and data update cards both lift it out of the body flow
- * and render it as the card thumbnail, so they filter it back out of the
- * blocks they pass to ArticleBlocks — keep the returned block identical (not
- * a copy) so callers can do that by identity.
- */
+/** First image block, returned by identity so callers can remove it from the body. */
 export function findThumbnailImageBlock(
     blocks: OwidEnrichedGdocBlock[]
 ): EnrichedBlockImage | undefined {
@@ -78,18 +61,15 @@ export function findThumbnailImageBlock(
 
 /**
  * How cards render in a type-filtered feed that offers the View toggle:
- * "expanded" shows each card in full, "compact" clips it and lets the reader
- * expand it in place. Local UI state, deliberately not in the URL.
+ * "expanded" shows each card in full, read in place; "compact" shows the same
+ * teaser card the unfiltered feed does, linking out to the page. Local UI
+ * state, deliberately not in the URL.
  */
 export const LATEST_FEED_VIEWS = ["expanded", "compact"] as const
 export type LatestFeedView = (typeof LATEST_FEED_VIEWS)[number]
 export const DEFAULT_LATEST_FEED_VIEW: LatestFeedView = "expanded"
 
-/**
- * Types whose filtered feed offers the View toggle. Data insights only for
- * now; data updates are the obvious next candidate — add the type here and
- * make its hit component honour `view` (see LatestDataInsightHit).
- */
+/** Type filters that offer the Expanded/Compact control. */
 const LATEST_TYPES_WITH_VIEW_TOGGLE: readonly LatestType[] = ["data-insight"]
 
 export function hasViewToggle(latestType: LatestType | null): boolean {
