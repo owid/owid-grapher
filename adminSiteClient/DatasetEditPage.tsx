@@ -299,7 +299,7 @@ class MultiDimList extends Component<MultiDimListProps> {
                                             )
                                         return githubPath ? (
                                             <a
-                                                href={`https://github.com/owid/etl/tree/master/etl/steps/export/multidim/${githubPath}`}
+                                                href={`https://github.com/owid/etl/tree/master/etl/steps/viz/chart/${githubPath}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                             >
