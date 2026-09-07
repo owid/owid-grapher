@@ -36,3 +36,13 @@
     border-radius: 4px;
     padding: 8px 10px;
 }
+
+.EditorPlaygroundPage__label {
+    display: block;
+    font-weight: 600;
+    margin: 10px 0 4px;
+}
+
+.EditorPlaygroundPage__textarea--short {
+    min-height: 160px;
+}

@@ -23,7 +23,6 @@ import { EditorFeatures } from "./EditorFeatures.js"
 import { Admin } from "./Admin.js"
 import {
     defaultGrapherConfig,
-    getCachingInputTableFetcher,
     GrapherState,
     loadCatalogData,
 } from "@ourworldindata/grapher"
@@ -33,6 +32,7 @@ import {
     defaultEditorEnvironment,
     EditorEnvironment,
 } from "./editorProviders.js"
+import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
 
 const EDITOR_TABS = [
     "basic",
@@ -60,6 +60,9 @@ export interface AbstractChartEditorManager {
     admin?: Admin
     // URLs the editor loads indicator data from. Defaults to the admin's.
     environment?: EditorEnvironment
+    // Where indicator data and metadata come from. Defaults to OWID's Data
+    // API at `environment.dataApiUrl`.
+    store?: IndicatorStore
     patchConfig: GrapherInterface
     // For the main chart editor, `parentConfig` is the indicator's config
     // (variables.patchConfigIdETL), if any. For other editor variants
@@ -100,7 +103,7 @@ export abstract class AbstractChartEditor<
     manager: Manager
 
     grapherState: GrapherState
-    cachingGrapherDataLoader: ReturnType<typeof getCachingInputTableFetcher>
+    store: IndicatorStore
     currentRequest: Promise<any> | undefined // Whether the current chart state is saved or not
     tab: EditorTab = "basic"
     errorMessage: { title: string; content: string } | undefined = undefined
@@ -130,11 +133,9 @@ export abstract class AbstractChartEditor<
                     baseUrl: environment.catalogUrl,
                 }),
         })
-        this.cachingGrapherDataLoader = getCachingInputTableFetcher(
-            environment.dataApiUrl,
-            undefined,
-            true
-        )
+        this.store =
+            props.manager.store ??
+            dataApiIndicatorStore({ dataApiUrl: environment.dataApiUrl })
 
         makeObservable(this, {
             grapherState: observable.ref,
@@ -354,7 +355,7 @@ export abstract class AbstractChartEditor<
 
     @action.bound async reloadGrapherData(): Promise<void> {
         const { grapherState } = this
-        const inputTable = await this.cachingGrapherDataLoader(
+        const inputTable = await this.store.loadTable(
             grapherState.dimensions,
             grapherState.selectedEntityColors
         )

@@ -40,11 +40,23 @@ export class ConfigEditor extends AbstractChartEditor<ConfigEditorManager> {
 
         this.disposers.push(
             reaction(
-                () => this.patchConfig,
+                () => this.hostConfig,
                 (config) => this.manager.onChange?.(config),
                 { equals: comparer.structural }
             )
         )
+    }
+
+    /** The host's config, translated into the dimension-based form the
+     *  editor works on (identity for the Data API store). */
+    override get originalGrapherConfig(): GrapherInterface {
+        return this.store.toEditorConfig(super.originalGrapherConfig)
+    }
+
+    /** The patch config in the host's own form: what `onSave` and
+     *  `onChange` hand back. */
+    @computed get hostConfig(): GrapherInterface {
+        return this.store.fromEditorConfig(this.patchConfig)
     }
 
     get references(): References | undefined {
@@ -69,9 +81,9 @@ export class ConfigEditor extends AbstractChartEditor<ConfigEditorManager> {
     async saveGrapher({
         onError,
     }: { onError?: () => void } = {}): Promise<void> {
-        const { patchConfig } = this
+        const { patchConfig, hostConfig } = this
         try {
-            await this.manager.onSave(patchConfig)
+            await this.manager.onSave(hostConfig)
         } catch {
             onError?.()
             return

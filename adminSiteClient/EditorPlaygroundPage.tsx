@@ -3,6 +3,9 @@
  * edit it against the live preview, and read the edited config back. It is
  * the in-repo stand-in for what a consumer of the future editor package would
  * build, so it deliberately touches nothing chart-specific in the admin.
+ *
+ * Two data stores can be tried: OWID's Data API (configs reference indicators
+ * by `variableId`) and a pasted CSV (configs reference columns by slug).
  */
 import * as React from "react"
 import { observer } from "mobx-react"
@@ -10,7 +13,12 @@ import { action, computed, observable, makeObservable } from "mobx"
 import { Button, Drawer, Modal, Segmented, Space, Switch } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCopy, faFileImport } from "@fortawesome/free-solid-svg-icons"
-import { DimensionProperty, GrapherInterface } from "@ourworldindata/types"
+import {
+    ColumnTypeNames,
+    DimensionProperty,
+    GrapherInterface,
+    OwidColumnDef,
+} from "@ourworldindata/types"
 import { copyToClipboard } from "@ourworldindata/utils"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
@@ -20,15 +28,21 @@ import { EditorTab } from "./AbstractChartEditor.js"
 import {
     adminDetailsProvider,
     adminIndicatorCatalog,
+    defaultEditorEnvironment,
     DetailsProvider,
     IndicatorCatalog,
 } from "./editorProviders.js"
+import {
+    csvIndicatorStore,
+    dataApiIndicatorStore,
+    IndicatorStore,
+} from "./indicatorStores.js"
 
 import "./EditorPlaygroundPage.scss"
 
 // Life expectancy at birth, served by the public Data API, so the preview
 // works against any database.
-const EXAMPLE_CONFIG: GrapherInterface = {
+const EXAMPLE_API_CONFIG: GrapherInterface = {
     title: "Life expectancy",
     subtitle:
         "The period life expectancy at birth, in a given year. Try editing this.",
@@ -37,12 +51,59 @@ const EXAMPLE_CONFIG: GrapherInterface = {
     dimensions: [{ property: DimensionProperty.y, variableId: 1118466 }],
 }
 
+// A made-up CSV standing in for a host's own data: no OWID indicators, the
+// config references columns by slug.
+const EXAMPLE_CSV = `entityName,year,rent_index,vacancy_rate
+Berlin,2015,100,3.1
+Berlin,2017,112,2.4
+Berlin,2019,124,1.5
+Berlin,2021,131,1.2
+Berlin,2023,142,0.9
+Vienna,2015,100,4.0
+Vienna,2017,104,4.1
+Vienna,2019,108,3.9
+Vienna,2021,112,3.8
+Vienna,2023,117,3.6
+Prague,2015,100,3.5
+Prague,2017,119,2.6
+Prague,2019,141,1.9
+Prague,2021,152,2.2
+Prague,2023,160,1.7`
+
+const EXAMPLE_CSV_COLUMN_DEFS: OwidColumnDef[] = [
+    {
+        slug: "rent_index",
+        type: ColumnTypeNames.Numeric,
+        name: "Rent index",
+        unit: "index (2015 = 100)",
+        description: "Average asking rent relative to 2015.",
+        sourceName: "City statistics offices (made up for the playground)",
+    },
+    {
+        slug: "vacancy_rate",
+        type: ColumnTypeNames.Numeric,
+        name: "Vacancy rate",
+        unit: "%",
+        shortUnit: "%",
+        sourceName: "City statistics offices (made up for the playground)",
+    },
+]
+
+const EXAMPLE_CSV_CONFIG: GrapherInterface = {
+    title: "Rents in three cities",
+    subtitle: "Asking rents relative to 2015. Data from a pasted CSV.",
+    ySlugs: "rent_index",
+    selectedEntityNames: ["Berlin", "Vienna", "Prague"],
+}
+
 const LITE_TABS: EditorTab[] = ["basic", "data", "text", "customize", "map"]
 
 type TabPreset = "all" | "lite"
+type StoreMode = "api" | "csv"
 
 interface ConfigEditorHostProps {
     config: GrapherInterface
+    store: IndicatorStore
     indicators?: IndicatorCatalog
     details?: DetailsProvider
     tabs?: EditorTab[]
@@ -68,6 +129,10 @@ class ConfigEditorHost
 
     get patchConfig(): GrapherInterface {
         return this.props.config
+    }
+
+    get store(): IndicatorStore {
+        return this.props.store
     }
 
     get indicators(): IndicatorCatalog | undefined {
@@ -104,9 +169,15 @@ export class EditorPlaygroundPage extends React.Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    configText = JSON.stringify(EXAMPLE_CONFIG, null, 2)
-    configError: string | undefined = undefined
-    loadedConfig: GrapherInterface = EXAMPLE_CONFIG
+    storeMode: StoreMode = "api"
+    configText = JSON.stringify(EXAMPLE_API_CONFIG, null, 2)
+    csvText = EXAMPLE_CSV
+    columnDefsText = JSON.stringify(EXAMPLE_CSV_COLUMN_DEFS, null, 2)
+    loadError: string | undefined = undefined
+    loadedConfig: GrapherInterface = EXAMPLE_API_CONFIG
+    loadedStore: IndicatorStore = dataApiIndicatorStore({
+        dataApiUrl: defaultEditorEnvironment.dataApiUrl,
+    })
     editorKey = 0
     withIndicatorCatalog = true
     tabPreset: TabPreset = "all"
@@ -119,9 +190,13 @@ export class EditorPlaygroundPage extends React.Component {
     constructor(props: Record<string, never>) {
         super(props)
         makeObservable(this, {
+            storeMode: observable,
             configText: observable,
-            configError: observable,
+            csvText: observable,
+            columnDefsText: observable,
+            loadError: observable,
             loadedConfig: observable.ref,
+            loadedStore: observable.ref,
             editorKey: observable,
             withIndicatorCatalog: observable,
             tabPreset: observable,
@@ -133,10 +208,28 @@ export class EditorPlaygroundPage extends React.Component {
         })
     }
 
+    /** Builds the store for the current inputs. Throws on a bad CSV or defs. */
+    private makeStore(): IndicatorStore {
+        if (this.storeMode === "csv") {
+            const columnDefs = JSON.parse(
+                this.columnDefsText
+            ) as OwidColumnDef[]
+            return csvIndicatorStore({
+                csv: this.csvText,
+                columnDefs,
+                name: "pasted CSV",
+            })
+        }
+        return dataApiIndicatorStore({
+            dataApiUrl: defaultEditorEnvironment.dataApiUrl,
+        })
+    }
+
     @computed get indicators(): IndicatorCatalog | undefined {
-        return this.withIndicatorCatalog
+        if (!this.withIndicatorCatalog) return undefined
+        return this.storeMode === "api"
             ? adminIndicatorCatalog(this.context.admin)
-            : undefined
+            : this.loadedStore.catalog
     }
 
     @computed get details(): DetailsProvider {
@@ -154,15 +247,17 @@ export class EditorPlaygroundPage extends React.Component {
     @action.bound loadConfig(): void {
         try {
             const parsed = JSON.parse(this.configText) as GrapherInterface
-            this.configError = undefined
+            const store = this.makeStore()
+            this.loadError = undefined
             this.loadedConfig = parsed
+            this.loadedStore = store
             this.liveConfig = undefined
             this.savedConfig = undefined
             this.savedAt = undefined
             this.editorKey++
             this.isInputOpen = false
         } catch (err) {
-            this.configError = err instanceof Error ? err.message : String(err)
+            this.loadError = err instanceof Error ? err.message : String(err)
         }
     }
 
@@ -191,12 +286,40 @@ export class EditorPlaygroundPage extends React.Component {
         this.remount()
     }
 
+    /** Switching stores loads that store's example, so there is always
+     *  something to look at. */
+    @action.bound setStoreMode(mode: StoreMode): void {
+        this.storeMode = mode
+        this.configText = JSON.stringify(
+            mode === "csv" ? EXAMPLE_CSV_CONFIG : EXAMPLE_API_CONFIG,
+            null,
+            2
+        )
+        this.loadConfig()
+    }
+
     override render(): React.ReactElement {
+        const isCsv = this.storeMode === "csv"
         return (
             <AdminLayout noSidebar>
                 <div className="EditorPlaygroundPage">
                     <div className="EditorPlaygroundPage__toolbar">
                         <Space size="middle" wrap>
+                            <span>
+                                Data store{" "}
+                                <Segmented<StoreMode>
+                                    size="small"
+                                    value={this.storeMode}
+                                    onChange={this.setStoreMode}
+                                    options={[
+                                        {
+                                            label: "OWID Data API",
+                                            value: "api",
+                                        },
+                                        { label: "Pasted CSV", value: "csv" },
+                                    ]}
+                                />
+                            </span>
                             <Button
                                 icon={<FontAwesomeIcon icon={faFileImport} />}
                                 onClick={action(
@@ -243,6 +366,7 @@ export class EditorPlaygroundPage extends React.Component {
                     <ConfigEditorHost
                         key={this.editorKey}
                         config={this.loadedConfig}
+                        store={this.loadedStore}
                         indicators={this.indicators}
                         details={this.details}
                         tabs={this.tabs}
@@ -251,17 +375,35 @@ export class EditorPlaygroundPage extends React.Component {
                     />
 
                     <Modal
-                        title="Load a grapher config"
+                        title={
+                            isCsv
+                                ? "Load a grapher config and its CSV"
+                                : "Load a grapher config"
+                        }
                         open={this.isInputOpen}
                         onCancel={action(() => (this.isInputOpen = false))}
                         onOk={this.loadConfig}
                         okText="Load into editor"
                         width={720}
                     >
-                        <p>
-                            Paste a chart config (JSON). Indicators are loaded
-                            from the Data API, so any public variable id works.
-                        </p>
+                        {isCsv ? (
+                            <p>
+                                The config references CSV columns by slug (
+                                <code>ySlugs</code>, <code>xSlug</code>,{" "}
+                                <code>colorSlug</code>, <code>sizeSlug</code>).
+                                Column definitions carry the metadata the chart
+                                shows: name, unit, description, source.
+                            </p>
+                        ) : (
+                            <p>
+                                Paste a chart config (JSON). Indicators are
+                                loaded from the Data API, so any public variable
+                                id works.
+                            </p>
+                        )}
+                        <label className="EditorPlaygroundPage__label">
+                            Config
+                        </label>
                         <textarea
                             className="EditorPlaygroundPage__textarea"
                             value={this.configText}
@@ -269,9 +411,33 @@ export class EditorPlaygroundPage extends React.Component {
                                 this.configText = e.target.value
                             })}
                         />
-                        {this.configError && (
+                        {isCsv && (
+                            <>
+                                <label className="EditorPlaygroundPage__label">
+                                    CSV
+                                </label>
+                                <textarea
+                                    className="EditorPlaygroundPage__textarea EditorPlaygroundPage__textarea--short"
+                                    value={this.csvText}
+                                    onChange={action((e) => {
+                                        this.csvText = e.target.value
+                                    })}
+                                />
+                                <label className="EditorPlaygroundPage__label">
+                                    Column definitions
+                                </label>
+                                <textarea
+                                    className="EditorPlaygroundPage__textarea EditorPlaygroundPage__textarea--short"
+                                    value={this.columnDefsText}
+                                    onChange={action((e) => {
+                                        this.columnDefsText = e.target.value
+                                    })}
+                                />
+                            </>
+                        )}
+                        {this.loadError && (
                             <div className="alert alert-danger mt-2">
-                                {this.configError}
+                                {this.loadError}
                             </div>
                         )}
                     </Modal>
@@ -297,8 +463,9 @@ export class EditorPlaygroundPage extends React.Component {
                             </Button>
                         </h6>
                         <p className="text-muted">
-                            What <code>onChange</code> receives: the patch the
-                            editor would hand back, updated as you edit.
+                            What <code>onChange</code> receives: the config the
+                            editor would hand back, in the store&rsquo;s own
+                            form, updated as you edit.
                         </p>
                         <pre className="EditorPlaygroundPage__json">
                             {this.liveConfigJson}
