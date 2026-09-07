@@ -1,6 +1,10 @@
 import { expect, it, describe } from "vitest"
 
-import { buildPrompt, describeChartState, buildEngineUrl } from "./askAiPrompt.js"
+import {
+    buildPrompt,
+    describeChartState,
+    buildEngineUrl,
+} from "./askAiPrompt.js"
 
 const SLUG_URL = "https://ourworldindata.org/grapher/child-mortality"
 
