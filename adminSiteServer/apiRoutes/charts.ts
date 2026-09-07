@@ -49,7 +49,10 @@ import {
     getGdocsPostReferencesByChartId,
 } from "../../db/model/Post.js"
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
-import { ingestGrapherConfig } from "../../db/grapherConfigValidation.js"
+import {
+    assertValidGrapherConfig,
+    ingestGrapherConfig,
+} from "../../db/grapherConfigValidation.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
     deleteChartConfigPairFromDbAndR2,
@@ -344,6 +347,7 @@ const saveNewChart = async (
     // compute patch and full configs
     const patchConfig = diffGrapherConfigs(config, parent?.config ?? {})
     const fullConfig = mergeGrapherConfigs(parent?.config ?? {}, patchConfig)
+    assertValidGrapherConfig(fullConfig, "chart")
 
     const now = new Date()
 
@@ -483,6 +487,7 @@ const updateExistingChart = async (
     const parentStack = mergeGrapherConfigs(parent?.config ?? {}, etlConfig)
     const patchConfig = diffGrapherConfigs(config, parentStack)
     const fullConfig = mergeGrapherConfigs(parentStack, patchConfig)
+    assertValidGrapherConfig(fullConfig, "chart")
 
     const now = new Date()
 
@@ -1310,6 +1315,7 @@ async function upsertEtlConfigForChart(
         id: chartId,
         version: newVersion,
     }
+    assertValidGrapherConfig(newFullConfig, "chart")
 
     await db.knexRaw(
         trx,
@@ -1474,6 +1480,7 @@ export async function deleteChartsChartIdEtlConfig(
         id: chartId,
         version: newVersion,
     }
+    assertValidGrapherConfig(newFullConfig, "chart")
 
     // Update the chart's rendered and patch config rows with the recomputed
     // full/patch.

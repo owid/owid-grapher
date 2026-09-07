@@ -16,6 +16,8 @@ export type GrapherConfigKind = "chart" | "patch"
 export interface GrapherConfigValidationIssue {
     pointer: string
     message: string
+    /** The chart this issue belongs to */
+    label?: string
 }
 
 const ajv = new Ajv({ allErrors: true, strict: true })
@@ -40,10 +42,35 @@ export function validateGrapherConfig(
 export class GrapherConfigValidationError extends JsonError {
     constructor(
         kind: GrapherConfigKind,
-        public readonly issues: GrapherConfigValidationIssue[]
+        public readonly issues: GrapherConfigValidationIssue[],
+        checkedCount?: number
     ) {
-        super(buildValidationErrorMessage(kind, issues), 400)
+        super(buildValidationErrorMessage(kind, issues, checkedCount), 400)
     }
+}
+
+/** Throws if the config is invalid, reporting every issue at once */
+export function assertValidGrapherConfig(
+    config: AnyConfig,
+    kind: GrapherConfigKind
+): void {
+    const issues = validateGrapherConfig(config, kind)
+    if (issues.length > 0) throw new GrapherConfigValidationError(kind, issues)
+}
+
+/** Throws once if any config is invalid, naming every one that failed */
+export function assertValidGrapherConfigs(
+    configs: readonly { label: string; config: AnyConfig }[],
+    kind: GrapherConfigKind
+): void {
+    const issues = configs.flatMap(({ label, config }) =>
+        validateGrapherConfig(config, kind).map((issue) => ({
+            ...issue,
+            label,
+        }))
+    )
+    if (issues.length > 0)
+        throw new GrapherConfigValidationError(kind, issues, configs.length)
 }
 
 export function ingestGrapherConfig(
@@ -83,10 +110,31 @@ function pointerForError(error: ErrorObject): string {
 
 function buildValidationErrorMessage(
     kind: GrapherConfigKind,
-    issues: GrapherConfigValidationIssue[]
+    issues: GrapherConfigValidationIssue[],
+    checkedCount?: number
 ): string {
-    const lines = issues.map(
-        (issue) => `  ${issue.pointer || "(root)"}: ${issue.message}`
+    const labels = _.uniq(
+        issues
+            .map((issue) => issue.label)
+            .filter((label) => label !== undefined)
     )
-    return [`Invalid grapher ${kind} config:`, ...lines].join("\n")
+    if (labels.length === 0) {
+        const lines = issues.map(
+            (issue) => `  ${issue.pointer || "(root)"}: ${issue.message}`
+        )
+        return [`Invalid grapher ${kind} config:`, ...lines].join("\n")
+    }
+
+    const lines = labels.flatMap((label) => [
+        `  ${label}`,
+        ...issues
+            .filter((issue) => issue.label === label)
+            .map(
+                (issue) => `    ${issue.pointer || "(root)"}: ${issue.message}`
+            ),
+    ])
+    return [
+        `Invalid grapher ${kind} config for ${labels.length} of ${checkedCount} charts:`,
+        ...lines,
+    ].join("\n")
 }
