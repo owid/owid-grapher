@@ -10,7 +10,12 @@ import {
 import {
     mergeGrapherConfigs,
     diffGrapherConfigs,
-} from "./grapherConfigUtils.js"
+} from "./grapherConfigInheritance.js"
+
+const SCHEMA_URL =
+    "https://files.ourworldindata.org/schemas/grapher-schema.011.json"
+const OUTDATED_SCHEMA_URL =
+    "https://files.ourworldindata.org/schemas/grapher-schema.010.json"
 
 describe(mergeGrapherConfigs, () => {
     it("merges empty configs", () => {
@@ -24,35 +29,48 @@ describe(mergeGrapherConfigs, () => {
     })
 
     it("doesn't mutate input objects", () => {
-        const parentConfig = { title: "Title" }
-        const childConfig = { subtitle: "Subtitle" }
+        const parentConfig = { $schema: SCHEMA_URL, title: "Title" }
+        const childConfig = { $schema: SCHEMA_URL, subtitle: "Subtitle" }
         mergeGrapherConfigs(parentConfig, childConfig)
-        expect(parentConfig).toEqual({ title: "Title" })
-        expect(childConfig).toEqual({ subtitle: "Subtitle" })
+        expect(parentConfig).toEqual({ $schema: SCHEMA_URL, title: "Title" })
+        expect(childConfig).toEqual({
+            $schema: SCHEMA_URL,
+            subtitle: "Subtitle",
+        })
     })
 
     it("merges two objects", () => {
         expect(
             mergeGrapherConfigs(
-                { title: "Parent title" },
-                { subtitle: "Child subtitle" }
+                { $schema: SCHEMA_URL, title: "Parent title" },
+                { $schema: SCHEMA_URL, subtitle: "Child subtitle" }
             )
         ).toEqual({
+            $schema: SCHEMA_URL,
             title: "Parent title",
             subtitle: "Child subtitle",
         })
         expect(
             mergeGrapherConfigs(
-                { title: "Parent title" },
-                { title: "Child title" }
+                { $schema: SCHEMA_URL, title: "Parent title" },
+                { $schema: SCHEMA_URL, title: "Child title" }
             )
-        ).toEqual({ title: "Child title" })
+        ).toEqual({ $schema: SCHEMA_URL, title: "Child title" })
         expect(
             mergeGrapherConfigs(
-                { title: "Parent title", subtitle: "Parent subtitle" },
-                { title: "Child title", hideRelativeToggle: true }
+                {
+                    $schema: SCHEMA_URL,
+                    title: "Parent title",
+                    subtitle: "Parent subtitle",
+                },
+                {
+                    $schema: SCHEMA_URL,
+                    title: "Child title",
+                    hideRelativeToggle: true,
+                }
             )
         ).toEqual({
+            $schema: SCHEMA_URL,
             title: "Child title",
             subtitle: "Parent subtitle",
             hideRelativeToggle: true,
@@ -62,11 +80,12 @@ describe(mergeGrapherConfigs, () => {
     it("merges three objects", () => {
         expect(
             mergeGrapherConfigs(
-                { title: "Parent title" },
-                { subtitle: "Child subtitle" },
-                { note: "Grandchild note" }
+                { $schema: SCHEMA_URL, title: "Parent title" },
+                { $schema: SCHEMA_URL, subtitle: "Child subtitle" },
+                { $schema: SCHEMA_URL, note: "Grandchild note" }
             )
         ).toEqual({
+            $schema: SCHEMA_URL,
             title: "Parent title",
             subtitle: "Child subtitle",
             note: "Grandchild note",
@@ -74,14 +93,24 @@ describe(mergeGrapherConfigs, () => {
         expect(
             mergeGrapherConfigs(
                 {
+                    $schema: SCHEMA_URL,
                     title: "Parent title",
                     subtitle: "Parent subtitle",
                     sourceDesc: "Parent sources",
                 },
-                { title: "Child title", subtitle: "Child subtitle" },
-                { title: "Grandchild title", note: "Grandchild note" }
+                {
+                    $schema: SCHEMA_URL,
+                    title: "Child title",
+                    subtitle: "Child subtitle",
+                },
+                {
+                    $schema: SCHEMA_URL,
+                    title: "Grandchild title",
+                    note: "Grandchild note",
+                }
             )
         ).toEqual({
+            $schema: SCHEMA_URL,
             title: "Grandchild title",
             subtitle: "Child subtitle",
             note: "Grandchild note",
@@ -93,12 +122,14 @@ describe(mergeGrapherConfigs, () => {
         expect(
             mergeGrapherConfigs(
                 {
+                    $schema: SCHEMA_URL,
                     map: {
                         region: MapRegionName.World,
                         time: 2000,
                     },
                 },
                 {
+                    $schema: SCHEMA_URL,
                     map: {
                         region: MapRegionName.Africa,
                         hideTimeline: true,
@@ -106,6 +137,7 @@ describe(mergeGrapherConfigs, () => {
                 }
             )
         ).toEqual({
+            $schema: SCHEMA_URL,
             map: {
                 region: MapRegionName.Africa,
                 time: 2000,
@@ -117,20 +149,46 @@ describe(mergeGrapherConfigs, () => {
     it("overwrites arrays", () => {
         expect(
             mergeGrapherConfigs(
-                { selectedEntityNames: ["France", "Italy"] },
-                { selectedEntityNames: ["Italy", "Spain"] }
+                {
+                    $schema: SCHEMA_URL,
+                    selectedEntityNames: ["France", "Italy"],
+                },
+                { $schema: SCHEMA_URL, selectedEntityNames: ["Italy", "Spain"] }
             )
         ).toEqual({
+            $schema: SCHEMA_URL,
             selectedEntityNames: ["Italy", "Spain"],
         })
         expect(
             mergeGrapherConfigs(
-                { colorScale: { customNumericValues: [1, 2] } },
-                { colorScale: { customNumericValues: [3, 4] } }
+                {
+                    $schema: SCHEMA_URL,
+                    colorScale: { customNumericValues: [1, 2] },
+                },
+                {
+                    $schema: SCHEMA_URL,
+                    colorScale: { customNumericValues: [3, 4] },
+                }
             )
         ).toEqual({
+            $schema: SCHEMA_URL,
             colorScale: { customNumericValues: [3, 4] },
         })
+    })
+
+    it("warns when merging configs without schema information", () => {
+        const consoleWarnSpy = vi
+            .spyOn(console, "warn")
+            .mockImplementation(_.noop)
+
+        expect(
+            mergeGrapherConfigs({ title: "Title A" }, { title: "Title B" })
+        ).toEqual({ title: "Title B" })
+
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+            expect.stringContaining("missing schema information")
+        )
+        consoleWarnSpy.mockRestore()
     })
 
     it("warns when merging configs of different schema versions", () => {
@@ -140,15 +198,17 @@ describe(mergeGrapherConfigs, () => {
 
         expect(
             mergeGrapherConfigs(
-                { $schema: "1", title: "Title A" },
-                { $schema: "2", title: "Title B" }
+                { $schema: OUTDATED_SCHEMA_URL, title: "Title A" },
+                { $schema: SCHEMA_URL, title: "Title B" }
             )
         ).toEqual({
-            $schema: "2",
+            $schema: SCHEMA_URL,
             title: "Title B",
         })
 
-        expect(consoleWarnSpy).toHaveBeenCalled()
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+            expect.stringContaining("different schema versions")
+        )
         consoleWarnSpy.mockRestore()
     })
 
@@ -156,27 +216,33 @@ describe(mergeGrapherConfigs, () => {
         expect(
             mergeGrapherConfigs(
                 {
-                    $schema: "004",
+                    $schema: SCHEMA_URL,
                     id: 1,
                     slug: "parent-slug",
                     version: 1,
                     title: "Title A",
                 },
-                { title: "Title B" }
+                { $schema: SCHEMA_URL, title: "Title B" }
             )
-        ).toEqual({ title: "Title B" })
+        ).toEqual({ $schema: SCHEMA_URL, title: "Title B" })
         expect(
             mergeGrapherConfigs(
                 {
-                    $schema: "004",
+                    $schema: SCHEMA_URL,
                     id: 1,
                     slug: "parent-slug",
                     version: 1,
                     title: "Title A",
                 },
-                { slug: "child-slug", version: 1, title: "Title B" }
+                {
+                    $schema: SCHEMA_URL,
+                    slug: "child-slug",
+                    version: 1,
+                    title: "Title B",
+                }
             )
         ).toEqual({
+            $schema: SCHEMA_URL,
             slug: "child-slug",
             version: 1,
             title: "Title B",
@@ -187,11 +253,12 @@ describe(mergeGrapherConfigs, () => {
         expect(
             mergeGrapherConfigs(
                 {
+                    $schema: SCHEMA_URL,
                     title: "Parent title",
                     subtitle: "Parent subtitle",
                 },
                 {
-                    $schema: "004",
+                    $schema: SCHEMA_URL,
                     id: 1,
                     slug: "parent-slug",
                     version: 1,
@@ -200,7 +267,7 @@ describe(mergeGrapherConfigs, () => {
                 {}
             )
         ).toEqual({
-            $schema: "004",
+            $schema: SCHEMA_URL,
             id: 1,
             slug: "parent-slug",
             version: 1,
@@ -212,19 +279,29 @@ describe(mergeGrapherConfigs, () => {
     it("overwrites values with an empty string if requested", () => {
         expect(
             mergeGrapherConfigs(
-                { title: "Parent title", subtitle: "Parent subtitle" },
-                { subtitle: "" }
+                {
+                    $schema: SCHEMA_URL,
+                    title: "Parent title",
+                    subtitle: "Parent subtitle",
+                },
+                { $schema: SCHEMA_URL, subtitle: "" }
             )
-        ).toEqual({ title: "Parent title", subtitle: "" })
+        ).toEqual({ $schema: SCHEMA_URL, title: "Parent title", subtitle: "" })
     })
 
     it("is associative", () => {
         const configA: GrapherInterface = {
+            $schema: SCHEMA_URL,
             title: "Title A",
             subtitle: "Subtitle A",
         }
-        const configB: GrapherInterface = { title: "Title B", note: "Note B" }
+        const configB: GrapherInterface = {
+            $schema: SCHEMA_URL,
+            title: "Title B",
+            note: "Note B",
+        }
         const configC: GrapherInterface = {
+            $schema: SCHEMA_URL,
             title: "Title C",
             subtitle: "Subtitle C",
             sourceDesc: "Source C",
@@ -341,8 +418,7 @@ describe(diffGrapherConfigs, () => {
             diffGrapherConfigs(
                 {
                     title: "Chart",
-                    $schema:
-                        "https://files.ourworldindata.org/schemas/grapher-schema.004.json",
+                    $schema: SCHEMA_URL,
                     id: 20,
                     version: 1,
                     slug: "slug",
@@ -353,8 +429,7 @@ describe(diffGrapherConfigs, () => {
                 },
                 {
                     title: "Reference chart",
-                    $schema:
-                        "https://files.ourworldindata.org/schemas/grapher-schema.004.json",
+                    $schema: SCHEMA_URL,
                     id: 20,
                     version: 1,
                     slug: "slug",
@@ -366,8 +441,7 @@ describe(diffGrapherConfigs, () => {
             )
         ).toEqual({
             title: "Chart",
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.004.json",
+            $schema: SCHEMA_URL,
             id: 20,
             version: 1,
             slug: "slug",
@@ -429,11 +503,13 @@ describe(diffGrapherConfigs, () => {
 describe("diff+merge", () => {
     it("are consistent", () => {
         const config: GrapherInterface = {
+            $schema: SCHEMA_URL,
             tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
             title: "Chart",
             subtitle: "Chart subtitle",
         }
         const reference: GrapherInterface = {
+            $schema: SCHEMA_URL,
             tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
             title: "Reference chart",
         }
