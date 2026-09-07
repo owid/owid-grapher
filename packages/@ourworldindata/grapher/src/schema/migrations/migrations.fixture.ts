@@ -202,6 +202,59 @@ export const MIGRATION_FIXTURES: {
         },
     },
     {
+        name: "renames hideLegend to hideSeriesLabels on a line chart",
+        before: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+            hideLegend: true,
+        },
+        after: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+            hideSeriesLabels: true,
+        },
+    },
+    {
+        name: "carries a false hideLegend across on a line chart",
+        before: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+            hideLegend: false,
+        },
+        after: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+            hideSeriesLabels: false,
+        },
+    },
+    {
+        name: "drops hideLegend from a chart type without series labels",
+        before: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+            chartTypes: ["ScatterPlot"],
+            hideLegend: true,
+        },
+        after: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+            chartTypes: ["ScatterPlot"],
+        },
+    },
+    {
+        name: "leaves a config without hideLegend alone",
+        before: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+            title: "Test",
+        },
+        after: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+            title: "Test",
+        },
+    },
+    {
         name: "replaces yearIsDay with timeInterval",
         before: {
             $schema:
@@ -233,5 +286,57 @@ export const MIGRATION_FIXTURES: {
                 { property: "y", variableId: 3, display: { unit: "%" } },
             ],
         },
+    },
+]
+
+/**
+ * Patch stacks, parent first. Migrating the patches and then merging them has
+ * to come out the same as merging them and then migrating the result.
+ */
+export const PATCH_STACK_FIXTURES: {
+    name: string
+    patches: AnyConfigWithValidSchema[]
+}[] = [
+    {
+        name: "a child turning an inherited hideLegend back off",
+        patches: [
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+                hideLegend: true,
+            },
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+                hideLegend: false,
+            },
+        ],
+    },
+    {
+        name: "a child replacing dimensions that carry yearIsDay",
+        patches: [
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+                dimensions: [
+                    {
+                        property: "y",
+                        variableId: 1,
+                        display: { yearIsDay: true },
+                    },
+                ],
+            },
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+                dimensions: [
+                    {
+                        property: "y",
+                        variableId: 1,
+                        display: { yearIsDay: false },
+                    },
+                ],
+            },
+        ],
     },
 ]
