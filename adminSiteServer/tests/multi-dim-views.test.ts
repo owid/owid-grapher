@@ -133,6 +133,23 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         expect(await env.getCount(MultiDimDataPagesTableName)).toBe(0)
     })
 
+    it("rejects a view config with an unknown key", async () => {
+        const viewWithUnknownKey = {
+            ...totalView,
+            config: { ...totalView.config, hideLegend: true },
+        }
+        const response = await env.request({
+            method: "PUT",
+            path: `/multi-dims/${encodeURIComponent(catalogPath)}`,
+            body: JSON.stringify({
+                config: multiDimConfig([viewWithUnknownKey]),
+            }),
+            expectStatus: 400,
+        })
+        expect(response.error.message).toContain("/hideLegend")
+        expect(await env.getCount(MultiDimDataPagesTableName)).toBe(0)
+    })
+
     it("drops the config row of a removed view and keeps the rest", async () => {
         await upsertMultiDim([totalView, perCapitaView])
         const before = await getViewConfigIds()
@@ -181,6 +198,37 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
 
         // Propagation updates the rows in place rather than replacing them
         expect(await getViewConfigIds()).toEqual(viewConfigIds)
+    })
+
+    it("propagates to a stored view config that declares no schema version", async () => {
+        await upsertMultiDim([totalView])
+        const viewConfigIds = await getViewConfigIds()
+
+        // Some stored view configs carry no schema version, and the route will
+        // not create one, so the row is written directly
+        const row = await env
+            .testKnex(MultiDimDataPagesTableName)
+            .where({ catalogPath })
+            .first()
+        const { grapherConfigSchema: _omitted, ...configWithoutSchema } =
+            JSON.parse(row.config)
+        await env
+            .testKnex(MultiDimDataPagesTableName)
+            .where({ catalogPath })
+            .update({ config: JSON.stringify(configWithoutSchema) })
+
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                note: "Indicator note",
+            }),
+        })
+
+        const config = await getConfig(viewConfigIds["metric=total"])
+        expect(config.note).toBe("Indicator note")
+        expect(config.title).toBe("Total energy use")
     })
 
     it("keeps views published when the indicator's config changes", async () => {
