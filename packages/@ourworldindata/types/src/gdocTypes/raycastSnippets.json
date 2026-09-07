@@ -50,6 +50,11 @@
         "keyword": "+cookie-notice"
     },
     {
+        "name": "credits",
+        "text": "{.credits}\ncontributors: \n[.+acknowledgements]\n\n[]\n{}",
+        "keyword": "+credits"
+    },
+    {
         "name": "cta",
         "text": "{.cta}\ntext: \nurl: \n{}",
         "keyword": "+cta"

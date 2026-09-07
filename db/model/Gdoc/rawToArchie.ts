@@ -29,6 +29,7 @@ import {
     RawBlockAdditionalCharts,
     RawBlockAllCharts,
     RawBlockCallout,
+    RawBlockCredits,
     RawBlockKeyInsights,
     RawBlockResearchAndWriting,
     RawBlockResearchAndWritingLink,
@@ -184,6 +185,21 @@ function* rawBlockCalloutToArchieMLString(
         yield* propertyToArchieMLString("title", block.value)
         yield "[.+text]"
         for (const rawBlock of block.value.text) {
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(rawBlock)
+        }
+        yield "[]"
+    }
+    yield "{}"
+}
+
+function* rawBlockCreditsToArchieMLString(
+    block: RawBlockCredits
+): Generator<string, void, undefined> {
+    yield "{.credits}"
+    yield* propertyToArchieMLString("contributors", block.value)
+    if (block.value.acknowledgements) {
+        yield "[.+acknowledgements]"
+        for (const rawBlock of block.value.acknowledgements) {
             yield* OwidRawGdocBlockToArchieMLStringGenerator(rawBlock)
         }
         yield "[]"
@@ -1106,6 +1122,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "code" }, rawBlockCodeToArchieMLString)
         .with({ type: "donors" }, rawBlockDonorListToArchieMLString)
         .with({ type: "callout" }, rawBlockCalloutToArchieMLString)
+        .with({ type: "credits" }, rawBlockCreditsToArchieMLString)
         .with({ type: "chart-story" }, rawBlockChartStoryToArchieMLString)
         .with({ type: "image" }, rawBlockImageToArchieMLString)
         .with({ type: "video" }, rawBlockVideoToArchieMLString)

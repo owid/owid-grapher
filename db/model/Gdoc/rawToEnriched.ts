@@ -175,6 +175,9 @@ import {
     VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS,
     RawBlockBespokeComponent,
     EnrichedBlockBespokeComponent,
+    RawBlockCredits,
+    EnrichedBlockCredits,
+    Contributor,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -191,6 +194,7 @@ import {
     extractUrl,
     getTitleSupertitleFromHeadingText,
     parseAuthors,
+    parseNamesWithRoles,
     spansToSimpleString,
     transformCalloutTokensInBlock,
 } from "./gdocUtils.js"
@@ -212,6 +216,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "bespoke-component" }, parseBespokeComponent)
         .with({ type: "blockquote" }, parseBlockquote)
         .with({ type: "callout" }, parseCallout)
+        .with({ type: "credits" }, parseCredits)
         .with({ type: "data-callout" }, parseDataCallout)
         .with({ type: "data-callout-group" }, parseDataCalloutGroup)
         .with({ type: "chart" }, parseChart)
@@ -2097,6 +2102,51 @@ function parseCallout(raw: RawBlockCallout): EnrichedBlockCallout {
         parseErrors: [],
         text: excludeNullish(enrichedTextBlocks),
         title: raw.value.title,
+    }
+}
+
+function parseCredits(raw: RawBlockCredits): EnrichedBlockCredits {
+    const createError = (error: ParseError): EnrichedBlockCredits => ({
+        type: "credits",
+        parseErrors: [error],
+        contributors: [],
+        acknowledgements: [],
+    })
+
+    const contributors: Contributor[] = raw.value.contributors
+        ? parseNamesWithRoles(raw.value.contributors)
+        : []
+
+    let acknowledgements: EnrichedBlockText[] = []
+    if (raw.value.acknowledgements) {
+        if (!_.isArray(raw.value.acknowledgements)) {
+            return createError({
+                message:
+                    "acknowledgements must be provided as an array e.g. inside a [.+acknowledgements] block",
+            })
+        }
+        for (const block of raw.value.acknowledgements) {
+            if (block.type !== "text") {
+                return createError({
+                    message: `credits block's acknowledgements can only contain text, got "${block.type}"`,
+                })
+            }
+        }
+        acknowledgements = raw.value.acknowledgements.map(parseText)
+    }
+
+    if (!contributors.length && !acknowledgements.length) {
+        return createError({
+            message:
+                "credits block needs at least one of contributors or acknowledgements",
+        })
+    }
+
+    return {
+        type: "credits",
+        parseErrors: [],
+        contributors,
+        acknowledgements,
     }
 }
 

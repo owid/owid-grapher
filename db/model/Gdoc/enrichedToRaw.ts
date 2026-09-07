@@ -27,6 +27,7 @@ import {
     RawBlockSDGToc,
     RawBlockMissingData,
     RawBlockCallout,
+    RawBlockCredits,
     RawBlockExpandableParagraph,
     RawBlockKeyInsights,
     RawBlockResearchAndWriting,
@@ -67,7 +68,7 @@ import {
     RawBlockChartRows,
     RawBlockPullChart,
 } from "@ourworldindata/types"
-import { spanToHtmlString } from "./gdocUtils.js"
+import { namesWithRolesToString, spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
 import * as R from "remeda"
 
@@ -122,6 +123,20 @@ export function enrichedBlockToRawBlock(
                 caption: b.caption ? spansToHtmlText(b.caption) : undefined,
                 visibility: b.visibility ? b.visibility : undefined,
                 peerCountries: b.peerCountries,
+            },
+        }))
+        .with({ type: "credits" }, (b): RawBlockCredits => ({
+            type: b.type,
+            value: {
+                contributors: b.contributors.length
+                    ? namesWithRolesToString(b.contributors)
+                    : undefined,
+                acknowledgements: b.acknowledgements.length
+                    ? b.acknowledgements.map(
+                          (enriched) =>
+                              enrichedBlockToRawBlock(enriched) as RawBlockText
+                      )
+                    : undefined,
             },
         }))
         .with({ type: "narrative-chart" }, (b): RawBlockNarrativeChart => ({

@@ -11,6 +11,8 @@ import {
     EnrichedBlockTopicPageIntro,
     EnrichedBlockSocials,
     SocialLinkType,
+    EnrichedBlockCredits,
+    RawBlockCredits,
 } from "@ourworldindata/utils"
 import { spansToHtmlString } from "./model/Gdoc/gdocUtils.js"
 import { archieToEnriched } from "./model/Gdoc/archieToEnriched.js"
@@ -539,6 +541,140 @@ level: 2
 
         const { text } = await gdocToArchie(doc)
         expect(text).toContain(`<a href="${url}">${title}</a>`)
+    })
+
+    it("can parse a credits block", () => {
+        const archieMLString = `{.credits}
+contributors: Max Roser (Editorial feedback), Edouard Mathieu (Editorial feedback)
+[.+acknowledgements]
+Many thanks to Marcel Gerber for his help in building this interactive visualization.
+[]
+{}`
+        const doc = getArchieMLDocWithContent(archieMLString)
+        const article = archieToEnriched(doc)
+        expect(article?.body?.length).toBe(1)
+        const expectedEnrichedBlock: EnrichedBlockCredits = {
+            type: "credits",
+            parseErrors: [],
+            contributors: [
+                { name: "Max Roser", role: "Editorial feedback" },
+                { name: "Edouard Mathieu", role: "Editorial feedback" },
+            ],
+            acknowledgements: [
+                {
+                    type: "text",
+                    value: [
+                        {
+                            spanType: "span-simple-text",
+                            text: "Many thanks to Marcel Gerber for his help in building this interactive visualization.",
+                        },
+                    ],
+                    parseErrors: [],
+                },
+            ],
+        }
+        expect(article?.body && article?.body[0]).toEqual(expectedEnrichedBlock)
+    })
+
+    describe("parseCredits", () => {
+        function parseCreditsRawBlock(
+            value: RawBlockCredits["value"]
+        ): EnrichedBlockCredits {
+            const rawBlock: RawBlockCredits = { type: "credits", value }
+            return parseRawBlocksToEnrichedBlocks(
+                rawBlock
+            ) as EnrichedBlockCredits
+        }
+
+        it("parses contributors and acknowledgements together", () => {
+            const enriched = parseCreditsRawBlock({
+                contributors: "Max Roser (Editorial feedback), Marwa Boukarim",
+                acknowledgements: [
+                    { type: "text", value: "Thanks to Marcel Gerber." },
+                ],
+            })
+            expect(enriched.parseErrors).toEqual([])
+            expect(enriched.contributors).toEqual([
+                { name: "Max Roser", role: "Editorial feedback" },
+                { name: "Marwa Boukarim" },
+            ])
+            expect(enriched.acknowledgements).toHaveLength(1)
+        })
+
+        it("parses contributors without roles", () => {
+            const enriched = parseCreditsRawBlock({
+                contributors: "Max Roser, Marwa Boukarim",
+                acknowledgements: [
+                    { type: "text", value: "Thanks to Marcel Gerber." },
+                ],
+            })
+            expect(enriched.contributors).toEqual([
+                { name: "Max Roser" },
+                { name: "Marwa Boukarim" },
+            ])
+        })
+
+        it("allows contributors with no acknowledgements", () => {
+            const enriched = parseCreditsRawBlock({
+                contributors: "Max Roser (Editorial feedback)",
+            })
+            expect(enriched.parseErrors).toEqual([])
+            expect(enriched.contributors).toEqual([
+                { name: "Max Roser", role: "Editorial feedback" },
+            ])
+            expect(enriched.acknowledgements).toEqual([])
+        })
+
+        it("allows acknowledgements with no contributors", () => {
+            const enriched = parseCreditsRawBlock({
+                acknowledgements: [
+                    { type: "text", value: "Thanks to Marcel Gerber." },
+                ],
+            })
+            expect(enriched.parseErrors).toEqual([])
+            expect(enriched.contributors).toEqual([])
+            expect(enriched.acknowledgements).toHaveLength(1)
+        })
+
+        it("errors when acknowledgements is not an array", () => {
+            const enriched = parseCreditsRawBlock({
+                contributors: "Max Roser",
+                acknowledgements: "Thanks to Marcel Gerber." as unknown as [],
+            })
+            expect(enriched.parseErrors).toEqual([
+                {
+                    message:
+                        "acknowledgements must be provided as an array e.g. inside a [.+acknowledgements] block",
+                },
+            ])
+        })
+
+        it("errors when an acknowledgements child is not a text block", () => {
+            const enriched = parseCreditsRawBlock({
+                contributors: "Max Roser",
+                acknowledgements: [
+                    { type: "heading", value: { text: "Nope", level: "1" } },
+                ] as unknown as RawBlockCredits["value"]["acknowledgements"],
+            })
+            expect(enriched.parseErrors).toEqual([
+                {
+                    message:
+                        'credits block\'s acknowledgements can only contain text, got "heading"',
+                },
+            ])
+        })
+
+        it("errors when both contributors and acknowledgements are empty", () => {
+            const enriched = parseCreditsRawBlock({})
+            expect(enriched.parseErrors).toEqual([
+                {
+                    message:
+                        "credits block needs at least one of contributors or acknowledgements",
+                },
+            ])
+            expect(enriched.contributors).toEqual([])
+            expect(enriched.acknowledgements).toEqual([])
+        })
     })
 
     it.each(Object.values(enrichedBlockExamples))(

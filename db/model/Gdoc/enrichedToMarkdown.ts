@@ -15,6 +15,7 @@ import {
     Span,
     excludeNullish,
 } from "@ourworldindata/utils"
+import { namesWithRolesToString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
 
 /**
@@ -227,6 +228,20 @@ ${items}
                 exportComponents
             )
         )
+        .with({ type: "credits" }, (b): string | undefined => {
+            const contributors = namesWithRolesToString(b.contributors)
+            const acknowledgements = enrichedBlocksToMarkdown(
+                b.acknowledgements,
+                exportComponents,
+                options
+            )
+            return (
+                excludeNullish([
+                    contributors || undefined,
+                    acknowledgements,
+                ]).join("\n\n") || undefined
+            )
+        })
         .with({ type: "chart" }, (b): string | undefined =>
             markdownComponent(
                 "Chart",

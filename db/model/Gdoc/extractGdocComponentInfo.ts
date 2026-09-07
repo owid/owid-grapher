@@ -280,6 +280,14 @@ export function enumerateGdocComponentsWithoutChildren(
                     path
                 )
             )
+            .with({ type: "credits" }, (credits) =>
+                handleComponent(
+                    credits,
+                    [{ prop: "acknowledgements", iterator: iterateArrayProp }],
+                    parentPath,
+                    path
+                )
+            )
             .with({ type: "list" }, (list) =>
                 handleComponent(
                     list,
