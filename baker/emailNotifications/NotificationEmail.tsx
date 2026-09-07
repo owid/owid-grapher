@@ -364,7 +364,7 @@ function TeaserBody({ item }: { item: NotificationEmailItem }) {
                 <Block
                     key={index}
                     block={block}
-                    imageUrlByFilename={item.imageUrlByFilename ?? {}}
+                    imageUrlsByFilename={item.imageUrlsByFilename ?? {}}
                 />
             ))}
             {body.length === 0 && (
@@ -441,7 +441,7 @@ function DataInsightCard({ item }: { item: NotificationEmailItem }) {
     // Render the image (which is by convention always first)
     const firstNonImage = body.findIndex((block) => block.type !== "image")
     const splitIndex = firstNonImage === -1 ? body.length : firstNonImage
-    const imageUrlByFilename = item.imageUrlByFilename ?? {}
+    const imageUrlsByFilename = item.imageUrlsByFilename ?? {}
     return (
         <Section
             className="card"
@@ -451,7 +451,7 @@ function DataInsightCard({ item }: { item: NotificationEmailItem }) {
                 <Block
                     key={index}
                     block={block}
-                    imageUrlByFilename={imageUrlByFilename}
+                    imageUrlsByFilename={imageUrlsByFilename}
                     // The chart above the title links to the insight, as the
                     // title itself does.
                     imageHref={item.url}
@@ -462,7 +462,7 @@ function DataInsightCard({ item }: { item: NotificationEmailItem }) {
                 <Block
                     key={index}
                     block={block}
-                    imageUrlByFilename={imageUrlByFilename}
+                    imageUrlsByFilename={imageUrlsByFilename}
                 />
             ))}
             {item.authors.length > 0 && (
@@ -505,11 +505,11 @@ function isEmailBlock(block: OwidEnrichedGdocBlock): block is EmailBlock {
  */
 function Block({
     block,
-    imageUrlByFilename,
+    imageUrlsByFilename,
     imageHref,
 }: {
     block: OwidEnrichedGdocBlock
-    imageUrlByFilename: Record<string, string>
+    imageUrlsByFilename: Record<string, string>
     /** When set, image blocks link here. */
     imageHref?: string
 }): ReactNode {
@@ -576,7 +576,7 @@ function Block({
             const filename = block.preferSmallFilename
                 ? (block.smallFilename ?? block.filename)
                 : block.filename
-            const url = imageUrlByFilename[filename]
+            const url = imageUrlsByFilename[filename]
             if (!url) return null
             const image = (
                 <Img
