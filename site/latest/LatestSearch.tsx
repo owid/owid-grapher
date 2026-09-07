@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import cx from "clsx"
 import { useSearchParams } from "react-router-dom-v5-compat"
 import {
     LATEST_TYPE_VALUES,
@@ -12,7 +13,9 @@ import { useTagGraphTopics } from "../search/searchHooks.js"
 import {
     useAreFreshProbesSettled,
     useInfiniteLatestPages,
+    useIsStickyElementHidden,
     useLatestAnalytics,
+    useLatestStickyFiltersArm,
 } from "./latestHooks.js"
 import { LatestTopicFacets } from "./LatestTopicFacets.js"
 import { LatestPageHeader } from "./LatestPageHeader.js"
@@ -31,7 +34,7 @@ import {
     urlNeedsSanitization,
 } from "./latestState.js"
 import { LatestHit } from "./LatestHit.js"
-import { OwidGdocType } from "@ourworldindata/utils"
+import { LATEST_STICKY_FILTERS_ARMS, OwidGdocType } from "@ourworldindata/utils"
 import { LatestSearchSkeleton } from "./LatestSearchSkeleton.js"
 import { LatestContext } from "./LatestContext.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
@@ -69,6 +72,16 @@ export const LatestSearch = ({
     const shouldShowViewToggle = hasViewToggle(latestType)
 
     useLatestAnalytics(state, analytics)
+
+    // Sticky filters experiment. The arm's layout is pure CSS keyed off the
+    // body class; the reveal-on-scroll-up arm additionally hides the (sticky)
+    // facets container while scrolling down.
+    const stickyFiltersArm = useLatestStickyFiltersArm()
+    const facetsContainerRef = useRef<HTMLDivElement>(null)
+    const areFacetsHidden = useIsStickyElementHidden(
+        stickyFiltersArm === LATEST_STICKY_FILTERS_ARMS.revealOnScrollUp,
+        facetsContainerRef
+    )
 
     // Sanitize URL: drop unknown params (e.g. legacy `?topic=Health` from old
     // /data-insights links), invalid topic names, and invalid `type` values.
@@ -183,7 +196,12 @@ export const LatestSearch = ({
     return (
         <LatestContext.Provider value={{ analytics }}>
             <LatestPageHeader />
-            <div className={LATEST_FACETS_CONTAINER_CLASSES}>
+            <div
+                ref={facetsContainerRef}
+                className={cx(LATEST_FACETS_CONTAINER_CLASSES, {
+                    "latest-search__facets-container--hidden": areFacetsHidden,
+                })}
+            >
                 <LatestTopicFacets
                     topics={allAreas}
                     selectedTopics={topics}
