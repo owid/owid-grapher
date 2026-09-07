@@ -63,7 +63,7 @@ export const pluginSwcDecorators = (): Plugin =>
                     target: "esnext",
                 },
             },
-        }) as Plugin,
+        }),
         // Only run this transform if the file contains a decorator.
         { transform: { code: /[^"]@/, id: /.*\.(ts|tsx)$/ } }
     )
