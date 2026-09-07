@@ -59,6 +59,26 @@
         "kind": "computed"
       },
       {
+        "name": "contributors",
+        "type": "string[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "Comma-separated names of people who helped beyond the authors, credited in a section after the body. Same \"Name (Role)\" syntax as `authors`."
+      },
+      {
+        "name": "contributorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "acknowledgements",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "One or more paragraphs thanking others, shown in the credits section after the body. Authored as an `[.+acknowledgements]` freeform block of text paragraphs."
+      },
+      {
         "name": "dateline",
         "type": "string",
         "optional": true,
@@ -337,6 +357,26 @@
         "type": "Record<string, string>",
         "optional": true,
         "kind": "computed"
+      },
+      {
+        "name": "contributors",
+        "type": "string[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "Comma-separated names of people who helped beyond the authors, credited in a section after the body. Same \"Name (Role)\" syntax as `authors`."
+      },
+      {
+        "name": "contributorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "acknowledgements",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "One or more paragraphs thanking others, shown in the credits section after the body. Authored as an `[.+acknowledgements]` freeform block of text paragraphs."
       },
       {
         "name": "dateline",
@@ -620,6 +660,26 @@
         "kind": "computed"
       },
       {
+        "name": "contributors",
+        "type": "string[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "Comma-separated names of people who helped beyond the authors, credited in a section after the body. Same \"Name (Role)\" syntax as `authors`."
+      },
+      {
+        "name": "contributorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "acknowledgements",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "One or more paragraphs thanking others, shown in the credits section after the body. Authored as an `[.+acknowledgements]` freeform block of text paragraphs."
+      },
+      {
         "name": "dateline",
         "type": "string",
         "optional": true,
@@ -890,6 +950,26 @@
         "type": "Record<string, string>",
         "optional": true,
         "kind": "computed"
+      },
+      {
+        "name": "contributors",
+        "type": "string[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "Comma-separated names of people who helped beyond the authors, credited in a section after the body. Same \"Name (Role)\" syntax as `authors`."
+      },
+      {
+        "name": "contributorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "acknowledgements",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "One or more paragraphs thanking others, shown in the credits section after the body. Authored as an `[.+acknowledgements]` freeform block of text paragraphs."
       },
       {
         "name": "dateline",
@@ -1907,6 +1987,26 @@
         "type": "Record<string, string>",
         "optional": true,
         "kind": "computed"
+      },
+      {
+        "name": "contributors",
+        "type": "string[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "Comma-separated names of people who helped beyond the authors, credited in a section after the body. Same \"Name (Role)\" syntax as `authors`."
+      },
+      {
+        "name": "contributorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "acknowledgements",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "One or more paragraphs thanking others, shown in the credits section after the body. Authored as an `[.+acknowledgements]` freeform block of text paragraphs."
       },
       {
         "name": "dateline",

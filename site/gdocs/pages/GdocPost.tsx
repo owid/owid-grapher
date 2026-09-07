@@ -4,6 +4,7 @@ import { useIntersectionObserver } from "usehooks-ts"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBoxArchive } from "@fortawesome/free-solid-svg-icons"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
+import Credits from "../components/Credits.js"
 import Footnotes from "../components/Footnotes.js"
 import {
     OwidGdocPostInterface,
@@ -125,6 +126,13 @@ export function GdocPost({
                     automaticSubscribeBanner={!shouldHideSubscribeBanner}
                 />
             ) : null}
+            <Credits
+                authors={content.authors}
+                authorRoles={content.authorRoles}
+                contributors={content.contributors}
+                contributorRoles={content.contributorRoles}
+                acknowledgements={content.acknowledgements}
+            />
             {content.refs && !_.isEmpty(content.refs.definitions) ? (
                 <Footnotes definitions={content.refs.definitions} />
             ) : null}
