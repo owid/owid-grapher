@@ -9,6 +9,7 @@ import {
     OwidGdocType,
     parseIntOrUndefined,
     SiteFooterContext,
+    applyExperimentOverrides,
 } from "@ourworldindata/utils"
 import {
     DataPageV2Content,
@@ -326,6 +327,10 @@ export const runSiteFooterScripts = async (
     // a weird issue reported by bugsnag: https://app.bugsnag.com/our-world-in-data/our-world-in-data-website/errors/63ca39b631e8660009464eb4?event_id=63d384c500acc25fc0810000&i=sk&m=ef
     // So now we define the object as potentially undefined and then destructure it here.
     const { debug, context, isPreviewing, hideDonationFlag } = args || {}
+
+    // Honour `?exp-<id>=<arm>` overrides and make the body classes match the
+    // experiment cookies — before any page code reads the experiment state.
+    applyExperimentOverrides()
 
     switch (context) {
         case SiteFooterContext.dataPageV2:

@@ -396,6 +396,14 @@ export {
     type ExperimentState,
 } from "./experiments/state.js"
 export {
+    applyExperimentOverrides,
+    syncExperimentBodyClasses,
+    parseExperimentOverrides,
+    expectedExperimentBodyClasses,
+    experimentBodyClass,
+    type ExperimentOverride,
+} from "./experiments/overrides.js"
+export {
     EXPERIMENT_ARM_SEPARATOR,
     EXPERIMENT_PREFIX,
     DATA_PAGE_METADATA_EXPERIMENT_ID,
