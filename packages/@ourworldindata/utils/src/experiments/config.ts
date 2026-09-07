@@ -117,17 +117,29 @@ export const experiments: Experiment[] = [
             "/grapher/daily-per-capita-caloric-supply",
             "/grapher/child-mortality",
             // multi-indicator data pages (rendered as data pages via
-            // forceDatapage; the metadata box shows an indicator switcher)
-            "/grapher/annual-number-of-deaths-by-cause",
-            "/grapher/share-elec-by-source",
-            "/grapher/population-with-un-projections",
-            "/grapher/global-primary-energy-by-source",
-            "/grapher/population-growth-rates",
-            "/grapher/temperature-anomaly",
+            // forceDatapage; the metadata box shows an indicator switcher).
+            // Treatment arm of a stratified page-level randomization —
+            // the pool, seed and matched CONTROL set (grapher pages left
+            // as-is, used only in analysis) live in the analytics repo:
+            // experiments/briefs/multi_datapage_assignment_20260907/.
+            // Don't hand-edit this list without re-drawing there.
             "/grapher/annual-deaths-by-age",
+            "/grapher/annual-number-of-deaths-by-cause",
+            "/grapher/births-by-age-of-mother",
+            "/grapher/co-emissions-by-sector",
+            "/grapher/fertility-rate-with-projections",
+            "/grapher/historical-cost-of-computer-memory-and-storage",
+            "/grapher/levelized-cost-of-energy",
+            "/grapher/measles-cases-and-death",
             "/grapher/measles-cases-and-death-rate",
-            "/grapher/urban-vs-rural-majority",
-            "/grapher/population-by-age-group-with-projections",
+            "/grapher/median-age",
+            "/grapher/number-of-births-per-year",
+            "/grapher/number-of-deaths-by-risk-factor",
+            "/grapher/number-of-deaths-per-year",
+            "/grapher/per-capita-meat-consumption-by-type-kilograms-per-year",
+            "/grapher/population-of-the-worlds-largest-cities",
+            "/grapher/reported-paralytic-polio-cases-and-deaths-in-the-united-states-since-1910",
+            "/grapher/united-states-rates-of-covid-19-deaths-by-vaccination-status",
         ],
     }),
 ]
