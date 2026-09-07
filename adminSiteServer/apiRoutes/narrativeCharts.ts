@@ -48,6 +48,7 @@ import { getPublishedLinksTo } from "../../db/model/Link.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import { getChartConfigByUuid } from "../../db/model/ChartConfigs.js"
 import { narrativeChartExists } from "../../db/model/NarrativeChart.js"
+import { ingestGrapherConfig } from "../../db/grapherConfigValidation.js"
 import { getMultiDimDataPageById } from "../../db/model/MultiDimDataPage.js"
 
 const createPatchConfigAndQueryParamsForNarrativeChart = async (
@@ -458,8 +459,9 @@ export async function createNarrativeChart(
             errorMsg: `Narrative chart with name "${data.name}" already exists`,
         }
     }
+    const config = ingestGrapherConfig(data.config, "patch")
     if (data.type === "chart") {
-        const { name, parentChartId, config } = data
+        const { name, parentChartId } = data
         return createNarrativeChartFromChart(
             trx,
             name,
@@ -468,7 +470,7 @@ export async function createNarrativeChart(
             res.locals.user.id
         )
     } else {
-        const { name, parentChartConfigId, config } = data
+        const { name, parentChartConfigId } = data
         return createNarrativeChartFromMultiDimView(
             trx,
             name,
@@ -486,10 +488,11 @@ export async function updateNarrativeChart(
 ) {
     const id = expectInt(req.params.id)
     const user: DbPlainUser = res.locals.user
-    const rawConfig = req.body.config as GrapherInterface
+    const rawConfig = req.body.config
     if (!rawConfig) {
         throw new JsonError("Invalid request", 400)
     }
+    const config = ingestGrapherConfig(rawConfig, "patch")
 
     const existingRow = await trx<DbPlainNarrativeChart>(
         NarrativeChartsTableName
@@ -529,7 +532,7 @@ export async function updateNarrativeChart(
     const { patchConfig, fullConfig, queryParams } =
         await createPatchConfigAndQueryParamsForNarrativeChart(
             parentChartConfig,
-            rawConfig
+            config
         )
 
     let viewDimensions
