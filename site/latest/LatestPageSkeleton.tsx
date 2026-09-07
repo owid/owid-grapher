@@ -7,6 +7,7 @@ import { LATEST_TOPIC_FACETS_LABEL } from "./LatestTopicFacets.js"
 import {
     LATEST_FACETS_CONTAINER_CLASSES,
     LATEST_FILTERS_DIVIDER_CLASSES,
+    sortTopicAreasByPopularity,
 } from "./latestUtils.js"
 
 /**
@@ -21,7 +22,9 @@ export const LatestPageSkeleton = ({
 }: {
     topicTagGraph: TagGraphRoot
 }) => {
-    const areas = topicTagGraph.children.map((child) => child.name)
+    const areas = sortTopicAreasByPopularity(
+        topicTagGraph.children.map((child) => child.name)
+    )
 
     return (
         <>
