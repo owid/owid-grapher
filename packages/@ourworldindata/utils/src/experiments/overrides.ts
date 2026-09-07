@@ -1,4 +1,8 @@
-import { get as getCookie, getAll as getAllCookies, set as setCookie } from "es-cookie"
+import {
+    get as getCookie,
+    getAll as getAllCookies,
+    set as setCookie,
+} from "es-cookie"
 import { EXPERIMENT_ARM_SEPARATOR, EXPERIMENT_PREFIX } from "./constants.js"
 import { Experiment, ExperimentArm } from "./Experiment.js"
 import { experiments as allExperiments } from "./config.js"
@@ -13,11 +17,12 @@ import { experiments as allExperiments } from "./config.js"
  *
  *     /latest?exp-latest-sticky-filters-v1=fully-sticky
  *
- * This sets the same cookie the middleware would (so the choice survives
- * reloads and the middleware honours it on the next request), strips the
- * parameter from the URL, and makes the body classes reflect the cookies.
- * That last step also stands in for the middleware where it doesn't run:
- * with a cookie in place, the page looks the same locally as on staging.
+ * The middleware honours the parameter itself, so where it runs the HTML
+ * already carries the forced arm. This sets the same cookie (so the choice
+ * survives reloads once the parameter is gone), strips the parameter from
+ * the URL, and makes the body classes reflect the cookies. That last step
+ * stands in for the middleware where it doesn't run: with a cookie in
+ * place, the page looks the same locally as on staging.
  *
  * Only registered, unexpired experiments and known arm ids are accepted;
  * anything else is ignored.
@@ -47,7 +52,10 @@ export function parseExperimentOverrides(
 }
 
 /** Body class for an experiment arm, e.g. `exp-foo-v1--treatment`. */
-export function experimentBodyClass(experimentId: string, armId: string): string {
+export function experimentBodyClass(
+    experimentId: string,
+    armId: string
+): string {
     return `${experimentId}${EXPERIMENT_ARM_SEPARATOR}${armId}`
 }
 
@@ -68,24 +76,21 @@ export function expectedExperimentBodyClasses(
 }
 
 /** Make <body>'s `exp-*--*` classes match the experiment cookies: adds the
- * missing ones and removes stale ones for the same experiments (e.g. after a
- * URL override changed the arm the middleware had baked into the HTML). */
+ * missing ones (the middleware doesn't run in local dev) and removes stale
+ * ones for the same experiments. */
 export function syncExperimentBodyClasses(): void {
     if (typeof document === "undefined") return
     const expected = new Set(
-        expectedExperimentBodyClasses(
-            getAllCookies(),
-            window.location.pathname
-        )
+        expectedExperimentBodyClasses(getAllCookies(), window.location.pathname)
     )
     const experimentIds = new Set(
         [...expected].map((c) => c.split(EXPERIMENT_ARM_SEPARATOR)[0])
     )
-    for (const className of [...document.body.classList]) {
+    const stale = [...document.body.classList].filter((className) => {
         const [experimentId] = className.split(EXPERIMENT_ARM_SEPARATOR)
-        if (experimentIds.has(experimentId) && !expected.has(className))
-            document.body.classList.remove(className)
-    }
+        return experimentIds.has(experimentId) && !expected.has(className)
+    })
+    document.body.classList.remove(...stale)
     document.body.classList.add(...expected)
 }
 
