@@ -67,6 +67,8 @@ Alongside the experiment (in every arm, so it isn't a confound), the topic pills
 
 The reveal-on-scroll-up arm is the one piece CSS can't express: `useIsStickyElementHidden` in [`latestHooks.ts`](./latestHooks.ts) reuses the site's `useScrollDirection` and hides the container only while scrolling down _and_ actually stuck, so it never slides over the header. The arm is read once on mount via `getExperimentState()`, and `SiteAnalytics` tags every `/latest` event with it as `experimentArm`.
 
+To try an arm on staging or a Cloudflare preview, use the [`/exp`](../../functions/exp/index.ts) switcher — `/exp?from=/latest` lists the active experiments with a button per arm and sends you back to `/latest` with the `exp-latest-sticky-filters-v1` cookie set, so the page renders in that arm from the first byte. The arms are `not-sticky`, `reveal-on-scroll-up`, and `fully-sticky`. `/exp` doesn't exist in production. Under plain `make up` there's no middleware, so local dev instead takes `/latest?exp-latest-sticky-filters-v1=<arm>`, handled client-side by `applyExperimentOverrides` (compiled out of staging and production builds).
+
 ## Component layout
 
 ```
