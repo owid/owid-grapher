@@ -35,23 +35,14 @@ type LatestFeedGdocInstance = (GdocPost | GdocDataInsight | GdocAnnouncement) &
     LatestFeedGdoc
 
 /**
- * The latest types whose email rendering reads the gdoc body: data insights
- * and every kind of announcement. Articles are summarized by their excerpt
- * instead — an article body is far too long to travel in an email.
+ * DIs and announcements render their whole body.
+ * Articles are summarized by their excerpt or `latest-feed-excerpt`.
  */
-const LATEST_TYPES_CARRYING_BODY = new Set<LatestType>([
-    "data-insight",
-    ...ANNOUNCEMENT_LATEST_TYPES,
-])
-
-/**
- * Like `checkIsLatestFeedGdoc`, but narrows to the Gdoc *class* instances
- * returned by `gdocFromJSON`.
- */
-function isLatestFeedGdocInstance(
-    gdoc: ReturnType<typeof gdocFromJSON>
-): gdoc is LatestFeedGdocInstance {
-    return checkIsLatestFeedGdoc(gdoc)
+function checkShouldRenderBody(latestType: LatestType): boolean {
+    return (
+        latestType === "data-insight" ||
+        ANNOUNCEMENT_LATEST_TYPES.includes(latestType as any)
+    )
 }
 
 function getFirstTextBlockPlainText(gdoc: LatestFeedGdocInstance): string {
@@ -72,9 +63,7 @@ function buildNotificationItem(
     >
 ): NotificationEmailItem {
     const originalTagNames = gdoc.tags?.map((tag) => tag.name) ?? []
-    // Include the ancestor tags (e.g. the "Health" area for an item tagged
-    // "Vaccination") so subscriptions to top-level areas match.
-    const topicNames = R.unique([
+    const originalTagNamesPlusParents = R.unique([
         ...originalTagNames,
         ...getUniqueNamesFromTagHierarchies(
             originalTagNames,
@@ -90,28 +79,20 @@ function buildNotificationItem(
         title: gdoc.content.title ?? "",
         url: getCanonicalUrl(BAKED_BASE_URL, gdoc),
         publishedAt: gdoc.publishedAt!,
-        topicNames,
+        topicNames: originalTagNamesPlusParents,
         topicLabel: originalTagNames[0],
         authors: gdoc.content.authors ?? [],
     }
 
-    // Data insights ship their full content in the email; data updates and
-    // announcements ship their lead paragraphs, as they do on /latest.
-    if (LATEST_TYPES_CARRYING_BODY.has(latestType)) {
-        const body = "body" in gdoc.content ? gdoc.content.body : undefined
-        // Body links are stored as authored, so Google Doc links are resolved
-        // against the gdoc's linked documents, loaded by the caller.
-        item.body = resolveBodyLinks(
-            body ?? [],
-            gdoc.linkedDocuments,
-            BAKED_BASE_URL
-        )
-        item.imageUrlByFilename = {}
-        for (const filename of extractFilenamesFromBlocks(body ?? [])) {
+    if (checkShouldRenderBody(latestType)) {
+        const body = gdoc.content.body || []
+        item.body = resolveBodyLinks(body, gdoc.linkedDocuments, BAKED_BASE_URL)
+        item.imageUrlsByFilename = {}
+        for (const filename of extractFilenamesFromBlocks(body)) {
             const cloudflareId =
                 cloudflareImagesByFilename[filename]?.cloudflareId
             if (cloudflareId) {
-                item.imageUrlByFilename[filename] =
+                item.imageUrlsByFilename[filename] =
                     `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=1200`
             }
         }
@@ -121,10 +102,6 @@ function buildNotificationItem(
         item.excerpt =
             getExcerptFromGdoc(gdoc) || getFirstTextBlockPlainText(gdoc)
         if (gdoc.content.type === OwidGdocType.Article) {
-            // An article can carry an excerpt written for the /latest feed;
-            // it's richer than the summary excerpt (several paragraphs, some
-            // emphasis, links), so prefer it here too. Its links are resolved
-            // against the gdoc's linked documents, loaded by the caller.
             const latestFeedExcerpt = gdoc.content["latest-feed-excerpt"]
             if (latestFeedExcerpt?.length) {
                 item.excerptBlocks = resolveExcerptLinks(
@@ -161,7 +138,7 @@ export async function buildNotificationItems(
 
     const recentGdocs = gdocs.filter(
         (gdoc): gdoc is LatestFeedGdocInstance =>
-            isLatestFeedGdocInstance(gdoc) &&
+            checkIsLatestFeedGdoc(gdoc) &&
             !!gdoc.publishedAt &&
             gdoc.publishedAt > since
     )
@@ -172,12 +149,7 @@ export async function buildNotificationItems(
     const cloudflareImagesByFilename =
         await db.getCloudflareImagesByFilename(knex)
 
-    // Everything the email reproduces — the bodies of data insights and
-    // announcements, an article's authored /latest excerpt — can link to
-    // other gdocs, and those links are stored as Google Doc URLs. Load the
-    // linked documents so they can be resolved to public URLs. (Articles
-    // without an excerpt are skipped: their body never reaches the email, and
-    // they tend to link widely.)
+    // Consumed by resolveBodyLinks / resolveExcerptLinks
     await Promise.all(
         recentGdocs
             .filter(
