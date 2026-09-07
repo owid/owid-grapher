@@ -12,6 +12,7 @@ import {
     SpanCallout,
     CalloutFunction,
     CALLOUT_FUNCTIONS,
+    Contributor,
 } from "@ourworldindata/types"
 import { match, P } from "ts-pattern"
 import * as cheerio from "cheerio"
@@ -168,23 +169,40 @@ export const getAllLinksFromResearchAndWritingBlock = (
     return allLinks
 }
 
+export function parseNamesWithRoles(names: string): Contributor[] {
+    if (!names) return []
+    return names.split(",").map((name: string) => {
+        const trimmed = name.trim()
+        const match = trimmed.match(/^(.+?)\s*\(([^)]+)\)\s*$/)
+        if (match) {
+            return { name: match[1].trim(), role: match[2].trim() }
+        }
+        return { name: trimmed }
+    })
+}
+
+export function namesWithRolesToString(contributors: Contributor[]): string {
+    return contributors
+        .map((contributor) =>
+            contributor.role
+                ? `${contributor.name} (${contributor.role})`
+                : contributor.name
+        )
+        .join(", ")
+}
+
 export function parseAuthors(authors?: string): {
     authors: string[]
     authorRoles: Record<string, string>
 } {
     const authorRoles: Record<string, string> = {}
-    const parsed = (authors || "Our World in Data team")
-        .split(",")
-        .map((author: string) => {
-            const trimmed = author.trim()
-            const match = trimmed.match(/^(.+?)\s*\(([^)]+)\)\s*$/)
-            if (match) {
-                const name = match[1].trim()
-                authorRoles[name] = match[2].trim()
-                return name
-            }
-            return trimmed
-        })
+    const parsed = parseNamesWithRoles(authors || "Our World in Data team").map(
+        (contributor) => {
+            if (contributor.role)
+                authorRoles[contributor.name] = contributor.role
+            return contributor.name
+        }
+    )
     return { authors: parsed, authorRoles }
 }
 

@@ -45,6 +45,11 @@ export interface LinkedAuthor {
     role?: string
 }
 
+export interface Contributor {
+    name: string
+    role?: string
+}
+
 export enum ChartConfigType {
     Grapher = "grapher",
     Explorer = "explorer",
