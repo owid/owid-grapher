@@ -4,6 +4,7 @@ import cx from "clsx"
 import {
     BlockSize,
     EnrichedBlockBespokeComponent,
+    EnrichedBlockCredits,
     OwidEnrichedGdocBlock,
     OwidGdocFeaturedVizContent,
     OwidGdocFeaturedVizInterface,
@@ -19,6 +20,7 @@ import { BespokeComponent } from "../components/BespokeComponent.js"
 import { BespokeMetadataBox } from "../components/BespokeMetadataBox.js"
 import { Byline } from "../components/Byline.js"
 import { CitationSection } from "../components/CitationSection.js"
+import CreditsSection from "../components/CreditsSection.js"
 import { LicenseSection } from "../components/LicenseSection.js"
 import Footnotes from "../components/Footnotes.js"
 import { buildGdocCitation } from "../utils.js"
@@ -36,7 +38,7 @@ type FeaturedVizProps = Omit<
 export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
     const { bespokeMetadata } = useContext(AttachmentsContext)
 
-    const { before, hero, after } = useMemo(
+    const { before, hero, after, credits } = useMemo(
         () =>
             splitFeaturedVizBody(content.body, {
                 hasMetadataBox: !!bespokeMetadata,
@@ -94,6 +96,15 @@ export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
             {content.refs && !_.isEmpty(content.refs.definitions) ? (
                 <Footnotes definitions={content.refs.definitions} />
             ) : null}
+            {credits && (
+                <CreditsSection
+                    className={getLayout("credits")}
+                    contributors={credits.contributors}
+                    acknowledgements={credits.acknowledgements}
+                    authors={content.authors}
+                    authorRoles={content.authorRoles}
+                />
+            )}
             {shouldShowCitation && (
                 <CitationSection
                     citationText={citationText}
@@ -158,26 +169,44 @@ interface FeaturedVizBodySplit {
     hero: EnrichedBlockBespokeComponent | undefined
     /** Blocks after the featured viz. */
     after: OwidEnrichedGdocBlock[]
+    /** The credits block hoisted out of the body, or undefined if it has none. */
+    credits: EnrichedBlockCredits | undefined
 }
 
 /**
- * Split the body around its featured viz, so the page can render that one
- * block on its own full-bleed band
+ * Split the body around its featured viz and its credits block, so the page
+ * can render both outside the normal block flow
  */
 function splitFeaturedVizBody(
     body: OwidEnrichedGdocBlock[] = [],
     { hasMetadataBox }: { hasMetadataBox: boolean }
 ): FeaturedVizBodySplit {
+    // Find the first credits block at the top level and remove it before
+    // splitting the remainder around the hero, since it may sit on either side
+    const creditsIndex = body.findIndex((block) => block.type === "credits")
+    const credits =
+        creditsIndex === -1
+            ? undefined
+            : (body[creditsIndex] as EnrichedBlockCredits)
+    const bodyWithoutCredits =
+        creditsIndex === -1 ? body : body.toSpliced(creditsIndex, 1)
+
     // Find the first bespoke-component block at the top level
-    const heroIndex = body.findIndex(
+    const heroIndex = bodyWithoutCredits.findIndex(
         (block) => block.type === "bespoke-component"
     )
-    if (heroIndex === -1) return { before: body, hero: undefined, after: [] }
+    if (heroIndex === -1)
+        return {
+            before: bodyWithoutCredits,
+            hero: undefined,
+            after: [],
+            credits,
+        }
 
-    const hero = body[heroIndex] as EnrichedBlockBespokeComponent
+    const hero = bodyWithoutCredits[heroIndex] as EnrichedBlockBespokeComponent
 
     return {
-        before: body.slice(0, heroIndex),
+        before: bodyWithoutCredits.slice(0, heroIndex),
         hero: {
             ...hero,
             config: {
@@ -186,6 +215,7 @@ function splitFeaturedVizBody(
                 ...(hasMetadataBox && { hideMetadataModal: "true" }),
             },
         },
-        after: body.slice(heroIndex + 1),
+        after: bodyWithoutCredits.slice(heroIndex + 1),
+        credits,
     }
 }
