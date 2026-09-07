@@ -1,10 +1,15 @@
 import { assert, expect, it, vi } from "vitest"
 
-import { defaultGrapherConfig } from "../defaultGrapherConfig"
+import { GrapherInterface } from "@ourworldindata/types"
+import { mergeGrapherConfigs } from "@ourworldindata/utils"
+import {
+    defaultGrapherConfig,
+    outdatedSchemaVersions,
+} from "../defaultGrapherConfig"
 import { migrateGrapherConfigToLatestVersion } from "./migrate"
 import { runMigration } from "./migrations"
 import { getSchemaVersion, isOutdatedVersion } from "./helpers"
-import { MIGRATION_FIXTURES } from "./migrations.fixture"
+import { MIGRATION_FIXTURES, PATCH_STACK_FIXTURES } from "./migrations.fixture"
 import * as _ from "lodash-es"
 
 it("returns a valid config as is", () => {
@@ -73,5 +78,28 @@ for (const { name, before, after } of MIGRATION_FIXTURES) {
         const migrated = _.cloneDeep(before)
         runMigration(migrated, from)
         expect(migrated).toStrictEqual(after)
+    })
+}
+
+it("pins every migration step with a fixture", () => {
+    const pinned = new Set(
+        MIGRATION_FIXTURES.map(({ before }) => getSchemaVersion(before))
+    )
+    const unpinned = outdatedSchemaVersions.filter(
+        (version) => !pinned.has(version)
+    )
+    expect(unpinned).toEqual([])
+})
+
+for (const { name, patches } of PATCH_STACK_FIXTURES) {
+    it(`migrates a patch stack the same in either order: ${name}`, () => {
+        const stack = patches as GrapherInterface[]
+        expect(
+            migrateGrapherConfigToLatestVersion(mergeGrapherConfigs(...stack))
+        ).toStrictEqual(
+            mergeGrapherConfigs(
+                ...stack.map(migrateGrapherConfigToLatestVersion)
+            )
+        )
     })
 }
