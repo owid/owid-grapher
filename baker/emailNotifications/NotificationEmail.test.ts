@@ -6,11 +6,13 @@ import {
 } from "./emailNotificationsUtils.js"
 import { renderNotificationEmail } from "./NotificationEmail.js"
 
-const NOW = new Date("2026-08-07T06:00:00Z")
+// Unit tests checking basic rendering, and article and announcement-specific behaviours.
+// Also snapshot tests to check for regressions. The snapshot reference is:
+// baker/emailNotifications/__snapshots__/NotificationEmail.test.ts.snap
 
+const NOW = new Date("2026-08-07T06:00:00Z")
 const BASE_URL = "https://ourworldindata.org"
 const API_BASE_URL = `${BASE_URL}/api/email-notifications`
-
 const SUBSCRIBER: EmailNotificationsSubscriber = {
     userId: 1,
     email: "reader@example.com",
@@ -68,7 +70,7 @@ const ITEMS: NotificationEmailItem[] = [
                 parseErrors: [],
             },
         ],
-        imageUrlByFilename: {
+        imageUrlsByFilename: {
             "guinea-worm.png": "https://images.ourworldindata.org/ghi/w=1200",
         },
     },
@@ -109,7 +111,7 @@ const ITEMS: NotificationEmailItem[] = [
                 parseErrors: [],
             },
         ],
-        imageUrlByFilename: {
+        imageUrlsByFilename: {
             "cereal-yields.png": "https://images.ourworldindata.org/abc/w=1200",
         },
     },
