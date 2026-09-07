@@ -6,13 +6,13 @@ import {
     Span,
 } from "@ourworldindata/types"
 import { getLinkType, getUrlTarget } from "@ourworldindata/components"
+import { match, P } from "ts-pattern"
 import { getLinkedDocumentUrl } from "../../site/gdocs/utils.js"
 
-// Authored rich text — an article's `latest-feed-excerpt`, the bodies of data
-// insights and announcements — can contain Google Doc links to other
-// documents. On the site those are resolved at render time through
-// AttachmentsContext; an email has no such context, so they are resolved here
-// instead, before the template ever sees them.
+// Posts can contain Google Doc links to other documents.
+// On the site those are resolved at render time through AttachmentsContext;
+// an email has no such context, so they are resolved here instead,
+// before the template ever sees them.
 
 /**
  * Resolve one span's link, if it has one. Google Doc links become the public
@@ -21,9 +21,7 @@ import { getLinkedDocumentUrl } from "../../site/gdocs/utils.js"
  *
  * Anything left unresolvable — a doc that isn't registered or isn't
  * published, or a link type with no meaning in an email (details on demand,
- * guided charts) — degrades to plain text, which is what the site does with a
- * link it can't resolve. Better a missing link than one pointing at a Google
- * Doc that subscribers can't open.
+ * guided charts) — degrades to plain text.
  */
 function resolveSpan(
     span: Span,
@@ -55,19 +53,21 @@ export function resolveLinkUrl(
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>,
     baseUrl: string
 ): string | undefined {
-    switch (getLinkType(url)) {
-        case ContentGraphLinkType.Url:
-        case ContentGraphLinkType.Grapher:
-        case ContentGraphLinkType.Explorer:
-            return url
-        case ContentGraphLinkType.Gdoc: {
+    return match(getLinkType(url))
+        .with(
+            P.union(
+                ContentGraphLinkType.Url,
+                ContentGraphLinkType.Grapher,
+                ContentGraphLinkType.Explorer
+            ),
+            () => url
+        )
+        .with(ContentGraphLinkType.Gdoc, () => {
             const linkedDocument = linkedDocuments[getUrlTarget(url)]
             if (!linkedDocument?.published) return undefined
             return getLinkedDocumentUrl(linkedDocument, url, baseUrl)
-        }
-        default:
-            return undefined
-    }
+        })
+        .otherwise(() => undefined)
 }
 
 export function resolveExcerptLinks(
@@ -96,29 +96,27 @@ export function resolveBodyLinks(
 ): OwidEnrichedGdocBlock[] {
     const resolveSpans = (spans: Span[]): Span[] =>
         spans.map((span) => resolveSpan(span, linkedDocuments, baseUrl))
-    return blocks.flatMap((block): OwidEnrichedGdocBlock[] => {
-        switch (block.type) {
-            case "text":
-                return [{ ...block, value: resolveSpans(block.value) }]
-            case "heading":
-                return [{ ...block, text: resolveSpans(block.text) }]
-            case "list":
-            case "numbered-list":
-                return [
-                    {
-                        ...block,
-                        items: block.items.map((item) => ({
-                            ...item,
-                            value: resolveSpans(item.value),
-                        })),
-                    },
-                ]
-            case "cta": {
+    return blocks.flatMap((block): OwidEnrichedGdocBlock[] =>
+        match(block)
+            .with({ type: "text" }, (block) => [
+                { ...block, value: resolveSpans(block.value) },
+            ])
+            .with({ type: "heading" }, (block) => [
+                { ...block, text: resolveSpans(block.text) },
+            ])
+            .with({ type: P.union("list", "numbered-list") }, (block) => [
+                {
+                    ...block,
+                    items: block.items.map((item) => ({
+                        ...item,
+                        value: resolveSpans(item.value),
+                    })),
+                },
+            ])
+            .with({ type: "cta" }, (block) => {
                 const url = resolveLinkUrl(block.url, linkedDocuments, baseUrl)
                 return url ? [{ ...block, url }] : []
-            }
-            default:
-                return [block]
-        }
-    })
+            })
+            .otherwise((block) => [block])
+    )
 }
