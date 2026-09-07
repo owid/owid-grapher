@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest"
+import { ADMIN_BASE_URL } from "../../settings/serverSettings.js"
 import {
+    adminUrlForOwner,
     buildReferenceIndex,
     buildReferenceIndexQuery,
     parseOwnerRef,
@@ -107,6 +109,32 @@ describe(buildReferenceIndex, () => {
     })
 })
 
+describe(adminUrlForOwner, () => {
+    it("links a chart to its edit page", () => {
+        expect(adminUrlForOwner({ owner: "chart", id: "42" })).toBe(
+            `${ADMIN_BASE_URL}/admin/charts/42/edit`
+        )
+    })
+
+    it("links a narrative chart to its edit page", () => {
+        expect(adminUrlForOwner({ owner: "narrativeChart", id: "42" })).toBe(
+            `${ADMIN_BASE_URL}/admin/narrative-charts/42/edit`
+        )
+    })
+
+    it("links a multiDim to its page", () => {
+        expect(
+            adminUrlForOwner({ owner: "multiDim", id: "7", viewId: "energy" })
+        ).toBe(`${ADMIN_BASE_URL}/admin/multi-dims/7`)
+    })
+
+    it("links an indicator to its variable page", () => {
+        expect(adminUrlForOwner({ owner: "indicator", id: "42" })).toBe(
+            `${ADMIN_BASE_URL}/admin/variables/42`
+        )
+    })
+})
+
 describe(renderValidationIssues, () => {
     it("names the referencing column and the count out of the validated total", () => {
         const issues = new Map<string, ValidationIssueGroup>([
@@ -124,7 +152,7 @@ describe(renderValidationIssues, () => {
         const validatedCounts = new Map([["charts.configId", 5122]])
 
         expect(renderValidationIssues(issues, validatedCounts)).toEqual([
-            "  charts.configId /title: must be a string (1 of 5122, e.g. 42)",
+            `  charts.configId /title: must be a string (1 of 5122, e.g. ${ADMIN_BASE_URL}/admin/charts/42/edit)`,
         ])
     })
 
@@ -148,7 +176,7 @@ describe(renderValidationIssues, () => {
         ])
 
         expect(renderValidationIssues(issues, validatedCounts)).toEqual([
-            "  multi_dim_x_chart_configs.chartConfigId /title: must be a string (1 of 9503, e.g. 7 (view energy))",
+            `  multi_dim_x_chart_configs.chartConfigId /title: must be a string (1 of 9503, e.g. ${ADMIN_BASE_URL}/admin/multi-dims/7 (view energy))`,
         ])
     })
 
