@@ -10,7 +10,10 @@ import { splitSidecarProse } from "./sidecarSections.js"
 
 const FILE = "Example.md"
 
-function split(body: string, kind: "component" | "template" = "component") {
+function split(
+    body: string,
+    kind: "component" | "template" | "guide" = "component"
+) {
     return splitSidecarProse(body, FILE, kind)
 }
 
@@ -109,5 +112,46 @@ describe("the sidecar section split", () => {
         expect(() => split("## When to use\n\n- Always.")).toThrow(
             "has no intro"
         )
+    })
+
+    describe("guide sidecars", () => {
+        test("accept an intro, free sections and Notes", () => {
+            const { prose, properties } = split(
+                [
+                    "Footnotes in two forms.",
+                    "## ID-based refs",
+                    "Define once, cite many times.",
+                    "## Notes",
+                    "Identical inline refs share a number.",
+                ].join("\n\n"),
+                "guide"
+            )
+            expect(prose.intro).toBe("Footnotes in two forms.")
+            expect(prose.whenToUse).toBeUndefined()
+            expect(prose.notes).toBe(
+                "Identical inline refs share a number.\n\n## ID-based refs\n\nDefine once, cite many times."
+            )
+            expect(properties).toBeUndefined()
+        })
+
+        test("reject the decision headings", () => {
+            expect(() =>
+                split("Intro.\n\n## When to use\n\n- Always.", "guide")
+            ).toThrow(
+                /belongs in a component\/template sidecar, not a guide one/
+            )
+        })
+
+        test("reject a properties section", () => {
+            expect(() =>
+                split("Intro.\n\n## Properties\n\n- `x`: y.", "guide")
+            ).toThrow(/belongs in a component sidecar, not a guide one/)
+        })
+
+        test("still catch near misses", () => {
+            expect(() =>
+                split("Intro.\n\n## Note\n\nA caveat.", "guide")
+            ).toThrow(/did you mean "## Notes"/)
+        })
     })
 })
