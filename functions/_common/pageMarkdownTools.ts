@@ -1,11 +1,13 @@
+import * as _ from "lodash-es"
 import { OwidColumnDef, stripDetailOnDemandLinks } from "@ourworldindata/utils"
 import type { CoreColumn } from "@ourworldindata/core-table"
-import type { GrapherValuesJson } from "@ourworldindata/types"
+import type { EntityName, GrapherValuesJson, Time } from "@ourworldindata/types"
 import { GrapherState } from "@ourworldindata/grapher"
 import {
     getCitationLines,
     getDescriptionLines,
     getSourcesSection,
+    getTitle,
 } from "./readmeTools.js"
 
 /**
@@ -66,6 +68,91 @@ function* getValuesSection(
     }
 }
 
+/**
+ * The values block above covers the entities the chart selects, which is an editorial
+ * choice about what to draw — on `life-expectancy` it is six world regions. It cannot
+ * answer the two commonest things asked of a chart: the value for one particular
+ * country, and which country is highest. This table can, for around 1,500 tokens on a
+ * country-grained chart.
+ *
+ * Each entity is reported at its own latest time at or before the chart's end time,
+ * and the year is printed whenever entities disagree, so a country whose data stops
+ * early is never silently relabelled to the chart's end year.
+ */
+function* getAllEntityValuesSection(
+    grapherState: GrapherState
+): Generator<string, void, undefined> {
+    const table = grapherState.tableForDownload
+    const columns = grapherState.yColumnSlugs
+        .filter((slug) => table.has(slug))
+        .map((slug) => table.get(slug))
+    if (columns.length === 0) return
+
+    const endTime = grapherState.endTime
+    const entityNames = _.uniq(columns.flatMap((col) => col.uniqEntityNames))
+    if (entityNames.length === 0) return
+
+    interface Row {
+        entityName: EntityName
+        time: Time
+        cells: string[]
+    }
+    const rows: Row[] = []
+    for (const entityName of entityNames) {
+        const cells: string[] = []
+        let latestTime: Time | undefined
+        for (const column of columns) {
+            const entityRows = column.owidRowsByEntityName.get(entityName) ?? []
+            const eligible =
+                endTime === undefined
+                    ? entityRows
+                    : entityRows.filter((row) => row.time <= endTime)
+            // owidRows is time-sorted, so the last eligible row is the latest.
+            const row = eligible.at(-1)
+            cells.push(
+                row?.value === undefined
+                    ? ""
+                    : column.formatValueShort(row.value)
+            )
+            if (row && (latestTime === undefined || row.time > latestTime))
+                latestTime = row.time
+        }
+        if (cells.every((cell) => cell === "")) continue
+        rows.push({ entityName, time: latestTime ?? 0, cells })
+    }
+    if (rows.length === 0) return
+
+    const times = _.uniq(rows.map((row) => row.time))
+    const showTimeColumn = times.length > 1
+    const sharedTime = times[0]
+
+    yield ""
+    yield "## Latest value for every entity"
+    yield ""
+    yield showTimeColumn
+        ? "Each entity at its own latest year, at or before the year the chart ends on."
+        : `All entities in ${sharedTime}.`
+
+    const valueHeadings = columns.map((column) => column.displayName)
+    const headings = showTimeColumn
+        ? ["Entity", ...valueHeadings, "Year"]
+        : ["Entity", ...valueHeadings]
+
+    yield ""
+    yield `| ${headings.join(" | ")} |`
+    yield `| --- | ${headings
+        .slice(1)
+        .map(() => "---:")
+        .join(" | ")} |`
+
+    for (const row of _.sortBy(rows, (row) => row.entityName)) {
+        const cells = showTimeColumn
+            ? [...row.cells, String(row.time)]
+            : row.cells
+        yield `| ${row.entityName} | ${cells.join(" | ")} |`
+    }
+}
+
 function* getDataAccessSection(
     canonicalUrl: string,
     search: string
@@ -91,7 +178,7 @@ function* getAboutSection(
         if (description.length === 0 && citation.length === 0) continue
 
         yield ""
-        yield `### ${column.titlePublicOrDisplayName}`
+        yield `### ${getTitle(column)}`
         yield* description
         yield* citation
     }
@@ -124,6 +211,7 @@ export function constructPageMarkdown(
     }
 
     lines.push(...getValuesSection(valuesByEntity))
+    lines.push(...getAllEntityValuesSection(grapherState))
     lines.push(...getDataAccessSection(canonicalUrl, search))
 
     const about = [...getAboutSection(columnsWithSources)]

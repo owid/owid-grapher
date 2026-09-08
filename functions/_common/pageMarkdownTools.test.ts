@@ -102,6 +102,60 @@ describe(constructPageMarkdown, () => {
         expect(markdown).toContain("Measured in terawatt-hours.")
     })
 
+    it("lists every entity, not just the ones the chart selects", () => {
+        const grapherState = makeGrapherState()
+        const columns = grapherState.tableForDownload.getColumns(["population"])
+
+        const markdown = constructPageMarkdown(
+            grapherState,
+            columns,
+            [makeValues("World", "2.5 billion", "8 billion")],
+            ""
+        )
+
+        expect(markdown).toContain("## Latest value for every entity")
+        // SynthesizeNonCountryTable generates entities the chart never selects;
+        // the point of this section is that they show up anyway.
+        for (const entityName of grapherState.tableForDownload.get("population")
+            .uniqEntityNames) {
+            expect(markdown).toContain(`| ${entityName} |`)
+        }
+    })
+
+    it("names the shared year in prose when every entity reports the same one", () => {
+        const grapherState = makeGrapherState()
+        const columns = grapherState.tableForDownload.getColumns(["population"])
+
+        const markdown = constructPageMarkdown(
+            grapherState,
+            columns,
+            [makeValues("World", "2.5 billion", "8 billion")],
+            ""
+        )
+
+        // The synthesized table is complete, so every entity shares the end year
+        // and a per-row Year column would repeat it for nothing.
+        expect(markdown).toMatch(/All entities in \d{4}\./)
+        expect(markdown).not.toContain("| Entity | Population | Year |")
+    })
+
+    it("headings the About section with the indicator title as text", () => {
+        const grapherState = makeGrapherState()
+        const columns = grapherState.tableForDownload.getColumns(["population"])
+
+        const markdown = constructPageMarkdown(
+            grapherState,
+            columns,
+            [makeValues("World", "2.5 billion", "8 billion")],
+            ""
+        )
+
+        // `titlePublicOrDisplayName` is IndicatorTitleWithFragments, so
+        // interpolating it directly renders "[object Object]".
+        expect(markdown).not.toContain("[object Object]")
+        expect(markdown).toContain("### Population")
+    })
+
     it("omits the values section rather than emitting an empty table", () => {
         const grapherState = makeGrapherState()
         const columns = grapherState.tableForDownload.getColumns(["population"])
