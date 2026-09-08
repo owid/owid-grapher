@@ -13,7 +13,7 @@
  */
 import * as React from "react"
 import { observer } from "mobx-react"
-import { computed, makeObservable } from "mobx"
+import { makeObservable } from "mobx"
 import { GrapherInterface } from "@ourworldindata/types"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
 import { ConfigEditor, ConfigEditorManager } from "./ConfigEditor.js"
@@ -81,8 +81,15 @@ export class GrapherEditor
         return this.props.onChange
     }
 
-    @computed get editor(): ConfigEditor {
-        return new ConfigEditor({ manager: this })
+    // One editor for the lifetime of the component. Not a `computed`: the
+    // constructor reads `store` off the props, and any new props object (a
+    // host re-rendering with fresh inline callbacks) would otherwise
+    // recompute it into a new editor and reset the chart being edited.
+    // Hosts that change the store or the config remount via `key`.
+    private _editor: ConfigEditor | undefined = undefined
+    get editor(): ConfigEditor {
+        this._editor ??= new ConfigEditor({ manager: this })
+        return this._editor
     }
 
     override render(): React.ReactElement {

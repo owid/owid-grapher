@@ -66,8 +66,10 @@ export class ConfigEditor extends AbstractChartEditor<ConfigEditorManager> {
     @computed get availableTabs(): EditorTab[] {
         const tabs: EditorTab[] = ["basic", "data", "text", "customize"]
         if (this.grapherState.hasMapTab) tabs.push("map")
-        if (this.grapherState.isScatter) tabs.push("scatter")
-        if (this.grapherState.isMarimekko) tabs.push("marimekko")
+        // `has*`, not `is*`: a chart can carry a scatter or Marimekko as a
+        // secondary type, and that tab must still be reachable.
+        if (this.grapherState.hasScatter) tabs.push("scatter")
+        if (this.grapherState.hasMarimekko) tabs.push("marimekko")
         tabs.push("export", "debug")
 
         const allowed = this.manager.tabs
