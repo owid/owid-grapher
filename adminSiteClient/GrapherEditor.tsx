@@ -38,7 +38,7 @@ export interface GrapherEditorProps {
      */
     onSave: ConfigEditorManager["onSave"]
     /** Fires on every change of the edited config. */
-    onChange?: (config: GrapherInterface) => void
+    onChange?: ConfigEditorManager["onChange"]
     /** What "Add indicator" can offer. Defaults to `store.catalog`; pass
      *  `null` for no picker. */
     indicators?: IndicatorCatalog | null
@@ -47,17 +47,14 @@ export interface GrapherEditorProps {
     /** Restrict the tabs shown. */
     tabs?: EditorTab[]
 
-    // --- Inheritance: layers the config sits on top of ---------------------
-    /** The indicator's own config (variables.grapherConfig), if any. */
-    parentConfig?: GrapherInterface
-    /** Id of the indicator `parentConfig` was loaded from. */
-    parentVariableId?: number
-    /** An ETL-authored layer between `parentConfig` and the config. */
-    etlConfig?: GrapherInterface
-    /** Whether `parentConfig` is applied. Defaults to false. */
-    isInheritanceEnabled?: boolean
-    /** Lookups the Basic tab's "add population / GDP" shortcuts use. */
-    variableIdsByCatalogPath?: Record<string, number | null>
+    /**
+     * The config this one is a patch against, if any: the editor shows its
+     * values as inherited and hands back only the differences. Change it and
+     * the editor re-applies it underneath the user's edits. What the base is
+     * made of (an indicator's defaults, a house style, several layers merged)
+     * is the host's business.
+     */
+    baseConfig?: GrapherInterface
 
     // --- Host extensions ---------------------------------------------------
     /** Tabs the host adds (e.g. revisions, references). */
@@ -104,29 +101,16 @@ export class GrapherEditor
         return this.props.onSave
     }
 
-    get onChange(): ((config: GrapherInterface) => void) | undefined {
+    get onChange(): ConfigEditorManager["onChange"] {
         return this.props.onChange
     }
 
     get parentConfig(): GrapherInterface | undefined {
-        return this.props.parentConfig
+        return this.props.baseConfig
     }
 
-    get parentVariableId(): number | undefined {
-        return this.props.parentVariableId
-    }
-
-    get etlConfig(): GrapherInterface | undefined {
-        return this.props.etlConfig
-    }
-
-    get isInheritanceEnabled(): boolean {
-        return this.props.isInheritanceEnabled ?? false
-    }
-
-    get variableIdsByCatalogPath(): Record<string, number | null> | undefined {
-        return this.props.variableIdsByCatalogPath
-    }
+    // A base config, when given, is always applied.
+    readonly isInheritanceEnabled = true
 
     get extraTabs(): EditorExtraTab[] | undefined {
         return this.props.extraTabs

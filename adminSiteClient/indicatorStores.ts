@@ -47,12 +47,10 @@ export interface IndicatorStore {
         selectedEntityColors: SelectedEntityColors
     ): Promise<OwidTable | undefined>
     /**
-     * The grapher config an indicator carries, which charts built on it
-     * inherit from. Absent → the editor shows no inheritance.
+     * Well-known indicators the Basic tab offers as shortcuts (population,
+     * GDP per capita), keyed by catalog path. Absent → no shortcuts.
      */
-    loadIndicatorConfig?(
-        variableId: number
-    ): Promise<GrapherInterface | undefined>
+    variableIdsByCatalogPath?: Record<string, number | null>
     /** The host's config → the dimension-based one the editor works on. */
     toEditorConfig(config: GrapherInterface): GrapherInterface
     /** The editor's config → what the host stores and renders with. */
@@ -67,9 +65,7 @@ export interface IndicatorStore {
 export function dataApiIndicatorStore(options: {
     dataApiUrl: string
     catalog?: IndicatorCatalog
-    loadIndicatorConfig?: (
-        variableId: number
-    ) => Promise<GrapherInterface | undefined>
+    variableIdsByCatalogPath?: Record<string, number | null>
 }): IndicatorStore {
     const fetchTable = getCachingInputTableFetcher(
         options.dataApiUrl,
@@ -78,7 +74,7 @@ export function dataApiIndicatorStore(options: {
     )
     return {
         catalog: options.catalog,
-        loadIndicatorConfig: options.loadIndicatorConfig,
+        variableIdsByCatalogPath: options.variableIdsByCatalogPath,
         loadTable: (dimensions, selectedEntityColors) =>
             fetchTable(dimensions, selectedEntityColors),
         toEditorConfig: (config) => config,

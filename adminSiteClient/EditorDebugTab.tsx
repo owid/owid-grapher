@@ -1,12 +1,11 @@
 import * as _ from "lodash-es"
 import { Component } from "react"
 import { observer } from "mobx-react"
-import { Section, Toggle } from "./Forms.js"
+import { Section } from "./Forms.js"
 import { action, computed, observable, makeObservable } from "mobx"
 import {
     NARRATIVE_CHART_PROPS_TO_OMIT,
     copyToClipboard,
-    mergeGrapherConfigs,
 } from "@ourworldindata/utils"
 import YAML from "yaml"
 import { Modal, notification } from "antd"
@@ -65,50 +64,8 @@ class EditorDebugTabForConfig extends Component<{
         })
     }
 
-    @action.bound onToggleInheritance(shouldBeEnabled: boolean) {
-        const { editor } = this.props
-
-        // Capture the admin's genuine overrides *before* the parent stack
-        // changes: `patchConfig` is computed against the active parent stack,
-        // so reading it afterwards would fold values that just stopped being
-        // inherited into the patch as if the admin had authored them.
-        const { patchConfig } = editor
-
-        editor.isInheritanceEnabled = shouldBeEnabled
-
-        // update live grapherState. `activeParentConfig` folds in the chart's
-        // own etlConfig, which is applied regardless of the toggle — this only
-        // governs the indicator layer. Leaving it out would reset the ETL
-        // layer's fields to grapher defaults, which the next save would then
-        // write into the patch as explicit overrides.
-        editor.updateLiveGrapher(
-            mergeGrapherConfigs(editor.activeParentConfig ?? {}, patchConfig)
-        )
-    }
-
     override render() {
-        const {
-            patchConfig,
-            parentConfig,
-            isInheritanceEnabled,
-            fullConfig,
-            parentIndicatorId,
-            grapherState,
-        } = this.props.editor
-
-        const column = parentIndicatorId
-            ? grapherState.inputTable.get(parentIndicatorId.toString())
-            : undefined
-
-        const indicatorLink = (
-            <a
-                href={`/admin/variables/${parentIndicatorId}`}
-                target="_blank"
-                rel="noopener"
-            >
-                {column?.name ?? parentIndicatorId}
-            </a>
-        )
+        const { patchConfig, parentConfig, fullConfig } = this.props.editor
 
         return (
             <div>
@@ -127,53 +84,20 @@ class EditorDebugTabForConfig extends Component<{
                     </button>
                 </Section>
 
-                {parentIndicatorId && (
-                    <>
-                        <Section name="Parent indicator">
-                            {isInheritanceEnabled ? (
-                                <p>
-                                    This chart is configured to inherit settings
-                                    from its parent indicator, {indicatorLink}.
-                                    {!parentConfig && (
-                                        <>
-                                            {" "}
-                                            But the parent indicator does not
-                                            yet have an associated grapherState
-                                            config.
-                                        </>
-                                    )}
-                                </p>
-                            ) : (
-                                <p>
-                                    This chart may inherit chart settings from
-                                    the indicator {indicatorLink}, but
-                                    inheritance is currently disabled. Toggle
-                                    the option below to enable inheritance.
-                                </p>
-                            )}
-                            <Toggle
-                                label="Enable inheritance"
-                                value={!!isInheritanceEnabled}
-                                onValue={this.onToggleInheritance}
-                            />
-                        </Section>
-                        {parentConfig && (
-                            <Section
-                                name={
-                                    isInheritanceEnabled
-                                        ? "Parent config"
-                                        : "Parent config (not currently applied)"
-                                }
-                            >
-                                <textarea
-                                    rows={7}
-                                    readOnly
-                                    className="form-control"
-                                    value={YAML.stringify(parentConfig)}
-                                />
-                            </Section>
-                        )}
-                    </>
+                {parentConfig && (
+                    <Section name="Base config">
+                        <p>
+                            The config above is a patch on top of this base;
+                            fields the base supplies are shown as inherited in
+                            the editor.
+                        </p>
+                        <textarea
+                            rows={7}
+                            readOnly
+                            className="form-control"
+                            value={YAML.stringify(parentConfig)}
+                        />
+                    </Section>
                 )}
 
                 <Section name="Full Config">

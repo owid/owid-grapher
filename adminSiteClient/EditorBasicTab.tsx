@@ -124,7 +124,6 @@ export class DimensionSlotView<
         this.isSelectingVariables = false
 
         void this.updateDimensionsAndRebuildTable(dimensionConfigs)
-        this.updateParentConfig()
     }
 
     @action.bound private onRemoveDimension(variableId: OwidVariableId) {
@@ -133,7 +132,6 @@ export class DimensionSlotView<
                 (d) => d.variableId !== variableId
             )
         )
-        this.updateParentConfig()
     }
 
     @action.bound private onChangeDimension() {
@@ -142,7 +140,6 @@ export class DimensionSlotView<
         // the color change of a variable not being reflected visually,
         // even though the value registered correctly in the grapher state instance.
         void this.updateDimensionsAndRebuildTable(this.props.slot.dimensions)
-        this.updateParentConfig()
     }
 
     private pickDefaultEntityForSingleEntityChart({
@@ -314,15 +311,10 @@ export class DimensionSlotView<
         await this.editor.commitDimensionsAndReloadData()
     }
 
-    @action.bound private updateParentConfig() {
-        void this.props.editor.updateParentConfig()
-    }
-
     @action.bound private async onDragEnd(items: { dim: ChartDimension }[]) {
         const newDimensions = items.map(({ dim }) => dim)
 
         void this.updateDimensionsAndRebuildTable(newDimensions)
-        this.updateParentConfig()
     }
 
     @computed get isDndEnabled() {
@@ -581,10 +573,6 @@ export class EditorBasicTab<
         makeObservable(this)
     }
 
-    @action.bound private updateParentConfig() {
-        void this.props.editor.updateParentConfig()
-    }
-
     @computed private get chartTypeGroups() {
         const groups: {
             label: string
@@ -760,7 +748,6 @@ export class EditorBasicTab<
 
         // The parent config depends on the chart type
         // (e.g. scatters don't have a parent), so update it when types change
-        this.updateParentConfig()
     }
 
     @action.bound private removeChartType(chartType: GrapherChartType): void {
@@ -770,7 +757,6 @@ export class EditorBasicTab<
         )
         // The parent config depends on the chart type
         // (e.g. scatters don't have a parent), so update it when types change
-        this.updateParentConfig()
     }
 
     override render() {

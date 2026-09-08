@@ -9,7 +9,10 @@ import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction, action, makeObservable } from "mobx"
 import { Redirect } from "react-router-dom"
-import { getParentIndicatorIdFromChartConfig } from "@ourworldindata/utils"
+import {
+    getParentIndicatorIdFromChartConfig,
+    mergeGrapherConfigs,
+} from "@ourworldindata/utils"
 import {
     type AnalyticsGrapherViewWithRank,
     GrapherInterface,
@@ -24,7 +27,7 @@ import {
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
-import { LoadingBlocker, Toggle } from "./Forms.js"
+import { LoadingBlocker, Section, Toggle } from "./Forms.js"
 import { GrapherEditor } from "./GrapherEditor.js"
 import {
     ConfigEditor,
@@ -70,8 +73,8 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         makeObservable(this, {
             isLoaded: observable,
             patchConfig: observable.ref,
-            parentConfig: observable.ref,
-            parentVariableId: observable.ref,
+            indicatorConfig: observable.ref,
+            indicatorId: observable.ref,
             etlConfig: observable.ref,
             isInheritanceEnabled: observable.ref,
             logs: observable,
@@ -86,13 +89,17 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         })
     }
 
-    // The config and its inheritance layers; the editor mounts once these
-    // are in, so it never sees a half-loaded chart.
+    // The config and the layers it sits on; the editor mounts once these are
+    // in, so it never sees a half-loaded chart. The editor only knows one
+    // "base config"; the two layers and the toggle are the admin's affair.
     isLoaded = false
     patchConfig: GrapherInterface = {}
-    parentConfig: GrapherInterface | undefined = undefined
-    parentVariableId: number | undefined = undefined
+    /** The grapher config of the chart's first y indicator, if it has one. */
+    indicatorConfig: GrapherInterface | undefined = undefined
+    indicatorId: number | undefined = undefined
+    /** The chart's own ETL-authored layer; always applied. */
     etlConfig: GrapherInterface | undefined = undefined
+    /** Whether `indicatorConfig` is applied. */
     isInheritanceEnabled = true
 
     // The chart record around the config.
@@ -118,15 +125,23 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
     }
 
     /** OWID's indicator store: the Data API for data, the admin for the
-     *  picker's catalog and for the configs indicators carry. */
+     *  picker's catalog and the population/GDP shortcuts. */
     @computed get store(): IndicatorStore {
-        const { admin } = this
         return dataApiIndicatorStore({
             dataApiUrl: defaultEditorEnvironment.dataApiUrl,
-            catalog: adminIndicatorCatalog(admin),
-            loadIndicatorConfig: (id) =>
-                fetchChartConfigByIndicatorId(admin, id),
+            catalog: adminIndicatorCatalog(this.admin),
+            variableIdsByCatalogPath: this.variableIdsByCatalogPath,
         })
+    }
+
+    /** What the editor treats the patch as sitting on: the indicator's
+     *  config if inheritance is on, with the ETL layer merged on top. */
+    @computed get baseConfig(): GrapherInterface | undefined {
+        const base = mergeGrapherConfigs(
+            this.isInheritanceEnabled ? (this.indicatorConfig ?? {}) : {},
+            this.etlConfig ?? {}
+        )
+        return Object.keys(base).length ? base : undefined
     }
 
     // --- Loading the chart record --------------------------------------------
@@ -144,8 +159,8 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             // chart's own etlConfig. They are merged on the editor side.
             runInAction(() => {
                 this.patchConfig = patch
-                this.parentConfig = parent?.variableConfig
-                this.parentVariableId = parent?.variableId
+                this.indicatorConfig = parent?.variableConfig
+                this.indicatorId = parent?.variableId
                 this.etlConfig = parent?.etlConfig
                 this.isInheritanceEnabled = parent?.isInheritanceEnabled ?? true
                 this.forceDatapage = settings?.forceDatapage ?? false
@@ -161,11 +176,34 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                 : undefined
             runInAction(() => {
                 this.patchConfig = grapherConfig
-                this.parentConfig = parentConfig
-                this.parentVariableId = parentIndicatorId
+                this.indicatorConfig = parentConfig
+                this.indicatorId = parentIndicatorId
             })
         }
+        // The store is built with these, so they have to be in before mount.
+        await this.fetchVariableIdsByCatalogPath()
         runInAction(() => (this.isLoaded = true))
+    }
+
+    /**
+     * The chart's first y indicator changed (added, removed or swapped):
+     * fetch the new indicator's config so the base the editor shows follows.
+     */
+    @action.bound onEditorChange(
+        _config: GrapherInterface,
+        editor: ConfigEditor
+    ): void {
+        const newId = getParentIndicatorIdFromChartConfig(editor.liveConfig)
+        if (newId === this.indicatorId) return
+        this.indicatorId = newId
+        this.indicatorConfig = undefined
+        if (!newId) return
+        void fetchChartConfigByIndicatorId(this.admin, newId).then((config) =>
+            runInAction(() => {
+                // ignore a late answer for an indicator that was swapped again
+                if (this.indicatorId === newId) this.indicatorConfig = config
+            })
+        )
     }
 
     private async fetchChartJson<T>(
@@ -247,7 +285,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         void this.fetchViews()
         void this.fetchTags()
         void this.fetchAvailableTags()
-        void this.fetchVariableIdsByCatalogPath()
     }
 
     override componentDidMount(): void {
@@ -265,10 +302,10 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
     // --- Saving --------------------------------------------------------------
 
     /** What the save endpoints want to know besides the config. */
-    private saveQuery(editor: ConfigEditor): URLSearchParams {
+    private saveQuery(): URLSearchParams {
         // it only makes sense to enable inheritance if the chart has a parent
         const shouldEnableInheritance =
-            !!editor.parentIndicatorId && !!editor.isInheritanceEnabled
+            !!this.indicatorId && this.isInheritanceEnabled
         return new URLSearchParams({
             inheritance: shouldEnableInheritance ? "enable" : "disable",
             forceDatapage: String(this.forceDatapage),
@@ -295,7 +332,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                 : {}),
         }
 
-        const query = this.saveQuery(editor)
+        const query = this.saveQuery()
         const shouldEnableInheritance = query.get("inheritance") === "enable"
         const json = await this.admin.requestJSON(
             isNew
@@ -307,7 +344,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         if (!json.success) throw new Error(json.errorMsg ?? "Saving failed")
 
         runInAction(() => {
-            editor.isInheritanceEnabled = shouldEnableInheritance
+            this.isInheritanceEnabled = shouldEnableInheritance
             if (isNew) {
                 grapherState.id = json.chartId
                 this.newChartId = json.chartId
@@ -336,7 +373,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                 const w = window.open("/", "_blank") as Window
 
                 const json = await this.admin.requestJSON(
-                    `/api/charts?${this.saveQuery(editor)}`,
+                    `/api/charts?${this.saveQuery()}`,
                     chartJson,
                     "POST"
                 )
@@ -458,12 +495,42 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         ]
         return {
             basicTabFooter: (editor) => (
-                <TagsSection
-                    chartId={editor.grapherState.id}
-                    tags={this.tags}
-                    availableTags={this.availableTags}
-                    onSaveTags={this.saveTags}
-                />
+                <>
+                    {this.indicatorId && (
+                        <Section name="Inheritance">
+                            <Toggle
+                                label="Inherit settings from the indicator"
+                                secondaryLabel="Only your changes are saved; the rest follows the indicator's own config."
+                                value={this.isInheritanceEnabled}
+                                onValue={action(
+                                    (value: boolean) =>
+                                        (this.isInheritanceEnabled = value)
+                                )}
+                            />
+                            <small className="form-text text-muted">
+                                Indicator:{" "}
+                                <a
+                                    href={`/admin/variables/${this.indicatorId}`}
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    {editor.grapherState.inputTable.get(
+                                        String(this.indicatorId)
+                                    )?.name ?? this.indicatorId}
+                                </a>
+                                {this.indicatorConfig
+                                    ? ""
+                                    : " (has no config of its own yet)"}
+                            </small>
+                        </Section>
+                    )}
+                    <TagsSection
+                        chartId={editor.grapherState.id}
+                        tags={this.tags}
+                        availableTags={this.availableTags}
+                        onSaveTags={this.saveTags}
+                    />
+                </>
             ),
             textTabFooter: () => (
                 <Toggle
@@ -498,11 +565,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                         config={this.patchConfig}
                         store={this.store}
                         details={adminDetailsProvider(this.admin)}
-                        parentConfig={this.parentConfig}
-                        parentVariableId={this.parentVariableId}
-                        etlConfig={this.etlConfig}
-                        isInheritanceEnabled={this.isInheritanceEnabled}
-                        variableIdsByCatalogPath={this.variableIdsByCatalogPath}
+                        baseConfig={this.baseConfig}
                         extraTabs={this.extraTabs}
                         extensions={this.extensions}
                         renderSaveButtons={(editor, editingErrors) => (
@@ -515,6 +578,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                                 actions={this.saveActions(editor)}
                             />
                         )}
+                        onChange={this.onEditorChange}
                         onSave={this.onSave}
                     />
                 ) : (

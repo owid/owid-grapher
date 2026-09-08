@@ -15,6 +15,7 @@
 import type { ReactNode } from "react"
 import { comparer, computed, makeObservable, reaction, runInAction } from "mobx"
 import { GrapherInterface } from "@ourworldindata/types"
+import { mergeGrapherConfigs } from "@ourworldindata/utils"
 import {
     AbstractChartEditor,
     AbstractChartEditorManager,
@@ -50,7 +51,7 @@ export interface ConfigEditorManager extends AbstractChartEditorManager {
         editor: ConfigEditor
     ) => void | GrapherInterface | Promise<void | GrapherInterface>
     /** Fires on every change of the edited config, in the host's form. */
-    onChange?: (config: GrapherInterface) => void
+    onChange?: (config: GrapherInterface, editor: ConfigEditor) => void
     /**
      * Restrict which tabs the editor shows. Tabs that don't apply to the
      * chart type (map, scatter, marimekko) are hidden regardless.
@@ -74,7 +75,28 @@ export class ConfigEditor extends AbstractChartEditor<ConfigEditorManager> {
         this.disposers.push(
             reaction(
                 () => this.hostConfig,
-                (config) => this.manager.onChange?.(config),
+                (config) => this.manager.onChange?.(config, this),
+                { equals: comparer.structural }
+            ),
+            // The host swapped the base config (e.g. the admin fetched the
+            // defaults of a newly picked indicator). Re-apply it underneath
+            // the user's edits: capture the patch against the *old* base
+            // first, otherwise values the old base supplied would be folded
+            // into the patch as if the user had authored them.
+            reaction(
+                () => this.manager.parentConfig,
+                (base) => {
+                    const { patchConfig } = this
+                    runInAction(() => {
+                        this.parentConfig = base
+                    })
+                    this.updateLiveGrapher(
+                        mergeGrapherConfigs(
+                            this.activeParentConfig ?? {},
+                            patchConfig
+                        )
+                    )
+                },
                 { equals: comparer.structural }
             )
         )

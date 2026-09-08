@@ -1,99 +1,101 @@
 /**
  * @vitest-environment happy-dom
  */
-import { describe, expect, it, vi } from "vitest"
-import { DimensionProperty, GrapherInterface } from "@ourworldindata/types"
+import { describe, expect, it } from "vitest"
+import { observable, runInAction } from "mobx"
+import { GrapherInterface } from "@ourworldindata/types"
 import { mergeGrapherConfigs } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
 import { ConfigEditor, ConfigEditorManager } from "./ConfigEditor.js"
-import { IndicatorStore } from "./indicatorStores.js"
 
-// The chart's own ETL-authored layer sits between the indicator config and the
-// admin patch, and is applied regardless of `isInheritanceEnabled`.
-const parentConfig: GrapherInterface = {
-    note: "Indicator note",
-    subtitle: "Indicator subtitle",
-}
-const etlConfig: GrapherInterface = {
-    title: "ETL title",
+// the editor always stamps the schema onto the patch; not what these tests are about
+const withoutSchema = (config: GrapherInterface): GrapherInterface =>
+    _.omit(config, "$schema")
+
+// A base the patch sits on. The admin builds it from an indicator's config
+// and the chart's ETL layer; the editor only ever sees the merged result.
+const baseConfig: GrapherInterface = {
+    note: "Base note",
+    subtitle: "Base subtitle",
     hasMapTab: true,
 }
-const patchConfig: GrapherInterface = { title: "Admin title" }
+const patchConfig: GrapherInterface = { title: "Patch title" }
 
-function makeEditor(store?: IndicatorStore): ConfigEditor {
-    const manager: ConfigEditorManager = {
+function makeEditor(): {
+    editor: ConfigEditor
+    manager: ConfigEditorManager
+} {
+    // observable, so that changing `parentConfig` later reaches the editor
+    // the way a re-rendered `GrapherEditor` prop would
+    const manager = observable<ConfigEditorManager>({
         patchConfig,
-        parentConfig,
-        parentVariableId: 1,
-        etlConfig,
+        parentConfig: baseConfig,
         isInheritanceEnabled: true,
         onSave: () => undefined,
-        store,
-    }
+    })
     const editor = new ConfigEditor({ manager })
-    // the manager fields are picked up by `when` reactions that only fire once
-    // the values are observed; set them directly for the test
-    editor.parentConfig = parentConfig
-    editor.parentVariableId = 1
-    editor.etlConfig = etlConfig
-    editor.isInheritanceEnabled = true
-    return editor
+    editor.updateLiveGrapher(editor.originalGrapherConfig)
+    return { editor, manager }
 }
 
-describe("ConfigEditor inheritance", () => {
-    it("merges the indicator, ETL and patch layers in that order", () => {
-        const editor = makeEditor()
+describe("ConfigEditor with a base config", () => {
+    it("starts from the base with the patch applied on top", () => {
+        const { editor } = makeEditor()
         expect(editor.originalGrapherConfig).toEqual(
-            mergeGrapherConfigs(parentConfig, etlConfig, patchConfig)
+            mergeGrapherConfigs(baseConfig, patchConfig)
         )
     })
 
-    it("applies the ETL layer even when indicator inheritance is off", () => {
-        const editor = makeEditor()
-        editor.isInheritanceEnabled = false
-        expect(editor.activeParentConfig).toEqual(etlConfig)
-    })
-
-    it("reports a property as inherited when a layer supplies it and the patch doesn't", () => {
-        const editor = makeEditor()
-        editor.updateLiveGrapher(editor.originalGrapherConfig)
+    it("reports a property as inherited when the base supplies it and the patch doesn't", () => {
+        const { editor } = makeEditor()
         expect(editor.isPropertyInherited("note")).toBe(true)
         expect(editor.isPropertyInherited("hasMapTab")).toBe(true)
         expect(editor.isPropertyInherited("title")).toBe(false)
     })
 
-    it("re-fetches the indicator config through the store when the parent indicator changes", async () => {
-        const loadIndicatorConfig = vi.fn(async (id: number) =>
-            id === 2 ? { note: "Other indicator note" } : undefined
-        )
-        const store: IndicatorStore = {
-            loadTable: async () => undefined,
-            loadIndicatorConfig,
-            toEditorConfig: (c) => c,
-            fromEditorConfig: (c) => c,
-        }
-        const editor = makeEditor(store)
-        editor.updateLiveGrapher(editor.originalGrapherConfig)
-
-        editor.grapherState.setDimensionsFromConfigs([
-            { property: DimensionProperty.y, variableId: 2 },
-        ])
-        await editor.updateParentConfig()
-
-        expect(loadIndicatorConfig).toHaveBeenCalledWith(2)
-        expect(editor.parentVariableId).toBe(2)
-        expect(editor.parentConfig).toEqual({ note: "Other indicator note" })
-        // the ETL layer and the admin's own override survive the swap
-        expect(editor.liveConfig.title).toBe("Admin title")
-        expect(editor.liveConfig.hasMapTab).toBe(true)
+    it("saves only the difference to the base", () => {
+        const { editor } = makeEditor()
+        runInAction(() => {
+            editor.grapherState.note = "My own note"
+        })
+        expect(withoutSchema(editor.patchConfig)).toEqual({
+            title: "Patch title",
+            note: "My own note",
+        })
     })
 
-    it("does nothing when the store cannot look indicator configs up", async () => {
-        const editor = makeEditor()
-        editor.grapherState.setDimensionsFromConfigs([
-            { property: DimensionProperty.y, variableId: 2 },
-        ])
-        await editor.updateParentConfig()
-        expect(editor.parentVariableId).toBe(1)
-        expect(editor.parentConfig).toEqual(parentConfig)
+    it("re-applies a swapped base underneath the user's edits", () => {
+        const { editor, manager } = makeEditor()
+        runInAction(() => {
+            editor.grapherState.title = "Edited title"
+        })
+
+        runInAction(() => {
+            manager.parentConfig = { note: "Other base note", hasMapTab: true }
+        })
+
+        expect(editor.parentConfig).toEqual({
+            note: "Other base note",
+            hasMapTab: true,
+        })
+        // the edit survives, the old base's subtitle is gone, the new note shows
+        expect(editor.liveConfig.title).toBe("Edited title")
+        expect(editor.liveConfig.subtitle).toBeUndefined()
+        expect(editor.liveConfig.note).toBe("Other base note")
+        // and the old base's values were not folded into the patch
+        expect(withoutSchema(editor.patchConfig)).toEqual({
+            title: "Edited title",
+        })
+    })
+
+    it("treats the config as the whole config when the base goes away", () => {
+        const { editor, manager } = makeEditor()
+        runInAction(() => {
+            manager.parentConfig = undefined
+        })
+        expect(editor.activeParentConfig).toBeUndefined()
+        expect(withoutSchema(editor.patchConfig)).toEqual({
+            title: "Patch title",
+        })
     })
 })

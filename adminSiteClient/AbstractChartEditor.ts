@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import {
     GrapherInterface,
     diffGrapherConfigs,
-    getParentIndicatorIdFromChartConfig,
     mergeGrapherConfigs,
     PostReference,
     SeriesName,
@@ -18,7 +17,6 @@ import {
     when,
     makeObservable,
     reaction,
-    runInAction,
     IReactionDisposer,
 } from "mobx"
 import { EditorFeatures } from "./EditorFeatures.js"
@@ -225,7 +223,10 @@ export abstract class AbstractChartEditor<
     @computed get variableIdsByCatalogPath():
         | Record<string, number | null>
         | undefined {
-        return this.manager.variableIdsByCatalogPath
+        return (
+            this.manager.variableIdsByCatalogPath ??
+            this.store.variableIdsByCatalogPath
+        )
     }
 
     /** original grapher config used to init the grapherState instance */
@@ -360,59 +361,6 @@ export abstract class AbstractChartEditor<
         this.grapherState.selection.deselectEntities(
             this.invalidSelectedEntityNames
         )
-    }
-
-    /** parent indicator id, derived from the live config */
-    @computed get parentIndicatorId(): number | undefined {
-        return getParentIndicatorIdFromChartConfig(this.liveConfig)
-    }
-
-    /**
-     * Re-fetch the inherited indicator config when the chart's parent
-     * indicator changed (the first y dimension was added, removed or
-     * swapped). A no-op unless the store can look indicator configs up.
-     */
-    @action.bound async updateParentConfig(): Promise<void> {
-        const { loadIndicatorConfig } = this.store
-        if (!loadIndicatorConfig) return
-
-        const currentParentIndicatorId = this.parentVariableId
-        const newParentIndicatorId = getParentIndicatorIdFromChartConfig(
-            this.grapherState.object
-        )
-
-        // no-op if the parent indicator hasn't changed
-        if (currentParentIndicatorId === newParentIndicatorId) return
-
-        // fetch the new parent config
-        let newParentConfig: GrapherInterface | undefined
-        if (newParentIndicatorId) {
-            newParentConfig = await loadIndicatorConfig(newParentIndicatorId)
-        }
-
-        // Capture the admin's genuine overrides *before* swapping in the new
-        // indicator layer: `patchConfig` is computed against the active parent
-        // stack, so reading it afterwards would fold the old indicator's
-        // inherited values into the patch as if the admin had authored them.
-        const { patchConfig } = this
-
-        // update the parent config in any case
-        runInAction(() => {
-            this.parentConfig = newParentConfig
-            this.parentVariableId = newParentIndicatorId
-        })
-
-        // if inheritance is enabled, update the live grapher object. Rebuild
-        // from the whole parent stack rather than the indicator layer alone:
-        // the chart's own etlConfig sits between them, and `updateLiveGrapher`
-        // resets grapherState first, so a layer left out of the merge falls
-        // back to grapher defaults — which the next save would then diff into
-        // the patch as explicit overrides of the layer that actually owns them.
-        if (this.isInheritanceEnabled) {
-            this.updateLiveGrapher(
-                mergeGrapherConfigs(this.activeParentConfig ?? {}, patchConfig)
-            )
-        }
     }
 
     @action.bound async reloadGrapherData(): Promise<void> {
