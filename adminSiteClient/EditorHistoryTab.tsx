@@ -114,6 +114,12 @@ class LogRenderer extends Component<LogRendererProps> {
 
 /** The revision history of a chart in the admin database. */
 export function EditorHistoryTab({ logs }: { logs: Log[] }) {
+    if (logs.length === 0)
+        return (
+            <p className="text-muted p-3">
+                No revisions yet. Every save of the chart adds one here.
+            </p>
+        )
     return (
         <div>
             {logs.map((log, i) => (

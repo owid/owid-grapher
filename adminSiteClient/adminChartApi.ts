@@ -69,8 +69,9 @@ export async function deleteChart(params: {
         return
     }
 
-    // Confirm deletion
-    let confirmMessage = `Delete the chart ${chartSlug}? This action cannot be undone!`
+    // Confirm deletion (drafts may have no slug yet)
+    const chartName = chartSlug || `#${chartId}`
+    let confirmMessage = `Delete the chart ${chartName}? This action cannot be undone!`
     if (ENV === "staging") {
         confirmMessage +=
             "\n\n⚠️ WARNING: You are on a staging server. Deleted charts are NOT synced to production servers. If this chart exists on production, it will remain there even after deletion here."
