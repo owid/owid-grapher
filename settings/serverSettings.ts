@@ -122,8 +122,8 @@ export const R2_SECRET_ACCESS_KEY: string =
 export const R2_REGION: string =
     serverSettings.R2_REGION || rcloneConfig["owid-r2"]?.region || "auto"
 
-export const CLOUDFLARE_IMAGES_ACCOUNT_ID: string =
-    serverSettings.CLOUDFLARE_IMAGES_ACCOUNT_ID || ""
+export const CLOUDFLARE_ACCOUNT_ID: string =
+    serverSettings.CLOUDFLARE_ACCOUNT_ID || ""
 
 export const CLOUDFLARE_IMAGES_API_KEY: string =
     serverSettings.CLOUDFLARE_IMAGES_API_KEY || ""
@@ -131,8 +131,6 @@ export const CLOUDFLARE_IMAGES_API_KEY: string =
 // Email notifications send job (baker/emailNotifications/). The subscriber
 // data lives in a Cloudflare D1 database, which the job (running on our own
 // infra) accesses remotely via the Cloudflare HTTP API.
-export const EMAIL_NOTIFICATIONS_CLOUDFLARE_ACCOUNT_ID: string =
-    serverSettings.EMAIL_NOTIFICATIONS_CLOUDFLARE_ACCOUNT_ID || ""
 // API token with D1 read/write permission for the email notifications
 // database.
 export const EMAIL_NOTIFICATIONS_CLOUDFLARE_API_TOKEN: string =
