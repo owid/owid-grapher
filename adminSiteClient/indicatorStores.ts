@@ -174,18 +174,30 @@ export function tableIndicatorStore(
 
         toEditorConfig(config, options = {}) {
             const dimensions: OwidChartDimensionInterface[] = []
+            let namesAnyColumn = false
             for (const { property, field } of SLUG_PROPERTIES) {
                 const value = config[field]
                 if (!value) continue
+                namesAnyColumn = true
                 for (const slug of value.split(" ")) {
                     const key = keyOf(slug)
                     if (key !== undefined)
                         dimensions.push({ property, variableId: key })
+                    else
+                        console.warn(
+                            `${name}: config references column "${slug}", which the table doesn't have`
+                        )
                 }
             }
             // Like GrapherLoader.fromTable: a config that names no columns
-            // plots every numeric one.
-            if (dimensions.length === 0 && options.inferDimensions !== false)
+            // plots every numeric one. A config that names only columns the
+            // table lacks gets an empty chart instead: silently plotting
+            // something else would rewrite the host's config on the next save.
+            if (
+                !namesAnyColumn &&
+                dimensions.length === 0 &&
+                options.inferDimensions !== false
+            )
                 for (const slug of numericSlugs)
                     dimensions.push({
                         property: DimensionProperty.y,

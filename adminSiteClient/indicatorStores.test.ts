@@ -88,6 +88,18 @@ describe(csvIndicatorStore, () => {
         ])
     })
 
+    it("does not plot something else when the config names only unknown columns", () => {
+        const editorConfig = makeStore().toEditorConfig({
+            title: "Rents",
+            ySlugs: "does_not_exist",
+        })
+        expect(editorConfig.dimensions).toBeUndefined()
+        // and nothing is invented on the way back out either
+        expect(makeStore().fromEditorConfig(editorConfig)).toEqual({
+            title: "Rents",
+        })
+    })
+
     it("leaves a base config without dimensions when asked not to infer them", () => {
         const editorConfig = makeStore().toEditorConfig(
             { note: "House style" },

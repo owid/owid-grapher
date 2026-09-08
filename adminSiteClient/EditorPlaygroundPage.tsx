@@ -262,8 +262,11 @@ ${tabsLine}
         }
     }
 
-    /** Re-mount the editor so a changed provider or tab set takes effect. */
+    /** Re-mount the editor so a changed provider or tab set takes effect.
+     *  The editor restarts from `loadedConfig`, so unsaved edits are gone and
+     *  the live pane must not keep showing them. */
     @action.bound remount(): void {
+        this.liveConfig = undefined
         this.editorKey++
     }
 
@@ -275,6 +278,9 @@ ${tabsLine}
         this.savedConfig = config
         this.savedAt = new Date()
         this.isOutputOpen = true
+        // What a host would do: the saved config is now the one to reopen,
+        // so a later remount starts from it rather than the original.
+        this.loadedConfig = config
     }
 
     @action.bound setIndicatorCatalog(enabled: boolean): void {
