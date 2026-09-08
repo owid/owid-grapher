@@ -115,12 +115,17 @@ describe("the sidecar section split", () => {
     })
 
     describe("guide sidecars", () => {
+        // A guide reads top to bottom, so its free sections keep their source
+        // order and the Notes close it — the reverse of a component sidecar,
+        // where the notes sit right under the derived material.
         test("accept an intro, free sections and Notes", () => {
             const { prose, properties } = split(
                 [
                     "Footnotes in two forms.",
                     "## ID-based refs",
                     "Define once, cite many times.",
+                    "## Inline refs",
+                    "Write the source between the tags.",
                     "## Notes",
                     "Identical inline refs share a number.",
                 ].join("\n\n"),
@@ -129,9 +134,33 @@ describe("the sidecar section split", () => {
             expect(prose.intro).toBe("Footnotes in two forms.")
             expect(prose.whenToUse).toBeUndefined()
             expect(prose.notes).toBe(
-                "Identical inline refs share a number.\n\n## ID-based refs\n\nDefine once, cite many times."
+                [
+                    "## ID-based refs",
+                    "Define once, cite many times.",
+                    "## Inline refs",
+                    "Write the source between the tags.",
+                    "Identical inline refs share a number.",
+                ].join("\n\n")
             )
             expect(properties).toBeUndefined()
+        })
+
+        test("do not change how component sidecars order theirs", () => {
+            const body = [
+                "Intro.",
+                "## When to use",
+                "- Always.",
+                "## Notes",
+                "A caveat.",
+                "## Limitations",
+                "Only two per page.",
+            ].join("\n\n")
+            expect(split(body, "component").prose.notes).toBe(
+                "A caveat.\n\n## Limitations\n\nOnly two per page."
+            )
+            expect(split(body, "template").prose.notes).toBe(
+                "A caveat.\n\n## Limitations\n\nOnly two per page."
+            )
         })
 
         test("reject the decision headings", () => {

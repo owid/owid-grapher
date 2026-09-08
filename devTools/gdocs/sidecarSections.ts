@@ -211,10 +211,14 @@ export function splitSidecarProse(
     // Authored notes and free-form sections render as one run of prose under
     // the derived material. "## Notes" loses its heading (the area carries
     // its own title); free sections keep theirs.
-    const notes = [contents.get("notes"), freeChunks.join("").trim()]
-        .filter(Boolean)
-        .join("\n\n")
-        .trim()
+    // A guide reads top to bottom, so its free sections come first and the
+    // Notes are closing remarks; a component's notes sit right under the
+    // derived material, with free sections as appendices after them.
+    const notesParts =
+        kind === "guide"
+            ? [freeChunks.join("").trim(), contents.get("notes")]
+            : [contents.get("notes"), freeChunks.join("").trim()]
+    const notes = notesParts.filter(Boolean).join("\n\n").trim()
 
     const prose: SidecarProse = { intro }
     const whenToUse = contents.get("whenToUse")
