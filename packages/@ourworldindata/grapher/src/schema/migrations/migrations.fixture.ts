@@ -1,10 +1,10 @@
-import { AnyConfigWithValidSchema } from "./helpers"
+import { MigratableConfig } from "./helpers"
 
 /** Before/after pairs pinning what each migration step rewrites */
 export const MIGRATION_FIXTURES: {
     name: string
-    before: AnyConfigWithValidSchema
-    after: AnyConfigWithValidSchema
+    before: MigratableConfig
+    after: MigratableConfig
 }[] = [
     {
         name: "drops selectedData",

@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import { runInAction } from "mobx"
 import {
-    type AnyConfig,
+    type UntypedGrapherConfig,
     CsvDownloadType,
     type DataDownloadContextBase,
     generateGrapherImageSrcSet,
@@ -261,7 +261,9 @@ export async function fetchGrapherConfig({
             (dim) => dim.slug
         )
     } else {
-        grapherConfig = migrateGrapherConfigToLatestVersion(config as AnyConfig)
+        grapherConfig = migrateGrapherConfigToLatestVersion(
+            config as UntypedGrapherConfig
+        )
     }
     console.log("grapher title", grapherConfig.title)
     const result: FetchGrapherConfigResult = {
