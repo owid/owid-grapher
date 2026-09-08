@@ -1,5 +1,14 @@
 import type { AskAiArm, AskAiEngine } from "@ourworldindata/types"
 
+/**
+ * The prompt always points at the public site, never at the current
+ * environment's baked URL. Staging runs on an internal Tailscale host and dev
+ * on localhost — neither is reachable from Claude or ChatGPT, so an
+ * environment-relative URL would hand the assistant a dead link and make the
+ * probe untestable everywhere except production.
+ */
+export const OWID_PUBLIC_GRAPHER_URL = "https://ourworldindata.org/grapher"
+
 /** Query param that turns the probe on: ?askai=v2 | v3 | v5 */
 export const ASK_AI_PARAM = "askai"
 

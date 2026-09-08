@@ -179,7 +179,6 @@ export const DataPageV2Content = ({
                                 <AskAI
                                     slug={grapherConfig.slug}
                                     title={datapageData.title.title}
-                                    baseUrl={BAKED_GRAPHER_URL}
                                 />
                             )}
                             {!useNewDatapageDesign && (

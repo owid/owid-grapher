@@ -8,6 +8,7 @@ import {
     DEFAULT_QUESTION,
     ENGINES,
     PRESETS,
+    OWID_PUBLIC_GRAPHER_URL,
 } from "./askAiPrompt.js"
 import { useWindowQueryParams } from "./hooks.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
@@ -17,11 +18,9 @@ const analytics = new SiteAnalytics()
 export interface AskAIProps {
     slug: string
     title: string
-    /** Baked grapher URL, e.g. https://ourworldindata.org/grapher */
-    baseUrl: string
 }
 
-export function AskAI({ slug, title, baseUrl }: AskAIProps) {
+export function AskAI({ slug, title }: AskAIProps) {
     const queryStr = useWindowQueryParams()
     const arm = parseArm(queryStr)
 
@@ -40,7 +39,7 @@ export function AskAI({ slug, title, baseUrl }: AskAIProps) {
         analytics.logAskAiShow({ arm, slug })
     }, [arm, slug])
 
-    const slugUrl = `${baseUrl}/${slug}`
+    const slugUrl = `${OWID_PUBLIC_GRAPHER_URL}/${slug}`
     const stateSummary = useMemo(() => describeChartState(queryStr), [queryStr])
 
     if (!arm) return null

@@ -6,6 +6,7 @@ import {
     buildEngineUrl,
     buildCsvUrl,
     buildPngUrl,
+    OWID_PUBLIC_GRAPHER_URL,
 } from "./askAiPrompt.js"
 
 const SLUG_URL = "https://ourworldindata.org/grapher/child-mortality"
@@ -115,5 +116,30 @@ describe("data and image URLs", () => {
         expect(buildPngUrl(SLUG_URL, "?country=~NGA&tab=map")).toBe(
             `${SLUG_URL}.png?country=%7ENGA&tab=map`
         )
+    })
+})
+
+describe("public origin", () => {
+    // Staging runs on an internal Tailscale host and dev on localhost. Neither
+    // is reachable from Claude or ChatGPT, so every URL we hand an assistant
+    // has to be the public one regardless of environment.
+    it("points at ourworldindata.org", () => {
+        expect(OWID_PUBLIC_GRAPHER_URL).toBe(
+            "https://ourworldindata.org/grapher"
+        )
+    })
+
+    it("never emits a staging or localhost URL in the prompt", () => {
+        const slugUrl = `${OWID_PUBLIC_GRAPHER_URL}/child-mortality`
+        const prompt = buildPrompt({
+            title: "Child mortality rate",
+            pageUrl: `${slugUrl}?country=~NGA`,
+            slugUrl,
+            queryStr: "?country=~NGA",
+            question: "Explain this.",
+        })
+        for (const url of prompt.match(/https?:\/\/[^\s)]+/g) ?? []) {
+            expect(url.startsWith("https://ourworldindata.org/")).toBe(true)
+        }
     })
 })
