@@ -60,6 +60,7 @@ import {
 import { getFiles, uploadFileToR2 } from "./apiRoutes/files.js"
 import { getComponentsReference } from "./apiRoutes/components.js"
 import { getTemplatesReference } from "./apiRoutes/templates.js"
+import { getGuidesReference } from "./apiRoutes/guides.js"
 import {
     getComponentInstances,
     getGdocsReferenceUsage,
@@ -674,10 +675,11 @@ apiRouter.get("/svgtester/suites.json", getSvgTesterSuites)
 apiRouter.get("/svgtester/:suite/results.json", getSvgTesterResults)
 apiRouter.router.get("/svgtester/:suite/:kind/:filename", getSvgTesterSvg)
 
-// ArchieML component + gdoc template references (served from the committed
-// registry JSONs)
+// ArchieML component, gdoc template and guide references (served from the
+// committed registry JSONs)
 apiRouter.get("/gdocs-reference/components.json", getComponentsReference)
 apiRouter.get("/gdocs-reference/templates.json", getTemplatesReference)
+apiRouter.get("/gdocs-reference/guides.json", getGuidesReference)
 
 // The live half of the writing reference: component usage across published
 // docs, real instances with provenance, and template exemplar outlines

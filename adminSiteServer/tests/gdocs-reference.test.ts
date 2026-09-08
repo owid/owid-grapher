@@ -285,4 +285,16 @@ describe("writing reference live API", { timeout: 20000 }, () => {
         )
         expect(res.status).toBe(404)
     })
+
+    it("guides.json serves the committed guides registry", async () => {
+        const res = await rawGet("/gdocs-reference/guides.json")
+        expect(res.status).toBe(200)
+        const { guides } = (await res.json()) as {
+            guides: { id: string; category: string; examples: unknown[] }[]
+        }
+        const refs = guides.find((guide) => guide.id === "refs")
+        expect(refs).toBeDefined()
+        expect(refs?.category).toBe("Writing")
+        expect(refs?.examples.length).toBeGreaterThan(0)
+    })
 })
