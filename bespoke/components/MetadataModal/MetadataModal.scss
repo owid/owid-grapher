@@ -1,3 +1,14 @@
+@import "../../../packages/@ourworldindata/components/src/CodeSnippet/code-snippet.scss";
+@import "../../../packages/@ourworldindata/components/src/ExpandableToggle/ExpandableToggle.scss";
+@import "../../../packages/@ourworldindata/components/src/IndicatorSources/IndicatorSources.scss";
+@import "../../../packages/@ourworldindata/components/src/IndicatorProcessing/IndicatorProcessing.scss";
+@import "../../../packages/@ourworldindata/components/src/MetadataBox/MetadataBoxSection.scss";
+@import "../../../packages/@ourworldindata/components/src/MetadataBox/MetadataBoxKeyData.scss";
+@import "../../../packages/@ourworldindata/components/src/BespokeMetadata/BespokeMetadataHeading.scss";
+@import "../../../packages/@ourworldindata/components/src/BespokeMetadata/BespokeMetadataSections.scss";
+@import "../../../packages/@ourworldindata/components/src/OverlayHeader.scss";
+@import "../../../packages/@ourworldindata/components/src/closeButton/CloseButton.scss";
+
 .metadata-modal {
     // How far the panel sits from the frame's edges, as against --modal-padding,
     // which is the padding inside it
