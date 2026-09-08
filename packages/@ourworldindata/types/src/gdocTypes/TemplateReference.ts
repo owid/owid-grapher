@@ -5,7 +5,7 @@
 // gdoc type.
 
 import type { GdocContentKeyKind } from "./Gdoc.js"
-import type { SidecarProse } from "./ComponentReference.js"
+import type { RelatedRef, SidecarProse } from "./ComponentReference.js"
 
 export interface TemplateField {
     name: string
@@ -54,4 +54,6 @@ export interface TemplateReference {
      * documents.
      */
     skeleton: TemplateSkeletonPart[]
+    /** Cross-references harvested from the prose and the field descriptions */
+    related?: RelatedRef[]
 }
