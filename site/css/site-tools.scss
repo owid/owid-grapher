@@ -59,19 +59,16 @@ $site-tools-popover-inset: $header-height-md + $vertical-spacing * 3 +
         @include overlay;
     }
 
-    .site-tools .box .FeedbackForm {
-        max-height: min(
-            700px,
-            calc(var(--viewport-height) - #{$site-tools-popover-inset})
-        );
-    }
-
-    .site-tools .box {
+    .site-tools .box,
+    .site-tools .feedback-prompt__box {
         position: absolute;
         right: 0;
         bottom: 100%;
         margin-bottom: $vertical-spacing;
         max-height: calc(var(--viewport-height) - #{$site-tools-popover-inset});
+    }
+
+    .site-tools .box {
         overflow-y: auto;
         @include popover-box-styles;
 

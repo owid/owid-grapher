@@ -4,7 +4,7 @@ import { createPortal } from "react-dom"
 import { TagGraphRoot } from "@ourworldindata/utils"
 import classnames from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCaretDown, faTimes } from "@fortawesome/free-solid-svg-icons"
+import { faCaretDown } from "@fortawesome/free-solid-svg-icons"
 import { SiteAbout } from "./SiteAbout.js"
 import { SiteResources } from "./SiteResources.js"
 import { SiteMobileArea } from "./SiteMobileArea.js"
@@ -126,15 +126,7 @@ export const SiteMobileMenu = ({
                             onClick={() => setIsFeedbackOpen(false)}
                         />
                         <div className="SiteMobileFeedbackModal__box">
-                            <button
-                                className="SiteMobileFeedbackModal__close"
-                                aria-label="Close feedback form"
-                                onClick={() => setIsFeedbackOpen(false)}
-                            >
-                                <FontAwesomeIcon icon={faTimes} />
-                            </button>
                             <FeedbackForm
-                                autofocus={false}
                                 onClose={() => setIsFeedbackOpen(false)}
                             />
                         </div>
