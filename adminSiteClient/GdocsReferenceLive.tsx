@@ -25,7 +25,7 @@ import {
 } from "@ourworldindata/types"
 import { Link } from "./Link.js"
 import { GdocsReferenceExample } from "./GdocsReferenceExample.js"
-import { InlineMarkdownText } from "./GdocsReferenceMarkdown.js"
+import { InlineMarkdownText, TitleFor } from "./GdocsReferenceMarkdown.js"
 import {
     docTypeNoun,
     formDefiningParts,
@@ -300,11 +300,13 @@ function FormTitle({
     defaults,
     plain,
     synthetic,
+    titleFor,
 }: {
     parts: FormSetPart[]
     defaults?: Record<string, string>
     plain?: boolean
     synthetic?: boolean
+    titleFor?: TitleFor
 }): React.ReactElement {
     const partClassName = [
         "gdocs-ref-live__form-title-part",
@@ -336,6 +338,7 @@ function FormTitle({
                             name={part.name}
                             prop={part.prop}
                             defaultValue={defaults?.[part.name]}
+                            titleFor={titleFor}
                         />
                     )}
                     {part.value !== undefined && part.value !== "true" && (
@@ -359,10 +362,12 @@ function PropName({
     name,
     prop,
     defaultValue,
+    titleFor,
 }: {
     name: string
     prop: ComponentProp | undefined
     defaultValue: string | undefined
+    titleFor?: TitleFor
 }): React.ReactElement {
     if (!prop) return <code className="gdocs-ref-live__prop-name">{name}</code>
     return (
@@ -370,7 +375,10 @@ function PropName({
             title={
                 <span className="gdocs-ref-live__prop-hint">
                     {prop.description && (
-                        <InlineMarkdownText text={prop.description} />
+                        <InlineMarkdownText
+                            text={prop.description}
+                            titleFor={titleFor}
+                        />
                     )}
                     <code className="gdocs-ref-live__prop-hint-type">
                         {prop.type}
@@ -412,6 +420,7 @@ function FormCard({
     pinned,
     collapsed = false,
     onToggle,
+    titleFor,
 }: {
     component: ComponentReference
     variation: ComponentVariation
@@ -422,6 +431,7 @@ function FormCard({
     /** Tail forms start folded to their header; the header toggles them */
     collapsed?: boolean
     onToggle?: () => void
+    titleFor?: TitleFor
 }): React.ReactElement {
     // Curated picks of this form lead its pager; the representative follows.
     const initialItems = useMemo(() => {
@@ -520,7 +530,11 @@ function FormCard({
                     aria-expanded={!collapsed}
                     onClick={onToggle}
                 >
-                    <FormTitle parts={parts} defaults={propDefaults} />
+                    <FormTitle
+                        parts={parts}
+                        defaults={propDefaults}
+                        titleFor={titleFor}
+                    />
                     <span className="gdocs-ref-live__form-card-header-end">
                         <FrequencyBadge
                             label={label}
@@ -534,7 +548,11 @@ function FormCard({
                 </button>
             ) : (
                 <div className="gdocs-ref-live__form-card-header">
-                    <FormTitle parts={parts} defaults={propDefaults} />
+                    <FormTitle
+                        parts={parts}
+                        defaults={propDefaults}
+                        titleFor={titleFor}
+                    />
                     <FrequencyBadge
                         label={label}
                         title={`${variation.count} of ${scanned} published uses`}
@@ -611,9 +629,11 @@ function FormCard({
 function SyntheticFormCard({
     component,
     info,
+    titleFor,
 }: {
     component: ComponentReference
     info: SyntheticExampleInfo
+    titleFor?: TitleFor
 }): React.ReactElement | null {
     return (
         <div className="gdocs-ref-live__form-card gdocs-ref-live__form-card--synthetic">
@@ -624,6 +644,7 @@ function SyntheticFormCard({
                             signature: info.signature,
                         } as ComponentVariation)}
                         synthetic
+                        titleFor={titleFor}
                     />
                 ) : (
                     <span className="gdocs-ref-live__form-title-part gdocs-ref-live__form-title-part--synthetic gdocs-ref-live__form-title-part--default">
@@ -665,11 +686,13 @@ export function ComponentForms({
     usage,
     typeLinks,
     notes,
+    titleFor,
 }: {
     component: ComponentReference
     usage: ComponentUsage | undefined
     typeLinks: PropTypeLinks
     notes?: React.ReactNode
+    titleFor?: TitleFor
 }): React.ReactElement {
     const [docTypeFilter, setDocTypeFilter] = useState<string | undefined>()
     const [expandedTail, setExpandedTail] = useState<Set<string>>(new Set())
@@ -702,6 +725,7 @@ export function ComponentForms({
                     component={component}
                     typeLinks={typeLinks}
                     notes={notes}
+                    titleFor={titleFor}
                 />
             </section>
         )
@@ -769,6 +793,7 @@ export function ComponentForms({
                     propDefaults={response.propDefaults}
                     docTypeFilter={docTypeFilter}
                     pinned={response.pinned}
+                    titleFor={titleFor}
                 />
             ))}
             {unobservedSynthetic.map((example) => (
@@ -776,6 +801,7 @@ export function ComponentForms({
                     key={`synthetic-${example.exampleIndex}`}
                     component={component}
                     info={example}
+                    titleFor={titleFor}
                 />
             ))}
             {tail.length > 0 && (
@@ -801,6 +827,7 @@ export function ComponentForms({
                                 else next.add(variation.signature)
                                 setExpandedTail(next)
                             }}
+                            titleFor={titleFor}
                         />
                     ))}
                 </div>
@@ -814,6 +841,7 @@ export function ComponentForms({
                 }}
                 typeLinks={typeLinks}
                 notes={notes}
+                titleFor={titleFor}
             />
         </section>
     )
@@ -941,11 +969,13 @@ function ComponentProperties({
     live,
     typeLinks,
     notes,
+    titleFor,
 }: {
     component: ComponentReference
     live?: PropAdoptionInfo
     typeLinks: PropTypeLinks
     notes?: React.ReactNode
+    titleFor?: TitleFor
 }): React.ReactElement | null {
     if (component.props.length === 0 && !notes) return null
     const hasLive = live !== undefined && live.scanned > 0
@@ -1025,6 +1055,7 @@ function ComponentProperties({
                                             {prop.description ? (
                                                 <InlineMarkdownText
                                                     text={prop.description}
+                                                    titleFor={titleFor}
                                                 />
                                             ) : (
                                                 <span className="gdocs-ref-live__props-optional">
