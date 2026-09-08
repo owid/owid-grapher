@@ -23,10 +23,6 @@ import {
 import fs, { stat } from "fs-extra"
 import path from "path"
 import { execFileSync } from "child_process"
-import {
-    buildSvgOutFilename,
-    initGrapherForSvgExport,
-} from "../../baker/GrapherImageBaker.js"
 import { getVariableData } from "../../db/model/Variable.js"
 
 import * as _ from "lodash-es"
@@ -34,6 +30,7 @@ import { getHeapStatistics } from "v8"
 import { queryStringsByChartType } from "./chart-configurations.js"
 import * as d3 from "d3-dsv"
 import {
+    Grapher,
     GrapherProgrammaticInterface,
     legacyToOwidTableAndDimensions,
     migrateGrapherConfigToLatestVersion,
@@ -44,6 +41,8 @@ import {
 } from "@ourworldindata/grapher"
 import { hashMd5 } from "../../serverUtils/hash.js"
 import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
+import { BAKED_GRAPHER_URL } from "../../settings/clientSettings.js"
+import { runInAction } from "mobx"
 import * as R from "remeda"
 import ReactDOMServer from "react-dom/server"
 import pMap from "p-map"
@@ -53,6 +52,64 @@ export const TEST_SUITE_DESCRIPTION =
 
 const CONFIG_EXTENSION = ".json"
 const RESULTS_FILENAME = "results.csv"
+
+interface SvgFilenameFragments {
+    slug: string
+    version: number
+    width: number
+    height: number
+    queryStr?: string
+}
+
+// Combines a grapher slug, and potentially its query string, to _part_ of an export file
+// name. It's called fileKey and not fileName because the actual export filename also includes
+// other parts, like chart version and width/height.
+export const grapherSlugToExportFileKey = (
+    slug: string,
+    queryStr: string | undefined,
+    {
+        shouldHashQueryStr = true,
+        separator = "-",
+    }: { shouldHashQueryStr?: boolean; separator?: string } = {}
+): string => {
+    const maybeHashedQueryStr = shouldHashQueryStr
+        ? hashMd5(queryStr ?? "")
+        : queryStr
+    return `${slug}${queryStr ? `${separator}${maybeHashedQueryStr}` : ""}`
+}
+
+export function buildSvgOutFilename(
+    fragments: SvgFilenameFragments,
+    {
+        shouldHashQueryStr = true,
+        separator = "-",
+    }: { shouldHashQueryStr?: boolean; separator?: string } = {}
+): string {
+    const { slug, version, width, height, queryStr = "" } = fragments
+    const fileKey = grapherSlugToExportFileKey(slug, queryStr, {
+        shouldHashQueryStr,
+        separator,
+    })
+    return `${fileKey}_v${version}_${width}x${height}.svg`
+}
+
+export function initGrapherForSvgExport(
+    jsonConfig: GrapherProgrammaticInterface,
+    queryStr: string = ""
+): Grapher {
+    const grapher = new Grapher({
+        grapherState: new GrapherState({
+            bakedGrapherURL: BAKED_GRAPHER_URL,
+            ...jsonConfig,
+            queryStr,
+        }),
+    })
+    runInAction(() => {
+        grapher.grapherState.isExportingToSvgOrPng = true
+        grapher.grapherState.shouldIncludeDetailsInStaticExport = false
+    })
+    return grapher
+}
 
 export function configPathFor(configsDir: string, viewId: string): string {
     return path.join(configsDir, `${viewId}${CONFIG_EXTENSION}`)

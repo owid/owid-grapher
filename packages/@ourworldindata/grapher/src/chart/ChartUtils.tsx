@@ -363,7 +363,7 @@ export type SortKeyFn<T> = (item: T) => number | string | undefined
 /** A sort key that leaves items in their input order */
 export const keepInputOrder = Symbol("keepInputOrder")
 
-export type SortKey<T> = SortKeyFn<T> | typeof keepInputOrder
+export type SortKey<T> = SortKeyFn<T> | SortKeyFn<T>[] | typeof keepInputOrder
 
 export type SortKeyFunctions<T> = Partial<Record<SortBy, SortKey<T>>>
 

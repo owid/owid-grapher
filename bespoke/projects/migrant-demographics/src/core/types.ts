@@ -19,6 +19,8 @@ export interface RawYearRecord {
 
 export interface RawEntity {
     name: string
+    /** Regions and income groups, which the pyramid doesn't show */
+    isAggregate?: boolean
     data: Record<string, RawYearRecord>
 }
 

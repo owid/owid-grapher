@@ -462,6 +462,8 @@ class VariablesSection<
     @computed get canSwapXAndY(): boolean {
         const { grapherState } = this.props.editor
 
+        if (grapherState.isMarimekko) return false
+
         // Only show if there's exactly one variable in each slot
         if (!this.xDimension || this.yDimensions.length !== 1) return false
 

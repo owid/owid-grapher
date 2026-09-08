@@ -53,6 +53,7 @@ export class MigrantDemographics {
 
         this.recordsByEntityName = new Map()
         for (const entity of raw.entities) {
+            if (entity.isAggregate) continue
             if (!isValidEntity(entity, raw.years, raw.ageBands.length)) {
                 console.warn(
                     `[migrant-demographics] Skipping entity with malformed data: ${entity.name}`

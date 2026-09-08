@@ -29,8 +29,6 @@ export const GRAPHER_FOOTER_CLASS = "footer"
 export const DEFAULT_GRAPHER_ENTITY_TYPE = "country or region"
 export const DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL = "countries and regions"
 
-export const GRAPHER_LOADING_STATE_EVENT_NAME = "grapherLoadingStateChanged"
-
 export const DEFAULT_GRAPHER_WIDTH = 850
 export const DEFAULT_GRAPHER_HEIGHT = 600
 

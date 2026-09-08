@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useUserCountryInformation } from "./useUserCountryInformation.js"
+import { useEmbedConfig } from "./useEmbedConfig.js"
 
 const USER_LOCATION_CONFIG_OPTION = "userLocation"
 
@@ -12,16 +13,15 @@ export function isUserLocationCountry(
 export function useResolveUserLocation({
     configCountry,
     availableCountryNames,
-    urlSync,
     urlStateKey,
     setCountry,
 }: {
     configCountry: string | undefined
     availableCountryNames: Set<string> | undefined
-    urlSync: boolean
     urlStateKey: string
     setCountry: (name: string) => void
 }): { isResolved: boolean } {
+    const { urlSync } = useEmbedConfig()
     const isUserLocation = isUserLocationCountry(configCountry)
 
     const [isResolved, setIsResolved] = useState(!isUserLocation)

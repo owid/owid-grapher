@@ -1,18 +1,11 @@
 import * as _ from "lodash-es"
-import * as R from "remeda"
 import { computed, makeObservable } from "mobx"
 import { ChartState } from "../chart/ChartInterface"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import {
-    Bar,
-    BarShape,
     EntityColorData,
-    Item,
-    MARIMEKKO_SORT_KEYS,
     MarimekkoChartManager,
-    MarimekkoSortKey,
-    SimpleChartSeries,
-    SimplePoint,
+    MarimekkoSeries,
 } from "./MarimekkoChartConstants"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
@@ -26,19 +19,16 @@ import {
     ColorSchemeName,
     EntityName,
     ColorScaleConfigInterface,
-    OwidVariableRow,
-    SortConfig,
-    SortBy,
-    SortOrder,
     ScaleType,
+    Color,
 } from "@ourworldindata/types"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
-import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorScheme } from "../color/ColorScheme"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { excludeUndefined } from "@ourworldindata/utils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { FocusArray } from "../focus/FocusArray"
+import { InteractionState } from "../interaction/InteractionState.js"
 import { AxisConfig } from "../axis/AxisConfig.js"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
 import { makeToleranceNotice } from "../chart/ToleranceNotice.js"
@@ -66,35 +56,31 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
     }
 
     transformTable(table: OwidTable): OwidTable {
-        const { yColumnSlugs, manager, colorColumnSlug, xColumnSlug } = this
-        if (!this.yColumnSlugs.length) return table
+        const { yColumnSlug, manager, colorColumnSlug, xColumnSlug } = this
+        if (yColumnSlug === undefined) return table
 
         // TODO: remove this filter once we don't have mixed type columns in datasets
-        table = table.replaceNonNumericCellsWithErrorValues(yColumnSlugs)
+        table = table.replaceNonNumericCellsWithErrorValues([yColumnSlug])
 
         if (colorColumnSlug && manager.matchingEntitiesOnly)
             table = table.dropRowsWithErrorValuesForColumn(colorColumnSlug)
 
         // We want to "chop off" any rows outside the time domain for X and Y to avoid creating
         // leading and trailing timeline times that don't really exist in the dataset.
-        const xySlugs = xColumnSlug
-            ? [xColumnSlug, ...yColumnSlugs]
-            : [...yColumnSlugs]
+        const xySlugs = xColumnSlug ? [xColumnSlug, yColumnSlug] : [yColumnSlug]
         const [timeDomainStart, timeDomainEnd] = table.timeDomainFor(xySlugs)
         table = table.filterByTimeRange(
             timeDomainStart ?? -Infinity,
             timeDomainEnd ?? Infinity
         )
 
-        yColumnSlugs.forEach((slug) => {
-            table = table.interpolateColumnWithTolerance(slug)
-        })
+        table = table.interpolateColumnWithTolerance(yColumnSlug)
 
         if (xColumnSlug)
             table = table.interpolateColumnWithTolerance(xColumnSlug)
 
         if (!manager.showNoDataArea)
-            table = table.dropRowsWithErrorValuesForAllColumns(yColumnSlugs)
+            table = table.dropRowsWithErrorValuesForAllColumns([yColumnSlug])
 
         if (xColumnSlug)
             table = table.dropRowsWithErrorValuesForColumn(xColumnSlug)
@@ -128,16 +114,27 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         return this.focusArray.hasFocusedSeries
     }
 
-    @computed get yColumnSlugs(): string[] {
-        return this.manager.yColumnSlugs ?? autoDetectYColumnSlugs(this.manager)
+    private focusOrSelectionState(entityName: EntityName): InteractionState {
+        const isSingledOut =
+            this.focusArray.has(entityName) ||
+            this.selectionArray.selectedSet.has(entityName)
+        const isModeActive =
+            this.focusArray.hasFocusedSeries || this.selectionArray.hasSelection
+        return new InteractionState(isSingledOut, isModeActive)
     }
 
-    @computed get yColumns(): CoreColumn[] {
-        return this.transformedTable.getColumns(this.yColumnSlugs)
+    @computed get yColumnSlug(): string | undefined {
+        const slugs =
+            this.manager.yColumnSlugs ?? autoDetectYColumnSlugs(this.manager)
+        return slugs[0]
+    }
+
+    @computed get yColumn(): CoreColumn {
+        return this.transformedTable.get(this.yColumnSlug)
     }
 
     @computed get formatColumn(): CoreColumn {
-        return this.yColumns[0]
+        return this.yColumn
     }
 
     @computed get xColumnSlug(): string | undefined {
@@ -146,8 +143,7 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
 
     @computed get xColumn(): CoreColumn | undefined {
         if (this.xColumnSlug === undefined) return undefined
-        const columnSlugs = this.xColumnSlug ? [this.xColumnSlug] : []
-        return this.transformedTable.getColumns(columnSlugs)[0]
+        return this.transformedTable.get(this.xColumnSlug)
     }
 
     @computed get colorColumnSlug(): string | undefined {
@@ -158,7 +154,7 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         return makeToleranceNotice({
             inputTable: this.inputTable,
             transformedTable: this.transformedTable,
-            columns: excludeUndefined([...this.yColumns, this.xColumn]),
+            columns: excludeUndefined([this.yColumn, this.xColumn]),
         })
     }
 
@@ -176,21 +172,7 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
     @computed get colorScaleColumn(): CoreColumn {
         const { manager, inputTable } = this
         return (
-            // For faceted charts, we have to get the values of inputTable before it's filtered by
-            // the faceting logic.
             manager.colorScaleColumnOverride ??
-            // We need to use filteredTable in order to get consistent coloring for a variable across
-            // charts, e.g. each continent being assigned to the same color.
-            // inputTable is unfiltered, so it contains every value that exists in the variable.
-
-            // 2022-05-25: I considered using the filtered table below to get rid of Antarctica automatically
-            // but the way things are currently done this leads to a shift in the colors assigned to continents
-            // (i.e. they are no longer consistent cross the site). I think this downside is heavier than the
-            // upside so I comment this out for now. Reconsider when we do colors differently.
-
-            // manager.tableAfterAuthorTimelineAndActiveChartTransform?.get(
-            //     this.colorColumnSlug
-            // ) ??
             inputTable.get(this.colorColumnSlug)
         )
     }
@@ -204,49 +186,8 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         )
     }
 
-    @computed private get sortConfig(): SortConfig {
-        return this.manager.sortConfig ?? {}
-    }
-
-    @computed private get unstackedSeries(): StackedSeries<EntityName>[] {
-        const { colorScheme, yColumns } = this
-        return (
-            yColumns
-                .map((col, i) => {
-                    return {
-                        seriesName: col.displayName,
-                        columnSlug: col.slug,
-                        color:
-                            col.def.color ??
-                            colorScheme.getColors(yColumns.length)[i],
-                        points: col.owidRows.map((row) => ({
-                            time: row.originalTime,
-                            position: row.entityName,
-                            value: row.value,
-                            valueOffset: 0,
-                        })),
-                    }
-                })
-                // Do not plot columns without data
-                .filter((series) => series.points.length > 0)
-        )
-    }
-
-    @computed get series(): readonly StackedSeries<EntityName>[] {
-        const valueOffsets = new Map<string, number>()
-        return this.unstackedSeries.map((series) => ({
-            ...series,
-            points: series.points.map((point) => {
-                const offset = valueOffsets.get(point.position) ?? 0
-                const newPoint = { ...point, valueOffset: offset }
-                valueOffsets.set(point.position, offset + point.value)
-                return newPoint
-            }),
-        }))
-    }
-
-    @computed private get allPoints(): StackedPoint<EntityName>[] {
-        return this.series.flatMap((series) => series.points)
+    @computed get yColumnColor(): Color {
+        return this.yColumn.def.color ?? this.colorScheme.getColors(1)[0]
     }
 
     @computed get x0(): number {
@@ -255,28 +196,6 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
 
     @computed get y0(): number {
         return 0
-    }
-
-    @computed get xSeries(): SimpleChartSeries | undefined {
-        const createStackedXPoints = (
-            rows: OwidVariableRow<any>[]
-        ): SimplePoint[] => {
-            const points: SimplePoint[] = []
-            for (const row of rows) {
-                points.push({
-                    time: row.originalTime,
-                    value: row.value,
-                    entity: row.entityName,
-                })
-            }
-            return points
-        }
-        if (this.xColumn === undefined) return undefined
-        const column = this.xColumn
-        return {
-            seriesName: column.displayName,
-            points: createStackedXPoints(column.owidRows),
-        }
     }
 
     @computed get domainColorForEntityMap(): Map<string, EntityColorData> {
@@ -304,124 +223,94 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
     }
 
     @computed private get uniqueEntityNames(): EntityName[] | undefined {
-        return this.xColumn?.uniqEntityNames ?? this.yColumns[0].uniqEntityNames
+        return this.xColumn?.uniqEntityNames ?? this.yColumn.uniqEntityNames
     }
 
-    @computed get items(): Item[] {
-        const { xSeries, series, domainColorForEntityMap, uniqueEntityNames } =
-            this
+    @computed get series(): readonly MarimekkoSeries[] {
+        const {
+            xColumn,
+            yColumn,
+            yColumnColor,
+            domainColorForEntityMap,
+            uniqueEntityNames,
+        } = this
 
         if (uniqueEntityNames === undefined) return []
 
-        const items: Item[] = uniqueEntityNames
-            .map((entityName) => {
-                const xPoint = xSeries
-                    ? xSeries.points.find(
-                          (point) => point.entity === entityName
-                      )
-                    : undefined
-                if (xSeries && !xPoint) return undefined
+        const yRowsByEntity = yColumn.owidRowsByEntityName
+        const xRowsByEntity = xColumn?.owidRowsByEntityName
+
+        return excludeUndefined(
+            uniqueEntityNames.map((entityName) => {
+                const xRow = xRowsByEntity?.get(entityName)?.[0]
+                if (xColumn && !xRow) return undefined
+
+                const yRow = yRowsByEntity.get(entityName)?.[0]
+                const entityColor = domainColorForEntityMap.get(entityName)
 
                 return {
+                    seriesName: entityName,
                     entityName,
                     shortEntityName: getShortNameForEntity(entityName),
-                    xPoint: xPoint,
-                    entityColor: domainColorForEntityMap.get(entityName),
-                    bars: excludeUndefined(
-                        series.map((series): Bar | undefined => {
-                            const point = series.points.find(
-                                (point) => point.position === entityName
-                            )
-                            if (!point) return undefined
-                            return {
-                                kind: BarShape.Bar,
-                                yPoint: point,
-                                color: series.color,
-                                seriesName: series.seriesName,
-                                columnSlug: series.columnSlug,
-                            }
-                        })
-                    ),
-                    focus: this.focusArray.state(entityName),
+                    xPoint: xRow
+                        ? { value: xRow.value, time: xRow.originalTime }
+                        : undefined,
+                    yPoint: yRow
+                        ? { value: yRow.value, time: yRow.originalTime }
+                        : undefined,
+                    color: entityColor?.color ?? yColumnColor,
+                    entityColor,
+                    focus: this.focusOrSelectionState(entityName),
                 }
             })
-            .filter((item) => item !== undefined) satisfies Item[]
-
-        return items
+        )
     }
 
-    @computed get sortedItems(): Item[] {
-        const { items, sortConfig } = this
+    /** Bars run left to right from the largest y value down, entities without a value last */
+    @computed get sortedSeries(): MarimekkoSeries[] {
+        const byYValue = (series: MarimekkoSeries): number =>
+            series.yPoint?.value ?? 0
+        const byEntityName = (series: MarimekkoSeries): string =>
+            series.entityName
 
-        let sortByFuncs: ((item: Item) => number | string | undefined)[]
-        switch (sortConfig.sortBy) {
-            case SortBy.custom:
-                sortByFuncs = [(): undefined => undefined]
-                break
-            case SortBy.entityName:
-                sortByFuncs = [(item: Item): string => item.entityName]
-                break
-            case SortBy.column: {
-                const sortColumnSlug = sortConfig.sortColumnSlug
-                sortByFuncs = [
-                    (item: Item): number =>
-                        item.bars.find((b) => b.seriesName === sortColumnSlug)
-                            ?.yPoint.value ?? 0,
-                    (item: Item): string => item.entityName,
-                ]
-                break
-            }
-            default:
-            case SortBy.total:
-                sortByFuncs = [
-                    (item: Item): number => {
-                        const lastPoint = R.last(item.bars)?.yPoint
-                        if (!lastPoint) return 0
-                        return lastPoint.valueOffset + lastPoint.value
-                    },
-                    (item: Item): string => item.entityName,
-                ]
-        }
-        const sortedItems = _.sortBy(items, sortByFuncs)
-        const sortOrder = sortConfig.sortOrder ?? SortOrder.desc
-        if (sortOrder === SortOrder.desc) sortedItems.reverse()
+        const descendingByYValue = _.sortBy(this.series, [
+            byYValue,
+            byEntityName,
+        ]).toReversed()
 
-        const [itemsWithValues, itemsWithoutValues] = _.partition(
-            sortedItems,
-            (item) => item.bars.length !== 0
+        // The no-data area is drawn as one rectangle spanning the entities without a
+        // value, and MarimekkoBars asserts they are contiguous, so they go last.
+        const [seriesWithValues, seriesWithoutValues] = _.partition(
+            descendingByYValue,
+            (series) => series.yPoint !== undefined
         )
 
-        return [...itemsWithValues, ...itemsWithoutValues]
+        return [...seriesWithValues, ...seriesWithoutValues]
     }
 
-    @computed get availableSortKeys(): MarimekkoSortKey[] {
-        return [...MARIMEKKO_SORT_KEYS]
-    }
-
-    @computed get selectedItems(): Item[] {
+    @computed get selectedSeries(): MarimekkoSeries[] {
         const selectedSet = this.selectionArray.selectedSet
         if (selectedSet.size === 0) return []
-        return this.sortedItems.filter((item) =>
-            selectedSet.has(item.entityName)
+        return this.sortedSeries.filter((series) =>
+            selectedSet.has(series.entityName)
         )
     }
 
     @computed get yDomainDefault(): [number, number] {
-        const maxValues = this.allPoints.map(
-            (point) => point.value + point.valueOffset
-        )
+        // Every row, not one per entity: the domain covers the whole column
+        const values = this.yColumn.owidRows.map((row) => row.value)
         return [
-            Math.min(this.y0, _.min(maxValues) as number),
-            Math.max(this.y0, _.max(maxValues) as number),
+            Math.min(this.y0, _.min(values) as number),
+            Math.max(this.y0, _.max(values) as number),
         ]
     }
 
     @computed get xDomainDefault(): [number, number] {
-        if (this.xSeries !== undefined) {
-            const sum = _.sumBy(this.xSeries.points, (point) => point.value)
-
+        const { xColumn } = this
+        if (xColumn !== undefined) {
+            const sum = _.sumBy(xColumn.owidRows, (row) => row.value)
             return [this.x0, sum]
-        } else return [this.x0, this.items.length]
+        } else return [this.x0, this.series.length]
     }
 
     @computed private get xAxisLabelBase(): string {
@@ -480,12 +369,10 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get errorInfo(): ChartErrorInfo {
-        const column = this.yColumns[0]
-        const { yColumns } = this
+        if (this.yColumnSlug === undefined)
+            return { reason: "No Y column to chart" }
 
-        if (!column) return { reason: "No Y column to chart" }
-
-        return yColumns.every((col) => col.isEmpty)
+        return this.yColumn.isEmpty
             ? { reason: "No matching data" }
             : { reason: "" }
     }

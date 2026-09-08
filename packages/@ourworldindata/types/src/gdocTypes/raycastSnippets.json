@@ -26,7 +26,7 @@
     },
     {
         "name": "callout",
-        "text": "{.callout}\ntitle: \n[.+text]\n\n\n[.list]\n* \n[]\n{.heading}\ntext: \nlevel: \n{}\n[]\n{}",
+        "text": "{.callout}\nicon: \ntitle: \n[.+text]\n\n\n[.list]\n* \n[]\n{.heading}\ntext: \nlevel: \n{}\n[]\n{}",
         "keyword": "+callout"
     },
     {
@@ -191,12 +191,12 @@
     },
     {
         "name": "topic-page-intro",
-        "text": "{.topic-page-intro}\n[.+content]\n\n\n[]\n{.download-button}\ntext: \nurl: \n{}\n[.related-topics]\ntext: \nurl: \n[]\n{}",
+        "text": "{.topic-page-intro}\n[.+content]\n\n\n[]\n{.download-button}\ntext: \nurl: \n{}\n[.related-topics]\nurl: \ntext: \n[]\n{}",
         "keyword": "+topic-page-intro"
     },
     {
         "name": "video",
-        "text": "{.video}\nurl: \nfilename: \nshouldLoop: \ncaption: \nvisibility: \n{}",
+        "text": "{.video}\nurl: \nfilename: \nshouldLoop: \nshouldAutoplay: \ncaption: \nvisibility: \n{}",
         "keyword": "+video"
     },
     {

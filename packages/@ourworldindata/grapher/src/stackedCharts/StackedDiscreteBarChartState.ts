@@ -281,7 +281,7 @@ export class StackedDiscreteBarChartState implements ChartState {
     @computed get availableFacetStrategies(): FacetStrategy[] {
         const strategies = [FacetStrategy.none]
 
-        if (this.yColumns.length > 1) strategies.push(FacetStrategy.metric)
+        if (this.yColumnSlugs.length > 1) strategies.push(FacetStrategy.metric)
 
         return strategies
     }

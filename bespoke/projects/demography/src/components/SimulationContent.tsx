@@ -33,6 +33,7 @@ import {
 import { ProjectionLegend } from "./ProjectionLegend.js"
 import { parameterConfigByKey } from "../core/parameterConfigs.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
+import { useEmbedConfig } from "../../../../hooks/useEmbedConfig.js"
 
 const PARAMETER_TAB_LABELS: Record<ParameterKey, string> = {
     fertilityRate: "Fertility rate",
@@ -48,7 +49,6 @@ export function SimulationContent({
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
     netMigrationRateAssumptions,
-    urlSync,
     urlFertilityRateAssumptions,
     urlLifeExpectancyAssumptions,
     urlNetMigrationRateAssumptions,
@@ -64,7 +64,6 @@ export function SimulationContent({
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
-    urlSync?: boolean
     urlFertilityRateAssumptions?: Record<number, number>
     urlLifeExpectancyAssumptions?: Record<number, number>
     urlNetMigrationRateAssumptions?: Record<number, number>
@@ -73,6 +72,8 @@ export function SimulationContent({
     urlTab?: ParameterKey
     urlYear?: number
 }) {
+    const { urlSync } = useEmbedConfig()
+
     const baselineTab: ParameterKey = focusParameter ?? "fertilityRate"
     const baselineYear = END_YEAR
 

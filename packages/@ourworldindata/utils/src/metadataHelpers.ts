@@ -168,6 +168,12 @@ const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
         retrievedOn: origin.dateAccessed,
         retrievedFrom: origin.urlMain,
         citation: origin.citationFull,
+        // Read only by the data-download readme, which lists each source once and
+        // has room to say more about it than the Sources UIs do.
+        producer: origin.producer,
+        datePublished: origin.datePublished,
+        urlDownload: origin.urlDownload,
+        license: origin.license,
     }
 }
 

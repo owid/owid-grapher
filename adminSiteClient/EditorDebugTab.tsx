@@ -66,17 +66,24 @@ class EditorDebugTabForChart extends Component<{
     }
 
     @action.bound onToggleInheritance(shouldBeEnabled: boolean) {
-        const { patchConfig, parentConfig } = this.props.editor
+        const { editor } = this.props
 
-        // update live grapherState
-        const newParentConfig = shouldBeEnabled ? parentConfig : undefined
-        const newConfig = mergeGrapherConfigs(
-            newParentConfig ?? {},
-            patchConfig
+        // Capture the admin's genuine overrides *before* the parent stack
+        // changes: `patchConfig` is computed against the active parent stack,
+        // so reading it afterwards would fold values that just stopped being
+        // inherited into the patch as if the admin had authored them.
+        const { patchConfig } = editor
+
+        editor.isInheritanceEnabled = shouldBeEnabled
+
+        // update live grapherState. `activeParentConfig` folds in the chart's
+        // own etlConfig, which is applied regardless of the toggle — this only
+        // governs the indicator layer. Leaving it out would reset the ETL
+        // layer's fields to grapher defaults, which the next save would then
+        // write into the patch as explicit overrides.
+        editor.updateLiveGrapher(
+            mergeGrapherConfigs(editor.activeParentConfig ?? {}, patchConfig)
         )
-        this.props.editor.updateLiveGrapher(newConfig)
-
-        this.props.editor.isInheritanceEnabled = shouldBeEnabled
     }
 
     override render() {

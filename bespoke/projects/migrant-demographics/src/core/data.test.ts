@@ -27,7 +27,7 @@ describe(MigrantDemographics, () => {
     const data = new MigrantDemographics(RAW)
 
     it("skips entities with malformed data", () => {
-        expect(data.entityNames).toEqual(["World", "United States", "Kenya"])
+        expect(data.entityNames).toEqual(["United States", "Kenya"])
         expect(data.hasEntity("United States")).toBe(true)
         expect(data.hasEntity("Broken")).toBe(false)
     })
@@ -36,10 +36,14 @@ describe(MigrantDemographics, () => {
         expect(data.hasEntity("Monaco")).toBe(false)
     })
 
+    it("skips aggregates", () => {
+        expect(data.hasEntity("Europe (UN)")).toBe(false)
+    })
+
     it("returns pyramid data by entity name and year", () => {
-        expect(data.getPyramidData("World", 2010)?.migrantsTotal.total).toBe(
-            100
-        )
-        expect(data.getPyramidData("World", 1990)).toBeUndefined()
+        expect(
+            data.getPyramidData("United States", 2010)?.migrantsTotal.total
+        ).toBe(100)
+        expect(data.getPyramidData("United States", 1990)).toBeUndefined()
     })
 })
