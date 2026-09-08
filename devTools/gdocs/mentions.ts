@@ -3,8 +3,10 @@
  *
  * A mention is an inline code span whose entire content is `{.component-id}`,
  * `{guide:guide-id}` or `{template:template-id}` — the same rule the admin
- * client applies when it links them, so the two can never disagree. Fenced
- * blocks are stripped before matching, so example code is never scanned.
+ * client applies when it links them, so the two can never disagree. A span
+ * delimited by more than one backtick (` ``{.chart}`` `) is not a mention,
+ * again matching the client. Fenced blocks are stripped before matching, so
+ * example code is never scanned.
  * Resolution fails the build on an unknown id, which is what lets the client
  * link every harvested mention unconditionally. `findBareKnownIds` is a
  * separate lint: a bare known id in a single-backtick span (not written as
@@ -18,7 +20,15 @@ const BT = String.fromCharCode(96)
 const FENCE = BT + BT + BT
 const FENCED_BLOCK = new RegExp(FENCE + "[\\s\\S]*?" + FENCE, "g")
 const MENTION = new RegExp(
-    BT + "\\{(\\.|guide:|template:)([a-z0-9-]+)\\}" + BT,
+    "(?<!" +
+        BT +
+        ")" +
+        BT +
+        "\\{(\\.|guide:|template:)([a-z0-9-]+)\\}" +
+        BT +
+        "(?!" +
+        BT +
+        ")",
     "g"
 )
 
