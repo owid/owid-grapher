@@ -2,6 +2,7 @@ import { Env, extensions, Etag } from "../_common/env.js"
 import {
     fetchCsvForGrapher,
     fetchDataValuesForGrapher,
+    fetchMarkdownForGrapher,
     fetchMetadataForGrapher,
     fetchReadmeForGrapher,
     fetchSearchResultDataForGrapher,
@@ -82,6 +83,16 @@ router
         `/grapher/:slug${extensions.zip}`,
         async ({ params: { slug } }, { searchParams }, env) =>
             fetchZipForGrapher({ type: "slug", id: slug }, env, searchParams)
+    )
+    // Declared after `.readme.md` so that route claims its own suffix first.
+    .get(
+        `/grapher/:slug${extensions.markdown}`,
+        async ({ params: { slug } }, { searchParams }, env) =>
+            fetchMarkdownForGrapher(
+                { type: "slug", id: slug },
+                env,
+                searchParams
+            )
     )
     .get(
         `/grapher/:slug${extensions.values}`,

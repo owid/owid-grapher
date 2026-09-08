@@ -282,6 +282,55 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /grapher/{slug}.md:
+    get:
+      summary: Get the chart page as markdown
+      description: >-
+        Returns an authored markdown rendering of the chart page: the title and
+        subtitle of the current view, the values the chart shows for its selected
+        entities, links to the underlying data, and the sources. Intended for
+        clients that read the page as text rather than running its JavaScript.
+        Dimension and entity query parameters select the view, as they do for
+        the .csv endpoint.
+      operationId: getChartMarkdown
+      tags:
+        - Metadata
+      parameters:
+        - $ref: "#/components/parameters/slug"
+        - $ref: "#/components/parameters/tab"
+        - $ref: "#/components/parameters/country"
+        - $ref: "#/components/parameters/time"
+      responses:
+        "200":
+          description: The chart page as markdown
+          content:
+            text/markdown:
+              schema:
+                type: string
+              examples:
+                life-expectancy:
+                  summary: Life expectancy as markdown
+                  x-request-params:
+                    slug: "life-expectancy"
+                  value: |
+                    # Life expectancy
+
+                    Period life expectancy at birth, in years.
+
+                    ## Values shown in this view
+
+                    **Life expectancy**, in years.
+
+                    | Entity | 1770 | 2023 |
+                    | --- | ---: | ---: |
+                    | World | 28.5 | 73.2 |
+
+                    ## Get this data
+
+                    - Data as CSV: https://ourworldindata.org/grapher/life-expectancy.csv
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /grapher/{slug}.readme.md:
     get:
       summary: Get chart README

@@ -23,6 +23,7 @@ import {
 } from "./grapherTools.js"
 import { TWITTER_OPTIONS } from "./imageOptions.js"
 import { constructReadme } from "./readmeTools.js"
+import { constructPageMarkdown } from "./pageMarkdownTools.js"
 import { constructSearchResultDataTableContent } from "./search/constructSearchResultDataTableContent.js"
 import { match } from "ts-pattern"
 import {
@@ -222,6 +223,61 @@ export function assembleReadme(
     )
 }
 
+export async function fetchMarkdownForGrapher(
+    identifier: GrapherIdentifier,
+    env: Env,
+    searchParams?: URLSearchParams
+) {
+    const params = searchParams ?? new URLSearchParams("")
+    console.log("Initializing grapher")
+    const { grapher } = await initGrapher(
+        identifier,
+        TWITTER_OPTIONS,
+        params,
+        env
+    )
+    const { grapherState } = grapher
+
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: grapherState.dimensions,
+        selectedEntityColors: grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
+    if (inputTable) grapherState.inputTable = inputTable
+
+    // Grapher ignores the country param when entity selection is disabled, so read
+    // it back explicitly; with no country param the chart's own default selection is
+    // what a reader arriving at this URL sees.
+    const requestedEntities = getEntityNamesParam(
+        params.get("country") ?? undefined
+    )
+    const entityNames = (
+        requestedEntities?.length
+            ? requestedEntities
+            : // Snapshot: assembleDataValues reassigns the selection per entity.
+              [...grapherState.selection.selectedEntityNames]
+    ).filter((entityName) =>
+        grapherState.availableEntityNames.includes(entityName)
+    )
+
+    const timeParam = params.get("time") ?? undefined
+    const valuesByEntity = entityNames.map((entityName) =>
+        assembleDataValues(grapherState, entityName, timeParam)
+    )
+
+    const markdown = constructPageMarkdown(
+        grapherState,
+        getColumnsForMetadata(grapherState),
+        valuesByEntity,
+        params.size > 0 ? `?${params.toString()}` : ""
+    )
+    return new Response(markdown, {
+        headers: {
+            "Content-Type": "text/markdown; charset=utf-8",
+        },
+    })
+}
+
 export async function fetchDataValuesForGrapher(
     identifier: GrapherIdentifier,
     env: Env,
@@ -279,14 +335,15 @@ export async function fetchDataValuesForGrapher(
 
 export function assembleDataValues(
     grapherState: GrapherState,
-    entityName: EntityName
+    entityName: EntityName,
+    timeQueryParam?: string
 ) {
     // If the entity is invalid or not included in the chart, we can't return
     // any data, so we return the source only
     if (!grapherState.availableEntityNames.includes(entityName))
         return { source: grapherState.sourcesLine }
 
-    return constructGrapherValuesJson(grapherState, entityName)
+    return constructGrapherValuesJson(grapherState, entityName, timeQueryParam)
 }
 
 export async function fetchSearchResultDataForGrapher(

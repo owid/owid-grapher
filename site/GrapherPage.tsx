@@ -126,6 +126,14 @@ window.renderSingleGrapherOnGrapherPage({ config: jsonConfig, dataApiUrl: "${DAT
                     />
                 )}
                 <IFrameDetector />
+                {/* Agents that don't negotiate content look for this link and
+                    fetch it as a second request; without it they only ever see
+                    the HTML, whose chart is client-rendered. */}
+                <link
+                    rel="alternate"
+                    type="text/markdown"
+                    href={`${canonicalUrl}.md`}
+                />
                 <link rel="preconnect" href={dataApiOrigin} />
                 {variableIds.flatMap((variableId) =>
                     [
