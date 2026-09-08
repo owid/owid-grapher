@@ -1,0 +1,245 @@
+// The feedback form is rendered in three places: the /feedback page, the
+// floating popover opened from the site tools (bottom right on desktop) and a
+// full-screen modal opened from the mobile menu. Its styles mirror the donate
+// form (see donate.scss) so both forms look alike.
+
+.feedback-form {
+    // Horizontal padding, overridden in narrower contexts (mobile modal)
+    --feedback-form-padding-x: 40px;
+
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background-color: $white;
+}
+
+.feedback-form__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 24px var(--feedback-form-padding-x) 0;
+}
+
+.feedback-form__title {
+    @include h3-bold;
+    & {
+        margin: 0;
+        color: $blue-90;
+    }
+}
+
+.feedback-form__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 32px var(--feedback-form-padding-x) 0;
+    transition: opacity var(--duration-panel) var(--ease-out);
+}
+
+.feedback-form--dialog .feedback-form__body {
+    padding-top: 24px;
+}
+
+.feedback-form--loading .feedback-form__body {
+    opacity: 0.5;
+}
+
+.feedback-form__faq-hint {
+    @include body-3-medium;
+    color: $blue-60;
+    margin: 0 0 24px;
+
+    strong {
+        color: $blue-90;
+    }
+
+    a {
+        @include owid-link-90;
+    }
+}
+
+.feedback-form__field {
+    margin-bottom: 24px;
+
+    &:last-of-type {
+        margin-bottom: 0;
+    }
+}
+
+// The message field takes up any extra vertical space (e.g. in the mobile
+// modal) so the textarea grows with the available room.
+.feedback-form__field--message {
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 auto;
+}
+
+.feedback-form__label {
+    display: block;
+    margin-bottom: 8px;
+    @include overline-black-caps;
+    color: $blue-50;
+}
+
+.feedback-form__textarea {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 120px;
+    padding: 8px 16px;
+    @include body-3-medium;
+    color: $blue-90;
+    background-color: $white;
+    border: 1px solid $blue-20;
+    border-radius: 0;
+    resize: vertical;
+
+    &:focus {
+        outline: none;
+        border-color: $blue-40;
+    }
+
+    &:disabled {
+        color: $blue-60;
+    }
+}
+
+.feedback-form__input {
+    width: 100%;
+
+    &:disabled {
+        color: $blue-60;
+    }
+}
+
+// Prevent auto-zoom in iOS Safari, which kicks in for inputs below 16px.
+@include sm-only {
+    .feedback-form__textarea,
+    .feedback-form__input {
+        font-size: 16px;
+    }
+}
+
+.feedback-form__topic-hint {
+    @include body-3-medium;
+    color: $blue-90;
+    margin: 8px 0 0;
+    padding: 8px 16px;
+    background-color: $accent-pale-blue;
+
+    a {
+        @include owid-link-90;
+    }
+}
+
+.feedback-form__hint {
+    @include body-3-medium;
+    color: $blue-60;
+    margin: 8px 0 0;
+}
+
+.feedback-form__error {
+    @include body-3-medium;
+    color: $error-text-color;
+    margin: 16px 0 0;
+}
+
+.feedback-form__footer {
+    display: flex;
+    flex-shrink: 0;
+    padding: 24px var(--feedback-form-padding-x) 32px;
+}
+
+.feedback-form__success {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px var(--feedback-form-padding-x);
+}
+
+.feedback-form__success-icon {
+    font-size: 40px;
+    color: $blue-50;
+    margin-bottom: 16px;
+}
+
+.feedback-form__success-title {
+    @include h3-bold;
+    & {
+        margin: 0 0 8px;
+        color: $blue-90;
+    }
+}
+
+.feedback-form__success-text {
+    @include body-3-medium;
+    color: $blue-60;
+    margin: 0 0 24px;
+}
+
+.feedback-form__success-button {
+    background-color: $white;
+}
+
+/* Floating popover (site tools)
+   ========================================================================== */
+
+.feedback-prompt__box {
+    display: flex;
+    flex-direction: column;
+    // width matches the other site tools popovers; positioning and max-height
+    // are set alongside them in site-tools.scss
+    width: 411px;
+    background-color: $white;
+    box-shadow:
+        0 1px 3px 0 rgba(0, 0, 0, 0.15),
+        0 3px 15px rgba(0, 0, 0, 0.25);
+}
+
+/* /feedback page
+   ========================================================================== */
+
+.feedback-page__title {
+    @include display-2-semibold;
+    & {
+        margin-top: 0;
+    }
+    @include md-up {
+        @include display-1-semibold;
+        & {
+            margin-top: 0;
+        }
+    }
+}
+
+.feedback-page-intro {
+    padding-top: 48px;
+    padding-bottom: 48px;
+    background-color: $gray-10;
+}
+
+.feedback-page-intro__content {
+    @include sm-only {
+        margin-bottom: 40px;
+    }
+    .article-block__text {
+        @include body-2-regular;
+        margin-bottom: 24px;
+    }
+}
+
+.feedback-page__faq-link {
+    @include body-3-medium;
+    @include owid-link-90;
+    display: inline-block;
+
+    svg {
+        margin-left: 6px;
+        font-size: 10px;
+    }
+}

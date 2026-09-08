@@ -7,9 +7,10 @@ import {
     faPaperPlane,
 } from "@fortawesome/free-solid-svg-icons"
 import { observable, action, toJS, computed, makeObservable } from "mobx"
-import classnames from "clsx"
+import cx from "clsx"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { stringifyUnknownError } from "@ourworldindata/utils"
+import { Button, CloseButton, TextInput } from "@ourworldindata/components"
 import { SiteToolsButton } from "./SiteToolsButton.js"
 
 const sendFeedback = async (feedback: Feedback) => {
@@ -51,171 +52,81 @@ class Feedback {
     }
 }
 
-const vaccinationRegex = /vaccination|vaccine|doses|vaccinat/i
-const licensingRegex = /license|licence|licensing|copyright|permission|permit/i
-const citationRegex = /cite|citation|citing|reference/i
-const translateRegex = /translat/i
-const fundingRegex = /\b(fund|funds|funding|funded|funder)\b/i
-const reusingChartsRegex = /(use|reuse|using|reusing)\s+(chart|image|picture)/i
-const reusingDataRegex =
-    /(use|reuse|using|reusing|utilize|utilizing|utilise|utilising)\s+data/i
-const visualizationToolRegex =
-    /grapher|grapher\s+reusability|(use|reuse|using|reusing)\s+grapher|data\s+viz\s+tool|data\s+visuali[sz]ation\s+tool|visuali[sz]ation\s+software/i
-const logoRegex = /logo/i
-const teachingRegex = /teach|teaching|teacher|teachers/i
-
-enum SpecialFeedbackTopic {
-    Vaccination,
-    Licensing,
-    Citation,
-    Translation,
-    Funding,
-    ReusingCharts,
-    ReusingData,
-    VisualizationTool,
-    Logo,
-    Teaching,
-}
-
-interface SpecialTopicMatcher {
+/**
+ * Frequently asked questions we can point readers to while they type, so
+ * they might find an answer before sending their message.
+ */
+interface SpecialTopic {
     regex: RegExp
-    topic: SpecialFeedbackTopic
+    title: string
+    url: string
 }
 
-const topicMatchers: SpecialTopicMatcher[] = [
-    { regex: vaccinationRegex, topic: SpecialFeedbackTopic.Vaccination },
-    { regex: licensingRegex, topic: SpecialFeedbackTopic.Licensing },
-    { regex: citationRegex, topic: SpecialFeedbackTopic.Citation },
-    { regex: translateRegex, topic: SpecialFeedbackTopic.Translation },
-    { regex: fundingRegex, topic: SpecialFeedbackTopic.Funding },
-    { regex: reusingChartsRegex, topic: SpecialFeedbackTopic.ReusingCharts },
+const specialTopics: SpecialTopic[] = [
     {
-        regex: visualizationToolRegex,
-        topic: SpecialFeedbackTopic.VisualizationTool,
+        regex: /vaccination|vaccine|doses|vaccinat/i,
+        title: "COVID-19 vaccine questions",
+        url: `${BAKED_BASE_URL}/covid-vaccinations#frequently-asked-questions`,
     },
-    { regex: reusingDataRegex, topic: SpecialFeedbackTopic.ReusingData },
-    { regex: logoRegex, topic: SpecialFeedbackTopic.Logo },
-    { regex: teachingRegex, topic: SpecialFeedbackTopic.Teaching },
+    {
+        regex: /license|licence|licensing|copyright|permission|permit/i,
+        title: "Copyright questions",
+        url: `${BAKED_BASE_URL}/faqs#can-i-reuse-or-republish-your-charts`,
+    },
+    {
+        regex: /cite|citation|citing|reference/i,
+        title: "How to cite our work",
+        url: `${BAKED_BASE_URL}/faqs#how-should-i-cite-your-charts`,
+    },
+    {
+        regex: /translat/i,
+        title: "Translating our work",
+        url: `${BAKED_BASE_URL}/faqs#can-i-translate-your-work-into-another-language`,
+    },
+    {
+        regex: /\b(fund|funds|funding|funded|funder)\b/i,
+        title: "How are you funded?",
+        url: `${BAKED_BASE_URL}/faqs#how-are-you-funded`,
+    },
+    {
+        regex: /(use|reuse|using|reusing)\s+(chart|image|picture)/i,
+        title: "Reusing our charts",
+        url: `${BAKED_BASE_URL}/faqs#can-i-reuse-or-republish-your-charts`,
+    },
+    {
+        regex: /grapher|grapher\s+reusability|(use|reuse|using|reusing)\s+grapher|data\s+viz\s+tool|data\s+visuali[sz]ation\s+tool|visuali[sz]ation\s+software/i,
+        title: "Our visualization tool",
+        url: `${BAKED_BASE_URL}/faqs#what-software-do-you-use-for-your-visualizations-and-can-i-use-it`,
+    },
+    {
+        regex: /(use|reuse|using|reusing|utilize|utilizing|utilise|utilising)\s+data/i,
+        title: "Reusing our data",
+        url: `${BAKED_BASE_URL}/faqs#can-i-reuse-or-republish-your-data`,
+    },
+    {
+        regex: /logo/i,
+        title: "Can I use your logo?",
+        url: `${BAKED_BASE_URL}/faqs#can-i-use-the-our-world-in-data-name-or-logo`,
+    },
+    {
+        regex: /teach|teaching|teacher|teachers/i,
+        title: "Teaching with OWID",
+        url: `${BAKED_BASE_URL}/faqs#can-i-use-your-work-for-teaching`,
+    },
 ]
 
-const vaccineNotice = (
-    <a
-        key="vaccineNotice"
-        href={`${BAKED_BASE_URL}/covid-vaccinations#frequently-asked-questions`}
-        target="_blank"
-        rel="noopener"
-    >
-        COVID-19 vaccine questions
-    </a>
-)
+export const FEEDBACK_FORM_TITLE = "Send us feedback"
 
-const copyrightNotice = (
-    <a
-        key="copyrightNotice"
-        href={`${BAKED_BASE_URL}/faqs#can-i-reuse-or-republish-your-charts`}
-        target="_blank"
-        rel="noopener"
-    >
-        Copyright questions
-    </a>
-)
-const citationNotice = (
-    <a
-        key="citationNotice"
-        href={`${BAKED_BASE_URL}/faqs#how-should-i-cite-your-charts`}
-        target="_blank"
-        rel="noopener"
-    >
-        How to cite our work
-    </a>
-)
-const translateNotice = (
-    <a
-        key="translateNotice"
-        href={`${BAKED_BASE_URL}/faqs#can-i-translate-your-work-into-another-language`}
-        target="_blank"
-        rel="noopener"
-    >
-        Translating our work
-    </a>
-)
-const fundingNotice = (
-    <a
-        key="fundingNotice"
-        href={`${BAKED_BASE_URL}/faqs#how-are-you-funded`}
-        target="_blank"
-        rel="noopener"
-    >
-        How are you funded?
-    </a>
-)
-const reusingChartsNotice = (
-    <a
-        key="reusingChartsNotice"
-        href={`${BAKED_BASE_URL}/faqs#can-i-reuse-or-republish-your-charts`}
-        target="_blank"
-        rel="noopener"
-    >
-        Reusing our charts
-    </a>
-)
-const reusingDataNotice = (
-    <a
-        key="reusingDataNotice"
-        href={`${BAKED_BASE_URL}/faqs#can-i-reuse-or-republish-your-data`}
-        target="_blank"
-        rel="noopener"
-    >
-        Reusing our data
-    </a>
-)
-const visualizationToolNotice = (
-    <a
-        key="visualizationToolNotice"
-        href={`${BAKED_BASE_URL}/faqs#what-software-do-you-use-for-your-visualizations-and-can-i-use-it`}
-        target="_blank"
-        rel="noopener"
-    >
-        Our visualization tool
-    </a>
-)
-const logoNotice = (
-    <a
-        key="logoNotice"
-        href={`${BAKED_BASE_URL}/faqs#can-i-use-the-our-world-in-data-name-or-logo`}
-        target="_blank"
-        rel="noopener"
-    >
-        Can I use your logo?
-    </a>
-)
-const teachingNotice = (
-    <a
-        key="teachingNotice"
-        href={`${BAKED_BASE_URL}/faqs#can-i-use-your-work-for-teaching`}
-        target="_blank"
-        rel="noopener"
-    >
-        Teaching with OWID
-    </a>
-)
-
-const topicNotices = new Map<SpecialFeedbackTopic, React.ReactElement>([
-    [SpecialFeedbackTopic.Vaccination, vaccineNotice],
-    [SpecialFeedbackTopic.Citation, citationNotice],
-    [SpecialFeedbackTopic.Licensing, copyrightNotice],
-    [SpecialFeedbackTopic.Translation, translateNotice],
-    [SpecialFeedbackTopic.Funding, fundingNotice],
-    [SpecialFeedbackTopic.ReusingCharts, reusingChartsNotice],
-    [SpecialFeedbackTopic.ReusingData, reusingDataNotice],
-    [SpecialFeedbackTopic.VisualizationTool, visualizationToolNotice],
-    [SpecialFeedbackTopic.Logo, logoNotice],
-    [SpecialFeedbackTopic.Teaching, teachingNotice],
-])
+/** The element on the /feedback page in which the interactive form is mounted */
+export const FEEDBACK_FORM_CONTAINER_CLASS = "feedback-form-container"
 
 interface FeedbackFormProps {
+    /**
+     * When set, the form is rendered in a dialog (popover or modal): it gets a
+     * header with a close button, and the success screen offers to close it.
+     * Without it, the form is embedded in a page.
+     */
     onClose?: () => void
-    autofocus?: boolean
 }
 
 @observer
@@ -268,148 +179,202 @@ export class FeedbackForm extends React.Component<FeedbackFormProps> {
     }
 
     @action.bound onClose() {
-        if (this.props.onClose) {
-            this.props.onClose()
-        }
-        // Clear the form after closing, in case the user has a 2nd message to send later.
+        this.props.onClose?.()
+        // Reset the success screen after closing, in case the user has a 2nd
+        // message to send later.
         this.done = false
     }
 
-    @computed private get specialTopic(): SpecialFeedbackTopic | undefined {
-        const { message } = this.feedback
-        return topicMatchers.find((matcher) => matcher.regex.test(message))
-            ?.topic
+    @action.bound onSendAnother() {
+        this.done = false
     }
 
-    renderBody() {
-        const { loading, done, specialTopic } = this
-        const autofocus = this.props.autofocus ?? true
+    @computed get isDialog(): boolean {
+        return !!this.props.onClose
+    }
 
-        if (done) {
-            return (
-                <div className="doneMessage">
-                    <div className="icon">
-                        <FontAwesomeIcon icon={faPaperPlane} />
-                    </div>
-                    <div className="message">
-                        <h3>Thank you for your feedback</h3>
-                        <p>
-                            We read all feedback, but due to a high volume of
-                            messages we are not able to reply to all.
-                        </p>
-                    </div>
-                    <div aria-label="Close feedback form" className="actions">
-                        <button onClick={this.onClose}>Close</button>
-                    </div>
-                </div>
-            )
-        }
+    @computed private get specialTopic(): SpecialTopic | undefined {
+        const { message } = this.feedback
+        return specialTopics.find((topic) => topic.regex.test(message))
+    }
 
-        const notices =
-            specialTopic !== undefined
-                ? topicNotices.get(specialTopic)
-                : undefined
+    renderSuccess() {
         return (
-            <React.Fragment>
-                <div className="header">Leave us feedback</div>
-                <div className="notice">
-                    <p>
-                        <strong>Have a question?</strong> You may find an answer
-                        in{" "}
-                        <a
-                            href={`${BAKED_BASE_URL}/faqs`}
-                            target="_blank"
-                            rel="noopener"
+            <div className="feedback-form__success">
+                <FontAwesomeIcon
+                    icon={faPaperPlane}
+                    className="feedback-form__success-icon"
+                />
+                <h3 className="feedback-form__success-title">
+                    Thank you for your feedback
+                </h3>
+                <p className="feedback-form__success-text">
+                    We read all feedback, but due to a high volume of messages
+                    we are not able to reply to all.
+                </p>
+                {this.isDialog ? (
+                    <Button
+                        theme="outline-vermillion"
+                        className="feedback-form__success-button"
+                        icon={null}
+                        text="Close"
+                        ariaLabel="Close feedback form"
+                        onClick={this.onClose}
+                    />
+                ) : (
+                    <Button
+                        theme="outline-vermillion"
+                        className="feedback-form__success-button"
+                        icon={null}
+                        text="Send another message"
+                        onClick={this.onSendAnother}
+                    />
+                )}
+            </div>
+        )
+    }
+
+    renderFields() {
+        const { loading, error, specialTopic } = this
+        const { name, email, message } = this.feedback
+
+        return (
+            <>
+                <div className="feedback-form__body">
+                    {this.isDialog && (
+                        <p className="feedback-form__faq-hint">
+                            <strong>Have a question?</strong> You may find an
+                            answer in our{" "}
+                            <a
+                                href={`${BAKED_BASE_URL}/faqs`}
+                                target="_blank"
+                                rel="noopener"
+                            >
+                                FAQs
+                            </a>
+                            .
+                        </p>
+                    )}
+                    <fieldset className="feedback-form__field feedback-form__field--message">
+                        <label
+                            className="feedback-form__label"
+                            htmlFor="feedback.message"
                         >
-                            <strong>FAQs</strong>
-                        </a>
-                        .
-                    </p>
-                </div>
-                <div className="formBody">
-                    <div className="formSection formSectionExpand">
-                        <label htmlFor="feedback.message">Message</label>
+                            Message
+                        </label>
                         <textarea
                             id="feedback.message"
-                            className="sentry-mask"
+                            className="feedback-form__textarea sentry-mask"
+                            value={message}
                             onChange={this.onMessage}
-                            rows={5}
+                            rows={6}
                             minLength={30}
                             required
                             disabled={loading}
                         />
-                        {notices ? (
-                            <div className="topic-notice">
+                        {specialTopic && (
+                            <p className="feedback-form__topic-hint">
                                 Your question may be answered in{" "}
-                                <strong>{notices}</strong>.
-                            </div>
-                        ) : null}
-                    </div>
-                    <div className="formSection">
-                        <label htmlFor="feedback.name">Your name</label>
-                        <input
+                                <a
+                                    href={specialTopic.url}
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    {specialTopic.title}
+                                </a>
+                                .
+                            </p>
+                        )}
+                    </fieldset>
+                    <fieldset className="feedback-form__field">
+                        <label
+                            className="feedback-form__label"
+                            htmlFor="feedback.name"
+                        >
+                            Your name
+                        </label>
+                        <TextInput
                             id="feedback.name"
-                            className="sentry-mask"
+                            className="feedback-form__input sentry-mask"
+                            value={name}
                             onChange={this.onName}
-                            autoFocus={autofocus}
+                            autoComplete="name"
                             disabled={loading}
                         />
-                    </div>
-                    <div className="formSection">
-                        <label htmlFor="feedback.email">Email address</label>
-                        <input
+                    </fieldset>
+                    <fieldset className="feedback-form__field">
+                        <label
+                            className="feedback-form__label"
+                            htmlFor="feedback.email"
+                        >
+                            Email address
+                        </label>
+                        <TextInput
                             id="feedback.email"
-                            className="sentry-mask"
-                            onChange={this.onEmail}
+                            className="feedback-form__input sentry-mask"
                             type="email"
+                            value={email}
+                            onChange={this.onEmail}
+                            autoComplete="email"
                             disabled={loading}
                         />
-                        <small className="form-text text-muted">
+                        <p className="feedback-form__hint">
                             Your name and email will only be used to reply to
                             you and not for any other purpose. If you do not
                             give a valid email, we will not be able to reply to
                             you.
-                        </small>
-                    </div>
-                    {this.error ? (
-                        <div style={{ color: "red" }}>{this.error}</div>
-                    ) : undefined}
-                    {this.done ? (
-                        <div style={{ color: "green" }}>
-                            Thanks for your feedback!
-                        </div>
-                    ) : undefined}
+                        </p>
+                    </fieldset>
+                    {error && <p className="feedback-form__error">{error}</p>}
                 </div>
-                <div className="footer">
-                    <button
-                        aria-label="Submit feedback"
+                <div className="feedback-form__footer">
+                    <Button
                         type="submit"
+                        theme="solid-vermillion"
+                        className="feedback-form__submit"
+                        text="Send message"
+                        ariaLabel="Submit feedback"
                         disabled={loading}
-                    >
-                        Send message
-                    </button>
+                    />
                 </div>
-            </React.Fragment>
+            </>
         )
     }
 
     override render() {
         return (
             <form
-                className={classnames("FeedbackForm", {
-                    loading: this.loading,
+                className={cx("feedback-form", {
+                    "feedback-form--dialog": this.isDialog,
+                    "feedback-form--loading": this.loading,
                 })}
                 onSubmit={this.onSubmit}
             >
-                {this.renderBody()}
+                {this.isDialog && (
+                    <div className="feedback-form__header">
+                        <h2 className="feedback-form__title">
+                            {FEEDBACK_FORM_TITLE}
+                        </h2>
+                        <CloseButton
+                            className="feedback-form__close"
+                            onClick={this.onClose}
+                        />
+                    </div>
+                )}
+                {this.done ? this.renderSuccess() : this.renderFields()}
             </form>
         )
     }
 }
 
+/**
+ * The floating "Feedback" button in the site tools (bottom right corner on
+ * desktop), which opens the feedback form in a popover.
+ */
 @observer
 export class FeedbackPrompt extends React.Component {
     isOpen: boolean = false
+    boxRef: React.RefObject<HTMLDivElement | null> = React.createRef()
 
     constructor(props: Record<string, never>) {
         super(props)
@@ -421,28 +386,26 @@ export class FeedbackPrompt extends React.Component {
 
     @action.bound toggleOpen() {
         this.isOpen = !this.isOpen
+        if (this.isOpen) {
+            // Focus the message field once the popover is visible
+            requestAnimationFrame(() => {
+                this.boxRef.current?.querySelector("textarea")?.focus()
+            })
+        }
     }
 
     @action.bound onClose() {
         this.isOpen = false
     }
 
-    @action.bound onClickOutside() {
-        this.onClose()
-    }
-
     override render() {
         return (
-            <div
-                className={`feedbackPromptContainer${
-                    this.isOpen ? " active" : ""
-                }`}
-            >
+            <div className={cx("feedback-prompt", { active: this.isOpen })}>
                 {/* We are keeping the form always rendered to avoid wiping all contents
                 when a user accidentally closes the form */}
-                <div style={{ display: this.isOpen ? "block" : "none" }}>
-                    <div className="overlay" onClick={this.onClickOutside} />
-                    <div className="box">
+                <div hidden={!this.isOpen}>
+                    <div className="overlay" onClick={this.onClose} />
+                    <div className="feedback-prompt__box" ref={this.boxRef}>
                         <FeedbackForm onClose={this.onClose} />
                     </div>
                 </div>

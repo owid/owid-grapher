@@ -106,33 +106,28 @@
 
 .SiteMobileFeedbackModal__box {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
     height: 100%;
-    @include popover-box-styles;
-    width: 100vw;
-    border-radius: 0;
+    background-color: $white;
 
-    .FeedbackForm {
-        height: 100%;
-        max-height: none;
-
-        @include sm-up {
-            max-height: 700px;
-        }
-
-        > div.formBody textarea {
-            font-size: 16px;
-        }
+    .feedback-form {
+        --feedback-form-padding-x: 16px;
+        flex: 1 1 auto;
     }
 
-    .SiteMobileFeedbackModal__close {
-        position: absolute;
-        top: 0;
-        right: 0;
-        padding: 0.5rem 1rem !important;
-        cursor: pointer;
-        z-index: 1;
-        svg {
-            margin-right: 0;
-        }
+    // The message field fills the free height on small phones but shouldn't
+    // balloon on tall ones. Flex clamps it here and leaves the rest empty.
+    .feedback-form__field--message {
+        max-height: 400px;
+    }
+
+    .feedback-form__textarea {
+        resize: none;
+    }
+
+    .feedback-form__submit {
+        width: 100%;
     }
 }

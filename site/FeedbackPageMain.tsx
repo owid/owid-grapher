@@ -1,14 +1,12 @@
 import { createRoot } from "react-dom/client"
-import { FeedbackForm } from "./Feedback.js"
+import { FeedbackForm, FEEDBACK_FORM_CONTAINER_CLASS } from "./Feedback.js"
 
 export function runFeedbackPage() {
-    const elem = document.querySelector(".FeedbackPage main")
-    if (!elem) throw new Error("FeedbackPage main element not found in DOM")
-
-    const root = createRoot(elem)
-    root.render(
-        <div className="box">
-            <FeedbackForm />
-        </div>
+    const container = document.querySelector(
+        `.${FEEDBACK_FORM_CONTAINER_CLASS}`
     )
+    if (!container) throw new Error("Feedback form container not found in DOM")
+
+    const root = createRoot(container)
+    root.render(<FeedbackForm />)
 }
