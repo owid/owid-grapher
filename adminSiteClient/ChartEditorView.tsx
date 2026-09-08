@@ -33,7 +33,6 @@ import {
     GrapherState,
     hasValidConfigForBinningStrategy,
 } from "@ourworldindata/grapher"
-import { getFullReferencesCount } from "./adminChartApi.js"
 import { isConfigEditorInstance } from "./ConfigEditor.js"
 import { EditorBasicTab } from "./EditorBasicTab.js"
 import { EditorDataTab } from "./EditorDataTab.js"
@@ -41,7 +40,6 @@ import { EditorTextTab } from "./EditorTextTab.js"
 import { EditorCustomizeTab } from "./EditorCustomizeTab.js"
 import { EditorScatterTab } from "./EditorScatterTab.js"
 import { EditorMapTab } from "./EditorMapTab.js"
-import { EditorReferencesTab } from "./EditorReferencesTab.js"
 import { EditorDebugTab } from "./EditorDebugTab.js"
 import { SaveButtons } from "./SaveButtons.js"
 import { LoadingBlocker } from "./Forms.js"
@@ -435,11 +433,6 @@ export class ChartEditorView<
                                         }}
                                     >
                                         {tabLabel(tab)}
-                                        {tab === "refs" && editor?.references
-                                            ? ` (${getFullReferencesCount(
-                                                  editor.references
-                                              )})`
-                                            : ""}
                                     </a>
                                 </li>
                             ))}
@@ -485,9 +478,6 @@ export class ChartEditorView<
                         {activeExtraTab &&
                             configEditor &&
                             activeExtraTab.render(configEditor)}
-                        {!activeExtraTab && activeTab === "refs" && (
-                            <EditorReferencesTab editor={editor} />
-                        )}
                         {activeTab === "export" && (
                             <EditorExportTab editor={editor} />
                         )}

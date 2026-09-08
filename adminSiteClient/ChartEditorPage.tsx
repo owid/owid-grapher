@@ -12,6 +12,7 @@ import { Redirect } from "react-router-dom"
 import {
     getParentIndicatorIdFromChartConfig,
     mergeGrapherConfigs,
+    slugify,
 } from "@ourworldindata/utils"
 import {
     type AnalyticsGrapherViewWithRank,
@@ -24,7 +25,7 @@ import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
-import { LoadingBlocker, Section, Toggle } from "./Forms.js"
+import { AutoTextField, LoadingBlocker, Section, Toggle } from "./Forms.js"
 import { GrapherEditor } from "./GrapherEditor.js"
 import { ConfigEditor, EditorExtraTab } from "./ConfigEditor.js"
 import { References } from "./AbstractChartEditor.js"
@@ -499,8 +500,24 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
      * Used to sit at the bottom of the Basic and Text tabs.
      */
     private renderPublishingTab(editor: ConfigEditor): React.ReactNode {
+        const { grapherState } = editor
         return (
             <>
+                <Section name="URL">
+                    <AutoTextField
+                        label="/grapher/"
+                        value={grapherState.slug}
+                        onValue={action(
+                            (slug: string) =>
+                                (grapherState.slug = slugify(slug))
+                        )}
+                        isAuto={grapherState.slug === grapherState.defaultSlug}
+                        onToggleAuto={action(
+                            () => (grapherState.slug = grapherState.defaultSlug)
+                        )}
+                        helpText="Human-friendly URL for this chart"
+                    />
+                </Section>
                 <Section name="Inheritance">
                     {this.indicatorId ? (
                         <>

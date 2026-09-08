@@ -223,8 +223,6 @@ export abstract class AbstractChartEditor<
         this.disposers.forEach((dispose) => dispose())
     }
 
-    abstract get references(): References | undefined
-
     @computed get variableIdsByCatalogPath():
         | Record<string, number | null>
         | undefined {

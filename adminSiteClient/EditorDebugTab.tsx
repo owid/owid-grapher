@@ -3,17 +3,10 @@ import { Component } from "react"
 import { observer } from "mobx-react"
 import { Section } from "./Forms.js"
 import { action, computed, observable, makeObservable } from "mobx"
-import {
-    NARRATIVE_CHART_PROPS_TO_OMIT,
-    copyToClipboard,
-} from "@ourworldindata/utils"
+import { copyToClipboard } from "@ourworldindata/utils"
 import YAML from "yaml"
 import { Modal, notification } from "antd"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import {
-    NarrativeChartEditor,
-    isNarrativeChartEditorInstance,
-} from "./NarrativeChartEditor.js"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
 import { ConfigEditor, isConfigEditorInstance } from "./ConfigEditor.js"
 import { stringify } from "safe-stable-stringify"
@@ -28,8 +21,6 @@ export class EditorDebugTab<
         const { editor } = this.props
         if (isConfigEditorInstance(editor))
             return <EditorDebugTabForConfig editor={editor} />
-        else if (isNarrativeChartEditorInstance(editor))
-            return <EditorDebugTabForNarrativeChart editor={editor} />
         else return null
     }
 }
@@ -40,7 +31,45 @@ class EditorDebugTabForConfig extends Component<{
 }> {
     constructor(props: { editor: ConfigEditor }) {
         super(props)
-        makeObservable(this)
+        makeObservable(this, { diffModalOpen: observable })
+    }
+
+    diffModalOpen = false
+
+    @action.bound onModalClose() {
+        this.diffModalOpen = false
+    }
+
+    /** The full config side by side with the base it sits on. */
+    @computed get diffModal() {
+        const { fullConfig, parentConfig } = this.props.editor
+        return (
+            <Modal
+                open={this.diffModalOpen}
+                centered
+                width="80vw"
+                onOk={this.onModalClose}
+                onCancel={this.onModalClose}
+                cancelButtonProps={{ style: { display: "none" } }}
+            >
+                <div style={{ maxHeight: "50vh", overflowY: "auto" }}>
+                    <ReactDiffViewer
+                        newValue={stringify(fullConfig, null, 2)}
+                        oldValue={stringify(parentConfig ?? {}, null, 2)}
+                        leftTitle="Base config"
+                        rightTitle="This chart"
+                        compareMethod={DiffMethod.WORDS_WITH_SPACE}
+                        styles={{
+                            contentText: {
+                                wordBreak: "break-word",
+                            },
+                        }}
+                        extraLinesSurroundingDiff={2}
+                        highlightLanguage="json"
+                    />
+                </div>
+            </Modal>
+        )
     }
 
     @action.bound copyYamlToClipboard() {
@@ -82,6 +111,19 @@ class EditorDebugTabForConfig extends Component<{
                     >
                         Copy YAML for ETL
                     </button>
+                    {parentConfig && (
+                        <>
+                            {this.diffModal}{" "}
+                            <button
+                                className="btn btn-secondary mt-2"
+                                onClick={action(
+                                    () => (this.diffModalOpen = true)
+                                )}
+                            >
+                                Show diff to base config
+                            </button>
+                        </>
+                    )}
                 </Section>
 
                 {parentConfig && (
@@ -100,154 +142,6 @@ class EditorDebugTabForConfig extends Component<{
                     </Section>
                 )}
 
-                <Section name="Full Config">
-                    <textarea
-                        rows={7}
-                        readOnly
-                        className="form-control"
-                        value={YAML.stringify(fullConfig)}
-                    />
-                </Section>
-            </div>
-        )
-    }
-}
-
-@observer
-class EditorDebugTabForNarrativeChart extends Component<{
-    editor: NarrativeChartEditor
-}> {
-    constructor(props: { editor: NarrativeChartEditor }) {
-        super(props)
-
-        makeObservable(this, {
-            diffModalOpen: observable,
-        })
-    }
-
-    @action.bound copyYamlToClipboard() {
-        // Avoid modifying the original JSON object
-        // Due to mobx memoizing computed values, the JSON can be mutated.
-        const patchConfig = {
-            ...this.props.editor.patchConfig,
-        }
-        delete patchConfig.id
-        delete patchConfig.dimensions
-        delete patchConfig.version
-        delete patchConfig.isPublished
-        const chartConfigAsYaml = YAML.stringify(patchConfig)
-        // Use the Clipboard API to copy the config into the users clipboard
-        void copyToClipboard(chartConfigAsYaml)
-        notification["success"]({
-            title: "Copied YAML to clipboard",
-            description: "You can now paste this into the ETL",
-            placement: "bottomRight",
-            closeIcon: <></>,
-        })
-    }
-
-    diffModalOpen = false
-
-    @action.bound onModalClose() {
-        this.diffModalOpen = false
-    }
-
-    @computed get diffModal() {
-        return (
-            <Modal
-                open={this.diffModalOpen}
-                centered
-                width="80vw"
-                onOk={this.onModalClose}
-                onCancel={this.onModalClose}
-                cancelButtonProps={{ style: { display: "none" } }}
-            >
-                <div style={{ maxHeight: "50vh", overflowY: "auto" }}>
-                    <ReactDiffViewer
-                        newValue={stringify(
-                            this.props.editor.fullConfig,
-                            null,
-                            2
-                        )}
-                        oldValue={stringify(
-                            _.omit(
-                                this.props.editor.parentConfig,
-                                NARRATIVE_CHART_PROPS_TO_OMIT
-                            ),
-                            null,
-                            2
-                        )}
-                        leftTitle={"a"}
-                        rightTitle={"b"}
-                        compareMethod={DiffMethod.WORDS_WITH_SPACE}
-                        styles={{
-                            contentText: {
-                                wordBreak: "break-word",
-                            },
-                        }}
-                        extraLinesSurroundingDiff={2}
-                        highlightLanguage="json"
-                    />
-                </div>
-            </Modal>
-        )
-    }
-
-    override render() {
-        const { patchConfig, parentConfig, fullConfig, parentUrl } =
-            this.props.editor
-
-        const parentTitle = parentConfig?.title ?? "(missing title)"
-        const parentChartLink = parentUrl ? (
-            <a href={`/admin${parentUrl}`} target="_blank" rel="noopener">
-                {parentTitle}
-            </a>
-        ) : (
-            parentTitle
-        )
-
-        return (
-            <div>
-                <Section name="Config">
-                    <textarea
-                        rows={7}
-                        readOnly
-                        className="form-control"
-                        value={YAML.stringify(patchConfig)}
-                    />
-                    <button
-                        className="btn btn-primary mt-2"
-                        onClick={this.copyYamlToClipboard}
-                    >
-                        Copy YAML for ETL
-                    </button>
-
-                    {this.diffModal}
-
-                    <button
-                        className="btn btn-secondary mt-2"
-                        onClick={() => (this.diffModalOpen = true)}
-                    >
-                        Show diff to parent chart
-                    </button>
-                </Section>
-
-                <Section name="Parent chart">
-                    <p>
-                        This chart inherits settings from its parent chart,{" "}
-                        {parentChartLink}.
-                    </p>
-                </Section>
-                {parentConfig && (
-                    <Section name="Parent config">
-                        <textarea
-                            rows={7}
-                            readOnly
-                            className="form-control"
-                            value={YAML.stringify(parentConfig)}
-                        />
-                    </Section>
-                )}
                 <Section name="Full Config">
                     <textarea
                         rows={7}
