@@ -17,8 +17,8 @@
 
 import type { SidecarProse } from "@ourworldindata/types"
 
-/** The kind of sidecar being parsed — templates have no properties table */
-export type SidecarKind = "component" | "template"
+/** The kind of sidecar being parsed — templates and guides have no properties table */
+export type SidecarKind = "component" | "template" | "guide"
 
 interface SidecarSectionSpec {
     /** Where the section's content ends up */
@@ -46,7 +46,11 @@ export const SIDECAR_SECTIONS: readonly SidecarSectionSpec[] = [
         kinds: ["component", "template"],
     },
     { key: "properties", heading: "Properties", kinds: ["component"] },
-    { key: "notes", heading: "Notes", kinds: ["component", "template"] },
+    {
+        key: "notes",
+        heading: "Notes",
+        kinds: ["component", "template", "guide"],
+    },
 ]
 
 export interface ParsedSidecarProse {
