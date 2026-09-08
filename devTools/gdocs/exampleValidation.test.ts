@@ -109,4 +109,12 @@ describe(validateDocumentExample, () => {
             expect.stringContaining("no body"),
         ])
     })
+
+    test("accepts a minimal data insight, despite the parser-synthesised refs key", () => {
+        const archie = doc(
+            "title: X\ntype: data-insight\nauthors: A. Author",
+            "A paragraph."
+        )
+        expect(validateDocumentExample(archie)).toEqual([])
+    })
 })
